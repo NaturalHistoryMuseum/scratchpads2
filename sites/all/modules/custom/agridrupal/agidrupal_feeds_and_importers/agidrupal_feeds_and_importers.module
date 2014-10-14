@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Agidrupal feeds and importers feature.
+ */
+
+include_once 'agidrupal_feeds_and_importers.features.inc';

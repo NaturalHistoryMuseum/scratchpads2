@@ -1,0 +1,392 @@
+
+
+                      TAXONOMY CSV IMPORT/EXPORT
+                      ==========================
+
+
+== CHANGELOG ==
+  ===========
+
+Taxonomy csv import/export 7.x-5.10, 2012-02-22
+-----------------------------------------------
+#1410784 by Daniel Berthereau: Added import/export of multivalued fields.
+By Daniel Berthereau: Simplified import UI: only three generic import formats.
+By Daniel Berthereau: Removed old code from 6.x in order to use only Field API.
+By Daniel Berthereau: Clarified import of translations.
+By Daniel Berthereau: Added export of translations.
+
+Taxonomy csv import/export 7.x-5.10, 2012-02-22
+Taxonomy csv import/export 6.x-5.10, 2012-02-22
+-----------------------------------------------
+By Daniel Berthereau: Updated documentation and checked code with Coder.
+
+Taxonomy csv import/export 6.x-5.10, 2012-02-22
+-----------------------------------------------
+By Daniel Berthereau: Added a full export format compatible with Taxonomy CSV 7.
+
+
+Taxonomy csv import/export 7.x-5.9, 2012-02-04
+----------------------------------------------
+By Daniel Berthereau: Added import custom fields (by tid and for any fields).
+By Daniel Berthereau: Added import of translations by tid.
+By Daniel Berthereau: Added export of fields.
+
+Taxonomy csv import/export 7.x-5.9, 2012-02-04
+Taxonomy csv import/export 6.x-5.9, 2012-02-04
+----------------------------------------------
+#969750 by Daniel Berthereau: Fixed check of Javascript, presumed true.
+By Daniel Berthereau: Improved internal documentation and code.
+By Daniel Berthereau: Added new export format: tid and name.
+
+
+Taxonomy csv import/export 7.x-5.8, 2012-01-28
+----------------------------------------------
+#1395090 by Alex Oroshchuk: Added import/export by vocabulary machine name.
+By Daniel Berthereau: Added option to set the format of the description.
+By Daniel Berthereau: Removed compatibily layer between Taxonomy CSV 6 and 7.
+By Daniel Berthereau: Improved import speed and memory usage.
+By Daniel Berthereau: Added internationalization for Taxonomy CSV import.
+#1413922 By Daniel Berthereau: Added support for number and text custom fields.
+
+Taxonomy csv import/export 7.x-5.8, 2012-01-28
+Taxonomy csv import/export 6.x-5.8, 2012-01-28
+----------------------------------------------
+#1359260 by Daniel Berthereau: Added a warning when terms count is invalid.
+By Daniel Berthereau: Added pipe delimiter and quote enclosure option.
+By Daniel Berthereau: Check line breaks in descriptions and escape or set them.
+#1287210 by Èric Palau: Added permissions to import and export by CSV.
+#1312244 by Daniel Berthereau: Added drush support to use module with CLI.
+By Daniel Berthereau: Simplified use of update/replace/ignore existing items.
+#1308420 by Jordim: Fixed 'Full definitions and links' import.
+By Daniel Berthereau: Cleaned some cosmetic items (Coder review).
+#1395090 by Alex Oroshchuk: Fixed check options with Drush 4.5.
+#1006440 by Daniel Berthereau: Changed default export enclosure to « " ».
+By Daniel Berthereau: Fixed Full definitions import with duplicates names.
+#1410628 by Daniel Berthereau: Added select to export multiple vocabularies.
+
+
+Taxonomy csv import/export 7.x-5.7, 2011-10-03
+----------------------------------------------
+By Daniel Berthereau: Added autocreation of custom fields.
+By Daniel Berthereau: Improved related terms import.
+#1027068 by Carsten Müller and Roberto Mariani: Added support for custom fields.
+#1040894 by Carsten Müller: Added support for file extension .csv and .txt.
+#1179568 by TommyChris: Fixed DB double prefix error.
+
+Taxonomy csv import/export 7.x-5.7, 2011-10-03
+Taxonomy csv import/export 6.x-5.7, 2011-10-03
+----------------------------------------------
+By Daniel Berthereau: Released new versions.
+By Daniel Berthereau: Fixed some UI bugs and updated help.
+By Daniel Berthereau: Simplified full definition and links import.
+By Daniel Berthereau: Completed keep order of terms option.
+By Daniel Berthereau: Improved user interface.
+#1006466 by Daniel Berthereau: Fixed import full definitions in existing.
+#1208010 by Daniel Berthereau: Added hierarchical tree export format.
+#1237068 by Ted A Gifford: Removed a "by reference" warning in PHP strict mode.
+#1244498 by Brad Erickson: Added link to first term causing export failure.
+#1256628 by Daniel Berthereau: Fixed Microsoft DOS end line export format.
+#1267026 by Daniel Berthereau: Fixed non-ascii filename of exported vocabulary.
+#1270168 by Daniel Berthereau: Fixed Taxonomy manager export format.
+#1287210 by Daniel Berthereau: Added option to delete terms before import.
+
+Taxonomy csv import/export 6.x-5.7, 2011-10-03
+----------------------------------------------
+#1123914 by Andrey parashutiki: Fixed use of UI with keys up and down.
+#1248926 by Daniel Berthereau: Added infos about weight limit of imported terms.
+
+
+Taxonomy csv import/export 7.x-5.6, 2011-01-07
+Taxonomy csv import/export 6.x-5.6, 2011-01-07
+----------------------------------------------
+#1017708 by EliteMonk: Fixed query with database prefix.
+
+
+Taxonomy csv import/export 7.x-5.5, 2011-01-07
+Taxonomy csv import/export 6.x-5.5, 2011-01-07
+----------------------------------------------
+By Daniel Berthereau: Added soft tab (two spaces or more) delimiter.
+By Daniel Berthereau: Added option to keep order of terms by specifying weight.
+#1006436 by John Voskuilen: Fixed export with Microsoft DOS end of line.
+#1006466 by John Voskuilen: Harmonized import of Full term definition and links.
+
+
+Taxonomy csv import/export 6.x-5.4, 2010-09-14
+----------------------------------------------
+#910788 by Brad Bulger: Fixed error when vocabulary isn't checked after import.
+
+
+Taxonomy csv import/export 7.x-5.4-dev, 2010-09-13
+--------------------------------------------------
+#896132 by Matthias Hutterer: Fixed parents & children names broken by D7 HEAD.
+
+
+Taxonomy csv import/export 6.x-5.3, 2010-09-13
+----------------------------------------------
+By Daniel Berthereau: Reimplemented utf8 conversion for obsolete Windows users.
+By Daniel Berthereau: Simplified format for geotaxonomy import/export.
+
+
+Taxonomy csv import/export 7.x-5.3, 2010-08-20
+Taxonomy csv import/export 6.x-5.3-dev, 2010-08-20
+--------------------------------------------------
+By Daniel Berthereau: Enabled plug-ins for specific formats.
+By Daniel Berthereau: Implemented geotaxonomy import/export format.
+By Daniel Berthereau: Simplified and standardized import process.
+
+
+Taxonomy csv import/export 7.x-5.1, 2010-08-16
+Taxonomy csv import/export 6.x-5.2, 2010-08-16
+----------------------------------------------
+By Daniel Berthereau: Fixed error of commit to cvs and linked bugs.
+By Daniel Berthereau: Forget taxonomy_csv.css and taxonomy_csv.js (Drupal 6).
+By Daniel Berthereau: Merged all taxonomy-csv 6.x branches except 6.x-1.
+By Daniel Berthereau: Doxygened some help.
+
+
+Taxonomy csv import/export 7.x-5.0, 2010-08-13
+Taxonomy csv import/export 6.x-5.0, 2010-08-13
+----------------------------------------------
+By Daniel Berthereau: Changed cvs HEAD from 6.x to 7.x release.
+By Daniel Berthereau: Merged all taxonomy-csv 7.x branches except 7.x-1.
+By Daniel Berthereau: Modularized and simplified code and reintegrated line api.
+By Daniel Berthereau: Use of new features of Drupal 7 (UI and Field).
+By Daniel Berthereau: Implemented synonyms and related terms in 7.x release.
+By Daniel Berthereau: Cleaned structure of user interface.
+By Daniel Berthereau: Improved speed of tree and polyhierarchical import.
+By Daniel Berthereau: Implemented quick import mode: no check of existing terms.
+By Daniel Berthereau: Set hierarchy check disabled by default in user interface.
+By Daniel Berthereau: Removed special permissions and use 'administer taxonomy'.
+By Daniel Berthereau: Removed internal cache and use only core taxonomy ones.
+By Daniel Berthereau: Removed utf8 conversion.
+#872366 by vipzhicheng: Better support of non-Ascii characters.
+#843526 by iAugur: Fixed field name prefix.
+#686328 by Alexander N: Fixed double display of PathAuto warning.
+
+
+Taxonomy csv import/export 7.x-4.11, 2010-05-29
+Taxonomy csv import/export 6.x-4.11, 2010-05-29
+-----------------------------------------------
+By Daniel Berthereau: Fixed and updated release to prepare Drupal 7 release.
+By Daniel Berthereau: Small changed 6.x release to keep it close to the 7.x one.
+By Daniel Berthereau: Added check of maximum length of names to 255 characters.
+
+
+Taxonomy csv import/export 6.x-4.10, 2010-05-10
+-----------------------------------------------
+#765964 by Daniel Berthereau: Fixed import duplicate terms with full term mode.
+
+
+Taxonomy csv import/export 6.x-4.9, 2010-01-13
+----------------------------------------------
+#666820 by Jeremy Rasmussen: Fixed url of exported taxonomy file.
+
+
+taxonomy_csv 5.x-1.5, 2009-12-11
+--------------------------------
+#333159 by Katrina Messenger: Added weight import.
+
+
+Taxonomy csv import/export 6.x-4.8, 2009-12-10
+Taxonomy csv line api 6.x-4.8, 2009-12-10
+----------------------------------------------
+By Daniel Berthereau: Cleaned code with SimpleTest/TestBed suggestions.
+#633348 by Jens Beltofte: Fixed field name when database uses a prefix.
+#495548 and #447852 by Daniel Berthereau: Warned if use of incompatible modules.
+
+
+Taxonomy csv import/export 7.x-4.7, 2009-10-20
+Taxonomy csv import/export 6.x-4.7, 2009-10-20
+----------------------------------------------
+By Daniel Berthereau: Added export of terms and vocabularies.
+
+
+Taxonomy csv 7.x-4.6, 2009-10-05
+Taxonomy csv 6.x-4.6, 2009-10-05
+--------------------------------
+#590206 by Daniel Berthereau: Added import of full term definitions and links.
+By Daniel Berthereau: Added import in multiple vocabularies with 'fields_links'.
+By Daniel Berthereau: Cleaned code with some Zend Studio suggestions.
+By Daniel Berthereau: Added table of content in help.
+#576042 by Daniel Berthereau: Fixed use of previous choices save.
+
+
+Taxonomy csv line api 6.x-4.5, 2009-09-23
+-----------------------------------------
+By Daniel Berthereau: Released light api: taxonomy_csv.line.api.inc in CVS HEAD.
+
+
+Taxonomy csv 7.x-4.5, 2009-09-22
+--------------------------------
+By Daniel Berthereau: Released public version of taxonomy_csv for Drupal 7.
+
+
+Taxonomy csv 7.x-4.5, 2009-09-22
+Taxonomy csv 6.x-4.5, 2009-09-22
+--------------------------------
+By Daniel Berthereau: Added Polyhierarchical structure import.
+By Daniel Berthereau: Added Fields (name, weight, description, synonyms) import.
+By Daniel Berthereau: Added check of root level term.
+By Daniel Berthereau: Added check when an imported term unchanges existing ones.
+By Daniel Berthereau: Cleaned some UI items and help.
+By Daniel Berthereau: Fixed compatibility of url import with all browsers.
+By Daniel Berthereau: Fixed sensitive case update of a name.
+
+
+Taxonomy csv 7.x-4.4, 2009-09-13
+Taxonomy csv 6.x-4.4, 2009-09-13
+--------------------------------
+#575236 by Daniel Berthereau: Added Children import.
+By Daniel Berthereau: Added Parents import.
+
+
+Taxonomy csv 7.x-4.3, 2009-09-12
+Taxonomy csv 6.x-4.3, 2009-09-12
+--------------------------------
+By Daniel Berthereau: Created API to import csv line or batch from any module.
+By Daniel Berthereau: Added any size file import (full line by line approach).
+By Daniel Berthereau: Added tweaks to allow import even with low memory.
+By Daniel Berthereau: Removed multistep autodivide import.
+By Daniel Berthereau: Added Taxonomy manager export format.
+By Daniel Berthereau: Cleaned comments and help.
+By Daniel Berthereau: Fixed form display bugs.
+
+
+Taxonomy csv 7.x-4.2, 2009-08-18
+Taxonomy csv 6.x-4.2, 2009-08-18
+--------------------------------
+#450900 by Daniel Berthereau: Fixed duplicate parent term query.
+By Daniel Berthereau: Fixed batch cache and statistics.
+By Daniel Berthereau: Fixed error display when batch error (only useful infos).
+By Daniel Berthereau: Added option to reduce log level and memory usage.
+By Daniel Berthereau: Cleaned release.
+
+
+Taxonomy csv 7.x-4.1, 2009-08-11
+Taxonomy csv 6.x-4.1, 2009-08-11
+--------------------------------
+#540916 by Daniel Berthereau: Added warning to disable Pathauto before import.
+
+
+Taxonomy csv 7.x-4.0, 2009-08-10
+--------------------------------
+By Daniel Berthereau: Converted Taxonomy csv module from Drupal 6.x to Drupal 7.
+
+
+Taxonomy csv 6.x-4.0, 2009-08-09
+--------------------------------
+By Daniel Berthereau: Added multistep import for big files (avoid memory error).
+By Daniel Berthereau: Added term enclosure option.
+By Daniel Berthereau: Reviewed user interface code for lisibility (js & css).
+By Daniel Berthereau: Reviewed batch code in order to decrease memory usage.
+
+
+Taxonomy csv 6.x-3.1, 2009-04-08
+--------------------------------
+#427076 by Daniel Berthereau: Fixed Microsoft Windows pass-by-reference error.
+
+
+Taxonomy csv 6.x-3.0, 2009-04-03
+--------------------------------
+By Daniel Berthereau: Redesigned UI with dynamic options and examples (AHAH).
+By Daniel Berthereau: Added import by a text area.
+By Daniel Berthereau: Added hook_perm "administer taxonomy by csv".
+By Daniel Berthereau: Added memorize user settings.
+By Daniel Berthereau: Added test on a duplicate of an existing vocabulary.
+By Daniel Berthereau: Added tabulation delimiter option.
+By Daniel Berthereau: Added import terms as flat vocabulary.
+By Daniel Berthereau: Renamed "children import" to "structure import".
+By Daniel Berthereau: Disabled option relations to all vocabularies (not in D6).
+By Daniel Berthereau: Extracted advanced help to alone file.
+By Daniel Berthereau: Simplified stats import code.
+
+
+Taxonomy csv 6.x-2.4, 2009-03-10
+--------------------------------
+By Daniel Berthereau: Released 6.x.2.4.
+
+
+Taxonomy csv 6.x-2.3, 2009-03-09
+--------------------------------
+By Daniel Berthereau: Added subrelations import.
+By Daniel Berthereau: Added option to make relations into all vocabularies.
+By Daniel Berthereau: Fixed related terms import: remove related when replace.
+By Daniel Berthereau: Fixed vocabulary level check for flat vocabulary.
+
+
+Taxonomy csv 6.x-2.2, 2009-03-06
+--------------------------------
+By Daniel Berthereau: Restructured module to display warning informations.
+By Daniel Berthereau: Added options to display import result.
+By Daniel Berthereau: Added options to choose log level.
+By Daniel Berthereau: Added one term by line structure import.
+By Daniel Berthereau: Added auto create vocabulary.
+By Daniel Berthereau: Added vocabulary level check.
+By Daniel Berthereau: Extended help about one term structure array import.
+By Daniel Berthereau: Fixed translate in install hook.
+By Daniel Berthereau: Fixed related terms import: keep old even if Ignore.
+
+
+Taxonomy csv 6.x-2.1, 2009-02-28
+--------------------------------
+By Daniel Berthereau: Fixed package release.
+By Daniel Berthereau: Fixed define.
+
+
+Taxonomy csv 6.x-2.0, 2009-02-27
+--------------------------------
+By Daniel Berthereau: Rewrited module. Cleaned release.
+
+
+taxonomy_csv 6.x-1.5, 2008-04-19
+taxonomy_csv 5.x-1.4, 2008-04-19
+taxonomy_csv 4.7.x-1.4, 2008-04-19
+----------------------------------
+By naquah: Various bug fixes regarding file encoding, line endings, and
+delimiters.
+
+
+taxonomy_csv 6.x-1.4, 2008-04-10
+--------------------------------
+By naquah: Update for Drupal 6.2 compatibility.
+
+
+taxonomy_csv 6.x-1.3, 2008-02-23
+taxonomy_csv 5.x-1.3, 2008-02-23
+taxonomy_csv 4.7.x-1.3, 2008-02-23
+----------------------------------
+By naquah: Improved documentation.
+By naquah: Allow import of term description and term synonyms.
+By naquah: Various bug fixes.
+
+
+taxonomy_csv 6.x-1.x-dev, 2008-01-27
+------------------------------------
+Fully compatible with Drupal 6 and utilizing the new Batch API that will
+accomodate in importing larger files.
+
+
+taxonomy_csv 5.x-1.2, 2008-01-27
+taxonomy_csv 4.7.x-1.2, 2008-01-27
+----------------------------------
+By naquah: Added a README.txt file.
+No new features, no bug fixes and no known bugs.
+
+
+taxonomy_csv 5.x-1.1, 2007-11-16
+taxonomy_csv 4.7.x-1.1, 2007-11-16
+----------------------------------
+By naquah: Fixed a bug where items with the same name though different parents
+are not imported.
+
+
+taxonomy_csv 5.x-1.0, 2007-10-26
+taxonomy_csv 4.7.x-1.0, 2007-10-26
+----------------------------------
+By naquah: Make sure to read the disclaimer on the project page!
+
+
+taxonomy_csv 5.x-1.x-dev, 2007-10-21
+taxonomy_csv 4.7.x-1.x-dev, 2007-10-21
+--------------------------------------
+By naquah: Use at your own risk!

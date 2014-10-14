@@ -1,0 +1,71 @@
+/**
+ * @file
+ * Styles for Rules forms support module.
+ */
+
+a.rules-forms-inspection-link {
+  display: inline-block;
+  background: transparent url(../../../../misc/help.png) left bottom no-repeat;
+  background-size: 14px 14px;
+  margin: 0 4px;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: 2px;
+}
+
+a.rules-forms-inspection-link:hover + div.rules-forms-element-inspection  {
+  display: block;
+}
+
+a.rules-forms-inspection-link:focus + div.rules-forms-element-inspection {
+  display: block;
+}
+
+div.rules-forms-element-inspection {
+  display: none;
+  position: absolute;
+  z-index: 50;
+  padding: 6px;
+  background: white;
+  border: 1px solid #BEBFB9;
+  font-size: .9em;
+  font-weight: normal;
+  -moz-box-shadow: 2px 10px 10px #999; /* FF1+ */
+  -webkit-box-shadow: 2px 10px 10px #999; /* Saf3-4 */
+  box-shadow: 2px 10px 10px #999; /* Opera 10.5, IE9, Saf5, Chrome */
+  -moz-border-radius: 6px; /* FF1+ */
+  -webkit-border-radius: 6px; /* Saf3-4 */
+  border-radius: 6px; /* Opera 10.5, IE9, Saf5, Chrome */
+  margin-top: -2px; /* Positions the box closer to the help icon */
+}
+
+div.rules-forms-element-inspection:hover {
+  display: block;
+}
+
+div.rules-forms-element-inspection span.rules-forms-element-label h3 {
+  font-weight: bold;
+  padding-left: 2px;
+}
+
+div.rules-forms-element-inspection table {
+  margin-top: 6px;
+}
+
+div.rules-forms-element-inspection table td.rules-forms-element-type {
+  vertical-align: top;
+}
+
+div.rules-forms-element-inspection table td.rules-forms-element-value {
+  font-style: italic;
+}
+
+div.rules-forms-element-inspection ul {
+  list-style-type: circle;
+  margin: 0 0 0 14px;
+}
+
+span.rules-forms-info-help {
+  font-size: .8em;
+}

@@ -1,0 +1,17 @@
+<?php
+
+
+function jqueries_library_alter(&$javascript, $module) {
+	$pos = strpos($_GET['destination'], "agdlios");
+
+if ($pos!=false){
+   
+   if (isset($_SESSION['versionDefault'])==false){
+    $_SESSION['versionDefault'] = variable_get('jquery_update_jquery_version');}
+	variable_set('jquery_update_jquery_version', '1.5');
+}else{
+	$versionDef = variable_get('jquery_update_jquery_version');
+	if ($versionDef=='1.5'){
+	    variable_set('jquery_update_jquery_version', $_SESSION['versionDefault']);}
+	}	
+  }

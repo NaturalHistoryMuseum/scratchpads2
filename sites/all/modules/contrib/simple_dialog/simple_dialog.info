@@ -1,0 +1,14 @@
+name        = Simple Dialog
+description = Provides an API to create simple modal dialogs. Leverages the jQuery ui dialog plugin included with Drupal 7.
+version     = "7.x-1.x-dev"
+core        = "7.x"
+project     = "simple_dialog"
+package     = User interface
+configure   = admin/config/content/simple-dialog
+
+; Information added by drupal.org packaging script on 2013-04-12
+version = "7.x-1.9"
+core = "7.x"
+project = "simple_dialog"
+datestamp = "1365747642"
+

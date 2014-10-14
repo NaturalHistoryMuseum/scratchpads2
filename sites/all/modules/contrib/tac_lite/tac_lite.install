@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ *   Installation functions for tac_lite.
+ *   TODO: All updates need proper error handling and responses
+ */
+
+/**
+ * Implementation of hook_install().
+ *
+ * Ensure that tac_lite hooks are invoked after taxonomy module hooks.
+ */
+function tac_lite_install() {
+  $taxonomy_weight = db_query("SELECT weight FROM {system} WHERE name = 'taxonomy'")->fetchField();
+  $num_updated = db_update('system')
+  ->fields(array(
+    'weight' => $taxonomy_weight + 9,
+  ))
+  ->condition('name', 'tac_lite')
+  ->execute();
+
+  // Note that it is not necessary to rebuild the node access table here, as
+  // that will be done when module settings are saved.
+}
+
+/**
+ * Ensure that tac_lite hooks are invoked after taxonomy module hooks.
+ */
+function tac_lite_update_1() {
+  $taxonomy_weight = db_query("SELECT weight FROM {system} WHERE name = 'taxonomy'")->fetchField();
+  $num_updated = db_update('system')
+  ->fields(array(
+    'weight' => $taxonomy_weight + 9,
+  ))
+  ->condition('name', 'tac_lite')
+  ->execute();
+}
+
+/**
+ * Ensure that the node_access table is thoroughly cleaned up in Drupal 5 update.
+ */
+function tac_lite_update_2() {
+  node_access_rebuild(); // Would batch mode help here?
+  // Assume success and return with message.
+  return t('Rebuilt node access table for tac_lite module.');
+}
+
+/**
+ * Introducing schemes. Rename tac_lite_default_grants to tac_lite_grants_scheme_1.
+ */
+function tac_lite_update_3() {
+  $num_updated = db_update('variable')
+  ->fields(array(
+    'name' => 'tac_lite_grants_scheme_1',
+  ))
+  ->condition('name', 'tac_lite_default_grants')
+  ->execute();
+}
+
+/**
+ * Start of updates to Drupal 6.x-1.2. Start using Drupal standard
+ * update numbers.
+ */
+
+/**
+ * Rename permission from "administer_tac_lite" to "administer
+ * tac_lite" for UI consistency.
+ */
+function tac_lite_update_6001() {
+  // TODO: Please review to make sure this is handling this update properly for this version of code. (only change was formatting and table name)
+  $result = db_query("SELECT * FROM {role_permission} WHERE perm LIKE '%administer_tac_lite%'");
+  foreach ($result as $permission) {
+    $perm = str_replace('administer_tac_lite', 'administer tac_lite', $permission->perm);
+    //db_query("UPDATE {permission} SET perm = '". db_escape_string($perm) ."' WHERE rid =". $permission->rid);
+    $num_updated = db_update('permission')
+    ->fields(array(
+      'perm' => $perm,
+    ))
+    ->condition('rid', $permission->rid)
+    ->execute();
+  }
+}

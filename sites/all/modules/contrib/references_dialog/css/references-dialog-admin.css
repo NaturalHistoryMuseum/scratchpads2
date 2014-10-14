@@ -1,0 +1,27 @@
+ul.references-dialog-links, ul.references-dialog-links li {
+  list-style-type: none;
+}
+ul.references-dialog-links li, ul.references-dialog-links li a {
+  display: inline;
+}
+
+ul.references-dialog-links li.active, ul.references-dialog-links li a.active {
+  color: #0074BD;
+}
+
+ul.references-dialog-links a {
+  padding-left: 20px;
+  margin: 5px;
+}
+
+ul.references-dialog-links li a.add-dialog {
+  background: url('../img/plus.png') left no-repeat;
+}
+
+ul.references-dialog-links li a.edit-dialog {
+  background: url('../img/edit.png') left no-repeat;
+}
+
+ul.references-dialog-links li a.search-dialog {
+  background: url('../img/search.png') left no-repeat;
+}

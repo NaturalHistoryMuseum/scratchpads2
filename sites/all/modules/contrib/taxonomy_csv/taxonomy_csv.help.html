@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Taxonomy CSV import/export help</title>
+  <style type="text/css"><!--
+    h3 {
+      font: bold 120% sans-serif;
+    }
+    h4 {
+      font: bold 100% sans-serif;
+      margin-top: 24px;
+      margin-left: 18px;
+    }
+    h5 {
+      font: italic 100% sans-serif;
+      margin-top: 8px;
+      margin-left: 36px;
+    }
+    table {
+      width: 80%;
+    }
+    table,
+    div.codeblock {
+      border: 1px solid rgb(204, 204, 204);
+      padding: 4px;
+      background-color: rgb(238, 238, 238);
+      margin: 6px 48px 12px 24px;
+    }
+    code {
+      white-space: pre;
+    }
+  --></style>
+</head>
+<body>
+<p>This module allows to import/export taxonomies, structures or simple lists of terms into/from a vocabulary from/to a <a href="http://en.wikipedia.org/wiki/Comma-separated_values" title="Wikipedia definition">CSV</a> file, a url or a copy-and-paste text.</p>
+<p>CSV format is a simple list of values separated by a delimiter, often comma (<strong><code>,</code></strong>) or semicolon (<strong><code>;</code></strong>), and enclosures, often quotation marks (<strong><code>"</code></strong>). If you are unsure how to create a CSV file, you might want to use <a href="http://www.libreoffice.org" title="LibreOffice.org">LibreOffice Calc</a> or another spreadsheet application to export your data into a CSV file.</p>
+<p>Specific import or export formats can be added simply by a plug-in mecanism (or ask author!).</p>
+<p>After enabling the module, permissions "import taxonomy by csv" and "export taxonomy by csv" need to be set. Main "administer taxonomy" permission is not needed to use module, but this is recommended.</p>
+<p>Internationalization is supported, except for attached Fields [Taxonomy CSV pour Drupal 7 only]. So you can import a list or a structure of terms, then translate them.</p>
+<p>This module supports <a href="https://drupal.org/project/drush">drush</a> and allows to import or to export taxonomies by csv with command line interface.</p>
+<p>Taxonomy CSV for Drupal 7 has got a simpler UI compared to the version for Drupal 6, because taxonomy has been reworked with fields in Drupal 7. Help for Drupal 6 version is available in <a href="https://drupalcode.org/project/taxonomy_csv.git/blob_plain/refs/heads/6.x-5.x:/taxonomy_csv.help.html">English</a> or in <a href="https://drupalcode.org/project/taxonomy_csv.git/blob_plain/refs/heads/6.x-5.x:/taxonomy_csv.help.fr.html">French</a>.</p>
+  <div class="toc">
+    <h2 class="nonum"><a id="contents" name="contents">Table of Contents</a></h2>
+    <ol class="toc">
+      <li>
+        <a href="#formats">Formats</a>
+        <ol class="toc">
+          <li>
+            <a href="#structure">Structure</a>
+            <ul>
+              <li>
+                <a href="#flat">Terms (flat vocabulary)</a>
+              </li>
+              <li>
+                <a href="#tree">Hierarchical tree structure or one term by line structure</a>
+              </li>
+              <li>
+                <a href="#polyhierarchy">Polyhierarchical structure</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="#fields">Fields</a>
+            <ul>
+              <li>
+                <a href="#fields_format">Fields CSV format</a>
+              </li>
+              <li>
+                <a href="#fields_custom">Autocreation of Fields</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="#translate">Term translation</a>
+          </li>
+        </ol>
+      </li>
+      <li>
+        <a href="#import">Import</a>
+        <ol class="toc">
+          <li>
+            <a href="#import_content">What to import (content of the source)?</a>
+          </li>
+          <li>
+            <a href="#source">Where are terms to import?</a>
+          </li>
+          <li>
+            <a href="#file_format">How is formatted your source?</a>
+          </li>
+          <li>
+            <a href="#destination">Which vocabulary do you want to import into?</a>
+          </li>
+          <li>
+            <a href="#import_options">When a term exists, what to do with it?</a>
+          </li>
+          <li>
+            <a href="#info_process">Informations on process and big taxonomies import</a>
+          </li>
+        </ol>
+      </li>
+      <li>
+        <a href="#export">Export</a>
+      </li>
+      <li>
+        <a href="#import_api">Drush and Taxonomy csv import API</a>
+      </li>
+      <li>
+        <a href="#advanced_options">Advanced settings and hints</a>
+        <ol class="toc">
+          <li>
+            <a href="#permissions">Permissions</a>
+          </li>
+          <li>
+            <a href="#other_hints">Other hints</a>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </div>
+<h3 id="formats"><a href="#contents">1. Formats</a></h3>
+  <p>Multiple formats can be used to import or export vocabulary. Except with some formats, the first column contains the term name. You can specify what you want to export and how additional columns should be imported.<br />
+  <p>To import a complex taxonomy, it's recommended to import terms in this order:</p>
+  <ul>
+    <li>Structure (flat, tree or polyhierarchical)</li>
+    <li>Fields (name, weight, description, parent and what you want)</li>
+    <li>Translation (if <a href="https://drupal.org/project/i18n">i18n</a> is installed)</li>
+  </ul>
+  <p>That's what you can choose in the first tab.</p>
+  <h4 id="structure"><a href="#contents">1. Structure</a></h4>
+  <h5 id="flat"><a href="#contents">1. Terms (flat vocabulary)</a></h5>
+    <p>Use this option to import a lot of terms in order to create a flat vocabulary. All items in your file will be imported as terms. Example:</p>
+      <div class="codeblock"><ul>
+        <li><code>Clothes, Trees, Houses</code></li>
+        <li><code>Paris, Drupal</code></li>
+      </ul></div>
+  <h5 id="tree"><a href="#contents">2. Hierarchical tree structure or one term by line structure</a></h5>
+    <p>Use this option to create a tree structure of a vocabulary (geography, classification...). To import a hierarchy with multiple parents as a genealogical one, it's advised to use "Polyhierarchy", "First level children" or "First level parents" imports.</p>
+    Your file can be written with two schemes and a mixed one.<br />
+    <h6 id="tree_structure_full_line"><a href="#contents">First scheme: Full ancestors of a term</a></h6>
+      In the first scheme, you need to set all ancestors to each term. The second column will be imported as the name of a child term of the term defined by the first column. The third column will be imported as a child of the second column, and so on. Lines can have any order. Example:<br />
+        <div class="codeblock"><ul>
+          <li><code>Animal, Mammal, Whale</code></li>
+          <li><code>Animal, Mammal, Monkey</code></li>
+        </ul></div>
+      Be careful: when a child is added or updated, line should contain all its ancestors. So a third line may be:<br />
+        <div class="codeblock"><ul>
+          <li><code>Animal, Mammal, Human</code></li>
+        </ul></div>
+      <strong>but not</strong>:
+        <div class="codeblock"><ul>
+          <li><code>Mammal, Human</code></li>
+        </ul></div>
+      because in this second case, &lt; <code>Mammal</code> &gt; is imported as a first level term and not as a &lt; <code>Animal</code> &gt; term child as in previous line.
+    <h6 id="tree_structure_partial_line"><a href="#contents">Second scheme: One term by line</a></h6>
+      In the "one term by line structure" scheme, you can import terms without duplicate all its ancestor if previous term has ancestors. It is very useful with a spreadsheet application. It allows to easy build a structure and to upload a less heavy file. So your hierarchy can be:<br />
+        <code><table border="1">
+          <tr><td>World</td><td></td><td></td><td></td></tr>
+          <tr><td></td><td>Asia</td><td></td><td></td></tr>
+          <tr><td></td><td></td><td>Japan</td><td></td></tr>
+          <tr><td></td><td></td><td></td><td>Tokyo</td></tr>
+          <tr><td></td><td></td><td>Korea</td><td></td></tr>
+          <tr><td></td><td></td><td></td><td>Seoul</td></tr>
+        </table></code>
+        <br />
+      So, first lines of your csv file can be:
+        <div class="codeblock"><ul>
+          <li><code>World</code></li>
+          <li><code>,Asia</code></li>
+          <li><code>,,Japan</code></li>
+          <li><code>,,,Tokyo</code></li>
+          <li><code>,,Korea</code></li>
+          <li><code>,,,Seoul</code></li>
+        </ul></div>
+        <div class="codeblock"><ul>
+          <li><code>,Europe</code></li>
+          <li><code>,,France</code></li>
+          <li><code>,,,Paris</code></li>
+        </ul></div>
+        <div class="codeblock"><ul>
+          <li><code>,,Italia,Abruzzo,Chieti,Chieti</code></li>
+          <li><code>,,,,,Civitaluparella</code></li>
+        </ul></div>
+      &lt; <code>Paris</code> &gt; will be automatically added as a child of &lt; <code>France</code> &gt; and so on.
+    <h6 id="tree_structure_mixed_line"><a href="#contents">Mixed scheme</a></h6>
+      <p>Partial lines are allowed, so a next line can be:</p>
+        <div class="codeblock"><ul>
+          <li><code>,,Switzerland,Bern</code></li>
+        </ul></div>
+      &lt; <code>Switzerland</code> &gt; will be added as a child of &lt; <code>Europe</code> &gt; and of course &lt; <code>Bern</code> &gt; as a child of &lt; <code>Switzerland</code> &gt;.
+      <p>In same way, above lines can be simplified to:</p>
+        <div class="codeblock"><ul>
+          <li><code>World, Asia, Japan, Tokyo</code></li>
+          <li><code>,, Korea, Seoul</code></li>
+          <li><code>World, Europe, France, Paris</code></li>
+        </ul></div>
+      Full lines, partial and one term lines can be mixed, but order is important two by two lines, except when there are only full lines. In this example, if fifth and sixth lines are shift, &lt; <code>Seoul</code> &gt; will become a child of &lt; <code>Japan</code> &gt;.
+  <h5 id="polyhierarchy"><a href="#contents">3. Polyhierarchical structure</a></h5>
+    <p>Use this option to create a a polyhierarchical structure, as a genealogy.<br />
+    Format is the same than tree structure: each term is the child of previous item: parent, child, sub-child... and so on.<br />
+    There are four differences. First, the first item doesn't need to be a root. Second, duplicate terms are always merged, except when one is the direct parent of the other one, because it's forbidden in Drupal. So, if the vocabulary is monohierarchical and without non-direct duplicate terms, as in the previous geographical example, result is the same than with previous option. Third, lines can be partial too, but in some case of duplicates, result may differ. Last, polyhierarchy can be recursive.<br />
+    For example, lines may be:</p>
+      <div class="codeblock"><ul>
+        <li><code>Grand-Mother, Mother, Daughter</code></li>
+        <li><code>Grand-Father, Mother, Son</code></li>
+        <li><code>Grand-Mother 2, Father, Daughter</code></li>
+        <li><code>Grand-Father 2, Father, Son</code></li>
+        <li><code>              ,       , Son 2</code></li>
+        <li><code>              , Uncle</code></li>
+        <li><code>Grand-Mother 2, Uncle</code></li>
+        <li><code>Father, Son 3</code></li>
+      </ul></div>
+  <h4 id="fields"><a href="#contents">2. Fields</a></h4>
+    <p>Terms are imported with a csv scheme provided by the user.</p>
+  <h5 id="fields_format"><a href="#contents">1. Fields CSV format</a></h5>
+    <p>The csv scheme should contain each column header of the csv input. The column header is the name (not the label) of the field where to import items into. It can be a default header (name, description, weight, vid, vocabulary_machine_name, guid) or a custom field. The first item is always the name or the tid of a term.</p>
+    <p>For example, you want to import a list of car makers, and you would like each car maker to have custom fields indicating nationality and date of origine(<a href="https://drupal.org/node/1027068#comment-4152194">origine of example, fictional</a>):</p>
+    <div class="codeblock"><ul>
+      <li><code>[Taxonomy Term] - [Custom Field] - [Custom Field]</code></li>
+      <li><code>Car Maker       - Country        - Year Started</code></li>
+      <li><code>-------------------------------------------------</code></li>
+      <li><code>Ford            - US             - 1900</code></li>
+      <li><code>Renault         - France         - 1901</code></li>
+      <li><code>Toyota          - Japan          - 1902</code></li>
+      <li><code>Nissan          - Japan          - 1903</code></li>
+      <li><code>Daimler Benz    - Germany        - 1904</code></li>
+    </ul></div>
+    <p>So, with 'Fields' format, you can set your format:</p>
+    <div class="codeblock">
+      <code>name, field_country, field_year_started</code>
+    </div>
+    <p>or more generically:</p>
+    <div class="codeblock">
+      <code>name, field_mycustomfield_1_machinename, field_mycustomfield_2_machinename...</code>
+    </div>
+    <p>Items can be repeated for multivalued fields.</p>
+    <div class="codeblock">
+      <code>name, description, weight, parent, synonym, synonym, synonym, related_term, related_term, related_term, related_term</code>
+    </div>
+    <p>The module supports all field types as long as they have a 'value' in their definition. These fields has been checked:
+    <ul>
+      <li><code>text</code></li>
+      <li><code>text_long</code></li>
+      <li><code>text_with_summary</code></li>
+      <li><code>number_decimal</code></li>
+      <li><code>number_integer</code></li>
+      <li><code>number_float</code></li>
+      <li><code>list_boolean</code></li>
+      <li><code>taxonomy_term_reference</code> <em>[Note: if value is a number, the field will be linked to the term with that tid; if value is a string, the field will be linked to an existing or a new term with that name.]</em></li>
+      <li><code>file</code></li>
+    </ul></p>
+  <h5 id="fields_custom"><a href="#contents">2. Autocreation of Fields</a></h5>
+    <p>Custom fields are automatically created if they don't exist and then attached to the vocabulary. By default, a 'text' field is created when the field doesn't exist. If you want to create another type of field, you have to set it with <code>"|"</code> symbol in the vocabulary section of the form. The field is not created or modified if it exists.</p>
+    <p>For exemple, you want to import these items (<a href="https://drupal.org/node/1027068#comment-4194716">origine of example</a>):</p>
+    <div class="codeblock"><ul>
+      <li><code>name 1, tax gtin name 1, description 1, /home/robertom/file1.pdf, status 1, related term 1, related term 2, related term 3</code></li>
+      <li><code>name 2, tax gtin name 2, description 2, /home/robertom/file2.pdf, status 2, related term 1, related term 4</code></li>
+      <li><code>name 3, tax gtin name 3, description 3, /home/robertom/file3.pdf, status 3</code></li>
+    </ul></div>
+    <p>Your custom format will be:</p>
+    <div class="codeblock">
+      <code>name, field_internal_name, description, field_file, field_status, related_term, related_term, related_term</code>
+    </div>
+    <p>Your custom fields will be:</p>
+    <div class="codeblock">
+      <code>field_file|file, related_term|taxonomy_term_reference</code>
+    </div>
+  <h4 id="translate"><a href="#contents">3. Term translation</a></h4>
+    <p>Translation is available only if <a href="https://drupal.org/project/i18n">i18n</a> is installed and the submodule i18n Taxonomy is enabled. Furthermore, the i18n mode of the vocabulary should be "Translate" or "Localize".</p>
+    <p><strong>Warning</strong>: If you have a tree structure, you should import it before fields or translations, and for each translation if you use a full Translate mode.</p>
+    <p>Format: The term is in the first column followed by its translations. If the i18n mode is Localize, then description and translated descriptions can be added.</p>
+    <p>For vocabulary with Translate mode:</p>
+    <div class="codeblock">
+      <code>term name/id, first translated term name, second translated term name...</code>
+    </div>
+    <p>For vocabulary with Localize mode:</p>
+    <div class="codeblock">
+      <code>term name/id, first translation of term name... , description, first translation of description...</code>
+    </div>
+    <p>Examples:</p>
+      <div class="codeblock"><ul>
+        <li><code>foo, bar</code></li>
+        <li><code>"United Kingdom", "Royaume-Uni", "Vereinigte Königreich"</code></li>
+        <li><code>"Germany", "Allemagne", "A European country", "Un pays européen"</code> <em>[vocabulary with Localize mode only]</em></li>
+      </ul></div>
+    <p><strong>Notes</strong></p>
+    <ul>
+      <li>With a vocabulary in Translate mode, a term with an undefined language cannot be translated, so do not forget to choose a language when you import original terms.</li>
+      <li>With a vocabulary in Localize mode, only terms with a undefined language can be translated, so do not set a language when you import original terms.</li>
+      <li>All languages should have been enabled in Regional and language settings before import.</li>
+      <li><strong>Important</strong>: If your taxonomy is structured, you should import the structure <em>before</em>. Furthermore, if the i18n mode is Translate, you should import the structure for each translation before. The translate process only creates translation sets for terms, but does not recreate any structure.</li>
+      <li>With Translate mode, terms with an undefined language (<code>"und"</code>) cannot be translated.</li>
+      <li>With Localize mode, only terms with an undefined language can be translated, so the first language should be "und" and the default language of the site cannot be used.</li>
+    </ul>
+
+<h3 id="import"><a href="#contents">2. Import</a></h3>
+  <p>Taxonomy CSV allows to import structure and properties of terms.</p>
+  <h4 id="import_content"><a href="#contents">1. What to import (content of the source)?</a></h4>
+    <p>Source can be configured with the first field set. See <a href='#formats'>formats</a>.</p>
+
+  <h4 id="source"><a href="#contents">2. Where are terms to import?</a></h4>
+    <p>You can import your terms from a file or with a text area. Simply check your choice. File can be a local file path or a url.</p>
+
+  <h4 id="file_format"><a href="#contents">3. How is formatted your source?</a></h4>
+    <p>Import need to be utf-8 formatted, without byte order mark in preference.</p>
+    <p>This group of settings allows to set non standard delimiter and enclosure and specific locales, such as "fr_FR.utf8".</p>
+    <ul>
+      <li>
+        Delimiters (comma "<strong><code>,</code></strong>" by default, semicolon "<strong><code>;</code></strong>" or tabulation) between terms can be chosen in Advanced settings in the second fieldset. You can choose a custom delimiter too. Delimiter is a one character string. Example with delimiter &lt; <strong><code>¤</code></strong> &gt;:<br />
+        <div class="codeblock"><ul>
+          <li><code>term 1¤This field has commas, a semicolon (;), a quotation mark (") and a tabulation, but it will be correctly imported.</code></li>
+        </ul></div>
+      </li>
+      <li>
+        It is recommended to protect terms with enclosure characters as quotation marks (<strong><code>"</code></strong>), specialy if they contain non-ASCII letters or if imported items, in particular descriptions, contain the chosen delimiter. Example:<br />
+        <div class="codeblock"><ul>
+          <li><code>"term 1","This field has a comma, but it will be correctly imported."</code></li>
+        </ul></div>
+        You can choose a custom enclosure character in Advanced settings in the second fieldset. Enclosure can have only one character or be null. Quotation marks (<strong><code>"</code></strong>) are automatically managed.
+      </li>
+      <li>
+        Warning: when you export a vocabulary, delimiter and enclosure should not be used in term definitions, specially in descriptions. Export process will stop in case of problem.
+      </li>
+    </ul>
+
+  <h4 id="destination"><a href="#contents">4. Which vocabulary do you want to import into?</a></h4>
+    <p>You can import your terms in a existing vocabulary or create a new one. You can import your terms too in an existing vocabulary.</p>
+    <p>When you want to import a new taxonomy into an existing one, it is recommended to process in two steps in order to check import.</p>
+    <ul>
+      <li>First, check the import file with the &lt; <em>Autocreate a new vocabulary</em> &gt; option. Repeat this step while there are warnings and notices.</li>
+      <li>Second, you can import your file in the true vocabulary with the &lt; <em>Import in an existing vocabulary</em> &gt; option. This allows you to keep old links between existing terms and nodes.</li>
+    </ul>
+    <p>If you only want to create a new vocabulary, the first choice is sufficient, unless when you have multiple files for one vocabulary.</p>
+
+  <h4 id="import_options"><a href="#contents">5. When a term exists, what to do with it?</a></h4>
+    <p>Destination can be configured with the next field set. You can specify what will become existing terms when you import a term with the same name.</p>
+    <ul>
+      <li>
+        <h5>Update terms and merge existing (avoid duplicate terms)</h5>
+        <p>
+          Update current terms when name matches with imported ones and merge existing descriptions, parents, etc. Duplicates are removed. This choice is recommended.
+          Note: Duplicate terms in trees are fully supported.
+        </p>
+      </li>
+      <li>
+        <h5>Ignore current terms and create new ones (may create duplicate terms)</h5>
+        <p>
+          Let current terms as they are and create a new term for the first column term.
+          <br />
+          Warning: This can create duplicate terms. It is recommended to use this option only if you are sure that imported taxonomy contains only new terms or if your vocabulary allows multiple parents.
+        </p>
+      </li>
+    </ul>
+
+  <h4 id="info_process"><a href="#contents">6. Informations on process and big taxonomies import</a></h4>
+    <p>This group of options allows to choose informations displayed at end of process.</p>
+    <p>To import big taxonomies (from 1000 or 10000 lines depending on the server) when access to time and memory settings of server are forbidden, it is recommended first to disable some other taxonomy related modules as "pathauto" before import. Settings aren't lost when you disable a module - and not uninstall it -. After import process, modules can be reactivated.<br />
+    Next, you can use these tweaks (in groups of options).</p>
+    <ul>
+      <li>
+        <h5>Reduce log level</h5>
+        <p>Stats, terms and notices or warnings displayed at the end of process are memory consomming. So, you can reduce or disable them.</p>
+      </li>
+      <li>
+        <h5>Manually set vocabulary hierarchy</h5>
+        <p>As to calculate vocabulary hierarchy is memory intensive, this option allows to set hierarchy manually without verify it.</p>
+      </li>
+      <li>
+        <h5>Disable line checks</h5>
+        <p>If you are sure that vocabulary to import is well formatted (utf8, order of items...), you can disable checks. This option increases import speed by 5%.</p>
+      </li>
+    </ul>
+
+<h3 id="export"><a href="#contents">3. Export</a></h3>
+  <p>Taxonomy CSV allows to export structures and properties of terms of one or all vocabularies.</p>
+  <p>Simply choose what you want to export (see <a href='#formats'>formats</a>) and how to export. Some formats may be unavailable.</p>
+
+<h3 id="import_api"><a href="#contents">4. Drush and Taxonomy csv import API</a></h3>
+  <p>This module supports <a href="https://drupal.org/project/drush">drush</a>: you can import/export taxonomies from the command line interface with <code>drush taxocsv-import</code> and <code>drush taxocsv-export</code>. See command line help for more information.</p>
+
+  <p>More generally, this module can be used as an API. You can use the full module as a dependance or directly in your module. Import is run as this:</p>
+  <div class="codeblock"><code>
+    $csv_lines = '"Europe", "France", "Paris"';<br />
+    $csv_lines .=  "\n". ',, "Lyon"';<br />
+    $csv_lines .=  "\n". ',"United Kingdom", "London"';<br />
+    $csv_lines .=  "\n". ',"Portugal", "Lisbonne"';<br />
+    $result = taxonomy_csv_import(<br />
+      array(<br />
+        'text'             => $csv_lines,<br />
+        'import_format'    => 'tree',<br />
+        'update_or_ignore' => 'update',<br />
+    ));<br />
+  </code></div>
+  <p>Or as this (line level import):</p>
+  <div class="codeblock"><code>
+    $result = taxonomy_csv_line_import(<br />
+      array("Europe", "France", "Paris"),<br />
+      array(<br />
+        'import_format'    => 'tree',<br /ta>
+        'vocabulary_id'    => 2,<br />
+        'update_or_ignore' => 'update',<br />
+    ));<br />
+  </code></div>
+  <p>Possible formats are explained in comments or <a href='#formats'>above</a>. Some may be unavailable.</p>
+  <p><a href="https://drupal.org/project/taxonomy_builder" title="Taxonomy Builder API">Taxonomy Builder API</a> can be more convenient in some cases. Choice depends on your needs. Taxonomy CSV is designed as a run-once module with checks and multiple formats, while Taxonomy Builder is a permanent, light and quick module. A full explanation of the differences in design can be found here.</p>
+
+<h3 id="advanced_options"><a href="#contents">5. Advanced settings and hints</a></h3>
+  <h4 id="permissions"><a href="#contents">1. Permissions</a></h4>
+    <p>To import/export terms, user needs 'Import taxonomy by CSV' and 'Export taxonomy by CSV' rights.<br />
+    Furthermore, user needs general <a href="?q=admin/user/permissions#module-taxonomy" title="configure taxonomy permissions">taxonomy permissions (Drupal 6)</a> or <a href="?q=admin/people/permissions#module-taxonomy" title="configure taxonomy permissions">taxonomy permissions (Drupal 7)</a>. These permissions are often associated with access rights for administration pages.</p>
+
+  <h4 id="other_hints"><a href="#contents">2. Other hints</a></h4>
+    <ul>
+      <li>
+        It's recommended to use utf8 encoded file in order to avoid problems with non-ASCII terms.
+      </li>
+      <li>
+        Some memory or compatibility issues have been reported with some modules as <em>Pathauto</em>, <em>taxonomy_vtn</em> and <em>taxonomynode</em> (see <a href="https://drupal.org/node/495548">#495548</a>, <a href="https://drupal.org/node/447852">#447852</a> and <a href="https://drupal.org/node/540916">#540916</a>). It's advised to increase server and php memory temporary (no problem reported with 256 MB) or to disable these modules manually (settings aren't lost when you disable a module - and not uninstall it -). After import process, you can decrease memory and reactivate modules.
+      </li>
+    </ul>
+<p>Another Drupal module allows CSV import too, despite its name: <a href="https://drupal.org/project/taxonomy_xml" title="Taxonomy XML module">taxonomy XML</a>. Its approach is different: it uses one file compliant to thesauri standard ISO 2788, i.e. a three columns csv file: <code>term, type of link (relation, description, synonym...), item</code>, or, for specialists, <code>subject, predicate, object</code>. Additional fields are managed as the third one.</p>
+<p><a href="https://drupal.org/project/taxonomy_manager" title="Taxonomy manager">Taxonomy manager</a> can be used too.</p>
+<p>For export, you can use Taxonomy XML too or one of backup modules. Taxonomy CSV is a more specialised tool which allows more precise tuning.</p>
+<br />
+</body>
+</html>

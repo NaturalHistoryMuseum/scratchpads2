@@ -1,0 +1,27 @@
+name = "Taxonomy CSV import/export"
+description = "Export and import complete taxonomies, hierarchical structure or simple lists of terms and fields to or from a CSV file, url or text."
+core = 7.x
+dependencies[] = taxonomy
+package = 'Taxonomy'
+project ='taxonomy_csv'
+version = '7.x-5.x-dev'
+files[] = taxonomy_csv.install
+files[] = taxonomy_csv.module
+files[] = taxonomy_csv.api.inc
+files[] = taxonomy_csv.vocabulary.api.inc
+files[] = taxonomy_csv.term.api.inc
+files[] = taxonomy_csv.result.inc
+files[] = import/taxonomy_csv.import.admin.inc
+files[] = import/taxonomy_csv.import.api.inc
+files[] = import/taxonomy_csv.import.line.api.inc
+files[] = import/taxonomy_csv.import.result.inc
+files[] = export/taxonomy_csv.export.admin.inc
+files[] = export/taxonomy_csv.export.api.inc
+files[] = export/taxonomy_csv.export.result.inc
+
+; Information added by drupal.org packaging script on 2012-02-22
+version = "7.x-5.10"
+core = "7.x"
+project = "taxonomy_csv"
+datestamp = "1329924048"
+

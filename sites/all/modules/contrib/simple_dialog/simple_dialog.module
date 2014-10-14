@@ -1,0 +1,304 @@
+<?php
+
+/*****************************************************************************
+* DRUPAL HOOKS
+*****************************************************************************/
+
+
+
+/**
+ * Implements hook_init().
+ */
+function simple_dialog_init() {
+  if (variable_get('simple_dialog_js_all', 1)) {
+    simple_dialog_add_js();
+  }
+  drupal_add_css(drupal_get_path('module', 'simple_dialog') . '/css/simple_dialog.css');
+}
+
+/**
+ * Implements hook_help().
+ */
+function simple_dialog_help($path, $arg) {
+  switch ($path) {
+    // Main module help for the block module
+    case 'admin/help#simple_dialog':
+      return t('<h2>SIMPLE DIALOG</h2>
+      <p>This module provides a method to load pages via AJAX into a modal dialog window that will be overlaid on the screen.</p>
+      <p>The module implements the jquery ui dialog plugin that is provided with Drupal 7.</p>
+      <h3>CONFIGURATION</h3>
+      <p>The configuration page is at admin/config/content/simple-dialog.</p>
+      <ol><li>Add simple dialog javascript files to all pages.
+      <p>By Default this option is selected. This option is here in case you\'re trying to limit the amount of data loaded on each page load. If you\'re not worried about that you can probably just leave this enabled. A couple things to note if you disable this setting:</p>
+      <ul>
+      <li>You will need to add the javascript files to the page manually if you want to implement the "simple-dialog" class method.</li>
+      <li>If you are adding simple dialog links to the page using theme(\'simple_dialog\'...), the necessary javascript is added within those functions so you should be okay.</li>
+      </ul>
+      </li>
+      <li>Additional Classes
+      <p>This option allows you to specify custom classes that will also be used to launch a modal. This can be useful if you want to use a simple class like \'popup\' to launch the modal, or perhaps if you\'re upgrading a site from d6 that used the automodal module and you just want to continue using the automodal class instead of changing all your links.
+      <p>A space-separated list of classes should be provided with no leading
+or trailing spaces.</p>
+      </li>
+      <li>Default Dialog Settings
+      <p>Provide some default settings for the dialog. Defaults should be formatted the same way as you would in the "rel" tag of the link (described below under HTML Implementation)</p>
+      </li>
+      </ol>
+      <h3>JAVASCRIPT</h3>
+      <p>This module doesn\'t not bring javascript files over from the target page. If your target html needs javascript to work, You will need to make sure your javascript is either inline in the html that\'s being loaded, or in the head tag of the page you are on.</p>
+      <h3>HTML Implementation</h3>
+      <p>Add the class \'simple-dialog\' to open links in a dialog. You also need to specify \'name="{selector}"\' where the {selector} is the unique html element id of the container to load from the linked page, as well as the title attribute that will act as the title of the dialog. Any additional jquery ui dialog options can be passed through the rel tag using the format:</p>
+      <p>rel="{option-name1}:{value1};{option-name2}:{value2};"</p>
+      <p>NOTE: For the position option, if you want to pass in an array of xy values, use the syntax [{x},{y}] with no quotes or spaces.</p>
+      <p>example:</p>
+      <pre>
+      &lt;a href="path/to/target/page/to/load" class="id-of-element-on-target-page-to-load" rel="width:900;resizable:false;position:[center,60]" name="content-area" title="My Dialog Title"&gt;Link&lt;/a&gt;
+      </pre><p></p>
+      <p>The available jquery ui dialog options can be found here:</p>
+      <p><a href="http://jqueryui.com/demos/dialog" title="http://jqueryui.com/demos/dialog">http://jqueryui.com/demos/dialog</a></p>
+      <h3>THEME Function Implementation</h3>
+      <p>You can also implement a simple dialog link using the theme function: theme(\'simple_dialog_link\', $args) where $args contains the following values:</p>' . "
+      <pre>
+      array(
+        // required
+        'text' => 'My Link Text',
+        'path' => 'path/to/target/page/to/load',
+        'selector' => 'id-of-element-on-target-page-to-load',
+        'title' => 'Modal Frame Title',
+        // optional
+        'options' => array(
+          'optionName' => 'optionValue', // examples:
+          'width' => 900,
+          'resizable' => FALSE,
+          'position' => 'center', // Position can be a string or:
+          'position' => array(60, 'top') // can be an array of xy values
+        ),
+        'class' => array('class-name-1', 'class-name-2'),
+      );
+      </pre>" . '
+      <p>For the \'position\' option, the value can be a string or an array of xy values. Per the jquery ui dialog documentation at
+      <a href="http://jqueryui.com/demos/dialog/#option-position:" title="http://jqueryui.com/demos/dialog/#option-position:">http://jqueryui.com/demos/dialog/#option-position:</a></p>
+      <p>Specifies where the dialog should be displayed. Possible values:</p>
+      <ol>
+      <li>a single string representing position within viewport: "center", "left", "right", "top", "bottom". </li>
+      <li>an array containing an x,y coordinate pair in pixel offset from left, top corner of viewport (e.g. array(350,100)) </li>
+      <li>an array containing x,y position string values (e.g. array("right","top") for top right corner).</li>
+      </ol>');
+  }
+}
+
+
+
+/**
+ * Implements hook_permission().
+ */
+function simple_dialog_permission() {
+  return array(
+    'administer simple dialog' => array(
+      'title' => t('Administer Simple Dialog'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function simple_dialog_menu() {
+
+  $items['admin/config/content/simple-dialog'] = array(
+    'title' => 'Simple Dialog',
+    'description' => t('Settings for simple dialogs'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simple_dialog_settings_form'),
+    'access arguments' => array('administer simple dialog'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simple_dialog_theme($existing, $type, $theme, $path) {
+  return array(
+    'simple_dialog_link' => array(
+      'variables' => array(
+        'text' => NULL,
+        'path' => NULL,
+        'selector' => NULL,
+        'title' => NULL,
+        'options' => array(),
+        'link_options' => array(),
+        'class' => array(),
+      ),
+    ),
+  );
+}
+
+/*****************************************************************************
+* SETTINGS FORM
+*****************************************************************************/
+
+function simple_dialog_settings_form($form, &$form_state) {
+  $form = array();
+
+  $form['javascript']['simple_dialog_js_all'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add simple dialog javscript files to all pages'),
+    '#description' => t("This setting is for people who want to limit which pages the simple dialog javscript files are added to. If you disable this option, you will have to add the js files manually (using the function simple_dialog_add_js() ) to every page that you want to be able to invoke the simple dialog using the 'simple-dialog' class. If you are adding simple dialog links to the page using theme('simple_dialog'...) the necessary javascript is added within those functions so you should be okay.'"),
+    '#default_value' => variable_get('simple_dialog_js_all', 1),
+  );
+
+  $form['simple_dialog_classes'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Additional Classes'),
+    '#description' => t("Supply a list of classes, separated by spaces, that can be used to launch the dialog. Do not use any leading or trailing spaces."),
+    '#default_value' => variable_get('simple_dialog_classes', ''),
+  );
+
+  $form['simple_dialog_defaults'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Dialog Settings'),
+    '#description' => t('Provide default settings for the simple dialog. The defaults should be formatted the same as you would in the "rel" attribute of a simple dialog link. See the <a href="/admin/help/simple_dialog">help page</a> under "HTML Implementation" for more information.'),
+    '#default_value' => variable_get('simple_dialog_defaults', 'width:300;height:auto;position:[center,60]'),
+  );
+
+  $form['simple_dialog_default_target_selector'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Target Selector'),
+    '#description' => t('Provide a default html element id for the target page (the page that will be pulled into the dialog). This value will be used if no "name" attribute is provided in a simple dialog link.'),
+    '#default_value' => variable_get('simple_dialog_default_target_selector', 'content'),
+  );
+
+  $form['simple_dialog_default_dialog_title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Dialog Title'),
+    '#description' => t('Provide a default dialog title. This value will be used if no "title" attribute is provided in a simple dialog link.'),
+    '#default_value' => variable_get('simple_dialog_default_dialog_title', ''),
+  );
+
+  return system_settings_form($form);
+}
+
+
+/*****************************************************************************
+* THEME FUNCTIONS
+*****************************************************************************/
+
+/**
+ * Formats the a link to launch the target path
+ * in a jquery ui dialog modal frame.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - text: The link text for the anchor tag.
+ *   - path: The internal path or external URL being linked to, such as "node/34" or
+ *     "http://example.com/foo". This is the path that will be used to
+ *   - title: The 'title' attribute of the link. Will also be used for the title
+ *     of the jQuery ui dialog
+ *   - selector: The css id of the element on the target page. This element and it's
+ *     containing html will be loaded via AJAX into the dialog window.
+ *   - options: (optional) An associative array of additional jQuery ui dialog
+ *     options keyed by the option name. example:
+ *     @code
+ *     $options =  array(
+ *       'optionName' => 'optionValue', // examples:
+ *       'width' => 900,
+ *       'resizable' => FALSE,
+ *       'position' => 'center', // Position can be a string or:
+ *       'position' => array(60, 'top') // can be an array of xy values
+ *     ),
+ *     @endcode
+ *   - link_options: An associative array of additional options that will be
+ *     passed directly into l()
+ *     The position option can be given as a string or an array of xy values
+ *     formatted as specified in the jQuery ui documentation at:
+ *     http://jqueryui.com/demos/dialog/#option-position
+ *   - class: An array of classes to add to the link. Use this argument instead
+ *     of adding it to link_options[attributes][class] to avoid it being
+ *     overwritten.
+ */
+function theme_simple_dialog_link($args) {
+
+  // Store the arguments
+  $text = $args['text'];
+  $path = $args['path'];
+  $selector = $args['selector'];
+  $title = $args['title'];
+  $options = $args['options'];
+  $class = array_merge(array('simple-dialog'), $args['class']);
+
+  // Somewhere to store our dialog options. Will be imploded at the end
+  $dialog_options = array();
+
+  // as long as there are some options and the options variable is an array
+  if ($options && is_array($options)) {
+    foreach ($options as $option_name => $value) {
+      if ($option_name == 'position' && is_array($value)) {
+        $dialog_options[] = $option_name . ':[' . $value[0] . ',' . $value[1] . ']';
+      }
+      elseif ($value) {
+        $dialog_options[] = $option_name . ':' . $value;
+      }
+      else {
+        $dialog_options[] = $option_name . ':false' ;
+      }
+    }
+  }
+
+  // Concatenate using the semi-colon
+  $dialog_options = implode(';', $dialog_options);
+
+  // Setup the default link options
+  $link_options = array(
+    'html' => TRUE,
+    'attributes' => array(
+      'title' => $title,
+      'name' => $selector,
+      'rel' => $dialog_options,
+      'class' => $class,
+    ),
+  );
+
+  // We need to merge the options passed into the theme function with our
+  // default options in $link_options
+  if (!empty($args['link_options'])) {
+    // Attributes need to be merged separately
+    if (isset($args['link_options']['attributes'])) {
+      $link_options['attributes'] = array_merge($args['link_options']['attributes'], $link_options['attributes']);
+    }
+    // Merge the link options
+    $link_options = array_merge($args['link_options'], $link_options);
+  }
+
+  // Return the properly formatted link
+  return l($text, $path, $link_options);
+}
+
+
+/*****************************************************************************
+* HELPER FUNCTIONS
+*****************************************************************************/
+
+/**
+ * Adds the necessary js and libraries to make the
+ * dialog work. Really just adds the jquery.ui
+ * library and the simple dialog javscript file
+ * but if we need to add anything else down the road,
+ * at least it's abstracted into an api function
+ */
+function simple_dialog_add_js() {
+  drupal_add_library('system', 'ui.dialog');
+  drupal_add_js(drupal_get_path('module', 'simple_dialog') . '/js/simple_dialog.js');
+  if ($classes = variable_get('simple_dialog_classes', '')) {
+    $classes = str_replace(' ', ', .', $classes);
+  }
+  drupal_add_js(array('simpleDialog' => array(
+    'classes' => $classes,
+    'defaults' => variable_get('simple_dialog_defaults', 'width:300;height:auto;position:[center,60]'),
+    'selector' => variable_get('simple_dialog_default_target_selector', 'content'),
+    'title' => variable_get('simple_dialog_default_dialog_title', ''),
+  )), 'setting');
+}
+
+

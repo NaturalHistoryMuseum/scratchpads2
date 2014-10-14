@@ -1,0 +1,13 @@
+name = References dialog
+description = Enhances references fields by adding dialogs for adding and creating entities.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = views
+files[] = views/references_dialog_plugin_display.inc
+; Information added by drupal.org packaging script on 2012-09-06
+version = "7.x-1.0-alpha4+2-dev"
+core = "7.x"
+project = "references_dialog"
+datestamp = "1346936267"
+

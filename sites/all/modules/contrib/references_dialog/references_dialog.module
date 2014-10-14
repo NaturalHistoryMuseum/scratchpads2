@@ -1,0 +1,686 @@
+<?php
+
+/**
+ * @file
+ * This the main module file.
+ */
+
+/**
+ * Implements hook_element_info().
+ */
+function references_dialog_element_info() {
+  $types['references_dialog'] = array(
+    '#input' => FALSE ,
+    '#after_build' => array('references_dialog_build_element'),
+    '#attached' => references_dialog_attached(),
+  );
+  return $types;
+}
+
+/**
+ * Get everything that needs to be attached in order for the links to work.
+ */
+function references_dialog_attached() {
+  return array(
+    'js' => array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js'),
+    'css' => array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css'),
+    'library' => array(array('system', 'ui.dialog')),
+  );
+}
+
+/**
+ * Implements hook_element_info_alter().
+ * Add #after_builds to widgets that needs them.
+ */
+function references_dialog_element_info_alter(&$info) {
+  foreach (references_dialog_widgets() as $widget) {
+    // If this element type is specified as a type that a widget should be
+    // attached to, go ahead and make it so.
+    if (isset($info[$widget['element_type']]) && (!isset($info[$widget['element_type']]['#after_build']) || !in_array('references_dialog_process_widget', $info[$widget['element_type']]['#after_build']))) {
+      $info[$widget['element_type']]['#after_build'][] = 'references_dialog_process_widget';
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function references_dialog_menu() {
+  $items = array();
+  // This redirect callback is used when adding and editing content in
+  // the overlay. When content is created or edited, we are directed here,
+  // so we can act properly on entities.
+  $items['references-dialog/redirect/%/%'] = array(
+    'page callback' => 'references_dialog_redirect_page',
+    'page arguments' => array(2, 3),
+    'access callback' => 'references_dialog_redirect_access',
+    'access arguments' => array(2, 3),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function references_dialog_admin_paths() {
+  // We only activate admin theme if we use the admin theme
+  // when editing nodes.
+  if (variable_get('node_admin_theme', FALSE)) {
+    return array('references-dialog/search/*' => TRUE);
+  }
+}
+
+/**
+ * Get search views attached to a particular field instance.
+ * @param array instance a field instance.
+ */
+function references_dialog_field_get_search_views(array $instance) {
+  return references_dialog_get_search_views(implode(':', array($instance['entity_type'], $instance['field_name'], $instance['bundle'])));
+}
+
+/**
+ * Get all search views that are available for a particular attachable.
+ * @param $attachable
+ *   the name of the attachable to look for.
+ */
+function references_dialog_get_search_views($attachable) {
+  $search_views = &drupal_static(__FUNCTION__, array());
+  if (!isset($search_views[$attachable])) {
+    $search_views[$attachable] = array();
+    // Get all views that has a references_dialog display.
+    $results = references_dialog_get_applicable_views();
+    foreach ($results as $view_name => $result) {
+      foreach ($result as $display_name => $result_displays) {
+        foreach ($result_displays['attachables'] as $name => $view_attachable) {
+          if ($attachable == $view_attachable) {
+            $search_views[$attachable][$view_name] = $result_displays;
+          }
+        }
+      }
+    }
+  }
+  return $search_views[$attachable];
+}
+
+function references_dialog_get_applicable_views() {
+  $views = &drupal_static(__FUNCTION__, FALSE);
+  if (!$views) {
+    $views = cache_get('references_dialog_views');
+    $views = !empty($views) ? $views->data : FALSE;
+  }
+  if (!empty($views)) {
+    return $views;
+  }
+  $views = array();
+  // Get all views that has a references_dialog display.
+  $results = views_get_applicable_views('references_dialog display');
+  foreach ($results as $result) {
+    list($view, $display) = $result;
+    if (is_object($view)) {
+      $views[$view->name][$display] = array(
+        'display' => $display,
+        'title' => isset($view->display[$view->current_display]->display_options['title']) ?
+          $view->display[$view->current_display]->display_options['title'] : t('Search'),
+        'attachables' => $view->display_handler->get_option('attach'),
+      );
+    }
+  }
+  cache_set('references_dialog_views', $views);
+  return $views;
+}
+
+/**
+ * Implements hook_widget_info_alter().
+ * Adds settings that we need to declare to widgets we are extending.
+ */
+function references_dialog_field_widget_info_alter(array &$info) {
+  foreach (references_dialog_widgets() as $widget_name => $widget_info) {
+    if (isset($info[$widget_name]['settings'])) {
+      foreach (array_keys($widget_info['operations']) as $operation) {
+        $info[$widget_name]['settings']['references_dialog_' . $operation] = 0;
+        // Add search view setting if we have search.
+        if ($operation == 'search') {
+          $info[$widget_name]['settings']['references_dialog_search_view'] = '';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Get instances appropriate for a search view on a particular entity type.
+ * @param string $entity_type name of the entity type.
+ * @return an array of appropriate instances.
+ */
+function references_dialog_get_search_view_attachables($entity_type = NULL) {
+  $attachables = module_invoke_all('references_dialog_search_attachables');
+  if (isset($entity_type)) {
+    return $attachables[$entity_type];
+  }
+  else {
+    return $attachables;
+  }
+}
+
+/**
+ * Get an attachable by name
+ * @param $entity_type
+ *   the type of entity the attacable is attached to.
+ * @param $name
+ *   The name of the attachable.
+ */
+function references_dialog_get_attachable($entity_type, $name) {
+  $attachables = module_invoke_all('references_dialog_search_attachables');
+  return $attachables[$entity_type][$name];
+}
+
+/**
+ * Implements hook_references_dialog_search_attachables().
+ */
+function references_dialog_references_dialog_search_attachables() {
+  $fields = field_info_fields();
+  $widgets = field_info_widget_types();
+  $dialog_widgets = references_dialog_widgets();
+  $applicable_instances = array();
+  foreach ($fields as $field_name => $field) {
+    foreach ($field['bundles'] as $entity_type => $bundles) {
+      foreach ($bundles as $bundle_name)  {
+        $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+        $widget_type = $instance['widget']['type'];
+        if (in_array($widget_type, array_keys($dialog_widgets)) && $instance['widget']['settings']['references_dialog_search']) {
+          // If the entity type is specified, in the declaration, add it here.
+          $dialog_widget = $dialog_widgets[$widget_type];
+          if (isset($dialog_widget['entity_type'])) {
+            $attachable_type = $dialog_widget['entity_type'];
+          }
+          elseif (isset($dialog_widgets[$instance['widget']['type']]['type_callback'])) {
+            $attachable_type = $dialog_widget['type_callback']($instance, $field);
+          }
+          if (isset($attachable_type)) {
+            $applicable_instances[$attachable_type][$entity_type . ':' . $field_name . ':' . $bundle_name] = array(
+              'label' => $instance['bundle'] . ': ' . $instance['label'],
+              'query' => 'references_dialog_field_attachable_query',
+              'widget' => $dialog_widget,
+            );
+          }
+        }
+      }
+    }
+  }
+  return $applicable_instances;
+}
+
+/**
+ * This query is used by field referneces dialog attachables.
+ * @param View $view
+ *   The view to work with.
+ */
+function references_dialog_field_attachable_query($view) {
+  list($entity_type, $field_name, $bundle_name) = explode(':', $view->references_dialog['attachable']['name']);
+  $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+  $field_info = field_info_field($field_name);
+  $dialog_widget = references_dialog_widget_load($instance['widget']['type']);
+  if (isset($dialog_widget['views_query']) && function_exists($dialog_widget['views_query'])) {
+    $dialog_widget['views_query']($view, $instance, $field_info);
+  }
+}
+
+/**
+ * Return an array of supported widgets.
+ */
+function references_dialog_widgets() {
+  return module_invoke_all('references_dialog_widgets');
+}
+
+/**
+ * Load a particular widget.
+ * @param string $widget the name of the widget.
+ * @return array the widget definition.
+ */
+function references_dialog_widget_load($widget) {
+  $widgets = references_dialog_widgets();
+  return $widgets[$widget];
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function references_dialog_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+  if (array_key_exists($form['instance']['widget']['type']['#value'], references_dialog_widgets())) {
+    $field = $form['#field'];
+    $instance = field_info_instance($form['instance']['entity_type']['#value'], $form['instance']['field_name']['#value'], $form['instance']['bundle']['#value']);
+    $form['instance']['widget']['settings'] += references_dialog_settings_form($field, $instance);
+  }
+}
+
+/**
+ * A widget settings form for our references dialog fields.
+ */
+function references_dialog_settings_form($field, $instance) {
+  $widget = $instance['widget'];
+  $defaults = field_info_widget_settings($widget['type']);
+  $settings = array_merge($defaults, $widget['settings']);
+  $dialog_widget = references_dialog_widget_load($widget['type']);
+  // Add our own additions.
+  foreach ($dialog_widget['operations'] as $operation => $dialog_settings) {
+    $form['references_dialog_' . $operation] = array(
+      '#type' => 'checkbox',
+      '#title' => check_plain($dialog_settings['title']),
+      '#default_value' => isset($settings['references_dialog_' . $operation]) ? $settings['references_dialog_' . $operation] : FALSE,
+    );
+  }
+  return $form;
+}
+
+/**
+ * Menu access checker for references_dialog
+ */
+function references_dialog_search_access($entity_type, $field_name, $bundle_name) {
+  return TRUE;
+}
+
+/**
+ * Add our references dialog fields to the existing element
+ */
+function references_dialog_process_widget(&$element) {
+  if (!isset($element['#entity_type'])) {
+    return $element;
+  }
+  $item = $element['#value'];
+  $field = field_info_field($element['#field_name']);
+  $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+
+  $widget_settings = $instance['widget']['settings'];
+  $widget_type = $instance['widget']['type'];
+  $widgets = references_dialog_widgets();
+  // Bail if we don't have anything to do here.
+  if (!in_array($widget_type, array_keys($widgets))) {
+    return $element;
+  }
+  $dialog_widget = references_dialog_widget_load($widget_type);
+  // Attach javascript and CSS needed.
+  $attached = references_dialog_attached();
+  $element['#attached']['js'][] = $attached['js'][0];
+  $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], array('format' => $dialog_widget['format']));
+  $element['#attached']['css'][] = $attached['css'][0];
+  $element['#attached']['library'][] = $attached['library'][0];
+
+  $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
+  $dialog_links = array();
+  foreach ($dialog_widget['operations'] as $operation => $settings) {
+    if (isset($widget_settings['references_dialog_' . $operation]) && $widget_settings['references_dialog_' . $operation]) {
+      $links = $settings['function']($element, $widget_settings, $field, $instance);
+      foreach ($links as $link) {
+        $link['attributes']['class'][] = $operation . '-dialog';
+        $dialog_links[] = references_dialog_link($link);
+      }
+    }
+  }
+  if (count($dialog_links)) {
+    // We add a div directly into the markup here since we really need it in order
+    // to make sure the javascript works.
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', $dialog_links) . '</div>';
+  }
+  return $element;
+}
+
+function references_dialog_build_element($element) {
+  $dialog_links = array();
+  $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], array('format' => $element['#format'], 'target' => $element['#target']));
+  if (isset($element['#operations'])) {
+    foreach ($element['#operations'] as $operation => $link) {
+      $link['attributes']['class'][] = $operation . '-dialog';
+      $dialog_links[] = references_dialog_link($link);
+    }
+  }
+  if (isset($element['#attachable'])) {
+    $dialog_links = array_merge($dialog_links, references_dialog_get_views_search_links($element['#attachable']));
+  }
+  if (count($dialog_links)) {
+    // We add a div directly into the markup here since we really need it in order
+    // to make sure the javascript works.
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', $dialog_links) . '</div>';
+  }
+  return $element;
+}
+
+/**
+ * Attach necessary info to a link definition.
+ */
+function references_dialog_link($link) {
+  if (!isset($link['attributes']['class']) || !in_array('references-dialog-activate', $link['attributes']['class'])) {
+    $link['attributes']['class'][] = 'references-dialog-activate';
+  }
+  return $link;
+}
+
+function references_dialog_js_settings($id, array $settings) {
+  if (isset($settings['callback_path'])) {
+    $settings['callback_path'] = url($settings['callback_path']);
+  }
+  return array(
+    'data' => array(
+      'ReferencesDialog' => array(
+        'fields' => array(
+          $id => $settings,
+        ),
+      ),
+    ),
+    'type' => 'setting',
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function references_dialog_theme() {
+  return array(
+    'references_dialog_page' => array(
+      'render element' => 'page',
+      'template' => 'references-dialog-page',
+    ),
+    'references_dialog_links' => array(
+      'variables' => array('links' => NULL),
+    ),
+  );
+}
+
+/**
+ * Process variables for references_dialog_page.
+ */
+function template_process_references_dialog_page(&$variables) {
+  // Generate messages last in order to capture as many as possible for the
+  // current page.
+  if (!isset($variables['messages'])) {
+   $variables['messages'] = $variables['page']['#show_messages'] ? theme('status_messages') : '';
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function references_dialog_entity_insert($entity, $entity_type) {
+  // If we are in a dialog, we want to make sure that we redirect to the
+  // the close dialog page, so that the dialog may be closed.
+  if (references_dialog_in_dialog() && references_dialog_close_on_submit()) {
+    references_dialog_close_on_redirect($entity, $entity_type);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function references_dialog_entity_update($entity, $entity_type) {
+  if (references_dialog_in_dialog() && references_dialog_close_on_submit()) {
+    references_dialog_close_on_redirect($entity, $entity_type);
+  }
+}
+
+/**
+ * Sets our destination parameter so that the dialog will close itself after
+ * redirect is completed.
+ */
+function references_dialog_close_on_redirect($entity, $entity_type) {
+  $entity_info = entity_get_info($entity_type);
+  // We use $_GET['destination'] since that overrides anything that happens
+  // in the form. It is a hack, but it is very effective, since we don't have
+  // to be worried about getting overrun by other form submit handlers.
+  $_GET['destination'] = 'references-dialog/redirect/' .
+  $entity->{$entity_info['entity keys']['id']} . '/' .
+  $entity_type .
+  '?references-dialog-close=1&render=references-dialog';
+}
+
+/**
+ * Implements hook_init().
+ */
+function references_dialog_init() {
+  if (references_dialog_in_dialog()) {
+    if (module_exists('admin_menu')) {
+      module_invoke('admin_menu', 'suppress');
+    }
+
+    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
+  }
+}
+
+/**
+ * Menu callback for fetching a search view.
+ * @param $view_name a view to use.
+ * @param $display_name the display name.
+ * @param $instance_info information aboutythe current display in a packed form.
+ */
+function references_dialog_search_view($view_name, $display_name, $attachable) {
+  $args = func_get_args();
+  $args = array_splice($args, 2);
+  $view = views_get_view($view_name);
+  // Find the entity that matches our base table.
+  $entities = entity_get_info();
+  foreach ($entities as $entity_type => $entity_info) {
+    if ($entity_info['base table'] == $view->base_table) {
+      break;
+    }
+  }
+  // Add some nice data about our field that the display handler can use.
+  $view->references_dialog = array(
+    'attachable' => references_dialog_get_attachable($entity_type, $attachable) + array('name' => $attachable),
+  );
+  return $view->execute_display($display_name, $args);
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function references_dialog_hook_info() {
+  $hooks = array();
+  $hooks['references_dialog_widgets'] = array(
+    'group' => 'dialog_widgets',
+  );
+  return $hooks;
+}
+
+function references_dialog_get_field_search_links($element, $widget_settings, $field, $instance) {
+  // We pack the necessary information for getting a field instance together in the
+  // url, so that we can retrieve the field instance and attach it to the view
+  // later on.
+  $attachable = implode(':', array($instance['entity_type'], $instance['field_name'], $instance['bundle']));
+  return references_dialog_get_views_search_links($attachable);
+}
+
+/**
+ * Get all views search links for an instance.
+ * This function should be used by references dialog widgets that uses
+ * views for it's search functionality.
+ * @param type $instance
+ */
+function references_dialog_get_views_search_links($attachable) {
+  $applicable_views = references_dialog_get_search_views($attachable);
+  $links = array();
+  foreach ($applicable_views as $view_name => $view) {
+    $links[] = references_dialog_link(array(
+      'title' => $view['title'],
+      'href' => 'references-dialog/search/' . $view_name . '/' . $view['display'] . '/' . $attachable,
+    ));
+  }
+  return $links;
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function references_dialog_page_alter(&$page) {
+  if (references_dialog_in_dialog()) {
+    unset($page['page_top']);
+    unset($page['page_bottom']);
+
+    $page['#theme'] = 'references_dialog_page';
+  }
+}
+
+/**
+ * Check if we are in a references dialog.
+ * @return boolean if we are in a dialog.
+ */
+function references_dialog_in_dialog() {
+  return (isset($_GET['render']) && $_GET['render'] == 'references-dialog') ||
+  // We are always in a dialog if we are on a references dialog search page,
+  // otherwise we will have a hard time with views exposed filters.
+  strstr(current_path(), 'references-dialog/search') !== FALSE;
+}
+
+/**
+ * Check if we should close the dialog upon submition.
+ */
+function references_dialog_close_on_submit() {
+  return (!isset($_GET['closeonsubmit']) || $_GET['closeonsubmit']);
+}
+
+/**
+ * Implements of hook_views_api().
+ */
+function references_dialog_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'reference_dialog') . '/views',
+  );
+}
+
+/**
+ * Implements of hook_views_plugins().
+ */
+function references_dialog_views_plugins() {
+  return array(
+    'display' => array(
+      'references_dialog' => array(
+        'title' => t('Reference dialog Search'),
+        'admin' => t('References'),
+        'theme' => 'views_view',
+        'help' => t('A view that can be used when referencing content.'),
+        'handler' => 'references_dialog_plugin_display',
+        'use ajax' => TRUE,
+        'use pager' => TRUE,
+        'uses hook menu' => TRUE,
+        'help topic' => 'references-dialog',
+        'references_dialog display' => TRUE,
+        'path' => drupal_get_path('module', 'references_dialog') . '/views',
+      ),
+    ),
+  );
+}
+
+function references_dialog_redirect_access() {
+  // @todo It is not really a security issue, but we should probably check
+  // that you can create the content you just created (silly), to access
+  // this page.
+  return TRUE;
+}
+
+/**
+ * Page callback for our redirect page.
+ */
+function references_dialog_redirect_page($entity_id, $entity_type) {
+  // Get some information about the entity we are dealing with.
+  $entity = entity_load($entity_type, array($entity_id));
+  $entity = reset($entity);
+  $entity_info = entity_get_info($entity_type);
+  $entity_id = $entity->{$entity_info['entity keys']['id']};
+  $entity_title = entity_label($entity_type, $entity);
+  // Add appropriate javascript that will be used by the parent page to
+  // fill in the required data.
+  if (isset($entity_id) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
+    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
+    drupal_add_js(array(
+      'ReferencesDialog' => array(
+        'entity_id' => $entity_id,
+        'title' => $entity_title,
+        'entity_type' => $entity_type,
+      ),
+    ), 'setting');
+  }
+  return '';
+}
+
+/**
+ * Implements hook_references_dialog_entity_admin_paths().
+ */
+function references_dialog_references_dialog_entity_admin_paths() {
+  // We define the add and edit page callbacks for core entities here.
+  $admin_paths = array(
+    'node' => array(
+      'add' => 'node/add/[bundle-sanitized]',
+      'edit' => 'node/[entity_id]/edit',
+    ),
+    'taxonomy_term' => array(
+      'edit' => 'taxonomy/term/[entity_id]/edit',
+      'add' => 'admin/structure/taxonomy/[bundle]/add',
+    ),
+    // Dealing with taxonomy vocabularies like this is kind of silly,
+    // and accessing them is a bit harder since their admin page is accessible
+    // through their machine name, so we leave it at just adding them for now.
+    'taxonomy_vocabulary' => array(
+      'add' => 'admin/structure/taxonomy/add',
+    ),
+    'comment' => array(
+      'edit' => 'comment/[entity_id]/edit',
+    ),
+    'user' => array(
+      'add' => 'admin/people/create',
+      'edit' => 'user/[entity_id]/edit',
+    ),
+  );
+
+  // The media module adds an edit callback for media as well.
+  // Note: this will probably not work until file_entity provides an access
+  // API, see http://drupal.org/node/1227706
+  if (module_exists('media')) {
+    $admin_paths['file'] = array(
+      'edit' => 'media/[entity_id]/edit',
+    );
+  }
+  return $admin_paths;
+}
+
+/**
+ * Get the admin path (edit/add) page for a particular entity
+ * @param string $entity_type the entity type
+ * @param string $op Which operation to perform. Either "edit" or "add".
+ * @param string $bundle The bundle to use.
+ * @param mixed $entity The entity to edit. This is only used with the "edit" operation.
+ * @return string The path where the entity can be edited or created.
+ */
+function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $entity = NULL) {
+  // Let's cache the paths.
+  $paths = &drupal_static(__FUNCTION__ , NULL);
+  if (!isset($paths)) {
+    $paths = module_invoke_all('references_dialog_entity_admin_paths');
+  }
+  if (isset($paths[$entity_type]) && isset($paths[$entity_type][$op])) {
+    $path = $paths[$entity_type][$op];
+    // Create a wrapper, so we can deal with this in a sane way.
+    $wrapper = entity_metadata_wrapper($entity_type, $entity);
+    // Replace [entity_id] with the entity id.
+    if (isset($entity)) {
+        $path = str_replace('[entity_id]', $wrapper->getIdentifier(), $path);
+    }
+    if (!$bundle) {
+      $bundle = $wrapper->getBundle();
+    }
+    if ($bundle) {
+      $path = str_replace('[bundle]', $bundle, $path);
+      // Some entities (like node) provide a sort of sanitized version.
+      // This makes sure we support this.
+      $bundle = strtr($bundle, array('_' => '-'));
+      $path = str_replace('[bundle-sanitized]', $bundle, $path);
+    }
+    return $path;
+  }
+  return FALSE;
+}
+
+/**
+ * Theme function for theming the links for opening
+ * the references dialog.
+ */
+function theme_references_dialog_links($links) {
+  return theme('links', array('links' => $links, 'attributes' => array('class' => 'references-dialog-links')));
+}

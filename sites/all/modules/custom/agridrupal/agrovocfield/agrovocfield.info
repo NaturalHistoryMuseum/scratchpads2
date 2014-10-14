@@ -1,0 +1,17 @@
+name = AGROVOC field
+description = AGROVOC field
+core = 7.x
+dependencies[] = taxonomy
+dependencies[] = translation
+dependencies[] = locale
+dependencies[] = i18n
+dependencies[] = i18n_taxonomy
+;dependencies[] = l10n_update
+package = Fields
+
+;Information added by drupal.org packaging script on 2013-08-29
+version = "7.x-2.1"
+core = "7.x"
+project = "agrovocfield"
+datestamp = "1365099011"
+

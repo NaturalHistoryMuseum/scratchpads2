@@ -1,0 +1,743 @@
+<?php
+
+/**
+ * This file only should be store settings and main agrovocfield functions
+ * For example here are settings for autocomplete and automatic indexing widgets
+ * @todo Use ctools plugins to add widgets?
+ */
+
+function agrovocfield_field_widget_info_alter(&$info) {
+	// Add a setting to a widget type.
+  // Autocomplete widget
+  if (module_exists('agrovocfield_autocomplete')) {
+    $ag_settings = array(
+      'agrovocfield' => array(
+        'autocomplete' => array(
+           'agrovocfield_autocomplete' => array(
+              'agrovocfield_enable' => TRUE,
+              'agrovocfield_connection' => 'remote',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
+              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
+              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_'
+            ),
+         ),
+      ),
+    );
+    $info['taxonomy_autocomplete']['settings'] += $ag_settings;
+  }
+  // Automatic Indexing
+  if (module_exists('agrovocfield_automatic')) {
+    $ag_settings = array(
+      'agrovocfield' => array(
+        'automatic' => array(
+           'agrovocfield_automatic' => array(
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+              'field_for_indexing' => 'body',
+              'voc_type' => 'agrotag',
+              'tags_no' => 10,
+            ),
+         ),
+      ),
+    );
+    $info['taxonomy_autocomplete']['settings'] += $ag_settings;
+  }
+}
+
+/**
+ * Implements hook_form_ID_alter().
+ */
+function agrovocfield_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  $field = $form['#field'];
+  $instance = $form['#instance'];
+  $entity_type = $form['#instance']['entity_type'];
+  $bundle = $form['#instance']['bundle'];
+
+  // At least should be enable agrovoc_autocomplete module
+  if ($instance['widget']['type'] == 'taxonomy_autocomplete' && module_exists('agrovocfield_autocomplete')) {
+    $form['instance']['widget']['settings']['agrovocfield'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('AGROVOC settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 100,
+    );
+    if (module_exists('agrovocfield_autocomplete')) {
+      $form['instance']['widget']['settings']['agrovocfield']['autocomplete'] = agrovocfield_autocomplete_widget_settings_form($instance['widget']['settings']);
+    }
+    if (module_exists('agrovocfield_automatic')) {
+      $form['instance']['widget']['settings']['agrovocfield']['automatic'] = agrovocfield_automatic_widget_settings_form($instance['widget']['settings'], $entity_type, $bundle);
+    }
+    $form['#submit'][] = 'agrovocfield_form_field_ui_field_save_mapping';
+  }
+}
+
+function agrovocfield_autocomplete_widget_settings_form($settings) {
+  $form['agrovocfield_autocomplete'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Autocomplete settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 20,
+  );
+
+  $form['agrovocfield_autocomplete']['agrovocfield_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable AGROVOC Autocomplete'),
+    '#default_value' => is_numeric($settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_enable']) ? $settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_enable'] : 0,
+    '#description' => t('Enable if you will use AGROVOC terms for this taxonomy. Also, keep checked it whether you are going to use "AGROVOC Automatic Indexing".'),
+  );
+
+  $options = array(
+    'local' => t('Offline'),
+    'remote' => t('Online'),
+  );
+
+  $form['agrovocfield_autocomplete']['agrovocfield_connection'] = array(
+    '#type' => 'radios',
+    '#title' => t('AGROVOC database connection'),
+    '#options' => $options,
+    '#default_value' => isset($settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_connection']) ? $settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_connection'] : 'remote',
+    '#description' => t('Choose <i>local</i> if you do not use internet or is very slow'),
+  );
+
+  $form['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('AGROVOC Web Services URL'),
+    '#default_value' => isset($settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url']) ? $settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url'] : 'http://agrovoc.mimos.my/ACSWWebservice/services/ACSWWebService',
+  );
+
+  $form['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri'] = array(
+    '#type' => 'textfield',
+    '#title' => t('AGROVOC Web Services URI'),
+    '#default_value' => isset($settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri']) ? $settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri'] : 'AgrovocWS',
+  );
+
+  $form['agrovocfield_autocomplete']['agrovocfield_agrovoc_uri'] = array(
+    '#type' => 'textfield',
+    '#title' => t('AGROVOC URI'),
+    '#default_value' => isset($settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_uri']) ? $settings['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_uri'] : 'http://aims.fao.org/aos/agrovoc/c_',
+    '#description' => t('You can not change these unless you know new URI for Agrovoc terms.'),
+    '#attributes' => array('readonly' => TRUE),
+  );
+
+  return $form;
+}
+
+
+/**
+ * Implementation of hook_widgets_settings().
+ */
+function agrovocfield_automatic_widget_settings_form($settings, $entity_type, $bundle) {
+  // @todo exclude itself
+  $fields = field_info_instances($entity_type, $bundle);
+  $options = drupal_map_assoc(array_keys($fields));
+  $form['agrovocfield_automatic'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Automatic Indexing settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 20,
+  );
+
+  $form['agrovocfield_automatic']['automatic_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable AGROVOC Automatic Indexing'),
+    '#default_value' => is_numeric($settings['agrovocfield']['automatic']['agrovocfield_automatic']['automatic_enable']) ? $settings['agrovocfield']['automatic']['agrovocfield_automatic']['automatic_enable'] : 0,
+    '#description' => t('Enable if you want to use Automatic Indexing. Do not forget keeping checked the option "Enable AGROVOC Autocomplete" above mentioned.'),
+  );
+
+  $form['agrovocfield_automatic']['agrotagger_url'] = array(
+    '#title' => t('Agrotagger URL'),
+    '#type' => 'textfield',
+    '#default_value' => isset($settings['agrovocfield']['automatic']['agrovocfield_automatic']['agrotagger_url']) ? $settings['agrovocfield']['automatic']['agrovocfield_automatic']['agrotagger_url'] : 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+  );
+  $form['agrovocfield_automatic']['field_for_indexing'] = array(
+    '#title' => t('Field for indexing'),
+    '#type' => 'select',
+    '#options' => $options,
+    '#default_value' => isset($settings['agrovocfield']['automatic']['agrovocfield_automatic']['field_for_indexing']) ? $settings['agrovocfield']['automatic']['agrovocfield_automatic']['field_for_indexing'] : 'field_body',
+    '#description' => t('Select field machine name you will use for automatic indexing.'),
+  );
+  $form['agrovocfield_automatic']['voc_type'] = array(
+    '#title' => t('Vocabulary type'),
+    '#type' => 'select',
+    '#default_value' => isset($settings['agrovocfield']['automatic']['agrovocfield_automatic']['voc_type']) ? $settings['agrovocfield']['automatic']['agrovocfield_automatic']['voc_type'] : 'agrovoc',
+    //'#options' => drupal_map_assoc(array('agrovoc', 'agrotag')), anto updated because we use agrotagger kanpur
+    '#options' => drupal_map_assoc(array('agrotag')),
+    '#description' => t('Select vocabulary type for indexing'),
+  );
+  $form['agrovocfield_automatic']['tags_no'] = array(
+    '#title' => t('No. of Tags'),
+    '#type' => 'select',
+    '#default_value' => isset($settings['agrovocfield']['automatic']['agrovocfield_automatic']['tags_no']) ? $settings['agrovocfield']['automatic']['agrovocfield_automatic']['tags_no'] : 10,
+    '#options' => drupal_map_assoc(array(10, 15, 20)),
+  );
+  return $form;
+}
+
+/*
+ * Store mapping between each taxonomy and its field
+ *
+ */
+function agrovocfield_form_field_ui_field_save_mapping($form, &$form_state) {
+  //$agrovocfield_enable = $form_state['values']['instance']['widget']['settings']['agrovocfield_enable'];
+  $agrovocfield_enable = $form_state['values']['instance']['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_enable'];
+  //anto patch for scratchpads
+ //$voc_machine_name = $form_state['values']['field']['settings']['allowed_values'][0]['vocabulary'];
+  foreach($form_state['values']['field']['settings']['allowed_values'] as $v){
+  	if (!empty($v['vocabulary'])){
+       $voc_machine_name = $v['vocabulary'];}
+   }
+   //end patch
+  $fieldname = $form_state['values']['instance']['field_name'];
+  if ($agrovocfield_enable == 1) {
+    variable_del('agrovocfield_voc_machine_name_' . $voc_machine_name);
+    variable_set('agrovocfield_voc_machine_name_' . $voc_machine_name, $fieldname);
+  }
+  elseif ($agrovocfield_enable == 0) {
+    variable_del('agrovocfield_voc_machine_name_' . $voc_machine_name);
+  }
+}
+
+//anto added hook pre-save to change descriptors terms instead non-descriptors before to save terms
+
+function agrovocfield_taxonomy_term_presave($term){
+	
+  GLOBAL $language;
+  
+  $vocabulary = taxonomy_vocabulary_load($term->vid);
+  if ($vocabulary->field_agrovoc) {
+	  $fieldname = $vocabulary->field_agrovoc;
+	  // @todo should work for another entities different from "node" entity
+	  $field = field_info_field($fieldname);
+	  $field = field_info_instance('node', $fieldname, $field['bundles']['node'][0]);
+	  $agrovoc_connection = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_connection'];
+	  $agrovocfield_agrovoc_ws_url = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url'];
+	  $agrovocfield_agrovoc_ws_uri = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri'];
+	  //path for code not inserted in taxonomy_term_data because it pass twice in taxonomy_term_save 
+	  $icode=db_select('taxonomy_term_data', 't')
+	                ->fields('t', array('i18n_tsid'))
+	                ->condition('name', $term->name, '=')->execute()->fetchField();
+          if ($icode!==false)
+		      $term->i18n_tsid= $icode;
+   
+	  if ($agrovoc_connection == 'remote') {
+	      $agrovoc = new agrovoc_remote($agrovocfield_agrovoc_ws_url, $agrovocfield_agrovoc_ws_uri);
+	      //anto adding patch for localized terms inserted in not default languages
+	      $agrovoc_translations = $agrovoc->agrovocfield_load_object($term->name);
+	    $lan_def= language_default();
+	    if ($language->language!=$lan_def->language){
+	    	
+	    	foreach($agrovoc_translations->labels as $lan => $label){
+				if($lan==$lan_def->language){
+					if (empty($label)){
+					    $label=$term->name;}
+					$DeflanTerm=false;
+				    $DeflanTerm=db_select('taxonomy_term_data', 't')
+	                ->fields('t', array('tid'))
+	                ->condition('name', $label, '=')->execute()->fetchField();
+                    if ($DeflanTerm!=false){
+		                $term->tid= $DeflanTerm;
+                         $term->name=$label;}
+		            else{
+		            	$term->name=$label;}
+		  }
+					
+					 
+				}
+	    	}
+	       //anto adding code to save field agrovoc uri in taxonomy term agrovoc
+    
+	$term->field_agrovoc_uri["und"][0]['title']="http://aims.fao.org/aos/agrovoc/c_".$agrovoc_translations->id; 
+	$term->field_agrovoc_uri["und"][0]['url']="http://aims.fao.org/aos/agrovoc/c_".$agrovoc_translations->id; 
+	//end
+	  //end 
+	      $termTemp = $agrovoc->simple_search_by_mode2($term->name, 'exact', ',', TRUE, 10);
+	      $label=$term->name;
+	      if(count($termTemp) == 0) {
+	        //throw new Exception(t('@label is not a AGROVOC term.', array('@label' => $label)));
+	       //$term=NULL;
+	      // drupal_set_message(t('@label is not a AGROVOC term.', array('@label' => $label)), 'error');  
+	      }
+	      //i change the variable in $termtemp instead $term
+	      $termTemp = array_values($termTemp);
+	      
+	       unset($term_info);
+	       if(isset($termTemp[0]['id'])){
+		  //anto call here getinfobyconcept function to get id of related descriptor term 
+		  $term_info =  $agrovoc->getConceptInfoByTermcode($termTemp[0]['id']);
+ 		  $term_info = array_values($term_info);
+		  if ($term_info[1]=="non-descriptor"){
+	    	  $term_labels = $agrovoc->get_all_labels_by_termcode2($term_info[0]['id']);
+		  	  $term->name = $term_labels[$language->language];
+		  	  //anto test
+		  if(trim($term->name) == "") {
+	          //throw new Exception(t('@label is not a AGROVOC term.', array('@label' => $label)));
+	          $term=NULL;
+	          drupal_set_message(t('@label is not a AGROVOC term.', array('@label' => $label)), 'error');  
+	      }
+		  	  $OriginalTerm=db_select('taxonomy_term_data', 't')
+	                ->fields('t', array('tid'))
+	                ->condition('name', $term->name, '=')
+	                ->condition('language', $language->language, '=')->execute()->fetchField();
+                    drupal_set_message(t('Your term choice "'.$label.'" has been replaced with the AGROVOC recommended term: "'.$term->name.'"!'));  
+	                if ($OriginalTerm!==false)
+		                $term->tid= $OriginalTerm;
+		                
+		  }
+	  }
+	   }
+  }
+}
+//end anto added code
+/**
+ * Act on taxonomy terms when inserted.
+ *
+ * Modules implementing this hook can act on the term object when saved to
+ * the database.
+ * See i18n_taxonomy_autocomplete_validate
+ * @param $term
+ *   A taxonomy term object.
+ */
+function agrovocfield_taxonomy_term_insert($term) {
+  $vocabulary = taxonomy_vocabulary_load($term->vid);
+  if ($vocabulary->field_agrovoc) {
+  $fieldname = $vocabulary->field_agrovoc;
+  // @todo should work for another entities different from "node" entity
+  $field = field_info_field($fieldname);
+  $field = field_info_instance('node', $fieldname, $field['bundles']['node'][0]);
+  $agrovoc_connection = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_connection'];
+  $agrovocfield_agrovoc_ws_url = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_url'];
+  $agrovocfield_agrovoc_ws_uri = $field['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_ws_uri'];
+
+  if ($agrovoc_connection == 'remote') {
+    $agrovoc = new agrovoc_remote($agrovocfield_agrovoc_ws_url, $agrovocfield_agrovoc_ws_uri);
+  }
+  elseif ($agrovoc_connection == 'local') {
+  	$agrovoc = new agrovoc_local($agrovocfield_agrovoc_ws_url, $agrovocfield_agrovoc_ws_uri);
+  }
+/*salvare il term con current language e ciclare per ogni lingua abilitata creado translations dove non ci sono labels mettere il default
+ * anto adding code*/
+      //global $language;
+      $trans=0; 
+      
+      $agrovoc_translations = $agrovoc->agrovocfield_load_object($term->name);
+      
+      $languages =language_list();
+       $agrovoc_term = new stdClass();
+		$agrovoc_term->name = $term->name;
+		$agrovoc_term->vid = $vocabulary->vid;
+		$agrovoc_term->i18n_tsid = $agrovoc_translations->id;
+		$termNew = agrovocfield_tags_get_tids($agrovoc_term);
+		
+		//if (isset($termNew['tid']) && $termNew['tid'] == 'autocreate') {
+		//unset($termNew->tid);
+			//agrovocfield_taxonomy_term_save($termNew);
+			
+		//}
+		  
+		
+		// unset($languages[$language->language]); 
+		foreach($languages as $langcode => $lang){
+			     foreach($agrovoc_translations->labels as $language => $label){
+					    if($language==$langcode){
+						    //create translation with $label;
+						    $result_translation = i18n_string_translation_update(
+    array('taxonomy', 'term', $term->tid, 'name'), // Path where to store source and translation.
+    $label,
+    $language,
+    $term->name
+  );
+						     $trans=1;}
+						  }
+						  if ($trans!=1){$result_translation = i18n_string_translation_update(
+    array('taxonomy', 'term', $term->tid, 'name'), // Path where to store source and translation.
+    $term->name,
+    $language,
+    $term->name
+  );}
+							   //{create translation with $label original $term->name for the $lan; }
+						   else {$trans=0;
+							  }
+					   }
+					   $translations = $termNew;
+  /*anto end adding code*/
+  /* anto comment code
+	$agrovoc_translations = $agrovoc->agrovocfield_load_object($term->name);
+	foreach ($agrovoc_translations->labels as $language => $label) {
+		$agrovoc_term = new stdClass();
+		$agrovoc_term->name = $label;
+		$agrovoc_term->vid = $vocabulary->vid;
+		$agrovoc_term->language = $language;
+		$term_translations[$language] = agrovocfield_tags_get_tids($agrovoc_term);
+	}
+      
+	foreach ($term_translations as $lang => $item) {
+		if (isset($item['tid']) && $item['tid'] == 'autocreate') {
+			$term = (object) $item;
+			unset($term->tid);
+			agrovocfield_taxonomy_term_save($term);
+			
+		}
+		else {
+			$term = (object) $item;
+		}
+		    $translations[$lang] = $term;
+	} anto end comment*/
+   
+
+	if (!empty($translations)) {
+		$translation_set = i18n_translation_set_create('taxonomy_term', $vocabulary->machine_name);
+		$translation_set
+		->reset_translations($translations)
+		->save(TRUE);
+		//anto adding code to manage incorrect terms coming from automatic indexing and import
+		if(!empty($agrovoc_translations->id)){
+		db_insert('agrovocfield_index')->fields(array('i18n_tsid' => $translation_set->tsid, 'aid' => $agrovoc_translations->id))->execute();
+		//update taxonomy-term_data with i18n_tsid
+		$num_updated = db_update('taxonomy_term_data') // Table name no longer needs {}
+            ->fields(array('i18n_tsid' => $translation_set->tsid))
+            ->condition('tid', $term->tid, '=')
+            ->execute();
+            
+               
+        $term->i18n_tsid = $translation_set->tsid;
+        cache_set($term->tid, $term, 'cache_entity_taxonomy_term');    
+		drupal_set_message(t('Term translations have been updated.'));
+		}else{
+			$num_updated = db_delete('taxonomy_term_data') // Table name no longer needs {}
+            ->condition('tid', $term->tid, '=')
+            ->execute();
+   
+	        }
+	}
+	else {
+		drupal_set_message(t('There are no translations to be saved.'), 'error');
+	}
+ }
+}
+
+/**
+ * Saves an AGROVOC term object to the database.
+ * Is a modified version for avoiding that another modules rewrite its behavior
+ * when an AGROVOC term is inserted.
+ * Mainly, avoids recursive cycle among function taxonomy_term_save and function agrovocfield_taxonomy_term_insert
+ * because when you use hook_taxonomy_term_insert and within itself function taxonomy_term_save you get a useless recursive cycle
+ * @param $term
+ *   The taxonomy term object with the following properties:
+ *   - vid: The ID of the vocabulary the term is assigned to.
+ *   - name: The name of the term.
+ *   - tid: (optional) The unique ID for the term being saved. If $term->tid is
+ *     empty or omitted, a new term will be inserted.
+ *   - description: (optional) The term's description.
+ *   - format: (optional) The text format for the term's description.
+ *   - weight: (optional) The weight of this term in relation to other terms
+ *     within the same vocabulary.
+ *   - parent: (optional) The parent term(s) for this term. This can be a single
+ *     term ID or an array of term IDs. A value of 0 means this term does not
+ *     have any parents. When omitting this variable during an update, the
+ *     existing hierarchy for the term remains unchanged.
+ *   - vocabulary_machine_name: (optional) The machine name of the vocabulary
+ *     the term is assigned to. If not given, this value will be set
+ *     automatically by loading the vocabulary based on $term->vid.
+ *   - original: (optional) The original taxonomy term object before any changes
+ *     were applied. When omitted, the unchanged taxonomy term object is
+ *     loaded from the database and stored in this property.
+ *   Since a taxonomy term is an entity, any fields contained in the term object
+ *   are saved alongside the term object.
+ *
+ * @return
+ *   Status constant indicating whether term was inserted (SAVED_NEW) or updated
+ *   (SAVED_UPDATED). When inserting a new term, $term->tid will contain the
+ *   term ID of the newly created term.
+ */
+//anto function agrovocfield_field_attach_presave($entity_type, $entity) {
+ 
+function agrovocfield_taxonomy_term_save($term) {
+	// Prevent leading and trailing spaces in term names.
+	$term->name = trim($term->name);
+	if (!isset($term->vocabulary_machine_name)) {
+		$vocabulary = taxonomy_vocabulary_load($term->vid);
+		$term->vocabulary_machine_name = $vocabulary->machine_name;
+	}
+
+	// Load the stored entity, if any.
+	if (!empty($term->tid) && !isset($term->original)) {
+		$term->original = entity_load_unchanged('taxonomy_term', $term->tid);
+	}
+
+	if (empty($term->tid)) {
+		$op = 'insert';
+		$status = drupal_write_record('taxonomy_term_data', $term);
+		if (!isset($term->parent)) {
+			$term->parent = array(0);
+		}
+	}
+	else {
+		$op = 'update';
+		$status = drupal_write_record('taxonomy_term_data', $term, 'tid');
+		if (isset($term->parent)) {
+			db_delete('taxonomy_term_hierarchy')
+			->condition('tid', $term->tid)
+			->execute();
+		}
+	}
+
+	if (isset($term->parent)) {
+		if (!is_array($term->parent)) {
+			$term->parent = array($term->parent);
+		}
+		$query = db_insert('taxonomy_term_hierarchy')
+		->fields(array('tid', 'parent'));
+		foreach ($term->parent as $parent) {
+			if (is_array($parent)) {
+				foreach ($parent as $tid) {
+					$query->values(array(
+							'tid' => $term->tid,
+							'parent' => $tid
+					));
+				}
+			}
+			else {
+				$query->values(array(
+						'tid' => $term->tid,
+						'parent' => $parent
+				));
+			}
+		}
+		$query->execute();
+	}
+
+	// Reset the taxonomy term static variables.
+	taxonomy_terms_static_reset();
+
+	// Invoke the taxonomy hooks.
+	unset($term->original);
+	
+	return $status;
+	
+}
+
+function agrovocfield_tags_get_tids($term) {
+	// Autocomplete widgets do not send their tids in the form, so we must detect
+	// them here and process them independently.
+  $value = array();
+	if ($tags = $term->name) {
+		// Collect candidate vocabularies.
+		$vocabulary = taxonomy_vocabulary_load($term->vid);
+		$vocabularies[$vocabulary->vid] = $vocabulary;
+
+		// Translate term names into actual terms.
+		$typed_terms = drupal_explode_tags($tags);
+		foreach ($typed_terms as $typed_term) {
+			// See if the term exists in the chosen vocabulary and return the tid;
+			// otherwise, create a new 'autocreate' term for insert/update.
+			//if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($typed_term), 'vid' => $vocabulary->vid, 'language' => $term->language))) {
+			if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($typed_term), 'vid' => $vocabulary->vid))) {
+				$term = array_pop($possibilities);
+			}
+			else {
+				$vocabulary = reset($vocabularies);
+				$term = array(
+						'tid' => 'autocreate',
+						'vid' => $vocabulary->vid,
+						'name' => $typed_term,
+						'vocabulary_machine_name' => $vocabulary->machine_name,
+						'i18n_tsid' => $term->i18n_tsid,
+						//anto modified 'language' => $term->language,
+				);
+			}
+			$value = (array)$term;
+		}
+	}
+	return $value;
+}
+
+function agrovocfield_taxonomy_vocabulary_load($vocabularies) {
+  foreach ($vocabularies as $vocabulary) {
+    $vocabulary->field_agrovoc = variable_get('agrovocfield_voc_machine_name_' . $vocabulary->machine_name, FALSE);
+  }
+}
+
+
+/**
+ * Expose Field API formatter types.
+ *
+ * Formatters handle the display of field values. Formatter hooks are typically
+ * called by the Field Attach API field_attach_prepare_view() and
+ * field_attach_view() functions.
+ *
+ * @return
+ *   An array describing the formatter types implemented by the module.
+ *   The keys are formatter type names. To avoid name clashes, formatter type
+ *   names should be prefixed with the name of the module that exposes them.
+ *   The values are arrays describing the formatter type, with the following
+ *   key/value pairs:
+ *   - label: The human-readable name of the formatter type.
+ *   - description: A short description for the formatter type.
+ *   - field types: An array of field types the formatter supports.
+ *   - settings: An array whose keys are the names of the settings available
+ *     for the formatter type, and whose values are the default values for
+ *     those settings.
+ *
+ * @see hook_field_formatter_info_alter()
+ * @see hook_field_formatter_view()
+ * @see hook_field_formatter_prepare_view()
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function agrovocfield_field_formatter_info() {
+  return array(
+    'agrovocfield_term_reference_agrovoc_uri' => array(
+      'label' => t('AGROVOC URI'),
+      'field types' => array('taxonomy_term_reference'),
+      'settings' => array('only_agid' => FALSE, 'strip_html' => FALSE),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function agrovocfield_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+
+  $element['only_agid'] = array(
+    '#title' => t('Only AGROVOC id'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['only_agid'],
+  );
+
+  $element['strip_html'] = array(
+    '#title' => t('Strip HTML'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['strip_html'],
+  );
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function agrovocfield_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+
+  $values = array(0 => t('no'), t('yes'));
+  $summary[] = t('Only AGROVOC id') . ': ' . $values[$settings['only_agid']];
+  $summary[] = t('Strip HTML') . ': ' . $values[$settings['strip_html']];
+
+  return implode('<br />', $summary);
+}
+
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function agrovocfield_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $language = i18n_language_interface();
+  switch ($display['type']) {
+    case 'agrovocfield_term_reference_agrovoc_uri':
+      foreach ($items as $delta => $item) {
+      	 // drupal_flush_all_caches() ;
+          $term = taxonomy_term_load($item['tid']);
+          //$uri = agrovocfield_agrovoc_uri($term); anto change the module 26/05/14
+          $uri = $term->field_agrovoc_uri['und']['0']['url'];
+          $translation = i18n_taxonomy_localize_terms($term);
+          //anto moved to localized //$translation = i18n_taxonomy_term_get_translation($term, $language->language);
+          // if term has translation
+          if (isset($translation->name)) {
+            if ($display['settings']['strip_html'] == 0) {
+              $element[$delta] = array(
+                '#type' => 'link',
+                '#title' => $translation->name,
+                //'#href' => $instance['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_agrovoc_uri'] . $uri,
+                '#href' =>  $uri,
+                '#options' => array('attributes' => array('target' => '_blank')),
+              );
+            }
+            if ($display['settings']['strip_html'] == 1) {
+              $element[$delta] = array(
+                '#type' => 'markup',
+                 '#markup' => $uri,
+               // '#markup' => $instance['widget']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['settings']['agrovocfield_agrovoc_uri'] . $uri,
+              );
+            }
+            if ($display['settings']['only_agid'] == 1) {
+                $element[$delta] = array(
+                '#type' => 'markup',
+                '#markup' => $uri,
+              );
+            }
+          }
+      }
+      break;
+  }
+  return $element;
+}
+
+
+function agrovocfield_agrovoc_uri($term) {	
+  $agrovoc_id = db_select('agrovocfield_index', 't')
+                ->fields('t', array('aid'))
+                ->condition('i18n_tsid', $term->i18n_tsid, '=')->execute()->fetchField();
+  return $agrovoc_id;
+}
+
+
+function agrovocfield_field_widget_form_alter(&$element, &$form_state, $context) {
+  if (isset($element['#entity']->tnid) && isset($context['instance']['widget']['settings']['agrovocfield'])) {
+    $language_interface = language_default();
+    $translations = translation_node_get_translations($element['#entity']->tnid);
+
+    if (($context['field']['type'] == 'taxonomy_term_reference') && ($context['instance']['widget']['settings']['agrovocfield']['autocomplete']['agrovocfield_autocomplete']['agrovocfield_enable'] == 1) && ($element['#entity']->language !== $language_interface->language) && !empty($translations)) {
+
+      $node_default = $translations[$language_interface->language];
+      $node = node_load($node_default->nid);
+      $terms = reset($node->{$element['#field_name']});
+      $tids = array();
+      foreach ($terms as $term) {
+        $tids[] = $term['tid'];
+      }
+      $translations_terms = taxonomy_term_load_multiple($tids);
+      $tags = '';
+      foreach ($translations_terms as $translation_term) {
+        $tags[] = i18n_taxonomy_term_get_translation($translation_term, i18n_language_context()->language)->name;
+      }
+	    $element['#default_value'] = implode(', ', $tags);
+    }
+  }
+}
+function agrovocfield_node_presave($node) {
+	$i=0;
+	if (isset($node->field_ag_agrovoc['und'])){
+	
+	
+	foreach ($node->field_ag_agrovoc['und'] as $agroterm){
+		 
+		 $termI=taxonomy_term_load($agroterm['tid']);
+		 //controlo se esiste e poi cancello
+		 if ($termI==false){
+		 	unset($node->field_ag_agrovoc['und'][$i]);
+   
+		 }
+		$i++;
+	}
+	
+  	
+  if ($node->nid && $node->moderate) {
+    // Reset votes when node is updated:
+    
+    $node->score = 0;
+    $node->users = '';
+    $node->votes = 0;
+  }
+ }
+}

@@ -1,0 +1,54 @@
+<?php
+/**
+ * @file
+ * Provides a RDF-based service class for the Search API.
+ */
+
+/**
+ * Implements hook_search_api_service_info().
+ */
+function rdf_indexer_search_api_service_info() {
+  $services['rdf_indexer_service'] = array(
+    'name' => t('RDF indexer service'),
+    'description' => t('<p>Index items using an RDF store server.</p>'),
+    'class' => 'RdfIndexerArc2StoreService',
+  );
+  return $services;
+}
+
+/**
+ * Implements hook_search_api_alter_callback_info().
+ */
+function rdf_indexer_search_api_alter_callback_info() {
+  $callbacks['rdf_indexer_alter_entity_public'] = array(
+    'name' => t('Public entities'),
+    'description' => t('Only index entities which are publicly accessible.'),
+    'class' => 'RdfIndexerAlterEntityPublic',
+  );
+
+  return $callbacks;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function rdf_indexer_form_search_api_admin_add_index_alter(array &$form, array &$form_state, $form_id) {
+  // Adds custom submit handler to automatically default the indexed fields to
+  // a minimal set of fields when an index is created. RDF indexer ignores the
+  // indexed fields, but Search API requires at least one field to be set.
+  $form['#submit'][] = 'rdf_indexer_form_search_api_admin_add_index_submit';
+}
+
+/**
+ * Custom submit handler for search_api_admin_add_index form.
+ */
+function rdf_indexer_form_search_api_admin_add_index_submit(array $form, array &$form_state) {
+  // Update index to include a minimal set of fields (language field).
+  $index = search_api_index_load($form_state['values']['machine_name']);
+  $options = array(
+    'fields' => array(
+      'search_api_language' => array('type' => 'string'),
+    ),
+  );
+  $ret = $index->update(array('options' => $options));
+}

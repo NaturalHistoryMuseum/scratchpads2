@@ -1,0 +1,12 @@
+name = ARC2 store
+description = Allows to create ARC2 RDF stores and SPARQL endpoints on MySQL databases.
+core = 7.x
+package = SCF
+dependencies[] = "ctools"
+
+; Information added by drupal.org packaging script on 2013-06-04
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "arc2_store"
+datestamp = "1370306205"
+

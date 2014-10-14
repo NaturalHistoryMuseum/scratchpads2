@@ -1,0 +1,6 @@
+Field group multiple 7.x-1.x, 2012-10-11
+-----------------------------------------
+
+- Rewrote a lot of code
+- #1589848 by cezaryrk: fixed Notice: Undefined index: #entity in options_field_widget_form()
+- #1448342 by cezaryrk: Undefined index: #language en locale_field_node_form_submit() (línea 404)

@@ -1,0 +1,237 @@
+
+
+                  TAXONOMY CSV IMPORT/EXPORT TECHNICAL INFOS
+                  ==========================================
+
+
+@todo To be updated for >= 7.x.5.8
+
+
+Taxonomy csv import/export module has a lot of files, but majority of them are
+used for user interface, to check the input and to manage big taxonomies import.
+Furthermore, the process of duplicate terms is complex and code can be largely
+simplified if these terms are not allowed - what is advised - and, therefore,
+not to be managed.
+True import/export process is done by some main functions only.
+
+- Files of module
+- Detail of files
+- Use as an api
+- Logical structure
+- Add a new scheme
+
+-- FILES OF MODULE --
+  -----------------
+
+Taxonomy csv module is divided in files in order to minimize memory and to use
+it as an api. Here an explanation of structure of these files.
+
+
+Default Drupal files
+                                             .info
+                                            .install
+                                             .module
+                                                |
+                              ------------------+------------------
+                              |                                   |
+                              V                                   V
+User Interface use -> .import.admin.inc                   .export.admin.inc
+                              |                                   |
+                              ------------------+------------------
+                                                |
+                                                V
+                                            .api.inc
+                                          *.format.inc
+                                                |
+                              ------------------+------------------
+                              |                                   |
+                              V                                   V
+API / Drush use -----> .import.api.inc                     .export.api.inc
+                   .import.parser.api.inc                         |
+                    .import.line.api.inc                          |
+                              |                                   |
+                              ------------------+------------------
+                                                |
+                                                V
+                                            .api.inc
+                                          *.format.inc
+                    .vocabulary.api.inc         |
+                                         .term.api.inc
+                                                |
+Only if user wants result infos and stats       |
+                              ------------------+------------------
+                              |                                   |
+                              V                                   V
+                    .import.result.inc                    .export.result.inc
+                              |                                   |
+                              ------------------+------------------
+                                                |
+                                                V
+                                           .result.inc
+
+
+-- DETAILS OF FILES --
+  ------------------
+
+- Default Drupal files
+  - .info                 : info on module
+  - .install              : install/uninstall
+  - .module               : manage help, permissions and menus
+
+- Central file
+  - .api.inc              : manage variables and features of module. It is
+                            invoked by below files.
+
+- User interface files
+  - .import.admin.inc     : create import form and validate user input
+  - .export.admin.inc     : create export form and validate user input
+
+- Api files
+  - .import.api.inc       : validate import options and manage import process
+  - .import.parser.inc    : Check a line of imported terms: duplicate, format...
+                            Can be excluded if user doesn't want to check lines.
+  - .import.line.inc      : process import of a csv line, i.e. of a term or a
+                            list of terms
+  - .export.api.inc       : validate export options, manage and process export
+                            of a vocabulary (no need of a check)
+  - .vocabulary.api.inc   : prepare and manage vocabularies
+  - .term.api.inc         : find and get full or detail term definitions, and
+                            save term
+
+- Result files
+  - .result.inc           : manages common messages on results of process
+  - .import.result.inc    : manage infos and stats about import
+  - .export.result.inc    : manage infos and stats about export
+
+- Format files
+  - *.format.inc          : contain full functions to import/export a vocabulary
+
+
+-- USE AS AN API --
+  ---------------
+
+- Taxonomy_csv module doesn't need to be enabled. If it is not enabled, it need
+  to be invoked directly as this (example for import):
+    // Invoke taxonomy_csv import api.
+    $module_dir = drupal_get_path('module', 'taxonomy_csv');
+    require_once("$module_dir/import/taxonomy_csv.import.api.inc");
+  Other needed files are automaticaly invoked.
+
+- If you choose to copy needed taxonomy_csv files in your module, they need to
+  be invoked by your module.info or directly with require_once. To include api
+  such this is  possible, but not recommended, because some changes may be done
+  on taxonomy_csv files : each path of "require_once" should be modified.
+
+- If Drupal core taxonomy module is not activated, main files of this module
+  should be invoked in your module as this:
+    // Invoke taxonomy core api.
+    $taxonomy_path = drupal_get_path('module', 'taxonomy');
+    require_once("$taxonomy_path/taxonomy.module");
+    require_once("$taxonomy_path/taxonomy.admin.inc");
+    require_once("$taxonomy_path/taxonomy.api.php"); // Drupal 7 only.
+
+- Example (import of three lines in a new vocabulary with internal invocation):
+    // Invoke taxonomy_csv.api if not included in module.info or enabled.
+    $module_dir = drupal_get_path('module', 'taxonomy_csv');
+    require_once("$module_dir/import/taxonomy_csv.import.api.inc");
+
+    $csv_lines = '"Europe", "France", "Paris"';
+    $csv_lines .=  "\n". ',, "Lyon"';
+    $csv_lines .=  "\n". ',"United Kingdom", "London"';
+    $csv_lines .=  "\n". ',"Portugal", "Lisbonne"';
+    $result = taxonomy_csv_import(
+      array(
+        'text'           => $csv_lines,
+        'import_format'  => 'tree_structure',
+        'existing_items' => 'update_replace',
+    ));
+
+- Others functions of api can be used too (line_import, export, vocabulary...).
+
+
+-- LOGICAL STRUCTURE --
+  -------------------
+
+Functions sets:
+  1a. Prepare and import a vocabulary : taxonomy_csv_vocabulary_import
+  1b. Prepare and export a vocabulary : taxonomy_csv_vocabulary_export
+  2a. Prepare and import a line       : taxonomy_csv_line_import
+  2b. Prepare and export a term       : taxonomy_csv_term_export
+  3a. Prepare and import a term       : taxonomy_csv_term_import
+  3b. Prepare and export a line       : taxonomy_csv_line_export
+  4.  Errors helpers
+  5.  Infos and log messages
+
+
+Structure of import Api:
+  1. Batch prepare import of file or text
+  2. Process import structure (line by line import from a batch set)
+    1. Validate line if wanted
+      1. Clean input line
+      2. Check line items
+    2. Prepare to process items matching import type
+    3. Process import
+      1. Find previous or existing term, switch case:
+        - in part of vocabulary if structure import (parent)
+        - in whole vocabulary
+        - in all vocabularies if external term referenced
+      2. Update or create term
+    4. Check import and save messages if wanted
+  3. Evaluate vocabulary and finish process
+
+
+Structure of export Api:
+  1. Batch prepare of vocabulary
+  2. Export depending on format
+
+
+-- ADD A NEW SCHEME --
+  ------------------
+
+You can add a new csv scheme either by include it in module, either as plug-in.
+To include it in module, you need:
+ - a define without space,
+ - features items in _taxonomy_csv_values (.api.inc file),
+ - items in taxonomy_csv.js and taxonomy_csv.css (Drupal 6 only),
+ - a description in appropriate forms (.module, .admin.inc files),
+ - an advanced help (.help.html),
+ - a case in _taxonomy_csv_check_items(),
+ - a case in taxonomy_csv_import_line_items(),
+ - eventually specific options.
+ - a case in taxonomy_csv_export_line_items() if possible.
+
+To include it as plug-in, you need to add a formatted inc file in "formats" sub
+directory. File must be named with format NAME followed by '.format.inc'. This
+file should contain some functions. Only the first is required, others are
+needed to process an import or an export or when there are specific fields.
+ - taxonomy_csv_format_NAME describing format and available functions.
+   - 'format'        : format name
+   - 'name'          : name displayed
+   - 'needed_module' : required module to use if there are non standard fields
+   - 'import_format' : name displayed if available, else nothing
+   - 'export_format' : name displayed if available, else nothing
+   - 'import_allowed': options to use for existing terms when importing terms
+   - 'import_previous': TRUE or FALSE if format uses specific previous items
+   - 'specific_fields': TRUE or FALSE if format use specific fields
+   - 'description'   : short description of format
+   - 'description_format': oredred list of fields
+   - 'description_example': a working example of the format
+   - 'description_long': long description of format
+   - 'import_options_help': explanation of options for existing terms
+ - _vocabulary_check_NAME to check if vocabulary has specific fields.
+ - _import_vocabulary_prepare_NAME if special fields are needed.
+ - _line_import_check_NAME to check quality of line items.
+ - _line_import_NAME to process true import.
+ - _term_import_NAME if format has specific fields.
+ - _line_export_NAME if format provides export schema.
+ - _term_export_NAME if format provides export schema.
+ - _term_load_NAME to get full term.
+ - _term_load_NAME to get full term.
+ - _term_get_full_NAME to complete a term with specific fields.
+ - _term_get_NAME to get only specific fields.
+Furthermore, you need:
+ - items in taxonomy_csv.js and taxonomy_csv.css (Drupal 6 only).
+ - items in main help taxonomy_csv.help.html.
+ - translations.
+
+See 'geotaxonomy' and 'taxonomy_manager' examples.

@@ -1,0 +1,64 @@
+
+
+                      TAXONOMY CSV IMPORT/EXPORT
+                      ==========================
+
+
+-- REQUIREMENTS --
+  --------------
+* Drupal default taxonomy module.
+* Optional: i18n Taxonomy, submodule of i18n (internationalization)
+  (see http://drupal.org/project/i18n).
+
+
+-- INSTALLATION --
+  --------------
+* Install as usual, see http://drupal.org/node/70151 for further information.
+
+ 1) Extract and copy the taxonomy_csv directory into the appropriate modules
+    directory in your Drupal installation (recommended: sites/all/modules).
+
+ 2) Adjust permissions of directory and files (read access).
+
+ 3) Go to Administer > Modules and enable the
+    "Taxonomy CSV import/export" module in the "Taxonomy" section.
+    Drupal "Taxonomy" core module is automatically enabled.
+
+ 4) Adjust user permissions in Administer > People > Permissions:
+    * import taxonomy by CSV
+    * export taxonomy by CSV
+
+
+-- UNINSTALLATION --
+  ----------------
+* As Taxonomy csv save user last used options, you can clean Drupal with the
+  "uninstall" option.
+
+  1) Go to Administer > Modules and disable "Taxonomy CSV import/export".
+
+  2) Go to Administer > Modules > Uninstall,
+     then check "taxonomy csv import/export" and click Uninstall button.
+
+  3) Remove the taxonomy_csv directory in the directory where you install it.
+
+
+-- USAGE --
+  -------
+* Follow instructions in README.txt, on the main page or in advanced
+  help (Help > Taxonomy CSV import/export).
+
+* Main page access with Drupal 6:
+  - Go to: Administer > Content management > Taxonomy and click on
+    "CSV import" tab or "CSV export" tab.
+  - Direct access to CSV import at:
+    http://www.example.com/?q=admin/content/taxonomy/csv_import
+  - Direct access to CSV export at:
+    http://www.example.com/?q=admin/content/taxonomy/csv_export
+
+* Main page access With Drupal 7:
+  - Go to: Administer > Structure > Taxonomy and click on the "CSV import" tab
+    or on the "CSV export" tab.
+  - Direct access to CSV import at:
+    http://www.example.com/?q=admin/structure/taxonomy/csv_import
+  - Direct access to CSV export at:
+    http://www.example.com/?q=admin/structure/taxonomy/csv_export

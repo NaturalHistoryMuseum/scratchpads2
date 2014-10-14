@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * @file
+ * Provides a user interface to create ARC2 stores on MySQL databases.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function arc2_store_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/services/arc2_store':
+      $output = '<p>' . t('An ARC2 store is an RDF database which can be queried with SPARQL queries. Each ARC2 store can be set up to expose a SPARQL endpoint at a URL of your choice. API keys are useful to restrict read and/or write access. You can create as many stores are needed.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_init().
+ */
+function arc2_store_init() {
+  $arc2_path = 'sites/all/libraries/arc2';
+  if (module_exists('libraries')) {
+    $arc2_path = libraries_get_path('arc2');
+  }
+
+  // Includes the ARC2 library if it exists.
+  if (!empty($arc2_path) && file_exists($arc2_path . '/ARC2.php')) {
+    include_once $arc2_path . '/ARC2.php';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function arc2_store_menu() {
+  ctools_include('export');
+  $items = array();
+
+  // Avoids fatal errors during uninstallation.
+  if (module_exists('arc2_store')) {
+    foreach (ctools_export_crud_load_all('arc2_store_settings', TRUE) as $store) {
+      if (empty($store->disabled)) {
+        $items[$store->settings['endpoint_path']] = array(
+          'title' => $store->label,
+          'page callback' => 'arc2_store_sparql_endpoint',
+          'page arguments' => array($store->store_id),
+          'access arguments' => array('access content'),
+          'type' => MENU_CALLBACK,
+        );
+      }
+    }
+  }
+
+  return $items;
+}
+
+
+/**
+ * Page callback for the SPARQL endpoint.
+ */
+function arc2_store_sparql_endpoint($store_id) {
+  // Instantiates the ARC2 SPARQL endpoint.
+  $endpoint = arc2_store_get_store($store_id);
+  $endpoint->go();
+}
+
+/**
+ * Loads an ARC2 store.
+ *
+ * @param string $store_id
+ *   Machine name of the store to be loaded.
+ *
+ * @return object ARC2_Store
+ *   ARC2 store ready to be used
+ */
+function arc2_store_get_store($store_id) {
+  $store = arc2_store_settings_load($store_id);
+  $db = $GLOBALS['databases']['default']['default'];
+
+  $config = array(
+    // Sets database credentials.
+    'db_host' => $db['host'],
+    'db_name' => $db['database'],
+    'db_user' => $db['username'],
+    'db_pwd' => $db['password'],
+    // Sets store name.
+    'store_name' => 'arc2_store_' . $store->store_id,
+  );
+
+  $config += $store->settings;
+
+  // Adds the endpoint features if the endpoint is enabled.
+  if ($store->settings['endpoint_enabled']) {
+    $config['endpoint_features'] = array_filter($store->settings['endpoint_read_features']);
+  }
+  // Adds the write features if the endpoint is set to be writable.
+  if ($store->settings['endpoint_write_enabled']) {
+    $config['endpoint_features'] += array_filter($store->settings['endpoint_write_features']);
+  }
+
+  // Instanciates a store or an endpoint.
+  if ($store->settings['endpoint_enabled']) {
+    $store = ARC2::getStoreEndpoint($config);
+  }
+  else {
+    $store = ARC2::getStore($config);
+  }
+  if (!$store->isSetUp()) {
+    $store->setUp();
+  }
+    $store = ARC2::getStoreEndpoint($config);
+
+  return $store;
+}
+
+/**
+ * Implements 'load callback' for arc2_store_settings exportables.
+ */
+function arc2_store_settings_load($name) {
+  ctools_include('export');
+  $result = ctools_export_load_object('arc2_store_settings', 'names', array($name));
+  if (isset($result[$name])) {
+    return $result[$name];
+  }
+}
+
+/**
+ * Implements 'load multiple callback' for arc2_store_settings exportables.
+ */
+function arc2_store_settings_load_multiple(array $names) {
+  ctools_include('export');
+  $results = ctools_export_load_object('arc2_store_settings', 'names', $names);
+  return array_filter($results);
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function arc2_store_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && $plugin == 'export_ui') {
+    return 'plugins/export_ui';
+  }
+}

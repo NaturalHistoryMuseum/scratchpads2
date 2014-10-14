@@ -1,0 +1,14 @@
+name = jQueries
+description = Allow multiple versions of jQuery on the same page
+package = User interface
+core = 7.x
+version = 7.x-1.x-dev
+files[] = jqueries.module
+files[] = jqueries.install
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.0+1-dev"
+core = "7.x"
+project = "jqueries"
+datestamp = "1380583931"
+

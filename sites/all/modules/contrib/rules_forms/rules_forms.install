@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Installation function for Rules Forms module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function rules_forms_install() {
+  // Set the modules' weight to 20, because we want it to be the last one using
+  // hook_form_alter().
+  db_query("UPDATE {system} SET weight = 20 WHERE name = 'rules_forms'");
+
+  // Notify the user of configuration requirements for Rules Forms.
+  drupal_set_message(st('You may now <a href="!rules_forms_settings">enable Rules Forms rules</a> '.
+                        'for individual forms. For more information please consult the documentation '.
+                        'in README.txt in your Rules forms support module folder.',
+                        array('!rules_forms_settings' => url(RULES_FORMS_ADMIN_PATH))), 'status');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function rules_forms_uninstall() {
+  variable_del('rules_forms_event_info');
+}
+
+/**
+ * Deletes the old variable.
+ */
+function rules_forms_update_7101() {
+  variable_del('rules_forms_events');
+}
+
+/**
+ * See http://drupal.org/node/1447328#comment-5640172
+ * Unset rules_forms_event_info array values with empty keys to
+ * cleanse the settings array of bad form information.
+ */
+function rules_forms_update_7102() {
+  $event_info = variable_get('rules_forms_event_info', array());
+  foreach ($event_info as $key => $value) {
+    // Any form of empty key is unwanted (NULL, 0, FALSE, '', etc).
+    if (empty($key)) {
+      unset($event_info[$key]);
+    }
+  }
+  variable_set('rules_forms_event_info', $event_info);
+}

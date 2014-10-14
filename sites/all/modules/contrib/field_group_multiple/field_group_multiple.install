@@ -1,0 +1,20 @@
+<?php
+/**
+ * @file field_group_multiple.install
+ */
+
+/**
+ * Implements hook_install().
+ */
+function field_group_multiple_install() {
+  // set module weight higher then this of field_group
+  // we want that our module starts after field_group functions
+  $field_group_weight = db_select("system", "s")
+    ->fields("s", array("weight"))
+    ->condition('name', 'field_group')->execute()->fetchField(0);
+
+  $field_group_multiple_weight = $field_group_weight + 1;
+  db_update('system')->fields(array('weight' => $field_group_multiple_weight))
+    ->condition('name', 'field_group_multiple')
+    ->execute();
+}

@@ -1,0 +1,14 @@
+name = Rules Forms Support
+description = Provides events, conditions and actions for rule-based form customization.
+core = 7.x
+;dependencies[] = rules
+files[] = includes/rules_forms.ui.inc
+files[] = rules_forms.test
+package = Rules
+
+; Information added by drupal.org packaging script on 2012-02-22
+version = "7.x-1.0-rc2"
+core = "7.x"
+project = "rules_forms"
+datestamp = "1329947457"
+

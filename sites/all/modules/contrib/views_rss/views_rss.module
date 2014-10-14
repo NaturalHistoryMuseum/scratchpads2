@@ -1,0 +1,171 @@
+<?php
+
+/**
+ * @file
+ * Module providing fields-based views style plugin for RSS feed generation.
+ */
+
+/**
+ * Module build version.
+ */
+define('VIEWS_RSS_BUILD', '7.x-2.x-dev-20120416');
+
+/**
+ * Module installation path.
+ */
+define('VIEWS_RSS_PATH', drupal_get_path('module', 'views_rss'));
+
+/**
+ * In theory, theme.inc should be automatically loaded from hook_views_plugins()
+ * implementation in views_rss.views.inc - which usually is the case, apart from
+ * when "Rescan template files" in view configuration is used, when new template
+ * files are being detected, but theme.inc for some reason is not loaded, so
+ * template_preprocess_views_view_views_rss() is not available, and we're getting
+ * "Array" instead of proper feed data as a result.
+ */
+include_once VIEWS_RSS_PATH . '/theme/theme.inc';
+
+/**
+ * Implements hook_views_api().
+ */
+function views_rss_views_api() {
+  return array(
+    'api' => 3,
+    'path' => VIEWS_RSS_PATH . '/views',
+  );
+}
+
+/**
+ * Returns an array of item elements defined by other modules
+ * with hook_views_rss_item_elements() and optionally altered with
+ * hook_views_rss_item_elements_alter() implementations.
+ */
+function views_rss_get($key, $rebuild = FALSE) {
+  static $data = array();
+  if (!isset($data[$key]) || empty($data[$key]) || $rebuild === TRUE) {
+    $cid = 'views_rss:' . $key;
+    $cached = cache_get($cid, 'cache_views');
+    if (is_object($cached) && isset($cached->data) && $rebuild === FALSE) {
+      $data[$key] = $cached->data;
+    }
+    else {
+      // Fetch item elements provided by other modules. We need to manually call
+      // each module so that we can know which module a given item came from.
+      $data[$key] = array();
+      $hook_name = 'views_rss_' . $key;
+      foreach (module_implements($hook_name) as $module) {
+        $module_data = call_user_func($module . '_' . $hook_name);
+        if (isset($module_data) && is_array($module_data)) {
+          $data[$key][$module] = $module_data;
+        }
+      }
+      // Add namespaces not defined by any hook_views_rss_namespaces(),
+      // but used in any of defined <channel> or <item> elements.
+      // Let's also add "xmlns" prefix by default to such namespaces.
+      $function = '_views_rss_process_' . $key;
+      if (function_exists($function)) {
+        $data[$key] = $function($data[$key]);
+      }
+      // Allow other modules to alter obtained item elements.
+      drupal_alter($hook_name, $data[$key]);
+      // Store it infinitely in cache (rebuild only on cache clear).
+      cache_set($cid, $data[$key], 'cache_views');
+    }
+  }
+  return $data[$key];
+}
+
+/**
+ * Add namespaces not defined by any hook_views_rss_namespaces(),
+ * but used in any of defined <channel> or <item> elements.
+ * Let's also add "xmlns" prefix by default to such namespaces.
+ */
+function _views_rss_process_namespaces($namespaces) {
+  foreach (views_rss_get('channel_elements') as $module => $elements) {
+    foreach (array_keys($elements) as $element) {
+      list($namespace, $element_name) = views_rss_extract_element_names($element);
+      if ($namespace && !isset($namespaces[$module][$namespace])) {
+        $namespaces[$module][$namespace] = array('prefix' => 'xmlns', 'uri' => NULL);
+      }
+    }
+  }
+  foreach (views_rss_get('item_elements') as $module => $elements) {
+    foreach (array_keys($elements) as $element) {
+      list($namespace, $element_name) = views_rss_extract_element_names($element);
+      if ($namespace && !isset($namespaces[$module][$namespace])) {
+        $namespaces[$module][$namespace] = array('prefix' => 'xmlns', 'uri' => NULL);
+      }
+    }
+  }
+  return $namespaces;
+}
+
+/**
+ * Add table aliases for additional fields used for altering view query.
+ */
+function _views_rss_process_date_sources($date_sources) {
+  foreach ($date_sources as $module => $module_date_sources) {
+    foreach ($module_date_sources as $base_table => $elements) {
+      foreach ($elements as $element_name => $definition) {
+        if (!isset($definition['alias'])) {
+          $date_sources[$module][$base_table][$element_name]['alias'] = $element_name;
+        }
+      }
+    }
+  }
+  return $date_sources;
+}
+
+/**
+ * Extracts and returns an array containing element namespace and name.
+ */
+function views_rss_extract_element_names($element, $core_namespace = '') {
+  if (!strstr($element, ':')) {
+    $element = $core_namespace . ':' . $element;
+  }
+  return explode(':', $element);
+}
+
+/**
+ * Preprocess callback.
+ * Replaces relative paths in element values with absolute URLs.
+ * Based on preg_match from rel_to_abs module by lourenzo,
+ * with added patch from issue #1335734 by joelstein.
+ * @see http://drupal.org/project/rel_to_abs
+ * @see http://drupal.org/node/1335734
+ */
+function views_rss_rewrite_relative_paths(&$variables) {
+  // Rewriting relative paths should be enabled by default,
+  // so rewrite relative paths even if option value is not set.
+  if (
+    !isset($variables['view']->style_plugin->options['feed_settings']['absolute_paths'])
+    || !empty($variables['view']->style_plugin->options['feed_settings']['absolute_paths'])
+  ) {
+    global $base_path;
+    foreach ($variables['elements'] as $delta => $element) {
+      if (isset($element['value'])) {
+        // Value is an array, so this is a set of subelements.
+        if (is_array($element['value'])) {
+          views_rss_rewrite_relative_paths($variables['elements'][$delta]['value']);
+        }
+        // Value is a string, so just process it.
+        else {
+          $pattern = '/(src|href)=(\'|")' . preg_quote($base_path, '/') . '/';
+          $replacement = '$1=$2' . url('<front>', array('absolute' => TRUE));
+          $variables['elements'][$delta]['value'] = preg_replace($pattern, $replacement, $element['value']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Forms associative array from linear array,
+ * or returns original array if already associative.
+ */
+function views_rss_map_assoc($array) {
+  if (!(array_keys($array) !== range(0, count($array) - 1))) {
+    $array = drupal_map_assoc($array);
+  }
+  return $array;
+}

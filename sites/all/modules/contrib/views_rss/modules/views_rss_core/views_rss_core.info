@@ -1,0 +1,12 @@
+name = "Views RSS: Core Elements"
+description = "Provides core XML channel and item elements for Views RSS."
+package = Views
+dependencies[] = views_rss
+core = "7.x"
+
+; Information added by drupal.org packaging script on 2012-05-02
+version = "7.x-2.0-rc3"
+core = "7.x"
+project = "views_rss"
+datestamp = "1335990386"
+

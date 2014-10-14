@@ -1,0 +1,17 @@
+name = RDF indexer
+description = Allows to index Drupal RDF data in RDF store.
+dependencies[] = entity
+dependencies[] = rdfx
+dependencies[] = search_api
+core = 7.x
+package = RDF
+
+files[] = service.inc
+files[] = includes/callback_entity_public.inc
+
+; Information added by drupal.org packaging script on 2013-06-20
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "rdf_indexer"
+datestamp = "1371692850"
+

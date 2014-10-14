@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function arc2_store_schema() {
+  $schema['arc2_store_settings'] = array(
+    'description' => 'The table that holds the ARC2 RDF store settings.',
+
+    // CTools export definitions.
+    'export' => array(
+      'key' => 'store_id',
+      'default hook' => 'default_arc2_store_settings',  // Function hook name.
+      'api' => array(
+        'owner' => 'arc2_store',
+        'api' => 'arc2_store',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+
+    'fields' => array(
+      'store_id' => array(
+        'description' => 'The machine name of the store.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'label' => array(
+        'description' => 'The label of the store.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'settings' => array(
+        'description' => 'The settings for this store.',
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('store_id'),
+  );
+
+  return $schema;
+}

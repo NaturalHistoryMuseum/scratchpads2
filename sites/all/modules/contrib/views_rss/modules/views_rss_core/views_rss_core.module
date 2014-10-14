@@ -1,0 +1,284 @@
+<?php
+
+/**
+ * @file
+ * Provides core <channel> and <item> elements for Views RSS module.
+ */
+
+/**
+ * Module installation path.
+ */
+define('VIEWS_RSS_CORE_PATH', drupal_get_path('module', 'views_rss_core'));
+
+/**
+ * Include file with field formatters.
+ */
+include_once VIEWS_RSS_CORE_PATH .'/views_rss_core.field.inc';
+
+/**
+ * Include file with all preprocess functions.
+ */
+include_once VIEWS_RSS_CORE_PATH . '/views_rss_core.inc';
+
+/**
+ * Implementation of hook_views_rss_namespaces().
+ */
+function views_rss_core_views_rss_namespaces() {
+  $namespaces['atom'] = array(
+    'prefix' => 'xmlns',
+    'uri' => 'http://www.w3.org/2005/Atom',
+  );
+  return $namespaces;
+}
+
+/**
+ * Implements hook_views_rss_channel_elements().
+ */
+function views_rss_core_views_rss_channel_elements() {
+  $elements['title'] = array(
+    'configurable' => FALSE,
+    'preprocess functions' => array('views_rss_core_preprocess_channel_title'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-title',
+  );
+  $elements['description'] = array(
+    'description' => t('Description for this feed. If left blank, the default site mission will be used.'),
+    'settings form' => array('#type' => 'textarea', '#rows' => 3),
+    'preprocess functions' => array(
+      'views_rss_core_preprocess_channel_description',
+      'views_rss_rewrite_relative_paths',
+    ),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-description',
+  );
+  $elements['link'] = array(
+    'configurable' => FALSE,
+    'preprocess functions' => array('views_rss_core_preprocess_channel_link'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-link',
+  );
+  $elements['atom:link'] = array(
+    'configurable' => FALSE,
+    'preprocess functions' => array('views_rss_core_preprocess_channel_atom_link'),
+    'help' => 'http://www.rssboard.org/rss-profile#namespace-elements-atom-link',
+  );
+  $elements['language'] = array(
+    'description' => t('The language the channel is written in. This allows aggregators to group all Italian language sites, for example, on a single page. See list of <a href="@w3c_url">allowable values</a> for this element defined by the W3C.', array(
+      '@w3c_url' => url('http://www.w3.org/TR/REC-html40/struct/dirlang.html', array('fragment' => 'langcodes')),
+    )),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-language',
+  );
+  $elements['category'] = array(
+    'description' => t('Specify one or more categories that the channel belongs to. Separate multiple items with comma.'),
+    'preprocess functions' => array('views_rss_core_preprocess_channel_category'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-category',
+  );
+  $elements['image'] = array(
+    'description' => t('Path to the image to be used as the artwork for your feed, for example <em>sites/default/files/AllAboutEverything.jpg</em>. Allowed image formats are GIF, JPEG or PNG. Maximum image width is 144 pixels, maximum height 400 pixels.'),
+    'preprocess functions' => array('views_rss_core_preprocess_channel_image'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-image',
+  );
+  $elements['copyright'] = array(
+    'description' => t('Copyright notice for content in the channel.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-copyright',
+  );
+  $elements['managingEditor'] = array(
+    'description' => t('Email address for person responsible for editorial content.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-managingeditor',
+  );
+  $elements['webMaster'] = array(
+    'description' => t('Email address for person responsible for technical issues relating to channel.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-webmaster',
+  );
+  $elements['generator'] = array(
+    'description' => t('A string indicating the program used to generate the channel.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-generator',
+  );
+  $elements['docs'] = array(
+    'description' => t("A URL that points to the documentation for the format used in the RSS file. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is."),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-docs',
+  );
+  $elements['cloud'] = array(
+    'description' => t("Allows processes to register with a cloud to be notified of updates to the channel, implementing a lightweight publish-subscribe protocol for RSS feeds. Example: <em>soap://rpc.sys.com:80/RPC2#pingMe</em>"),
+    'preprocess functions' => array('views_rss_core_preprocess_channel_cloud'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-cloud',
+  );
+  $elements['ttl'] = array(
+    'description' => t("ttl stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source."),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-ttl',
+  );
+  $elements['skipHours'] = array(
+    'description' => t('A hint for aggregators telling them which hours they can skip. The hours must be expressed as an integer representing the number of hours since 00:00:00 GMT. Values from 0 to 23 are permitted, with 0 representing midnight. An hour must not be duplicated.'),
+    'preprocess functions' => array('views_rss_core_preprocess_channel_skip'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-skiphours',
+  );
+  $elements['skipDays'] = array(
+    'description' => t('A hint for aggregators telling them which days of the week they can skip (up to seven days).'),
+    'preprocess functions' => array('views_rss_core_preprocess_channel_skip'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-skipdays',
+  );
+  $elements['pubDate'] = array(
+    'configurable' => FALSE,
+    'preprocess functions' => array('views_rss_core_preprocess_channel_date'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-pubdate',
+  );
+  $elements['lastBuildDate'] = array(
+    'configurable' => FALSE,
+    'preprocess functions' => array('views_rss_core_preprocess_channel_date'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-lastbuilddate',
+  );
+  return $elements;
+}
+
+/**
+ * Implements hook_views_rss_item_elements().
+ */
+function views_rss_core_views_rss_item_elements() {
+  $elements['title'] = array(
+    'description' => t('The title of the item. Required by RSS specification.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-title',
+  );
+  $elements['link'] = array(
+    'description' => t('The URL of the item. Required by RSS specification.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-link',
+  );
+  $elements['description'] = array(
+    'description' => t('The item synopsis. Required by RSS specification.'),
+    'preprocess functions' => array('views_rss_rewrite_relative_paths'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-description',
+  );
+  $elements['author'] = array(
+    'description' => t('Email address of the author of the item. A feed published by an individual should omit this element and use the &lt;managingEditor&gt; or &lt;webMaster&gt; channel elements to provide contact information.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-author',
+  );
+  $elements['category'] = array(
+    'description' => t('Includes the item in one or more categories.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-category',
+  );
+  $elements['comments'] = array(
+    'description' => t('URL of a page for comments relating to the item.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-comments',
+  );
+  $elements['enclosure'] = array(
+    'description' => t('Describes a media object that is attached to the item.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-enclosure',
+  );
+  $elements['guid'] = array(
+    'description' => t('A string that uniquely identifies the item.'),
+    'preprocess functions' => array('views_rss_core_preprocess_item_guid'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-guid',
+  );
+  $elements['pubDate'] = array(
+    'description' => t('Indicates when the item was published.'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-pubdate',
+  );
+  $elements['source'] = array(
+    'configurable' => FALSE,
+    'description' => t('The RSS channel that the item came from.'),
+    'preprocess functions' => array('views_rss_core_preprocess_item_source'),
+    'help' => 'http://www.rssboard.org/rss-profile#element-channel-item-source',
+  );
+  return $elements;
+}
+
+/**
+ * Implements hook_views_rss_date_sources().
+ */
+function views_rss_core_views_rss_date_sources() {
+  $sources['node'] = array(
+    'pubDate' => array(
+      'table' => 'node',
+      'field' => 'created',
+    ),
+    'lastBuildDate' => array(
+      'table' => 'node',
+      'field' => 'changed',
+    ),
+  );
+  $sources['node_revisions'] = array(
+    'pubDate' => array(
+      'table' => 'node_revisions',
+      'field' => 'timestamp',
+    ),
+  );
+  $sources['comments'] = array(
+    'lastBuildDate' => array(
+      'table' => 'comments',
+      'field' => 'timestamp',
+    ),
+  );
+  $sources['files'] = array(
+    'pubDate' => array(
+      'table' => 'files',
+      'field' => 'timestamp',
+    ),
+  );
+  $sources['users'] = array(
+    'pubDate' => array(
+      'table' => 'users',
+      'field' => 'created',
+    ),
+  );
+  return $sources;
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function views_rss_core_views_query_alter(&$view, &$query) {
+  if ($view->style_plugin->definition['handler'] == 'views_rss_plugin_style_fields') {
+    $date_sources = views_rss_get('date_sources');
+    foreach (array_keys($date_sources) as $module) {
+      if (isset($date_sources[$module][$view->base_table])) {
+        // Select the most recent node creation date for <pubDate> element.
+        if (isset($date_sources[$module][$view->base_table]['pubDate'])) {
+          $query->fields['pubDate'] = $date_sources[$module][$view->base_table]['pubDate'];
+        }
+        // Select the most recent node update date for <lastBuildDate> element.
+        if (isset($date_sources[$module][$view->base_table]['lastBuildDate'])) {
+          $query->fields['lastBuildDate'] = $date_sources[$module][$view->base_table]['lastBuildDate'];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_rss_options_form_validate().
+ */
+function views_rss_core_views_rss_options_form_validate($form, &$form_state) {
+
+  // Validate channel <image> element.
+  if (!empty($form_state['values']['style_options']['channel']['core']['views_rss_core']['image'])) {
+    // Do not validate absolute URLs, as this could mean external image.
+    if (!valid_url($form_state['values']['style_options']['channel']['core']['views_rss_core']['image'], TRUE)) {
+      // Check that image exists and is in acceptable format.
+      $image = image_load($form_state['values']['style_options']['channel']['core']['views_rss_core']['image']);
+      if (empty($image)) {
+        form_set_error('style_options][channel][core][views_rss_core][image', t('Unable to find %image or incorrect image format.', array(
+          '%image' => $form_state['values']['style_options']['channel']['core']['views_rss_core']['image'],
+        )));
+      }
+      else {
+        // Check image width.
+        if ($image->info['width'] > 144) {
+          form_set_error('style_options][channel][core][views_rss_core][image', t("Maximum allowed width of an image for feed channel's &lt;image&gt; element is 144 pixels. Specified %image is !width pixels wide.", array(
+            '%image' => $form_state['values']['style_options']['channel']['core']['views_rss_core']['image'],
+            '!width' => $image->info['width'],
+          )));
+        }
+        // Check image height.
+        if ($image->info['height'] > 400) {
+          form_set_error('style_options][channel][core][views_rss_core][image', t("Maximum allowed height of an image for feed channel's &lt;image&gt; element is 400 pixels. Specified %image is !height pixels high.", array(
+            '%image' => $form_state['values']['style_options']['channel']['core']['views_rss_core']['image'],
+            '!height' => $image->info['height'],
+          )));
+        }
+      }
+    }
+  }
+
+  // Validate channel <docs> element.
+  if (!empty($form_state['values']['style_options']['channel']['core']['views_rss_core']['docs'])) {
+    if (!valid_url($form_state['values']['style_options']['channel']['core']['views_rss_core']['docs'], TRUE)) {
+      form_set_error('style_options][channel][core][views_rss_core][docs', t("Not a valid URL."));
+    }
+  }
+}

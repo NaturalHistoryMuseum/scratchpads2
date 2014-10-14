@@ -1,0 +1,12 @@
+name = Taxonomy Access Control Lite
+description = Simple access control based on categories.
+dependencies[] = taxonomy
+core = 7.x
+package = Node Access
+
+; Information added by drupal.org packaging script on 2011-10-13
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "tac_lite"
+datestamp = "1318508524"
+

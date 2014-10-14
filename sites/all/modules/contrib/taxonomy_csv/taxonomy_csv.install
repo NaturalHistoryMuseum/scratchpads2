@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the taxonomy_csv module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function taxonomy_csv_install() {
+  // Make uploads easy for csv files.
+  variable_set('upload_extensions_default', variable_get('upload_extensions_default', '') . ' csv');
+
+  drupal_set_message(filter_xss(st('Taxonomy CSV import/export has been installed. You can now import and export taxonomies, structures or lists of terms under <a href="!link_import">Administer > Structure > Taxonomy > CSV import</a> and <a href="!link_export">CSV export</a>. More information is available under <a href="!link_help">Administer > Help > Taxonomy CSV import/export</a>.<br /> Your comments are welcomed on the <a href=\"!link_module\">Taxonomy CSV import/export</a> module page.', array(
+    '!link_import' => url('admin/structure/taxonomy/csv_import'),
+    '!link_export' => url('admin/structure/taxonomy/csv_export'),
+    '!link_help'   => url('admin/help/taxonomy_csv'),
+    '!link_module' => url('https://drupal.org/project/taxonomy_csv'),
+  ))));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function taxonomy_csv_uninstall() {
+  // Simple DB query to get the names of the variables of the module.
+  $results = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition('name', 'taxonomy_csv_%', 'LIKE')
+    ->execute();
+  foreach ($results as $result) {
+    variable_del($result->name);
+  }
+
+  drupal_set_message(st('Taxonomy csv import/export: All user preferences have been removed. Thanks for using this module!<br />
+    Your comments are welcomed on <a href="!link">Taxonomy CSV import/export</a> module page.', array(
+      '!link' => url('https://drupal.org/project/taxonomy_csv'),
+  )));
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function taxonomy_csv_requirements($phase) {
+  $requirements = array();
+
+  $requirements['taxonomy_csv'] = array(
+    'title' => 'Taxonomy CSV import/export is enabled',
+    'value' => 'Taxonomy CSV is designed as a run-once setup or migration module. You may disable it once your imports and exports are processed.',
+    'severity' => REQUIREMENT_INFO,
+  );
+
+  return $requirements;
+}

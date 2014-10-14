@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Agridrupal-views-RDF-OAI feature.
+ */
+
+include_once 'agridrupal_views_rdf_oai.features.inc';

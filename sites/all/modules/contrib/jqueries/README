@@ -1,0 +1,74 @@
+jQueries.module
+
+Allow modules to include multiple version of jQuery into the page.
+By default, jQueries load jQuery from the Google CDN with the following
+version.
+
+- 1.2 : https://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js
+- 1.3 : https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js
+- 1.4 : https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js
+- 1.5 : https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js
+- 1.6 : https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js 
+- 1.7 : https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
+
+-----------------------------------------------------------------------------
+
+How to use:
+----------
+
+1. use Drupal hook
+
+To request for the versions of jQuery to be included into the page, modules
+will implement hook_jqueries_include() to return an associative array of
+array('<version>' => '<variable_name>'). Once the page is loaded, the modules
+can refer to the specified their own jQuery by the variable name in the array
+returned from the hook.
+
+For example, if the module implements hook_jqueries_include() like this:
+
+<code>
+function my_module_jqueries_include() {
+  return array('1.2' => 'j12');
+}
+</code>
+
+Then, the module can refer to the jQuery 1.2 in the page using the JavaScript
+variable name "j12".
+
+
+2. use API
+
+2 simple functions are provided to add the different jQuery versions as well as
+the associated jQuery plugin.
+ 
+  - function jqueries_add_version($version, $name) - to add a specific jQueery
+    version with the specific variable name.
+
+    jqueries_add_version('1.2', 'j12'); // add jQuery 1.2 into the page as a variable
+                                        // named j12
+
+  - function jqueries_add_js($version, $data, $options = NULL) - to associate
+    a jQuery plugin or script into the given jQuery version.
+
+    jqueries_add_js('1.2', 'j12plugin.js'); // associate plugin 'j12plugin' with the
+                                            // instance of jQuery version 1.2
+
+
+Alter the jQuery version
+------------------------
+
+Beside the default version as listed above, developer may override the specific code
+of the specific version of jQuery by implement the hook_jquery_alter(). This hook is
+expected to return an array of jQuery URL of the given version.
+
+As well as the jQuery itself, jQueries module also load the jQuery UI 1.8.x with each version instance. Modules may implement hook_jqueries_alter() to alter
+the different jQuery source and the jQuery UI
+version by return an associative array:
+  array(
+    '<version>' => array(
+       '<jquery_url>',
+       '<jquery_ui_url>',
+  );
+
+-----------------------------------------------------------------------------
+Copyright(c) 2012 - Pinacono Co., Ltd. All rights reserved

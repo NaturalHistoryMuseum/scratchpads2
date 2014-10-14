@@ -1,0 +1,17 @@
+name = Field group multiple
+description = Widget and display formatter for transposed grouping of multiple value fields. 
+package = Fields
+core = 7.x
+
+files[] = field_group_multiple.field_ui.inc
+
+dependencies[] = field
+dependencies[] = ctools
+dependencies[] = field_group
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.0-beta1+10-dev"
+core = "7.x"
+project = "field_group_multiple"
+datestamp = "1380578870"
+

@@ -1,0 +1,13 @@
+name        = Simple Dialog Example
+description = Examples of implementations of the simple dialog module
+version     = "7.x-1.x-dev"
+core        = "7.x"
+package     = Example modules
+dependencies[] = "simple_dialog"
+
+; Information added by drupal.org packaging script on 2013-04-12
+version = "7.x-1.9"
+core = "7.x"
+project = "simple_dialog"
+datestamp = "1365747642"
+
