@@ -44,14 +44,6 @@ function agridrupal_content_types_filter_default_formats() {
         'status' => 1,
         'settings' => array(),
       ),
-      'pathologic' => array(
-        'weight' => 50,
-        'status' => 1,
-        'settings' => array(
-          'local_paths' => '',
-          'protocol_style' => 'full',
-        ),
-      ),
     ),
   );
 
@@ -79,14 +71,6 @@ function agridrupal_content_types_filter_default_formats() {
         'weight' => 10,
         'status' => 1,
         'settings' => array(),
-      ),
-      'pathologic' => array(
-        'weight' => 50,
-        'status' => 1,
-        'settings' => array(
-          'local_paths' => '',
-          'protocol_style' => 'full',
-        ),
       ),
     ),
   );

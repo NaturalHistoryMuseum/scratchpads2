@@ -36,7 +36,6 @@ dependencies[] = noderefcreate
 dependencies[] = number
 dependencies[] = options
 dependencies[] = pathauto
-dependencies[] = pathologic
 dependencies[] = references
 dependencies[] = references_dialog
 dependencies[] = tac_lite
