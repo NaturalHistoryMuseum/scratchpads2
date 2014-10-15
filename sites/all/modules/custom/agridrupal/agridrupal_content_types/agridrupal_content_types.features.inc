@@ -34,14 +34,6 @@ function agridrupal_content_types_views_api($module = NULL, $api = NULL) {
  */
 function agridrupal_content_types_node_info() {
   $items = array(
-    'agauthor' => array(
-      'name' => t('Ag Author'),
-      'base' => 'node_content',
-      'description' => t('This content type is for storing information about Authors of the documents in your repository: storing information on authors in a dedicated content type allows to maintain a reference / authority list.'),
-      'has_title' => '1',
-      'title_label' => t('Title'),
-      'help' => '',
-    ),
     'agconference' => array(
       'name' => t('Ag Conference'),
       'base' => 'node_content',
@@ -68,7 +60,7 @@ If you manage a repository, all resources in your repository will be of this typ
       'help' => '',
     ),
     'agevent' => array(
-      'name' => t('Ag_Event'),
+      'name' => t('Ag Event'),
       'base' => 'node_content',
       'description' => t('This content type is for storing information on events. Country, start date and end date should always be provided for events. Events will appear on the homepage if the news and events block is on the homepage, and under "Our events". Events are exposed in an Ag-Event AP compliant feed that can be submitted to AgriFeeds as an event feed.'),
       'has_title' => '1',
@@ -93,7 +85,7 @@ Users registering their expert profiles can also add records to the directory of
       'help' => '',
     ),
     'agperiodical' => array(
-      'name' => t('Ag_Periodical'),
+      'name' => t('Ag Periodical'),
       'base' => 'node_content',
       'description' => t('This content type is for periodical/journals.
 '),
@@ -119,6 +111,15 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.'),
       'title_label' => t('Title'),
       'help' => '',
     ),
+    'agrssjob' => array(
+      'name' => t('Ag RSS vacancy'),
+      'base' => 'node_content',
+      'description' => t('Items from an RSS feed of jobs.
+DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.'),
+      'has_title' => '1',
+      'title_label' => t('Title'),
+      'help' => '',
+    ),
     'agrssnews' => array(
       'name' => t('Ag RSS news item'),
       'base' => 'node_content',
@@ -128,23 +129,15 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.'),
       'title_label' => t('Title'),
       'help' => '',
     ),
+    'agvacancy' => array(
+      'name' => t('Ag Vacancy'),
+      'base' => 'node_content',
+      'description' => t('This content type is for storing information on vacancies. Country and end date (deadline) should always be provided for vacancies. Vacancies will appear under "Our vacancies" and expose a Job-AP compliant feed that can be submitted as a vacancy feed to AgriFeeds.'),
+      'has_title' => '1',
+      'title_label' => t('Title'),
+      'help' => '',
+    ),
   );
-  return $items;
-}
-
-/**
- * Implements hook_default_search_api_server().
- */
-function agridrupal_content_types_default_search_api_server() {
-  $items = array();
-  $items['rdf_indexing_server'] = entity_import('search_api_server', '{
-    "name" : "RDF indexing server",
-    "machine_name" : "rdf_indexing_server",
-    "description" : "",
-    "class" : "rdf_indexer_service",
-    "options" : { "store_id" : "agridrupal" },
-    "enabled" : "1",
-    "rdf_mapping" : []
-  }');
+  drupal_alter('node_info', $items);
   return $items;
 }

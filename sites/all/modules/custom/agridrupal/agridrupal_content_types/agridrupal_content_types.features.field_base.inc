@@ -10,30 +10,6 @@
 function agridrupal_content_types_field_default_field_bases() {
   $field_bases = array();
 
-  // Exported field_base: 'body'
-  $field_bases['body'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(
-      0 => 'node',
-    ),
-    'field_name' => 'body',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'indexes' => array(
-      'format' => array(
-        0 => 'format',
-      ),
-    ),
-    'locked' => 0,
-    'module' => 'text',
-    'settings' => array(),
-    'translatable' => 0,
-    'type' => 'text_with_summary',
-  );
-
   // Exported field_base: 'field_ag_abstract'
   $field_bases['field_ag_abstract'] = array(
     'active' => 1,
@@ -202,38 +178,6 @@ function agridrupal_content_types_field_default_field_bases() {
     'type_name' => 'agprofile',
   );
 
-  // Exported field_base: 'field_ag_affiliation'
-  $field_bases['field_ag_affiliation'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_ag_affiliation',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(
-      'format' => array(
-        'columns' => array(
-          'format' => 'format',
-        ),
-        'table' => 'filter_format',
-      ),
-    ),
-    'indexes' => array(
-      'format' => array(
-        0 => 'format',
-      ),
-    ),
-    'locked' => 0,
-    'module' => 'text',
-    'settings' => array(
-      'max_length' => 255,
-    ),
-    'translatable' => 0,
-    'type' => 'text',
-  );
-
   // Exported field_base: 'field_ag_agris'
   $field_bases['field_ag_agris'] = array(
     'active' => 1,
@@ -262,16 +206,14 @@ function agridrupal_content_types_field_default_field_bases() {
     'settings' => array(
       'allowed_values' => array(
         0 => array(
-          'vocabulary' => 'vocabulary_10',
+          'vocabulary' => 'agris_subject_categories',
           'parent' => 0,
-          'depth' => '',
         ),
       ),
       'options_list_callback' => 'i18n_taxonomy_allowed_values',
     ),
     'translatable' => 0,
     'type' => 'taxonomy_term_reference',
-    'type_name' => 'agprofile',
   );
 
   // Exported field_base: 'field_ag_agrovoc'
@@ -305,7 +247,10 @@ function agridrupal_content_types_field_default_field_bases() {
           'vocabulary' => 'vocabulary_16',
           'parent' => 0,
         ),
-        
+        1 => array(
+          'parent' => 0,
+          'vocabulary' => 'vocabulary_16',
+        ),
       ),
       'options_list_callback' => 'i18n_taxonomy_allowed_values',
     ),
@@ -869,6 +814,33 @@ function agridrupal_content_types_field_default_field_bases() {
     'type' => 'datetime',
   );
 
+  // Exported field_base: 'field_ag_deadline'
+  $field_bases['field_ag_deadline'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_ag_deadline',
+    'foreign keys' => array(),
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'date',
+    'settings' => array(
+      'granularity' => array(
+        'day' => 'day',
+        'month' => 'month',
+        'year' => 'year',
+      ),
+      'repeat' => 0,
+      'timezone_db' => '',
+      'todate' => '',
+      'tz_handling' => 'none',
+    ),
+    'translatable' => 0,
+    'type' => 'date',
+    'type_name' => 'agvacancy',
+  );
+
   // Exported field_base: 'field_ag_degree'
   $field_bases['field_ag_degree'] = array(
     'active' => 1,
@@ -1063,72 +1035,37 @@ function agridrupal_content_types_field_default_field_bases() {
     'type_name' => 'agprofile',
   );
 
-  // Exported field_base: 'field_ag_expert_record'
-  $field_bases['field_ag_expert_record'] = array(
+  // Exported field_base: 'field_ag_employer'
+  $field_bases['field_ag_employer'] = array(
     'active' => 1,
     'cardinality' => 1,
     'deleted' => 0,
     'entity_types' => array(),
-    'field_name' => 'field_ag_expert_record',
+    'field_name' => 'field_ag_employer',
     'foreign keys' => array(
-      'nid' => array(
+      'format' => array(
         'columns' => array(
-          'nid' => 'nid',
+          'format' => 'format',
         ),
-        'table' => 'node',
+        'table' => 'filter_format',
       ),
     ),
     'indexes' => array(
-      'nid' => array(
-        0 => 'nid',
+      'format' => array(
+        0 => 'format',
       ),
     ),
     'locked' => 0,
-    'module' => 'node_reference',
+    'module' => 'text',
     'settings' => array(
-      'referenceable_types' => array(
-        'ag_job_feed' => 0,
-        'agauthor' => 0,
-        'agconference' => 0,
-        'agcorporate_body' => 0,
-        'agdlios' => 0,
-        'agevent' => 0,
-        'ageventsfeed' => 0,
-        'aginstitution' => 0,
-        'agnews' => 0,
-        'agnewsfeed' => 0,
-        'agprofile' => 'agprofile',
-        'agrepository' => 0,
-        'agris_authors_feed' => 0,
-        'agris_authors_upload' => 0,
-        'agris_conferences_feed' => 0,
-        'agris_corporate_feed' => 0,
-        'agris_dlio_upload' => 0,
-        'agris_journals_feed' => 0,
-        'agris_publishers_feed' => 0,
-        'agrssevents' => 0,
-        'agrssjob' => 0,
-        'agrssnews' => 0,
-        'agvacancy' => 0,
-        'blog' => 0,
-        'books_feed' => 0,
-        'feed' => 0,
-        'feed_fast' => 0,
-        'feed_item' => 0,
-        'forum' => 0,
-        'group' => 0,
-        'page' => 0,
-        'story' => 0,
-        'xmlimport_dlios' => 0,
-      ),
-      'view' => array(
-        'args' => array(),
-        'display_name' => '',
-        'view_name' => '',
-      ),
+      'allowed_values' => '',
+      'allowed_values_php' => '',
+      'max_length' => 255,
+      'text_processing' => 0,
     ),
     'translatable' => 0,
-    'type' => 'node_reference',
+    'type' => 'text',
+    'type_name' => 'agrssjob',
   );
 
   // Exported field_base: 'field_ag_form'
@@ -1676,42 +1613,6 @@ function agridrupal_content_types_field_default_field_bases() {
     'type' => 'get_list_from_file',
   );
 
-  // Exported field_base: 'field_ag_lastname'
-  $field_bases['field_ag_lastname'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_ag_lastname',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(
-      'format' => array(
-        'columns' => array(
-          'format' => 'format',
-        ),
-        'table' => 'filter_format',
-      ),
-    ),
-    'indexes' => array(
-      'format' => array(
-        0 => 'format',
-      ),
-    ),
-    'locked' => 0,
-    'module' => 'text',
-    'settings' => array(
-      'allowed_values' => '',
-      'allowed_values_php' => '',
-      'max_length' => 255,
-      'text_processing' => 0,
-    ),
-    'translatable' => 0,
-    'type' => 'text',
-    'type_name' => 'agprofile',
-  );
-
   // Exported field_base: 'field_ag_link_to_jissue'
   $field_bases['field_ag_link_to_jissue'] = array(
     'active' => 1,
@@ -1811,78 +1712,6 @@ function agridrupal_content_types_field_default_field_bases() {
     'translatable' => 0,
     'type' => 'text',
     'type_name' => 'agdlios',
-  );
-
-  // Exported field_base: 'field_ag_mispelling'
-  $field_bases['field_ag_mispelling'] = array(
-    'active' => 1,
-    'cardinality' => 3,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_ag_mispelling',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(
-      'format' => array(
-        'columns' => array(
-          'format' => 'format',
-        ),
-        'table' => 'filter_format',
-      ),
-    ),
-    'indexes' => array(
-      'format' => array(
-        0 => 'format',
-      ),
-    ),
-    'locked' => 0,
-    'module' => 'text',
-    'settings' => array(
-      'allowed_values' => '',
-      'allowed_values_php' => '',
-      'max_length' => 255,
-      'text_processing' => 0,
-    ),
-    'translatable' => 0,
-    'type' => 'text',
-    'type_name' => 'agauthor',
-  );
-
-  // Exported field_base: 'field_ag_name'
-  $field_bases['field_ag_name'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_ag_name',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(
-      'format' => array(
-        'columns' => array(
-          'format' => 'format',
-        ),
-        'table' => 'filter_format',
-      ),
-    ),
-    'indexes' => array(
-      'format' => array(
-        0 => 'format',
-      ),
-    ),
-    'locked' => 0,
-    'module' => 'text',
-    'settings' => array(
-      'allowed_values' => '',
-      'allowed_values_php' => '',
-      'max_length' => 255,
-      'text_processing' => 0,
-    ),
-    'translatable' => 0,
-    'type' => 'text',
-    'type_name' => 'agprofile',
   );
 
   // Exported field_base: 'field_ag_network'
@@ -2925,76 +2754,6 @@ function agridrupal_content_types_field_default_field_bases() {
     'translatable' => 0,
     'type' => 'date',
     'type_name' => 'agprofile',
-  );
-
-  // Exported field_base: 'field_agrovoc_uri'
-  $field_bases['field_agrovoc_uri'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_agrovoc_uri',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(),
-    'indexes' => array(),
-    'locked' => 0,
-    'module' => 'computed_field',
-    'settings' => array(
-      'code' => '$thistid = $entity->tid;
-$t = taxonomy_term_load($thistid);
-$a = agrovocfield_agrovoc_uri($t);
-$entity_field[0][\'value\'] = "http://aims.fao.org/aos/agrovoc/c_" . $a;
-',
-      'database' => array(
-        'data_default' => '',
-        'data_index' => 0,
-        'data_length' => 255,
-        'data_not_NULL' => 0,
-        'data_precision' => 10,
-        'data_scale' => 2,
-        'data_size' => 'normal',
-        'data_type' => 'varchar',
-      ),
-      'display_format' => '$display_output = $entity_field_item[\'value\'];',
-      'store' => 1,
-    ),
-    'translatable' => 0,
-    'type' => 'computed',
-  );
-
-  // Exported field_base: 'field_defined_in'
-  $field_bases['field_defined_in'] = array(
-    'active' => 1,
-    'cardinality' => 1,
-    'deleted' => 0,
-    'entity_types' => array(),
-    'field_name' => 'field_defined_in',
-    'field_permissions' => array(
-      'type' => 0,
-    ),
-    'foreign keys' => array(),
-    'indexes' => array(),
-    'locked' => 0,
-    'module' => 'computed_field',
-    'settings' => array(
-      'code' => '$entity_field[0][\'value\'] = "http://aims.fao.org/aos/agrovoc/";',
-      'database' => array(
-        'data_default' => '',
-        'data_index' => 0,
-        'data_length' => 32,
-        'data_not_NULL' => 0,
-        'data_precision' => 10,
-        'data_scale' => 2,
-        'data_size' => 'normal',
-        'data_type' => 'varchar',
-      ),
-      'display_format' => '$display_output = $entity_field_item[\'value\'];',
-      'store' => 1,
-    ),
-    'translatable' => 0,
-    'type' => 'computed',
   );
 
   // Exported field_base: 'field_pages'

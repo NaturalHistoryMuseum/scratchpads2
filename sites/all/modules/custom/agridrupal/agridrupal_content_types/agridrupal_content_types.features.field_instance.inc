@@ -10,362 +10,6 @@
 function agridrupal_content_types_field_default_field_instances() {
   $field_instances = array();
 
-  // Exported field_instance: 'node-agauthor-body'
-  $field_instances['node-agauthor-body'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'This content type is for storing information about Authors of the documents in your repository: storing information on authors in a dedicated content type allows to maintain a reference / authority list.',
-    'display' => array(
-      'default' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => 1,
-      ),
-      'teaser' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(
-          'trim_length' => 600,
-        ),
-        'trim_length' => 600,
-        'type' => 'text_summary_or_trimmed',
-        'weight' => 1,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'body',
-    'label' => 'Notes',
-    'required' => 0,
-    'settings' => array(
-      'display_summary' => 0,
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'rows' => 5,
-        'summary_rows' => 5,
-      ),
-      'type' => 'text_textarea_with_summary',
-      'weight' => 6,
-    ),
-  );
-
-  // Exported field_instance: 'node-agauthor-field_ag_affiliation'
-  $field_instances['node-agauthor-field_ag_affiliation'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => 3,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_ag_affiliation',
-    'label' => 'Affiliation',
-    'required' => 0,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 5,
-    ),
-  );
-
-  // Exported field_instance: 'node-agauthor-field_ag_expert_record'
-  $field_instances['node-agauthor-field_ag_expert_record'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'node_reference',
-        'settings' => array(),
-        'type' => 'node_reference_default',
-        'weight' => 2,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_ag_expert_record',
-    'label' => 'Record in experts\' database',
-    'required' => FALSE,
-    'settings' => array(
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'options',
-      'settings' => array(),
-      'type' => 'options_select',
-      'weight' => 4,
-    ),
-  );
-
-  // Exported field_instance: 'node-agauthor-field_ag_lastname'
-  $field_instances['node-agauthor-field_ag_lastname'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'inline',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'full' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'rss' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'search_index' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'search_result' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'token' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_ag_lastname',
-    'label' => 'Last name',
-    'required' => 1,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'weight' => -4,
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 1,
-    ),
-    'widget_type' => 'text_textfield',
-  );
-
-  // Exported field_instance: 'node-agauthor-field_ag_mispelling'
-  $field_instances['node-agauthor-field_ag_mispelling'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'Enter any misspelling or variant of the personal name.',
-    'display' => array(
-      'default' => array(
-        'label' => 'inline',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'full' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'rss' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'search_index' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'search_result' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-      'token' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -2,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_ag_mispelling',
-    'label' => 'Misspellings / variants',
-    'required' => 0,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'weight' => -2,
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 3,
-    ),
-    'widget_type' => 'text_textfield',
-  );
-
-  // Exported field_instance: 'node-agauthor-field_ag_name'
-  $field_instances['node-agauthor-field_ag_name'] = array(
-    'bundle' => 'agauthor',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'Enter the Given Name or Initials.',
-    'display' => array(
-      'default' => array(
-        'label' => 'inline',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'full' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'rss' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'search_index' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'search_result' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-      'token' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -3,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_ag_name',
-    'label' => 'First name',
-    'required' => 1,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'weight' => -3,
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 2,
-    ),
-    'widget_type' => 'text_textfield',
-  );
-
   // Exported field_instance: 'node-agconference-field_ag_confdate'
   $field_instances['node-agconference-field_ag_confdate'] = array(
     'bundle' => 'agconference',
@@ -888,56 +532,39 @@ This will help users to have more information about this corporate author when t
     'bundle' => 'agdlios',
     'default_value' => NULL,
     'deleted' => 0,
-    'description' => 'Select the subject category which describes the content of the resource from the browse list.',
+    'description' => '',
     'display' => array(
       'default' => array(
-        'label' => 'inline',
-        'module' => 'custom_formatters',
+        'label' => 'above',
+        'module' => 'i18n_taxonomy',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 22,
+        'type' => 'i18n_taxonomy_term_reference_link',
+        'weight' => 70,
       ),
       'full' => array(
-        'label' => 'inline',
-        'module' => 'custom_formatters',
+        'label' => 'above',
+        'module' => 'taxonomy',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 16,
+        'type' => 'taxonomy_term_reference_link',
+        'weight' => 18,
       ),
       'rss' => array(
-        'label' => 'inline',
-        'module' => 'taxonomy',
+        'label' => 'above',
         'settings' => array(),
-        'type' => 'taxonomy_term_reference_plain',
-        'weight' => 22,
-      ),
-      'search_index' => array(
-        'label' => 'inline',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_plain',
-        'weight' => 22,
-      ),
-      'search_result' => array(
-        'label' => 'inline',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_plain',
-        'weight' => 22,
+        'type' => 'hidden',
+        'weight' => 0,
       ),
       'teaser' => array(
-        'label' => 'inline',
-        'module' => 'taxonomy',
+        'label' => 'above',
         'settings' => array(),
-        'type' => 'taxonomy_term_reference_plain',
-        'weight' => 22,
+        'type' => 'hidden',
+        'weight' => 0,
       ),
       'token' => array(
-        'label' => 'inline',
-        'module' => 'taxonomy',
+        'label' => 'above',
         'settings' => array(),
-        'type' => 'taxonomy_term_reference_plain',
-        'weight' => 22,
+        'type' => 'hidden',
+        'weight' => 0,
       ),
     ),
     'entity_type' => 'node',
@@ -947,15 +574,36 @@ This will help users to have more information about this corporate author when t
     'settings' => array(
       'user_register_form' => FALSE,
     ),
-    'weight' => 22,
     'widget' => array(
-      'active' => 1,
+      'active' => 0,
       'module' => 'options',
-      'settings' => array(),
+      'settings' => array(
+        'agrovocfield' => array(
+          'autocomplete' => array(
+            'agrovocfield_autocomplete' => array(
+              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
+              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
+              'agrovocfield_connection' => 'remote',
+              'agrovocfield_enable' => 0,
+            ),
+          ),
+          'automatic' => array(
+            'agrovocfield_automatic' => array(
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+              'automatic_enable' => 0,
+              'field_for_indexing' => 'upload',
+              'tags_no' => 10,
+              'voc_type' => 'agrotag',
+            ),
+          ),
+        ),
+        'autocomplete_path' => 'taxonomy/autocomplete',
+        'size' => 60,
+      ),
       'type' => 'options_select',
       'weight' => 42,
     ),
-    'widget_type' => 'options_select',
   );
 
   // Exported field_instance: 'node-agdlios-field_ag_agrovoc'
@@ -1262,7 +910,7 @@ This will help users to have more information about this corporate author when t
         'module' => 'node_reference',
         'settings' => array(),
         'type' => 'node_reference_default',
-        'weight' => 30,
+        'weight' => 31,
       ),
       'rss' => array(
         'label' => 'above',
@@ -1590,7 +1238,7 @@ This will help users to have more information about this corporate author when t
           'multiple_to' => '',
         ),
         'type' => 'date_default',
-        'weight' => 46,
+        'weight' => 34,
       ),
       'full' => array(
         'label' => 'inline',
@@ -1654,7 +1302,7 @@ This will help users to have more information about this corporate author when t
       'module' => 'date',
       'settings' => array(
         'display_all_day' => 0,
-        'increment' => 15,
+        'increment' => 1,
         'input_format' => 'custom',
         'input_format_custom' => 'Y-m',
         'label_position' => 'above',
@@ -2709,7 +2357,7 @@ This will help users to have more information about this corporate author when t
         'module' => 'text',
         'settings' => array(),
         'type' => 'text_default',
-        'weight' => 29,
+        'weight' => 30,
       ),
       'rss' => array(
         'label' => 'above',
@@ -3134,7 +2782,7 @@ This will help users to have more information about this corporate author when t
       'module' => 'link',
       'settings' => array(),
       'type' => 'link_field',
-      'weight' => 24,
+      'weight' => 25,
     ),
   );
 
@@ -3486,7 +3134,7 @@ This will help users to have more information about this corporate author when t
         'module' => 'text',
         'settings' => array(),
         'type' => 'text_default',
-        'weight' => 28,
+        'weight' => 29,
       ),
       'rss' => array(
         'label' => 'above',
@@ -3546,7 +3194,7 @@ This will help users to have more information about this corporate author when t
         'module' => 'text',
         'settings' => array(),
         'type' => 'text_default',
-        'weight' => 31,
+        'weight' => 32,
       ),
       'rss' => array(
         'label' => 'above',
@@ -3645,7 +3293,7 @@ This will help users to have more information about this corporate author when t
         'progress_indicator' => 'throbber',
       ),
       'type' => 'file_generic',
-      'weight' => 25,
+      'weight' => 26,
     ),
   );
 
@@ -4010,104 +3658,6 @@ This will help users to have more information about this corporate author when t
     'widget_type' => 'taxonomy_autocomplete',
   );
 
-  // Exported field_instance: 'node-ageventsfeed-body'
-  $field_instances['node-ageventsfeed-body'] = array(
-    'bundle' => 'ageventsfeed',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'You can register feeds of events in this content type. The feeds must be compliant with the Ag-Event Application Profile, which means it must at least contain the following elements from the AgMES namespace: dateStart, dateEnd, location, locationCountry. 
-If you are not sure if your feed contains these elements, just submit it as a normal News feed.
-Items harvested from this content type are stored in nodes of type "RSS event" and are displayed under "Events from partners".',
-    'display' => array(
-      'default' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => -4,
-      ),
-      'teaser' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(
-          'trim_length' => 600,
-        ),
-        'trim_length' => 600,
-        'type' => 'text_summary_or_trimmed',
-        'weight' => -4,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'body',
-    'label' => 'Description',
-    'required' => 0,
-    'settings' => array(
-      'display_summary' => TRUE,
-      'text_processing' => 1,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'text',
-      'settings' => array(
-        'rows' => 20,
-        'summary_rows' => 5,
-      ),
-      'type' => 'text_textarea_with_summary',
-      'weight' => -4,
-    ),
-  );
-
-  // Exported field_instance: 'node-ageventsfeed-taxonomy_vocabulary_3'
-  $field_instances['node-ageventsfeed-taxonomy_vocabulary_3'] = array(
-    'bundle' => 'ageventsfeed',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_link',
-        'weight' => 10,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_link',
-        'weight' => 10,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'taxonomy_vocabulary_3',
-    'label' => 'Tags from feeds',
-    'required' => 0,
-    'settings' => array(
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'taxonomy',
-      'settings' => array(
-        'agrovocfield' => array(
-          'autocomplete' => array(
-            'agrovocfield_autocomplete' => array(
-              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
-              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
-              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
-              'agrovocfield_connection' => 'remote',
-              'agrovocfield_enable' => TRUE,
-            ),
-          ),
-        ),
-        'autocomplete_path' => 'taxonomy/autocomplete',
-        'size' => 60,
-      ),
-      'type' => 'taxonomy_autocomplete',
-      'weight' => 0,
-    ),
-  );
-
   // Exported field_instance: 'node-aginstitution-body'
   $field_instances['node-aginstitution-body'] = array(
     'bundle' => 'aginstitution',
@@ -4347,24 +3897,22 @@ Users registering their expert profiles can also add records to the directory of
     'display' => array(
       'default' => array(
         'label' => 'above',
-        'module' => 'custom_formatters',
+        'module' => 'i18n_taxonomy',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 15,
+        'type' => 'i18n_taxonomy_term_reference_link',
+        'weight' => 19,
       ),
       'full' => array(
         'label' => 'above',
-        'module' => 'custom_formatters',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 15,
+        'type' => 'hidden',
+        'weight' => 0,
       ),
       'rss' => array(
         'label' => 'above',
-        'module' => 'custom_formatters',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 15,
+        'type' => 'hidden',
+        'weight' => 0,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -4381,11 +3929,34 @@ Users registering their expert profiles can also add records to the directory of
       'user_register_form' => FALSE,
     ),
     'widget' => array(
-      'active' => 1,
+      'active' => 0,
       'module' => 'options',
-      'settings' => array(),
+      'settings' => array(
+        'agrovocfield' => array(
+          'autocomplete' => array(
+            'agrovocfield_autocomplete' => array(
+              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
+              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
+              'agrovocfield_connection' => 'remote',
+              'agrovocfield_enable' => 0,
+            ),
+          ),
+          'automatic' => array(
+            'agrovocfield_automatic' => array(
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+              'automatic_enable' => 0,
+              'field_for_indexing' => 'body',
+              'tags_no' => 10,
+              'voc_type' => 'agrotag',
+            ),
+          ),
+        ),
+        'autocomplete_path' => 'taxonomy/autocomplete',
+        'size' => 60,
+      ),
       'type' => 'options_select',
-      'weight' => 8,
+      'weight' => 10,
     ),
   );
 
@@ -5134,103 +4705,6 @@ Users registering their expert profiles can also add records to the directory of
     'widget_type' => 'taxonomy_autocomplete',
   );
 
-  // Exported field_instance: 'node-agnewsfeed-body'
-  $field_instances['node-agnewsfeed-body'] = array(
-    'bundle' => 'agnewsfeed',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => 'You can register an RSS feed of news in this content type. Items harvested from these feeds will be stored in nodes of type "RSS news item" and will be displayed under "Our news" and wherever the "Lates News" block is diaplayed.
-',
-    'display' => array(
-      'default' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => 0,
-      ),
-      'teaser' => array(
-        'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(
-          'trim_length' => 600,
-        ),
-        'trim_length' => 600,
-        'type' => 'text_summary_or_trimmed',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'body',
-    'label' => 'Body',
-    'required' => 0,
-    'settings' => array(
-      'display_summary' => TRUE,
-      'text_processing' => 1,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'text',
-      'settings' => array(
-        'rows' => 20,
-        'summary_rows' => 5,
-      ),
-      'type' => 'text_textarea_with_summary',
-      'weight' => 0,
-    ),
-  );
-
-  // Exported field_instance: 'node-agnewsfeed-taxonomy_vocabulary_3'
-  $field_instances['node-agnewsfeed-taxonomy_vocabulary_3'] = array(
-    'bundle' => 'agnewsfeed',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_link',
-        'weight' => 10,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'module' => 'taxonomy',
-        'settings' => array(),
-        'type' => 'taxonomy_term_reference_link',
-        'weight' => 10,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'taxonomy_vocabulary_3',
-    'label' => 'Tags from feeds',
-    'required' => 0,
-    'settings' => array(
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'module' => 'taxonomy',
-      'settings' => array(
-        'agrovocfield' => array(
-          'autocomplete' => array(
-            'agrovocfield_autocomplete' => array(
-              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
-              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
-              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
-              'agrovocfield_connection' => 'remote',
-              'agrovocfield_enable' => TRUE,
-            ),
-          ),
-        ),
-        'autocomplete_path' => 'taxonomy/autocomplete',
-        'size' => 60,
-      ),
-      'type' => 'taxonomy_autocomplete',
-      'weight' => 0,
-    ),
-  );
-
   // Exported field_instance: 'node-agperiodical-field_ag_abstract'
   $field_instances['node-agperiodical-field_ag_abstract'] = array(
     'bundle' => 'agperiodical',
@@ -5359,7 +4833,7 @@ Users registering their expert profiles can also add records to the directory of
         'module' => 'i18n_taxonomy',
         'settings' => array(),
         'type' => 'i18n_taxonomy_term_reference_link',
-        'weight' => 17,
+        'weight' => 24,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -5376,11 +4850,34 @@ Users registering their expert profiles can also add records to the directory of
       'user_register_form' => FALSE,
     ),
     'widget' => array(
-      'active' => 1,
+      'active' => 0,
       'module' => 'options',
-      'settings' => array(),
+      'settings' => array(
+        'agrovocfield' => array(
+          'autocomplete' => array(
+            'agrovocfield_autocomplete' => array(
+              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
+              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
+              'agrovocfield_connection' => 'remote',
+              'agrovocfield_enable' => 0,
+            ),
+          ),
+          'automatic' => array(
+            'agrovocfield_automatic' => array(
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+              'automatic_enable' => 0,
+              'field_for_indexing' => 'field_ag_langtitle',
+              'tags_no' => 10,
+              'voc_type' => 'agrotag',
+            ),
+          ),
+        ),
+        'autocomplete_path' => 'taxonomy/autocomplete',
+        'size' => 60,
+      ),
       'type' => 'options_select',
-      'weight' => 18,
+      'weight' => 21,
     ),
   );
 
@@ -5421,23 +4918,22 @@ Users registering their expert profiles can also add records to the directory of
             'agrovocfield_autocomplete' => array(
               'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
               'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
-              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.mimos.my/ACSWWebservice/services/ACSWWebService',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
               'agrovocfield_connection' => 'remote',
-              'agrovocfield_enable' => 0,
+              'agrovocfield_enable' => 1,
             ),
           ),
           'automatic' => array(
             'agrovocfield_automatic' => array(
-              'agrotagger_url' => 'http://agrovoc.mimos.my:58300/agroTagger/resources/agrotags',
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
               'automatic_enable' => 0,
-              'field_for_indexing' => 'field_ag_langtitle',
+              'field_for_indexing' => 'upload',
               'tags_no' => 10,
-              'voc_type' => 'agrovoc',
+              'voc_type' => 'agrotag',
             ),
           ),
         ),
         'autocomplete_path' => 'taxonomy/autocomplete',
-        'content_taxonomy_autocomplete_new_terms' => 'allow',
         'size' => 60,
       ),
       'type' => 'taxonomy_autocomplete',
@@ -5702,7 +5198,7 @@ Users registering their expert profiles can also add records to the directory of
       'module' => 'date',
       'settings' => array(
         'display_all_day' => 0,
-        'increment' => 15,
+        'increment' => 1,
         'input_format' => 'custom',
         'input_format_custom' => 'Y-m',
         'label_position' => 'above',
@@ -6353,11 +5849,11 @@ This content type is configured as "content profile", so each Expert profile is 
     'description' => '',
     'display' => array(
       'default' => array(
-        'label' => 'inline',
-        'module' => 'custom_formatters',
+        'label' => 'above',
+        'module' => 'i18n_taxonomy',
         'settings' => array(),
-        'type' => 'custom_formatters_terms_names_and_descriptions',
-        'weight' => 17,
+        'type' => 'i18n_taxonomy_term_reference_link',
+        'weight' => 37,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -6374,11 +5870,34 @@ This content type is configured as "content profile", so each Expert profile is 
       'user_register_form' => FALSE,
     ),
     'widget' => array(
-      'active' => 1,
+      'active' => 0,
       'module' => 'options',
-      'settings' => array(),
+      'settings' => array(
+        'agrovocfield' => array(
+          'autocomplete' => array(
+            'agrovocfield_autocomplete' => array(
+              'agrovocfield_agrovoc_uri' => 'http://aims.fao.org/aos/agrovoc/c_',
+              'agrovocfield_agrovoc_ws_uri' => 'AgrovocWS',
+              'agrovocfield_agrovoc_ws_url' => 'http://agrovoc.fao.org/axis/services/SKOSWS',
+              'agrovocfield_connection' => 'remote',
+              'agrovocfield_enable' => 0,
+            ),
+          ),
+          'automatic' => array(
+            'agrovocfield_automatic' => array(
+              'agrotagger_url' => 'http://agropedialabs.iitk.ac.in:8080/agroTagger/resources/agrotags',
+              'automatic_enable' => 0,
+              'field_for_indexing' => 'body',
+              'tags_no' => 10,
+              'voc_type' => 'agrotag',
+            ),
+          ),
+        ),
+        'autocomplete_path' => 'taxonomy/autocomplete',
+        'size' => 60,
+      ),
       'type' => 'options_select',
-      'weight' => 31,
+      'weight' => 32,
     ),
   );
 
@@ -6442,7 +5961,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'size' => 60,
       ),
       'type' => 'taxonomy_autocomplete',
-      'weight' => 32,
+      'weight' => 31,
     ),
   );
 
@@ -6723,7 +6242,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'rows' => 4,
       ),
       'type' => 'text_textarea',
-      'weight' => 16,
+      'weight' => 17,
     ),
     'widget_type' => 'text_textarea',
   );
@@ -6890,7 +6409,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'size' => 60,
       ),
       'type' => 'node_reference_autocomplete',
-      'weight' => 13,
+      'weight' => 14,
     ),
   );
 
@@ -7092,7 +6611,7 @@ This content type is configured as "content profile", so each Expert profile is 
       'module' => 'options',
       'settings' => array(),
       'type' => 'options_select',
-      'weight' => 45,
+      'weight' => 50,
     ),
   );
 
@@ -7132,7 +6651,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'size' => 60,
       ),
       'type' => 'text_textfield',
-      'weight' => 47,
+      'weight' => 52,
     ),
   );
 
@@ -7265,7 +6784,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'year_range' => '-3:+3',
       ),
       'type' => 'date_text',
-      'weight' => 14,
+      'weight' => 15,
     ),
     'widget_type' => 'date_text',
   );
@@ -7397,7 +6916,7 @@ This content type is configured as "content profile", so each Expert profile is 
         'size' => 60,
       ),
       'type' => 'text_textfield',
-      'weight' => 15,
+      'weight' => 16,
     ),
     'widget_type' => 'text_textfield',
   );
@@ -7452,7 +6971,7 @@ This content type is configured as "content profile", so each Expert profile is 
       'module' => 'link',
       'settings' => array(),
       'type' => 'link_field',
-      'weight' => 46,
+      'weight' => 51,
     ),
   );
 
@@ -8446,6 +7965,474 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
     ),
   );
 
+  // Exported field_instance: 'node-agrssjob-body'
+  $field_instances['node-agrssjob-body'] = array(
+    'bundle' => 'agrssjob',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => 'Items from an RSS feed of jobs.
+DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -4,
+      ),
+      'teaser' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(
+          'trim_length' => 600,
+        ),
+        'trim_length' => 600,
+        'type' => 'text_summary_or_trimmed',
+        'weight' => -4,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'body',
+    'label' => 'Description',
+    'required' => 0,
+    'settings' => array(
+      'display_summary' => TRUE,
+      'text_processing' => 1,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 20,
+        'summary_rows' => 5,
+      ),
+      'type' => 'text_textarea_with_summary',
+      'weight' => -4,
+    ),
+  );
+
+  // Exported field_instance: 'node-agrssjob-field_ag_deadline'
+  $field_instances['node-agrssjob-field_ag_deadline'] = array(
+    'bundle' => 'agrssjob',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'full' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'rss' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'search_index' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'search_result' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+      'token' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 8,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_deadline',
+    'label' => 'Expiry / deadline for applications',
+    'required' => FALSE,
+    'settings' => array(
+      'default_value' => 'blank',
+      'default_value2' => 'blank',
+      'default_value_code' => '',
+      'default_value_code2' => '',
+      'user_register_form' => FALSE,
+    ),
+    'weight' => 8,
+    'widget' => array(
+      'active' => 0,
+      'module' => 'date',
+      'settings' => array(
+        'display_all_day' => 0,
+        'increment' => 1,
+        'input_format' => 'Y-m-d',
+        'input_format_custom' => '',
+        'label_position' => 'above',
+        'repeat_collapsed' => '',
+        'text_parts' => array(),
+        'year_range' => '-1:+3',
+      ),
+      'type' => 'date_text',
+      'weight' => 8,
+    ),
+    'widget_type' => 'date_text',
+  );
+
+  // Exported field_instance: 'node-agrssjob-field_ag_employer'
+  $field_instances['node-agrssjob-field_ag_employer'] = array(
+    'bundle' => 'agrssjob',
+    'default_value' => '',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'full' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'rss' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'search_index' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'search_result' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+      'token' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 5,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_employer',
+    'label' => 'Employer',
+    'required' => FALSE,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'weight' => 5,
+    'widget' => array(
+      'active' => 0,
+      'module' => 'text',
+      'settings' => array(
+        'default_value' => NULL,
+        'default_value_php' => NULL,
+        'rows' => 5,
+        'size' => 60,
+      ),
+      'type' => 'text_textfield',
+      'weight' => 5,
+    ),
+    'widget_type' => 'text_textfield',
+  );
+
+  // Exported field_instance: 'node-agrssjob-field_ag_location'
+  $field_instances['node-agrssjob-field_ag_location'] = array(
+    'bundle' => 'agrssjob',
+    'default_value' => array(
+      0 => array(
+        'value' => '',
+        '_error_element' => 'default_value_widget][field_ag_location][0][value',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => 'City (and address or zip if possible) where the post is based.',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 6,
+      ),
+      'full' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 6,
+      ),
+      'rss' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 6,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 6,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_location',
+    'label' => 'Location',
+    'required' => FALSE,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'weight' => 6,
+    'widget' => array(
+      'active' => 0,
+      'module' => 'text',
+      'settings' => array(
+        'default_value_php' => NULL,
+        'rows' => 5,
+        'size' => 60,
+      ),
+      'type' => 'text_textfield',
+      'weight' => 6,
+    ),
+    'widget_type' => 'text_textfield',
+  );
+
+  // Exported field_instance: 'node-agrssjob-field_ag_source_url'
+  $field_instances['node-agrssjob-field_ag_source_url'] = array(
+    'bundle' => 'agrssjob',
+    'default_value' => array(
+      0 => array(
+        'value' => '',
+        '_error_element' => 'default_value_widget][field_ag_source_url][0][value',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'full' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'rss' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'search_index' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'search_result' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+      'token' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -2,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_source_url',
+    'label' => 'Original post',
+    'required' => FALSE,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'weight' => -2,
+    'widget' => array(
+      'active' => 0,
+      'module' => 'text',
+      'settings' => array(
+        'default_value_php' => NULL,
+        'rows' => 5,
+        'size' => 60,
+      ),
+      'type' => 'text_textfield',
+      'weight' => -2,
+    ),
+    'widget_type' => 'text_textfield',
+  );
+
+  // Exported field_instance: 'node-agrssjob-upload'
+  $field_instances['node-agrssjob-upload'] = array(
+    'bundle' => 'agrssjob',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'full' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'rss' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'teaser' => array(
+        'label' => 'hidden',
+        'module' => NULL,
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'upload',
+    'label' => 'File attachments',
+    'required' => 0,
+    'settings' => array(
+      'description_field' => 1,
+      'file_directory' => '',
+      'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp xml rdf csv',
+      'max_filesize' => '1 MB',
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'module' => 'file',
+      'settings' => array(
+        'progress_indicator' => 'throbber',
+      ),
+      'type' => 'file_generic',
+      'weight' => 1,
+    ),
+  );
+
   // Exported field_instance: 'node-agrssnews-body'
   $field_instances['node-agrssnews-body'] = array(
     'bundle' => 'agrssnews',
@@ -8709,76 +8696,356 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
     'widget_type' => 'text_textfield',
   );
 
-  // Exported field_instance: 'taxonomy_term-vocabulary_16-field_agrovoc_uri'
-  $field_instances['taxonomy_term-vocabulary_16-field_agrovoc_uri'] = array(
-    'bundle' => 'vocabulary_16',
+  // Exported field_instance: 'node-agvacancy-body'
+  $field_instances['node-agvacancy-body'] = array(
+    'bundle' => 'agvacancy',
+    'default_value' => NULL,
     'deleted' => 0,
-    'description' => '',
+    'description' => 'This content type is for storing information on vacancies. Country and end date (deadline) should always be provided for vacancies. Vacancies will appear under "Our vacancies" and expose a Job-AP compliant feed that can be submitted as a vacancy feed to AgriFeeds.',
     'display' => array(
       'default' => array(
-        'label' => 'inline',
-        'module' => 'computed_field',
+        'label' => 'hidden',
+        'module' => 'text',
         'settings' => array(),
-        'type' => 'computed_field_plain',
-        'weight' => 2,
+        'type' => 'text_default',
+        'weight' => -4,
       ),
-      'full' => array(
-        'label' => 'inline',
-        'module' => 'computed_field',
-        'settings' => array(),
-        'type' => 'computed_field_plain',
-        'weight' => 2,
+      'teaser' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(
+          'trim_length' => 600,
+        ),
+        'trim_length' => 600,
+        'type' => 'text_summary_or_trimmed',
+        'weight' => -4,
       ),
     ),
-    'entity_type' => 'taxonomy_term',
-    'field_name' => 'field_agrovoc_uri',
-    'label' => 'AGROVOC URI',
+    'entity_type' => 'node',
+    'field_name' => 'body',
+    'label' => 'Description',
     'required' => 0,
     'settings' => array(
+      'display_summary' => TRUE,
+      'text_processing' => 1,
       'user_register_form' => FALSE,
     ),
     'widget' => array(
-      'active' => 0,
-      'module' => 'computed_field',
-      'settings' => array(),
-      'type' => 'computed',
-      'weight' => 3,
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 20,
+        'summary_rows' => 5,
+      ),
+      'type' => 'text_textarea_with_summary',
+      'weight' => 1,
     ),
   );
 
-  // Exported field_instance: 'taxonomy_term-vocabulary_16-field_defined_in'
-  $field_instances['taxonomy_term-vocabulary_16-field_defined_in'] = array(
-    'bundle' => 'vocabulary_16',
+  // Exported field_instance: 'node-agvacancy-field_ag_deadline'
+  $field_instances['node-agvacancy-field_ag_deadline'] = array(
+    'bundle' => 'agvacancy',
     'deleted' => 0,
     'description' => '',
     'display' => array(
       'default' => array(
-        'label' => 'inline',
-        'module' => 'computed_field',
-        'settings' => array(),
-        'type' => 'computed_field_plain',
-        'weight' => 4,
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
       ),
       'full' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+      'rss' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+      'search_index' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+      'search_result' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+      'token' => array(
+        'label' => 'above',
+        'module' => 'date',
+        'settings' => array(
+          'format_type' => 'short',
+          'fromto' => 'both',
+          'multiple_from' => '',
+          'multiple_number' => '',
+          'multiple_to' => '',
+          'show_repeat_rule' => 'show',
+        ),
+        'type' => 'date_default',
+        'weight' => 30,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_deadline',
+    'label' => 'Expiry / deadline for applications',
+    'required' => FALSE,
+    'settings' => array(
+      'default_value' => 'blank',
+      'default_value2' => 'blank',
+      'default_value_code' => '',
+      'default_value_code2' => '',
+      'user_register_form' => FALSE,
+    ),
+    'weight' => 30,
+    'widget' => array(
+      'active' => 0,
+      'module' => 'date',
+      'settings' => array(
+        'display_all_day' => 0,
+        'increment' => 1,
+        'input_format' => 'Y-m-d H:i:s',
+        'input_format_custom' => '',
+        'label_position' => 'above',
+        'repeat_collapsed' => '',
+        'text_parts' => array(),
+        'year_range' => '-1:+3',
+      ),
+      'type' => 'date_text',
+      'weight' => 4,
+    ),
+    'widget_type' => 'date_text',
+  );
+
+  // Exported field_instance: 'node-agvacancy-field_ag_institution'
+  $field_instances['node-agvacancy-field_ag_institution'] = array(
+    'bundle' => 'agvacancy',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'node_reference',
+        'settings' => array(),
+        'type' => 'node_reference_default',
+        'weight' => 31,
+      ),
+      'teaser' => array(
         'label' => 'above',
         'settings' => array(),
         'type' => 'hidden',
         'weight' => 0,
       ),
     ),
-    'entity_type' => 'taxonomy_term',
-    'field_name' => 'field_defined_in',
-    'label' => 'Defined in',
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_institution',
+    'label' => 'Institution',
     'required' => 0,
     'settings' => array(
       'user_register_form' => FALSE,
     ),
     'widget' => array(
+      'active' => 1,
+      'module' => 'node_reference',
+      'settings' => array(
+        'autocomplete_match' => 'contains',
+        'autocomplete_path' => 'node_reference/autocomplete',
+        'references_dialog_add' => 1,
+        'references_dialog_edit' => 0,
+        'references_dialog_search' => 1,
+        'references_dialog_search_view' => '',
+        'size' => 60,
+      ),
+      'type' => 'node_reference_autocomplete',
+      'weight' => 2,
+    ),
+  );
+
+  // Exported field_instance: 'node-agvacancy-field_ag_location'
+  $field_instances['node-agvacancy-field_ag_location'] = array(
+    'bundle' => 'agvacancy',
+    'default_value' => array(
+      0 => array(
+        'value' => '',
+        '_error_element' => 'default_value_widget][field_ag_location][0][value',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => 'City, province, region, ZIP, place',
+    'display' => array(
+      'default' => array(
+        'label' => 'inline',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 28,
+      ),
+      'full' => array(
+        'label' => 'inline',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 28,
+      ),
+      'rss' => array(
+        'label' => 'inline',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_plain',
+        'weight' => 28,
+      ),
+      'teaser' => array(
+        'label' => 'inline',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 28,
+      ),
+      'token' => array(
+        'label' => 'inline',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_plain',
+        'weight' => 28,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_ag_location',
+    'label' => 'Location',
+    'required' => FALSE,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'weight' => 28,
+    'widget' => array(
       'active' => 0,
-      'module' => 'computed_field',
-      'settings' => array(),
-      'type' => 'computed',
-      'weight' => 4,
+      'module' => 'text',
+      'settings' => array(
+        'default_value_php' => NULL,
+        'rows' => 5,
+        'size' => 60,
+      ),
+      'type' => 'text_textfield',
+      'weight' => 3,
+    ),
+    'widget_type' => 'text_textfield',
+  );
+
+  // Exported field_instance: 'node-agvacancy-upload'
+  $field_instances['node-agvacancy-upload'] = array(
+    'bundle' => 'agvacancy',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'full' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'rss' => array(
+        'label' => 'hidden',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_table',
+        'weight' => 0,
+      ),
+      'teaser' => array(
+        'label' => 'hidden',
+        'module' => NULL,
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'upload',
+    'label' => 'File attachments',
+    'required' => 0,
+    'settings' => array(
+      'description_field' => 1,
+      'file_directory' => '',
+      'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp xml rdf csv',
+      'max_filesize' => '1 MB',
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'module' => 'file',
+      'settings' => array(
+        'progress_indicator' => 'throbber',
+      ),
+      'type' => 'file_generic',
+      'weight' => 5,
     ),
   );
 
@@ -8791,12 +9058,10 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
   t('<p>Enter the date that the resource was published or issued. Use the format:&nbsp;year(4 digits)-month.(e.g. 2010/01).</p>');
   t('<p>Enter the information identifying the edition or version to which the resource belongs. Use only when the resource is a second or subsequent edition.</p>');
   t('<p>Select the conference name from the Authority Browse list, or create a new entry.</p>');
-  t('AGROVOC URI');
   t('Abstract');
   t('Access conditions');
   t('Access restriction');
   t('Acronym');
-  t('Affiliation');
   t('Agris Subject Categories');
   t('Agrovoc terms');
   t('Approximate date');
@@ -8804,6 +9069,7 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
   t('Body');
   t('Book');
   t('Book chapter');
+  t('City (and address or zip if possible) where the post is based.');
   t('City, province, region, ZIP, place');
   t('Conference');
   t('Conference Date');
@@ -8812,7 +9078,6 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
   t('Country');
   t('Date');
   t('Date of publication');
-  t('Defined in');
   t('Description');
   t('Document type');
   t('Duties');
@@ -8820,13 +9085,13 @@ DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.',
   t('Edition');
   t('Educational Institution');
   t('Email');
-  t('Enter any misspelling or variant of the personal name.');
+  t('Employer');
   t('Enter general textual information relating to the resource.');
-  t('Enter the Given Name or Initials.');
   t('Enter the dates that the conference was held.');
   t('Enter the only the page numbers of pages without \'p.\' or \'pp\'.');
   t('Enter the particular physical presentation of the resource.');
   t('Enter the place that the conference was held.');
+  t('Expiry / deadline for applications');
   t('Extent');
   t('Field of study');
   t('File attachments');
@@ -8847,6 +9112,8 @@ This will help users to have more information about this corporate author when t
   t('Institution type');
   t('It\'s an approximate date?');
   t('Items from an RSS feed of Events.
+DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.');
+  t('Items from an RSS feed of jobs.
 DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.');
   t('Items from an RSS feed of news.
 DO NOT SUBMIT MANUALLY, IT MUST BE HARVESTED.');
@@ -8878,12 +9145,10 @@ This content type is configured as "content profile", so each Expert profile is 
 Users registering their expert profiles can also add records to the directory of Institutions and link them from their profile.');
   t('Publisher');
   t('Record in database');
-  t('Record in experts\' database');
   t('Region');
   t('Role');
   t('Select the most appropriate type for the resource.');
   t('Select the status of the copyright ownership of the resource.');
-  t('Select the subject category which describes the content of the resource from the browse list.');
   t('Shelf Locator');
   t('Short bio');
   t('Source');
@@ -8892,8 +9157,8 @@ Users registering their expert profiles can also add records to the directory of
   t('Tag');
   t('Tags from feeds');
   t('Telephone');
-  t('This content type is for storing information about Authors of the documents in your repository: storing information on authors in a dedicated content type allows to maintain a reference / authority list.');
   t('This content type is for storing information on events. Country, start date and end date should always be provided for events. Events will appear on the homepage if the news and events block is on the homepage, and under "Our events". Events are exposed in an Ag-Event AP compliant feed that can be submitted to AgriFeeds as an event feed.');
+  t('This content type is for storing information on vacancies. Country and end date (deadline) should always be provided for vacancies. Vacancies will appear under "Our vacancies" and expose a Job-AP compliant feed that can be submitted as a vacancy feed to AgriFeeds.');
   t('This content type is for storing news and announcements that will appear on the homepage and in the "News" section.');
   t('Title');
   t('Title Language');
@@ -8904,11 +9169,6 @@ Users registering their expert profiles can also add records to the directory of
   t('Working language(s)');
   t('Year');
   t('Year of establishment');
-  t('You can register an RSS feed of news in this content type. Items harvested from these feeds will be stored in nodes of type "RSS news item" and will be displayed under "Our news" and wherever the "Lates News" block is diaplayed.
-');
-  t('You can register feeds of events in this content type. The feeds must be compliant with the Ag-Event Application Profile, which means it must at least contain the following elements from the AgMES namespace: dateStart, dateEnd, location, locationCountry. 
-If you are not sure if your feed contains these elements, just submit it as a normal News feed.
-Items harvested from this content type are stored in nodes of type "RSS event" and are displayed under "Events from partners".');
 
   return $field_instances;
 }

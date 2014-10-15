@@ -26,20 +26,19 @@ function agridrupal_content_types_field_group_info() {
       0 => 'field_ag_abstract',
       1 => 'field_ag_langtext',
     ),
-    'format_type' => 'field_group_multiple_table',
+    'format_type' => 'field_group_multiple_container',
     'format_settings' => array(
-      'label' => 'Abstract',
+      'formatter' => 'open',
       'instance_settings' => array(
-        'required_fields' => 1,
-        'classes' => ' group-abstract field-group-field_group_multiple_table',
         'description' => '',
-        'parent_format_type' => 'fieldset',
-        'show_label' => '1',
+        'show_label' => 1,
         'label_element' => 'h3',
         'effect' => 'none',
-        'speed' => 'none',
+        'speed' => 'fast',
+        'parent_format_type' => 'div',
+        'classes' => '',
+        'required_fields' => 1,
       ),
-      'formatter' => 'collapsible',
     ),
   );
   $export['group_abstract|node|agdlios|form'] = $field_group;
@@ -197,7 +196,7 @@ function agridrupal_content_types_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => ' Affiliations / career',
-    'weight' => '9',
+    'weight' => '10',
     'children' => array(
       0 => 'field_ag_position',
       1 => 'field_ag_duties',
@@ -804,7 +803,7 @@ function agridrupal_content_types_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'Studies',
-    'weight' => '8',
+    'weight' => '9',
     'children' => array(
       0 => 'field_ag_degree',
       1 => 'field_ag_study_field',
@@ -934,6 +933,7 @@ function agridrupal_content_types_field_group_info() {
     'weight' => '7',
     'children' => array(
       0 => 'field_ag_language',
+      1 => 'field_ag_datepub',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -1078,9 +1078,9 @@ function agridrupal_content_types_field_group_info() {
     'label' => 'Expertise',
     'weight' => '7',
     'children' => array(
-      0 => 'field_ag_agris',
-      1 => 'field_ag_agrovoc',
-      2 => 'field_ag_working_language',
+      0 => 'field_ag_agrovoc',
+      1 => 'field_ag_working_language',
+      2 => 'field_ag_agris',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -1231,7 +1231,7 @@ function agridrupal_content_types_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'Location',
-    'weight' => '22',
+    'weight' => '23',
     'children' => array(
       0 => 'field_ag_phlocation',
       1 => 'field_ag_locator',
@@ -1291,7 +1291,7 @@ function agridrupal_content_types_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'More profiles',
-    'weight' => '10',
+    'weight' => '11',
     'children' => array(
       0 => 'field_ag_personal_website',
       1 => 'group_social',
@@ -1346,7 +1346,7 @@ function agridrupal_content_types_field_group_info() {
   $field_group->parent_name = '';
   $field_group->data = array(
     'label' => 'Other information',
-    'weight' => '23',
+    'weight' => '24',
     'children' => array(
       0 => 'field_ag_pagination',
       1 => 'field_ag_form',
@@ -1630,8 +1630,8 @@ function agridrupal_content_types_field_group_info() {
     'label' => 'Topic(s)',
     'weight' => '15',
     'children' => array(
-      0 => 'field_ag_agris',
-      1 => 'field_ag_agrovoc',
+      0 => 'field_ag_agrovoc',
+      1 => 'field_ag_agris',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -1683,8 +1683,8 @@ function agridrupal_content_types_field_group_info() {
     'label' => 'Vocabulary',
     'weight' => '20',
     'children' => array(
-      0 => 'field_ag_agris',
-      1 => 'field_ag_agrovoc',
+      0 => 'field_ag_agrovoc',
+      1 => 'field_ag_agris',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -1742,8 +1742,8 @@ ATTENTION:WHEN YOU SAVE AN AGROVOC TERM COULD BE A NON-DESCRIPTOR TERM, THE VOCA
     'label' => 'Vocabulary',
     'weight' => '9',
     'children' => array(
-      0 => 'field_ag_agris',
-      1 => 'field_ag_agrovoc',
+      0 => 'field_ag_agrovoc',
+      1 => 'field_ag_agris',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
