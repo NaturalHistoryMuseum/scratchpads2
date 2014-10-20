@@ -256,8 +256,7 @@ function cck_select_other_options($field) {
     return array();
   }
 
-  //$options = eval($field['widget']['settings']['select_list_options_fieldset']['advanced_options']['select_list_options_php']);
-  $options = FALSE;
+  $options = eval($field['widget']['settings']['select_list_options_fieldset']['advanced_options']['select_list_options_php']);
 
   if (empty($options)) {
     $options_str = $field['widget']['settings']['select_list_options'];

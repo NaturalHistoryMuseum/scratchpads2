@@ -667,10 +667,10 @@ function relation_ui_type_import_validate($form, &$form_state) {
     $form_state['values']['relation_type'] = drupal_substr($form_state['values']['relation_type'], 5);
   }
   ob_start();
-  //eval($form_state['values']['relation_type']);
+  eval($form_state['values']['relation_type']);
   ob_end_clean();
   if (!is_object($relation_type)) {
-    return form_error($form['relation_type'], t('Unable to interpret relation type code. Note. Scratchpads prevent importing of relation types.'));
+    return form_error($form['relation_type'], t('Unable to interpret relation type code.'));
   }
   // relation_type name must be alphanumeric or underscores, no other punctuation.
   if (!empty($form_state['values']['name']) && preg_match('/[^a-zA-Z0-9_]/', $form_state['values']['name'])) {
