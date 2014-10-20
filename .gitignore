@@ -3,8 +3,9 @@ sites/*/settings*.php
 sites/*/files
 sites/*/private
 
-# Examples module
+# Examples/Devel modules
 sites/all/modules/contrib/examples
+sites/all/modules/contrib/devel
 
 # Mac shite and SQL files
 *.DS_Store
