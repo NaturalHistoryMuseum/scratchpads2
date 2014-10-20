@@ -1,3 +1,11 @@
+2.5.3.2 (2014-10-20)
+
+- Applied patch for https://www.drupal.org/SA-CORE-2014-005
+
+2.5.3.1 (2014-09-15)
+
+- Ensure results are not cached for the view used in a reference field. #4226
+
 2.5.3 (2014-08-14)
 
 - Delete unpublished anonymous forum nodes older than one week (likely to be spam)
