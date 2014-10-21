@@ -16,64 +16,75 @@ function scratchpads_thumbnail_style_alter_disable(){
  * Implements hook_image_default_styles_alter().
  */
 function scratchpads_thumbnail_style_alter_image_styles_alter(&$styles){
-  if($styles['square_thumbnail']['storage'] == IMAGE_STORAGE_DEFAULT){
-    /* get the original default convert_image_format effect*/
-    $convert_image_format = array_pop($styles['square_thumbnail']['effects']);
-    /* change the weight of it */
-    $convert_image_format['weight'] = '100';
-    /* remove the other square_thumbnail effects */
-    unset($styles['square_thumbnail']['effects']);
-    /** 
-     * add new effects
-     * Scale image with no cropping
-     */
-    $styles['square_thumbnail']['effects'][] = array(
-      'label' => t('Scale'),
-      'help' => t('Scaling will maintain the aspect-ratio of the original image. If only a single dimension is specified, the other dimension will be calculated.'),
-      'effect callback' => 'image_scale_effect',
-      'dimensions callback' => 'image_scale_dimensions',
-      'form callback' => 'image_scale_form',
-      'summary theme' => 'image_scale_summary',
-      'module' => 'image',
-      'name' => 'image_scale',
-      'data' => array(
-        'width' => '85',
-        'height' => '85',
-        'upscale' => '1'
-      ),
-      'weight' => '0'
-    );
-    /* add white canvas background */
-    $styles['square_thumbnail']['effects'][] = array(
-      'label' => t('Define canvas'),
-      'help' => t('Define the size of the working canvas and background color, this controls the dimensions of the output image.'),
-      'effect callback' => 'canvasactions_definecanvas_effect',
-      'dimensions callback' => 'canvasactions_definecanvas_dimensions',
-      'form callback' => 'canvasactions_definecanvas_form',
-      'summary theme' => 'canvasactions_definecanvas_summary',
-      'module' => 'imagecache_canvasactions',
-      'name' => 'canvasactions_definecanvas',
-      'data' => array(
-        'RGB' => array(
-          'HEX' => 'ffffff'
+  foreach(array(
+    'square_thumbnail' => array(
+      'width' => 85,
+      'height' => 85
+    ),
+    'slideshow_large' => array(
+      'width' => '619',
+      'height' => '463'
+    ),
+    'slideshow_thumbnail' => array(
+      'width' => '154',
+      'height' => '115'
+    )
+  ) as $machine_name => $info){
+    if($styles[$machine_name]['storage'] == IMAGE_STORAGE_DEFAULT){
+      /* get the original default convert_image_format effect*/
+      $convert_image_format = array_pop($styles[$machine_name]['effects']);
+      /* change the weight of it */
+      $convert_image_format['weight'] = '2';
+      /* remove the other square_thumbnail effects */
+      unset($styles[$machine_name]['effects']);
+      $styles[$machine_name]['effects'] = array(
+        array(
+          'label' => t('Scale'),
+          'help' => t('Scaling will maintain the aspect-ratio of the original image. If only a single dimension is specified, the other dimension will be calculated.'),
+          'effect callback' => 'image_scale_effect',
+          'dimensions callback' => 'image_scale_dimensions',
+          'form callback' => 'image_scale_form',
+          'summary theme' => 'image_scale_summary',
+          'module' => 'image',
+          'name' => 'image_scale',
+          'data' => array(
+            'width' => $info['width'],
+            'height' => $info['height'],
+            'upscale' => '1'
+          ),
+          'weight' => '0'
         ),
-        'under' => 1,
-        'exact' => array(
-          'width' => '85',
-          'height' => '85',
-          'xpos' => 'center',
-          'ypos' => 'center'
+        array(
+          'label' => t('Define canvas'),
+          'help' => t('Define the size of the working canvas and background color, this controls the dimensions of the output image.'),
+          'effect callback' => 'canvasactions_definecanvas_effect',
+          'dimensions callback' => 'canvasactions_definecanvas_dimensions',
+          'form callback' => 'canvasactions_definecanvas_form',
+          'summary theme' => 'canvasactions_definecanvas_summary',
+          'module' => 'imagecache_canvasactions',
+          'name' => 'canvasactions_definecanvas',
+          'data' => array(
+            'RGB' => array(
+              'HEX' => 'ffffff'
+            ),
+            'under' => 1,
+            'exact' => array(
+              'width' => $info['width'],
+              'height' => $info['height'],
+              'xpos' => 'center',
+              'ypos' => 'center'
+            ),
+            'relative' => array(
+              'leftdiff' => '0',
+              'rightdiff' => '0',
+              'topdiff' => '0',
+              'bottomdiff' => '0'
+            )
+          ),
+          'weight' => '1'
         ),
-        'relative' => array(
-          'leftdiff' => '0',
-          'rightdiff' => '0',
-          'topdiff' => '0',
-          'bottomdiff' => '0'
-        )
-      ),
-      'weight' => '1'
-    );
-    /*re-add the default$convert_image_format */
-    $styles['square_thumbnail']['effects'][] = $convert_image_format;
+        $convert_image_format
+      );
+    }
   }
 }
