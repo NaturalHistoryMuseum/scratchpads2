@@ -22,5 +22,16 @@
   <?php print $page_top; ?>
   <?php print $page; ?>
   <?php print $page_bottom; ?>
+  <div style="display:none">Scratchpads developed and conceived by (alphabetical):
+    Ed Baker,
+    Katherine Bouton
+    Alice Heaton
+    Dimitris Koureas,
+    Laurence Livermore,
+    Dave Roberts,
+    <a href="http://simon.rycroft.name">Simon Rycroft</a>,
+    <a href="http://www.benscott.co.uk/">Ben Scott</a>, 
+    <a href="http://vsmith.info/">Vince Smith</a>
+  </div>
 </body>
 </html>
