@@ -1703,7 +1703,7 @@ function biblio_citekey_generate($node) {
   }
   else {
     ob_start();
-    $return = eval($php);
+    //$return = eval($php);
     ob_end_clean();
     return check_plain(strip_tags((string)$return));
   }
