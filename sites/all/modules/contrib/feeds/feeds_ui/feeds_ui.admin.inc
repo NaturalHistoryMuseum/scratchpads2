@@ -1132,7 +1132,7 @@ function feeds_ui_importer_import_validate($form, &$form_state) {
 
   $feeds_importer = NULL;
   ob_start();
-  eval($form_state['values']['importer']);
+  //eval($form_state['values']['importer']);
   ob_end_clean();
 
   if (!is_object($feeds_importer)) {

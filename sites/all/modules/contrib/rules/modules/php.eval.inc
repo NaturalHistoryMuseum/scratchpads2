@@ -122,7 +122,7 @@ function rules_php_eval($code, $arguments = array()) {
   extract($arguments);
 
   ob_start();
-  print eval('?>'. $code);
+  //print eval('? >'. $code);
   $output = ob_get_contents();
   ob_end_clean();
 
@@ -143,6 +143,7 @@ function rules_php_eval($code, $arguments = array()) {
  */
 function rules_php_eval_return($code, $arguments = array()) {
   extract($arguments);
+  return null;
   return eval($code);
 }
 
