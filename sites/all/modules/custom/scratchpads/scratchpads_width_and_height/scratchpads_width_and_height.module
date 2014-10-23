@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS', 5);
 
 /**
  * Implementation of hook_theme_registry_alter().
@@ -8,12 +9,50 @@ function scratchpads_width_and_height_theme_registry_alter(&$theme_registry){
 }
 
 /**
- * Implementation of hook_flush_caches().
+ * Implements hook_menu()
  */
-function scratchpads_width_and_height_flush_caches(){
+function scratchpads_width_and_height_menu(){
   return array(
-    'cache_image_sizes'
+    'admin/config/media/width-and-height-cache' => array(
+      'title' => 'Width and Height cache',
+      'description' => 'Flush the image width and height cache if you are having issues with the display of your images.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_width_and_height_flush_image_cache_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      )
+    )
   );
+}
+
+/**
+ * Clear the image cache form.
+ */
+function scratchpads_width_and_height_flush_image_cache_form(){
+  return array(
+    'description' => array(
+      '#markup' => '<div class="messages"><p>' . t('Click the "Flush the cache" button below if you are experiencing issues with the aspect ratio of some images on your site.') . '</p></div>'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Flush the cache')
+      )
+    ),
+    '#theme' => 'system_settings_form'
+  );
+}
+
+function scratchpads_width_and_height_flush_image_cache_form_submit($form, $form_state){
+  drupal_set_message('Cache flushed');
+  $images = db_select('cache_image_sizes', 'i')->countQuery()->execute()->fetchField();
+  db_delete('cache_image_sizes')->execute();
+  drupal_set_message(t('Flushed @images from the cache', array(
+    '@images' => $images
+  )));
 }
 
 /**
@@ -43,21 +82,33 @@ function scratchpads_width_and_height_flush_caches(){
 function scratchpads_width_and_height_theme_image($variables){
   if((!isset($variables['width']) || !$variables['width']) || (!isset($variables['height']) || !$variables['height'])){
     $image_info = cache_get(md5($variables['path']), 'cache_image_sizes');
-    if(!$image_info){
+    if(!$image_info || is_integer($image_info->data)){
       // Set $image_info to false in case we fail to load the image.
       $image_info = FALSE;
-      if(substr($variables['path'], 0, 4) == 'http'){
-        $file = file_unmanaged_save_data(@file_get_contents($variables['path']), 'temporary://');
-        $path = drupal_realpath($file);
-        $image = image_load($path);
-        unlink($path);
-      }else{
-        $image = image_load($variables['path']);
+      $failed_downloads = 0;
+      if($image_info && is_integer($image_info->data)){
+        $failed_downloads = $image_info->data;
+      }
+      if($failed_downloads <= SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS){
+        if(substr($variables['path'], 0, 4) == 'http'){
+          $file = file_unmanaged_save_data(@file_get_contents($variables['path']), 'temporary://');
+          $path = drupal_realpath($file);
+          $image = image_load($path);
+          unlink($path);
+        }else{
+          $image = image_load($variables['path']);
+        }
       }
       // We only cache images with a file size (in case the file failed to download).
       if($image && $image->info && $image->info['file_size']){
         $image_info = $image->info;
         cache_set(md5($variables['path']), $image_info, 'cache_image_sizes');
+      }else{
+        // We keep a track of the number of times we have failed to download 
+        // the image.  If we reach SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS,
+        // we never download the image again.
+        $failed_downloads++;
+        cache_set(md5($variables['path']), $failed_downloads, 'cache_image_sizes');
       }
     }else{
       $image_info = $image_info->data;
