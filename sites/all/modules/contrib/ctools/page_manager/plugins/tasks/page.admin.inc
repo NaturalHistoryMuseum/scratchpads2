@@ -1313,7 +1313,7 @@ function page_manager_page_import_subtask($form, &$form_state, $task_name) {
  */
 function page_manager_page_import_subtask_validate(&$form, &$form_state) {
   ob_start();
-  eval($form_state['values']['object']);
+  //eval($form_state['values']['object']);
   ob_end_clean();
 
   if (!isset($page) || !is_object($page)) {
@@ -1465,7 +1465,7 @@ function page_manager_page_form_clone_submit(&$form, &$form_state) {
   // Export the handler, which is a fantastic way to clean database IDs out of it.
   $export = page_manager_page_export($original, $handlers);
   ob_start();
-  eval($export);
+  scratchpads_eval($export);
   ob_end_clean();
 
   $task_name = page_manager_make_task_name('page', $page->name);
