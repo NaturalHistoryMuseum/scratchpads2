@@ -92,7 +92,7 @@ function flag_import_form() {
 function flag_import_form_validate($form, &$form_state) {
   $flags = array();
   ob_start();
-  eval($form_state['values']['import']);
+  //eval($form_state['values']['import']);
   ob_end_clean();
 
   if (!isset($flags) || !is_array($flags)) {

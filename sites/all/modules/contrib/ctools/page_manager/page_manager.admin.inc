@@ -1471,7 +1471,7 @@ function page_manager_handler_import_validate($form, &$form_state) {
     return;
   }
   ob_start();
-  eval($form_state['values']['object']);
+  //eval($form_state['values']['object']);
   ob_end_clean();
 
   if (empty($handler)) {
@@ -1628,7 +1628,7 @@ function page_manager_handler_clone($form, &$form_state) {
 function page_manager_handler_clone_submit(&$form, &$form_state) {
   $export = page_manager_export_task_handler($form_state['handler']);
   ob_start();
-  eval($export);
+  scratchpads_eval($export);
   ob_end_clean();
 
   page_manager_handler_add_to_page($form_state['page'], $handler, $form_state['values']['title']);

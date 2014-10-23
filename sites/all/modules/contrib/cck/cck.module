@@ -286,7 +286,7 @@ function cck_field_set_setting($setting, $setting_type, $value, $field, $instanc
 function cck_default_value_php($entity_type, $entity, $field, $instance, $langcode = LANGUAGE_NONE) {
   $default_value = array();
   ob_start();
-  $result = eval(cck_field_get_setting('default_value_php', 'instance', $field, $instance, $langcode, $flatten = TRUE));
+  //$result = eval(cck_field_get_setting('default_value_php', 'instance', $field, $instance, $langcode, $flatten = TRUE));
   ob_end_clean();
   if (is_array($result)) {
     $default_value = $result;
@@ -301,7 +301,7 @@ function cck_default_value_php($entity_type, $entity, $field, $instance, $langco
 function cck_allowed_values_php($field, $flatten = TRUE) {
   $allowed_values = array();
   ob_start();
-  $result = eval(cck_field_get_setting('allowed_values_php', 'field', $field));
+  //$result = eval(cck_field_get_setting('allowed_values_php', 'field', $field));
   ob_end_clean();
   if (is_array($result)) {
     if ($flatten) {
