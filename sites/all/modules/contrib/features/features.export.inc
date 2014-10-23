@@ -620,7 +620,8 @@ function features_get_normal($component, $module_name, $reset = FALSE) {
       $default_hook = features_get_default_hooks($component);
       if ($module && $default_hook && isset($module->info['features'][$component]) && features_hook($component, 'features_export_render')) {
         $code = features_invoke($component, 'features_export_render', $module_name, $module->info['features'][$component], NULL);
-        $cache[$module_name][$component] = isset($code[$default_hook]) ? eval($code[$default_hook]) : FALSE;
+        $cache[$module_name][$component] = FALSE;
+        //$cache[$module_name][$component] = isset($code[$default_hook]) ? eval($code[$default_hook]) : FALSE;
       }
     }
 
