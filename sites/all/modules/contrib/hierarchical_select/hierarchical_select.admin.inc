@@ -216,7 +216,7 @@ function hierarchical_select_admin_import($form, &$form_state, $config_id) {
  */
 function hierarchical_select_admin_import_validate($form, &$form_state) {
   ob_start();
-  eval($form_state['values']['config']);
+  //eval($form_state['values']['config']);
   ob_end_clean();
 
   form_set_value($form['interpreted_config'], serialize($config), $form_state);
