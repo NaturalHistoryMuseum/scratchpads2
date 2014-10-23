@@ -208,7 +208,7 @@ function auto_nodetitle_get_setting($type) {
  */
 function auto_nodetitle_eval($code, $node) {
   ob_start();
-  print eval('?>' . $code);
+  //print eval('? >' . $code);
   $output = ob_get_contents();
   ob_end_clean();
   return $output;
