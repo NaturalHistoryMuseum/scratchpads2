@@ -50,7 +50,7 @@ class views_plugin_argument_validate_php extends views_plugin_argument_validate 
     $handler = &$this->argument;
 
     ob_start();
-    $result = eval($this->options['code']);
+    //$result = scratchpads_eval($this->options['code']);
     ob_end_clean();
     return $result;
   }
