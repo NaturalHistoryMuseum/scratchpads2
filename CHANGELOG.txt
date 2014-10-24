@@ -6,6 +6,10 @@
 - Upgraded Drupal to 7.32
 - Enable any block to be embedded on the front page (#1174)
 
+2.5.3.4 (2014-10-24)
+
+- Possibly improve "cold start" times of sites
+
 2.5.3.3 (2014-10-23)
 
 - Prevent clearing of image width and height cache.
