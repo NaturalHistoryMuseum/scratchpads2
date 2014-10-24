@@ -1474,9 +1474,33 @@ function scratchpads_tweaks_update_7082(){
 }
 
 /**
- * Add the entityfilter filter
+ * Disable the advagg_css_compress and advagg_js_compress modules - they appear
+ * to seriously affect the "cold start" times of a Scratchpad.
  */
 function scratchpads_tweaks_update_7083(){
+  foreach(array(
+    'advagg_css_compressor',
+    'advagg_css_inline_compressor',
+    'advagg_css_inline_compress_if_not_cacheable',
+    'advagg_js_compressor',
+    'advagg_js_inline_compressor',
+    'advagg_js_inline_compress_if_not_cacheable',
+    'advagg_js_compress_packer'
+  ) as $variable_del){
+    variable_del($variable_del);
+  }
+  $uninstall = array(
+    'advagg_css_compress',
+    'advagg_js_compress'
+  );
+  module_disable($uninstall);
+  drupal_uninstall_modules($uninstall);
+}
+
+/**
+ * Add the entityfilter filter
+ */
+function scratchpads_tweaks_update_7084(){
   module_enable(array(
     'entityfilter'
   ));

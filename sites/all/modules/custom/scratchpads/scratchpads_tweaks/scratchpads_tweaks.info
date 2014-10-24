@@ -33,8 +33,7 @@ dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = advanced_help
-dependencies[] = advagg_css_compress
-dependencies[] = advagg_js_compress
+dependencies[] = advagg
 dependencies[] = ajaxblocks
 dependencies[] = ckeditor
 dependencies[] = clone
