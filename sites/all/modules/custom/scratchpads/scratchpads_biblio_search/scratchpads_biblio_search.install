@@ -20,7 +20,7 @@ function scratchpads_biblio_search_install(){
       'apachesolr_search_custom_enable' => 1,
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
-      'apachesolr_search_per_page' => '100',
+      'apachesolr_search_per_page' => '50',
       'apachesolr_search_browse' => 'results',
       'apachesolr_search_spellcheck' => 1
     ))
@@ -77,8 +77,24 @@ function scratchpads_biblio_search_update_7001(){
 
 /**
  * Set the settings for the new Apachesolr module
+ * 
+ * scratchpads_biblio_search_update_7002 removed, as 7004 replaces it.
  */
-function scratchpads_biblio_search_update_7002(){
+/**
+ * Reindex all biblio nodes to ensure they're sorted correctly on the biblio
+ * page.
+ */
+function scratchpads_biblio_search_update_7003(){
+  db_update('apachesolr_index_entities_node')->fields(array(
+    'changed' => time()
+  ))->condition('entity_type', 'node')->condition('bundle', 'biblio')->execute();
+}
+
+/**
+ * Update the bibliography page so that only 50 references are displayed.  This
+ * is for performance reasons.
+ */
+function scratchpads_biblio_search_update_7004(){
   db_merge('apachesolr_search_page')->fields(array(
     'page_id' => 'biblio_search',
     'label' => 'Literature Search',
@@ -94,21 +110,11 @@ function scratchpads_biblio_search_update_7002(){
       'apachesolr_search_custom_enable' => 1,
       'apachesolr_search_search_type' => 'custom',
       'apachesolr_search_search_box' => 0,
-      'apachesolr_search_per_page' => '100',
+      'apachesolr_search_per_page' => '50',
       'apachesolr_search_browse' => 'results',
       'apachesolr_search_spellcheck' => 1
     ))
   ))->key(array(
     'page_id' => 'biblio_search'
   ))->execute();
-}
-
-/**
- * Reindex all biblio nodes to ensure they're sorted correctly on the biblio
- * page.
- */
-function scratchpads_biblio_search_update_7003(){
-  db_update('apachesolr_index_entities_node')->fields(array(
-    'changed' => time()
-  ))->condition('entity_type', 'node')->condition('bundle', 'biblio')->execute();
 }
