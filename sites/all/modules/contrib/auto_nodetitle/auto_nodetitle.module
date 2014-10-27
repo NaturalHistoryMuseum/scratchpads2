@@ -207,8 +207,9 @@ function auto_nodetitle_get_setting($type) {
  * Evaluates php code and passes $node to it.
  */
 function auto_nodetitle_eval($code, $node) {
+  return FALSE;
   ob_start();
-  //print eval('? >' . $code);
+  print eval('?>' . $code);
   $output = ob_get_contents();
   ob_end_clean();
   return $output;
