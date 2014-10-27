@@ -602,7 +602,7 @@ class context_reaction_block extends context_reaction {
         $comment = !$comment;
       }
     }
-    //eval($out . ';');
+    eval($out . ';');
     return $x;
   }
 
