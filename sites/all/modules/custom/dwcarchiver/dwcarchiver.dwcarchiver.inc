@@ -239,6 +239,12 @@ function dwcarchiver_dwcarchiver_archives(){
         'uri' => 'http://purl.org/dc/terms/language',
         'required' => 0,
         'processor' => 'dwcarchiver_content_language'
+      ),
+      array(
+        'field' => 'user:name',
+        'uri' => 'http://ns.adobe.com/xap/1.0/rights/Owner',
+        'required' => 0,
+        'processor' => 'dwcarchiver_raw_text'
       )
     );
   }
@@ -672,6 +678,13 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://xmlns.com/foaf/spec/#term_accountName',
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'dwcarchiver_text_entry',
+                  'uri' => 'http://eol.org/schema/agent/agentRole',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_value',
+                  'value' => 'Author'
                 )
               )
             )
@@ -690,13 +703,6 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'coreid',
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_value',
-                  'value' => $url
                 ),
                 array(
                   'field' => 'uuid',
