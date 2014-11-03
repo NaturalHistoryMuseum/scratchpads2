@@ -1465,7 +1465,7 @@ function page_manager_page_form_clone_submit(&$form, &$form_state) {
   // Export the handler, which is a fantastic way to clean database IDs out of it.
   $export = page_manager_page_export($original, $handlers);
   ob_start();
-  scratchpads_eval($export);
+  //eval($export);
   ob_end_clean();
 
   $task_name = page_manager_make_task_name('page', $page->name);
