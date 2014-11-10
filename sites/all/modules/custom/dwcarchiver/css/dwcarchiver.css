@@ -1,0 +1,48 @@
+.dwcarchiver-full-width select,.dwcarchiver-full-width input {
+  width: 100% !important;
+}
+
+form>div>.fieldset,form>div>table {
+  border: 2px solid #ccc !important;
+  '
+}
+
+form>div>.fieldset>legend>span {
+  font-size: 120% !important;
+  border-bottom: solid 1px #ccc;
+}
+
+.fieldset-content .fieldset-content {
+  padding: 29px 0 0 0 !important;
+}
+
+.dwcarchiver-preview .wrapper {
+  border: solid 1px #000;
+  background-color: #eee;
+  margin-bottom: 3px;
+}
+
+.dwcarchiver-preview h2 {
+  margin: 0 0 5px 0;
+  border-bottom: solid 1px #000;
+  background-color: #555;
+  color: white;
+  padding: 5px;
+}
+
+.dwcarchiver-preview pre,.dwcarchiver-preview table {
+  font-size: 70%;
+  line-height: 100% !important;
+  margin: 5px;
+}
+
+.dwcarchiver-preview table {
+  width: inherit !important;
+}
+
+.dwcarchiver-preview .wrapper>pre{
+  font-size:60%;
+  margin:5px;
+  padding:5px;
+  border:solid 1px black;
+}
