@@ -1,0 +1,312 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function dwcarchiver_schema(){
+  $cache = drupal_get_schema_unprocessed('system', 'cache');
+  $cache['description'] = 'Cache various DwC-Archiver objects.';
+  return array(
+    'cache_dwcarchiver' => $cache,
+    'dwcarchiver_archive' => array(
+      'description' => 'Stores the settings for each DwC-A',
+      'fields' => array(
+        'did' => array(
+          'description' => 'The primary identifier for a DwC-A',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Name of the DwC-A.',
+          'translatable' => TRUE
+        ),
+        'machine_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Machine name of the archive - used for links.'
+        ),
+        'entity' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Core entity.'
+        ),
+        'bundle' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Core bundle.'
+        ),
+        'rowtype' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
+          'translatable' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'did'
+      ),
+      'unique keys' => array(
+        'machine_name' => array(
+          'machine_name'
+        )
+      )
+    ),
+    'dwcarchiver_extension' => array(
+      'description' => 'Describes an extension that can be used by multiple archives.',
+      'fields' => array(
+        'eid' => array(
+          'description' => 'The primary identifier for a DwC-A extension.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Name of the DwC-A extension.',
+          'translatable' => TRUE
+        ),
+        'machine_name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Machine name of the archive extension - used for creating the filename in the zip.'
+        ),
+        'rowtype' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Rowtype of the extension (e.g. http://rs.gbif.org/terms/1.0/TypesAndSpecimen).',
+          'translatable' => TRUE
+        ),
+        'entity' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Extension entity.'
+        ),
+        'bundle' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'Extension bundle.'
+        ),
+        'field_name' => array(
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'description' => 'The name of the field that links the core to this extension.'
+        )
+      ),
+      'primary key' => array(
+        'eid'
+      )
+    ),
+    'dwcarchiver_map' => array(
+      'description' => 'Stores the mappings from fields to DwC-A fields',
+      'fields' => array(
+        'eid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
+        ),
+        'delta' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The delta of the map'
+        ),
+        'field' => array(
+          'type' => 'varchar',
+          'length' => 65,
+          'not null' => TRUE,
+          'description' => 'The name of the field.'
+        ),
+        'uri' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'URI of the column (e.g. http://rs.tdwg.org/dwc/terms/decimalLongitude).',
+          'translatable' => TRUE
+        ),
+        'required' => array(
+          'type' => 'int',
+          'size' => 'tiny',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'Whether or not this field is required for a row of the export.'
+        ),
+        'processor' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'ID of the processor for altering the data.',
+          'translatable' => TRUE
+        ),
+        'condition' => array(
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => FALSE,
+          'description' => 'Serialized array of conditions for this field.'
+        )
+      )
+    ),
+    'dwcarchiver_value' => array(
+      'description' => 'Stores raw values if they have been added to a mapping',
+      'fields' => array(
+        'eid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_extension}.eid of the extension.'
+        ),
+        'did' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {dwcarchiver_archive}.did of the extension.'
+        ),
+        'delta' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The delta of the map'
+        ),
+        'field' => array(
+          'type' => 'varchar',
+          'length' => 65,
+          'not null' => TRUE,
+          'description' => 'The name of the field.'
+        ),
+        'value' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => '',
+          'description' => 'The value to insert into the CSV file.',
+          'translatable' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'eid',
+        'did',
+        'delta',
+        'field'
+      )
+    ),
+    'dwcarchiver_biblio_citation' => array(
+      'description' => 'Stores the full citation for a biblio node.  We do this so that we do not have to use PHP when building an archive.',
+      'fields' => array(
+        'nid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+          'description' => 'The {node}.vid.'
+        ),
+        'citation' => array(
+          'type' => 'text',
+          'size' => 'big',
+          'not null' => FALSE,
+          'description' => 'The full citation for the node.'
+        )
+      ),
+      'primary key' => array(
+        'nid'
+      )
+    )
+  );
+}
+
+/**
+ * Add the dwcarchiver_biblio_citation table.
+ */
+function dwcarchiver_update_7001(){
+  $schema = dwcarchiver_schema();
+  db_create_table('dwcarchiver_biblio_citation', $schema['dwcarchiver_biblio_citation']);
+}
+
+/**
+ * Populate the dwcarchiver_biblio_citation table.
+ */
+function dwcarchiver_update_7002(&$sandbox){
+  if(!isset($sandbox['nids'])){
+    $sandbox['nids'] = db_select('node', 'n')->fields('n', array(
+      'nid'
+    ))->condition('type', 'biblio')->orderBy('nid', 'DESC')->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['nids']);
+    // If we have no entites or too many (more than 5000), we skip this update.
+    if(!$sandbox['max']){
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  $nids = array();
+  while($i < 50 && count($sandbox['nids'])){
+    $i++;
+    $nids[] = array_pop($sandbox['nids']);
+  }
+  $nodes = node_load_multiple($nids, array(), FALSE);
+  $style = biblio_get_style();
+  $base = variable_get('biblio_base', 'biblio');
+  $query = db_insert('dwcarchiver_biblio_citation')->fields(array(
+    'nid',
+    'citation'
+  ));
+  foreach($nodes as $node){
+    $query->values(array(
+      'nid' => $node->nid,
+      'citation' => strip_tags(theme('biblio_style', array(
+        'node' => $node,
+        'base' => $base,
+        'style_name' => $style
+      )))
+    ));
+  }
+  $query->execute();
+  drupal_set_message(count($sandbox['nids']) . "/" . $sandbox['max']);
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
+}
