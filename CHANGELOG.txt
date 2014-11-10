@@ -1,3 +1,7 @@
+2.5.4 (2014-11-10)
+
+- Added the improved DwC-A Export module. #4126
+
 2.5.3.3 (2014-10-23)
 
 - Prevent clearing of image width and height cache.
