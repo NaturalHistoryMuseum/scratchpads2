@@ -1,0 +1,8 @@
+name = "DarwinCore Archiver (DwC-A)"
+description = "Creates a DarwinCore Archive of this scratchpad"
+core = "7.x"
+package = "Export"
+configure = admin/config/system/dwcaexport
+tool = true
+dependencies[] = uuid
+dependencies[] = field
