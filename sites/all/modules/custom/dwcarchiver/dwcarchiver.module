@@ -1,0 +1,806 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ * 
+ * Provide the default configuration pages for adding DwC-A files
+ */
+function dwcarchiver_menu(){
+  return array(
+    'admin/config/content/dwcarchiver' => array(
+      'title' => 'DwC-Archiver',
+      'description' => 'Add and configure custom DwC-Archives.',
+      'page callback' => 'dwcarchiver_overview_page',
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc',
+      'type' => MENU_NORMAL_ITEM
+    ),
+    'admin/config/content/dwcarchiver/list' => array(
+      'title' => 'List',
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    ),
+    'admin/config/content/dwcarchiver/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_LOCAL_TASK,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_settings'
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/add' => array(
+      'title' => 'Add DwC-Archive',
+      'description' => 'Add custom DwC-Archive',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_form'
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc',
+      'type' => MENU_LOCAL_ACTION
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name' => array(
+      'title' => 'Edit %name',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Edit @name',
+        4
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_form',
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/edit' => array(
+      'title' => 'Edit',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Edit @name',
+        4
+      ),
+      'type' => MENU_DEFAULT_LOCAL_TASK
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/preview' => array(
+      'title' => 'Preview',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Preview @name',
+        4
+      ),
+      'page callback' => 'dwcarchiver_preview',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/delete' => array(
+      'title' => 'Delete',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Delete @name',
+        4
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_delete_form',
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/revert' => array(
+      'title' => 'Revert',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Revert @name',
+        4
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_revert_form',
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/extension/%dwcarchiver_extension/delete' => array(
+      'title' => 'Delete',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Delete @name',
+        5
+      ),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_archive_extension_delete_form',
+        5
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    ),
+    'admin/config/content/dwcarchiver/%dwcarchiver_machine_name/rebuild' => array(
+      'title' => 'Rebuild',
+      'title callback' => 'dwcarchiver_title',
+      'title arguments' => array(
+        'Rebuild @name',
+        4
+      ),
+      'page callback' => 'dwcarchiver_rebuild',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.rebuild.inc'
+    ),
+    'admin/config/content/dwcarchiver/%/override' => array(
+      'title' => 'Override',
+      'page callback' => 'dwcarchiver_override',
+      'page arguments' => array(
+        4
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver'
+      ),
+      'file' => 'dwcarchiver.pages.inc'
+    )
+  );
+}
+
+/**
+ * Page title which takes a dwcarchiver object and extracts the label.
+ */
+function dwcarchiver_title($title, $dwcarchiver){
+  return t($title, array(
+    '@name' => $dwcarchiver->name
+  ));
+}
+
+/**
+ * Implements hook_theme()
+ */
+function dwcarchiver_theme($existing, $type, $theme, $path){
+  return array(
+    'dwcarchiver_archive_form' => array(
+      'render element' => 'form',
+      'file' => 'dwcarchiver.theme.inc'
+    ),
+    'dwcarchiver_archiver_form_fields_table' => array(
+      'render element' => 'element',
+      'file' => 'dwcarchiver.theme.inc'
+    )
+  );
+}
+
+/**
+ * Return the dwcarchiver object matching a machine name.
+ *
+ */
+function dwcarchiver_machine_name_load($name){
+  $did = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+    'did'
+  ))->condition('machine_name', $name)->execute()->fetchField();
+  if($did){
+    return dwcarchiver_load($did);
+  }else{
+    foreach(dwcarchiver_load_all() as $archive){
+      if($archive->machine_name == $name){return $archive;}
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Return the dwcarchiver extension object matching a machine name.
+ */
+function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_state = FALSE){
+  // Machine names are not globally unique, but are only unique per archive.
+  $query = db_select('dwcarchiver_extension', 'd')->condition('machine_name', $name)->fields('d');
+  if($form_state){
+    $query->condition('did', $form_state['dwcarchiver']->did);
+  }
+  return $query->execute()->fetch();
+}
+
+/**
+ * Implements hook_menu_alter()
+ * 
+ * Add the DwC-A paths as defined in the settings above.
+ */
+function dwcarchiver_menu_alter(&$items){
+  foreach(dwcarchiver_load_all() as $archive){
+    $items[$archive->machine_name . '.zip'] = array(
+      'title' => 'DwC-Archive',
+      'page callback' => 'dwcarchiver_deliver_archive',
+      'page arguments' => array(
+        $archive->machine_name
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'dwcarchiver.pages.inc',
+      'file path' => drupal_get_path('module', 'dwcarchiver')
+    );
+  }
+}
+
+/**
+ * Implements hook_permission()
+ */
+function dwcarchiver_permission(){
+  return array(
+    'configure dwcarchiver' => array(
+      'title' => t('Configure DwC-Archiver')
+    )
+  );
+}
+
+/**
+ * Implements hook_hook_info()
+ */
+function dwcarchiver_hook_info(){
+  return array(
+    'dwcarchiver_archives' => array(
+      'group' => 'dwcarchiver'
+    )
+  );
+}
+
+/**
+ * Load function
+ */
+function dwcarchiver_load($did){
+  $archive = db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
+  if($archive){
+    $archive->extensions = array();
+    $eids = db_select('dwcarchiver_extension', 'e')->fields('e', array(
+      'eid'
+    ))->condition('did', $did)->execute()->fetchCol();
+    foreach($eids as $eid){
+      $archive->extensions[$eid] = dwcarchiver_extension_load($eid, $did);
+    }
+    $archive->maps = dwcarchiver_map_load(0, $did, 'id');
+  }
+  return $archive;
+}
+
+/**
+ * Load function to load ALL dwcarchives and return them, along with the archives
+ * that are stored in code.
+ * 
+ * FIXME - This needs caching or speeding up!
+ */
+function dwcarchiver_load_all($reset = FALSE){
+  $cache = FALSE;
+  if(!$reset){
+    $cache = cache_get('all', 'cache_dwcarchiver');
+  }
+  if(empty($cache) || empty($cache->data)){
+    $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+      'did'
+    ))->orderBy('did')->execute()->fetchCol();
+    $archives = array();
+    $db_machine_names = array();
+    $did = 0;
+    foreach($dids as $did){
+      $archives[$did] = dwcarchiver_load($did);
+      $db_machine_names[$archives[$did]->machine_name] = $archives[$did]->did;
+    }
+    foreach(module_invoke_all('dwcarchiver_archives') as $code){
+      if(!isset($db_machine_names[$code['machine_name']])){
+        $did++;
+        // We need to "objectify" the $code object, as we allow the definition
+        // of an archive as nested arrays.
+        $archives[$did] = _dwcarchiver_objectify_archive($code);
+      }else{
+        $archives[$db_machine_names[$code['machine_name']]]->overridden = TRUE;
+      }
+    }
+    cache_set('all', $archives, 'cache_dwcarchiver');
+  }else{
+    $archives = $cache->data;
+  }
+  return $archives;
+}
+
+/**
+ * Objectify an archive array.
+ */
+function _dwcarchiver_objectify_archive($archive){
+  $archive = (object)$archive;
+  foreach($archive->extensions as $key => $extension){
+    $archive->extensions[$key] = (object)$extension;
+    foreach(array_keys($archive->extensions[$key]->maps) as $delta){
+      foreach($archive->extensions[$key]->maps[$delta] as $map_key => $map){
+        $archive->extensions[$key]->maps[$delta][$map_key] = (object)$map;
+      }
+    }
+  }
+  foreach($archive->maps[0] as $map_key => $map){
+    $archive->maps[0][$map_key] = (object)$map;
+  }
+  return $archive;
+}
+
+/**
+ * Implements hook_flush_caches.
+ */
+function dwcarchiver_flush_caches(){
+  return array(
+    'cache_dwcarchiver'
+  );
+}
+
+/**
+ * Load maps
+ */
+function dwcarchiver_map_load($eid, $did, $uri = 'coreid'){
+  $maps = db_select('dwcarchiver_map', 'd')->fields('d')->condition('did', $did)->condition('eid', $eid)->orderBy('uri', 'DESC')->execute()->fetchAll();
+  $values = db_select('dwcarchiver_value', 'v')->fields('v')->condition('eid', $eid)->condition('did', $did)->execute()->fetchAll();
+  if($maps){
+    $maps_to_return = array();
+    // Run through the maps first, simply to ensure that "coreid" or "id" are at
+    // the top of the list.
+    foreach($maps as $map){
+      if(in_array($map->uri, array(
+        'id',
+        'coreid'
+      ))){
+        $maps_to_return[$map->delta] = array(
+          $map
+        );
+      }
+    }
+    foreach($maps as $map){
+      if(!in_array($map->uri, array(
+        'id',
+        'coreid'
+      ))){
+        // We only need to add "values" to maps here, and not above, as coreid
+        // and id should never be a "value".
+        if($map->processor == 'dwcarchiver_value'){
+          foreach($values as $value){
+            if($value->eid == $map->eid && $value->did == $map->did && $value->delta == $map->delta && $value->field == $map->field){
+              $map->value = $value->value;
+            }
+          }
+        }
+        $maps_to_return[$map->delta][] = $map;
+      }
+    }
+    return $maps_to_return;
+  }else{
+    return array(
+      array(
+        (object)array(
+          'eid' => $eid,
+          'did' => $did,
+          'field' => 'uuid',
+          'uri' => 'coreid',
+          'processor' => 'dwcarchiver_raw_text'
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Load an extension.
+ */
+function dwcarchiver_extension_load($eid){
+  $extension = db_select('dwcarchiver_extension', 'e')->condition('eid', $eid)->fields('e')->execute()->fetch();
+  if($extension){
+    $extension->maps = dwcarchiver_map_load($eid, $extension->did);
+  }
+  return $extension;
+}
+
+/**
+ * Function for getting the processors
+ */
+function dwcarchiver_get_processors($field_type = 'ALL', $reset = FALSE){
+  $processors = drupal_static(__FUNCTION__, $reset);
+  if(!$processors){
+    if(!$reset){
+      $cache = cache_get('all_processors', 'cache_dwcarchiver');
+      if($cache && $cache->data){
+        $processors = $cache->data;
+      }
+    }
+    if(!$processors){
+      // Get the processors for processing text fields.
+      $processors = array();
+      drupal_alter('dwcarchiver_processors', $processors);
+      cache_set('all_processors', $processors, 'cache_dwcarchiver');
+    }
+  }
+  if($field_type == 'ALL'){return $processors;}
+  // We filter out the processors we can accept.
+  $processors_to_return = array();
+  foreach($processors as $key => $processor){
+    if(in_array($field_type, $processor['field types'])){
+      $processors_to_return[$key] = $processor;
+    }
+  }
+  return $processors_to_return;
+}
+
+/**
+ * Get the core types.
+ */
+function dwcarchiver_get_core_types($reset = FALSE){
+  $core_types = drupal_static(__FUNCTION__, FALSE, $reset);
+  if(!$core_types){
+    $core_types = array();
+    drupal_alter('dwcarchiver_core_types', $core_types);
+  }
+  return $core_types;
+}
+
+/**
+ * Alter the list of processors
+ */
+function dwcarchiver_dwcarchiver_processors_alter(&$processors){
+  // FIXME - Add date, creativecommons, country and field_collection
+  $processors['dwcarchiver_raw_text'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_raw_text',
+    'label' => t('Raw value'),
+    'field types' => array(
+      'entity_property',
+      'text',
+      'text_long',
+      'text_with_summary',
+      'number_integer',
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
+  $processors['dwcarchiver_raw_text_concatenate_value_after'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_raw_text_concatenate_value_after',
+    'label' => t('Raw value plus concatenated value'),
+    'field types' => array(
+      'entity_property',
+      'text',
+      'text_long',
+      'text_with_summary',
+      'number_integer',
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
+  $processors['dwcarchiver_link'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_link',
+    'label' => t('Link URL'),
+    'field types' => array(
+      'link_field'
+    )
+  );
+  $processors['dwcarchiver_list'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_list',
+    'label' => t('List label'),
+    'field types' => array(
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
+  $processors['dwcarchiver_value'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_value',
+    'label' => t('Value'),
+    'field types' => array(
+      'value'
+    )
+  );
+  $processors['dwcarchiver_content_url'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_content_url',
+    'label' => t('URL'),
+    'field types' => array(
+      'content_url'
+    )
+  );
+  $processors['dwcarchiver_content_language'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_content_language',
+    'label' => t('Language'),
+    'field types' => array(
+      'content_language'
+    )
+  );
+  $processors['dwcarchiver_language_field'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_language_field',
+    'label' => t('Language field'),
+    'field types' => array(
+      'language_field'
+    )
+  );
+  $processors['dwcarchiver_file_url'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_path',
+    'label' => t('File URL'),
+    'field types' => array(
+      'file_url'
+    )
+  );
+  $processors['dwcarchiver_timestamp'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_timestamp',
+    'label' => t('Timestamp'),
+    'field types' => array(
+      'timestamp'
+    )
+  );
+  $processors['dwcarchiver_date_from'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_date_from',
+    'label' => t('Date from'),
+    'field types' => array(
+      'date'
+    )
+  );
+  $processors['dwcarchiver_date_to'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_date_to',
+    'label' => t('Date to'),
+    'field types' => array(
+      'date'
+    )
+  );
+  $processors['dwcarchiver_mime_to_dcmitype'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_mime_to_dcmitype',
+    'label' => t('Mime to DCMI Type'),
+    'field types' => array(
+      'entity_property'
+    )
+  );
+}
+
+/**
+ * Creative commons module alter the list of processors
+ */
+function creative_commons_dwcarchiver_processors_alter(&$processors){
+  $processors['dwcarchiver_creative_commons'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_creative_commons',
+    'label' => t('Creative Commons'),
+    'field types' => array(
+      'creative_commons'
+    )
+  );
+  $processors['dwcarchiver_creative_commons_url'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_creative_commons_url',
+    'label' => t('Creative Commons URL'),
+    'field types' => array(
+      'creative_commons'
+    )
+  );
+}
+
+/**
+ * Biblio module alter the list of processors
+ */
+function biblio_dwcarchiver_processors_alter(&$processors){
+  $processors['dwcarchiver_biblio'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_biblio',
+    'label' => t('Biblio magic processor'),
+    'field types' => array(
+      'biblio'
+    )
+  );
+}
+
+/**
+ * GM3 module alter the list of processors.
+ */
+function gm3_dwcarchiver_processors_alter(&$processors){
+  $processors['gm3_latitude'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_gm3_latitude',
+    'label' => t('Latitude'),
+    'field types' => array(
+      'gm3_point',
+      'gm3_combination'
+    )
+  );
+  $processors['gm3_longitude'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_gm3_longitude',
+    'label' => t('Longitude'),
+    'field types' => array(
+      'gm3_point',
+      'gm3_combination'
+    )
+  );
+}
+
+/**
+ * Implements hook_dwcarchiver_core_types_alter() on behalf of the taxonomy
+ * module.
+ */
+function taxonomy_dwcarchiver_core_types_alter(&$core_types){
+  $entity_info = entity_get_info();
+  foreach(taxonomy_vocabulary_get_names() as $machine_name => $vocabulary){
+    $core_types['taxonomy_term/' . $machine_name] = array(
+      'label' => t('Taxonomy term') . " (" . t($vocabulary->name) . ")",
+      'links' => array()
+    );
+    // Add any "field_collection" links right here.
+    $query = db_select('field_config', 'c')->fields('c', array(
+      'field_name'
+    ));
+    $query->innerJoin('field_config_instance', 'i', 'i.field_name = c.field_name');
+    $query->condition('bundle', $machine_name);
+    $query->condition('type', 'field_collection');
+    $rows = $query->execute()->fetchAll();
+    if($rows){
+      foreach($rows as $row){
+        $field_instance = field_info_instance('taxonomy_term', $row->field_name, $machine_name);
+        $core_types['taxonomy_term/' . $machine_name]['links'][$row->field_name . '/field_collection_item/' . $row->field_name] = t('Field Collection: @field_label', array(
+          '@field_label' => $entity_info['field_collection_item']['bundles'][$row->field_name]['label']
+        ));
+      }
+    }
+  }
+  // Loop through all of the taxonomy term fields and add the entity/bundle that
+  // they're attached to to the links.
+  foreach(field_read_fields(array(
+    'type' => 'taxonomy_term_reference'
+  )) as $field){
+    foreach(field_read_instances(array(
+      'field_name' => $field['field_name']
+    )) as $instance){
+      foreach($field['settings']['allowed_values'] as $allowed_values){
+        if(!empty($allowed_values['vocabulary']) && isset($core_types['taxonomy_term/' . $allowed_values['vocabulary']])){
+          $core_types['taxonomy_term/' . $allowed_values['vocabulary']]['links'][$field['field_name'] . '/' . $instance['entity_type'] . '/' . $instance['bundle']] = $instance['label'] . ': ' . $entity_info[$instance['entity_type']]['label'] . " (" . $entity_info[$instance['entity_type']]['bundles'][$instance['bundle']]['label'] . ")";
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_insert()
+ */
+function dwcarchiver_entity_insert($entity, $type){
+  // Update the flag so that we can rebuild the archive.
+  $set_to_rebuild = FALSE;
+  if(variable_get('dwcarchiver_rebuild_frequency', 'change') == 'change'){
+    switch($type){
+      case 'taxonomy_term':
+        $biological_vids = variable_get('biological_vids', array());
+        if(isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]){
+          $set_to_rebuild = TRUE;
+        }
+        break;
+      case 'node':
+        if($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation'){
+          $set_to_rebuild = TRUE;
+        }
+    }
+  }
+  if($set_to_rebuild){
+    $query = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+      'did'
+    ));
+    $query->addExpression("'change'");
+    variable_set('dwcarchiver_last_cron_run', $query->execute()->fetchAllKeyed());
+  }
+  // If we're updating a biblio node, we update the record in the
+  // dwcarchiver_biblio_citation table.
+  if($type == 'node' && $entity->type == 'biblio'){
+    $style = biblio_get_style();
+    $base = variable_get('biblio_base', 'biblio');
+    $query = db_merge('dwcarchiver_biblio_citation')->key(array(
+      'nid' => $entity->nid
+    ))->fields(array(
+      'nid' => $node->nid,
+      'citation' => strip_tags(theme('biblio_style', array(
+        'node' => $entity,
+        'base' => $base,
+        'style_name' => $style
+      )))
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_entity_delete()
+ */
+function dwcarchiver_entity_delete($entity, $type){
+  dwcarchiver_entity_insert($entity, $type);
+}
+
+/**
+ * Implements hook_entity_update()
+ */
+function dwcarchiver_entity_update($entity, $type){
+  dwcarchiver_entity_insert($entity, $type);
+}
+
+/**
+ * Rebuild the archive files on cron.
+ */
+function dwcarchiver_cron(){
+  // We only rebuild one archive at a time, so if we have three archives, we 
+  // need three cron runs to rebuild them all.
+  $when = variable_get('dwcarchiver_rebuild_frequency', 'change');
+  $last = variable_get('dwcarchiver_last_cron_run', array());
+  $request_time = time();
+  $dids = db_select('dwcarchiver_archive', 'd')->fields('d', array(
+    'did'
+  ))->execute()->fetchCol();
+  $did_to_rebuild = FALSE;
+  if($when == 'change'){
+    foreach($last as $did => $change){
+      if($change == 'change'){
+        $did_to_rebuild = $did;
+        break;
+      }
+    }
+  }else{
+    foreach($dids as $did){
+      if(!isset($last[$did]) || $last[$did] + ($when * 86400) < $request_time){
+        $did_to_rebuild = $did;
+        $last[$did] = $request_time;
+        break;
+      }
+    }
+  }
+  if($did_to_rebuild){
+    $dwcarchiver = dwcarchiver_load($did_to_rebuild);
+    module_load_include('rebuild.inc', 'dwcarchiver');
+    dwcarchiver_rebuild($dwcarchiver, FALSE);
+  }
+}
