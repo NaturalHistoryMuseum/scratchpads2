@@ -10,6 +10,7 @@ function scratchpads_sharethis_enable(){
   variable_set('sharethis_teaser_option', 1);
   $entity_info = entity_get_info('node');
   variable_set('sharethis_node_option', implode(',', array_keys($entity_info['bundles'])));
+  variable_set('sharethis_option_onhover', 0);
 }
 
 /**
@@ -19,4 +20,11 @@ function scratchpads_sharethis_disable(){
   drupal_register_shutdown_function('module_disable', array(
     'sharethis'
   ));
+}
+
+/**
+ * Prevent opening of the ShareThis widget on hover
+ */
+function scratchpads_sharethis_update_7001(){
+  variable_set('sharethis_option_onhover', 0);
 }
