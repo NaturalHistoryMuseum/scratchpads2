@@ -60,6 +60,12 @@ function scratchpads_data_integrity_check_for_deleted_files(){
  * Standard data-int to check if any terms have lost their parent.
  */
 function scratchpads_data_integrity_check_all_terms_have_parents(){
+  // First delete all entries in the hierarchy table that are the child of a 
+  // deleted term.
+  $tids = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ));
+  db_delete('taxonomy_term_hierarchy')->condition('parent', $tids, 'NOT IN')->condition('parent', 0, '!=')->execute();
   $not_in = db_select('taxonomy_term_hierarchy', 'th')->fields('th', array(
     'tid'
   ));
