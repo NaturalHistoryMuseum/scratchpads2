@@ -711,9 +711,9 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
 }
 
 /**
- * Implements hook_entity_insert()
+ * Set rebuild flag.
  */
-function dwcarchiver_entity_insert($entity, $type){
+function dwcarchiver_set_rebuild_flag($entity, $type){
   // Update the flag so that we can rebuild the archive.
   $set_to_rebuild = FALSE;
   if(variable_get('dwcarchiver_rebuild_frequency', 'change') == 'change'){
@@ -737,6 +737,13 @@ function dwcarchiver_entity_insert($entity, $type){
     $query->addExpression("'change'");
     variable_set('dwcarchiver_last_cron_run', $query->execute()->fetchAllKeyed());
   }
+}
+
+/**
+ * Implements hook_entity_insert()
+ */
+function dwcarchiver_entity_insert($entity, $type){
+  dwcarchiver_set_rebuild_flag($entity, $type);
   // If we're updating a biblio node, we update the record in the
   // dwcarchiver_biblio_citation table.
   if($type == 'node' && $entity->type == 'biblio'){
@@ -759,7 +766,10 @@ function dwcarchiver_entity_insert($entity, $type){
  * Implements hook_entity_delete()
  */
 function dwcarchiver_entity_delete($entity, $type){
-  dwcarchiver_entity_insert($entity, $type);
+  dwcarchiver_set_rebuild_flag($entity, $type);
+  if($type == 'node' && $entity->type == 'biblio'){
+    db_delete('dwcarchiver_biblio_citation')->condition('nid', $entity->nid)->execute();
+  }
 }
 
 /**
