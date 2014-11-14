@@ -745,7 +745,7 @@ function dwcarchiver_entity_insert($entity, $type){
     $query = db_merge('dwcarchiver_biblio_citation')->key(array(
       'nid' => $entity->nid
     ))->fields(array(
-      'nid' => $node->nid,
+      'nid' => $entity->nid,
       'citation' => strip_tags(theme('biblio_style', array(
         'node' => $entity,
         'base' => $base,
