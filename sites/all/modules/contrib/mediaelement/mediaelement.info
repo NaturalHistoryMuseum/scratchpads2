@@ -6,3 +6,9 @@ files[] = mediaelement.admin.inc
 files[] = mediaelement.install
 files[] = mediaelement.module
 configure = admin/config/media/mediaelement
+; Information added by drupal.org packaging script on 2012-01-14
+version = "7.x-1.2"
+core = "7.x"
+project = "mediaelement"
+datestamp = "1326568843"
+
