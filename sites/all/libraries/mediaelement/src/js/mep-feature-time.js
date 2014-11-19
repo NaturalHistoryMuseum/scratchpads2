@@ -2,7 +2,8 @@
 	
 	// options
 	$.extend(mejs.MepDefaults, {
-		duration: -1
+		duration: -1,
+		timeAndDurationSeparator: '<span> | </span>'
 	});
 
 
@@ -11,11 +12,13 @@
 		buildcurrent: function(player, controls, layers, media) {
 			var t = this;
 			
-			$('<div class="mejs-time">'+
-					'<span class="mejs-currenttime">' + (player.options.alwaysShowHours ? '00:' : '')
-					+ (player.options.showTimecodeFrameCount? '00:00:00':'00:00')+ '</span>'+
-					'</div>')
-					.appendTo(controls);
+			$('<div class="mejs-time" role="timer" aria-live="off">' +
+					'<span class="mejs-currenttime">' + 
+                        (player.options.alwaysShowHours ? '00:' : '') +
+                        (player.options.showTimecodeFrameCount? '00:00:00':'00:00') + 
+                    '</span>'+
+				'</div>')
+			.appendTo(controls);
 			
 			t.currenttime = t.controls.find('.mejs-currenttime');
 
@@ -29,12 +32,12 @@
 			var t = this;
 			
 			if (controls.children().last().find('.mejs-currenttime').length > 0) {
-				$(' <span> | </span> '+
+				$(t.options.timeAndDurationSeparator +
 					'<span class="mejs-duration">' + 
 						(t.options.duration > 0 ? 
 							mejs.Utility.secondsToTimeCode(t.options.duration, t.options.alwaysShowHours || t.media.duration > 3600, t.options.showTimecodeFrameCount,  t.options.framesPerSecond || 25) :
-				   			((player.options.alwaysShowHours ? '00:' : '') + (player.options.showTimecodeFrameCount? '00:00:00':'00:00')) 
-				   		) + 
+							((player.options.alwaysShowHours ? '00:' : '') + (player.options.showTimecodeFrameCount? '00:00:00':'00:00'))
+						) + 
 					'</span>')
 					.appendTo(controls.find('.mejs-time'));
 			} else {
@@ -46,8 +49,8 @@
 					'<span class="mejs-duration">' + 
 						(t.options.duration > 0 ? 
 							mejs.Utility.secondsToTimeCode(t.options.duration, t.options.alwaysShowHours || t.media.duration > 3600, t.options.showTimecodeFrameCount,  t.options.framesPerSecond || 25) :
-				   			((player.options.alwaysShowHours ? '00:' : '') + (player.options.showTimecodeFrameCount? '00:00:00':'00:00')) 
-				   		) + 
+							((player.options.alwaysShowHours ? '00:' : '') + (player.options.showTimecodeFrameCount? '00:00:00':'00:00')) 
+						) + 
 					'</span>' +
 				'</div>')
 				.appendTo(controls);
@@ -68,11 +71,14 @@
 			}
 		},
 		
-		updateDuration: function() {	
+		updateDuration: function() {
 			var t = this;
+
+			//Toggle the long video class if the video is longer than an hour.
+			t.container.toggleClass("mejs-long-video", t.media.duration > 3600);
 			
-			if (t.media.duration && t.durationD) {
-				t.durationD.html(mejs.Utility.secondsToTimeCode(t.media.duration, t.options.alwaysShowHours, t.options.showTimecodeFrameCount, t.options.framesPerSecond || 25));
+			if (t.durationD && (t.options.duration > 0 || t.media.duration)) {
+				t.durationD.html(mejs.Utility.secondsToTimeCode(t.options.duration > 0 ? t.options.duration : t.media.duration, t.options.alwaysShowHours, t.options.showTimecodeFrameCount, t.options.framesPerSecond || 25));
 			}		
 		}
 	});
