@@ -1,6 +1,6 @@
 Media Element
 --------------------------------------------------------------------------------
- 
+
 Provides HTML5 video and audio elements using Mediaelement.js for HTML4 browsers.
 
 Installation
@@ -26,7 +26,7 @@ library into a page use the command:
 
 drupal_add_library('mediaelement', 'mediaelement');
 
-If you want to Use the helper scripts include the script mediaelement.js included
+If you want to use the helper scripts include the script mediaelement.js included
 with the module. You can do it using a command like:
 
 drupal_add_js(drupal_get_path('module', 'mediaelement') . '/mediaelement.js');
@@ -38,7 +38,7 @@ $settings = array('mediaelement' => array(
   '.class-name' => array(
     'controls' => TRUE,
     'opts' => array(), // This is the mediaelement scripts options.
-  );
+  )
 ));
 drupal_add_js($settings, 'setting');
 
