@@ -6,31 +6,6 @@
  */
 
 /**
- * Render audio and video with MediaElement.
- *
- * @param mixed $file
- *   Either a string with a path to a file or an array of paths to files.
- * @param array $options
- *   - id: Optionally set the unique ID. Otherwise the MediaElement module
- *     creates a unique one using a static count variable.
- *   - width: Width of the player in pixels or percentage.
- *   - height: Height of the player in pixels or percentage.
- *   - controls: Disable or enable the controls.
- *   - opts: MediaElement.js API options.
- *   - attributes: Override defaults for theme_mediaelement_audio().
- *   - settings: Override defaults for theme_mediaelement_audio().
- *   - type: video or audio. Otherwise MediaElement module determines it by the
- *     file extension of $file.
- *
- * @return string
- *   The html to inject into the page is returned. Apart from this, the
- *   javaScript needed to support the html is added using Drupal APIs.
- */
-function mediaelement_render($file, array $options = array()) {
-	
-}
-
-/**
  * Implements hook_menu().
  */
 function mediaelement_menu() {
@@ -128,7 +103,9 @@ function mediaelement_field_formatter_view($entity_type, $entity, $field, $insta
   $element = array();
   $path = drupal_get_path('module', 'mediaelement');
   foreach ($items as $delta => $item) {
-    // file and link_field keep the path/link in a different property name.
+    // Support the link field type which stores it's data in 'url'.
+    $src = ($field['type'] == 'link_field') ? $item['url'] : $item['uri'];
+
     $settings = $display['settings'];
     $js_settings = array();
     $js_settings['opts'] = array();
@@ -145,7 +122,7 @@ function mediaelement_field_formatter_view($entity_type, $entity, $field, $insta
     $class = 'mediaelement-formatter-identifier-' . time() . '-' . $id++;
     $element[$delta] = array(
       '#attributes' => array(
-        'src' => file_create_url($item['uri']),
+        'src' => file_create_url($src),
         'class' => $class,
       ),
       '#settings' => $settings,
@@ -214,7 +191,7 @@ function mediaelement_field_formatter_settings_form($field, $instance, $view_mod
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
   $element = array();
- 
+
   $element['controls'] = array(
     '#title' => t('Controls'),
     '#type' => 'checkbox',
