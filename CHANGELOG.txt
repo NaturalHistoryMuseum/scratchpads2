@@ -1,3 +1,7 @@
+2.5.4.1 (2014-11-20)
+
+- Patched Drupal to include patches from Drupal 7.34
+
 2.5.4 (2014-11-10)
 
 - Added the improved DwC-A Export module. #4126
