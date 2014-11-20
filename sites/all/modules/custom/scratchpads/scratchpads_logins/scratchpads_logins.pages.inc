@@ -8,7 +8,7 @@ function scratchpad_admin_openids(){
     'https://profiles.google.com/106483633665200690531' => 'Edward Baker (https://profiles.google.com/106483633665200690531)',
     'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
     'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
-    'http://openid.simon.rycroft.name/' => 'Simon Rycroft (http://openid.simon.rycroft.name/)',
+    'http://simon.rycroft.name/' => 'Simon Rycroft (http://simon.rycroft.name/)',
     'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
     'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
   );
@@ -56,7 +56,7 @@ function scratchpad_logins(){
     case '157.140.127.10':
       $default_value = 'http://vbrant.eu/user/57/identity';
     default:
-      $default_value = 'http://openid.simon.rycroft.name/';
+      $default_value = 'http://simon.rycroft.name/';
   }
   return array(
     'boost_warning' => array(
