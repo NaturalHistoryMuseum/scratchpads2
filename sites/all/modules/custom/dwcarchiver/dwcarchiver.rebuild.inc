@@ -108,17 +108,17 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
   }
   switch($archive_or_extension->entity){
     case 'taxonomy_term':
-      $vid = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+      $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
         'vid'
-      ))->condition('machine_name', $archive_or_extension->bundle)->execute()->fetchField();
-      $base_query->condition('base.vid', $vid);
+      ))->condition('machine_name', $archive_or_extension->bundles)->execute()->fetchCol();
+      $base_query->condition('base.vid', $vids);
       break;
     case 'user':
       // Prevent returning of Scratchpads Team, and Anonymous
       $base_query->condition('base.uid', 1, '>');
       break;
     default:
-      $base_query->condition("base.{$info['entity keys']['bundle']}", $archive_or_extension->bundle);
+      $base_query->condition("base.{$info['entity keys']['bundle']}", $archive_or_extension->bundles[0]);
       break;
   }
   $processors = dwcarchiver_get_processors();
