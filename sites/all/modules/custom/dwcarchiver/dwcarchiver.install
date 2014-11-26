@@ -329,6 +329,8 @@ function dwcarchiver_update_7002(&$sandbox){
 /**
  * Alter the table schema so that an archive can be associated with multiple 
  * bundles.
+ * 
+ * NOTE, this update will delete ALL custom DwC-Archives.
  */
 function dwcarchiver_update_7003(){
   $schema = dwcarchiver_schema();
