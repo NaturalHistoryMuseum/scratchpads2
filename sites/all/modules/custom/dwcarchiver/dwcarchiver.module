@@ -275,6 +275,9 @@ function dwcarchiver_hook_info(){
 function dwcarchiver_load($did){
   $archive = db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
   if($archive){
+    $archive->bundles = db_select('dwcarchiver_archive_bundles', 'b')->fields('b', array(
+      'bundle'
+    ))->condition('did', $did)->execute()->fetchCol();
     $archive->extensions = array();
     $eids = db_select('dwcarchiver_extension', 'e')->fields('e', array(
       'eid'
@@ -673,7 +676,7 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
   $entity_info = entity_get_info();
   foreach(taxonomy_vocabulary_get_names() as $machine_name => $vocabulary){
     $core_types['taxonomy_term/' . $machine_name] = array(
-      'label' => t('Taxonomy term') . " (" . t($vocabulary->name) . ")",
+      'label' => t($vocabulary->name),
       'links' => array()
     );
     // Add any "field_collection" links right here.
