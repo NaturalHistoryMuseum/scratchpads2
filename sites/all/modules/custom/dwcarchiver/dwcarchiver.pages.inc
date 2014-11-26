@@ -258,6 +258,13 @@ function dwcarchiver_deliver_archive($machine_name){
 }
 
 /**
+ * Ajax callback.
+ */
+function dwcarchiver_archive_form_ajax_callback($form, $form_state){
+  return $form['core']['entity_bundles'];
+}
+
+/**
  * Form for adding a new archive
  */
 function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
@@ -282,13 +289,24 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
     $form_state['dwcarchiver'] = $dwcarchiver;
   }else{
     $dwcarchiver = $form_state['dwcarchiver'];
-    echo "HERE";
-    exit();
   }
   $core_types = dwcarchiver_get_core_types();
-  $options = array();
+  $bundle_options = array();
+  $entity_options = array();
+  $entity_info = entity_get_info();
   foreach($core_types as $index => $core_type){
-    $options[$index] = $core_type['label'];
+    $index = explode("/", $index);
+    $bundle_options[$index[0]][$index[1]] = $core_type['label'];
+    $entity_options[$index[0]] = $entity_info[$index[0]]['label'];
+  }
+  if(!empty($form_state['values']['core']['entity'])){
+    $bundle_options = $bundle_options[$form_state['values']['core']['entity']];
+  }else if(!empty($dwcarchiver->entity)){
+    $bundle_options = $bundle_options[$dwcarchiver->entity];
+  }else if(count($entity_options) == 1){
+    $bundle_options = array_pop($bundle_options);
+  }else{
+    $bundle_options = array();
   }
   $form = array(
     'core' => array(
@@ -319,12 +337,27 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
           'replace' => '-'
         )
       ),
+      'entity' => array(
+        '#type' => 'select',
+        '#options' => $entity_options,
+        '#title' => 'Entity',
+        '#default_value' => $dwcarchiver->entity,
+        '#required' => TRUE,
+        '#ajax' => array(
+          'callback' => 'dwcarchiver_archive_form_ajax_callback',
+          'wrapper' => 'entity-bundles-replace'
+        ),
+        '#empty_option' => count($entity_options) > 1 ? '- ' . t('Select') . ' -' : NULL
+      ),
       'entity_bundles' => array(
         '#type' => 'select',
-        '#options' => $options,
-        '#title' => 'Entity/Bundles',
-        '#default_value' => $dwcarchiver->entity . '/' . $dwcarchiver->bundles,
-        '#required' => TRUE
+        '#options' => $bundle_options,
+        '#title' => 'Bundles',
+        '#default_value' => $dwcarchiver->bundles,
+        '#required' => TRUE,
+        '#multiple' => TRUE,
+        '#prefix' => '<div id="entity-bundles-replace">',
+        '#suffix' => '</div>'
       ),
       'rowtype' => array(
         '#type' => 'textfield',
@@ -476,6 +509,11 @@ function dwcarchiver_archive_form_add_another_mapping($form, &$form_state){
  * entity/bundle.
  */
 function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(), $prefix = ''){
+  if(!is_array($bundles)){
+    $bundles = array(
+      $bundles
+    );
+  }
   $form = array();
   foreach(array_keys($maps) as $delta){
     $form[$delta] = array(
@@ -769,15 +807,25 @@ function dwcarchiver_archive_form_validate(&$form, &$form_state){
 function dwcarchiver_archive_form_submit(&$form, &$form_state){
   // Update the archive object.
   $fields = $form_state['values']['core'];
-  $core = explode('/', $fields['entity_bundle']);
-  unset($fields['entity_bundle']);
+  unset($fields['entity_bundles']);
   unset($fields['fields']);
-  $fields['entity'] = $core[0];
-  $fields['bundle'] = $core[1];
   $return = db_merge('dwcarchiver_archive')->key(array(
     'machine_name' => $form_state['values']['core']['machine_name']
   ))->fields($fields)->execute();
   $dwcarchiver = dwcarchiver_machine_name_load($form_state['values']['core']['machine_name']);
+  // Insert the bundles.
+  db_delete('dwcarchiver_archive_bundles')->condition('did', $dwcarchiver->did)->execute();
+  $query = db_insert('dwcarchiver_archive_bundles')->fields(array(
+    'did',
+    'bundle'
+  ));
+  foreach($form_state['values']['core']['entity_bundles'] as $bundle){
+    $query->values(array(
+      'did' => $dwcarchiver->did,
+      'bundle' => $bundle
+    ));
+  }
+  $query->execute();
   // Create an insert which we'll use for the core and extension mappings.
   $insert_into_mappings = FALSE;
   $insert = db_insert('dwcarchiver_map')->fields(array(
