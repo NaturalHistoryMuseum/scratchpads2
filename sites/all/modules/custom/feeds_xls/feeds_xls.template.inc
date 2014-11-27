@@ -184,9 +184,6 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     foreach($feeds_importer->processor->config['mappings'] as $key => $mapping){
       $row_values[$key] = '';
       if(strpos($mapping['target'], ':')){
-        if($mapping['target'] == 'field_media:MediaFeedsLibraryProvider'){
-          $break = 'hereh';
-        }
         // We currently know of two mappings (node:title and node:nid) that use
         // this format.  We'll try to work out which this one is.        
         $target = $mapping['target'];
