@@ -226,6 +226,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                   }
                   $cell_values[] = $value['value2'];
                   break;
+                case 'MediaFeedsLibraryProvider':
+                  $cell_values[] = $value['filename'];
+                  break;
                 default:
                   // We most likely have a field collection field.  Lets try to
                   // load the field and check the type.
@@ -304,6 +307,12 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
             }
           default:
             if(isset($entity->{$mapping['target']})){
+              $field = field_info_field($mapping['target']);
+              // We can't do anything with file fields (we allow import, but not
+              // updating).
+              if(in_array($field['type'], array('file'))){
+                continue;
+              }
               if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
                 $cell_values = array();
                 foreach($entity->{$mapping['target']} as $language => $values){
@@ -311,7 +320,6 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                   foreach($entity->{$mapping['target']}[$language] as $value){
                     foreach($value as $subkey => $item){
                       // Change to the allowed values array().
-                      $field = field_info_field($mapping['target']);
                       if($field && !empty($field['settings']['allowed_values'][$item])){
                         $item = $field['settings']['allowed_values'][$item];
                       }
