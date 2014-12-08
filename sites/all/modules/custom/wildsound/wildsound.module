@@ -130,7 +130,6 @@ function wildsound_comment_view_alter(&$build){
         'fid',
         'tvid'
       ))->condition('t.label', "WildSoundDB:$comment->cid", '=')->execute()->fetchObject();
-      $fid = $result->fetchObject();
     }
     if(is_object($fid) && !is_null($fid->fid)){
       //The file is ready!
