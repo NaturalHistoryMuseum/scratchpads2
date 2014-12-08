@@ -22,6 +22,6 @@ function wildsound_update_comment(comment_id, timer) {
   };
   
   request.timeout = 20000;
-  request.open("GET", "?q=wildsound/comment/" + comment_id, true);
+  request.open("GET", Drupal.settings.wildsound.wildsound_comment_callback_url + comment_id, true);
   request.send();
 }

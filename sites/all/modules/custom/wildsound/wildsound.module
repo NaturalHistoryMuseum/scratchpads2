@@ -1,258 +1,268 @@
 <?php
 
-function wildsound_menu() {
-	$items = array();
-	$items['wildsound/comment/%'] = array (
-      'title' => 'Wildsound Comment Callback',
-      'description' => 'To update comments via callback.',
-      'page callback' => 'wildsound_comment_callback',
-	  'page arguments' => array(2),
-      'access callback' => true,
-	);
-	return $items;
+function wildsound_menu(){
+  $items = array();
+  $items['wildsound/comment/%'] = array(
+    'title' => 'Wildsound Comment Callback',
+    'description' => 'To update comments via callback.',
+    'page callback' => 'wildsound_comment_callback',
+    'page arguments' => array(
+      2
+    ),
+    'access callback' => true
+  );
+  return $items;
 }
 
-function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, $form_id) {
-	$form['#validate']= array(0 => 'wildsound_comment_validator');
-	$form['field_start_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-start-time-und-0-value\')">Use current time.</a>';
-	$form['field_end_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-end-time-und-0-value\')">Use current time.</a>';
-	drupal_add_js(drupal_get_path('module', 'wildsound'). '/js/wildsound.js');
-	
-	//Can only comment on annotation!
-	  if (wildsound_parent_is_annotation($form['pid']['#value'])) {
-	  	unset($form['field_type']);
-	  	unset($form['field_start_time']);
-	  	unset($form['field_end_time']);
-	  }
-	  
-  foreach (wildsound_analysis_fields() as $field) {
-  	unset($form[$field]);
+function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, $form_id){
+  $form['#validate'] = array(
+    0 => 'wildsound_comment_validator'
+  );
+  $form['field_start_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-start-time-und-0-value\')">Use current time.</a>';
+  $form['field_end_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-end-time-und-0-value\')">Use current time.</a>';
+  drupal_add_js(drupal_get_path('module', 'wildsound') . '/js/wildsound.js');
+  //Can only comment on annotation!
+  if(wildsound_parent_is_annotation($form['pid']['#value'])){
+    unset($form['field_type']);
+    unset($form['field_start_time']);
+    unset($form['field_end_time']);
+  }
+  foreach(wildsound_analysis_fields() as $field){
+    unset($form[$field]);
   }
   $form['#submit'][] = 'wildsound_comment_submit_taverna';
 }
 
-function wildsound_comment_submit_taverna($form_id, &$form_state) {
-	module_load_include('pages.inc', 'taverna');
-	
-	//Should we analyze this type of annotation?
-	$term = taxonomy_term_load($form_state['values']['field_type']['und'][0]['tid']);
-	if ($term->field_analyze['und'][0]['value'] != 1) {return;}
-	
-	$sstart = $form_state['values']['field_start_time']['und'][0]['value'];
-	$sstop  = $form_state['values']['field_end_time']['und'][0]['value'];
-	
-	$rec_node = node_load($form_state['values']['nid']);
-	$infile = file_create_url($rec_node->field_recording['und'][0]['uri']);
-	
-	//USe externally available file for testing
-	//$infile = 'http://sounds.myspecies.info/sites/sounds.myspecies.info/files/MHV%20847%20P.sp10%20nr%20Kagga%20Kama%20%232.wav'; //TODO: remove before going live
-	
-	$t_form_state['values']['infile']          = $infile;
-	$t_form_state['values']['sstart']          = $sstart;
-	$t_form_state['values']['sstop']           = $sstop;
-	$t_form_state['values']['run_description'] = 'ACI analysis and oscilo plot';
-	$t_form_state['values']['run_name']        = 'WildSoundDB:'.$form_state['values']['cid'];
-	$t_form_state['values']['submit']          = 'Create';
-	$t_form_state['values']['op']              = 'Create';
-	
-	$t_form = taverna_add('acianalysisandosciloplot');
-	taverna_run_form_submit($t_form, $t_form_state);
+function wildsound_comment_submit_taverna($form_id, &$form_state){
+  module_load_include('pages.inc', 'taverna');
+  //Should we analyze this type of annotation?
+  $term = taxonomy_term_load($form_state['values']['field_type']['und'][0]['tid']);
+  if($term->field_analyze['und'][0]['value'] != 1){return;}
+  $sstart = $form_state['values']['field_start_time']['und'][0]['value'];
+  $sstop = $form_state['values']['field_end_time']['und'][0]['value'];
+  $rec_node = node_load($form_state['values']['nid']);
+  $infile = file_create_url($rec_node->field_recording['und'][0]['uri']);
+  //Use externally available file for testing
+  //$infile = 'http://sounds.myspecies.info/sites/sounds.myspecies.info/files/MHV%20847%20P.sp10%20nr%20Kagga%20Kama%20%232.wav'; //TODO: remove before going live
+  $t_form_state['values']['infile'] = $infile;
+  $t_form_state['values']['sstart'] = $sstart;
+  $t_form_state['values']['sstop'] = $sstop;
+  $t_form_state['values']['run_description'] = 'ACI analysis and oscilo plot';
+  $t_form_state['values']['run_name'] = 'WildSoundDB:' . $form_state['values']['cid'];
+  $t_form_state['values']['submit'] = 'Create';
+  $t_form_state['values']['op'] = 'Create';
+  $t_form = taverna_add('acianalysisandosciloplot');
+  taverna_run_form_submit($t_form, $t_form_state);
 }
 
-function wildsound_parent_is_annotation($cid) {
-  if (is_null($cid)){
-  	return false;
-  }
+function wildsound_parent_is_annotation($cid){
+  if(is_null($cid)){return false;}
   $comment = comment_load($cid);
-  if ($comment->comment_body['und'][0]['value'] == '') {
-  	return true;
-  }
-  if (is_null($comment->pid) || $comment->pid == 0) {
-  	return false;
-  } else {
-  	return wildsound_parent_is_annotation($comment->pid);
+  if($comment->comment_body['und'][0]['value'] == ''){return true;}
+  if(is_null($comment->pid) || $comment->pid == 0){
+    return false;
+  }else{
+    return wildsound_parent_is_annotation($comment->pid);
   }
 }
 
-function wildsound_comment_validator($form, &$form_state) {
+function wildsound_comment_validator($form, &$form_state){
   //`check if any annotation fields are set
   $annotation = FALSE;
-  if ($form_state['input']['field_type']['und'] != '_none') { $annotation = TRUE; }
-  if ($form_state['input']['field_taxonomic_name']['und'] != '' ) { $annotation = TRUE; }
-  if ($form_state['input']['field_start_time']['und'][0]['value'] != '') { $annotation = TRUE; } 
-  if ($form_state['input']['field_end_time']['und'][0]['value'] != '') { $annotation = TRUE; }
-  if ($form_state['input']['field_annotation_notes']['und'][0]['value'] != '') { $annotation = TRUE; }
-  
+  if($form_state['input']['field_type']['und'] != '_none'){
+    $annotation = TRUE;
+  }
+  if($form_state['input']['field_taxonomic_name']['und'] != ''){
+    $annotation = TRUE;
+  }
+  if($form_state['input']['field_start_time']['und'][0]['value'] != ''){
+    $annotation = TRUE;
+  }
+  if($form_state['input']['field_end_time']['und'][0]['value'] != ''){
+    $annotation = TRUE;
+  }
+  if($form_state['input']['field_annotation_notes']['und'][0]['value'] != ''){
+    $annotation = TRUE;
+  }
   //check if comment field is set
-  if ($annotation && $form_state['input']['comment_body']['und'][0]['value'] != '') {
-  	form_set_error('comment_body', 'You cannot fill in both the comment and annotation sections.');
+  if($annotation && $form_state['input']['comment_body']['und'][0]['value'] != ''){
+    form_set_error('comment_body', 'You cannot fill in both the comment and annotation sections.');
   }
-  
-  if (!$annotation && $form_state['input']['comment_body']['und'][0]['value'] == '') {
-  	form_set_error('comment_body', 'You must make a comment or an annotation.');
+  if(!$annotation && $form_state['input']['comment_body']['und'][0]['value'] == ''){
+    form_set_error('comment_body', 'You must make a comment or an annotation.');
   }
 }
 
-function wildsound_analysis_fields() {
-	return array(
-      'field_aci',
-	  'field_oscilo',
-	  'field_dfreq_plot',
-	  'field_dfreq_matrix',
-	  'field_spec',
-	  'field_spectro',
-	);
+function wildsound_analysis_fields(){
+  return array(
+    'field_aci',
+    'field_oscilo',
+    'field_dfreq_plot',
+    'field_dfreq_matrix',
+    'field_spec',
+    'field_spectro'
+  );
 }
 
-function wildsound_comment_view_alter(&$build) {
-	
-	$is_annotation = (isset($build['comment_body'])) ? false : true;
-	
-		$comment = $build['#comment'];
-		$sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
-		$result = db_query($sql);
-		$fid = $result->fetchObject();
-	if ($fid == false) {$is_annotation = false;}
-	
-	if ($is_annotation) {
-		$build['links']['comment']['#links']['analysis-workflow'] = array(
-			  'title' => 'inspect analysis',
-		      'href' => 'taverna/'.$fid->tvid,
-			  'html' => true,
-			);
-	}
-	
-	
-	if ($is_annotation && !isset($build['field_aci'])) {
-		//Analysis has not been saved to node
-		
-		//Check is analysis has finished
-
-		
-		
-		if (is_object($fid) && is_null($fid->fid)) {
-			$tv = taverna_view(taverna_load($fid->tvid), 'view', 'und');
-			$sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
-		    $result = db_query($sql);
-		    $fid = $result->fetchObject();
-		}
-		
-		if (is_object($fid) && !is_null($fid->fid)) {
-			//The file is ready!
-			$file = file_load($fid->fid);
-			$zip = new ZipArchive();
-			if ($zip->open(drupal_realpath($file->uri))) {
-				$path = file_directory_temp().'/tav-'.$comment->cid;
-				drupal_mkdir($path);
-				$zip->extractTo($path);
-				$zip->close();
-				$files = scandir($path);
-				
-				$com = comment_load($comment->cid);
-				
-				if (in_array('aci.error', $files)) {
-				  $value = array('und' => array(0 => array('value' => '99999')));
-			      $com->field_aci = $value;	
-				}
-								
-				if (in_array('aci.txt', $files)) {
-					$handle = fopen($path.'/aci.txt', 'r');
-					$aci = fgets($handle);
-					
-					$value = array('und' => array(0 => array('value' => $aci)));
-					$com->field_aci = $value;
-					
-				}
-				
-				if (in_array('oscilo.png', $files)) {
-					$image = file_get_contents($path.'/oscilo.png');
-					$file = file_save_data($image, 'public://oscilo'.$comment->cid.'.png', FILE_EXISTS_RENAME);
-					$file->display = 1;
-					$value = array('und' => array(0 => (array)$file));
-					$com->field_oscilo = $value;
-				}
-				
-			if (in_array('dfreq_plot.png', $files)) {
-					$image = file_get_contents($path.'/dfreq_plot.png');
-					$file = file_save_data($image, 'public://dfreq_plot'.$comment->cid.'.png', FILE_EXISTS_RENAME);
-					$file->display = 1;
-					$value = array('und' => array(0 => (array)$file));
-					$com->field_dfreq_plot = $value;
-				}
-			if (in_array('dfreq_matrix.txt', $files)) {
-					$image = file_get_contents($path.'/dfreq_matrix.txt');
-					$file = file_save_data($image, 'public://dfreq_matrix'.$comment->cid.'.txt', FILE_EXISTS_RENAME);
-					$file->display = 1;
-					$value = array('und' => array(0 => (array)$file));
-					$com->field_dfreq_matrix = $value;
-				}
-			if (in_array('spec.png', $files)) {
-					$image = file_get_contents($path.'/spec.png');
-					$file = file_save_data($image, 'public://spec'.$comment->cid.'.png', FILE_EXISTS_RENAME);
-					$file->display = 1;
-					$value = array('und' => array(0 => (array)$file));
-					$com->field_spec = $value;
-				}
-			if (in_array('spectro.png', $files)) {
-					$image = file_get_contents($path.'/spectro.png');
-					$file = file_save_data($image, 'public://spectro'.$comment->cid.'.png', FILE_EXISTS_RENAME);
-					$file->display = 1;
-					$value = array('und' => array(0 => (array)$file));
-					$com->field_spectro = $value;
-				}
-				
-				comment_save($com);
-				
-				//reload the comment build
-				
-				
-			
-			}
-			
-		} else {
-			//Analysis is running still
-
-			//Add indicator to comment
-		   $build['links']['comment']['#links']['analysis-running'] = array(
-			  'title' => 'Analysis is running <div style=" width:15px;height:18px;background:url(misc/throbber.gif) 0px 25px; display:inline-block;"></div>',
-			  'html' => true,
-			);
-			
-			
-			//Setup the JavaScript updater
-			$js_timer = 't_'.$comment->cid;
-			$js = "var $js_timer = setInterval(function() {wildsound_update_comment($comment->cid, $js_timer);}, 5000);";
-			drupal_add_js($js, 'inline');
-		}
-	}
-	
-	//If ACI shows error hide field and indicate error in analysis
-   if (isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999') {
-   	 unset($build['field_aci']);
-   	 $build['links']['comment']['#links']['analysis-failed'] = array(
-			  'title' => 'An error occurred in analysis',
-			  'html' => false,
-			);
-   }
-   
+function wildsound_comment_view_alter(&$build){
+  $is_annotation = (isset($build['comment_body'])) ? false : true;
+  $comment = $build['#comment'];
+  $sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
+  $result = db_query($sql);
+  $fid = $result->fetchObject();
+  if($fid == false){
+    $is_annotation = false;
+  }
+  if($is_annotation){
+    $build['links']['comment']['#links']['analysis-workflow'] = array(
+      'title' => 'inspect workflow',
+      'href' => 'taverna/' . $fid->tvid,
+      'html' => true
+    );
+  }
+  if($is_annotation && !isset($build['field_aci'])){
+    //Analysis has not been saved to node
+    //Check is analysis has finished
+    if(is_object($fid) && is_null($fid->fid)){
+      $tv = taverna_view(taverna_load($fid->tvid), 'view', 'und');
+      $sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
+      $result = db_query($sql);
+      $fid = $result->fetchObject();
+    }
+    if(is_object($fid) && !is_null($fid->fid)){
+      //The file is ready!
+      $file = file_load($fid->fid);
+      $zip = new ZipArchive();
+      if($zip->open(drupal_realpath($file->uri))){
+        $path = file_directory_temp() . '/tav-' . $comment->cid;
+        drupal_mkdir($path);
+        $zip->extractTo($path);
+        $zip->close();
+        $files = scandir($path);
+        $com = comment_load($comment->cid);
+        if(in_array('aci.error', $files)){
+          $value = array(
+            'und' => array(
+              0 => array(
+                'value' => '99999'
+              )
+            )
+          );
+          $com->field_aci = $value;
+        }
+        if(in_array('aci.txt', $files)){
+          $handle = fopen($path . '/aci.txt', 'r');
+          $aci = fgets($handle);
+          $value = array(
+            'und' => array(
+              0 => array(
+                'value' => $aci
+              )
+            )
+          );
+          $com->field_aci = $value;
+        }
+        if(in_array('oscilo.png', $files)){
+          $image = file_get_contents($path . '/oscilo.png');
+          $file = file_save_data($image, 'public://oscilo' . $comment->cid . '.png', FILE_EXISTS_RENAME);
+          $file->display = 1;
+          $value = array(
+            'und' => array(
+              0 => (array)$file
+            )
+          );
+          $com->field_oscilo = $value;
+        }
+        if(in_array('dfreq_plot.png', $files)){
+          $image = file_get_contents($path . '/dfreq_plot.png');
+          $file = file_save_data($image, 'public://dfreq_plot' . $comment->cid . '.png', FILE_EXISTS_RENAME);
+          $file->display = 1;
+          $value = array(
+            'und' => array(
+              0 => (array)$file
+            )
+          );
+          $com->field_dfreq_plot = $value;
+        }
+        if(in_array('dfreq_matrix.txt', $files)){
+          $image = file_get_contents($path . '/dfreq_matrix.txt');
+          $file = file_save_data($image, 'public://dfreq_matrix' . $comment->cid . '.txt', FILE_EXISTS_RENAME);
+          $file->display = 1;
+          $value = array(
+            'und' => array(
+              0 => (array)$file
+            )
+          );
+          $com->field_dfreq_matrix = $value;
+        }
+        if(in_array('spec.png', $files)){
+          $image = file_get_contents($path . '/spec.png');
+          $file = file_save_data($image, 'public://spec' . $comment->cid . '.png', FILE_EXISTS_RENAME);
+          $file->display = 1;
+          $value = array(
+            'und' => array(
+              0 => (array)$file
+            )
+          );
+          $com->field_spec = $value;
+        }
+        if(in_array('spectro.png', $files)){
+          $image = file_get_contents($path . '/spectro.png');
+          $file = file_save_data($image, 'public://spectro' . $comment->cid . '.png', FILE_EXISTS_RENAME);
+          $file->display = 1;
+          $value = array(
+            'und' => array(
+              0 => (array)$file
+            )
+          );
+          $com->field_spectro = $value;
+        }
+        comment_save($com);
+         //reload the comment build
+      }
+    }else{
+      //Analysis is running still
+      //Add indicator to comment
+      $build['links']['comment']['#links']['analysis-running'] = array(
+        'title' => 'Analysis is running <div style=" width:15px;height:18px;background:url(misc/throbber.gif) 0px 25px; display:inline-block;"></div>',
+        'html' => true
+      );
+      //Setup the JavaScript updater
+      drupal_add_js(array(
+      'wildsound' => array(
+        'wildsound_comment_callback_url' => url('wildsound/comment/', array(
+          'absolute' => TRUE
+        ))
+      )
+    ), 'setting');
+      $js_timer = 't_' . $comment->cid;
+      $js = "var $js_timer = setInterval(function() {wildsound_update_comment($comment->cid, $js_timer);}, 5000);";
+      drupal_add_js($js, 'inline');
+    }
+  }
+  //If ACI shows error hide field and indicate error in analysis
+  if(isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999'){
+    unset($build['field_aci']);
+    $build['links']['comment']['#links']['analysis-failed'] = array(
+      'title' => 'An error occurred in analysis',
+      'html' => false
+    );
+  }
 }
 
-function wildsound_comment_callback($cid) {
-	$comment = comment_load($cid);
-	$node = node_load($comment->nid);
-	$comment_build = comment_view($comment, $node, 'view', LANGUAGE_NONE);
-	$html = drupal_render($comment_build);
-	
-	//Remove some fluff
-	$start = strpos($html, '<header>');
-	$end   = strrpos($html, '</article');
-	$html = substr($html, $start, $end - $start);
-	
-	$status = (isset($comment_build['field_aci'])) ? 'complete' : 'incomplete';
-	
-	$array = array(
-	  'status' => $status,
-	  'html' => $html,
-	);
-	drupal_json_output($array);
+function wildsound_comment_callback($cid){
+  $comment = comment_load($cid);
+  $node = node_load($comment->nid);
+  $comment_build = comment_view($comment, $node, 'view', LANGUAGE_NONE);
+  $html = drupal_render($comment_build);
+  //Remove some fluff
+  $start = strpos($html, '<header>');
+  $end = strrpos($html, '</article');
+  $html = substr($html, $start, $end - $start);
+  $status = (isset($comment_build['field_aci'])) ? 'complete' : 'incomplete';
+  $array = array(
+    'status' => $status,
+    'html' => $html
+  );
+  drupal_json_output($array);
 }
