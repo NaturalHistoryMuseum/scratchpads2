@@ -107,9 +107,10 @@ function wildsound_analysis_fields(){
 function wildsound_comment_view_alter(&$build){
   $is_annotation = (isset($build['comment_body'])) ? false : true;
   $comment = $build['#comment'];
-  $sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
-  $result = db_query($sql);
-  $fid = $result->fetchObject();
+  $fid = db_select('taverna', 't')->fields('t', array(
+    'fid',
+    'tvid'
+  ))->condition('t.label', "WildSoundDB:$comment->cid", '=')->execute()->fetchObject();
   if($fid == false){
     $is_annotation = false;
   }
@@ -125,8 +126,10 @@ function wildsound_comment_view_alter(&$build){
     //Check is analysis has finished
     if(is_object($fid) && is_null($fid->fid)){
       $tv = taverna_view(taverna_load($fid->tvid), 'view', 'und');
-      $sql = "SELECT fid, tvid FROM {taverna} WHERE label = 'WildSoundDB:$comment->cid'";
-      $result = db_query($sql);
+      $fid = db_select('taverna', 't')->fields('t', array(
+        'fid',
+        'tvid'
+      ))->condition('t.label', "WildSoundDB:$comment->cid", '=')->execute()->fetchObject();
       $fid = $result->fetchObject();
     }
     if(is_object($fid) && !is_null($fid->fid)){
@@ -229,12 +232,12 @@ function wildsound_comment_view_alter(&$build){
       );
       //Setup the JavaScript updater
       drupal_add_js(array(
-      'wildsound' => array(
-        'wildsound_comment_callback_url' => url('wildsound/comment/', array(
-          'absolute' => TRUE
-        ))
-      )
-    ), 'setting');
+        'wildsound' => array(
+          'wildsound_comment_callback_url' => url('wildsound/comment/', array(
+            'absolute' => TRUE
+          ))
+        )
+      ), 'setting');
       $js_timer = 't_' . $comment->cid;
       $js = "var $js_timer = setInterval(function() {wildsound_update_comment($comment->cid, $js_timer);}, 5000);";
       drupal_add_js($js, 'inline');
