@@ -73,6 +73,14 @@ function tui_ajax_blank(&$form, &$form_state){
  */
 function tui_form_callback($vocabulary, $action, $tids = ''){
   switch($action){
+    case 'reset-form':
+      module_load_include('admin.inc', 'taxonomy');
+      $form = drupal_get_form('taxonomy_vocabulary_confirm_reset_alphabetical', $vocabulary->vid);
+      print ajax_render(array(
+        ajax_command_html('#tui-tree-form', drupal_render($form)),
+        ajax_command_invoke('#tui-tree-form', 'show')
+      ));
+      exit();
     case 'edit-form':
       // We can only show one form
       $tids = explode(',', $tids);
