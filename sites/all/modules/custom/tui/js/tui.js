@@ -125,6 +125,17 @@
             $('#tui-click').click();
           }
           break;
+        case 'tui-reset':
+          $('#tui-click').unbind('click');
+          $('#tui-tree-form').remove();
+          $('#tui-tree-links').after('<div id="tui-tree-form"></div>');
+          var element_settings = {};
+          element_settings.progress = {'type': 'throbber'};
+          element_settings.url = $('#tui-reset').data('url');
+          element_settings.event = 'click';
+          Drupal.ajax['tui-click'] = new Drupal.ajax('tui-click', $('#tui-click'), element_settings);
+          $('#tui-click').click();
+          break;
         case 'tui-search':
           $('#tui-click').unbind('click');
           $('#tui-tree-form').remove();
