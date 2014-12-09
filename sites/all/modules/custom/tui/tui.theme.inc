@@ -67,6 +67,7 @@ function theme_tui_page($variables){
       )
     )) : '') . '
           <!-- <img id="tui-link" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/link.png" alt="' . t('Link to this page') . '" title="' . t('Link to this page') . '"/> -->
+          <img id="tui-reset" data-url="' . url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/') . 'reset-form/' . $variables['vocabulary']->vid . '" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/reset.png" alt="' . t('Reset sort') . '" title="' . t('Reset the sorting of all terms to alphabetical') . '"/>
           <img id="tui-search" data-url="' . url('admin/structure/taxonomy/' . $variables['vocabulary']->machine_name . '/hierarchy/form_callback/') . 'search-form/' . $variables['vocabulary']->vid . '" src="' . base_path() . drupal_get_path('module', 'tui') . '/css/images/search.png" alt="' . t('Search') . '" title="' . t('Search') . '"/>
           <a id="tui-click"></a>
         </p>
