@@ -268,3 +268,8 @@ function wildsound_comment_callback($cid){
   );
   drupal_json_output($array);
 }
+
+function wildsound_node_view($node, $view_mode, $lang){
+  if($node->type != 'recording'){return;}
+  drupal_add_css(drupal_get_path('module', 'wildsound') . '/css/wildsound-recording.css', 'file');
+}

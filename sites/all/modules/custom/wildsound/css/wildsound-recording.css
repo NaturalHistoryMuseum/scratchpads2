@@ -1,0 +1,9 @@
+@CHARSET "UTF-8";
+
+h3[property='dc:title'] {
+	display: none;
+}
+
+.node ol,.node ul {
+	padding-left: 0em !important;
+}
