@@ -702,7 +702,7 @@ function dwcarchiver_dwcarchiver_archives(){
               ),
               array(
                 'field' => 'name',
-                'uri' => 'http://xmlns.com/foaf/spec/#term_accountName',
+                'uri' => 'http://xmlns.com/foaf/spec/#term_name',
                 'required' => 0,
                 'processor' => 'dwcarchiver_raw_text'
               ),
@@ -765,7 +765,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 'processor' => 'dwcarchiver_raw_text'
               ),
               array(
-                'field' => 'body',
+                'field' => 'field_description',
                 'uri' => 'http://purl.org/dc/terms/description',
                 'required' => 0,
                 'processor' => 'dwcarchiver_raw_text'
