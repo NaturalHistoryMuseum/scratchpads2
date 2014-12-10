@@ -75,16 +75,25 @@ function autotag_search_text($text, $vid){
   ));
   // Now we insert the rest of the data into the table.  We also add an index
   // to ensure that searching the data is quick, and update the column to be
-  // a varchar(255)
-  // Update the words column to be a varchar of length 255
-  db_change_field($temporary_table_name, 'words', 'words', array(
-    'type' => 'varchar',
-    'length' => 255
-  ), array(
-    'primary key' => array(
+  // a varchar(255).  Note, this can actually fail, but it does not actually
+  // matter.
+  try{
+    db_change_field($temporary_table_name, 'words', 'words', array(
+      'type' => 'varchar',
+      'length' => 255
+    ));
+  }
+  catch(Exception $e){
+    ;
+  }
+  try{
+    db_add_primary_key($temporary_table_name, array(
       'words'
-    )
-  ));
+    ));
+  }
+  catch(Exception $e){
+    ;
+  }
   $values = array();
   $insert = db_insert($temporary_table_name);
   $insert->fields(array(
