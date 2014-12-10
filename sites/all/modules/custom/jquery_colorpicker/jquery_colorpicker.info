@@ -1,0 +1,11 @@
+name = Jquery Colorpicker
+description = Creates Form API jquery colorpicker element
+core = 7.x
+
+dependencies[] = libraries
+; Information added by Drupal.org packaging script on 2014-08-16
+version = "7.x-1.1"
+core = "7.x"
+project = "jquery_colorpicker"
+datestamp = "1408187632"
+
