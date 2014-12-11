@@ -20,7 +20,7 @@ function wildsound_update_comment(comment_id, timer){
 }
 
 jQuery(window).scroll(function(){
-  var fieldItem = jQuery('#waveform_1').parent('.field-item');
+  var fieldItem = jQuery("#wavesurfer_position").parent('.field-item');
   if(!checkVisible(fieldItem.parent('.field-items'))) {
     fieldItem.css("width", "100%");
     fieldItem.css("height", "100px", "important");
@@ -46,9 +46,11 @@ function checkVisible(elm, eval){
   if(eval == "visible") return((y < (vpH + st)) && (y > (st - elementHeight)));
   if(eval == "above") return((y < (vpH + st)));
 }
+
 jQuery(window).load(function(){
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
-    window.wavesurfer_1.addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color});
+    var surfer_id = "wavesurfer_"+comment.fid;
+    eval("window."+surfer_id+".addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color})");
   }
 });

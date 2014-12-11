@@ -262,6 +262,8 @@ function wildsound_comment_view_alter(&$build){
   }
   //Add region to wavesurfer
   if($is_annotation){
+  	$cnode = node_load($comment->nid);
+  	$cfid = $cnode->field_recording['und'][0]['fid'];
     $sstart = $comment->field_start_time['und'][0]['value'];
     $sstop = $comment->field_end_time['und'][0]['value'];
     $term = $comment->field_type['und'][0]['taxonomy_term'];
@@ -272,6 +274,7 @@ function wildsound_comment_view_alter(&$build){
         'wildsound' => array(
           'comments' => array(
             $comment->cid => array(
+              'fid' => $cfid,
               'id' => $comment->cid,
               'start' => $sstart,
               'end' => $sstop,
