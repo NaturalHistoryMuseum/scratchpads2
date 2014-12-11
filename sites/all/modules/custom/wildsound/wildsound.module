@@ -264,20 +264,6 @@ function wildsound_comment_view_alter(&$build){
     if ($is_annotation) {
     	$sstart = $comment->field_start_time['und'][0]['value'];
     	$sstop  = $comment->field_end_time['und'][0]['value'];
-    	//window.load is after document.ready when wavesurfer is drawn
-    	$js = "jQuery(window).load(function () {
-    	    window.wavesurfer_1.addRegion({
-    	      id: '$comment->cid',
-    	      start: $sstart,
-    	      end: $sstop,
-    	      loop: false,
-    	      drag: false,
-    	      resize: false,
-    	      color: 'rgba(184, 80, 89, 0.1)'
-    	    });
-          });
-    	";
-    	/*drupal_add_js($js, 'inline');*/
     	$term = $comment->field_type['und'][0]['taxonomy_term'];
     	$color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
     	$color = wildsound_hex2rgb($color);
