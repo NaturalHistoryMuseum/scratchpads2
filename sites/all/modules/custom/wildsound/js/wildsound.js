@@ -52,3 +52,18 @@ function checkVisible( elm, eval ) {
   if (eval == "visible") return ((y < (vpH + st)) && (y > (st - elementHeight)));
   if (eval == "above") return ((y < (vpH + st)));
 }
+
+jQuery(window).load(function () {
+  for (var comment_id in Drupal.settings.wildsound.comments) {
+    var comment = Drupal.settings.wildsound.comments[comment_id];
+    window.wavesurfer_1.addRegion({
+      id: comment.id,
+      start: comment.start,
+      end: comment.end,
+      loop: false,
+      drag: false,
+      resize: false,
+      color: comment.color
+    });
+  }
+});
