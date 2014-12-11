@@ -7,3 +7,8 @@ h3[property='dc:title'] {
 .node ol,.node ul {
 	padding-left: 0em !important;
 }
+
+#waveform_1 {
+	background-color:white;
+
+}

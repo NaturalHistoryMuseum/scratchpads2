@@ -14,6 +14,17 @@ function wildsound_menu(){
   return $items;
 }
 
+/**
+ * Implements hook_views_api().
+ */
+function wildsound_views_api(){
+  $path = drupal_get_path('module', 'emonocot_views');
+  return array(
+    'api' => '3',
+    'path' => $path
+  );
+}
+
 function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, $form_id){
   $form['#validate'] = array(
     0 => 'wildsound_comment_validator'
@@ -241,7 +252,32 @@ function wildsound_comment_view_alter(&$build){
       $js = "var $js_timer = setInterval(function() {wildsound_update_comment($comment->cid, $js_timer);}, 5000);";
       drupal_add_js($js, 'inline');
     }
+    
+  
   }
+  
+  //Add region to wavesurfer
+  $settings = drupal_get_js();
+  
+    if ($is_annotation) {
+    	$sstart = $comment->field_start_time['und'][0]['value'];
+    	$sstop  = $comment->field_end_time['und'][0]['value'];
+    	//window.load is after document.ready when wavesurfer is drawn
+    	$js = "jQuery(window).load(function () {
+    	    window.wavesurfer_1.addRegion({
+    	      id: '$comment->cid',
+    	      start: $sstart,
+    	      end: $sstop,
+    	      loop: false,
+    	      drag: false,
+    	      resize: false,
+    	      color: 'rgba(184, 80, 89, 0.1)'
+    	    });
+          });
+    	";
+    	drupal_add_js($js, 'inline');
+    	
+    }
   //If ACI shows error hide field and indicate error in analysis
   if(isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999'){
     unset($build['field_aci']);

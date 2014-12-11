@@ -1,9 +1,5 @@
 function wildsound_current_time(target_element) {
-  var time_elements = document.getElementsByClassName('mejs-currenttime'), i;
-    var timestring = time_elements.item(0).innerHTML;
-    var timearray = timestring.split(":");
-    var timesecs = timearray[0] * 60 + timearray[1]*1;
-    document.getElementById(target_element).value= timesecs;
+  document.getElementById(target_element).value= window.wavesurfer_1.getCurrentTime();
 }
 
 function wildsound_update_comment(comment_id, timer) {
@@ -24,4 +20,35 @@ function wildsound_update_comment(comment_id, timer) {
   request.timeout = 20000;
   request.open("GET", Drupal.settings.wildsound.wildsound_comment_callback_url + comment_id, true);
   request.send();
+}
+
+jQuery(window).scroll(function() {
+  var fieldItem = jQuery('#waveform_1').parent('.field-item');
+  if (!checkVisible(fieldItem.parent('.field-items'))) {
+      fieldItem.css("width", "100%");
+      fieldItem.css("height", "100px", "important");
+      fieldItem.css("position", "fixed");
+      fieldItem.css("top", "64px");
+      fieldItem.css("left", "0px");
+      fieldItem.css("background-color", "white");
+      fieldItem.css("z-index", "1");
+      
+  } else {
+    fieldItem.css("width", "");
+    fieldItem.css("height", "");
+    fieldItem.css("position", "");
+    fieldItem.css("top", "");
+    fieldItem.css("left", "");
+  }
+});
+
+function checkVisible( elm, eval ) {
+  eval = eval || "visible";
+  var vpH = jQuery(window).height(), // Viewport Height
+      st = jQuery(window).scrollTop() + 100, // Scroll Top
+      y = jQuery(elm).offset().top ,
+      elementHeight = jQuery(elm).height();
+ 
+  if (eval == "visible") return ((y < (vpH + st)) && (y > (st - elementHeight)));
+  if (eval == "above") return ((y < (vpH + st)));
 }
