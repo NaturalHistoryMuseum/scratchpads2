@@ -162,6 +162,9 @@ function taverna_permission(){
     )
   );
   foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
     $perms += array(
       "create taverna $key content" => array(
         'title' => t('%type_name: Create new content', array(
@@ -195,6 +198,9 @@ function taverna_scratchpads_default_permissions(){
     'contributor' => array()
   );
   foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
     $perms['contributor'][] = "create taverna $key content";
     $perms['contributor'][] = "delete own taverna $key content";
     $perms['editor'][] = "delete any taverna $key content";
@@ -523,6 +529,9 @@ function taverna_entity_info(){
 function taverna_access($op = 'view', $type = FALSE, $entity_id = FALSE){
   if(user_access('administer taverna')){return TRUE;}
   foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
     if(user_access("create taverna $key content")){return TRUE;}
   }
   return FALSE;
@@ -558,14 +567,20 @@ function taverna_entity_access($op, $entity_type, $entity = NULL, $account = NUL
       }
       return $entity->uid == $account->uid;
     case 'create':
-      return user_access("create taverna $entity_type content");
+      if(strlen($entity_type) > 100){
+        $key = md5($entity_type);
+      }
+      return user_access("create taverna $key content");
     case 'delete':
-      if(user_access("delete any taverna {$entity->type} content")){return TRUE;}
+      if(strlen($entity->type) > 100){
+        $key = md5($entity_type);
+      }
+      if(user_access("delete any taverna $key content")){return TRUE;}
       if(!$account){
         global $user;
         $account = $user;
       }
-      if($account->uid == $entity->uid && user_access("delete own taverna {$entity->type} content")){return TRUE;}
+      if($account->uid == $entity->uid && user_access("delete own taverna $key content")){return TRUE;}
   }
   return FALSE;
 }
