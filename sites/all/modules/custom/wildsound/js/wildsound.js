@@ -1,5 +1,9 @@
 function wildsound_current_time(target_element){
-  document.getElementById(target_element).value = window.wavesurfer_1.getCurrentTime();
+  for( var comment_id in Drupal.settings.wildsound.comments) {
+    var comment = Drupal.settings.wildsound.comments[comment_id];
+    var surfer_id = "wavesurfer_"+comment.fid;
+    document.getElementById(target_element).value = eval("window."+surfer_id+".getCurrentTime()");
+  }
 }
 
 function wildsound_update_comment(comment_id, timer){
