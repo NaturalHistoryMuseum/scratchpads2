@@ -116,6 +116,7 @@ function wildsound_analysis_fields(){
 }
 
 function wildsound_comment_view_alter(&$build){
+  $comment = $build['#comment'];
   $is_annotation = (isset($build['comment_body'])) ? false : true;
   if(!$is_annotation){
     //Hide anlaysis section
@@ -147,7 +148,7 @@ function wildsound_comment_view_alter(&$build){
       'type' => 'setting'
     );
   }
-  $comment = $build['#comment'];
+
   $fid = db_select('taverna', 't')->fields('t', array(
     'fid',
     'tvid'
