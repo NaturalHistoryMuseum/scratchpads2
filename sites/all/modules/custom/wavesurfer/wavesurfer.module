@@ -168,6 +168,11 @@ function theme_wavesurfer_waveform($variables) {
   $wavesurfer_id = 'wavesurfer_' . $file->fid;
   libraries_load('wavesurfer');
   $audiofile = file_create_url($file->uri);
+  $onready = array();
+  foreach (module_implements('wavesurfer_onready') as $module) {
+  	$onready[] = module_invoke($module, 'wavesurfer_onready');
+  }
+  drupal_add_js(array('wavesurfer' => array('onready' => $onready)), 'setting');
   $js  = "jQuery(document).ready(function () {
             window.$wavesurfer_id = Object.create(WaveSurfer);
             window.$wavesurfer_id.init({
@@ -178,7 +183,10 @@ function theme_wavesurfer_waveform($variables) {
                 minPxPerSec: 100
             });
             window.$wavesurfer_id.on('ready', function () {
-              window.$wavesurfer_id.seekTo(0);
+              for (var index in Drupal.settings.wavesurfer.onready) {
+                var onarray_f = Drupal.settings.wavesurfer.onready[index];
+                eval(onarray_f+'(window.$wavesurfer_id)');
+              }
             });
             window.$wavesurfer_id.load('$audiofile');
             (function () {

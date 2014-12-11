@@ -337,3 +337,7 @@ function wildsound_hex2rgb($hex){
   );
   return 'rgba(' . implode(",", $rgb) . ', 0.1)';
 }
+
+function wildsound_wavesurfer_onready() {
+	return 'wildsound_onready';
+}
