@@ -240,7 +240,7 @@ function wildsound_comment_view_alter(&$build){
         'title' => 'Analysis is running <div style=" width:15px;height:18px;background:url(misc/throbber.gif) 0px 25px; display:inline-block;"></div>',
         'html' => true
       );
-      $build['links']['#attached']['js'][] = array(
+      $build['#attached']['js'][] = array(
         'data' => array(
           'wildsound' => array(
             'wildsound_comment_callback_url' => url('wildsound/comment/', array(
@@ -248,11 +248,11 @@ function wildsound_comment_view_alter(&$build){
             ))
           )
         ),
-        'setting'
+        'type' => 'setting'
       );
-      $build['links']['#attached']['js'][] = array(
+      $build['#attached']['js'][] = array(
         'data' => "var t_{$comment->cid} = setInterval(function() {wildsound_update_comment($comment->cid, t_{$comment->cid});}, 5000);",
-        'inline'
+        'type' => 'inline'
       );
     }
   }
@@ -267,7 +267,7 @@ function wildsound_comment_view_alter(&$build){
     $term = $comment->field_type['und'][0]['taxonomy_term'];
     $color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
     $color = wildsound_hex2rgb($color);
-    $build['links']['#attached']['js'][] = array(
+    $build['#attached']['js'][] = array(
       'data' => array(
         'wildsound' => array(
           'comments' => array(
@@ -280,7 +280,7 @@ function wildsound_comment_view_alter(&$build){
           )
         )
       ),
-      'setting'
+      'type' => 'setting'
     );
   }
   //If ACI shows error hide field and indicate error in analysis
