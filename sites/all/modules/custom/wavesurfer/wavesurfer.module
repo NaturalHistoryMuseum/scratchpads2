@@ -1,0 +1,219 @@
+<?php
+
+/**
+ * @file
+ * Defines a field formatter and theming for the wavesurfer plugin.
+ */
+
+/**
+ * Implements hook_libraries_info().
+ *
+ * Declare the wavesurfer library and files.
+ */
+function wavesurfer_libraries_info() {
+
+  $libraries['wavesurfer'] = array(
+    'name' => 'Wavesurfer',
+    'vendor url' => 'http://waveform.fm',
+    'download url' => 'http://www.wavesurfer.fm',
+    'version callback' => 'wavesurfer_bypass_version_control',
+    'files' => array(
+      'js' => array(
+        'src/wavesurfer.js',
+        'src/webaudio.js',
+        'src/webaudio.buffer.js',
+        'src/webaudio.media.js',
+        'src/audioelement.js',
+        'src/drawer.js',
+        'src/drawer.canvas.js',
+        'plugin/wavesurfer.regions.js'
+      ),
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Callback function to bypass the library version check.
+ */
+function wavesurfer_bypass_version_control() {
+  return TRUE;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function wavesurfer_field_formatter_info() {
+  $info = array(
+    'wavesurfer_waveform' => array(
+      'label' => 'Wavesurfer waveform player',
+      'field types' => array('file'),
+      'description' => t('Displays a waveform player generated from an audio file'),
+      'settings' => array(
+        'wavecolor' => '000000',
+        'progress_colour' => '000000',
+      ),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function wavesurfer_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $elements = array();
+  $settings = $display['settings'];
+  switch ($display['type']) {
+    case 'wavesurfer_waveform':
+      foreach ($items as $delta => $item) {
+        $elements[] = array(
+          '#markup' => theme('wavesurfer_waveform', array('file' => (object) $item, 'settings' => $settings)));
+      }
+      break;
+  }
+
+  return $elements;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ *
+ * Displays the field formatter settings for the Wavesurfer field.
+ */
+function wavesurfer_field_formatter_settings_summary($field, $instance, $view_mode) {
+
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+  switch ($display['type']) {
+    case 'wavesurfer_waveform':
+      $summary[] = t('Wave Colour: %wavecolor', array('%wavecolor' => $settings['wavecolor']));
+      $summary[] = t('Progress Colour: %progress_colour', array('%progress_colour' => $settings['progress_colour']));
+      break;
+  }
+
+  return implode('<br />', $summary);
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ *
+ * Adds colour settings to the field settings for Wavesurfer field.
+ */
+function wavesurfer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+  switch ($display['type']) {
+    case 'wavesurfer_waveform':
+      $element['wavecolor'] = array(
+        '#type' => 'jquery_colorpicker',
+        '#title' => t('Background Waveform Colour'),
+        '#required' => TRUE,
+        '#default_value' => $settings['wavecolor'],
+      );
+      $element['progress_colour'] = array(
+        '#type' => 'jquery_colorpicker',
+        '#title' => t('Progress Waveform Colour'),
+        '#required' => TRUE,
+        '#default_value' => $settings['progress_colour'],
+      );
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function wavesurfer_theme() {
+  $theme = array();
+
+  $theme['wavesurfer_waveform'] = array(
+    'variables' => array('file' => NULL),
+    'settings' => array(),
+  );
+  return $theme;
+}
+
+
+/**
+ * Theme function for the Wavesurfer Audio field.
+ */
+function theme_wavesurfer_waveform($variables) {
+  $file = $variables['file'];
+  // Exit if no valid file.
+  if (!$file) {
+    return '';
+  }
+  // Check mime type supported.
+  $allowed_mimetypes = array(
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/x-wav',
+  );
+  if (!in_array($file->filemime, $allowed_mimetypes)) {
+    return '<div class="messages error"><p>Mime type not supported by Wavesurfer</p></div>';
+  }
+  $settings = $variables['settings'];
+  // Extract settings variables; $wavecolor, $progress_colour.
+  //^^ Why two spellings of colo(u)r?
+  extract($settings);
+
+  // Set up JavaScript call.
+  $container_id = 'waveform_' . $file->fid;
+  $wavesurfer_id = 'wavesurfer_' . $file->fid;
+  libraries_load('wavesurfer');
+  $audiofile = file_create_url($file->uri);
+  $js  = "jQuery(document).ready(function () {
+            window.$wavesurfer_id = Object.create(WaveSurfer);
+            window.$wavesurfer_id.init({
+                container: document.querySelector('#$container_id'),
+                waveColor: '#$wavecolor',
+                progressColor: '#$progress_colour',
+                scrollParent: true,
+                minPxPerSec: 100
+            });
+            window.$wavesurfer_id.on('ready', function () {
+              window.$wavesurfer_id.seekTo(0);
+            });
+            window.$wavesurfer_id.load('$audiofile');
+            (function () {
+            var eventHandlers = {
+                'play': function () {
+                    /*Doing this three times syncs audio on first play. Stupid. */
+                    window.$wavesurfer_id.playPause();
+                    window.$wavesurfer_id.playPause();
+                    window.$wavesurfer_id.playPause();
+                },
+            };
+            jQuery('#play_$file->fid').click(function() {
+               window.$wavesurfer_id.playPause();
+            });
+
+          }());
+        });";
+  drupal_add_js($js, 'inline');
+
+  // Container html.
+  $output = '<span id="wavesurfer_position"></span><div id="' . $container_id . '" class="sticky-enabled"><div class="progress progress-striped active" id="progress-bar">
+                        <div class="progress-bar progress-bar-info"></div>
+                    </div></div>';
+
+  // Controls HTML
+  // @TODO Could probably add more in here and make it optional in settings.
+  $output .= '<div class="controls">
+                <button id="play_' . $file->fid . '" class="btn btn-primary" data-action="play">
+                    <i class="play"></i>
+                    Play
+                    /
+                    <i class="pause"></i>
+                    Pause
+                </button>
+              </div>';
+
+  return $output;
+}
