@@ -117,6 +117,36 @@ function wildsound_analysis_fields(){
 
 function wildsound_comment_view_alter(&$build){
   $is_annotation = (isset($build['comment_body'])) ? false : true;
+  if(!$is_annotation){
+    //Hide anlaysis section
+    unset($build['#groups']['group_accordion_wrapper']);
+  }
+  //Add region to wavesurfer
+  if($is_annotation){
+    $cnode = node_load($comment->nid);
+    $cfid = $cnode->field_recording['und'][0]['fid'];
+    $sstart = $comment->field_start_time['und'][0]['value'];
+    $sstop = $comment->field_end_time['und'][0]['value'];
+    $term = $comment->field_type['und'][0]['taxonomy_term'];
+    $color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
+    $color = wildsound_hex2rgb($color);
+    $build['#attached']['js'][] = array(
+      'data' => array(
+        'wildsound' => array(
+          'comments' => array(
+            $comment->cid => array(
+              'fid' => $cfid,
+              'id' => $comment->cid,
+              'start' => $sstart,
+              'end' => $sstop,
+              'color' => $color
+            )
+          )
+        )
+      ),
+      'type' => 'setting'
+    );
+  }
   $comment = $build['#comment'];
   $fid = db_select('taverna', 't')->fields('t', array(
     'fid',
@@ -231,7 +261,7 @@ function wildsound_comment_view_alter(&$build){
           $com->field_spectro = $value;
         }
         comment_save($com);
-        //reload the comment build
+         //reload the comment build
       }
     }else{
       //Analysis is running still
@@ -255,36 +285,6 @@ function wildsound_comment_view_alter(&$build){
         'type' => 'inline'
       );
     }
-  }
-  if(!$is_annotation){
-    //Hide anlaysis section
-    unset($build['#groups']['group_accordion_wrapper']);
-  }
-  //Add region to wavesurfer
-  if($is_annotation){
-  	$cnode = node_load($comment->nid);
-  	$cfid = $cnode->field_recording['und'][0]['fid'];
-    $sstart = $comment->field_start_time['und'][0]['value'];
-    $sstop = $comment->field_end_time['und'][0]['value'];
-    $term = $comment->field_type['und'][0]['taxonomy_term'];
-    $color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
-    $color = wildsound_hex2rgb($color);
-    $build['#attached']['js'][] = array(
-      'data' => array(
-        'wildsound' => array(
-          'comments' => array(
-            $comment->cid => array(
-              'fid' => $cfid,
-              'id' => $comment->cid,
-              'start' => $sstart,
-              'end' => $sstop,
-              'color' => $color
-            )
-          )
-        )
-      ),
-      'type' => 'setting'
-    );
   }
   //If ACI shows error hide field and indicate error in analysis
   if(isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999'){
