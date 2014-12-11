@@ -116,7 +116,6 @@ function wildsound_analysis_fields(){
 }
 
 function wildsound_comment_view_alter(&$build){
-
   $is_annotation = (isset($build['comment_body'])) ? false : true;
   $comment = $build['#comment'];
   $fid = db_select('taverna', 't')->fields('t', array(
@@ -232,7 +231,7 @@ function wildsound_comment_view_alter(&$build){
           $com->field_spectro = $value;
         }
         comment_save($com);
-         //reload the comment build
+        //reload the comment build
       }
     }else{
       //Analysis is running still
@@ -254,23 +253,30 @@ function wildsound_comment_view_alter(&$build){
       drupal_add_js($js, 'inline');
     }
   }
-  
-  if (!$is_annotation) {
-  	//Hide anlaysis section
-  	  unset($build['#groups']['group_accordion_wrapper']);
+  if(!$is_annotation){
+    //Hide anlaysis section
+    unset($build['#groups']['group_accordion_wrapper']);
   }
-  
   //Add region to wavesurfer
-    if ($is_annotation) {
-    	$sstart = $comment->field_start_time['und'][0]['value'];
-    	$sstop  = $comment->field_end_time['und'][0]['value'];
-    	$term = $comment->field_type['und'][0]['taxonomy_term'];
-    	$color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
-    	$color = wildsound_hex2rgb($color);
-    	
-    	drupal_add_js(array('wildsound' => array('comments' => array($comment->cid => array('id' => $comment->cid, 'start' => $sstart, 'end' => $sstop, 'color' => $color)))), 'setting');
-    	
-    }
+  if($is_annotation){
+    $sstart = $comment->field_start_time['und'][0]['value'];
+    $sstop = $comment->field_end_time['und'][0]['value'];
+    $term = $comment->field_type['und'][0]['taxonomy_term'];
+    $color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
+    $color = wildsound_hex2rgb($color);
+    drupal_add_js(array(
+      'wildsound' => array(
+        'comments' => array(
+          $comment->cid => array(
+            'id' => $comment->cid,
+            'start' => $sstart,
+            'end' => $sstop,
+            'color' => $color
+          )
+        )
+      )
+    ), 'setting');
+  }
   //If ACI shows error hide field and indicate error in analysis
   if(isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999'){
     unset($build['field_aci']);
@@ -303,18 +309,21 @@ function wildsound_node_view($node, $view_mode, $lang){
   drupal_add_css(drupal_get_path('module', 'wildsound') . '/css/wildsound-recording.css', 'file');
 }
 
-
-function wildsound_hex2rgb($hex) { 
-	$hex = str_replace("#", "", $hex); 
-	if(strlen($hex) == 3) { 
-	  $r = hexdec(substr($hex,0,1).substr($hex,0,1)); 
-	  $g = hexdec(substr($hex,1,1).substr($hex,1,1)); 
-	  $b = hexdec(substr($hex,2,1).substr($hex,2,1));
-	} else {
-	  $r = hexdec(substr($hex,0,2));
-	  $g = hexdec(substr($hex,2,2));
-	  $b = hexdec(substr($hex,4,2));
-	}
-	$rgb = array($r, $g, $b);
-	return 'rgba('.implode(",", $rgb).', 0.1)';
+function wildsound_hex2rgb($hex){
+  $hex = str_replace("#", "", $hex);
+  if(strlen($hex) == 3){
+    $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+    $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+    $b = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+  }else{
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+  }
+  $rgb = array(
+    $r,
+    $g,
+    $b
+  );
+  return 'rgba(' . implode(",", $rgb) . ', 0.1)';
 }
