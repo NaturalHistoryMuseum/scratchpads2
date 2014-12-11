@@ -31,7 +31,7 @@ function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, 
   );
   $form['field_start_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-start-time-und-0-value\')">Use current time.</a>';
   $form['field_end_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-end-time-und-0-value\')">Use current time.</a>';
-  drupal_add_js(drupal_get_path('module', 'wildsound') . '/js/wildsound.js');
+  $form['#attached']['js'][] = drupal_get_path('module', 'wildsound') . '/js/wildsound.js';
   //Can only comment on annotation!
   if(wildsound_parent_is_annotation($form['pid']['#value'])){
     unset($form['field_type']);
@@ -240,17 +240,20 @@ function wildsound_comment_view_alter(&$build){
         'title' => 'Analysis is running <div style=" width:15px;height:18px;background:url(misc/throbber.gif) 0px 25px; display:inline-block;"></div>',
         'html' => true
       );
-      //Setup the JavaScript updater
-      drupal_add_js(array(
-        'wildsound' => array(
-          'wildsound_comment_callback_url' => url('wildsound/comment/', array(
-            'absolute' => TRUE
-          ))
-        )
-      ), 'setting');
-      $js_timer = 't_' . $comment->cid;
-      $js = "var $js_timer = setInterval(function() {wildsound_update_comment($comment->cid, $js_timer);}, 5000);";
-      drupal_add_js($js, 'inline');
+      $build['#attached']['js'][] = array(
+        'data' => array(
+          'wildsound' => array(
+            'wildsound_comment_callback_url' => url('wildsound/comment/', array(
+              'absolute' => TRUE
+            ))
+          )
+        ),
+        'setting'
+      );
+      $build['#attached']['js'][] = array(
+        'data' => "var t_{$comment->cid} = setInterval(function() {wildsound_update_comment($comment->cid, t_{$comment->cid});}, 5000);",
+        'inline'
+      );
     }
   }
   if(!$is_annotation){
@@ -264,18 +267,21 @@ function wildsound_comment_view_alter(&$build){
     $term = $comment->field_type['und'][0]['taxonomy_term'];
     $color = (isset($term->field_color)) ? $term->field_color['und'][0]['jquery_colorpicker'] : '000000';
     $color = wildsound_hex2rgb($color);
-    drupal_add_js(array(
-      'wildsound' => array(
-        'comments' => array(
-          $comment->cid => array(
-            'id' => $comment->cid,
-            'start' => $sstart,
-            'end' => $sstop,
-            'color' => $color
+    $build['#attached']['js'][] = array(
+      'data' => array(
+        'wildsound' => array(
+          'comments' => array(
+            $comment->cid => array(
+              'id' => $comment->cid,
+              'start' => $sstart,
+              'end' => $sstop,
+              'color' => $color
+            )
           )
         )
-      )
-    ), 'setting');
+      ),
+      'setting'
+    );
   }
   //If ACI shows error hide field and indicate error in analysis
   if(isset($build['field_aci']) && $build['field_aci']['#object']->field_aci['und'][0]['value'] == '99999'){
