@@ -29,16 +29,20 @@ jQuery(window).scroll(function(){
     fieldItem.css("width", "100%");
     fieldItem.css("height", "100px", "important");
     fieldItem.css("position", "fixed");
-    fieldItem.css("top", "64px");
+    fieldItem.css("top", "0px");
     fieldItem.css("left", "0px");
     fieldItem.css("background-color", "white");
     fieldItem.css("z-index", "1");
+    fieldItem.css("padding-top", "64px");
+    fieldItem.css("padding-bottom", "64px");
   } else {
     fieldItem.css("width", "");
     fieldItem.css("height", "");
     fieldItem.css("position", "");
     fieldItem.css("top", "");
     fieldItem.css("left", "");
+    fieldItem.css("padding-top", "");
+    fieldItem.css("padding-bottom", "");
   }
 });
 

@@ -180,7 +180,7 @@ function theme_wavesurfer_waveform($variables) {
                 waveColor: '#$wavecolor',
                 progressColor: '#$progress_colour',
                 scrollParent: true,
-                minPxPerSec: 100
+                minPxPerSec: 200
             });
             window.$wavesurfer_id.on('ready', function () {
               for (var index in Drupal.settings.wavesurfer.onready) {
