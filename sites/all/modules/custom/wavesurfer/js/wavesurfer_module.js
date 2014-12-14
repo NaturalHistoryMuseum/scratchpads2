@@ -1,42 +1,43 @@
 jQuery(document).ready(function () {
 	window.surfers = new Array();
-	for (var index in Drupal.settings.wavesurfer.surfers){
-		var surfer_data = Drupal.settings.wavesurfer.surfers[index];
+	jQuery('.wavesurfer-container').each(function () {
+		var index = jQuery(this).data("fileid");
 		window.surfers[index] = Object.create(WaveSurfer);
         window.surfers[index].init({
-                container: document.querySelector('#'+surfer_data.container_id),
-                waveColor: surfer_data.wavecolor,
-                progressColor: surfer_data.progresscolor,
+                container: this,
+                waveColor: jQuery(this).data("wavecolor"),
+                progressColor: jQuery(this).data("progresscolor"),
                 scrollParent: true,
-                minPxPerSec: surfer_data.pixelrate
+                minPxPerSec: jQuery(this).data("pixelrate"),
+                fileid: index
         });
         window.surfers[index].on('ready', function () {
-        	for (var index in Drupal.settings.wavesurfer.onready) {
-        		var onarray_f = Drupal.settings.wavesurfer.onready[index];
-                eval(onarray_f+'(window.$wavesurfer_id)');
+        	for (var index2 in Drupal.settings.wavesurfer.onready) {
+        		var onarray_f = Drupal.settings.wavesurfer.onready[index2];
+                eval(onarray_f+'(window.surfers['+index+'])'); 
             }
-        	var progressDiv = document.querySelector('#progress-bar-'+surfer_data.fileid);
+        	var progressDiv = document.querySelector('#progress-bar-'+index);
         	progressDiv.style.display = 'none';
         });
         
         window.surfers[index].on('loading', function (percent, xhr) {
-        	var progressDiv = document.querySelector('#progress-bar-'+surfer_data.fileid);
-        	var progressBar = progressDiv.querySelector('.progress-bar-'+surfer_data.fileid);
+        	var progressDiv = document.querySelector('#progress-bar-'+index);
+        	var progressBar = progressDiv.querySelector('.progress-bar-'+index);
         	progressDiv.style.display = 'block';
     	    progressBar.style.width = percent + '%';
         });
         
         window.surfers[index].on('destroy', function () {
-        	var progressDiv = document.querySelector('#progress-bar-'+surfer_data.fileid);
+        	var progressDiv = document.querySelector('#progress-bar-'+index);
         	progressDiv.style.display = 'block';
         });
         window.surfers[index].on('error', function () {
-        	var progressDiv = document.querySelector('#progress-bar-'+surfer_data.fileid);
+        	var progressDiv = document.querySelector('#progress-bar-'+index);
         	progressDiv.style.display = 'block';
         });
 
-        window.surfers[index].loadBuffer(surfer_data.audiofile);       
-	}
+        window.surfers[index].loadBuffer(jQuery(this).data("audiofile"));       
+	});
 });
 
 function wavesurfer_playsurfer(index) {

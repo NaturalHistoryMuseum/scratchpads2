@@ -21,8 +21,6 @@ function wavesurfer_libraries_info() {
       'js' => array(
         'src/wavesurfer.js',
         'src/webaudio.js',
-        //'src/webaudio.buffer.js',
-        //'src/webaudio.media.js',
         'src/audioelement.js',
         'src/drawer.js',
         'src/drawer.canvas.js',
@@ -180,11 +178,7 @@ function theme_wavesurfer_waveform($variables) {
   
   drupal_add_js(array('wavesurfer' => array('onready' => $onready)), 'setting');
   
-  drupal_add_js(
-    array('wavesurfer' =>
-      array('surfers' =>
-        array($file->fid =>
-          array(
+  $data_array = array(
             'container_id' => $container_id,
             'wavesurfer_id' => $wavesurfer_id,
             'fileid' => $file->fid,
@@ -192,19 +186,22 @@ function theme_wavesurfer_waveform($variables) {
             'wavecolor' => $wavecolor,
             'progresscolor' => $progress_colour,
             'pixelrate' => $pixels_second
-          )
-        )
-      )
-    ),
-    'setting'
- );
+          );
+  
+  
   
   drupal_add_js(drupal_get_path('module', 'wavesurfer').'/js/wavesurfer_module.js', 'file');
   drupal_add_css(drupal_get_path('module', 'wavesurfer').'/css/wavesurfer.css', 'file');
 
   // Container html.
   $output = '<span id="wavesurfer_position"></span>
-  		     <div id="' . $container_id . '" class="sticky-enabled">
+  		     <div id="' . $container_id . '" class="wavesurfer-container" ';
+  
+  foreach ($data_array as $key => $value) {
+  	$output .= " data-$key='$value'";
+  }
+  		     		
+  $output .= '>
                <div id="progress-bar-'.$file->fid.'" class="progress progress-striped active" style="display: none;">
 			     <div class="progress-bar-'.$file->fid.' progress-bar progress-bar-info" style="width: 100%;">
 				 </div>
