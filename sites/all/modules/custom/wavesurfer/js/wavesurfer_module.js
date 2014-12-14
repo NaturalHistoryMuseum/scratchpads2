@@ -18,6 +18,7 @@ jQuery(document).ready(function () {
             }
         	var progressDiv = document.querySelector('#progress-bar-'+index);
         	progressDiv.style.display = 'none';
+            window.surfers[index].seekTo(0);
         });
         
         window.surfers[index].on('loading', function (percent, xhr) {
@@ -41,7 +42,5 @@ jQuery(document).ready(function () {
 });
 
 function wavesurfer_playsurfer(index) {
-       window.surfers[index].playPause();
-       window.surfers[index].playPause();
        window.surfers[index].playPause();
 }
