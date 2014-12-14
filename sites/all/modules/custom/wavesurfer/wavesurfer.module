@@ -171,9 +171,13 @@ function theme_wavesurfer_waveform($variables) {
   	$onready[] = module_invoke($module, 'wavesurfer_onready');
   }
   
-  $duration = wavesurfer_duration_wav(drupal_realpath($file->uri));
-  $max_canvas_size = 32000;
-  $pixels_second = $max_canvas_size / $duration;
+  if ($file->filemime == 'audio/x-wav') {
+    $duration = wavesurfer_duration_wav(drupal_realpath($file->uri));
+    $max_canvas_size = 32000;
+    $pixels_second = $max_canvas_size / $duration;
+  } else {
+  	$pixels_second = 20;
+  }
   
   
   drupal_add_js(array('wavesurfer' => array('onready' => $onready)), 'setting');
