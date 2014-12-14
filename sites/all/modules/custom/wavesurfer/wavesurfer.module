@@ -182,12 +182,23 @@ function theme_wavesurfer_waveform($variables) {
                 scrollParent: true,
                 minPxPerSec: 200
             });
+            window.$wavesurfer_id.on('loading', function (percent, xhr) {
+            	//var progressDiv = document.querySelector('#progress-bar');
+				//var progressBar = progressDiv.querySelector('.progress-bar');
+          		//progressDiv.style.display = 'block';
+				//progressBar.style.width = percent + '%';
+			
+            })
+            
             window.$wavesurfer_id.on('ready', function () {
               for (var index in Drupal.settings.wavesurfer.onready) {
                 var onarray_f = Drupal.settings.wavesurfer.onready[index];
                 eval(onarray_f+'(window.$wavesurfer_id)');
               }
+              //var progressDiv = document.querySelector('#progress-bar');
+              //progressDiv.style.display = 'none';
             });
+            
             window.$wavesurfer_id.load('$audiofile');
             (function () {
             var eventHandlers = {
@@ -203,13 +214,35 @@ function theme_wavesurfer_waveform($variables) {
             });
 
           }());
-        });";
+        });
+        
+	document.addEventListener('DOMContentLoaded', function () {
+		var progressDiv = document.querySelector('#progress-bar');
+		var progressBar = progressDiv.querySelector('.progress-bar');
+		var showProgress = function (percent) {
+			progressDiv.style.display = 'block';
+			progressBar.style.width = percent + '%';
+		};
+		var hideProgress = function () {
+			progressDiv.style.display = 'none';
+		};
+		window.$wavesurfer_id.on('loading', showProgress);
+		window.$wavesurfer_id.on('ready', hideProgress);
+		window.$wavesurfer_id.on('destroy', hideProgress);
+		window.$wavesurfer_id.on('error', hideProgress);
+	});
+  ";
   drupal_add_js($js, 'inline');
+  drupal_add_css(drupal_get_path('module', 'wavesurfer').'/css/wavesurfer.css', 'file');
 
   // Container html.
-  $output = '<span id="wavesurfer_position"></span><div id="' . $container_id . '" class="sticky-enabled"><div class="progress progress-striped active" id="progress-bar">
-                        <div class="progress-bar progress-bar-info"></div>
-                    </div></div>';
+  $output = '<span id="wavesurfer_position"></span>
+  		     <div id="' . $container_id . '" class="sticky-enabled">
+               <div id="progress-bar" class="progress progress-striped active" style="display: none;">
+			     <div class="progress-bar progress-bar-info" style="width: 100%;">
+				 </div>
+               </div>
+  		     </div>';
 
   // Controls HTML
   // @TODO Could probably add more in here and make it optional in settings.
