@@ -172,6 +172,12 @@ function theme_wavesurfer_waveform($variables) {
   foreach (module_implements('wavesurfer_onready') as $module) {
   	$onready[] = module_invoke($module, 'wavesurfer_onready');
   }
+  
+  $duration = wavesurfer_duration_wav(drupal_realpath($file->uri));
+  $max_canvas_size = 32000;
+  $pixels_second = $max_canvas_size / $duration;
+  
+  
   drupal_add_js(array('wavesurfer' => array('onready' => $onready)), 'setting');
   $js  = "jQuery(document).ready(function () {
             window.$wavesurfer_id = Object.create(WaveSurfer);
@@ -180,7 +186,7 @@ function theme_wavesurfer_waveform($variables) {
                 waveColor: '#$wavecolor',
                 progressColor: '#$progress_colour',
                 scrollParent: true,
-                minPxPerSec: 200
+                minPxPerSec: $pixels_second
             });
  
             window.$wavesurfer_id.on('ready', function () {
@@ -190,7 +196,7 @@ function theme_wavesurfer_waveform($variables) {
               }
             });
             
-            window.$wavesurfer_id.load('$audiofile');
+            window.$wavesurfer_id.loadBuffer('$audiofile');
             (function () {
             var eventHandlers = {
                 'play': function () {
@@ -253,3 +259,24 @@ function theme_wavesurfer_waveform($variables) {
 
   return $output;
 }
+
+
+function wavesurfer_duration_wav($file) {
+	$fp = fopen($file, 'r');
+	if (fread($fp,4) == "RIFF") {
+		fseek($fp, 20);
+		$rawheader = fread($fp, 16);
+		$header = unpack('vtype/vchannels/Vsamplerate/Vbytespersec/valignment/vbits',$rawheader);
+		$pos = ftell($fp);
+		while (fread($fp,4) != "data" && !feof($fp)) {
+			$pos++;
+			fseek($fp,$pos);
+		}
+		$rawheader = fread($fp, 4);
+		$data = unpack('Vdatasize',$rawheader);
+		$sec = $data['datasize']/$header['bytespersec'];
+		return $sec;
+	}
+}
+
+
