@@ -179,64 +179,34 @@ function theme_wavesurfer_waveform($variables) {
   
   
   drupal_add_js(array('wavesurfer' => array('onready' => $onready)), 'setting');
-  $js  = "jQuery(document).ready(function () {
-            window.$wavesurfer_id = Object.create(WaveSurfer);
-            window.$wavesurfer_id.init({
-                container: document.querySelector('#$container_id'),
-                waveColor: '#$wavecolor',
-                progressColor: '#$progress_colour',
-                scrollParent: true,
-                minPxPerSec: $pixels_second
-            });
- 
-            window.$wavesurfer_id.on('ready', function () {
-              for (var index in Drupal.settings.wavesurfer.onready) {
-                var onarray_f = Drupal.settings.wavesurfer.onready[index];
-                eval(onarray_f+'(window.$wavesurfer_id)');
-              }
-            });
-            
-            window.$wavesurfer_id.loadBuffer('$audiofile');
-            (function () {
-            var eventHandlers = {
-                'play': function () {
-                    /*Doing this three times syncs audio on first play. Stupid. */
-                    window.$wavesurfer_id.playPause();
-                    window.$wavesurfer_id.playPause();
-                    window.$wavesurfer_id.playPause();
-                },
-            };
-            jQuery('#play_$file->fid').click(function() {
-               window.$wavesurfer_id.playPause();
-            });
-
-          }());
-        });
-        
-	document.addEventListener('DOMContentLoaded', function () {
-		var progressDiv = document.querySelector('#progress-bar');
-		var progressBar = progressDiv.querySelector('.progress-bar');
-		var showProgress = function (percent) {
-			progressDiv.style.display = 'block';
-			progressBar.style.width = percent + '%';
-		};
-		var hideProgress = function () {
-			progressDiv.style.display = 'none';
-		};
-		window.$wavesurfer_id.on('loading', showProgress);
-		window.$wavesurfer_id.on('ready', hideProgress);
-		window.$wavesurfer_id.on('destroy', hideProgress);
-		window.$wavesurfer_id.on('error', hideProgress);
-	});
-  ";
-  drupal_add_js($js, 'inline');
+  
+  drupal_add_js(
+    array('wavesurfer' =>
+      array('surfers' =>
+        array($file->fid =>
+          array(
+            'container_id' => $container_id,
+            'wavesurfer_id' => $wavesurfer_id,
+            'fileid' => $file->fid,
+            'audiofile' => $audiofile,
+            'wavecolor' => $wavecolor,
+            'progresscolor' => $progress_colour,
+            'pixelrate' => $pixels_second
+          )
+        )
+      )
+    ),
+    'setting'
+ );
+  
+  drupal_add_js(drupal_get_path('module', 'wavesurfer').'/js/wavesurfer_module.js', 'file');
   drupal_add_css(drupal_get_path('module', 'wavesurfer').'/css/wavesurfer.css', 'file');
 
   // Container html.
   $output = '<span id="wavesurfer_position"></span>
   		     <div id="' . $container_id . '" class="sticky-enabled">
-               <div id="progress-bar" class="progress progress-striped active" style="display: none;">
-			     <div class="progress-bar progress-bar-info" style="width: 100%;">
+               <div id="progress-bar-'.$file->fid.'" class="progress progress-striped active" style="display: none;">
+			     <div class="progress-bar-'.$file->fid.' progress-bar progress-bar-info" style="width: 100%;">
 				 </div>
                </div>
   		     </div>';
@@ -244,7 +214,7 @@ function theme_wavesurfer_waveform($variables) {
   // Controls HTML
   // @TODO Could probably add more in here and make it optional in settings.
   $output .= '<div class="controls">
-                <button id="play_' . $file->fid . '" class="btn btn-primary" data-action="play">
+                <button id="play_' . $file->fid . '" class="btn btn-primary" onclick="wavesurfer_playsurfer('.$file->fid.')">
                     <i class="play"></i>
                     Play
                     /
