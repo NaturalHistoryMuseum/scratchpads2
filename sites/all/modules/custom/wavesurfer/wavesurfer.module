@@ -21,8 +21,8 @@ function wavesurfer_libraries_info() {
       'js' => array(
         'src/wavesurfer.js',
         'src/webaudio.js',
-        'src/webaudio.buffer.js',
-        'src/webaudio.media.js',
+        //'src/webaudio.buffer.js',
+        //'src/webaudio.media.js',
         'src/audioelement.js',
         'src/drawer.js',
         'src/drawer.canvas.js',
@@ -182,21 +182,12 @@ function theme_wavesurfer_waveform($variables) {
                 scrollParent: true,
                 minPxPerSec: 200
             });
-            window.$wavesurfer_id.on('loading', function (percent, xhr) {
-            	//var progressDiv = document.querySelector('#progress-bar');
-				//var progressBar = progressDiv.querySelector('.progress-bar');
-          		//progressDiv.style.display = 'block';
-				//progressBar.style.width = percent + '%';
-			
-            })
-            
+ 
             window.$wavesurfer_id.on('ready', function () {
               for (var index in Drupal.settings.wavesurfer.onready) {
                 var onarray_f = Drupal.settings.wavesurfer.onready[index];
                 eval(onarray_f+'(window.$wavesurfer_id)');
               }
-              //var progressDiv = document.querySelector('#progress-bar');
-              //progressDiv.style.display = 'none';
             });
             
             window.$wavesurfer_id.load('$audiofile');
@@ -255,6 +246,10 @@ function theme_wavesurfer_waveform($variables) {
                     Pause
                 </button>
               </div>';
+  
+  $output .= '<div class="wavesurfer-file-download">';
+  $output .= l('Download', $audiofile);
+  $output.= '</div>';
 
   return $output;
 }
