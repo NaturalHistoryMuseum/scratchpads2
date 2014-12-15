@@ -199,10 +199,10 @@ function theme_wavesurfer_waveform($variables){
   }
   $output .= '>
                <div id="progress-bar-' . $file->fid . '" class="progress progress-striped active" style="display: none;">
-			     <div class="progress-bar-' . $file->fid . ' progress-bar progress-bar-info" style="width: 100%;">
-				 </div>
+           <div class="progress-bar-' . $file->fid . ' progress-bar progress-bar-info" style="width: 100%;">
+         </div>
                </div>
-  		     </div>';
+           </div>';
   // Controls HTML
   // @TODO Could probably add more in here and make it optional in settings.
   $output .= '<div class="controls">
