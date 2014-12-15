@@ -1,68 +1,102 @@
 @CHARSET "UTF-8";
 
-@keyframes progress-bar-stripes {
-0% {
-    background-position: 40px 0;
+@
+keyframes progress-bar-stripes { 0% {
+	background-position: 40px 0;
 }
-100% {
-    background-position: 0 0;
+
+100%
+{
+background-position
+:
+ 
+0
+0;
 }
 }
-@keyframes progress-bar-stripes {
-0% {
-    background-position: 40px 0;
+@
+keyframes progress-bar-stripes { 0% {
+	background-position: 40px 0;
 }
-100% {
-    background-position: 0 0;
+
+100%
+{
+background-position
+:
+ 
+0
+0;
 }
 }
 .progress {
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
-    height: 20px;
-    margin-bottom: 20px;
-    overflow: hidden;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+	height: 20px;
+	margin-bottom: 20px;
+	overflow: hidden;
 }
+
 .progress-bar {
-    background-color: #428bca;
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15) inset;
-    color: #fff;
-    float: left;
-    font-size: 12px;
-    height: 100%;
-    text-align: center;
-    transition: width 0.6s ease 0s;
-    width: 0;
+	background-color: #428bca;
+	box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15) inset;
+	color: #fff;
+	float: left;
+	font-size: 12px;
+	height: 100%;
+	text-align: center;
+	transition: width 0.6s ease 0s;
+	width: 0;
 }
+
 .progress-striped .progress-bar {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
-    background-size: 40px 40px;
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
+	background-size: 40px 40px;
 }
+
 .progress.active .progress-bar {
-    animation: 2s linear 0s normal none infinite running progress-bar-stripes;
+	animation: 2s linear 0s normal none infinite running
+		progress-bar-stripes;
 }
+
 .progress-bar-success {
-    background-color: #5cb85c;
+	background-color: #5cb85c;
 }
+
 .progress-striped .progress-bar-success {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
 }
+
 .progress-bar-info {
-    background-color: #5bc0de;
+	background-color: #5bc0de;
 }
+
 .progress-striped .progress-bar-info {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
 }
+
 .progress-bar-warning {
-    background-color: #f0ad4e;
+	background-color: #f0ad4e;
 }
+
 .progress-striped .progress-bar-warning {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
 }
+
 .progress-bar-danger {
-    background-color: #d9534f;
+	background-color: #d9534f;
 }
+
 .progress-striped .progress-bar-danger {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
 }
