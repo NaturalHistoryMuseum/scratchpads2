@@ -1351,5 +1351,377 @@ function wildsound_views_default_views(){
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $views[] = $view;
+  $view = new view();
+  $view->name = 'check_no_taxon';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'check-no-taxon';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'Records not associated with a taxon name';
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'title' => 'title'
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'title' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  /* Relationship: Content: Taxonomy terms on node */
+  $handler->display->display_options['relationships']['term_node_tid']['id'] = 'term_node_tid';
+  $handler->display->display_options['relationships']['term_node_tid']['table'] = 'node';
+  $handler->display->display_options['relationships']['term_node_tid']['field'] = 'term_node_tid';
+  $handler->display->display_options['relationships']['term_node_tid']['vocabularies'] = array(
+    'orthoptera' => 'orthoptera',
+    'image_keywords' => 0,
+    'imaging_technique' => 0,
+    'preparation_technique' => 0
+  );
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Published */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'node';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['not'] = 0;
+  /* Sort criterion: Content: Published */
+  $handler->display->display_options['sorts']['status']['id'] = 'status';
+  $handler->display->display_options['sorts']['status']['table'] = 'node';
+  $handler->display->display_options['sorts']['status']['field'] = 'status';
+  $handler->display->display_options['sorts']['status']['order'] = 'DESC';
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'recording' => 'recording'
+  );
+  /* Filter criterion: Content: Species (field_species) */
+  $handler->display->display_options['filters']['field_species_tid']['id'] = 'field_species_tid';
+  $handler->display->display_options['filters']['field_species_tid']['table'] = 'field_data_field_species';
+  $handler->display->display_options['filters']['field_species_tid']['field'] = 'field_species_tid';
+  $handler->display->display_options['filters']['field_species_tid']['operator'] = 'empty';
+  $handler->display->display_options['filters']['field_species_tid']['type'] = 'select';
+  $handler->display->display_options['filters']['field_species_tid']['vocabulary'] = 'orthoptera';
+  /* Display: Page */
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['path'] = 'check-no-taxon';
+  $views[] = $view;
+  $view = new view();
+  $view->name = 'integrity_nhm_no_specimen';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'integrity_nhm_no_specimen';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'no_specimen';
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'title' => 'title'
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'title' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Original Metadata Image */
+  $handler->display->display_options['fields']['field_original_metadata_image']['id'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['field'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_original_metadata_image']['type'] = 'styles_file_thumbnail';
+  $handler->display->display_options['fields']['field_original_metadata_image']['delta_offset'] = '0';
+  /* Field: Content: Recording */
+  $handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+  $handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+  $handler->display->display_options['fields']['field_recording']['settings'] = array(
+    'controls' => 1,
+    'width' => '300',
+    'height' => '30',
+    'download_link' => 0,
+    'download_text' => 'Download'
+  );
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Sort criterion: Content: Original Metadata Image (field_original_metadata_image:fid) */
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['id'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['field'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['order'] = 'DESC';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'recording' => 'recording'
+  );
+  /* Filter criterion: Content: Specimen (field_specimen) */
+  $handler->display->display_options['filters']['field_specimen_nid']['id'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['table'] = 'field_data_field_specimen';
+  $handler->display->display_options['filters']['field_specimen_nid']['field'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['operator'] = 'empty';
+  /* Display: Page */
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['path'] = 'integrity-nhm-no-specimen';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'NHM no specimen';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
+  $views[] = $view;
+  $view = new view();
+  $view->name = 'integrity_nhm_no_specimen';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'integrity_nhm_no_specimen';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'no_specimen';
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'title' => 'title'
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'title' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Original Metadata Image */
+  $handler->display->display_options['fields']['field_original_metadata_image']['id'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['field'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_original_metadata_image']['type'] = 'styles_file_thumbnail';
+  $handler->display->display_options['fields']['field_original_metadata_image']['delta_offset'] = '0';
+  /* Field: Content: Recording */
+  $handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+  $handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+  $handler->display->display_options['fields']['field_recording']['settings'] = array(
+    'controls' => 1,
+    'width' => '300',
+    'height' => '30',
+    'download_link' => 0,
+    'download_text' => 'Download'
+  );
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Sort criterion: Content: Original Metadata Image (field_original_metadata_image:fid) */
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['id'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['field'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['order'] = 'DESC';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'recording' => 'recording'
+  );
+  /* Filter criterion: Content: Specimen (field_specimen) */
+  $handler->display->display_options['filters']['field_specimen_nid']['id'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['table'] = 'field_data_field_specimen';
+  $handler->display->display_options['filters']['field_specimen_nid']['field'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['operator'] = 'empty';
+  /* Display: Page */
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['path'] = 'integrity-nhm-no-specimen';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'NHM no specimen';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
+  $view = new view();
+  $view->name = 'integrity_nhm_no_specimen';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'integrity_nhm_no_specimen';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['title'] = 'no_specimen';
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'title' => 'title'
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'title' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0
+    )
+  );
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+  /* Field: Content: Original Metadata Image */
+  $handler->display->display_options['fields']['field_original_metadata_image']['id'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['field'] = 'field_original_metadata_image';
+  $handler->display->display_options['fields']['field_original_metadata_image']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_original_metadata_image']['type'] = 'styles_file_thumbnail';
+  $handler->display->display_options['fields']['field_original_metadata_image']['delta_offset'] = '0';
+  /* Field: Content: Recording */
+  $handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+  $handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+  $handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+  $handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+  $handler->display->display_options['fields']['field_recording']['settings'] = array(
+    'controls' => 1,
+    'width' => '300',
+    'height' => '30',
+    'download_link' => 0,
+    'download_text' => 'Download'
+  );
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Sort criterion: Content: Original Metadata Image (field_original_metadata_image:fid) */
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['id'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['table'] = 'field_data_field_original_metadata_image';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['field'] = 'field_original_metadata_image_fid';
+  $handler->display->display_options['sorts']['field_original_metadata_image_fid']['order'] = 'DESC';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'recording' => 'recording'
+  );
+  /* Filter criterion: Content: Specimen (field_specimen) */
+  $handler->display->display_options['filters']['field_specimen_nid']['id'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['table'] = 'field_data_field_specimen';
+  $handler->display->display_options['filters']['field_specimen_nid']['field'] = 'field_specimen_nid';
+  $handler->display->display_options['filters']['field_specimen_nid']['operator'] = 'empty';
+  /* Display: Page */
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->display->display_options['path'] = 'integrity-nhm-no-specimen';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'NHM no specimen';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
+  $views[] = $view;
   return $views;
 }
