@@ -2,7 +2,7 @@ function wildsound_current_time(target_element){
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
     var surfer_id = "wavesurfer_"+comment.fid;
-    document.getElementById(target_element).value = eval("window."+surfer_id+".getCurrentTime()");
+    document.getElementById(target_element).value = eval("window.surfers["+surfer_id+"].getCurrentTime()");
   }
 }
 
@@ -62,6 +62,6 @@ jQuery(window).load(function(){
 function wildsound_onready(item) {
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
-    eval("window.surfers."+comment.fid+".addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color})");
+    eval("window.surfers["+comment.fid+"].addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color})");
   }
 }
