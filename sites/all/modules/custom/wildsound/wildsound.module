@@ -18,7 +18,7 @@ function wildsound_menu(){
  * Implements hook_views_api().
  */
 function wildsound_views_api(){
-  $path = drupal_get_path('module', 'emonocot_views');
+  $path = drupal_get_path('module', 'wildsound');
   return array(
     'api' => '3',
     'path' => $path
