@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements hook_menu().
+ */
 function wildsound_menu(){
   $items = array();
   $items['wildsound/comment/%'] = array(
@@ -25,6 +28,11 @@ function wildsound_views_api(){
   );
 }
 
+/**
+ * Implements hook_comment_node_recording_form_alter().
+ * 
+ * Functionality to allow for the annotation feature to be in comments
+ */
 function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, $form_id){
   $form['#validate'] = array(
     0 => 'wildsound_comment_validator'
@@ -44,6 +52,9 @@ function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, 
   $form['#submit'][] = 'wildsound_comment_submit_taverna';
 }
 
+/*
+ * Function to create a Taverna run when an annotation is saved.
+ */
 function wildsound_comment_submit_taverna($form_id, &$form_state){
   module_load_include('pages.inc', 'taverna');
   //Should we analyze this type of annotation?
@@ -66,6 +77,9 @@ function wildsound_comment_submit_taverna($form_id, &$form_state){
   taverna_run_form_submit($t_form, $t_form_state);
 }
 
+/*
+ * Helper function to find out if any parent of a comment is an annotation
+ */
 function wildsound_parent_is_annotation($cid){
   if(is_null($cid)){return false;}
   $comment = comment_load($cid);
@@ -78,7 +92,7 @@ function wildsound_parent_is_annotation($cid){
 }
 
 function wildsound_comment_validator($form, &$form_state){
-  //`check if any annotation fields are set
+  //check if any annotation fields are set
   $annotation = FALSE;
   if($form_state['input']['field_type']['und'] != '_none'){
     $annotation = TRUE;
@@ -104,6 +118,9 @@ function wildsound_comment_validator($form, &$form_state){
   }
 }
 
+/*
+ * Fields to hide on comment submission form.
+ */
 function wildsound_analysis_fields(){
   return array(
     'field_aci',
@@ -115,6 +132,9 @@ function wildsound_analysis_fields(){
   );
 }
 
+/*
+ * Implements hook_comment_view_alter()
+ */
 function wildsound_comment_view_alter(&$build){
   $comment = $build['#comment'];
   $is_annotation = (isset($build['comment_body'])) ? false : true;
@@ -297,6 +317,9 @@ function wildsound_comment_view_alter(&$build){
   }
 }
 
+/*
+ * AJAX callback to test if an analysis has finished
+ */
 function wildsound_comment_callback($cid){
   $comment = comment_load($cid);
   $node = node_load($comment->nid);
@@ -314,6 +337,9 @@ function wildsound_comment_callback($cid){
   drupal_json_output($array);
 }
 
+/**
+ * Implements hook_node_view()
+ */
 function wildsound_node_view($node, $view_mode, $lang){
   if($node->type != 'recording'){return;}
   $node->content['#attached']['css'][] = drupal_get_path('module', 'wildsound') . '/css/wildsound-recording.css';
@@ -338,6 +364,7 @@ function wildsound_hex2rgb($hex){
   return 'rgba(' . implode(",", $rgb) . ', 0.1)';
 }
 
+//TODO: Push this kind of behaviour into JavaScript
 function wildsound_wavesurfer_onready() {
 	return 'wildsound_onready';
 }

@@ -1,3 +1,6 @@
+/*
+ * Used to get current playback position form a wavesurfer and enter it into an input field
+ */
 function wildsound_current_time(target_element){
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
@@ -6,6 +9,9 @@ function wildsound_current_time(target_element){
   }
 }
 
+/*
+ * AJAX for getting currrent status of an analysis and updating comment as required
+ */
 function wildsound_update_comment(comment_id, timer){
   request = new XMLHttpRequest();
   request.onreadystatechange = function(){
@@ -23,6 +29,9 @@ function wildsound_update_comment(comment_id, timer){
   request.send();
 }
 
+/*
+ * Make wavesurfer sticky at top of page when scrolling
+ */
 jQuery(window).scroll(function(){
   var fieldItem = jQuery("#wavesurfer_position").parent('.field-item');
   if(!checkVisible(fieldItem.parent('.field-items'))) {
@@ -46,6 +55,9 @@ jQuery(window).scroll(function(){
   }
 });
 
+/*
+ * Helper function to test if wavesurfer is currently visible on the page
+ */
 function checkVisible(elm, eval){
   eval = eval || "visible";
   var vpH = jQuery(window).height(), // Viewport Height
@@ -59,6 +71,9 @@ jQuery(window).load(function(){
   
 });
 
+/*
+ * Add regions to wavesurfers when they are drawn
+ */
 function wildsound_onready(item) {
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
