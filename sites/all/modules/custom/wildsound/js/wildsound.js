@@ -4,9 +4,11 @@
 function wildsound_current_time(target_element){
   for( var comment_id in Drupal.settings.wildsound.comments) {
     var comment = Drupal.settings.wildsound.comments[comment_id];
-    var surfer_id = "wavesurfer_"+comment.fid;
-    document.getElementById(target_element).value = eval("window.surfers["+surfer_id+"].getCurrentTime()");
-  }
+    var surfer_id = comment.fid;
+    var surfer_time = String(eval("window.surfers["+surfer_id+"].getCurrentTime()"));
+    var return_time = surfer.time.substring(0, 8);
+    document.getElementById(target_element).value = return_time;
+  } 
 }
 
 /*
@@ -75,8 +77,10 @@ jQuery(window).load(function(){
  * Add regions to wavesurfers when they are drawn
  */
 function wildsound_onready(item) {
-  for( var comment_id in Drupal.settings.wildsound.comments) {
-    var comment = Drupal.settings.wildsound.comments[comment_id];
-    eval("window.surfers["+comment.fid+"].addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color})");
+  if (typeof(Drupal.settings.wildsound) != 'undefined' && typeof(Drupal.settings.wildsound.comments) != 'undefined') {
+    for( var comment_id in Drupal.settings.wildsound.comments) {
+      var comment = Drupal.settings.wildsound.comments[comment_id];
+      eval("window.surfers["+comment.fid+"].addRegion({id: comment.id, start: comment.start, end: comment.end, loop: false, drag: false, resize: false, color: comment.color})");
+    }
   }
 }
