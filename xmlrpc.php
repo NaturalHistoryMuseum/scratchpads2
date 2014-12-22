@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * @file
  * PHP page for handling incoming XML-RPC requests from clients.
