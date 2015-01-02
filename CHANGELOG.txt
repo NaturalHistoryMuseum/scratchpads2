@@ -6,6 +6,26 @@
 - Upgraded Drupal to 7.32
 - Enable any block to be embedded on the front page (#1174)
 
+2.5.4.2 (2014-12-10)
+
+- Fixes an issue with Autotag that prevented saving of content with specific diacritic marks (e.g. Baňař). (#4283)
+
+2.5.4.1 (2014-11-20)
+
+- Patched Drupal to include patches from Drupal 7.34
+
+2.5.4 (2014-11-10)
+
+- Added the improved DwC-A Export module. (#4126)
+
+2.5.3.4 (2014-10-24)
+
+- Possibly improve "cold start" times of sites
+
+2.5.3.3 (2014-10-23)
+
+- Prevent clearing of image width and height cache.
+
 2.5.3.2 (2014-10-20)
 
 - Applied patch for https://www.drupal.org/SA-CORE-2014-005
