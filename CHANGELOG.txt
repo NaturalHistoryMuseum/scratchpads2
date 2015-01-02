@@ -6,6 +6,10 @@
 - Upgraded Drupal to 7.32
 - Enable any block to be embedded on the front page (#1174)
 
+2.5.4.3 (2015-01-02)
+
+- Display the front page images uncropped if desired (#1247)
+
 2.5.4.2 (2014-12-10)
 
 - Fixes an issue with Autotag that prevented saving of content with specific diacritic marks (e.g. Baňař). (#4283)
