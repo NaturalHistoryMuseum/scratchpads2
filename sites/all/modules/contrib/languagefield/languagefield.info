@@ -1,11 +1,13 @@
-name = Language field
+name = Language Field
 description = Defines a simple language field.
 package = Fields
 core = 7.x
 
-; Information added by drupal.org packaging script on 2013-01-13
-version = "7.x-1.1"
+dependencies[] = options
+
+; Information added by Drupal.org packaging script on 2014-12-31
+version = "7.x-1.3"
 core = "7.x"
 project = "languagefield"
-datestamp = "1358084807"
+datestamp = "1420021391"
 
