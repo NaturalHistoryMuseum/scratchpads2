@@ -53,7 +53,9 @@ function dwcarchiver_dwcarchiver_archives(){
     'machine_name' => 'description',
     'rowtype' => 'http://rs.gbif.org/terms/1.0/Description',
     'entity' => 'node',
-    'bundle' => 'spm',
+    'bundles' => array(
+      'spm'
+    ),
     'field_name' => 'field_taxonomic_name',
     'maps' => array()
   );
@@ -62,7 +64,9 @@ function dwcarchiver_dwcarchiver_archives(){
     'machine_name' => 'description',
     'rowtype' => 'http://eol.org/schema/media/Document',
     'entity' => 'node',
-    'bundle' => 'spm',
+    'bundles' => array(
+      'spm'
+    ),
     'field_name' => 'field_taxonomic_name',
     'maps' => array()
   );
@@ -248,9 +252,17 @@ function dwcarchiver_dwcarchiver_archives(){
       )
     );
   }
+  $bundles = array();
   foreach($bio_vids as $vid => $type){
     if($type){
       $vocabulary = taxonomy_vocabulary_load($vid);
+      if($vocabulary){
+        $bundles[] = $vocabulary->machine_name;
+      }
+    }
+  }
+  if(count($bundles)){
+    if(module_exists('darwincore')){
       //
       //
       //
@@ -262,7 +274,7 @@ function dwcarchiver_dwcarchiver_archives(){
         'name' => 'GBIF DwCA',
         'machine_name' => 'gbif-dwca',
         'entity' => 'taxonomy_term',
-        'bundle' => $vocabulary->machine_name,
+        'bundles' => $bundles,
         'rowtype' => 'http://rs.tdwg.org/dwc/terms/Taxon',
         'extensions' => array(
           array(
@@ -270,7 +282,9 @@ function dwcarchiver_dwcarchiver_archives(){
             'machine_name' => 'specimen',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/TypesAndSpecimen',
             'entity' => 'node',
-            'bundle' => 'specimen_observation',
+            'bundles' => array(
+              'specimen_observation'
+            ),
             'field_name' => 'field_taxonomic_name',
             'maps' => array(
               array(
@@ -324,7 +338,9 @@ function dwcarchiver_dwcarchiver_archives(){
             'machine_name' => 'reference',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/Reference',
             'entity' => 'node',
-            'bundle' => 'biblio',
+            'bundles' => array(
+              'biblio'
+            ),
             'field_name' => 'field_taxonomic_name',
             'maps' => array(
               array(
@@ -408,7 +424,9 @@ function dwcarchiver_dwcarchiver_archives(){
             'machine_name' => 'distribution',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/Distribution',
             'entity' => 'node',
-            'bundle' => 'specimen_observation',
+            'bundles' => array(
+              'specimen_observation'
+            ),
             'field_name' => 'field_taxonomic_name',
             'maps' => array(
               array(
@@ -432,7 +450,9 @@ function dwcarchiver_dwcarchiver_archives(){
             'machine_name' => 'image',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/Image',
             'entity' => 'file',
-            'bundle' => 'image',
+            'bundles' => array(
+              'image'
+            ),
             'field_name' => 'field_taxonomic_name',
             'maps' => array(
               array(
@@ -481,7 +501,9 @@ function dwcarchiver_dwcarchiver_archives(){
             'machine_name' => 'vernacularnames',
             'rowtype' => 'http://rs.gbif.org/terms/1.0/VernacularName',
             'entity' => 'field_collection_item',
-            'bundle' => 'field_vernacular_name_collection',
+            'bundles' => array(
+              'field_vernacular_name_collection'
+            ),
             'field_name' => 'field_vernacular_name_collection',
             'maps' => array(
               array(
@@ -584,312 +606,320 @@ function dwcarchiver_dwcarchiver_archives(){
           )
         )
       );
-      //
-      //
-      //
-      // -- EOL ----------------------------------------------------------------
-      //
-      //
-      //
-      $archives[] = array(
-        'name' => 'EOL DwCA',
-        'machine_name' => 'eol-dwca',
-        'entity' => 'taxonomy_term',
-        'bundle' => $vocabulary->machine_name,
-        'rowtype' => 'http://rs.tdwg.org/dwc/terms/Taxon',
-        'extensions' => array(
-          array(
-            'name' => 'Reference',
-            'machine_name' => 'reference',
-            'rowtype' => 'http://eol.org/schema/reference/Reference',
-            'entity' => 'node',
-            'bundle' => 'biblio',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
-              array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/ontology/bibo/uri',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'citation',
-                  'uri' => 'http://eol.org/schema/reference/full_reference',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                )
-              )
-            )
+    }
+    //
+    //
+    //
+    // -- EOL ----------------------------------------------------------------
+    //
+    //
+    //
+    $archives[] = array(
+      'name' => 'EOL DwCA',
+      'machine_name' => 'eol-dwca',
+      'entity' => 'taxonomy_term',
+      'bundles' => $bundles,
+      'rowtype' => 'http://rs.tdwg.org/dwc/terms/Taxon',
+      'extensions' => array(
+        array(
+          'name' => 'Reference',
+          'machine_name' => 'reference',
+          'rowtype' => 'http://eol.org/schema/reference/Reference',
+          'entity' => 'node',
+          'bundles' => array(
+            'biblio'
           ),
-          array(
-            'name' => 'Agents',
-            'machine_name' => 'agents',
-            'rowtype' => 'http://eol.org/schema/agent/Agent',
-            'entity' => 'user',
-            'bundle' => 'user',
-            'field_name' => '',
-            'maps' => array(
+          'field_name' => 'field_taxonomic_name',
+          'maps' => array(
+            array(
               array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_user_given_names',
-                  'uri' => 'http://xmlns.com/foaf/spec/#term_givenName',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_user_family_name',
-                  'uri' => 'http://xmlns.com/foaf/spec/#term_familyName',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_homepage',
-                  'uri' => 'http://xmlns.com/foaf/spec/#term_homepage',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_link'
-                ),
-                array(
-                  'field' => 'field_user_institution',
-                  'uri' => 'http://eol.org/schema/agent/organization',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'name',
-                  'uri' => 'http://xmlns.com/foaf/spec/#term_accountName',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry',
-                  'uri' => 'http://eol.org/schema/agent/agentRole',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_value',
-                  'value' => 'Author'
-                )
-              )
-            )
-          ),
-          array(
-            'name' => 'Media',
-            'machine_name' => 'media',
-            'rowtype' => 'http://eol.org/schema/media/Document',
-            'entity' => 'file',
-            'bundle' => 'image',
-            'field_name' => 'field_taxonomic_name',
-            'maps' => array(
+                'field' => 'uuid',
+                'uri' => 'coreid',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
               array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'filemime',
-                  'uri' => 'http://purl.org/dc/terms/type',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_mime_to_dcmitype'
-                ),
-                array(
-                  'field' => 'dwcarchiver_text_entry',
-                  'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_value',
-                  'value' => ''
-                ),
-                array(
-                  'field' => 'filemime',
-                  'uri' => 'http://purl.org/dc/terms/format',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'filename',
-                  'uri' => 'http://purl.org/dc/terms/title',
-                  'required' => 1,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'body',
-                  'uri' => 'http://purl.org/dc/terms/description',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'file_url',
-                  'uri' => 'http://rs.tdwg.org/ac/terms/accessURI',
-                  'required' => 1,
-                  'processor' => 'dwcarchiver_file_url'
-                ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'timestamp',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/CreateDate',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_timestamp'
-                ),
-                array(
-                  'field' => 'field_cc_licence',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_creative_commons_url'
-                ),
-                array(
-                  'field' => 'field_creator',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/Owner',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                )
-              )
-            )
-          ),
-          $description_extension_eol,
-          array(
-            'name' => 'Vernacular Names',
-            'machine_name' => 'vernacularnames',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/VernacularName',
-            'entity' => 'field_collection_item',
-            'bundle' => 'field_vernacular_name_collection',
-            'field_name' => 'field_vernacular_name_collection',
-            'maps' => array(
+                'field' => 'uuid',
+                'uri' => 'http://purl.org/dc/terms/identifier',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
               array(
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'coreid',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_vernacular_name',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/vernacularName',
-                  'required' => 1,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_reference:content_url',
-                  'uri' => 'http://purl.org/dc/terms/source',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_url'
-                ),
-                array(
-                  'field' => 'field_language',
-                  'uri' => 'http://purl.org/dc/terms/language',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_vernacular_locality',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/locality',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'field_vernacular_name_remarks',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRemarks',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                )
+                'field' => 'content_url',
+                'uri' => 'http://purl.org/ontology/bibo/uri',
+                'required' => 0,
+                'processor' => 'dwcarchiver_content_url'
+              ),
+              array(
+                'field' => 'citation',
+                'uri' => 'http://eol.org/schema/reference/full_reference',
+                'required' => 0,
+                'processor' => 'dwcarchiver_biblio'
               )
             )
           )
         ),
-        'maps' => array(
-          array(
+        array(
+          'name' => 'Agents',
+          'machine_name' => 'agents',
+          'rowtype' => 'http://eol.org/schema/agent/Agent',
+          'entity' => 'user',
+          'bundles' => array(
+            'user'
+          ),
+          'field_name' => '',
+          'maps' => array(
             array(
-              'field' => 'uuid',
-              'uri' => 'coreid',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
+              array(
+                'field' => 'uuid',
+                'uri' => 'http://purl.org/dc/terms/identifier',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_user_given_names',
+                'uri' => 'http://xmlns.com/foaf/spec/#term_givenName',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_user_family_name',
+                'uri' => 'http://xmlns.com/foaf/spec/#term_familyName',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_homepage',
+                'uri' => 'http://xmlns.com/foaf/spec/#term_homepage',
+                'required' => 0,
+                'processor' => 'dwcarchiver_link'
+              ),
+              array(
+                'field' => 'field_user_institution',
+                'uri' => 'http://eol.org/schema/agent/organization',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'name',
+                'uri' => 'http://xmlns.com/foaf/spec/#term_name',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'dwcarchiver_text_entry',
+                'uri' => 'http://eol.org/schema/agent/agentRole',
+                'required' => 0,
+                'processor' => 'dwcarchiver_value',
+                'value' => 'Author'
+              )
+            )
+          )
+        ),
+        array(
+          'name' => 'Media',
+          'machine_name' => 'media',
+          'rowtype' => 'http://eol.org/schema/media/Document',
+          'entity' => 'file',
+          'bundles' => array(
+            'image'
+          ),
+          'field_name' => 'field_taxonomic_name',
+          'maps' => array(
             array(
-              'field' => 'uuid',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/taxonID',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
+              array(
+                'field' => 'uuid',
+                'uri' => 'coreid',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'uuid',
+                'uri' => 'http://purl.org/dc/terms/identifier',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'filemime',
+                'uri' => 'http://purl.org/dc/terms/type',
+                'required' => 0,
+                'processor' => 'dwcarchiver_mime_to_dcmitype'
+              ),
+              array(
+                'field' => 'dwcarchiver_text_entry',
+                'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
+                'required' => 0,
+                'processor' => 'dwcarchiver_value',
+                'value' => ''
+              ),
+              array(
+                'field' => 'filemime',
+                'uri' => 'http://purl.org/dc/terms/format',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'filename',
+                'uri' => 'http://purl.org/dc/terms/title',
+                'required' => 1,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_description',
+                'uri' => 'http://purl.org/dc/terms/description',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'file_url',
+                'uri' => 'http://rs.tdwg.org/ac/terms/accessURI',
+                'required' => 1,
+                'processor' => 'dwcarchiver_file_url'
+              ),
+              array(
+                'field' => 'content_url',
+                'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
+                'required' => 0,
+                'processor' => 'dwcarchiver_content_url'
+              ),
+              array(
+                'field' => 'timestamp',
+                'uri' => 'http://ns.adobe.com/xap/1.0/CreateDate',
+                'required' => 0,
+                'processor' => 'dwcarchiver_timestamp'
+              ),
+              array(
+                'field' => 'field_cc_licence',
+                'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
+                'required' => 0,
+                'processor' => 'dwcarchiver_creative_commons_url'
+              ),
+              array(
+                'field' => 'field_creator',
+                'uri' => 'http://ns.adobe.com/xap/1.0/rights/Owner',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              )
+            )
+          )
+        ),
+        $description_extension_eol,
+        array(
+          'name' => 'Vernacular Names',
+          'machine_name' => 'vernacularnames',
+          'rowtype' => 'http://rs.gbif.org/terms/1.0/VernacularName',
+          'entity' => 'field_collection_item',
+          'bundles' => array(
+            'field_vernacular_name_collection'
+          ),
+          'field_name' => 'field_vernacular_name_collection',
+          'maps' => array(
             array(
-              'field' => 'name',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/scientificName',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'parent:uuid',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/parentNameUsageID',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'field_rank',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRank',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'content_url',
-              'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
-              'required' => 0,
-              'processor' => 'dwcarchiver_content_url'
-            ),
-            array(
-              'field' => 'field_unacceptability_reason',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/taxonomicStatus',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'description',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRemarks',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'field_reference:title',
-              'uri' => 'http://rs.tdwg.org/dwc/terms/namePublishedIn',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
-            ),
-            array(
-              'field' => 'field_reference:uuid',
-              'uri' => 'http://eol.org/schema/media/referenceID',
-              'required' => 0,
-              'processor' => 'dwcarchiver_raw_text'
+              array(
+                'field' => 'uuid',
+                'uri' => 'coreid',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_vernacular_name',
+                'uri' => 'http://rs.tdwg.org/dwc/terms/vernacularName',
+                'required' => 1,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_reference:content_url',
+                'uri' => 'http://purl.org/dc/terms/source',
+                'required' => 0,
+                'processor' => 'dwcarchiver_content_url'
+              ),
+              array(
+                'field' => 'field_language',
+                'uri' => 'http://purl.org/dc/terms/language',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_vernacular_locality',
+                'uri' => 'http://rs.tdwg.org/dwc/terms/locality',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              ),
+              array(
+                'field' => 'field_vernacular_name_remarks',
+                'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRemarks',
+                'required' => 0,
+                'processor' => 'dwcarchiver_raw_text'
+              )
             )
           )
         )
-      );
-    }
+      ),
+      'maps' => array(
+        array(
+          array(
+            'field' => 'uuid',
+            'uri' => 'coreid',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'uuid',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/taxonID',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'name',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/scientificName',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'parent:uuid',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/parentNameUsageID',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'field_rank',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRank',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'content_url',
+            'uri' => 'http://rs.tdwg.org/ac/terms/furtherInformationURL',
+            'required' => 0,
+            'processor' => 'dwcarchiver_content_url'
+          ),
+          array(
+            'field' => 'field_unacceptability_reason',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/taxonomicStatus',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'description',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/taxonRemarks',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'field_reference:title',
+            'uri' => 'http://rs.tdwg.org/dwc/terms/namePublishedIn',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'field_reference:uuid',
+            'uri' => 'http://eol.org/schema/media/referenceID',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text'
+          )
+        )
+      )
+    );
   }
   return $archives;
 }

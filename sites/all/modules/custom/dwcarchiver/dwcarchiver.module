@@ -275,6 +275,9 @@ function dwcarchiver_hook_info(){
 function dwcarchiver_load($did){
   $archive = db_select('dwcarchiver_archive', 'd')->fields('d')->condition('did', $did)->execute()->fetch();
   if($archive){
+    $archive->bundles = db_select('dwcarchiver_archive_bundles', 'b')->fields('b', array(
+      'bundle'
+    ))->condition('did', $did)->execute()->fetchCol();
     $archive->extensions = array();
     $eids = db_select('dwcarchiver_extension', 'e')->fields('e', array(
       'eid'
@@ -673,7 +676,7 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
   $entity_info = entity_get_info();
   foreach(taxonomy_vocabulary_get_names() as $machine_name => $vocabulary){
     $core_types['taxonomy_term/' . $machine_name] = array(
-      'label' => t('Taxonomy term') . " (" . t($vocabulary->name) . ")",
+      'label' => t($vocabulary->name),
       'links' => array()
     );
     // Add any "field_collection" links right here.
@@ -711,9 +714,9 @@ function taxonomy_dwcarchiver_core_types_alter(&$core_types){
 }
 
 /**
- * Implements hook_entity_insert()
+ * Set rebuild flag.
  */
-function dwcarchiver_entity_insert($entity, $type){
+function dwcarchiver_set_rebuild_flag($entity, $type){
   // Update the flag so that we can rebuild the archive.
   $set_to_rebuild = FALSE;
   if(variable_get('dwcarchiver_rebuild_frequency', 'change') == 'change'){
@@ -737,6 +740,13 @@ function dwcarchiver_entity_insert($entity, $type){
     $query->addExpression("'change'");
     variable_set('dwcarchiver_last_cron_run', $query->execute()->fetchAllKeyed());
   }
+}
+
+/**
+ * Implements hook_entity_insert()
+ */
+function dwcarchiver_entity_insert($entity, $type){
+  dwcarchiver_set_rebuild_flag($entity, $type);
   // If we're updating a biblio node, we update the record in the
   // dwcarchiver_biblio_citation table.
   if($type == 'node' && $entity->type == 'biblio'){
@@ -745,7 +755,7 @@ function dwcarchiver_entity_insert($entity, $type){
     $query = db_merge('dwcarchiver_biblio_citation')->key(array(
       'nid' => $entity->nid
     ))->fields(array(
-      'nid' => $node->nid,
+      'nid' => $entity->nid,
       'citation' => strip_tags(theme('biblio_style', array(
         'node' => $entity,
         'base' => $base,
@@ -759,7 +769,10 @@ function dwcarchiver_entity_insert($entity, $type){
  * Implements hook_entity_delete()
  */
 function dwcarchiver_entity_delete($entity, $type){
-  dwcarchiver_entity_insert($entity, $type);
+  dwcarchiver_set_rebuild_flag($entity, $type);
+  if($type == 'node' && $entity->type == 'biblio'){
+    db_delete('dwcarchiver_biblio_citation')->condition('nid', $entity->nid)->execute();
+  }
 }
 
 /**
