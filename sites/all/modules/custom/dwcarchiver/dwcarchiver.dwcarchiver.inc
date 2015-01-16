@@ -139,7 +139,7 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_content_url'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_1',
         'uri' => 'http://purl.org/dc/terms/license',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
@@ -192,28 +192,28 @@ function dwcarchiver_dwcarchiver_archives(){
         'value' => 'http://purl.org/dc/dcmitype/Text'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_1',
         'uri' => 'http://rs.tdwg.org/audubon_core/subtype',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
         'value' => ''
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_2',
         'uri' => 'http://purl.org/dc/terms/format',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
         'value' => 'text/html'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_3',
         'uri' => 'http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
         'value' => 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#' . str_replace('_', '', (isset($eol_replacements[$field]) ? $eol_replacements[$field] : $field))
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_4',
         'uri' => 'http://purl.org/dc/terms/title',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
@@ -232,7 +232,7 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_content_url'
       ),
       array(
-        'field' => 'dwcarchiver_text_entry',
+        'field' => 'dwcarchiver_text_entry_5',
         'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
         'required' => 0,
         'processor' => 'dwcarchiver_value',
