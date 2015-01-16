@@ -601,19 +601,19 @@ function theme_scratchpads_species_name($vars){
   $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
   $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
   $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
-  $unit_ind1 = (isset($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind1 = (!empty($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $unit_ind2 = (isset($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind2 = (!empty($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $unit_ind3 = (isset($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind3 = (!empty($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
-  $unit_ind4 = (isset($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind4 = (!empty($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
