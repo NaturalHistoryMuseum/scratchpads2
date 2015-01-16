@@ -9,7 +9,7 @@ function dwcarchiver_menu(){
   return array(
     'admin/config/content/dwcarchiver' => array(
       'title' => 'DwC-Archiver',
-      'description' => 'Add and configure custom DwC-Archives.',
+      'description' => 'Add and configure custom Darwin Core Archives.',
       'page callback' => 'dwcarchiver_overview_page',
       'access arguments' => array(
         'configure dwcarchiver'
