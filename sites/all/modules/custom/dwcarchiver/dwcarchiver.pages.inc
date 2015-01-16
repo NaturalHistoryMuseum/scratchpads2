@@ -1029,12 +1029,26 @@ function dwcarchiver_override($machine_name){
     drupal_goto('admin/config/content/dwcarchiver');
   }
   $fields = (array)$archive;
+  $bundles = $fields['bundles'];
   unset($fields['extensions']);
   unset($fields['maps']);
+  unset($fields['bundles']);
   $return = db_merge('dwcarchiver_archive')->key(array(
     'machine_name' => $fields['machine_name']
   ))->fields($fields)->execute();
   $dwcarchiver = dwcarchiver_machine_name_load($fields['machine_name']);
+  db_delete('dwcarchiver_archive_bundles')->condition('did', $dwcarchiver->did);
+  $query = db_insert('dwcarchiver_archive_bundles')->fields(array(
+    'did',
+    'bundle'
+  ));
+  foreach($bundles as $bundle){
+    $query->values(array(
+      'did' => $dwcarchiver->did,
+      'bundle' => $bundle
+    ));
+  }
+  $query->execute();
   foreach($archive->maps[0] as $map){
     $value = FALSE;
     if(isset($map->value)){
@@ -1056,7 +1070,9 @@ function dwcarchiver_override($machine_name){
   }
   foreach($archive->extensions as $code_extension){
     $fields = (array)$code_extension;
+    $fields['bundle'] = array_pop($fields['bundles']);
     unset($fields['maps']);
+    unset($fields['bundles']);
     $fields['did'] = $dwcarchiver->did;
     db_insert('dwcarchiver_extension')->fields($fields)->execute();
     // Because I'm reusing a crappy function, I need to construct a dummy 
