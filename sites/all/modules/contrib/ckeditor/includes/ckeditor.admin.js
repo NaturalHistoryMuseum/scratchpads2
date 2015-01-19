@@ -1,17 +1,19 @@
 /*
-Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 (function ($) {
-  Drupal.ckeditor_ver = false;
+  Drupal.ckeditor_ver = 4;
 
   $(document).ready(function() {
     if (typeof(CKEDITOR) == "undefined")
       return;
 
-    $('#edit-uicolor-textarea').show();
+    // $('#edit-uicolor-textarea').show();
 
-    Drupal.ckeditor_ver = Drupal.settings.ckeditor_version.split('.')[0];
+    if (Drupal.settings.ckeditor_version) {
+      Drupal.ckeditor_ver = Drupal.settings.ckeditor_version.split('.')[0];
+    }
 
     Drupal.editSkinEditorInit = function() {
       var skinframe_src = $('#skinframe').attr('src');
