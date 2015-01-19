@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -115,7 +115,7 @@ function ckeditor_load_toolbar_options() {
   $editor_local_path = ckeditor_path('local');
   $ckconfig_js = $editor_local_path . '/config.js';
   $ckeditor_config_js = $module_drupal_path . '/ckeditor.config.js';
-  if (file_exists($ckconfig_js) && is_readable($ckconfig_js)) {
+  if ($editor_local_path != '<URL>' && file_exists($ckconfig_js) && is_readable($ckconfig_js)) {
     $fp = @fopen($ckconfig_js, "r");
     if ($fp) {
       while (!feof($fp)) {
@@ -163,7 +163,7 @@ function ckeditor_load_skin_options() {
   $arr = array();
   $editor_local_path = ckeditor_path('local');
   $skin_dir = $editor_local_path . '/skins';
-  if (is_dir($skin_dir)) {
+  if ($editor_local_path != '<URL>' && is_dir($skin_dir)) {
     $dh = @opendir($skin_dir);
     if (FALSE !== $dh) {
       while (($file = readdir($dh)) !== FALSE) {
@@ -177,11 +177,11 @@ function ckeditor_load_skin_options() {
       closedir($dh);
     }
   }
-
   //oops, we have no information about skins, let's use only default
   if (empty($arr)) {
     $arr = array(
-      'kama' => 'Kama',
+      'moono' => 'Moono',
+      'kama' => 'Kama'
     );
   }
   asort($arr);
@@ -202,8 +202,9 @@ function ckeditor_default_skin() {
   if (array_key_exists('kama', $skin_options)) {
     return 'kama';
   }
+  reset($skin_options);
   //if any default theme not exists select first from the list
-  return key(reset($skin_options));
+  return key($skin_options);
 }
 
 /**
@@ -215,7 +216,7 @@ function ckeditor_load_lang_options() {
   $arr = array();
   $editor_local_path = ckeditor_path('local');
   $lang_file = $editor_local_path . '/lang/_languages.js';
-  if (file_exists($lang_file)) {
+  if ($editor_local_path != '<URL>' && file_exists($lang_file)) {
     $f = fopen($lang_file, 'r');
     $file = fread($f, filesize($lang_file));
     $tmp = explode('{', $file);
@@ -332,7 +333,6 @@ function ckeditor_load_plugins($render = FALSE) {
   $arr = array();
   $base_path = '%base_path%';
   $editor_path = '%editor_path%';
-  $ckeditor_path = '%module_path%';
   $plugin_dir = '%plugin_dir%';
   $plugin_dir_additional = '%plugin_dir_extra%';
   $pattern = '#\.addButton\([\s]*[\'"](.*?)[\'"][\s]*\,[\s]*\{[\s]*(.*?)[\s]*\}#s';
@@ -378,35 +378,100 @@ function ckeditor_load_plugins($render = FALSE) {
   /*
    * CKEditor build-in plugins
    */
-  $_editor_path = ckeditor_path('local') . '/';
-  if (file_exists($_editor_path . 'plugins/tableresize/plugin.js')) {
-    $arr['tableresize'] = array(
-      'name' => 'tableresize',
-      'desc' => t('Table Resize plugin'),
-      'path' => $editor_path . 'plugins/tableresize/',
-      'buttons' => FALSE,
-      'default' => 't'
-    );
-  }
+  $_editor_path = ckeditor_path('local');
+  //die($editor_path);
+  if ($_editor_path != '<URL>') {
+    if (file_exists($_editor_path . '/plugins/tableresize/plugin.js')) {
+      $arr['tableresize'] = array(
+        'name' => 'tableresize',
+        'desc' => t('Table Resize plugin'),
+        'path' => $editor_path . '/plugins/tableresize/',
+        'buttons' => FALSE,
+        'default' => 't'
+      );
+    }
 
-  if (file_exists($_editor_path . 'plugins/autogrow/plugin.js')) {
-    $arr['autogrow'] = array(
-      'name' => 'autogrow',
-      'desc' => t('Auto Grow plugin'),
-      'path' => $editor_path . 'plugins/autogrow/',
-      'buttons' => FALSE,
-      'default' => 'f'
-    );
-  }
+    if (file_exists($_editor_path . '/plugins/autogrow/plugin.js')) {
+      $arr['autogrow'] = array(
+        'name' => 'autogrow',
+        'desc' => t('Auto Grow plugin'),
+        'path' => $editor_path . '/plugins/autogrow/',
+        'buttons' => FALSE,
+        'default' => 'f'
+      );
+    }
 
-  if (file_exists($_editor_path . 'plugins/stylesheetparser/plugin.js')) {
-    $arr['stylesheetparser'] = array(
-      'name' => 'stylesheetparser',
-      'desc' => t('Stylesheet Parser plugin'),
-      'path' => $editor_path . 'plugins/stylesheetparser/',
-      'buttons' => FALSE,
-      'default' => 'f'
-    );
+    if (file_exists($_editor_path . '/plugins/stylesheetparser/plugin.js')) {
+      $arr['stylesheetparser'] = array(
+        'name' => 'stylesheetparser',
+        'desc' => t('Stylesheet Parser plugin'),
+        'path' => $editor_path . '/plugins/stylesheetparser/',
+        'buttons' => FALSE,
+        'default' => 'f'
+      );
+    }
+  }
+  else {
+    $_editor_url = ckeditor_path('url');
+    if (preg_match("/\/(standard|full)-all/", $_editor_url)) {
+      $arr['tableresize'] = array(
+        'name' => 'tableresize',
+        'desc' => t('Table Resize plugin. See !link for more details.', array(
+          '!link' => l(t('addon page'), 'http://ckeditor.com/addon/tableresize')
+        )),
+        'path' => $_editor_url . '/plugins/tableresize/',
+        'buttons' => FALSE,
+        'default' => 't'
+      );
+      $arr['autogrow'] = array(
+        'name' => 'autogrow',
+        'desc' => t('Auto Grow plugin. See !link for more details.', array(
+            '!link' => l(t('addon page'), 'http://ckeditor.com/addon/autogrow')
+          )),
+        'path' => $_editor_url . '/plugins/autogrow/',
+        'buttons' => FALSE,
+        'default' => 'f'
+      );
+      $arr['stylesheetparser'] = array(
+        'name' => 'stylesheetparser',
+        'desc' => t('Stylesheet Parser plugin. See !link for more details.', array(
+          '!link' => l(t('addon page'), 'http://ckeditor.com/addon/stylesheetparser')
+        )),
+        'path' => $_editor_url . '/plugins/stylesheetparser/',
+        'buttons' => FALSE,
+        'default' => 'f'
+      );
+      $arr['codesnippet'] = array(
+        'name' => 'codesnippet',
+        'desc' => t('Plugin for inserting Code Snippets. See !link for more details. See !help for additional instructions.', array(
+            '!link' => l(t('addon page'), 'http://ckeditor.com/addon/codesnippet'),
+            '!help' => l(t('help'), 'admin/help/ckeditor', array('fragment' => 'codesnippet'))
+          )),
+        'path' => $_editor_url . '/plugins/codesnippet/',
+        'buttons' => array(
+          'CodeSnippet' => array(
+            'icon' => 'icons/codesnippet.png',
+            'label' => 'Insert Code Snippet',
+          )
+        ),
+        'default' => 'f'
+      );
+      $arr['mathjax'] = array(
+        'name' => 'mathjax',
+        'desc' => t('Plugin for inserting Mathematical Formula (MathJax). See !link for more details. See !help for additional instructions.', array(
+          '!link' => l(t('addon page'), 'http://ckeditor.com/addon/mathjax'),
+          '!help' => l(t('help'), 'admin/help/ckeditor', array('fragment' => 'mathjax'))
+        )),
+        'path' => $_editor_url . '/plugins/mathjax/',
+        'buttons' => array(
+          'Mathjax' => array(
+            'icon' => 'icons/mathjax.png',
+            'label' => 'Insert Mathematical Formulas',
+          )
+        ),
+        'default' => 'f'
+      );
+    }
   }
 
   /*
@@ -532,7 +597,7 @@ function ckeditor_load_plugins($render = FALSE) {
     unset($arr['imce']);
   }
   //remove page break button if there is no module to do this
-  if (isset($arr['drupalbreaks']['buttons']['DrupalPageBreak']) && !module_exists('paging') && !module_exists('pagebreak')) {
+  if (isset($arr['drupalbreaks']['buttons']['DrupalPageBreak']) && !module_exists('paging') && !module_exists('pagebreak') && !module_exists('smart_paging')) {
     unset($arr['drupalbreaks']['buttons']['DrupalPageBreak']);
   }
 
@@ -578,6 +643,9 @@ function ckeditor_user_get_setting_default() {
     'lang' => 'en',
     'auto_lang' => 't',
   );
+
+  // Allow other modules to alter the default settings.
+  drupal_alter('ckeditor_default_settings', $default);
 
   return $default;
 }
@@ -646,7 +714,7 @@ function ckeditor_profile_input_formats() {
  * @return string
  */
 function _ckeditor_script_path() {
-  $jspath = FALSE;
+  $jspath = '';
   $module_path = drupal_get_path('module', 'ckeditor');
 
   if (file_exists($module_path . '/ckeditor/ckeditor.js')) {
@@ -655,7 +723,7 @@ function _ckeditor_script_path() {
   elseif (file_exists($module_path . '/ckeditor/ckeditor/ckeditor.js')) {
     $jspath = '%m/ckeditor/ckeditor';
   }
-  elseif (file_exists('sites/all/libraries/ckeditor/ckeditor.js')) {
+  elseif (file_exists(ckeditor_library_path('url') . '/ckeditor/ckeditor.js')) {
     $jspath = '%l/ckeditor';
   }
   return $jspath;
@@ -672,6 +740,8 @@ function _ckeditor_script_path() {
  */
 function _ckeditor_requirements_isinstalled() {
   $editor_path = ckeditor_path('local');
+  if ($editor_path == '<URL>')
+    return TRUE;
   $jspath = $editor_path . '/ckeditor.js';
 
   $jsp = file_exists($jspath);
@@ -758,14 +828,10 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
   $host = base_path();
 
   // setting some variables
-  $base_path = ckeditor_base_path('relative');
   $module_drupal_path = ckeditor_module_path('relative');
   $module_drupal_local_path = ckeditor_module_path('local');
   $editor_path = ckeditor_path('relative');
   $editor_local_path = ckeditor_path('local');
-
-  // get the default drupal files path
-  $files_path = $host . variable_get('file_private_path', conf_path() . '/files');
 
   $toolbar = $conf['toolbar'];
 
@@ -782,6 +848,9 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
   $settings['enterMode'] = constant("CKEDITOR_ENTERMODE_" . strtoupper($conf['enter_mode']));
   $settings['shiftEnterMode'] = constant("CKEDITOR_ENTERMODE_" . strtoupper($conf['shift_enter_mode']));
   $settings['toolbarStartupExpanded'] = ( $conf['expand'] == 't' );
+  if ($conf['expand'] == 'f') {
+    $settings['toolbarCanCollapse'] = true;
+  }
   $settings['width'] = $conf['width'];
   //check if skin exists, if not select default one
   if (isset($global_profile->settings['skin']) && file_exists($editor_local_path . '/skins/' . $global_profile->settings['skin'])) {
@@ -792,6 +861,12 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
   }
   $settings['format_tags'] = $conf['font_format'];
   $settings['show_toggle'] = $conf['show_toggle'];
+  if (!empty($conf['allowed_content']) && $conf['allowed_content'] === 'f') {
+    $settings['allowedContent'] = true;
+  }
+  elseif (!empty($conf['extraAllowedContent'])) {
+    $settings['extraAllowedContent'] = $conf['extraAllowedContent'];
+  }
   $settings['ss'] = $conf['ss'];
 
   if (isset($conf['language_direction'])) {
@@ -830,8 +905,8 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
   }
 
   //add support for divarea plugin from CKE4
-  if (((isset($conf['use_divarea']) && $conf['use_divarea'] == 't') || !isset($conf['use_divarea'])) && file_exists($editor_local_path . '/plugins/divarea/plugin.js')) {
-    $settings['loadPlugins']['divarea'] = array('name' => 'divarea', 'path' => $editor_path . '/plugins/divarea/', 'buttons' => FALSE, 'default' => 't');
+  if (isset($conf['use_divarea']) && $conf['use_divarea'] == 't' && $editor_local_path != '<URL>' && file_exists($editor_local_path . '/plugins/divarea/plugin.js')) {
+    $settings['loadPlugins']['divarea'] = array('name' => 'divarea', 'path' => $editor_path . '/plugins/divarea/', 'buttons' => FALSE, 'default' => 'f');
   }
 
   if (isset($conf['html_entities']) && $conf['html_entities'] == 'f') {
@@ -952,16 +1027,25 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
         $_SESSION['ckeditor'][$profile_name]['UserFilesAbsolutePath'] = strtr('%d%b%f/', array("%f" => variable_get('file_public_path', conf_path() . '/files'), "%u" => $user->uid, "%b" => base_path(), "%d" => ckeditor_get_document_root_full_path(), "%n" => $user->name));
       }
       if (variable_get('file_default_scheme', '') == 'private') {
-        $private_dir = isset($global_profile->settings['private_dir']) ? trim($global_profile->settings['private_dir'], '\/') : '';
+        $private_dir = isset($global_profile->settings['private_dir']) ? trim($global_profile->settings['private_dir'], '/') : '';
         if (!empty($private_dir)) {
           $private_dir = strtr($private_dir, array('%u' => $user->uid, '%n' => $user->name));
           $_SESSION['ckeditor'][$profile_name]['UserFilesPath'] = url('system/files') . '/' . $private_dir . '/';
-          $_SESSION['ckeditor'][$profile_name]['UserFilesAbsolutePath'] = variable_get('file_private_path', '') . DIRECTORY_SEPARATOR . $private_dir . DIRECTORY_SEPARATOR;
+          $private_upload_path = file_uri_target('private://' . variable_get('file_private_path', '')) . '/' . $private_dir;
         }
         else {
           $_SESSION['ckeditor'][$profile_name]['UserFilesPath'] = url('system/files') . '/';
-          $_SESSION['ckeditor'][$profile_name]['UserFilesAbsolutePath'] = variable_get('file_private_path', '') . DIRECTORY_SEPARATOR;
+          $private_upload_path =  file_uri_target('private://' . variable_get('file_private_path', ''));
         }
+        //add '/' to beginning of path if necessary
+        if (strpos(variable_get('file_private_path', ''), '/') === 0 && $private_upload_path[0] != '/') {
+          $private_upload_path = '/' . $private_upload_path;
+        }
+        //check if CKEditor private dir exists and create it if not
+        if ($private_dir && !is_dir($private_upload_path)) {
+          mkdir($private_upload_path, 0755, TRUE);
+        }
+        $_SESSION['ckeditor'][$profile_name]['UserFilesAbsolutePath'] = drupal_realpath($private_upload_path) . '/';
       }
     }
   }
@@ -1118,7 +1202,7 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
 
   // add custom stylesheet if configured
   // lets hope it exists but we'll leave that to the site admin
-  $query_string = '?' . substr(variable_get('css_js_query_string', '0'), 0, 1);
+  $query_string = '?' . variable_get('css_js_query_string', '0');
   $css_files = array();
   switch ($conf['css_mode']) {
     case 'theme':
@@ -1197,8 +1281,8 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
           $css_files[] = $host . $themepath . 'style.css' . $query_string;
         }
       }
-      if (file_exists($module_drupal_local_path . '/ckeditor.css')) {
-        $css_files[] = $module_drupal_path . '/ckeditor.css' . $query_string;
+      if (file_exists($module_drupal_local_path . '/css/ckeditor.css')) {
+        $css_files[] = $module_drupal_path . '/css/ckeditor.css' . $query_string;
       }
       if (file_exists($themepath . 'ckeditor.css')) {
         $css_files[] = $host . $themepath . 'ckeditor.css' . $query_string;
@@ -1206,11 +1290,11 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
       break;
 
     case 'self':
-      if (file_exists($module_drupal_local_path . '/ckeditor.css')) {
-        $css_files[] = $module_drupal_path . '/ckeditor.css' . $query_string;
+      if (file_exists($module_drupal_local_path . '/css/ckeditor.css')) {
+        $css_files[] = $module_drupal_path . '/css/ckeditor.css' . $query_string;
         if (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) {
-          if (file_exists($module_drupal_local_path . '/ckeditor-rtl.css')) {
-            $css_files[] = $module_drupal_path . '/ckeditor-rtl.css' . $query_string;
+          if (file_exists($module_drupal_local_path . '/css/ckeditor-rtl.css')) {
+            $css_files[] = $module_drupal_path . '/css/ckeditor-rtl.css' . $query_string;
           }
         }
       }
@@ -1221,16 +1305,22 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
       break;
 
     case 'none':
-      if (file_exists($module_drupal_local_path . '/ckeditor.css')) {
-        $css_files[] = $module_drupal_path . '/ckeditor.css' . $query_string;
+      if (file_exists($module_drupal_local_path . '/css/ckeditor.css')) {
+        $css_files[] = $module_drupal_path . '/css/ckeditor.css' . $query_string;
         if (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) {
-          if (file_exists($module_drupal_local_path . '/ckeditor-rtl.css')) {
-            $css_files[] = $module_drupal_path . '/ckeditor-rtl.css' . $query_string;
+          if (file_exists($module_drupal_local_path . '/css/ckeditor-rtl.css')) {
+            $css_files[] = $module_drupal_path . '/css/ckeditor-rtl.css' . $query_string;
           }
         }
       }
-      if (file_exists($editor_local_path . '/contents.css')) {
-        $css_files[] = $editor_path . '/contents.css' . $query_string;
+      if ($editor_local_path != '<URL>') {
+        if (file_exists($editor_local_path . '/contents.css')) {
+          $css_files[] = $editor_path . '/contents.css' . $query_string;
+        }
+      }
+      else {
+        $editor_url_path = ckeditor_path('url');
+        $css_files[] = $editor_url_path . '/contents.css' . $query_string;
       }
       break;
   }
@@ -1257,6 +1347,9 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
     }
   }
 
+  // Allow modules to modify the settings.
+  drupal_alter('ckeditor_settings', $settings, $conf);
+
   return $settings;
 }
 
@@ -1270,7 +1363,7 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
  *
  */
 function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_fields_to_toggle = FALSE) {
-  global $theme;
+  global $user, $theme;
   static $processed_ids = array();
   static $is_running = FALSE;
   $use_ckeditor = FALSE;
@@ -1345,6 +1438,9 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
     return $field;
   }
 
+  // Attach the editor css.
+  $field['#attached']['css'][] = drupal_get_path('module', 'ckeditor') . '/css/ckeditor.editor.css';
+
   if ($settings) {
     $textarea_id = $field['#id'];
     $class[] = 'ckeditor-mod';
@@ -1376,10 +1472,16 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
 
     $editor_local_path = ckeditor_path('local');
     $editor_url_path = ckeditor_path('url');
-    // get the default drupal files path
-    $files_path = $host . variable_get('file_private_path', conf_path() . '/files');
 
     if (!$is_running) {
+      // By default sessions are not started automatically for anonymous users.
+      // Start one for editing content so that we had a consistent token that is used in XSS filter.
+      if (isset($field['#entity']) && !empty($field['#entity']->created) && empty($user->uid)) {
+        drupal_session_start();
+        $_SESSION['ckeditor_anonymous_user'] = true;
+        drupal_page_is_cacheable(FALSE);
+      }
+
       if (!$ckeditor_in_default_format) {
         $load_method = 'ckeditor_basic.js';
         $load_time_out = 0;
@@ -1388,7 +1490,9 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
         $load_method = $profile->settings['ckeditor_load_method'];
         $load_time_out = $profile->settings['ckeditor_load_time_out'];
       }
-      drupal_add_js('window.CKEDITOR_BASEPATH = "' . ckeditor_path('relative') . '/"', array('type' => 'inline', 'weight' => -100));
+      if ($editor_local_path != '<URL>') {
+        drupal_add_js('window.CKEDITOR_BASEPATH = "' . ckeditor_path('relative') . '/"', array('type' => 'inline', 'weight' => -100));
+      }
       drupal_add_js(ckeditor_module_path('url') . '/includes/ckeditor.utils.js', array('type' => 'file', 'scope' => 'footer'));
 
       $preprocess = FALSE;
@@ -1396,7 +1500,10 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
         $preprocess = TRUE;
       }
 
-      if (isset($load_method) && file_exists($editor_local_path . '/' . $load_method)) {
+      if ($editor_local_path == '<URL>') {
+        drupal_add_js($editor_url_path . '/ckeditor.js', array('type' => 'external', 'scope' => 'footer'));
+      }
+      else if (isset($load_method) && file_exists($editor_local_path . '/' . $load_method)) {
         drupal_add_js($editor_url_path . '/' . $load_method, array('type' => 'file', 'scope' => 'footer', 'preprocess' => $preprocess));
         if ($load_method == 'ckeditor_basic.js') {
           drupal_add_js('CKEDITOR.loadFullCoreTimeout = ' . $load_time_out . ';', array('type' => 'inline', 'scope' => 'footer'));
@@ -1406,7 +1513,12 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
       else {
         drupal_add_js($editor_url_path . '/ckeditor.js', array('type' => 'file', 'scope' => 'footer', 'preprocess' => $preprocess));
       }
-      drupal_add_js(array('ckeditor' => array('module_path' => ckeditor_module_path('relative'), 'editor_path' => ckeditor_path('relative') . '/')), 'setting');
+      $ckeditor_url = ckeditor_path('relative');
+      if ($ckeditor_url == '<URL>') {
+        $ckeditor_url = ckeditor_path('url');
+      }
+      $ckeditor_url .= '/';
+      drupal_add_js(array('ckeditor' => array('module_path' => ckeditor_module_path('relative'), 'editor_path' => $ckeditor_url)), 'setting');
       if (module_exists('paging')) {
         drupal_add_js(array('ckeditor' => array('pagebreak' => TRUE)), 'setting');
       }
@@ -1417,6 +1529,9 @@ function ckeditor_load_by_field($field, $format, $show_toggle = TRUE, $add_field
         drupal_add_js(array('ckeditor' => array('linktocontent_menu' => TRUE)), 'setting');
       }
       if (module_exists('pagebreak')) {
+        drupal_add_js(array('ckeditor' => array('pagebreak' => TRUE)), 'setting');
+      }
+      if (module_exists('smart_paging')) {
         drupal_add_js(array('ckeditor' => array('pagebreak' => TRUE)), 'setting');
       }
       drupal_add_js(array('ckeditor' => array('ajaxToken' => drupal_get_token('ckeditorAjaxCall'), 'xss_url' => url('ckeditor/xss'))), 'setting');
@@ -1540,6 +1655,7 @@ function ckeditor_security_filters() {
       $security_filters['filters'][$module_filter_name] = TRUE;
     }
   }
+  drupal_alter('ckeditor_security_filter', $security_filters);
 
   return $security_filters;
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
@@ -36,7 +36,7 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
         '}'
         );
 
-      editor.addCommand( 'mediaembedDialog', new CKEDITOR.dialogCommand( 'mediaembedDialog' ) );
+      editor.addCommand( 'mediaembedDialog', new CKEDITOR.dialogCommand( 'mediaembedDialog', { allowedContent : 'div(media_embed);iframe[*](*)' } ) );
       editor.ui.addButton( 'MediaEmbed',
       {
         label: 'Embed Media',
@@ -87,7 +87,7 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
               if (element.attributes[ 'class' ] == 'media_embed') {
                 var fakeElement = editor.createFakeParserElement(element, 'cke_mediaembed', 'div', true);
                 var fakeStyle = fakeElement.attributes.style || '';
-                if (typeof(element.children[0].attributes) != 'undefined') {
+                if (element.children[0] && typeof(element.children[0].attributes) != 'undefined') {
                   var height = element.children[0].attributes.height,
                   width = element.children[0].attributes.width;
                 }

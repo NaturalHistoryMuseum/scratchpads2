@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -45,7 +45,7 @@ define('CKEDITOR_ENTERMODE_DIV', 3);
 global $_ckeditor_configuration;
 global $_ckeditor_ids;
 
-require_once('includes/ckeditor.user.inc');
+module_load_include('inc', 'ckeditor', 'includes/ckeditor.user');
 
 $_ckeditor_configuration = array();
 $_ckeditor_ids = array();
@@ -98,7 +98,7 @@ function ckeditor_menu() {
     'title' => 'Add a new CKEditor profile',
     'description' => 'Configure the rich text editor.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('ckeditor_admin_profile_form'),
+    'page arguments' => array('ckeditor_admin_profile_form', 'add'),
     'file' => 'includes/ckeditor.admin.inc',
     'access arguments' => array('administer ckeditor'),
     'type' => MENU_CALLBACK,
@@ -108,7 +108,7 @@ function ckeditor_menu() {
     'title' => 'Clone the CKEditor profile',
     'description' => 'Configure the rich text editor.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('ckeditor_admin_profile_clone_form', 5),
+    'page arguments' => array('ckeditor_admin_profile_clone_form', 'clone', 5),
     'file' => 'includes/ckeditor.admin.inc',
     'access arguments' => array('administer ckeditor'),
     'type' => MENU_CALLBACK,
@@ -118,7 +118,7 @@ function ckeditor_menu() {
     'title' => 'Edit the CKEditor profile',
     'description' => 'Configure the rich text editor.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('ckeditor_admin_profile_form', 5),
+    'page arguments' => array('ckeditor_admin_profile_form', 'edit', 5),
     'file' => 'includes/ckeditor.admin.inc',
     'access arguments' => array('administer ckeditor'),
     'type' => MENU_CALLBACK,
@@ -209,6 +209,16 @@ function ckeditor_get_version($main_version = FALSE) {
   }
 
   $editor_path = ckeditor_path('local', TRUE);
+  if ($editor_path == '<URL>') {
+    $url = ckeditor_path('url', TRUE);
+    $matches = array();
+    if (preg_match("|cdn.ckeditor.com/(\d(\.\d+)+.*)/|i", $url, $matches)) {
+      $ckeditor_version = $matches[1];
+      return $matches[1];
+    }
+    return $ckeditor_version = NULL;
+  }
+
   $jspath = $editor_path . '/ckeditor.js';
 
   $configcontents = @file_get_contents($jspath);
@@ -231,10 +241,16 @@ function ckeditor_get_version($main_version = FALSE) {
 }
 
 /**
- * Implementation of hook_init().
+ * Implements hook_page_build().
  */
-function ckeditor_init() {
-  drupal_add_css(drupal_get_path('module', 'ckeditor') . '/ckeditor.css');
+function ckeditor_page_build(&$page) {
+  // Add our CSS file that adds common needed classes, such as align-left,
+  // align-right, underline, indent, etc.
+  $page['page_bottom']['ckeditor']['#attached']['css'] = array(
+    drupal_get_path('module', 'ckeditor') . '/css/ckeditor.css' => array(
+      'every_page' => TRUE,
+    ),
+  );
 }
 
 /**
@@ -242,7 +258,6 @@ function ckeditor_init() {
  */
 function ckeditor_form_user_profile_form_alter(&$form, &$form_state) {
   if ($form['#user_category'] == 'account') {
-    module_load_include('inc', 'ckeditor', 'includes/ckeditor.user');
     ckeditor_user_customize($form, $form_state, 'user_profile_form');
   }
 }
@@ -299,7 +314,7 @@ function ckeditor_pre_render_text_format($element) {
 /**
  * Load all profiles. Just load one profile if $name is passed in.
  */
-function ckeditor_profile_load($name = '', $clear = FALSE) {
+function ckeditor_profile_load($name = '', $clear = FALSE, $check_access = TRUE) {
   static $profiles = array();
   global $user;
 
@@ -311,7 +326,12 @@ function ckeditor_profile_load($name = '', $clear = FALSE) {
 
       $profiles[$data->name] = $data;
     }
-    $input_formats = filter_formats($user);
+    if ($check_access === FALSE) {
+      // don't check if user has access to filter formats, needed for exporting as feature with drush
+      $input_formats = filter_formats();
+    } else {
+      $input_formats = filter_formats($user);
+    }
     $result = db_select('ckeditor_input_format', 'f')->fields('f')->execute();
     foreach ($result as $data) {
       if (isset($input_formats[$data->format])) {
@@ -361,14 +381,22 @@ function ckeditor_module_path($mode = 'relative') {
  *   Path of library in the Drupal installation.
  */
 function ckeditor_library_path($mode = 'relative') {
+  $lib_path = 'sites/all/libraries';
+
+  if (function_exists('libraries_get_path')) {
+    $path = libraries_get_path('ckeditor');
+    if ($path !== FALSE) {
+      $lib_path = drupal_substr($path, 0, strlen($path) - 9);
+    }
+  }
   switch ($mode) {
     default:
     case 'relative':
-      return ckeditor_base_path('relative') . '/sites/all/libraries';
+      return ckeditor_base_path('relative') . '/' . $lib_path;
     case 'local':
-      return ckeditor_base_path('local') . '/sites/all/libraries';
+      return ckeditor_base_path('local') . '/' . $lib_path;
     case 'url':
-      return 'sites/all/libraries';
+      return $lib_path;
   }
 }
 
@@ -391,6 +419,10 @@ function ckeditor_path($mode = 'relative', $refresh = FALSE) {
       default:
       case 'relative':
         if ($global_profile && isset($global_profile->settings['ckeditor_path'])) {
+          // http:// OR https:// OR //
+          if (preg_match("|^(http(s)?:)?//|i", $global_profile->settings['ckeditor_path'])) {
+            return '<URL>';
+          }
           $cke_path = $global_profile->settings['ckeditor_path'];
           $cke_path = strtr($cke_path, array("%b" => ckeditor_base_path('relative'), "%m" => ckeditor_module_path('relative'), "%l" => ckeditor_library_path('relative')));
           $cke_path = str_replace('\\', '/', $cke_path);
@@ -404,6 +436,10 @@ function ckeditor_path($mode = 'relative', $refresh = FALSE) {
             return $cke_static[$mode] = $global_profile->settings['ckeditor_local_path'];
           }
           if (isset($global_profile->settings['ckeditor_path'])) {
+            // http:// OR https:// OR //
+            if (preg_match("|^(http(s)?:)?//|i", $global_profile->settings['ckeditor_path'])) {
+              return '<URL>';
+            }
             $cke_local_path = $global_profile->settings['ckeditor_path'];
             $cke_local_path = strtr($cke_local_path, array("%b" => ckeditor_base_path('local'), "%m" => ckeditor_module_path('local'), "%l" => ckeditor_library_path('local')));
             return $cke_static[$mode] = $cke_local_path;
@@ -412,12 +448,18 @@ function ckeditor_path($mode = 'relative', $refresh = FALSE) {
         return $cke_static[$mode] = ckeditor_module_path('local') . '/ckeditor';
       case 'url':
         if ($global_profile && isset($global_profile->settings['ckeditor_path'])) {
-          $cke_path = $global_profile->settings['ckeditor_path'];
-          $cke_path = strtr($cke_path, array("%m" => ckeditor_module_path('url'), "%l" => ckeditor_library_path('url')));
-          $cke_path = str_replace('\\', '/', $cke_path);
-          $cke_path = str_replace('//', '/', $cke_path);
-          //In D7 base path in URL mode is not needed, so we need to remove it with trailing slash (if exists)
-          $cke_path = str_replace(array("%b/", "%b"), '', $cke_path);
+          // http:// OR https:// OR //
+          if (preg_match("|^(http(s)?:)?//|i", $global_profile->settings['ckeditor_path'])) {
+            $cke_path = $global_profile->settings['ckeditor_path'];
+          }
+          else {
+            $cke_path = $global_profile->settings['ckeditor_path'];
+            $cke_path = strtr($cke_path, array("%m" => ckeditor_module_path('url'), "%l" => ckeditor_library_path('url')));
+            $cke_path = str_replace('\\', '/', $cke_path);
+            $cke_path = str_replace('//', '/', $cke_path);
+            //In D7 base path in URL mode is not needed, so we need to remove it with trailing slash (if exists)
+            $cke_path = str_replace(array("%b/", "%b"), '', $cke_path);
+          }
           return $cke_static[$mode] = $cke_path;
         }
         return $cke_static[$mode] = ckeditor_module_path('url') . '/ckeditor';
@@ -545,6 +587,7 @@ function ckeditor_features_api() {
   return array(
     'ckeditor_profile' => array(
       'name' => t('CKEditor profiles'),
+      'feature_source' => TRUE,
       'default_hook' => 'ckeditor_profile_defaults',
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
       'file' => drupal_get_path('module', 'ckeditor') . '/includes/ckeditor.features.inc',
@@ -603,6 +646,10 @@ function ckeditor_file_download($uri) {
  */
 function ckeditor_modules_enabled($modules) {
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
+  if (in_array('libraries', $modules)) {
+    // Check and update path to CKEditor in the global profile
+    _ckeditor_requirements_isinstalled();
+  }
   $profiles_list = ckeditor_profile_input_formats();
   $plugins_list = ckeditor_load_plugins();
   foreach ($profiles_list AS $_profile => $_inputs) {
@@ -638,6 +685,7 @@ function ckeditor_modules_disabled($modules) {
   foreach ($profiles_list AS $_profile => $_inputs) {
     $changed = FALSE;
     $profile = ckeditor_profile_load($_profile);
+    if (!isset($profile->settings['loadPlugins'])) continue;
     foreach (array_keys((array) $profile->settings['loadPlugins']) as $plugin_name) {
       if (!array_key_exists($plugin_name, $plugins_list)) {
         $profile->settings['loadPlugins'][$plugin_name]['active'] = 0;
@@ -667,6 +715,7 @@ function ckeditor_modules_uninstalled($modules) {
   foreach ($profiles_list AS $_profile => $_inputs) {
     $changed = FALSE;
     $profile = ckeditor_profile_load($_profile);
+    if (!isset($profile->settings['loadPlugins'])) continue;
     foreach (array_keys((array) $profile->settings['loadPlugins']) as $plugin_name) {
       if (!array_key_exists($plugin_name, $plugins_list)) {
         unset($profile->settings['loadPlugins'][$plugin_name]);
@@ -683,3 +732,17 @@ function ckeditor_modules_uninstalled($modules) {
     }
   }
 }
+
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function ckeditor_field_extra_fields() {
+  $fields['user']['user']['form']['ckeditor'] = array(
+    'label' => t('Rich text editor settings'),
+    'description' => t('Rich text editor settings'),
+    'weight' => 10,
+  );
+  return $fields;
+}
+

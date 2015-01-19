@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -63,7 +63,7 @@ function ckeditor_drush_download() {
  */
 function drush_ckeditor_post_enable() {
   $modules = func_get_args();
-  if (in_array('ckeditor', $modules)) {
+  if (in_array('ckeditor', $modules) && !drush_get_option('skip')) {
     ckeditor_drush_download();
   }
 }
