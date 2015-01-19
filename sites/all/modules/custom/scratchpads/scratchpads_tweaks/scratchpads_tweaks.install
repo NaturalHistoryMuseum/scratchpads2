@@ -557,15 +557,21 @@ function scratchpads_tweaks_update_7008(){
  * FUNCTION ABOVE.
  */
 function scratchpads_tweaks_update_7014(){
-  module_disable(array(
-    'wysiwyg'
-  ));
-  drupal_uninstall_modules(array(
-    'wysiwyg'
-  ));
-  module_enable(array(
-    'ckeditor'
-  ));
+  // This function gets reused when the settings for the CKEditor are altered,
+  // and also during install.  We therefore only uninstall/install if required.
+  if(module_exists('wysiwyg')){
+    module_disable(array(
+      'wysiwyg'
+    ));
+    drupal_uninstall_modules(array(
+      'wysiwyg'
+    ));
+  }
+  if(!module_exists('ckeditor')){
+    module_enable(array(
+      'ckeditor'
+    ));
+  }
   db_delete('ckeditor_settings')->condition('name', 'CKEditor Global Profile', '!=')->execute();
   $default_settings = array(
     'filters' => array(
@@ -624,7 +630,7 @@ function scratchpads_tweaks_update_7014(){
     'ckeditor_load_time_out' => '0',
     'forcePasteAsPlainText' => 't',
     'html_entities' => 't',
-    'scayt_autoStartup' => 't',
+    'scayt_autoStartup' => 'f',
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
@@ -1491,4 +1497,11 @@ function scratchpads_tweaks_update_7083(){
   );
   module_disable($uninstall);
   drupal_uninstall_modules($uninstall);
+}
+
+/**
+ * Disable SCAYT from loading automatically on load of the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7084(){
+  scratchpads_tweaks_update_7014();
 }
