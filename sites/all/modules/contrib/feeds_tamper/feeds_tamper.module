@@ -8,7 +8,7 @@
 /**
  * Load version agnostic code.
  */
-include_once('feeds_tamper.inc');
+require_once dirname(__FILE__) . '/feeds_tamper.inc';
 
 /**
  * Implements hook_feeds_after_parse().
@@ -33,8 +33,6 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
 
   $plugins = feeds_tamper_get_plugins();
   foreach (array_keys($result->items) as $item_key) {
-    // Manually advance the current_item key since we can't use shiftItem().
-    $result->current_item = $result->items[$item_key];
 
     // Initialize every source value.
     $result->items[$item_key] += $sources;
@@ -44,9 +42,12 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
         $element_key = drupal_strtolower($element_key);
       }
 
+      // Manually advance the current_item key since we can't use shiftItem().
+      // Plugins can change it, so re-set.
+      $result->current_item = $result->items[$item_key];
+
       // Plugins assume that everything lives in the item array.
       $result->items[$item_key][$element_key] = $parser->getSourceElement($source, $result, $element_key);
-      $is_array = is_array($result->items[$item_key][$element_key]);
 
       foreach ($instances as $instance) {
         // If the item was unset by previous plugin, jump ahead.
@@ -54,17 +55,19 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
           break 2;
         }
 
+        // Array-ness can change depending on what the plugin is doing.
+        $is_array = is_array($result->items[$item_key][$element_key]);
         $plugin = $plugins[$instance->plugin_id];
 
-        if ($is_array && $plugin['multi'] == 'loop') {
+        if ($is_array && $plugin['multi'] === 'loop') {
           foreach ($result->items[$item_key][$element_key] as &$i) {
             $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings, $source);
           }
         }
-        elseif ($is_array && $plugin['multi'] == 'direct') {
+        elseif ($is_array && $plugin['multi'] === 'direct') {
           $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
         }
-        elseif (!$is_array && $plugin['single'] != 'skip') {
+        elseif (!$is_array && $plugin['single'] !== 'skip') {
           $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
         }
       }

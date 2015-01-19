@@ -42,7 +42,7 @@ function feeds_tamper_ui_menu() {
     'weight' => 10,
   ) + $defaults;
 
-  $items['admin/structure/feeds/%feeds_importer/tamper/add/%'] = array(
+  $items['admin/structure/feeds/%feeds_importer/tamper/add/%feeds_tamper_ui_source'] = array(
     'title callback' => 'feeds_tamper_ui_add_title',
     'title arguments' => array(6),
     'page arguments' => array('feeds_tamper_ui_add_plugin_form', 3, 6),
@@ -83,11 +83,19 @@ function feeds_tamper_plugin_instance_load($instance_id) {
 }
 
 /**
+ * Menu loader callback for grabbing the source from the URL.
+ */
+function feeds_tamper_ui_source_load($source) {
+  // We've HEX encoded the source to allow all possible characters.
+  return pack('H*', $source);
+}
+
+/**
  * Add plugin title callback.
  */
 function feeds_tamper_ui_add_title($source) {
   // Title callbacks get check_plain'ed already.
-  return t('Add plugin to: !source', array('!source' => rawurldecode($source)));
+  return t('Add plugin to: !source', array('!source' => $source));
 }
 
 /**

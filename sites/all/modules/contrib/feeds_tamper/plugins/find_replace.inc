@@ -60,10 +60,14 @@ function feeds_tamper_find_replace_validate(&$settings) {
     $settings['regex'] = TRUE;
 
     if ($settings['whole']) {
-      $regex = '/^' . $settings['find'] . '$/';
+      $regex = '/^' . preg_quote($settings['find'], '/') . '$/u';
     }
     else {
-      $regex = '/\b' . $settings['find'] . '\b/';
+      // Word boundaries can only match a word with letters at the end.
+      if (!preg_match('/^\w(.*\w)?$/u', $settings['find'])) {
+        form_set_error('settings][find', t('Search text must begin and end with a letter, number, or underscore to use the %option option.', array('%option' => t('Respect word boundaries'))));
+      }
+      $regex = '/\b' . preg_quote($settings['find'], '/') . '\b/u';
     }
     if (!$settings['case_sensitive']) {
       $regex .= 'i';
