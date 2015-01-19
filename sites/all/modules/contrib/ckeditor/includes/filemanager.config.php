@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -86,7 +86,14 @@ CheckAuthentication();
 
 if (isset($_SESSION['ckeditor']['UserFilesPath'], $_SESSION['ckeditor']['UserFilesAbsolutePath'])) {
   $baseUrl = $_SESSION['ckeditor']['UserFilesPath'];
-  $baseDir = $_SESSION['ckeditor']['UserFilesAbsolutePath'];
+  // To deal with multiple application servers it's better to let CKFinder guess the server path based on the URL,
+  // because the server side path changes on each request (#2127467).
+  if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
+    $baseDir = resolveUrl($baseUrl);
+  }
+  else {
+    $baseDir = $_SESSION['ckeditor']['UserFilesAbsolutePath'];
+  }
 }
 else {
   // Nothing in session? Shouldn't happen... anyway let's try to upload it in the (almost) right place
