@@ -1,3 +1,60 @@
+2013-07-15
+New stable release 7.x-1.15
+
+Updated the default URL to CKEditor CDN to use the 4.4.3 version.
+[#2175565] removed ckeditor.make added in 7.x-1.14.
+
+2013-05-08
+New stable release 7.x-1.14
+
+[#2255129] by wwalc: Introduced support for the codesnippet and mathjax plugins.
+[#1762328] by wwalc: IMPORTANT: <code> tags are no longer protected by default.
+[#1327898] by grasmash: Adding new ckeditor_security_filter_alter() hook.
+[#2175565] by hswong3i: Download Library with ckeditor.make for Simple Profile Integration. (removed in 7.x-1.15)
+[#2249139] by wwalc: Use CKEditor 4.4.0 from CKEditor CDN (http://cdn.ckeditor.com) by default.
+[#1370894] by uberhacker, mgifford, Devin Carlson: Conditionally load ckeditor.css only when necessary.
+[#1960808] by valkum, wwalc: Avoid using arg() in code.
+[#1914496] by Danylo Dragan: Drush integration code doesn't respect --skip option.
+[#2085245] by jlyon: Fix theme path displayed on Edit CKEditor Profile page.
+[#2123669] by wwalc: Better support for loading custom CKEditor skins.
+[#1914904] by rooby: Media plugin not working in IE 9 and below.
+[#2244835] by loopduplicate: CKEditor is not visible in Panels IPE in IE11.
+[#2244817] by wwalc: CKEditor from CDN does not load in Panels IPE when a form is loaded in a popup for the first time.
+[#2244387] by wwalc: 3rd party plugins with large icons break the toolbar configurator.
+[#2013657] by pfrenssen: Allow other modules to alter the default settings.
+[#2236367] by greenSkin: Add $conf array to ckeditor_settings alter hook.
+[#1452544] by covenantd, RedRat: DrupalPageBreak button not visible when using Smart Paging module.
+[#2231005] by ChinggizKhan: Only set "window.CKEDITOR_BASEPATH" when it isnt already set.
+[#1659576] by ChinggizKhan: Text of "Switch to plain text editor" link doesn't toggle.
+[#2043365] by Erik Erskine, Danny_Joris: CKEditor profile exported as feature with filter format does not import properly.
+[#2234971] by wwalc: Adjust the default toolbars.
+[#2234967] by wwalc: Add support for loading CKEditor from remote URL.
+[#2234943] by wwalc: Use the moono icons in the administration area.
+[#2127467] by wwalc: Support Pantheon Live Environment.
+[#1971566] by wwalc: Mediaembed throws JS error with ACF enabled.
+[#1950498] by wwalc: Advanced Content Filter introduced in CKEditor 4.1 is now configurable in CKEditor profile.
+[#1971502] by wwalc: Mediaembed plugin should define allowedContent for ACF.
+
+2013-04-12
+New stable release 7.x-1.13
+
+Bug fixes:
+
+[#1063482] by nod_, wwalc, roderik, helior, hadsie: Use Libraries API for CKEditor
+[#1898294] by kscheirer: Fatal error if Libraries module is enabled after CKEditor
+[#1961596] by jcisio: Added 'feature_source()' option so that ckeditor_profile() component is visible in drush.
+[#1356026] by Volx, hctom: Fixed Profile loses text formats when exported into a feature using Drush.
+[#1895278] by wwalc WYSIWYG editor should allow Drupal to trigger 'formUpdated' event
+[#1957066] by rudiedirkx: Use field_extra_fields to be able to position the "Rich text editor settings" fieldset
+[#1959754] by wwalc: CKFinder is not installed correctly - improve information in the status report
+[#1810910] by mokaspar, jcisio, DeFr: Fixed Comments gets filtered out by ckeditor_filter_xss().
+[#1909318] by Simon Georges: Useless file inclusion in ckeditor.info.
+[#1603014] by anou, SebCorbin: Corrected strings used in Security section.
+[#1889010] by michal_cksource: Problem with CKFinder files upload when private download method is used
+[#1885950] by michal_cksource: Fix HTML validation for iframe in profile configuration
+[#1885938] by michal_cksource: Disable div based editor on default
+[#1872064] by dczepierga: Undefined index: loadPlugins in ckeditor_modules_disabled() and ckeditor_modules_uninstalled()
+
 2012-12-22
 New stable release 7.x-1.12
 
