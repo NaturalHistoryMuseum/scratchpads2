@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -70,4 +70,45 @@ function hook_ckeditor_security_filter() {
   );
 }
 
-?>
+/**
+ * Hook to alter CKEditor security filters.
+ */
+function hook_ckeditor_security_filter_alter(&$security_filters) {
+  // Modify a $security_filter.
+}
+
+/**
+ * Hook to extend/change the ckeditor settings.
+ *
+ * This hook is invoked from ckeditor_profile_settings_compile(). The settings
+ * may be customized or enhanced; typically with options that cannot be
+ * controlled though the administrative UI from the ckeditor module.
+ *
+ * @param $settings
+ *   An associative array of settings.
+ * @param $conf
+ *   An associative array with access to raw profile settings that might be helpful to alter the real $settings.
+ */
+function hook_ckeditor_settings_alter(&$settings, $conf) {
+  // Change the ckeditor config path.
+  $settings['customConfig'] = drupal_get_path('module', 'ckeditor') . '/ckeditor.config.js';
+}
+
+/**
+ * Hook that allows to alter the user default settings.
+ *
+ * @param $settings
+ *   An associative array of settings.
+ */
+function hook_ckeditor_default_settings_alter(&$settings) {
+  $settings['show_toggle'] = 'f';
+}
+
+/**
+ * Hook to extend CKEditor security allowed tags list.
+ *
+ * This hook is invoked from ckeditor_filter_xss() where text is filtered from potentially insecure tags.
+ */
+function hook_ckeditor_filter_xss_allowed_tags() {
+  // Return an array of additional allowed tags
+}
