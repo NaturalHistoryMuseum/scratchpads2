@@ -49,7 +49,7 @@ function ckeditor_install() {
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
 
   //searching ckeditor.js
-  $editor_path = _ckeditor_script_path();
+  $ckeditor_path = _ckeditor_script_path();
   //insert default input formats to profiles
   db_insert('ckeditor_input_format')->fields(array("name" => "Advanced", "format" => 'filtered_html'))->execute();
   db_insert('ckeditor_input_format')->fields(array("name" => "Full", "format" => 'full_html'))->execute();
@@ -67,19 +67,21 @@ function ckeditor_install() {
   $arr['default'] = "t";
   $arr['show_toggle'] = "t";
   $arr['popup'] = variable_get('ckeditor_popup', 0) ? "t" : "f";
+  // <!--break--> does not work in Filtered HTML, so DrupalBreak does not make sense here
+  // https://drupal.org/node/881006
   $arr['toolbar'] = "
 [
     ['Source'],
     ['Cut','Copy','Paste','PasteText','PasteFromWord','-','SpellChecker', 'Scayt'],
-    ['Undo','Redo','Find','Replace','-','SelectAll','RemoveFormat'],
+    ['Undo','Redo','Find','Replace','-','SelectAll'],
     ['Image','Media','Flash','Table','HorizontalRule','Smiley','SpecialChar'],
     ['Maximize', 'ShowBlocks'],
     '/',
     ['Format'],
-    ['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
+    ['Bold','Italic','Underline','Strike','-','Subscript','Superscript','-','RemoveFormat'],
     ['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
     ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-','BidiLtr','BidiRtl'],
-    ['Link','Unlink','Anchor', 'Linkit']
+    ['Link','Unlink','Anchor','Linkit']
 ]
     ";
   $arr['expand'] = variable_get('ckeditor_toolbar_start_expanded', 1) ? "t" : "f";
@@ -119,13 +121,13 @@ function ckeditor_install() {
 [
     ['Source'],
     ['Cut','Copy','Paste','PasteText','PasteFromWord','-','SpellChecker', 'Scayt'],
-    ['Undo','Redo','Find','Replace','-','SelectAll','RemoveFormat'],
+    ['Undo','Redo','Find','Replace','-','SelectAll'],
     ['Image','Media','Flash','Table','HorizontalRule','Smiley','SpecialChar','Iframe'],
     '/',
-    ['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
+    ['Bold','Italic','Underline','Strike','-','Subscript','Superscript','-','RemoveFormat'],
     ['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
-    ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-','BidiLtr','BidiRtl'],
-    ['Link','Unlink','Anchor', 'Linkit'],
+    ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock','-','BidiLtr','BidiRtl','-','Language'],
+    ['Link','Unlink','Anchor','Linkit'],
     ['DrupalBreak'],
     '/',
     ['Format','Font','FontSize'],
@@ -140,8 +142,11 @@ function ckeditor_install() {
 
   $arr = array();
 
-  if ($editor_path) {
-    $arr['ckeditor_path'] = $editor_path;
+  if (!empty($ckeditor_path)) {
+    $arr['ckeditor_path'] = $ckeditor_path;
+  }
+  else {
+    $arr['ckeditor_path'] = '//cdn.ckeditor.com/4.4.3/full-all';
   }
 
   db_insert('ckeditor_settings')->fields(array("name" => "CKEditor Global Profile", "settings" => serialize($arr)))->execute();
@@ -238,13 +243,17 @@ function ckeditor_requirements($phase) {
         }
       }
     }
-    if ((($installed_version = _ckeditor_requirements_getinstalledversion()) !== NULL) && (-1 == version_compare($installed_version, '3.1 SVN')) && $installed_version != '%VERSION%') {
+    if ((($installed_version = _ckeditor_requirements_getinstalledversion()) !== NULL) && $installed_version != '%VERSION%' && $installed_version != '<URL>' && (-1 == version_compare($installed_version, '3.1 SVN'))) {
       $requirements['ckeditor']['description'] = t('Some features are disabled because you are using an older version of CKEditor. Please upgrade to CKEditor 3.1 (or higher).');
       $requirements['ckeditor']['severity'] = REQUIREMENT_INFO;
     }
     if (!empty($installed_version)) {
       if ($installed_version == '%VERSION%') {
         $requirements['ckeditor']['value'] = 'GIT version';
+      }
+      else if ($installed_version == '<URL>') {
+        $requirements['ckeditor']['value'] = 'Unknown version. CKEditor is loaded from a remote URL.';
+        $requirements['ckeditor']['severity'] = REQUIREMENT_INFO;
       }
       else {
         $requirements['ckeditor']['value'] = $installed_version;
@@ -275,6 +284,14 @@ function ckeditor_requirements($phase) {
 function _ckeditor_requirements_getinstalledversion() {
   module_load_include('module', 'ckeditor');
   $editor_path = ckeditor_path('local', TRUE);
+  if ($editor_path == '<URL>') {
+    $url = ckeditor_path('url', TRUE);
+    $matches = array();
+    if (preg_match("|cdn.ckeditor.com/(\d(\.\d+)+.*)/|i", $url, $matches)) {
+      return $matches[1];
+    }
+    return '<URL>';
+  }
   $jspath = $editor_path . '/ckeditor.js';
 
   $configcontents = @file_get_contents($jspath);
@@ -300,9 +317,10 @@ function _ckeditor_requirements_ckfinder_config_check($profile_name) {
   $config_path = ckfinder_path('local') . '/config.php';
 
   if (!file_exists($config_path)) {
-    return t('!ckfinder is not installed correctly: <code>!config</code> not found. Make sure that you uploaded all files and did not accidentally remove the configuration file.', array(
+    return t('!ckfinder is not installed correctly: <code>!config</code> not found. Make sure that you uploaded all files and did not accidentally remove the configuration file. If you installed CKFinder in other location (e.g. in the libraries folder), make sure to update the path to CKFinder in !global.', array(
           '!config' => $config_path,
-          '!ckfinder' => '<a href="http://ckfinder.com">CKFinder</a>'
+          '!ckfinder' => '<a href="http://cksource.com/ckfinder">CKFinder</a>',
+          '!global' => l(t('CKEditor Global Profile'), 'admin/config/content/ckeditor/editg')
         ));
   }
 
