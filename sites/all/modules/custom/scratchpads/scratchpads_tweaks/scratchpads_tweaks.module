@@ -453,6 +453,27 @@ function scratchpads_tweaks_translate_after_check_plain($string){
 }
 
 /**
+ * Implements hook_menu()
+ */
+function scratchpads_tweaks_menu(){
+  return array(
+    'admin/config/development/clearcache' => array(
+      'title' => 'Clear caches',
+      'description' => "Clear this site's caches, which may help resolve temporary issues with your site.",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_tweaks_clear_site_cache'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'scratchpads_tweaks.pages.inc',
+      'weight' => -10
+    )
+  );
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_tweaks_menu_alter(&$items){
