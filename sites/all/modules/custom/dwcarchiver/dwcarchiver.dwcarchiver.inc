@@ -633,10 +633,11 @@ function dwcarchiver_dwcarchiver_archives(){
           'maps' => array(
             array(
               array(
-                'field' => 'uuid',
+                'field' => 'dwcarchiver_text_entry',
                 'uri' => 'coreid',
                 'required' => 0,
-                'processor' => 'dwcarchiver_raw_text'
+                'processor' => 'dwcarchiver_value',
+                'value' => ''
               ),
               array(
                 'field' => 'uuid',
@@ -670,6 +671,13 @@ function dwcarchiver_dwcarchiver_archives(){
           'field_name' => '',
           'maps' => array(
             array(
+              array(
+                'field' => 'dwcarchiver_text_entry',
+                'uri' => 'coreid',
+                'required' => 0,
+                'processor' => 'dwcarchiver_value',
+                'value' => ''
+              ),
               array(
                 'field' => 'uuid',
                 'uri' => 'http://purl.org/dc/terms/identifier',
@@ -707,7 +715,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 'processor' => 'dwcarchiver_raw_text'
               ),
               array(
-                'field' => 'dwcarchiver_text_entry',
+                'field' => 'dwcarchiver_text_entry_1',
                 'uri' => 'http://eol.org/schema/agent/agentRole',
                 'required' => 0,
                 'processor' => 'dwcarchiver_value',
@@ -916,6 +924,12 @@ function dwcarchiver_dwcarchiver_archives(){
             'uri' => 'http://eol.org/schema/media/referenceID',
             'required' => 0,
             'processor' => 'dwcarchiver_raw_text'
+          ),
+          array(
+            'field' => 'special_biblio_back_reference:uuid',
+            'uri' => 'http://eol.org/schema/media/referenceID',
+            'required' => 0,
+            'processor' => 'dwcarchiver_raw_text_group_concat'
           )
         )
       )
