@@ -484,6 +484,22 @@ function dwcarchiver_dwcarchiver_processors_alter(&$processors){
       'list_text'
     )
   );
+  $processors['dwcarchiver_raw_text_group_concat'] = array(
+    'module' => 'dwcarchiver',
+    'file' => 'dwcarchiver.processors.inc',
+    'callback' => 'dwcarchiver_processor_dwcarchiver_raw_text_group_concat',
+    'label' => t('Group concat raw value'),
+    'field types' => array(
+      'entity_property',
+      'text',
+      'text_long',
+      'text_with_summary',
+      'number_integer',
+      'list_boolean',
+      'list_integer',
+      'list_text'
+    )
+  );
   $processors['dwcarchiver_raw_text_concatenate_value_after'] = array(
     'module' => 'dwcarchiver',
     'file' => 'dwcarchiver.processors.inc',
