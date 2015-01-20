@@ -148,7 +148,7 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
       // Load the processor, and call it!
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
       include_once ($path . '/' . $processors[$map->processor]['file']);
-      if($map->uri == 'coreid'){
+      if($map->uri == 'coreid' && $map->processor != 'dwcarchiver_value'){
         module_load_include('processors.inc', 'dwcarchiver');
         dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, $query);
       }else if(function_exists($processors[$map->processor]['callback'])){
@@ -203,6 +203,9 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
     case 'parent':
       $query->leftJoin('taxonomy_term_hierarchy', $field, $field . ".tid = base.{$info['entity keys']['id']}");
       return $query->leftJoin('taxonomy_term_data', "{$field}_term_data", "{$field}_term_data.tid = {$field}.parent");
+    case 'special_biblio_back_reference':
+      $query->leftJoin('field_data_field_taxonomic_name', $field, $field . ".field_taxonomic_name_tid = base.{$info['entity keys']['id']}");
+      return $query->leftJoin('node', "special_biblio_back_reference_node", "special_biblio_back_reference_node.nid = {$field}.entity_id");
     case 'user':
       return $query->leftJoin('users', "{$field}", "{$field}.uid = base.uid");
     default:
