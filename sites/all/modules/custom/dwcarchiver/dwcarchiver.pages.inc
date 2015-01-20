@@ -381,7 +381,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#type' => 'fieldset',
         '#title' => $extension->name,
         '#description' => $extension->rowtype . ' (' . $extension->machine_name . ')',
-        'fields' => _dwcarchiver_archive_form_fields($extension->entity, $extension->bundles, $extension->maps)
+        'fields' => _dwcarchiver_archive_form_fields($extension->entity, $extension->bundle, $extension->maps)
       );
       $form['extensions'][$extension->machine_name]['fields']['#suffix'] = '<div id="' . $extension->machine_name . '-add-more-wrapper"></div>';
       $form['extensions'][$extension->machine_name]['add_another_mapping'] = array(
