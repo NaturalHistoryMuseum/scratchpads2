@@ -15,6 +15,21 @@ function dwcarchiver_processor_dwcarchiver_raw_text(SelectQuery $query, $field, 
 }
 
 /**
+ * Second simplest processor of them all - groups together values
+ */
+function dwcarchiver_processor_dwcarchiver_raw_text_group_concat(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
+  $field_info = field_info_field($field);
+  $query->groupBy('base.uuid');
+  if($field_info){
+    $entity_info = entity_get_info($entity_type);
+    _dwcarchiver_processor_join_field_table($query, $field, $entity_type, $map_id, $map, $table);
+    $query->addExpression("GROUP_CONCAT(REPLACE(REPLACE(table_{$map_id}.{$field}_value, '\r', ''), '\n', ' ') SEPARATOR ';')");
+  }else{
+    $query->addExpression("GROUP_CONCAT(REPLACE(REPLACE({$table}.{$field}, '\r', ''), '\n', ' ') SEPARATOR ';')");
+  }
+}
+
+/**
  * Similar to the above processor, but this concatenates a value to it.
  * 
  */
