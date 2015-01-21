@@ -388,7 +388,10 @@ function scratchpads_tweaks_theme_registry_alter(&$reg){
  * Alt theme_field function 
  */
 function scratchpads_tweaks_theme_field($variables){
-  if(!empty($variables['element']['#field_type']) && $variables['element']['#field_type'] == 'file' && !empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')){
+  if(!empty($variables['element']['#field_type']) && in_array($variables['element']['#field_type'], array(
+    'file',
+    'image'
+  )) && (!empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')) || !empty($variables['items'][0]['#image_style']) && $variables['items'][0]['#image_style'] == 'thumbnail'){
     $variables['classes'] .= ' float-media-left clearfix';
   }
   return theme_field($variables);
