@@ -88,8 +88,90 @@ function tinytax_menu(){
         'access content' // FIXME - Should this be a little more inteligent?
       ),
       'type' => MENU_CALLBACK
+    ),
+    'tinytax/autocomplete' => array(
+      'title' => 'Tinytax autocomplete taxonomy',
+      'page callback' => 'tinytax_taxonomy_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
     )
   );
+}
+
+/**
+ * Page callback: Outputs JSON for tinytax taxonomy autocomplete suggestions.
+ */
+function tinytax_taxonomy_autocomplete($vid, $tags_typed){
+  // If the request has a '/' in the search text, then the menu system will have
+  // split it into multiple arguments, recover the intended $tags_typed.
+  $args = func_get_args();
+  // Shift off the $field_name argument.
+  array_shift($args);
+  $tags_typed = implode('/', $args);
+  // The user enters a comma-separated list of tags. We only autocomplete the
+  // last tag.
+  $tags_typed = drupal_explode_tags($tags_typed);
+  $tag_last = drupal_strtolower(array_pop($tags_typed));
+  $matches = array();
+  if($tag_last != ''){
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+    $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->innerJoin('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
+    $query->addField('v', 'name', 'vocab_name');
+    // Do not select already entered terms.
+    if(!empty($tags_typed)){
+      $query->condition('t.name', $tags_typed, 'NOT IN');
+    }
+    // Select rows that match by term name.
+    $query->fields('t', array(
+      'tid',
+      'name',
+      'vid'
+    ))->condition('t.vid', $vid);
+    // Clone the query to give three different queries, and union them together.
+    // This gives us the sort order we want.
+    // 1. TERM
+    // 2. TERM%
+    // 3. %TERM%
+    $query_no_prefix_or_suffix = clone $query;
+    $query_no_prefix = clone $query;
+    $query_no_prefix_or_suffix->condition('t.name', db_like($tag_last), 'LIKE')->range(0, 10);
+    $query_no_prefix->condition('t.name', db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    $query->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    // Union the three queries.
+    $query_no_prefix_or_suffix->union($query_no_prefix);
+    $query_no_prefix_or_suffix->union($query);
+    // Execute, and fetch!
+    // Note, the range is included four times to keep the size of the results
+    // to a minimum.
+    $tags_return = $query_no_prefix_or_suffix->range(0, 10)->execute()->fetchAll();
+    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+    $term_matches = array();
+    foreach($tags_return as $tag){
+      $n = $tag->name . ' [' . $tag->tid . ']';
+      // Term names containing commas or quotes must be wrapped in quotes.
+      if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
+        $n = '"' . str_replace('"', '""', $tag->name) . '"';
+      }
+      // Get all parents
+      $parents = taxonomy_get_parents_all($tag->tid);
+      $parents = array_reverse($parents);
+      $parent_names = array();
+      foreach($parents as $parent){
+        $authors = '';
+        if(!@empty($parent->field_authors['und'][0]['value'])){
+          $authors = " {$parent->field_authors['und'][0]['value']}";
+        }
+        $parent_names[] = check_plain($parent->name . $authors);
+      }
+      $term_matches[$prefix . $n] = implode(" &raquo; ", $parent_names);
+    }
+  }
+  drupal_json_output($term_matches);
 }
 
 /**
@@ -123,7 +205,7 @@ function tinytax_block_view($delta = ''){
     $block_array = array(
       '#theme' => 'tinytax_block',
       '#vid' => $delta,
-      '#open_tids' => $open_tids,
+      '#open_tids' => array_unique(array_merge($open_tids, variable_get('tinytax_always_open_tids_' . $delta, array()))),
       '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0)
     );
     $block['subject'] = check_plain($vocabulary->name);
@@ -177,6 +259,14 @@ function tinytax_block_configure($delta = ''){
       '#type' => 'checkbox',
       '#title' => t('Tick to show the total number of descendants of each term.'),
       '#default_value' => variable_get('tinytax_ancestors_' . $delta, 0)
+    ),
+    'always_display_field' => array(
+      '#type' => 'textfield',
+      '#autocomplete_path' => 'tinytax/autocomplete/' . $delta,
+      '#title' => t('Always display'),
+      '#description' => t('Select terms to always display in the tree - this will ensure the tree is expanded to a specific point'),
+      '#maxlength' => 1024,
+      '#default_value' => variable_get('tinytax_always_open_' . $delta, '')
     )
   );
   // We get a list of all the fields that are attached to this bundle.
@@ -240,6 +330,28 @@ function tinytax_block_save($delta = '', $edit = array()){
     }
   }
   variable_set('tinytax_ancestors_' . $delta, $edit['tinytax_ancestors']);
+  // Set the term to always display.
+  $typed_terms = drupal_explode_tags($edit['always_display_field']);
+  $value = array();
+  $value_tids = array();
+  foreach($typed_terms as $typed_term){
+    // See if the term exists in the chosen vocabulary and return the tid;
+    // otherwise, create a new 'autocreate' term for insert/update.
+    preg_match('/([^\[]*)\[([0-9]*)\]/', trim($typed_term), $matches);
+    if(count($matches) >= 3){
+      $term = taxonomy_term_load($matches[2]);
+      if($term && $term->vid == $delta){
+        $value[] = $typed_term;
+        foreach(taxonomy_get_parents_all($term->tid) as $term){
+          $value_tids[$term->tid] = $term->tid;
+        }
+      }
+    }
+  }
+  // A little lazy, but we save the string entered by the user AND the tids that
+  // they resolve to.
+  variable_set('tinytax_always_open_' . $delta, implode(', ', $value));
+  variable_set('tinytax_always_open_tids_' . $delta, $value_tids);
 }
 
 /**
