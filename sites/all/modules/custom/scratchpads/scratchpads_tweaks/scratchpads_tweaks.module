@@ -378,6 +378,20 @@ function scratchpads_tweaks_theme_registry_alter(&$reg){
   $reg['token_tree']['variables']['dialog'] = TRUE;
   $reg['token_tree']['variables']['recursion_limit'] = 2;
   $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
+  // Alter the theme_field function so that we can add some CSS (this seems
+  // thoroughly backward, but I can't see a better way of doing this).
+  $reg['field']['function'] = 'scratchpads_tweaks_theme_field';
+  $reg['field']['theme path'] = drupal_get_path('module', 'scratchpads_tweaks');
+}
+
+/**
+ * Alt theme_field function 
+ */
+function scratchpads_tweaks_theme_field($variables){
+  if(!empty($variables['element']['#field_type']) && $variables['element']['#field_type'] == 'file' && !empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')){
+    $variables['classes'] .= ' float-media-left clearfix';
+  }
+  return theme_field($variables);
 }
 
 /**

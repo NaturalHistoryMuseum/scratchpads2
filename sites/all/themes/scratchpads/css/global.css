@@ -615,6 +615,15 @@ h1.site-name,h2.site-name {
   margin: 0;
 }
 
+.float-media-left .field-item{
+  float: left;
+  margin: 2px;
+  padding: 2px;
+  height: 100px;
+  width: 100px;
+  border:solid 1px #ccc;
+
+}
 /************************ NODES *********************/
 .node .submitted {
   color: #888;
