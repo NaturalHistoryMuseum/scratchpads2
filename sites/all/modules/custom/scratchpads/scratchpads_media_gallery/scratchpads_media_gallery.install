@@ -14,7 +14,8 @@ function scratchpads_media_gallery_install(){
     'settings' => serialize(array(
       'fq' => array(
         'entity_type:file',
-        'bundle:(image OR video OR audio)'
+        'bundle:(image OR video OR audio)',
+        '-im_field_weight:100'
       ),
       'apachesolr_search_custom_enable' => 1,
       'apachesolr_search_search_type' => 'custom',
@@ -493,4 +494,33 @@ function scratchpads_media_gallery_update_7018(){
   ));
   $select_revision->condition('fid', $subquery, 'NOT IN');
   db_insert('field_revision_field_weight')->from($select_revision)->execute();
+}
+
+/**
+ * Hide images with weight 100 from the media gallery page.
+ */
+function scratchpads_media_gallery_update_7019(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)',
+        '-im_field_weight:100'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '56',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  ))->key(array(
+    'page_id' => 'media_gallery'
+  ))->execute();
 }
