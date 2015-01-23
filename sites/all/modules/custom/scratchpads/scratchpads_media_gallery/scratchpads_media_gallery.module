@@ -24,6 +24,15 @@ function scratchpads_media_gallery_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_media_gallery_form_file_entity_edit_alter(&$form, &$form_state, $form_id){
+  if(isset($form['field_weight'])){
+    $form['field_weight'][LANGUAGE_NONE]['#description'] = t('Note, setting a file to weight "100" will hide it completely from ALL media gallery pages.');
+  }
+}
+
+/**
  * Implementation of hook_scratchpads_solr_info().
  */
 function scratchpads_media_gallery_scratchpads_solr_info(){
