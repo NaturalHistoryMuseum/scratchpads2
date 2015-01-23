@@ -640,6 +640,10 @@ h1.site-name,h2.site-name {
   border-top: 1px solid #D9DADD;
 }
 
+.stripy-div-group:empty{
+  display:none!important;
+}
+
 .stripy-div-group .field {
   border-width: 1px;
   border-color: #D9DADD;
