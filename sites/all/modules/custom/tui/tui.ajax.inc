@@ -69,13 +69,35 @@ function tui_ajax_blank(&$form, &$form_state){
 }
 
 /**
+ * Link to another form, which allows us to tweak the redirect on submission.
+ */
+function tui_taxonomy_vocabulary_confirm_reset_alphabetical($form, &$form_state, $vid){
+  return taxonomy_vocabulary_confirm_reset_alphabetical($form, $form_state, $vid);
+}
+
+/**
+ * Submit for above form 
+ */
+function tui_taxonomy_vocabulary_confirm_reset_alphabetical_submit($form, &$form_state){
+  taxonomy_vocabulary_confirm_reset_alphabetical_submit($form, $form_state);
+  $form_state['redirect'] = array(
+    'admin/structure/taxonomy/' . $form_state['values']['machine_name'],
+    array(
+      'query' => array(
+        'render' => 'overlay'
+      )
+    )
+  );
+}
+
+/**
  * AJAX Callback to get a term form
  */
 function tui_form_callback($vocabulary, $action, $tids = ''){
   switch($action){
     case 'reset-form':
       module_load_include('admin.inc', 'taxonomy');
-      $form = drupal_get_form('taxonomy_vocabulary_confirm_reset_alphabetical', $vocabulary->vid);
+      $form = drupal_get_form('tui_taxonomy_vocabulary_confirm_reset_alphabetical', $vocabulary->vid);
       print ajax_render(array(
         ajax_command_html('#tui-tree-form', drupal_render($form)),
         ajax_command_invoke('#tui-tree-form', 'show')
