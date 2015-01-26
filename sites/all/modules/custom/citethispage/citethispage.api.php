@@ -56,13 +56,13 @@
  * be the same as the path that needs processing.
  * 
  */
-function mymodule_citethispage_info(){
+function hook_citethispage_info(){
   // Provide parsing info for taxonomy terms
   $parsers = array(
     'taxonomy/term/%' => array(
       'title' => t('Taxonomy term page parser'),
       'description' => t('Parses the authors of a taxonomy page'),
-      'callback' => 'mymodule_taxonomy_term_parser'
+      'callback' => 'hook_taxonomy_term_parser'
     )
   );
   // Provide a backend for an online archiving service
@@ -86,7 +86,7 @@ function mymodule_citethispage_info(){
  * 
  * Alter the gathered Cite This Page info
  */
-function mymodule_citethispage_info_alter(&$info){
+function hook_citethispage_info_alter(&$info){
   // Don't provide parsing for file pages
   unset($info['citethispage']['parse']['file/%']);
 }
@@ -96,7 +96,7 @@ function mymodule_citethispage_info_alter(&$info){
  * 
  * Alter the parsed result for a given path
  */
-function mymodule_citethispage_parse_alter($path_pattern, &$results){
+function hook_citethispage_parse_alter($path_pattern, &$results){
   // Only provide author initials for file pages
   if($path_pattern == 'file/%' && !empty($results['authors'])){
     foreach($results['authors'] as $author_index => $author_name){
