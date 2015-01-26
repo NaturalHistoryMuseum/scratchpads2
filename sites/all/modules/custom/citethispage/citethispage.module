@@ -375,6 +375,7 @@ function _citethispage_parse_path($path, $page){
       }
     }
   }
+  drupal_alter('citethispage_parse', $results);
   return $results;
 }
 
