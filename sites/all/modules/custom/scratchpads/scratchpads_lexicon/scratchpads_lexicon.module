@@ -17,6 +17,20 @@ function lexicon_scratchpads_default_permissions(){
 }
 
 /**
+ * Implements hook_theme_registry_alter
+ */
+function scratchpads_lexicon_theme_registry_alter(&$theme_registry){
+  unset($theme_registry['lexicon_overview_item']['template']);
+  //unset($theme_registry['lexicon_overview_item']['theme path']);
+  $theme_registry['lexicon_overview_item']['render element'] = 'term';
+  $theme_registry['lexicon_overview_item']['path'] = drupal_get_path('module', 'scratchpads_lexicon');
+  $theme_registry['lexicon_overview_item']['type'] = 'module';
+  $theme_registry['lexicon_overview_item']['file'] = 'scratchpads_lexicon.theme.inc';
+  $theme_registry['lexicon_overview_item']['function'] = 'theme_scratchpads_lexicon_overview_item';
+  $theme_registry['lexicon_overview_item']['includes'][] = $theme_registry['lexicon_overview_item']['path'] . '/' . $theme_registry['lexicon_overview_item']['file'];
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  * 
  * Stop users altering the lexicon settings too much.  A consistent look across
