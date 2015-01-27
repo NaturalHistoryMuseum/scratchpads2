@@ -205,7 +205,9 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
       return $query->leftJoin('taxonomy_term_data', "{$field}_term_data", "{$field}_term_data.tid = {$field}.parent");
     case 'special_biblio_back_reference':
       $query->leftJoin('field_data_field_taxonomic_name', $field, $field . ".field_taxonomic_name_tid = base.{$info['entity keys']['id']}");
-      return $query->leftJoin('node', "special_biblio_back_reference_node", "special_biblio_back_reference_node.nid = {$field}.entity_id");
+      $alias = $query->leftJoin('node', "special_biblio_back_reference_node", "special_biblio_back_reference_node.nid = {$field}.entity_id");
+      $query->condition('special_biblio_back_reference_node.type', 'biblio');
+      return $alias;
     case 'user':
       return $query->leftJoin('users', "{$field}", "{$field}.uid = base.uid");
     default:
