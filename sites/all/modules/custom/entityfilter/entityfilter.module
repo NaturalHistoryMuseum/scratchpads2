@@ -30,12 +30,21 @@ function entityfilter_filter_tips(){
  * Return an array defining the aliases for entity names.  This is mainly used
  * to tweak the taxonomy_term and taxonomy_vocabulary entity names.
  */
-function entityfilter_get_entity_aliases(){
-  $aliases = array(
-    'term' => 'taxonomy_term',
-    'vocabulary' => 'taxonomy_vocabulary'
-  );
-  drupal_alter('entityfilter_entity_aliases', $aliases);
+function entityfilter_get_entity_aliases($reset = FALSE){
+  $aliases = drupal_static(__FUNCTION__, FALSE, $reset);
+  if(!$aliases){
+    $data = cache_get('entityfilter_aliases');
+    if($data){
+      $aliases = $data->data;
+    }else{
+      $aliases = array(
+        'term' => 'taxonomy_term',
+        'vocabulary' => 'taxonomy_vocabulary'
+      );
+      drupal_alter('entityfilter_entity_aliases', $aliases);
+      cache_set('entityfilter_aliases', $aliases);
+    }
+  }
   return $aliases;
 }
 
@@ -91,7 +100,7 @@ function entityfilter_filter($text, $filter){
           if($user->uid){
             drupal_set_message(t('Error processing entity reference "@match"', array(
               '@match' => $match
-            )), 'error');
+            )), 'error', FALSE);
           }
         }
         if(!$replaced){
