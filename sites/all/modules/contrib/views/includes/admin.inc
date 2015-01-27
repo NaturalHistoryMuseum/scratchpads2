@@ -2005,7 +2005,7 @@ function views_ui_import_validate($form, &$form_state) {
     $form_state['values']['view'] = substr($form_state['values']['view'], 5);
   }
   ob_start();
-  //eval($form_state['values']['view']);
+  eval($form_state['values']['view']);
   ob_end_clean();
 
   if (!is_object($view)) {

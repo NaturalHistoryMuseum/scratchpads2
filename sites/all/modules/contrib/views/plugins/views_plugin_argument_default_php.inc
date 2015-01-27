@@ -50,7 +50,7 @@ class views_plugin_argument_default_php extends views_plugin_argument_default {
     $view = &$this->view;
     $argument = &$this->argument;
     ob_start();
-    //$result = eval($this->options['code']);
+    $result = eval($this->options['code']);
     ob_end_clean();
     return $result;
   }

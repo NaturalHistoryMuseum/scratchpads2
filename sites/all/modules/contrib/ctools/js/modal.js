@@ -258,6 +258,10 @@
         $('input[type=submit], button', this).click(function(event) {
           Drupal.ajax[base].element = this;
           this.form.clk = this;
+          // Stop autocomplete from submitting.
+          if (Drupal.autocompleteSubmit && !Drupal.autocompleteSubmit()) {
+            return false;
+          }
           // An empty event means we were triggered via .click() and
           // in jquery 1.4 this won't trigger a submit.
           if (event.bubbles == undefined) {

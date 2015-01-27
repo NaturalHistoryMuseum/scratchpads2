@@ -298,7 +298,7 @@ function ctools_break_phrase($str) {
 
 /**
  * Set a token/value pair to be replaced later in the request, specifically in
- * ctools_preprocess_page().
+ * ctools_page_token_processing().
  *
  * @param $token
  *   The token to be replaced later, during page rendering.  This should
@@ -654,15 +654,15 @@ function ctools_page_token_processing($children, $elements) {
       list($type, $argument) = $key;
       switch ($type) {
         case 'variable':
-          $tokens[$token] = isset($variables[$argument]) ? $variables[$argument] : '';
+          $tokens[$token] = isset($elements[$argument]) ? $elements[$argument] : '';
           break;
         case 'callback':
           if (is_string($argument) && function_exists($argument)) {
-            $tokens[$token] = $argument($variables);
+            $tokens[$token] = $argument($elements);
           }
           if (is_array($argument) && function_exists($argument[0])) {
             $function = array_shift($argument);
-            $argument = array_merge(array(&$variables), $argument);
+            $argument = array_merge(array(&$elements), $argument);
             $tokens[$token] = call_user_func_array($function, $argument);
           }
           break;

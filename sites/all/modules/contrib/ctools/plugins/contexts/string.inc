@@ -14,6 +14,8 @@ $plugin = array(
   'title' => t('String'),
   'description' => t('A context that is just a string.'),
   'context' => 'ctools_context_create_string',
+  'edit form' => 'ctools_context_string_settings_form',
+  'defaults' => '',
   'keyword' => 'string',
   'no ui' => FALSE,
   'context name' => 'string',
@@ -44,7 +46,8 @@ function ctools_context_create_string($empty, $data = NULL, $conf = FALSE) {
   }
 
   if ($data !== FALSE ) {
-    $context->data = $data;
+    // Support the array storage from the settings form but also handle direct input from arguments.
+    $context->data = is_array($data) ? $data['string'] : $data;
     $context->title = ($conf) ? check_plain($data['identifier']) : check_plain($data);
     return $context;
   }
@@ -62,3 +65,23 @@ function ctools_context_string_convert($context, $type) {
   }
 }
 
+/**
+ * String settings form.
+ */
+function ctools_context_string_settings_form($form, &$form_state) {
+  $conf = &$form_state['conf'];
+
+  $form['string'] = array(
+    '#title' => t('Enter the string'),
+    '#type' => 'textfield',
+    '#maxlength' => 512,
+    '#weight' => -10,
+    '#default_value' => $conf['string'],
+  );
+
+  return $form;
+}
+
+function ctools_context_string_settings_form_submit($form, &$form_state) {
+  $form_state['conf']['string'] = $form_state['values']['string'];
+}

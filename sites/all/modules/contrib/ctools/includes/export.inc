@@ -276,7 +276,7 @@ function ctools_export_crud_import($table, $code) {
   }
   else {
     ob_start();
-    //eval($code);
+    eval($code);
     ob_end_clean();
 
     if (empty(${$export['identifier']})) {

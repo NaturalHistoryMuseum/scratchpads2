@@ -255,6 +255,7 @@ files[] = plugins/views_plugin_style_summary_unformatted.inc
 files[] = plugins/views_plugin_style_table.inc
 
 ; Tests
+files[] = tests/handlers/views_handlers.test
 files[] = tests/handlers/views_handler_area_text.test
 files[] = tests/handlers/views_handler_argument_null.test
 files[] = tests/handlers/views_handler_argument_string.test
@@ -277,6 +278,7 @@ files[] = tests/handlers/views_handler_filter_string.test
 files[] = tests/handlers/views_handler_sort_random.test
 files[] = tests/handlers/views_handler_sort_date.test
 files[] = tests/handlers/views_handler_sort.test
+files[] = tests/test_handlers/views_test_area_access.inc
 files[] = tests/test_plugins/views_test_plugin_access_test_dynamic.inc
 files[] = tests/test_plugins/views_test_plugin_access_test_static.inc
 files[] = tests/test_plugins/views_test_plugin_style_test_mapping.inc
@@ -315,9 +317,9 @@ files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
 
-; Information added by Drupal.org packaging script on 2014-03-05
-version = "7.x-3.7+24-dev"
+; Information added by Drupal.org packaging script on 2014-05-20
+version = "7.x-3.8"
 core = "7.x"
 project = "views"
-datestamp = "1394010814"
+datestamp = "1400618928"
 
