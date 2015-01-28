@@ -54,14 +54,16 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   $field_options = array();
   $instances = field_info_instances('node', $form['#node_type']->type);
   $search_fields = array();
+  $field_types = array(
+    'taxonomy',
+    'text',
+    'options',
+    'tree_widget',
+    'cck_select_other'
+  );
+  drupal_alter('tag_field_types', $field_types);
   foreach($instances as $key => $instance){
-    if(in_array($instance['widget']['module'], array(
-      'taxonomy',
-      'text',
-      'options',
-      'tree_widget',
-      'cck_select_other'
-    ))){
+    if(in_array($instance['widget']['module'], $field_types)){
       $field_options[$key] = $instance['label'];
       if(substr($instance['widget']['type'], 0, 5) == 'text_'){
         $search_fields[$key] = $instance['label'];

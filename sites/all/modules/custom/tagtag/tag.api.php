@@ -60,3 +60,12 @@ function hook_tag_suggestion_info(){
     )
   );
 }
+
+/**
+ * Enable other modules to tweak the widget modules that can be used by the tag
+ * module.  This hook should alter the passed in $field_types array (standard
+ * drupal alter hook).
+ */
+function hook_tag_field_types_alter(&$field_types){
+  $field_types[] = 'module_that_can_be_used';
+}
