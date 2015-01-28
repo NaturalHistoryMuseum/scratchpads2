@@ -29,12 +29,13 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   $search_services = module_invoke_all('tag_suggestion_info');
   $search_options = array();
   $search_options_forms = array();
+  $settings = variable_get('tagtag_node_' . $form['#node_type']->type, array());
   foreach($search_services as $key => $search_service){
     // Add the search service option for checkboxes later.
     $search_options[$key] = $search_service['label'];
     // Add each search service's options form if available.
     if(isset($search_service['options']['callback']) && function_exists($search_service['options']['callback'])){
-      $search_options_forms[$key] = $search_service['options']['callback']($form['#node_type']->type);
+      $search_options_forms[$key] = $search_service['options']['callback']($form['#node_type']->type, $settings);
     }
   }
   // Get a list of front end services that will enable us to interact with
@@ -83,12 +84,13 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   // Form
   $keys_array = array_keys($ui_options);
   $form['tagtag'] = array(
+    '#tree' => TRUE,
     '#type' => 'fieldset',
     '#title' => t('Tag options'),
     '#group' => 'additional_settings',
     'tagtag_search_fields' => array(
       '#weight' => -10,
-      '#default_value' => variable_get('tagtag_search_fields_' . $form['#node_type']->type, $search_fields_default),
+      '#default_value' => isset($settings['tagtag_search_fields']) ? $settings['tagtag_search_fields'] : $search_fields_default,
       '#title' => t('Fields to search for tags'),
       '#type' => 'checkboxes',
       '#options' => $search_fields,
@@ -96,7 +98,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     ),
     'tagtag_search' => array(
       '#weight' => 0,
-      '#default_value' => variable_get('tagtag_search_' . $form['#node_type']->type, array()),
+      '#default_value' => isset($settings['tagtag_search']) ? $settings['tagtag_search'] : array(),
       '#title' => t('Search services'),
       '#type' => 'checkboxes',
       '#options' => $search_options,
@@ -104,7 +106,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     ),
     'tagtag_ui' => array(
       '#weight' => 10,
-      '#default_value' => (count($ui_options) === 1) ? array_pop($keys_array) : variable_get('tagtag_ui_' . $form['#node_type']->type, ''),
+      '#default_value' => (count($ui_options) === 1) ? array_pop($keys_array) : (isset($settings['tagtag_ui']) ? $settings['tagtag_ui'] : ''),
       '#title' => t('Interface'),
       '#type' => 'radios',
       '#options' => $ui_options,
@@ -114,17 +116,17 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       '#weight' => 20,
       '#required' => TRUE,
       '#title' => t('Field to populate'),
-      '#default_value' => variable_get('tagtag_field_' . $form['#node_type']->type, ''),
+      '#default_value' => isset($settings['tagtag_field']) ? $settings['tagtag_field'] : '',
       '#type' => 'select',
       '#options' => array_merge(array(
         0 => '-- Select --'
       ), $field_options),
       '#description' => t('Please select the field you would like tags saving to.  Note, all content in the field will be replaced by tag data.')
     ),
-    'tagtag_replace' => array(
+    'tagtag_append' => array(
       '#weight' => 30,
       '#title' => t('Replace or Append'),
-      '#default_value' => variable_get('tagtag_replace_' . $form['#node_type']->type, 1),
+      '#default_value' => isset($settings['tagtag_append']) ? $settings['tagtag_append'] : 1,
       '#type' => 'radios',
       '#options' => array(
         0 => t('Replace'),
@@ -164,6 +166,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     );
   }
   $form['#validate'][] = 'tagtag_node_type_form_validate';
+  $form['#submit'][] = 'tagtag_node_type_form_submit';
 }
 
 /**
@@ -172,13 +175,23 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
 function tagtag_node_type_form_validate($form, &$form_state){
   // Simply check that a field has been selected ONLY if a search method has
   // been specified.
-  foreach($form_state['input']['tagtag_search'] as $key => $value){
-    if($value && !$form_state['input']['tagtag_field']){
+  foreach($form_state['values']['tagtag']['tagtag_search'] as $key => $value){
+    if($value && !$form_state['values']['tagtag']['tagtag_field']){
       // We've selected a search, but not a field.
       form_set_error('tagtag_field', t('Please select a field to save tags to'));
     }
   }
-  variable_set('tagtag_replace_' . $form['#node_type']->type, $form_state['values']['tagtag_replace']);
+}
+
+/**
+ * Submit function for the above - this saves all of the variables defined by
+ * the tag module and their helpers.
+ */
+function tagtag_node_type_form_submit($form, &$form_state){
+  variable_set('tagtag_node_' . $form['#node_type']->type, $form_state['values']['tagtag']);
+  // The node form automatically saves a variable that's utterly useless to us,
+  // so we delete it just to keep things tidy!
+  variable_del('tagtag_' . $form['#node_type']->type);
 }
 
 /**
@@ -189,7 +202,8 @@ function tagtag_form_alter(&$form, &$form_state, $form_id){
     // We're here, we should call our form_alter functions, and add a submit
     // handler.
     // First get what search services we're using.
-    $implementation = variable_get('tagtag_ui_' . $form['type']['#value'], '');
+    $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
+    $implementation = isset($settings['tagtag_ui']) ? $settings['tagtag_ui'] : '';
     $search_services = module_invoke_all('tag_ui_info');
     if(isset($search_services[$implementation]['form_alter_callback']) && function_exists($search_services[$implementation]['form_alter_callback'])){
       $search_services[$implementation]['form_alter_callback']($form, $form_state);
@@ -204,6 +218,15 @@ function tagtag_form_alter(&$form, &$form_state, $form_id){
 }
 
 /**
+ * Implementation of hook_node_type_delete().
+ */
+function tagtag_node_type_delete($info){
+  if(is_object($info) && isset($info->type)){
+    variable_del("tagtag_node_{$info->type}");
+  }
+}
+
+/**
  * Callback for the submit
  * 
  * This does a lot of the heavy lifting, ensuring that tags are saved to the
@@ -214,17 +237,18 @@ function tagtag_submit_form($form, &$form_state){
   // searches should return an array of tags which simply get added to the 
   // tagtag element of the $node (entity???)
   // First we get the list of fields that we're searching.
-  $implementations = variable_get('tagtag_search_' . $form['type']['#value'], array());
+  $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
+  $implementations = isset($settings['tagtag_search']) ? $settings['tagtag_search'] : '';
   $search_services = module_invoke_all('tag_suggestion_info');
   $tags = array();
   // Loop through each field
-  $fields_to_search = variable_get('tagtag_search_fields_' . $form['type']['#value'], FALSE);
+  $fields_to_search = isset($settings['tagtag_search_fields']) ? array_filter($settings['tagtag_search_fields']) : FALSE;
   if(!$fields_to_search){
     // We haven't set the fields to search - we probably don't have
     // implementations anyway, but in case we do, we'll get the fields to search
     if(count($implementations)){
       // Get a list of fields that the search service should look in for tags.
-      $instances = field_info_instances('node', $type);
+      $instances = field_info_instances('node', $form['type']['#value']);
       $fields_to_search = array();
       foreach($instances as $key => $instance){
         $fields_to_search[] = $key;
@@ -237,7 +261,7 @@ function tagtag_submit_form($form, &$form_state){
       $options = array();
       if(isset($search_services[$implementation]['options']['keys'])){
         foreach($search_services[$implementation]['options']['keys'] as $key){
-          $options[$key] = variable_get($key . '_' . $form['type']['#value'], array());
+          $options[$key] = isset($settings[$implementation][$key]) ? $settings[$implementation][$key] : array();
         }
       }
       foreach($fields_to_search as $field){
@@ -254,7 +278,7 @@ function tagtag_submit_form($form, &$form_state){
   // Finally execute the submit_callback for the UI module we're using
   // The UI module should save data here, rather than saving it on a
   // hook_node_update/insert
-  $implementation = variable_get('tagtag_ui_' . $form['type']['#value'], '');
+  $implementation = isset($settings['tagtag_ui']) ? $settings['tagtag_ui'] : '';
   $ui_service = module_invoke_all('tag_ui_info');
   if(isset($ui_service[$implementation]['submit_callback']) && function_exists($ui_service[$implementation]['submit_callback'])){
     $ui_service[$implementation]['submit_callback']($form, $form_state);
@@ -287,13 +311,14 @@ function tagtag_get_values($array){
  */
 function tagtag_add_tags(&$form_state){
   // First we need to get the field we're adding the data to.
-  $field = variable_get('tagtag_field_' . $form_state['values']['type'], FALSE);
+  $settings = variable_get('tagtag_node_' . $form_state['values']['type'], array());
+  $field = isset($settings['tagtag_field']) ? $settings['tagtag_field'] : FALSE;
   if($field){
     // Get the field
     $field_instance = field_read_instance('node', $field, $form_state['values']['type']);
     //kprint_r($field_instance);
     // Get whether or not this field is set to replace or append
-    $append = variable_get('tagtag_replace_' . $form_state['values']['type'], 1);
+    $append = isset($settings['tagtag_append']) ? $settings['tagtag_append'] : 1;
     $map = array(
       'taxonomy' => 'taxonomy',
       'options' => 'taxonomy',
@@ -333,9 +358,6 @@ function tagtag_add_tags(&$form_state){
             }
           }
           if($append){
-            // Note the difference here. Textarea has tags added to end, field
-            // has text replaced.  This should perhaps be a configuration
-            // option.
             $form_state['values'][$field][LANGUAGE_NONE][0]['value'] .= ' ' . implode("; ", $tag_text);
           }else{
             $form_state['values'][$field][LANGUAGE_NONE][0]['value'] = implode("; ", $tag_text);

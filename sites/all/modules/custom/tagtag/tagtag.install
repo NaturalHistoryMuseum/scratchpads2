@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Convert all tagtag_* variables to the new schema.
+ */
+function tagtag_update_7001(){
+  $values = db_select('variable', 'v')->condition('name', 'tagtag%','LIKE')->fields('v')->execute();
+}
