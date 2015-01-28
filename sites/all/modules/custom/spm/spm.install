@@ -112,7 +112,7 @@ function spm_update_7006(){
  * Set the Autotag options so that this content type is NOT autotaged.
  */
 function spm_update_7007(){
-  variable_set('tagtag_search_spm', array());
+  variable_set('tagtag_node_spm', array());
 }
 
 /**
@@ -167,4 +167,11 @@ function spm_update_7011(){
     $fields = spm_field_default_fields();
     field_update_instance($fields['node-spm-field_media']['field_instance']);
   }
+}
+
+/**
+ * Set the Autotag options so that this content type is NOT autotaged.
+ */
+function spm_update_7012(){
+  variable_set('tagtag_node_spm', array());
 }
