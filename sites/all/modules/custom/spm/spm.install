@@ -179,7 +179,7 @@ function spm_update_7012(){
 /**
  * Enable the auto_entitylabel module
  */
-function spm_update_7012(){
+function spm_update_7013(){
   module_enable(array(
     'auto_entitylabel'
   ));
