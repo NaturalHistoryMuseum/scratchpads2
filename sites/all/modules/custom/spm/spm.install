@@ -112,7 +112,7 @@ function spm_update_7006(){
  * Set the Autotag options so that this content type is NOT autotaged.
  */
 function spm_update_7007(){
-  variable_set('tagtag_search_spm', array());
+  variable_set('tagtag_node_spm', array());
 }
 
 /**
@@ -170,9 +170,16 @@ function spm_update_7011(){
 }
 
 /**
- * Enable the auto_entitylabel module
+ * Set the Autotag options so that this content type is NOT autotaged.
  */
 function spm_update_7012(){
+  variable_set('tagtag_node_spm', array());
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7013(){
   module_enable(array(
     'auto_entitylabel'
   ));

@@ -369,6 +369,10 @@ function scratchpads_tweaks_install_help_install_filters(){
         'weight' => 12,
         'status' => 1
       ),
+      'entityfilter' => array(
+        'weight' => 13,
+        'status' => 1
+      ),
       'twitter_filter_filter' => array(
         'weight' => 1000,
         'status' => 1
@@ -587,7 +591,7 @@ function scratchpads_tweaks_update_7014(){
 ',
     'uicolor_user' => 'default',
     'toolbar' => '[
-    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'Format\',\'Bold\',\'Italic\',\'Underline\'],
     [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
     [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
     [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
@@ -1503,5 +1507,22 @@ function scratchpads_tweaks_update_7083(){
  * Disable SCAYT from loading automatically on load of the WYSIWYG editor.
  */
 function scratchpads_tweaks_update_7084(){
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Add the entityfilter filter
+ */
+function scratchpads_tweaks_update_7085(){
+  module_enable(array(
+    'entityfilter'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Enable the "Format" button within the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7086(){
   scratchpads_tweaks_update_7014();
 }

@@ -150,6 +150,20 @@ function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form
 }
 
 /**
+ * Implements hook_tag_field_types_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_field_types_alter(&$field_types){
+  $field_types[] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
+ * Implements hook_tag_widget_map_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_widget_map_alter(&$maps){
+  $maps['scratchpads_taxonomic_name_field'] = 'taxonomy';
+}
+
+/**
  * Almost identical to the original function, but with added brackets,
  * vocabulary name and tweak to return exact matches first.
  */

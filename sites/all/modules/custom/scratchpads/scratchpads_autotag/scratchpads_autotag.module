@@ -18,9 +18,10 @@ function scratchpads_autotag_node_type_update($info){
  * Helper function for install and hook_node_type_insert().
  */
 function _scratchpads_autotag_save_defaults_for_node_type($node_type){
+  return;
   $instances = field_info_instances('node', $node_type);
   if(isset($instances['field_taxonomic_name']) && !variable_get("tagtag_replace_$node_type", FALSE)){
-    variable_set("tagtag_replace_$node_type", '1');
+    variable_set("tagtag_replace_$node_type", variable_get("tagtag_replace_$node_type", 1));
     variable_set("tagtag_field_$node_type", 'field_taxonomic_name');
     variable_set("tagtag_ui_$node_type", 'tag_on_save');
     $value = array(
@@ -70,18 +71,4 @@ function scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary){
  */
 function scratchpads_autotag_taxonomy_vocabulary_update($vocabulary){
   scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary);
-}
-
-/**
- * Implementation of hook_node_type_delete().
- */
-function scratchpads_autotag_node_type_delete($info){
-  if(is_object($info) && isset($info->type)){
-    // Delete variables.
-    variable_del("tagtag_replace_{$info->type}");
-    variable_del("tagtag_field_{$info->type}");
-    variable_del("tagtag_ui_{$info->type}");
-    variable_del("tagtag_search_{$info->type}");
-    variable_del("tagtag_search_fields_{$info->type}");
-  }
 }
