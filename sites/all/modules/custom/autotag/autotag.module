@@ -170,3 +170,16 @@ function autotag_tag_options($node_type, $settings){
     )
   );
 }
+
+/**
+ * Implements hook_update_dependencies()
+ */
+function autotag_update_dependencies(){
+  return array(
+    'autotag' => array(
+      7001 => array(
+        'tagtag' => 7001
+      )
+    )
+  );
+}

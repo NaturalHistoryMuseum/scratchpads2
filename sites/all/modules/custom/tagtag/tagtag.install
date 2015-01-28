@@ -4,5 +4,40 @@
  * Convert all tagtag_* variables to the new schema.
  */
 function tagtag_update_7001(){
-  $values = db_select('variable', 'v')->condition('name', 'tagtag%','LIKE')->fields('v')->execute();
+  $values = db_select('variable', 'v')->condition('name', 'tagtag%', 'LIKE')->fields('v')->execute();
+  $settings = array();
+  foreach($values as $value){
+    $parts = explode('_', $value->name);
+    array_shift($parts);
+    $value = unserialize($value->value);
+    switch($parts[0]){
+      case 'field':
+        array_shift($parts);
+        $settings[implode('_', $parts)]['tagtag_field'] = $value;
+        break;
+      case 'replace':
+        array_shift($parts);
+        $settings[implode('_', $parts)]['tagtag_append'] = ($value ? 1 : 0);
+        break;
+      case 'ui':
+        array_shift($parts);
+        $settings[implode('_', $parts)]['tagtag_ui'] = $value;
+        break;
+      case 'search':
+        array_shift($parts);
+        switch($parts[0]){
+          case 'fields':
+            array_shift($parts);
+            $settings[implode('_', $parts)]['tagtag_search_fields'] = $value;
+            break;
+          default:
+            $settings[implode('_', $parts)]['tagtag_search'] = $value;
+            break;
+        }
+    }
+  }
+  db_delete('variable')->condition('name', 'tagtag%', 'LIKE')->execute();
+  foreach($settings as $key => $value){
+    variable_set('tagtag_node_' . $key, $value);
+  }
 }

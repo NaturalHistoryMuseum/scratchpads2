@@ -5,4 +5,18 @@
  */
 function autotag_update_7001(){
   $values = db_select('variable', 'v')->condition('name', 'autotag%', 'LIKE')->fields('v')->execute();
+  foreach($values as $value){
+    $parts = explode('_', $value->name);
+    if(count($parts) >= 3){
+      array_shift($parts);
+      array_shift($parts);
+      $type = implode('_', $parts);
+      $settings = variable_get('tagtag_node_' . $type, FALSE);
+      if($settings){
+        $settings['autotag']['autotag_vids'] = unserialize($value->value);
+        variable_set('tagtag_node_' . $type, $settings);
+      }
+    }
+  }
+  db_delete('variable')->condition('name', 'autotag%', 'LIKE')->execute();
 }
