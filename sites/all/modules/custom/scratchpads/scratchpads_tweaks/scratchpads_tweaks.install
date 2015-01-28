@@ -591,7 +591,7 @@ function scratchpads_tweaks_update_7014(){
 ',
     'uicolor_user' => 'default',
     'toolbar' => '[
-    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'Format\',\'Bold\',\'Italic\',\'Underline\'],
     [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
     [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
     [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
@@ -1518,4 +1518,11 @@ function scratchpads_tweaks_update_7085(){
     'entityfilter'
   ));
   scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Enable the "Format" button within the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7086(){
+  scratchpads_tweaks_update_7014();
 }
