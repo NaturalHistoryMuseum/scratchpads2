@@ -18,7 +18,8 @@ function autotag_tag_suggestion_info(){
       'options' => array(
         'callback' => 'autotag_tag_options',
         'keys' => array(
-          'autotag_vids'
+          'autotag_vids',
+          'tag_only_with_tips'
         )
       )
     )
@@ -33,16 +34,11 @@ function autotag_tag_suggestions($text, $options){
   // in (specific for this module).
   $tags = array();
   foreach($options['autotag_vids'] as $vid){
-    // Depending on the number of words in the text, and the number of terms in
-    // the vocabulary, we check either terms against text, or words against
-    // terms.
-    // Lets get the counts
     $term_count = db_query("SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = ?", array(
       $vid
     ))->fetchField();
-    // If we have more terms than words, we'll compare words against terms.
     if($term_count > 0 && strlen(trim($text))){
-      $tags = array_merge($tags, autotag_search_text($text, $vid));
+      $tags = array_merge($tags, autotag_search_text($text, $vid, $options['tag_only_with_tips']));
     }
   }
   return $tags;
@@ -51,7 +47,7 @@ function autotag_tag_suggestions($text, $options){
 /**
  * Compare functions
  */
-function autotag_search_text($text, $vid){
+function autotag_search_text($text, $vid, $tag_only_leaves){
   $tags_to_return = array();
   /**
    * Discovered that the following only seems to work in PHP 5.2, FARP!
@@ -120,6 +116,12 @@ function autotag_search_text($text, $vid){
   $select->join($temporary_table_name, 'a', 'a.words LIKE t.name');
   $select->addField('t', 'tid');
   $select->addField('t', 'name');
+  if($tag_only_leaves){
+    $notin = db_select('taxonomy_term_hierarchy', 'tth')->fields('tth', array(
+      'parent'
+    ));
+    $select->condition('t.tid', $notin, 'NOT IN');
+  }
   $results = $select->execute();
   foreach($results as $term){
     $tags_to_return[] = taxonomy_term_load($term->tid);
@@ -130,6 +132,9 @@ function autotag_search_text($text, $vid){
   $select->condition('name', '% %', 'LIKE');
   $select->addField('t', 'tid');
   $select->addField('t', 'name');
+  if($tag_only_leaves){
+    $select->condition('t.tid', $notin, 'NOT IN');
+  }
   $results = $select->execute();
   foreach($results as $term){
     if(strpos($text, strtolower($term->name)) !== FALSE){
@@ -142,20 +147,39 @@ function autotag_search_text($text, $vid){
 /**
  * Callback for the options form
  */
-function autotag_tag_options($node_type){
+function autotag_tag_options($node_type, $settings){
   $vocabularies = taxonomy_vocabulary_load_multiple(FALSE);
   $options = array();
   foreach($vocabularies as $vid => $vocabulary){
     $options[$vid] = $vocabulary->name;
   }
   return array(
+    'tag_only_with_tips' => array(
+      '#title' => t('Tag with leaves'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($settings['autotag']['tag_only_with_tips']) ? $settings['autotag']['tag_only_with_tips'] : 0,
+      '#description' => 'Check this box if you would only like "leaf" terms to be used for tagging, else ALL terms will be used.'
+    ),
     'autotag_vids' => array(
       '#title' => t('Vocabularies'),
       '#type' => 'select',
       '#options' => $options,
       '#multiple' => TRUE,
       '#description' => t('Select the vocabularies you would like to search.'),
-      '#default_value' => variable_get('autotag_vids_' . $node_type, array())
+      '#default_value' => isset($settings['autotag']['autotag_vids']) ? $settings['autotag']['autotag_vids'] : array()
+    )
+  );
+}
+
+/**
+ * Implements hook_update_dependencies()
+ */
+function autotag_update_dependencies(){
+  return array(
+    'autotag' => array(
+      7001 => array(
+        'tagtag' => 7001
+      )
     )
   );
 }
