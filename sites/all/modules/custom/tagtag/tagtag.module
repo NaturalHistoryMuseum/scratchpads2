@@ -178,6 +178,7 @@ function tagtag_node_type_form_validate($form, &$form_state){
       form_set_error('tagtag_field', t('Please select a field to save tags to'));
     }
   }
+  variable_set('tagtag_replace_' . $form['#node_type']->type, $form_state['values']['tagtag_replace']);
 }
 
 /**
@@ -292,51 +293,62 @@ function tagtag_add_tags(&$form_state){
     $field_instance = field_read_instance('node', $field, $form_state['values']['type']);
     //kprint_r($field_instance);
     // Get whether or not this field is set to replace or append
-    $append = variable_get('tagtag_replace_' . $field, $form_state['values']['type'], 1);
-    switch($field_instance['widget']['module']){
-      case 'taxonomy':
-      case 'options':
-      case 'tree_widget':
-        // We have a taxonomy field, here we'll add the values/
-        foreach($form_state['values']['tagtag'] as $tag){
-          // Check that the tag hasn't already been saved to the field (yes, the
-          // same tag can be saved multiple times to a taxonomy field).
-          $already_set = FALSE;
-          foreach($form_state['values'][$field][LANGUAGE_NONE] as $value){
-            if($value['tid'] == $tag->tid){
-              $already_set = TRUE;
+    $append = variable_get('tagtag_replace_' . $form_state['values']['type'], 1);
+    $map = array(
+      'taxonomy' => 'taxonomy',
+      'options' => 'taxonomy',
+      'tree_widget' => 'taxonomy',
+      'text' => 'text'
+    );
+    drupal_alter('tag_widget_map', $map);
+    if(isset($map[$field_instance['widget']['module']])){
+      switch($map[$field_instance['widget']['module']]){
+        case 'taxonomy':
+          if(!$append){
+            $form_state['values'][$field][LANGUAGE_NONE] = array();
+          }
+          // We have a taxonomy field, here we'll add the values/
+          foreach($form_state['values']['tagtag'] as $tag){
+            // Check that the tag hasn't already been saved to the field (yes, the
+            // same tag can be saved multiple times to a taxonomy field).
+            $already_set = FALSE;
+            foreach($form_state['values'][$field][LANGUAGE_NONE] as $value){
+              if($value['tid'] == $tag->tid){
+                $already_set = TRUE;
+              }
+            }
+            if(!$already_set){
+              $form_state['values'][$field][LANGUAGE_NONE][] = (array)$tag;
             }
           }
-          if(!$already_set){
-            $form_state['values'][$field][LANGUAGE_NONE][] = (array)$tag;
+          break;
+        case 'text':
+          // Text field, add the values as ";" delimitted text.
+          $tag_text = array();
+          foreach($form_state['values']['tagtag'] as $tag){
+            if(strpos($tag->name, ';')){
+              $tag_text[] = '"' . str_replace('"', '\"', $tag->name) . '"';
+            }else{
+              $tag_text[] = $tag->name;
+            }
           }
-        }
-        break;
-      case 'text':
-        // Text field, add the values as ";" delimitted text.
-        $tag_text = array();
-        foreach($form_state['values']['tagtag'] as $tag){
-          if(strpos($tag->name, ';')){
-            $tag_text[] = '"' . str_replace('"', '\"', $tag->name) . '"';
+          if($append){
+            // Note the difference here. Textarea has tags added to end, field
+            // has text replaced.  This should perhaps be a configuration
+            // option.
+            $form_state['values'][$field][LANGUAGE_NONE][0]['value'] .= ' ' . implode("; ", $tag_text);
           }else{
-            $tag_text[] = $tag->name;
+            $form_state['values'][$field][LANGUAGE_NONE][0]['value'] = implode("; ", $tag_text);
           }
-        }
-        if($append){
-          // Note the difference here. Textarea has tags added to end, field
-          // has text replaced.  This should perhaps be a configuration
-          // option.
-          $form_state['values'][$field][LANGUAGE_NONE][0]['value'] .= ' ' . implode("; ", $tag_text);
-        }else{
-          $form_state['values'][$field][LANGUAGE_NONE][0]['value'] = implode("; ", $tag_text);
-        }
-        break;
-      default:
-        // We're here because a module that we're not aware of has defined its
-        // own field type.  We should attempt to guess how we should save to
-        // this field, and default to saving the tags as if it's a taxonomy
-        // field.
-        break;
+          break;
+        default:
+          // We've defined a map, but are unable to handle it - we should give
+          // an error!
+          drupal_set_message(t('Unable to handle widget of type !type', array(
+            '!type' => $map[$field_instance['widget']['module']]
+          )), 'error');
+          break;
+      }
     }
   }
 }
