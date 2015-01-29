@@ -266,8 +266,8 @@ function theme_gm3_view_gm3($variables){
             if(empty($values['entity']->{$key})){
               continue;
             }
-            foreach(entity_get_info() as $entity_type => $values){
-              if($values['base table'] == $variables['view']->base_table){
+            foreach(entity_get_info() as $entity_type => $values2){
+              if($values2['base table'] == $variables['view']->base_table){
                 break;
               }
             }

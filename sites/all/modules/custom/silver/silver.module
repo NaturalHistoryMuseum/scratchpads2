@@ -20,8 +20,8 @@ function silver_feeds_presave(FeedsSource $source, $entity){
     $entity_type = substr($entity_type, 5);
   }
   switch($entity_type){
-    case 'term':
-      $entity_type = 'taxonomy_term';
+  	case 'term':
+  	  $entity_type = 'taxonomy_term';
   }
   if(!entity_get_info($entity_type)){
     $entity_type = 'node';
@@ -33,7 +33,7 @@ function silver_feeds_presave(FeedsSource $source, $entity){
       // step.
       $field = field_info_field($key);
       $lang = field_language($entity_type, $entity, $field);
-      if(isset($value[$lang][0]['value']) && !$value[$lang][0]['value'] && !(isset($field['settings']['allowed_values']) && isset($field['settings']['allowed_values'][$value[$lang][0]['value']]))){
+      if($field['module'] != 'number' && isset($value[$lang][0]['value']) && !$value[$lang][0]['value'] && !(isset($field['settings']['allowed_values']) && isset($field['settings']['allowed_values'][$value[$lang][0]['value']]))){
         unset($entity->$key);
       }
     }
@@ -167,7 +167,7 @@ function silver_menu(){
 
 /**
  * Implementation of hook_silver().
- *
+ * 
  * * type
  * * name
  * * access arguments

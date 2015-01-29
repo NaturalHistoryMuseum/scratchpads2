@@ -335,11 +335,13 @@ function scratchpads_species_term_page($term, $op = 'overview'){
       'term' => $term
     ));
     $subtitle = '&nbsp;';
-    if(isset($term->field_authors[LANGUAGE_NONE][0]['safe_value'])){
-      $subtitle = $term->field_authors[LANGUAGE_NONE][0]['safe_value'] . ' ';
+    $lang = field_language('taxonomy_term', $term, 'field_authors');
+    if(isset($term->field_authors[$lang][0]['safe_value'])){
+      $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
     }
-    if(isset($term->field_usage[LANGUAGE_NONE][0]['value']) && ($term->field_usage[LANGUAGE_NONE][0]['value'] == 'invalid' || $term->field_usage[LANGUAGE_NONE][0]['value'] == 'unaccepted')){
-      $subtitle .= '[' . ucfirst($term->field_usage[LANGUAGE_NONE][0]['value']) . ']';
+    $lang = field_language('taxonomy_term', $term, 'field_usage');
+    if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
+      $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
     }
     // Return a blank page contextual links
     $build = array(
@@ -597,32 +599,32 @@ function theme_scratchpads_species_name($vars){
   // Give the default name as the term name, we will try and overwite this below
   $name = $term->name;
   $lang = field_language('taxonomy_term', $term, 'field_rank');
-  $rank = (isset($term->field_rank[LANGUAGE_NONE][0]['value']) ? strtolower($term->field_rank[LANGUAGE_NONE][0]['value']) : null);
+  $rank = (isset($term->field_rank[$lang][0]['value']) ? strtolower($term->field_rank[$lang][0]['value']) : null);
   $lang = field_language('taxonomy_term', $term, 'field_unit_name1');
-  $unit1 = (isset($term->field_unit_name1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name1[LANGUAGE_NONE][0]['value'] : null);
+  $unit1 = (isset($term->field_unit_name1[$lang][0]['value']) ? $term->field_unit_name1[$lang][0]['value'] : null);
   $lang = field_language('taxonomy_term', $term, 'field_unit_name2');
-  $unit2 = (isset($term->field_unit_name2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name2[LANGUAGE_NONE][0]['value'] : null);
+  $unit2 = (isset($term->field_unit_name2[$lang][0]['value']) ? $term->field_unit_name2[$lang][0]['value'] : null);
   $lang = field_language('taxonomy_term', $term, 'field_unit_name3');
-  $unit3 = (isset($term->field_unit_name3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name3[LANGUAGE_NONE][0]['value'] : null);
+  $unit3 = (isset($term->field_unit_name3[$lang][0]['value']) ? $term->field_unit_name3[$lang][0]['value'] : null);
   $lang = field_language('taxonomy_term', $term, 'field_unit_name4');
-  $unit4 = (isset($term->field_unit_name4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_name4[LANGUAGE_NONE][0]['value'] : null);
+  $unit4 = (isset($term->field_unit_name4[$lang][0]['value']) ? $term->field_unit_name4[$lang][0]['value'] : null);
   $lang = field_language('taxonomy_term', $term, 'field_unit_indicator1');
-  $unit_ind1 = (!empty($term->field_unit_indicator1[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator1[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind1 = (!empty($term->field_unit_indicator1[$lang][0]['value']) ? $term->field_unit_indicator1[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
   $lang = field_language('taxonomy_term', $term, 'field_unit_indicator2');
-  $unit_ind2 = (!empty($term->field_unit_indicator2[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator2[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind2 = (!empty($term->field_unit_indicator2[$lang][0]['value']) ? $term->field_unit_indicator2[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
   $lang = field_language('taxonomy_term', $term, 'field_unit_indicator3');
-  $unit_ind3 = (!empty($term->field_unit_indicator3[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator3[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind3 = (!empty($term->field_unit_indicator3[$lang][0]['value']) ? $term->field_unit_indicator3[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');
   $lang = field_language('taxonomy_term', $term, 'field_unit_indicator4');
-  $unit_ind4 = (!empty($term->field_unit_indicator4[LANGUAGE_NONE][0]['value']) ? $term->field_unit_indicator4[LANGUAGE_NONE][0]['value'] . (in_array($term->field_unit_indicator1[LANGUAGE_NONE][0]['value'], array(
+  $unit_ind4 = (!empty($term->field_unit_indicator4[$lang][0]['value']) ? $term->field_unit_indicator4[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
     '×',
     'x'
   )) ? '' : ' ') : '');

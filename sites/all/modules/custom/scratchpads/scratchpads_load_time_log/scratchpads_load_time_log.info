@@ -1,11 +1,6 @@
 name = "Scratchpads Load Time and Memory Log"
-<<<<<<< HEAD
 description = "Logs the time and memory it takes for a page to load, to a file."
 core = "7.x"
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = scratchpads_load_time_log
-=======
-description = "Logs the time and memory it takes for a page to load to the watchdog (syslog)."
-core = "7.x"
->>>>>>> master
