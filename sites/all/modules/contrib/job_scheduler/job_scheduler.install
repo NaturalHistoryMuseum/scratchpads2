@@ -1,5 +1,4 @@
 <?php
-// $Id: job_scheduler.install,v 1.6.2.1 2011/01/10 22:12:27 alexb Exp $
 
 /**
  * @file
@@ -7,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function job_scheduler_schema() {
   $schema = array();
