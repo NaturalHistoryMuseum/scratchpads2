@@ -2,11 +2,14 @@ name = Feeds Tamper
 description = Modify feeds data before it gets saved.
 package = Feeds
 dependencies[] = feeds
+files[] = tests/feeds_tamper.test
+files[] = tests/feeds_tamper_plugins.test
+files[] = tests/feeds_tamper_efq_finder.test
 core = 7.x
 
-; Information added by drupal.org packaging script on 2011-07-31
-version = "7.x-1.x-dev"
+; Information added by Drupal.org packaging script on 2014-07-14
+version = "7.x-1.0"
 core = "7.x"
 project = "feeds_tamper"
-datestamp = "1312114064"
+datestamp = "1405301333"
 
