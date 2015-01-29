@@ -10,7 +10,7 @@ $plugin = array(
   'callback' => 'feeds_tamper_keyword_filter_callback',
   'validate' => 'feeds_tamper_keyword_filter_validate',
   'name' => 'Keyword filter',
-  'multi' => 'skip',
+  'multi' => 'loop',
   'category' => 'Filter',
 );
 
@@ -61,14 +61,14 @@ function feeds_tamper_keyword_filter_validate(&$settings) {
   if (!empty($settings['exact']) || $settings['word_boundaries']) {
     foreach ($settings['word_list'] as &$word) {
       if (!empty($settings['exact'])) {
-        $word = '/^\Q' . $word . '\E$/u';
+        $word = '/^' . preg_quote($word, '/') . '$/u';
       }
       elseif ($settings['word_boundaries']) {
         // Word boundaries can only match a word with letters at the end.
         if (!preg_match('/^\w(.*\w)?$/u', $word)) {
-          form_set_error('settings][words', t('Search text must begin and end with a letter, number, or underscore to use the %option option.<br />%word', array('%option' => 'Respect word boundaries', '%word' => $word)));
+          form_set_error('settings][words', t('Search text must begin and end with a letter, number, or underscore to use the %option option.', array('%option' => t('Respect word boundaries'))));
         }
-        $word = '/\b\Q' . $word . '\E\b/u';
+        $word = '/\b' . preg_quote($word, '/') . '\b/u';
       }
       if (!$settings['case_sensitive']) {
         $word .= 'i';
@@ -85,7 +85,7 @@ function feeds_tamper_keyword_filter_validate(&$settings) {
   }
 }
 
-function feeds_tamper_keyword_filter_callback($result, $item_key, $element_key, &$field, $settings, $source) {
+function feeds_tamper_keyword_filter_callback($result, $item_key, $element_key, &$field, array $settings) {
   if ($settings['regex']) {
     foreach ($settings['word_list'] as $word) {
       if (preg_match($word, $field) > 0) {

@@ -3,12 +3,12 @@ description = Administrative UI for Feeds Tamper module.
 package = Feeds
 dependencies[] = feeds_tamper
 dependencies[] = feeds_ui
-
+files[] = tests/feeds_tamper_ui.test
 core = 7.x
 
-; Information added by drupal.org packaging script on 2013-09-25
-version = "7.x-1.0-beta5"
+; Information added by Drupal.org packaging script on 2014-07-14
+version = "7.x-1.0"
 core = "7.x"
 project = "feeds_tamper"
-datestamp = "1380093514"
+datestamp = "1405301333"
 
