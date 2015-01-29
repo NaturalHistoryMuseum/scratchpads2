@@ -20,7 +20,7 @@ function feeds_tamper_unique_form($importer, $element_key, $settings) {
   return $form;
 }
 
-function feeds_tamper_unique_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_unique_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   $unique = array();
   foreach ($field as $f) {
     if (!in_array($f, $unique)) {
