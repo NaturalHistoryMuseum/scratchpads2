@@ -1,5 +1,4 @@
 <?php
-// $Id: job_scheduler.api.php,v 1.1 2010/09/26 00:43:29 alexb Exp $
 
 /**
  * @file
