@@ -28,14 +28,17 @@ function feeds_tamper_new_instance() {
  *
  * @param bool $disabled
  *   (optional) If TRUE, load disabled plugin instances. Defaults to FALSE.
+ * @param bool $reset
+ *   (optional) If TRUE, the static cache of all objects will be flushed prior
+ *   to loading. Defaults to FALSE.
  *
  * @return array
  *   An associative array of plugin instances keyed to their id.
  */
-function feeds_tamper_load_all_instances($disabled = FALSE) {
+function feeds_tamper_load_all_instances($disabled = FALSE, $reset = FALSE) {
   $instances = array();
   ctools_include('export');
-  $configs = ctools_export_crud_load_all('feeds_tamper');
+  $configs = ctools_export_crud_load_all('feeds_tamper', $reset);
   foreach ($configs as $instance_id => $config) {
     if (!empty($config->id) && ($disabled || empty($config->disabled))) {
       $instances[$instance_id] = $config;
@@ -54,6 +57,7 @@ function feeds_tamper_load_all_instances($disabled = FALSE) {
  *   A plugin instance object.
  */
 function feeds_tamper_load_instance($id) {
+  $id = drupal_substr($id, 0, 127);
   ctools_include('export');
   return ctools_export_crud_load('feeds_tamper', $id);
 }
@@ -69,6 +73,8 @@ function feeds_tamper_load_instance($id) {
  *   SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
  */
 function feeds_tamper_save_instance($instance) {
+  $instance->id = drupal_substr($instance->id, 0, 127);
+
   ctools_include('export');
   // It's a new instance, give it the heaviest weight.
   if (!isset($instance->weight)) {
@@ -89,9 +95,35 @@ function feeds_tamper_save_instance($instance) {
 }
 
 /**
+ * Removes plugin instances whos source was removed.
+ *
+ * @param FeedsImporter $importer
+ *   The importer to rectify against.
+ */
+function feeds_tamper_rectify_instances(FeedsImporter $importer) {
+  ctools_include('export');
+  $instances = ctools_export_load_object('feeds_tamper', 'conditions', array('importer' => $importer->id));
+  $sources = feeds_tamper_get_unique_source_list($importer, FALSE);
+
+  foreach ($instances as $instance) {
+    if (in_array($instance->source, $sources)) {
+      continue;
+    }
+
+    if ($instance->export_type == EXPORT_IN_DATABASE) {
+      feeds_tamper_delete_instance($instance);
+    }
+    else {
+      $instance->disabled = TRUE;
+      feeds_tamper_save_instance($instance);
+    }
+  }
+}
+
+/**
  * Delete a single plugin instance.
  *
- * @param string|stdClass $instance
+ * @param string|object $instance
  *   A plugin instance object or the id of a plugin instance.
  */
 function feeds_tamper_delete_instance($instance) {
@@ -118,26 +150,64 @@ function feeds_tamper_load_by_importer($importer, $disabled = FALSE) {
   if (is_scalar($importer)) {
     $importer = feeds_importer($importer);
   }
-  $mappings = $importer->processor->config['mappings'];
-  $sources = array();
-  foreach ($mappings as $mapping) {
-    $sources[] = $mapping['source'];
-  }
+
   ctools_include('export');
   $t = ctools_export_load_object('feeds_tamper', 'conditions', array('importer' => $importer->id));
-  // Sort into array, keyed by source.
+
+  $sources = feeds_tamper_get_unique_source_list($importer, FALSE);
+
+  $plugins = feeds_tamper_get_plugins();
+
   $instances = array();
   foreach ($t as $i) {
+    // Add an empty settings array, if the plugin instance doesn't provide any settings itself.
+    if (empty($i->settings)) {
+      $i->settings = array();
+    }
     // Filter disabled and only pull plugins that actually have a corresponding
     // source since we don't delete them with a mapping.
-    if (($disabled || empty($i->disabled)) && in_array($i->source, $sources)) {
+    if (($disabled || empty($i->disabled)) && in_array($i->source, $sources) && function_exists($plugins[$i->plugin_id]['callback'])) {
       $instances[$i->source][] = $i;
     }
   }
   foreach ($instances as &$instance_list) {
     usort($instance_list, '_feeds_tamper_cmp');
   }
-  return $instances;
+
+  // Sort the plugins by the order they appear on the mapping page.
+  $return = array();
+  foreach ($sources as $source) {
+    if (isset($instances[$source])) {
+      $return[$source] = $instances[$source];
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Returns a unique list of sources in order.
+ *
+ * @param FeedsImporter $importer
+ *   The importer.
+ *
+ * @return array
+ *   A list of sources.
+ */
+function feeds_tamper_get_unique_source_list($importer, $lower = TRUE) {
+  $sources = array();
+  $is_csv = $lower && get_class($importer->parser) == 'FeedsCSVParser';
+
+  foreach ($importer->processor->getMappings() as $mapping) {
+    if ($is_csv) {
+      $sources[] = drupal_strtolower($mapping['source']);
+    }
+    else {
+      $sources[] = $mapping['source'];
+    }
+  }
+
+  return array_unique($sources);
 }
 
 /**
@@ -172,7 +242,7 @@ function feeds_tamper_get_plugins() {
  * Get a single plugin.
  *
  * @param string $id
- *  The id of a plugin.
+ *   The id of a plugin.
  *
  * @return stdClass
  *   A plugin object.
@@ -193,7 +263,7 @@ function feeds_tamper_get_plugin($id) {
  *   underscore and shortened to 128 characters.
  */
 function feeds_tamper_make_machine($string) {
-  return drupal_substr(preg_replace('/[^a-z0-9-]/', '_', drupal_strtolower($string)), 0, 127);
+  return drupal_substr(preg_replace('/[^a-z0-9-]/u', '_', drupal_strtolower($string)), 0, 127);
 }
 
 /**
@@ -245,37 +315,50 @@ function feeds_tamper_access($importer, $instance = NULL) {
  *
  * The solution is to keep track in the form how many have been added.
  */
-function feeds_tamper_form_feeds_ui_mapping_form_alter(&$form, &$form_state) {
+function feeds_tamper_form_feeds_ui_mapping_form_alter(array &$form, array &$form_state) {
+  $form['#submit'][] = 'feeds_tamper_form_feeds_ui_mapping_form_submit';
+
   // Don't alter the form for parsers that use manual input.
   if ($form['source']['#type'] == 'textfield') {
     return;
   }
-  $newest_source = NULL;
-  $newest_target = NULL;
+  $max_source = 0;
+  $max_target = 0;
   foreach ($form['#mappings'] as $mapping) {
     if (strpos($mapping['source'], 'Blank source ') === 0) {
-      $newest_source = $mapping['source'];
+      list(, , $source_value) = explode(' ', $mapping['source']);
+      if ($source_value > $max_source) {
+        $max_source = $source_value;
+      }
     }
-    elseif (strpos($mapping['target'], 'Temporary target ') === 0) {
-      $newest_target = $mapping['target'];
+    if (strpos($mapping['target'], 'Temporary target ') === 0) {
+      list(, , $target_value) = explode(' ', $mapping['target']);
+      if ($target_value > $max_target) {
+        $max_target = $target_value;
+      }
     }
   }
-  if (!empty($newest_source)) {
-    list(, , $count) = explode(' ', $newest_source);
+  if ($max_source) {
     unset($form['source']['#options']['Blank source 1']);
-    $form['source']['#options']['Blank source ' . ++$count] = 'Blank source';
+    $form['source']['#options']['Blank source ' . ++$max_source] = 'Blank source';
   }
   else {
     $form['source']['#options']['Blank source 1'] = 'Blank source';
   }
-  if (!empty($newest_target)) {
-    list(, , $count) = explode(' ', $newest_target);
+  if ($max_target) {
     unset($form['target']['#options']['Temporary target 1']);
-    $form['target']['#options']['Temporary target ' . ++$count] = 'Temporary target';
+    $form['target']['#options']['Temporary target ' . ++$max_target] = 'Temporary target';
   }
   else {
     $form['target']['#options']['Temporary target 1'] = 'Temporary target';
   }
+}
+
+/**
+ * Submit callback for feeds_ui_mapping_form().
+ */
+function feeds_tamper_form_feeds_ui_mapping_form_submit(array &$form, array &$form_state) {
+  feeds_tamper_rectify_instances(feeds_importer($form['#importer']));
 }
 
 /**
