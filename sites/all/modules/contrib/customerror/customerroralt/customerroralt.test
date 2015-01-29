@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Tests for the CustomErrorAlt module.
+ */
+
+class CustomErrorAltTestCase extends DrupalWebTestCase {
+
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Custom Error Alternate for Authenticated',
+      'description' => 'Check that the custom error messages for authenticated users  are displayed.',
+      'group' => 'Custom Error',
+    );
+  }
+
+  /**
+   * Enable any modules required for the test.
+   */
+  public function setUp() {
+    parent::setUp(array('customerror', 'customerroralt'));
+  }
+
+  /**
+   * Tests 403 pages.
+   */
+  public function testAccessDeniedMessage() {
+    // Set title and description of error message.
+    $title = $this->randomName(10);
+    $description = $this->randomName(80);
+    variable_set('site_403', 'customerror/403');
+    variable_set('customerror_403_authenticated_title', $title);
+    variable_set('customerror_403_authenticated', $description);
+
+    // Create and log in as authenticated user
+    $this->authenticated_user = drupalCreateUser();
+    $this->drupalLogin($this->authenticated_user);
+
+    // Access admin page as an authenticated user, check for response code,
+    // title and description of error message.
+    $this->drupalGet('admin');
+    $this->assertResponse(403, 'Response code on 403 error page set when accessed at non-existent URL');
+    $this->assertText($title, 'Title on 403 error page set when accessed at non-existent URL');
+    $this->assertText($description, 'Description on 403 error page set when accessed at non-existent URL');
+  }
+}
