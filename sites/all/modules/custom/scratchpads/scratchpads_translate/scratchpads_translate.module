@@ -17,13 +17,13 @@ function scratchpads_translate_scratchpads_hands_off_urls_alter(&$urls){
 function scratchpads_translate_menu(){
   return array(
     'admin/config/regional/translate-setup' => array(
-      'title' => 'Translate',
+      'title' => 'Translate settings',
       'description' => 'Configure the content types and fields that you would like to enable translations for.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'scratchpads_translate_setup_translation_form'
       ),
-      'access callback' => TRUE,
+      'access callback' => 'user_access',
       'access arguments' => array(
         'administer languages'
       ),
