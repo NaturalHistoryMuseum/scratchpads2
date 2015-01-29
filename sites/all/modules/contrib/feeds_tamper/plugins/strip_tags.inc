@@ -30,6 +30,6 @@ function feeds_tamper_strip_tags_validate(&$settings) {
   $settings['allowed_tags'] = trim($settings['allowed_tags']);
 }
 
-function feeds_tamper_strip_tags_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_strip_tags_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   $field = strip_tags($field, $settings['allowed_tags']);
 }
