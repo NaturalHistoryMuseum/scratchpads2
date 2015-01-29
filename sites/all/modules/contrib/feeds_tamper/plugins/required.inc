@@ -21,7 +21,7 @@ function feeds_tamper_required_form($importer, $element_key, $settings) {
   return $form;
 }
 
-function feeds_tamper_required_callback($result, $item_key, $element_key, &$field, $settings) {
+function feeds_tamper_required_callback($result, $item_key, $element_key, &$field, $settings, $source) {
   if (empty($field)) {
     unset($result->items[$item_key]);
   }
