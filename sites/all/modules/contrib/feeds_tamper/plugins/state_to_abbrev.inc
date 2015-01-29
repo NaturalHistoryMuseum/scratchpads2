@@ -30,6 +30,11 @@ function feeds_tamper_state_to_abbrev_callback($result, $item_key, $element_key,
     $states = _feeds_tamper_state_to_abbrev_states_get_list();
   }
 
+  // If it's already a valid state abbreviation, leave it alone.
+  if (in_array($field, $states)) {
+    return;
+  }
+
   // Trim whitespace, set to lowercase.
   $state = drupal_strtolower(trim($field));
 

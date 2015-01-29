@@ -21,7 +21,7 @@ function feeds_tamper_copy_form($importer, $element_key, $settings) {
 
   foreach (feeds_tamper_get_unique_source_list($importer, FALSE) as $source) {
 
-    $mapsource = $is_csv ? drupal_strtolower($mapping['source']) : $mapping['source'];
+    $mapsource = $is_csv ? drupal_strtolower($source) : $source;
 
     if (isset($source_configs[$source]) && !empty($source_configs[$source]['name'])) {
       $sources[$mapsource] = $source_configs[$source]['name'];

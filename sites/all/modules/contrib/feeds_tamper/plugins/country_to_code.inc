@@ -32,6 +32,11 @@ function feeds_tamper_country_to_code_callback($result, $item_key, $element_key,
     $countries = array_flip($countries);
   }
 
+  // If it's already a valid country code, leave it alone.
+  if (in_array($field, $countries)) {
+    return;
+  }
+
   // Trim whitespace, set to lowercase.
   $country = t(drupal_strtolower(trim($field)));
   if (isset($countries[$country])) {
