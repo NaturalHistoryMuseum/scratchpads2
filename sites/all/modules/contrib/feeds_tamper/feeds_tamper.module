@@ -35,10 +35,7 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
   foreach (array_keys($result->items) as $item_key) {
 
     // Initialize every source value.
-    // SDRycroft - Don't initalize every value, as Feeds XLS is a little more
-    // inteligent, and does not want every value initalized.  This may be a bug
-    // with the feeds_tamper module, or it may not be.
-    //$result->items[$item_key] += $sources;
+    $result->items[$item_key] += $sources;
 
     foreach ($importer_instances as $element_key => $instances) {
       if ($is_csv) {
