@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Enables custom 403 (access denied) pages for authenticated users in Drupal.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function customerroralt_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/help#customerroralt':
+      $output = t('Enables the creation of an "insufficient permissions" page for authenticated users, as distinct from "please log in" for anonymous users.');
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for customerror_admin_settings.
+ *
+ * Add title textfield and Displays the module settings form.
+ */
+function customerroralt_form_customerror_admin_settings_alter(&$form, &$form_state) {
+
+  // Just as customerror module itself makes it very easy for additional error
+  // codes to be handled, it would be very easy to get all roles on the site
+  // with $roles = user_roles(TRUE); or allow administrators to select from
+  // this first.
+  $role_errors = array(
+    'authenticated' => t('access denied: insufficient permissions'),
+  );
+
+  foreach ($role_errors as $role => $desc) {
+    $group = 'customerror_403_' . $role . '_group';
+    $form[$group] = array(
+      '#type' => 'fieldset',
+      '#title' => t('403 for !role Error Settings', array('!role' => $role)),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      '#weight' => -14,
+    );
+    $form[$group]['customerror_403_' . $role . '_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title for 403 for @role', array('@role' => $role)),
+      '#default_value' => variable_get('customerror_403_' . $role . '_title', $desc),
+      '#size' => 70,
+      '#maxlength' => 70,
+      '#description' => t('Title of 403 for @role error page', array('@role' => $role)),
+    );
+    $form[$group]['customerror_403_' . $role] = array(
+      '#type' => 'textarea',
+      '#title' => t('Description for 403 for @role', array('@role' => $role)),
+      '#default_value' => variable_get('customerror_403_' . $role, $desc),
+      '#rows' => 10,
+      '#description' => t('This text will be displayed if a 403 error occurs for a @role (@desc).', array('@role' => $role, '@desc' => $desc)),
+    );
+  }
+}
+
+/**
+ * Returm replacement code.
+ *
+ * If 403, and user is logged in, return a 'code' to replace the one
+ * used by customerror in the last steps.
+ */
+function customerroralt_code($code) {
+  if (user_is_logged_in() && 403 == $code) {
+    return $code . '_authenticated';
+  }
+  return $code;
+}

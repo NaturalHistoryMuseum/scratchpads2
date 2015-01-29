@@ -5,9 +5,9 @@ configure = admin/config/system/customerror
 
 files[] = customerror.test
 
-; Information added by drupal.org packaging script on 2011-10-04
-version = "7.x-1.x-dev"
+; Information added by Drupal.org packaging script on 2014-11-17
+version = "7.x-1.3"
 core = "7.x"
 project = "customerror"
-datestamp = "1317729957"
+datestamp = "1416211082"
 
