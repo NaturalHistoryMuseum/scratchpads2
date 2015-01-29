@@ -46,7 +46,7 @@ function image_imagemagick_settings() {
   $form['imagemagick']['imagemagick_gm'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable <a href="@gm-url">GraphicsMagick</a> support', array(
-      '@gm-url' => 'http://graphicsmagick.org',
+      '@gm-url' => 'http://www.graphicsmagick.org',
     )),
     '#default_value' => variable_get('imagemagick_gm', 0),
     '#weight' => -5,
