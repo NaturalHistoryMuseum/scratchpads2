@@ -1,0 +1,631 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function taverna_menu(){
+  $menu = array(
+    'admin/services' => array(
+      'title' => 'Services',
+      'description' => 'Find and manage Taverna runs.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'taverna_admin_runs'
+      ),
+      'access callback' => 'taverna_access',
+      'weight' => -10,
+      'file' => 'taverna.pages.inc'
+    ),
+    'admin/taverna/%' => array(
+      'title' => 'Taverna',
+      'access arguments' => array(
+        'access content'
+      ),
+      'page callback' => 'taverna_overlay_page',
+      'page arguments' => array(
+        2
+      ),
+      'file' => 'taverna.pages.inc'
+    ),
+    'taverna/add' => array(
+      'title' => 'Add Taverna run',
+      'page callback' => 'taverna_add_run',
+      'access callback' => 'taverna_access',
+      'file' => 'taverna.pages.inc'
+    ),
+    'taverna/%taverna' => array(
+      'title callback' => 'taverna_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'taverna_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'view',
+        FALSE,
+        1,
+        FALSE
+      )
+    ),
+    'taverna/%taverna/view' => array(
+      'title' => 'View',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'taverna/%taverna/output' => array(
+      'title' => 'Output',
+      'page callback' => 'taverna_page_view_output',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'view output',
+        FALSE,
+        1,
+        FALSE
+      ),
+      'weight' => 1,
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+      'file' => 'taverna.pages.inc'
+    ),
+    'taverna/%taverna/getinteraction' => array(
+      'title' => 'Taverna interaction loader',
+      'page callback' => 'taverna_interaction_getinteraction',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'update',
+        FALSE,
+        1,
+        FALSE
+      )
+    ),
+    'taverna/%taverna/interaction' => array(
+      'title' => 'Taverna interaction',
+      'page callback' => 'taverna_interaction',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'update',
+        FALSE,
+        1,
+        FALSE
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'taverna.pages.inc'
+    ),
+    'taverna/%taverna/delete' => array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'taverna_delete_confirm',
+        1
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'delete',
+        FALSE,
+        1,
+        FALSE
+      ),
+      'weight' => 2,
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+      'file' => 'taverna.pages.inc'
+    )
+  );
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    $menu['taverna/add/' . $key] = array(
+      'title' => $run_type['title'],
+      'description' => isset($run_type['description']) ? $run_type['description'] : '',
+      'title callback' => 'check_plain',
+      'page callback' => 'taverna_add',
+      'page arguments' => array(
+        $key
+      ),
+      'access callback' => 'taverna_entity_access',
+      'access arguments' => array(
+        'create',
+        $key,
+        1,
+        FALSE
+      ),
+      'file' => 'taverna.pages.inc'
+    );
+  }
+  return $menu;
+}
+
+/**
+ * Page title stuff.
+ */
+function taverna_page_title($taverna){
+  return $taverna->label;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function taverna_permission(){
+  $perms = array(
+    'administer taverna' => array(
+      'title' => t('Administer Taverna')
+    )
+  );
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
+    $perms += array(
+      "create taverna $key content" => array(
+        'title' => t('%type_name: Create new content', array(
+          '%type_name' => $run_type['title']
+        ))
+      ),
+      "delete own taverna $key content" => array(
+        'title' => t('%type_name: Delete own content', array(
+          '%type_name' => $run_type['title']
+        ))
+      ),
+      "delete any taverna $key content" => array(
+        'title' => t('%type_name: Delete any content', array(
+          '%type_name' => $run_type['title']
+        ))
+      )
+    );
+  }
+  return $perms;
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions()
+ */
+function taverna_scratchpads_default_permissions(){
+  $perms = array(
+    'maintainer' => array(
+      'administer taverna'
+    ),
+    'editor' => array(),
+    'contributor' => array()
+  );
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
+    $perms['contributor'][] = "create taverna $key content";
+    $perms['contributor'][] = "delete own taverna $key content";
+    $perms['editor'][] = "delete any taverna $key content";
+  }
+  return $perms;
+}
+
+/**
+ * Implements hook_forms().
+ */
+function taverna_forms($form_id, $args){
+  $forms = array();
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    $forms[$key . '_taverna_form'] = array(
+      'callback' => 'taverna_run_form' // Note, we don't use taverna_form here due to it being a hook name.
+    );
+  }
+  return $forms;
+}
+
+/**
+ * taverna_interaction_getinteraction
+ */
+function taverna_interaction_getinteraction($taverna){
+  echo TavernaService::get_interaction($taverna->data['interaction']['uri']);
+  exit();
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function taverna_admin_paths(){
+  return array(
+    'taverna/add' => TRUE,
+    'taverna/add/*' => TRUE,
+    'taverna/*/delete' => TRUE
+  );
+}
+
+/**
+ * Menu callback; view a single Taverna run.
+ */
+function taverna_page_view($taverna){
+  // If there is a menu link to this taverna, the link becomes the last part
+  // of the active trail, and the link name becomes the page title.
+  // Thus, we must explicitly set the page title to be the taverna title.
+  drupal_set_title($taverna->label);
+  $uri = entity_uri('taverna', $taverna);
+  // Set the taverna path as the canonical URL to prevent duplicate content.
+  drupal_add_html_head_link(array(
+    'rel' => 'canonical',
+    'href' => url($uri['path'], $uri['options'])
+  ), TRUE);
+  // Set the non-aliased path as a default shortlink.
+  drupal_add_html_head_link(array(
+    'rel' => 'shortlink',
+    'href' => url($uri['path'], array_merge($uri['options'], array(
+      'alias' => TRUE
+    )))
+  ), TRUE);
+  // Set the breadcrumb to include /admin/services in the trail.
+  $bc = drupal_get_breadcrumb();
+  $bc[] = l(t('Services'), 'admin/services');
+  drupal_set_breadcrumb($bc);
+  return taverna_show($taverna);
+}
+
+function taverna_show($taverna){
+  // For markup consistency with other pages, use taverna_view_multiple() rather than taverna_view().
+  $tavernas = taverna_view_multiple(array(
+    $taverna->tvid => $taverna
+  ), 'full');
+  return $tavernas;
+}
+
+function taverna_view_multiple($tavernas, $view_mode = 'teaser', $weight = 0, $langcode = NULL){
+  entity_prepare_view('taverna', $tavernas, $langcode);
+  $build = array();
+  foreach($tavernas as $taverna){
+    $build['tavernas'][$taverna->tvid] = taverna_view($taverna, $view_mode, $langcode);
+    $build['tavernas'][$taverna->tvid]['#weight'] = $weight;
+    $weight++;
+  }
+  $build['tavernas']['#sorted'] = TRUE;
+  return $build;
+}
+
+function taverna_view($taverna, $view_mode, $langcode){
+  global $user;
+  if(!in_array($taverna->data['state'], array(
+    'finished',
+    'cancelled'
+  ))){
+    $taverna_service = new TavernaService($taverna->data['id']);
+    $taverna->data = $taverna_service->get_response(TRUE);
+    $taverna->changed = time();
+    entity_save('taverna', $taverna);
+  }
+  $attached = array();
+  $taverna_iframe = '';
+  if($taverna->data['state'] == 'running' && isset($taverna->data['interaction']) && $user->uid == $taverna->uid){
+    $attached = array(
+      'js' => array(
+        drupal_get_path('module', 'taverna') . '/js/pmrpc.js',
+        array(
+          'data' => "var inputData = " . $taverna->data['interaction']['data'],
+          'type' => 'inline'
+        ),
+        array(
+          'data' => array(
+            'taverna' => array(
+              'interaction' => array(
+                'callback_url' => url('taverna/' . $taverna->tvid . '/interaction', array(
+                  'absolute' => TRUE
+                )),
+                'title' => t('Interaction')
+              )
+            )
+          ),
+          'type' => 'setting'
+        ),
+        drupal_get_path('module', 'taverna') . '/js/taverna.js'
+      ),
+      'library' => array(
+        array(
+          'system',
+          'ui.dialog'
+        )
+      )
+    );
+    if($taverna->data['interaction']['uri'] == $taverna->data['interaction']['reply_uri']){
+      $url = url('taverna/' . arg(1) . '/getinteraction');
+    }else{
+      $url = $taverna->data['interaction']['uri'];
+    }
+    $taverna_iframe = '<div class="taverna-dialogue"><iframe width="100%" height="600px" src="' . $url . '"></iframe></div>';
+  }
+  $rows_data = array();
+  $run_type = TavernaService::get_run_types($taverna->type);
+  foreach($taverna->data as $key => $value){
+    switch($key){
+      default:
+        $rows_data[] = array(
+          array(
+            'data' => ucfirst(str_replace('_', ' ', $key)),
+            'class' => 'biblio-row-title'
+          ),
+          $value
+        );
+        break;
+      case 'outputs':
+      case 'sweep_id':
+        break;
+      case 'outputs_zip':
+        if($taverna->data['state'] == 'finished' && !$taverna->fid){
+          $taverna_service = new TavernaService($taverna->data['id']);
+          $taverna->fid = $taverna_service->get_download();
+          $taverna->changed = time();
+          entity_save('taverna', $taverna);
+        }
+    }
+  }
+  $rows = array(
+    array(
+      array(
+        'data' => t('Job name'),
+        'class' => 'biblio-row-title'
+      ),
+      $taverna->label
+    ),
+    array(
+      array(
+        'data' => t('Job type'),
+        'class' => 'biblio-row-title'
+      ),
+      l($run_type['name'], 'taverna/add/' . $taverna->type)
+    ),
+    array(
+      array(
+        'data' => t('Created'),
+        'class' => 'biblio-row-title'
+      ),
+      format_date($taverna->created)
+    ),
+    array(
+      array(
+        'data' => t('Changed'),
+        'class' => 'biblio-row-title'
+      ),
+      format_date($taverna->changed)
+    )
+  );
+  if($taverna->fid){
+    $content = file_view(file_load($taverna->fid));
+    $rows[] = array(
+      array(
+        'data' => t('Output file'),
+        'class' => 'biblio-row-title'
+      ),
+      drupal_render($content)
+    );
+  }
+  return array(
+    '#attached' => $attached,
+    'taverna_content' => array(
+      '#markup' => '<div class="node-biblio">' . theme('table', array(
+        'rows' => $rows
+      )) . '</div><div class="node-biblio">' . theme('table', array(
+        'rows' => $rows_data
+      )) . '</div>'
+    ),
+    'taverna_iframe' => array(
+      '#markup' => $taverna_iframe
+    ),
+    'taverna_object' => array()
+  );
+}
+
+/**
+ * Taverna delete
+ */
+function taverna_delete($tvid){
+  taverna_delete_multiple(array(
+    $tvid
+  ));
+}
+
+/**
+ * taverna delete multiple
+ */
+function taverna_delete_multiple($tvids){
+  $transaction = db_transaction();
+  if(!empty($tvids)){
+    $tavernas = taverna_load_multiple($tvids);
+    try{
+      foreach($tavernas as $tvid => $taverna){
+        module_invoke_all('entity_delete', $taverna, 'taverna');
+      }
+      // Delete after calling hooks so that they can query taverna tables as needed.
+      db_delete('taverna')->condition('tvid', $tvids, 'IN')->execute();
+    }
+    catch(Exception $e){
+      $transaction->rollback();
+      throw $e;
+    }
+    // Clear the page and block and taverna_load_multiple caches.
+    entity_get_controller('taverna')->resetCache();
+  }
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function taverna_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  // Add action link to 'taverna/add' on 'admin/services' page.
+  if($root_path == 'admin/services'){
+    $item = menu_get_item('taverna/add');
+    if($item['access']){
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item
+      );
+    }
+  }
+}
+
+/**
+ * Taverna load
+ */
+function taverna_load($tvid = NULL){
+  $tvids = (isset($tvid) ? array(
+    $tvid
+  ) : array());
+  $taverna = taverna_load_multiple($tvids);
+  return $taverna ? reset($taverna) : FALSE;
+}
+
+/**
+ * 
+ */
+/**
+ * Load multiple Taverna entities.
+ */
+function taverna_load_multiple($ids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('taverna', $ids, $conditions, $reset);
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function taverna_entity_info(){
+  $info = array(
+    'taverna' => array(
+      'label' => t('Taverna run'),
+      'entity class' => 'Taverna',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'taverna',
+      'fieldable' => TRUE,
+      'uri callback' => 'taverna_uri',
+      'bundles' => array(),
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'tvid',
+        'name' => 'type',
+        'label' => 'label',
+        'status' => 'status',
+        'module' => 'module'
+      ),
+      'access callback' => 'taverna_entity_access',
+      'module' => 'taverna'
+    )
+  );
+  // Add the Taverna services
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    $info['taverna']['bundles'][$key] = array(
+      'label' => $run_type['title'],
+      'description' => ''
+    );
+  }
+  return $info;
+}
+
+/**
+ * Callback for access to a specific taverna run type.
+ */
+function taverna_access($op = 'view', $type = FALSE, $entity_id = FALSE){
+  if(user_access('administer taverna')){return TRUE;}
+  foreach(TavernaService::get_run_types(FALSE, variable_get('taverna_limit_run_types', FALSE)) as $key => $run_type){
+    if(strlen($key) > 100){
+      $key = md5($key);
+    }
+    if(user_access("create taverna $key content")){return TRUE;}
+  }
+  return FALSE;
+}
+
+/**
+ * An array of taverna types that we can display.
+ */
+function taverna_types_we_can_display(){
+  $types = array(
+    'killerwhaledemography(scratchpad)'
+  );
+  drupal_alter('taverna_types_we_can_display', $types);
+  $types = drupal_map_assoc($types);
+  return $types;
+}
+
+/**
+ * Entity access callback
+ */
+function taverna_entity_access($op, $entity_type, $entity = NULL, $account = NULL){
+  switch($op){
+    case 'view output':
+      $types_we_can_display = taverna_types_we_can_display();
+      if($entity->data['state'] != 'finished' || !isset($types_we_can_display[$entity->type])){return FALSE;}
+    // We then slip through to the "view" operation, as it's the same perm!
+    case 'view':
+      return user_access('access content');
+    case 'update':
+      if(!$account){
+        global $user;
+        $account = $user;
+      }
+      return $entity->uid == $account->uid;
+    case 'create':
+      if(strlen($entity_type) > 100){
+        $key = md5($entity_type);
+      }
+      return user_access("create taverna $key content");
+    case 'delete':
+      if(strlen($entity->type) > 100){
+        $key = md5($entity_type);
+      }
+      if(user_access("delete any taverna $key content")){return TRUE;}
+      if(!$account){
+        global $user;
+        $account = $user;
+      }
+      if($account->uid == $entity->uid && user_access("delete own taverna $key content")){return TRUE;}
+  }
+  return FALSE;
+}
+
+/**
+ * Callback to get a URI for a Taverna entity.
+ */
+function taverna_uri($taverna){
+  return array(
+    'path' => 'taverna/' . $taverna->tvid
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function taverna_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('Taverna Ecological Niche Modelling Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      // FIXME - Does the following URL make sense for a Taverna player?
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 100
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function taverna_block_view($delta = ''){
+  switch($delta){
+    default:
+      return array(
+        'subject' => t('Run an Ecological Niche Model via BioVeL'),
+        'content' => array(
+          'iframe' => array(
+            '#markup' => l(t('Run a workflow'), 'admin/taverna/' . arg(2))
+          )
+        )
+      );
+  }
+  return array();
+}

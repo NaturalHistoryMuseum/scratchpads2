@@ -81,7 +81,6 @@ features[variable][] = "node_options_spm"
 project status url = "http://modules.scratchpads.eu/"
 scripts[] = js/spm_config.js
 stylesheets[all][] = css/spm.css
-project status url = "http://modules.scratchpads.eu/"
 files[] = tests/spm.test
 files[] = tests/spm.selenium.test
 l10n server = localize.scratchpads.eu
