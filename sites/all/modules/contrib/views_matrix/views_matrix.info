@@ -1,0 +1,19 @@
+name = Views Matrix
+description = Provides a views plugin that sorts a table by an X and Y criteria.
+core = 7.x
+package = "Views"
+dependencies[] = views
+
+files[] = includes/views_matrix.views.inc
+files[] = includes/views_matrix.theme.inc
+files[] = includes/views_matrix_plugin_style_matrix.inc
+files[] = includes/views_matrix_plugin_style_matrix_csv.inc
+files[] = includes/views-matrix.tpl.php
+files[] = includes/views-matrix-csv.tpl.php
+
+; Information added by Drupal.org packaging script on 2014-09-13
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "views_matrix"
+datestamp = "1410630296"
+
