@@ -1,16 +1,15 @@
 <?php
+
 /**
  * @file
  * darwincore.field_group.inc
  */
-
 /**
  * Implements hook_field_group_info().
  */
-function darwincore_field_group_info() {
+function darwincore_field_group_info(){
   $export = array();
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_collection_display|node|specimen_observation|default';
@@ -27,20 +26,19 @@ function darwincore_field_group_info() {
       1 => 'field_collector_number',
       2 => 'field_date_collected',
       3 => 'field_notes',
-      4 => 'field_number',
+      4 => 'field_number'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   // This code should be removed once all migrated sites have fixed their data.
   if(field_info_field('field_collector_copy')){
     array_unshift($field_group->data['children'], 'field_collector_copy');
   }
   $export['group_collection_display|node|specimen_observation|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_collection|node|specimen_observation|form';
@@ -57,7 +55,7 @@ function darwincore_field_group_info() {
       1 => 'field_collector_number',
       2 => 'field_date_collected',
       3 => 'field_notes',
-      4 => 'field_number',
+      4 => 'field_number'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -65,18 +63,17 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
   // This code should be removed once all migrated sites have fixed their data.
   if(field_info_field('field_collector_copy')){
     array_unshift($field_group->data['children'], 'field_collector_copy');
   }
   $export['group_collection|node|specimen_observation|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_extra_fields|node|location|form';
@@ -104,7 +101,7 @@ function darwincore_field_group_info() {
       12 => 'field_max_depth',
       13 => 'field_max_elevation',
       14 => 'field_min_depth',
-      15 => 'field_min_elevation',
+      15 => 'field_min_elevation'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -112,14 +109,13 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
   $export['group_extra_fields|node|location|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_location_display|node|location|default';
@@ -147,16 +143,15 @@ function darwincore_field_group_info() {
       13 => 'field_max_elevation',
       14 => 'field_min_depth',
       15 => 'field_min_elevation',
-      16 => 'field_state_province',
+      16 => 'field_state_province'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_location_display|node|location|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_location_display|node|location|linked_node';
@@ -184,16 +179,15 @@ function darwincore_field_group_info() {
       13 => 'field_max_elevation',
       14 => 'field_min_depth',
       15 => 'field_min_elevation',
-      16 => 'field_state_province',
+      16 => 'field_state_province'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_location_display|node|location|linked_node'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_location|node|specimen_observation|form';
@@ -206,7 +200,7 @@ function darwincore_field_group_info() {
     'label' => 'Location',
     'weight' => '25',
     'children' => array(
-      0 => 'field_location',
+      0 => 'field_location'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -214,14 +208,13 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
   $export['group_location|node|specimen_observation|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_map|node|location|form';
@@ -234,7 +227,7 @@ function darwincore_field_group_info() {
     'label' => 'Map',
     'weight' => '23',
     'children' => array(
-      0 => 'field_map',
+      0 => 'field_map'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -242,14 +235,13 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_map|node|location|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_misc_display|node|specimen_observation|default';
@@ -268,16 +260,15 @@ function darwincore_field_group_info() {
       3 => 'field_other_catalogue_numbers',
       4 => 'field_remarks',
       5 => 'field_sex',
-      6 => 'field_media',
+      6 => 'field_media'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_misc_display|node|specimen_observation|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_miscellaneous|node|specimen_observation|form';
@@ -296,7 +287,7 @@ function darwincore_field_group_info() {
       3 => 'field_other_catalogue_numbers',
       4 => 'field_remarks',
       5 => 'field_sex',
-      6 => 'field_media',
+      6 => 'field_media'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -304,14 +295,13 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
   $export['group_miscellaneous|node|specimen_observation|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_required_display|node|specimen_observation|default';
@@ -327,16 +317,15 @@ function darwincore_field_group_info() {
       0 => 'field_basis_of_record',
       1 => 'field_catalogue_number',
       2 => 'field_collection_code',
-      3 => 'field_institution_code',
+      3 => 'field_institution_code'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_required_display|node|specimen_observation|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_required|node|specimen_observation|form';
@@ -361,14 +350,13 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 1,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
   $export['group_required|node|specimen_observation|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_tabs|node|location|form';
@@ -382,19 +370,18 @@ function darwincore_field_group_info() {
     'weight' => '0',
     'children' => array(
       0 => 'group_extra_fields',
-      1 => 'group_map',
+      1 => 'group_map'
     ),
     'format_type' => 'tabs',
     'format_settings' => array(
       'formatter' => '',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_tabs|node|location|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_tabs|node|specimen_observation|form';
@@ -411,19 +398,18 @@ function darwincore_field_group_info() {
       1 => 'group_required',
       2 => 'group_collection',
       3 => 'group_miscellaneous',
-      4 => 'group_location',
+      4 => 'group_location'
     ),
     'format_type' => 'tabs',
     'format_settings' => array(
       'formatter' => '',
       'instance_settings' => array(
-        'classes' => '',
-      ),
-    ),
+        'classes' => ''
+      )
+    )
   );
   $export['group_tabs|node|specimen_observation|form'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_taxonomy_display|node|specimen_observation|default';
@@ -440,16 +426,19 @@ function darwincore_field_group_info() {
       1 => 'field_identification_qualifier',
       2 => 'field_identified_by',
       3 => 'field_taxonomic_name',
-      4 => 'field_type_status',
+      4 => 'field_type_status'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
-      'formatter' => 'open',
-    ),
+      'formatter' => 'open'
+    )
   );
+  // This code should be removed once all migrated sites have fixed their data.
+  if(field_info_field('field_identified_by_copy')){
+    array_unshift($field_group->data['children'], 'field_identified_by_copy');
+  }
   $export['group_taxonomy_display|node|specimen_observation|default'] = $field_group;
-
-  $field_group = new stdClass;
+  $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
   $field_group->api_version = 1;
   $field_group->identifier = 'group_taxonomy|node|specimen_observation|form';
@@ -466,7 +455,7 @@ function darwincore_field_group_info() {
       1 => 'field_taxonomic_name',
       2 => 'field_identification_qualifier',
       3 => 'field_identified_by',
-      4 => 'field_date_identified',
+      4 => 'field_date_identified'
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -474,12 +463,15 @@ function darwincore_field_group_info() {
       'instance_settings' => array(
         'required_fields' => 0,
         'classes' => '',
-        'description' => '',
+        'description' => ''
       ),
-      'formatter' => 'closed',
-    ),
+      'formatter' => 'closed'
+    )
   );
+  // This code should be removed once all migrated sites have fixed their data.
+  if(field_info_field('field_identified_by_copy')){
+    array_unshift($field_group->data['children'], 'field_identified_by_copy');
+  }
   $export['group_taxonomy|node|specimen_observation|form'] = $field_group;
-
   return $export;
 }
