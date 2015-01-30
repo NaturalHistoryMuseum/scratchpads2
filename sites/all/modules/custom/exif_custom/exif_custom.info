@@ -4,3 +4,10 @@ package = Images
 core = 7.x
 dependencies[] = file_entity
 tool = true
+; Information added by drupal.org packaging script on 2012-11-21
+core = "7.x"
+datestamp = "1353506263"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = exif_custom

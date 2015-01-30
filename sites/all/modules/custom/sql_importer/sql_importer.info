@@ -9,3 +9,7 @@ dependencies[] = "feeds_ui"
 dependencies[] = "feeds_sql"
 features[ctools][] = "feeds:feeds_importer_default:1"
 features[feeds_importer][] = "import_into_cyperaceae_sql_"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = sql_importer

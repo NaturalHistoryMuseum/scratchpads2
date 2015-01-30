@@ -1,0 +1,91 @@
+
+This document explains how the l10n_server suite (and l10n_client) modules are
+intended to work together, and interact with other modules.
+
+l10n_community
+--------------------------------------------------------------------------------
+
+1. The community server provides a database backend to store projects, releases
+   and the translatable strings found in them. The data model is as follows:
+  
+    project =(1:n)> release =(1:n)> file =(1:n)> line =(1:n)> string =(1:n)> translation
+    
+   Which means that granular information is available about where strings are
+   used. Extraction warning reports also have their place connected to releases.
+   All these tables are only provided by this module though, and not filled
+   up with actual data (with the exception of the translation table). Connector
+   modules are expected to provide the project, release, file, line and string
+   data, based on their own discovery mechanisms.
+   
+   This design allows the module suite to be used in corporate settings, where
+   in-house translation teams need their own project releases translated, and
+   they have no connection to drupal.org projects.
+
+2. The community server is designed to be able to work with Organic Groups.
+   Each language can have one organic group on the site, which provides a
+   discusson space for group members *and* makes it possible to hand out
+   permissions (ie. differentiate between group managers and members if a
+   group needs this level of permission).
+   
+   Group managers can choose a permission model of either open or controlled.
+   A controlled model allows members of the group to suggest translations,
+   while approval rights are limited to group admins. An open model allows
+   all members to suggest and approve as well.
+   
+3. Translations can be approached from the list of language groups or the
+   list of projects. On the second level, detailed summaries related to the
+   selected language or project are shown as well as other stats.
+   These two interfaces allow people to get different overviews (summaries)
+   of the translations hosted on the site, as well as make it possible to
+   import and export translations based on languages or projects.
+   
+4. Translation can either happen on the site (which only requires a user
+   account with privileges to translate) or off-site. The online interface
+   allows translators to provide suggestions for strings.
+   
+5. Off-site translation support is possible with exporting Gettext PO(T)
+   files of a specific project release. Translators can work with offline
+   translation tools and import the modified PO files later. Exports can be
+   generated in various formats.
+      
+6. Extracted strings are stored related to projects, releases, files
+   and lines. So if a string appears multiple times in the same file
+   but on different lines, these are stored as separate relations.
+   Strings are only stored once, relations are made between lines and
+   strings.
+   
+   Source strings also store optinal context information, which is supported
+   from Drupal 7 in Drupal sites as well.
+   
+l10n_localpacks
+--------------------------------------------------------------------------------
+
+If you are setting up l10n_server, the most likely setup is l10n_localpacks.
+
+l10n_localpacks works off of a local directory, where packages are placed. The
+module looks at that directory periodically and when new ones are found, their
+parent projects and releases are created in the database, as well as their
+source code is parsed.
+ 
+l10n_client
+--------------------------------------------------------------------------------
+
+Although this module is hosted in its own separate project, it makes sense to
+document it here because of the relations of architecture. l10n_client works
+best with Drupal 6 and later because it requires a change made in Drupal 6 to
+work (but a backport of that change is available with the Drupal 5 module).
+
+1. By enabling locale module and l10n_client and adding at least one foreign
+   language, when viewing pages in foreign languages, people with 'use on-page
+   translation' permission associated can see a form to translate strings used
+   to build the page viewed. Translations are saved with AJAX callbacks, so
+   on-page translation is easy.
+
+2. Sites running l10n_client can set up translations sharing with a central
+   server at Administer >> Site configuration >> Languages >> Localization
+   sharing. If a correct server address is specified, the list of languages
+   supported there is shown.
+   
+3. Once the sharing is set up, to keep attribution intact, per-user API keys
+   should also be set up. Each user should request and set their own API key
+   via their user (My account) page on the client site.

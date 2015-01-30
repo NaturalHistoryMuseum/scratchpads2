@@ -10,3 +10,6 @@ dependencies[] = convert_image_format
 
 files[] = views/scratchpads_species_views_handler_field_taxonomy.inc
 files[] = tests/scratchpads_species.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_species

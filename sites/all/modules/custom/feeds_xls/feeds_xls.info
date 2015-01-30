@@ -6,7 +6,9 @@ files[] = FeedsExcelParser.inc
 core = 7.x
 
 ; Information added by drupal.org packaging script on 2011-09-27
-version = "7.x-0.0"
 core = "7.x"
-project = "feeds_xls"
 datestamp = "1317161804"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = feeds_xls

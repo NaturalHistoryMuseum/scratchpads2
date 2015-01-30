@@ -59,7 +59,7 @@ function eolapi_entity_info(){
  */
 function eolapi_apachesolr_index_documents_alter(array &$documents, $entity, $entity_type){
   if($entity_type == 'file'){
-    // If this ID appears in the field_data_eolapi_image table, then it's 
+    // If this ID appears in the field_data_eolapi_image table, then it's
     // associated with an eolapi entity, and therefore should not be indexed.
     $row = db_query('SELECT COUNT(*) as count FROM {field_data_eolapi_image} WHERE eolapi_image_fid = :entity_id', array(
       ':entity_id' => $entity->fid
@@ -74,7 +74,7 @@ function eolapi_apachesolr_index_documents_alter(array &$documents, $entity, $en
 
 /**
  * Implementation of hook_taxonomy_vocabulary_insert().
- * 
+ *
  * Exactly the same function (almost) from the Scratchpads taxonomic name module
  */
 function eolapi_taxonomy_vocabulary_insert($vocabulary){
@@ -196,8 +196,9 @@ function eolapi_load($entity_id){
 function eolapi_page_view($eolapi){
   $rows = array();
   if(count($eolapi->eolapi_image)){
-    if(@isset($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid'])){
-      $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
+    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
+    if(@isset($eolapi->eolapi_image[$lang][0]['fid'])){
+      $file = file_load($eolapi->eolapi_image[$lang][0]['fid']);
       $file_view = entity_view('file', array(
         $file
       ), 'file_styles_colorbox');

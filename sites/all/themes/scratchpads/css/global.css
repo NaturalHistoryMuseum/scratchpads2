@@ -553,7 +553,6 @@ h1.site-name,h2.site-name {
 /* Species pages*/
 .logged-in #block-views-species-spm-block {
   position: relative;
-  top: -30px;
 }
 
 .block-species-page-block{

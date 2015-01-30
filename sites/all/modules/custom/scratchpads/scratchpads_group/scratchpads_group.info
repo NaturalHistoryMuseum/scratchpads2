@@ -31,3 +31,6 @@ package = Groups
 description = Enable users to create and manage their own 'groups'.<br/><span class="error">Enabling this feature will have an adverse effect on the performance of your site, only enable if you are certain you need this functionality.</span>
 php = "5.2.4"
 tool = true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_group

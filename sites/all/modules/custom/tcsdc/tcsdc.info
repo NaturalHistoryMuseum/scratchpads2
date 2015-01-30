@@ -2,3 +2,6 @@ name = Taxon Concept Schema - Downloader and Importer
 description = "Allows a user to specify the URL to a TCS file, or to search a number of repositories, downloading the linked files and importing them into a taxonomy."
 package = "Scratchpads"
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tcsdc

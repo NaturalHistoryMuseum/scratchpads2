@@ -53,6 +53,17 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
       $value
     );
   }
+  // Guess the entity type.
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
   // Determine the field we are matching against, and whether duplicates are
   // allowed.
   $target_info = explode(':', $target);
@@ -87,7 +98,8 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
           break;
       }
       if($id){
-        $entity->{$target}['und'][$i]['tid'] = $id;
+        $lang = field_language($entity_type, $entity, $target);
+        $entity->{$target}[$lang][$i]['tid'] = $id;
       }else{
         drupal_set_message(t('%missing_value does not match any existing %match_key.', array(
           '%missing_value' => $v,

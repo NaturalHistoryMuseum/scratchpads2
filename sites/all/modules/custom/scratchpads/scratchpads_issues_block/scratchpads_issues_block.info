@@ -8,3 +8,6 @@ dependencies[] = blockexpose
 dependencies[] = remote_issue_tab
 files[] = tests/scratchpads_issues_block.test
 files[] = tests/scratchpads_issues_block.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_issues_block
