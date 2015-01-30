@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function taverna_schema(){
+  return array(
+    'cache_taverna' => drupal_get_schema_unprocessed('system', 'cache'),
+    'taverna' => array(
+      'fields' => array(
+        'tvid' => array(
+          'description' => 'Primary key',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'uid' => array(
+          'description' => '{user}.uid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'fid' => array(
+          'description' => '{file_managed}.fid',
+          'type' => 'int',
+          'unsigned' => TRUE
+        ),
+        'label' => array(
+          'description' => 'The label for this taverna run.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'description' => array(
+          'description' => 'The description for this taverna run.',
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'data' => array(
+          'description' => 'The response data for this taverna run.',
+          'type' => 'blob',
+          'not null' => TRUE,
+          'size' => 'big',
+          'translatable' => TRUE,
+          'serialize' => TRUE
+        ),
+        'type' => array(
+          'description' => 'The type of this taverna run.',
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'created' => array(
+          'description' => 'The Unix timestamp when the data item was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when the data item was most recently updated.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'tvid'
+      )
+    )
+  );
+}
+
+/**
+ * Increase the length of the type column
+ */
+function taverna_update_7001(){
+  $spec = taverna_schema();
+  db_change_field('taverna', 'type', 'type', $spec['taverna']['fields']['type']);
+}
