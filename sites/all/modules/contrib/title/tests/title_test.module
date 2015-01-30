@@ -28,7 +28,6 @@ function title_test_entity_info() {
   );
 
   $info['test_entity'] = array(
-    'label' => t('Test entity'),
     'entity keys' => array(
       'label' => 'ftlabel',
     ),
