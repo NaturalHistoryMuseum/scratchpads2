@@ -143,6 +143,10 @@ function ctools_context_handler_render_handler($task, $subtask, $handler, $conte
         return MENU_ACCESS_DENIED;
       case 404:
         return MENU_NOT_FOUND;
+      case 410:
+        drupal_add_http_header('Status', '410 Gone');
+        drupal_exit();
+        break;
       case 301:
       case 302:
       case 303:
@@ -157,7 +161,7 @@ function ctools_context_handler_render_handler($task, $subtask, $handler, $conte
           'query' => $info['query'],
           'fragment' => $info['fragment'],
         );
-        return drupal_goto($info['destination'], $options, $info['response code']);
+        drupal_goto($info['destination'], $options, $info['response code']);
       // @todo -- should other response codes be supported here?
     }
   }
@@ -451,7 +455,7 @@ function ctools_context_handler_edit_criteria($form, &$form_state) {
   ctools_include('ajax');
   ctools_modal_add_plugin_js(ctools_get_access_plugins());
   ctools_include('context-access-admin');
-  $form_state['module'] = 'page_manager_task_handler';
+  $form_state['module'] = (isset($form_state['module'])) ? $form_state['module'] : 'page_manager_task_handler';
   // Encode a bunch of info into the argument so we can get our cache later
   $form_state['callback argument'] = $form_state['task_name'] . '*' . $form_state['handler']->name;
   $form_state['access'] = $form_state['handler']->conf['access'];
