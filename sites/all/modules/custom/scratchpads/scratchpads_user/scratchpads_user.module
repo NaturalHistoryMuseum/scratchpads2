@@ -723,9 +723,11 @@ function scratchpads_user_field_formatter_view($entity_type, $entity, $field, $i
 
 function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, array $settings = NULL){
   $user = user_load($item['uid']);
-  $content = isset($user->field_user_given_names[LANGUAGE_NONE]) ? $user->field_user_given_names[LANGUAGE_NONE][0]['safe_value'] : '';
+  $lang = field_language('user', $user, 'field_user_given_names');
+  $content = isset($user->field_user_given_names[$user]) ? $user->field_user_given_names[$user][0]['safe_value'] : '';
   $content .= ' ';
-  $content .= (isset($user->field_user_family_name[LANGUAGE_NONE]) ? $user->field_user_family_name[LANGUAGE_NONE][0]['safe_value'] : '');
+  $lang = field_language('user', $user, 'field_user_family_name');
+  $content .= (isset($user->field_user_family_name[$lang]) ? $user->field_user_family_name[$lang][0]['safe_value'] : '');
   $content = trim($content);
   if(!$content){
     $content = $user->name;

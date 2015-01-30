@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 
+ *
  * Implentation of hook_block_view_alter
  * Move the view class to the container
  * @param array $blocks
@@ -32,7 +32,7 @@ function scratchpads_block_view_alter(&$data, $block){
 
 /**
  * Implements hook_preprocess_maintenance_page().
- * 
+ *
  * This is a copy from the Bartik theme.
  */
 function scratchpads_preprocess_maintenance_page(&$variables){
@@ -442,4 +442,3 @@ function scratchpads_theme(){
     )
   );
 }
-

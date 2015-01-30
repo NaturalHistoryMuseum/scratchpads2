@@ -2,3 +2,6 @@ name = Creative Commons
 description = Defines a field type for attaching creative commons licence types. 
 core = 7.x
 files[] = creative_commons.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = creative_commons

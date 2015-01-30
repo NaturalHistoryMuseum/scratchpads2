@@ -11,7 +11,7 @@ function scratchpads_multilingual_multilingual_settings_changed(){
     include_once DRUPAL_ROOT . '/includes/language.inc';
     $negotiation_all = language_negotiation_info();
     $negotiation = array(
-      'locale-session' => $negotiation_all['locale-session'],
+      'locale-url' => $negotiation_all['locale-url'],
       'locale-user' => $negotiation_all['locale-user'],
       'language-default' => $negotiation_all['language-default']
     );
@@ -29,6 +29,56 @@ function scratchpads_multilingual_scratchpads_default_permissions(){
       'translate interface'
     )
   );
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/language/update',
+    'admin/config/regional/language/configure',
+    'admin/config/regional/translate'
+  ));
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_multilingual_menu(){
+  return array(
+    'admin/config/regional/translate-strings' => array(
+      'title' => 'Translate interface',
+      'description' => 'Add or tweak translations for specific strings. You should use the "Interface Translate - Contribute" tool before using this.',
+      'weight' => 10,
+      'page callback' => 'locale_translate_seek_screen',
+      'access arguments' => array(
+        'translate interface'
+      ),
+      'file' => 'locale.admin.inc',
+      'file path' => drupal_get_path('module', 'locale')
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ * 
+ * Add an additional submit function so that we can remove the redirect that
+ * is pointlessly added byu the locale_translation_filter_form_submit() function
+ */
+function scratchpads_multilingual_form_locale_translation_filter_form_alter(&$form, &$form_state, $form_id){
+  $form['#submit'] = array(
+    'locale_translation_filter_form_submit',
+    'scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit'
+  );
+}
+
+/**
+ * Submit handler to remove the form redirect
+ */
+function scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit($form, &$form_state){
+  unset($form_state['redirect']);
 }
 
 /**
@@ -89,5 +139,71 @@ function scratchpads_multilingual_block_view($delta = ''){
 function scratchpads_multilingual_preprocess_html(&$variables){
   if(drupal_multilingual()){
     $variables['classes_array'][] = "multilingual";
+  }
+}
+
+/**
+ * Implements hook_system_info_alter()
+ */
+/**
+ * Implements hook_system_info_alter().
+ */
+function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
+  switch($file->name){
+    // The following updates allow us to download the translations for latest
+    // stable release of a module when we're actually using a "dev" release.
+    case 'entitycache':
+    case 'field_group':
+      $info['version'] = '7.x-1.1';
+      break;
+    case 'role_delegation':
+    case 'gravatar':
+    case 'site_map':
+      $info['version'] = '7.x-1.0';
+      break;
+    case 'biblio':
+      $info['version'] = '7.x-1.0-rc5';
+      break;
+    case 'redirect':
+      $info['version'] = '7.x-1.0-rc1';
+      break;
+    case 'views_data_export':
+      $info['version'] = '7.x-3.0-beta6';
+      break;
+    case 'field_collection':
+      $info['version'] = '7.x-1.0-beta5';
+      break;
+    case 'l10n_update':
+      $info['version'] = '7.x-1.0-beta3';
+      break;
+    case 'beautytips':
+      $info['version'] = '7.x-2.0-beta2';
+      break;
+    case 'boost':
+    case 'entity_translation':
+      $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'efq_views':
+      $info['version'] = '7.x-1.0-alpha3';
+      break;
+    case 'feeds':
+    case 'styles':
+      $info['version'] = '7.x-2.0-alpha8';
+      break;
+    case 'file_entity':
+    case 'media':
+      $info['version'] = '7.x-2.0-unstable7';
+      break;
+  }
+  if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
+    if(empty($info['version']) || $info['version'] != VERSION){
+      if(SCRATCHPADS_VERSION == 'TAG'){
+        // Hard coded to allow sites on the 2317 branch to work.  This can be
+        // removed once the 2317 branch is merged.
+        $info['version'] = '7.x-2.5.1';
+      }else{
+        $info['version'] = '7.x-' . SCRATCHPADS_VERSION;
+      }
+    }
   }
 }

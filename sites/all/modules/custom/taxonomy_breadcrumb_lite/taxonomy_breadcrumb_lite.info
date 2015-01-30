@@ -2,3 +2,6 @@ name = Taxonomy breadcrumb
 description = "Enables taxonomy based breadcrumbs on term pages."
 dependencies[] = taxonomy
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = taxonomy_breadcrumb_lite

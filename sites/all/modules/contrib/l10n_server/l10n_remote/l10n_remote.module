@@ -1,0 +1,192 @@
+<?php
+
+/**
+ * @file
+ *   Localization XML-RPC server for remote translation submissions.
+ *
+ *   Adds XML-RPC support for remote string submissions, to be used by l10n_client.
+ *
+ * @todo Add automatic API key retrieval, where user just clicks and accepts.
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * The function handles messages and access handling.
+ */
+function l10n_remote_menu() {
+  $items = array();
+
+  // Get user API key for remote submissions.
+  $items['translate/remote/userkey/%'] = array(
+    'title' => 'Get API key',
+    'page callback' => 'l10n_remote_user_page',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function l10n_remote_permission() {
+  return array(
+    'submit suggestions remotely' => array(
+      'title' => t('submit suggestions remotely'),
+      'description' => t('TODO Add a description for \'submit suggestions remotely\''),
+    ),
+  );
+}
+
+/**
+ * Generate API key for user, given a public client token sent over.
+ */
+function l10n_remote_user_page($client_token) {
+  global $user;
+
+  if (!$user->uid) {
+    drupal_set_message(t('Please log in first to generate your Localization Server API key.'), 'error');
+    return '';
+  }
+  elseif (!user_access('submit suggestions remotely', $user)) {
+    drupal_set_message(t("You don't have the required permissions to use remote submission on this Localization Server."), 'error');
+    return '';
+  }
+
+  $items[] = array(
+    '#type' => 'item',
+    '#title' => t('Your Localization Server API key'),
+    '#markup' => l10n_remote_user_api_key($user->uid, $client_token),
+    '#description' => t('Copy and paste this API key into your user account on the client host.'),
+  );
+  return drupal_render($items);
+}
+
+/**
+ * Get API key for remote submission
+ *
+ * This API key will contain a visible user id and a signature from the server.
+ */
+function l10n_remote_user_api_key($uid, $client_token) {
+  return $uid . ':' . md5('l10n_community' . $uid . drupal_get_private_key() . $client_token);
+}
+
+/**
+ * Implements hook_xmlrpc().
+ */
+function l10n_remote_xmlrpc() {
+  return array(
+    array(
+      'l10n.server.test',
+      'l10n_remote_xmlrpc_status',
+      array('struct', 'string'),
+      t('Test support for a specific API version.'),
+    ),
+    array(
+      'l10n.submit.translation',
+      'l10n_remote_xmlrpc_string_submit',
+      array('struct', 'string', 'string', 'string', 'int', 'string', 'string'),
+      t('Handle remote string submissions.'),
+    ),
+  );
+}
+
+/**
+ * XML-RPC callback to test the interface from the client.
+ *
+ * Returns:
+ *  - Service name
+ *  - Service version
+ *  - Site name
+ *  - Accepted languages
+ *  - Whether the asked version is supported or not
+ */
+function l10n_remote_xmlrpc_status($version) {
+  return array(
+    // Localization server data.
+    'service' => 'Localization community remote translation interface',
+    'version' => '2.0',
+    'supported' => $version == '2.0',
+    'languages' => implode(', ', array_keys(l10n_community_get_languages())),
+    // Website data.
+    'name' => variable_get('site_name', 'Drupal'),
+  );
+}
+
+/**
+ * XML-RPC callback to submit strings remotely.
+ */
+function l10n_remote_xmlrpc_string_submit($langcode, $source, $translation, $uid, $client_token, $signature) {
+
+  // Check signature and permission parameters.
+  if (!($uid && $signature == md5(l10n_remote_user_api_key($uid, $client_token) . $langcode . $source . $translation . $client_token))) {
+    //watchdog('l10n_community', 'Submitted translation with wrong parameters or signature.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Wrong parameters or signature. Did you set your user API key on your user account page?');
+  }
+
+  // Check whether we have an actual translation to save.
+  $translation = trim($translation);
+  if (empty($translation)) {
+    //watchdog('l10n_community', 'Empty remote translation submission.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Empty translations are not saved.');
+  }
+
+  // Check user access.
+  // TODO Convert "user_load" to "user_load_multiple" if "$uid" is other than a uid.
+  // To return a single user object, wrap "user_load_multiple" with "array_shift" or equivalent.
+  // Example: array_shift(user_load_multiple(array(), $uid))
+  if (!(($account = user_load($uid)) && $account->status && user_access('access localization community', $account) && user_access('submit suggestions remotely', $account))) {
+    //watchdog('l10n_community', 'Unauthorized or blocked user attempted submission.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Blocked user account or no permission to submit translations.');
+  }
+
+  // Check that the language is set up on the server at all.
+  $languages = l10n_community_get_languages('name');
+  if (!isset($languages[$langcode])) {
+    //watchdog('l10n_community', 'Language not allowed for remote submission.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Language not accepted.');
+  }
+
+  // Attempt to set group context with l10n_groups, if that module is available.
+  module_invoke('l10n_groups', 'set_context', $langcode);
+  // If og is enabled and group node is set, invoke user role update, so the
+  // following user_access() call will properly see the access permissions.
+  if ($group_node = module_invoke('og', 'get_group_context')) {
+    module_invoke('og_user_roles', 'grant_roles', $account, $group_node);
+  }
+
+  // Check if the user has permission to submit strings in this language.
+  if (!user_access('submit suggestions', $account)) {
+    //watchdog('l10n_community', 'Not allowed to submit translations in this language remotely.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Not allowed to submit translations in this language.');
+  }
+
+  // Check whether we have this source string managed.
+  // @todo: add context support as soon as l10n_client starts to support it!
+  // @todo: append $context to $source in MD5 counting when available.
+  $select = db_select('l10n_server_string', 's')->fields('s', array('sid'))
+    ->condition('hashkey', md5($source));
+  $sid = $select->execute()->fetchField();
+  if (!$sid) {
+    //watchdog('l10n_community', 'Source string does not exist on server.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Source string not found on server, translation not saved.');
+  }
+
+  // Attempt to add this as a suggestion.
+  $tid = l10n_community_add_suggestion($sid, $translation, $langcode, $uid, $uid, L10N_SERVER_MEDIUM_REMOTE);
+
+  if ($tid === FALSE) {
+    //watchdog('l10n_community', 'Duplicate translation submitted.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Suggested translation already appears as active translation or suggestion.');
+  }
+  elseif ($tid === NULL) {
+    //watchdog('l10n_community', 'Empty suggestions are not saved.', NULL, WATCHDOG_WARNING);
+    return array('status' => FALSE, 'reason' => 'Empty suggestions are not saved.');
+  }
+
+  // If we got this far, everything is fine. Signal success to the client.
+  return array('status' => TRUE, 'sid' => $sid);
+}

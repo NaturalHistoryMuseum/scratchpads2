@@ -2,12 +2,12 @@
 
 /**
  * 7.x
- * 
+ *
  * femail.module
  */
 /**
  * Implementation of hook_permission
- * 
+ *
  * States the roles that are allowed to email the site.
  */
 function femail_permission(){
@@ -23,7 +23,7 @@ function femail_permission(){
 
 /**
  * Implements hook_menu_local_tasks_alter().
- * 
+ *
  * Much of the following code is ripped straight from the same hook in the forum
  * module.
  */
@@ -292,7 +292,7 @@ function femail_taxonomy_term_update($term){
 function femail_taxonomy_term_insert($term){
   // Check that we're handling a term from the forum vocabulary.
   if($term->vid == variable_get('forum_nav_vocabulary', 0)){
-    // Note, emails are set for forum containers, as the forum_container 
+    // Note, emails are set for forum containers, as the forum_container
     // variable has not been updated at this point.  This may be confusing if
     // a user creates a forum with the same name as a container, as the emails
     // will clash
@@ -330,18 +330,21 @@ function femail_node_insert($node){
     // We've added/updated a forum post, lets mail it out
     // First, we'll get the forum that this has been posted to.
     //drupal_set_message('<pre>'.print_r($node, 1).'</pre>');
-    $forum_tid = $node->taxonomy_forums['und'][0]['tid'];
+    $lang = field_language('node', $node, 'taxonomy_forums');
+    $forum_tid = $node->taxonomy_forums[$lang][0]['tid'];
     if($forum_tid){
       module_load_include('mail.inc', 'femail');
       $files = array();
-      if(isset($node->femail_files[LANGUAGE_NONE])){
-        foreach($node->femail_files[LANGUAGE_NONE] as $file){
+      $lang = field_language('node', $node, 'femail_files');
+      if(isset($node->femail_files[$lang])){
+        foreach($node->femail_files[$lang] as $file){
           $files[] = file_load($file['fid']);
         }
       }
       // Aquire node access first, before trying to send.
       node_access_acquire_grants($node);
-      _femail_send_message($forum_tid, $node->title, $node->body['und'][0]['value'], $node->nid, $files);
+      $lang = field_language('node', $node, 'body');
+      _femail_send_message($forum_tid, $node->title, $node->body[$lang][0]['value'], $node->nid, $files);
       // We need to remove the grants from the database, as otherwise we will
       // receive an error.
       db_delete('node_access')->condition('nid', $node->nid)->execute();
@@ -357,7 +360,7 @@ function femail_node_update($node){
   // may make this an option in the future, but for now, this is disabled.
   /*
    * DISABLED
-   * 
+   *
    * femail_node_insert($node);
    */
 }
@@ -378,19 +381,21 @@ function femail_comment_publish($comment){
     // Include file
     module_load_include('mail.inc', 'femail');
     $files = array();
-    if(isset($comment->femail_files['und'])){
-      foreach($comment->femail_files['und'] as $file){
+    $lang = field_language('comment', $comment, 'femail_files');
+    if(isset($comment->femail_files[$lang])){
+      foreach($comment->femail_files[$lang] as $file){
         $files[] = file_load($file['fid']);
       }
     }
-    _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body['und'][0]['value'], $node->nid, $files, $comment->cid, $msgid);
+    $lang = field_language('comment', $comment, 'comment_body');
+    _femail_send_message($node->forum_tid, $comment->subject, $comment->comment_body[$lang][0]['value'], $node->nid, $files, $comment->cid, $msgid);
   }
 }
 
 /**
  * FIXME - This needs to be altered ASAP to ensure that the plain text content
  * type is being used.
- * 
+ *
  * Implementation of hook_form_alter
  */
 function femail_form_alter(&$form, &$form_state, $form_id){
@@ -428,9 +433,9 @@ function femail_after_build($element){
 // -------------- ABOVE ARE DRUPAL 7 READY -------------------------------------
 /**
  * Implementation of hook_og
- * 
+ *
  * Couldn't really find much documentation for this, so this is a guess!
- * 
+ *
     module_invoke_all('og', 'admin new', $node->nid, $account->uid, $message);
     module_invoke_all('og', 'user approve', $node->nid, $account->uid, $message);
     module_invoke_all('og', 'user broadcast', $node->nid, $recipients, $message);
@@ -439,7 +444,7 @@ function femail_after_build($element){
     module_invoke_all('og', 'user insert', $gid, $uid, $args);
     module_invoke_all('og', 'user request', $gid, $admins, $message);
     module_invoke_all('og', 'user update', $gid, $uid, $args);
- * 
+ *
  * Following function temporarily removed until it can be tested with Og 7.
 function femail_og($op, $gid, $uid, $args){
   switch($op){
