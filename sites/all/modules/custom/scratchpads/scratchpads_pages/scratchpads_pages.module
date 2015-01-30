@@ -138,11 +138,13 @@ function scratchpads_pages_form_node_form_alter(&$form, $form_state){
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
   if(!empty($form['menu']['link']['mlid']['#value'])){
     global $language;
-    if(($translated_title = _i18n_menu_link_title($form['#node']->menu, $language->language)) != ''){
-      $form['menu']['link']['link_title']['#default_value'] = $translated_title;
-    }
-    if(($translated_description = _i18n_menu_link_description($form['#node']->menu, $language->language)) != ''){
-      $form['menu']['link']['description']['#default_value'] = $translated_description;
+    if(module_exists('i18n_menu')){
+      if(($translated_title = _i18n_menu_link_title($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['link_title']['#default_value'] = $translated_title;
+      }
+      if(($translated_description = _i18n_menu_link_description($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['description']['#default_value'] = $translated_description;
+      }
     }
   }
   // If this is page display type, force providing a menu link
