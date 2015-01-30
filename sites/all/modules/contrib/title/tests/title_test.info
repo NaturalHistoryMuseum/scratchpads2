@@ -7,9 +7,9 @@ dependencies[] = title
 dependencies[] = entity
 dependencies[] = entity_translation
 
-; Information added by drupal.org packaging script on 2013-04-15
-version = "7.x-1.0-alpha7+4-dev"
+; Information added by Drupal.org packaging script on 2014-11-21
+version = "7.x-1.0-alpha7+12-dev"
 core = "7.x"
 project = "title"
-datestamp = "1366034249"
+datestamp = "1416612781"
 

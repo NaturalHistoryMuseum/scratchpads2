@@ -98,35 +98,37 @@ function title_field_formatter_settings_summary($field, $instance, $view_mode) {
 function title_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
   $output = isset($items[0]) ? $items[0]['safe_value'] : '';
+  $element = array();
 
-  if (!empty($output) && $settings['title_link'] == 'content') {
-    $uri = entity_uri($entity_type, $entity);
-    $output = l($output, $uri['path'], array('html' => TRUE));
-  }
-
-  $wrap_tag = empty($settings['title_style']) ? '_none' : $settings['title_style'];
-
-  if ($wrap_tag != '_none') {
-    $variables = array(
-      'element' => array(
-        '#tag' => $wrap_tag,
-        '#value' => $output,
-      ),
-    );
-
-    if (!empty($settings['title_class'])) {
-      $variables['element']['#attributes'] = array('class' => $settings['title_class']);
+  if (!empty($output)) {
+    if ($settings['title_link'] == 'content') {
+      $uri = entity_uri($entity_type, $entity);
+      $output = l($output, $uri['path'], array('html' => TRUE));
     }
 
-    $output = theme('html_tag', $variables);
+    $wrap_tag = empty($settings['title_style']) ? '_none' : $settings['title_style'];
+
+    if ($wrap_tag != '_none') {
+      $variables = array(
+        'element' => array(
+          '#tag' => $wrap_tag,
+          '#value' => $output,
+        ),
+      );
+
+      if (!empty($settings['title_class'])) {
+        $variables['element']['#attributes'] = array('class' => $settings['title_class']);
+      }
+
+      $output = theme('html_tag', $variables);
+    }
+
+    $element = array(
+      array(
+        '#markup' => $output,
+      ),
+    );
   }
-
-  $element = array(
-    array(
-      '#markup' => $output,
-    ),
-  );
-
   return $element;
 }
 
