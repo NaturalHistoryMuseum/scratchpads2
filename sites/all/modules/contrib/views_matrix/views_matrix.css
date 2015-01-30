@@ -1,0 +1,19 @@
+/**
+ * @file
+ *   Default style for Views Matrix.
+ */
+
+table.views-matrix tbody tr th.views-matrix-row-header,
+table.views-matrix thead tr th.views-matrix-col-header {
+  background: none repeat scroll 0 0 rgba(0, 0, 0, 0.51);
+}
+table.views-matrix thead tr,
+table.views-matrix thead tr th.views-matrix-col-first {
+  background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+}
+table.views-matrix tbody tr td.even {
+  background-color: #EEEEEE;
+}
+table.views-matrix tbody tr td.odd {
+  background-color: #DDDDDD;
+}
