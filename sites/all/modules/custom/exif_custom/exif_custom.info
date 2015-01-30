@@ -1,8 +1,9 @@
 name = Custom EXIF mapping
 description = "Save EXIF data to custom fields"
-package = Image
+package = Images
 core = 7.x
 dependencies[] = file_entity
+tool = true
 ; Information added by drupal.org packaging script on 2012-11-21
 core = "7.x"
 datestamp = "1353506263"
