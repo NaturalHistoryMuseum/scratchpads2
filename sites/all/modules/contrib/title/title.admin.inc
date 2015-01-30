@@ -14,19 +14,15 @@ function title_form_field_ui_overview(&$form, &$form_state) {
   if (!empty($entity_info['field replacement'])) {
     $field_replacement_info = $entity_info['field replacement'];
     $admin_path = _field_ui_bundle_admin_path($form['#entity_type'], $form['#bundle']);
-    $form['fields']['#header'][6]['colspan'] += 1;
 
     foreach (element_children($form['fields']) as $field_name) {
       if (isset($field_replacement_info[$field_name])) {
-        $form['fields'][$field_name]['field_replacement'] = array(
+        $form['fields'][$field_name]['delete'] = array(
           '#type' => 'link',
           '#title' => t('replace'),
           '#href' => $admin_path . '/fields/replace/' . $field_name,
-          '#options' => array('attributes' => array('title' => t('Replace %field with a field instance.', array('%field' => $field_name)))),
+          '#options' => array('attributes' => array('title' => t('Replace %field with a customizable field instance that can be translated.', array('%field' => $field_name)))),
         );
-      }
-      else {
-        $form['fields'][$field_name]['field_replacement'] = array();
       }
     }
   }
@@ -48,8 +44,8 @@ function title_field_replacement_form($form, $form_state, $entity_type, $bundle,
 
   $form['enabled'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Replace %field with a field instance.', array('%field' => $field_name)),
-    '#description' => t('If this is enabled the %field legacy field will be replaced with a regular field and will disappear from the <em>Manage fields</em> page. It will get back if the replacing field instance is deleted.', array('%field' => $field_name)),
+    '#title' => t('Replace %field with a field instance', array('%field' => $field_name)),
+    '#description' => t('If this is enabled the %field will be replaced with a customizable field that can be translated.', array('%field' => $field_name)),
     '#default_value' => $enabled,
     '#disabled' => $enabled,
   );
@@ -73,4 +69,46 @@ function title_field_replacement_form_submit($form, &$form_state) {
     }
   }
   $form_state['redirect'] = _field_ui_bundle_admin_path($form['#entity_type'], $form['#bundle']) . '/fields';
+}
+
+/**
+ * Form settings for automated title_field attachement.
+ */
+function title_admin_settings_form() {
+  $form['tabs'] = array(
+    '#type' => 'vertical_tabs',
+  );
+
+  foreach (entity_get_info() as $entity_type => $info) {
+    if (empty($info['field replacement'])) {
+      continue;
+    }
+
+    $form['settings']['title_' . $entity_type] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#tree' => TRUE,
+      '#group' => 'tabs',
+      '#title' => $info['label'],
+    );
+
+    $options = array();
+    foreach (array_keys($info['field replacement']) as $replacement) {
+      $options[$replacement] = drupal_ucfirst($replacement);
+    }
+
+    $default = variable_get('title_' . $entity_type, array());
+    $form['settings']['title_' . $entity_type]['auto_attach'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Automatic field replacement'),
+      '#options' => $options,
+      '#default_value' => !empty($default['auto_attach']) ? $default['auto_attach'] : array(),
+      '#description' => t('Automatically replace the selected field(s) when creating a new bundle.'),
+    );
+
+    $form['settings']['title_' . $entity_type]['hide_label'] = _title_hide_label_widget($default, $info['label']);
+  }
+
+  return system_settings_form($form);
 }
