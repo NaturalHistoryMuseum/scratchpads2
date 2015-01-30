@@ -6,3 +6,7 @@ dependencies[] = "ctools"
 dependencies[] = "feeds"
 features[ctools][] = "feeds:feeds_importer_default:1"
 features[feeds_importer][] = "species_dictionary_importer"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = species_dictionary_importer

@@ -516,3 +516,19 @@ function darwincore_update_7020(){
   // We've worked on the database directly, so ensure everything is cleaned up.
   drupal_flush_all_caches();
 }
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7021(){
+  darwincore_update_7015();
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}

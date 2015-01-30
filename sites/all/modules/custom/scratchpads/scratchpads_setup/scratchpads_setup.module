@@ -1,9 +1,9 @@
 <?php
 
 /*********************************************************************************************
- * 
+ *
  * HOOKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_default_flows().
@@ -97,9 +97,9 @@ function scratchpads_setup_module_implements_alter(&$implementations, $hook){
 }
 
 /*********************************************************************************************
- * 
+ *
  * SETUP FORMS
- * 
+ *
  ********************************************************************************************/
 function scratchpads_welcome_form($form, &$form_state){
   // Sanity check - ensure this hasn't already been completed
@@ -154,8 +154,9 @@ function scratchpads_setup_about_form_submit($form, &$form_state){
   $node = new stdClass();
   $node->type = 'page';
   node_object_prepare($node);
+  $lang = field_language('node', $node, 'body');
   $node->title = t('About us');
-  $node->language = LANGUAGE_NONE;
+  $node->language = $lang;
   $body_text = $form_state['values']['about_us']['value'];
   $node->body[$node->language][0]['value'] = $body_text;
   $node->body[$node->language][0]['summary'] = text_summary($body_text);
@@ -365,9 +366,9 @@ function scratchpads_setup_form_submit(&$form, &$form_state){
 }
 
 /*********************************************************************************************
- * 
+ *
  * COMPLETE PAGE
- * 
+ *
  ********************************************************************************************/
 function scratchpads_setup_complete_page(){
   return array(
@@ -405,9 +406,9 @@ function scratchpads_setup_complete_page(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * BLOCKS
- * 
+ *
  ********************************************************************************************/
 function scratchpads_setup_block_info(){
   // This example comes from node.module.

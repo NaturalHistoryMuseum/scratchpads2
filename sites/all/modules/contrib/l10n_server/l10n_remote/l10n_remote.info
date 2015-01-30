@@ -1,0 +1,12 @@
+name = "Localization remote API"
+description = Provides an XML-RPC server interface to handle remote translation submissions.
+dependencies[] = l10n_community
+package = "Localization server"
+core = 7.x
+
+; Information added by drupal.org packaging script on 2013-02-20
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "l10n_server"
+datestamp = "1361365680"
+

@@ -2,3 +2,6 @@ name = Form flow UI
 description = Admin interface for building multisteps forms
 core = 7.x
 dependencies[] = formflow
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = formflow_ui

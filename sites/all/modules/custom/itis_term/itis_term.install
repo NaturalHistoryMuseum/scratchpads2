@@ -94,7 +94,7 @@ function itis_term_update_7003(){
 
 /**
  * Enable the modules in preparation for update 7006
- * 
+ *
  * This needs running again, because the languagefield module was not available
  */
 function itis_term_update_7005(){
@@ -108,7 +108,7 @@ function itis_term_update_7005(){
 /**
  * Convert the old vernacular names fields to the new vernacular name field
  * collection.
- * 
+ *
  * Note, this update is time consuming, so should only be run from Drush.
  */
 function itis_term_update_7006(){
@@ -166,19 +166,20 @@ function itis_term_update_7006(){
     foreach($results as $row){
       $term = taxonomy_term_load($row->entity_id);
       if($term && is_array($term->field_vernacular_names)){
-        foreach($term->field_vernacular_names[LANGUAGE_NONE] as $vern){
+        $lang = field_language('taxonomy_term', $term, 'field_vernacular_names');
+        foreach($term->field_vernacular_names[$lang] as $vern){
           if(($value = trim($vern['value'])) != FALSE){
             $entity = entity_create('field_collection_item', array(
               'field_name' => 'field_vernacular_name_collection'
             ));
             $entity->field_vernacular_name = array(
-              LANGUAGE_NONE => array(
+              $lang => array(
                 array(
                   'value' => $value
                 )
               )
             );
-            $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+            $entity->setHostEntity('taxonomy_term', $term, $lang, TRUE);
             $entity->save(TRUE);
           }
         }

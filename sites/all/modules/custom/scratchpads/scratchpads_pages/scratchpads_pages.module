@@ -1,15 +1,15 @@
 <?php
 /*********************************************************************************************
- * 
+ *
  * CONSTANTS
- * 
+ *
  ********************************************************************************************/
 define('PRIMARY_MENU_NAME', 'main-menu');
 
 /*********************************************************************************************
- * 
+ *
  * HOOKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_menu().
@@ -136,9 +136,19 @@ function scratchpads_pages_node_type_form_submit($form, $form_state){
  */
 function scratchpads_pages_form_node_form_alter(&$form, $form_state){
   $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
-  $type = $form['#node']->type;
+  if(!empty($form['menu']['link']['mlid']['#value'])){
+    global $language;
+    if(module_exists('i18n_menu')){
+      if(($translated_title = _i18n_menu_link_title($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['link_title']['#default_value'] = $translated_title;
+      }
+      if(($translated_description = _i18n_menu_link_description($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['description']['#default_value'] = $translated_description;
+      }
+    }
+  }
   // If this is page display type, force providing a menu link
-  if(isset($display_settings[$type]) && $display_settings[$type] == 'page'){
+  if(isset($display_settings[$form['#node']->type]) && $display_settings[$form['#node']->type] == 'page'){
     // Don't do this on edit pages, as the menu item should already be set.
     if(arg(2) != 'edit'){
       $form['menu']['enabled']['#default_value'] = 1;
@@ -164,9 +174,9 @@ function scratchpads_pages_theme(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * DISPLAY SETTINGS
- * 
+ *
  ********************************************************************************************/
 function scratchpads_pages_entity_info_alter(&$entity_info){
   // Add a linked node display setting
@@ -242,9 +252,9 @@ function scratchpads_pages_sort_weight($a, $b){
 }
 
 /*********************************************************************************************
- * 
+ *
  * VIEWS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_views_api
@@ -258,9 +268,9 @@ function scratchpads_pages_views_api(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * BLOCKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_block_info().
@@ -294,8 +304,9 @@ function scratchpads_pages_block_view($delta = ''){
           )), $node->type)
         );
         // If this node has a location, provide a link back to all filtered by location title
-        if(isset($node->field_location) && array_key_exists(LANGUAGE_NONE, $node->field_location)){
-          $location = array_shift($node->field_location[LANGUAGE_NONE]);
+        $lang = field_language('node', $node, 'field_location');
+        if(isset($node->field_location) && array_key_exists($lang, $node->field_location)){
+          $location = array_shift($node->field_location[$lang]);
           $items[] = l(t('!location !type', array(
             '!location' => $location['node']->title,
             '!type' => scratchpads_pages_pluralise_node_name($display_name)
@@ -353,9 +364,9 @@ function scratchpads_pages_node_get_terms($node, $key = 'tid'){
 }
 
 /*********************************************************************************************
- * 
+ *
  * CONTEXTS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_ctools_plugin_api().
@@ -368,12 +379,12 @@ function scratchpads_pages_ctools_plugin_api(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MODULE FUNCTIONS
- * 
+ *
  ********************************************************************************************/
 /**
- * 
+ *
  * Helper function for variable_get
  * @param string $name
  */
@@ -383,7 +394,7 @@ function scratchpads_pages_variable_get($name){
 }
 
 /**
- * 
+ *
  * Helper function for variable defaults
  * @param string $name
  */
@@ -434,6 +445,53 @@ function scratchpads_pages_pluralise_node_name($name){
       break;
   }
   return $name;
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ * 
+ * Move the scratchpads_pages_node_update function to the front of the list.
+ */
+function scratchpads_pages_module_implements_alter(&$implementations, $hook){
+  if($hook == 'node_update' && isset($implementations['scratchpads_pages'])){
+    $new_implementations = array();
+    $new_implementations['scratchpads_pages'] = $implementations['scratchpads_pages'];
+    unset($implementations['scratchpads_biblio']);
+    foreach($implementations as $key => $value){
+      $new_implementations[$key] = $value;
+    }
+    $implementations = $new_implementations;
+  }
+}
+
+/**
+ * Implements hook_node_update()
+ * 
+ * This function allows us to easily add translations for a page's menu item.
+ */
+function scratchpads_pages_node_update($node){
+  // We need to save the menu translation, and then load the original string
+  // so that the "English" string doesn't get overwritten by the translation
+  // string.
+  global $language;
+  // Check to see if we're submitting a translation, if so, we continue.
+  if(module_exists('i18n_string')){
+    if(!empty($language->language) && !empty($node->language) && $node->language != $language->language && !empty($node->menu['mlid'])){
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'title'
+      ), $language->language, $node->menu['link_title']);
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'description'
+      ), $language->language, $node->menu['description']);
+      $original_menu = menu_link_load($node->menu['mlid']);
+      $node->menu['description'] = $original_menu['options']['attributes']['title'];
+      $node->menu['link_title'] = $original_menu['link_title'];
+    }
+  }
 }
 
 /**

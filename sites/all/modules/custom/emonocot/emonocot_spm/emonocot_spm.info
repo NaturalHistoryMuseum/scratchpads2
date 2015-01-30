@@ -76,3 +76,7 @@ features[field_group][] = "group_spm_em_taxonomy|node|spm|default"
 features[field_group][] = "group_spm_em_taxonomy|node|spm|form"
 features[field_group][] = "group_vertical_tabs|node|spm|form"
 features[views_view][] = "biblio_citation"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_spm

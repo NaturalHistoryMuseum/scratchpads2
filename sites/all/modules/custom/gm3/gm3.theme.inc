@@ -263,10 +263,16 @@ function theme_gm3_view_gm3($variables){
           break;
         case 'gm3_combination':
           foreach($row->_field_data as $id => $values){
-            if(empty($values['entity']->{$key})) {
+            if(empty($values['entity']->{$key})){
               continue;
             }
-            foreach($values['entity']->{$key}[LANGUAGE_NONE] as $item){
+            foreach(entity_get_info() as $entity_type => $values2){
+              if($values2['base table'] == $variables['view']->base_table){
+                break;
+              }
+            }
+            $lang = field_language($entity_type, $values['entity'], $values['entity']->{$key});
+            foreach($values['entity']->{$key}[$lang] as $item){
               switch($item['gm3_type']){
                 case 'point':
                   if(!isset($map['libraries']['point'])){
