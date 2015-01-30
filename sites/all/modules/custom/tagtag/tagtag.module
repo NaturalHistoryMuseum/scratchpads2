@@ -238,7 +238,7 @@ function tagtag_submit_form($form, &$form_state){
   // tagtag element of the $node (entity???)
   // First we get the list of fields that we're searching.
   $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
-  $implementations = isset($settings['tagtag_search']) ? $settings['tagtag_search'] : '';
+  $implementations = isset($settings['tagtag_search']) ? $settings['tagtag_search'] : array();
   $search_services = module_invoke_all('tag_suggestion_info');
   $tags = array();
   // Loop through each field
