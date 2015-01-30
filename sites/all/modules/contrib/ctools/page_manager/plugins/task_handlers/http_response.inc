@@ -105,8 +105,9 @@ $plugin = array(
  */
 function page_manager_http_response_codes() {
   return array(
-    404 => t('404 Page not found'),
     403 => t('403 Access denied'),
+    404 => t('404 Page not found'),
+    410 => t('410 Gone'),
     301 => t('301 Redirect'),
   );
 }
