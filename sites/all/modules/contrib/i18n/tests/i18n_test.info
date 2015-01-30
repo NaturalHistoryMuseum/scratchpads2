@@ -1,0 +1,15 @@
+name = Internationalization tests
+description = Helper module for testing i18n (do not enable manually)
+dependencies[] = locale
+dependencies[] = translation
+dependencies[] = i18n
+package = Testing
+core = 6.x
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2013-01-13
+version = "7.x-1.8"
+core = "7.x"
+project = "i18n"
+datestamp = "1358075001"
+

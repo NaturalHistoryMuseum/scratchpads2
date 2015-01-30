@@ -175,3 +175,18 @@ function spm_update_7011(){
 function spm_update_7012(){
   variable_set('tagtag_node_spm', array());
 }
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7013(){
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}

@@ -1,9 +1,9 @@
 <?php
 
 /*********************************************************************************************
- * 
+ *
  * HOOKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_menu().
@@ -144,8 +144,8 @@ function formflow_field_group_formatter_info(){
   );
 }
 
-/** 
- * Implementation of hook_theme(). 
+/**
+ * Implementation of hook_theme().
  */
 function formflow_theme(){
   return array(
@@ -177,7 +177,7 @@ function formflow_features_api(){
 }
 
 /**
- * 
+ *
  * Get all flows
  */
 function formflow_get_flows($name = null){
@@ -188,7 +188,7 @@ function formflow_get_flows($name = null){
   // Call hook_default_flows to get any modules defined in code
   foreach(module_implements('default_flows') as $module){
     foreach(module_invoke($module, 'default_flows') as $default_flow){
-      // Don't overwrite DB flows - allows for overriding 
+      // Don't overwrite DB flows - allows for overriding
       if(!isset($flows[$default_flow['name']])){
         $flows[$default_flow['name']] = $default_flow;
       }
@@ -205,8 +205,8 @@ function formflow_get_flows($name = null){
 
 /**
  * Implementation of hook_module_implements_alter().
- * 
- * We need to ensure that this module's entity_info_alter fires after other 
+ *
+ * We need to ensure that this module's entity_info_alter fires after other
  * modules (particularly file_styles and media).
  */
 function formflow_module_implements_alter(&$implementations, $hook){
@@ -218,12 +218,12 @@ function formflow_module_implements_alter(&$implementations, $hook){
 }
 
 /*********************************************************************************************
- * 
+ *
  * DB
- * 
+ *
  ********************************************************************************************/
 /**
- * 
+ *
  * Retrieve all flows defined in DB
  * @param optional formflow name $name
  */
@@ -244,7 +244,7 @@ function formflow_load($name = null){
 }
 
 /**
- * 
+ *
  * Retrieve the steps for a formflow from the db
  * @param formflow id $fid
  */
@@ -272,7 +272,7 @@ function formflow_delete_steps($fid){
 }
 
 /**
- * 
+ *
  * Save a flow & it's steps
  * @param array / object $flow
  */
@@ -311,9 +311,9 @@ function formflow_save_steps($fid, $steps){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MENU CALLBACKS & HELPERS
- * 
+ *
  ********************************************************************************************/
 function formflow_page($flow, $current_step = 0){
   global $user;
@@ -324,7 +324,7 @@ function formflow_page($flow, $current_step = 0){
   $flow['return callback'] = 'formflow_finish';
   $flow['cancel callback'] = 'formflow_cancel';
   $flow['order'] = array();
-  // Crappy database layer won't let you have spaces in field aliases! Rewrite the keys here 
+  // Crappy database layer won't let you have spaces in field aliases! Rewrite the keys here
   foreach(array(
     'show_trail',
     'show_back',
@@ -345,7 +345,7 @@ function formflow_page($flow, $current_step = 0){
     $flow['order'][$delta] = $flow['steps'][$delta]['title'];
   }
   $cache_id = $flow['name'];
-  // If the form hasn't been submitted & step is 0, clear the cache 
+  // If the form hasn't been submitted & step is 0, clear the cache
   if(!count($_POST) && $current_step === 0){
     formflow_cache_clear($cache_id);
   }
@@ -353,7 +353,7 @@ function formflow_page($flow, $current_step = 0){
     drupal_set_message(t('There are no forms in this flow.'), 'error');
     return '';
   }
-  // check access for this url  
+  // check access for this url
   if(isset($flow['steps'][$current_step]['path'])){
     $item = menu_get_item($flow['steps'][$current_step]['path']);
     if($item['include_file']){
@@ -378,7 +378,7 @@ function formflow_page($flow, $current_step = 0){
       'uid' => $user->uid,
       'name' => (isset($user->name) ? $user->name : ''),
       'type' => $node_type,
-      'language' => LANGUAGE_NONE
+      'language' => $user->language,
     );
     $form_state['build_info']['args'] = array(
       $node
@@ -386,9 +386,9 @@ function formflow_page($flow, $current_step = 0){
   }elseif(isset($flow['steps'][$current_step]['path']) && !empty($flow['steps'][$current_step]['path']) && !drupal_valid_path($flow['steps'][$current_step]['path'])){
     drupal_access_denied();
   }
-  // Allow other modules to make changes & additions before loading the form 
+  // Allow other modules to make changes & additions before loading the form
   drupal_alter('formflow', $flow, $form_state);
-  // Build the form      
+  // Build the form
   $form = ctools_wizard_multistep_form($flow, $current_step, $form_state);
   if(!$form){
     if(!count($flow['forms'])){
@@ -454,9 +454,9 @@ function formflow_menu_item($flow){
 }
 
 /*********************************************************************************************
- * 
+ *
  * FORMS
- * 
+ *
  ********************************************************************************************/
 function formflow_submit(&$form, &$form_state){
   $form_state['formflow']['cache'][$form_state['step']] = array(
@@ -467,12 +467,12 @@ function formflow_submit(&$form, &$form_state){
 }
 
 /*********************************************************************************************
- * 
+ *
  * Wizard helpers
- * 
+ *
  ********************************************************************************************/
 /**
- * Handle the 'finish' click 
+ * Handle the 'finish' click
  */
 function formflow_finish(&$form_state){
   $form_state['complete'] = TRUE;
@@ -500,16 +500,16 @@ function formflow_finish(&$form_state){
 }
 
 /**
- * Handle the 'cancel' click 
+ * Handle the 'cancel' click
  */
 function formflow_cancel(&$form_state){
   $form_state['cancel'] = TRUE;
 }
 
 /*********************************************************************************************
- * 
+ *
  * Cache functions
- * 
+ *
  ********************************************************************************************/
 function formflow_cache_set($id, $cache){
   ctools_include('object-cache');
@@ -530,7 +530,7 @@ function formflow_cache_clear($id){
 }
 
 /**
- * 
+ *
  * Clear the menu caches
  */
 function formflow_menu_cache_clear(){
@@ -538,9 +538,9 @@ function formflow_menu_cache_clear(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * Field group
- * 
+ *
  ********************************************************************************************/
 /**
  * Attach groups to the (form) build.
@@ -659,7 +659,7 @@ function formflow_field_group_next_submit($form, &$form_state){
 }
 
 /**
- * 
+ *
  * Helper function for handling next/back navigation
  * @param string - direction of travel $op
  * @param array $form
@@ -732,7 +732,7 @@ function formflow_field_group_pre_render(&$element, $group, &$form){
 }
 
 /**
- * 
+ *
  * Implementation of hook_field_group_build_pre_render_alter
  * Make changes so only relevant bits of the form are shown
  * @param form $element
@@ -773,7 +773,7 @@ function formflow_field_group_build_pre_render_alter(&$form){
 }
 
 /**
- * 
+ *
  * Remove the default submit buttons
  * @param form element $element
  */

@@ -1,0 +1,17 @@
+
+* Create hook_update_N() for updating permission tables
+
+  http://drupal.org/node/224333#permission_tables
+
+  New permission tables
+
+  The {permission} table is gone, instead we have a {role_permission}
+  which stores (role ID, permission string) pairs. Thus, each
+  permission granted for a given role ID is a separate row in the
+  table. This update is in system.install so that it will already be
+  complete when any other core or contributed module update is
+  running. This should make any alteration of existing permissions
+  much easier.
+
+* Check all TODO marks and fix them.
+

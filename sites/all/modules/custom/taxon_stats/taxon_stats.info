@@ -5,3 +5,6 @@ core = 7.x
 tool = true
 
 dependencies[] = simple_google_charts
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = taxon_stats

@@ -3,3 +3,6 @@ description = Provides a front end implementation of the Tag API.
 core = 7.x
 files[] = tagtag.module
 package = Tags
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tagtag

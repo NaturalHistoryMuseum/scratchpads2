@@ -10,12 +10,11 @@ core = 7.x
 files[] = includes/relation_select.views.inc
 files[] = includes/relation_select.views_default.inc
 files[] = includes/relation_select_plugin_style.inc
-
-; Theme
 files[] = theme/theme.inc
-; Information added by drupal.org packaging script on 2013-05-25
-version = "7.x-1.x-dev"
-core = "7.x"
-project = "relation_select"
-datestamp = "1369451832"
 
+core = "7.x"
+datestamp = "1354455784"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = relation_select

@@ -8,6 +8,34 @@ function scratchpads_multilingual_disable(){
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array(
-    'locale'
+    'locale',
+    'l10n_update'
   ));
+}
+
+/**
+ * Enable the l10n_update module which is now required.
+ */
+function scratchpads_multilingual_update_7001(){
+  module_enable(array(
+    'l10n_update'
+  ));
+  variable_set('l10n_update_check_frequency', 7);
+  variable_set('l10n_update_import_mode', 2);
+}
+
+/**
+ * Ensure the negotiation is set as we want it.
+ */
+function scratchpads_multilingual_update_7002(){
+  if(variable_get('scratchpads_multilingual_init', FALSE)){
+    include_once DRUPAL_ROOT . '/includes/language.inc';
+    $negotiation_all = language_negotiation_info();
+    $negotiation = array(
+      'locale-url' => $negotiation_all['locale-url'],
+      'locale-user' => $negotiation_all['locale-user'],
+      'language-default' => $negotiation_all['language-default']
+    );
+    language_negotiation_set('language', $negotiation);
+  }
 }

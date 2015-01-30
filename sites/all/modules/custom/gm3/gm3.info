@@ -3,3 +3,6 @@ description = Google Maps Javascript API V3
 core = 7.x
 package = Google maps
 files[] = gm3_plugin_style_gm3.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = gm3
