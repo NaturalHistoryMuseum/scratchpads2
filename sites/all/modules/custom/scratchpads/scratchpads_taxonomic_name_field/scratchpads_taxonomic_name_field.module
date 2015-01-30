@@ -5,7 +5,7 @@
  * name to the end of the term string "term (vocabulary)" when multiple
  * vocabularies are present.
  *
- * @param unknown_type $items
+ * @param unknown_type $items        
  */
 function scratchpads_taxonomic_name_field_menu_alter(&$items){
   $items['taxonomy/autocomplete'] = array(
@@ -70,7 +70,7 @@ function scratchpads_taxonomic_name_field_field_widget_form(&$form, &$form_state
 
 /**
  * Implodes a list of tags of a certain vocabulary into a string.
- *
+ * 
  * This function includes "[VID]".
  */
 function scratchpads_taxonomic_name_field_implode_tags($tags, $vid = NULL){
