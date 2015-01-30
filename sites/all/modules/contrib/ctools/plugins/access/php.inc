@@ -52,7 +52,7 @@ function ctools_php_ctools_access_settings($form, &$form_state, $conf) {
  * Check for access.
  */
 function ctools_php_ctools_access_check($__conf, $contexts) {
-  //$access = eval($__conf['php']);
+  $access = eval($__conf['php']);
   return $access;
 }
 

@@ -237,7 +237,7 @@ function page_manager_page_add_subtask($task_name = NULL, $step = NULL) {
   if ($task_name) {
     $page = page_manager_get_page_cache($task_name);
     if (empty($page)) {
-      return drupal_not_found();
+      return MENU_NOT_FOUND;
     }
 
     $form_info['path'] = "admin/structure/pages/add/$task_name/%step";
@@ -443,7 +443,7 @@ function page_manager_page_form_basic($form, &$form_state) {
       '#type' => 'checkbox',
       '#default_value' => !empty($page->make_frontpage),
       '#title' => t('Make this your site home page.'),
-      '#description' => t('To set this panel as your home page you must create a unique path name with no % placeholders in the path. The site home page is currently set to %homepage on the !siteinfo configuration form.', array('!siteinfo' => l(t('Site Information'), 'admin/settings/site-information'), '%homepage' => '/' . $frontpage)),
+      '#description' => t('To set this panel as your home page you must create a unique path name with no % placeholders in the path. The site home page is currently set to %homepage on the !siteinfo configuration form.', array('!siteinfo' => l(t('Site Information'), 'admin/config/system/site-information'), '%homepage' => '/' . $frontpage)),
     );
     $form['admin_paths'] = array(
       '#type' => 'checkbox',
@@ -1313,7 +1313,7 @@ function page_manager_page_import_subtask($form, &$form_state, $task_name) {
  */
 function page_manager_page_import_subtask_validate(&$form, &$form_state) {
   ob_start();
-  //eval($form_state['values']['object']);
+  eval($form_state['values']['object']);
   ob_end_clean();
 
   if (!isset($page) || !is_object($page)) {
@@ -1465,7 +1465,7 @@ function page_manager_page_form_clone_submit(&$form, &$form_state) {
   // Export the handler, which is a fantastic way to clean database IDs out of it.
   $export = page_manager_page_export($original, $handlers);
   ob_start();
-  //eval($export);
+  eval($export);
   ob_end_clean();
 
   $task_name = page_manager_make_task_name('page', $page->name);

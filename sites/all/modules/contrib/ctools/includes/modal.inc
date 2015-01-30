@@ -188,8 +188,15 @@ function ctools_modal_text_button($text, $dest, $alt, $class = '') {
  * Wrap a form so that we can use it properly with AJAX. Essentially if the
  * form wishes to render, it automatically does that, otherwise it returns
  * so we can see submission results.
+
+ * @param array $form
+ *   An associative array containing the structure of the form.
+ * @param array $form_state
+ *   An associative array containing the current state of the form.
+ *   If the 'reset_html_ids' key is set to TRUE, it will prevent HTML IDs in
+ *   forms from being incremented.
  *
- * @return
+ * @return mixed
  *   The output of the form, if it was rendered. If $form_state['ajax']
  *   is set, this will use ctools_modal_form_render so it will be
  *   a $command object suitable for ajax_render already.
@@ -199,6 +206,13 @@ function ctools_modal_text_button($text, $dest, $alt, $class = '') {
  *   form will never be redirected.
  */
 function ctools_modal_form_wrapper($form_id, &$form_state) {
+  // Since this will run again on form rebuild while still in the modal, prevent
+  // form IDs from being incremented.
+  // @todo https://drupal.org/node/1305882
+  if (!empty($form_state['reset_html_ids']) && !empty($_POST['ajax_html_ids'])) {
+    unset($_POST['ajax_html_ids']);
+  }
+
   // This won't override settings already in.
   $form_state += array(
     're_render' => FALSE,
