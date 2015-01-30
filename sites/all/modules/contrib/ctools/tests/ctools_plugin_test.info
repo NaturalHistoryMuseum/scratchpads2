@@ -7,11 +7,13 @@ files[] = ctools.plugins.test
 files[] = object_cache.test
 files[] = css.test
 files[] = context.test
+files[] = math_expression.test
+files[] = math_expression_stack.test
 hidden = TRUE
 
-; Information added by drupal.org packaging script on 2012-08-18
-version = "7.x-1.2"
+; Information added by Drupal.org packaging script on 2014-11-19
+version = "7.x-1.5"
 core = "7.x"
 project = "ctools"
-datestamp = "1345319204"
+datestamp = "1416423525"
 
