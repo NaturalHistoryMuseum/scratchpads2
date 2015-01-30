@@ -14,3 +14,7 @@ name = "ITIS Term"
 package = "Taxonomy"
 features[ctools][] = "field_group:field_group:1"
 features[field_group][] = "group_extra_detail|field_collection_item|field_vernacular_name_collection|form"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = itis_term

@@ -14,3 +14,6 @@ dependencies[] = media
 dependencies[] = scratchpads_blocks
 features[field][] = "file-image-field_promote_to_home_page"
 files[] = tests/scratchpads_front.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_front

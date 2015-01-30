@@ -396,11 +396,14 @@ function scratchpads_statistics_user_login(&$edit, $account){
   $country = NULL;
   $latitude = NULL;
   $longitude = NULL;
-  if(@isset($account->field_user_family_name[LANGUAGE_NONE][0]['value']) && isset($account->field_user_given_names[LANGUAGE_NONE][0]['value'])){
-    $name = trim($account->field_user_given_names[LANGUAGE_NONE][0]['value'] . ' ' . $account->field_user_family_name[LANGUAGE_NONE][0]['value']);
+  $lang_given_names = field_language('user', $account, 'field_user_given_names');
+  $lang = field_language('user', $account, 'field_user_family_name');
+  if(@isset($account->field_user_family_name[$lang][0]['value']) && isset($account->field_user_given_names[$lang_given_names][0]['value'])){
+    $name = trim($account->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $account->field_user_family_name[$lang][0]['value']);
   }
-  if(@isset($account->field_user_country[LANGUAGE_NONE][0]['iso2'])){
-    $country = $account->field_user_country[LANGUAGE_NONE][0]['iso2'];
+  $lang = field_language('user', $account, 'field_user_country');
+  if(@isset($account->field_user_country[$lang][0]['iso2'])){
+    $country = $account->field_user_country[$lang][0]['iso2'];
   }
   // Do a GeoIP lookup on the remote hostname.
   $data = file_get_contents('http://freegeoip.net/json/' . $_SERVER['REMOTE_ADDR']);
@@ -426,7 +429,7 @@ function scratchpads_statistics_user_login(&$edit, $account){
 function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterableInterface $query){
   // If we're here, we should have one table, and possibly one field.  We look
   // through each of the fields for the "entity_id" field, and this is then used
-  // to left-join to the field_taxonomic_name table. 
+  // to left-join to the field_taxonomic_name table.
   foreach($query->getTables() as $table){
     // Add all the fields.
     $query->fields($table['alias']);
@@ -473,7 +476,7 @@ function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterabl
 /**
  * Basic function that seems to be missing to deliver JSON to the browser or to
  * another service.
- * 
+ *
  * Based on ajax_delver (see documentation there).
  */
 function json_deliver($json){

@@ -279,11 +279,25 @@ function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type,
 
 /**
  * Callback to set the value for a CC field.
+ * 
+ * FIXME - Should CC be translatable?
  */
 function _creative_commons_feeds_set_target_value($source, $entity, $target, $value){
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
   $field = isset($entity->$target) ? $entity->$target : array();
   $value = array_search($value, creative_commons_get_licence_types());
-  $field['und'][] = array(
+  $lang = field_language($entity_type, $entity, $field);
+  $lang = $lang ? $lang : LANGUAGE_NONE;
+  $field[$lang][] = array(
     'licence' => $value
   );
   $entity->{$target} = $field;

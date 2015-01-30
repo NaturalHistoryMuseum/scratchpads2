@@ -373,12 +373,23 @@ function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
  * Callback to set the value for a GM3 field.
  */
 function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
   if(is_array($value)){
     $value = $value[0];
   }
   $info = field_info_field($target);
   $field = isset($entity->$target) ? $entity->$target : array();
-  $field['und'][] = $value;
+  $lang = field_language($entity_type, $entity, $field);
+  $field[$lang][] = $value;
   $entity->{$target} = $field;
 }
 

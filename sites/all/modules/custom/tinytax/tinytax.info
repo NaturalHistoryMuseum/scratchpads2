@@ -5,3 +5,6 @@ dependencies[] = taxonomy
 dependencies[] = ajaxblocks
 files[] = tests/tinytax.test
 files[] = tests/tinytax.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tinytax

@@ -5,3 +5,6 @@ files[] = GBIFRegistry.class.inc
 files[] = DrupalRegistryCache.class.inc
 files[] = gbif_registry.test
 package = GBIF Registry
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = gbif_registry

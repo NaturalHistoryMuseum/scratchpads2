@@ -1,0 +1,48 @@
+# HEADER
+
+# l10n_server does not care for the headers, so we just omit them here.
+
+# SIMPLE STRINGS
+
+# This should be clearly imported
+msgid "This is a test string."
+msgstr "This is a test string. - imported translation"
+
+# This makes this .po invalid, but l10n_server does not care for duplicate
+# definitions of the same string, so we can check whether similar translations
+# are saved when there are only whitespace changes (they should not be).
+msgid "This is a test string."
+msgstr "    This is a test string. - imported translation  "
+
+# Because l10n_server should not know about this string, it should not save
+# this translation either.
+msgid "No such source string"
+msgstr "No such source string - imported translation"
+
+# PLURALS
+
+msgid "1 test string"
+msgid_plural "@count test strings"
+msgstr[0] "1 test string - imported translation"
+msgstr[1] "@count test strings - imported translation"
+
+# CONTEXT
+
+# This string should match up with the defined string in this context.
+msgctxt "Test context"
+msgid "Test string in context"
+msgstr "Test string in context - imported translation"
+
+# This string does not exist in this context, so this should be recorded as
+# an ignored string.
+msgctxt "Specific context"
+msgid "This is a test string."
+msgstr "This is a test string. - imported translation"
+
+# EMPTY STRING AT END
+
+# Checking for bug http://drupal.org/node/561296 and also using the same
+# sample string, which should not be registered as duplicate, because it is
+# just plain empty.
+msgid "This is a test string."
+msgstr ""

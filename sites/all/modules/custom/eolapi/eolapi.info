@@ -11,3 +11,6 @@ files[] = views/eolapi_plugin_style_eolapi.inc
 files[] = EOLAPIController.class.inc
 
 tool = true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = eolapi
