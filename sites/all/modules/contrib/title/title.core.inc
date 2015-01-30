@@ -26,6 +26,11 @@ function title_entity_info() {
     'widget' => array(
       'weight' => -5,
     ),
+    'display' => array(
+      'default' => array(
+        'type' => 'hidden',
+      ),
+    ),
   );
 
   $info['node'] = array(
@@ -34,10 +39,11 @@ function title_entity_info() {
         'field' => $field,
         'instance' => array(
           'label' => t('Title'),
-          'description' => t('A field replacing node title.'),
+          'description' => '',
         ) + $instance,
       ),
     ),
+    'efq bundle conditions' => TRUE,
   );
 
   if (module_exists('taxonomy')) {
@@ -47,8 +53,9 @@ function title_entity_info() {
           'field' => $field,
           'instance' => array(
             'label' => t('Name'),
-            'description' => t('A field replacing taxonomy term name.'),
+            'description' => '',
           ) + $instance,
+          'preprocess_key' => 'term_name',
         ),
         'description' => array(
           'field' => array(
@@ -57,7 +64,7 @@ function title_entity_info() {
           'instance' => array(
             'required' => FALSE,
             'label' => t('Description'),
-            'description' => t('A field replacing taxonomy term description.'),
+            'description' => '',
             'settings' => array(
               'text_processing' => 1,
             ),
@@ -80,8 +87,9 @@ function title_entity_info() {
           'field' => $field,
           'instance' => array(
             'label' => t('Subject'),
-            'description' => t('A field replacing comment subject.'),
+            'description' => '',
           ) + $instance,
+          'preprocess_key' => 'title',
         ),
       ),
     );
@@ -93,11 +101,18 @@ function title_entity_info() {
 /**
  * Submit callback for the taxonomy term description.
  */
-function title_field_term_description_submit(&$values, $legacy_field, $info, $langcode) {
-  $values['description'] = array();
+function title_field_term_description_submit($entity_type, $entity, $legacy_field, $info, $langcode, &$values) {
+  if (!isset($values['description'])) {
+    $values['description'] = array();
+  }
   foreach (array('value', 'format') as $key) {
-    if (isset($values[$info['field']['field_name']][$langcode][0][$key])) {
-      $values['description'][$key] = $values[$info['field']['field_name']][$langcode][0][$key];
+    if (isset($entity->{$info['field']['field_name']}[$langcode][0][$key])) {
+      $values['description'][$key] = $entity->{$info['field']['field_name']}[$langcode][0][$key];
+    }
+    // If the keys are not defined an empty value has been submitted, hence we
+    // need to update the term description accordingly.
+    else {
+      $values['description'][$key] = ($key == 'value') ?  '' : filter_default_format();
     }
   }
 }
@@ -106,44 +121,95 @@ function title_field_term_description_submit(&$values, $legacy_field, $info, $la
  * Sync callback for the text field type.
  */
 function title_field_text_sync_get($entity_type, $entity, $legacy_field, $info, $langcode) {
-  $wrapper = entity_metadata_wrapper($entity_type, $entity);
-  $wrapper->language($langcode);
-  return $wrapper->{$info['field']['field_name']}->raw();
+  $value = NULL;
+  $field_name = $info['field']['field_name'];
+  if (!empty($entity->{$field_name}[$langcode]) && is_array($entity->{$field_name}[$langcode])) {
+    $items = $entity->{$field_name}[$langcode];
+    $value = !empty($items[0]['value']) ? $items[0]['value'] : NULL;
+  }
+  return array($legacy_field => $value);
 }
 
 /**
  * Sync back callback for the text field type.
  */
 function title_field_text_sync_set($entity_type, $entity, $legacy_field, $info, $langcode) {
-  $wrapper = entity_metadata_wrapper($entity_type, $entity);
-  $wrapper->language($langcode);
-  $wrapper->{$info['field']['field_name']}->set($entity->{$legacy_field});
+  $entity->{$info['field']['field_name']}[$langcode][0]['value'] = $entity->{$legacy_field};
 }
 
 /**
  * Sync callback for the text with summary field type.
  */
 function title_field_text_with_summary_sync_get($entity_type, $entity, $legacy_field, $info, $langcode) {
+  $value = NULL;
+  $format = NULL;
   $format_key = $info['additional keys']['format'];
-  $wrapper = entity_metadata_wrapper($entity_type, $entity);
-  $wrapper->language($langcode);
   $field_name = $info['field']['field_name'];
   // Return values only if there is any available to process for the current
   // language.
-  if (is_array($wrapper->{$field_name}->value())) {
-    $entity->{$format_key} = $wrapper->{$field_name}->format->raw();
-    return $wrapper->{$field_name}->value->raw();
+  if (!empty($entity->{$field_name}[$langcode]) && is_array($entity->{$field_name}[$langcode])) {
+    $items = $entity->{$field_name}[$langcode];
+    $value = !empty($items[0]['value']) ? $items[0]['value'] : NULL;
+    $format = $entity->{$field_name}[$langcode][0]['format'];
   }
-  return NULL;
+  return array(
+    $legacy_field => $value,
+    $format_key => $format,
+  );
 }
 
 /**
  * Sync back callback for the text with summary field type.
  */
 function title_field_text_with_summary_sync_set($entity_type, $entity, $legacy_field, $info, $langcode) {
-  $format_key = $info['additional keys']['format'];
-  $value = array('value' => $entity->{$legacy_field}, 'format' => $entity->{$format_key});
-  $wrapper = entity_metadata_wrapper($entity_type, $entity);
-  $wrapper->language($langcode);
-  $wrapper->{$info['field']['field_name']}->set($value);
+  foreach (array('value' => $legacy_field, 'format' => $info['additional keys']['format']) as $column => $name) {
+    if (isset($entity->{$name})) {
+      $entity->{$info['field']['field_name']}[$langcode][0][$column] = $entity->{$name};
+    }
+  }
+}
+
+/**
+ * Process variables for page.tpl.php.
+ */
+function title_process_page(&$variables) {
+  // Ugly but necessary: there is no standardized way to tell if the current
+  // page is an entity view page. This information should be injected here in
+  // some form by entity-defining modules.
+  $entity_types = array(
+    'comment' => 1,
+    'node' => 1,
+    'taxonomy_term' => 2,
+  );
+
+  foreach ($entity_types as $entity_type => $position) {
+    if ($entity = menu_get_object($entity_type, $position)) {
+      break;
+    }
+  }
+
+  if ($entity) {
+    title_field_replacement_hide_label($entity_type, $entity, $variables, TRUE);
+  }
+}
+
+/**
+ * Process variables for node.tpl.php.
+ */
+function title_process_node(&$variables) {
+  title_field_replacement_hide_label('node', $variables['node'], $variables);
+}
+
+/**
+ * Process variables for taxonomy-term.tpl.php.
+ */
+function title_process_taxonomy_term(&$variables) {
+  title_field_replacement_hide_label('taxonomy_term', $variables['term'], $variables);
+}
+
+/**
+ * Process variables for comment.tpl.php.
+ */
+function title_process_comment(&$variables) {
+  title_field_replacement_hide_label('comment', $variables['comment'], $variables);
 }
