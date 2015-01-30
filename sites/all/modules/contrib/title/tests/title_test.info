@@ -4,11 +4,12 @@ core = 7.x
 package = Testing
 hidden = TRUE
 dependencies[] = title
-files[] = title_test.module
+dependencies[] = entity
+dependencies[] = entity_translation
 
-; Information added by drupal.org packaging script on 2011-09-10
-version = "7.x-1.x-dev"
+; Information added by Drupal.org packaging script on 2014-11-21
+version = "7.x-1.0-alpha7+12-dev"
 core = "7.x"
 project = "title"
-datestamp = "1315615267"
+datestamp = "1416612781"
 
