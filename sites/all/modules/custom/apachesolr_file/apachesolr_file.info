@@ -3,3 +3,6 @@ description = Indexer for reading file entity types into a solr core.
 dependencies[] = apachesolr
 package = Search Toolkit
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = apachesolr_file

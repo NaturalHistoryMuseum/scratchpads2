@@ -1,0 +1,185 @@
+<?php
+
+/**
+ * @file
+ *   Localization packager for localization server installer.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function l10n_packager_schema() {
+  $schema['l10n_packager_release'] = array(
+    'description' => 'Information about packaging for each release.',
+    'fields' => array(
+      'rid' => array(
+        'description' => 'Reference to {l10n_server_release}.rid',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'Packaging status for this release. One of L10N_PACKAGER_DISABLED, L10N_PACKAGER_ACTIVE and L10N_PACKAGER_ERROR.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default value' => 1,
+        'disp-width' => '11',
+      ),
+      'checked' => array(
+        'description' => 'Unix timestamp of last time this release was checked.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'disp-width' => '11',
+      ),
+      'updated' => array(
+        'description' => 'Unix timestamp of last time files for this release were updated.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'disp-width' => '11',
+      ),
+    ),
+    'primary key' => array('rid'),
+  );
+  $schema['l10n_packager_file'] = array(
+    'description' => 'Links releases and languages to files.',
+    'fields' => array(
+      'drid' => array(
+        'description' => 'Internal numeric identifier for a release file.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'rid' => array(
+        'description' => 'Reference to {l10n_server_release}.rid',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'Reference to the {languages}.language for the translation package.',
+        'type' => 'varchar',
+        'length' => '12',
+        'not null' => TRUE,
+      ),
+      'fid' => array(
+        'description' => 'Reference to {file_managed}.fid.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'checked' => array(
+        'description' => 'Unix timestamp of last time translation for this language was checked.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'disp-width' => '11',
+      ),
+      'sid_count' => array(
+        'description' => 'Count of source strings exported in this file.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'rid' => array('rid'),
+    ),
+    'primary key' => array('drid'),
+  );
+  $schema['cache_l10n_packager'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_l10n_packager']['description'] = 'Cache table for localization packager containing processed status data keyed by project URI.';
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function l10n_packager_install() {
+  // Set up blocks for this module.
+  $theme_key = variable_get('theme_default', 'bartik');
+  $blocks = array(-8 => 'download');
+  $module = 'l10n_packager';
+  foreach ($blocks as $weight => $delta) {
+    // Insert or update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+}
+
+/**
+ * Add cache_l10n_packager table to cache downloads information.
+ */
+function l10n_packager_update_6001() {
+  $table = drupal_get_schema_unprocessed('system', 'cache');
+  $table['description'] = 'Cache table for localization packager containing processed status data keyed by project URI.';
+  db_create_table('cache_l10n_packager', $table);
+  return t('TODO Add a descriptive string here to show in the UI. l10n_packager_update_6001()');
+}
+
+/**
+ * Set up blocks that were newly introduced.
+ */
+function l10n_packager_update_6002() {
+  $theme_key = variable_get('theme_default', 'bartik');
+  $blocks = array(-8 => 'download');
+  $module = 'l10n_packager';
+  foreach ($blocks as $weight => $delta) {
+    // Insert or update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_packager_update_6002()');
+}
+
+/**
+ * Add sid_count to release exports.
+ */
+function l10n_packager_update_6003() {
+  db_add_field('l10n_packager_file', 'sid_count', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  return t('TODO Add a descriptive string here to show in the UI. l10n_packager_update_6003()');
+}
+
+/**
+ * Add index on rids in files table.
+ */
+function l10n_packager_update_6004() {
+  if (!db_index_exists('l10n_packager_file', 'rid')) {
+    db_add_index('l10n_packager_file', 'rid', array('rid'));
+  }
+}

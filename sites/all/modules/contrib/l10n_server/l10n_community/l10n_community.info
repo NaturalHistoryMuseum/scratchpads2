@@ -1,0 +1,15 @@
+name = Localization community UI
+description = Community interface for string translation
+dependencies[] = l10n_server
+package = "Localization server"
+core = 7.x
+php = 5
+
+files[] = tests/l10n_community.test
+
+; Information added by drupal.org packaging script on 2013-02-20
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "l10n_server"
+datestamp = "1361365680"
+

@@ -3,3 +3,6 @@ description = Adds an enhanced User Interface for editing a taxonomy.
 core = "7.x"
 dependencies[] = taxonomy
 files[] = tests/tui.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tui

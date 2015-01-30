@@ -2,3 +2,6 @@ name = Scratchpads search tweak
 description = Integrates the standard search block with the Facetapi/Apachesolr
 package = "Scratchpads"
 core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_search_block

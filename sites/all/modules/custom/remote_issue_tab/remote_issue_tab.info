@@ -6,3 +6,6 @@ dependencies[] = aggregator
 ;dependencies[] = uwho_client
 scripts[] = js/remote_issue_tab.js
 stylesheets[all][] = css/remote_issue_tab.css
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = remote_issue_tab

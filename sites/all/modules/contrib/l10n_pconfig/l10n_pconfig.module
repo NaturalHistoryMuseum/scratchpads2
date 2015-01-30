@@ -1,0 +1,270 @@
+<?php
+
+/**
+ * @file
+ *   Plural formula configurator module.
+ *
+ *   Drupal itself does not let you edit plural formulas for languages because
+ *   of the complexity involved. This is an "advanced" user module letting you
+ *   edit the plural formulas, providing sensible defaults.
+ */
+
+// = Core hooks ================================================================
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add helpers to let people handle plural formula setup and correction easier.
+ */
+function l10n_pconfig_form_alter(&$form, $form_state, $form_id) {
+
+  if ($form_id == 'locale_languages_predefined_form') {
+    // Add our submit handler to match the plural formula to the language
+    // if we have a known formula for it.
+    $form['#submit'][] = 'l10n_pconfig_predefined_plural_formula_submit';
+  }
+
+  elseif (in_array($form_id, array('locale_languages_custom_form', 'locale_languages_edit_form'))) {
+    // Build a list of examples we have with existing languages.
+    include_once DRUPAL_ROOT . '/includes/iso.inc';
+    $formulas = l10n_pconfig_plural_formulas();
+    $predefined = _locale_get_predefined_list();
+    $types = array();
+    foreach ($formulas as $langcode => $plural_formula) {
+      $types[$plural_formula][] = t($predefined[$langcode][0]);
+    }
+    $examples = array();
+    foreach ($types as $plural_formula => $languages) {
+      $examples[] = t('<strong>@formula</strong> used by %languages', array('@formula' => $plural_formula, '%languages' => join(', ', $languages)));
+    }
+
+    // Pick form root depending on form.
+    $form_root = &$form;
+    if ($form_id == 'locale_languages_custom_form') {
+      $form_root = &$form['custom language'];
+    }
+    // Pick previous plural formula if editing an existing language.
+    $plural_formula = '';
+    if (isset($form['langcode']['#value'])) {
+      $language = db_select('languages', 'l')
+        ->fields('l', array('formula', 'plurals'))
+        ->condition('l.language', $form['langcode']['#value'])
+        ->execute()
+        ->fetchObject();
+      if (!empty($language->formula) || !empty($language->plurals)) {
+        $plural_formula = 'nplurals='. $language->plurals .'; plural='. strtr($language->formula, array('$' => '')) .';';
+      }
+    }
+
+    // Add text field to enter the plural formula.
+    $form_root['actions']['#weight'] = 200;
+    $form_root['direction']['#weight'] = 180;
+    $form_root['plural_formula'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Plural formula'),
+      '#weight' => 150,
+      '#description' => t('The plural formula for this language in the format used in .po files. Either check a pre-existing .po file or see <a href="http://translate.sourceforge.net/wiki/l10n/pluralforms">the wordforge plural forms list</a>. Some known examples:') . theme('item_list', array('items' => $examples)),
+      '#default_value' => $plural_formula
+    );
+    $form['#validate'][] = 'l10n_pconfig_custom_plural_formula_validate';
+    $form['#submit'][] = 'l10n_pconfig_custom_plural_formula_submit';
+  }
+}
+
+/**
+ * Predefined language, if we also know about the plural formula, set that too.
+ */
+function l10n_pconfig_predefined_plural_formula_submit($form, &$form_state) {
+  $langcode = $form_state['values']['langcode'];
+  $formulas = l10n_pconfig_plural_formulas();
+  if (isset($formulas[$langcode])) {
+    l10n_pconfig_update_plural_formula($langcode, $formulas[$langcode]);
+  }
+  else {
+    drupal_set_message(t('Plural formula cannot be automatically determined for the language added. Please <a href="@language-edit">edit the language</a> and specify the plural formula manually.', array('@language-edit' => url('admin/settings/language/edit/'. $langcode))), 'warning');
+  }
+}
+
+/**
+ * Custom language; check the validitiy of the plural formula given.
+ */
+function l10n_pconfig_custom_plural_formula_validate($form, &$form_state) {
+  if (!is_array($result = l10n_pconfig_parse_plural_formula($form_state['values']['plural_formula']))) {
+    form_set_error('plural_formula', t('Incorrect plural formula format. Please check your sources again.'));
+  }
+}
+
+/**
+ * Custom language; save the valid plural formula given.
+ */
+function l10n_pconfig_custom_plural_formula_submit($form, &$form_state) {
+  l10n_pconfig_update_plural_formula($form_state['values']['langcode'], $form_state['values']['plural_formula']);
+}
+
+// = API functions =============================================================
+
+/**
+ * A list of "Drupal languages" compiled from the list of languages
+ * in drupal.org CVS on July 18th, 2007.
+ *
+ * Plural information based on:
+ *   - http://translate.sourceforge.net/wiki/l10n/pluralforms
+ *   - our own CVS repository information from core translations
+ *   - feedback from drupal.org users and translators: http://groups.drupal.org/node/5216
+ */
+function l10n_pconfig_plural_formulas() {
+  $default = 'nplurals=2; plural=(n!=1);';
+  $one = 'nplurals=1; plural=0;';
+  return array(
+    'af' => $default,
+    'am' => 'nplurals=2; plural=(n > 1);',
+    // Wordforge says nplurals=4!?
+    'ar' => 'nplurals=6; plural=n==1 ? 0 : n==0 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;',
+    'ast' => $default,
+    'bg' => $default,
+    'bn' => $default,
+    'bs' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);',
+    // Wordforge has different rules!?
+    'ca' => 'nplurals=2; plural=(n > 1);',
+    // Wordforge has different rules!?
+    'cs' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);',
+    'cy' => 'nplurals=4; plural=( n==1 ? 0 : (n==2 ? 1 : (n!=8 && n!=11 ? 2 : 3)));',
+    'da' => $default,
+    'de' => $default,
+    // Wordforge has nplurals=1, but this might fit us better.
+    'dz' => $default,
+    'el' => $default,
+    'en-gb' => $default,
+    'eo' => $default,
+    'es' => $default,
+    'et' => $default,
+    'eu' => $default,
+    // Wordforge has nplurals=1, but this might fit us better.
+    'fa' => $default,
+    'fi' => $default,
+    'fil' => 'nplurals=2; plural=(n > 1);',
+    'fo' => $default,
+    'fr' => $default,
+    'ga' => 'nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4;',
+    'gl' => $default,
+    'gu' => $default,
+    'gsw-berne' => $default,
+    'he' => $default,
+    'hi' => $default,
+    'hr' => 'nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;',
+    'ht' => $default,
+    // Wordforge has nplurals=1, but this fits Hungarians way better.
+    'hu' => $default,
+    'hy' => 'nplurals=2; plural=(n > 1);',
+    // Wordforge has nplurals=1, but this might fit us better.
+    'id' => $default,
+    'is' => $default,
+    'it' => $default,
+    // Wordforge has nplurals=1, but this might fit us better.
+    'ja' => $default,
+    'ka' => $default,
+    'km' => $default,
+    'kn' => $default,
+    'ko' => $default,
+    'lt' => 'nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2;',
+    'lv' => 'nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2;',
+    'mk' => $default,
+    'ml' => $default,
+    'mn' => $default,
+    'mr' => $default,
+    'ms' => $default,
+    'my' => $default,
+    'nb' => $default,
+    'ne' => $default,
+    'nl' => $default,
+    'nn' => $default,
+    // The 'no' code is superceeded by nb and nn
+    //'no' => array('Norwegian', $default),
+    'ne' => $default,
+    'pa' => $default,
+    'pl' => 'nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);',
+    'pt' => $default,
+    // Wordforge has different rules!?
+    'pt-br' => $default,
+    'pt-pt' => $default,
+    'ro' => 'nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;',
+    'ru' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);',
+    'sco' => $default,
+    'se' => $default,
+    'sk' => 'nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;',
+    'sl' => 'nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);',
+    'sq' => $default,
+    // Wordforge has nplurals=4 here, and could be right, based on the .po file data?!?
+    'sr' => 'nplurals=3; plural=(n%10==1 && n%100 !=11) ? 0 : ((n%10 >=2 && n%10 <= 4) && (n%100 < 10 || n%100 >= 20) ? 1 : 2);',
+    'sv' => $default,
+    'sw' => $default,
+    'ta' => $default,
+    'te' => $default,
+    'th' => $default,
+    'tr' => $one,
+    'uk' => 'nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;',
+    'ur' => $default,
+    'uz' => $default,
+    'vi' => $one,
+    // How are the two zh- variants are different? This is how it is set up on l.d.o and nobody complained.
+    'zh-hans' => $default,
+    'zh-hant' => $one,
+    'xx-lolspeak' => $default,
+  );
+}
+
+/**
+ * Helper function to update plural formula to given value for the $langcode.
+ */
+function l10n_pconfig_update_plural_formula($langcode, $plural_formula) {
+  if (is_array($parsed_formula = l10n_pconfig_parse_plural_formula($plural_formula))) {
+    db_update('languages')
+      ->fields(array(
+        'plurals' => $parsed_formula[0],
+        'formula' => $parsed_formula[1],
+      ))
+      ->condition('language', $langcode)
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to parse a plural formula.
+ *
+ * A variant to _locale_import_parse_plural_forms() due to its resistance to
+ * be reused.
+ */
+function l10n_pconfig_parse_plural_formula($plural_formula) {
+  // First, delete all whitespace
+  $plural_formula = strtr($plural_formula, array(" " => "", "\t" => ""));
+
+  // Select the parts that define nplurals and plural
+  $nplurals = strstr($plural_formula, "nplurals=");
+  if (strpos($nplurals, ";")) {
+    $nplurals = substr($nplurals, 9, strpos($nplurals, ";") - 9);
+  }
+  else {
+    drupal_set_message(t('Error when parsing plural formula for number of forms: %formula. Invalid formula given.', array('%formula' => $plural_formula)), 'error');
+    return FALSE;
+  }
+
+  $plural = strstr($plural_formula, "plural=");
+  if (strpos($plural, ";")) {
+    $plural = substr($plural, 7, strpos($plural, ";") - 7);
+  }
+  else {
+    drupal_set_message(t('Error when parsing plural formula for use of forms: %formula. Invalid formula given.', array('%formula' => $plural_formula)), 'error');
+    return FALSE;
+  }
+
+  // Get PHP version of the plural formula.
+  $plural = _locale_import_parse_arithmetic($plural);
+
+  if ($plural !== FALSE) {
+    return array($nplurals, $plural);
+  }
+  else {
+    drupal_set_message(t('Error when parsing plural formula: %formula. Invalid formula given.', array('%formula' => $plural_formula)), 'error');
+    return FALSE;
+  }
+}

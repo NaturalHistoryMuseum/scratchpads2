@@ -1,0 +1,39 @@
+
+#l10n-packager-download-project-form {
+  margin-bottom: 2em;
+}
+#l10n-packager-download-project-form #edit-project-wrapper {
+  display: inline;
+}
+
+/* Per project overall download tables */
+.l10n-packager-table {
+  width: 100%;
+}
+.l10n-packager-table td {
+  padding-bottom: 0.4em;
+}
+.l10n-packager-table p {
+  margin-bottom: 0.2em;
+}
+.l10n-packager-table p.l10n-packager-meta {
+  font-size: 0.8em;
+}
+
+/* Per language per project download tables */
+.l10n-packager-download-table {
+  padding-bottom: 2em;
+}
+.l10n-packager-download-table table {
+  width: 100%;
+}
+.l10n-packager-download-table th {
+  width: 20%;
+}
+.l10n-packager-download-table td .filesize {
+  font-size: 80%;
+  display: block;
+}
+.l10n-packager-download-dynamic tr.l10n-packager-detail {
+  display: none;
+}

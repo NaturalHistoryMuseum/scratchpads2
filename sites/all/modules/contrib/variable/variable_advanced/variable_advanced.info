@@ -1,0 +1,11 @@
+name = Variable advanced
+description = Provides access to advanced low level variables. By using this you will be able to break your site badly.
+dependencies[] = variable
+package = Variable
+core = 7.x
+; Information added by drupal.org packaging script on 2013-01-13
+version = "7.x-2.2"
+core = "7.x"
+project = "variable"
+datestamp = "1358075138"
+
