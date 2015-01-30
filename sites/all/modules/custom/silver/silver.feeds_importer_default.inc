@@ -150,7 +150,16 @@ function silver_feeds_importer_default(){
       'import_on_create' => TRUE,
       'process_in_background' => FALSE
     );
-    if(auto_nodetitle_get_setting($node_type) != AUTO_NODETITLE_ENABLED){
+    // The title field may not have been enabled.
+    if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
+      if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+        $feeds_importer->config['processor']['config']['mappings'][] = array(
+          'source' => 'Title',
+          'target' => 'title_field',
+          'unique' => FALSE
+        );
+      }
+    }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
       $feeds_importer->config['processor']['config']['mappings'][] = array(
         'source' => 'Title',
         'target' => 'title',
@@ -424,6 +433,11 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
 function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = '', $map_field_collection = FALSE, $field_collection_label_addition = ''){
   if(is_array($field_info)){
     foreach($field_info as $key => $field){
+      // Don't add the title_field, as it has already been added (or not depending
+      // on settings).
+      if($key == 'title_field'){
+        continue;
+      }
       $field_info = field_info_field($field['field_name']);
       switch($field_info['type']){
         case 'file':

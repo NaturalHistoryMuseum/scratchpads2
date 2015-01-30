@@ -19,11 +19,38 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       ),
       '#empty_option' => t('Not a biological classification'),
       '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,
-      '#disabled' => isset($form['vid']) ? TRUE : FALSE
+      '#disabled' => isset($form['vid']) ? TRUE : FALSE,
+      '#weight' => 1
     );
+    // If the multilingual module is enabled, we hide parts of the form if we
+    // have selected a taxonomy (we have vernacular names, so translations should
+    // not be required).
+    if(isset($form['i18n_translation'])){
+      $form['i18n_translation']['#weight'] = 3;
+      $form['i18n_translation']['#states'] = array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      );
+      # Add an additional submit for removing the i18n_mode value.
+      array_unshift($form['#submit'], 'itis_term_taxonomy_form_vocabulary_submit_remove_i18n');
+    }
     // Add the an additional submit function so that we can tweak the
     // vocabulary.
     $form['#submit'][] = 'itis_term_taxonomy_form_vocabulary_submit';
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function itis_term_module_implements_alter(&$imps, $hook){
+  if($hook == 'form_taxonomy_form_vocabulary_alter' || $hook == 'form_alter' && isset($imps['itis_term'])){
+    $move = $imps['itis_term'];
+    unset($imps['itis_term']);
+    $imps['itis_term'] = $move;
   }
 }
 
@@ -41,6 +68,17 @@ function itis_term_feeds_after_parse(FeedsSource $source, FeedsParserResult $res
         $value .= (isset($item['Unit indicator ' . $i]) ? $item['Unit indicator ' . $i] . ' ' : '') . (isset($item['Unit name ' . $i]) ? $item['Unit name ' . $i] . ' ' : '');
       }
       $result->items[$key]['Term name'] = trim($value);
+    }
+  }
+}
+
+/**
+ * Submit function for removing i18n_mode
+ */
+function itis_term_taxonomy_form_vocabulary_submit_remove_i18n($form, &$form_state){
+  if(!isset($form_state['confirm_delete'])){
+    if($form_state['values']['biological_classification']){
+      $form_state['values']['i18n_mode'] = 0;
     }
   }
 }
@@ -485,49 +523,49 @@ function itis_term_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id)
       // Set fields to hide/appear depending on values in other fields.
       $form['field_unit_name2']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name1[und][0][value]"]' => array(
+          ':input[name*="field_unit_name1"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_name3']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name2[und][0][value]"]' => array(
+          ':input[name*="field_unit_name2"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_name4']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name3[und][0][value]"]' => array(
+          ':input[name*="field_unit_name3"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator1']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name1[und][0][value]"]' => array(
+          ':input[name*="field_unit_name1"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator2']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name2[und][0][value]"]' => array(
+          ':input[name*="field_unit_name2"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator3']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name3[und][0][value]"]' => array(
+          ':input[name*="field_unit_name3"]' => array(
             'filled' => TRUE
           )
         )
       );
       $form['field_unit_indicator4']['#states'] = array(
         'visible' => array(
-          ':input[name="field_unit_name4[und][0][value]"]' => array(
+          ':input[name*="field_unit_name4"]' => array(
             'filled' => TRUE
           )
         )

@@ -1,0 +1,110 @@
+<?php
+
+/**
+ * Implements hook_install()
+ */
+function scratchpads_translate_install(){
+  variable_set('entity_translation_comment_filter_page', 0);
+  variable_set('entity_translation_entity_types', array(
+    'node' => 'node',
+    'taxonomy_term' => 'taxonomy_term',
+    'comment' => 0,
+    'publication' => 0,
+    'file' => 0,
+    'user' => 'user'
+  ));
+  variable_set('entity_translation_hide_translation_links_page', 1);
+  variable_set('entity_translation_node_metadata_page', '0');
+  variable_set('entity_translation_settings_node__page', array(
+    'default_language' => 'en',
+    'hide_language_selector' => 0,
+    'exclude_language_none' => 0,
+    'lock_language' => 0,
+    'shared_fields_original_only' => 1
+  ));
+  variable_set('entity_translation_shared_labels', 1);
+  variable_set('entity_translation_workflow_enabled', 0);
+  variable_set('translation_language_type', 'language_content');
+  // Enable translation of all menus.
+  db_update('menu_custom')->fields(array(
+    'i18n_mode' => 5
+  ))->execute();
+  // Set the language negotation for content.
+  include_once DRUPAL_ROOT . '/includes/language.inc';
+  $negotiation_all = language_negotiation_info();
+  $negotiation = array(
+    'locale-interface' => $negotiation_all['locale-interface'],
+    'language-default' => $negotiation_all['language-default']
+  );
+  language_negotiation_set('language_content', $negotiation);
+  // Update the body field.
+  scratchpads_translate_update_7002();
+  // Set a message to alert a user that they need to convert their title fields
+  // before they can be translated.
+  // Set which variables may be translated
+  scratchpads_translate_update_7004();
+  drupal_set_message(t('You must convert all field types, including the title field, before translations will work completely.'));
+}
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_translate_disable(){
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  // Note, we leave the title field installed so we do not have to remove its
+  // settings.
+  drupal_register_shutdown_function('module_disable', array(
+    'entity_translation',
+    'i18n_field',
+    'i18n_taxonomy',
+    'translation',
+    'i18n_variable'
+  ));
+}
+
+/**
+ * Install the title module and enable it for all node bundles.
+ */
+function scratchpads_translate_update_7001(){
+  module_enable(array(
+    'title'
+  ));
+}
+
+/**
+ * Update the body field so that it can be translated.
+ */
+function scratchpads_translate_update_7002(){
+  $body_field_config_data = unserialize(db_select('field_config', 'f')->fields('f', array(
+    'data'
+  ))->condition('field_name', 'body')->condition('deleted', 0)->execute()->fetchField());
+  if($body_field_config_data){
+    $body_field_config_data['translatable'] = 1;
+    db_update('field_config')->fields(array(
+      'translatable' => 1,
+      'data' => serialize($body_field_config_data)
+    ))->condition('field_name', 'body')->execute();
+  }
+}
+
+/**
+ * Allow for translations of site variables
+ */
+function scratchpads_translate_update_7003(){
+  module_enable(array(
+    'i18n_variable'
+  ));
+}
+
+/**
+ * Set which variables may be translated
+ */
+function scratchpads_translate_update_7004(){
+  // Set the front page welcome message as translatable
+  $value = variable_realm_get('global', 'default', 'variable_realm_list_language');
+  $value = drupal_map_assoc($value);
+  $value['front_page_welcome_message'] = 'front_page_welcome_message';
+  $value['front_page_welcome_title'] = 'front_page_welcome_title';
+  variable_realm_set('global', 'default', 'variable_realm_list_language', $value);
+}

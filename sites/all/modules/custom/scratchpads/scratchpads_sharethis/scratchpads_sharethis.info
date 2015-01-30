@@ -5,3 +5,7 @@ package = Sharing
 tool=true
 dependencies[] = sharethis
 stylesheets[screen][] = css/scratchpads_sharethis.css
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_sharethis

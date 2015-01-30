@@ -5,3 +5,6 @@ dependencies[] = tcsdc
 tool=true;
 core = 7.x
 files[] = tests/gbif_ecat.selenium.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = gbif_ecat

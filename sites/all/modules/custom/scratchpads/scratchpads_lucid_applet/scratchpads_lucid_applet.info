@@ -3,3 +3,7 @@ description = "Provides a file formatter for embeding the Lucid 3 Applet"
 core = "7.x"
 dependencies[] = "file"
 tool = true
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_lucid_applet

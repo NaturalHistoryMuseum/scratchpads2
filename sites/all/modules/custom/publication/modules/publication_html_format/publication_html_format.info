@@ -17,3 +17,7 @@ features[views_view][] = "publication_citations_figures"
 features[views_view][] = "publication_citations_references"
 features[views_view][] = "publication_create_specimens"
 features[ckeditor_profile][] = "Publication"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = publication_html_format

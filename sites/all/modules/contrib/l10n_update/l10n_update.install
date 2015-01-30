@@ -1,0 +1,284 @@
+<?php
+
+/**
+ * @file
+ *   Install file for l10n remote updates.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function l10n_update_schema() {
+  $schema['l10n_update_project'] = array(
+    'description' => 'Update information for project translations.',
+    'fields' => array(
+      'name' => array(
+        'description' => 'A unique short name to identify the project.',
+        'type' => 'varchar',
+        'length' => '50',
+        'not null' => TRUE,
+      ),
+      'project_type' => array(
+        'description' => 'Project type, may be core, module, theme',
+        'type' => 'varchar',
+        'length' => '50',
+        'not null' => TRUE,
+      ),
+      'core' => array(
+        'description' => 'Core compatibility string for this project.',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'version' => array(
+        'description' => 'Human readable name for project used on the interface.',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'l10n_server' => array(
+        'description' => 'Localization server for this project.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'l10n_path' => array(
+        'description' => 'Server path this project updates.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'description' => 'Status flag. TBD',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+
+  $schema['l10n_update_file'] = array(
+    'description' => 'File and download information for project translations.',
+    'fields' => array(
+      'project' => array(
+        'description' => 'A unique short name to identify the project.',
+        'type' => 'varchar',
+        'length' => '50',
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'Reference to the {languages}.language for this translation.',
+        'type' => 'varchar',
+        'length' => '12',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'File origin: download or localfile',
+        'type' => 'varchar',
+        'length' => '50',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'filename' => array(
+        'description' => 'Link to translation file for download.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'fileurl' => array(
+        'description' => 'Link to translation file for download.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uri' => array(
+        'description' => 'File system path for importing the file.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'timestamp' => array(
+        'description' => 'Unix timestamp of the time the file was downloaded or saved to disk. Zero if not yet downloaded',
+        'type' => 'int',
+        'not null' => FALSE,
+        'disp-width' => '11',
+        'default' => 0,
+      ),
+      'version' => array(
+        'description' => 'Version tag of the downloaded file.',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'description' => 'Status flag. TBD',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'last_checked' => array(
+        'description' => 'Unix timestamp of the last time this translation was downloaded from or checked at remote server and confirmed to be the most recent release available.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'disp-width' => '11',
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('project', 'language'),
+  );
+
+  $schema['cache_l10n_update'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_l10n_update']['description'] = 'Cache table for the Localization Update module to store information about available releases, fetched from central server.';
+
+  return $schema;
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function l10n_update_schema_alter(&$schema) {
+  $schema['locales_target']['fields']['l10n_status'] = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function l10n_update_install() {
+  db_add_field('locales_target', 'l10n_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  variable_set('l10n_update_rebuild_projects', 1);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function l10n_update_uninstall() {
+  db_drop_field('locales_target', 'l10n_status');
+
+  variable_del('l10n_update_check_disabled');
+  variable_del('l10n_update_check_frequency');
+  variable_del('l10n_update_check_mode');
+  variable_del('l10n_update_default_server');
+  variable_del('l10n_update_default_update_url');
+  variable_del('l10n_update_download_store');
+  variable_del('l10n_update_import_mode');
+  variable_del('l10n_update_rebuild_projects');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function l10n_update_requirements($phase) {
+  if ($phase == 'runtime') {
+    if (l10n_update_get_projects() && l10n_update_language_list()) {
+      $requirements['l10n_update']['title'] = t('Translation update status');
+      if (l10n_update_available_updates()) {
+        $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
+        $requirements['l10n_update']['value'] = t('There are available updates');
+        $requirements['l10n_update']['description'] = t(
+          'There are new or updated translations available for currently installed modules and themes. To check for updates, you can visit the <a href="@check_manually">translation update page</a>.',
+          array(
+            '@check_manually' => url('admin/config/regional/translate/update')
+          )
+        );
+      }
+      else {
+        $requirements['l10n_update']['severity'] = REQUIREMENT_OK;
+        $requirements['l10n_update']['value'] = t('All your translations are up to date');
+      }
+    }
+    else {
+      $requirements['l10n_update']['title'] = t('Translation update status');
+      $requirements['l10n_update']['value'] = t('No update data available');
+      $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
+      //$requirements['update_core']['reason'] = UPDATE_UNKNOWN;
+      $requirements['l10n_update']['description'] = _l10n_update_no_data();
+    }
+    return $requirements;
+  }
+  // We must always return array, the installer doesn't use module_invoke_all()
+  return array();
+}
+
+/**
+ * Add status field to locales_target.
+ */
+function l10n_update_update_6001() {
+  if (!db_field_exists('locales_target', 'l10n_status')) {
+    db_add_field('locales_target', 'l10n_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  }
+  return t('Added l10n_status field to locales_target.');
+}
+
+/**
+ * Change status field name to l10n_status.
+ */
+function l10n_update_update_6002() {
+  // I18n Strings module adds a 'status' column to 'locales_target' table.
+  // L10n Update module previously added a column with the same name. To avoid
+  // any collision we change the column name here, but only if it was added by
+  // L10n Update module.
+  if (!db_field_exists('locales_target', 'l10n_status') && db_field_exists('locales_target', 'status') && !db_table_exists('i18n_strings')) {
+    db_change_field('locales_target', 'status', 'l10n_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  }
+  // Just in case someone did install I18n Strings, we still need to make sure
+  // the 'l10n_status' column gets created.
+  elseif (!db_field_exists('locales_target', 'l10n_status')) {
+    db_add_field('locales_target', 'l10n_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  }
+  return t('Resolved possible l10n_status field conflict in locales_target.');
+}
+
+/**
+ * Rename filepath to uri in {l10n_update_file} table.
+ */
+function l10n_update_update_7001() {
+  // Only do this update if the field exists from D6.
+  // If it doesn't, we've got a pure D7 site that doesn't need it.
+  if (db_field_exists('l10n_update_file', 'filepath')) {
+    db_change_field('l10n_update_file', 'filepath', 'uri', array(
+      'description' => 'File system path for importing the file.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  }
+}
+
+/**
+ * Delete 'last_updated' field from {l10n_update_file} table.
+ */
+function l10n_update_update_7002() {
+  db_drop_field('l10n_update_file', 'last_updated');
+}
+
+/**
+ * Delete 'import_date' field from {l10n_update_file} table.
+ */
+function l10n_update_update_7003() {
+  db_drop_field('l10n_update_file', 'import_date');
+}
+
+/**
+ * Create {cache_l10n_update} table.
+ */
+function l10n_update_update_7004() {
+  if (!db_table_exists('cache_l10n_update')) {
+    $schema = drupal_get_schema_unprocessed('system', 'cache');
+    $schema['description'] = 'Cache table for the Localization Update module to store information about available releases, fetched from central server.';
+    db_create_table('cache_l10n_update', $schema);
+  }
+}

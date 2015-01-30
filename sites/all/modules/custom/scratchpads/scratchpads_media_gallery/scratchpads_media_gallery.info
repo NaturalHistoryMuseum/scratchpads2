@@ -57,3 +57,6 @@ features[styles_style][] = "file:scratchpads_media_gallery_thumbnail"
 features[styles_style][] = "media:scratchpads_media_gallery_thumbnail"
 features[context][] = "media_gallery_page_facets"
 features[ctools][] = "context:context:3"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_media_gallery

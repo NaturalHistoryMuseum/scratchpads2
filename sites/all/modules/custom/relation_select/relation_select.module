@@ -708,7 +708,8 @@ function relation_select_field_insert($entity_type, $entity, $field, $instance, 
           if (isset($item['relation_id'])) {
             // Update an existing relation.
             $relation = $relation_entities[$item['relation_id']];
-            $relation->endpoints[LANGUAGE_NONE] = $endpoints_ids;
+            $lang = field_language($entity_type, $relation, 'endpoints');
+            $relation->endpoints[$lang] = $endpoints_ids;
           }
           else {
             // Create a new relation.
