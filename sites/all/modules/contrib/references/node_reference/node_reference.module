@@ -958,33 +958,42 @@ function node_reference_preprocess_node(&$vars) {
  *
  * When preparing a translation, load any translations of existing
  * references.
- * @todo Correctly implement after http://drupal.org/node/362021 is fixed.
  */
-function node_reference_field_prepare_translation($entity_type, $entity, $field, $instance, $langcode, &$items) {
-  $addition = array();
-  $addition[$field['field_name']] = array();
-  if (isset($entity->translation_source->$field['field_name'])
-  && is_array($entity->translation_source->$field['field_name'])) {
-    foreach ($entity->translation_source->$field['field_name'] as $key => $reference) {
-      $reference_node = node_load($reference['nid']);
-      // Test if the referenced node type is translatable and, if so,
-      // load translations if the reference is not for the current language.
-      // We can assume the translation module is present because it invokes 'prepare translation'.
-      if (translation_supported_type($reference_node->type)
-      && !empty($reference_node->language)
-      && $reference_node->language != $node->language
-      && $translations = translation_node_get_translations($reference_node->tnid)) {
-        // If there is a translation for the current language, use it.
-        $addition[$field['field_name']][] = array(
-          'nid' => isset($translations[$node->language])
-            ? $translations[$node->language]->nid
-            : $reference['nid'],
-        );
+function node_reference_field_prepare_translation($entity_type, $entity, $field, $instance, $langcode, &$items, $source_entity, $source_langcode) {
+  if (isset($items) && is_array($items)) {
+    // Match each reference with its matching translation, if it exists.
+    foreach ($items as $key => $item) {
+      $reference_node = node_load($item['nid']);
+      $items[$key]['nid'] = node_reference_find_translation($reference_node, $entity->language);
+    }
+  }
+}
+
+/**
+ * Find a translation for a specific node reference, if it exists.
+ *
+ * @param $reference_node
+ *   The untranslated node reference.
+ * @param $langcode
+ *
+ * @return
+ *   A nid for the translation of the node reference,
+ *   otherwise the original untranslated nid if no translation exists.
+ */
+function node_reference_find_translation($reference_node, $langcode) {
+  // Check if the source node translation is set and if translations are supported.
+  if (isset($reference_node->tnid) && translation_supported_type($reference_node->type)) {
+    // Determine whether an alternative language is being used.
+    if (!empty($reference_node->language) && $reference_node->language != $langcode) {
+      // Return a corresponding translation nid for the reference (if it exists).
+      $translations = translation_node_get_translations($reference_node->tnid);
+      if (isset($translations[$langcode])) {
+        return $translations[$langcode]->nid;
       }
     }
   }
-
-  return $addition;
+  // Return the untranslated reference nid, no matching translations found.
+  return $reference_node->nid;
 }
 
 /**
