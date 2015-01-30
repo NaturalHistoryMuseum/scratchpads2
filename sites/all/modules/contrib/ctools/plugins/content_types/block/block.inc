@@ -40,6 +40,11 @@ function ctools_block_content_type_content_type($subtype_id) {
  * of the form "$module . '_ctools_block_info'".
  */
 function ctools_block_content_type_content_types() {
+  $types = &drupal_static(__FUNCTION__);
+  if (isset($types)) {
+    return $types;
+  }
+
   $types = array();
   foreach (module_implements('block_info') as $module) {
     $module_blocks = module_invoke($module, 'block_info');
@@ -85,6 +90,10 @@ function _ctools_block_content_type_content_type($module, $delta, $block) {
  * doesn't cache its results anyway.
  */
 function _ctools_block_load_blocks() {
+  if (!module_exists('block')) {
+    return array();
+  }
+
   $blocks = &drupal_static(__FUNCTION__, NULL);
   if (!isset($blocks)) {
     global $theme_key;
@@ -142,8 +151,8 @@ function ctools_block_content_type_render($subtype, $conf) {
     // Allow modules to modify the block before it is viewed, via either
     // hook_block_view_alter() or hook_block_view_MODULE_DELTA_alter().
     drupal_alter(array('block_view', "block_view_{$module}_{$delta}"), $block, $info);
-    $block = (object) $block;
   }
+  $block = (object) $block;
 
   if (empty($block)) {
     return;
@@ -152,14 +161,16 @@ function ctools_block_content_type_render($subtype, $conf) {
   $block->module = $module;
   $block->delta = $delta;
 
-  if ($module == 'block') {
-    $block->title = $info->title;
-  }
-  else if (isset($block->subject)) {
-    $block->title = $block->subject;
-  }
-  else {
-    $block->title = NULL;
+  if (!isset($block->title)) {
+    if ($module == 'block' && !empty($info) && isset($info->title)) {
+      $block->title = $info->title;
+    }
+    else if (isset($block->subject)) {
+      $block->title = $block->subject;
+    }
+    else {
+      $block->title = NULL;
+    }
   }
 
   if (module_exists('block') && user_access('administer blocks')) {
@@ -280,15 +291,20 @@ function ctools_block_content_type_admin_title($subtype, $conf) {
  */
 function ctools_block_content_type_admin_info($subtype, $conf) {
   list($module, $delta) = _ctools_block_get_module_delta($subtype, $conf);
-  $block = (object) module_invoke($module, 'block', 'view', $delta);
+  $block = (object) module_invoke($module, 'block_view', $delta);
 
-  // Sanitize the block because <script> tags can hose javascript up:
-  if (!empty($block->content)) {
-    $block->content = filter_xss_admin($block->content);
-  }
+  if (!empty($block)) {
+    // Sanitize the block because <script> tags can hose javascript up:
+    if (!empty($block->content)) {
+      $block->content = filter_xss_admin(render($block->content));
+    }
 
-  if (!empty($block) && !empty($block->subject)) {
-    $block->title = $block->subject;
+    if (!empty($block->subject)) {
+      $block->title = $block->subject;
+    }
+    elseif (empty($block->title)) {
+      $block->title = t('No title');
+    }
     return $block;
   }
 }
@@ -493,11 +509,11 @@ function ctools_user_login_pane_render($subtype, $conf, $panel_args, $contexts) 
   $info->module = $module;
   $info->delta = $delta;
 
-  $block = new stdClass;
-  $block->subject = t('User login');
+  $block = array();
+  $block['subject'] = t('User login');
   // Manually set the content (rather than invoking block_view) because the
   // block implementation won't render on certain URLs.
-  $block->content = drupal_get_form('user_login_block');
+  $block['content'] = drupal_get_form('user_login_block');
 
   // Allow modules to modify the block before it is viewed, via either
   // hook_block_view_alter() or hook_block_view_MODULE_DELTA_alter().

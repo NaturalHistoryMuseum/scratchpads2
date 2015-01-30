@@ -1,6 +1,7 @@
-<p>To implement plugins, you need to implement a single hook in your module to tell the system where your plugins live, and then you need to implement one or more .inc files that contain the plugin data.</p>
+<p>There are two parts to implementing a plugin: telling the system where it is, and implementing one or more .inc files that contain the plugin data.</p>
 
-<h2>Telling it where your plugins live</h2>
+<h2>Telling the system where your plugins live</h2>
+<h3>How a module implements plugins</h3>
 <p>To implement any plugins at all, you must implement a single function for all plugins: <strong>hook_ctools_plugin_directory</strong>. Every time a module loads plugins, this hook will be called to see which modules implement those plugins and in what directory those plugins will live.</p>
 
 <pre>
@@ -30,13 +31,13 @@ plugins/
         my_content_type.inc
     layouts/
         my_layout.inc
-        my_laout.css
+        my_layout.css
         my_layout.tpl.php
         my_layout_image.png
 </pre>
 
-<h2>How a theme can implement plugins</h2>
-<p>Themes can implement plugins if the plugin owner specified that it's possible in its hook_ctools_api_TYPE() call. If so, it is generally exactly the same as modules, except for one important difference: themes don't get hook_ctools_plugin_directory(). Instead, themes add a line to their info file:</p>
+<h3>How a theme implements plugins</h3>
+<p>Themes can implement plugins if the plugin owner specified that it's possible in its hook_ctools_plugin_type() call. If so, it is generally exactly the same as modules, except for one important difference: themes don't get hook_ctools_plugin_directory(). Instead, themes add a line to their .info file:</p>
 
 <pre>
 plugins[module][type] = directory
@@ -54,7 +55,7 @@ $plugin = array(
 );
 </pre>
 
-<p>Several values will be filled in for you automatically, but you can override them if necessary. They include 'name', 'path', 'file' and 'module'. Additionally, the plugin can owner can provide other defaults as well.</p>
+<p>Several values will be filled in for you automatically, but you can override them if necessary. They include 'name', 'path', 'file' and 'module'. Additionally, the plugin owner can provide other defaults as well.</p>
 
 <p>There are no required keys by the plugin system itself. The only requirements in the $plugin array will be defined by the plugin type.</p>
 

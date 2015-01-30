@@ -381,6 +381,7 @@ function ctools_drush_export_info() {
 
   // Get info on these tables, or all tables if none specified.
   $info = _ctools_drush_export_info($table_names, $load);
+  $schemas = $info['schemas'];
   $exportables = $info['exportables'];
 
   if (empty($exportables)) {
@@ -416,11 +417,12 @@ function ctools_drush_export_info() {
   }
   // Build a tabular output as default.
   else {
-    $header = $tables_only ? array() : array(dt('Base table'), dt('Exportables'));
+    $header = $tables_only ? array() : array(dt('Module'), dt('Base table'), dt('Exportables'));
     $rows = array();
     foreach ($exportables as $table => $info) {
       if (is_array($info)) {
         $row = array(
+          $schemas[$table]['module'],
           $table,
           // Machine name is better for this?
           shellColours::getColouredOutput(implode("\n", array_keys($info)), 'light_green') . "\n",
@@ -434,7 +436,7 @@ function ctools_drush_export_info() {
     if (!empty($rows)) {
       drush_print("\n");
       array_unshift($rows, $header);
-      drush_print_table($rows, TRUE, array(20));
+      drush_print_table($rows, TRUE, array(20, 20));
       drush_print(dt('Total exportables found: !total', array('!total' => $exportable_counts['total'])));
       foreach ($exportable_counts['exportables'] as $table_name => $count) {
         drush_print(dt('!table_name (!count)', array('!table_name' => $table_name, '!count' => $count)), 2);
