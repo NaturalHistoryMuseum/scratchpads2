@@ -23,6 +23,10 @@ class CtoolsContextKeywordsSubstitutionTestCase extends DrupalWebTestCase {
 
     // Run tests on some edge cases.
     $checks = array(
+      '%node:changed:raw:' => array(
+        "{$node->changed}:",
+        t('Multi-level token has been replaced. Colon left untouched.'),
+      ),
       '%node:title' => array(
         "{$node->title}",
         t('Keyword and converter have been replaced.'),
