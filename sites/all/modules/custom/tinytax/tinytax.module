@@ -352,6 +352,8 @@ function tinytax_block_save($delta = '', $edit = array()){
   // they resolve to.
   variable_set('tinytax_always_open_' . $delta, implode(', ', $value));
   variable_set('tinytax_always_open_tids_' . $delta, $value_tids);
+  // Finall we clear the tinytax cache for this vocabulary.
+  cache_clear_all("$delta:", 'cache_tinytax', TRUE);
 }
 
 /**
