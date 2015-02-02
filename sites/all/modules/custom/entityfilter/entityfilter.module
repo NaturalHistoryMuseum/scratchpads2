@@ -70,40 +70,43 @@ function entityfilter_filter($text, $filter){
           // If we have the right number of parts, we try to load the entity.
           if(count($match_parts) == 4){
             $entity_type = isset($aliases[$match_parts[1]]) ? $aliases[$match_parts[1]] : $match_parts[1];
-            // We try to load the entity.
-            $entity = entity_load($entity_type, array(
-              $match_parts[2]
-            ));
-            if($entity){
-              // We have an entity, the user did something right.
-              $entity = array_pop($entity);
-              // Load an entity wrapper
-              $wrapper = entity_metadata_wrapper($entity_type, $entity);
-              // Find the property we want if we have "label".
-              if($match_parts[3] == 'label'){
-                $entity_info = entity_get_info($entity_type);
-                $match_parts[3] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label'] : 'name';
-              }
-              $value = $wrapper->{$match_parts[3]}->value();
-              if($value){
-                $replaced = TRUE;
-                $text = str_replace($match, $value, $text);
+            // check the entity_type is a valid entity name
+            if(entity_get_info($entity_type)){
+              // We try to load the entity.
+              $entity = entity_load($entity_type, array(
+                $match_parts[2]
+              ));
+              if($entity){
+                // We have an entity, the user did something right.
+                $entity = array_pop($entity);
+                // Load an entity wrapper
+                $wrapper = entity_metadata_wrapper($entity_type, $entity);
+                // Find the property we want if we have "label".
+                if($match_parts[3] == 'label'){
+                  $entity_info = entity_get_info($entity_type);
+                  $match_parts[3] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label'] : 'name';
+                }
+                $value = $wrapper->{$match_parts[3]}->value();
+                if($value){
+                  $replaced = TRUE;
+                  $text = str_replace($match, $value, $text);
+                }
               }
             }
           }
         }
         catch(Exception $e){
+          ;
+        }
+        if(!$replaced){
           // Note, we only show the error message if the user is logged in.  We
           // do this to ensure that the page can still be cached, as pages with
           // errors on are not cached (I think).
-          global $user;
-          if($user->uid){
+          if(user_is_logged_in()){
             drupal_set_message(t('Error processing entity reference "@match"', array(
               '@match' => $match
             )), 'error', FALSE);
           }
-        }
-        if(!$replaced){
           // Show the match wrapped in an error class so that it's obvious to
           // the user where they have fucked up.
           $text = str_replace($match, '<span class="error">' . $match . '</span>', $text);
