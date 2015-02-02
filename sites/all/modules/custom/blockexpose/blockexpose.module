@@ -50,11 +50,13 @@ function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $for
  * Submit function for saving the above settings.
  */
 function blockexpose_block_admin_configure_form_submit($form, &$form_state){
-  variable_set('blockexpose_settings_' . $form_state['values']['module'] . '_' . $form_state['values']['delta'], array(
-    'show' => $form_state['values']['display_as_tab'],
-    'side' => $form_state['values']['display_as_tab_side'],
-    'event' => $form_state['values']['display_as_tab_event']
-  ));
+  if(isset($form_state['values']['display_as_tab'], $form_state['values']['display_as_tab_side'], $form_state['values']['display_as_tab_event'])){
+    variable_set('blockexpose_settings_' . $form_state['values']['module'] . '_' . $form_state['values']['delta'], array(
+      'show' => $form_state['values']['display_as_tab'],
+      'side' => $form_state['values']['display_as_tab_side'],
+      'event' => $form_state['values']['display_as_tab_event']
+    ));
+  }
 }
 
 /**
