@@ -26,49 +26,49 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
     return;
   }
 
-  $parser = $source->importer->parser;
-  $is_csv = get_class($parser) == 'FeedsCSVParser';
+  $csv = FALSE;
+  if (get_class($source->importer->parser) == 'FeedsCSVParser') {
+    $csv = TRUE;
+  }
 
-  $sources = array_fill_keys(feeds_tamper_get_unique_source_list($source->importer), '');
+  // Look for any "Blank source" mappings as those will be treated specially.
+  $mappings = $source->importer->processor->config['mappings'];
+  $blank_mappings = array();
+
+  foreach ($importer_instances as $element_key => $instance) {
+    if (strpos($element_key, 'Blank source ') === 0) {
+      $blank_mappings[] = $element_key;
+    }
+    // Special case for FeedsCSVParser.
+    elseif ($csv) {
+      unset($importer_instances[$element_key]);
+      $importer_instances[drupal_strtolower($element_key)] = $instance;
+    }
+  }
 
   $plugins = feeds_tamper_get_plugins();
-  foreach (array_keys($result->items) as $item_key) {
-
-    // Initialize every source value.
-    $result->items[$item_key] += $sources;
-
+  foreach ($result->items as $item_key => &$item) {
+    // Add the blank sources to the item.
+    foreach ($blank_mappings as $blank) {
+      $item[$blank] = '';
+    }
     foreach ($importer_instances as $element_key => $instances) {
-      if ($is_csv) {
-        $element_key = drupal_strtolower($element_key);
-      }
+      if (isset($item[$element_key])) {
+        foreach ($instances as $instance) {
+          $plugin = $plugins[$instance->plugin_id];
+          $is_array = is_array($item[$element_key]);
 
-      // Manually advance the current_item key since we can't use shiftItem().
-      // Plugins can change it, so re-set.
-      $result->current_item = $result->items[$item_key];
-
-      // Plugins assume that everything lives in the item array.
-      $result->items[$item_key][$element_key] = $parser->getSourceElement($source, $result, $element_key);
-
-      foreach ($instances as $instance) {
-        // If the item was unset by previous plugin, jump ahead.
-        if (!isset($result->items[$item_key])) {
-          break 2;
-        }
-
-        // Array-ness can change depending on what the plugin is doing.
-        $is_array = is_array($result->items[$item_key][$element_key]);
-        $plugin = $plugins[$instance->plugin_id];
-
-        if ($is_array && $plugin['multi'] === 'loop') {
-          foreach ($result->items[$item_key][$element_key] as &$i) {
-            $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings, $source);
+          if ($is_array && $plugin['multi'] == 'loop') {
+            foreach ($item[$element_key] as &$i) {
+              $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings);
+            }
           }
-        }
-        elseif ($is_array && $plugin['multi'] === 'direct') {
-          $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
-        }
-        elseif (!$is_array && $plugin['single'] !== 'skip') {
-          $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
+          elseif ($is_array && $plugin['multi'] == 'direct') {
+            $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
+          }
+          elseif (!$is_array && $plugin['single'] != 'skip') {
+            $plugin['callback']($result, $item_key, $element_key, $item[$element_key], $instance->settings);
+          }
         }
       }
     }
