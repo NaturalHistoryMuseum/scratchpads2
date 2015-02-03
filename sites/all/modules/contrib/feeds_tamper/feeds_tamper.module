@@ -35,13 +35,14 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
   foreach (array_keys($result->items) as $item_key) {
 
     // Initialize every source value.
-    //$result->items[$item_key] += $sources;
+    // $result->items[$item_key] += $sources;
+
     foreach ($importer_instances as $element_key => $instances) {
-      if(isset($result->items[$item_key][$element_key])){
-        if ($is_csv) {
-          $element_key = drupal_strtolower($element_key);
-        }
-  
+      if ($is_csv) {
+        $element_key = drupal_strtolower($element_key);
+      }
+
+      if (isset($result->items[$item_key][$element_key])){
         // Manually advance the current_item key since we can't use shiftItem().
         // Plugins can change it, so re-set.
         $result->current_item = $result->items[$item_key];
