@@ -26,14 +26,10 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
     return;
   }
 
-  $csv = FALSE;
-  if (get_class($source->importer->parser) == 'FeedsCSVParser') {
-    $csv = TRUE;
-  }
+  $parser = $source->importer->parser;
+  $is_csv = get_class($parser) == 'FeedsCSVParser';
 
-  // Look for any "Blank source" mappings as those will be treated specially.
-  $mappings = $source->importer->processor->config['mappings'];
-  $blank_mappings = array();
+  $sources = array_fill_keys(feeds_tamper_get_unique_source_list($source->importer), '');
 
   foreach ($importer_instances as $element_key => $instance) {
     if (strpos($element_key, 'Blank source ') === 0) {
