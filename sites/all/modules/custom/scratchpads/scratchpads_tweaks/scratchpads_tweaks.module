@@ -391,7 +391,7 @@ function scratchpads_tweaks_theme_field($variables){
   if(!empty($variables['element']['#field_type']) && in_array($variables['element']['#field_type'], array(
     'file',
     'image'
-  )) && (!empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')) || !empty($variables['items'][0]['#image_style']) && $variables['items'][0]['#image_style'] == 'thumbnail'){
+  )) && ((!empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')) || (!empty($variables['items'][0]['#image_style']) && $variables['items'][0]['#image_style'] == 'thumbnail') || (!empty($variables['items'][0]['#view_mode']) && $variables['items'][0]['#view_mode'] == 'file_styles_square_thumbnail'))){
     $variables['classes'] .= ' float-media-left clearfix';
   }
   return theme_field($variables);
