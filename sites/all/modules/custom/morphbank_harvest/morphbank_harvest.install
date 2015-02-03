@@ -1,0 +1,292 @@
+<?php
+/**
+ * @file  Initial installation of morphbank_harvest module
+ *
+ * In enable/install, sets up
+ *   three fields & instances: field_morphank_specimen_id, field_morphbank_view_id, field_morphbank_image_id
+ *   two tables, morphbank_harvests and morphbank_images, for record keeping
+ *
+ * In disable,
+ *   removes field_morphbank_specimen_id
+ *   removes links to specimens (in field_data_field_media)
+ *   deletes files
+ */
+
+/**
+ * Implements hook_enable().
+ *
+ * Adds field (and instance) to specimen observation for Morphbank specimen IDs
+ *
+ * Adds field (and instance) to Image preparation techniques vocabulary for Morphbank view IDs
+ *
+ * Adds field (ans instance) to image files for Morphbank image IDs
+ */
+function morphbank_harvest_enable() {
+  $field = field_info_field('field_morphbank_specimen_id');
+  // If it does not already exist, create morphbank specimen ID field
+  if (!$field) {
+    $field = array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_morphbank_specimen_id',
+      'unsigned' => TRUE,
+      'type' => 'number_integer',
+      'size' => 'normal',
+      'description' => t('The unique identifier for this specimen in the Morphbank system.'),
+    );
+    field_create_field($field);
+  }
+  // Add morphbank specimen ID field to Specimen/Observation content types if not already there
+  $instance = field_info_instance('node', 'field_morphbank_specimen_id', 'specimen_observation');
+  if (!$instance) {
+    $instance = array(
+      'bundle' => 'specimen_observation',
+      'entity_type' => 'node',
+      'field_name' => 'field_morphbank_specimen_id',
+      'type' => 'number_integer',
+      'label' => t('Morphbank specimen ID'),
+      'required' => 0,
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => t('The unique identifier for this specimen in the Morphbank system.'),
+    );
+    field_create_instance($instance);
+  }
+
+  $view_field = field_info_field('field_morphbank_view_id');
+  // Create morphbank view ID field, if not already there
+  if (!$view_field){
+    $view_field = array(
+        'active' => '1',
+        'cardinality' => '1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'field_morphbank_view_id',
+        'unsigned' => TRUE,
+        'type' => 'number_integer',
+        'size' => 'normal',
+        'description' => t('The unique identifier for this image view in the Morphbank system.'),
+    );
+    field_create_field($view_field);
+  }
+
+  // And add an instance of this view field to the imaging preparation technique vocabulary, if not already there
+  $view_instance = field_info_instance('taxonomy_term', 'field_morphbank_view_id', 'imaging_technique');
+  if (!$view_instance) {
+    $view_instance = array(
+        'bundle' => 'imaging_technique',
+        'entity_type' => 'taxonomy_term',
+        'field_name' => 'field_morphbank_view_id',
+        'type' => 'number_integer',
+        'label' => t('Morphbank view ID'),
+        'required' => 0,
+        'default_value' => NULL,
+        'deleted' => '0',
+        'description' => t('The unique identifier for this image view in the Morphbank system.'),
+    );
+    field_create_instance($view_instance);
+  }
+
+  $image_field = field_info_field('field_morphbank_image_id');
+  // Create morphbank image ID field, if not already there
+  if (!$image_field) {
+    $image_field = array(
+        'active' => '1',
+        'cardinality' => '1',
+        'deleted' => '0',
+        'entity_types' => array(),
+        'field_name' => 'field_morphbank_image_id',
+        'unsigned' => TRUE,
+        'type' => 'number_integer',
+        'size' => 'normal',
+        'description' => t('The unique identifier for this image in the Morphbank system.'),
+    );
+    field_create_field($image_field);
+  }
+  // And add an instance of this view field to the image file content, if not already there
+  $image_instance = field_info_instance('file', 'field_morphbank_image_id', 'image');
+  if (!$image_instance) {
+    $image_instance = array(
+        'bundle' => 'image',
+        'entity_type' => 'file',
+        'field_name' => 'field_morphbank_image_id',
+        'type' => 'number_integer',
+        'label' => t('Morphbank image ID'),
+        'required' => 0,
+        'default_value' => NULL,
+        'deleted' => 0,
+        'description' => t('The unique identifier for this image in the Morphbank system.'),
+    );
+    field_create_instance($image_instance);
+  }
+
+  // Make the directory where images will be stored
+  @drupal_mkdir('public://morphbank');
+}
+
+/**
+ * Implements hook_field_group_info_alter()
+ *
+ * Put the Morphbank specimen ID field in the 'Miscellaneous' tab when displayed in tables
+ *
+ * @param array $groups
+ * Reference to an array of field group definition objects.
+ */
+function morphbank_field_group_info_alter(&$groups) {
+  if (!empty($groups['group_misc_display|node|specimen_observation|default'])) {
+    $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
+  }
+}
+
+/**
+ * Implements hook_disable().
+ *
+ * Deletes records in field_data_field_media and file_usage tables corresponding
+ * to files that were harvested from Morphbank.  After records are removed, deletes
+ * the files themselves.
+ */
+function morphbank_harvest_disable() {
+  // If we wanted to, we could mark the fields for deletion here
+
+  // Find all files that were obtained from the morphbank harvest
+  $morphbank_files = db_select('morphbank_images', 'm')->fields('m', array('fid'))
+    ->distinct() // So each fid is returned only once
+    ->execute();
+  $fids = array();
+  foreach ($morphbank_files as $row) {
+    $fids[] = $row->fid;
+  }
+
+  // Just use entity_delete_multiple
+  if (count($fids) > 0) {
+    entity_delete_multiple('file', $fids);
+  }
+}
+
+/**
+ * Implements hook_schema().
+ *
+ * Builds two tables used in record keeping:
+ *   morphbank_harvests, which keeps track of queries to morphbank
+ *   morphbank_images, which keeps track of the results (images) from those queries
+ */
+function morphbank_harvest_schema() {
+  $schema = array();
+
+  // Table to hold queries
+  $schema['morphbank_harvests'] = array(
+    'fields' => array(
+      'hid' => array(
+        'description' => 'Primary key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'search_unidentified' => array(
+        'description' => 'Whether or not to search taxa with \'unidentified\' in the name',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'max_images' => array(
+        'description' => 'The maximum number of images to save per term',
+        'type' => 'int',
+        'size' => 'normal',
+      ),
+      'remove_old' => array(
+        'description' => 'Whether or not to remove locally stored Morphbank images that were not returned in most recent query',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'restrict_ranks' => array(
+        'description' => 'Whether or not to restrict query to terms of rank species and below',
+        'type' => 'int',
+        'size' => 'normal',
+      ),
+      'execution_date' => array(
+        'description' => 'The date, as Unix timestamp, this query was executed',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'problem' => array(
+        'description' => 'Boolean to indicate if problems were encountered during the query',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      )
+    ),
+    //TODO: Consider adding indexes?
+    'primary key' => array(
+      'hid'
+    ),
+  );
+
+  // Table to hold image information
+  $schema['morphbank_images'] = array(
+    'fields' => array(
+      'mid' => array(
+        'description' => 'Primary key',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'hid' => array(
+        'description' => 'The ID of the morphbank_harvests record that produced this image',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'morphbank_image_id' => array(
+        'description' => 'The morphbank ID of the image',
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_modified' => array(
+        'description' => 'The date, as Unix timestamp, the Morphbank image record was last modified',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'morphbank_specimen_id' => array(
+        'description' => 'The morphbank ID for the specimen in the image',
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+      ),
+      'fid' => array(
+        'description' => 'The ID of the image in the file_managed table',
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'original_filename' => array(
+        'description' => 'The original name of the file as uploaded to Morphbank',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      )
+    ),
+    //TODO: Add indexes?
+    'primary key' => array(
+      'mid',
+    ),
+  );
+
+  return $schema;
+}
