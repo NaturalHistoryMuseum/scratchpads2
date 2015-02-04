@@ -351,7 +351,9 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
               $field = field_info_field($mapping['target']);
               // We can't do anything with file fields (we allow import, but not
               // updating).
-              if(in_array($field['type'], array('file'))){
+              if(in_array($field['type'], array(
+                'file'
+              ))){
                 continue;
               }
               if(is_array($entity->{$mapping['target']}) && count($entity->{$mapping['target']})){
@@ -364,69 +366,67 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                       if($field && !empty($field['settings']['allowed_values'][$item])){
                         $item = $field['settings']['allowed_values'][$item];
                       }
-                      if($item){
-                        switch($subkey){
-                          case 'tid':
-                            // Links to a term.  We need to load the term, and get the
-                            // value
-                            $term = taxonomy_term_load($item);
-                            $cell_values[] = $term->name;
-                            break;
-                          case 'licence':
-                            $licences = creative_commons_get_licence_types();
-                            $cell_values[] = $licences[$item];
-                            break;
-                          default:
-                            $cell_values[] = $item;
-                            break;
-                          // The following cases should not be saved to the file
-                          case 'safe_value':
-                          case 'format':
-                            break;
-                          // Handle gm3 fields together.
-                          case 'latitude':
-                          case 'longitude':
-                          case 'region_id':
-                          case 'polygon':
-                          case 'polyline':
-                          case 'rectangle':
-                          case 'gm3_type':
-                            $field = field_info_field($mapping['target']);
-                            switch($field['type']){
-                              // Polygon data.
-                              case 'gm3_region':
-                              case 'gm3_rectangle':
-                              case 'gm3_polygon':
-                              case 'gm3_polyline':
+                      switch($subkey){
+                        case 'tid':
+                          // Links to a term.  We need to load the term, and get the
+                          // value
+                          $term = taxonomy_term_load($item);
+                          $cell_values[] = $term->name;
+                          break;
+                        case 'licence':
+                          $licences = creative_commons_get_licence_types();
+                          $cell_values[] = $licences[$item];
+                          break;
+                        default:
+                          $cell_values[] = $item;
+                          break;
+                        // The following cases should not be saved to the file
+                        case 'safe_value':
+                        case 'format':
+                          break;
+                        // Handle gm3 fields together.
+                        case 'latitude':
+                        case 'longitude':
+                        case 'region_id':
+                        case 'polygon':
+                        case 'polyline':
+                        case 'rectangle':
+                        case 'gm3_type':
+                          $field = field_info_field($mapping['target']);
+                          switch($field['type']){
+                            // Polygon data.
+                            case 'gm3_region':
+                            case 'gm3_rectangle':
+                            case 'gm3_polygon':
+                            case 'gm3_polyline':
+                              $implosion = "\n";
+                              $cell_values[] = $item;
+                              break;
+                            case 'gm3_point':
+                              // Only enter the data once!
+                              if($subkey == 'latitude'){
                                 $implosion = "\n";
-                                $cell_values[] = $item;
-                                break;
-                              case 'gm3_point':
-                                // Only enter the data once!
-                                if($subkey == 'latitude'){
-                                  $implosion = "\n";
-                                  $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
-                                }
-                                break 2;
-                              case 'gm3_combination':
-                                if($subkey == 'gm3_type'){
-                                  // Get the field, and work out which one we have.
-                                  $implosion = "\n";
-                                  $type = array_pop(explode("_", $item));
-                                  if($type == 'region'){
-                                    // Fuck me, I am SHIT!
-                                    if(isset($value['region_id']) && $value['region_id']){
-                                      $cell_values[] = 'REGION:' . $value['region_id'];
-                                    }
-                                  }else{
-                                    if(isset($value[$type]) && $value[$type]){
-                                      $cell_values[] = strtoupper($type) . ':' . $value[$type];
-                                    }
+                                $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
+                              }
+                              break 2;
+                            case 'gm3_combination':
+                              if($subkey == 'gm3_type'){
+                                // Get the field, and work out which one we have.
+                                $implosion = "\n";
+                                $type = array_pop(explode("_", $item));
+                                if($type == 'region'){
+                                  // Fuck me, I am SHIT!
+                                  if(isset($value['region_id']) && $value['region_id']){
+                                    $cell_values[] = 'REGION:' . $value['region_id'];
+                                  }
+                                }else{
+                                  if(isset($value[$type]) && $value[$type]){
+                                    $cell_values[] = strtoupper($type) . ':' . $value[$type];
                                   }
                                 }
-                                break 2;
-                            }
-                        }
+                              }
+                              break 2;
+                          }
                       }
                     }
                   }
