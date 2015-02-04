@@ -44,6 +44,20 @@ function morphbank_harvest_menu(){
 }
 
 /**
+ * Implements hook_field_group_info_alter()
+ *
+ * Put the Morphbank specimen ID field in the 'Miscellaneous' tab when displayed in tables
+ *
+ * @param array $groups
+ * Reference to an array of field group definition objects.
+ */
+function morphbank_field_group_info_alter(&$groups){
+  if(!empty($groups['group_misc_display|node|specimen_observation|default'])){
+    $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
+  }
+}
+
+/**
  * Define the form.
  */
 function morphbank_harvest_form(){

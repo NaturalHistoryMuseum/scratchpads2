@@ -123,20 +123,6 @@ function morphbank_harvest_enable(){
 }
 
 /**
- * Implements hook_field_group_info_alter()
- *
- * Put the Morphbank specimen ID field in the 'Miscellaneous' tab when displayed in tables
- *
- * @param array $groups
- * Reference to an array of field group definition objects.
- */
-function morphbank_field_group_info_alter(&$groups){
-  if(!empty($groups['group_misc_display|node|specimen_observation|default'])){
-    $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
-  }
-}
-
-/**
  * Implements hook_disable().
  *
  * Deletes records in field_data_field_media and file_usage tables corresponding
