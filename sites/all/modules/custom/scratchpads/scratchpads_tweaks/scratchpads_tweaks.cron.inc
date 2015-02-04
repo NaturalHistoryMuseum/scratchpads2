@@ -106,6 +106,11 @@ function _scratchpads_tweaks_cron(){
       menu_rebuild();
     }
   }
+  // Disable the dblog module, as we occasionaly forget to disable it after 
+  // enabling it to debug issues with live sites.
+  module_disable(array(
+    'dblog'
+  ));
   // If we are using memcache, we truncate the cache tables to save space and to
   // also reduce database backup times.
   global $conf;
