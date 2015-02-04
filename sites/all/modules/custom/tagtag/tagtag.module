@@ -59,10 +59,10 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     'taxonomy',
     'text',
     'options',
-    'tree_widget',
-    'cck_select_other'
+    'tree_widget'
   );
   drupal_alter('tag_field_types', $field_types);
+  drupal_set_message("<pre>" . print_r($field_types, 1) . "</pre>");
   foreach($instances as $key => $instance){
     if(in_array($instance['widget']['module'], $field_types)){
       $field_options[$key] = $instance['label'];
@@ -72,6 +72,8 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
         $field_info = field_info_field($instance['field_name']);
         if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
           $search_fields[$key] = $instance['label'];
+        }else{
+          drupal_set_message('<pre>' . print_r($field_info, 1) . '</pre>');
         }
       }
     }
