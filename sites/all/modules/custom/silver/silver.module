@@ -26,18 +26,6 @@ function silver_feeds_presave(FeedsSource $source, $entity){
   if(!entity_get_info($entity_type)){
     $entity_type = 'node';
   }
-  // Unset empty fields
-  foreach($entity as $key => $value){
-    if(substr($key, 0, 6) == 'field_' && is_array($value)){
-      // Load the field to check if we're numeric.  If we are, we can skip this
-      // step.
-      $field = field_info_field($key);
-      $lang = field_language($entity_type, $entity, $field);
-      if($field['module'] != 'number' && isset($value[$lang][0]['value']) && !$value[$lang][0]['value'] && !(isset($field['settings']['allowed_values']) && isset($field['settings']['allowed_values'][$value[$lang][0]['value']]))){
-        unset($entity->$key);
-      }
-    }
-  }
   // If this is the SPM node type, we set the title.
   if($entity->type == 'spm'){
     try{
