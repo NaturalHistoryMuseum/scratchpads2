@@ -291,7 +291,9 @@ class FeedsFileProcessor extends FeedsProcessor{
     );
     // Let other modules expose mapping targets.
     self::loadMappers();
-    feeds_alter('feeds_processor_targets', $targets, 'file', $this->config['bundle']);
+    $entity_type = 'file';
+    $bundle = $this->config['bundle'];
+    drupal_alter('feeds_processor_targets', $targets, $entity_type, $bundle);
     return $targets;
   }
 
