@@ -131,16 +131,17 @@ function morphbank_harvest_enable(){
  */
 function morphbank_harvest_disable(){
   // If we wanted to, we could mark the fields for deletion here
-  // Find all files that were obtained from the morphbank harvest
+  // Find all distinct files that were obtained from the morphbank harvest
   $morphbank_files = db_select('morphbank_images', 'm')->fields('m', array(
     'fid'
-  ))->distinct()->  // So each fid is returned only once
-execute();
+  ))->distinct()->execute();
   $fids = array();
   foreach($morphbank_files as $row){
     $fids[] = $row->fid;
   }
   // Just use entity_delete_multiple
+  // The following could cause problems if we have a large number of files to 
+  // delete - we may need to batch this process.
   if(count($fids) > 0){
     entity_delete_multiple('file', $fids);
   }
