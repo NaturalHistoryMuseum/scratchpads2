@@ -239,12 +239,12 @@ function morphbank_harvest_form_submit($form, &$form_state){
           );
         }
         batch_set($batch);
-      }else{ // end conditional for responsive Morphbank
+      }else{
         drupal_set_message(t('Morphbank service at @morphbank_url is unresponsive', array(
           '@morphbank_url' => MORPHBANK_SERVICE
         )), 'error');
       }
-    }else{ // end conditional for positive $hid (we successfully added record to morphbank_harvests table)
+    }else{
       drupal_set_message(t('Could not access morphbank_harvest_table'), 'error');
     }
   }else{
@@ -922,7 +922,7 @@ function _update_file_links($fid, $tid, $morphbank_view_id, $morphbank_image_id)
       if($imaging_vid > 0){ // found the vocabulary
         $imaging_terms = taxonomy_get_tree($imaging_vid);
         if(!is_null($imaging_terms) && count($imaging_terms) > 0){
-          foreach($imaging_terms as $imaging_term){ // This could probably be streamlined by using a database query
+          foreach($imaging_terms as $imaging_term){
             $term_wrapper = entity_metadata_wrapper('taxonomy_term', $imaging_term->tid);
             if($term_wrapper){
               $term_view_id = $term_wrapper->field_morphbank_view_id->value();
@@ -931,10 +931,10 @@ function _update_file_links($fid, $tid, $morphbank_view_id, $morphbank_image_id)
                   $imaging_tid = $imaging_term->tid;
                   break;
                 }
-              } // End conditional for valid (positive) $term_view_id
-            } // End conditional for non-null $term_wrapper
-          } // End looping over all imaging terms
-        } // End conditional for non-null and non-empty $imaging_terms
+              }
+            }
+          }
+        }
         // Found a term in the imaging vocabulary with this morphbank_view_id, so link the file to this imaging term
         if($imaging_tid > 0){
           try{
@@ -949,8 +949,8 @@ function _update_file_links($fid, $tid, $morphbank_view_id, $morphbank_image_id)
               '@term' => $tid
             ), WATCHDOG_WARNING);
           }
-        } // End conditional for valid (positive) $imaging_tid
-      } // End conditional for valid (positive) $imaging_vid
+        }
+      }
       // ------------------------------------ //
       // Third part: add the Morphbank image ID to the file
       // ------------------------------------ //
@@ -1025,8 +1025,8 @@ function _remove_outdated_links($fid, $morphbank_specimen_id){
               ), WATCHDOG_WARNING);
             }
           }
-        } // End conditional for non-null $current_list
-      } // End conditional for different morphbank specimen ids
-    } // End looping over $node_query results
-  } // End conditional for valid (positive) $fid and $morphbank_specimen_id
+        }
+      }
+    }
+  }
 }
