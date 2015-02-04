@@ -919,7 +919,13 @@ function _update_file_links($fid, $tid, $morphbank_view_id, $morphbank_image_id)
         }
       }
       $imaging_tid = -1;
-      if($imaging_vid > 0){ // found the vocabulary
+      if($imaging_vid > 0){
+        // This could probably be streamlined by using a database query
+        /* This definitely needs removing, as we can not rely on using
+         * taxonomy_get_tree(), and loading each term in turn is equally
+         * inefficient. We can instead use an entity field query to perform this
+         * 
+         * https://api.drupal.org/api/drupal/includes!entity.inc/class/EntityFieldQuery/7 */
         $imaging_terms = taxonomy_get_tree($imaging_vid);
         if(!is_null($imaging_terms) && count($imaging_terms) > 0){
           foreach($imaging_terms as $imaging_term){
