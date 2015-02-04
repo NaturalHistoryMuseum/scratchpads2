@@ -8,7 +8,7 @@
  */
 function exif_custom_menu(){
   return array(
-    'admin/config/content/exif_custom' => array(
+    'admin/config/media/exif_custom' => array(
       'title' => 'Custom Exif Mappings',
       'page callback' => 'exif_custom_mappings',
       'access arguments' => array(
@@ -18,7 +18,7 @@ function exif_custom_menu(){
       'access callback' => 'user_access',
       'type' => MENU_NORMAL_ITEM
     ),
-    'admin/config/content/exif_custom/maps' => array(
+    'admin/config/media/exif_custom/maps' => array(
       'title' => 'Custom Exif Mappings',
       'page callback' => 'exif_custom_mappings',
       'access arguments' => array(
@@ -28,7 +28,7 @@ function exif_custom_menu(){
       'access callback' => 'user_access',
       'type' => MENU_DEFAULT_LOCAL_TASK
     ),
-    'admin/config/content/exif_custom/new_map' => array(
+    'admin/config/media/exif_custom/new_map' => array(
       'title' => 'New Exif Mapping',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
@@ -41,7 +41,7 @@ function exif_custom_menu(){
       'access callback' => 'user_access',
       'type' => MENU_LOCAL_TASK
     ),
-    'admin/config/content/exif_custom/map/%exif_custom/edit' => array(
+    'admin/config/media/exif_custom/map/%exif_custom/edit' => array(
       'title' => 'Edit mapping',
       //TODO: title callback?
       'page callback' => 'drupal_get_form',
@@ -56,7 +56,7 @@ function exif_custom_menu(){
       'access callback' => 'user_access',
       'type' => MENU_NORMAL_ITEM
     ),
-    'admin/config/content/exif_custom/map/%exif_custom/delete' => array(
+    'admin/config/media/exif_custom/map/%exif_custom/delete' => array(
       'title' => 'Delete mapping',
       //TODO: title callback?
       'page callback' => 'drupal_get_form',
@@ -71,7 +71,7 @@ function exif_custom_menu(){
       'access callback' => 'user_access',
       'type' => MENU_NORMAL_ITEM
     ),
-    'admin/config/content/exif_custom/settings' => array(
+    'admin/config/media/exif_custom/settings' => array(
       'title' => 'Settings',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
@@ -227,7 +227,7 @@ function exif_custom_map_delete_form($form, $form_state, $mappings){
   );
   return confirm_form($form, t('Are you sure you want to delete %title?', array(
     '%title' => $mappings[0]->name
-  )), 'admin/config/content/exif_custom', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+  )), 'admin/config/media/exif_custom', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
 }
 
 /**
@@ -244,7 +244,7 @@ function exif_custom_map_delete_form_submit($form, &$form_state){
       variable_del('exif_custom_default');
     }
   }
-  $form_state['redirect'] = 'admin/config/content/exif_custom';
+  $form_state['redirect'] = 'admin/config/media/exif_custom';
 }
 
 function exif_custom_map_edit_form($form, $form_state, $mappings){
@@ -349,7 +349,7 @@ function exif_custom_map_edit_form_submit($form, &$form_state){
       'img_field' => $value['img_field']
     ))->condition('mid', $form_state['values']['mid'])->condition('exif_field', $field)->execute();
   }
-  $form_state['redirect'] = 'admin/config/content/exif_custom';
+  $form_state['redirect'] = 'admin/config/media/exif_custom';
 }
 
 function exif_custom_mappings(){
@@ -365,8 +365,8 @@ function exif_custom_mappings(){
     foreach($mappings as $mid => $name){
       $row = array(
         $name,
-        l('edit', 'admin/config/content/exif_custom/map/' . $mid . '/edit'),
-        l('delete', 'admin/config/content/exif_custom/map/' . $mid . '/delete')
+        l('edit', 'admin/config/media/exif_custom/map/' . $mid . '/edit'),
+        l('delete', 'admin/config/media/exif_custom/map/' . $mid . '/delete')
       );
       if($site_default_mid == $mid){
         $row[] = '&#10003;';
@@ -457,7 +457,7 @@ function exif_custom_new_map_submit($form, &$form_state){
       ));
     }
     $query->execute();
-    $form_state['redirect'] = 'admin/config/content/exif_custom/map/' . $mid . '/edit';
+    $form_state['redirect'] = 'admin/config/media/exif_custom/map/' . $mid . '/edit';
   }else{
     drupal_set_message('Unable to read the uploaded image', 'error');
   }
