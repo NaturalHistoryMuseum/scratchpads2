@@ -1,23 +1,23 @@
 <?php
 
-function scratchpad_relations_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
-  $form['#submit'][] = 'scratchpad_relations_itis_taxonomy_form_vocabulary_submit';
+function scratchpads_relations_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'scratchpads_relations_itis_taxonomy_form_vocabulary_submit';
 }
 
 /**
  * Submit function to alter a vocabulary.
  */
-function scratchpad_relations_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
+function scratchpads_relations_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
   if(!isset($form_state['confirm_delete']) && $form_state['values']['biological_classification']){
-    scratchpad_relations_itis_create_vocabulary($form_state['vocabulary']);
+    scratchpads_relations_itis_create_vocabulary($form_state['vocabulary']);
   }
 }
 
-function scratchpad_relations_itis_create_vocabulary($vocabulary){
+function scratchpads_relations_itis_create_vocabulary($vocabulary){
   // Add all the required fields to this vocabulary.
-  module_load_include('fields.inc', 'scratchpad_relations_itis');
+  module_load_include('fields.inc', 'scratchpads_relations_itis');
   // Associate all the other fields with this instance.
-  foreach(scratchpad_relations_itis_fields($vocabulary->vid) as $field){
+  foreach(scratchpads_relations_itis_fields($vocabulary->vid) as $field){
     // Create the field if it hasn't already been created.
     if(!field_info_field($field['field_config']['field_name'])){
       field_create_field($field['field_config']);
@@ -25,7 +25,7 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
     $field['field_instance']['bundle'] = $vocabulary->machine_name;
     field_create_instance($field['field_instance']);
   }
-  foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $group){
+  foreach(scratchpads_relations_itis_groups($vocabulary->vid) as $group){
     $group['bundle'] = $vocabulary->machine_name;
     $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
     $group = (object)$group;
@@ -34,7 +34,7 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
   //Now add the new group to the groups in itis_term
   module_load_include('fields.inc', 'itis_term');
   foreach(itis_term_groups($vocabulary->machine_name) as $itis_group){
-    foreach(scratchpad_relations_itis_groups($vocabulary->vid) as $rel_group){
+    foreach(scratchpads_relations_itis_groups($vocabulary->vid) as $rel_group){
       if($rel_group['parent_name'] == $itis_group['group_name']){
         $group = field_group_load_field_group($itis_group['group_name'], 'taxonomy_term', $vocabulary->machine_name, 'form');
         $group->children[] = $rel_group['group_name'];
@@ -44,7 +44,7 @@ function scratchpad_relations_itis_create_vocabulary($vocabulary){
   }
 }
 
-function scratchpad_relations_itis_field_widget_relation_add_form_alter(&$element, &$form_state, $context){
+function scratchpads_relations_itis_field_widget_relation_add_form_alter(&$element, &$form_state, $context){
   if($context['field']['type'] == 'relation_add' && $element['#entity_type'] == 'taxonomy_term'){
     if(array_key_exists('targets', $element['relation_options'])){
       $relation_option_targets_target_2_title = $element['relation_options']['targets']['target_2']['#title'];
@@ -56,8 +56,8 @@ function scratchpad_relations_itis_field_widget_relation_add_form_alter(&$elemen
 /**
  * Implementation of hook_menu_alter()
  */
-function scratchpad_relations_itis_menu_alter(&$items){
-  $items['relation_add/autocomplete/%']['page callback'] = 'scratchpad_relations_itis_relation_add_autocomplete';
+function scratchpads_relations_itis_menu_alter(&$items){
+  $items['relation_add/autocomplete/%']['page callback'] = 'scratchpads_relations_itis_relation_add_autocomplete';
   $items['relation_add/autocomplete/%']['page arguments'] = array(
     2,
     3,
@@ -75,7 +75,7 @@ function scratchpad_relations_itis_menu_alter(&$items){
  *  @param $string The label/name/title to search for
  *  @see relation_add.module
  */
-function scratchpad_relations_itis_relation_add_autocomplete($type = '', $direction = 'target', $field = 'none', $string = ''){
+function scratchpads_relations_itis_relation_add_autocomplete($type = '', $direction = 'target', $field = 'none', $string = ''){
   if(empty($type) || empty($direction) || empty($string)){
     exit();
   }

@@ -2,12 +2,12 @@
 
 /**
  * @file
- * Class definition of ScratchpadRelationFeedsProcessor.
+ * Class definition of ScratchpadsRelationFeedsProcessor.
  */
 /**
  * Creates relations from feed items.
  */
-class ScratchpadRelationFeedsProcessor extends FeedsProcessor{
+class ScratchpadsRelationFeedsProcessor extends FeedsProcessor{
 
   /**
    * Define entity type.

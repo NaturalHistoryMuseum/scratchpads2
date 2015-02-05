@@ -1,6 +1,0 @@
-name = Scratchpad Relation feeds
-description = Scratchpad feeds integration module for Relation.
-core = 7.x
-package = Relation
-dependencies[] = relation
-dependencies[] = feeds

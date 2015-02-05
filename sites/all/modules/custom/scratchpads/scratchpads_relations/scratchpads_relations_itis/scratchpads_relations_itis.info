@@ -4,5 +4,5 @@ package = "Relation"
 core = "7.x"
 dependencies[] = "itis_term"
 dependencies[] = "relation_add"
-dependencies[] = "scratchpad_ecorelation_types"
-stylesheets[all][] = css/scratchpad_relations_itis.css
+dependencies[] = "scratchpads_ecorelation_types"
+;stylesheets[all][] = css/scratchpads_relations_itis.css

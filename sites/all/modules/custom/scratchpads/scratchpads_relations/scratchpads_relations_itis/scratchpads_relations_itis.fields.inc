@@ -3,7 +3,7 @@
 /**
  * Simply returns an array of groups
  */
-function scratchpad_relations_itis_groups($vid){
+function scratchpads_relations_itis_groups($vid){
   return array(
     array(
       'group_name' => 'group_ecological_relationship',
@@ -31,7 +31,7 @@ function scratchpad_relations_itis_groups($vid){
 /**
  * Simply returns an array of fields
  */
-function scratchpad_relations_itis_fields(){
+function scratchpads_relations_itis_fields(){
   return array(
     array(
       'field_config' => array(

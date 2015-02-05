@@ -2,12 +2,12 @@
 
 /**
  * @file
- * scratchpad_ecological_relations_block.context.inc
+ * scratchpads_ecological_relations_block.context.inc
  */
 /**
  * Implements hook_context_default_contexts().
  */
-function scratchpad_ecological_relations_block_context_default_contexts(){
+function scratchpads_ecological_relations_block_context_default_contexts(){
   $export = array();
   $context = new stdClass();
   $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */

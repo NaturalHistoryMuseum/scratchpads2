@@ -3,9 +3,9 @@
 /**
  * Implements hook_theme().
  */
-function scratchpad_ecorelation_types_theme($existing, $type, $theme, $path){
+function scratchpads_ecorelation_types_theme($existing, $type, $theme, $path){
   $theme = array(
-    'scratchpad_ecorelation_field' => array(
+    'scratchpads_ecorelation_field' => array(
       'variables' => array(
         'entity' => NULL,
         'relation' => NULL,
@@ -22,7 +22,7 @@ function scratchpad_ecorelation_types_theme($existing, $type, $theme, $path){
   return $theme;
 }
 
-function scratchpad_ecorelation_types_preprocess_scratchpad_ecorelation_field(&$variables, $hook){
+function scratchpads_ecorelation_types_preprocess_scratchpads_ecorelation_field(&$variables, $hook){
   $id = $variables['entity']->tid;
   $relation = $variables['relation'];
   $relation_type = relation_type_load($relation['relation_type']);
@@ -46,14 +46,14 @@ function scratchpad_ecorelation_types_preprocess_scratchpad_ecorelation_field(&$
     $link = entity_uri($related_entity->entity_type, $related_entity);
     $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
   }
-  $variables['theme_hook_suggestions'][] = 'scratchpad_ecorelation_field__' . $variables['field_name'];
+  $variables['theme_hook_suggestions'][] = 'scratchpads_ecorelation_field__' . $variables['field_name'];
 }
 
 /**
  * Relation_add module was not formatting the endpoint lables correctly so override here
  * Implements hook_field_formatter_info().
  */
-function scratchpad_ecorelation_types_field_formatter_info(){
+function scratchpads_ecorelation_types_field_formatter_info(){
   return array(
     'ecorelation_default' => array(
       'label' => t('Relation Add Default'),
@@ -85,7 +85,7 @@ function scratchpad_ecorelation_types_field_formatter_info(){
 /**
  * Implements hook_field_formatter_view().
  */
-function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+function scratchpads_ecorelation_types_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $element = array(); // Initialize the var
   switch($display['type']){
     case 'ecorelation_default':
@@ -114,7 +114,7 @@ function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity
             ));
             $related_entity = reset($related_entities);
             if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id){
-              if($display['type'] == 'scratchpad_relation_otherendpoint' || $display['type'] == 'scratchpad_relation_otherendpoint_label'){
+              if($display['type'] == 'scratchpads_relation_otherendpoint' || $display['type'] == 'scratchpads_relation_otherendpoint_label'){
                 continue;
               }
               $link = array();
@@ -130,13 +130,13 @@ function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity
         $relation_link = l(t('Relation @rid', array(
           '@rid' => $relation->rid
         )), $uri['path'], $uri['options']);
-        if($display['type'] == 'scratchpad_relation_default'){
+        if($display['type'] == 'scratchpads_relation_default'){
           // Can't use #heading as it's mercilessly check_plain'd.
           $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array(
             '!link' => $relation_link
           ));
         }
-        if($display['type'] == 'scratchpad_relation_otherendpoint_label'){
+        if($display['type'] == 'scratchpads_relation_otherendpoint_label'){
           $endpoint_title = '';
           switch($instance['widget']['settings']['relation_endpoint_label']){
             case 'endpoint':
@@ -150,7 +150,7 @@ function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity
           $element[$delta]['relation']['heading']['#markup'] = t(check_plain($endpoint_title));
         }
         // We probably need to make this more customisable.
-        if($display['type'] == 'scratchpad_relation_default' || count($links) > 1){
+        if($display['type'] == 'scratchpads_relation_default' || count($links) > 1){
           $element[$delta]['relation']['links'] = array(
             '#theme' => 'links',
             '#links' => $links
@@ -174,7 +174,7 @@ function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity
         list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
         $relation = (object)$item;
         $relation_type = relation_type_load($relation->relation_type);
-        if($display['type'] == 'scratchpad_relation_add_rev_endpoints_and_fields'){
+        if($display['type'] == 'scratchpads_relation_add_rev_endpoints_and_fields'){
           $label = $relation_type->directional ? $relation_type->label : $relation_type->reverse_label;
         }else{
           $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
@@ -245,7 +245,7 @@ function scratchpad_ecorelation_types_field_formatter_view($entity_type, $entity
   return $element;
 }
 
-function scratchpad_ecorelation_types_field_attach_view_alter(&$output, $context){
+function scratchpads_ecorelation_types_field_attach_view_alter(&$output, $context){
   foreach(element_children($output) as $field_name){
     $field = &$output[$field_name];
     $field['#prefix'] = '<div class="ecorelation-field">';

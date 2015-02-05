@@ -1,6 +1,6 @@
 <?php
 
-function scratchpad_ecorelation_default_types(){
+function scratchpads_ecorelation_default_types(){
   // Add default relationship types
   $default_relation_types = array(
     array(
@@ -137,8 +137,11 @@ function scratchpad_ecorelation_default_types(){
  * Implements hook_enable().
  * This is used when the module is turned on via the tools selection method
  */
-function scratchpad_ecorelation_types_enable(){
-  $default_relation_types = scratchpad_ecorelation_default_types();
+function scratchpads_ecorelation_types_enable(){
+  // Do nothing for now - the Phthiraptera site already has this module enabled
+  // although we need to enable it again as it has been renamed.
+  return;
+  $default_relation_types = scratchpads_ecorelation_default_types();
   foreach($default_relation_types as $default_relation_type){
     if(!relation_get_types($default_relation_type)){
       relation_type_save($default_relation_type);
@@ -151,12 +154,12 @@ function scratchpad_ecorelation_types_enable(){
  * As this is disabled via tools it is as if it is uninstalled
  * so delete the types and associated data
  */
-function scratchpad_ecorelation_types_disable(){
-  _scratchpad_ecorelation_delete_default_types();
+function scratchpads_ecorelation_types_disable(){
+  _scratchpads_ecorelation_delete_default_types();
 }
 
-function _scratchpad_ecorelation_delete_default_types(){
-  $default_relation_types = scratchpad_ecorelation_default_types();
+function _scratchpads_ecorelation_delete_default_types(){
+  $default_relation_types = scratchpads_ecorelation_default_types();
   /* delete relationships and relation types */
   $query = new EntityFieldQuery();
   $results = $query->entityCondition('entity_type', 'relation')->propertyCondition('relation_type', $default_relation_types, 'IN')->execute();

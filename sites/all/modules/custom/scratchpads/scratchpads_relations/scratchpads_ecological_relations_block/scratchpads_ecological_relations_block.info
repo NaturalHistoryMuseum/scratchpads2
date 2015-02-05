@@ -1,4 +1,4 @@
-name = "Scratchpad ecological relations block"
+name = "Scratchpads ecological relations block"
 description = "Block of species ecological relations to display on the species taxonomy page"
 core = "7.x"
 package = "Relation"

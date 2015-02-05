@@ -2,12 +2,12 @@
 
 /**
  * @file
- * scratchpad_ecological_relations_block.views_default.inc
+ * scratchpads_ecological_relations_block.views_default.inc
  */
 /**
  * Implements hook_views_default_views().
  */
-function scratchpad_ecological_relations_block_views_default_views(){
+function scratchpads_ecological_relations_block_views_default_views(){
   $export = array();
   $view = new view();
   $view->name = 'species_relationships';

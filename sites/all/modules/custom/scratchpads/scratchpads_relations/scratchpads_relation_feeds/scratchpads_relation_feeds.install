@@ -8,7 +8,7 @@
 /**
  * Implements hook_enable().
  */
-function scratchpad_relation_feeds_enable() {
+function scratchpads_relation_feeds_enable() {
   // Clear cache so plugins provided by this module are properly discovered.
   cache_clear_all('plugins:feeds:plugins', 'cache');
   // Reset static cache as well.

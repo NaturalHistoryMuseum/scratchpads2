@@ -8,7 +8,7 @@
  /**
  * Implements hook_ctools_plugin_api().
  */
-function scratchpad_relation_feeds_ctools_plugin_api($owner, $api) {
+function scratchpads_relation_feeds_ctools_plugin_api($owner, $api) {
   if ($owner == 'feeds' && $api == 'plugins') {
     return array('version' => 1);
   }
@@ -17,7 +17,7 @@ function scratchpad_relation_feeds_ctools_plugin_api($owner, $api) {
 /**
  * Implements hook_ctools_plugin_type().
  */
-function scratchpad_relation_feeds_ctools_plugin_type() {
+function scratchpads_relation_feeds_ctools_plugin_type() {
   return array(
     'plugins' => array(
       'cache' => TRUE,
@@ -30,16 +30,16 @@ function scratchpad_relation_feeds_ctools_plugin_type() {
 /**
  * Implements hook_feeds_plugins().
  */
-function scratchpad_relation_feeds_feeds_plugins() {
-  $info['ScratchpadRelationFeedsProcessor'] = array(
+function scratchpads_relation_feeds_feeds_plugins() {
+  $info['ScratchpadsRelationFeedsProcessor'] = array(
     'name' => t('Relation processor'),
     'description' => t('Add and update relations.'),
     'help' => t('Create and update relations from parsed content.'),
     'handler' => array(
       'parent' => 'FeedsProcessor',
-      'class' => 'ScratchpadRelationFeedsProcessor',
-      'file' => 'ScratchpadRelationFeedsProcessor.inc',
-      'path' => drupal_get_path('module', 'scratchpad_relation_feeds'),
+      'class' => 'ScratchpadsRelationFeedsProcessor',
+      'file' => 'ScratchpadsRelationFeedsProcessor.inc',
+      'path' => drupal_get_path('module', 'scratchpads_relation_feeds'),
     ),
   );
   return $info;
