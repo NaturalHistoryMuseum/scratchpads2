@@ -1,8 +1,3 @@
 description = "Scratchpad relations ITIS fields"
 name = "Scratchpad relations ITIS"
-package = "Relation"
 core = "7.x"
-dependencies[] = "itis_term"
-dependencies[] = "relation_add"
-dependencies[] = "scratchpads_ecorelation_types"
-;stylesheets[all][] = css/scratchpads_relations_itis.css
