@@ -920,24 +920,19 @@ function _update_file_links($fid, $tid, $morphbank_view_id, $morphbank_image_id)
       }
       $imaging_tid = -1;
       if($imaging_vid > 0){
-        // This could probably be streamlined by using a database query
-        /* This definitely needs removing, as we can not rely on using
-         * taxonomy_get_tree(), and loading each term in turn is equally
-         * inefficient. We can instead use an entity field query to perform this
-         * 
-         * https://api.drupal.org/api/drupal/includes!entity.inc/class/EntityFieldQuery/7 */
-        $imaging_terms = taxonomy_get_tree($imaging_vid);
-        if(!is_null($imaging_terms) && count($imaging_terms) > 0){
-          foreach($imaging_terms as $imaging_term){
-            $term_wrapper = entity_metadata_wrapper('taxonomy_term', $imaging_term->tid);
-            if($term_wrapper){
-              $term_view_id = $term_wrapper->field_morphbank_view_id->value();
-              if($term_view_id > 0){
-                if($morphbank_view_id == $term_view_id){
-                  $imaging_tid = $imaging_term->tid;
-                  break;
-                }
+        // Use EntityFieldQuery to identify imaging technique term
+        $imaging_query = new EntityFieldQuery();
+        $imaging_query->entityCondition('entity_type', 'taxonomy_term')->entityCondition('bundle', 'imaging_technique')->fieldCondition('field_morphbank_view_id', 'value', $morphbank_view_id, '=');
+        $imaging_result = $imaging_query->execute();
+        if(array_key_exists('taxonomy_term', $imaging_result) && count($imaging_result['taxonomy_term']) > 0){
+          $term_ids = array_keys($imaging_result['taxonomy_term']);
+          if(count($term_ids) > 0){ // There should really only ever be 0 or 1 results
+            $term_counter = 0;
+            while($term_counter < count($term_ids) && $imaging_tid < 0){
+              if($term_ids[$term_counter] > 0){
+                $imaging_tid = $term_ids[$term_counter];
               }
+              $term_counter++;
             }
           }
         }
