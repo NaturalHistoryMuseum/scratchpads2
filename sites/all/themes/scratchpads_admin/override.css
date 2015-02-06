@@ -98,6 +98,11 @@ table.scratchpads-admin-content-comment tr td:nth-child(1) {
   background-image: url("images/comments-icon.png");
 }
 
+/* Relations icon */
+table.scratchpads-admin-content-relation tr td:nth-child(1) {
+  background-image: url("images/relations-icon.png");
+}
+
 /* File icons */
 table.scratchpads-admin-content tr.file-application td:nth-child(1) {
   background-image: url("images/application-icon.png");
