@@ -786,3 +786,16 @@ function gravatar_scratchpads_default_permissions(){
     )
   );
 }
+
+/**
+ * relation_add module
+ *
+ * Implements hook_scratchpads_default_permissions()
+ */
+function relation_add_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'relation add endpoint autocomplete access'
+    )
+  );
+}

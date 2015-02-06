@@ -1,0 +1,6 @@
+<?php
+/**
+ * @file
+ * Code for the Scratchpad ecological relations block feature.
+ */
+include_once ('scratchpads_ecological_relations_block.features.inc');

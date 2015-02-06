@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Relation feeds install functions
+ */
+/**
+ * Implements hook_enable().
+ */
+function scratchpads_relation_feeds_enable(){
+  // Clear cache so plugins provided by this module are properly discovered.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+  // Reset static cache as well.
+  ctools_get_plugins_reset();
+}
