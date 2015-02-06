@@ -1,0 +1,162 @@
+<?php
+
+function scratchpads_relations_itis_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'scratchpads_relations_itis_taxonomy_form_vocabulary_submit';
+}
+
+/**
+ * Submit function to alter a vocabulary.
+ */
+function scratchpads_relations_itis_taxonomy_form_vocabulary_submit($form, &$form_state){
+  if(!isset($form_state['confirm_delete']) && $form_state['values']['biological_classification']){
+    scratchpads_relations_itis_create_vocabulary($form_state['vocabulary']);
+  }
+}
+
+function scratchpads_relations_itis_create_vocabulary($vocabulary){
+  // Add all the required fields to this vocabulary.
+  module_load_include('fields.inc', 'scratchpads_relations_itis');
+  // Associate all the other fields with this instance.
+  foreach(scratchpads_relations_itis_fields($vocabulary->vid) as $field){
+    // Create the field if it hasn't already been created.
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    field_create_instance($field['field_instance']);
+  }
+  foreach(scratchpads_relations_itis_groups($vocabulary->vid) as $group){
+    $group['bundle'] = $vocabulary->machine_name;
+    $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
+    $group = (object)$group;
+    field_group_group_save($group);
+  }
+  //Now add the new group to the groups in itis_term
+  module_load_include('fields.inc', 'itis_term');
+  foreach(itis_term_groups($vocabulary->machine_name) as $itis_group){
+    foreach(scratchpads_relations_itis_groups($vocabulary->vid) as $rel_group){
+      if($rel_group['parent_name'] == $itis_group['group_name']){
+        $group = field_group_load_field_group($itis_group['group_name'], 'taxonomy_term', $vocabulary->machine_name, 'form');
+        $group->children[] = $rel_group['group_name'];
+        field_group_group_save($group);
+      }
+    }
+  }
+}
+
+function scratchpads_relations_itis_field_widget_relation_add_form_alter(&$element, &$form_state, $context){
+  if($context['field']['type'] == 'relation_add' && $element['#entity_type'] == 'taxonomy_term'){
+    if(array_key_exists('targets', $element['relation_options'])){
+      $relation_option_targets_target_2_title = $element['relation_options']['targets']['target_2']['#title'];
+      $element['relation_options']['targets']['target_2']['#title'] = 'Taxon';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter()
+ */
+function scratchpads_relations_itis_menu_alter(&$items){
+  $items['relation_add/autocomplete/%']['page callback'] = 'scratchpads_relations_itis_relation_add_autocomplete';
+  $items['relation_add/autocomplete/%']['page arguments'] = array(
+    2,
+    3,
+    4,
+    5
+  );
+  return $items;
+}
+
+/**
+ *  Get a list of all matching entites for autocomplete fields
+ *
+ *  @param $type The entity type
+ *  @param $direction The direction source/target
+ *  @param $string The label/name/title to search for
+ *  @see relation_add.module
+ */
+function scratchpads_relations_itis_relation_add_autocomplete($type = '', $direction = 'target', $field = 'none', $string = ''){
+  if(empty($type) || empty($direction) || empty($string)){
+    exit();
+  }
+  // Removing the :reverse suffix if exists.
+  $type_array = explode(':', $type);
+  $type = $type_array[0];
+  $entity_infos = entity_get_info();
+  $relation_type = relation_type_load($type);
+  $entity_bundles = array();
+  // Use source bundles unless relation type is directional and we're looking in the forward direction
+  $direction = ($relation_type->directional && $direction == 'target') ? 'target_bundles' : 'source_bundles';
+  foreach($relation_type->$direction as $entity_bundle){
+    list($entity_type, $bundle) = explode(':', $entity_bundle, 2);
+    $entity_bundles[$entity_type][] = $bundle;
+  }
+  $instance = array();
+  if($field !== 'none'){
+    list($entity_type, $field_name, $bundle) = explode('-', $field);
+    $instance = field_info_instance($entity_type, $field_name, $bundle);
+  }
+  // Get about 12, rounded up.
+  $limit = ceil(12 / count(array_keys($entity_bundles)));
+  $suggestions = array();
+  foreach($entity_bundles as $entity_type => $bundles){
+    $base_table = $entity_infos[$entity_type]['base table'];
+    // Get the name of the column in the base table for the entity type.
+    if($entity_type == 'user'){ // Special case for users.
+      $label_key = 'name';
+    }elseif(isset($entity_infos[$entity_type]['entity keys']['label'])){
+      $label_key = $entity_infos[$entity_type]['entity keys']['label'];
+    }else{
+      break; // Can't find a label to search over, give up.
+    }
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $entity_type);
+    if(!empty($instance) && isset($instance['widget']['settings']['relation_endpoint_search_by_id']) && $instance['widget']['settings']['relation_endpoint_search_by_id'] && preg_match("/^[0-9]+$/", $string)){
+      // We are most likely searching for an entity ID.
+      $query->entityCondition('entity_id', (int)$string);
+    }else{
+      $query->propertyCondition($label_key, $string, 'CONTAINS');
+    }
+    $query->range(0, $limit);
+    if(!in_array('*', $bundles) && $entity_type != 'taxonomy_term'){
+      $query->entityCondition('bundle', $bundles, 'IN');
+    }elseif(!in_array('*', $bundles) && $entity_type == 'taxonomy_term'){
+      $vocabularies = taxonomy_vocabulary_load_multiple(NULL, array(
+        'machine_name' => $bundles
+      ));
+      $bundles = array_keys($vocabularies);
+      $query->propertyCondition('vid', $bundles, 'IN');
+    }
+    $results = $query->execute();
+    if($results){
+      foreach(array_keys($results[$entity_type]) as $id){
+        if($entity_type == 'taxonomy_term'){
+          $field = field_info_field($field_name);
+          $term = taxonomy_term_load($id);
+          $label = $term->name;
+          // Term names containing commas or quotes must be wrapped in quotes.
+          if(strpos($term->name, ',') !== FALSE || strpos($term->name, '"') !== FALSE){
+            $label = '"' . str_replace('"', '""', $term->name) . '"';
+          }
+          // Get all parents
+          $parents = taxonomy_get_parents_all($id);
+          $parents = array_reverse($parents);
+          $parent_names = array();
+          foreach($parents as $parent){
+            $parent_names[] = check_plain($parent->name);
+          }
+          $link_text = implode(" &raquo; ", $parent_names);
+          $suggestions[$label . ' [' . $entity_type . ':' . $id . ']'] = ($field['cardinality'] == -1) ? $link_text . ' (' . check_plain($bundle) . ')' : $link_text;
+        }elseif($entity_type !== 'taxonomy_term'){
+          $entities = entity_load($entity_type, array(
+            $id
+          ));
+          $entity = reset($entities);
+          $label = entity_label($entity_type, $entity);
+          $suggestions[$label . ' [' . $entity_type . ':' . $id . ']'] = $label . ' [' . $entity_type . ':' . $id . ']';
+        }
+      }
+    }
+  }
+  drupal_json_output($suggestions);
+}
