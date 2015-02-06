@@ -4,13 +4,26 @@
  * @file
  * Relation feeds install functions
  */
-
 /**
  * Implements hook_enable().
  */
-function scratchpads_relation_feeds_enable() {
+function scratchpads_relation_feeds_enable(){
   // Clear cache so plugins provided by this module are properly discovered.
   cache_clear_all('plugins:feeds:plugins', 'cache');
   // Reset static cache as well.
   ctools_get_plugins_reset();
+}
+
+/**
+ * Disable the old named modules
+ */
+function scratchpads_relation_feeds_update_7001(){
+  $modules = array(
+    'scratchpad_ecological_relations_block',
+    'scratchpad_ecorelation_types',
+    'scratchpad_relation_feeds',
+    'scratchpad_relation_itis'
+  );
+  module_disable($modules);
+  drupal_uninstall_modules($modules);
 }

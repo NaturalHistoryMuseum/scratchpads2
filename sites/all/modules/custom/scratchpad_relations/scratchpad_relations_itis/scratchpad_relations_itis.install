@@ -1,1 +1,15 @@
 <?php
+
+/**
+ * We update the system table directly, as this module has been renamed.
+ * Once that has been done, we rebuild the registry, and clear the caches.
+ */
+function scratchpad_relations_itis_update_7001(){
+  db_delete('system')->condition('filename', '%scratchpads_relation%', 'LIKE')->execute();
+  db_update('system')->expression('filename', "REPLACE(filename, '/scratchpad_relations/', '/scratchpads/scratchpads_relations/')")->execute();
+  db_update('system')->expression('name', "REPLACE(name, 'scratchpad_', 'scratchpads_')")->condition('name', 'scratchpad_2_migrate', '!=')->execute();
+  db_update('feeds_importer')->expression('config', 'REPLACE(config, \'s:32:\"ScratchpadRelationFeedsProcessor\"\', \'s:33:\"ScratchpadsRelationFeedsProcessor\"\')')->execute();
+  drupal_flush_all_caches();
+  registry_rebuild();
+  drupal_flush_all_caches();
+}
