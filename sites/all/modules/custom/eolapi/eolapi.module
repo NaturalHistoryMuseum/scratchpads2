@@ -347,6 +347,12 @@ function eolapi_taxonomy_term_delete($term = FALSE){
  */
 function eolapi_cron(){
   eolapi_taxonomy_term_delete();
+  // Delete the files that EOL creates but failed to move into the EOLAPI
+  // folder.
+  $fids = db_select('file_managed', 'f')->condition('uid', 0)->fields('f', array(
+    'fid'
+  ))->where("filename REGEXP 'file[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]'")->execute()->fetchCol();
+  file_delete_multiple($fids);
 }
 //---- VIEW -------------------------------------------------------------------
 /**
