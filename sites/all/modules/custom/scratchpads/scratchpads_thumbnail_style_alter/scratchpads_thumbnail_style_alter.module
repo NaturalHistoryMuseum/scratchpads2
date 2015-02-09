@@ -1,15 +1,24 @@
 <?php
 
 function scratchpads_thumbnail_style_alter_enable(){
+  // When enabling, we flush the cropped thumbnails and images.
   $styles = image_styles();
-  /* When enabling this module flush old square thumbnails to create new scaled thumbnails below */
   image_style_flush($styles['square_thumbnail']);
+  image_style_flush($styles['slideshow_large']);
+  image_style_flush($styles['slideshow_thumbnail']);
+  image_style_flush($styles['species_slideshow_thumbnail']);
+  image_style_flush($styles['species_slideshow_large']);
 }
 
 function scratchpads_thumbnail_style_alter_disable(){
+  // When disabling, we revert the image styles, and flush the styles.
   $styles = image_styles();
-  /* Disabling this module will revert any changes made to  square_thumbnail image style back to default */
   image_default_style_revert($styles['square_thumbnail']);
+  image_default_style_revert($styles['slideshow_large']);
+  image_default_style_revert($styles['slideshow_thumbnail']);
+  image_default_style_revert($styles['species_slideshow_thumbnail']);
+  image_default_style_revert($styles['species_slideshow_large']);
+  scratchpads_thumbnail_style_alter_enable();
 }
 
 /**
@@ -28,6 +37,14 @@ function scratchpads_thumbnail_style_alter_image_styles_alter(&$styles){
     'slideshow_thumbnail' => array(
       'width' => '154',
       'height' => '115'
+    ),
+    'species_slideshow_thumbnail' => array(
+      'width' => '92',
+      'height' => '69'
+    ),
+    'species_slideshow_large' => array(
+      'width' => '284',
+      'height' => '211'
     )
   ) as $machine_name => $info){
     if($styles[$machine_name]['storage'] == IMAGE_STORAGE_DEFAULT){
@@ -87,4 +104,6 @@ function scratchpads_thumbnail_style_alter_image_styles_alter(&$styles){
       );
     }
   }
+  print_r($styles);
+  exit();
 }
