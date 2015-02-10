@@ -574,6 +574,9 @@ function exif_custom_get_exif_fields($path, $concatenate_arrays = TRUE){
   $exif = exif_read_data(drupal_realpath($path), NULL, TRUE);
   if(is_array($exif)){
     foreach($exif as $name => $section){
+      if($name == 'FILE'){
+        continue;
+      }
       foreach($section as $key => $value){
         if($concatenate_arrays && is_array($value)){
           $value = implode(', ', $value);
