@@ -86,24 +86,11 @@ CKEDITOR_entityfilter.prototype.timeout_callback = function(args){
   var editor = entityfilter.editor;
   var range = selection.getRanges()[0];
   var text_left_of_cursor = range.startContainer.$.textContent.substring(0, range.endOffset)
-  console.log(text_left_of_cursor);
   if(text_left_of_cursor.indexOf('[entity') > -1) {
     var search_str = text_left_of_cursor.substring(text_left_of_cursor.lastIndexOf('['));
     // Ensure there are no spaces in there, else we've probably already handled
     // this brace (or it's not even an entity brace
     if(search_str.indexOf(' ') == -1) {
-      var x = 0;
-      var y = 0;
-      var obj = editor.document.getActive().$;
-      while(obj.offsetParent) {
-        x += obj.offsetLeft;
-        y += obj.offsetTop;
-        obj = obj.offsetParent;
-      }
-      x += obj.offsetLeft;
-      y += obj.offsetTop;
-      console.log(x);
-      console.log(y);
       var startOffset = parseInt(range.startOffset - search_str.length) || 0;
       var element = range.startContainer.$;
       jQuery.get(Drupal.settings.basePath + 'ckeditor/entityfilter', {
