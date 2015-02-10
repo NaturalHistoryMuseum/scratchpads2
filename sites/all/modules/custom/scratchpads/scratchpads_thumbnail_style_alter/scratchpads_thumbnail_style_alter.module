@@ -104,6 +104,4 @@ function scratchpads_thumbnail_style_alter_image_styles_alter(&$styles){
       );
     }
   }
-  print_r($styles);
-  exit();
 }
