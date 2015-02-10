@@ -1,4 +1,4 @@
-.entityfilter {
+.entityfilter .item-list{
   position: absolute;
   padding: 10px;
   text-decoration: none;
@@ -6,6 +6,13 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   opacity: 0.95;
+  z-index:1000;
+  top:200px;
+  left:20px;
+}
+.entityfilter .item-list{
+  margin:0;
+  padding:0;
 }
 
 .entityfilter li {
