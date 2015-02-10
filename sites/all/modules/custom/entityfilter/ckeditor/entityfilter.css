@@ -1,0 +1,13 @@
+.entityfilter {
+  position: absolute;
+  padding: 10px;
+  text-decoration: none;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  opacity: 0.95;
+}
+
+.entityfilter li {
+  cursor: pointer;
+}

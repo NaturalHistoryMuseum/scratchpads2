@@ -2,3 +2,4 @@ name = "Entity Input Filter"
 description = "Enables the dynamic referencing of entity properties from within filtered text."
 core = "7.x"
 dependencies[] = entity
+stylesheets[all][] = ckeditor/entityfilter.css

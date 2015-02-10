@@ -1,6 +1,47 @@
 <?php
 
 /**
+ * Implements hook_ckeditor_plugin
+ */
+function entityfilter_ckeditor_plugin(){
+  return array(
+    'entityfilter' => array(
+      'name' => 'entityfilter',
+      'desc' => t('Allows the referencing of properties on entities'),
+      'path' => drupal_get_path('module', 'entityfilter') . '/ckeditor/'
+    )
+  );
+}
+
+/**
+ * Implements hook_preprocess_html()
+ * 
+ * FIXME - This needs altering so that we only include the drupal.ajax when we
+ * actually need it (when there's a CKEDITOR on the page)
+ */
+function entityfilter_preprocess_html(){
+  // We need to include our misc/ajax.js, else we can't be sure if it's included when we need it.
+  drupal_add_library('system', 'drupal.ajax');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function entityfilter_menu(){
+  $items['ckeditor/entityfilter'] = array(
+    'title' => 'entityfilter',
+    'page callback' => 'entityfilter_get_suggesions',
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+    'file' => 'entityfilter.ajax.inc'
+  );
+  return $items;
+}
+
+/**
  * Implements hook_filter_info()
  */
 function entityfilter_filter_info(){
@@ -103,7 +144,7 @@ function entityfilter_filter($text, $filter){
           // do this to ensure that the page can still be cached, as pages with
           // errors on are not cached (I think).
           if(user_is_logged_in()){
-            drupal_set_message(t('Error processing entity reference "@match"', array(
+            drupal_set_message(t('Error processing entity filter "@match"', array(
               '@match' => $match
             )), 'error', FALSE);
           }
