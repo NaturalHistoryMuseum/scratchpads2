@@ -1,18 +1,15 @@
-.entityfilter .item-list{
+.entityfilter {
   position: absolute;
-  padding: 10px;
-  text-decoration: none;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 5px;
   opacity: 0.95;
-  z-index:1000;
-  top:200px;
-  left:20px;
+  z-index: 1000;
+  left: 20px;
+  margin: 0;
+  padding: 0;
 }
-.entityfilter .item-list{
-  margin:0;
-  padding:0;
+
+.entityfilter .item-list {
+  margin: 0;
+  padding: 0;
 }
 
 .entityfilter li {

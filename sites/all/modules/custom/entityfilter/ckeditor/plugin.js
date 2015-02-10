@@ -99,6 +99,7 @@ CKEDITOR_entityfilter.prototype.timeout_callback = function(args){
         jQuery('.entityfilter').remove();
         if(response) {
           jQuery('<div class="entityfilter">' + response.html + '</div>').insertAfter(jQuery('#' + editor.element.getId()).parent());
+          jQuery('.entityfilter').css('top', (jQuery('#' + editor.element.getId()).parent().height() - 5) + 'px');
         }
         jQuery('.entityfilter div ul li').click(function(e){
           jQuery('.entityfilter').remove();
