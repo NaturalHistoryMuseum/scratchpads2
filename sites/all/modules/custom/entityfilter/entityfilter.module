@@ -128,9 +128,12 @@ function entityfilter_filter($text, $filter){
                   $match_parts[3] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label'] : 'name';
                 }
                 $value = $wrapper->{$match_parts[3]}->value();
-                if($value){
+                if($value && is_string($value)){
                   $replaced = TRUE;
                   $text = str_replace($match, $value, $text);
+                } else if(is_array($value) && isset($value['value'])){
+                  $replaced = TRUE;
+                  $text = str_replace($match, $value['value'], $text);
                 }
               }
             }
