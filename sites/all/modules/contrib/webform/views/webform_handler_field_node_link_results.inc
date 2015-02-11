@@ -27,4 +27,3 @@ class webform_handler_field_node_link_results extends views_handler_field_node_l
   }
 
 }
-

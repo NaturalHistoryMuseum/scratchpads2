@@ -19,11 +19,6 @@ function webform_emails_form($form, $form_state, $node) {
   $form['#node'] = $node;
   $form['components'] = array();
 
-  $form['nid'] = array(
-    '#type' => 'value',
-    '#value' => $node->nid,
-  );
-
   foreach ($node->webform['emails'] as $eid => $email) {
     $email_addresses = array_filter(explode(',', check_plain($email['email'])));
     foreach ($email_addresses as $key => $email_address) {
@@ -71,10 +66,13 @@ function webform_emails_form($form, $form_state, $node) {
     $form['add']['email_component']['#disabled'] = TRUE;
   }
 
-  $form['add_button'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions',
+    '#weight' => 45,
+  );
+  $form['actions']['add_button'] = array(
     '#type' => 'submit',
     '#value' => t('Add'),
-    '#weight' => 45,
   );
 
   $form['#validate'] = array('webform_email_address_validate');
@@ -94,7 +92,7 @@ function theme_webform_emails_form($variables) {
   $form = $variables['form'];
   $node = $form['#node'];
 
-  $header = array(t('E-mail to'), t('Subject'), t('From'), array('data' => t('Operations'), 'colspan' => 2));
+  $header = array(t('E-mail to'), t('Subject'), t('From'), array('data' => t('Operations'), 'colspan' => 3));
   $rows = array();
 
   if (!empty($form['emails'])) {
@@ -105,23 +103,24 @@ function theme_webform_emails_form($variables) {
         drupal_render($form['emails'][$eid]['subject']),
         drupal_render($form['emails'][$eid]['from']),
         l(t('Edit'), 'node/' . $node->nid . '/webform/emails/' . $eid),
+        l(t('Clone'), 'node/' . $node->nid . '/webform/emails/' . $eid . '/clone'),
         l(t('Delete'), 'node/' . $node->nid . '/webform/emails/' . $eid . '/delete'),
       );
     }
   }
   else {
-    $rows[] = array(array('data' => t('Currently not sending e-mails, add an e-mail recipient below.'), 'colspan' => 5));
+    $rows[] = array(array('data' => t('Currently not sending e-mails, add an e-mail recipient below.'), 'colspan' => 6));
   }
 
   // Add a row containing form elements for a new item.
   $row_data = array(
     array('colspan' => 3, 'data' => drupal_render($form['add'])),
-    array('colspan' => 2, 'data' => drupal_render($form['add_button'])),
+    array('colspan' => 3, 'data' => drupal_render($form['add_button'])),
   );
   $rows[] = array('data' => $row_data, 'class' => array('webform-add-form'));
 
   $output = '';
-  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'webform-emails')));
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'sticky' => FALSE, 'attributes' => array('id' => 'webform-emails')));
   $output .= drupal_render_children($form);
   return $output;
 }
@@ -133,15 +132,17 @@ function theme_webform_email_add_form($variables) {
   $form = $variables['form'];
 
   // Add a default value to the custom e-mail textfield.
-  $form['email_custom']['#attributes']['rel'] = t('email@example.com');
-  $form['email_custom']['#attributes']['class'] = array('webform-set-active', 'webform-default-value');
+  $form['email_custom']['#attributes']['placeholder'] = t('email@example.com');
+  $form['email_custom']['#attributes']['class'][] = 'webform-set-active';
+  $form['email_custom']['#theme_wrappers'] = array();
   $form['email_option']['custom']['#theme_wrappers'] = array('webform_inline_radio');
-  $form['email_option']['custom']['#inline_element'] = drupal_render($form['email_custom']);
+  $form['email_option']['custom']['#title'] = t('Address: !email', array('!email' => drupal_render($form['email_custom'])));
 
   // Render the component value.
-  $form['email_component']['#attributes']['class'] = array('webform-set-active');
+  $form['email_component']['#theme_wrappers'] = array();
+  $form['email_component']['#attributes']['class'][] = 'webform-set-active';
   $form['email_option']['component']['#theme_wrappers'] = array('webform_inline_radio');
-  $form['email_option']['component']['#inline_element'] = drupal_render($form['email_component']);
+  $form['email_option']['component']['#title'] = t('Component value: !component', array('!component' => drupal_render($form['email_component'])));
 
   return drupal_render_children($form);
 }
@@ -162,20 +163,21 @@ function webform_emails_form_submit($form, &$form_state) {
 /**
  * Form for configuring an e-mail setting and template.
  */
-function webform_email_edit_form($form, $form_state, $node, $email = array()) {
+function webform_email_edit_form($form, $form_state, $node, $email = array(), $clone = FALSE) {
   module_load_include('inc', 'webform', 'includes/webform.components');
 
   $form['#attached']['library'][] = array('webform', 'admin');
   $form['#attached']['js'][] = array('data' => array('webform' => array('revertConfirm' => t('Are you sure you want to revert any changes to your template back to the default?'))), 'type' => 'setting');
 
   $form['#tree'] = TRUE;
-  $form['node'] = array(
-    '#type' => 'value',
-    '#value' => $node,
-  );
+  $form['#node'] = $node;
   $form['eid'] = array(
     '#type' => 'value',
     '#value' => isset($email['eid']) ? $email['eid'] : NULL,
+  );
+  $form['clone'] = array(
+    '#type' => 'value',
+    '#value' => $clone,
   );
 
   // All these fields work essentially the same, with a radio button set,
@@ -188,17 +190,17 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
         $description = t('Form submissions will be e-mailed to this address. Any email, select, or hidden form element may be selected as the recipient address. Multiple e-mail addresses may be separated by commas.');
         break;
       case 'subject':
-        $default_value = _webform_filter_values(webform_variable_get('webform_default_subject'), $node);
+        $default_value = webform_replace_tokens(webform_variable_get('webform_default_subject'), $node);
         $title = t('E-mail subject');
         $description = t('Any textfield, select, or hidden form element may be selected as the subject for e-mails.');
         break;
       case 'from_address':
-        $default_value = _webform_filter_values(webform_variable_get('webform_default_from_address'), $node);
+        $default_value = webform_replace_tokens(webform_variable_get('webform_default_from_address'), $node);
         $title = t('E-mail from address');
         $description = t('Any email, select, or hidden form element may be selected as the sender\'s e-mail address.');
         break;
       case 'from_name':
-        $default_value = _webform_filter_values(webform_variable_get('webform_default_from_name'), $node);
+        $default_value = webform_replace_tokens(webform_variable_get('webform_default_from_name'), $node);
         $title = t('E-mail from name');
         $description = t('Any textfield, select, or hidden form element may be selected as the sender\'s name for e-mails.');
         break;
@@ -220,16 +222,59 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
       '#type' => 'textfield',
       '#size' => 40,
       '#default_value' => (!is_numeric($email[$field]) && $email[$field] != 'default') ? $email[$field] : NULL,
-      '#maxlength' => $field == 'email' ? 500 : 255,
+      '#maxlength' => 500,
     );
-    $options = webform_component_list($node, $field == 'from_address' || $field == 'email' ? 'email_address' : 'email_name', FALSE);
+    $field_type = $field === 'from_address' || $field === 'email' ? 'email_address' : 'email_name';
+    $component_options = webform_component_list($node, $field_type, FALSE);
     $form[$field . '_component'] = array(
       '#type' => 'select',
       '#default_value' =>  is_numeric($email[$field]) ? $email[$field] : NULL,
-      '#options' => empty($options) ? array('' => t('No available components')) : $options,
-      '#disabled' => empty($options) ? TRUE : FALSE,
+      '#options' => empty($component_options) ? array('' => t('No available components')) : $component_options,
+      '#disabled' => empty($component_options) ? TRUE : FALSE,
       '#weight' => 6,
     );
+
+    // If this component is being used as an e-mail address and has multiple
+    // options (such as a select list or checkboxes), we provide text fields to
+    // map each option to a user-defined e-mail.
+    if ($field_type === 'email_address') {
+      foreach ($component_options as $cid => $component_label) {
+        $component = $node->webform['components'][$cid];
+        $options = webform_component_invoke($component['type'], 'options', $component, TRUE);
+        // For components that don't provide multiple options (hidden or email).
+        if (empty($options)) {
+          continue;
+        }
+
+        // To avoid flooding the form with hundreds of textfields, skip select
+        // lists that have huge numbers of options.
+        if (count($options) > variable_get('webform_email_select_max', 50)) {
+          unset($form[$field . '_component']['#options'][$cid]);
+          continue;
+        }
+        $form[$field . '_mapping'][$cid] = array(
+          '#title' => check_plain($component['name']),
+          '#theme' => 'webform_email_component_mapping',
+          '#attributes' => array('class' => array('webform-email-mapping')),
+          '#webform_allow_empty' => $field === 'email',
+          '#type' => 'container',
+          '#states' => array(
+            'visible' => array(
+              'input[name=' . $field . '_option' . ']' => array('value' => 'component'),
+              'select[name=' . $field . '_component' . ']' => array('value' => (string) $cid),
+            ),
+          ),
+        );
+        foreach ($options as $key => $label) {
+          $form[$field . '_mapping'][$cid][$key] = array(
+            '#type' => 'textfield',
+            '#title' => $label,
+            '#default_value' => is_numeric($email[$field]) && $email[$field] == $cid && is_array($email['extra']) && isset($email['extra'][$field . '_mapping'][$key]) ? $email['extra'][$field . '_mapping'][$key] : '',
+            '#attributes' => array('placeholder' => t('email@example.com')),
+          );
+        }
+      }
+    }
   }
 
   // Do not show the "E-mail from name" if using the short e-mail format.
@@ -267,6 +312,7 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
     '#rows' => max(10, min(20, count(explode("\n", $template)))),
     '#default_value' => $template,
     '#wysiwyg' => webform_email_html_capable() ? NULL : FALSE,
+    '#description' => theme('webform_token_help', array('groups' => array('node', 'submission'))),
   );
 
   $form['template']['html'] = array(
@@ -283,10 +329,6 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
     '#access' => webform_email_html_capable(),
   );
 
-  $form['template']['tokens'] = array(
-    '#markup' => theme('webform_token_help', array('groups' => 'all')),
-  );
-
   $form['template']['components'] = array(
     '#type' => 'select',
     '#title' => t('Included e-mail values'),
@@ -294,7 +336,7 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
     '#default_value' => array_diff(array_keys($node->webform['components']), $email['excluded_components']),
     '#multiple' => TRUE,
     '#size' => 10,
-    '#description' => t('The selected components will be included in the %email_values token. Individual values may still be printed if explicitly specified as a %email[key] in the template.'),
+    '#description' => t('The selected components will be included in the [submission:values] token. Individual values may still be printed if explicitly specified as a [submission:values:?] in the template.'),
     '#process' => array('webform_component_select'),
   );
 
@@ -309,10 +351,13 @@ function webform_email_edit_form($form, $form_state, $node, $email = array()) {
   );
 
   // Add the submit button.
-  $form['submit'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions',
+    '#weight' => 20,
+  );
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save e-mail settings'),
-    '#weight' => 20,
   );
 
   $form['#validate'] = array('webform_email_address_validate', 'webform_email_edit_form_validate');
@@ -329,11 +374,13 @@ function theme_webform_email_edit_form($variables) {
   // Loop through fields, rendering them into radio button options.
   foreach (array('email', 'subject', 'from_address', 'from_name') as $field) {
     foreach (array('custom', 'component') as $option) {
-      $form[$field . '_' . $option]['#attributes']['class'] = array('webform-set-active');
+      $form[$field . '_' . $option]['#attributes']['class'][] = 'webform-set-active';
+      $form[$field . '_' . $option]['#theme_wrappers'] = array();
       $form[$field . '_option'][$option]['#theme_wrappers'] = array('webform_inline_radio');
-      $form[$field . '_option'][$option]['#inline_element'] = drupal_render($form[$field . '_' . $option]);
+      $form[$field . '_option'][$option]['#title'] = t('!title: !field', array('!title' => $form[$field . '_option'][$option]['#title'], '!field' => drupal_render($form[$field . '_' . $option])));
     }
     if (isset($form[$field . '_option']['#options']['default'])) {
+      $form[$field]['#theme_wrappers'] = array();
       $form[$field . '_option']['default']['#theme_wrappers'] = array('webform_inline_radio');
     }
   }
@@ -341,6 +388,7 @@ function theme_webform_email_edit_form($variables) {
   $details = '';
   $details .= drupal_render($form['subject_option']);
   $details .= drupal_render($form['from_address_option']);
+  $details .= drupal_render($form['from_address_mapping']);
   $details .= drupal_render($form['from_name_option']);
   $form['details'] = array(
     '#type' => 'fieldset',
@@ -364,6 +412,46 @@ function theme_webform_email_edit_form($variables) {
 }
 
 /**
+ * Theme the presentation of select list option to e-mail address mappings.
+ */
+function theme_webform_email_component_mapping($variables) {
+  $element = $variables['element'];
+
+  $header = array(t('Option'), t('E-mail address'));
+  $rows = array();
+  foreach (element_children($element) as $key) {
+    $element[$key]['#theme_wrappers'] = array();
+    $row = array();
+    $row[] = array(
+      'data' => theme('form_element_label', array('element' => $element[$key])),
+      'class' => array('webform-email-option'),
+    );
+    $row[] = drupal_render($element[$key]);
+    $rows[] = $row;
+  }
+
+  $empty = t('This component has no options defined yet.');
+  $table = theme('table', array('header' => $header, 'rows' => $rows, 'sticky' => FALSE, 'empty' => $empty));
+  $description = t('The selected component %name has multiple options. You may enter an e-mail address for each choice.', array('%name' => $element['#title']));
+  if ($element['#webform_allow_empty']) {
+    $description .= ' '. t('When that choice is selected, an e-mail will be sent to the corresponding address. If a field is left blank, no e-mail will be sent for that option.');
+  }
+  else {
+    $description .= ' '. t('When that choice is selected, an e-mail will be sent from the corresponding address.');
+  }
+
+  $wrapper_element = array(
+    '#title' => t('Component e-mail options'),
+    '#children' => $table,
+    '#description' => $description,
+    '#theme_wrappers' => array('form_element'),
+    '#id' => NULL,
+  );
+
+  return render($wrapper_element);
+}
+
+/**
  * Validate handler for webform_email_edit_form() and webform_emails_form().
  */
 function webform_email_address_validate($form, &$form_state) {
@@ -375,7 +463,7 @@ function webform_email_address_validate($form, &$form_state) {
     else {
       $emails = array_filter(explode(',', $email));
       foreach ($emails as $email) {
-        if (!valid_email_address(trim($email))) {
+        if (!valid_email_address(webform_replace_tokens(trim($email), $form['#node']))) {
           form_set_error('email_custom', t('The entered e-mail address "@email" does not appear valid.', array('@email' => $email)));
         }
       }
@@ -387,9 +475,41 @@ function webform_email_address_validate($form, &$form_state) {
  * Validate handler for webform_email_edit_form().
  */
 function webform_email_edit_form_validate($form, &$form_state) {
-  if ($form_state['values']['from_address_option'] == 'custom' && !valid_email_address($form_state['values']['from_address_custom'])) {
+  if ($form_state['values']['from_address_option'] == 'custom' && !valid_email_address(webform_replace_tokens($form_state['values']['from_address_custom'], $form['#node']))) {
     form_set_error('from_address_custom', t('The entered e-mail address "@email" does not appear valid.', array('@email' => $form_state['values']['from_address_custom'])));
   }
+
+  // Validate component-based values for the TO and FROM address.
+  $field_names = array('email', 'from_address');
+  foreach ($field_names as $field_name) {
+    if ($form_state['values'][$field_name . '_option'] == 'component') {
+      $cid = $form_state['values'][$field_name . '_component'];
+      $empty_allowed = $field_name === 'email';
+      $multiple_allowed = $field_name === 'email';
+      if (isset($form_state['values'][$field_name . '_mapping'][$cid])) {
+        foreach ($form_state['values'][$field_name . '_mapping'][$cid] as $key => $value) {
+          $email_value = _webform_filter_values(trim($value), $form['#node']);
+          if (empty($email_value) && !$empty_allowed) {
+            form_set_error("{$field_name}_mapping][$cid][$key", t('An e-mail address must be provided for each option.'));
+          }
+          elseif (!empty($email_value)) {
+            if (!$multiple_allowed && !valid_email_address($email_value)) {
+              form_set_error("{$field_name}_mapping][$cid][$key", t('The entered e-mail address "@email" does not appear valid', array('@email' => $value)));
+            }
+            else {
+              $emails = array_filter(explode(',', $value));
+              foreach ($emails as $email) {
+                if (!valid_email_address(webform_replace_tokens(trim($email), $form['#node']))) {
+                  form_set_error("{$field_name}_mapping][$cid][$key", t('The entered e-mail address "@email" does not appear valid', array('@email' => $value)));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
 
 /**
@@ -397,8 +517,11 @@ function webform_email_edit_form_validate($form, &$form_state) {
  */
 function webform_email_edit_form_submit($form, &$form_state) {
   // Ensure a webform record exists.
-  $node = $form_state['values']['node'];
+  $node = $form['#node'];
   webform_ensure_record($node);
+
+  // Remove duplicate email To: addresses.
+  $form_state['values']['email_custom'] = implode(',', array_unique(array_map('trim', explode(',', $form_state['values']['email_custom']))));
 
   // Merge the e-mail, name, address, and subject options into single values.
   $email = array(
@@ -413,6 +536,12 @@ function webform_email_edit_form_submit($form, &$form_state) {
     }
     else {
       $email[$field] = $form_state['values'][$field . '_' . $option];
+
+      // Merge the email mapping(s) into single value(s)
+      $cid = $form_state['values'][$field . '_' . $option];
+      if (is_numeric($cid) && isset($form_state['values'][$field . '_mapping'][$cid])) {
+        $email['extra'][$field .'_mapping'] = $form_state['values'][$field . '_mapping'][$cid];
+      }
     }
   }
 
@@ -435,12 +564,16 @@ function webform_email_edit_form_submit($form, &$form_state) {
 
   // Save the list of included components.
   // We actually maintain an *exclusion* list, so any new components will
-  // default to being included in the %email_values token until unchecked.
+  // default to being included in the [submission:values] token until unchecked.
   $included = array_keys(array_filter((array) $form_state['values']['components']));
   $excluded = array_diff(array_keys($node->webform['components']), $included);
   $email['excluded_components'] = $excluded;
 
-  if (empty($form_state['values']['eid'])) {
+  if ($form_state['values']['clone']) {
+    drupal_set_message(t('Email settings cloned.'));
+    $form_state['values']['eid'] = webform_email_clone($email);
+  }
+  elseif (empty($form_state['values']['eid'])) {
     drupal_set_message(t('Email settings added.'));
     $form_state['values']['eid'] = webform_email_insert($email);
   }
@@ -451,7 +584,7 @@ function webform_email_edit_form_submit($form, &$form_state) {
 
   // Clear the entity cache if Entity Cache module is installed.
   if (module_exists('entitycache')) {
-    cache_clear_all($node->nid, 'cache_entity_node');
+    entity_get_controller('node')->resetCache(array($node->nid));
   }
 
   $form_state['redirect'] = array('node/' . $node->nid . '/webform/emails');
@@ -499,7 +632,7 @@ function webform_email_delete_form_submit($form, &$form_state) {
 
   // Clear the entity cache if Entity Cache module is installed.
   if (module_exists('entitycache')) {
-    cache_clear_all($node->nid, 'cache_entity_node');
+    entity_get_controller('node')->resetCache(array($node->nid));
   }
 
   $form_state['redirect'] = 'node/' . $node->nid . '/webform/emails';
@@ -520,6 +653,7 @@ function webform_email_load($eid, $nid) {
       'excluded_components' => array(),
       'html' => variable_get('webform_default_format', 0),
       'attachments' => 0,
+      'extra' => '',
     );
   }
   else {
@@ -550,9 +684,21 @@ function webform_email_insert($email) {
   }
 
   $email['excluded_components'] = implode(',', $email['excluded_components']);
+  $email['extra'] = empty($email['extra']) ? '' : serialize($email['extra']);
   $success = drupal_write_record('webform_emails', $email);
 
   return $success ? $email['eid'] : FALSE;
+}
+
+/**
+ * Clone an existing e-mail setting.
+ *
+ * @param $email
+ *   An array of settings for sending an e-mail.
+ */
+function webform_email_clone($email) {
+  $email['eid'] = NULL;
+  return webform_email_insert($email);
 }
 
 /**
@@ -564,6 +710,7 @@ function webform_email_insert($email) {
  */
 function webform_email_update($email) {
   $email['excluded_components'] = implode(',', $email['excluded_components']);
+  $email['extra'] = empty($email['extra']) ? '' : serialize($email['extra']);
   return drupal_write_record('webform_emails', $email, array('nid', 'eid'));
 }
 
