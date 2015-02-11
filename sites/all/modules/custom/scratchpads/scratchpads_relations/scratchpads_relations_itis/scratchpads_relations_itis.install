@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ * This is used when the module is turned on via the tools selection method
+ */
+function scratchpads_relations_itis_enable(){
+  //Do stuff after itis_term has done its stuff
+  db_query("UPDATE {system} SET weight = :weight WHERE name = 'scratchpads_relations_itis'", array(
+    ':weight' => 1
+  ));
+}
+
+function scratchpads_relations_itis_disable(){
+  module_load_include('fields.inc', 'scratchpads_relations_itis');
+  /*
+   *   watchdog('debug', '<pre> entities ' . print_r($entities, TRUE) . '</pre>');
+  */
+  $biological_vids = variable_get('biological_vids', array());
+  $vocabularies = entity_load('taxonomy_vocabulary', array_keys($biological_vids));
+  foreach($vocabularies as $vid => $vocabulary){
+    foreach(scratchpads_relations_itis_fields($vocabulary->vid) as $field){
+      // Deleting instance.
+      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+      field_delete_instance($field['field_instance']);
+      if(field_info_field($field['field_config']['field_name'])){
+        field_delete_field($field['field_config']['field_name']);
+        watchdog('debug', '<pre> Deleted ' . print_r($field['field_config']['field_name'], TRUE) . '</pre>');
+        
+      }
+    }
+    // -- Definitive delete
+    field_purge_batch(1000);
+    foreach(scratchpads_relations_itis_groups($vocabulary->vid) as $group){
+      $group['bundle'] = $vocabulary->machine_name;
+      $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
+      $group = (object)$group;
+      ctools_include('export');
+      field_group_group_export_delete($group, FALSE);
+    }
+  }
+}

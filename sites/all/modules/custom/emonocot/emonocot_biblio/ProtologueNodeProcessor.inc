@@ -291,7 +291,9 @@ class ProtologueNodeProcessor extends FeedsProcessor{
     }
     // Let other modules expose mapping targets.
     self::loadMappers();
-    feeds_alter('feeds_processor_targets', $targets, 'node', $this->config['content_type']);
+    $entity_type = 'node';
+    $bundle = $this->config['bundle'];
+    drupal_alter('feeds_processor_targets', $targets, $entity_type, $bundle);
     return $targets;
   }
 
@@ -312,8 +314,10 @@ class ProtologueNodeProcessor extends FeedsProcessor{
     if(isset($nids)){ //Change to ensire one unique value after above SQL limits to single vocabulary
       $nid = $nids[0];
     }
-    if($nid){// Return with the first nid found.
-return $nid;}
+    if($nid){
+      // Return with the first nid found.
+      return $nid;
+    }
     return 0;
   }
 

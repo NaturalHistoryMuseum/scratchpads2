@@ -418,6 +418,21 @@ function taxonomy_scratchpads_default_permissions(){
 }
 
 /**
+ * TUI module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function tui_scratchpads_default_permissions(){
+  // Reset the vocabulary cache.
+  taxonomy_vocabulary_static_reset();
+  $permissions = array();
+  foreach(taxonomy_get_vocabularies() as $vocabulary){
+    $permissions['editor'][] = 'add terms in ' . $vocabulary->vid;
+  }
+  return $permissions;
+}
+
+/**
  * Path module
  * 
  * Implements hook_scratchpads_default_permissions().
@@ -783,6 +798,19 @@ function gravatar_scratchpads_default_permissions(){
     'authenticated user' => array(
       'use gravatar',
       'disable own gravatar'
+    )
+  );
+}
+
+/**
+ * relation_add module
+ *
+ * Implements hook_scratchpads_default_permissions()
+ */
+function relation_add_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'relation add endpoint autocomplete access'
     )
   );
 }

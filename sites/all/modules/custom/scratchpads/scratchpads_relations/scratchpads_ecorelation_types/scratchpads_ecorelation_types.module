@@ -1,0 +1,261 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_ecorelation_types_theme($existing, $type, $theme, $path){
+  $theme = array(
+    'scratchpads_ecorelation_field' => array(
+      'variables' => array(
+        'entity' => NULL,
+        'relation' => NULL,
+        'entity_type' => NULL,
+        'related_entities' => NULL,
+        'bundle' => NULL,
+        'custom_title' => NULL,
+        'field_name' => NULL
+      ),
+      'template' => 'scratchpad-ecorelation-field',
+      'path' => $path . '/theme'
+    )
+  );
+  return $theme;
+}
+
+function scratchpads_ecorelation_types_preprocess_scratchpads_ecorelation_field(&$variables, $hook){
+  $id = $variables['entity']->tid;
+  $relation = $variables['relation'];
+  $relation_type = relation_type_load($relation['relation_type']);
+  foreach($relation['endpoints'][LANGUAGE_NONE] as $endpoint){
+    if($endpoint['entity_type'] == $variables['entity_type'] && $endpoint['entity_id'] == $id){
+      if($variables['custom_title']){
+        $label = $variables['custom_title'];
+      }else{
+        if($endpoint['r_index'] == 0){
+          $label = $relation_type->label;
+        }else{
+          $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+        }
+      }
+    }
+  }
+  $label = preg_replace('/(?<!^)[A-Z]/e', 'strtolower(" $0")', $label);
+  $label .= ": ";
+  $variables['items'] = array();
+  foreach($variables['related_entities'] as $related_entity){
+    $link = entity_uri($related_entity->entity_type, $related_entity);
+    $variables['items'][] = $label . ' ' . l(entity_label($related_entity->entity_type, $related_entity), $link['path']);
+  }
+  $variables['theme_hook_suggestions'][] = 'scratchpads_ecorelation_field__' . $variables['field_name'];
+}
+
+/**
+ * Relation_add module was not formatting the endpoint lables correctly so override here
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_ecorelation_types_field_formatter_info(){
+  return array(
+    'ecorelation_default' => array(
+      'label' => t('Relation Add Default'),
+      'field types' => array(
+        'relation_add'
+      )
+    ),
+    'ecorelation_otherendpoint' => array(
+      'label' => t('Other endpoint as link'),
+      'field types' => array(
+        'relation_add'
+      )
+    ),
+    'ecorelation_otherendpoint_label' => array(
+      'label' => t('Other endpoint as link with label'),
+      'field types' => array(
+        'relation_add'
+      )
+    ),
+    'ecorelation_add_endpoint_and_fields' => array(
+      'label' => t('Endpoint as link and all fields'),
+      'field types' => array(
+        'relation_add'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpads_ecorelation_types_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array(); // Initialize the var
+  switch($display['type']){
+    case 'ecorelation_default':
+    case 'ecorelation_otherendpoint':
+    case 'ecorelation_otherendpoint_label':
+      foreach($items as $delta => $item){
+        $links = array();
+        list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+        $relation = (object)$item;
+        $relation_type = relation_type_load($relation->relation_type);
+        $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+        $label = camelCaseToLabel($label);
+        $duplicate = FALSE; // To make sure duplicates of $entity get included in object list.
+        foreach(array_filter($relation->endpoints[LANGUAGE_NONE]) as $endpoint){
+          if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $id && $duplicate == FALSE){
+            $duplicate = TRUE;
+            // Use the forward label as sentence predicate if r_index == 0.
+            // (only makes a difference if relation is directional).
+            if($endpoint['r_index'] == 0){
+              $label = camelCaseToLabel($relation_type->label);
+              $label = ' ' . $label;
+            }
+          }else{
+            $related_entities = entity_load($endpoint['entity_type'], array(
+              $endpoint['entity_id']
+            ));
+            $related_entity = reset($related_entities);
+            if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id){
+              if($display['type'] == 'scratchpads_relation_otherendpoint' || $display['type'] == 'scratchpads_relation_otherendpoint_label'){
+                continue;
+              }
+              $link = array();
+            }else{
+              $link = entity_uri($endpoint['entity_type'], $related_entity);
+              $link['href'] = $link['path'];
+            }
+            $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
+            $links[] = $link;
+          }
+        }
+        $uri = entity_uri('relation', $relation);
+        $relation_link = l(t('Relation @rid', array(
+          '@rid' => $relation->rid
+        )), $uri['path'], $uri['options']);
+        if($display['type'] == 'scratchpads_relation_default'){
+          // Can't use #heading as it's mercilessly check_plain'd.
+          $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array(
+            '!link' => $relation_link
+          ));
+        }
+        if($display['type'] == 'scratchpads_relation_otherendpoint_label'){
+          $endpoint_title = '';
+          switch($instance['widget']['settings']['relation_endpoint_label']){
+            case 'endpoint':
+              $endpoint_title = t(check_plain($label));
+              break;
+            case 'custom':
+              $endpoint_title = t($instance['widget']['settings']['relation_endpoint_custom_label']);
+              break;
+          }
+          $endpoint_title .= $instance['widget']['settings']['relation_endpoint_label_delta'] ? ' ' . ($delta + 1) : ' ';
+          $element[$delta]['relation']['heading']['#markup'] = t(check_plain($endpoint_title));
+        }
+        // We probably need to make this more customisable.
+        if($display['type'] == 'scratchpads_relation_default' || count($links) > 1){
+          $element[$delta]['relation']['links'] = array(
+            '#theme' => 'links',
+            '#links' => $links
+          );
+        }else{
+          $element[$delta]['relation']['link'] = array(
+            '#theme' => 'link',
+            '#path' => $links[0]['href'],
+            '#text' => $links[0]['title'],
+            '#options' => array(
+              'attributes' => array(),
+              'html' => FALSE
+            )
+          );
+        }
+      }
+      break;
+    case 'ecorelation_add_endpoint_and_fields':
+      foreach($items as $delta => $item){
+        $links = array();
+        list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+        $relation = (object)$item;
+        $relation_type = relation_type_load($relation->relation_type);
+        if($display['type'] == 'scratchpads_relation_add_rev_endpoints_and_fields'){
+          $label = $relation_type->directional ? $relation_type->label : $relation_type->reverse_label;
+        }else{
+          $label = $relation_type->directional ? $relation_type->reverse_label : $relation_type->label;
+        }
+        $label = camelCaseToLabel($label);
+        if($display['label'] == 'inline'){
+          $label_display = ' field-label-inline ';
+        }else if($display['label'] == 'above'){
+          $label_display = ' field-label-above ';
+        }else if($display['label'] == 'hidden'){
+          $label_display = ' field-label-inline ';
+        }else{
+          $label_display = '';
+        }
+        $duplicate = FALSE; // To make sure duplicates of $entity get included in object list.
+        if(count($relation->endpoints[LANGUAGE_NONE]) > 1){
+          foreach(array_filter($relation->endpoints[LANGUAGE_NONE]) as $endpoint){
+            $element[$delta]['relation']['space']['#markup'] = "<br/>";
+            if($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $id && $duplicate == FALSE){
+              $duplicate = TRUE;
+              // Use the forward label as sentence predicate if r_index == 0.
+              // (only makes a difference if relation is directional).
+              if($endpoint['r_index'] == 0){
+                $label = camelCaseToLabel($relation_type->label);
+                $label = ' ' . $label;
+              }
+            }else{
+              $related_entities = entity_load($endpoint['entity_type'], array(
+                $endpoint['entity_id']
+              ));
+              $related_entity = reset($related_entities);
+              if(!($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id)){
+                $link = entity_uri($endpoint['entity_type'], $related_entity);
+                $link['href'] = $link['path'];
+                $link['title'] = entity_label($endpoint['entity_type'], $related_entity);
+                $relation_link = l($link['title'], $link['href']);
+                $element[$delta]['relation']['relation'] = array(
+                  'item' => array(
+                    '#type' => 'container',
+                    '#attributes' => array(
+                      'class' => array(
+                        'field field-name-field-endpoint' . $label_display . 'clearfix'
+                      )
+                    ),
+                    'markup' => array(
+                      '#markup' => $label . ' ' . $relation_link
+                    )
+                  )
+                );
+              }
+            }
+          }
+        }
+        // $relation_view = relation_view($relation);
+        $relation_view = relation_view($relation);
+        $relation_instances = field_info_instances('relation', $relation->relation_type);
+        foreach(array_keys($relation_instances) as $relation_field_name){
+          if($relation_field_name !== 'endpoints'){
+            if(isset($relation_view[$relation_field_name])){
+              //print '<pre>' . print_r($relation_view[$relation_field_name], TRUE) . '</pre>';
+              $element[$delta]['relation']['fields'][] = $relation_view[$relation_field_name];
+            }
+          }
+        }
+      }
+      break;
+  }
+  return $element;
+}
+
+function scratchpads_ecorelation_types_field_attach_view_alter(&$output, $context){
+  foreach(element_children($output) as $field_name){
+    $field = &$output[$field_name];
+    $field['#prefix'] = '<div class="ecorelation-field">';
+    $field['#suffix'] = '</div>';
+  }
+}
+
+function camelCaseToLabel($label){
+  $label = preg_replace('/([a-z0-9])?([A-Z])/', '$1 $2', $label);
+  $label = strtolower(preg_replace('/([a-z0-9])?([A-Z])/', '$1 $2', $label));
+  $label = ucfirst(trim($label));
+  return $label;
+}

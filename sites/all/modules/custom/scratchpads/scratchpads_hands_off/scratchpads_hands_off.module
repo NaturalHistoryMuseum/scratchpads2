@@ -465,6 +465,17 @@ function scratchpads_hands_off_init(){
 }
 
 /**
+ * Simplenews implementation of hook_scratchpads_hands_off_urls_alter().
+ */
+function simplenews_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/services/simplenews/settings/mail',
+    'admin/config/services/simplenews/settings/subscription',
+    'admin/config/services/simplenews/settings'
+  ));
+}
+
+/**
  * Get an array of hidden URLs
  */
 function _scratchpads_hands_off_hidden_urls(){

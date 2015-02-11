@@ -6,7 +6,7 @@
 function eol_gbif_maps_gm3_map_alter(&$map){
   // We add special data to a google map on taxonomy term pages only.
   //if($term = menu_get_object('taxonomy_term', 2) && $map['id'] == 'gm3-map'){
-  if($term = menu_get_object('taxonomy_term', 2)){
+  if(($term = menu_get_object('taxonomy_term', 2)) != FALSE){
     // Now we need to calculate the GBIF taxon id for this term name, and then
     // add the gbif library to the map.
     // First we check to see if we've loaded this term before, and if so, we
@@ -18,26 +18,13 @@ function eol_gbif_maps_gm3_map_alter(&$map){
         'taxon_id' => array_pop($col)
       );
     }else{
-      $term = taxonomy_term_load(arg(2));
-      $xml = new SimpleXMLElement('http://data.gbif.org/ws/rest/taxon/list?scientificname=' . urlencode($term->name), 0, TRUE);
-      $xml->registerXPathNamespace('gbif', 'http://portal.gbif.org/ws/response/gbif');
-      $xml->registerXPathNamespace('tc', 'http://rs.tdwg.org/ontology/voc/TaxonConcept#');
-      $result = $xml->xpath("gbif:dataProviders/gbif:dataProvider[@gbifKey='1']/gbif:dataResources/gbif:dataResource/gbif:taxonConcepts/tc:TaxonConcept[1]");
-      if(count($result)){
-        $result = array_shift($result);
-        foreach($result->attributes() as $key => $value){
-          if($key == 'gbifKey'){
-            $map['libraries']['eol_gbif_maps_overlay'] = array(
-              'module' => 'eol_gbif_maps',
-              'taxon_id' => "$value"
-            );
-            // Insert into the eol_gbif_maps_tid_map table.
-            db_insert('eol_gbif_maps_tid_map')->fields(array(
-              'tid' => $term->tid,
-              'taxon_id' => "$value"
-            ))->execute();
-          }
-        }
+      $json = json_decode(file_get_contents('http://api.gbif.org/v1/species?name=' . $term->name), TRUE);
+      if($json && !empty($json['results'][0]['nubKey'])){
+        $id = $json['results'][0]['nubKey'];
+        db_insert('eol_gbif_maps_tid_map')->fields(array(
+          'tid' => $term->tid,
+          'taxon_id' => "$id"
+        ))->execute();
       }
     }
   }
@@ -75,7 +62,7 @@ function eol_gbif_maps_library(){
             'gm3' => array(
               'settings' => array(
                 'eol_gbif_maps' => array(
-                  'tile_url' => ' http://api.gbif.org/v0.9/map/density/tile?type=TAXON&key='
+                  'tile_url' => ' http://api.gbif.org/v1/map/density/tile?type=TAXON&key='
                 )
               )
             )

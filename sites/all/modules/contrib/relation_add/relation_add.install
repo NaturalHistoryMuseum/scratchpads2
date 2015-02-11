@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Relation Add install file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function relation_add_install() {
+  $rids = db_select('role', 'r')
+    ->fields('r', array('rid'))
+    ->condition('name', array('anonymous user', 'authenticated user'), 'IN')
+    ->execute()
+    ->fetchAllAssoc('rid', 'array');
+
+  foreach (array_keys($rids) as $rid) {
+    user_role_grant_permissions($rid, array('relation add endpoint autocomplete access'));
+  }
+}
+
+/**
+ * Add endpoint autocomplete menu callback access to the anonymous and authenticated user roles.
+ */
+function relation_add_update_7001() {
+  $rids = db_select('role', 'r')
+    ->fields('r', array('rid'))
+    ->condition('name', array('anonymous user', 'authenticated user'), 'IN')
+    ->execute()
+    ->fetchAllAssoc('rid', 'array');
+
+  foreach (array_keys($rids) as $rid) {
+    user_role_grant_permissions($rid, array('relation add endpoint autocomplete access'));
+  }
+  return t('Added endpoint autocomplete menu callback access to the anonymous and authenticated user roles.');
+}
