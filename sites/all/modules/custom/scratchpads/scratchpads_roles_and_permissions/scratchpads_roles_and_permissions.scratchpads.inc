@@ -418,6 +418,21 @@ function taxonomy_scratchpads_default_permissions(){
 }
 
 /**
+ * TUI module
+ *
+ * Implements hook_scratchpads_default_permissions().
+ */
+function tui_scratchpads_default_permissions(){
+  // Reset the vocabulary cache.
+  taxonomy_vocabulary_static_reset();
+  $permissions = array();
+  foreach(taxonomy_get_vocabularies() as $vocabulary){
+    $permissions['editor'][] = 'add terms in ' . $vocabulary->vid;
+  }
+  return $permissions;
+}
+
+/**
  * Path module
  * 
  * Implements hook_scratchpads_default_permissions().

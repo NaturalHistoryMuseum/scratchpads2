@@ -154,6 +154,18 @@ function silver_menu(){
 }
 
 /**
+ * Callback to decide if a user is able to import into ANY taxonomy.
+ */
+function silver_import_taxonomy(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    if(user_access('edit terms in ' . $vocabulary->vid)){
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+/**
  * Implementation of hook_silver().
  * 
  * * type
@@ -177,10 +189,8 @@ function silver_silver(){
     array(
       'type' => 'Taxonomy',
       'name' => 'Excel file import',
-      //'access callback' => 'user_access',
-      'access arguments' => array(
-        'administer taxonomy'
-      ),
+      'access callback' => 'silver_import_taxonomy',
+      'access arguments' => array(),
       'form_id' => 'silver_taxonomy_excel_form'
     ),
     array(
