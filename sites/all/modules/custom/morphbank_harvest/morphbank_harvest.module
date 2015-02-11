@@ -1,0 +1,58 @@
+<?php
+/**
+ * @file
+ * Harvest images from Morphbank for a selected vocabulary
+ *
+ * Currently uses taxonomic name to search; in an ideal world
+ * the morphbank identifiers themselves could be stored in
+ * Scratchpads (by altering the vocabulary fields).  This is
+ * not currently possible, as of 28 January 2015, as the
+ * services of Morphbank do not allow image query searches
+ * using the identifiers of organisms.
+ */
+/**
+ * The URL for the morphbank service; append 'request' for queries
+ */
+define("MORPHBANK_SERVICE", "http://services.morphbank.net/mb3/");
+/**
+ * The URL for morphbank records
+ */
+define("MORPHBANK_NET_URL", "http://morphbank.net/");
+/**
+ * The URL for morphbank images
+ */
+define("MORPHBANK_IMAGE_URL", "http://images.morphbank.net/");
+
+/**
+ * Implements hook_menu().
+ */
+function morphbank_harvest_menu(){
+  return array(
+    'admin/config/media/morphbank_harvest' => array(
+      'title' => 'Morphbank harvest',
+      'description' => 'Harvests images from Morphbank for a given vocabulary',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'morphbank_harvest_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'morphbank_harvest.pages.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_field_group_info_alter()
+ *
+ * Put the Morphbank specimen ID field in the 'Miscellaneous' tab when displayed in tables
+ *
+ * @param array $groups
+ * Reference to an array of field group definition objects.
+ */
+function morphbank_field_group_info_alter(&$groups){
+  if(!empty($groups['group_misc_display|node|specimen_observation|default'])){
+    $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
+  }
+}
