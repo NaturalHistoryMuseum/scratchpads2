@@ -25,8 +25,9 @@ function tui_menu(){
         3,
         6
       ),
+      'access callback' => 'tui_access_callback',
       'access arguments' => array(
-        'administer taxonomy'
+        3
       ),
       'type' => MENU_CALLBACK,
       'file' => 'tui.admin.inc'
@@ -39,8 +40,9 @@ function tui_menu(){
         6,
         7
       ),
+      'access callback' => 'tui_access_callback',
       'access arguments' => array(
-        'administer taxonomy'
+        3
       ),
       'type' => MENU_CALLBACK,
       'file' => 'tui.ajax.inc'
@@ -182,6 +184,23 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
 }
 
 /**
+ * Implementation of hook_permissions
+ */
+function tui_permission(){
+  $permissions = array();
+  foreach(taxonomy_get_vocabularies() as $vocabulary){
+    $permissions += array(
+      'add terms in ' . $vocabulary->vid => array(
+        'title' => t('Edit terms in %vocabulary', array(
+          '%vocabulary' => $vocabulary->name
+        ))
+      )
+    );
+  }
+  return $permissions;
+}
+
+/**
  * Implementation of hook_form_FORM_ID_alter().
  */
 function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
@@ -207,9 +226,17 @@ function tui_menu_alter(&$items){
   // Change the add term page so that the link does not appear on the list terms
   // or TUI page (As a sub tab thingy, not the tab).
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['type'] = 132;
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['access callback'] = 'tui_access_callback';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['access arguments'] = array(
+    3
+  );
   // Change the "list terms" page to use the taxonomy editor instead.
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['page callback'] = 'tui_hierarchy_page';
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['page arguments'] = array(
+    3
+  );
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['access callback'] = 'tui_access_callback';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['access arguments'] = array(
     3
   );
   $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['file'] = 'tui.admin.inc';
@@ -232,6 +259,14 @@ function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
       }
     }
   }
+}
+
+/**
+ * Access callback for TUI edit pages
+ */
+function tui_access_callback($vocabulary){
+  // Only grant access to the page if they can add AND edit AND delete.
+  return user_access('edit terms in ' . $vocabulary->vid) && user_access('delete terms in ' . $vocabulary->vid) && user_access('add terms in ' . $vocabulary->vid);
 }
 
 /**

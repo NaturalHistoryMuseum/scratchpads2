@@ -1,0 +1,17 @@
+.entityfilter {
+  position: absolute;
+  opacity: 0.95;
+  z-index: 1000;
+  left: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.entityfilter .item-list {
+  margin: 0;
+  padding: 0;
+}
+
+.entityfilter li {
+  cursor: pointer;
+}
