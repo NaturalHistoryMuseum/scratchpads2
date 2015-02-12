@@ -160,15 +160,14 @@ function slickgrid_library(){
 }
 
 /**
- * Implements hook_views_pre_render().
+ * Implements hook_views_post_build
  */
-function slickgrid_views_pre_execute(&$view){
+function slickgrid_views_post_build(&$view){
   if(get_class($view->style_plugin) == 'slickgrid_views_plugin'){
     if(substr($_GET['q'], 0, 18) == 'slickgrid/get/data'){
-      $view->query->limit = arg(5);
-      $view->query->offset = arg(4);
+      $view->build_info['query']->range(arg(4), arg(5));
     }else{
-      $view->query->limit = 1;
+      $view->build_info['query']->range(0, 1);
     }
   }
 }
