@@ -29,8 +29,13 @@ function darwincore_enable(){
  * 
  */
 function darwincore_disable(){
-  // if there is no data, remove the fields and content type
-  if(darwincore_node_count() == 0){
+  // If there is no data, remove the fields and content type. Normal users
+  // should not reach this point if there is content as the Tools module will
+  // prevent the module being turned off.
+  if(!db_select('node', 'n')->condition('n.type', array(
+    'location',
+    'specimen_observation'
+  ))->countQuery()->execute()->fetchField()){
     node_type_delete('location');
     variable_del('node_preview_location');
     node_type_delete('specimen_observation');
