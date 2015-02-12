@@ -1,3 +1,7 @@
+2.6.0.4 (2015-02-12)
+
+- Ensure Slickgrid works with the latest Views module (#4326)
+
 2.6.0.3 (2015-02-11)
 
 - Allow the Editor role to add/delete/edit/import taxonomy terms (#4324)
