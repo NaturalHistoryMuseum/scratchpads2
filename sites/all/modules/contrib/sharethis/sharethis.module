@@ -302,6 +302,7 @@ function sharethis_menu() {
 function sharethis_node_view($node, $view_mode, $langcode) {
   // Don't display if the user is currently searching, or in the RSS feed.
   switch ($view_mode) {
+    case 'entityconnectpreview':
     case 'search_result':
     case 'search_index':
     case 'rss':
