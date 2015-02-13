@@ -248,24 +248,24 @@ class BiblioCrossRefClient
     if (trim($data)) {
       switch ($this->element) {
         case 'surname' :
-          $this->contributors[$this->contrib_count]['lastname'] = $data;
+          $this->contributors[$this->contrib_count]['lastname'] = isset($this->contributors[$this->contrib_count]['lastname']) ? $this->contributors[$this->contrib_count]['lastname'] . $data : $data;
           break;
         case 'given_name' :
-          $this->contributors[$this->contrib_count]['firstname'] = $data;
+          $this->contributors[$this->contrib_count]['firstname'] = isset($this->contributors[$this->contrib_count]['firstname']) ? $this->contributors[$this->contrib_count]['firstname'] . $data : $data;
           break;
         case 'suffix':
-          $this->contributors[$this->contrib_count]['suffix'] = $data;
+          $this->contributors[$this->contrib_count]['suffix'] = isset($this->contributors[$this->contrib_count]['suffix']) ? $this->contributors[$this->contrib_count]['suffix'] . $data : $data;
           break;
         case 'affiliation' :
-          $this->contributors[$this->contrib_count]['affiliation'] = $data;
+          $this->contributors[$this->contrib_count]['affiliation'] = isset($this->contributors[$this->contrib_count]['affiliation']) ? $this->contributors[$this->contrib_count]['affiliation'] . $data : $data;
           break;
         case 'organization':
-          $this->contributors[$this->contrib_count]['name'] = $data;
+          $this->contributors[$this->contrib_count]['name'] = isset($this->contributors[$this->contrib_count]['name']) ? $this->contributors[$this->contrib_count]['name'] . $data : $data;
           break;
         case 'year':
         case 'month':
         case 'day':
-         $this->node[$this->element] = $data;
+          $this->_set_data($this->element, $data);
           break;
         case 'issn':
         case 'isbn':
