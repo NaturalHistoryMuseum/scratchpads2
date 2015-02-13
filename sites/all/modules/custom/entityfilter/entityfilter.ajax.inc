@@ -32,8 +32,16 @@ function entityfilter_get_suggesions(){
         }
         // We search only on the title of the entity, and return the 10 most
         // recent entities.
+        // User entity info doesn't contain the label - Grrr
+        if(!isset($entity_types[$_GET['typed'][1]]['entity keys']['label'])){
+          switch($_GET['typed'][1]){
+            case 'user':
+              $entity_types[$_GET['typed']['1']]['entity keys']['label'] = 'name';
+              break;
+          }
+        }
         $query = new EntityFieldQuery();
-        $results = $query->entityCondition('entity_type', $_GET['typed'][1])->propertyOrderBy($entity_types[$_GET['typed']['1']]['entity keys']['id'], 'DESC')->propertyCondition($entity_types[$_GET['typed']['1']]['entity keys']['label'], $_GET['typed'][2] . "%", "LIKE")->range(0, 10)->execute();
+        $results = $query->entityCondition('entity_type', $_GET['typed'][1])->propertyOrderBy($entity_types[$_GET['typed'][1]]['entity keys']['id'], 'DESC')->propertyCondition($entity_types[$_GET['typed'][1]]['entity keys']['label'], db_like($_GET['typed'][2]) . "%", "LIKE")->range(0, 10)->execute();
         $ids = array();
         foreach($results[$_GET['typed'][1]] as $row){
           $ids[] = $row->{$entity_types[$_GET['typed'][1]]['entity keys']['id']};
@@ -41,7 +49,7 @@ function entityfilter_get_suggesions(){
         $entities = entity_load($_GET['typed'][1], $ids);
         foreach($entities as $id => $entity){
           $items[] = array(
-            'data' => 'Entity:' . $entity_types[$_GET['typed'][1]]['label'] . ':' . $entity->{$entity_types[$_GET['typed']['1']]['entity keys']['label']},
+            'data' => 'Entity:' . $entity_types[$_GET['typed'][1]]['label'] . ':' . $entity->{$entity_types[$_GET['typed'][1]]['entity keys']['label']},
             'data-textcontent' => 'entity:' . $_GET['typed'][1] . ':' . $id . ']'
           );
         }
