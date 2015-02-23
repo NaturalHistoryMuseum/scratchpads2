@@ -9,6 +9,17 @@
  * not currently possible, as of 28 January 2015, as the
  * services of Morphbank do not allow image query searches
  * using the identifiers of organisms.
+ * 
+ *
+ * This less-than-ideal implementation may result in fewer
+ * images being harvested; because species term names are
+ * substrings of subspecies term names, e.g. Bembidion festivum
+ * and Bembidion festivum hilare, if the former is searched for
+ * first (as will likely be the case), it may return images of
+ * Bembidion festivum hilare.  If so, the subsequent search for
+ * Bembidion festivum hilare may find the same image, and
+ * replace the link to the term Bembidion festivum.  See
+ * _update_file_links in morphbank_harvest.pages.inc.
  */
 /**
  * The URL for the morphbank service; append 'request' for queries

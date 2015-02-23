@@ -106,6 +106,13 @@ function morphbank_harvest_form_validate($form, &$form_state){
       '@maxerrors' => $max_errors
     )));
   }
+  // Some warnings need only be thrown once
+  global $warned;
+  $warned['permission_dir'] = FALSE;
+  $warned['permission_file'] = FALSE;
+  $warned['missing_fid'] = FALSE;
+  $warned['missing_mid'] = FALSE;
+  $warned['processed'] = FALSE;
 }
 
 /**
@@ -118,7 +125,7 @@ function morphbank_harvest_form_validate($form, &$form_state){
  *   The form from which to harvest values (maximages, searchunid, removeold, restrictranks, maxerrors)
  */
 function morphbank_harvest_form_submit($form, &$form_state){
-  // Define batch and operations here, move most of the guts to another method
+  // Define batch and operations here
   // We want one batch per term.
   $time_start = time();
   // Find out how many images to save
@@ -363,8 +370,8 @@ function _harvest_from_morphbank($harvest_details, &$context){
       if(is_array($responses)){ // The numReturned element was not empty (see _query_morphbank)
         $context['results']['num_queries']++;
         // Uncomment for more verbose response per query
-        // $num_images = count($responses);
-        // drupal_set_message(t('***   @num_images images for term @term_name', array('@num_images' => $num_images, '@term_name' => $term_name)));
+        //$num_images = count($responses);
+        //drupal_set_message(t('***   @num_images images for term @term_name', array('@num_images' => $num_images, '@term_name' => $term_name)));
         if(count($responses) == 0){ // No images were returned from query
           $context['results']['num_no_images']++;
         }else{ // An array of SimpleXLMObjects returned
@@ -384,6 +391,15 @@ function _harvest_from_morphbank($harvest_details, &$context){
                 $context['results']['num_unchanged']++;
                 $found_result = TRUE;
                 break;
+            }
+            if(!$found_result){
+              global $warned;
+              if(array_key_exists('processed', $warned) && $warned['processed']){
+                drupal_set_message(t("Error when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", array(
+                  '@termname' => $term_name
+                )), 'warning');
+                $warned['processed'] = TRUE;
+              }
             }
           }
         }
@@ -570,8 +586,8 @@ function _query_morphbank($term_name, $maximages){
     // Convert the 'data' object returned from drupal_http_request from string to an XML object
     // Suppressing warning in case Morphbank is returning malformed XML
     if($response_xml = simplexml_load_string($result->data, "SimpleXMLElement", $options = LIBXML_NOERROR)){
-      if(is_null($response_xml->numReturned)){        // No numReturned element, something probably went wrong
-return FALSE;}
+      // No numReturned element, something probably went wrong
+      if(is_null($response_xml->numReturned)){return FALSE;}
       $response_array = array();
       foreach($response_xml->object as $object){
         $obj_attributes = $object->attributes();
@@ -722,6 +738,14 @@ function _process_response($response, $term_name, $tid, $hid){
     // Finally, check to see if any links to Specimen/Observation nodes need to be removed (say, for example, if the
     // Morphbank specimen ID changed)
     _remove_outdated_links($fid, $morphbank_specimen_id);
+  }else{
+    global $warned;
+    if(array_key_exists('missing_fid', $warned) && !$warned['missing_fid']){
+      drupal_set_message(t("No fid when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", array(
+        '@termname' => $term_name
+      )), 'warning');
+      $warned['missing_fid'] = TRUE;
+    }
   }
   return $to_return;
 }
@@ -746,6 +770,7 @@ function _process_response($response, $term_name, $tid, $hid){
  *   of the file (as listed in file_managed table); if no file was saved, returns FALSE.
  */
 function _retrieve_morphbank_image($morphbank_image_id, $term_name, $original_filename){
+  global $warned;
   if($morphbank_image_id > 0){
     $image_location = MORPHBANK_IMAGE_URL . '?id=' . $morphbank_image_id . '&imgType=jpg';
     $destination_directory = variable_get('file_default_scheme', 'public') . '://morphbank';
@@ -774,7 +799,21 @@ function _retrieve_morphbank_image($morphbank_image_id, $term_name, $original_fi
       if(is_object($file)){
         $fid = $file->fid;
         return $fid;
+      }else{
+        if(array_key_exists('permission_file', $warned) && !$warned['permission_file']){
+          drupal_set_message(t("File save unsuccessful for @newname, you may not have appropriate permissions; message will be suppressed for subsequent errors of this type.", array(
+            '@newname' => $destination
+          )), 'warning');
+          $warned['permission_file'] = TRUE;
+        }
       }
+    }
+  }else{
+    if(array_key_exists('missing_mid', $warned) && !$warned['missing_mid']){
+      drupal_set_message(t("No morphbank id passed for image file named @filename; message will be suppressed for subsequent errors of this type.", array(
+        '@filename' => $original_filename
+      )), 'warning');
+      $warned['missing_mid'] = TRUE;
     }
   }
   return FALSE;
