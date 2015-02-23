@@ -18,6 +18,7 @@ class BiblioCrossRefClient
   private $org_count;
   private $field_map;
   private $type_map;
+  private $citation_list;
 
   public function __construct($doi = '', $id = '')
   {
@@ -26,6 +27,7 @@ class BiblioCrossRefClient
     $this->setURL(self::BASE_URL);
     $this->field_map = array();
     $this->type_map = array();
+    $this->citation_list = FALSE;
   }
 
   public function setURL($url) {
@@ -155,6 +157,9 @@ class BiblioCrossRefClient
       case 'doi_data':
         $this->doi_data = TRUE;
         break;
+      case 'citation_list':
+      	$this->citation_list = TRUE;
+      	break;
       default :
         $this->element = $name;
     }
@@ -239,13 +244,16 @@ class BiblioCrossRefClient
       case 'doi_data':
         $this->doi_data = FALSE;
         break;
+      case 'citation_list':
+        $this->citation_list = FALSE;
+        break;
       default :
     }
   }
 
   function unixref_characterData($parser, $data) {
     $data = htmlspecialchars_decode($data);
-    if (trim($data)) {
+    if (trim($data) && !$this->citation_list) {
       switch ($this->element) {
         case 'surname' :
           $this->contributors[$this->contrib_count]['lastname'] = isset($this->contributors[$this->contrib_count]['lastname']) ? $this->contributors[$this->contrib_count]['lastname'] . $data : $data;
