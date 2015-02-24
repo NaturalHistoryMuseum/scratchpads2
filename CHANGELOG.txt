@@ -1,3 +1,7 @@
+2.6.0.5 (2015-02-24)
+
+- Fixed a bug that prevented GM3 maps from displaying, and possibly also values from being saved to GM3 fields (#4333)
+
 2.6.0.4 (2015-02-12)
 
 - Ensure Slickgrid works with the latest Views module (#4326)
