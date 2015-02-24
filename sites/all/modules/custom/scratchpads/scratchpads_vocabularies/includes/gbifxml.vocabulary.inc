@@ -156,7 +156,7 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
     $item_data = array();
     // Get the current stream context so that we can restore it once we are
     // finished.
-    $sc_default = stream_context_get_default();
+    $sc_default = stream_context_get_options(stream_context_get_default());
     stream_context_set_default(array(
       'http' => array(
         'timeout' => 0.2
