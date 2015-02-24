@@ -295,7 +295,7 @@ function _creative_commons_feeds_set_target_value($source, $entity, $target, $va
   }
   $field = isset($entity->$target) ? $entity->$target : array();
   $value = array_search($value, creative_commons_get_licence_types());
-  $lang = field_language($entity_type, $entity, $field);
+  $lang = field_language($entity_type, $entity, $target);
   $lang = $lang ? $lang : LANGUAGE_NONE;
   $field[$lang][] = array(
     'licence' => $value
