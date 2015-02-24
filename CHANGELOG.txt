@@ -1,3 +1,7 @@
+2.6.0.6 (2015-02-24)
+
+- Ensure that user_reference fields are displayed consistently, and also include given names (#4336)
+
 2.6.0.5 (2015-02-24)
 
 - Fixed a bug that prevented GM3 maps from displaying, and possibly also values from being saved to GM3 fields (#4333)
