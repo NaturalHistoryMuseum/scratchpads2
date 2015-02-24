@@ -271,7 +271,7 @@ function theme_gm3_view_gm3($variables){
                 break;
               }
             }
-            $lang = field_language($entity_type, $values['entity'], $values['entity']->{$key});
+            $lang = field_language($entity_type, $values['entity'], $key);
             foreach($values['entity']->{$key}[$lang] as $item){
               switch($item['gm3_type']){
                 case 'point':
