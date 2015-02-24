@@ -386,9 +386,8 @@ function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
   if(is_array($value)){
     $value = $value[0];
   }
-  $info = field_info_field($target);
   $field = isset($entity->$target) ? $entity->$target : array();
-  $lang = field_language($entity_type, $entity, $field);
+  $lang = field_language($entity_type, $entity, $target);
   $field[$lang][] = $value;
   $entity->{$target} = $field;
 }
