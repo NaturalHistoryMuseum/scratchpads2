@@ -154,6 +154,14 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
     );
     $items = array();
     $item_data = array();
+    // Get the current stream context so that we can restore it once we are
+    // finished.
+    $sc_default = stream_context_get_options(stream_context_get_default());
+    stream_context_set_default(array(
+      'http' => array(
+        'timeout' => 0.2
+      )
+    ));
     foreach($this->dom->concept as $element){
       $info = array(
         'terms' => array()
@@ -192,10 +200,10 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
       }
       // See if we can find the wiki link
       $info['wiki'] = '';
-      if (isset($info['uri']) && preg_match('%([^/]+)/([^/]+)$%', $info['uri'], $matches)) {
+      if(isset($info['uri']) && preg_match('%([^/]+)/([^/]+)$%', $info['uri'], $matches)){
         $wiki = 'http://terms.gbif.org/wiki/' . $matches[1] . ':' . $matches[2];
         $headers = @get_headers($wiki);
-        if (strpos($headers[0], '200') !== FALSE) {
+        if(strpos($headers[0], '200') !== FALSE){
           $info['wiki'] = $wiki;
         }
       }
@@ -203,6 +211,7 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
       $items[$info['id']] = $info['label'];
       $item_data[$info['id']] = $info;
     }
+    stream_context_set_default($sc_default);
     $this->structure = new VocabularyStructure($items, $item_data);
   }
 }
