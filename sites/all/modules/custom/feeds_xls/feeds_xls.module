@@ -206,7 +206,7 @@ function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value)
     }else{
       $key = $v;
     }
-    if($field){
+    if($key !== FALSE){
       $value[$k] = $key;
     }else{
       unset($value[$k]);
