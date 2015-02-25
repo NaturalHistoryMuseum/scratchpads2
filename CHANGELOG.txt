@@ -1,3 +1,7 @@
+2.6.0.7 (2015-02-25)
+
+- Allow searching within literature (#4331)
+
 2.6.0.6 (2015-02-24)
 
 - Ensure that user_reference fields are displayed consistently, and also include given names (#4336)
