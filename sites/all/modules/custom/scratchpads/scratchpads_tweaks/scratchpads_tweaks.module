@@ -568,6 +568,16 @@ function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $
 }
 
 /**
+ * Implements hook_imagemagick_arguments_alter()
+ * 
+ * We add "-strip" to the imagemagick arguments to strip out all metadata and
+ * therefore greatly reduce file sizes particularly of thumbnails.
+ */
+function scratchpads_tweaks_imagemagick_arguments_alter(&$args, $context){
+  $args['strip'] = '-strip';
+}
+
+/**
  * Alter default views defined by other modules.
  */
 function scratchpads_tweaks_views_default_views_alter(&$views){
