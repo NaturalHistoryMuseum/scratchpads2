@@ -32,6 +32,9 @@ function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_st
         }
         break;
     }
+  }else if(arg(0) == 'biblio'){
+    $options['_biblio'] = t('Literature');
+    $default_value = '_biblio';
   }else if(arg(0) == 'gallery'){
     $options['_media'] = t('Media');
     $default_value = '_media';
@@ -134,6 +137,9 @@ function scratchpads_search_block_form_submit($form, &$form_state){
         break;
       case '_media':
         drupal_goto('gallery/' . $form_state['values']['search_block_form']);
+        break;
+      case '_biblio':
+        drupal_goto('biblio/' . $form_state['values']['search_block_form']);
         break;
       default:
         $query = array(
