@@ -1,3 +1,7 @@
+2.6.0.7.1 (2015-02-25)
+
+- Ensure empty cells are not imported into list values (#4338)
+
 2.6.0.7 (2015-02-25)
 
 - Allow searching within literature (#4331)
