@@ -1525,3 +1525,15 @@ function scratchpads_tweaks_update_7086(){
 function scratchpads_tweaks_update_7087(){
   scratchpads_tweaks_update_7014();
 }
+
+/**
+ * Flush ALL image styles as we're now stripping all metadata from resizes (to
+ * help reduce file sizes)
+ */
+function scratchpads_tweaks_update_7088(){
+  // When enabling, we flush the cropped thumbnails and images.
+  $styles = image_styles();
+  foreach($styles as $style){
+    image_style_flush($style);
+  }
+}
