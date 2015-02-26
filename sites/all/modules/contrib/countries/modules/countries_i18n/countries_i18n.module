@@ -6,6 +6,22 @@
  */
 
 /**
+ * Implements hook_entity_info_alter().
+ * Override the label callback.
+ */
+function countries_i18n_entity_info_alter(&$info) {
+  $info['country']['label callback'] = 'countries_i18n_country_entity_label';
+}
+
+/**
+ * Providing a hook_entity_info() 'label callback' to ensure modules that
+ * use entity_label() get the correct localized country name.
+ */
+function countries_i18n_country_entity_label($country, $entity_type) {
+  return countries_i18n_translate($country->iso2, 'name', $country->name, i18n_language_interface()->language);
+}
+
+/**
  * Implements hook_i18n_string_info().
  */
 function countries_i18n_i18n_string_info() {

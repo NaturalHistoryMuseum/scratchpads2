@@ -19,7 +19,8 @@
  */
 function theme_colorbox_image_formatter($variables) {
   $item = $variables['item'];
-  $node = $variables['node'];
+  $entity_type = $variables['entity_type'];
+  $entity = $variables['entity'];
   $field = $variables['field'];
   $settings = $variables['display_settings'];
 
@@ -35,17 +36,19 @@ function theme_colorbox_image_formatter($variables) {
     $image['height'] = $item['height'];
   }
 
+  $entity_title = entity_label($entity_type, $entity);
+
   switch ($settings['colorbox_caption']) {
      case 'auto':
-      // If the title is empty use alt or the node title in that order.
+      // If the title is empty use alt or the entity title in that order.
       if (!empty($image['title'])) {
         $caption = $image['title'];
       }
       elseif (!empty($image['alt'])) {
         $caption = $image['alt'];
       }
-      elseif (!empty($node->title)) {
-        $caption = $node->title;
+      elseif (!empty($entity_title)) {
+        $caption = $entity_title;
       }
       else {
         $caption = '';
@@ -58,10 +61,10 @@ function theme_colorbox_image_formatter($variables) {
       $caption = $image['alt'];
       break;
     case 'node_title':
-      $caption = $node->title;
+      $caption = $entity_title;
       break;
     case 'custom':
-      $caption = token_replace($settings['colorbox_caption_custom'], array('node' => $node));
+      $caption = token_replace($settings['colorbox_caption_custom'], array($entity_type => $entity, 'file' => (object) $item), array('clear' => TRUE));
       break;
     default:
       $caption = '';
@@ -75,16 +78,17 @@ function theme_colorbox_image_formatter($variables) {
   }
 
   // Build the gallery id.
-  $nid = !empty($node->nid) ? $node->nid : 'nid';
+  list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+  $entity_id = !empty($id) ? $entity_type . '-' . $id : 'entity-id';
   switch ($settings['colorbox_gallery']) {
     case 'post':
-      $gallery_id = 'gallery-' . $nid;
+      $gallery_id = 'gallery-' . $entity_id;
       break;
     case 'page':
       $gallery_id = 'gallery-all';
       break;
     case 'field_post':
-      $gallery_id = 'gallery-' . $nid . '-' . $field['field_name'];
+      $gallery_id = 'gallery-' . $entity_id . '-' . $field['field_name'];
       break;
     case 'field_page':
       $gallery_id = 'gallery-' . $field['field_name'];
@@ -125,7 +129,7 @@ function theme_colorbox_imagefield($variables) {
     $image = '';
     $class[] = 'js-hide';
   }
-  else if (!empty($variables['image']['style_name'])) {
+  elseif (!empty($variables['image']['style_name'])) {
     $image = theme('image_style', $variables['image']);
   }
   else {

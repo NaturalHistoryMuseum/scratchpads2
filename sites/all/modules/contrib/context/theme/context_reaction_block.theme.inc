@@ -61,7 +61,8 @@ function theme_context_block_regions_form($vars) {
 /**
  * Use placeholder content for script tags that need to be replaced.
  */
-function theme_context_block_script_placeholder($text = '') {
+function theme_context_block_script_placeholder($vars) {
+  $text = $vars['text'];
   $message = t('Please reload the page to view this block.');
   return "<div class='script-placeholder'><strong>{$text}</strong><div class='description'>{$message}</div></div>";
 }
@@ -72,7 +73,7 @@ function theme_context_block_script_placeholder($text = '') {
 function template_preprocess_context_block_browser(&$vars) {
   $categories = array(
     '#type' => 'select',
-    '#options' => array(0 => '<' . t('Choose a category') . '>'),
+    '#options' => array(0 => '<' . t('All Categories') . '>'),
     '#attributes' => array('class' => array('context-block-browser-categories')),
     '#value' => 0,
     '#size' => 1,
@@ -95,8 +96,25 @@ function template_preprocess_context_block_browser(&$vars) {
     }
     $blocks[$group][$block->bid] = $block; // Don't call theme('context_block_browser_item') to allow others to alter.
   }
+
+  //add help text to tell people how to use the block browser
+  $help_text = array(
+    '#prefix' => '<div class="context_ui-help-text">',
+    '#markup' => t('To add a block to the current region, simply click on the block.  You may use the category filter to filter by
+      block type or the search filter to find the block that you wish to add.'),
+    '#suffix' => '</div>',
+  );
+
+  $filter_label = array(
+    '#prefix' => '<div class="filter-label">',
+    '#markup' => t('Search Filter'),
+    '#suffix' => '</div>',
+  );
+
   $vars['categories'] = $categories; // Don't call theme('select') here to allow further preprocesses to alter the element.
   $vars['blocks'] = $blocks;
+  $vars['help_text'] = $help_text;
+  $vars['filter_label'] = $filter_label;
 }
 
 /**
@@ -105,4 +123,14 @@ function template_preprocess_context_block_browser(&$vars) {
 function template_preprocess_context_block_browser_item(&$vars) {
   $vars['bid'] = $vars['block']->bid;
   $vars['info'] = check_plain($vars['block']->info);
+}
+
+/**
+ * Theme wrapper for editable blocks.
+ *
+ * @ingroup themeable
+ */
+function theme_context_block_edit_wrap($vars) {
+  $block = $vars['element']['#block'];
+  return $vars['element']['#children'] . "<a id='context-block-{$block->module}-{$block->delta}' class='context-block editable edit-{$block->context}'></a>";
 }

@@ -95,9 +95,12 @@
  *   - path: A path where the UI should show up as expected by hook_menu().
  *   - controller class: (optional) A controller class name for providing the
  *     UI. Defaults to EntityDefaultUIController, which implements an admin UI
- *     suiting for managing configuration entities.
- *     For customizing the UI inherit from the default class and overide methods
- *     as suiting and specify your class as controller class.
+ *     suiting for managing configuration entities. Other provided controllers
+ *     suiting for content entities are EntityContentUIController or
+ *     EntityBundleableUIController (which work fine despite the poorly named
+ *     'admin ui' key).
+ *     For customizing the UI inherit from the default class and override
+ *     methods as suiting and specify your class as controller class.
  *   - file: (optional) The name of the file in which the entity form resides
  *     as it is required by hook_menu().
  *   - file path: (optional) The path to the file as required by hook_menu. If
@@ -119,6 +122,13 @@
  *   Override the controller class to adapt the defaults and to improve and
  *   complete the generated metadata. Set it to FALSE to disable this feature.
  *   Defaults to the EntityDefaultMetadataController class.
+ * - extra fields controller class: (optional) A controller class for providing
+ *   field API extra fields. Defaults to none.
+ *   The class must implement the EntityExtraFieldsControllerInterface. Display
+ *   extra fields that are exposed that way are rendered by default by the
+ *   EntityAPIController. The EntityDefaultExtraFieldsController class may be
+ *   used to generate extra fields based upon property metadata, which in turn
+ *   get rendered by default by the EntityAPIController.
  * - features controller class: (optional) A controller class for providing
  *   Features module integration for exportable entities. The given class has to
  *   inherit from the default class being EntityDefaultFeaturesController. Set
@@ -145,10 +155,11 @@
  *   edit form for your entity type. See entity_form().
  *   In case the 'admin ui' is used, no callback needs to be specified.
  * - entity cache: (optional) Whether entities should be cached using the cache
- *   system. Requires the entitycache module to be installed and enabled. As
- *   cached entities are only retrieved by id key, the cache would not apply to
- *   exportable entities retrieved by name key. If enabled, 'field cache' is
- *   obsolete and should be disabled. Defaults to FALSE.
+ *   system. Requires the entitycache module to be installed and enabled and the
+ *   module key to be specified. As cached entities are only retrieved by id key,
+ *   the cache would not apply to exportable entities retrieved by name key.
+ *   If enabled and the entitycache module is active, 'field cache' is obsolete
+ *   and is automatically disabled. Defaults to FALSE.
  *
  * @see hook_entity_info()
  * @see entity_metadata_hook_entity_info()

@@ -1,8 +1,17 @@
 /**
  * Editor =============================================================
  */
-div.context-editor div.label { float:left; }
+div.context-editor div.label {
+  float:left;
+  font-size: 14px;
+}
 div.context-editor div.links { float:right; }
+div.context-editor div.bottom {
+  font-size: 12px;
+  font-style: italic;
+  font-weight:normal;
+  color: #999;
+}
 
 div.context-editor div.context-editable { display:none; }
 div.context-editor div.links a.done { display:none; }
@@ -89,7 +98,7 @@ table.context-admin input.form-text { width:90%; }
 .context-plugins {
   position:relative;
   margin:0px 0px 10px;
-  }
+}
 
 .context-plugins .context-plugin-info {
   padding:10px 10px 9px;

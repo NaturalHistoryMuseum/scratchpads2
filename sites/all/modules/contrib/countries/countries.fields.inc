@@ -23,46 +23,28 @@ function countries_field_info() {
       'default_formatter' => 'country_default',
       // Support hook_entity_property_info() from contrib "Entity API".
       'property_type' => 'country',
-      'property_callbacks' => array('countries_field_info_property_callback'),
+      'property_callbacks' => array('countries_entity_metadata_field_property_callback'),
     ),
   );
 }
 
 /**
- * Override the getter callback.
+ * @TODO: Function to keep compatibility with 7.x-2.1 version.
+ * @see: #2293209 issue.
  */
 function countries_field_info_property_callback(&$info, $entity_type, $field, $instance, $field_type) {
-  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
-  // Do not use the type "country" here because that would reference the entity
-  // type.
-  $property['type'] = ($field['cardinality'] != 1) ? 'list<countries>' : 'countries';
-  $property['getter callback'] = 'countries_entity_metadata_field_property_get';
-  $property['setter callback'] = 'entity_metadata_field_verbatim_set';
-  $property['auto creation'] = 'entity_property_create_array';
-  $property['property info'] = array(
-    'iso2' => array(
-      'label' => t('ISO2 country code'),
-      'getter callback' => 'entity_property_verbatim_get',
-      'setter callback' => 'entity_property_verbatim_set',
-    ),
-  );
+  countries_entity_metadata_field_property_callback($info, $entity_type, $field, $instance, $field_type);
 }
 
 /**
- * Callback for getting field property values.
+ * Callback to add in property info defaults per field instance.
+ * @see entity_metadata_field_entity_property_info().
  */
-function countries_entity_metadata_field_property_get($entity, array $options, $name, $entity_type, $info) {
-  $field = field_info_field($name);
-  $columns = array_keys($field['columns']);
-  $langcode = field_language($entity_type, $entity, $name, isset($options['language']) ? $options['language']->language : NULL);
-  $values = array();
-  if (isset($entity->{$name}[$langcode])) {
-    foreach ($entity->{$name}[$langcode] as $delta => $data) {
-      $values[$delta] = $data['country']->cid;
-    }
-  }
-  // For an empty single-valued field, we have to return NULL.
-  return $field['cardinality'] == 1 ? ($values ? reset($values) : NULL) : $values;
+function countries_entity_metadata_field_property_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $name = $field['field_name'];
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$name];
+  entity_metadata_field_default_property_callback($info, $entity_type, $field, $instance, $field_type);
+  $property['options list'] = 'entity_metadata_field_options_list';
 }
 
 /**
@@ -73,8 +55,14 @@ function countries_field_prepare_view($entity_type, $entities, $field, $instance
     foreach ($items[$id] as $delta => $item) {
       if (!isset($item['country'])) {
         $items[$id][$delta]['value'] = $item['iso2'];
-        $items[$id][$delta]['country'] = country_load($item['iso2']);
-        $items[$id][$delta]['safe_value'] = check_plain($items[$id][$delta]['country']->name);
+        if (!empty($item['iso2']) && $country = country_load($item['iso2'])) {
+          $items[$id][$delta]['country'] = $country;
+          $items[$id][$delta]['safe_value'] = check_plain($items[$id][$delta]['country']->name);
+        }
+        else {
+          $items[$id][$delta]['country'] = FALSE;
+          $items[$id][$delta]['safe_value'] = '';
+        }
         // @todo: Remove post 7.x-2.x
         $items[$id][$delta]['safe'] = $items[$id][$delta]['safe_value'];
       }
@@ -244,7 +232,10 @@ function countries_field_formatter_view($entity_type, $entity, $field, $instance
   );
   foreach ($items as $delta => $item) {
     $country = $item['country'];
-    if (isset($map[$display['type']])) {
+    if (empty($country)) {
+      continue;
+    }
+    elseif (isset($map[$display['type']])) {
       $element[$delta]['#markup'] = country_property($country, $map[$display['type']]);
     }
     elseif ($display['type'] == 'country_icon') {
@@ -278,8 +269,10 @@ function countries_field_widget_info() {
  * Implements hook_field_widget_info_alter().
  */
 function countries_field_widget_info_alter(&$info) {
-  $info['options_buttons']['field types'][] = 'country';
-  $info['options_select']['field types'][] = 'country';
+  if (isset($info['options_buttons'])) {
+    $info['options_buttons']['field types'][] = 'country';
+    $info['options_select']['field types'][] = 'country';
+  }
 }
 
 /**
@@ -289,28 +282,42 @@ function countries_field_widget_form(&$form, &$form_state, $field, $instance, $l
   if ($instance['widget']['type'] == 'countries_continent') {
     $field_name = $field['field_name'];
     $settings = $field['settings'];
+    $required = !empty($element['#required']);
     $continents = countries_get_continents();
 
     if (!empty($settings['continents'])) {
       $continents = array_intersect_key($continents, $settings['continents']);
     }
 
-    $parents = array($field_name, $langcode, $delta);
+    // Widget may be rendered individually, in a group or even a sub-form.
+    $field_parents = empty($form['#parents']) ? array() : $form['#parents'];
+    $parents = array_merge($field_parents, array($field_name, $langcode, $delta));
+    $continent_parents = array_merge($parents, array('continent'));
+
     $iso2 = empty($items[$delta]['iso2']) ? '' : $items[$delta]['iso2'];
     $selected_continent = '';
     if (isset($form_state['values'])) {
-      $selected_continent = drupal_array_get_nested_value($form_state['values'], array_merge($parents, array('continent')));
       // This override the settings that are passed onto the options filter
-      // query. This is not usable without JScript enabled, so only update if
-      // we have a form submission.
-      $settings['continents'] = array($selected_continent);
+      // query. This is not called when JScript is disabled.
+      $selected_continent = drupal_array_get_nested_value($form_state['values'], $continent_parents);
+      if (!$selected_continent) {
+        // Fallback to the raw user post. A workaround for AJAX submissions.
+        $user_data = drupal_array_get_nested_value($form_state['input'], $continent_parents);
+        if (array_key_exists($user_data, $continents)) {
+          $selected_continent = $user_data;
+        }
+      }
+      // Do not override the continent settings when empty.
+      if ($selected_continent) {
+        $settings['continents'] = array($selected_continent);
+      }
     }
     elseif (!empty($iso2) && $country = country_load($iso2)) {
       $selected_continent = $country->continent;
     }
 
     // Work out the best ID to exactly target the element.
-    $wrapper_parents = array_merge($form['#parents'], $parents, array('iso-wrapper'));
+    $wrapper_parents = array_merge($parents, array('iso-wrapper'));
     $wrapper_id = implode('-', $wrapper_parents);
 
     // Assist themers with floating DIVs.
@@ -323,12 +330,13 @@ function countries_field_widget_form(&$form, &$form_state, $field, $instance, $l
       '#empty_option' => t('-- None selected --'),
       '#empty_value' => 'none',
       '#default_value' => $selected_continent,
+      '#required' => $required,
       '#ajax' => array(
         'callback' => '_ajax_countries_continent_widget_callback',
         'wrapper' => $wrapper_id,
       ),
     );
-
+    $first = array_shift($continent_parents);
     $element['iso2'] = array(
       '#type' => 'country',
       '#title' => t('Country'),
@@ -338,9 +346,10 @@ function countries_field_widget_form(&$form, &$form_state, $field, $instance, $l
       '#empty_value' => '',
       '#hide_empty' => TRUE,
       '#filters' => $settings,
+      '#required' => $required,
       '#states' => array(
         'visible' => array(
-          ':input[name="' . $field_name . '[' . $langcode . '][' . $delta . '][continent]"]' => array('!value' => 'none'),
+          ':input[name="' . $first . '[' . implode('][', $continent_parents) . ']"]' => array('!value' => 'none'),
         ),
       ),
     );
@@ -356,6 +365,7 @@ function _ajax_countries_continent_widget_callback($form, $form_state) {
   array_pop($parents);
   $parents[] = 'iso2';
   $element = drupal_array_get_nested_value($form, $parents);
+
   return $element;
 }
 

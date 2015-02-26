@@ -64,18 +64,6 @@ function views_content_views_content_type_content_types($plugin) {
 }
 
 /**
- * Return a single content type.
- */
-function views_content_views_content_type_content_type($subtype, $plugin) {
-  $view = views_get_view($name);
-  if (empty($view)) {
-    return;
-  }
-
-  return _views_content_views_content_type($view);
-}
-
-/**
  * Create the content type info array to give back to ctools for a given display.
  */
 function _views_content_views_content_type($view) {
