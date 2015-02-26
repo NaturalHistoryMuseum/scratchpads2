@@ -8,6 +8,7 @@
 define('AUTO_ENTITYLABEL_DISABLED', 0);
 define('AUTO_ENTITYLABEL_ENABLED', 1);
 define('AUTO_ENTITYLABEL_OPTIONAL', 2);
+define('AUTO_ENTITYLABEL_PLACEHOLDER', '%AutoEntityLabel%');
 
 /**
  * Implements hook_permission().
@@ -56,14 +57,20 @@ function auto_entitylabel_menu() {
           );
 
           $items["$path/auto_label"] = array(
-            'title' => '@type Auto label',
-            'title arguments' => array('@type' => $entity_info['label']),
+            'title' => 'Auto label',
             'page callback' => 'drupal_get_form',
             'page arguments' => array('auto_entitylabel_settings_form', $entity_type, $bundle_arg),
             'type' => MENU_LOCAL_TASK,
-            'weight' => 10,
+            'weight' => 2.1,
             'file' => 'auto_entitylabel.admin.inc',
           ) + $access;
+          // Prefix comment entities, because otherwise there would be multiple
+          // menu items that just said "Auto label".
+          if ($entity_type == 'comment') {
+            $items["$path/auto_label"]['title'] = '@type Auto label';
+            $items["$path/auto_label"]['title arguments'] = array('@type' => $entity_info['label']);
+            $items["$path/auto_label"]['weight'] = 4.1;
+          }
         }
       }
     }
@@ -92,18 +99,18 @@ function auto_entitylabel_form_alter(&$form, &$form_state, $form_id) {
       // We will autogenerate the title later, just hide the title field in the
       // meanwhile.
       if ($replacement && isset($form[$title])) {
-        $form[$title][$form[$title]['#language']][0]['value']['#value'] = '%AutoEntityLabel%';
+        $form[$title][$form[$title]['#language']][0]['value']['#value'] = AUTO_ENTITYLABEL_PLACEHOLDER;
         $form[$title][$form[$title]['#language']][0]['value']['#type'] = 'value';
         $form[$title][$form[$title]['#language']][0]['value']['#required'] = FALSE;
       }
       else {
-        $form[$title]['#value'] = '%AutoEntityLabel%';
+        $form[$title]['#value'] = AUTO_ENTITYLABEL_PLACEHOLDER;
         $form[$title]['#type'] = 'value';
         $form[$title]['#required'] = FALSE;
       }
     }
     elseif (auto_entitylabel_get_setting($key) == AUTO_ENTITYLABEL_OPTIONAL) {
-      if ($replacement) {
+      if ($replacement && isset($form[$title])) {
         $form[$title][$form[$title]['#language']][0]['value']['#required'] = FALSE;
       }
       else {
@@ -160,6 +167,16 @@ function auto_entitylabel_field_attach_form($entity_type, $entity, &$form, &$for
 }
 
 /**
+ * Implements hook_field_attach_submit().
+ */
+function auto_entitylabel_field_attach_submit($entity_type, $entity, $form, $form_state) {
+  if (auto_entitylabel_is_needed($entity, $entity_type)) {
+    // Pre-set the title before we submit so that it's visible.
+    auto_entitylabel_set_title($entity, $entity_type);
+  }
+}
+
+/**
  * Implements hook_entity_presave().
  */
 function auto_entitylabel_entity_presave($entity, $type) {
@@ -179,13 +196,41 @@ function auto_entitylabel_field_attach_presave($entity_type, $entity) {
 }
 
 /**
- * Returns whether the auto entitylabel has to be set.
+ * Returns whether the auto entitylabel has to be set on the provided entity.
+ *
+ * @param object $entity A Drupal entity object.
+ * @param string $entity_type The entity type.
+ * @param bool $reset Force set the label, even if a title already exists.
+ * @return bool
  */
 function auto_entitylabel_is_needed($entity, $entity_type, $reset = FALSE) {
+  // First, we'll attempt to get the entity type specific settings.
   $settings = _auto_entitylabel_get_settings($entity, $entity_type);
-  return (empty($entity->auto_entitylabel_applied) || $reset)
-    && ($setting = auto_entitylabel_get_setting($settings['key']))
-    && !($setting == AUTO_ENTITYLABEL_OPTIONAL && !empty($entity->{$settings['title']}));
+
+  // Stub out a few rules we'll need to verify in addition to the $reset flag.
+  // Do we have configs for this entity type?
+  $has_settings = ($settings
+    && !empty($settings['key'])
+    && ($setting = auto_entitylabel_get_setting($settings['key'])));
+
+  // We can't do much if there are no settings.
+  if($has_settings) {
+    // Is the label empty?
+    $empty_label = (empty($entity->{$settings['title']})
+      // AUTO_ENTITYLABEL_PLACEHOLDER needs to be treated as empty as well.
+      || $entity->{$settings['title']} == AUTO_ENTITYLABEL_PLACEHOLDER);
+
+    // Is the auto label optional?
+    $label_optional = ($setting == AUTO_ENTITYLABEL_OPTIONAL);
+
+    // Check if the label is empty or forced.
+    // Then makes sure an existing label isn't overwritten if the autolabel is optional.
+    return ($empty_label || $reset)
+      && !($label_optional && !$empty_label);
+  }
+
+  // The above conditions where not met so we'll return "false".
+  return FALSE;
 }
 
 /**
@@ -204,7 +249,8 @@ function auto_entitylabel_set_title(&$entity, $type) {
   $title_languages = array();
   if (module_exists('title') && (title_field_replacement_enabled($type, $bundle, $settings['title']))) {
     $title_field_name = $entity_info['field replacement'][$settings['title']]['instance']['field_name'];
-    $title_languages = field_available_languages($type, $title_field_name);
+    $field_info = field_info_field($title_field_name);
+    $title_languages = field_available_languages($type, $field_info);
     $multilingual = count($title_languages) > 1;
   }
 
@@ -227,7 +273,7 @@ function auto_entitylabel_set_title(&$entity, $type) {
       $titles[LANGUAGE_NONE] = _auto_entitylabel_patternprocessor($pattern, $entity, $type);
     }
   }
-  elseif ($type == 'node' && $entity->nid) {
+  elseif ($type == 'node' && !empty($entity->nid)) {
     $titles[LANGUAGE_NONE] = t('@bundle @node-id', array('@bundle' => $bundle, '@node-id' => $entity->nid));
   }
   else {
@@ -255,10 +301,10 @@ function auto_entitylabel_set_title(&$entity, $type) {
   // Save title on entity (non-field).  This needs be done even if field_title
   // above is updated, because the title module automatically syncs changes
   // from the "non field title" to the "title field". Without this line we end
-  // up getting "%AutoEntityLabel%" as the title.
+  // up getting AUTO_ENTITYLABEL_PLACEHOLDER as the title.
   $entity_language = auto_entitylabel_entity_language($type, $entity);
   $title = isset($titles[$entity_language]) ? $titles[$entity_language] : $titles[LANGUAGE_NONE];
-  if ($entity->{$settings['title']} != $title) {
+  if (!isset($entity->{$settings['title']}) || $entity->{$settings['title']} != $title) {
     $entity->{$settings['title']} = $title;
     $entity->auto_entitylabel_changed = TRUE;
   }
@@ -396,7 +442,7 @@ function auto_entitylabel_field_attach_rename_bundle($entity_type, $bundle_old, 
 
 function _auto_entitylabel_get_settings($entity, $entity_type) {
   $entity_info = entity_get_info($entity_type);
-  if ($entity_info['entity keys']['bundle']) {
+  if ($entity_info['entity keys']['bundle'] && !empty($entity)) {
     $result['key'] = $entity_type . '_' . $entity->{$entity_info['entity keys']['bundle']};
     $result['title'] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label']: 'none';
     return $result;
