@@ -491,6 +491,27 @@ function scratchpads_tweaks_menu(){
 }
 
 /**
+ * 
+ * Implements hook_update_status_alter()
+ */
+function scratchpads_tweaks_update_status_alter(&$projects){
+  $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
+  foreach($projects as $name => $project){
+    if(strpos(drupal_get_path('module', $name), 'sites/all/modules/custom') !== FALSE){
+      $projects[$name]['info']['version'] = $version;
+      $projects[$name]['existing_version'] = $version;
+      $projects[$name]['latest_version'] = $version;
+      $projects[$name]['recommended'] = $version;
+      $projects[$name]['status'] = UPDATE_CURRENT;
+    }
+    if($projects[$name]['status'] == UPDATE_NOT_SECURE){
+      $projects[$name]['status'] = UPDATE_NOT_CURRENT;
+    }
+  }
+  return $projects;
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function scratchpads_tweaks_menu_alter(&$items){
