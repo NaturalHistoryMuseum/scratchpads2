@@ -64,7 +64,7 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
       if ($granularity == 'week') {
         $now = date_now();
         $week = date_week(date_format($now, 'Y-m-d'));
-        $value = date_format($now, 'Y') . '-W' . $week;
+        $value = date_format($now, 'o') . '-W' . date_pad($week);
       }
       else {
         $value = date($this->arg_format, REQUEST_TIME);
@@ -85,7 +85,7 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
     $options = parent::option_definition();
     $options['year_range'] = array('default' => '-3:+3');
     $options['granularity'] = array('default' => 'month');
-    $options['default_argument_type'] = array('default' => 'date');
+    $options['default_argument_type']['default'] = 'date';
     $options['add_delta'] = array('default' => '');
     $options['use_fromto'] = array('default' => '');
     $options['title_format'] = array('default' => '');
