@@ -28,7 +28,7 @@ function colorbox_requirements($phase) {
         'title' => $t('Colorbox plugin'),
         'value' => $t('At least @a', array('@a' => COLORBOX_MIN_PLUGIN_VERSION)),
         'severity' => REQUIREMENT_ERROR,
-        'description' => $t('You need to download the !colorbox and extract the entire contents of the archive into the %path folder of your server.', array('!colorbox' => l(t('Colorbox plugin'), 'http://colorpowered.com/colorbox/'), '%path' => $library_path)),
+        'description' => $t('You need to download the !colorbox and extract the entire contents of the archive into the %path folder of your server.', array('!colorbox' => l(t('Colorbox plugin'), 'https://github.com/jackmoore/colorbox/archive/1.x.zip'), '%path' => $library_path)),
       );
     }
   }
@@ -44,7 +44,7 @@ function colorbox_uninstall() {
 }
 
 /**
- * Delete the unused colorbox_login_form variabel.
+ * Delete the unused colorbox_login_form variable.
  */
 function colorbox_update_7001() {
   $ret = array();
@@ -55,7 +55,7 @@ function colorbox_update_7001() {
 
 /**
  * Delete the unused colorbox_title_trim and
- * colorbox_title_trim_length variabels.
+ * colorbox_title_trim_length variables.
  */
 function colorbox_update_7002() {
   $ret = array();

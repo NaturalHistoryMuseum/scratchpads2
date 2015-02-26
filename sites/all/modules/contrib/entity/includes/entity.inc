@@ -31,6 +31,7 @@ class Entity {
   protected $entityInfo;
   protected $idKey, $nameKey, $statusKey;
   protected $defaultLabel = FALSE;
+  protected $wrapper;
 
   /**
    * Creates a new entity.
@@ -56,7 +57,7 @@ class Entity {
     $this->entityInfo = entity_get_info($this->entityType);
     $this->idKey = $this->entityInfo['entity keys']['id'];
     $this->nameKey = isset($this->entityInfo['entity keys']['name']) ? $this->entityInfo['entity keys']['name'] : $this->idKey;
-    $this->statusKey = empty($info['entity keys']['status']) ? 'status' : $info['entity keys']['status'];
+    $this->statusKey = empty($this->entityInfo['entity keys']['status']) ? 'status' : $this->entityInfo['entity keys']['status'];
   }
 
   /**
@@ -109,6 +110,23 @@ class Entity {
    */
   public function bundle() {
     return !empty($this->entityInfo['entity keys']['bundle']) ? $this->{$this->entityInfo['entity keys']['bundle']} : $this->entityType;
+  }
+
+  /**
+   * Returns the EntityMetadataWrapper of the entity.
+   *
+   * @return EntityDrupalWrapper
+   *   An EntityMetadataWrapper containing the entity.
+   */
+  public function wrapper() {
+    if (empty($this->wrapper)) {
+      $this->wrapper = entity_metadata_wrapper($this->entityType, $this);
+    }
+    elseif ($this->wrapper->value() !== $this) {
+      // Wrapper has been modified outside, so let's better create a new one.
+      $this->wrapper = entity_metadata_wrapper($this->entityType, $this);
+    }
+    return $this->wrapper;
   }
 
   /**

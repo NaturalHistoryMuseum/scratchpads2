@@ -38,7 +38,7 @@ function page_manager_page_menu(&$items, $task) {
   ) + $base;
   if ($access_callback == 'user_access') {
     $items['admin/structure/pages/import']['access callback'] = 'ctools_access_multiperm';
-    $items['admin/structure/pages/import']['access arguments'][] = 'use PHP for settings';
+    $items['admin/structure/pages/import']['access arguments'][] = 'use ctools import';
   }
 
   // AJAX callbacks for argument modal.
@@ -769,12 +769,12 @@ function page_manager_page_form_menu($form, &$form_state) {
     );
   }
   $form['menu']['parent']['weight'] = array(
-    '#title' => t('Tab weight'),
+    '#title' => t('Parent weight'),
     '#type' => 'textfield',
     '#default_value' => $menu['parent']['weight'],
     '#size' => 5,
-    '#description' => t('If the parent menu item is a tab, enter the weight of the tab. The lower the number, the more to the left it will be.'),
-    '#dependency' => array('radio:menu[type]' => array('default tab'), 'radio:menu[parent][type]' => array('tab')),
+    '#description' => t('Enter the weight of the parent item. The lower the number, the more to the left it will be.'),
+    '#dependency' => array('radio:menu[type]' => array('default tab'), 'radio:menu[parent][type]' => array('tab', 'normal')),
     '#dependency_count' => 2,
   );
 
