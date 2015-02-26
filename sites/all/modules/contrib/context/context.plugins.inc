@@ -7,9 +7,14 @@ function _context_context_registry() {
   $registry = array();
   $registry['conditions'] = array(
     'context' => array(
-      'title' => t('Context'),
-      'description' => t('Set this context on the basis of other active contexts. Put each context on a separate line. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to prevent this context from activating if the listed context is active. Other contexts which use context conditions can not be used to exclude this context from activating.'),
+      'title' => t('Context (any)'),
+      'description' => t('Set this context on the basis of other active contexts. Put each context on a separate line. The condition will pass if <em>any</em> of the contexts are active. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to prevent this context from activating if the listed context is active. Other contexts which use context conditions can not be used to exclude this context from activating.'),
       'plugin' => 'context_condition_context',
+    ),
+    'context_all' => array(
+      'title' => t('Context (all)'),
+      'description' => t('Set this context on the basis of other active contexts. Put each context on a separate line. The condition will pass only if <em>all</em> of the contexts are active. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to prevent this context from activating if the listed context is active. Other contexts which use context conditions can not be used to exclude this context from activating.'),
+      'plugin' => 'context_condition_context_all',
     ),
     'node' => array(
       'title' => t('Node type'),
@@ -21,10 +26,20 @@ function _context_context_registry() {
       'description' => t('Should this context always be set? If <strong>true</strong>, this context will be active across your entire site.'),
       'plugin' => 'context_condition_sitewide',
     ),
+    'default' => array(
+      'title' => t('Default context'),
+      'description' => t('This context will be set if no other context is active except sitewide contexts.'),
+      'plugin' => 'context_condition_default',
+    ),
     'path' => array(
       'title' => t('Path'),
       'description' => t('Set this context when any of the paths above match the page path. Put each path on a separate line. You can use the <code>*</code> character (asterisk) as a wildcard and the <code>~</code> character (tilde) to exclude one or more paths. Use &lt;front&gt; for the site front page.'),
       'plugin' => 'context_condition_path',
+    ),
+    'query_string' => array(
+      'title' => t('Query String'),
+      'description' => t('Set this context when any of the query strings above match the page query string. Put each query string on a separate line. You can use the "*" character as a wildcard and <code>~</code> to exclude one or more query strings.'),
+      'plugin' => 'context_condition_query_string',
     ),
     'user' => array(
       'title' => t('User role'),
@@ -98,6 +113,11 @@ function _context_context_registry() {
       'description' => t('Set the breadcrumb trail to the selected menu item.'),
       'plugin' => 'context_reaction_breadcrumb',
     ),
+    'template_suggestions' => array(
+      'title' => t('Template suggestions'),
+      'description' => t('Add template suggestions using context.'),
+      'plugin' => 'context_reaction_template_suggestions',
+    ),
     'theme' => array(
       'title' => t('Theme Page'),
       'description' => t('Control page theme variables using context.'),
@@ -155,6 +175,14 @@ function _context_context_plugins() {
       'parent' => 'context_condition_path',
     ),
   );
+  $plugins['context_condition_context_all'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') . '/plugins',
+      'file' => 'context_condition_context_all.inc',
+      'class' => 'context_condition_context_all',
+      'parent' => 'context_condition_path',
+    ),
+  );
   $plugins['context_condition_node'] = array(
     'handler' => array(
       'path' => drupal_get_path('module', 'context') . '/plugins',
@@ -171,12 +199,28 @@ function _context_context_plugins() {
       'parent' => 'context_condition',
     ),
   );
+  $plugins['context_condition_default'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') . '/plugins',
+      'file' => 'context_condition_default.inc',
+      'class' => 'context_condition_default',
+      'parent' => 'context_condition',
+    ),
+  );
   $plugins['context_condition_path'] = array(
     'handler' => array(
       'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_path.inc',
       'class' => 'context_condition_path',
       'parent' => 'context_condition',
+    ),
+  );
+  $plugins['context_condition_query_string'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'file' => 'context_condition_query_string.inc',
+      'class' => 'context_condition_query_string',
+      'parent' => 'context_condition_path',
     ),
   );
   $plugins['context_condition_user'] = array(
@@ -292,6 +336,14 @@ function _context_context_plugins() {
       'file' => 'context_reaction_breadcrumb.inc',
       'class' => 'context_reaction_breadcrumb',
       'parent' => 'context_reaction_menu',
+    ),
+  );
+  $plugins['context_reaction_template_suggestions'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') . '/plugins',
+      'file' => 'context_reaction_template_suggestions.inc',
+      'class' => 'context_reaction_template_suggestions',
+      'parent' => 'context_reaction',
     ),
   );
   $plugins['context_reaction_menu'] = array(

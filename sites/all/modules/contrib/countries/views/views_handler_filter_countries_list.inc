@@ -41,7 +41,7 @@ class views_handler_filter_countries_list extends views_handler_filter_in_operat
       '#states' => array(
         // Only show field when widget equals "custom"
         'visible' => array(
-          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_FIELD),
+          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_CUSTOM),
         ),
       ),
     );
@@ -53,7 +53,7 @@ class views_handler_filter_countries_list extends views_handler_filter_in_operat
       '#states' => array(
         // Only show field when widget equals "custom"
         'visible' => array(
-          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_FIELD),
+          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_CUSTOM),
         ),
       ),
       '#options' => array(
@@ -71,7 +71,7 @@ class views_handler_filter_countries_list extends views_handler_filter_in_operat
       '#states' => array(
         // Only show field when widget equals "custom"
         'visible' => array(
-          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_FIELD),
+          ':input[name="options[configuration]"]' => array('value' => COUNTRIES_VIEWS_WIDGET_CUSTOM),
         ),
       ),
       '#options' => countries_get_continents(),

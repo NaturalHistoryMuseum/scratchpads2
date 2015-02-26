@@ -17,7 +17,7 @@ function colorbox_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Colorbox plugin settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE
+    '#collapsed' => TRUE,
   );
   $form['colorbox_plugin_settings']['colorbox_path'] = array(
     '#type' => 'textfield',
@@ -35,32 +35,6 @@ function colorbox_admin_settings() {
     ),
     '#default_value' => variable_get('colorbox_compression_type', 'min'),
   );
-
-  if (module_exists('image_old')) {
-    $form['colorbox_image_module'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Image module settings'),
-    );
-    $form['colorbox_image_module']['colorbox_auto_image_nodes'] = array(
-      '#type' => 'radios',
-      '#title' => t('Image module integration'),
-      '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
-      '#default_value' => variable_get('colorbox_auto_image_nodes', 0),
-      '#description' => t('Select if Colorbox should be activated for the Image module.'),
-    );
-    $derivative_options = array();
-    $sizes = image_get_sizes();
-    foreach ($sizes as $label => $size) {
-      $derivative_options[$label] = $size['label'];
-    }
-    $form['colorbox_image_module']['colorbox_image_derivative'] = array(
-      '#type' => 'select',
-      '#title' => t('Image derivative'),
-      '#options' => $derivative_options,
-      '#default_value' => variable_get('colorbox_image_derivative', 'preview'),
-      '#description' => t('Select which image derivative to load in the Colorbox.'),
-    );
-  }
 
   if (module_exists('insert')) {
     $form['colorbox_insert_module'] = array(
@@ -87,7 +61,7 @@ function colorbox_admin_settings() {
 
   $form['colorbox_login_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Login links settings')
+    '#title' => t('Login links settings'),
   );
   $form['colorbox_login_settings']['colorbox_login'] = array(
     '#type' => 'checkbox',
@@ -256,7 +230,7 @@ function colorbox_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Slideshow settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE
+    '#collapsed' => TRUE,
   );
   $form['colorbox_custom_settings']['colorbox_slideshow_settings']['colorbox_slideshow'] = array(
     '#type' => 'radios',
@@ -320,7 +294,7 @@ function colorbox_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Advanced settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE
+    '#collapsed' => TRUE,
   );
   $form['colorbox_advanced_settings']['colorbox_caption_trim'] = array(
     '#type' => 'radios',
@@ -340,11 +314,17 @@ function colorbox_admin_settings() {
       ),
     ),
   );
+  $form['colorbox_advanced_settings']['colorbox_visibility'] = array(
+    '#type' => 'radios',
+    '#title' => t('Show Colorbox on specific pages'),
+    '#options' => array(0 => t('All pages except those listed'), 1 => t('Only the listed pages')),
+    '#default_value' => variable_get('colorbox_visibility', 0),
+  );
   $form['colorbox_advanced_settings']['colorbox_pages'] = array(
     '#type' => 'textarea',
-    '#title' => t('Deactivate Colorbox on specific pages'),
-    '#default_value' => variable_get('colorbox_pages', "admin*\nimg_assist*\nimce*\nnode/add/*\nnode/*/edit"),
-    '#description' => t("Enter one page per line as Drupal paths. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
+    '#title' => '<span class="element-invisible">' . t('Pages') . '</span>',
+    '#default_value' => variable_get('colorbox_pages', "admin*\nimagebrowser*\nimg_assist*\nimce*\nnode/add/*\nnode/*/edit\nprint/*\nprintpdf/*\nsystem/ajax\nsystem/ajax/*"),
+    '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
   );
 
   return system_settings_form($form);

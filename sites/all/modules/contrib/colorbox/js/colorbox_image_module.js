@@ -3,7 +3,7 @@
 Drupal.behaviors.initColorboxImageModule = {
   attach: function (context, settings) {
     // Image Attach Functionality
-    $('div.image-attach-body > a, ul.images a', context).once('init-colorbox-image-module-processed', function () {
+    $('div.image-attach-body > a, ul.images a', context).once('init-colorbox-image-module', function () {
       var $img = $('.image', this);
       if ($img.length === 0) {
         return true;

@@ -4,9 +4,11 @@ dependencies[] = context
 package = Context
 core = 7.x
 
-; Information added by drupal.org packaging script on 2012-08-12
-version = "7.x-3.0-beta4"
+files[] = plugins/context_layouts_reaction_block.inc
+
+; Information added by Drupal.org packaging script on 2015-01-06
+version = "7.x-3.6"
 core = "7.x"
 project = "context"
-datestamp = "1344786407"
+datestamp = "1420573188"
 
