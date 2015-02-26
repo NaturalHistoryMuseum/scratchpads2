@@ -3,9 +3,7 @@
 /**
  * @file
  * Functions for administration/settings interface.
- *
  */
-
 
 /**
  * Configuration form for image_captcha.
@@ -18,7 +16,6 @@ function image_captcha_settings_form() {
   $form['#attached']['css'] = array(drupal_get_path('module', 'image_captcha') . '/image_captcha.css');
   // Use javascript for some added usability on admin form.
   $form['#attached']['js'] = array(drupal_get_path('module', 'image_captcha') . '/image_captcha.js');
-
 
   // First some error checking.
   $setup_status = _image_captcha_check_setup(FALSE);
@@ -70,11 +67,10 @@ function image_captcha_settings_form() {
     );
   }
 
-
   // Font related stuff.
   $form['image_captcha_font_settings'] = _image_captcha_settings_form_font_section();
 
-    // Color and file format settings.
+  // Color and file format settings.
   $form['image_captcha_color_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Color and image settings'),
@@ -121,13 +117,13 @@ function image_captcha_settings_form() {
     ),
   );
 
-  // distortion and noise settings
+  // Distortion and noise settings.
   $form['image_captcha_distortion_and_noise'] = array(
     '#type' => 'fieldset',
     '#title' => t('Distortion and noise'),
     '#description' => t('With these settings you can control the degree of obfuscation by distortion and added noise. Do not exaggerate the obfuscation and assure that the code in the image is reasonably readable. For example, do not combine high levels of distortion and noise.'),
   );
-  // distortion
+  // Distortion.
   $form['image_captcha_distortion_and_noise']['image_captcha_distortion_amplitude'] = array(
     '#type' => 'select',
     '#title' => t('Distortion level'),
@@ -153,7 +149,7 @@ function image_captcha_settings_form() {
     '#default_value' => variable_get('image_captcha_bilinear_interpolation', FALSE),
     '#description' => t('This option enables bilinear interpolation of the distortion which makes the image look smoother, but it is more CPU intensive.'),
   );
-  // noise
+  // Noise.
   $form['image_captcha_distortion_and_noise']['image_captcha_dot_noise'] = array(
     '#type' => 'checkbox',
     '#title' => t('Add salt and pepper noise'),
@@ -192,7 +188,6 @@ function image_captcha_settings_form() {
   return $form;
 }
 
-
 /**
  * Form elements for the font specific setting.
  *
@@ -200,7 +195,8 @@ function image_captcha_settings_form() {
  * general form function image_captcha_settings_form with some
  * specific logic.
  *
- * @return $form, the font settings specific form elements.
+ * @return array
+ *   the font settings specific form elements.
  */
 function _image_captcha_settings_form_font_section() {
   // Put it all in a fieldset.
@@ -212,7 +208,7 @@ function _image_captcha_settings_form_font_section() {
   // First check if there is TrueType support.
   $setup_status = _image_captcha_check_setup(FALSE);
   if ($setup_status & IMAGE_CAPTCHA_ERROR_NO_TTF_SUPPORT) {
-    // Show a warning that there is no TrueType support
+    // Show a warning that there is no TrueType support.
     $form['no_ttf_support'] = array(
       '#type' => 'item',
       '#title' => t('No TrueType support'),
@@ -221,7 +217,6 @@ function _image_captcha_settings_form_font_section() {
 
   }
   else {
-
     // Build a list of  all available fonts.
     $available_fonts = array();
 
@@ -231,7 +226,7 @@ function _image_captcha_settings_form_font_section() {
     // in separate requests, and we don't want to rescan the filesystem
     // every time, so we cache the result.
     variable_set('image_captcha_fonts_preview_map_cache', $fonts);
-    // Put these fonts with preview image in the list
+    // Put these fonts with preview image in the list.
     foreach ($fonts as $token => $font) {
       $img_src = check_url(url('admin/config/people/captcha/image_captcha/font_preview/' . $token));
       $title = t('Font preview of @font (@file)', array('@font' => $font->name, '@file' => $font->uri));
@@ -260,7 +255,6 @@ function _image_captcha_settings_form_font_section() {
       '#attributes' => array('class' => array('image_captcha_admin_fonts_selection')),
       '#process' => array('form_process_checkboxes'),
     );
-
 
     // Font size.
     $form['image_captcha_font_size'] = array(
@@ -302,16 +296,18 @@ function _image_captcha_settings_form_font_section() {
 /**
  * Helper function to get fonts from the given directories.
  *
- * @param $directories (optional) an array of directories
+ * @param array|null $directories
+ *   an array of directories
  *   to recursively search through, if not given, the default
  *   directories will be used.
  *
- * @return an array of fonts file objects (with fields 'name',
+ * @return array
+ *   an array of fonts file objects (with fields 'name',
  *   'basename' and 'filename'), keyed on the md5 hash of the font
  *   path (to have an easy token that can be used in an url
  *   without en/decoding issues).
  */
-function _image_captcha_get_available_fonts_from_directories($directories=NULL) {
+function _image_captcha_get_available_fonts_from_directories($directories = NULL) {
   // If no fonts directories are given: use the default.
   if ($directories === NULL) {
     $directories = array(
@@ -331,9 +327,8 @@ function _image_captcha_get_available_fonts_from_directories($directories=NULL) 
   return $fonts;
 }
 
-
 /**
- * Validation function for image_captcha configuration form
+ * Validation function for image_captcha configuration form.
  */
 function image_captcha_settings_form_validate($form, &$form_state) {
   // Check image_captcha_image_allowed_chars for spaces.
@@ -360,7 +355,7 @@ function image_captcha_settings_form_validate($form, &$form_state) {
     }
   }
 
-  // check color settings
+  // Check color settings.
   if (!preg_match('/^#([0-9a-fA-F]{3}){1,2}$/', $form_state['values']['image_captcha_background_color'])) {
     form_set_error('image_captcha_background_color', t('Background color is not a valid hexadecimal color value.'));
   }
@@ -382,7 +377,6 @@ function image_captcha_settings_form_submit($form, &$form_state) {
 
 /**
  * Menu handler for font preview request.
- *
  */
 function image_captcha_font_preview($font_token) {
 
@@ -394,14 +388,14 @@ function image_captcha_font_preview($font_token) {
     // Get the mapping of font tokens to font file objects.
     $fonts = variable_get('image_captcha_fonts_preview_map_cache', array());
     if (!isset($fonts[$font_token])) {
-      echo('bad token');
+      echo ('bad token');
       exit();
     }
     // Get the font path.
     $font = $fonts[$font_token]->uri;
     // Some sanity checks if the given font is valid.
     if (!is_file($font) || !is_readable($font)) {
-      echo('bad font');
+      echo ('bad font');
       exit();
     }
   }
@@ -422,12 +416,12 @@ function image_captcha_font_preview($font_token) {
   $color = imagecolorallocate($image, 0, 0, 0);
   imagefilledrectangle($image, 0, 0, $width, $height, $background_color);
 
-  // Draw preview text
+  // Draw preview text.
   if ($font == 'BUILTIN') {
-    imagestring($image, 5, 1, .5*$height-10, $text, $color);
+    imagestring($image, 5, 1, .5 * $height - 10, $text, $color);
   }
   else {
-    imagettftext($image, $font_size, 0, 1, 1.5*$font_size, $color, realpath($font), $text);
+    imagettftext($image, $font_size, 0, 1, 1.5 * $font_size, $color, realpath($font), $text);
   }
 
   // Set content type.
