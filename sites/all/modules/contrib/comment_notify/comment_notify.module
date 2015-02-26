@@ -134,9 +134,6 @@ function comment_notify_form_comment_form_alter(&$form, &$form_state, $form_id) 
     $form['notify_settings']['notify_type']['#value'] = key($available_options);
   }
 
-  // Otherwise, the submit buttons will jump below the node preview.
-  $form['actions']['#weight'] = 19;
-
   // If this is an existing comment we set the default value based on their selection last time.
   if ($form['cid']['#value'] != '') {
     $notify = comment_notify_get_notification_type($form['cid']['#value']);
@@ -214,12 +211,11 @@ function comment_notify_menu() {
 function comment_notify_disable_page($hash) {
   module_load_include('inc', 'comment_notify', 'comment_notify');
   if (comment_notify_unsubscribe_by_hash($hash)) {
-    drupal_set_message(t('Your comment follow-up notification for this post was disabled. Thanks.'));
+    return(t('Your comment follow-up notification for this post was disabled. Thanks.'));
   }
   else {
-    drupal_set_message(t('Sorry, there was a problem unsubscribing from notifications.'));
+    return(t('Sorry, there was a problem unsubscribing from notifications.'));
   }
-  return ' ';
 }
 
 function comment_notify_comment_validate($comment) {
@@ -244,7 +240,7 @@ function comment_notify_comment_update($comment) {
 
   // Take the status of the "notify" checkbox if they unchecked it.
   if (empty($comment->notify)) {
-    $status = $comment->notify;
+    $status = COMMENT_NOTIFY_DISABLED;
   }
   else {
     $status = $comment->notify_type;
@@ -260,6 +256,9 @@ function comment_notify_comment_update($comment) {
 
 }
 
+/**
+ * Implements hook_comment_insert().
+ */
 function comment_notify_comment_insert($comment) {
   module_load_include('inc', 'comment_notify', 'comment_notify');
 
@@ -411,6 +410,7 @@ function comment_notify_comment_load($comments) {
   $records = $query->execute()->fetchAllAssoc('cid');
   foreach ($records as $cid => $record) {
     $comments[$cid]->notify = $record->notify;
+    $comments[$cid]->notify_type = $record->notify;
     $comments[$cid]->notify_hash = $record->notify_hash;
     $comments[$cid]->notified = $record->notified;
     $comments[$cid]->cmail = $record->cmail;
@@ -466,7 +466,7 @@ function _comment_notify_mailalert($comment) {
 
   // Do they explicitly want this? Or is it default to send to users?
   // Is the comment author not the node author? Do they have access? Do they have an email (e.g. anonymous)?
-  if (((!empty($author->comment_notify_settings->node_notify) && $author->comment_notify_settings->node_notify == 1) || (comment_notify_variable_registry_get('node_notify_default_mailalert') == 1 && empty($author->comment_notify_settings->node_notify))) && $user->uid != $author->uid && node_access('view', $node, $author) && !empty($author->mail)) {
+  if (((!empty($author->comment_notify_settings->node_notify) && $author->comment_notify_settings->node_notify == 1) || (comment_notify_variable_registry_get('node_notify_default_mailalert') == 1 && !isset($author->comment_notify_settings->node_notify))) && $user->uid != $author->uid && node_access('view', $node, $author) && !empty($author->mail)) {
     // Get the author's language.
     $language = user_preferred_language($author);
     $raw_values = array(

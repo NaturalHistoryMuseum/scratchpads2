@@ -9,51 +9,69 @@
 /**
  * Browser
  */
- .context-block-browser  .category { display:none; }
+.context-block-browser {
+  width: 600px;
+}
 
- .context-block-item,
- .context-block-browser  .draggable-placeholder,
+.context-block-browser .blocks {
+  height:98%;
+  overflow: auto;
+  float: left;
+  width: 320px;
+}
+
+.context-block-browser .block-browser-sidebar {
+  float: left;
+  width: 250px;
+  padding: 0 0 0 15px;
+}
+
+.context-block-item,
+.context-block-browser  .draggable-placeholder,
 #admin-toolbar  .context-block-browser  .context-block-item {
   font-size:11px;
   line-height:20px;
   height:20px;
 
-  text-shadow:#333 0px 1px 0px;
-  color:#fff;
+  color:#333;
 
-  padding:5px 4px 4px 5px;
+  padding:3px 3px 3px 3px;
   margin:0px 1px 1px 0px;
   max-width:300px;
   white-space:nowrap;
   overflow:hidden;
 
-  background:url(context_reaction_block.png) 0px -40px repeat-x;
+  background:#efefef;
+  border:1px solid #ddd;
   position:relative;
 
+  border-radius:5px;
   -moz-border-radius:5px;
-  -webkit-border-radius:5px;
   -moz-user-select:none;
   -webkit-user-select:none;
-  }
+}
 
-   .context-block-item span.icon {
+
+  .context-block-addable { cursor: pointer; }
+
+  .context-block-item span.icon {
     background:url(context_reaction_block.png) 0px -80px no-repeat;
     display:block;
     width:20px;
     height:20px;
     float:left;
     margin-right:5px;
-    }
+  }
 
-   .context-block-loading { max-width:none; }
+  .context-block-loading { max-width:none; }
 
-   .context-block-loading span.icon {
+  .context-block-loading span.icon {
     background-position:-20px -80px;
     float:none;
     margin:0px auto;
-    }
+  }
 
-   .context-block-browser  .draggable-placeholder { padding:2px 1px 1px 2px; }
+  .context-block-browser  .draggable-placeholder { padding:2px 1px 1px 2px; }
 
   #admin-toolbar.horizontal  .context-block-browser  .draggable-placeholder,
   #admin-toolbar.horizontal  .context-block-browser  .context-block-item {
@@ -61,31 +79,44 @@
     margin-right:1px;
     padding-right:9px;
     float:left;
-    }
+  }
 
- .context-block-addable { cursor: move; }
- .context-block-added { display:none !important; }
+
+  .context-block-added { display:none !important; }
 
 /**
  * Inline editing elements ============================================
  */
-a.context-block-region { display:none; }
+div.context-block-region {display: none;}
 a.context-block { display:none !important; }
 
-body.context-editing  .context-block-region-empty a.context-block-region {
+body.context-editing div.context-block-region {
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
   background:#666;
   color:#fff;
-  opacity:.25;
+  opacity: 0.5;
+  -moz-opacity: 0.5;
+  filter:alpha(opacity=50);
 
   display:block;
   height:40px;
-  line-height:40px;
+  line-height:24px;
 
   text-align:center;
   font-size:18px;
   white-space:nowrap;
+}
+
+.context-block-region .region-name {
+    width:100%;
+    text-align:center;
+    font-size:18px;
+    color:#fff;
+    white-space:nowrap;
+    display:block;
+    -moz-user-select:none;
+    -webkit-user-select:none;
   }
 
 body.context-editing .ui-sortable  .block { opacity:.25; }
@@ -137,7 +168,6 @@ body.context-editing  .draggable:hover a.context-block-remove {
  * Block visibility ===================================================
  */
 #context-blockform  .context-blockform-selector {
-  height:20em;
   overflow:auto;
   }
 
@@ -148,6 +178,7 @@ body.context-editing  .draggable:hover a.context-block-remove {
   border:1px solid #ddd;
   padding:10px;
   width:50%;
+  vertical-align: top;
   }
 
 #context-blockform td.blocks  .label,
@@ -193,3 +224,39 @@ body.context-editing  .draggable:hover a.context-block-remove {
 #context-blockform .tabledrag-toggle-weight-wrapper {
   margin-bottom:0;
   }
+
+a.context-ui-add-link, a:link.context-ui-add-link, a:visited.context-ui-add-link {
+  display:block;
+  width:100%;
+  text-align:center;
+  font-size:12px;
+  color:#fff;
+  cursor: pointer;
+  line-height:14px;
+}
+
+.editing-context-label {
+  position: fixed;
+  top:70px;
+  background:#fff;
+  color:#222;
+  padding:10px;
+  font-weight:bold;
+  opacity: 0.5;
+  -moz-opacity: 0.5;
+  filter:alpha(opacity=50);
+  border:1px solid #ddd;
+  border-left:0;
+  border-radius:0 6px 6px 0;
+}
+
+.context-help {
+  font-size:12px;
+  font-weight:normal;
+}
+
+.context-editor-title {
+  font-size:24px;
+  margin:10px 0px;
+  padding:0;
+}

@@ -24,6 +24,7 @@
  * Test the node_load_multiple() function.
  */
 class CountriesBaseSetupTest extends DrupalWebTestCase {
+
   function setUp() {
     $modules = func_get_args();
     if (isset($modules[0]) && is_array($modules[0])) {
@@ -44,18 +45,10 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
     $elements = $this->xpath("//select[@id=:id]//option[@value=:option]", array(':id' => $id, ':option' => $option));
     return $this->assertTrue(isset($elements[0]), $message ? $message : t('Option @option for field @id is present.', array('@option' => $option, '@id' => $id)), t('Browser'));
   }
+
   function assertNoOptionPresent($id, $option, $message = NULL) {
     $elements = $this->xpath("//select[@id=:id]//option[@value=:option]", array(':id' => $id, ':option' => $option));
     return $this->assertTrue(empty($elements), $message ? $message : t('Option @option for field @id is not present.', array('@option' => $option, '@id' => $id)), t('Browser'));
-  }
-
-  /**
-   * This should be called when you update any countries as entity_save() does
-   * not mean that the static caches are flushed.
-   */
-  function clearCountryEntityCache() {
-    drupal_static_reset('countries_countries_alter');
-    entity_get_controller('country')->resetCache();
   }
 
   /**
@@ -77,19 +70,6 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
   function getDisabledCountries() {
     return array(
       'AN' => t('Netherlands Antilles'),
-    );
-  }
-
-
-
-  /**
-   * These countries are not part of core.
-   */
-  function getNewCountries() {
-    return array(
-      'BQ' => t('Bonaire, Sint Eustatius and Saba'),
-      'SS' => t('South Sudan'),
-      'SX' => t('Sint Maarten (Dutch part)'),
     );
   }
 
@@ -126,6 +106,7 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
       'VN' => t('Vietnam'),
     );
   }
+
   /**
    * The valid list if ISO strings
    */
@@ -139,6 +120,7 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
       'CI' => t("Côte d'Ivoire"),
       'FK' => t('Falkland Islands (Malvinas)'),
       'FM' => t('Micronesia, Federated States of'),
+      'HK' => t('Hong Kong'),
       'IR' => t('Iran, Islamic Republic of'),
       'KP' => t("Korea, Democratic People's Republic of"),
       'KR' => t('Korea, Republic of'),
@@ -146,10 +128,12 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
       'MD' => t('Moldova, Republic of'),
       'MK' => t('Macedonia, The Former Yugoslav Republic of'),
       'MO' => t('Macao'),
-      'PS' => t('Palestinian Territory, Occupied'),
+      'PS' => t('Palestine, State of'),
       'RE' => t('Réunion'),
       'RU' => t('Russian Federation'),
       'SH' => t('Saint Helena, Ascension and Tristan da Cunha'),
+      'ST' => t('São Tomé and Príncipe'),
+      'SY' => t('Syrian Arab Republic'),
       'TW' => t('Taiwan, Province of China'),
       'TZ' => t('Tanzania, United Republic of'),
       'VA' => t('Holy See (Vatican City State)'),
@@ -214,6 +198,7 @@ class CountriesBaseSetupTest extends DrupalWebTestCase {
       $this->assertListingLink($country, 'delete', 1);
     }
   }
+
 }
 
 class CountriesBaseInstallUnitTest extends CountriesBaseSetupTest {
@@ -276,6 +261,7 @@ class CountriesBaseInstallUnitTest extends CountriesBaseSetupTest {
       }
     }
   }
+
 }
 
 class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
@@ -304,8 +290,6 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
     $changed_countries_originals = $this->getNonStandardCountries();
     // Updated core countries to the iso standards.
     $changed_countries = $this->getNonStandardCountriesCorrected();
-    // New countries.
-    $new_countries = $this->getNewCountries();
 
     // Check that things are still valid tests.
     $core_tests = array_merge($unchanged_countries, $changed_countries_originals);
@@ -316,14 +300,9 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
         $this->assertEqual($name, $countries[$iso2], 'Core country name ' .  $name . ' unchanged ' . $countries[$iso2]);
       }
     }
-    foreach ($new_countries as $iso2 => $name) {
-      $this->assertTrue(empty($countries[$iso2]), 'Countries new country ' .  $iso2 . ' - ' .  $name . ' not included in core');
-    }
 
     // Now test that our updates are appearing.
-    $this->clearCountryEntityCache();
     $countries = country_get_list();
-
     foreach ($unchanged_countries as $iso2 => $name) {
       if ($this->assertNotNull($countries[$iso2], 'Testing unmodified country ' .  $iso2 . ' - ' .  $name . ' exists')) {
         $this->assertEqual($name, $countries[$iso2], 'Testing unmodified country ' .  $name . ' matches core drupal');
@@ -335,12 +314,6 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
         $this->assertNotEqual($name, $countries[$iso2], 'Testing updated country ' .  $name . ' is not overriden by default');
       }
     }
-    foreach ($new_countries as $iso2 => $name) {
-      if ($this->assertTrue(!empty($countries[$iso2]), 'Testing new country ' .  $iso2 . ' - ' .  $name . ' exists')) {
-        $this->assertEqual($name, $countries[$iso2], 'Testing new country ' .  $name . ' matches new listing');
-      }
-    }
-
   }
 
   /**
@@ -353,18 +326,22 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
     $changed_countries_originals = $this->getNonStandardCountries();
     // Updated core countries to the iso standards.
     $changed_countries = $this->getNonStandardCountriesCorrected();
-    // New countries.
-    $new_countries = $this->getNewCountries();
 
     // Visit update page and update the countries.
 
     // Update Aland Islands to Åland Islands
-    // TODO: Remove - Debugging
-    $this->drupalGet('admin/config/regional/countries/import');
-
-    $edit = array("updates[AX-name]" => TRUE);
+    $updated_countries = array('AX');
+    $edit = array("updates[AX-name]" => TRUE, 'updates[AN-enabled]' => FALSE);
+    foreach ($changed_countries as $iso2 => $name) {
+      if (in_array($iso2, $updated_countries)) {
+        continue;
+      }
+      $edit["updates[{$iso2}-name]"] = FALSE;
+    }
     $this->drupalPost('admin/config/regional/countries/import', $edit, t('Import'));
     $this->assertText(t('The updated countries were: ' . $changed_countries['AX']), 'Successful save message displayed.');
+
+    countries_clear_caches();
 
     // Check the listings (it is on the first page).
     $this->drupalGet('admin/config/regional/countries');
@@ -373,7 +350,7 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
     $this->assertListingLink($country, 'title');
 
     // Now test that our updates are appearing.
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $countries = country_get_list();
     if ($this->assertNotNull($countries['AX'], 'Testing updated Aland Islands exists')) {
       $this->assertEqual('Åland Islands', $countries['AX'], 'Testing updated Aland Islands renamed to Åland Islands');
@@ -383,6 +360,14 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
     $this->assertNotNull($countries['AN'], 'Testing soon to be disabled Netherlands Antilles is in the country_get_list()');
 
     $edit = array("updates[AN-enabled]" => TRUE);
+    $updated_countries[] = 'AN';
+    foreach ($changed_countries as $iso2 => $name) {
+      if (in_array($iso2, $updated_countries)) {
+        continue;
+      }
+      $edit["updates[{$iso2}-name]"] = FALSE;
+    }
+
     $this->drupalPost('admin/config/regional/countries/import', $edit, t('Import'));
     $this->assertText(t('The updated countries were: Netherlands Antilles'), 'Successful save message displayed.');
 
@@ -391,23 +376,23 @@ class CountriesBaseImportUnitTest extends CountriesBaseSetupTest {
     $this->assertRaw("<td id=\"AN-enabled\">Disabled</td>", 'Testing Netherlands Antilles is disabled');
 
     // Now test that our updates are appearing.
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $countries = country_get_list();
     $this->assertTrue(empty($countries['AN']), 'Testing disabled Netherlands Antilles not in country_get_list()');
 
     // Import the rest.
     unset($changed_countries['AX']);
 
-    // TODO: Remove - Debugging
-    $this->drupalGet('admin/config/regional/countries/import');
-
     $edit = array();
     foreach ($changed_countries as $iso => $name) {
+      if (in_array($iso, $updated_countries)) {
+        continue;
+      }
       $edit["updates[{$iso}-name]"] = TRUE;
     }
     $this->drupalPost('admin/config/regional/countries/import', $edit, t('Import'));
 
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $countries = country_get_list();
     foreach ($this->getNonStandardCountriesCorrected() as $iso2 => $name) {
       if ($this->assertNotNull($countries[$iso2], "Testing updated country {$name} exists")) {
@@ -433,7 +418,6 @@ class CountriesFunctionsUnitTest extends CountriesBaseSetupTest {
       'group' => 'Countries',
     );
   }
-
 
   function setUp() {
     parent::setUp();
@@ -518,15 +502,18 @@ class CountriesFunctionsUnitTest extends CountriesBaseSetupTest {
     $this->drupalGet('admin/config/regional/countries/af/delete');
     $this->assertText(t('Core countries defined by the system can not be deleted.'), 'Checking that delete is disable for core country.');
 
-
     $new = country_create(array(
       'iso2' => 'XA',
       'name' => 'A test XA',
       'official_name' => 'A test XA official name'
     ));
-    country_save($new);
+    if (country_validate($new)) {
+      country_save($new);
+    }
+    else {
+      $this->error('Error saving new country');
+    }
 
-    $this->clearCountryEntityCache();
     $new = country_load('xa');
     $this->assertFALSE(country_is_locked($new), 'User country is not locked');
     // Will be listed on page 1
@@ -611,9 +598,9 @@ class CountriesFunctionsUnitTest extends CountriesBaseSetupTest {
     );
     $passed_all = TRUE;
     foreach ($results as $key => $expected_results) {
-      $results = country_property($country, $key, 'xxx');
-      if ($results !== $expected_results) {
-        $this->fail('Country property using default failed on ' . $key . '. Found ' . $results . ', expected ' . $expected_results);
+      $actual_results = country_property($country, $key, 'xxx');
+      if ($actual_results !== $expected_results) {
+        $this->fail('Country property using default failed on ' . $key . '. Found ' . $actual_results . ', expected ' . $expected_results);
         $passed_all = FALSE;
       }
     }
@@ -669,8 +656,8 @@ class CountriesFunctionsUnitTest extends CountriesBaseSetupTest {
     if ($passed_all) {
       $this->pass('Country property lookup on populated country passed.');
     }
-
   }
+
 }
 
 /**
@@ -692,7 +679,7 @@ class CountriesCRUDUnitTest extends CountriesBaseSetupTest {
     $this->drupalLogin($this->admin_user);
   }
 
-    /**
+  /**
    * This test that the country property lookup is working.
    */
   function testCountriesCRUD() {
@@ -711,7 +698,6 @@ class CountriesCRUDUnitTest extends CountriesBaseSetupTest {
     else {
       $this->fail('Validation failed on valid new country.');
     }
-    $this->clearCountryEntityCache();
     $new = country_load('XA');
     if ($this->assertTrue($new !== FALSE, 'Found and loaded new country')) {
       $this->assertEqual($new->name, 'A test (XA)', 'Name saved correctly');
@@ -724,12 +710,11 @@ class CountriesCRUDUnitTest extends CountriesBaseSetupTest {
     if ($new) {
       $new->name = 'A test';
       $new->official_name = 'A test (XA)';
-      if (country_validate($country)) {
+      if (country_validate($new)) {
         if (country_save($new) != SAVED_UPDATED) {
           $this->fail('country_save() failed on valid country update.');
         }
         else {
-          $this->clearCountryEntityCache();
           $new = country_load('XA');
           if ($new->official_name != 'A test (XA)' || $new->name != 'A test') {
             $this->fail('Country update failed.');
@@ -748,7 +733,6 @@ class CountriesCRUDUnitTest extends CountriesBaseSetupTest {
         $this->fail('Country deletion likely failed.');
       }
     }
-    $this->clearCountryEntityCache();
     $deleted = country_load('XA');
     if ($deleted) {
       $this->fail('Country deletion failed.');
@@ -774,13 +758,12 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
     );
   }
 
-
   function setUp() {
     parent::setUp();
     $this->drupalLogin($this->admin_user);
   }
 
-    /**
+  /**
    * This test that the country property lookup is working.
    */
   function testCountriesAddition() {
@@ -805,14 +788,26 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
     $this->assertNoRaw(t('Added country %country.', array('%country' => 'New Zealand')), 'New country was not added (validation)');
 
     // Individually test the invalid properties.
-    $valid_country = country_create(array(
+    $valid_country = (array)country_create(array(
       'iso2' => 'xb',
       'name' => 'A test xb',
       'official_name' => 'Official test for xb',
       'iso3' => 'Xab',
       'numcode' => '901',
     ));
-    unset($valid_country->cid);
+
+    // Filter out non-country schema based keys.
+    $valid_fields = drupal_map_assoc(array(
+      'iso2',
+      'iso3',
+      'name',
+      'official_name',
+      'numcode',
+      'continent',
+      'enabled',
+      'language',
+    ));
+    $valid_country = (object)array_intersect_key($valid_country, $valid_fields);
     $invalid_properties = array(
       'iso2' => array(
         '12', // numerical
@@ -873,7 +868,7 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
       'numcode' => 905,
       'continent' => 'NA',
       ), t('Save'));
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $editted = country_load('xa');
     $this->assertEqual($editted->numcode, 905, 'Country edit: Test number code');
     $this->assertEqual($editted->continent, 'NA', 'Country edit: Test continent');
@@ -886,7 +881,7 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
       'enabled' => FALSE,
       'official_name' => 'A test for xa to xb official',
     ), t('Save'));
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $editted = country_load('xb');
     if ($this->assertTrue(!empty($editted), 'Test loading by new iso alpha-2 code')) {
       $this->assertEqual($editted->iso2, 'XB', 'Country edit: Test iso2');
@@ -896,7 +891,6 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
       $this->assertEqual($editted->official_name, 'A test for xa to xb official', 'Country edit: Test official name');
       $this->assertEqual($editted->enabled, 0, 'Country edit: Test enabled');
       $this->assertEqual($editted->continent, 'SA', 'Country edit: Test continent');
-      $this->clearCountryEntityCache();
       $old = country_load('xa');
       $this->assertTrue(empty($old), 'Previous instance is no longer available');
     }
@@ -910,7 +904,7 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
 
     $this->drupalPost('admin/config/regional/countries/xb/delete', array(), t('Delete'));
     $this->assertRaw(t('Deleted country %country.', array('%country' => $editted->name)), 'Custom country was deleted');
-    $this->clearCountryEntityCache();
+    countries_clear_caches();
     $editted = country_load('xb');
     $this->assertTrue(empty($editted), 'Custom country was really deleted.');
   }
@@ -944,9 +938,8 @@ class CountriesCRUDUIUnitTest extends CountriesBaseSetupTest {
         array('!link' => l(countries_t($oz), 'admin/config/regional/countries/' . $oz->iso2))),
         'New country was not added (iso2 validation)');
   }
+
 }
-
-
 
 /**
  * Test the node_load_multiple() function.
@@ -961,7 +954,6 @@ class CountriesElementUnitTest extends CountriesBaseSetupTest {
     );
   }
 
-
   function setUp() {
     parent::setUp(array('countries', 'countries_example'));
     $this->drupalLogin($this->admin_user);
@@ -972,23 +964,18 @@ class CountriesElementUnitTest extends CountriesBaseSetupTest {
     $nz = country_load('nz');
     $nz->enabled = 0;
     country_save($nz);
-    $this->clearCountryEntityCache();
   }
 
   function testFAPIElement() {
     $this->drupalGet('countries-example');
     if ($this->assertResponse(200, t('Assert that the example page form loads.'))) {
-
-
       $this->assertOptionPresent('edit-countries-example-default-country-4', 'AD');
       $this->assertOptionPresent('edit-countries-example-default-country-4', 'AU');
       $this->assertNoOptionPresent('edit-countries-example-default-country-4', 'NZ');
       $this->assertNoOptionPresent('edit-countries-example-default-country-4', 'AF');
-
       $this->assertNoOptionPresent('edit-countries-example-default-country-7', 'AD');
       $this->assertNoOptionPresent('edit-countries-example-default-country-7', 'NZ');
       $this->assertNoOptionPresent('edit-countries-example-default-country-7', 'CN');
-
       $this->assertOptionPresent('edit-countries-example-default-country-8', 'NZ');
       $this->assertOptionPresent('edit-countries-example-default-country-8', 'AF');
       $this->assertNoOptionPresent('edit-countries-example-default-country-8', 'AU');
@@ -1000,8 +987,7 @@ class CountriesElementUnitTest extends CountriesBaseSetupTest {
       $nz = country_load('nz');
       $nz->enabled = 0;
       country_save($nz);
-
-      $this->clearCountryEntityCache();
+      countries_clear_caches();
 
       $edit = array(
         // Single select, enabled only
@@ -1041,17 +1027,86 @@ class CountriesElementUnitTest extends CountriesBaseSetupTest {
       $this->drupalPost('countries-example', $edit, t('Save'));
       $this->assertRaw(t('%title field is restricted to %count countries.',
         array('%title' => t('Select one to three countries in America (country element)'), '%count' => 3)), 'Country example saved ok.');
-
-
-
-//Selenium.IsElementPresent("//select[option='Third option']")
-
     }
   }
+
 }
 
 /**
- * Test the node_load_multiple() function.
+ * Test the cache is not breaking core functionality.
+ */
+class CountriesCacheUnitTest extends CountriesBaseSetupTest {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Country cache',
+      'description' => 'Test the cache is behaving.',
+      'group' => 'Countries',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+    $this->drupalLogin($this->admin_user);
+  }
+
+  function testCache() {
+    // Test the CSV import data.
+    $countries = countries_get_countries();
+    $this->assertEqual($countries['US']->name, 'United States');
+
+    // A direct database query should show after caches are reset.
+    db_update('countries_country')
+        ->fields(array('name' => 'United States America'))
+        ->condition('iso2', 'US')->execute();
+    countries_clear_caches();
+    $countries = countries_get_countries();
+    $this->assertEqual($countries['US']->name, 'United States America');
+
+    // Test a save via the UI.
+    $this->drupalPost('admin/config/regional/countries/us', array(
+      'name' => 'United States',
+      ), t('Save'));
+    // Clear the SimpleTest caches too.
+    countries_clear_caches();
+    $countries = countries_get_countries();
+    $this->assertEqual($countries['US']->name, 'United States');
+
+    // Tests the internal CRUD save action.
+    $us = country_load('us');
+    $this->assertEqual($us->name, 'United States');
+    $us->name = 'United States America';
+    country_save($us);
+    $countries = countries_get_countries();
+    $this->assertEqual($countries['US']->name, 'United States America');
+
+    // Test a missing country to ensure the import doesn't include it.
+    if (isset($countries['XA'])) {
+      $this->fail('Test non-existent country XA exists.');
+      return;
+    }
+
+    // Create, save and delete tests should all result in cache updates.
+    $xa = country_create(array('iso2' => 'xa', 'name' => 'Test'));
+    if (country_validate($xa)) {
+      country_save($xa);
+    }
+    else {
+      $this->error('Error saving new country');
+    }
+    $countries = countries_get_countries();
+    $this->assertEqual($countries['XA']->name, 'Test');
+    country_delete('xa');
+    $countries = countries_get_countries();
+    if (isset($countries['XA'])) {
+      $this->fail('Test deletion failed.');
+    }
+  }
+
+}
+
+/**
+ * Test country fields.
  */
 class CountriesFieldUnitTest extends CountriesBaseSetupTest {
 
@@ -1063,9 +1118,9 @@ class CountriesFieldUnitTest extends CountriesBaseSetupTest {
     );
   }
 
-
   function setUp() {
     parent::setUp();
     $this->drupalLogin($this->admin_user);
   }
+
 }
