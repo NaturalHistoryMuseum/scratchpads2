@@ -48,7 +48,7 @@ function countries_views_data() {
       'handler' => 'views_handler_filter_string',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_string',
+      'handler' => 'views_handler_argument_countries_country',
     ),
   );
 
@@ -77,7 +77,7 @@ function countries_views_data() {
       'property' => 'iso3',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_string',
+      'handler' => 'views_handler_argument_countries_country',
     ),
   );
 
@@ -105,7 +105,7 @@ function countries_views_data() {
       'handler' => 'views_handler_filter_string',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_string',
+      'handler' => 'views_handler_argument_countries_country',
     ),
   );
 
@@ -133,7 +133,7 @@ function countries_views_data() {
       'handler' => 'views_handler_filter_string',
     ),
     'argument' => array(
-      'handler' => 'views_handler_argument_string',
+      'handler' => 'views_handler_argument_countries_country',
     ),
   );
 
@@ -198,6 +198,27 @@ function countries_views_data() {
 }
 
 /**
+ * Implements hook_views_data_alter().
+ */
+function countries_views_data_alter(&$data) {
+  $country_fields = array();
+  foreach (field_info_fields() as $field_name => $field) {
+    if ($field['module'] == 'countries') {
+      $country_fields[$field_name] = $field;
+    }
+  }
+  foreach ($data as $field_name => $field) {
+    foreach (array_keys($country_fields) as $name) {
+      // Check on field storage type prevents warnings on non-sql field storage.
+      if (isset($field[$name]) && $country_fields[$name]['storage']['type'] == 'field_sql_storage') {
+        $title = empty($data[$field_name][$name]['title']) ? '' : $data[$field_name][$name]['title'] . ' ';
+        $data[$field_name][$name]['help'] = $title . t('If you need more fields add a country relationship.');
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_field_views_data().
  *
  * @see field_views_field_default_views_data()
@@ -205,20 +226,17 @@ function countries_views_data() {
 function countries_field_views_data($field) {
   $data = field_views_field_default_views_data($field);
   foreach ($data as $table_name => $table_data) {
-    foreach ($table_data as $field_name => $field_data) {
-      if (!in_array($field_name, array('table', 'entity_id', 'revision_id'))) {
-        $data[$table_name][$field_name]['relationship'] = array(
-          'handler' => 'views_handler_relationship',
-          'base' => 'countries_country',
-          'base field' => 'iso2',
-          'label' => t('country from !field_name', array('!field_name' => $field['field_name'])),
-          'countries' => array(
-            'field' => $field['field_name'],
-          ),
-        );
-      }
-    }
+    // Add the relationship only on the iso2 field.
+    $data[$table_name][$field['field_name'] . '_iso2']['relationship'] = array(
+      'handler' => 'views_handler_relationship',
+      'base' => 'countries_country',
+      'base field' => 'iso2',
+      'label' => t('country from !field_name', array('!field_name' => $field['field_name'])),
+      'help' => t('Provides access to all of the country properties.'),
+      'countries' => array(
+        'field' => $field['field_name'],
+      ),
+    );
   }
-
   return $data;
 }

@@ -46,6 +46,7 @@ class ContextReactionBlockTest extends DrupalWebTestCase {
     // Test title override of code provided block
     $edit = array('title' => 'Context Online Block');
     $this->drupalPost('admin/structure/block/manage/user/online/configure', $edit, t('Save block'));
+    $this->drupalPost('admin/config/development/performance', array(), t('Clear all caches'));
     $this->drupalGet('node');
     $this->assertText('Context Online Block');
 
@@ -87,7 +88,9 @@ class ContextReactionBlockAjaxTest extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('context', 'ctools');
+    parent::setUp('context', 'context_ui', 'ctools');
+    $admin_user = $this->drupalCreateUser(array('context ajax block access'));
+    $this->drupalLogin($admin_user);
   }
 
   function test() {
@@ -95,8 +98,34 @@ class ContextReactionBlockAjaxTest extends DrupalWebTestCase {
       'query' => array('context_block' => 'user-online,testcontext')
     ));
 
-    $this->assertText('"status":1');
-    $this->assertText("Who's online");
+    $this->assertText('"status":1', 'Successful return status.');
+    $this->assertText('Who\\u0027s online', 'Expected text in block data.');
+  }
+}
+
+class ContextReactionBlockAjaxAccessTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: block ajax access',
+      'description' => 'Test block reaction ajax access behavior.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+    $admin_user = $this->drupalCreateUser();
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    $this->drupalGet('node', array(
+      'query' => array('context_block' => 'user-online,testcontext')
+    ));
+
+    $this->assertText('"status":0', 'Failed return status.');
   }
 }
 

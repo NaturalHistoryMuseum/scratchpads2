@@ -87,7 +87,7 @@ function comment_notify_get_user_comment_notify_preference($uid) {
 function comment_notify_get_user_node_notify_preference($uid) {
   $setting = comment_notify_get_user_notification_setting($uid);
   if (!$setting) {
-    $settings = comment_notify_get_default_notification_setting();
+    $setting = comment_notify_get_default_notification_setting();
   }
   return $setting->node_notify;
 }
@@ -251,7 +251,7 @@ function comment_notify_unsubscribe_by_email($mail) {
 }
 
 /**
- * Unsubscribe all comment notification requests associated with a hash.
+ * Unsubscribe comment notification requests associated with a hash.
  *
  * This is used in the unsubscribe link.
  *
@@ -259,12 +259,43 @@ function comment_notify_unsubscribe_by_email($mail) {
  * @return boolean
  */
 function comment_notify_unsubscribe_by_hash($hash) {
-  return (bool)db_update('comment_notify')
-    ->fields(array(
-      'notify' => 0,
-    ))
+  $notification = db_select('comment_notify')
+      ->fields('comment_notify')
+      ->condition('notify_hash', $hash)
+      ->execute()->fetchAll();
+
+  // If this notification is at the node level, delete all notifications for this node.
+  if (COMMENT_NOTIFY_NODE == $notification[0]->notify) {
+    // Get all this user's comments for this node.
+    $result = db_query("SELECT c.cid
+      FROM {comment} c, (
+        SELECT oc.nid, oc.uid
+        FROM {comment} AS oc, comment_notify AS ocn
+        WHERE oc.cid = ocn.cid
+        AND ocn.notify_hash = :hash
+      ) AS o
+      WHERE o.nid = c.nid
+      AND o.uid = c.uid", array(':hash' => $hash));
+
+    $cids = $result->fetchCol();
+
+    // Update all comment notifications to be disabled.
+    return (bool)db_update('comment_notify')
+      ->fields(array(
+        'notify' => 0,
+      ))
+      ->condition('cid', $cids, 'IN')
+      ->execute();
+  }
+  else {
+   // Update this notification to be disabled.
+   return (bool)db_update('comment_notify')
+     ->fields(array(
+       'notify' => 0,
+     ))
     ->condition('notify_hash', $hash)
     ->execute();
+  }
 }
 
 /**

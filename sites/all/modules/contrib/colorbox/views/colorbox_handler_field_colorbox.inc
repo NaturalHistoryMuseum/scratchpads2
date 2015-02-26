@@ -32,7 +32,7 @@ class colorbox_handler_field_colorbox extends views_handler_field {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
-    // Get a list of the available fields and arguments for token replacement.
+    // Get a list of the available fields and arguments for trigger field and token replacement.
     $options = array();
     $fields = array('trigger_field' => t('- None -'));
     foreach ($this->view->display_handler->get_handlers('field') as $field => $handler) {
@@ -43,6 +43,34 @@ class colorbox_handler_field_colorbox extends views_handler_field {
       }
 
       $fields[$field] = $handler->definition['title'];
+    }
+    $count = 0; // This lets us prepare the key as we want it printed.
+    foreach ($this->view->display_handler->get_handlers('argument') as $arg => $handler) {
+      $options[t('Arguments')]['%' . ++$count] = t('@argument title', array('@argument' => $handler->ui_name()));
+      $options[t('Arguments')]['!' . $count] = t('@argument input', array('@argument' => $handler->ui_name()));
+    }
+
+    $this->document_self_tokens($options[t('Fields')]);
+
+    // Default text.
+    $patterns = t('<p>You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.</p>');
+    // We have some options, so make a list.
+    if (!empty($options)) {
+      $patterns = t('<p>The following tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.
+If you would like to have the characters %5B and %5D please use the html entity codes \'%5B\' or  \'%5D\' or they will get replaced with empty space.</p>');
+      foreach (array_keys($options) as $type) {
+        if (!empty($options[$type])) {
+          $items = array();
+          foreach ($options[$type] as $key => $value) {
+            $items[] = $key . ' == ' . $value;
+          }
+          $patterns .= theme('item_list',
+            array(
+              'items' => $items,
+              'type' => $type
+            ));
+        }
+      }
     }
 
     $form['trigger_field'] = array(
@@ -86,6 +114,14 @@ class colorbox_handler_field_colorbox extends views_handler_field {
       '#weight' => -8,
     );
 
+    $form['width'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Width'),
+      '#description' => t('Specify the width of the Colorbox popup window. Because the content is dynamic, we cannot detect this value automatically. Example: "100%", 500, "500px".'),
+      '#default_value' => $this->options['width'],
+      '#weight' => -6,
+    );
+
     $form['height'] = array(
       '#type' => 'textfield',
       '#title' => t('Height'),
@@ -94,12 +130,12 @@ class colorbox_handler_field_colorbox extends views_handler_field {
       '#weight' => -7,
     );
 
-    $form['width'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Width'),
-      '#description' => t('Specify the width of the Colorbox popup window. Because the content is dynamic, we cannot detect this value automatically. Example: "100%", 500, "500px".'),
-      '#default_value' => $this->options['width'],
-      '#weight' => -6,
+    $form['patterns'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Replacement patterns'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => $patterns,
     );
   }
 

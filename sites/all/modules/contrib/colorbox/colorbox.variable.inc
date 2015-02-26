@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Colorbox translatable variables.
+ */
+
+/**
  * Implements hook_variable_info().
  */
 function colorbox_variable_info($options) {

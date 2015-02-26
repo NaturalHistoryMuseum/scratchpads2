@@ -15,7 +15,8 @@
  *   @link http://colorpowered.com/colorbox/ Colorbox documentation @endlink
  *   for the full list of supported parameters.
  * @param $style
- *   The name of the active style plugin.
+ *   The name of the active style plugin. If $style is 'none', no Colorbox
+ *   theme will be loaded.
  */
 function hook_colorbox_settings_alter(&$settings, &$style) {
   // Disable automatic downscaling of images to maxWidth/maxHeight size.
