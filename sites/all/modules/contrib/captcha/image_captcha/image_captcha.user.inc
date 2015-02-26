@@ -12,12 +12,12 @@
  * Menu callback function that generates the CAPTCHA image.
  */
 function image_captcha_image() {
-  // If output buffering is on: discard current content and disable further buffering
+  // If output buffering is on: discard current content and disable further buffering.
   if (ob_get_level()) {
     ob_end_clean();
   }
 
-  if (!isset($_GET['sid'])) {
+  if (!isset($_GET['sid']) || is_array($_GET['sid'])) {
     exit();
   }
   $captcha_sid = $_GET['sid'];
@@ -29,9 +29,14 @@ function image_captcha_image() {
 
   // Only generate captcha if code exists in the session.
   if ($code !== FALSE) {
-    // generate the image
+    // Seed the random generators used for image CAPTCHA distortion based on session and code
+    // to counter attacks that re-request the same challenge and pick the simplest image one or combine info.
+    $seed = hexdec(substr(md5($captcha_sid . $code), 0, 8));
+    srand($seed);
+    mt_srand($seed);
+    // Generate the image.
     $image = @_image_captcha_generate_image($code);
-    // check of generation was successful
+    // Check of generation was successful.
     if (!$image) {
       watchdog('CAPTCHA', 'Generation of image CAPTCHA failed. Check your image CAPTCHA configuration and especially the used font.', array(), WATCHDOG_ERROR);
       exit();
@@ -52,12 +57,11 @@ function image_captcha_image() {
   exit();
 }
 
-
 /**
  * Small helper function for parsing a hexadecimal color to a RGB tuple.
  */
 function _image_captcha_hex_to_rgb($hex) {
-  // handle #RGB format
+  // Handle #RGB format/
   if (strlen($hex) == 4) {
     $hex = $hex[1] . $hex[1] . $hex[2] . $hex[2] . $hex[3] . $hex[3];
   }
@@ -69,7 +73,6 @@ function _image_captcha_hex_to_rgb($hex) {
   return $rgb;
 }
 
-
 /**
  * Base function for generating a image CAPTCHA.
  */
@@ -77,11 +80,11 @@ function _image_captcha_generate_image($code) {
   // Get font.
   $fonts = _image_captcha_get_enabled_fonts();
 
-  // get other settings
+  // Get other settings.
   $font_size = (int) variable_get('image_captcha_font_size', 30);
   list($width, $height) = _image_captcha_image_size($code);
 
-  // create image resource
+  // Create image resource.
   $image = imagecreatetruecolor($width, $height);
   if (!$image) {
     return FALSE;
@@ -101,13 +104,13 @@ function _image_captcha_generate_image($code) {
   global $language;
   $rtl = $language->direction && ((bool) variable_get('image_captcha_rtl_support', 0));
 
-  // draw text
+  // Draw text.
   $result = _image_captcha_image_generator_print_string($image, $width, $height, $fonts, $font_size, $code, $rtl);
   if (!$result) {
     return FALSE;
   }
 
-  // add noise
+  // Add noise.
   $noise_colors = array();
   for ($i = 0; $i < 20; $i++) {
     $noise_colors[] = imagecolorallocate($image, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
@@ -123,13 +126,13 @@ function _image_captcha_generate_image($code) {
   // Distort the image.
   $distortion_amplitude = .25 * $font_size * variable_get('image_captcha_distortion_amplitude', 0) / 10.0;
   if ($distortion_amplitude > 1) {
-    // distortion parameters
-    $wavelength_xr = (2+3*lcg_value())*$font_size;
-    $wavelength_yr = (2+3*lcg_value())*$font_size;
+    // Distortion parameters.
+    $wavelength_xr = (2 + 3 * mt_rand(0, 1000) / 1000) * $font_size;
+    $wavelength_yr = (2 + 3 * mt_rand(0, 1000) / 1000) * $font_size;
     $freq_xr = 2 * 3.141592 / $wavelength_xr;
     $freq_yr = 2 * 3.141592 / $wavelength_yr;
-    $wavelength_xt = (2+3*lcg_value())*$font_size;
-    $wavelength_yt = (2+3*lcg_value())*$font_size;
+    $wavelength_xt = (2 + 3 * mt_rand(0, 1000) / 1000) * $font_size;
+    $wavelength_yt = (2 + 3 * mt_rand(0, 1000) / 1000) * $font_size;
     $freq_xt = 2 * 3.141592 / $wavelength_xt;
     $freq_yt = 2 * 3.141592 / $wavelength_yt;
 
@@ -142,45 +145,45 @@ function _image_captcha_generate_image($code) {
     }
 
     if (variable_get('image_captcha_bilinear_interpolation', FALSE)) {
-      // distortion with bilinear interpolation
+      // Distortion with bilinear interpolation.
       for ($x = 0; $x < $width; $x++) {
         for ($y = 0; $y < $height; $y++) {
-          // get distorted sample point in source image
+          // Get distorted sample point in source image.
           $r = $distortion_amplitude * sin($x * $freq_xr + $y * $freq_yr);
           $theta = $x * $freq_xt + $y * $freq_yt;
           $sx = $x + $r * cos($theta);
           $sy = $y + $r * sin($theta);
-          $sxf = (int)floor($sx);
-          $syf = (int)floor($sy);
+          $sxf = (int) floor($sx);
+          $syf = (int) floor($sy);
           if ($sxf < 0 || $syf < 0 || $sxf >= $width - 1 || $syf >= $height - 1) {
             $color = $background_color;
           }
           else {
-            // bilinear interpolation: sample at four corners
-            $color_00 = imagecolorat($image, $sxf  , $syf  );
+            // Bilinear interpolation: sample at four corners.
+            $color_00 = imagecolorat($image, $sxf, $syf);
             $color_00_r = ($color_00 >> 16) & 0xFF;
             $color_00_g = ($color_00 >> 8) & 0xFF;
             $color_00_b = $color_00 & 0xFF;
-            $color_10 = imagecolorat($image, $sxf+1, $syf  );
+            $color_10 = imagecolorat($image, $sxf + 1, $syf);
             $color_10_r = ($color_10 >> 16) & 0xFF;
             $color_10_g = ($color_10 >> 8) & 0xFF;
             $color_10_b = $color_10 & 0xFF;
-            $color_01 = imagecolorat($image, $sxf  , $syf+1);
+            $color_01 = imagecolorat($image, $sxf, $syf + 1);
             $color_01_r = ($color_01 >> 16) & 0xFF;
             $color_01_g = ($color_01 >> 8) & 0xFF;
             $color_01_b = $color_01 & 0xFF;
-            $color_11 = imagecolorat($image, $sxf+1, $syf+1);
+            $color_11 = imagecolorat($image, $sxf + 1, $syf + 1);
             $color_11_r = ($color_11 >> 16) & 0xFF;
             $color_11_g = ($color_11 >> 8) & 0xFF;
             $color_11_b = $color_11 & 0xFF;
-            // interpolation factors
+            // Interpolation factors.
             $u  = $sx - $sxf;
             $v  = $sy - $syf;
-            // interpolate
-            $r = (int)((1-$v)*((1-$u)*$color_00_r + $u*$color_10_r) + $v*((1-$u)*$color_01_r + $u*$color_11_r));
-            $g = (int)((1-$v)*((1-$u)*$color_00_g + $u*$color_10_g) + $v*((1-$u)*$color_01_g + $u*$color_11_g));
-            $b = (int)((1-$v)*((1-$u)*$color_00_b + $u*$color_10_b) + $v*((1-$u)*$color_01_b + $u*$color_11_b));
-            // build color
+            // Interpolate.
+            $r = (int) ((1 - $v) * ((1 - $u) * $color_00_r + $u * $color_10_r) + $v * ((1 - $u) * $color_01_r + $u * $color_11_r));
+            $g = (int) ((1 - $v) * ((1 - $u) * $color_00_g + $u * $color_10_g) + $v * ((1 - $u) * $color_01_g + $u * $color_11_g));
+            $b = (int) ((1 - $v) * ((1 - $u) * $color_00_b + $u * $color_10_b) + $v * ((1 - $u) * $color_01_b + $u * $color_11_b));
+            // Build color.
             $color = ($r<<16) + ($g<<8) + $b;
           }
           imagesetpixel($distorted_image, $x, $y, $color);
@@ -188,16 +191,16 @@ function _image_captcha_generate_image($code) {
       }
     }
     else {
-      // distortion with nearest neighbor interpolation
+      // Distortion with nearest neighbor interpolation.
       for ($x = 0; $x < $width; $x++) {
         for ($y = 0; $y < $height; $y++) {
-          // get distorted sample point in source image
+          // Get distorted sample point in source image.
           $r = $distortion_amplitude * sin($x * $freq_xr + $y * $freq_yr);
           $theta = $x * $freq_xt + $y * $freq_yt;
           $sx = $x + $r * cos($theta);
           $sy = $y + $r * sin($theta);
-          $sxf = (int)floor($sx);
-          $syf = (int)floor($sy);
+          $sxf = (int) floor($sx);
+          $syf = (int) floor($sy);
           if ($sxf < 0 || $syf < 0 || $sxf >= $width - 1 || $syf >= $height - 1) {
             $color = $background_color;
           }
@@ -208,9 +211,9 @@ function _image_captcha_generate_image($code) {
         }
       }
     }
-    // release undistorted image
+    // Release undistorted image.
     imagedestroy($image);
-    // return distorted image
+    // Return distorted image.
     return $distorted_image;
   }
   else {
@@ -218,16 +221,22 @@ function _image_captcha_generate_image($code) {
   }
 }
 
+/**
+ * Add lines.
+ */
 function _image_captcha_image_generator_add_lines(&$image, $width, $height, $colors) {
-  $line_quantity = $width * $height/200.0 * ((int) variable_get('image_captcha_noise_level', 5)) / 10.0;
-  for ($i = 0; $i <  $line_quantity; $i++) {
+  $line_quantity = $width * $height / 200.0 * ((int) variable_get('image_captcha_noise_level', 5)) / 10.0;
+  for ($i = 0; $i < $line_quantity; $i++) {
     imageline($image, mt_rand(0, $width), mt_rand(0, $height), mt_rand(0, $width), mt_rand(0, $height), $colors[array_rand($colors)]);
   }
 }
 
+/**
+ * Add dots.
+ */
 function _image_captcha_image_generator_add_dots(&$image, $width, $height, $colors) {
   $noise_quantity = $width * $height * ((int) variable_get('image_captcha_noise_level', 5)) / 10.0;
-  for ($i = 0; $i < $noise_quantity; $i++ ) {
+  for ($i = 0; $i < $noise_quantity; $i++) {
     imagesetpixel($image, mt_rand(0, $width), mt_rand(0, $height), $colors[array_rand($colors)]);
   }
 }
@@ -235,35 +244,38 @@ function _image_captcha_image_generator_add_dots(&$image, $width, $height, $colo
 /**
  * Helper function for drawing text on the image.
  */
-function _image_captcha_image_generator_print_string(&$image, $width, $height, $fonts, $font_size, $text, $rtl=FALSE) {
-  // get characters
+function _image_captcha_image_generator_print_string(&$image, $width, $height, $fonts, $font_size, $text, $rtl = FALSE) {
+  // Get characters.
   $characters = _image_captcha_utf8_split($text);
   $character_quantity = count($characters);
 
-  // get colors
+  // Get colors.
   $background_rgb = _image_captcha_hex_to_rgb(variable_get('image_captcha_background_color', '#ffffff'));
   $foreground_rgb = _image_captcha_hex_to_rgb(variable_get('image_captcha_foreground_color', '#000000'));
   $background_color = imagecolorallocate($image, $background_rgb[0], $background_rgb[1], $background_rgb[2]);
   $foreground_color = imagecolorallocate($image, $foreground_rgb[0], $foreground_rgb[1], $foreground_rgb[2]);
-  // precalculate the value ranges for color randomness
-  $foreground_randomness = (int)(variable_get('image_captcha_foreground_color_randomness', 100));
+  // Precalculate the value ranges for color randomness.
+  $foreground_randomness = (int) (variable_get('image_captcha_foreground_color_randomness', 100));
   if ($foreground_randomness) {
     $foreground_color_range = array();
-    for ($i=0; $i<3; $i++) {
-      $foreground_color_range[$i] = array(max(0, $foreground_rgb[$i] - $foreground_randomness), min(255, $foreground_rgb[$i] + $foreground_randomness));
+    for ($i = 0; $i < 3; $i++) {
+      $foreground_color_range[$i] = array(
+        max(0, $foreground_rgb[$i] - $foreground_randomness),
+        min(255, $foreground_rgb[$i] + $foreground_randomness),
+      );
     }
   }
 
-  // set default text color
+  // Set default text color.
   $color = $foreground_color;
 
-  // the image is seperated in different character cages, one for each character
-  // each character will be somewhere inside that cage
+  // The image is seperated in different character cages, one for each character,
+  // each character will be somewhere inside that cage.
   $ccage_width = $width / $character_quantity;
   $ccage_height = $height;
 
   foreach ($characters as $c => $character) {
-    // initial position of character: in the center of its cage
+    // Initial position of character: in the center of its cage.
     $center_x = ($c + 0.5) * $ccage_width;
     if ($rtl) {
       $center_x = $width - $center_x;
@@ -289,7 +301,16 @@ function _image_captcha_image_generator_print_string(&$image, $width, $height, $
     else {
       $character_width = imagefontwidth(5);
       $character_height = imagefontheight(5);
-      $bbox = array(0, $character_height, $character_width, $character_height, $character_width, 0, 0, 0);
+      $bbox = array(
+        0,
+        $character_height,
+        $character_width,
+        $character_height,
+        $character_width,
+        0,
+        0,
+        0,
+      );
     }
 
     // Random (but small) rotation of the character.
@@ -300,8 +321,8 @@ function _image_captcha_image_generator_print_string(&$image, $width, $height, $
     // printed so that the bounding box would be nicely centered in the cage?
     $bb_center_x = .5 * ($bbox[0] + $bbox[2]);
     $bb_center_y = .5 * ($bbox[1] + $bbox[7]);
-    $angle_cos = cos($angle*3.1415/180);
-    $angle_sin = sin($angle*3.1415/180);
+    $angle_cos = cos($angle * 3.1415 / 180);
+    $angle_sin = sin($angle * 3.1415 / 180);
     $pos_x = $center_x - ($angle_cos * $bb_center_x + $angle_sin * $bb_center_y);
     $pos_y = $center_y - (-$angle_sin * $bb_center_x + $angle_cos * $bb_center_y);
 
@@ -312,11 +333,11 @@ function _image_captcha_image_generator_print_string(&$image, $width, $height, $
     $dev_x = .5 * max(0, $ccage_width - abs($angle_cos) * $bb_width - abs($angle_sin) * $bb_height);
     $dev_y = .5 * max(0, $ccage_height - abs($angle_cos) * $bb_height - abs($angle_sin) * $bb_width);
 
-    // add jitter to position
+    // Add jitter to position.
     $pos_x = $pos_x + mt_rand(-$dev_x, $dev_x);
     $pos_y = $pos_y + mt_rand(-$dev_y, $dev_y);
 
-    // calculate text color in case of randomness
+    // Calculate text color in case of randomness.
     if ($foreground_randomness) {
       $color = imagecolorallocate($image,
         mt_rand($foreground_color_range[0][0], $foreground_color_range[0][1]),
@@ -325,7 +346,7 @@ function _image_captcha_image_generator_print_string(&$image, $width, $height, $
       );
     }
 
-    // draw character
+    // Draw character.
     if ($font == 'BUILTIN') {
       imagestring($image, 5, $pos_x, $pos_y, $character, $color);
     }
@@ -335,9 +356,8 @@ function _image_captcha_image_generator_print_string(&$image, $width, $height, $
 
     // For debugging purposes: draw character bounding box (only valid when rotation is disabled).
     // imagerectangle($image, $pos_x + $bbox[0], $pos_y + $bbox[1], $pos_x + $bbox[2], $pos_y + $bbox[7], $color);
-
   }
 
-  // return a sign of success
+  // Return a sign of success.
   return TRUE;
 }
