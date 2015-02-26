@@ -81,6 +81,16 @@ function varnish_permission() {
 }
 
 /**
+ * Implements hook_flush_caches()
+ * adds a varnish cache to the list of caches
+ */
+function varnish_flush_caches() {
+  if (variable_get('cache_class_external_varnish_page', FALSE)) {
+    return array('external_varnish_page');
+  }
+}
+
+/**
  * Implements hook_requirements().
  *
  * Ensure that varnish's connection is good.
@@ -119,11 +129,26 @@ function varnish_requirements($phase) {
  * You may also safely call this function directly with an array of local urls to purge.
  */
 function varnish_expire_cache($paths) {
-  $host = _varnish_get_host();
-  $base = base_path();
-  $purge = implode('$|^' . $base, $paths);
-  $purge = '^'. $base . $purge .'$';
-  varnish_purge($host, $purge);
+  if (module_exists('expire') && variable_get('expire_include_base_url', constant('EXPIRE_INCLUDE_BASE_URL'))) {
+    // Sort the URLs by domain and batch by domain
+    $host_buckets = array();
+    foreach ($paths as $url) {
+      $parts = parse_url($url);
+      $host_buckets[$parts['host']][] = $parts['path'].(!empty($parts['query']) ? '?'.$parts['query'] : '');
+    }
+    foreach ($host_buckets as $host => $purges) {
+      $purge = implode('$|^' , $purges);
+      $purge = '^'. $purge .'$';
+      varnish_purge($host, $purge);
+    }
+  }
+  else {
+    $host = _varnish_get_host();
+    $base = base_path();
+    $purge = implode('$|^' . $base, $paths);
+    $purge = '^'. $base . $purge .'$';
+    varnish_purge($host, $purge);
+  }
 }
 
 /**
@@ -137,15 +162,35 @@ function varnish_purge_all_pages() {
 
 /**
  * Helper function to purge items for a host that matches the provided pattern.
+ *
+ * Take care to limit the length of $pattern to params.cli_buffer on your
+ * Varnish server, otherwise Varnish will truncate the command. Use
+ * varnish_purge_paths() to protect you from this, if applicable.
+ *
  * @param string $host the host to purge.
  * @param string $pattern the pattern to look for and purge.
  */
 function varnish_purge($host, $pattern) {
+  global $base_path, $base_root;
   // Get the current varnish version, if we are using Varnish 3.x, then we can
   // need to use ban instead of purge.
   $version = floatval(variable_get('varnish_version', 2.1));
   $command = $version >= 3 ? "ban" : "purge";
   $bantype = variable_get('varnish_bantype', VARNISH_DEFAULT_BANTYPE);
+
+  // Modify the patterns to remove base url and base path.
+  $patterns = explode('|', $pattern);
+  foreach ($patterns as $num => $single_pattern) {
+    if (substr($single_pattern, 1, strlen($base_path)) == $base_path) {
+      $single_pattern = substr_replace($single_pattern, '', 1, strlen($base_path));
+    }
+    if (substr($single_pattern, 1, strlen($base_root)) == $base_root) {
+      $single_pattern = substr_replace($single_pattern, '', 1, strlen($base_root));
+    }
+    $patterns[$num] = $single_pattern;
+  }
+  $pattern = implode('|', $patterns);
+
   switch ($bantype) {
     case VARNISH_BANTYPE_NORMAL:
       _varnish_terminal_run(array("$command req.http.host ~ $host && req.url ~ \"$pattern\""));
@@ -156,6 +201,33 @@ function varnish_purge($host, $pattern) {
     default:
       // We really should NEVER get here. Log WATCHDOG_ERROR. I can only see this happening if a user switches between different versions of the module where we remove a ban type.
       watchdog('varnish', 'Varnish ban type is out of range.', array(), WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Helper function that wraps around varnish_purge() and compiles a regular
+ * expression of all paths supplied to it. This function takes care to chunk
+ * commands into no more than 7500 bytes each, to avoid hitting
+ * params.cli_buffer.
+ *
+ * @param string $host The host to purge.
+ * @param array $paths The paths (no leading slash) to purge for this host.
+ */
+function varnish_purge_paths($host, $paths) {
+  // Subtract the hostname length from the global length limit.
+  // Note we use strlen() because we're counting bytes, not characters.
+  $length_limit = variable_get('varnish_cmdlength_limit', 7500) - strlen($host);
+  $base_path = base_path();
+  while (!empty($paths)) {
+    // Construct patterns and send them to the server when they're full.
+    $purge_pattern = '^';
+    while (strlen($purge_pattern) < $length_limit && !empty($paths)) {
+      $purge_pattern .= $base_path . array_shift($paths) . '$|^';
+    }
+    // Chop the final "|^" off the string, leaving "$".
+    $purge_pattern = substr($purge_pattern, 0, -2);
+    // Submit this purge chunk.
+    varnish_purge($host, $purge_pattern);
   }
 }
 
