@@ -17,6 +17,9 @@ $plugin = array(
   'title' => t('Menu tree'),
 );
 
+// Load the standard config form.
+module_load_include('inc', 'menu_block', 'menu_block.admin');
+
 /**
  * Supplies a list of menu tree content sub-types.
  */
@@ -33,7 +36,6 @@ function menu_block_menu_tree_content_type_content_types() {
     'js' => array(drupal_get_path('module', 'menu_block') . '/menu-block.js'),
     'css' => array(drupal_get_path('module', 'menu_block') . '/menu-block-admin.css'),
   );
-  unset($common_plugin['defaults']['delta']);
 
   $menus = menu_block_get_all_menus();
   $items = array();
@@ -41,6 +43,7 @@ function menu_block_menu_tree_content_type_content_types() {
     $items[$menu_name] = $common_plugin;
     $items[$menu_name]['title'] = t('%menu menu tree', array('%menu' => $title));
     $items[$menu_name]['defaults']['menu_name'] = $menu_name;
+    $items[$menu_name]['defaults']['parent'] = $menu_name . ':0';
     $items[$menu_name]['menu_title'] = $title;
     // Custom icons/titles for some menus.
     switch ($menu_name) {
@@ -86,7 +89,10 @@ function menu_block_menu_tree_content_type_render($subtype, $conf, $args, $conte
   $tree = menu_tree_build($conf);
 
   $block              = new stdClass();
-  $block->subtype     = $conf['menu_name'];
+  $block->module      = 'menu_block';
+  // Add contextual links.
+  menu_block_block_view_alter($tree, $block);
+  $block->subtype     = isset($tree['content']['#config']['menu_name']) ? $tree['content']['#config']['menu_name'] : $conf['menu_name'];
   $block->title       = $tree['subject'];
   $block->title_array = $tree['subject_array'];
   $block->content     = $tree['content'];
@@ -100,8 +106,6 @@ function menu_block_menu_tree_content_type_render($subtype, $conf, $args, $conte
 function menu_block_menu_tree_content_type_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
-  // Load the standard config form.
-  module_load_include('inc', 'menu_block', 'menu_block.admin');
   // Create a pseudo form state.
   $sub_form_state = array('values' => $conf);
   $form += menu_block_configure_form($form, $sub_form_state);
@@ -111,13 +115,13 @@ function menu_block_menu_tree_content_type_edit_form($form, &$form_state) {
 
   // Set the options to a simple list of menu links for the configured menu.
   $menus = menu_block_get_all_menus();
-  $form['parent_mlid']['#options'] = menu_parent_options(array($conf['menu_name'] => $menus[$conf['menu_name']]), array('mlid' => 0));
+  $form['parent']['#options'] = menu_parent_options(array($conf['menu_name'] => $menus[$conf['menu_name']]), array('mlid' => 0));
   // Hide the Parent item option for the special "active" menu.
   if ($conf['menu_name'] == MENU_TREE__CURRENT_PAGE_MENU) {
-    $form['parent_mlid']['#type'] = 'hidden';
+    $form['parent']['#type'] = 'hidden';
   }
   // Remove CSS class hooks for jQuery script on parent select.
-  unset($form['parent_mlid']['#attributes']);
+  unset($form['parent']['#attributes']);
 
   return $form;
 }
@@ -127,9 +131,10 @@ function menu_block_menu_tree_content_type_edit_form($form, &$form_state) {
  */
 function menu_block_menu_tree_content_type_edit_form_submit(&$form, &$form_state) {
   foreach (array_keys($form_state['subtype']['defaults']) as $key) {
-    if (!empty($form_state['values'][$key])) {
-      $form_state['conf'][$key] = $form_state['values'][$key];
-    }
+    $form_state['conf'][$key] = $form_state['values'][$key];
+  }
+  if (!empty($form_state['values']['parent'])) {
+    list($form_state['conf']['menu_name'], $form_state['conf']['parent_mlid']) = explode(':', $form_state['values']['parent']);
   }
 }
 
@@ -142,7 +147,6 @@ function menu_block_menu_tree_content_type_admin_title($subtype, $conf, $context
   }
   else {
     // Build the menu tree.
-    module_load_include('inc', 'menu_block', 'menu_block.admin');
     $output = _menu_block_format_title($conf);
   }
   return $output;
