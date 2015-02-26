@@ -5,9 +5,8 @@ Drupal.behaviors.initColorbox = {
     if (!$.isFunction($.colorbox)) {
       return;
     }
-    $('a, area, input', context)
-      .filter('.colorbox')
-      .once('init-colorbox-processed')
+    $('.colorbox', context)
+      .once('init-colorbox')
       .colorbox(settings.colorbox);
   }
 };

@@ -187,7 +187,7 @@ function ctools_modal_text_button($text, $dest, $alt, $class = '') {
 /**
  * Wrap a form so that we can use it properly with AJAX. Essentially if the
  * form wishes to render, it automatically does that, otherwise it returns
- * so we can see submission results.
+ * the render array so we can see submission results.
 
  * @param array $form
  *   An associative array containing the structure of the form.
@@ -201,9 +201,9 @@ function ctools_modal_text_button($text, $dest, $alt, $class = '') {
  *   is set, this will use ctools_modal_form_render so it will be
  *   a $command object suitable for ajax_render already.
  *
- *   The return will be NULL if the form was successfully submitted unless
- *   you specifically set re_render = TRUE. If ajax is set the
- *   form will never be redirected.
+ *   If the form was not rendered, the raw render array will be returned.
+ *
+ *   If ajax is set the form will never be redirected.
  */
 function ctools_modal_form_wrapper($form_id, &$form_state) {
   // Since this will run again on form rebuild while still in the modal, prevent
@@ -220,7 +220,7 @@ function ctools_modal_form_wrapper($form_id, &$form_state) {
   );
 
   $output = drupal_build_form($form_id, $form_state);
- if (!empty($form_state['ajax']) && (!$form_state['executed'] || $form_state['rebuild'])) {
+  if (!empty($form_state['ajax']) && (!$form_state['executed'] || $form_state['rebuild'])) {
      return ctools_modal_form_render($form_state, $output);
   }
 

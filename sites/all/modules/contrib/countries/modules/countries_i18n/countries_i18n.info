@@ -15,9 +15,9 @@ package = "Multilingual - Internationalization"
 dependencies[] = countries
 dependencies[] = i18n_string
 
-; Information added by drupal.org packaging script on 2012-05-04
-version = "7.x-2.0"
+; Information added by Drupal.org packaging script on 2014-08-31
+version = "7.x-2.3"
 core = "7.x"
 project = "countries"
-datestamp = "1336135255"
+datestamp = "1409450929"
 

@@ -61,9 +61,34 @@ to add a new condition or reaction for your module, follow these steps:
 3. Write your condition or reaction plugin class. It's best to look at one of
   the included plugins as a starting point.
 
-4. Add in a Drupal integration point for your plugin. A node page condition
-  plugin, for example, may be invoked from `hook_nodeapi()`.
+4. Create a Drupal integration point for your plugin. A node page condition
+  plugin, for example, may be invoked from `hook_node_view()`. Typically a
+  Drupal integration point for a condition uses a Drupal hook to trigger
+  tests that determine whether context conditions are met for one or more
+  plug-ins. For example, this is how the context module itself uses
+  hook_init():
 
+        function context_init() {
+          if ($plugin = context_get_plugin('condition', 'path')) {
+            $plugin->execute();
+          }
+          if ($plugin = context_get_plugin('condition', 'language')) {
+            global $language;
+            $plugin->execute($language->language);
+          }
+          if ($plugin = context_get_plugin('condition', 'user')) {
+            global $user;
+            $plugin->execute($user);
+          }
+        }
+
+  This function first instantiates the Context module's path condition
+  plugin (filename context_condition_path.inc in the plugins directory),
+  and then uses that plugin's execute() method. The execute() method
+  determine whether any path conditions are met and, if so, it activates
+  the contexts that match those conditions. After setting contexts based
+  path conditions, the context_init() function then does the same thing
+  with the Context module's language and user condition plugins.
 
 Replacing or extending existing plugins
 ---------------------------------------

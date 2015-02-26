@@ -114,6 +114,102 @@ function entity_object_load($entity_id, $entity_type) {
 }
 
 /**
+ * Page callback to show links to add an entity of a specific bundle.
+ *
+ * Entity modules that provide a further description to their bundles may wish
+ * to implement their own version of this to show these.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ */
+function entity_ui_bundle_add_page($entity_type) {
+  // Set the title, as we're a MENU_LOCAL_ACTION and hence just get tab titles.
+  module_load_include('inc', 'entity', 'includes/entity.ui');
+  drupal_set_title(entity_ui_get_action_title('add', $entity_type));
+
+  // Get entity info for our bundles.
+  $info = entity_get_info($entity_type);
+  $items = array();
+  foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+    // Create an empty entity with just the bundle set to check for access.
+    $dummy_entity = entity_create($entity_type, array(
+      $info['entity keys']['bundle'] => $bundle_name,
+    ));
+    // If modules use a uid, they can default to the current-user
+    // in their create() method on the storage controller.
+    if (entity_access('create', $entity_type, $dummy_entity, $account = NULL)) {
+      $add_path = $info['admin ui']['path'] . '/add/' . $bundle_name;
+      $items[] = l(t('Add @label', array('@label' => $bundle_info['label'])), $add_path);
+    }
+  }
+  return theme('item_list', array('items' => $items));
+}
+
+/**
+ * Page callback to add an entity of a specific bundle.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $bundle_name
+ *   The bundle machine name.
+ */
+function entity_ui_get_bundle_add_form($entity_type, $bundle_name) {
+  $info = entity_get_info($entity_type);
+  $bundle_key = $info['entity keys']['bundle'];
+
+  // Make a stub entity of the right bundle to pass to the entity_ui_get_form().
+  $values = array(
+    $bundle_key => $bundle_name,
+  );
+  $entity = entity_create($entity_type, $values);
+
+  return entity_ui_get_form($entity_type, $entity, 'add');
+}
+
+/**
+ * Page callback for viewing an entity.
+ *
+ * @param Entity $entity
+ *   The entity to be rendered.
+ *
+ * @return array
+ *   A renderable array of the entity in full view mode.
+ */
+function entity_ui_entity_page_view($entity) {
+  module_load_include('inc', 'entity', 'includes/entity.ui');
+  return $entity->view('full', NULL, TRUE);
+}
+
+/**
+ * Gets the page title for the passed operation.
+ */
+function entity_ui_get_page_title($op, $entity_type, $entity = NULL) {
+  module_load_include('inc', 'entity', 'includes/entity.ui');
+  $label = entity_label($entity_type, $entity);
+  switch ($op) {
+    case 'view':
+      return $label;
+    case 'edit':
+      return t('Edit @label', array('@label' => $label));
+    case 'clone':
+      return t('Clone @label', array('@label' => $label));
+    case 'revert':
+      return t('Revert @label', array('@label' => $label));
+    case 'delete':
+      return t('Delete @label', array('@label' => $label));
+    case 'export':
+      return t('Export @label', array('@label' => $label));
+  }
+  if (isset($entity)) {
+    list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+  }
+  else {
+    $bundle = NULL;
+  }
+  return entity_ui_get_action_title($op, $entity_type, $bundle);
+}
+
+/**
  * A wrapper around entity_load() to load a single entity by name or numeric id.
  *
  * @todo: Re-name entity_load() to entity_load_multiple() in d8 core and this
@@ -529,7 +625,15 @@ function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = N
 }
 
 /**
- * Determines whether the given user has access to an entity.
+ * Determines whether the given user can perform actions on an entity.
+ *
+ * For create operations, the pattern is to create an entity and then
+ * check if the user has create access.
+ *
+ * @code
+ * $node = entity_create('node', array('type' => 'page'));
+ * $access = entity_access('create', 'node', $node, $account);
+ * @endcode
  *
  * @param $op
  *   The operation being performed. One of 'view', 'update', 'create' or
@@ -828,7 +932,12 @@ function _entity_defaults_rebuild($entity_type) {
       // implementations.
       $originals[$name] = $entity->original;
 
-      $entity->{$keys['status']} |= ENTITY_IN_CODE;
+      if (!isset($entity->{$keys['status']})) {
+        $entity->{$keys['status']} = ENTITY_IN_CODE;
+      }
+      else {
+        $entity->{$keys['status']} |= ENTITY_IN_CODE;
+      }
       $entity->is_rebuild = TRUE;
       entity_save($entity_type, $entity);
       unset($entity->is_rebuild);
@@ -840,6 +949,22 @@ function _entity_defaults_rebuild($entity_type) {
 
     lock_release('entity_rebuild_' . $entity_type);
   }
+}
+
+/**
+ * Implements hook_modules_installed().
+ */
+function entity_modules_installed($modules) {
+  module_load_install('entity');
+  entity_entitycache_installed_modules($modules);
+}
+
+/**
+ * Implements hook_modules_uninstalled().
+ */
+function entity_modules_uninstalled($modules) {
+  module_load_install('entity');
+  entity_entitycache_uninstalled_modules($modules);
 }
 
 /**
@@ -954,6 +1079,17 @@ function entity_flush_caches() {
   if (current_path() != 'admin/modules/list/confirm') {
     entity_defaults_rebuild();
   }
+
+  // Care about entitycache tables.
+  if (module_exists('entitycache')) {
+    $tables = array();
+    foreach (entity_crud_get_info() as $entity_type => $entity_info) {
+      if (isset($entity_info['module']) && !empty($entity_info['entity cache'])) {
+        $tables[] = 'cache_entity_' . $entity_type;
+      }
+    }
+    return $tables;
+  }
 }
 
 /**
@@ -971,101 +1107,24 @@ function entity_theme() {
   return array(
     'entity_status' => array(
       'variables' => array('status' => NULL, 'html' => TRUE),
+      'file' => 'theme/entity.theme.inc',
     ),
     'entity' => array(
       'render element' => 'elements',
       'template' => 'entity',
       'pattern' => $pattern,
+      'path' => drupal_get_path('module', 'entity') . '/theme',
+      'file' => 'entity.theme.inc',
+    ),
+    'entity_property' => array(
+      'render element' => 'elements',
+      'file' => 'theme/entity.theme.inc',
     ),
     'entity_ui_overview_item' => array(
       'variables' => array('label' => NULL, 'entity_type' => NULL, 'url' => FALSE, 'name' => FALSE),
       'file' => 'includes/entity.ui.inc'
     ),
   );
-}
-
-/**
- * Themes the exportable status of an entity.
- */
-function theme_entity_status($variables) {
-  $status = $variables['status'];
-  $html = $variables['html'];
-  if (($status & ENTITY_FIXED) == ENTITY_FIXED) {
-    $label = t('Fixed');
-    $help = t('The configuration is fixed and cannot be changed.');
-    return $html ? "<span class='entity-status-fixed' title='$help'>" . $label . "</span>" : $label;
-  }
-  elseif (($status & ENTITY_OVERRIDDEN) == ENTITY_OVERRIDDEN) {
-    $label = t('Overridden');
-    $help = t('This configuration is provided by a module, but has been changed.');
-    return $html ? "<span class='entity-status-overridden' title='$help'>" . $label . "</span>" : $label;
-  }
-  elseif ($status & ENTITY_IN_CODE) {
-    $label = t('Default');
-    $help = t('A module provides this configuration.');
-    return $html ? "<span class='entity-status-default' title='$help'>" . $label . "</span>" : $label;
-  }
-  elseif ($status & ENTITY_CUSTOM) {
-    $label = t('Custom');
-    $help = t('A custom configuration by a user.');
-    return $html ? "<span class='entity-status-custom' title='$help'>" . $label . "</span>" : $label;
-  }
-}
-
-/**
- * Process variables for entity.tpl.php.
- */
-function template_preprocess_entity(&$variables) {
-  $variables['view_mode'] = $variables['elements']['#view_mode'];
-  $entity_type = $variables['elements']['#entity_type'];
-  $variables['entity_type'] = $entity_type;
-  $entity = $variables['elements']['#entity'];
-  $variables[$variables['elements']['#entity_type']] = $entity;
-  $info = entity_get_info($entity_type);
-
-  $variables['title'] = check_plain(entity_label($entity_type, $entity));
-
-  $uri = entity_uri($entity_type, $entity);
-  $variables['url'] = $uri ? url($uri['path'], $uri['options']) : FALSE;
-
-  if (isset($variables['elements']['#page'])) {
-    // If set by the caller, respect the page property.
-    $variables['page'] = $variables['elements']['#page'];
-  }
-  else {
-    // Else, try to automatically detect it.
-    $variables['page'] = $uri && $uri['path'] == $_GET['q'];
-  }
-
-  // Helpful $content variable for templates.
-  $variables['content'] = array();
-  foreach (element_children($variables['elements']) as $key) {
-    $variables['content'][$key] = $variables['elements'][$key];
-  }
-
-  if (!empty($info['fieldable'])) {
-    // Make the field variables available with the appropriate language.
-    field_attach_preprocess($entity_type, $entity, $variables['content'], $variables);
-  }
-  list(, , $bundle) = entity_extract_ids($entity_type, $entity);
-
-  // Gather css classes.
-  $variables['classes_array'][] = drupal_html_class('entity-' . $entity_type);
-  $variables['classes_array'][] = drupal_html_class($entity_type . '-' . $bundle);
-
-  // Add RDF type and about URI.
-  if (module_exists('rdf')) {
-    $variables['attributes_array']['about'] = empty($uri['path']) ? NULL: url($uri['path']);
-    $variables['attributes_array']['typeof'] = empty($entity->rdf_mapping['rdftype']) ? NULL : $entity->rdf_mapping['rdftype'];
-  }
-
-  // Add suggestions.
-  $variables['theme_hook_suggestions'][] = $entity_type;
-  $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle;
-  $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle . '__' . $variables['view_mode'];
-  if ($id = entity_id($entity_type, $entity)) {
-    $variables['theme_hook_suggestions'][] = $entity_type . '__' . $id;
-  }
 }
 
 /**
@@ -1218,6 +1277,37 @@ function entity_ui_get_form($entity_type, $entity, $op = 'edit', $form_state = a
   return drupal_build_form($form_id, $form_state);
 }
 
+
+/**
+ * Gets the page/menu title for local action operations.
+ *
+ * @param $op
+ *  The current operation. One of 'add' or 'import'.
+ * @param $entity_type
+ *  The entity type.
+ * @param $bundle_name
+ *  (Optional) The name of the bundle. May be NULL if the bundle name is not
+ *  relevant to the current page. If the entity type has only one bundle, or no
+ *  bundles, this will be the same as the entity type.
+ */
+function entity_ui_get_action_title($op, $entity_type, $bundle_name = NULL) {
+  $info = entity_get_info($entity_type);
+  switch ($op) {
+    case 'add':
+      if (isset($bundle_name) && $bundle_name != $entity_type) {
+        return t('Add @bundle_name @entity_type', array(
+          '@bundle_name' => drupal_strtolower($info['bundles'][$bundle_name]['label']),
+          '@entity_type' => drupal_strtolower($info['label']),
+        ));
+      }
+      else {
+        return t('Add @entity_type', array('@entity_type' => drupal_strtolower($info['label'])));
+      }
+    case 'import':
+      return t('Import @entity_type', array('@entity_type' => drupal_strtolower($info['label'])));
+  }
+}
+
 /**
  * Helper for using i18n_string().
  *
@@ -1243,6 +1333,39 @@ function entity_views_api() {
     'api' => '3.0-alpha1',
     'path' => drupal_get_path('module', 'entity') . '/views',
   );
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function entity_field_extra_fields() {
+  // Invoke specified controllers for entity types provided by the CRUD API.
+  $items = array();
+  foreach (entity_crud_get_info() as $type => $info) {
+    if (!empty($info['extra fields controller class'])) {
+      $items = array_merge_recursive($items, entity_get_extra_fields_controller($type)->fieldExtraFields());
+    }
+  }
+  return $items;
+}
+
+/**
+ * Gets the extra field controller class for a given entity type.
+ *
+ * @return EntityExtraFieldsControllerInterface|false
+ *   The controller for the given entity type or FALSE if none is specified.
+ */
+function entity_get_extra_fields_controller($type = NULL) {
+  $static = &drupal_static(__FUNCTION__);
+
+  if (!isset($static[$type])) {
+    $static[$type] = FALSE;
+    $info = entity_get_info($type);
+    if (!empty($info['extra fields controller class'])) {
+      $static[$type] = new $info['extra fields controller class']($type);
+    }
+  }
+  return $static[$type];
 }
 
 /**
@@ -1347,6 +1470,13 @@ function entity_entity_info_alter(&$entity_info) {
     if (!isset($info['configuration'])) {
       $entity_info[$type]['configuration'] = !empty($info['exportable']);
     }
+
+    if (isset($info['controller class']) && in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+      // Automatically disable field cache when entity cache is used.
+      if (!empty($info['entity cache']) && module_exists('entitycache')) {
+        $entity_info[$type]['field cache'] = FALSE;
+      }
+    }
   }
 }
 
@@ -1386,6 +1516,11 @@ function _entity_info_add_metadata(&$entity_info) {
   // Form callbacks.
   $entity_info['node']['form callback'] = 'entity_metadata_form_node';
   $entity_info['user']['form callback'] = 'entity_metadata_form_user';
+
+  // URI callbacks.
+  if (!isset($entity_info['file']['uri callback'])) {
+    $entity_info['file']['uri callback'] = 'entity_metadata_uri_file';
+  }
 
   // View callbacks.
   $entity_info['node']['view callback'] = 'entity_metadata_view_node';
