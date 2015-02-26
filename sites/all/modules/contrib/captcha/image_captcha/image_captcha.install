@@ -18,10 +18,10 @@ function image_captcha_requirements($phase) {
     if (_image_captcha_check_setup(FALSE) & IMAGE_CAPTCHA_ERROR_NO_GDLIB) {
       $requirements['image_captcha_requires_gd'] = array(
         'title' => $t('Image CAPTCHA requires GD library'),
-        'description' =>
-          $t('The Image CAPTCHA module can not be installed because your PHP setup does not provide the <a href="!gddoc">GD library</a>, which is required to generate images.',
-            array('!gddoc' => 'http://www.php.net/manual/en/book.image.php',)
-          ),
+        'description' => $t(
+          'The Image CAPTCHA module can not be installed because your PHP setup does not provide the <a href="!gddoc">GD library</a>, which is required to generate images.',
+          array('!gddoc' => 'http://www.php.net/manual/en/book.image.php')
+        ),
         'severity' => REQUIREMENT_ERROR,
       );
     }
@@ -30,7 +30,7 @@ function image_captcha_requirements($phase) {
 }
 
 /**
- * On uninstall: remove module variables and clear variable cache
+ * On uninstall: remove module variables and clear variable cache.
  */
 function image_captcha_uninstall() {
   db_delete('variable')
