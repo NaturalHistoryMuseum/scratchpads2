@@ -136,3 +136,19 @@ function _linkit_theme_profile_form_table($variables, $type) {
 
   return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'linkit-' . $type), 'sticky' => FALSE));
 }
+
+/**
+ * Returns HTML for a reverse menu trail. (Based on theme_breadcrumb)
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - reverse_menu_trail: An array containing the menu trail item titles.
+ */
+function theme_linkit_reverse_menu_trail($variables) {
+  $menu_trail = $variables['reverse_menu_trail'];
+
+  if (!empty($menu_trail)) {
+    $output = '<p>' . implode($variables['separator'], $menu_trail) . '</p>';
+    return $output;
+  }
+}
