@@ -17,7 +17,7 @@ Features include:
  * A countries field.
  * Ability to add any additional Fields to a country.
  * Integration with Views, Token, Apache solr search and Feeds modules.
- * Numerious methods to handle and filter the data.
+ * Numerous methods to handle and filter the data.
  * A country FAPI element.
 
 Countries 7.x-2.x only
@@ -81,7 +81,7 @@ America, Oceania, South America). An enabled flag defines a countries status.
 For example, Taiwan has the following values:
 
  * Name           - Taiwan
- * Offical name   - Taiwan, Republic of China
+ * Official name   - Taiwan, Republic of China
  * ISO alpha-2    - TW
  * ISO alpha-3    - TWN
  * ISO numeric-3  - 158
@@ -90,10 +90,10 @@ For example, Taiwan has the following values:
 
 The official names were originally taken from WikiPedia [2] and the majority of
 the continent information was imported from Country codes API project [3]. This
-have been since standardised with the ISO 3166-1 standard. 
+have been since standardized with the ISO 3166-1 standard. 
 
 Country updates are added when the ISO officially releases these. This process
-may be up to 2 - 6 months. South Sudans inclusion took around a month. Kosovo
+may be up to 2 - 6 months. South Sudan's inclusion took around a month. Kosovo
 is taking many months, but this should be added in the near future as Kosovo is
 a member both the IMF and World Bank.
 
@@ -104,6 +104,54 @@ Please report any omissions / errors.
 The module implement hook_countries_alter() which updates any list generated
 using country_get_list() to filter out any disabled countries and adds the
 potential to rename these based on your personal or political preferences.
+
+To avoid potential clashes with future modifications to the ISO list, use one of
+the following user-assigned codes:
+
+Alpha-2: AA, QM to QZ, XA to XZ, and ZZ
+
+Optionally add other codes:
+
+Alpha-3: AAA to AAZ, QMA to QZZ, XAA to XZZ, and ZZA to ZZZ
+Numeric codes: There are no reserved numeric codes in the ISO 3166-1 standard.
+
+See http://en.wikipedia.org/wiki/ISO_3166-1 for more details
+
+Example one: Disable the UK and enable England, Scotland, Wales, Nth Ireland.
+
+The UK (United Kingdom) is a sovereign state that consists of the following
+countries England, Scotland, Wales and Northern Ireland. 
+
+a) Disable United Kingdom
+
+Go to admin/config/regional/countries and find and edit the UK.
+
+b) Add the other countries
+
+Go to admin/config/regional/countries/add and add the four countries
+
+Name: England / ISO Alpha-2 Code: XA / Continent: Europe
+- Optionally add others: ISO Alpha-3 Code: XAA, etc
+Name: Scotland / ISO Alpha-2 Code: XB / Continent: Europe
+- Optionally add others: ISO Alpha-3 Code: XBA, etc
+Name: Wales / ISO Alpha-2 Code: XC / Continent: Europe
+- Optionally add others: ISO Alpha-3 Code: XCA, etc
+Name: Northern Ireland / ISO Alpha-2 Code: XD / Continent: Europe
+- Optionally add others: ISO Alpha-3 Code: XDA, etc
+
+All default lists will hide the UK and show the other countries.
+
+Example two: Custom lists with England, Scotland, Wales, Nth Ireland but no UK.
+
+For example, you wanted to add a list of countries playing Rugby Union but to
+leave the other country lists as per the ISO standard.
+
+Do not disable the UK, rather add the other states as per example one, this time
+leave all Disabled.
+
+Create a new field and select what countries should be present. Ensure that the
+Country status is set to both, selecting all countries that play Rugby Union and
+make sure you exclude the UK.
 
 ## Developers note: ##
 
@@ -280,7 +328,7 @@ The name, ISO alpha-2 and enabled columns can not be removed.
 
 4 - I18n support (Countries 7.x-2.x only)
 
-This is in the early implemenation stages using the Entity API integration.
+This is in the early implementation stages using the Entity API integration.
 
 5 - Why is the delete link hidden on some countries?
   - Why is the edit ISO alpha-2 code disabled on some countries?

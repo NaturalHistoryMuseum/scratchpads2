@@ -2,6 +2,8 @@ name = Countries
 description = A module that provides a FAPI / Field country element and a simple wrapper module to store / update country data.
 package = Fields
 core = 7.x
+
+files[] = views/views_handler_argument_countries_country.inc
 files[] = views/views_handler_field_countries_continent.inc
 files[] = views/views_handler_filter_countries_continents_list.inc
 files[] = views/views_handler_filter_countries_list.inc
@@ -12,9 +14,9 @@ configure = admin/config/regional/countries
 dependencies[] = entity
 recommends[] = countryicons
 
-; Information added by drupal.org packaging script on 2012-05-04
-version = "7.x-2.0"
+; Information added by Drupal.org packaging script on 2014-08-31
+version = "7.x-2.3"
 core = "7.x"
 project = "countries"
-datestamp = "1336135255"
+datestamp = "1409450929"
 
