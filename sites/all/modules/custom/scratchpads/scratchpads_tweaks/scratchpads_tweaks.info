@@ -30,6 +30,7 @@ dependencies[] = search
 dependencies[] = shortcut
 dependencies[] = taxonomy
 dependencies[] = toolbar
+dependencies[] = update
 
 ; Contrib
 dependencies[] = advanced_help
