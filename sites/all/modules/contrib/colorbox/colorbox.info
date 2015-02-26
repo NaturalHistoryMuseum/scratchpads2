@@ -5,9 +5,9 @@ configure = admin/config/media/colorbox
 
 files[] = views/colorbox_handler_field_colorbox.inc
 
-; Information added by drupal.org packaging script on 2012-04-10
-version = "7.x-1.3"
+; Information added by drupal.org packaging script on 2013-04-19
+version = "7.x-1.6"
 core = "7.x"
 project = "colorbox"
-datestamp = "1334080546"
+datestamp = "1366377322"
 

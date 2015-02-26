@@ -8,7 +8,8 @@
 /**
  * The Colorbox plugin URI.
  */
-define('COLORBOX_DOWNLOAD_URI', 'http://jacklmoore.com/colorbox/colorbox.zip');
+define('COLORBOX_DOWNLOAD_URI', 'https://github.com/jackmoore/colorbox/archive/1.x.zip');
+define('COLORBOX_DOWNLOAD_PREFIX', 'colorbox-');
 
 /**
  * Implementation of hook_drush_command().
@@ -31,7 +32,7 @@ function colorbox_drush_command() {
   // the key in the $items array is the name of the command.
   $items['colorbox-plugin'] = array(
     'callback' => 'drush_colorbox_plugin',
-    'description' => dt("Downloads the Colorbox plugin."),
+    'description' => dt('Download and install the Colorbox plugin.'),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH, // No bootstrap.
     'arguments' => array(
       'path' => dt('Optional. A path where to install the Colorbox plugin. If omitted Drush will use the default location.'),
@@ -57,7 +58,7 @@ function colorbox_drush_command() {
 function colorbox_drush_help($section) {
   switch ($section) {
     case 'drush:colorbox-plugin':
-      return dt("Downloads the Colorbox plugin from colorpowered.com, default location is sites/all/libraries.");
+      return dt('Download and install the Colorbox plugin from jacklmoore.com/colorbox, default location is sites/all/libraries.');
   }
 }
 
@@ -75,10 +76,6 @@ function colorbox_drush_help($section) {
  * Command to download the Colorbox plugin.
  */
 function drush_colorbox_plugin() {
-  if (!drush_shell_exec('type unzip')) {
-    return drush_set_error(dt('Missing dependency: unzip. Install it before using this command.'));
-  }
-
   $args = func_get_args();
   if (!empty($args[0])) {
     $path = $args[0];
@@ -97,37 +94,35 @@ function drush_colorbox_plugin() {
   $olddir = getcwd();
   chdir($path);
 
-  $filename = basename(COLORBOX_DOWNLOAD_URI);
-  $dirname = basename(COLORBOX_DOWNLOAD_URI, '.zip');
-
-  // Remove any existing Colorbox plugin directory
-  if (is_dir($dirname)) {
-    drush_log(dt('A existing Colorbox plugin was overwritten at @path', array('@path' => $path)), 'notice');
-  }
-  // Remove any existing Colorbox plugin zip archive
-  if (is_file($filename)) {
-    drush_op('unlink', $filename);
-  }
-
   // Download the zip archive
-  if (!drush_shell_exec('wget ' . COLORBOX_DOWNLOAD_URI)) {
-    drush_shell_exec('curl -O ' . COLORBOX_DOWNLOAD_URI);
+  if ($filepath = drush_download_file(COLORBOX_DOWNLOAD_URI)) {
+    $filename = basename($filepath);
+    $dirname = COLORBOX_DOWNLOAD_PREFIX . basename($filepath, '.zip');
+
+     // Remove any existing Colorbox plugin directory
+    if (is_dir($dirname) || is_dir('colorbox')) {
+      drush_delete_dir($dirname, TRUE);
+      drush_delete_dir('colorbox', TRUE);
+      drush_log(dt('A existing Colorbox plugin was deleted from @path', array('@path' => $path)), 'notice');
+    }
+
+    // Decompress the zip archive
+    drush_tarball_extract($filename);
+
+    // Change the directory name to "colorbox" if needed.
+    if ($dirname != 'colorbox') {
+      drush_move_dir($dirname, 'colorbox', TRUE);
+      $dirname = 'colorbox';
+    }
   }
 
-  if (is_file($filename)) {
-    // Decompress the zip archive
-    drush_shell_exec('unzip -qq -o ' . $filename);
-    // Remove the zip archive
-    drush_op('unlink', $filename);
+  if (is_dir($dirname)) {
+    drush_log(dt('Colorbox plugin has been installed in @path', array('@path' => $path)), 'success');
+  }
+  else {
+    drush_log(dt('Drush was unable to install the Colorbox plugin to @path', array('@path' => $path)), 'error');
   }
 
   // Set working directory back to the previous working directory.
   chdir($olddir);
-
-  if (is_dir($path . '/' . $dirname)) {
-    drush_log(dt('Colorbox plugin has been downloaded to @path', array('@path' => $path)), 'success');
-  }
-  else {
-    drush_log(dt('Drush was unable to download the Colorbox plugin to @path', array('@path' => $path)), 'error');
-  }
 }
