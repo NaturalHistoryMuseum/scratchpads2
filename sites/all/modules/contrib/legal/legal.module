@@ -285,6 +285,18 @@ function legal_form_user_profile_form_alter(&$form, $form_state) {
     return;
   }
 
+  // Set reminder to change password if coming from one time login link.
+  if (isset($_REQUEST['pass-reset-token'])) {
+
+    $messages = drupal_get_messages('status', FALSE);
+    $status_messages = isset($messages['status']) ? $messages['status'] : array();
+    $reminder = t('You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password.');
+
+    if (!in_array($reminder, $status_messages)) {
+      drupal_set_message($reminder);
+    }
+  }
+
   $account = $form['#user'];
 
   // Get last accepted version for this account.
@@ -413,17 +425,21 @@ function legal_user_login(&$edit, $account) {
 
   $uid = $user->uid;
 
-  // Destroy the current session.
+  // Log the user out and regenerate the Drupal session.
   module_invoke_all('user_logout', $user);
-  session_destroy();
+  drupal_session_regenerate();
 
   // We have to use $GLOBALS to unset a global variable.
   $user = drupal_anonymous_user();
 
   $query = NULL;
-  // Deal with destination from password reset one time login link.
-  if (isset($_POST['form_id']) && $_POST['form_id'] == 'user_pass_reset') {
+
+  // Deal with destination from password reset one time login link,
+  // by creating a new one time login link and setting it as the destination
+  // after the T&Cs have been accepted.
+  if (arg(0) == 'user' && arg(1) == 'reset') {
     $token = drupal_hash_base64(drupal_random_bytes(55));
+    // This is a new, anonymous-user session.
     $_SESSION['pass_reset_' . $uid] = $token;
     $query = array('destination' => "user/$uid/edit?pass-reset-token=$token");
   }
