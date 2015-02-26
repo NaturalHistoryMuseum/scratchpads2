@@ -42,13 +42,7 @@ function feeds_xls_get_populated_template(){
  */
 function _feeds_xls_initialise_phpexcel($save_memory = FALSE){
   // Load the library.
-  if(function_exists('libraries_get_path')){
-    $path = libraries_get_path('PHPExcel');
-    $path = "$path/PHPExcel/IOFactory.php";
-  }else{
-    $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-  }
-  require_once $path;
+  feeds_xls_load_phpexcel();
   // We use the IGBinary cache method, as it is the quickest.  If we run in to
   // memory issues, then the SQLite3 function is far more efficient with memory.
   if($save_memory){

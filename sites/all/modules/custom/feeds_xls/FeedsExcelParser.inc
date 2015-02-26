@@ -1,12 +1,5 @@
 <?php
-// Load the PHPExcel library.
-if(function_exists('libraries_get_path')){
-  $path = libraries_get_path('PHPExcel');
-  $path = "$path/PHPExcel/IOFactory.php";
-}else{
-  $path = drupal_get_path('module', 'feeds_xls') . '/PHPExcel/PHPExcel/IOFactory.php';
-}
-require_once $path;
+feeds_xls_load_phpexcel();
 
 /**
  * Chunk reader for reading data from an Excel file.
@@ -68,6 +61,10 @@ class FeedsExcelParser extends FeedsParser{
     // Note, we're caching this in a file as PDO/MySQL complain when it is 
     // included in the $this->state object (dodgy characters).
     if(!$this->state->reader_object_cache_path || !file_exists($this->state->reader_object_cache_path)){
+      // Upper case the mappings
+      foreach($source->importer->processor->config['mappings'] as $key => $mapping){
+        $source->importer->processor->config['mappings'][$key]['source'] = strtoupper($mapping['source']);
+      }
       // We use drupal_realpath here as it appears that the ZipArchive class is
       // not able to handle our use of public://... Stream URIs.  This will need
       // to be fixed before Drupal 8.
@@ -106,7 +103,7 @@ class FeedsExcelParser extends FeedsParser{
       foreach($cellIterator as $cell){
         if(!is_null($cell)){
           if(!isset($this->state->column_names)){
-            $row_values[] = trim($cell->getCalculatedValue());
+            $row_values[] = strtoupper(trim($cell->getCalculatedValue()));
           }else{
             if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) ? $this->state->column_names[$column] : $column) == 'GUID'){
               $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();

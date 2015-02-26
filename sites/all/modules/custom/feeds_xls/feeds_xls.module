@@ -19,6 +19,35 @@ function feeds_xls_feeds_plugins(){
 }
 
 /**
+ * Simple helper function to load the PHPExcel class file(s)
+ */
+function feeds_xls_load_phpexcel(){
+  static $path = FALSE;
+  if(!$path){
+    if(function_exists('libraries_get_path') && ($path = libraries_get_path('PHPExcel')) != FALSE){
+      if(file_exists("$path/Classes/PHPExcel/IOFactory.php")){
+        $path = "$path/Classes/PHPExcel/IOFactory.php";
+      }elseif(file_exists("$path/PHPExcel/IOFactory.php")){
+        $path = "$path/PHPExcel/IOFactory.php";
+      }
+    }else{
+      $path_guess = drupal_get_path('module', 'feeds_xls');
+      $path_guess2 = $path_guess . '/PHPExcel/PHPExcel/IOFactory.php';
+      $path_guess = $path_guess . '/PHPExcel/Classes/PHPExcel/IOFactory.php';
+      if(file_exists($path_guess)){
+        $path = $path_guess;
+      }elseif(file_exists($path_guess2)){
+        $path = $path_guess2;
+      }
+    }
+    if($path){
+      require_once $path;
+    }
+  }
+  return $path;
+}
+
+/**
  * Implementation of hook_menu().
  */
 function feeds_xls_menu(){
@@ -179,7 +208,10 @@ function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
  */
 function feeds_xls_feeds_set_target_date($source, $entity, $target, $value){
   if(strpos(get_class($source->importer->parser), 'FeedsExcelParser') !== FALSE && is_numeric($value)){
-    $value = date("Y-m-d", mktime(0, 0, 0, 1, $value - 1, 1900));
+    $userDate = PHPExcel_Shared_Date::ExcelToPHPObject($value);
+    $date = new DateTime($userDate->format('Y-m-d H:i:s'), new DateTimeZone(drupal_get_user_timezone()));
+    $date->setTimezone(new DateTimeZone('UTC'));
+    $value = $date->format('Y-m-d H:i:s');
   }
   return date_feeds_set_target($source, $entity, $target, $value);
 }
