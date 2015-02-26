@@ -4,10 +4,11 @@ core = 7.x
 
 files[] = views/weight_handler_field_weight.inc
 files[] = views/weight_handler_filter_weight_enabled.inc
+files[] = weight.migrate.inc
 
-; Information added by drupal.org packaging script on 2012-07-10
-version = "7.x-2.1"
+; Information added by Drupal.org packaging script on 2014-12-04
+version = "7.x-2.4"
 core = "7.x"
 project = "weight"
-datestamp = "1341880989"
+datestamp = "1417653781"
 
