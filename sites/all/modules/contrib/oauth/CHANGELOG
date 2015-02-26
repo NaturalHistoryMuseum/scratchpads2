@@ -1,3 +1,11 @@
+OAuth 7.x-3.2, 2013-24-01
+------------------------------
+Issue #1987350 by juampy: Fixed Warnings when authorizing a consumer via the user interface.
+Issue #1907970 by John Franklin: Fixed patch files snuck into the repository.
+Issue #1809068 by kylebrowning, MrMaksimize, Deciphered: Fixed Cannot leave callback formfield blank even though it is not required.
+Issue #1976504 by rj, Pancho and Nick_vh: Fixed Notice: Undefined index: Auth in OAuthUtil::get_headers()
+Issue #1310984 by aadityawalawalkar | basht: Fixed PDOException with PostgreSQL when viewing page /user/1 if OAuth Provider UI in on.
+
 OAuth 7.x-3.1, 2013-2-3
 ------------------------------
 #1529166 by barraponto: implement hook_requirements() to check that cURL library is available.
