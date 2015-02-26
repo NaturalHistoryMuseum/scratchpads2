@@ -6,13 +6,12 @@
       // Helper function to show/hide noise level widget.
       var noise_level_shower = function(speed) {
         speed = (typeof speed == 'undefined') ? 'slow' : speed;
-        if ($("#edit-image-captcha-dot-noise").is(":checked")
-            || $("#edit-image-captcha-line-noise").is(":checked")) {
+        if ($("#edit-image-captcha-dot-noise").is(":checked") || $("#edit-image-captcha-line-noise").is(":checked")) {
           $(".form-item-image-captcha-noise-level").show(speed);
         } else {
           $(".form-item-image-captcha-noise-level").hide(speed);
         }
-      }
+      };
       // Add onclick handler to the dot and line noise check boxes.
       $("#edit-image-captcha-dot-noise").click(noise_level_shower);
       $("#edit-image-captcha-line-noise").click(noise_level_shower);
@@ -27,12 +26,12 @@
         } else {
           $(".form-item-image-captcha-bilinear-interpolation").hide(speed);
         }
-      }
+      };
       // Add onchange handler to the distortion level select widget.
       $("#edit-image-captcha-distortion-amplitude").change(
           smooth_distortion_shower);
       // Show or hide appropriately on page load.
-      smooth_distortion_shower(0)
+      smooth_distortion_shower(0);
 
     }
   };

@@ -97,7 +97,7 @@ function captcha_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-      )
+      ),
     ),
     'primary key' => array('csid'),
     'indexes' => array(
@@ -109,7 +109,7 @@ function captcha_schema() {
 }
 
 /**
- * Implementation of hook_requirements().
+ * Implements of hook_requirements().
  */
 function captcha_requirements($phase) {
   $requirements = array();
@@ -130,7 +130,7 @@ function captcha_requirements($phase) {
 }
 
 /**
- * Implementation of hook_install().
+ * Implements of hook_install().
  */
 function captcha_install() {
   $t = get_t();
@@ -138,7 +138,7 @@ function captcha_install() {
   $form_ids = array(
     'contact_site_form', 'contact_personal_form',
     'user_register_form', 'user_pass', 'user_login', 'user_login_block',
-    'forum_node_form'
+    'forum_node_form',
   );
   // Add form_ids of all currently known node types too.
   foreach (node_type_get_names() as $type => $name) {
@@ -167,7 +167,7 @@ function captcha_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements of hook_uninstall().
  */
 function captcha_uninstall() {
   drupal_uninstall_schema('captcha');
@@ -176,7 +176,7 @@ function captcha_uninstall() {
 }
 
 /**
- * Implementation of hook_update_N()
+ * Implements of hook_update_N().
  */
 function captcha_update_6200() {
   $items = array();
@@ -239,7 +239,7 @@ function captcha_update_6200() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-      )
+      ),
     ),
     'primary key' => array('csid'),
     'indexes' => array(
@@ -253,7 +253,8 @@ function captcha_update_6200() {
 }
 
 /**
- * Implementation of hook_update_N()
+ * Implements of hook_update_N().
+ *
  * Change the captcha points with the old text CAPTCHA, which was
  * removed from the 6.x-2.x branch, to the simple math CAPTCHA.
  */
@@ -263,9 +264,9 @@ function captcha_update_6201() {
   return $items;
 }
 
-
 /**
- * Implementation of hook_update_N()
+ * Implements of hook_update_N().
+ *
  * Add a CAPTCHA token column to captcha_sessions table.
  */
 function captcha_update_6202() {
@@ -274,10 +275,9 @@ function captcha_update_6202() {
   return $ret;
 }
 
-
-
 /**
- * Implementation of hook_update_N()
+ * Implements of hook_update_N().
+ *
  * Rename the type field to captcha_type in captcha_points.
  */
 function captcha_update_6203() {
@@ -285,7 +285,6 @@ function captcha_update_6203() {
   db_change_field($ret, 'captcha_points', 'type', 'captcha_type', array('type' => 'varchar', 'length' => 64));
   return $ret;
 }
-
 
 /**
  * Migrate form configuration for changed form ids in Drupal 7.
