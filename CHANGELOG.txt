@@ -1,3 +1,7 @@
+2.6.0.8 (2015-02-26)
+
+- Enable the update module to reflect our usage on Drupal.org
+
 2.6.0.7.1 (2015-02-25)
 
 - Ensure empty cells are not imported into list values (#4338)
