@@ -11,7 +11,11 @@ function scratchpads_qa_install(){
     'status'
   ));
   db_add_index('simpletest', 'simpletest_test_id_index', array(
-    'status'
+    'test_id'
+  ));
+  db_add_index('simpletest', 'simpletest_test_class_test_id_index', array(
+    'test_class',
+    'test_id'
   ));
 }
 
@@ -32,6 +36,16 @@ function scratchpads_qa_update_7001(){
  */
 function scratchpads_qa_update_7002(){
   db_add_index('simpletest', 'simpletest_test_id_index', array(
+    'test_id'
+  ));
+}
+
+/**
+ * Add the indexes.
+ */
+function scratchpads_qa_update_7003(){
+  db_add_index('simpletest', 'simpletest_test_class_test_id_index', array(
+    'test_class',
     'test_id'
   ));
 }
