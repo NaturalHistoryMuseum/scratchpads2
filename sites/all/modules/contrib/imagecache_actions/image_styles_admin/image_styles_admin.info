@@ -1,0 +1,13 @@
+name = Image styles admin
+description = Provides additional administrative functionality to duplicate, export or import image styles.
+package = Media
+core = 7.x
+
+dependencies[] = image
+
+; Information added by Drupal.org packaging script on 2014-11-29
+version = "7.x-1.5"
+core = "7.x"
+project = "imagecache_actions"
+datestamp = "1417256282"
+

@@ -79,8 +79,7 @@ function canvasactions_roundedcorners_form($action) {
    );
    */
   $form['notes'] = array(
-    '#type' => 'markup',
-    '#value' => t('
+    '#markup' => t('
         Note: the rounded corners effect uses true alpha transparency masking.
         This means that this effect <b>will fail to be saved</b> on jpegs
         <em>unless</em> you either <ul>
@@ -97,7 +96,7 @@ function canvasactions_roundedcorners_form($action) {
   return $form;
 }
 
-function canvasactions_roundedcorners_image($image, $action = array()) {
+function canvasactions_roundedcorners_effect($image, $action) {
   $independent_corners = !empty($action['independent_corners_set']['independent_corners']);
   if (!$independent_corners) {
     // set the independant corners to all be the same.
@@ -125,7 +124,7 @@ function canvasactions_roundedcorners_image($image, $action = array()) {
  * @param $image
  * @param $action
  */
-function image_gd_roundedcorners($image, $action = array()) {
+function image_gd_roundedcorners($image, $action) {
   // Read settings.
   $width = $image->info['width'];
   $height = $image->info['height'];
@@ -266,7 +265,7 @@ function _canvasactions_roundedcorners_pixel_opacity($x, $y, $r) {
 /**
  * imageapi_roundedcorners
  */
-function image_imagemagick_roundedcorners($image, $action = array()) {
+function image_imagemagick_roundedcorners($image, $action) {
   // Based on the imagemagick documentation.
   // http://www.imagemagick.org/Usage/thumbnails/#rounded
   // Create arc cut-outs, then mask them.

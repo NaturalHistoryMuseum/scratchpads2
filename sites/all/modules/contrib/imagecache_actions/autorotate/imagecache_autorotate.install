@@ -1,27 +1,25 @@
 <?php
 /**
- * @file
- * Ensure Imagecache recognises our new actions, per http://drupal.org/node/290101.
+ * Implements hook_requirements().
  */
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function imagecache_autorotate_enable() {
-  if (function_exists('imagecache_action_definitions') ) {
-    imagecache_action_definitions(TRUE);
+function imagecache_autorotate_requirements($phase) {
+  $result = array();
+  $t = get_t();
+  if (!extension_loaded('exif')) {
+    $result['imagecache_autorotate_exif_extension'] = array(
+      'title'=> 'EXIF extension',
+      'value'=> $phase === 'runtime' ? $t('Disabled') : '',
+      'description'=> $t('The autorotate image effect requires the exif extension to be enabled.'),
+      'severity' => REQUIREMENT_ERROR,
+    );
   }
-  cache_clear_all('imagecache_actions', 'cache');
-}
+  else {
+    $result['imagecache_autorotate_exif_extension'] = array(
+      'title'=> 'EXIF extension',
+      'value'=> $t('Enabled'),
+      'severity' => REQUIREMENT_OK,
+    );
 
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function imagecache_autorotate_disable() {
-  if (function_exists('imagecache_action_definitions') ) {
-    imagecache_action_definitions(TRUE);
   }
-  cache_clear_all('imagecache_actions', 'cache');
+  return $result;
 }
