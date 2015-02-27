@@ -81,7 +81,6 @@ features[variable][] = "node_options_spm"
 scripts[] = js/spm_config.js
 stylesheets[all][] = css/spm.css
 files[] = tests/spm.test
-files[] = tests/spm.selenium.test
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = spm
