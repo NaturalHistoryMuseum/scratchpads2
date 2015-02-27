@@ -1,5 +1,4 @@
 <?php
-// $ID $
 /**
  * @file routine for image layering
  * 

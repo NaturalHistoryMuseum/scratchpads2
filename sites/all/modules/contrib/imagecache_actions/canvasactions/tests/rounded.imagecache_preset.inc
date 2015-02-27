@@ -1,9 +1,8 @@
 <?php
-// $ID:  $
 /**
  * @file
  *   Test imagecache preset.
- * 
+ *
  * Created on Dec 29, 2009
  *
  * @author 'dman' Dan Morrison http://coders.co.nz/
@@ -28,6 +27,7 @@ $presets['rounded'] = array (
       'name' => 'coloractions_convert',
       'data' =>array (
         'format' => 'image/png',
+        'quality' => '95',
       ),
     ),
   ),
