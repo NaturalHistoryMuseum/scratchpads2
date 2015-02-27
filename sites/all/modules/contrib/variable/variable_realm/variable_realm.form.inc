@@ -86,7 +86,13 @@ function variable_realm_edit_variables_form($form, &$form_state, $realm_name, $r
   $form['realm_name'] = array('#type' => 'value', '#value' => $realm_name);
   $form['realm_key'] = array('#type' => 'value', '#value' => $realm_key);
   $options['realm'] = variable_realm($realm_name, $realm_key);
+
   if ($variable_list = $controller->getEnabledVariables()) {
+    $form = variable_base_form($form, $form_state, $variable_list, $options);
+    // variable_base_form() adds its own submit handler overriding the default,
+    // so we need to add it as a explicit submit callback here.
+    $form['#submit'][] = 'variable_realm_edit_variables_form_submit';
+
     // Group variables by variable group for vertical tabls
     $group_list = array();
     foreach ($variable_list as $variable_name) {
@@ -150,6 +156,11 @@ function variable_realm_form_key_selector($realm_name, $current_key) {
   $element_name = VARIABLE_REALM_FORM_SWITCHER . $realm_name;
   $query_name = 'variable_realm_' . $realm_name . '_key';
   $controller = variable_realm_controller($realm_name);
+  $keys = $controller->getAllKeys();
+  // Don't show selector if there aren't any keys to select.
+  if (empty($keys)) {
+    return array();
+  }
   $form[$element_name] = array(
     '#type' => 'fieldset',
     '#title' => t('There are %name variables in this form', array('%name' => $controller->getVariableName())),
@@ -159,7 +170,7 @@ function variable_realm_form_key_selector($realm_name, $current_key) {
   // Replace only this element on current query string, there may be others.
   $current_query = $_GET;
   unset($current_query['q']);
-  foreach ($controller->getAllKeys() as $realm_key => $key_name) {
+  foreach ($keys as $realm_key => $key_name) {
     $query[VARIABLE_REALM_QUERY_STRING . $realm_name] = $realm_key;
     $link =  l($key_name, $_GET['q'], array('query' => $query + $current_query));
     $items[] = $current_key == $realm_key ? '<strong>' . $link . '</strong>' : $link;

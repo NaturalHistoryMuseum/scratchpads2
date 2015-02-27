@@ -5,9 +5,9 @@ configure = admin/config/search/sitemap
 dependencies[] = menu
 files[] = site_map.test
 
-; Information added by drupal.org packaging script on 2012-10-16
-version = "7.x-1.0+11-dev"
+; Information added by Drupal.org packaging script on 2014-03-04
+version = "7.x-1.2"
 core = "7.x"
 project = "site_map"
-datestamp = "1350350687"
+datestamp = "1393897705"
 
