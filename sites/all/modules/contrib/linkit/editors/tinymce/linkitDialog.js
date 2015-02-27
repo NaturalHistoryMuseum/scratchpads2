@@ -64,9 +64,9 @@ Drupal.linkit.editorDialog.tinymce = {
     if (element == null) {
       // If there is no selection, lets inser a new element.
       if (editor.selection.isCollapsed()) {
+        var content = (Drupal.linkitCache.link_tmp_title) ? Drupal.linkitCache.link_tmp_title : data.path;
         editor.execCommand('mceInsertContent', false,
-          editor.dom.createHTML('a', data.attributes,
-            Drupal.linkitCache.link_tmp_title));
+          editor.dom.createHTML('a', data.attributes, content));
       } else {
         editor.execCommand("mceInsertLink", false, data.attributes);
       }

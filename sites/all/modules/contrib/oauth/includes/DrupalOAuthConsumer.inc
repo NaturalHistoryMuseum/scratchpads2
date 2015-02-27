@@ -161,16 +161,21 @@ class DrupalOAuthConsumer extends OAuthConsumer {
   public static function loadById($csid, $load_provider_data = TRUE) {
     $query = db_select('oauth_common_consumer', 'c');
 
-    $query
-      ->condition('c.csid', $csid)
-      ->fields('c', array('csid', 'consumer_key', 'secret', 'configuration'));
+    if (is_numeric($csid)) {
+      $query
+        ->condition('c.csid', $csid)
+        ->fields('c', array('csid', 'consumer_key', 'secret', 'configuration'));
 
-    if ($load_provider_data) {
-      $query->leftJoin('oauth_common_provider_consumer', 'pc', 'pc.csid = c.csid');
-      $query->fields('pc', array('created', 'changed', 'uid', 'name', 'context', 'callback_url'));
+      if ($load_provider_data) {
+        $query->leftJoin('oauth_common_provider_consumer', 'pc', 'pc.csid = c.csid');
+        $query->fields('pc', array('created', 'changed', 'uid', 'name', 'context', 'callback_url'));
+      }
+
+      return self::fromResult($query->execute());
     }
-
-    return self::fromResult($query->execute());
+    else {
+      return FALSE;
+    }
   }
 
   /**

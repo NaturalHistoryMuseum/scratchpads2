@@ -75,7 +75,7 @@ class LinkitPluginEntity extends LinkitPlugin {
    * Build the label that will be used in the search result for each row.
    */
   function buildLabel($entity) {
-    return entity_label($this->plugin['entity_type'], $entity);
+    return check_plain(entity_label($this->plugin['entity_type'], $entity));
   }
 
   /**
@@ -102,9 +102,58 @@ class LinkitPluginEntity extends LinkitPlugin {
    * @see token_replace()
    */
   function buildDescription($data) {
-    return token_replace(check_plain($this->conf['result_description']), array(
+    $description = token_replace(check_plain($this->conf['result_description']), array(
       $this->plugin['entity_type'] => $data,
-    ));
+    ), array('clear' => TRUE));
+
+    if (isset($this->conf['reverse_menu_trail']) && $this->conf['reverse_menu_trail']) {
+      $description .= $this->buildReverseMenuTrail($data);
+    }
+
+    return $description;
+  }
+
+  /**
+   * Builds a reverse menu trail for the entity.
+   *
+   * @param object $data
+   *   An entity object.
+   */
+  function buildReverseMenuTrail($data) {
+    $vars = array();
+    $output = '';
+
+    $uri = entity_uri($this->plugin['entity_type'], $data);
+
+    if (isset($uri['path'])) {
+
+      $menu_link_fields = array('link_title', 'link_path', 'plid', 'menu_name');
+
+      $menu_items = db_select('menu_links', 'ml')
+        ->fields('ml', $menu_link_fields)
+        ->condition('link_path', $uri['path'])
+        ->execute()->fetchAll(PDO::FETCH_ASSOC);
+
+      foreach ($menu_items as $menu_item) {
+        $vars['reverse_menu_trail'] = array();
+
+        while ($menu_item['plid']) {
+          $menu_item = db_select('menu_links', 'ml')
+            ->fields('ml', $menu_link_fields)
+            ->condition('mlid', $menu_item['plid'])
+            ->execute()
+            ->fetchAssoc();
+
+          if (isset($menu_item['link_title'])) {
+            $vars['reverse_menu_trail'][] = $menu_item['link_title'];
+          }
+        }
+        $output .= !empty($vars['reverse_menu_trail']) ? theme('linkit_reverse_menu_trail', $vars) : '';
+      }
+
+    }
+
+    return $output;
   }
 
   /**
@@ -159,7 +208,7 @@ class LinkitPluginEntity extends LinkitPlugin {
 
     // Add the search condition to the query object.
     $this->query->propertyCondition($this->entity_field_label,
-            '%' . db_like($this->serach_string) . '%', 'LIKE')
+            '%' . db_like($this->search_string) . '%', 'LIKE')
         ->addTag('linkit_entity_autocomplete')
         ->addTag('linkit_' . $this->plugin['entity_type'] . '_autocomplete');
 
@@ -188,7 +237,7 @@ class LinkitPluginEntity extends LinkitPlugin {
 
     foreach ($entities AS $entity) {
       // Check the access againt the definded entity access callback.
-      if (!entity_access('view', $this->plugin['entity_type'], $entity)) {
+      if (entity_access('view', $this->plugin['entity_type'], $entity) === FALSE) {
         continue;
       }
 
@@ -230,7 +279,7 @@ class LinkitPluginEntity extends LinkitPlugin {
     // Get supported tokens for the entity type.
     $tokens = linkit_extract_tokens($this->plugin['entity_type']);
 
-    // A short description in within the serach result for each row.
+    // A short description in within the search result for each row.
     $form[$this->plugin['name']]['result_description'] = array(
       '#title' => t('Result format'),
       '#type' => 'textfield',
@@ -283,6 +332,15 @@ class LinkitPluginEntity extends LinkitPlugin {
         '#default_value' => isset($this->conf['group_by_bundle']) ? $this->conf['group_by_bundle'] : 0,
       );
     }
+
+    // Reverse menu trail.
+    $form[$this->plugin['name']]['reverse_menu_trail'] = array(
+      '#title' => t('Add reverse menu trail to description'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($this->conf['reverse_menu_trail']) ? $this->conf['reverse_menu_trail'] : 0,
+      '#description' => t('If the result has a menu item its menu trail will be added in reverse in the description.'),
+    );
+
     return $form;
   }
 }

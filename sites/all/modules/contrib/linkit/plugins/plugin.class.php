@@ -58,10 +58,10 @@ abstract class LinkitPlugin implements LinkitPluginInterface {
   /**
    * Set the search string.
    *
-   * @param string $serach_string.
+   * @param string $search_string.
    */
-  function setSearchString($serach_string) {
-    $this->serach_string = $serach_string;
+  function setSearchString($search_string) {
+    $this->search_string = $search_string;
   }
 
   /**
@@ -90,9 +90,10 @@ abstract class LinkitPlugin implements LinkitPluginInterface {
    */
   function buildDescription($data) {
     if (isset($this->profile->data[$this->plugin['name']]['result_description'])) {
-      return token_replace(check_plain($this->profile->data[$this->plugin['name']]['result_description']), array(
+      $description =  token_replace(check_plain($this->profile->data[$this->plugin['name']]['result_description']), array(
         $this->plugin_name => $data,
-      ));
+      ), array('clear' => TRUE));
+      return $description;
     }
   }
 
