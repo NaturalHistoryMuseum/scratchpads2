@@ -152,7 +152,7 @@ function oauth_common_menu() {
  * @param string $key
  */
 function oauth_common_consumer_load($csid) {
-  $consumer = DrupalOAuthConsumer::loadById($csid, TRUE);
+  $consumer = $csid ? DrupalOAuthConsumer::loadById($csid, TRUE) : FALSE;
   if (!$consumer) {
     $consumer = FALSE;
   }
@@ -165,7 +165,7 @@ function oauth_common_consumer_load($csid) {
  * @param string $key
  */
 function oauth_common_provider_token_load($tid) {
-  $token = DrupalOAuthToken::loadByID($tid);
+  $token = $tid ? DrupalOAuthToken::loadByID($tid) : FALSE;
   if (!$token) {
     $token = FALSE;
   }

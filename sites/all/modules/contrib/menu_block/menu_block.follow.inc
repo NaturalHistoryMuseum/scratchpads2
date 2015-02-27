@@ -18,7 +18,7 @@ function _menu_tree_prune_active_tree(&$tree, $level) {
   do {
     $found_active_trail = FALSE;
     // Examine each element at this level for the active trail.
-    foreach ($tree AS $key => &$value) {
+    foreach ($tree as $key => &$value) {
       if ($tree[$key]['link']['in_active_trail']) {
         $found_active_trail = TRUE;
         // If the active trail item has children, examine them.
@@ -26,7 +26,7 @@ function _menu_tree_prune_active_tree(&$tree, $level) {
           // If we are pruning to the active menu item's level, check if this
           // is the active menu item by checking its children.
           if ($level == 'active') {
-            foreach ($tree[$key]['below'] AS $child_key => &$value) {
+            foreach ($tree[$key]['below'] as $child_key => &$value) {
               if ($tree[$key]['below'][$child_key]['link']['in_active_trail']) {
                 // Get the title for the pruned tree.
                 menu_block_set_title($tree[$key]['link']);
