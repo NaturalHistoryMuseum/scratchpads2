@@ -20,7 +20,6 @@ function views_slideshow_views_plugins() {
         'uses grouping' => FALSE,
         'uses row class' => TRUE,
         'type' => 'normal',
-        'parent' => 'list',
         'path' => drupal_get_path('module', 'views_slideshow'),
         'theme' => 'views_slideshow',
         'theme path' => drupal_get_path('module', 'views_slideshow') . '/theme',

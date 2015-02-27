@@ -83,7 +83,13 @@ class calendar_plugin_style extends views_plugin_style {
     $form['max_items'] = array(
       '#title' => t('Maximum items'),
       '#type' => 'select',
-      '#options' => array(0 => t('Unlimited'), 1 => t('1 item'), 3 => t('3 items'), 5 => t('5 items'), 10 => t('10 items')),
+      '#options' => array(
+         0 => t('Unlimited'),
+         1 => format_plural( 1, '1 item', '@count items'),
+         3 => format_plural( 3, '1 item', '@count items'),
+         5 => format_plural( 5, '1 item', '@count items'),
+        10 => format_plural(10, '1 item', '@count items'),
+      ),
       '#default_value' => $this->options['calendar_type'] != 'day' ? $this->options['max_items'] : 0,
       '#description' => t('Maximum number of items to show in calendar cells, used to keep the calendar from expanding to a huge size when there are lots of items in one day.'),
       '#dependency' => array('edit-style-options-calendar-type' => array('month')),
@@ -919,6 +925,23 @@ class calendar_plugin_style extends views_plugin_style {
     $day_wday = date_format($this->curday, 'w');
     date_modify($this->curday, '-' . strval((7 + $day_wday - $first_day) % 7) . ' days');
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
+
+    if (!empty($this->date_info->style_with_weekno)) {
+      $path = calendar_granularity_path($this->view, 'week');
+      if (!empty($path)) {
+        $url = $path . '/' . $this->date_info->year . '-W' . $week;
+        $weekno = l($week, $url, array('query' => !empty($this->date_info->append) ? $this->date_info->append : ''));
+      }
+      else {
+        // Do not link week numbers, if Week views are disabled.
+        $weekno = $week;
+      }
+      $rows[$week][] = array(
+        'data' => $weekno,
+        'class' => 'mini week',
+        'id' => $this->view->name . '-weekno-' . $curday_date,
+      );
+    }
 
     for ($i = 0; $i < 7; $i++) {
       $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
