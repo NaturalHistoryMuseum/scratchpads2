@@ -113,7 +113,6 @@ function subform_example_wrapperform1_validate($form, &$form_state) {
 
 function subform_example_wrapperform1_submit($form, &$form_state) {
   drupal_set_message(t('Wrapper form has been submitted.'));
-  //print_r($_SESSION['messages']);exit;
 }
 
 /**
@@ -295,7 +294,7 @@ function subform_example_multiple_nodes($form, &$form_state) {
       '#subform_file' => array('module' => 'node', 'name' => 'node.pages'),
       '#subform_arguments' => array(clone $node),
       '#subform_default_triggering_element' => array('actions', 'submit'),
-      '#required' => TRUE,
+      '#required' => FALSE,
       //'#limit_validation_errors' => TRUE,
 
       /*'#process' => array('subform_element_process', 'form_process_fieldset'),

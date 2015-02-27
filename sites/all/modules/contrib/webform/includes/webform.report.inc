@@ -585,14 +585,14 @@ function theme_webform_results_download_range($variables) {
   }
 
   // Render latest x submissions option.
-  $element['latest']['#attributes']['class'] = array('webform-set-active');
+  $element['latest']['#attributes']['class'][] = 'webform-set-active';
   $element['range_type']['latest']['#theme_wrappers'] = array('webform_inline_radio');
   $element['range_type']['latest']['#inline_element'] = t('Only the latest !number submissions', array('!number' => drupal_render($element['latest'])));
   $element['range_type']['latest']['#title'] = NULL;
 
   // Render Start-End submissions option.
-  $element['start']['#attributes']['class'] = array('webform-set-active');
-  $element['end']['#attributes']['class'] = array('webform-set-active');
+  $element['start']['#attributes']['class'][] = 'webform-set-active';
+  $element['end']['#attributes']['class'][] = 'webform-set-active';
   $element['range_type']['range']['#theme_wrappers'] = array('webform_inline_radio');
   $element['range_type']['range']['#inline_element'] = t('All submissions starting from: !start and optionally to: !end', array('!start' => drupal_render($element['start']), '!end' => drupal_render($element['end'])));
   $element['range_type']['range']['#title'] = NULL;
@@ -730,6 +730,10 @@ function webform_results_export($node, $format = 'delimited', $options = array()
       // Let each component determine its headers.
       if (webform_component_feature($component['type'], 'csv')) {
         $component_header = (array) webform_component_invoke($component['type'], 'csv_headers', $component, $options);
+        // Allow modules to modify the component CSV header.
+        drupal_alter('webform_csv_header', $component_header, $component);
+
+        // Merge component CSV header to overall CSV header
         $header[0] = array_merge($header[0], (array) $component_header[0]);
         $header[1] = array_merge($header[1], (array) $component_header[1]);
         $header[2] = array_merge($header[2], (array) $component_header[2]);
@@ -751,6 +755,7 @@ function webform_results_export($node, $format = 'delimited', $options = array()
 
   // Generate a row for each submission.
   $row_count = 0;
+  $sid = 0;
   foreach ($submissions as $sid => $submission) {
     $row_count++;
 
@@ -784,6 +789,10 @@ function webform_results_export($node, $format = 'delimited', $options = array()
         $raw_data = isset($submission->data[$cid]['value']) ? $submission->data[$cid]['value'] : NULL;
         if (webform_component_feature($component['type'], 'csv')) {
           $data = webform_component_invoke($component['type'], 'csv_data', $component, $options, $raw_data);
+
+          // Allow modules to modify the CSV data.
+          drupal_alter('webform_csv_data', $data, $component, $submission);
+
           if (is_array($data)) {
             $row = array_merge($row, array_values($data));
           }
