@@ -1,9 +1,8 @@
 <?php
-// $ID:  $
 /**
  * @file
  *   Test imagecache preset.
- * 
+ *
  * Created on Dec 29, 2009
  *
  * @author 'dman' Dan Morrison http://coders.co.nz/
@@ -12,7 +11,7 @@
 $presets['cheap_dropshadow'] = array (
   'name' => 'cheap_dropshadow',
   '#weight' => '3.3',
-  'effects' => 
+  'effects' =>
   array (
     -1 => array (
       'weight' => '-1',
@@ -20,28 +19,29 @@ $presets['cheap_dropshadow'] = array (
       'name' => 'coloractions_convert',
       'data' => array (
         'format' => 'image/png',
+        'quality' => '95',
       ),
     ),
-    0 => 
+    0 =>
     array (
       'weight' => '0',
       'module' => 'imagecache_canvasactions',
       'name' => 'canvasactions_definecanvas',
-      'data' => 
+      'data' =>
       array (
-        'RGB' => 
+        'RGB' =>
         array (
           'HEX' => '999999',
         ),
         'under' => 0,
-        'exact' => 
+        'exact' =>
         array (
           'width' => '',
           'height' => '',
           'xpos' => 'center',
           'ypos' => 'center',
         ),
-        'relative' => 
+        'relative' =>
         array (
           'leftdiff' => '0',
           'rightdiff' => '0',
@@ -50,26 +50,26 @@ $presets['cheap_dropshadow'] = array (
         ),
       ),
     ),
-    1 => 
+    1 =>
     array (
       'weight' => '1',
       'module' => 'imagecache_canvasactions',
       'name' => 'canvasactions_definecanvas',
-      'data' => 
+      'data' =>
       array (
-        'RGB' => 
+        'RGB' =>
         array (
           'HEX' => '',
         ),
         'under' => 1,
-        'exact' => 
+        'exact' =>
         array (
           'width' => '',
           'height' => '',
           'xpos' => 'center',
           'ypos' => 'center',
         ),
-        'relative' => 
+        'relative' =>
         array (
           'leftdiff' => '20',
           'rightdiff' => '0',
@@ -78,24 +78,24 @@ $presets['cheap_dropshadow'] = array (
         ),
       ),
     ),
-    2 => 
+    2 =>
     array (
       'weight' => '2',
       'module' => 'imagecache_canvasactions',
       'name' => 'canvasactions_source2canvas',
-      'data' => 
+      'data' =>
       array (
         'xpos' => 0,
         'ypos' => 0,
         'alpha' => '100',
       ),
     ),
-    3 => 
+    3 =>
     array (
       'weight' => '3',
       'module' => 'image',
       'name' => 'image_scale',
-      'data' => 
+      'data' =>
       array (
         'width' => '200',
         'height' => '100%',
@@ -108,6 +108,7 @@ $presets['cheap_dropshadow'] = array (
       'name' => 'coloractions_convert',
       'data' => array (
         'format' => 'image/png',
+        'quality' => '95',
       ),
     ),
   ),

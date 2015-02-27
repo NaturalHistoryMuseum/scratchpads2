@@ -1,5 +1,4 @@
 <?php
-// $ID:  $
 /**
  * @file
  *   Test imagecache preset.
@@ -15,7 +14,7 @@ $presets['scale'] = array (
   'effects' => array (
     0 => array (
       'weight' => '-1',
-      'module' => 'imagecache',
+      'module' => 'image',
       'name' => 'image_scale',
       'data' => array (
         'width' => '100',
