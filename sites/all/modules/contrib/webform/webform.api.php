@@ -302,6 +302,28 @@ function hook_webform_component_delete($component) {
 }
 
 /**
+ * Alter a Webform submission's header when exported.
+ */
+function hook_webform_csv_header_alter(&$header, $component) {
+  // Use the machine name for component headers, but only for the webform 
+  // with node 5 and components that are text fields.
+  if ($component['nid'] == 5 && $component['type'] == 'textfield') {
+    $header[2] = $component['form_key'];
+  }
+}
+
+/**
+ * Alter a Webform submission's data when exported.
+ */
+function hook_webform_csv_data_alter(&$data, $component, $submission) {
+  // If a value of a field was left blank, use the value from another
+  // field.
+  if ($component['cid'] == 1 && empty($data)) {
+    $data = $submission->data[2]['value'][0];
+  }
+}
+
+/**
  * Define components to Webform.
  *
  * @return
@@ -429,6 +451,36 @@ function hook_webform_component_info_alter(&$components) {
 
   // Change the name of a component.
   $components['textarea']['label'] = t('Text box');
+}
+
+/**
+ * Alter the list of Webform component default values.
+ *
+ * @param $defaults
+ *   A list of component defaults as defined by _webform_defaults_COMPONENT().
+ * @param $type
+ *   The component type whose defaults are being provided.
+ *
+ * @see _webform_defaults_component()
+ */
+function hook_webform_component_defaults_alter(&$defaults, $type) {
+  // Alter a default for all component types.
+  $defaults['required'] = 1;
+
+  // Add a default for a new field added via hook_form_alter() or
+  // hook_form_FORM_ID_alter() for all component types.
+  $defaults['extra']['added_field'] = t('Added default value');
+
+  // Add or alter defaults for specific component types:
+  switch ($type) {
+    case 'select':
+      $defaults['extra']['optrand'] = 1;
+      break;
+
+    case 'textfield':
+    case 'textarea':
+      $defaults['extra']['another_added_field'] = t('Another added default value');
+  }
 }
 
 /**
@@ -718,10 +770,9 @@ function _webform_submit_component($component, $value) {
  */
 function _webform_delete_component($component, $value) {
   // Delete corresponding files when a submission is deleted.
-  $filedata = unserialize($value['0']);
-  if (isset($filedata['filepath']) && is_file($filedata['filepath'])) {
-    unlink($filedata['filepath']);
-    db_query("DELETE FROM {files} WHERE filepath = '%s'", $filedata['filepath']);
+  if (!empty($value[0]) && ($file = webform_get_file($value[0]))) {
+    file_usage_delete($file, 'webform');
+    file_delete($file);
   }
 }
 
