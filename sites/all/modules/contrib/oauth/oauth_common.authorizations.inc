@@ -71,7 +71,15 @@ function oauth_common_page_user_authorizations($account) {
   return $table;
 }
 
-function oauth_common_authorization_add($consumer) {
+/**
+ * Page callback to authorize a consumer.
+ *
+ * @param object $account
+ *   A user account object.
+ * @param object $consumer
+ *   A DrupalOAuthConsumer instance.
+ */
+function oauth_common_authorization_add($account, $consumer) {
   $token = new DrupalOAuthToken(user_password(32), user_password(32), $consumer, array(
     'uid' => $account->uid,
   ));

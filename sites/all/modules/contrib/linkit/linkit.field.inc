@@ -89,6 +89,10 @@ function linkit_process_widget(&$element) {
     // Spcial settings for link fields.
     if ($element['#type'] == 'link_field') {
       $field_js['data']['linkit']['fields'][$field_id]['no_slash'] = TRUE;
+      // Link fields can have a title field.
+      if (isset($instance['settings']['title']) && in_array($instance['settings']['title'], array('optional', 'required'))) {
+        $field_js['data']['linkit']['fields'][$field_id]['title_field'] = $element['#id'] . '-title';
+      }
     }
 
     // Attach js files and settings Linkit needs.

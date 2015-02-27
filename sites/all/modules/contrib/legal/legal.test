@@ -99,6 +99,71 @@ class LegalRegisterTestCase extends LegalTestCase {
 }
 
 /**
+ * Test registering as new user and creating an account.
+ */
+class LegalPasswordResetTestCase extends LegalTestCase {
+
+  function getInfo() {
+    return array(
+      'name' => 'Password reset',
+      'description' => 'Password reset workflow when T&Cs need to be accepted.',
+      'group' => 'Legal',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Set basic module settings.
+    $conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $conditions,
+    );
+    $this->setSettings($edit);
+
+    // Create an ordinary user.
+    $this->user = $this->drupalCreateUser();
+  }
+
+  /**
+   * Accept T&C to successfully create an account.
+   */
+  function testPasswordReset() {
+    // Create a log in link for the user, and go to that URL.
+    // Borrowed from testUserPasswordResetExpired().
+    $timestamp = REQUEST_TIME;
+    $this->drupalGet("user/reset/{$this->user->uid}/$timestamp/" . user_pass_rehash($this->user->pass, $timestamp, $this->user->login));
+
+    $this->assertText(t('Reset password'), "The reset password form is shown.");
+
+    // Use the one-time login link.
+    $this->drupalPost(NULL, array(), t('Log in'));
+
+    $this->assertTitle(t('Terms and Conditions | Drupal'), "The user is redirected to the terms and conditions approval page.");
+    $this->assertText(t('Terms and Conditions'), "The Terms and Conditions form is shown.");
+    // assertText() doesn't handle an '&' properly.
+    $this->assertText(t('To continue to use this site please read the Terms &amp; Conditions below'), "The Terms and Conditions form is shown.");
+
+    $edit = array(
+      'legal_accept' => TRUE,
+    );
+
+    // Accept the T&Cs.
+    $this->drupalPost(NULL, $edit, t('Confirm'));
+
+    // Don't use assertUrl() as that requires us to match up the tokens in the
+    // query too.
+    $url = $this->getUrl();
+    $path = parse_url($url, PHP_URL_PATH);
+    $expected_path = url("user/{$this->user->uid}/edit");
+    $this->assertEqual($path, $expected_path, "The user is redirected to the user edit page.");
+
+    $this->assertText(t("You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password."), "The user is shown the message to reset their password.");
+  }
+
+}
+
+/**
  * Test Scroll Box Display.
  */
 class LegalScrollBoxDisplayTestCase extends LegalTestCase {

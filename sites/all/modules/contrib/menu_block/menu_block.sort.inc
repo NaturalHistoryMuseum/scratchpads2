@@ -19,7 +19,7 @@ function _menu_tree_sort_active_path(&$tree) {
   // Traverse the tree along the active trail.
   do {
     $next_level = $sort = $first_key = FALSE;
-    foreach ($current_level AS $key => &$value) {
+    foreach ($current_level as $key => &$value) {
       // Save the first key for later use.
       if (!$first_key) {
         $first_key = $key;

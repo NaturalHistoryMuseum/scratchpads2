@@ -20,6 +20,13 @@ class LinkitPluginFile extends LinkitPluginEntity {
   }
 
   /**
+   * Build an URL based in the path and the options.
+   */
+  function buildPath($entity, $options = array()) {
+    return file_create_url($entity->uri);
+  }
+
+  /**
    * Build the search row description.
    *
    * If there is a "result_description", run it thro token_replace.

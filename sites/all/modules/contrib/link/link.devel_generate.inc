@@ -21,9 +21,12 @@ function link_devel_generate($object, $field, $instance, $bundle) {
  * Callback for hook_devel_generate().
  */
 function _link_devel_generate($object, $field, $instance, $bundle) {
-  return array(
+  $link = array(
     'url' => url('<front>', array('absolute' => TRUE)),
-    'title' => devel_create_greeking(mt_rand(1, 3), TRUE),
     'attributes' => _link_default_attributes(),
   );
+  if ($instance['settings']['title'] != 'none') {
+    $link['title'] = devel_create_greeking(mt_rand(1, 3), TRUE);
+  }
+  return $link;
 }
