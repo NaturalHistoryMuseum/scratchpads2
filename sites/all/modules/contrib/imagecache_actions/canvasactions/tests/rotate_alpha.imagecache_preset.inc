@@ -1,9 +1,8 @@
 <?php
-// $ID:  $
 /**
  * @file
  *   Test imagecache preset.
- * 
+ *
  * Created on Dec 29, 2009
  *
  * @author 'dman' Dan Morrison http://coders.co.nz/
@@ -17,7 +16,7 @@ $presets['rotate_alpha'] = array (
       'weight' => '1',
       'module' => 'image',
       'name' => 'image_rotate',
-      'data' => array (        
+      'data' => array (
         'degrees' => '15',
         'random' => 0,
         'bgcolor' => '',
@@ -29,6 +28,7 @@ $presets['rotate_alpha'] = array (
       'name' => 'coloractions_convert',
       'data' => array (
         'format' => 'image/png',
+        'quality' => '95',
       ),
     ),
   ),

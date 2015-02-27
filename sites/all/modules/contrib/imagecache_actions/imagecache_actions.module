@@ -1,36 +1,17 @@
 <?php
 
 /**
- * @file Home for the most basic imagecache_action routines, for re-use
+ * @file Home for the most basic imagecache_action routines.
  */
 
 /**
- * Need to register the theme functions we expect to use
+ * Implements hook_theme().
  */
 function imagecache_actions_theme() {
   return array(
-    'imagecacheactions_rgb_form' => array(
-      'file' => 'utility-color.inc',
-      'render element' => 'form',
-    ),
     'imagecacheactions_rgb' => array(
       'file' => 'utility-color.inc',
       'variables' => array('rgb' => NULL),
     ),
   );
-}
-
-/**
-* Implements hook_stream_wrappers().
-*/
-function imagecache_actions_stream_wrappers() {
-  $wrappers = array(
-    'module' => array(
-      'name' => t('Module files (read-only)'),
-      'class' => 'ImageCacheActionsModuleStreamWrapper',
-      'description' => t('Module files (read-only).'),
-      'type' => STREAM_WRAPPERS_LOCAL | STREAM_WRAPPERS_READ_VISIBLE,
-    ),
-  );
-  return $wrappers;
 }

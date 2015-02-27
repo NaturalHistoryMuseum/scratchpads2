@@ -5,7 +5,7 @@
  * including "Watermark"
  *
  * Based on first draft of the code by Dimm (imagecache.module 5--1)
- * http://drupal.org/node/184816
+ * https://drupal.org/node/184816
  *
  * Rewritten and ported to Imagecache actions API (imagecache.module 5--2) by
  * dman http://coders.co.nz/
@@ -39,9 +39,6 @@
  *
  */
 
-// During devel, caching is pointless. Flush it
-// imagecache_action_definitions(TRUE);
-
 if (! function_exists('imagecache_actions_calculate_relative_position') ) {
   module_load_include('inc', 'imagecache_canvasactions', 'utility');
 }
@@ -50,10 +47,12 @@ if (! function_exists('imagecache_actions_calculate_relative_position') ) {
 // so placing this here for the time being.
 module_load_include('inc', 'imagecache_canvasactions', 'canvasactions');
 module_load_include('inc', 'imagecache_canvasactions', 'rounded_corners');
-// imageapi extensions
-module_load_include('inc', 'imagcache_actions', 'image_overlay.inc');
 
-
+/**
+ * Implements hook_image_effect_info().
+ *
+ * Defines information about the supported effects.
+ */
 function imagecache_canvasactions_image_effect_info() {
   $effects = array();
 
@@ -69,8 +68,8 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_imagemask'] = array(
     'label' => t('Image mask'),
     'help' => t(' Choose the file image you wish to use as a mask, and apply it to the canvas.'),
-    'effect callback' => 'canvasactions_imagemask_image',
     'dimensions passthrough' => TRUE,
+    'effect callback' => 'canvasactions_imagemask_effect',
     'form callback' => 'canvasactions_imagemask_form',
     'summary theme' => 'canvasactions_imagemask_summary',
   );
@@ -78,8 +77,8 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_file2canvas'] = array(
     'label' => t('Overlay (watermark)'),
     'help' => t('Choose the file image you wish to use as an overlay, and position it in a layer on top of the canvas.'),
-    'effect callback' => 'canvasactions_file2canvas_image',
     'dimensions passthrough' => TRUE,
+    'effect callback' => 'canvasactions_file2canvas_effect',
     'form callback' => 'canvasactions_file2canvas_form',
     'summary theme' => 'canvasactions_file2canvas_summary',
   );
@@ -87,7 +86,7 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_canvas2file'] = array(
     'label' => t('Underlay (background)'),
     'help' => t('Choose the file image you wish to use as an background, and position the processed image on it.'),
-    'effect callback' => 'canvasactions_canvas2file_image',
+    'effect callback' => 'canvasactions_canvas2file_effect',
     'dimensions callback' => 'canvasactions_canvas2file_dimensions',
     'form callback' => 'canvasactions_canvas2file_form',
     'summary theme' => 'canvasactions_canvas2file_summary',
@@ -96,8 +95,8 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_source2canvas'] = array(
     'label' => t('Overlay: source image to canvas'),
     'help' => t('Places the source image onto the canvas for compositing.'),
-    'effect callback' => 'canvasactions_source2canvas_image',
     'dimensions passthrough' => TRUE,
+    'effect callback' => 'canvasactions_source2canvas_effect',
     'form callback' => 'canvasactions_source2canvas_form',
     'summary theme' => 'canvasactions_source2canvas_summary',
   );
@@ -105,8 +104,8 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_roundedcorners'] = array(
     'label' => t('Rounded Corners'),
     'help' => t('This is true cropping, not overlays, so the result <em>can</em> be transparent.'),
-    'effect callback' => 'canvasactions_roundedcorners_image',
     'dimensions passthrough' => TRUE,
+    'effect callback' => 'canvasactions_roundedcorners_effect',
     'form callback' => 'canvasactions_roundedcorners_form',
     'summary theme' => 'canvasactions_roundedcorners_summary',
   );
@@ -114,49 +113,88 @@ function imagecache_canvasactions_image_effect_info() {
   $effects['canvasactions_aspect'] = array(
     'label' => t('Aspect switcher'),
     'help' => t('Use different effects depending on whether the image is landscape of portrait shaped. This re-uses other preset definitions, and just chooses between them based on the rule.'),
-    'effect callback' => 'canvasactions_aspect_image',
+    'effect callback' => 'canvasactions_aspect_effect',
     'dimensions callback' => 'canvasactions_aspect_dimensions',
     'form callback' => 'canvasactions_aspect_form',
     'summary theme' => 'canvasactions_aspect_summary',
   );
 
+  $effects['canvasactions_resizepercent'] = array(
+    'label' => t('Resize (percent)'),
+    'help' => t('Resize the image based on percent. If only a single dimension is specified, the other dimension will be calculated.'),
+    'effect callback' => 'canvasactions_resizepercent_effect',
+    'dimensions callback' => 'canvasactions_resizepercent_dimensions',
+    'form callback' => 'canvasactions_resizepercent_form',
+    'summary theme' => 'canvasactions_resizepercent_summary',
+  );
+
   return $effects;
 }
 
-
 /**
- * Need to register the theme functions we expect to use
+ * Implements hook_theme().
+ *
+ * Registers theme functions for the effect summaries.
  */
 function imagecache_canvasactions_theme() {
-  $util_dir = drupal_get_path('module', 'imagecache_actions');
   return array(
     'canvasactions_definecanvas_summary' => array(
-      'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_imagemask_summary' => array(
-      'file'      => 'canvasactions.inc',
       'arguments' => array('element' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_file2canvas_summary' => array(
-      'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_source2canvas_summary' => array(
-      'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_canvas2file_summary' => array(
-      'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_roundedcorners_summary' => array(
-      'file' => 'rounded_corners.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
     'canvasactions_aspect_summary' => array(
-      'file' => 'canvasactions.inc',
       'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
+    ),
+    'canvasactions_resizepercent_summary' => array(
+      'variables' => array('data' => NULL),
+      'file' => 'canvasactions.inc',
     ),
   );
+}
+
+/**
+ * Implements hook_image_style_flush().
+ *
+ * This hook checks if the image style that is being flushed is used in an
+ * aspect switcher effect. If so, the style that contains the aspect switcher
+ * effect, should be flushed as well as the flushed style was probably changed.
+ *
+ * @param array $flushed_style
+ *   The image style that is being flushed.
+ */
+function imagecache_canvasactions_image_style_flush(/*array*/ $flushed_style) {
+  $styles = image_styles();
+  foreach ($styles as $style) {
+    if ($style['name'] !== $flushed_style['name']) {
+      foreach ($style['effects'] as $effect) {
+        if ($effect['name'] === 'canvasactions_aspect') {
+          if ( (isset($effect['data']['portrait']) && $effect['data']['portrait'] === $flushed_style['name'])
+            || (isset($effect['data']['landscape']) && $effect['data']['landscape'] === $flushed_style['name'])) {
+            image_style_flush($style);
+          }
+        }
+      }
+    }
+  }
 }

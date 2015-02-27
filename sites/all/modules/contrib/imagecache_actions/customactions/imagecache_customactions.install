@@ -1,8 +1,8 @@
 <?php
 /**
- * Rename 'text' to 'php' in custom action effect data
+ * Rename 'text' to 'php' in custom action effect data.
  */
-function imagecache_customactions_update_7100(&$sandbox) {
+function imagecache_customactions_update_7100(/*&$sandbox*/) {
   $effects = db_select('image_effects')
     ->fields('image_effects')
     ->condition('name', 'imagecache_customactions', '=')
