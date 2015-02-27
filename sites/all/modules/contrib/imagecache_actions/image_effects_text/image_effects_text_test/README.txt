@@ -2,9 +2,18 @@ README
 ------
 README for the Image effect text test module.
 
-This module contians 2 image styles to test text effects. Additionally an image
-containing a grid and a font are added.`
+This module contains several image styles to test text effects. It uses an image
+containing a grid and a font which are included in the install package as well.
+The image styles defined by this module start with 'text-test-'.
 
-To make the styles work correctly, please copy the image to the public files
-directory, and the font to the parent directory (root directory of the Image
-Effects Tesxt module itself).  
+Hard Dependencies
+-----------------
+Hard dependencies:
+- Imagecache actions (canvas_actions and image_effects_text).
+- Image (Drupal core).
+- System stream wrapper (https://drupal.org/project/system_stream_wrapper)
+
+Soft Dependencies
+-----------------
+- Imagemagick (preferred toolkit, https://drupal.org/project/imagemagick).
+- GD
