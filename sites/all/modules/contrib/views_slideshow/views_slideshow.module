@@ -13,51 +13,63 @@ function views_slideshow_theme($existing, $type, $theme, $path) {
     'views_slideshow_main_section' => array(
       'variables' => array('vss_id' => NULL, 'slides' => NULL, 'plugin' => NULL),
       'file' => 'theme/views_slideshow.theme.inc',
+      'pattern' => 'views_slideshow_main_section__',
     ),
     'views_slideshow_pager_widget_render' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
       'file' => 'theme/views_slideshow.theme.inc',
+      'pattern' => 'views_slideshow_pager_widget_render__',
     ),
     'views_slideshow_pager_fields' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'attributes' => array()),
       'template' => 'theme/views-slideshow-pager-fields',
+      'pattern' => 'views_slideshow_pager_fields__',
     ),
     'views_slideshow_pager_field_field' => array(
       'variables' => array('view' => NULL, 'field' => NULL, 'count' => NULL),
       'template' => 'theme/views-slideshow-pager-field-field',
       'file' => 'theme/views_slideshow.theme.inc',
+      'pattern' => 'views_slideshow_pager_field_field__',
     ),
     'views_slideshow_pager_field_item' => array(
-      'variables' => array('vss_id' => NULL, 'item' => NULL, 'count' => NULL, 'location' => NULL),
+      'variables' => array('vss_id' => NULL, 'item' => NULL, 'count' => NULL, 'location' => NULL, 'length' => NULL),
       'template' => 'theme/views-slideshow-pager-field-item',
+      'pattern' => 'views_slideshow_pager_field_item__',
     ),
     'views_slideshow_controls_widget_render' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
       'file' => 'theme/views_slideshow.theme.inc',
+      'pattern' => 'views_slideshow_controls_widget_render__',
     ),
     'views_slideshow_controls_text' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
       'template' => 'theme/views-slideshow-controls-text',
+      'pattern' => 'views_slideshow_controls_text__',
     ),
     'views_slideshow_controls_text_previous' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
       'template' => 'theme/views-slideshow-controls-text-previous',
+      'pattern' => 'views_slideshow_controls_text_previous__',
     ),
     'views_slideshow_controls_text_pause' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
       'template' => 'theme/views-slideshow-controls-text-pause',
+      'pattern' => 'views_slideshow_controls_text_pause__',
     ),
     'views_slideshow_controls_text_next' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array()),
       'template' => 'theme/views-slideshow-controls-text-next',
+      'pattern' => 'views_slideshow_controls_text_next__',
     ),
     'views_slideshow_slide_counter_widget_render' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
       'file' => 'theme/views_slideshow.theme.inc',
+      'pattern' => 'views_slideshow_counter_widget_render__',
     ),
     'views_slideshow_slide_counter' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => array(), 'location' => NULL, 'rows' => array()),
       'template' => 'theme/views-slideshow-slide-counter',
+      'pattern' => 'views_slideshow_slide_counter__',
     ),
   );
 }
@@ -82,14 +94,26 @@ function views_slideshow_help($path, $arg) {
 }
 
 /**
- * Implements hook_init().
+ * Implements hook_library().
  */
-function views_slideshow_init() {
-  // Load javascript on the page in init to help fool caching.
-  drupal_add_js(drupal_get_path('module', 'views_slideshow') . '/js/views_slideshow.js');
+function views_slideshow_library() {
+  $libraries = array();
 
-  $vs_path = drupal_get_path('module', 'views_slideshow');
-  drupal_add_css($vs_path . '/views_slideshow.css');
+  $libraries['views_slideshow'] = array(
+    'title' => 'Views slideshow',
+    'version' => '1.0',
+    'js' => array(
+      drupal_get_path('module', 'views_slideshow') . '/js/views_slideshow.js' => array(),
+    ),
+    'css' => array(
+      drupal_get_path('module', 'views_slideshow') . '/views_slideshow.css' => array(
+        'type' => 'file',
+        'media' => 'screen',
+      ),
+    ),
+  );
+
+  return $libraries;
 }
 
 /**
@@ -195,7 +219,7 @@ function views_slideshow_pager_views_slideshow_widget_form_options(&$form, &$for
         ),
       ),
     );
-  
+
     // Add any additional form elements
     // Build our arguments to pass to
     // [pager-type]_views_slideshow_widget_pager_form_options
@@ -213,7 +237,7 @@ function views_slideshow_pager_views_slideshow_widget_form_options(&$form, &$for
         call_user_func_array($function, $arguments);
       }
     }
-    
+
     $form['views_slideshow_pager_wrapper_close'] = array(
       '#markup' => '</div>',
     );
@@ -223,6 +247,23 @@ function views_slideshow_pager_views_slideshow_widget_form_options(&$form, &$for
       '#markup' => 'There are no pagers available.',
     );
   }
+}
+
+/**
+ * preg_replace_callback callback().
+ * @see views_slideshow_format_addons_name().
+ */
+function _views_slideshow_get_preg_strtoupper_callback($matches) {
+  if (isset($matches[1])) {
+    return strtoupper($matches[1]);
+  }
+}
+
+/**
+ * php5.x preg_replace_callback() method.
+ */
+function views_slideshow_format_addons_name($subject) {
+  return preg_replace_callback('/_(.?)/', '_views_slideshow_get_preg_strtoupper_callback', $subject);
 }
 
 /**
@@ -314,7 +355,7 @@ function views_slideshow_controls_views_slideshow_widget_form_options(&$form, &$
     $form['views_slideshow_controls_wrapper'] = array(
       '#markup' => '<div class="vs-dependent">',
     );
-    
+
     // Add field to see if they would like to hide controls if there is only one
     // slide
     $form['hide_on_single_slide'] = array(
@@ -432,9 +473,9 @@ function views_slideshow_views_slideshow_option_definition() {
 }
 
 /**
- * Need to have preprocess functions here because drupal doesn't cache them 
+ * Need to have preprocess functions here because drupal doesn't cache them
  * correctly in the theme.inc file.
- * 
+ *
  * If you would like to override the preprocess functions make sure to look at
  * the associated function in theme.inc.
  */

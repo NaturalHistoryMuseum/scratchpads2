@@ -21,9 +21,8 @@ function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame(&$va
   $new_settings = array();
   foreach ($settings as $key => $value) {
     if (is_string($value)) {
-      if (stristr($value, "\n")) {
-        $value = str_replace("\n", ' ', $value);
-      }
+      $value = str_replace("\n", ' ', $value);
+
       $value = trim($value);
 
       if (is_numeric($value)) {
@@ -68,7 +67,7 @@ function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame(&$va
     $vss_id .= '-' . $slideshow_count;
     $settings['vss_id'] = $vss_id;
   }
-  
+
   // Don't load javascript unless libraries module is present.
   if (module_exists('libraries')) {
     // Load jQuery Cycle
@@ -85,13 +84,18 @@ function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame(&$va
     // Load our cycle js
     $module_path = drupal_get_path('module', 'views_slideshow_cycle');
     drupal_add_js($module_path . '/js/views_slideshow_cycle.js');
+
+    // Load the pause library
+    if (!empty($settings['pause_in_middle']) && $pause_path = _views_slideshow_cycle_pause_library_path()) {
+      drupal_add_js($pause_path);
+    }
   }
 
   // Load our cycle css
   drupal_add_css($module_path . '/views_slideshow_cycle.css', 'file');
 
   drupal_add_js(array('viewsSlideshowCycle' => array('#views_slideshow_cycle_main_' . $vss_id => $settings)), 'setting');
-  
+
   // Add hover intent library
   if ($settings['pause']) {
     if (module_exists('libraries')) {
@@ -135,7 +139,7 @@ function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame(&$va
   foreach ($rows as $count => $item) {
     $items[] = $item;
     if (count($items) == $items_per_slide || $count == (count($rows)-1)) {
-      $rendered_rows .= theme('views_slideshow_cycle_main_frame_row', array('vss_id' => $vss_id, 'items' => $items, 'count' => $slideshow_count, 'view' => $vars['view']));
+      $rendered_rows .= theme(views_theme_functions('views_slideshow_cycle_main_frame_row', $vars['view'], $vars['view']->display[$vars['view']->current_display]), array('vss_id' => $vss_id, 'items' => $items, 'count' => $slideshow_count, 'view' => $vars['view']));
       $items = array();
       $slideshow_count++;
     }
@@ -161,26 +165,24 @@ function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame_row(
 
   $vars['rendered_items'] = '';
   foreach ($vars['items'] as $item_count => $item) {
-    $vars['rendered_items'] .= theme('views_slideshow_cycle_main_frame_row_item', array('item' => $item, 'item_count' => $item_count, 'view' => $vars['view']));
+    $vars['rendered_items'] .= theme(views_theme_functions('views_slideshow_cycle_main_frame_row_item', $vars['view'], $vars['view']->display[$vars['view']->current_display]), array('item' => $item, 'item_count' => $item_count, 'count' => $vars['count'], 'view' => $vars['view'], 'length' => count($vars['view']->result)));
   }
 }
 
 function _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame_row_item(&$vars) {
-  $vars['classes_array'][] = 'views-row views-row-' . $vars['item_count'];
-  if (!$vars['item_count']) {
+  $vars['classes_array'][] = 'views-row views-row-' . $vars['count'];
+  $vars['classes_array'][] = ($vars['count'] % 2) ? 'views-row-even' : 'views-row-odd';
+  if ($vars['count'] == 0) {
     $vars['classes_array'][] = 'views-row-first';
   }
-  if ($vars['item_count'] % 2) {
-    $vars['classes_array'][] = 'views-row-even';
+  elseif ($vars['count'] == $vars['length'] - 1) {
+    $vars['classes_array'][] = 'views-row-last';
   }
-  else {
-    $vars['classes_array'][] = 'views-row-odd';
-  }
-  
+
   /**
    * Support custom row classes.
    */
-  if ($row_class = $vars['view']->style_plugin->get_row_class($vars['item_count'])) {
+  if ($row_class = $vars['view']->style_plugin->get_row_class($vars['count'])) {
     $vars['classes_array'][] = $row_class;
   }
 }
