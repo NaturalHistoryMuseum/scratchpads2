@@ -14,26 +14,68 @@
 function imagecache_rgb_form($action) {
   if ($action['HEX'] && $deduced = imagecache_actions_hex2rgba($action['HEX'])) {
     $action = array_merge($action, $deduced);
-    $action['HEX'] = ltrim($action['HEX'], '#');
-    // With or without # is valid, but trim for consistancy
+    $action['HEX'] = '#' . ltrim($action['HEX'], '#');
+    // With or without # is valid, but the colorpicker expects it always
   }
-  $form = array('#theme' => 'imagecacheactions_rgb_form');
-  $form['farb'] = array('#weight' => -1); // Placeholder to get its weight right
+  $form = array(
+    '#prefix' => '<div class="colorform" >',
+    '#suffix' => '</div>',
+  );
+  
+  $form['colorpicker'] = array(
+    '#weight' => -1,
+    '#markup' => '<div class="colorpicker" style="float:right;"></div>',
+  );
   $form['HEX'] = array(
     '#type' => 'textfield',
     '#title' => t('HEX'),
     '#default_value' => $action['HEX'],
     '#size' => 7,
     '#element_validate' => array('imagecache_rgb_validate'),
+    '#attributes' => array('class' => array('colorentry')),
   );
 
+  // Adds the JS that binds the textarea with the farbtastic element.
+  
+  // Find each colorpicker placeholder:
+  // initialize it, 
+  // then find the nearby textfield that is of type colorentry
+  // and attach the colorpicker behavior to it. 
+  // This is so we can support more that one per page if neccessary.
+  $init_colorpicker_script = "
+    (function ($) {
+      Drupal.behaviors.attachcolorpicker = {
+        attach: function(context) {
+          $('.colorpicker').each(function () {
+            // Configure picker to be attached to the nearest colorentry field.
+            linked_target = $('.colorentry', $(this).closest('.colorform'))
+            farb = $.farbtastic($(this), linked_target);
+          });
+        }
+      }
+    })(jQuery);
+  ";
+  
+  // Add Farbtastic color picker.
+  $form['HEX']['#attached'] = array(
+    'library' => array(
+      array('system', 'farbtastic'),
+    ),
+    'js' => array(
+      array(
+        'type' => 'inline',
+        'data' => $init_colorpicker_script,
+      ),
+    ),
+  );
+  
   return $form;
 }
 
 /**
  * Element validate handler to ensure a hexadecimal color value.
- * 
- * The core image_effect_color_validate() was not intelligent enough. 
+ *
+ * The core image_effect_color_validate() was not intelligent enough.
  * Actually parse the value in order to see if it is parsable.
  */
 function imagecache_rgb_validate($element, &$form_state) {
@@ -46,63 +88,16 @@ function imagecache_rgb_validate($element, &$form_state) {
   }
 }
 
-/**
- * Render the subform in a table
- */
-function theme_imagecacheactions_rgb_form($variables) {
-  $form = $variables['form'];
-  // Add a farb element
-  drupal_add_css('misc/farbtastic/farbtastic.css', array('preprocess' => FALSE));
-  drupal_add_js('misc/farbtastic/farbtastic.js');
-  //  drupal_add_js(drupal_get_path('module', 'imagecache_coloractions') . '/color.js');
-
-  $hex_id = $form['HEX']['#id'];
-  $form['farb'] = array(
-    '#value' => "<div id=\"$hex_id-farb\" style=\"float:right\"></div>",
-    '#weight' => -1,
-  );
-
-  // Adds the JS that binds the textarea with the farb element
-  $js = "
-  $(document).ready(function() {
-    farbify($('#$hex_id'), '#$hex_id-farb');
-  });
-
-  function farbify(elt, wrapper) {
-    var farb = $.farbtastic(wrapper);
-    farb.linkTo(function(color) {
-        elt
-          .css('background-color', color)
-          .css('color', this.hsl[2] > 0.5 ? '#000' : '#fff')
-          .val(color.substring(1));
-      });
-    farb.setColor('#' + elt.val());
-    elt.bind('keyup', function(){ updateColor(elt, farb); });
-  }
-  function updateColor(elt, farb) {
-    var text = elt.val();
-    if (text.length == 6)
-      farb.setColor('#' + text);
-  }
-
-  ";
-  drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
-  $output = drupal_render_children($form);
-  return $output;
-}
-
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Displays a chosen color for use in the style summary snippets, 
+ * by actually rendering the color.
  */
 function theme_imagecacheactions_rgb($variables) {
-  $rgb = $variables['RGB'];
-  if ($rgb['HEX']) {
-    return " <span style=\"width:2em; border:1px solid white; background-color:#{$rgb['HEX']}\" >&nbsp;#{$rgb['HEX']}&nbsp;</span>";
+  if (!empty($variables['RGB']['HEX'])) {
+    $hex = ltrim($variables['RGB']['HEX'], '#');
+    return " <span style=\"width:2em; border:1px solid white; background-color:#{$hex}\" >&nbsp;#{$hex}&nbsp;</span>";
   }
-  else {
-    return ' ' . t('Transparent');
-  }
+  return ' ' . t('Transparent');
 }
 
