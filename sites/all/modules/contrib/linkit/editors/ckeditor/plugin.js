@@ -19,6 +19,8 @@
 
       // Add Command.
       editor.addCommand( 'linkit', {
+        // FOR ACF in ckeditor 4.1+, allow everything.
+        allowedContent: 'a[*]{*}(*)',
         exec : function () {
 
           // Set the editor object.
@@ -134,12 +136,12 @@
 
     if (!linkitCache.selectedElement) {
       // We have not selected any link element so lets create a new one.
-      var ranges = selection.getRanges( true );
-      if (ranges.length == 1 && ranges[0].collapsed) {
-        var text = new CKEDITOR.dom.text(Drupal.linkitCache.link_tmp_title, editor.document);
-        ranges[0].insertNode(text);
-        ranges[0].selectNodeContents(text);
-        selection.selectRanges(ranges);
+      var range = selection.getRanges(1)[0];
+      if (range.collapsed) {
+        var content = (Drupal.linkitCache.link_tmp_title) ? Drupal.linkitCache.link_tmp_title : data.path;
+        var text = new CKEDITOR.dom.text(content , editor.document );
+        range.insertNode(text);
+        range.selectNodeContents(text);
       }
 
       // Delete all attributes that are empty.
@@ -150,7 +152,8 @@
       // Apply style.
       var style = new CKEDITOR.style({element : 'a', attributes : data.attributes});
       style.type = CKEDITOR.STYLE_INLINE;
-      style.apply(editor.document);
+      style.applyToRange(range);
+      range.select();
     }
     else {
       // We are editing an existing link, so just overwrite the attributes.

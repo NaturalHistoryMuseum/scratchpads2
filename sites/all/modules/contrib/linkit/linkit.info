@@ -10,9 +10,9 @@ dependencies[] = entity
 files[] = plugins/plugin.class.php
 files[] = plugins/linkit_plugins/linkit-plugin-entity.class.php
 
-; Information added by drupal.org packaging script on 2012-05-07
-version = "7.x-2.5"
+; Information added by Drupal.org packaging script on 2015-01-06
+version = "7.x-2.7"
 core = "7.x"
 project = "linkit"
-datestamp = "1336374059"
+datestamp = "1420580857"
 

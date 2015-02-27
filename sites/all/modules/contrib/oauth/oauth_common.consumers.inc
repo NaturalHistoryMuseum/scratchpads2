@@ -187,7 +187,7 @@ function oauth_common_form_consumer_secret_ajax_callback($form, $form_state) {
  */
 function oauth_common_form_consumer_validate($form, &$form_state) {
   $callback = $form_state['values']['callback_url'];
-  if (!parse_url($callback) || strstr($callback, '://') === FALSE) {
+  if (!empty($callback) && (!parse_url($callback) || strstr($callback, '://') === FALSE)) {
     form_set_error('callback_url', t('You must set a valid URL as a callback - http/https://some-path or custom://some-path'));
   }
 }

@@ -36,3 +36,10 @@ function varnish_drush_purge($paths) {
   $paths = explode(' ', $paths);
   varnish_expire_cache($paths);
 }
+
+/** 
+ * Implements hook_drush_cache_clear().
+ */
+function varnish_drush_cache_clear(&$types) {
+  $types['varnish'] = 'varnish_purge_all_pages';
+}

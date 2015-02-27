@@ -150,7 +150,7 @@ function oauth_common_providerui_menu() {
   $menu['user/%user/oauth/consumer/%oauth_common_consumer/add-authorization'] = array(
     'title' => 'Add authorization',
     'page callback' => 'oauth_common_authorization_add',
-    'page arguments' => array(4),
+    'page arguments' => array(1, 4),
     'access callback' => 'oauth_common_can_authorize_consumer',
     'access arguments' => array(4),
     'file' => 'oauth_common.authorizations.inc',
