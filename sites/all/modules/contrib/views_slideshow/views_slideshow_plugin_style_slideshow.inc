@@ -10,7 +10,7 @@
  *
  * @ingroup views_style_plugins
  */
-class views_slideshow_plugin_style_slideshow extends views_plugin_style_list {
+class views_slideshow_plugin_style_slideshow extends views_plugin_style {
 
   // Set default options
   function option_definition() {
