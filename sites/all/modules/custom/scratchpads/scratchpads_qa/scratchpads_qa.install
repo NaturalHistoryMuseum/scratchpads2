@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Add indexes to the simpletest table to improve the performance.
+ */
+function scratchpads_qa_install(){
+  db_add_index('simpletest', 'simpletest_test_class_index', array(
+    'test_class'
+  ));
+  db_add_index('simpletest', 'simpletest_status_index', array(
+    'status'
+  ));
+  db_add_index('simpletest', 'simpletest_test_id_index', array(
+    'test_id'
+  ));
+  db_add_index('simpletest', 'simpletest_test_class_test_id_index', array(
+    'test_class',
+    'test_id'
+  ));
+}
+
+/**
+ * Add the indexes.
+ */
+function scratchpads_qa_update_7001(){
+  db_add_index('simpletest', 'simpletest_test_class_index', array(
+    'test_class'
+  ));
+  db_add_index('simpletest', 'simpletest_status_index', array(
+    'status'
+  ));
+}
+
+/**
+ * Add the indexes.
+ */
+function scratchpads_qa_update_7002(){
+  db_add_index('simpletest', 'simpletest_test_id_index', array(
+    'test_id'
+  ));
+}
+
+/**
+ * Add the indexes.
+ */
+function scratchpads_qa_update_7003(){
+  db_add_index('simpletest', 'simpletest_test_class_test_id_index', array(
+    'test_class',
+    'test_id'
+  ));
+}
