@@ -29,10 +29,10 @@ function variable_realm_boot() {
  * Implements hook_init()
  *
  * Let realms be overriden by query string parameters, but only for:
- * - Admin paths (not variable admin pages)
+ * - Admin paths (not variable realm admin pages)
  */
 function variable_realm_init() {
-  if (arg(0) == 'admin' && arg(3) != 'variable' && ($params = variable_realm_params()) && user_access('administer site configuration')) {
+  if (arg(0) == 'admin' && (arg(3) != 'variable' || arg(4) != 'realm') && ($params = variable_realm_params()) && user_access('administer site configuration')) {
     foreach ($params as $realm_name => $realm_key) {
       variable_realm_switch($realm_name, $realm_key, FALSE);
     }
@@ -600,6 +600,10 @@ function _variable_realm_invoke_all() {
   foreach (module_list() as $module) {
     if (module_hook($module, $hook) && $merge = call_user_func_array($module . '_' . $hook, $args)) {
       $result = drupal_array_merge_deep($result, $merge);
+      // Add module name to each of the realms provided by the module.
+      foreach (array_keys($merge) as $key) {
+        $result[$key] += array('module' => $module);
+      };
       unset($merge);
     }
   }
@@ -610,7 +614,7 @@ function _variable_realm_invoke_all() {
  * Implements hook_form_FORM_ID_alter()
  */
 function variable_realm_form_system_theme_settings_alter(&$form, &$form_state, $form_id) {
-  module_load_include('form.inc', 'variable_realm');
+  form_load_include($form_state, 'form.inc', 'variable_realm');
   $theme_variable = $form['var']['#value'];
   foreach (_variable_realm_variable_settings_form_list() as $realm_name => $variables) {
     if (in_array($theme_variable, variable_children($variables))) {

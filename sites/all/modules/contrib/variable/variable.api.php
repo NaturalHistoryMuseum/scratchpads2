@@ -84,6 +84,8 @@
  *   - "repeat": Array of variable properties for children variables.
  *   - "localize": Boolean value, TRUE for variables that should be localized. This may be used by other modules.
  *   - "validate callback": Callback to validate the variable value, it will be added to form element #validate.
+ *
+ * @see hook_variable_info_alter()
  */
 function hook_variable_info($options) {
   $variables['site_name'] = array(
@@ -100,6 +102,17 @@ function hook_variable_info($options) {
     'description' => t('This page is displayed when the requested document is denied to the current user. Leave blank to display a generic "access denied" page.', array(), $options),
   );
   return $variables;
+}
+
+/**
+ * Alter the variable definitions.
+ *
+ * @param $info
+ *   The variable info array, keyed by variable name.
+ *
+ * @see hook_variable_info()
+ */
+function hook_variable_info_alter(&$info) {
 }
 
 /**
@@ -145,6 +158,8 @@ function hook_variable_info($options) {
  *
  *   A special attribute:
  *   - "type": Variable subtype, the properties for the subtype will be added to these ones.
+ *
+ * @see hook_variable_type_info_alter()
  */
 function hook_variable_type_info() {
   $type['mail_address'] = array(
@@ -160,6 +175,17 @@ function hook_variable_type_info() {
     'type' => 'multiple',
   );
   return $type;
+}
+
+/**
+ * Alter the variable type definitions.
+ *
+ * @param $info
+ *   The variable type info array, keyed by variable type name.
+ *
+ * @see hook_variable_type_info()
+ */
+function hook_variable_type_info_alter(&$info) {
 }
 
 /**
@@ -181,6 +207,8 @@ function hook_variable_type_info() {
  *   - "description": The human readable description of the group. Must be localized.
  *   - "access": Permission required to edit group's variables. Will default to 'administer site configuration'.
  *   - "path": Array of administration paths where these variables can be accessed.
+ *
+ * @see hook_variable_group_info_alter()
  */
 function hook_variable_group_info() {
   $groups['system_site_information'] = array(
@@ -195,6 +223,17 @@ function hook_variable_group_info() {
     'access' => 'administer site configuration',
   );
   return $groups;
+}
+
+/**
+ * Alter the variable group definitions.
+ *
+ * @param $info
+ *   The variable type info array, keyed by variable group name.
+ *
+ * @see hook_variable_group_info()
+ */
+function hook_variable_group_info_alter(&$info) {
 }
 
 /**

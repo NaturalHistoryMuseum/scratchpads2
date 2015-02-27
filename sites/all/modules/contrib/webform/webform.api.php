@@ -1156,7 +1156,7 @@ function _webform_analysis_component($component, $sids = array(), $single = FALS
   $other = array();
   $other[] = l(t('More information'), 'node/' . $component['nid'] . '/webform-results/analysis/' . $component['cid']);
 
-  array(
+  return array(
     'table_header' => $header,
     'table_rows' => $rows,
     'other_data' => $other,

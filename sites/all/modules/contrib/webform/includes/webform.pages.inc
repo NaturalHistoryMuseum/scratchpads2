@@ -167,7 +167,7 @@ function webform_configure_form($form, &$form_state, $node) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#description' => t('These permissions affect which roles can submit this webform. It does not prevent access to the webform page. If needing to prevent access to the webform page entirely, use a content access module such as <a href="http://drupal.org/project/taxonomy_access">Taxonomy Access</a> or <a href="http://drupal.org/project/node_privacy_byrole">Node Privacy by Role</a>.'),
-    '#access' => variable_get('webform_submission_access_control', 1),
+    '#access' => webform_variable_get('webform_submission_access_control'),
     '#weight' => 10,
   );
   $user_roles = user_roles();
@@ -516,7 +516,7 @@ function webform_configure_form_submit_save($form, &$form_state) {
   drupal_set_message(t('The form settings have been updated.'));
 
   $node = &$form['#node'];
-  if (!$node->webform['block'] &&
+  if (!$node->webform['block'] && function_exists('block_load') && 
       ($block = block_load('webform', 'client-block-' . $node->nid)) &&
       !empty($block->bid)) {
     // An existing block for this not-currently-available block was already configured.

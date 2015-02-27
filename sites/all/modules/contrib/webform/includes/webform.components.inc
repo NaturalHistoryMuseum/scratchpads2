@@ -144,6 +144,10 @@ function webform_components_form($form, $form_state, $node) {
     '#value' => t('Save'),
     '#access' => count($node->webform['components']) > 0,
   );
+  $form['warning'] = array(
+    '#weight' => -1,
+  );
+  webform_input_vars_check($form, $form_state, 'warning');
 
   return $form;
 }
@@ -277,6 +281,7 @@ function _webform_components_form_rows($node, $cid, $component, $level, &$form, 
  */
 function theme_webform_components_form($variables) {
   $output = '';
+  $output .= drupal_render_children($variables['form']['warning']);
   $output .= theme('table', array('header' => $variables['header'], 'rows' => $variables['rows'], 'attributes' => array('id' => 'webform-components')));
   $output .= drupal_render_children($variables['form']);
   return $output;

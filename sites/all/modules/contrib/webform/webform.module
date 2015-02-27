@@ -1523,6 +1523,7 @@ function webform_node_update($node) {
     $inserted_eids = array_diff($current_eids, $original_eids);
 
     foreach ($all_eids as $eid) {
+      $node->webform['emails'][$eid]['nid'] = $node->nid;
       if (in_array($eid, $inserted_eids)) {
         webform_email_insert($node->webform['emails'][$eid]);
       }
@@ -1530,7 +1531,6 @@ function webform_node_update($node) {
         webform_email_delete($node, $original->webform['emails'][$eid]);
       }
       elseif ($node->webform['emails'][$eid] != $original->webform['emails'][$eid]) {
-        $node->webform['emails'][$eid]['nid'] = $node->nid;
         webform_email_update($node->webform['emails'][$eid]);
       }
     }
@@ -1687,8 +1687,8 @@ function webform_node_load($nodes, $types) {
     foreach ($nodes[$nid]->webform['emails'] as $eid => $email) {
       $nodes[$nid]->webform['emails'][$eid]['excluded_components'] = array_filter(explode(',', $email['excluded_components']));
       $nodes[$nid]->webform['emails'][$eid]['extra'] = unserialize($email['extra']);
-      if (variable_get('webform_format_override', 0)) {
-        $nodes[$nid]->webform['emails'][$eid]['html'] = variable_get('webform_default_format', 0);
+      if (webform_variable_get('webform_format_override')) {
+        $nodes[$nid]->webform['emails'][$eid]['html'] = webform_variable_get('webform_default_format');
       }
     }
 
@@ -1823,7 +1823,7 @@ function webform_node_view($node, $view_mode) {
   }
 
   // Do not include the form in the search index if indexing is disabled.
-  if (module_exists('search') && $view_mode == 'search_index' && !variable_get('webform_search_index', 1)) {
+  if (module_exists('search') && $view_mode == 'search_index' && !webform_variable_get('webform_search_index')) {
     return;
   }
 
@@ -1856,7 +1856,7 @@ function webform_node_view($node, $view_mode) {
   }
   else {
     // Check if the user's role can submit this webform.
-    if (variable_get('webform_submission_access_control', 1)) {
+    if (webform_variable_get('webform_submission_access_control')) {
       foreach ($node->webform['roles'] as $rid) {
         $allowed_roles[$rid] = isset($user->roles[$rid]) ? TRUE : FALSE;
       }
@@ -2106,7 +2106,7 @@ function webform_block_view($delta = '') {
   global $user;
 
   // Load the block-specific configuration settings.
-  $webform_blocks = variable_get('webform_blocks', array());
+  $webform_blocks = webform_variable_get('webform_blocks');
   $settings = isset($webform_blocks[$delta]) ? $webform_blocks[$delta] : array();
   $settings += array(
     'display' => 'form',
@@ -2179,7 +2179,7 @@ function webform_block_configure($delta = '') {
   $node = node_load($nid);
 
   // Load the block-specific configuration settings.
-  $webform_blocks = variable_get('webform_blocks', array());
+  $webform_blocks = webform_variable_get('webform_blocks');
   $settings = isset($webform_blocks[$delta]) ? $webform_blocks[$delta] : array();
   $settings += array(
     'display' => 'form',
@@ -2223,7 +2223,7 @@ function webform_block_configure($delta = '') {
  */
 function webform_block_save($delta = '', $edit = array()) {
   // Load the previously defined block-specific configuration settings.
-  $settings = variable_get('webform_blocks', array());
+  $settings = webform_variable_get('webform_blocks');
   // Build the settings array.
   $new_settings[$delta] = array(
     'display' => $edit['display'],
@@ -2371,6 +2371,11 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
       );
     }
 
+    // Check whether a previous submission was truncated. The length of the client form is not
+    // estimated before submission because a) the determination may not be accurate for some
+    // webform components and b) the error will be apparent upon submission.
+    webform_input_vars_check($form, $form_state);
+
     // Recursively add components to the form. The unfiltered version of the
     // form (typically used in Form Builder), includes all components.
     foreach ($component_tree['children'] as $cid => $component) {
@@ -2390,7 +2395,7 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
 
     // Add the preview if needed.
     if ($preview && $page_num === $page_count) {
-      $preview_submission = $submission ? $submission : webform_submission_create($node, $user, $form_state, TRUE);
+      $preview_submission = webform_submission_create($node, $user, $form_state, TRUE, $submission);
       $preview_message = $node->webform['preview_message'];
       $submit_button_text = empty($node->webform['submit_text']) ? t('Submit') : t($node->webform['submit_text']);
       if (strlen(trim(strip_tags($preview_message))) === 0) {
@@ -2828,7 +2833,7 @@ function webform_client_form_prevalidate($form, &$form_state) {
   // submission, otherwise a stale form in another window may be allowed.
   $allowed_role = TRUE;
   $allowed_roles = array();
-  if (variable_get('webform_submission_access_control', 1) && !$finished) {
+  if (webform_variable_get('webform_submission_access_control') && !$finished) {
     $allowed_roles = array();
     foreach ($node->webform['roles'] as $rid) {
       $allowed_roles[$rid] = isset($user->roles[$rid]) ? TRUE : FALSE;
@@ -3202,7 +3207,7 @@ function webform_client_form_pages($form, &$form_state) {
 
   // Inform the submit handlers that a draft will be saved.
   $form_state['save_draft'] = in_array($form_state['values']['op'], array($draft_op, '__AUTOSAVE__')) ||
-                              ($node->webform['auto_save'] && !$form_state['webform_completed'] && user_is_logged_in());
+                              ($node->webform['auto_save'] && !$form_state['values']['details']['finished'] && !$form_state['webform_completed'] && user_is_logged_in());
 
   // Determine what we need to do on the next page.
   if (!empty($form_state['save_draft']) || !$form_state['webform_completed']) {
@@ -3268,7 +3273,7 @@ function webform_client_form_submit($form, &$form_state) {
 
     // Set a cookie including the server's submission time. The cookie expires
     // in the length of the interval plus a day to compensate for timezones.
-    $tracking_mode = variable_get('webform_tracking_mode', 'cookie');
+    $tracking_mode = webform_variable_get('webform_tracking_mode');
     if ($tracking_mode === 'cookie' || $tracking_mode === 'strict') {
       $cookie_name = 'webform-' . $node->nid;
       $time = REQUEST_TIME;
@@ -4020,8 +4025,20 @@ function webform_page_labels($node, $form_state = array()) {
  */
 function webform_variable_get($variable) {
   switch ($variable) {
+    case 'webform_blocks':
+      $result = variable_get('webform_blocks', array());
+      break;
+    case 'webform_tracking_mode':
+      $result = variable_get('webform_tracking_mode', 'cookie');
+      break;
     case 'webform_allowed_tags':
       $result = variable_get('webform_allowed_tags', array('a', 'em', 'strong', 'code', 'img'));
+      break;
+    case 'webform_search_index':
+      $result = variable_get('webform_search_index', 1);
+      break;
+    case 'webform_email_address_format':
+      $result = variable_get('webform_email_address_format', 'long');
       break;
     case 'webform_default_from_name':
       $result = variable_get('webform_default_from_name', variable_get('site_name', ''));
@@ -4031,6 +4048,21 @@ function webform_variable_get($variable) {
       break;
     case 'webform_default_subject':
       $result = variable_get('webform_default_subject', t('Form submission from: [node:title]'));
+      break;
+    case 'webform_email_replyto':
+      $result = variable_get('webform_email_replyto', TRUE);
+      break;
+    case 'webform_email_html_capable':
+      $result = variable_get('webform_email_html_capable', FALSE);
+      break;
+    case 'webform_default_format':
+      $result = variable_get('webform_default_format', 0);
+      break;
+    case 'webform_format_override':
+      $result = variable_get('webform_format_override', 0);
+      break;
+    case 'webform_email_select_max':
+      $result = variable_get('webform_email_select_max', 50);
       break;
     case 'webform_node_types':
       $result = webform_node_types();
@@ -4047,6 +4079,9 @@ function webform_variable_get($variable) {
     case 'webform_csv_delimiter':
       $result = variable_get('webform_csv_delimiter', '\t');
       break;
+    case 'webform_excel_legacy_exporter':
+      $result = variable_get('webform_excel_legacy_exporter', 0);
+      break;
     case 'webform_progressbar_style':
       $result = variable_get('webform_progressbar_style', array('progressbar_bar', 'progressbar_pagebreak_labels', 'progressbar_include_confirmation'));
       break;
@@ -4058,6 +4093,15 @@ function webform_variable_get($variable) {
       break;
     case 'webform_table':
       $result = variable_get('webform_table', FALSE);
+      break;
+    case 'webform_submission_access_control':
+      $result = variable_get('webform_submission_access_control', 1);
+      break;
+    case 'webform_update_batch_size':
+      $result = variable_get('webform_update_batch_size', 100);
+      break;
+    case 'webform_disabled_components':
+      $result = variable_get('webform_disabled_components', array());
       break;
   }
   return $result;
@@ -4147,7 +4191,7 @@ function _webform_safe_name($name) {
  */
 function webform_format_email_address($address, $name, $node = NULL, $submission = NULL, $encode = TRUE, $single = TRUE, $format = NULL) {
   if (!isset($format)) {
-    $format = variable_get('webform_email_address_format', 'long');
+    $format = webform_variable_get('webform_email_address_format');
   }
 
   if ($name == 'default') {
@@ -4323,7 +4367,7 @@ function webform_components($include_disabled = FALSE, $reset = FALSE) {
 
   if (!isset($components) || $reset) {
     $components = array();
-    $disabled = array_flip(variable_get('webform_disabled_components', array()));
+    $disabled = array_flip(webform_variable_get('webform_disabled_components'));
     foreach (module_implements('webform_component_info') as $module) {
       $module_components = module_invoke($module, 'webform_component_info');
       foreach ($module_components as $type => $info) {
@@ -4333,7 +4377,9 @@ function webform_components($include_disabled = FALSE, $reset = FALSE) {
       $components += $module_components;
     }
     drupal_alter('webform_component_info', $components);
-    ksort($components);
+    uasort($components, function($a, $b) {
+      return strnatcasecmp($a['label'], $b['label']);
+    });
   }
 
   return $include_disabled ? $components : array_diff_key($components, $disabled);
@@ -4634,57 +4680,6 @@ function webform_tt($name, $string, $langcode = NULL, $update = FALSE) {
 }
 
 /**
- * Check if there are any HTML mail systems available for Webform to use.
- *
- * @return bool
- *   TRUE if Webform can send HTML emails, FALSE if not.
- */
-function webform_email_html_capable() {
-  $capable = &drupal_static(__FUNCTION__);
-  if (isset($capable)) {
-    return $capable;
-  }
-  // Build a list of HTML-capable mail systems.
-  $systems = array();
-  if (module_exists('mandrill')) {
-    $systems[] = 'MandrillMailSystem';
-  }
-  if (module_exists('mimemail')) {
-    $systems[] = 'MimeMailSystem';
-    $systems[] = 'MimeMailSystem__SmtpMailSystem';
-  }
-  if (module_exists('htmlmail')) {
-    $systems[] = 'HTMLMailSystem';
-    $systems[] = 'HTMLMailSystem__SmtpMailSystem';
-  }
-  if (module_exists('mailsystem')) {
-    $systems[] = 'MailsystemDelegateMailSystem';
-  }
-  // Allow other modules to alter the list.
-  drupal_alter('webform_html_capable_mail_systems', $systems);
-
-  if (!count($systems)) {
-    $capable = FALSE;
-    return FALSE;
-  }
-  $mail_systems = variable_get('mail_system', array('default-system' => 'DefaultMailSystem'));
-  // If an HTML mail system exists then we will use it for Webform emails, even
-  // if it's not already specified.
-  if (!isset($mail_systems['webform']) || !in_array($mail_systems['webform'], $systems)) {
-    // Use the system default system, if that's HTML capable.
-    if (in_array($mail_systems['default-system'], $systems)) {
-      $GLOBALS['conf']['mail_system']['webform'] = $mail_systems['default-system'];
-    }
-    // Otherwise, use the first available HTML-capable system.
-    else {
-      $GLOBALS['conf']['mail_system']['webform'] = reset($systems);
-    }
-  }
-  $capable = TRUE;
-  return TRUE;
-}
-
-/**
  * Implements hook_views_api().
  */
 function webform_views_api() {
@@ -4899,4 +4894,138 @@ function webform_clone_node_alter(&$node, $context) {
     $defaults = webform_node_defaults();
     $node->webform['next_serial'] = $defaults['next_serial'];
   }
+}
+
+/**
+ * Check if the last form submission exceeded the servers max_input_vars
+ * limit and optionally preflight the current form to be returned in this
+ * request.
+ *
+ * @param array $form
+ *   Reference to the form, which will be changed if $parent_key is set.
+ * @param array $form_state
+ *   Form's state or NULL for no form state check.
+ * @param string parent_key
+ *   Omit to not preflight the form, or the array key for the parent of where
+ *   the preflight warning should be inserted into the form.
+ */
+function webform_input_vars_check(&$form, $form_state, $parent_key = NULL) {
+  if (isset($parent_key)) {
+    $form['#pre_render'] = array('webform_pre_render_input_vars');
+    $form['#input_var_waring_parent'] = $parent_key;
+  }
+  if (!empty($form_state['input']) && empty($form_state['input']['form_id'])) {
+    // A form was submitted with POST, but the form_build_id was missing. The most likely cause of this
+    // is that the POST was truncated because PHP exceeded its max_input_vars limit.
+    $subs = array(
+      '@count' => webform_count_terminals($_POST),
+      '@limit' => (int)ini_get('max_input_vars'),
+    );
+    drupal_set_message(user_access('administer site configuration')
+                          ? t('This form could not be submitted because $_POST was truncated to @count input vars.  PHP max_input_vars is @limit and needs to be increased.', $subs)
+                          : t('This form could not be submitted because it exceeds the server configuration. Contact the administrator.'),
+                      'error');
+    watchdog('webform',
+             'POST truncated to @count input vars. PHP max_input_vars is @limit. Increase max_input_vars.',
+             $subs,
+             WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Checks the number of input form elements on this page to ensure that the
+ * PHP max_input_vars limit is not exceeded.
+ *
+ * Install this function as a #pre_render function.
+ */
+function webform_pre_render_input_vars($element) {
+  // Determine the limit on input vars for this server configuration.
+  $limit = ini_get('max_input_vars');
+  if ($limit) {
+    // Estimate the number of input vars needed to see if the PHP limit has been exceeded.
+    $count = 1 + webform_count_input_vars($element); // Additional input_vars: op
+    if ($count > $limit * 0.95) {
+      $subs = array(
+        '@count' => $count,
+        '@limit' => $limit,
+      );
+      $warning = array(
+        '#markup' => '<div class="messages warning">' .
+                     (user_access('administer site configuration')
+                        ? t('This form contains @count input elements. PHP max_input_vars is @limit and should be increased.', $subs)
+                        : t('This form may be too long to work properly. Contact the administrator.'))
+                     . '</div>',
+        '#weight' => -1,
+      );
+      if ($element['#input_var_waring_parent']) {
+        $element[$element['#input_var_waring_parent']]['input_vars_warning'] = $warning;
+      }
+      else {
+        $element['input_vars_warning'] = $warning;
+      }
+      watchdog('webform',
+               'Page contains @count input elements but PHP max_input_vars is only @limit. Increase max_input_vars.',
+               $subs,
+               WATCHDOG_ERROR);
+    }
+  }
+  return $element;
+}
+
+/**
+ * Counts the number of input form elements.
+ *
+ * Note that this is somewhat imprecise. The number of input vars returned in
+ * $_POST can vary with the form element. For example, a multiple-select
+ * listbox returns one input var for each selection actually made.
+ *
+ * The primary use for this count is for the conditionals page, where only
+ * select, textfield, hidden, and token elements are used. If a more accurate
+ * count for webform_client_form is needed, a mechanism to predict the number
+ * of input elements for each component type and each component instance would
+ * be needed.
+ *
+ * @param array $element
+ *   The form whose elements should be counted.
+ * @return integer
+ *   The number of elements in the form that will result in $_POST entries.
+ */
+function webform_count_input_vars($element){
+  static $input_types = array(
+    'checkbox' => 1,
+    'date' => 1,
+    'file' => 1,
+    'managed_file' => 1,
+    'password' => 1,
+    'password_confirm' => 1,
+    'radios' => 1,
+    'select' => 1,
+    'textfield' => 1,
+    'textarea' => 1,
+    'token' => 1,
+    'weight' => 1,
+    'hidden' => 1,
+    'value' => 1,
+    'webform_email' => 1,
+    'webform_number' => 1,
+  );
+  $children = array_intersect_key($element, array_flip(element_children($element)));
+  return $children
+          ? array_reduce($children, function($carry, $item) {return $carry + webform_count_input_vars($item);}, 0)
+          : (isset($element['#type']) && isset($input_types[$element['#type']]) ? $input_types[$element['#type']] : 0);
+}
+
+/**
+ * Counts terminals in an array. Useful for counting how many input_vars were
+ * returned in $_POST.
+ *
+ * @params $a
+ *   Array or array element to be counted
+ * @return integer
+ *   Number of non-array elements within $a.
+ */
+function webform_count_terminals($a) {
+  return is_array($a)
+            ? array_reduce($a, function($carry, $item) {return $carry + webform_count_terminals($item);}, 0)
+            : 1;
 }

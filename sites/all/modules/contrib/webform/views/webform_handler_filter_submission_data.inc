@@ -28,8 +28,8 @@ class webform_handler_filter_submission_data extends views_handler_filter_string
     );
     $operators['<'] = array(
       'title' => t('Less than'),
-      'short' => t('>'),
-      'method' => 'op_greater_than',
+      'short' => t('<'),
+      'method' => 'op_less_than',
       'values' => 1,
     );
 

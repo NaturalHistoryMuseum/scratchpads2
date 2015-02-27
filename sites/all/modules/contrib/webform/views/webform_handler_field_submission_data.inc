@@ -53,12 +53,12 @@ class webform_handler_field_submission_data extends views_handler_field {
     // Modify behavior for the type of data in the component.
     $form['webform_datatype'] = array(
       '#type' => 'select',
-      '#title' => t('Display format'),
+      '#title' => t('Data type'),
       '#options' => array(
         'string' => t('String'),
         'number' => t('Number'),
       ),
-      '#default_value' => $this->options['format'],
+      '#default_value' => $this->options['webform_datatype'],
     );
 
     // Provide the selection for the display format.

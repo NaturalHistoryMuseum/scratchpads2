@@ -109,6 +109,11 @@ function webform_conditionals_form($form, &$form_state, $node) {
     '#submit' => array('webform_conditionals_form_submit'),
   );
 
+  // Estimate if the form is too long for PHP max_input_vars and detect whether a previous submission was truncated.
+  // The estimate will be accurate because the form elements for this page are well known. Ajax use of this
+  // page will not generate user-visible errors, so a preflight may be the only indication to the user that
+  // the page is too long.
+  webform_input_vars_check($form, $form_state, '');
   return $form;
 }
 

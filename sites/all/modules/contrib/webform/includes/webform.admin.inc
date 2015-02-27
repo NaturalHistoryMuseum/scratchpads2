@@ -60,6 +60,20 @@ function webform_admin_settings() {
     '#description' => t('The default subject line of any e-mailed results.'),
   );
 
+  $form['email']['webform_email_replyto']  = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use Reply-To header'),
+    '#default_value' => webform_variable_get('webform_email_replyto'),
+    '#description' => t('Sends all e-mail from the domain of the default address above and sets the "Reply-To" header to the actual sender. Helps prevent e-mail from being flagged as spam.'),
+  );
+
+  $form['email']['webform_email_html_capable']  = array(
+    '#type' => 'checkbox',
+    '#title' => t('HTML mail system'),
+    '#default_value' => webform_variable_get('webform_email_html_capable'),
+    '#description' => t('Whether the mail system configured for webform is capable of sending mail in HTML format.'),
+  );
+
   $form['email']['webform_default_format']  = array(
     '#type' => 'radios',
     '#title' => t('Format'),
@@ -67,9 +81,13 @@ function webform_admin_settings() {
       0 => t('Plain text'),
       1 => t('HTML'),
     ),
-    '#default_value' => variable_get('webform_default_format', 0),
+    '#default_value' => webform_variable_get('webform_default_format'),
     '#description' => t('The default format for new e-mail settings. Webform e-mail options take precedence over the settings for system-wide e-mails configured in MIME mail.'),
-    '#access' => webform_email_html_capable(),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="webform_email_html_capable"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   $form['email']['webform_format_override']  = array(
@@ -79,9 +97,13 @@ function webform_admin_settings() {
       0 => t('Per-webform configuration of e-mail format'),
       1 => t('Send all e-mails in the default format'),
     ),
-    '#default_value' => variable_get('webform_format_override', 0),
+    '#default_value' => webform_variable_get('webform_format_override'),
     '#description' => t('Force all webform e-mails to be sent in the default format.'),
-    '#access' => webform_email_html_capable(),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="webform_email_html_capable"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   $form['progressbar'] = array(
@@ -128,7 +150,7 @@ function webform_admin_settings() {
     '#type' => 'checkbox',
     '#checked_value' => 1,
     '#title' => t('Include webform forms in search index'),
-    '#default_value' => variable_get('webform_search_index', 1),
+    '#default_value' => webform_variable_get('webform_search_index'),
     '#description' => t('When selected, all Webform nodes will have their form components indexed by the search engine.'),
     '#access' => module_exists('search'),
   );
@@ -141,7 +163,7 @@ function webform_admin_settings() {
       'ip_address' => t('IP address only'),
       'strict' => t('Both cookie and IP address (most strict)'),
     ),
-    '#default_value' => variable_get('webform_tracking_mode', 'cookie'),
+    '#default_value' => webform_variable_get('webform_tracking_mode'),
     '#description' => t('<a href="http://www.wikipedia.org/wiki/HTTP_cookie">Cookies</a> can be used to help prevent the same user from repeatedly submitting a webform. Limiting by IP address is more effective against repeated submissions, but may result in unintentional blocking of users sharing the same address. Logged-in users are always tracked by their user ID and are not affected by this option.'),
   );
 
@@ -152,7 +174,7 @@ function webform_admin_settings() {
       'long' => t('Long format: "Example Name" &lt;name@example.com&gt;'),
       'short' => t('Short format: name@example.com'),
     ),
-    '#default_value' => variable_get('webform_email_address_format', 'long'),
+    '#default_value' => webform_variable_get('webform_email_address_format'),
     '#description' => t('Most servers support the "long" format which will allow for more friendly From addresses in e-mails sent. However many Windows-based servers are unable to send in the long format. Change this option if experiencing problems sending e-mails with Webform.'),
   );
 
@@ -186,14 +208,14 @@ function webform_admin_settings() {
       '1' => t('Select the user roles that may submit each individual webform'),
       '0' => t('Disable Webform submission access control'),
     ),
-    '#default_value' => variable_get('webform_submission_access_control', 1),
+    '#default_value' => webform_variable_get('webform_submission_access_control'),
     '#description' => t('By default, the configuration form for each webform allows the administrator to choose which roles may submit the form. You may want to allow users to always submit the form if you are using a separate node access module to control access to webform nodes themselves.'),
   );
 
   $form['advanced']['webform_email_select_max'] = array(
     '#type' => 'textfield',
     '#title' => t("Select email mapping limit"),
-    '#default_value' => variable_get('webform_email_select_max', 50),
+    '#default_value' => webform_variable_get('webform_email_select_max'),
     '#description' => t('When mapping emails addresses to a select component, limit the choice to components with less than the amount of options indicated. This is to avoid flooding the email settings form. '),
   );
 
@@ -269,7 +291,7 @@ function webform_admin_type_list() {
   $webform_type_list = '';
   $webform_type_count = count($webform_types);
   foreach ($webform_types as $n => $type) {
-    $webform_type_list .= l(node_type_get_name($type), 'node/add/' . $type);
+    $webform_type_list .= l(node_type_get_name($type), 'node/add/' . str_replace('_', '-', $type));
     if ($n + 1 < $webform_type_count) {
       $webform_type_list .= $webform_type_count == 2 ? ' ' : ', ';
     }

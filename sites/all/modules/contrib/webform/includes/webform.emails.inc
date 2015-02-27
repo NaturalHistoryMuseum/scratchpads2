@@ -248,7 +248,7 @@ function webform_email_edit_form($form, $form_state, $node, $email = array(), $c
 
         // To avoid flooding the form with hundreds of textfields, skip select
         // lists that have huge numbers of options.
-        if (count($options) > variable_get('webform_email_select_max', 50)) {
+        if (count($options) > webform_variable_get('webform_email_select_max')) {
           unset($form[$field . '_component']['#options'][$cid]);
           continue;
         }
@@ -278,7 +278,7 @@ function webform_email_edit_form($form, $form_state, $node, $email = array(), $c
   }
 
   // Do not show the "E-mail from name" if using the short e-mail format.
-  if (variable_get('webform_email_address_format', 'long') == 'short') {
+  if (webform_variable_get('webform_email_address_format') == 'short') {
     $form['from_name_option']['#access'] = FALSE;
     $form['from_name_custom']['#access'] = FALSE;
     $form['from_name_component']['#access'] = FALSE;
@@ -311,7 +311,7 @@ function webform_email_edit_form($form, $form_state, $node, $email = array(), $c
     '#type' => 'textarea',
     '#rows' => max(10, min(20, count(explode("\n", $template)))),
     '#default_value' => $template,
-    '#wysiwyg' => webform_email_html_capable() ? NULL : FALSE,
+    '#wysiwyg' => webform_variable_get('webform_email_html_capable') ? NULL : FALSE,
     '#description' => theme('webform_token_help', array('groups' => array('node', 'submission'))),
   );
 
@@ -319,14 +319,14 @@ function webform_email_edit_form($form, $form_state, $node, $email = array(), $c
     '#type' => 'checkbox',
     '#title' => t('Send e-mail as HTML'),
     '#default_value' => $email['html'],
-    '#access' => webform_email_html_capable() && !variable_get('webform_format_override', 0),
+    '#access' => webform_variable_get('webform_email_html_capable') && !webform_variable_get('webform_format_override'),
   );
 
   $form['template']['attachments'] = array(
     '#type' => 'checkbox',
     '#title' => t('Include files as attachments'),
     '#default_value' => $email['attachments'],
-    '#access' => webform_email_html_capable(),
+    '#access' => webform_variable_get('webform_email_html_capable'),
   );
 
   $form['template']['components'] = array(
@@ -651,15 +651,15 @@ function webform_email_load($eid, $nid) {
       'from_address' => 'default',
       'template' => 'default',
       'excluded_components' => array(),
-      'html' => variable_get('webform_default_format', 0),
+      'html' => webform_variable_get('webform_default_format'),
       'attachments' => 0,
       'extra' => '',
     );
   }
   else {
     $email = isset($node->webform['emails'][$eid]) ? $node->webform['emails'][$eid] : FALSE;
-    if (variable_get('webform_format_override', 0)) {
-      $email['html'] = variable_get('webform_default_format', 0);
+    if (webform_variable_get('webform_format_override')) {
+      $email['html'] = webform_variable_get('webform_default_format');
     }
   }
 
