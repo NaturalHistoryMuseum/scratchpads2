@@ -212,7 +212,7 @@ function _webform_edit_file_check_directory($element) {
   $scheme = $element['extra']['scheme']['#value'];
   $directory = $element['extra']['directory']['#value'];
 
-  $destination_dir = file_stream_wrapper_uri_normalize($scheme . '://' . $directory . '/webform');
+  $destination_dir = file_stream_wrapper_uri_normalize($scheme . '://webform/' . $directory);
 
   // Sanity check input to prevent use parent (../) directories.
   if (preg_match('/\.\.[\/\\\]/', $destination_dir . '/')) {

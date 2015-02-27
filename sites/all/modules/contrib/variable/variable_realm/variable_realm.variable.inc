@@ -47,7 +47,7 @@ function variable_realm_variable_type_info() {
  * Implements hook_variable_settings_form_alter().
  */
 function variable_realm_variable_settings_form_alter(&$form, &$form_state, $form_id) {
-  module_load_include('form.inc', 'variable_realm');
+  form_load_include($form_state, 'form.inc', 'variable_realm');
   foreach (_variable_realm_variable_settings_form_list() as $realm_name => $variables) {
     if ($realm_variables = _variable_realm_variable_settings_form_alter($form, $realm_name, variable_children($variables))) {
       $form['#realm_variables'][$realm_name] = $realm_variables;

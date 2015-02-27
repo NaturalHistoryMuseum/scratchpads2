@@ -434,7 +434,9 @@ function webform_install() {
     );
     $webform_type = node_type_set_defaults($webform_type);
     node_type_save($webform_type);
-    node_add_body_field($webform_type);
+    if (variable_get('webform_install_add_body_field', TRUE)) {
+      node_add_body_field($webform_type);
+    }
   }
 }
 
@@ -445,6 +447,7 @@ function webform_uninstall() {
   // Unset webform variables.
   variable_del('webform_node_types');
   variable_del('webform_node_types_primary');
+  variable_del('webform_disabled_components');
   variable_del('webform_use_cookies');
   variable_del('webform_default_from_address');
   variable_del('webform_default_from_name');
@@ -454,6 +457,11 @@ function webform_uninstall() {
   variable_del('webform_csv_delimiter');
   variable_del('webform_allowed_tags');
   variable_del('webform_blocks');
+  variable_del('webform_search_index');
+  variable_del('webform_email_address_format');
+  variable_del('webform_export_format');
+  variable_del('webform_submission_access_control');
+  variable_del('webform_update_batch_size');
 
   $component_list = array();
   $path = drupal_get_path('module', 'webform') . '/components';
