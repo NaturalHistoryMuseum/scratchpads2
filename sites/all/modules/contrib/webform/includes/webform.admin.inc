@@ -220,17 +220,10 @@ function theme_webform_admin_settings($variables) {
  * Menu callback for admin/content/webform. Displays all webforms on the site.
  */
 function webform_admin_content() {
-  $webform_types = webform_variable_get('webform_node_types');
-
-  $nodes = array();
-  if ($webform_types) {
-    $nodes = db_select('node', 'n')
-      ->fields('n')
-      ->condition('n.type', $webform_types, 'IN')
-      ->execute()
-      ->fetchAllAssoc('nid');
-  }
-
+  $query = db_select('webform', 'w');
+  $query->join('node', 'n', 'w.nid = n.nid');
+  $query->fields('n');
+  $nodes = $query->execute()->fetchAllAssoc('nid');
   return theme('webform_admin_content', array('nodes' => $nodes));
 }
 
@@ -262,7 +255,7 @@ function theme_webform_admin_content($variables) {
   $header = array(
     t('Title'),
     array('data' => t('View'), 'colspan' => '4'),
-    array('data' => t('Operations'), 'colspan' => '2')
+    array('data' => t('Operations'), 'colspan' => '3')
   );
 
   $rows = array();
@@ -274,6 +267,7 @@ function theme_webform_admin_content($variables) {
       l(t('Table'), 'node/' . $node->nid . '/webform-results/table'),
       l(t('Download'), 'node/' . $node->nid . '/webform-results/download'),
       node_access('update', $node) ? l(t('Edit'), 'node/' . $node->nid . '/edit') : '',
+      node_access('update', $node) ? l(t('Components'), 'node/' . $node->nid . '/webform') : '',
       user_access('delete all webform submissions') ? l(t('Clear'), 'node/' . $node->nid . '/webform-results/clear') : '',
     );
   }

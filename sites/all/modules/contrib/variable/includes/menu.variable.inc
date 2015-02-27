@@ -26,6 +26,26 @@ function menu_variable_info($options) {
     'description' => t('Select the source for the Secondary links.', array() , $options),
     'group' => 'menu_settings'
   );
+  $variables['menu_parent_[node_type]'] = array(
+    'type' => 'multiple',
+    'title' => t('Menu parent'),
+    'repeat' => array(
+      'type' => 'select',
+      'options' => 'menu',
+    ),
+    'group' => 'menu_settings',
+    'description' => t('Select the menu parent', array(), $options),
+  );
+  $variables['menu_options_[node_type]'] = array(
+    'type' => 'multiple',
+    'title' => t('Menu options'),
+    'repeat' => array(
+      'type' => 'options',
+      'options' => 'menu',
+    ),
+    'description' => t('Select the available menus',array() , $options),
+    'group' => 'menu_settings',
+  );
   return $variables;
 }
 

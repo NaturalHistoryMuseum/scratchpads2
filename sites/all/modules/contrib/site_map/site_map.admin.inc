@@ -99,7 +99,7 @@ function site_map_admin_settings_form() {
   $vocab_options = array();
   if (module_exists('taxonomy')) {
     foreach (taxonomy_get_vocabularies() as $vocabulary) {
-      $vocab_options[$vocabulary->vid] = $vocabulary->name;
+      $vocab_options[$vocabulary->machine_name] = $vocabulary->name;
     }
   }
   $form['site_map_content']['site_map_show_vocabularies'] = array(
@@ -132,7 +132,7 @@ function site_map_admin_settings_form() {
     '#default_value' => variable_get('site_map_categories_depth', 'all'),
     '#size' => 3,
     '#maxlength' => 10,
-    '#description' => t('Specify how many subcategories should be included on the categorie page. Enter "all" to include all subcategories, "0" to include no subcategories, or "-1" not to append the depth at all.'),
+    '#description' => t('Specify how many levels of subcategories should be included. Enter a positive integer, or "all" to include all levels.'),
   );
   $form['site_map_taxonomy_options']['site_map_term_threshold'] = array(
     '#type' => 'textfield',

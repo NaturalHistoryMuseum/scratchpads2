@@ -419,6 +419,7 @@ function theme_webform_grid($variables) {
     // Render each radio button in the row.
     $radios = form_process_radios($question_element);
     foreach (element_children($radios) as $key) {
+      $radios[$key]['#title'] = $question_element['#title'] . ' - ' . $radios[$key]['#title'];
       $radios[$key]['#title_display'] = 'invisible';
       $row[] = array('data' => drupal_render($radios[$key]), 'class' => array('checkbox', 'webform-grid-option'));
     }
