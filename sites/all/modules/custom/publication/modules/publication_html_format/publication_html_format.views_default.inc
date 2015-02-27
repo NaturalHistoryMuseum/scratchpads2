@@ -181,6 +181,7 @@ function publication_html_format_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'file_styles_square_thumbnail';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 1;
   /* Field: File: Licence */
   $handler->display->display_options['fields']['field_cc_licence']['id'] = 'field_cc_licence';
   $handler->display->display_options['fields']['field_cc_licence']['table'] = 'field_data_field_cc_licence';

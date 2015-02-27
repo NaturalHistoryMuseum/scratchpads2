@@ -23,12 +23,19 @@ Once you have Varnish working, use the module you need to do the following:
 * Enable the module.
 * Add something like this to your settings.php file:
 
-// Add Varnish as the page cache handler.
+// Add Varnish as a cache bin.
 $conf['cache_backends'] = array('sites/all/modules/varnish/varnish.cache.inc');
+
+
+If you plan to use the expire module to be selective with your cache clearing you
+should add as a new cache bin.
+
+$conf['cache_class_external_varnish_page'] = 'VarnishCache';
+
+If you are not going to use the expire module you should replace the default page
+cache with varnish.
+
 $conf['cache_class_cache_page'] = 'VarnishCache';
-// Drupal 7 does not cache pages when we invoke hooks during bootstrap.
-// This needs to be disabled.
-$conf['page_cache_invoke_hooks'] = FALSE;
 
 * Go to admin/config/development/varnish and configure your connection Varnish
   appropriately. It should be pretty straight forward from here on.

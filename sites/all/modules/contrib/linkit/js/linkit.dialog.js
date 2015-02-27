@@ -23,6 +23,7 @@ Drupal.linkit.dialog.dialogOptions = function() {
       backgroundColor: '#000000',
       opacity: 0.4
     },
+    zIndex : 210000,
     close: Drupal.linkit.dialog.close
   };
 };

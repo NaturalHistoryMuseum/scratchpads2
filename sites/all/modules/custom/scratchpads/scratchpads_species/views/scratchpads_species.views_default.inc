@@ -487,6 +487,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 0;
   $handler->display->display_options['fields']['rendered_entity']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'file_styles_species_slideshow_large';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 1;
   /* Field: File: Rendered File */
   $handler->display->display_options['fields']['rendered_entity_1']['id'] = 'rendered_entity_1';
   $handler->display->display_options['fields']['rendered_entity_1']['table'] = 'views_entity_file';
@@ -513,6 +514,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity_1']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity_1']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity_1']['view_mode'] = 'file_styles_species_slideshow_thumbnail';
+  $handler->display->display_options['fields']['rendered_entity_1']['bypass_access'] = 1;
   /* Field: File: Name */
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';

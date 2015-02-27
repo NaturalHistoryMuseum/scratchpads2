@@ -106,6 +106,10 @@ function linkit_theme($existing, $type, $theme, $path) {
       'variables' => array(),
       'file' => 'linkit.theme.inc'
     ),
+    'linkit_reverse_menu_trail' => array(
+      'variables' => array('menu_trail' => NULL, 'separator' => ' « '),
+      'file' => 'linkit.theme.inc'
+    )
   );
 }
 
@@ -246,13 +250,14 @@ function linkit_library() {
 function _linkit_dashboard($editor) {
   $form = drupal_get_form('linkit_dashboard_form');
   print drupal_render($form);
+  drupal_exit();
 }
 
 /**
  * Autocomplete callback function.
  */
 function _linkit_autocomplete($search = NULL) {
-  $search = check_url($_GET['s']);
+  $search = $_GET['s'];
   $enabled_plugins = linkit_get_profile_plugins();
 
   // Absolute URL
@@ -267,6 +272,7 @@ function _linkit_autocomplete($search = NULL) {
     ));
   }
   drupal_json_output($results);
+  drupal_exit();
 }
 
 /**
@@ -459,7 +465,7 @@ function _linkit_result_from_url($url, $enabled_plugins) {
     $result = array(
       'path' => url($path_info['system_path'], $url_options),
       'title' => $menu_item['title'] ? check_plain($menu_item['title']) : check_plain($path_info['system_path']),
-      'description' => 'This is an internal path.',
+      'description' => t('This is an internal path.'),
       'addClass' => 'status-ok',
     );
   }
@@ -468,16 +474,16 @@ function _linkit_result_from_url($url, $enabled_plugins) {
   elseif ($path_info['target'] == 'internal') {
     $result = array(
       'path' => url($path_info['path'], $url_options),
-      'title' => 'Page not found',
-      'description' => 'This page does not exist or you do not have access to it.',
+      'title' => t('Page not found'),
+      'description' => t('This page does not exist or you do not have access to it.'),
       'addClass' => 'status-warning',
     );
   }
   // No plugin result, and the URL seems to be external.
   elseif ($path_info['target'] == 'external') {
     $result = array(
-      'title' => 'No information available',
-      'description' => 'This is an external URL, but we don\'t know where it leads.',
+      'title' => t('No information available'),
+      'description' => t("This is an external URL, but we don't know where it leads."),
       'path' => $path_info['url'],
       'addClass' => 'status-notice',
     );
@@ -858,12 +864,6 @@ function linkit_profile_load($name) {
     ctools_include('export');
     $result = ctools_export_load_object('linkit_profiles', 'names', array($name));
     if (isset($result[$name])) {
-      if (!is_array($result[$name]->data)) {
-        $result[$name]->data = unserialize($result[$name]->data);
-      }
-      if (!is_array($result[$name]->role_rids)) {
-        $result[$name]->role_rids = unserialize($result[$name]->role_rids);
-      }
       $cache[$name] = $result[$name];
     }
     else {
@@ -879,14 +879,6 @@ function linkit_profile_load($name) {
 function linkit_profile_load_all() {
   ctools_include('export');
   $profiles = ctools_export_load_object('linkit_profiles');
-  foreach ($profiles as &$profile) {
-    if (!is_array($profile->data)) {
-      $profile->data = unserialize($profile->data);
-    }
-    if (!is_array($profile->role_rids)) {
-      $profile->role_rids = unserialize($profile->role_rids);
-    }
-  }
   return $profiles;
 }
 
@@ -912,14 +904,6 @@ function linkit_profile_save($profile) {
     $update = array();
     $profile->export_type = EXPORT_IN_DATABASE;
   }
-
-  if (is_array($profile->data)) {
-    $profile->data = serialize($profile->data);
-  }
-  if (is_array($profile->role_rids)) {
-    $profile->role_rids = serialize($profile->role_rids);
-  }
-
   return drupal_write_record('linkit_profiles', $profile, $update);
 }
 

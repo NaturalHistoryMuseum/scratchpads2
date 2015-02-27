@@ -93,5 +93,18 @@ function hook_menu_block_get_sort_menus() {
 }
 
 /**
+ * Respond to menu block deletion.
+ *
+ * @param array $config
+ *   The menu block configuration.
+ */
+function hook_menu_block_delete(array $config) {
+  db_delete('block_data')
+    ->condition('module', 'menu_block')
+    ->condition('delta', $config['delta'])
+    ->execute();
+}
+
+/**
  * @} End of "addtogroup hooks".
  */

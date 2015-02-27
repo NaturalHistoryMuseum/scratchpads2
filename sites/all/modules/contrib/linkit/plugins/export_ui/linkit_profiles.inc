@@ -37,33 +37,13 @@ function linkit_profiles_export_ui_form(&$form, &$form_state) {
 
   $profile = $form_state['item'];
 
-  $form = array();
   $form['#theme'] = 'linkit_profiles_export_ui_form';
   $form['#attached']['css'] = array(
     drupal_get_path('module', 'linkit') . '/css/linkit.css',
   );
 
   $form['data']['#tree'] = TRUE;
-
-  $form['admin_title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Title'),
-    '#default_value' => isset($profile->admin_title) ? $profile->admin_title : t('Untitled profile'),
-    '#required' => TRUE,
-    '#weight' => -100,
-  );
-
-  $form['name'] = array(
-    '#type' => 'machine_name',
-    '#required' => TRUE,
-    '#default_value' => isset($profile->name) ? $profile->name : '',
-    '#maxlength' => 255,
-    '#machine_name' => array(
-      'exists' => 'linkit_profile_exists',
-      'source' => array('admin_title'),
-    ),
-    '#disabled' => !is_null($profile->name),
-  );
+  $form['info']['#weight'] = -100;
 
   $form['weight'] = array(
     '#type' => 'weight',
@@ -111,7 +91,7 @@ function linkit_profiles_export_ui_form(&$form, &$form_state) {
     );
 
     $form['data']['imce']['use_imce'] = array(
-      '#title' => t('Enable !imce file picking', array('!imce' => l(t('IMCE'), 'admin/config/media/imce'))),
+      '#title' => t('Enable IMCE file picking'),
       '#type' => 'checkbox',
       '#default_value' => isset($profile->data['imce']['use_imce']) ? $profile->data['imce']['use_imce'] : '',
       '#description' => t('Note that only public files are supported.'),
@@ -328,8 +308,8 @@ function linkit_profiles_export_ui_form_submit(&$form, &$form_state) {
   $form_state['item']->admin_title = trim($form_state['values']['admin_title']);
   $form_state['item']->name = $form_state['values']['name'];
 
-  $form_state['item']->data = serialize($form_state['values']['data']);
-  $form_state['item']->role_rids = serialize(array_filter($form_state['values']['roles']));
+  $form_state['item']->data = $form_state['values']['data'];
+  $form_state['item']->role_rids = array_filter($form_state['values']['roles']);
   $form_state['item']->weight = $form_state['values']['weight'];
 
   // CTools will work on this variable alter and screw it up, so unset it.

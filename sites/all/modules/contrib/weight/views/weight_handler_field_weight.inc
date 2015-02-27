@@ -1,6 +1,12 @@
 <?php
 
 class weight_handler_field_weight extends views_handler_field {
+
+  function init(&$view, &$options) {
+    parent::init($view, $options);
+    $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
+  }
+
   function render($values) {
     return '<!--form-item-' . $this->options['id'] . '--' . $this->view->row_index . '-->';
   }
@@ -25,7 +31,7 @@ class weight_handler_field_weight extends views_handler_field {
     // At this point, the query has already been run, so we can access the results
     foreach ($this->view->result as $row_id => $row) {
       $type = $this->get_node_type($row->nid);
-      if (!empty($row->weight_weights_weight)) {
+      if (!empty($row->weight_weights_weight) || $row->weight_weights_weight === "0") {
         $weight = $row->weight_weights_weight;
       }
       else {
@@ -49,7 +55,7 @@ class weight_handler_field_weight extends views_handler_field {
         '#options' =>  $options,
         '#default_value' => $weight,
         '#attributes' => array('class' => array('weight-weight')),
-        '#access' => user_access('assign node weight'),
+        '#access' => user_access('assign node weight') && node_access('update', node_load($row->nid)),
       );
     }
 
@@ -58,8 +64,8 @@ class weight_handler_field_weight extends views_handler_field {
       '#value' => $nids,
     );
 
-    $form['#action'] = request_uri();
     $form['#submit'][] = 'weight_views_submit';
+    $form['#action'] = request_uri();
   }
 
   function get_node_type($nid) {
