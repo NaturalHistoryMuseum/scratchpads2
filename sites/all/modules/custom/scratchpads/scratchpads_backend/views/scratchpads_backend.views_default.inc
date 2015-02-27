@@ -424,6 +424,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'file_styles_thumbnail';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 1;
   /* Field: File: Name */
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
@@ -783,6 +784,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'file_styles_thumbnail';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 1;
   /* Field: File: Name */
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';
@@ -1071,6 +1073,7 @@ function scratchpads_backend_views_default_views(){
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity']['display'] = 'view';
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'file_styles_thumbnail';
+  $handler->display->display_options['fields']['rendered_entity']['bypass_access'] = 1;
   /* Field: File: Name */
   $handler->display->display_options['fields']['filename']['id'] = 'filename';
   $handler->display->display_options['fields']['filename']['table'] = 'file_managed';

@@ -17,6 +17,11 @@ All settings for this module are on the Honeypot configuration page, under the
 Configuration section, in the Content authoring settings. You can visit the
 configuration page directly at admin/config/content/honeypot.
 
+Note that, when testing Honeypot on your website, make sure you're not logged in
+as an administrative user or user 1; Honeypot allows administrative users to
+bypass Honeypot protection, so by default, Honeypot will not be added to forms
+accessed by site administrators.
+
 
 Use in Your Own Forms
 ---------------------

@@ -50,13 +50,17 @@ function linkit_schema() {
         'not null' => TRUE,
       ),
       'data' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
+        'not null' => TRUE,
+        'serialize' => TRUE,
         'description' => 'A serialized array with settings.',
       ),
       'role_rids' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
+        'not null' => TRUE,
+        'serialize' => TRUE,
         'description' => 'A serialized array with role rids that is assign to this profile.',
       ),
       'weight' => array(
@@ -204,4 +208,29 @@ function linkit_update_7202() {
     ->condition('pid', $profile->pid)
     ->execute();
   }
+}
+
+/**
+ * Change column type for linkit_profiles.data and linkit_profiles.role_rids
+ * to use blob and serialize instead of big text.
+ */
+function linkit_update_7203() {
+  db_change_field('linkit_profiles', 'data', 'data',
+    array(
+      'type' => 'blob',
+      'size' => 'big',
+      'not null' => TRUE,
+      'serialize' => TRUE,
+      'description' => 'A serialized array with settings.',
+    )
+  );
+  db_change_field('linkit_profiles', 'role_rids', 'role_rids',
+    array(
+      'type' => 'blob',
+      'size' => 'big',
+      'not null' => TRUE,
+      'serialize' => TRUE,
+      'description' => 'A serialized array with role rids that is assign to this profile.',
+    )
+  );
 }
