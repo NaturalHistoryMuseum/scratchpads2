@@ -169,6 +169,9 @@ function calendar_menu_local_tasks_alter(&$data, $router_item, $root_path) {
         // The add new content page would redirect to the new event
         // if we did not override that here. This way they will
         // redirect back to the calendar.
+	if (!isset($item['localized_options'])) {
+          $item['localized_options'] = array();
+        }
         $item['localized_options'] += array('query' => array());
         $item['localized_options']['query'] += drupal_get_destination();
         if (array_key_exists('access', $item) && $item['access']) {
