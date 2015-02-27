@@ -246,13 +246,21 @@ function _site_map_blogs() {
     $blogs = array();
     $blogs[] = $blog_link;
 
-    $sql = "SELECT DISTINCT u.uid, u.name, count(u.uid) AS numitems
-      FROM {node} n
-      INNER JOIN {users} u ON u.uid = n.uid
-      WHERE n.type = 'blog' AND n.status = 1
-      GROUP BY u.uid, u.name
-      ORDER BY numitems DESC, u.name";
-    $result = db_query_range($sql, 0, 10);
+    $query = db_select('node', 'n');
+    $query->join('users', 'u', 'u.uid = n.uid');
+    $query->fields('u', array('uid', 'name'));
+    $query->addExpression('COUNT(u.uid)', 'numitems');
+    $query
+      ->condition('n.type', 'blog')
+      ->condition('n.status', 1)
+      ->groupBy('u.uid')
+      ->groupBy('u.name')
+      ->orderBy('numitems', 'DESC')
+      ->orderBy('u.name', 'ASC')
+      ->range(0, 10);
+    $query->addTag('node_access');
+    $query->distinct();
+    $result = $query->execute();
     foreach ($result as $blog) {
       $blog_item = t('<a href="@url">@name\'s blog</a> (@num_items)', array(
         '@url' => "blog/$blog->uid",
@@ -430,18 +438,23 @@ function _site_map_books() {
  */
 function _site_map_menus() {
   $output = '';
-  $class = array();
   $options = array();
   $mids = array_filter(variable_get('site_map_show_menus', array()));
 
   if (!empty($mids)) {
     foreach ($mids as $mid) {
+      $class = array();
       $menu = menu_load($mid);
       // Use menu_tree_all_data to retrieve the expanded tree.
       $tree = menu_tree_all_data($mid);
       if (module_exists('i18n_menu')) {
         $tree = i18n_menu_localize_tree($tree, $GLOBALS['language']->language);
       }
+
+      // Add an alter hook so other modules can manipulate the menu tree prior to rendering
+      $alter_mid = preg_replace('/[^a-z0-9_]+/', '_', $mid);
+      drupal_alter(array('site_map_menu_tree', 'site_map_menu_tree_' . $alter_mid), $tree, $menu);
+
       $menu_display = _site_map_menu_tree_output($tree);
       $menu_html = drupal_render($menu_display);
       if (!empty($menu_html)) {
@@ -505,10 +518,10 @@ function _site_map_faq() {
 function _site_map_taxonomys() {
   $output = '';
   $options = array();
-  $vids = array_filter(variable_get('site_map_show_vocabularies', array()));
+  $vnames = array_filter(variable_get('site_map_show_vocabularies', array()));
 
-  if (module_exists('taxonomy') && !empty($vids)) {
-    $result = db_query('SELECT vid, name, description FROM {taxonomy_vocabulary} WHERE vid IN (:vids) ORDER BY weight ASC, name', array(':vids' => $vids));
+  if (module_exists('taxonomy') && !empty($vnames)) {
+    $result = db_query('SELECT vid, name, description FROM {taxonomy_vocabulary} WHERE machine_name IN (:vnames) ORDER BY weight ASC, name', array(':vnames' => $vnames));
     foreach ($result as $voc) {
       if (module_exists('i18n_taxonomy')) {
         $voc->name = i18n_taxonomy_vocabulary_name($voc, $GLOBALS['language']->language);
@@ -556,8 +569,12 @@ function _site_map_taxonomy_tree($vid, $name = NULL, $description = NULL) {
 
   $output .= !empty($description) && variable_get('site_map_show_description', 1) ? '<div class="description">' . filter_xss_admin($description) . "</div>\n" : '';
 
+  $site_map_categories_depth = variable_get('site_map_categories_depth') ? variable_get('site_map_categories_depth') : NULL;
+  if ($site_map_categories_depth == 'all') {
+    $site_map_categories_depth = NULL;
+  }
   // taxonomy_get_tree() honors access controls.
-  $tree = taxonomy_get_tree($vid);
+  $tree = taxonomy_get_tree($vid, 0, $site_map_categories_depth);
   foreach ($tree as $term) {
     $term->count = site_map_taxonomy_term_count_nodes($term->tid);
     if ($term->count <= $threshold) {
@@ -613,6 +630,9 @@ function _site_map_taxonomy_tree($vid, $name = NULL, $description = NULL) {
       }
     }
 
+    // Add an alter hook so other modules can manipulate the taxonomy term output
+    drupal_alter(array('site_map_taxonomy_term', 'site_map_taxonomy_term_' . $term->tid), $term_item, $term);
+
     $output .= $term_item;
 
     // Reset $last_depth in preparation for the next $term.
@@ -655,7 +675,7 @@ function _site_map_taxonomy_tree($vid, $name = NULL, $description = NULL) {
  * @param string $tid
  *   The term's ID.
  *
- *  @return string
+ * @return string
  *   An integer representing a number of nodes. Results are statically cached.
  */
 function site_map_taxonomy_term_count_nodes($tid) {
@@ -769,7 +789,7 @@ function _site_map_menu_tree_output($tree) {
  *   Result of param test, 0 or 1.
  * @param string $set_string
  *   Index of option to set, or the option name.
- * @param boolean $set_value
+ * @param bool $set_value
  *   The option, on or off, or strings or ints for other options.
  */
 function _site_map_set_option(&$options, $option_string, $get_param, $equal_param, $set_string, $set_value) {

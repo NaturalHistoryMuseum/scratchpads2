@@ -166,6 +166,10 @@ function webform_expand_date($element) {
     $timestring = webform_strtodate('c', $element['#default_value'], $timezone);
     $element['#default_value'] = webform_date_array($timestring, 'date');
   }
+  // Prevent an error in PHP 5.4 caused by core's treatment of the #value.
+  if (isset($element['#value'])) {
+    unset($element['#value']);
+  }
 
   // Set defaults according to existing #default_value (set by Form API)
   if (isset($element['#default_value']['month']) || isset($element['#default_value']['day']) || isset($element['#default_value']['year'])) {
@@ -200,6 +204,8 @@ function webform_expand_date($element) {
         break;
     }
     unset($element[$type]['#value']);
+    $element[$type]['#title'] = $none;
+    $element[$type]['#title_display'] = 'invisible';
     $element[$type]['#default_value'] = isset($default_values[$type]) ? $default_values[$type] : NULL;
     $element[$type]['#options'] = array('' => $none) + $element[$type]['#options'];
   }
@@ -233,9 +239,9 @@ function webform_expand_date($element) {
 function theme_webform_date($variables) {
   $element = $variables['element'];
 
-  $element['year']['#attributes']['class'] = array('year');
-  $element['month']['#attributes']['class'] = array('month');
-  $element['day']['#attributes']['class'] = array('day');
+  $element['year']['#attributes']['class'][] = 'year';
+  $element['month']['#attributes']['class'][] = 'month';
+  $element['day']['#attributes']['class'][] = 'day';
 
   // Add error classes to all items within the element.
   if (form_get_error($element)) {
