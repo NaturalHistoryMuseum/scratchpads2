@@ -6,6 +6,16 @@ Version 7.x-3.x-dev
 ===================
 
 ======================
+Version 7.x-3.5
+======================
+
+- Issue #1729884 by lund.mikkel: Translations of max items collide with other translations.
+- Issue #1734858 by Jaws, pc-wurm: Create localized_options array in calendar_menu_local_tasks_alter() if it does not exist.
+- Issue #2008554 by coredumperror: Properly display week numbers in mini calendar view.
+- Issue #1471400 by RoSk0, Garrett Albright: Fix illegal offset in template_preprocess_calendar_month().
+- Issue #1792368 by rdela, Day template missing % after $first_column_width
+
+======================
 Version 7.x-3.4
 ======================
 

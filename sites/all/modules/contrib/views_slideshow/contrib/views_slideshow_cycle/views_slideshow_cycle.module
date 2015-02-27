@@ -14,18 +14,22 @@ function views_slideshow_cycle_theme($existing, $type, $theme, $path) {
       'variables' => array('view' => NULL, 'settings' => array(), 'rows' => array(), 'title' => ''),
       'template' => 'theme/views-slideshow-cycle',
       'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle__',
     ),
     'views_slideshow_cycle_main_frame' => array(
       'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => NULL, 'rows' => NULL),
       'template' => 'theme/views-slideshow-cycle-main-frame',
+      'pattern' => 'views_slideshow_cycle_main_frame__',
     ),
     'views_slideshow_cycle_main_frame_row' => array(
       'variables' => array('vss_id' => NULL, 'items' => NULL, 'count' => NULL, 'view' => NULL),
       'template' => 'theme/views-slideshow-cycle-main-frame-row',
+      'pattern' => 'views_slideshow_cycle_main_frame_row__',
     ),
     'views_slideshow_cycle_main_frame_row_item' => array(
-      'variables' => array('item' => NULL, 'item_count' => NULL, 'view' => NULL),
+      'variables' => array('item' => NULL, 'item_count' => NULL, 'count' => NULL, 'view' => NULL, 'length' => NULL),
       'template' => 'theme/views-slideshow-cycle-main-frame-row-item',
+      'views_slideshow_cycle_main_frame_row_item__',
     ),
   );
 }
@@ -76,9 +80,39 @@ function _views_slideshow_cycle_library_path() {
 }
 
 /**
- * Need to have preprocess functions here because drupal doesn't cache them 
+ * Gets the path to the jQuery pause library.
+ *
+ * @return
+ *   The path to the pause library js file, or FALSE if not found.
+ */
+function _views_slideshow_cycle_pause_library_path() {
+  $pause_path = libraries_get_path('jquery.pause');
+
+  if (!empty($pause_path)) {
+    // Attempt to use minified version of jQuery pause plugin.
+    if (file_exists($pause_path . '/jquery.pause.min.js')) {
+      $pause_path .= '/jquery.pause.min.js';
+    }
+    // Otherwise use non-minified version if available.
+    elseif (file_exists($pause_path . '/jquery.pause.js')) {
+      $pause_path .= '/jquery.pause.js';
+    }
+    else {
+      $pause_path = FALSE;
+    }
+  }
+  else {
+    $pause_path = FALSE;
+  }
+
+  return $pause_path;
+}
+
+
+/**
+ * Need to have preprocess functions here because drupal doesn't cache them
  * correctly in the theme.inc file.
- * 
+ *
  * If you would like to override the preprocess functions make sure to look at
  * the associated function in theme.inc.
  */
