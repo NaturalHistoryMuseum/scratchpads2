@@ -52,3 +52,23 @@ function site_map_update_7001() {
     ->condition('module', 'site_map')
     ->execute();
 }
+
+/**
+ * Use vocabulary machine names instead of IDs for taxonomy settings.
+ */
+function site_map_update_7002() {
+  $vids = array_filter(variable_get('site_map_show_vocabularies', array()));
+ 
+  if (module_exists('taxonomy') && !empty($vids)) {
+    $vocab_options = array();
+    foreach ($vids as $vid) {
+      if (is_numeric($vid)) {
+        $vocabulary = taxonomy_vocabulary_load($vid);
+        $vocab_options[$vocabulary->machine_name] = $vocabulary->machine_name;
+      }
+    }
+    if (!empty($vocab_options)) {
+      variable_set('site_map_show_vocabularies', $vocab_options);
+    }
+  }
+}
