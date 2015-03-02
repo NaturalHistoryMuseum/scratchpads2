@@ -570,8 +570,8 @@ function file_entity_scratchpads_default_permissions(){
  */
 function feeds_xls_scratchpads_default_permissions(){
   return array(
-    'editor' => array(
-      'feeds xls allow download'
+    'maintainer' => array(
+      'feeds xls allow download of all entities'
     )
   );
 }
