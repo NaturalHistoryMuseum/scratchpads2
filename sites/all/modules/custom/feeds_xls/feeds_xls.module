@@ -93,9 +93,11 @@ function feeds_xls_menu(){
  */
 function feeds_xls_permission(){
   return array(
-    'feeds xls allow download' => array(
-      'title' => t('Feeds XLS allow download'),
-      'description' => t('Allow the user to download all of the site\'s data in an Excel template.')
+    'feeds xls allow download of all entities' => array(
+      'title' => t('Feeds XLS allow download of all entities'),
+      'description' => t('Allow the user to download all of the site\'s data in an Excel template, bypassing ALL access permissions.'),
+      'restrict access' => TRUE,
+      'warning' => t('Warning: This permission provides access to ALL entity data stored within this site.')
     )
   );
 }
