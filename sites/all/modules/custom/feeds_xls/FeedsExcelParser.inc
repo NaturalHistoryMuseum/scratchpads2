@@ -240,9 +240,9 @@ class FeedsExcelParser extends FeedsParser{
       '#type' => 'fieldset',
       '#title' => t('Template'),
       'text' => array(
-        '#markup' => '<div class="help"><p>' . $empty_template_text . '</p>' . (user_access('feeds xls allow download') ? '<p>' . t('<a href="!popurl" target="_blank" class="overlay-exclude">Excel template file</a> for updating data already present on your site. <span class="error">Please ensure all data from your site is present in your downloaded file.</span></p>', array(
+        '#markup' => '<div class="help"><p>' . $empty_template_text . '</p><p>' . t('<a href="!popurl" target="_blank" class="overlay-exclude">Excel template file</a> for updating data already present on your site. <span class="error">Please ensure all data from your site is present in your downloaded file.</span></p>', array(
           '!popurl' => url('import/' . $this->id . '/populated-template')
-        )) : '') . '</div>'
+        )) . '</div>'
       )
     );
     $form['all_worksheets'] = array(
