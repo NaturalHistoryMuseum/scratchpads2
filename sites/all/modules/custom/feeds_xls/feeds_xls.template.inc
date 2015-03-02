@@ -174,7 +174,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
   // Loop through each of the entities
   foreach($entities as $entity_id => $entity){
     // If we are unable to edit this entity, we go no further.
-    if(!user_access('feeds xls allow download of all entities') && !entity_access('edit', $context['sandbox']['entity'], $entity)){
+    if(!user_access('feeds xls allow download of all entities') && !(entity_access('update', $context['sandbox']['entity'], $entity) || entity_access('edit', $context['sandbox']['entity'], $entity))){
       continue;
     }
     // Create a row array for each entity.
