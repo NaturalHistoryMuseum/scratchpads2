@@ -6,376 +6,410 @@
 function silver_feeds_importer_default(){
   // Array of Feeds importers.
   $export = array();
-  // Get a list of the vocabularies.
-  $vocabularies = taxonomy_get_vocabularies();
-  foreach($vocabularies as $vocabulary){
-    $feeds_importer = new stdClass();
-    $feeds_importer->disabled = FALSE;
-    $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls';
-    $feeds_importer->config = array(
-      'name' => t('Import into: !vocabulary_name (!type)', array(
-        '!vocabulary_name' => $vocabulary->name,
-        '!type' => 'XLS'
-      )),
-      'description' => t('Import a classification into a specific vocabulary.'),
-      'fetcher' => array(
-        'plugin_key' => 'FeedsFileFetcher',
-        'config' => array(
-          'allowed_extensions' => 'xls xlsx',
-          'direct' => 0
-        )
-      ),
-      'parser' => array(
-        'plugin_key' => 'FeedsExcelParser',
-        'config' => array(
-          'no_headers' => 0,
-          'all_worksheets' => 1
-        )
-      ),
-      'processor' => array(
-        'plugin_key' => 'FeedsTermProcessor',
-        'config' => array(
-          'vocabulary' => $vocabulary->machine_name,
-          'mappings' => array(
-            array(
-              'source' => 'Term name',
-              'target' => 'name',
-              'unique' => 0
-            ),
-            array(
-              'source' => 'Parent Term Name',
-              'target' => 'parent',
-              'unique' => 0
-            ),
-            array(
-              'source' => 'Term description',
-              'target' => 'description',
-              'unique' => FALSE
-            ),
-            array(
-              'source' => 'GUID',
-              'target' => 'guid',
-              'unique' => 1
-            ),
-            array(
-              'source' => 'Parent GUID',
-              'target' => 'parentguid',
-              'unique' => 0
-            )
-          ),
-          'bundle' => $vocabulary->machine_name,
-          'update_existing' => '2',
-          'input_format' => 'plain_text',
-          'skip_hash_check' => 1
-        )
-      ),
-      'content_type' => '',
-      'update' => 1,
-      'import_period' => '-1',
-      'expire_period' => 3600,
-      'import_on_create' => 1,
-      'process_in_background' => 0
-    );
-    $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'taxonomy_term:' . $vocabulary->machine_name . ':');
-    $export['taxonomy_importer_' . $vocabulary->machine_name . '_xls'] = $feeds_importer;
-    if(module_exists('silvercsv')){
-      $csv_importer = clone $feeds_importer;
-      $csv_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_csv';
-      $csv_importer->config['name'] = t('Import into: !vocabulary_name (!type)', array(
-        '!vocabulary_name' => $vocabulary->name,
-        '!type' => 'CSV'
-      ));
-      $csv_importer->config['parser'] = array(
-        'plugin_key' => 'FeedsCSVParser',
-        'config' => array(
-          'delimiter' => ',',
-          'no_headers' => 0
-        )
-      );
-      $export['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $csv_importer;
-    }
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
   }
-  // Get a list of the content types.
-  $entity_info = entity_get_info('node');
-  foreach($entity_info['bundles'] as $node_type => $node_type_info){
-    $feeds_importer = new stdClass();
-    $feeds_importer->disabled = FALSE;
-    $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'node_importer_' . $node_type . '_xls';
-    $feeds_importer->config = array(
-      'name' => t('Import into: !node_type_name (!type)', array(
-        '!node_type_name' => $node_type_info['label'],
-        '!type' => 'XLS'
-      )),
-      'description' => t('Import a classification into a specific content type.'),
-      'fetcher' => array(
-        'plugin_key' => 'FeedsFileFetcher',
-        'config' => array(
-          'allowed_extensions' => 'xls xlsx',
-          'direct' => 0
-        )
-      ),
-      'parser' => array(
-        'plugin_key' => 'FeedsExcelParser',
-        'config' => array(
-          'no_headers' => 0,
-          'all_worksheets' => 1
-        )
-      ),
-      'processor' => array(
-        'plugin_key' => 'FeedsNodeProcessorValidate',
-        'config' => array(
-          'content_type' => $node_type,
-          'expire' => '-1',
-          'author' => 0,
-          'mappings' => array(
-            array(
-              'source' => 'GUID',
-              'target' => 'guid',
-              'unique' => TRUE
+  foreach($languages as $language => $language_name){
+    // Get a list of the vocabularies.
+    $vocabularies = taxonomy_get_vocabularies();
+    foreach($vocabularies as $vocabulary){
+      $feeds_importer = new stdClass();
+      $feeds_importer->disabled = FALSE;
+      $feeds_importer->api_version = 1;
+      $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls';
+      $feeds_importer->config = array(
+        'name' => t('Import into: !vocabulary_name (!type) in !language', array(
+          '!vocabulary_name' => $vocabulary->name,
+          '!type' => 'XLS',
+          '!language' => $language_name
+        )),
+        'description' => t('Import a classification into a specific vocabulary.'),
+        'fetcher' => array(
+          'plugin_key' => 'FeedsFileFetcher',
+          'config' => array(
+            'allowed_extensions' => 'xls xlsx',
+            'direct' => 0,
+            'directory' => 'public://feeds',
+            'allowed_schemes' => array(
+              0 => 'public'
             )
+          )
+        ),
+        'parser' => array(
+          'plugin_key' => 'FeedsExcelParser',
+          'config' => array(
+            'max_rows' => 65535,
+            'all_worksheets' => 1
+          )
+        ),
+        'processor' => array(
+          'plugin_key' => 'FeedsTermProcessor',
+          'config' => array(
+            'vocabulary' => $vocabulary->machine_name,
+            'mappings' => array(
+              array(
+                'source' => 'Term name',
+                'target' => 'name',
+                'unique' => 0
+              ),
+              array(
+                'source' => 'Parent Term Name',
+                'target' => 'parent',
+                'unique' => 0
+              ),
+              array(
+                'source' => 'Term description',
+                'target' => 'description',
+                'unique' => FALSE
+              ),
+              array(
+                'source' => 'GUID',
+                'target' => 'guid',
+                'unique' => 1
+              ),
+              array(
+                'source' => 'Parent GUID',
+                'target' => 'parentguid',
+                'unique' => 0
+              )
+            ),
+            'bundle' => $vocabulary->machine_name,
+            'update_existing' => '2',
+            'input_format' => 'plain_text',
+            'skip_hash_check' => 1
+          )
+        ),
+        'content_type' => '',
+        'update' => 1,
+        'import_period' => '-1',
+        'expire_period' => 3600,
+        'import_on_create' => 1,
+        'process_in_background' => 0
+      );
+      $field_info = field_info_instances('taxonomy_term', $vocabulary->machine_name);
+      _silver_feeds_importer_default_helper($field_info, $feeds_importer, $language, 'taxonomy_term:' . $vocabulary->machine_name . ':');
+      $export['taxonomy_importer_' . $vocabulary->machine_name . '_xls_' . $language] = $feeds_importer;
+      if(module_exists('silvercsv')){
+        $csv_importer = clone $feeds_importer;
+        $csv_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_csv';
+        $csv_importer->config['name'] = t('Import into: !vocabulary_name (!type) in !language', array(
+          '!vocabulary_name' => $vocabulary->name,
+          '!type' => 'CSV',
+          '!language' => $language_name
+        ));
+        $csv_importer->config['parser'] = array(
+          'plugin_key' => 'FeedsCSVParser',
+          'config' => array(
+            'delimiter' => ',',
+            'no_headers' => 0
+          )
+        );
+        $export['taxonomy_importer_' . $vocabulary->machine_name . '_csv_' . $language] = $csv_importer;
+      }
+    }
+    // Get a list of the content types.
+    $entity_info = entity_get_info('node');
+    foreach($entity_info['bundles'] as $node_type => $node_type_info){
+      $feeds_importer = new stdClass();
+      $feeds_importer->disabled = FALSE;
+      $feeds_importer->api_version = 1;
+      $feeds_importer->id = 'node_importer_' . $node_type . '_xls';
+      $feeds_importer->config = array(
+        'name' => t('Import into: !node_type_name (!type) in !language', array(
+          '!node_type_name' => $node_type_info['label'],
+          '!type' => 'XLS',
+          '!language' => $language_name
+        )),
+        'description' => t('Import a classification into a specific content type.'),
+        'fetcher' => array(
+          'plugin_key' => 'FeedsFileFetcher',
+          'config' => array(
+            'allowed_extensions' => 'xls xlsx',
+            'direct' => 0
           ),
-          'bundle' => $node_type,
-          'update_existing' => '2',
-          'input_format' => 'filtered_html',
-          'skip_hash_check' => 0
-        )
-      ),
-      'content_type' => '',
-      'update' => 0,
-      'import_period' => -1,
-      'expire_period' => 3600,
-      'import_on_create' => TRUE,
-      'process_in_background' => FALSE
-    );
-    // The title field may not have been enabled.
-    if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
-      if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+          'directory' => 'public://feeds',
+          'allowed_schemes' => array(
+            0 => 'public'
+          )
+        ),
+        'parser' => array(
+          'plugin_key' => 'FeedsExcelParser',
+          'config' => array(
+            'max_rows' => 65535,
+            'all_worksheets' => 1
+          )
+        ),
+        'processor' => array(
+          'plugin_key' => 'FeedsNodeProcessorValidate',
+          'config' => array(
+            'content_type' => $node_type,
+            'expire' => '-1',
+            'author' => 0,
+            'mappings' => array(
+              array(
+                'source' => 'GUID',
+                'target' => 'guid',
+                'unique' => TRUE
+              )
+            ),
+            'bundle' => $node_type,
+            'update_existing' => '2',
+            'input_format' => 'filtered_html',
+            'skip_hash_check' => 0
+          )
+        ),
+        'content_type' => '',
+        'update' => 0,
+        'import_period' => -1,
+        'expire_period' => 3600,
+        'import_on_create' => TRUE,
+        'process_in_background' => FALSE
+      );
+      // The title field may not have been enabled.
+      if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
+        if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+          $field_info = field_info_field('title_field');
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => 'Title',
+            'target' => 'title_field',
+            'unique' => FALSE,
+            'language' => $field_info['translatable'] ? $language : 'und'
+          );
+        }
+      }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
         $feeds_importer->config['processor']['config']['mappings'][] = array(
           'source' => 'Title',
-          'target' => 'title_field',
+          'target' => 'title',
           'unique' => FALSE
         );
       }
-    }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
+      $field_info = field_info_instances('node', $node_type);
+      $field_info = _silver_feeds_sort_field_info('node', $node_type, $field_info);
+      _silver_feeds_importer_default_helper($field_info, $feeds_importer, $language, "node:$node_type:");
+      // Add a mapping for the author of the node
       $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => 'Title',
-        'target' => 'title',
+        'source' => 'Node Author (UID)',
+        'target' => 'uid',
         'unique' => FALSE
       );
+      $export['node_importer_' . $node_type . '_xls_' . $language] = $feeds_importer;
+      if(module_exists('silvercsv')){
+        $csv_importer = clone $feeds_importer;
+        $csv_importer->id = 'node_importer_' . $node_type . '_csv';
+        $csv_importer->config['name'] = t('Import into: !node_type_name (!type) in !language', array(
+          '!node_type_name' => $node_type_info['label'],
+          '!type' => 'CSV',
+          '!language' => $language_name
+        ));
+        $csv_importer->config['parser'] = array(
+          'plugin_key' => 'FeedsCSVParser',
+          'config' => array(
+            'delimiter' => ',',
+            'no_headers' => 0
+          )
+        );
+        $export['node_importer_' . $node_type . '_csv_' . $language] = $csv_importer;
+      }
     }
-    $field_info = field_info_instances('node', $node_type);
-    $field_info = _silver_feeds_sort_field_info('node', $node_type, $field_info);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer, "node:$node_type:");
-    // Add a mapping for the author of the node
-    $feeds_importer->config['processor']['config']['mappings'][] = array(
-      'source' => 'Node Author (UID)',
-      'target' => 'uid',
-      'unique' => FALSE
-    );
-    $export['node_importer_' . $node_type . '_xls'] = $feeds_importer;
-    if(module_exists('silvercsv')){
-      $csv_importer = clone $feeds_importer;
-      $csv_importer->id = 'node_importer_' . $node_type . '_csv';
-      $csv_importer->config['name'] = t('Import into: !node_type_name (!type)', array(
-        '!node_type_name' => $node_type_info['label'],
-        '!type' => 'CSV'
-      ));
-      $csv_importer->config['parser'] = array(
-        'plugin_key' => 'FeedsCSVParser',
-        'config' => array(
-          'delimiter' => ',',
-          'no_headers' => 0
-        )
-      );
-      $export['node_importer_' . $node_type . '_csv'] = $csv_importer;
-    }
-  }
-  // Get a list of the file types.
-  $entity_info = entity_get_info('file');
-  foreach($entity_info['bundles'] as $file_type => $file_type_info){
-    $feeds_importer = new stdClass();
-    $feeds_importer->disabled = FALSE;
-    $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'file_importer_' . $file_type . '_xls';
-    $feeds_importer->config = array(
-      'name' => t('Import into: @file_type_name (!type)', array(
-        '@file_type_name' => $file_type_info['label'],
-        '!type' => 'XLS'
-      )),
-      'description' => t('Update the metadata for a specific file type.'),
-      'fetcher' => array(
-        'plugin_key' => 'FeedsFileFetcher',
-        'config' => array(
-          'allowed_extensions' => 'xls xlsx',
-          'direct' => 0
-        )
-      ),
-      'parser' => array(
-        'plugin_key' => 'FeedsExcelParser',
-        'config' => array(
-          'no_headers' => 0,
-          'all_worksheets' => 1
-        )
-      ),
-      'processor' => array(
-        'plugin_key' => 'FeedsFileProcessor',
-        'config' => array(
-          'bundle' => $file_type,
-          'expire' => '-1',
-          'author' => 0,
-          'input_format' => 'filtered_html',
-          'mappings' => array(
-            array(
-              'source' => 'GUID',
-              'target' => 'guid',
-              'unique' => TRUE
-            ),
-            array(
-              'source' => 'Filename',
-              'target' => 'filename',
-              'unique' => FALSE
+    // Get a list of the file types.
+    $entity_info = entity_get_info('file');
+    foreach($entity_info['bundles'] as $file_type => $file_type_info){
+      $feeds_importer = new stdClass();
+      $feeds_importer->disabled = FALSE;
+      $feeds_importer->api_version = 1;
+      $feeds_importer->id = 'file_importer_' . $file_type . '_xls';
+      $feeds_importer->config = array(
+        'name' => t('Import into: @file_type_name (!type) in !language', array(
+          '@file_type_name' => $file_type_info['label'],
+          '!type' => 'XLS',
+          '!language' => $language_name
+        )),
+        'description' => t('Update the metadata for a specific file type.'),
+        'fetcher' => array(
+          'plugin_key' => 'FeedsFileFetcher',
+          'config' => array(
+            'allowed_extensions' => 'xls xlsx',
+            'direct' => 0
+          ),
+          'directory' => 'public://feeds',
+          'allowed_schemes' => array(
+            0 => 'public'
+          )
+        ),
+        'parser' => array(
+          'plugin_key' => 'FeedsExcelParser',
+          'config' => array(
+            'max_rows' => 65535,
+            'all_worksheets' => 1
+          )
+        ),
+        'processor' => array(
+          'plugin_key' => 'FeedsFileProcessor',
+          'config' => array(
+            'bundle' => $file_type,
+            'expire' => '-1',
+            'author' => 0,
+            'input_format' => 'filtered_html',
+            'mappings' => array(
+              array(
+                'source' => 'GUID',
+                'target' => 'guid',
+                'unique' => TRUE
+              ),
+              array(
+                'source' => 'Filename',
+                'target' => 'filename',
+                'unique' => FALSE
+              )
             )
           )
-        )
-      ),
-      'update' => 0,
-      'import_period' => -1,
-      'expire_period' => 3600,
-      'import_on_create' => TRUE,
-      'process_in_background' => FALSE
-    );
-    $field_info = field_info_instances('file', $file_type);
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer, "file:$file_type:");
-    $export['file_importer_' . $file_type . '_xls'] = $feeds_importer;
-    if(module_exists('silvercsv')){
-      $csv_importer = clone $feeds_importer;
-      $csv_importer->id = 'file_importer_' . $file_type . '_csv';
-      $csv_importer->config['name'] = t('Import into: @file_type_name (!type)', array(
-        '@file_type_name' => $file_type_info['label'],
-        '!type' => 'CSV'
-      ));
-      $csv_importer->config['parser'] = array(
-        'plugin_key' => 'FeedsCSVParser',
-        'config' => array(
-          'delimiter' => ',',
-          'no_headers' => 0
-        )
+        ),
+        'update' => 0,
+        'import_period' => -1,
+        'expire_period' => 3600,
+        'import_on_create' => TRUE,
+        'process_in_background' => FALSE
       );
-      $export['file_importer_' . $file_type . '_csv'] = $csv_importer;
+      $field_info = field_info_instances('file', $file_type);
+      _silver_feeds_importer_default_helper($field_info, $feeds_importer, $language, "file:$file_type:");
+      $export['file_importer_' . $file_type . '_xls_' . $language] = $feeds_importer;
+      if(module_exists('silvercsv')){
+        $csv_importer = clone $feeds_importer;
+        $csv_importer->id = 'file_importer_' . $file_type . '_csv';
+        $csv_importer->config['name'] = t('Import into: @file_type_name (!type) in !language', array(
+          '@file_type_name' => $file_type_info['label'],
+          '!type' => 'CSV',
+          '!language' => $language_name
+        ));
+        $csv_importer->config['parser'] = array(
+          'plugin_key' => 'FeedsCSVParser',
+          'config' => array(
+            'delimiter' => ',',
+            'no_headers' => 0
+          )
+        );
+        $export['file_importer_' . $file_type . '_csv_' . $language] = $csv_importer;
+      }
     }
-  }
-  // Users ---------------------------------------------------------------------
-  if(user_access('administer users')){
-    // Add user fields 
-    // We use the form to ensure that the fields are in the same order as the form
-    $feeds_importer = new stdClass();
-    $feeds_importer->disabled = FALSE;
-    $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'user_importer_user_xls';
-    $feeds_importer->config = array(
-      'name' => t('Import into: Users (!type)', array(
-        '!type' => 'XLS'
-      )),
-      'description' => t('Add and Update users.'),
-      'fetcher' => array(
-        'plugin_key' => 'FeedsFileFetcher',
-        'config' => array(
-          'allowed_extensions' => 'xls xlsx',
-          'direct' => 0
-        )
-      ),
-      'parser' => array(
-        'plugin_key' => 'FeedsExcelParser',
-        'config' => array(
-          'no_headers' => 0,
-          'all_worksheets' => 1
-        )
-      ),
-      'processor' => array(
-        'plugin_key' => 'FeedsUserProcessor',
-        'config' => array(
-          'status' => 1,
-          'mappings' => array(),
-          'update_existing' => '1'
-        )
-      ),
-      'update' => 0,
-      'import_period' => -1,
-      'expire_period' => 3600,
-      'import_on_create' => TRUE,
-      'process_in_background' => FALSE
-    );
-    $form = drupal_get_form('user_register_form');
-    $field_info = field_info_instances('user', 'user');
-    $ordered_field_info = array();
-    $order = array();
-    $group_number = 0;
-    // If we are using fieldgroups, as in biography
-    if(!empty($form['#groups'])){
-      foreach($form['#groups'] as $group_name => $group){
-        if($group_name != 'group_tabs'){
-          foreach($group->children as $field_name){
-            // GroupNumber - Weight - Fieldname
-            $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+    // Users ---------------------------------------------------------------------
+    if(user_access('administer users')){
+      // Add user fields 
+      // We use the form to ensure that the fields are in the same order as the form
+      $feeds_importer = new stdClass();
+      $feeds_importer->disabled = FALSE;
+      $feeds_importer->api_version = 1;
+      $feeds_importer->id = 'user_importer_user_xls';
+      $feeds_importer->config = array(
+        'name' => t('Import into: Users (!type) in !language', array(
+          '!type' => 'XLS',
+          '!language' => $language_name
+        )),
+        'description' => t('Add and Update users.'),
+        'fetcher' => array(
+          'plugin_key' => 'FeedsFileFetcher',
+          'config' => array(
+            'allowed_extensions' => 'xls xlsx',
+            'direct' => 0
+          ),
+          'directory' => 'public://feeds',
+          'allowed_schemes' => array(
+            0 => 'public'
+          )
+        ),
+        'parser' => array(
+          'plugin_key' => 'FeedsExcelParser',
+          'config' => array(
+            'max_rows' => 65535,
+            'all_worksheets' => 1
+          )
+        ),
+        'processor' => array(
+          'plugin_key' => 'FeedsUserProcessor',
+          'config' => array(
+            'status' => 1,
+            'mappings' => array(),
+            'update_existing' => '1'
+          )
+        ),
+        'update' => 0,
+        'import_period' => -1,
+        'expire_period' => 3600,
+        'import_on_create' => TRUE,
+        'process_in_background' => FALSE
+      );
+      $form = drupal_get_form('user_register_form');
+      $field_info = field_info_instances('user', 'user');
+      $ordered_field_info = array();
+      $order = array();
+      $group_number = 0;
+      // If we are using fieldgroups, as in biography
+      if(!empty($form['#groups'])){
+        foreach($form['#groups'] as $group_name => $group){
+          if($group_name != 'group_tabs'){
+            foreach($group->children as $field_name){
+              // GroupNumber - Weight - Fieldname
+              $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
+            }
           }
+          $group_number++;
         }
-        $group_number++;
+      }else{
+        // No fieldgroups, as in default scratchpads
+        foreach($field_info as $field_name => $info){
+          $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+        }
       }
-    }else{
-      // No fieldgroups, as in default scratchpads
+      ksort($order);
+      foreach($order as $field_name){
+        $ordered_field_info[$field_name] = $field_info[$field_name];
+        unset($field_info[$field_name]);
+      }
+      // Add any fields that are not in fieldgroups to the end
       foreach($field_info as $field_name => $info){
-        $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
+        $ordered_field_info[$field_name] = $info;
       }
-    }
-    ksort($order);
-    foreach($order as $field_name){
-      $ordered_field_info[$field_name] = $field_info[$field_name];
-      unset($field_info[$field_name]);
-    }
-    // Add any fields that are not in fieldgroups to the end
-    foreach($field_info as $field_name => $info){
-      $ordered_field_info[$field_name] = $info;
-    }
-    $field_info = $ordered_field_info;
-    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'user:user:');
-    $feeds_importer->config['processor']['config']['mappings'][] = array(
-      'source' => 'E-Mail',
-      'target' => 'mail',
-      'unique' => TRUE
-    );
-    $feeds_importer->config['processor']['config']['mappings'][] = array(
-      'source' => 'Username',
-      'target' => 'name',
-      'unique' => TRUE
-    );
-    $feeds_importer->config['processor']['config']['mappings'][] = array(
-      'source' => 'Password',
-      'target' => 'pass',
-      'unique' => 0
-    );
-    $feeds_importer->config['processor']['config']['mappings'][] = array(
-      'source' => 'GUID',
-      'target' => 'guid',
-      'unique' => 1
-    );
-    $export['user_importer_user_xls'] = $feeds_importer;
-    if(module_exists('silvercsv')){
-      $csv_importer = clone $feeds_importer;
-      $csv_importer->id = 'user_importer_user_csv';
-      $csv_importer->config['name'] = t('Import into: Users (!type)', array(
-        '!type' => 'CSV'
-      ));
-      $csv_importer->config['parser'] = array(
-        'plugin_key' => 'FeedsCSVParser',
-        'config' => array(
-          'delimiter' => ',',
-          'no_headers' => 0
-        )
+      $field_info = $ordered_field_info;
+      _silver_feeds_importer_default_helper($field_info, $feeds_importer, $language, 'user:user:');
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => 'E-Mail',
+        'target' => 'mail',
+        'unique' => TRUE
       );
-      $export['user_importer_user_csv'] = $csv_importer;
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => 'Username',
+        'target' => 'name',
+        'unique' => TRUE
+      );
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => 'Password',
+        'target' => 'pass',
+        'unique' => 0
+      );
+      $feeds_importer->config['processor']['config']['mappings'][] = array(
+        'source' => 'GUID',
+        'target' => 'guid',
+        'unique' => 1
+      );
+      $export['user_importer_user_xls_' . $language] = $feeds_importer;
+      if(module_exists('silvercsv')){
+        $csv_importer = clone $feeds_importer;
+        $csv_importer->id = 'user_importer_user_csv';
+        $csv_importer->config['name'] = t('Import into: Users (!type) in !language', array(
+          '!type' => 'CSV',
+          '!language' => $language_name
+        ));
+        $csv_importer->config['parser'] = array(
+          'plugin_key' => 'FeedsCSVParser',
+          'config' => array(
+            'delimiter' => ',',
+            'no_headers' => 0
+          )
+        );
+        $export['user_importer_user_csv_' . $language] = $csv_importer;
+      }
     }
   }
   return $export;
@@ -430,7 +464,7 @@ function _silver_feeds_sort_field_info($entity_type, $bundle, $field_info){
 /**
  * Helper function which creates the correct mapping for certain field types.
  */
-function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $additional = '', $map_field_collection = FALSE, $field_collection_label_addition = ''){
+function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $language, $additional = '', $map_field_collection = FALSE, $field_collection_label_addition = ''){
   if(is_array($field_info)){
     foreach($field_info as $key => $field){
       // Don't add the title_field, as it has already been added (or not depending
@@ -445,19 +479,21 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . trim($field['label']) . ' (Filename)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':MediaFeedsLibraryProvider' : $key . ':MediaFeedsLibraryProvider',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . trim($field['label']) . ' (URL)',
             'target' => $map_field_collection ? $map_field_collection . $key : $key,
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'field_collection':
           // We get the info about the field collection, and add a mapping for
           // each of the fields in it.
           if(!$map_field_collection){
-            _silver_feeds_importer_default_helper(field_info_instances('field_collection_item', $field_info['field_name']), $feeds_importer, $field_info['field_name'] . ':field_collection_item:' . $field_info['field_name'] . ':', $field_info['field_name'] . ':', $field['label'] . ': ');
+            _silver_feeds_importer_default_helper(field_info_instances('field_collection_item', $field_info['field_name']), $language, $feeds_importer, $field_info['field_name'] . ':field_collection_item:' . $field_info['field_name'] . ':', $field_info['field_name'] . ':', $field['label'] . ': ');
           }
           break;
         case 'country':
@@ -465,7 +501,8 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('ISO alpha-2') . ')',
             'target' => $additional . $key . ':iso2',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'date':
@@ -474,12 +511,14 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Start') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':start' : $key . ':start',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('End') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':end' : $key . ':end',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'link_field':
@@ -487,12 +526,14 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('TITLE') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':title' : $key . ':title',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('URL') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':url' : $key . ':url',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'user_reference':
@@ -500,17 +541,20 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (GUID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':guid:duplicates' : $key . ':guid:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (UID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':uid:duplicates' : $key . ':uid:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Name on site') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':name:duplicates' : $key . ':name:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'node_reference':
@@ -518,17 +562,20 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (GUID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':guid:duplicates' : $key . ':guid:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (NID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':nid:duplicates' : $key . ':nid:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Title') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key . ':title:duplicates' : $key . ':title:duplicates',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         case 'taxonomy_term_reference':
@@ -536,24 +583,28 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (' . t('Name') . ')',
             'target' => $map_field_collection ? $map_field_collection . $key : $key,
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (TID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':tid' : $key . ':tid',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . $field['label'] . ' (GUID)',
             'target' => $map_field_collection ? $map_field_collection . $key . ':guid' : $key . ':guid',
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
           break;
         default:
           $feeds_importer->config['processor']['config']['mappings'][] = array(
             'source' => $field_collection_label_addition . trim($field['label']),
             'target' => $map_field_collection ? $map_field_collection . $key : $key,
-            'unique' => 0
+            'unique' => 0,
+            'language' => $field_info['translatable'] ? $language : 'und'
           );
       }
     }
