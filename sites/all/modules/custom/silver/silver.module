@@ -159,12 +159,11 @@ function silver_menu(){
 function silver_import_taxonomy(){
   $vocabularies = taxonomy_get_vocabularies();
   foreach($vocabularies as $vocabulary){
-    if(user_access('edit terms in ' . $vocabulary->vid)){
-      return TRUE;
-    }
+    if(user_access('edit terms in ' . $vocabulary->vid)){return TRUE;}
   }
   return FALSE;
 }
+
 /**
  * Implementation of hook_silver().
  * 
@@ -413,7 +412,7 @@ function silver_ajax_callback($form, &$form_state){
     if($form_state['values']['silver_import_subform_feeds']){
       module_load_include('pages.inc', 'feeds');
       $form_state['programmed'] = TRUE;
-      $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
+      $form = drupal_get_form('feeds_import_form', feeds_importer_load($form_state['values']['silver_import_subform_feeds']));
       $form['#action'] = url('import/' . $form_state['values']['silver_import_subform_feeds'], array(
         'query' => array(
           'render' => 'overlay'
@@ -462,8 +461,16 @@ function theme_silver_import_form($variables){
  */
 function silver_taxonomy_excel_form(){
   $vocabularies = taxonomy_get_vocabularies();
-  foreach($vocabularies as $vocabulary){
-    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_xls'] = $vocabulary->name;
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
+  }
+  foreach($languages as $language => $language_name){
+    foreach($vocabularies as $vocabulary){
+      $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_xls_' . $language] = $vocabulary->name . ' (' . $language_name . ')';
+    }
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -485,8 +492,16 @@ function silver_taxonomy_excel_form(){
  */
 function silver_taxonomy_csv_form(){
   $vocabularies = taxonomy_get_vocabularies();
-  foreach($vocabularies as $vocabulary){
-    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $vocabulary->name;
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
+  }
+  foreach($languages as $language => $language_name){
+    foreach($vocabularies as $vocabulary){
+      $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv_' . $language] = $vocabulary->name . ' (' . $language_name . ')';
+    }
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -508,8 +523,16 @@ function silver_taxonomy_csv_form(){
  */
 function silver_file_excel_form(){
   $entity_info = entity_get_info('file');
-  foreach($entity_info['bundles'] as $file_type => $file_type_info){
-    $file_types['file_importer_' . $file_type . '_xls'] = check_plain($file_type_info['label']);
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
+  }
+  foreach($languages as $language => $language_name){
+    foreach($entity_info['bundles'] as $file_type => $file_type_info){
+      $file_types['file_importer_' . $file_type . '_xls_' . $language] = check_plain($file_type_info['label']) . ' (' . $language_name . ')';
+    }
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -531,8 +554,16 @@ function silver_file_excel_form(){
  */
 function silver_file_csv_form(){
   $entity_info = entity_get_info('file');
-  foreach($entity_info['bundles'] as $file_type => $file_type_info){
-    $file_types['file_importer_' . $file_type . '_csv'] = check_plain($file_type_info['label']);
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
+  }
+  foreach($languages as $language => $language_name){
+    foreach($entity_info['bundles'] as $file_type => $file_type_info){
+      $file_types['file_importer_' . $file_type . '_csv_' . $language] = check_plain($file_type_info['label']) . ' (' . $language_name . ')';
+    }
   }
   return array(
     'silver_import_subform_feeds' => array(
@@ -554,7 +585,7 @@ function silver_file_csv_form(){
  */
 function silver_user_excel_form(){
   // Get the feeds import form.
-  return drupal_get_form('feeds_import_form', 'user_importer_user');
+  return drupal_get_form('feeds_import_form', feeds_importer_load('user_importer_user'));
 }
 
 /**
@@ -563,12 +594,20 @@ function silver_user_excel_form(){
 function silver_pages_excel_form(){
   $content_types = array();
   $entity_info = entity_get_info('node');
-  foreach($entity_info['bundles'] as $node_type => $node_type_info){
-    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
-      //'biblio',
-      'media_gallery'
-    )))){
-      $content_types['node_importer_' . $node_type . '_xls'] = $node_type_info['label'];
+  $languages = array(
+    'und' => t('Undefined')
+  );
+  if(module_exists('locale')){
+    $languages = locale_language_list('name');
+  }
+  foreach($languages as $language => $language_name){
+    foreach($entity_info['bundles'] as $node_type => $node_type_info){
+      if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
+        //'biblio',
+        'media_gallery'
+      )))){
+        $content_types['node_importer_' . $node_type . '_xls_' . $language] = $node_type_info['label'] . ' (' . $language_name . ')';
+      }
     }
   }
   return array(
