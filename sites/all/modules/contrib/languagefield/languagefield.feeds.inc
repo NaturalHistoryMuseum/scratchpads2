@@ -48,7 +48,7 @@ function languagefield_feeds_set_target($source, $entity, $target, $value) {
 
   // Get lists of all languages and user languages.
   $languages_all = _languagefield_options(LANGUAGEFIELD_LANGUAGES_ALL);
-  $languages_user = _languagefield_options(LANGUAGEFIELD_LANGUAGES_USER);
+  $languages_user = _languagefield_options(LANGUAGEFIELD_AUTHORS_DEFAULT);
 
   // Iterate over all values.
   $i = 0;
