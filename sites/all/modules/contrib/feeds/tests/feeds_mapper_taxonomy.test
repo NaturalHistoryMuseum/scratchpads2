@@ -299,6 +299,52 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
   }
 
   /**
+   * Tests importing empty values
+   */
+  public function testBlankSourceValues() {
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'node');
+    $this->setPlugin('node', 'FeedsFileFetcher');
+    $this->setPlugin('node', 'FeedsCSVParser');
+    $this->setSettings('node', 'FeedsNodeProcessor', array('bundle' => 'article'));
+    $this->setSettings('node', NULL, array('content_type' => ''));
+    $this->addMappings('node', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'tags',
+        'target' => 'field_tags',
+        'term_search' => 0,
+        'autocreate' => 1,
+      ),
+      2 => array(
+        'source' => 'guid',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+    ));
+
+    // Verify that there are 5 nodes total.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/taxonomy_empty_terms.csv');
+    $this->assertText('Created 5 nodes');
+
+    // Make sure only two terms were added
+    $names = db_query('SELECT name FROM {taxonomy_term_data}')->fetchCol();
+    $this->assertEqual(count($names), 2, 'Found correct number of terms in the database.');
+
+    // Make sure the correct terms were created
+    $terms = array(
+      'term1',
+      '0',
+    );
+    foreach ($terms as $term_name) {
+      $this->assertTrue(in_array($term_name, $names), 'Correct term created');
+    }
+  }
+
+  /**
    * Finds node style taxonomy term markup in DOM.
    */
   public function assertTaxonomyTerm($term) {

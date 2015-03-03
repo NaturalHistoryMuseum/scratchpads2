@@ -28,7 +28,8 @@ class FeedsCSVParser extends FeedsParser {
       // Get first line and use it for column names, convert them to lower case.
       $header = $this->parseHeader($parser, $iterator);
       if (!$header) {
-        return;
+        drupal_set_message(t('The CSV file is empty.'), 'warning', FALSE);
+        return new FeedsParserResult();
       }
       $parser->setColumnNames($header);
     }
@@ -127,10 +128,11 @@ class FeedsCSVParser extends FeedsParser {
         $uniques[] = check_plain($mapping['source']);
       }
     }
+    $sources = array_unique($sources);
 
     $output = t('Import !csv_files with one or more of these columns: !columns.', array('!csv_files' => l(t('CSV files'), 'http://en.wikipedia.org/wiki/Comma-separated_values'), '!columns' => implode(', ', $sources)));
     $items = array();
-    $items[] = format_plural(count($uniques), t('Column <strong>!column</strong> is mandatory and considered unique: only one item per !column value will be created.', array('!column' => implode(', ', $uniques))), t('Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array('!columns' => implode(', ', $uniques))));
+    $items[] = format_plural(count($uniques), 'Column <strong>!columns</strong> is mandatory and considered unique: only one item per !columns value will be created.', 'Columns <strong>!columns</strong> are mandatory and values in these columns are considered unique: only one entry per value in one of these column will be created.', array('!columns' => implode(', ', $uniques)));
     $items[] = l(t('Download a template'), 'import/' . $this->id . '/template');
     $form['help'] = array(
       '#prefix' => '<div class="help">',
@@ -208,6 +210,11 @@ class FeedsCSVParser extends FeedsParser {
     $mappings = feeds_importer($this->id)->processor->config['mappings'];
     $sources = $uniques = array();
     foreach ($mappings as $mapping) {
+      if (in_array(check_plain($mapping['source']), $uniques) || in_array(check_plain($mapping['source']), $sources)) {
+        // Skip columns we've already seen.
+        continue;
+      }
+
       if (!empty($mapping['unique'])) {
         $uniques[] = check_plain($mapping['source']);
       }

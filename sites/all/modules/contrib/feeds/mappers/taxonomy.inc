@@ -70,6 +70,11 @@ function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle
       );
     }
   }
+  if ($entity_type == 'taxonomy_term') {
+    $targets['tid']['name'] = t('Term id');
+    $targets['tid']['description'] = t('The tid of the taxonomy term. NOTE: use this feature with care, node ids are usually assigned by Drupal.');
+    unset($targets['vocabulary']);
+  }
 }
 
 /**
@@ -77,23 +82,15 @@ function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle
  *
  * @todo Do not create new terms for non-autotag fields.
  */
-function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping = array()) {
-
-  // Allow mapping the string '0' to a term name.
-  if (empty($terms) && $terms != 0) {
-    return;
-  }
-
-  // Handle non-multiple values.
-  if (!is_array($terms)) {
-    $terms = array($terms);
-  }
-
+function taxonomy_feeds_set_target($source, $entity, $target, array $terms, $mapping = array()) {
   // Add in default values.
   $mapping += array(
     'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
     'autocreate' => FALSE,
+    'language' => LANGUAGE_NONE,
   );
+  // Grab the language for convenience
+  $langcode = $mapping['language'];
 
   $info = field_info_field($target);
 
@@ -116,10 +113,15 @@ function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping =
     ->range(0, 1);
 
 
-  $field = isset($entity->$target) ? $entity->$target : array('und' => array());
+  $field = isset($entity->$target) ? $entity->$target : array($langcode => array());
+
+  // If it's a new language we need to add it to the field
+  if (!isset($field[$langcode])) {
+    $field[$langcode] = array();
+  }
 
   // Allow for multiple mappings to the same target.
-  $delta = count($field['und']);
+  $delta = count($field[$langcode]);
 
   // Iterate over all values.
   foreach ($terms as $term) {
@@ -139,13 +141,21 @@ function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping =
 
         // Lookup by name.
         case FEEDS_TAXONOMY_SEARCH_TERM_NAME:
+          $term = trim($term);
           $name_query = clone $query;
-          if ($tids = $name_query->propertyCondition('name', $term)->execute()) {
-            $tid = key($tids['taxonomy_term']);
+          if (strlen($term) && $tids = $name_query->propertyCondition('name', $term)->execute()) {
+
+            // Find the first allowed term.
+            foreach ($tids['taxonomy_term'] as $possible_term) {
+              if (isset($cache['allowed_values'][$target][$possible_term->tid])) {
+                $tid = $possible_term->tid;
+                break;
+              }
+            }
           }
-          elseif ($mapping['autocreate']) {
+          elseif ($mapping['autocreate'] && strlen($term)) {
             $term = (object) array(
-              'name' => $term,
+              'name' => drupal_substr($term, 0, 255),
               'vid' => key($cache['allowed_vocabularies'][$target]),
               'vocabulary_machine_name' => reset($cache['allowed_vocabularies'][$target]),
             );
@@ -159,7 +169,7 @@ function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping =
         // Lookup by tid.
         case FEEDS_TAXONOMY_SEARCH_TERM_ID:
           if (is_numeric($term)) {
-            $tid = $term;
+            $tid = (int) $term;
           }
           break;
 
@@ -171,7 +181,7 @@ function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping =
     }
 
     if ($tid && isset($cache['allowed_values'][$target][$tid])) {
-      $field['und'][$delta]['tid'] = $tid;
+      $field[$langcode][] = array('tid' => $tid);
       $delta++;
     }
   }
@@ -262,11 +272,21 @@ function taxonomy_feeds_term_lookup_term_by_guid($guid) {
  *   will be displayed.
  */
 function taxonomy_feeds_summary_callback($mapping, $target, $form, $form_state) {
+  $output = '';
   $options = _taxonomy_feeds_form_callback_options();
   if (empty($mapping['term_search'])) {
-    return t('Search taxonomy terms by: <strong>@search</strong>', array('@search' => $options[FEEDS_TAXONOMY_SEARCH_TERM_NAME]));
+    $output = t('Search taxonomy terms by: <strong>@search</strong>', array('@search' => $options[FEEDS_TAXONOMY_SEARCH_TERM_NAME]));
   }
-  return t('Search taxonomy terms by: <strong>@search</strong>', array('@search' => $options[$mapping['term_search']]));
+  else {
+    $output = t('Search taxonomy terms by: <strong>@search</strong>', array('@search' => $options[$mapping['term_search']]));
+  }
+  if ($language_summary = feeds_mapper_summary_language($mapping, $target, $form, $form_state)) {
+    $output .= '<br/>' . $language_summary;
+  }
+  if (!empty($mapping['autocreate'])) {
+    $output .= '<br/>' . t('Autocreate Terms: <strong>Yes</strong>');
+  }
+  return $output;
 }
 
 /**
@@ -277,7 +297,8 @@ function taxonomy_feeds_summary_callback($mapping, $target, $form, $form_state) 
  *   be populated with the form values.
  */
 function taxonomy_feeds_form_callback($mapping, $target, $form, $form_state) {
-  return array(
+  $return = feeds_mapper_form_language($mapping, $target, $form, $form_state);
+  $return += array(
     'term_search' => array(
       '#type' => 'select',
       '#title' => t('Search taxonomy terms by'),
@@ -296,6 +317,8 @@ function taxonomy_feeds_form_callback($mapping, $target, $form, $form_state) {
       ),
     ),
   );
+
+  return $return;
 }
 
 /**
