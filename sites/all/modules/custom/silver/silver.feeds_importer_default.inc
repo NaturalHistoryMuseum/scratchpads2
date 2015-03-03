@@ -19,7 +19,7 @@ function silver_feeds_importer_default(){
       $feeds_importer = new stdClass();
       $feeds_importer->disabled = FALSE;
       $feeds_importer->api_version = 1;
-      $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls';
+      $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls_' . $language;
       $feeds_importer->config = array(
         'name' => t('Import into: !vocabulary_name (!type) in !language', array(
           '!vocabulary_name' => $vocabulary->name,
@@ -94,7 +94,7 @@ function silver_feeds_importer_default(){
       $export['taxonomy_importer_' . $vocabulary->machine_name . '_xls_' . $language] = $feeds_importer;
       if(module_exists('silvercsv')){
         $csv_importer = clone $feeds_importer;
-        $csv_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_csv';
+        $csv_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_csv_' . $language;
         $csv_importer->config['name'] = t('Import into: !vocabulary_name (!type) in !language', array(
           '!vocabulary_name' => $vocabulary->name,
           '!type' => 'CSV',
@@ -116,7 +116,7 @@ function silver_feeds_importer_default(){
       $feeds_importer = new stdClass();
       $feeds_importer->disabled = FALSE;
       $feeds_importer->api_version = 1;
-      $feeds_importer->id = 'node_importer_' . $node_type . '_xls';
+      $feeds_importer->id = 'node_importer_' . $node_type . '_xls_' . $language;
       $feeds_importer->config = array(
         'name' => t('Import into: !node_type_name (!type) in !language', array(
           '!node_type_name' => $node_type_info['label'],
@@ -198,7 +198,7 @@ function silver_feeds_importer_default(){
       $export['node_importer_' . $node_type . '_xls_' . $language] = $feeds_importer;
       if(module_exists('silvercsv')){
         $csv_importer = clone $feeds_importer;
-        $csv_importer->id = 'node_importer_' . $node_type . '_csv';
+        $csv_importer->id = 'node_importer_' . $node_type . '_csv_' . $language;
         $csv_importer->config['name'] = t('Import into: !node_type_name (!type) in !language', array(
           '!node_type_name' => $node_type_info['label'],
           '!type' => 'CSV',
@@ -220,7 +220,7 @@ function silver_feeds_importer_default(){
       $feeds_importer = new stdClass();
       $feeds_importer->disabled = FALSE;
       $feeds_importer->api_version = 1;
-      $feeds_importer->id = 'file_importer_' . $file_type . '_xls';
+      $feeds_importer->id = 'file_importer_' . $file_type . '_xls_' . $language;
       $feeds_importer->config = array(
         'name' => t('Import into: @file_type_name (!type) in !language', array(
           '@file_type_name' => $file_type_info['label'],
@@ -278,7 +278,7 @@ function silver_feeds_importer_default(){
       $export['file_importer_' . $file_type . '_xls_' . $language] = $feeds_importer;
       if(module_exists('silvercsv')){
         $csv_importer = clone $feeds_importer;
-        $csv_importer->id = 'file_importer_' . $file_type . '_csv';
+        $csv_importer->id = 'file_importer_' . $file_type . '_csv_' . $language;
         $csv_importer->config['name'] = t('Import into: @file_type_name (!type) in !language', array(
           '@file_type_name' => $file_type_info['label'],
           '!type' => 'CSV',
@@ -294,122 +294,120 @@ function silver_feeds_importer_default(){
         $export['file_importer_' . $file_type . '_csv_' . $language] = $csv_importer;
       }
     }
-    // Users ---------------------------------------------------------------------
-    if(user_access('administer users')){
-      // Add user fields 
-      // We use the form to ensure that the fields are in the same order as the form
-      $feeds_importer = new stdClass();
-      $feeds_importer->disabled = FALSE;
-      $feeds_importer->api_version = 1;
-      $feeds_importer->id = 'user_importer_user_xls';
-      $feeds_importer->config = array(
-        'name' => t('Import into: Users (!type) in !language', array(
-          '!type' => 'XLS',
-          '!language' => $language_name
-        )),
-        'description' => t('Add and Update users.'),
-        'fetcher' => array(
-          'plugin_key' => 'FeedsFileFetcher',
-          'config' => array(
-            'allowed_extensions' => 'xls xlsx',
-            'direct' => 0
-          ),
-          'directory' => 'public://feeds',
-          'allowed_schemes' => array(
-            0 => 'public'
-          )
+  }
+  // Users ---------------------------------------------------------------------
+  if(user_access('administer users')){
+    // Add user fields
+    // We use the form to ensure that the fields are in the same order as the form
+    $feeds_importer = new stdClass();
+    $feeds_importer->disabled = FALSE;
+    $feeds_importer->api_version = 1;
+    $feeds_importer->id = 'user_importer_user_xls';
+    $feeds_importer->config = array(
+      'name' => t('Import into: Users (!type)', array(
+        '!type' => 'XLS'
+      )),
+      'description' => t('Add and Update users.'),
+      'fetcher' => array(
+        'plugin_key' => 'FeedsFileFetcher',
+        'config' => array(
+          'allowed_extensions' => 'xls xlsx',
+          'direct' => 0
         ),
-        'parser' => array(
-          'plugin_key' => 'FeedsExcelParser',
-          'config' => array(
-            'max_rows' => 65535,
-            'all_worksheets' => 1
-          )
-        ),
-        'processor' => array(
-          'plugin_key' => 'FeedsUserProcessor',
-          'config' => array(
-            'status' => 1,
-            'mappings' => array(),
-            'update_existing' => '1'
-          )
-        ),
-        'update' => 0,
-        'import_period' => -1,
-        'expire_period' => 3600,
-        'import_on_create' => TRUE,
-        'process_in_background' => FALSE
-      );
-      $form = drupal_get_form('user_register_form');
-      $field_info = field_info_instances('user', 'user');
-      $ordered_field_info = array();
-      $order = array();
-      $group_number = 0;
-      // If we are using fieldgroups, as in biography
-      if(!empty($form['#groups'])){
-        foreach($form['#groups'] as $group_name => $group){
-          if($group_name != 'group_tabs'){
-            foreach($group->children as $field_name){
-              // GroupNumber - Weight - Fieldname
-              $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
-            }
+        'directory' => 'public://feeds',
+        'allowed_schemes' => array(
+          0 => 'public'
+        )
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsExcelParser',
+        'config' => array(
+          'max_rows' => 65535,
+          'all_worksheets' => 1
+        )
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsUserProcessor',
+        'config' => array(
+          'status' => 1,
+          'mappings' => array(),
+          'update_existing' => '1'
+        )
+      ),
+      'update' => 0,
+      'import_period' => -1,
+      'expire_period' => 3600,
+      'import_on_create' => TRUE,
+      'process_in_background' => FALSE
+    );
+    $form = drupal_get_form('user_register_form');
+    $field_info = field_info_instances('user', 'user');
+    $ordered_field_info = array();
+    $order = array();
+    $group_number = 0;
+    // If we are using fieldgroups, as in biography
+    if(!empty($form['#groups'])){
+      foreach($form['#groups'] as $group_name => $group){
+        if($group_name != 'group_tabs'){
+          foreach($group->children as $field_name){
+            // GroupNumber - Weight - Fieldname
+            $order[$group_number . $form[$field_name]['#weight'] . $field_name] = $field_name;
           }
-          $group_number++;
         }
-      }else{
-        // No fieldgroups, as in default scratchpads
-        foreach($field_info as $field_name => $info){
-          $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
-        }
+        $group_number++;
       }
-      ksort($order);
-      foreach($order as $field_name){
-        $ordered_field_info[$field_name] = $field_info[$field_name];
-        unset($field_info[$field_name]);
-      }
-      // Add any fields that are not in fieldgroups to the end
+    }else{
+      // No fieldgroups, as in default scratchpads
       foreach($field_info as $field_name => $info){
-        $ordered_field_info[$field_name] = $info;
+        $order[$form[$field_name]['#weight'] . $field_name] = $field_name;
       }
-      $field_info = $ordered_field_info;
-      _silver_feeds_importer_default_helper($field_info, $feeds_importer, $language, 'user:user:');
-      $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => 'E-Mail',
-        'target' => 'mail',
-        'unique' => TRUE
+    }
+    ksort($order);
+    foreach($order as $field_name){
+      $ordered_field_info[$field_name] = $field_info[$field_name];
+      unset($field_info[$field_name]);
+    }
+    // Add any fields that are not in fieldgroups to the end
+    foreach($field_info as $field_name => $info){
+      $ordered_field_info[$field_name] = $info;
+    }
+    $field_info = $ordered_field_info;
+    _silver_feeds_importer_default_helper($field_info, $feeds_importer, 'und', 'user:user:');
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'E-Mail',
+      'target' => 'mail',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Username',
+      'target' => 'name',
+      'unique' => TRUE
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'Password',
+      'target' => 'pass',
+      'unique' => 0
+    );
+    $feeds_importer->config['processor']['config']['mappings'][] = array(
+      'source' => 'GUID',
+      'target' => 'guid',
+      'unique' => 1
+    );
+    $export['user_importer_user_xls'] = $feeds_importer;
+    if(module_exists('silvercsv')){
+      $csv_importer = clone $feeds_importer;
+      $csv_importer->id = 'user_importer_user_csv';
+      $csv_importer->config['name'] = t('Import into: Users (!type)', array(
+        '!type' => 'CSV'
+      ));
+      $csv_importer->config['parser'] = array(
+        'plugin_key' => 'FeedsCSVParser',
+        'config' => array(
+          'delimiter' => ',',
+          'no_headers' => 0
+        )
       );
-      $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => 'Username',
-        'target' => 'name',
-        'unique' => TRUE
-      );
-      $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => 'Password',
-        'target' => 'pass',
-        'unique' => 0
-      );
-      $feeds_importer->config['processor']['config']['mappings'][] = array(
-        'source' => 'GUID',
-        'target' => 'guid',
-        'unique' => 1
-      );
-      $export['user_importer_user_xls_' . $language] = $feeds_importer;
-      if(module_exists('silvercsv')){
-        $csv_importer = clone $feeds_importer;
-        $csv_importer->id = 'user_importer_user_csv';
-        $csv_importer->config['name'] = t('Import into: Users (!type) in !language', array(
-          '!type' => 'CSV',
-          '!language' => $language_name
-        ));
-        $csv_importer->config['parser'] = array(
-          'plugin_key' => 'FeedsCSVParser',
-          'config' => array(
-            'delimiter' => ',',
-            'no_headers' => 0
-          )
-        );
-        $export['user_importer_user_csv_' . $language] = $csv_importer;
-      }
+      $export['user_importer_user_csv'] = $csv_importer;
     }
   }
   return $export;
