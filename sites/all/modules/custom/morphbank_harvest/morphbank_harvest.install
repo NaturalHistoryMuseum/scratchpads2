@@ -269,3 +269,12 @@ function morphbank_harvest_schema(){
   );
   return $schema;
 }
+
+/**
+ * Update the group in the database to include the morphbank field.
+ */
+function morphbank_harvest_update_7001(){
+  $group = field_group_load_field_group('group_misc_display', 'node', 'specimen_observation', 'default');
+  $group->children[] = 'field_morphbank_specimen_id';
+  field_group_group_save($group);
+}
