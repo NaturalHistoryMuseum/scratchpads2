@@ -115,6 +115,7 @@ dependencies[] = spm
 dependencies[] = subpermissions
 dependencies[] = taxonomy_batch
 dependencies[] = taxonomy_breadcrumb_lite
+dependencies[] = taxonomystatistics
 dependencies[] = tools
 dependencies[] = tree_widget
 dependencies[] = tui
