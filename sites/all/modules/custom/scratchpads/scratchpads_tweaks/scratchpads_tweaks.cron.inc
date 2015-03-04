@@ -83,6 +83,8 @@ function _scratchpads_tweaks_cron(){
   // Note, we need to parse the scratchpads_tweaks info file ourselves as it
   // has its dependencies removed to allow required modules to be removed.
   if(variable_get('standard_scratchpad', TRUE)){
+    // Ensure we do not send out update emails to our users.
+    variable_del('update_notify_emails');
     $tweaks_info = drupal_parse_info_file(drupal_get_path('module', 'scratchpads_tweaks') . '/scratchpads_tweaks.info');
     $system_data = system_rebuild_module_data();
     $modules_to_enable = array();
