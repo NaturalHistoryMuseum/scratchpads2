@@ -320,6 +320,8 @@ function scratchpads_tweaks_install(){
   variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
   // Set the advagg module settings
   scratchpads_tweaks_update_7081();
+  // Ensure we do not send out update emails to our users.
+  variable_del('update_notify_emails');
 }
 
 /**
