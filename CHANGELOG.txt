@@ -1,3 +1,7 @@
+2.6.0.9 (2015-03-04)
+
+- Ensure that languagefield fields can be imported into (#4334)
+
 2.6.0.8 (2015-02-26)
 
 - Enable the update module to reflect our usage on Drupal.org
