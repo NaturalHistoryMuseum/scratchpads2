@@ -750,6 +750,19 @@ function block_scratchpads_default_permissions(){
 }
 
 /**
+ * taxonomystatistics module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function taxonomystatistics_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'view taxonomystatistics page'
+    )
+  );
+}
+
+/**
  * Node module
  *
  * Implements hook_scratchpads_default_permissions().
