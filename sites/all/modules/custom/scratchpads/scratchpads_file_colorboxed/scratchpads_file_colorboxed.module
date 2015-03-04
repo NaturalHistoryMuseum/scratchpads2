@@ -14,6 +14,11 @@ function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $vie
       'weight' => -1000
     );
   }
+  // Possibly not the correct place for this tweak, but given how much of a mess
+  // file displays/file entities are, I don't particularly care.
+  if($view_mode == 'file_styles_square_thumbnail' && in_array($file->type, array('text', 'application'))){
+    unset($displays['file_field_styles_file_square_thumbnail']);
+  }
 }
 
 /**
