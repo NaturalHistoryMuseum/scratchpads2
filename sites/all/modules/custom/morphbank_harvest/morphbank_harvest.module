@@ -65,5 +65,6 @@ function morphbank_harvest_menu(){
 function morphbank_harvest_field_group_info_alter(&$groups){
   if(!empty($groups['group_misc_display|node|specimen_observation|default'])){
     $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
+    $groups['group_miscellaneous|node|specimen_observation|form']->data['children'][] = 'field_morphbank_specimen_id';
   }
 }

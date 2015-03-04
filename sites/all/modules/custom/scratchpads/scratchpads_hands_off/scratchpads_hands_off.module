@@ -516,6 +516,7 @@ function _scratchpads_hands_off_hidden_urls(){
     'admin/config/user-interface/beautytips',
     'admin/config/user-interface/menu-block',
     'admin/dashboard/configure',
+    'admin/reports/updates',
     'admin/structure/block/list/scratchpads_admin',
     'admin/structure/file-types/manage/%/display/file_styles_large',
     'admin/structure/file-types/manage/%/display/file_styles_medium',
