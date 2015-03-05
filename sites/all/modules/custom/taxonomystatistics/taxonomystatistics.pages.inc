@@ -7,7 +7,16 @@ function taxonomystatistics_statistics_page($vocabulary, $term){
   // If we have a term, we probably don't have the vocabulary
   $content = array();
   if($term && !$vocabulary){
+    drupal_set_title(t('!taxonomyname statistics', array(
+      '!taxonomyname' => theme('scratchpads_species_name', array(
+        'term' => $term
+      ))
+    )), PASS_THROUGH);
     $vocabulary = taxonomy_vocabulary_load($term->vid);
+  }else{
+    drupal_set_title(t('@vocabularyname statistics', array(
+      '@vocabularyname' => $vocabulary->name
+    )));
   }
   if($term){
     $content[] = taxonomystatistics_statistics_helper_page($vocabulary, $term);
