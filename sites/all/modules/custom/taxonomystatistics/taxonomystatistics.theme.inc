@@ -31,6 +31,10 @@ function theme_taxonomystatistics_page($variables){
           'chart' => array(
             'title' => $field['label'],
             'subtitle' => $field['description']
+          ),
+          'hAxis' => array(
+            'format' => '#',
+            'baseline' => 0
           )
         ),
         '#data' => $field['values']
