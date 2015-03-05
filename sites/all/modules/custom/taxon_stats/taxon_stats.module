@@ -178,7 +178,10 @@ function taxon_stats_overall_pubs(){
 function taxon_stats_overall_protologues(){
   $content = array();
   $data = array();
-  $data[] = array('With link to original literature', 'Without link to original literature');
+  $data[] = array(
+    'With link to original literature',
+    'Without link to original literature'
+  );
   //Number of protologues
   $sql = "SELECT COUNT(*) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue'";
   $total = db_query($sql)->fetchObject();
@@ -187,9 +190,10 @@ function taxon_stats_overall_protologues(){
   $with_url = db_query($sql)->fetchObject();
   $with_url = $with_url->count;
   $missing = $total - $with_url;
-  $data[] = array($with_url, $missing);
-  
-
+  $data[] = array(
+    $with_url,
+    $missing
+  );
   if($data){
     $content[] = array(
       '#theme' => 'simple_google_chart',
@@ -216,101 +220,130 @@ function taxon_stats_overall_protologues(){
  * HTML
  */
 function taxon_stats_view($term){
+  if($plugin = context_get_plugin('condition', 'taxonomy_term')){
+    $plugin->execute($term, 'view');
+  }
   $options = array(
-        'height' => 20,
-        'enableInteractivity' => TRUE,
-        'width' => 20,
-        'height' => 20,
-        'legend' => array('position' => 'none'),
-        'slices' => array(
-             0 => array('color' => 'grey'),
-             1 => array('color' => 'white'),
-         ),
-         'pieSliceBorderColor' => 'grey',
-         'pieSliceText' => 'none',
-      );
-  
-  
+    'height' => 20,
+    'enableInteractivity' => TRUE,
+    'width' => 20,
+    'height' => 20,
+    'legend' => array(
+      'position' => 'none'
+    ),
+    'slices' => array(
+      0 => array(
+        'color' => 'grey'
+      ),
+      1 => array(
+        'color' => 'white'
+      )
+    ),
+    'pieSliceBorderColor' => 'grey',
+    'pieSliceText' => 'none'
+  );
   //Get data for this taxon
   $content_counts = taxon_stats_get_taxon_data($term);
-  
   //Get data for all taxa
   $overall_content_counts = taxon_stats_get_overall_data($term);
-  
   $content = array();
-  $content[] = array('#type' => 'markup', '#markup' => '<table id="taxon_stats_table">' 
-    . '<thead>' 
-    . '<tr>'
-      . '<td></td>'
-      . '<td >Descriptions</td>'
-      . '<td >Media</td>'
-      . '<td >Specimens/Observations</td>'
-      . '<td>References</td>'
-    . '</tr>' 
-    . '</thead>' 
-    . '<tr>' 
-      . '<td>' . $term->name . '</td>' 
-      . '<td>' . $content_counts['Descriptions'] . '</td>' 
-      . '<td >' . $content_counts['Images'] . '</td>' 
-      . '<td >' . $content_counts['Specimens/Observations'] . '</td>' 
-      . '<td >' . $content_counts['References'] . '</td>' 
-    . '</tr>' 
-    . '<tr>' 
-      . '<td>' . 'Fraction of all taxa with content' . '</td>' 
-      . '<td>');
   $content[] = array(
-      '#theme' => 'simple_google_chart',
-      '#type' => 'PieChart',
-      '#data' => array(
-                   array('Filter', 'Type'),
-                   array('With', (int)$overall_content_counts['Descriptions']),
-                   array('Total', (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Descriptions'])
-                 ),
-      '#options' => $options,
-    );
-      
-    $content[] = array('#type' => 'markup', '#markup' =>  $overall_content_counts['Descriptions'] . '/' . $overall_content_counts['Total'] . '</td>' 
-      . '<td>');
-    $content[] = array(
-      '#theme' => 'simple_google_chart',
-      '#type' => 'PieChart',
-      '#data' => array(
-                   array('Filter', 'Type'),
-                   array('With', (int)$overall_content_counts['Images']),
-                   array('Total', (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Images'])
-                 ),
-      '#options' => $options,
-    );
-    $content[] = array('#type' => 'markup', '#markup' => $overall_content_counts['Images'] . '/' . $overall_content_counts['Total'] . '</td>' 
-      . '<td>');
-    $content[] = array(
-      '#theme' => 'simple_google_chart',
-      '#type' => 'PieChart',
-      '#data' => array(
-                   array('Filter', 'Type'),
-                   array('With', (int)$overall_content_counts['Images']),
-                   array('Total', (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Specimens/Observations'])
-                 ),
-      '#options' => $options,
-    );
-    $content[] = array('#type' => 'markup', '#markup' => $overall_content_counts['Specimens/Observations'] . '/' . $overall_content_counts['Total'] . '</td>' 
-      . '<td>');
-    $content[] = array(
-      '#theme' => 'simple_google_chart',
-      '#type' => 'PieChart',
-      '#data' => array(
-                   array('Filter', 'Type'),
-                   array('With', (int)$overall_content_counts['References']),
-                   array('Total', (int)$overall_content_counts['Total'] - (int)$overall_content_counts['References'])
-                 ),
-      '#options' => $options,
-    );
-    $content[] = array('#type' => 'markup', '#markup' => $overall_content_counts['References'] . '/' . $overall_content_counts['Total'] . '</td>' 
-    . '</tr>'
-    . '</table>');
-
-        
-      return $content;
+    '#type' => 'markup',
+    '#markup' => '<table id="taxon_stats_table">' . '<thead>' . '<tr>' . '<td></td>' . '<td >Descriptions</td>' . '<td >Media</td>' . '<td >Specimens/Observations</td>' . '<td>References</td>' . '</tr>' . '</thead>' . '<tr>' . '<td>' . $term->name . '</td>' . '<td>' . $content_counts['Descriptions'] . '</td>' . '<td >' . $content_counts['Images'] . '</td>' . '<td >' . $content_counts['Specimens/Observations'] . '</td>' . '<td >' . $content_counts['References'] . '</td>' . '</tr>' . '<tr>' . '<td>' . 'Fraction of all taxa with content' . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Descriptions']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Descriptions']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Descriptions'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Images']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Images']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Images'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Images']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Specimens/Observations']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Specimens/Observations'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['References']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['References']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['References'] . '/' . $overall_content_counts['Total'] . '</td>' . '</tr>' . '</table>'
+  );
+  return $content;
 }
 
 /**
@@ -322,76 +355,6 @@ function taxon_stats_views_api(){
     'api' => '3',
     'path' => $path
   );
-}
-
-/**
- * Implements hook_ctools_plugin_api()
- */
-function taxon_stats_ctools_plugin_api(){
-  list($module, $api) = func_get_args();
-  if($module == "context" && $api == "context"){return array(
-      "version" => "3"
-    );}
-}
-
-/**
- * Implements hook_context_default_contexts()
- */
-function taxon_stats_context_default_contexts(){
-  $export = array();
-  $context = new stdClass();
-  $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
-  $context->api_version = 3;
-  $context->name = 'species_statistics';
-  $context->description = 'Statistics species page.';
-  $context->tag = 'Species';
-  $context->conditions = array(
-    'path' => array(
-      'values' => array(
-        'taxonomy/term/*/stats' => 'taxonomy/term/*/stats'
-      )
-    )
-  );
-  $context->condition_mode = 0;
-  // Translatables
-  // Included for use with string extractors like potx.
-  t('Statistics species page.');
-  t('Species');
-  $export['species_statistics'] = $context;
-  return $export;
-}
-
-/**
- * Implements hook_context_load_alter()
- * 
- * @param $context
- * A Drupal context
- */
-function taxon_stats_context_load_alter(&$context){
-  if($context->name == 'species_statistics'){
-    //Get vid
-    global $_GET;
-    $args = explode('/', $_GET['q']);
-    if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
-      $result = db_query("SELECT vid FROM {taxonomy_term_data} WHERE tid = :tid", array(
-        ':tid' => $args[2]
-      ));
-      $vid = $result->fetchObject()->vid;
-      $context->reactions = array(
-        'block' => array(
-          'blocks' => array(
-            'tinytax-' . $vid => array(
-              'module' => 'tinytax',
-              'delta' => $vid,
-              'region' => 'sidebar',
-              'weight' => '0'
-            )
-          )
-        ),
-        'menu' => 'classification/' . $vid
-      );
-    }
-  }
 }
 
 function taxon_stats_get_taxon_data($term){
@@ -449,7 +412,6 @@ function taxon_stats_has_protologues(){
       return FALSE;
   }
 }
-
 /*
  * Process a keyed array from an SQL query an turn into a data array for simple_google_charts
  */

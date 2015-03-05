@@ -33,6 +33,16 @@ function simple_google_charts_theme($existing, $type, $theme, $path){
         'subtitle' => ''
       ),
       'file' => 'simple_google_charts.theme.inc'
+    ),
+    'simple_google_material_chart' => array(
+      'variables' => array(
+        'data' => array(),
+        'type' => 'BarChart',
+        'options' => array(),
+        'title' => '',
+        'subtitle' => ''
+      ),
+      'file' => 'simple_google_charts.theme.inc'
     )
   );
 }

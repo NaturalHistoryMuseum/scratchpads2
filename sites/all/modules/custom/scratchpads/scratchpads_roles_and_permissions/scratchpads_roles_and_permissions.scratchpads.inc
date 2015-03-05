@@ -756,7 +756,7 @@ function block_scratchpads_default_permissions(){
  */
 function taxonomystatistics_scratchpads_default_permissions(){
   return array(
-    'contributor' => array(
+    'anonymous user' => array(
       'view taxonomystatistics page'
     )
   );
