@@ -10,7 +10,23 @@ function taxonomystatistics_menu(){
       'description' => 'Display statistics for a specific vocabulary',
       'page callback' => 'taxonomystatistics_statistics_page',
       'page arguments' => array(
-        3
+        3,
+        FALSE
+      ),
+      'access arguments' => array(
+        'view taxonomystatistics page'
+      ),
+      'file' => 'taxonomystatistics.pages.inc',
+      'weight' => 100,
+      'type' => MENU_LOCAL_TASK
+    ),
+    'taxonomy/term/%taxonomy_term/statistics' => array(
+      'title' => 'Statistics',
+      'description' => 'Display statistics for a specific vocabulary',
+      'page callback' => 'taxonomystatistics_statistics_page',
+      'page arguments' => array(
+        FALSE,
+        2
       ),
       'access arguments' => array(
         'view taxonomystatistics page'
