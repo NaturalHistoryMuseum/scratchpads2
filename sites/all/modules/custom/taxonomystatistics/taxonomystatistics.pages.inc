@@ -1,7 +1,7 @@
 <?php
 
 function taxonomystatistics_statistics_page($vocabulary, $term){
-  if(($plugin = context_get_plugin('condition', 'taxonomy_term')) != FALSE){
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && ($plugin = context_get_plugin('condition', 'taxonomy_term')) != FALSE){
     $plugin->execute($term, 'view');
   }
   // If we have a term, we probably don't have the vocabulary
