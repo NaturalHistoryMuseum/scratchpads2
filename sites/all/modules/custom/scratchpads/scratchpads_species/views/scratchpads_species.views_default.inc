@@ -1873,6 +1873,10 @@ function scratchpads_species_views_default_views(){
   $handler = $view->new_display('block', 'Block', 'block');
   /* Display: XML Export */
   $handler = $view->new_display('views_data_export', 'XML Export', 'views_data_export_1');
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['use_batch'] = 'batch';
+  $handler->display->display_options['segment_size'] = '100';
   $handler->display->display_options['style_plugin'] = 'views_data_export_xml';
   $handler->display->display_options['style_options']['provide_file'] = 0;
   $handler->display->display_options['style_options']['parent_sort'] = 0;
@@ -1884,6 +1888,10 @@ function scratchpads_species_views_default_views(){
   );
   /* Display: CSV Export */
   $handler = $view->new_display('views_data_export', 'CSV Export', 'views_data_export_2');
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['use_batch'] = 'batch';
+  $handler->display->display_options['segment_size'] = '100';
   $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
   $handler->display->display_options['path'] = 'taxonomy/term/%/csv';
   $handler->display->display_options['displays'] = array(
