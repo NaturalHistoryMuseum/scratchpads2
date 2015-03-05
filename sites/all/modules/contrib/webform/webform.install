@@ -689,6 +689,7 @@ function webform_uninstall() {
   variable_del('webform_node_types_primary');
   variable_del('webform_export_format');
   variable_del('webform_csv_delimiter');
+  variable_del('webform_export_wordwrap');
   variable_del('webform_excel_legacy_exporter');
   variable_del('webform_progressbar_style');
   variable_del('webform_progressbar_label_first');
@@ -1920,6 +1921,6 @@ function webform_update_7421() {
   variable_set('webform_email_html_capable', $capable);
   return $capable
             ? t('An HTML-capable module is installed. The option to send HTML e-mail is enabled. ')
-            : t('No commonly-known HTML capable module is installed. The optin to send HTML e-mail options is disabled.');
+            : t('No commonly-known HTML capable module is installed. The option to send HTML e-mail is disabled.');
 }
 

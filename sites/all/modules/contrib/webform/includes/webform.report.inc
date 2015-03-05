@@ -28,7 +28,6 @@ function webform_results_submissions($node, $user_filter, $pager_count) {
         drupal_set_title(t('Your submissions'));
         webform_disable_page_cache();
       }
-      webform_set_breadcrumb($node);
       return $view->preview('default', array($node->nid, $user->uid));
     }
     else {
@@ -49,7 +48,6 @@ function webform_results_submissions($node, $user_filter, $pager_count) {
       drupal_set_title(t('Your submissions'));
       webform_disable_page_cache();
     }
-    webform_set_breadcrumb($node);
     $submissions = webform_get_submissions(array('nid' => $node->nid, 'uid' => $user->uid), $header, $pager_count);
     $count = webform_get_submission_count($node->nid, $user->uid, NULL);
   }
@@ -410,6 +408,7 @@ function webform_results_download_form($form, &$form_state, $node) {
     '#type' => 'radios',
     '#title' => t('Column header format'),
     '#options' => array(
+      -1 => t('None'),
       0 => t('Label'),
       1 => t('Field Key'),
     ),
@@ -803,8 +802,11 @@ function webform_results_export($node, $format = 'delimited', $options = array()
   $col_count = 0;
   $headers = webform_results_download_headers($node, $options);
   foreach ($headers as $row) {
-    $exporter->add_row($handle, $row, $row_count);
-    $row_count++;
+    // Output header if header_keys is non-negative. -1 means no headers.
+    if ($options['header_keys'] >= 0) {
+      $exporter->add_row($handle, $row, $row_count);
+      $row_count++;
+    }
     $col_count = count($row) > $col_count ? count($row) : $col_count;
   }
 
@@ -1049,8 +1051,9 @@ function webform_webform_results_download_submission_information_data($token, $s
     case 'webform_sid':
       return $submission->sid;
     case 'webform_time':
+      // Return timestamp in local time (not UTC).
       if (!empty($options['iso8601_date'])) {
-        return format_date($submission->submitted, 'custom', 'Y-m-d\TH:i:s', 'UTC');
+        return format_date($submission->submitted, 'custom', 'Y-m-d\TH:i:s');
       }
       else {
         return format_date($submission->submitted, 'short');
@@ -1214,8 +1217,11 @@ function webform_results_batch_headers($node, $format = 'delimited', $options = 
   $row_count = 0;
   $col_count = 0;
   foreach ($headers as $row) {
-    $exporter->add_row($handle, $row, $row_count);
-    $row_count++;
+    // Output header if header_keys is non-negative. -1 means no headers.
+    if ($options['header_keys'] >= 0) {
+      $exporter->add_row($handle, $row, $row_count);
+      $row_count++;
+    }
     $col_count = count($row) > $col_count ? count($row) : $col_count;
   }
   $context['results']['row_count'] = $row_count;

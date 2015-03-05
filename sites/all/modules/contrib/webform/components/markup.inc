@@ -18,6 +18,7 @@ function _webform_defaults_markup() {
     'extra' => array(
       'format' => NULL,
       'private' => FALSE,
+      'display_on' => 'form',
     ),
   );
 }
@@ -49,6 +50,19 @@ function _webform_edit_markup($component) {
     '#element_validate' => array('_webform_edit_markup_validate'),
   );
 
+  $form['display']['display_on'] = array(
+    '#type' => 'select',
+    '#title' => t('Display on'),
+    '#default_value' => $component['extra']['display_on'],
+    '#options' => array(
+      'form' => t('form only'),
+      'display' => t('viewed submission only'),
+      'both' => t('both form and viewed submission'),
+    ),
+    '#weight' => 1,
+    '#parents' => array('extra', 'display_on'),
+  );
+
   return $form;
 }
 
@@ -76,6 +90,7 @@ function _webform_render_markup($component, $value = NULL, $filter = TRUE) {
     '#format' => $component['extra']['format'],
     '#theme_wrappers' => array('webform_element'),
     '#translatable' => array('title', 'markup'),
+    '#access' => $component['extra']['display_on'] != 'display',
   );
 
   return $element;
@@ -93,6 +108,7 @@ function _webform_display_markup($component, $value, $format = 'html') {
     '#format' => $format,
     '#value' => check_markup(webform_replace_tokens($component['value'], $node, NULL, NULL, TRUE), $component['extra']['format'], '', TRUE),
     '#translatable' => array('title'),
+    '#access' => $component['extra']['display_on'] != 'form',
   );
 }
 
@@ -100,7 +116,6 @@ function _webform_display_markup($component, $value, $format = 'html') {
  * Format the output of data for this component.
  */
 function theme_webform_display_markup($variables) {
-  // Markup components are not displayed but can be by overriding this theme
-  // function.
-  return '';
+  $element = $variables['element'];
+  return $element['#access'] ? $element['#value'] : '';
 }

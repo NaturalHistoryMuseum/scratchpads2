@@ -147,7 +147,7 @@ function webform_components_form($form, $form_state, $node) {
   $form['warning'] = array(
     '#weight' => -1,
   );
-  webform_input_vars_check($form, $form_state, 'warning');
+  webform_input_vars_check($form, $form_state, 'components', 'warning');
 
   return $form;
 }

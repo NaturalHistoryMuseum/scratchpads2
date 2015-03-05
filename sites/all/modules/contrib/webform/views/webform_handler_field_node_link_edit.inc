@@ -10,6 +10,22 @@
  */
 class webform_handler_field_node_link_edit extends views_handler_field_node_link {
 
+  function option_definition() {
+    $options = parent::option_definition();
+    $options['subpath'] = array('default' => '');
+    return $options;
+  }
+
+  function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+    $form['subpath'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Subpath'),
+      '#default_value' => $this->options['subpath'],
+      '#field_prefix' => 'node/NID/webform/',
+    );
+  }
+
   /**
    * Renders the link.
    */
@@ -20,7 +36,8 @@ class webform_handler_field_node_link_edit extends views_handler_field_node_link
     }
 
     $this->options['alter']['make_link'] = TRUE;
-    $this->options['alter']['path'] = "node/$node->nid/webform";
+    $this->options['alter']['path'] = "node/$node->nid/webform" .
+                                      (strlen($this->options['subpath']) ? '/' . $this->options['subpath'] : '');
 
     $text = !empty($this->options['text']) ? $this->options['text'] : t('edit webform');
     return $text;

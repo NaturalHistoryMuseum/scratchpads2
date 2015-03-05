@@ -113,7 +113,7 @@ function webform_conditionals_form($form, &$form_state, $node) {
   // The estimate will be accurate because the form elements for this page are well known. Ajax use of this
   // page will not generate user-visible errors, so a preflight may be the only indication to the user that
   // the page is too long.
-  webform_input_vars_check($form, $form_state, '');
+  webform_input_vars_check($form, $form_state, 'conditionals', '');
   return $form;
 }
 

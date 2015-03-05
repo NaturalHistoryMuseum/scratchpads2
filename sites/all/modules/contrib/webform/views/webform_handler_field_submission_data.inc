@@ -67,7 +67,7 @@ class webform_handler_field_submission_data extends views_handler_field {
       '#title' => t('Display format'),
       '#options' => array(
         'html' => t('HTML'),
-        'plain' => t('Plain text'),
+        'text' => t('Plain text'),
       ),
       '#default_value' => $this->options['format'],
     );
@@ -201,16 +201,19 @@ class webform_handler_field_submission_data extends views_handler_field {
         // whereas $component refers to the submission component.
       }
 
-      $render = array();
-      $format = $this->options['format'];
-
-      _webform_client_form_add_component($webform, $component, NULL, $render, $render, $submission->data, $format);
-      $render = $render[$component['form_key']];
-
-      // Remove display label.
-      $render['#theme_wrappers'] = array();
-
-      return render($render);
+      if ($this->options['format'] == 'html') {
+        $render = array();
+        _webform_client_form_add_component($webform, $component, NULL, $render, $render, $submission->data, 'html');
+        $render = $render[$component['form_key']];
+        // Remove display label.
+        $render['#theme_wrappers'] = array();
+      }
+      else {
+        // Plain text format is generated via invoking the table output to ensure output is sanitised.
+        $data = isset($submission->data[$component['cid']]) ? $submission->data[$component['cid']] : NULL;
+        $render = webform_component_invoke($component['type'], 'table', $component, $data);
+      }
+      return $render;
     }
   }
 }

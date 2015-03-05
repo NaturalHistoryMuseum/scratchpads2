@@ -237,7 +237,7 @@ function webform_menu() {
     'load arguments' => array(3),
     'page callback' => 'webform_select_options_ajax',
     'access callback' => 'webform_node_update_access',
-    'access arguments' => array(1),
+    'access arguments' => array(3),
     'file' => 'components/select.inc',
     'type' => MENU_CALLBACK,
   );
@@ -2135,8 +2135,6 @@ function webform_block_view($delta = '') {
   // This is a webform node block.
   $node->webform_block = TRUE;
 
-  // Use the node title for the block title.
-  $subject = $node->title;
 
   // If not displaying pages in the block, set the #action property on the form.
   if ($settings['pages_block']) {
@@ -2161,11 +2159,11 @@ function webform_block_view($delta = '') {
     $content['#contextual_links']['node'] = array('node', array($node->nid));
   }
 
-  // Create the block.
+  // Create the block, using the node title for the block title.
   // Note that we render the content immediately here rather than passing back
   // a renderable so that if the block is empty it is hidden.
   $block = array(
-    'subject' => $subject,
+    'subject' => check_plain($node->title),
     'content' => drupal_render($content),
   );
   return $block;
@@ -2272,6 +2270,11 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
     $submission = webform_get_submission($node->nid, $form_state['values']['details']['sid']);
   }
 
+  $finished = isset($submission->is_draft) ? (!$submission->is_draft) : 0;
+  $submit_button_text = $finished
+                          ? t('Save')
+                          : (empty($node->webform['submit_text']) ? t('Submit') : t($node->webform['submit_text']));
+
   // Bind arguments to $form to make them available in theming and form_alter.
   $form['#node'] = $node;
   $form['#submission'] = $submission;
@@ -2374,7 +2377,7 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
     // Check whether a previous submission was truncated. The length of the client form is not
     // estimated before submission because a) the determination may not be accurate for some
     // webform components and b) the error will be apparent upon submission.
-    webform_input_vars_check($form, $form_state);
+    webform_input_vars_check($form, $form_state, 'submitted');
 
     // Recursively add components to the form. The unfiltered version of the
     // form (typically used in Form Builder), includes all components.
@@ -2397,7 +2400,6 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
     if ($preview && $page_num === $page_count) {
       $preview_submission = webform_submission_create($node, $user, $form_state, TRUE, $submission);
       $preview_message = $node->webform['preview_message'];
-      $submit_button_text = empty($node->webform['submit_text']) ? t('Submit') : t($node->webform['submit_text']);
       if (strlen(trim(strip_tags($preview_message))) === 0) {
         $preview_message = t('Please review your submission. Your submission is not complete until you press the "!button" button!', array('!button' => $submit_button_text));
       }
@@ -2435,7 +2437,7 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
     );
     $form['details']['finished'] = array(
       '#type' => 'hidden',
-      '#value' => isset($submission->is_draft) ? (!$submission->is_draft) : 0,
+      '#value' => $finished,
     );
 
     // Add process functions to remove the IDs forced upon buttons and wrappers.
@@ -2481,9 +2483,7 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
     if ($page_num == $page_count) {
       $form['actions']['submit'] = array(
         '#type' => 'submit',
-        '#value' => ($form['details']['finished']['#value'])
-                        ? t('Save')
-                        : (empty($node->webform['submit_text']) ? t('Submit') : t($node->webform['submit_text'])),
+        '#value' => $submit_button_text,
         '#weight' => 10,
         '#attributes' => array(
           'class' => array('webform-submit', 'button-primary'),
@@ -3398,7 +3398,7 @@ function _webform_client_form_submit_flatten($node, $fieldset, $parent = 0) {
  */
 function _webform_confirmation($node) {
   drupal_set_title($node->title);
-  webform_set_breadcrumb($node);
+  webform_set_breadcrumb($node, TRUE);
   $sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
   return theme(array('webform_confirmation_' . $node->nid, 'webform_confirmation'), array('node' => $node, 'sid' => $sid));
 }
@@ -3495,11 +3495,11 @@ function webform_element_title_display($element) {
  * Drupal forcibly adds IDs to all form elements, including those that do not
  * need them for any reason, such as the actions wrapper or submit buttons. We
  * use this process function wherever we wish to remove an ID from an element.
- * Because #states require IDs, they are only removed if the states array is
- * empty.
+ * Because #states and #ajax require IDs, they are only removed if the states
+ * and ajax arrays are empty.
  */
 function webform_pre_render_remove_id($element) {
-  if (empty($element['#states'])) {
+  if (empty($element['#states']) && empty($element['#ajax'])) {
     $element['#id'] = NULL;
     // Removing array parents is required to prevent theme_container from adding
     // an empty ID attribute.
@@ -4079,6 +4079,9 @@ function webform_variable_get($variable) {
     case 'webform_csv_delimiter':
       $result = variable_get('webform_csv_delimiter', '\t');
       break;
+    case 'webform_export_wordwrap':
+      $result = variable_get('webform_export_wordwrap', 0);
+      break;
     case 'webform_excel_legacy_exporter':
       $result = variable_get('webform_excel_legacy_exporter', 0);
       break;
@@ -4486,30 +4489,65 @@ function webform_disable_page_cache() {
 
 /**
  * Set the necessary breadcrumb for the page we are on.
+ *
+ * @param object $node
+ *   The loaded webform node.
+ * @param boolean|object $submission
+ *   The submission if the current page is viewing or dealing with a submission,
+ *   or TRUE to just include the webform node in the breadcrumbs (used for
+ *   the submission completion confirmation page), or NULL for no extra
+ *   processing
  */
 function webform_set_breadcrumb($node, $submission = NULL) {
-  $breadcrumb = drupal_get_breadcrumb();
+  $node_path = "node/{$node->nid}";
 
-  if (isset($node)) {
-    $webform_breadcrumb = array();
-    $webform_breadcrumb[] = empty($breadcrumb) ? l(t('Home'), '<front>') : array_shift($breadcrumb);
-    $webform_breadcrumb[] = $node_link = l($node->title, 'node/' . $node->nid);
-    if (isset($submission)) {
-      $last_link = array_shift($breadcrumb);
-      if (webform_results_access($node)) {
-        $webform_breadcrumb[] = l(t('Webform results'), 'node/' . $node->nid . '/webform-results');
+  // Set the href of the current menu item to be the node's path. This has two
+  // effects. The active trail will be to the node's prefered menu tree location,
+  // expanding the menu as appropriate. And the breadcrumbs will be set as if
+  // the current page were under the node's preferred location.
+  // Note that menu_tree_set_path() could be used to set the path for the menu,
+  // but it will not affect the breadcrumbs when the webform is not in the
+  // default menu.
+  menu_set_item(NULL, array('href' => $node_path) + menu_get_item());
+
+  if ($submission) {
+    $breadcrumb = menu_get_active_breadcrumb();
+
+    // Append the node title (or its menu name), in case it isn't in the path already.
+    $active_trail = menu_get_active_trail();
+    $last_active = end($active_trail);
+    $breadcrumb[] = $last_active['href'] === $node_path && !empty($last_active['in_active_trail'])
+                      ? l($last_active['title'], $node_path, $last_active['localized_options'])
+                      : l($node->title, $node_path);
+
+    // Setting the current menu href will cause the submission title and current
+    // tab (if not the default tab) to be added to the active path when the
+    // webform is in the default location in the menu (node/NID). The title
+    // is desirable, but the tab name (e.g. Edit or Delete) isn't.
+    if (preg_match('/href=".*"/', end($breadcrumb), $matches)) {
+      foreach ($breadcrumb as $index => $link) {
+        if (stripos($link, $matches[0]) !== FALSE) {
+          $breadcrumb = array_slice($breadcrumb, 0, $index + 1);
+          break;
+        }
       }
-      elseif (user_access('access own webform results')) {
-        $webform_breadcrumb[] = l(t('Submissions'), 'node/' . $node->nid . '/submissions');
-      }
-      if (isset($last_link) && $last_link != $node_link) {
-        $webform_breadcrumb[] = $last_link;
-      }
-    }
-    $breadcrumb = $webform_breadcrumb;
   }
 
-  drupal_set_breadcrumb($breadcrumb);
+    // If the user is dealing with a submission, then the breadcrumb should
+    // be fudged to allow them to return to a likely list of webforms.
+    // Note that this isn't necessarily where they came from, but it's the
+    // best guess available.
+    if (is_object($submission)) {
+      if (webform_results_access($node)) {
+        $breadcrumb[] = l(t('Webform results'), $node_path . '/webform-results');
+      }
+      elseif (user_access('access own webform results')) {
+        $breadcrumb[] = l(t('Submissions'), $node_path . '/submissions');
+      }
+    }
+
+    drupal_set_breadcrumb($breadcrumb);
+  }
 }
 
 /**
@@ -4905,17 +4943,20 @@ function webform_clone_node_alter(&$node, $context) {
  *   Reference to the form, which will be changed if $parent_key is set.
  * @param array $form_state
  *   Form's state or NULL for no form state check.
+ * @param string $detect_key
+ *   A key that will always be present in the posted data when an actual form
+ *   submission has been made.
  * @param string parent_key
  *   Omit to not preflight the form, or the array key for the parent of where
  *   the preflight warning should be inserted into the form.
  */
-function webform_input_vars_check(&$form, $form_state, $parent_key = NULL) {
+function webform_input_vars_check(&$form, $form_state, $detect_key, $parent_key = NULL) {
   if (isset($parent_key)) {
     $form['#pre_render'] = array('webform_pre_render_input_vars');
     $form['#input_var_waring_parent'] = $parent_key;
   }
-  if (!empty($form_state['input']) && empty($form_state['input']['form_id'])) {
-    // A form was submitted with POST, but the form_build_id was missing. The most likely cause of this
+  if (!empty($form_state['input']) && key_exists($detect_key, $form_state['input']) && !key_exists('form_id', $form_state['input'])) {
+    // A form was submitted with POST, but the form_id was missing. The most likely cause of this
     // is that the POST was truncated because PHP exceeded its max_input_vars limit.
     $subs = array(
       '@count' => webform_count_terminals($_POST),

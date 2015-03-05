@@ -11,11 +11,40 @@ function webform_views_data() {
    * Webform table definitions.
    */
   $data['webform']['table']['group'] = t('Webform');
+  $data['webform']['table']['base'] = array(
+    'field' => 'nid',
+    'title' => t('Webform nodes'),
+    'help' => t('Nodes which have webforms.'),
+  );
   $data['webform']['table']['join'] = array(
     'node' => array(
       'left_field' => 'nid',
       'field' => 'nid',
       'type' => 'INNER',
+    ),
+  );
+
+  // NID
+  $data['webform']['nid'] = array(
+    'title' => t('Node'),
+    'help' => t('The node this webform is part of.'),
+    'relationship' => array(
+      'base' => 'node',
+      'field' => 'nid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('Node for webform'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_node_nid',
+      'name field' => 'title', // the field to display in the summary.
+      'numeric' => TRUE,
+      'validate type' => 'nid',
     ),
   );
 
@@ -411,8 +440,8 @@ function webform_views_data_alter(&$data) {
   );
 
   $data['views']['webform_result'] = array(
-    'title' => t('Result summary with additional tokens'),
-    'help' => t('Shows result summary, for example the items per page (and links to change the items per page).'),
+    'title' => t('Result summary with an additional token to change the items/page'),
+    'help' => t('Shows result summary, for example the items per page, plus links to change the items per page.'),
     'area' => array(
       'handler' => 'webform_handler_area_result_pager',
     ),
@@ -472,8 +501,7 @@ function webform_views_pre_view($view, $display_id, $args) {
             'id' => $new_id,
             'field' => 'value',
             'table' => 'webform_submissions',
-            'label' => $component['name'], // CHECK FOR XSS TODO
-            'format' => 'plain',
+            'label' => $component['name'],
             'webform_nid' => $node->nid,
             'webform_cid' => $component['cid'],
             'exclude' => 0,

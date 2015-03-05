@@ -4,6 +4,7 @@
  */
 class webform_exporter {
   public $options = array();
+  public $export_wordrap;
 
   /**
    * Constructor for webform_exporter classes.
@@ -13,6 +14,30 @@ class webform_exporter {
    */
   function __construct($options) {
     $this->options = $options;
+    $this->export_wordwrap = webform_variable_get('webform_export_wordwrap');
+  }
+
+  /**
+   * Determines whether a cell is eligible for word-wrapping based upon
+   * position in file and the contents of cell.
+   *
+   * Return true when the global word-wrapping option is enabled and the cell
+   * is anything other than the first column in either of the first two rows.
+   * By default, these rows are long and are intended to overlap the columns
+   * to the right. Also returns true when the cell contains a return character.
+   *
+   * @param int $row
+   *   Row number, counting from 0.
+   * @param int $column
+   *   Column number, counting from 0.
+   * @param string $value
+   *   The value of the cell.
+   * @return boolean
+   *   Whether the cell position is elegible for wordwrapping.
+   */
+  function wrappable($row, $column, $value) {
+    return strpos($value, "\n") !== FALSE ||
+           $this->export_wordwrap && ($row > 2 || $column > 0 || $this->options['header_keys'] < 0);
   }
 
   /**

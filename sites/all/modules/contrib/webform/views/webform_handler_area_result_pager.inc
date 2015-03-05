@@ -14,6 +14,7 @@ class webform_handler_area_result_pager extends views_handler_area_result {
 
   function option_definition() {
     $options = parent::option_definition();
+    $options['content']['default'] = t('Displaying @start - @end of @total. @items_per_page_links');
     $options['tokenize'] = array('default' => FALSE, 'bool' => TRUE);
     return $options;
   }
@@ -22,7 +23,6 @@ class webform_handler_area_result_pager extends views_handler_area_result {
     parent::options_form($form, $form_state);
     $form['content']['#description'] .= '<br/>' . t('Plus @items_per_page_links -- the list of links to change the items/page, with prompt');
 
-    // @TODO: Refactor token handling into a base class.
     $form['tokenize'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use replacement tokens from the first row'),
@@ -57,9 +57,9 @@ class webform_handler_area_result_pager extends views_handler_area_result {
   }
 
   function render_items_per_page($pager) {
-    $options = explode(',', $pager->options['expose']['items_per_page_options']);
     $sanitized_options = array();
-    if (is_array($options)) {
+    if (!empty($pager->options['expose']['items_per_page_options'])) {
+      $options = explode(',', $pager->options['expose']['items_per_page_options']);
       foreach ($options as $option) {
         if ($pager->total_items <= intval($option)) {
           break;
@@ -69,10 +69,12 @@ class webform_handler_area_result_pager extends views_handler_area_result {
       if (!empty($sanitized_options) && !empty($pager->options['expose']['items_per_page_options_all']) && !empty($pager->options['expose']['items_per_page_options_all_label'])) {
         $sanitized_options[0] = $pager->options['expose']['items_per_page_options_all_label'];
       }
+      $url_query = $_GET;
+      unset($url_query['q']);
       foreach ($sanitized_options as $items_per_page => &$label) {
         $selected = $pager->options['items_per_page'] == $items_per_page ||
                     ($items_per_page == 0 && $pager->total_items < intval($pager->options['items_per_page']));
-        $label = l($label, $_GET['q'], array('query' => array('items_per_page' => $label) + $_GET,
+        $label = l($label, $_GET['q'], array('query' => array('items_per_page' => $label) + $url_query,
                                              'attributes' => array(
                                                 'class' => $selected ? array('selected') : array(),
                                             )));

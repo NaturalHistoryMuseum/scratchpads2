@@ -129,7 +129,7 @@ $handler->display->display_options['fields']['webform_all_fields']['field'] = 'w
 $handler->display->display_options['fields']['webform_all_fields']['label'] = '';
 $handler->display->display_options['fields']['webform_all_fields']['exclude'] = TRUE;
 $handler->display->display_options['fields']['webform_all_fields']['alter']['nl2br'] = TRUE;
-
+$handler->display->display_options['fields']['webform_all_fields']['format'] = 'text';
 /* Contextual filter: Webform submissions: Node */
 $handler->display->display_options['arguments']['nid']['id'] = 'nid';
 $handler->display->display_options['arguments']['nid']['table'] = 'webform_submissions';
