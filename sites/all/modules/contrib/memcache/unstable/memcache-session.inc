@@ -10,37 +10,80 @@
  * An alternative to includes/session.inc.
  */
 
-require_once dirname(__FILE__) . '/dmemcache.inc';
+require_once dirname(__FILE__) . '/../dmemcache.inc';
 
 /**
- * Implement hook_user() using a required module's namespace since memcache is 
- * not a module and thus can't implement hooks directly.
+ * Implements hook_user_update().
+ *
+ * We're using a required module's namespace since the memcache session handler
+ * is not a module and thus can't implement hooks directly.
  */
-function filter_user($op, &$edit, &$account, $category = NULL) {
-  if ($op == 'update') {
-    // Invalidate cached user object.
-    cache_clear_all($account->uid, 'users');
-  }
+function filter_user_update(&$edit, &$account, $category = NULL) {
+  // Invalidate cached user object.
+  dmemcache_delete($account->uid, 'users');
 }
 
+/**
+ * Session handler assigned by session_set_save_handler().
+ *
+ * This function is used to handle any initialization, such as file paths or
+ * database connections, that is needed before accessing session data. Drupal
+ * does not need to initialize anything in this function.
+ *
+ * This function should not be called directly.
+ *
+ * @return bool
+ *   This function will always return TRUE.
+ */
 function _drupal_session_open() {
   return TRUE;
 }
 
+/**
+ * Session handler assigned by session_set_save_handler().
+ *
+ * This function is used to close the current session. Because Drupal stores
+ * session data in the database immediately on write, this function does
+ * not need to do anything.
+ *
+ * This function should not be called directly.
+ *
+ * @return bool
+ *   This function will always return TRUE.
+ */
 function _drupal_session_close() {
   return TRUE;
 }
 
+/**
+ * Reads an entire session from the database (internal use only).
+ *
+ * Also initializes the $user object for the user associated with the session.
+ * This function is registered with session_set_save_handler() to support
+ * database-backed sessions. It is called on every page load when PHP sets
+ * up the $_SESSION superglobal.
+ *
+ * This function is an internal function and must not be called directly.
+ * Doing so may result in logging out the current user, corrupting session data
+ * or other unexpected behavior. Session data must always be accessed via the
+ * $_SESSION superglobal.
+ *
+ * @param string $key
+ *   The session ID of the session to retrieve.
+ *
+ * @return mixed
+ *   The user's session, or an empty string if no session exists.
+ */
 function _drupal_session_read($key) {
   global $user;
 
-  // Write and Close handlers are called after destructing objects since PHP 5.0.5
-  // Thus destructors can use sessions but session handler can't use objects.
-  // So we are moving session closure before destructing objects.
+  // Write and Close handlers are called after destructing objects since
+  // PHP 5.0.5 Thus destructors can use sessions but session handler can't use
+  // objects. So we are moving session closure before destructing objects.
   register_shutdown_function('session_write_close');
 
   // Handle the case of first time visitors and clients that don't store
-  // cookies (eg. web crawlers).
+  // cookies (for example web crawlers).
   if (!isset($_COOKIE[session_name()])) {
     $user = drupal_anonymous_user();
     return '';
@@ -68,19 +111,20 @@ function _drupal_session_read($key) {
  *   1b. With session data.
  *   1c. Session saving has been turned off programatically
  *       (see drupal_save_session()).
- *   1d. Without session data but had session data at the beginning of the request
- *       (thus a write must be made to clear stored session data).
+ *   1d. Without session data but had session data at the beginning of the
+ *       request (thus a write must be made to clear stored session data).
  * 2. Authenticated user.
  *   2a. Without session data.
  *   2b. With session data.
  *   2c. Session saving has been turned off programatically
  *       (see drupal_save_session()).
  *
- * @param $key
+ * @param string $key
  *   The session ID.
- * @param $value
+ * @param mixed $value
  *   Any data to store in the session.
- * @return
+ *
+ * @return bool
  *   TRUE.
  */
 function _drupal_session_write($key, $value) {
@@ -91,7 +135,7 @@ function _drupal_session_write($key, $value) {
   }
 
   // Prepare the information to be saved.
-  $session = new stdClass;
+  $session = new stdClass();
   $session->sid = $key;
   $session->uid = $user->uid;
   $session->cache = isset($user->cache) ? $user->cache : '';
@@ -113,8 +157,9 @@ function _drupal_session_write($key, $value) {
     dmemcache_set($key, $session, ini_get('session.gc_maxlifetime'), 'session');
     if ($user->uid && $session->timestamp - $user->access > variable_get('session_write_interval', 360)) {
       db_update('users')
-        ->fields(array('access' => $user->uid))
-        ->condition(array('uid' => $user->uid));
+        ->fields(array('access' => $session->timestamp))
+        ->condition('uid', $user->uid)
+        ->execute();
       // Update the user access time so that the dmemcache_set() call
       // caches the updated time.
       $user->access = $session->timestamp;
@@ -136,8 +181,8 @@ function _drupal_session_write($key, $value) {
 /**
  * Called by PHP session handling with the PHP session ID to end a user's session.
  *
- * @param  string $sid
- *   the session id
+ * @param string $sid
+ *   The session id.
  */
 function _drupal_session_destroy($sid) {
   dmemcache_delete($sid, 'session');
@@ -150,6 +195,14 @@ function _drupal_session_destroy($sid) {
   _drupal_session_delete_cookie(session_name());
 }
 
+/**
+ * Session handler assigned by session_set_save_handler().
+ *
+ * Does nothing with memcache.
+ *
+ * @param int $lifetime
+ *   The value of session.gc_maxlifetime, passed by PHP.
+ */
 function _drupal_session_garbage_collection($lifetime) {
   // Automatic with memcached.
   // Be sure to adjust 'php_value session.gc_maxlifetime' to a large enough
@@ -186,15 +239,24 @@ function drupal_session_initialize() {
     $user = drupal_anonymous_user();
     session_id(md5(uniqid('', TRUE)));
   }
+  date_default_timezone_set(drupal_get_user_timezone());
 }
 
 
 /**
- * Counts how many users have sessions. Can count either anonymous sessions, authenticated sessions, or both.
- * Would be insane slow with memcached as we would need to retrieve at least the stats of all object.
+ * Counts how many users have sessions.
+ *
+ * Can count either anonymous sessions, authenticated sessions, or both.
+ * Would be insane slow with memcached as we would need to retrieve at least
+ * the stats of all object.
  * Not implemented.
+ *
+ * @param int $timestamp
+ *   Ignored.
+ * @param bool $anonymous
+ *   Ignored.
  */
-function drupal_session_count($timestamp = 0, $anonymous = true) {
+function drupal_session_count($timestamp = 0, $anonymous = TRUE) {
 }
 
 /**
@@ -287,6 +349,7 @@ function drupal_session_regenerate() {
     // Clear the old data from the cache.
     dmemcache_delete($old_session_id, 'session');
   }
+  date_default_timezone_set(drupal_get_user_timezone());
 }
 
 
@@ -305,13 +368,16 @@ function drupal_session_destroy_uid($uid) {
 /**
  * Determine whether to save session data of the current request.
  *
- * This function allows the caller to temporarily disable writing of session data,
- * should the request end while performing potentially dangerous operations, such as
- * manipulating the global $user object.  See http://drupal.org/node/218104 for usage
+ * This function allows the caller to temporarily disable writing of session
+ * data, should the request end while performing potentially dangerous
+ * operations, such as manipulating the global $user object.
+ * See http://drupal.org/node/218104 for usage
  *
- * @param $status
- *   Disables writing of session data when FALSE, (re-)enables writing when TRUE.
- * @return
+ * @param bool $status
+ *   Disables writing of session data when FALSE, (re-)enables writing
+ *   when TRUE.
+ *
+ * @return bool
  *   FALSE if writing session data has been disabled. Otherwise, TRUE.
  */
 function drupal_save_session($status = NULL) {
@@ -325,10 +391,11 @@ function drupal_save_session($status = NULL) {
 /**
  * Create the user object.
  *
- * @param $session
+ * @param object $session
  *   The session object (see sess_write() for the structure).
- * @return $user
- *   The user object.
+ *
+ * @return object
+ *   The $user object.
  */
 function _memcache_session_user_load($session) {
   // We found the client's session record and they are an authenticated user.
@@ -342,7 +409,8 @@ function _memcache_session_user_load($session) {
       $user = db_query('SELECT u.* FROM {users} u WHERE u.uid = :uid', array('uid' => $session->uid))->fetchObject();
 
       if (!$user->status) {
-        $user = drupal_anonymous_user($session->session);
+        $user = drupal_anonymous_user();
+        $user->session = empty($session->session) ? '' : $session->session;
       }
       else {
         $user = drupal_unpack($user);
@@ -353,8 +421,9 @@ function _memcache_session_user_load($session) {
         $user->hostname = $session->hostname;
         $user->timestamp = $session->timestamp;
         $user->session = empty($session->session) ? '' : $session->session;
+        $user->data = unserialize($user->data);
 
-        // Add roles element to $user
+        // Add roles element to $user.
         $user->roles = array();
         $user->roles[DRUPAL_AUTHENTICATED_RID] = 'authenticated user';
         $result = db_query("SELECT r.rid, r.name FROM {role} r INNER JOIN {users_roles} ur ON ur.rid = r.rid WHERE ur.uid = :uid", array(':uid' => $user->uid));
@@ -363,7 +432,7 @@ function _memcache_session_user_load($session) {
         }
       }
     }
-    else if ($user->uid) {
+    elseif ($user->uid) {
       // Got a user object from 'users' memcache bin. Mark it in case modules
       // want to know that this user was created from memcache.
       $user->from_cache = TRUE;
@@ -374,16 +443,18 @@ function _memcache_session_user_load($session) {
       // was successfully retrieved from the 'users' bin, and that user
       // object's uid is 0. Not sure why this would ever happen. Leaving former
       // comment in:
-      // This is a rare case that we have a session cached, but no session user object cached.
-      // This usually only happens if you kill memcached and restart it.
-      $user = drupal_anonymous_user($session->session);
+      // This is a rare case that we have a session cached, but no session user
+      // object cached. This usually only happens if you kill memcached and
+      // restart it.
+      $user = drupal_anonymous_user();
+      $user->session = empty($session->session) ? '' : $session->session;
     }
   }
   // We didn't find the client's record (session has expired), or they are an
   // anonymous user.
-  else  {
-    $session = isset($session->session) ? $session->session : '';
-    $user = drupal_anonymous_user($session);
+  else {
+    $user = drupal_anonymous_user();
+    $user->session = empty($session->session) ? '' : $session->session;
   }
 
   return $user;
@@ -392,10 +463,10 @@ function _memcache_session_user_load($session) {
 /**
  * Deletes the session cookie.
  *
- * @param $name
+ * @param string $name
  *   Name of session cookie to delete.
- * @param $force_insecure
- *   Fornce cookie to be insecure.
+ * @param bool $force_insecure
+ *   Force cookie to be insecure.
  */
 function _drupal_session_delete_cookie($name, $force_insecure = FALSE) {
   if (isset($_COOKIE[$name])) {
@@ -404,4 +475,3 @@ function _drupal_session_delete_cookie($name, $force_insecure = FALSE) {
     unset($_COOKIE[$name]);
   }
 }
-

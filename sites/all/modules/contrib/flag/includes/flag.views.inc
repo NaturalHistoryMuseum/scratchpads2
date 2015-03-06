@@ -89,11 +89,16 @@ function flag_views_data() {
   // Specialized is null/is not null filter.
   $data['flag_content']['flagged'] = array(
     'title' => t('Flagged'),
-    'help' => t('Filter to ensure content has or has not been flagged.'),
     'real field' => 'uid',
     'filter' => array(
       'handler' => 'flag_handler_filter_flagged',
       'label' => t('Flagged'),
+      'help' => t('Filter to ensure content has or has not been flagged.'),
+    ),
+    'sort' => array(
+      'handler' => 'flag_handler_sort_flagged',
+      'label' => t('Flagged'),
+      'help' => t('Sort by whether entities have or have not been flagged.'),
     ),
   );
 

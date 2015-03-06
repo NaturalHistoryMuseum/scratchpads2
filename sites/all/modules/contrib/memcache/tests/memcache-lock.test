@@ -1,10 +1,12 @@
 <?php
 
 /**
+ * @file
  * Tests for the lock system.
  */
-class MemcacheLockFunctionalTest extends DrupalWebTestCase {
-  protected $profile = 'testing';
+
+class MemcacheLockFunctionalTest extends MemcacheTestCase {
+  protected $default_bin = '';
 
   public static function getInfo() {
     return array(
@@ -14,14 +16,22 @@ class MemcacheLockFunctionalTest extends DrupalWebTestCase {
     );
   }
 
-  function setUp() {
+  /**
+   * @see MemcacheTestCase::setUp()
+   */
+  public function setUp() {
     parent::setUp('memcache_test');
   }
 
   /**
    * Confirm that we can acquire and release locks in two parallel requests.
    */
-  function testLockAcquire() {
+  public function testLockAcquire() {
+    // Confirm that locks are really acquired in memcache.
+    lock_acquire($this->default_cid);
+    $this->assertTrue(dmemcache_get($this->default_cid, 'semaphore'), t('Memcache locking is configured correctly.'));
+    lock_release($this->default_cid);
+
     // Nasty hack. There are two processes involved here - the process
     // calling the test itself, that calls lock_acquire() directly. And the
     // 'child' process that is requested over http by drupalGet().
@@ -58,7 +68,7 @@ class MemcacheLockFunctionalTest extends DrupalWebTestCase {
     // @todo: this assertion currently fails - the lock_acquire() call returns
     // true. For now, commented out the assertion, uncomment when attempting to
     // fix.
-    //$this->assertFalse(lock_acquire('memcache_test_lock_acquire'), t('Lock cannot be extended by this request.'), t('Lock'));
+    // $this->assertFalse(lock_acquire('memcache_test_lock_acquire'), t('Lock cannot be extended by this request.'), t('Lock'));
 
     // Check the shut-down function.
     $lock_acquired_exit = 'TRUE: Lock successfully acquired in memcache_test_lock_exit()';

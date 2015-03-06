@@ -5,25 +5,28 @@
  * Provides SimpleTests for core session handling functionality.
  */
 
-class MemcacheSessionTestCase extends DrupalWebTestCase {
-  protected $profile = 'testing';
+class MemcacheSessionTestCase extends MemcacheTestCase {
+  protected $default_bin = '';
 
   public static function getInfo() {
     return array(
       'name' => 'Session tests',
       'description' => 'Memcache session handling tests.',
-      'group' => 'Memcache'
+      'group' => 'Memcache',
     );
   }
 
-  function setUp() {
+  /**
+   * @see MemcacheTestCase::setUp()
+   */
+  public function setUp() {
     parent::setUp('session_test');
   }
 
   /**
    * Tests for drupal_save_session() and drupal_session_regenerate().
    */
-  function testSessionSaveRegenerate() {
+  public function testSessionSaveRegenerate() {
     $this->assertFalse(drupal_save_session(), t('drupal_save_session() correctly returns FALSE (inside of testing framework) when initially called with no arguments.'), t('Session'));
     $this->assertFalse(drupal_save_session(FALSE), t('drupal_save_session() correctly returns FALSE when called with FALSE.'), t('Session'));
     $this->assertFalse(drupal_save_session(), t('drupal_save_session() correctly returns FALSE when saving has been disabled.'), t('Session'));
@@ -48,14 +51,14 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
     $this->drupalGet('session-test/id');
     $matches = array();
     preg_match('/\s*session_id:(.*)\n/', $this->drupalGetContent(), $matches);
-    $this->assertTrue(!empty($matches[1]) , t('Found session ID before logging in.'));
+    $this->assertTrue(!empty($matches[1]), t('Found session ID before logging in.'));
     $original_session = $matches[1];
 
     // We cannot use $this->drupalLogin($user); because we exit in
     // session_test_user_login() which breaks a normal assertion.
     $edit = array(
       'name' => $user->name,
-      'pass' => $user->pass_raw
+      'pass' => $user->pass_raw,
     );
     $this->drupalPost('user', $edit, t('Log in'));
     $this->drupalGet('user');
@@ -65,7 +68,7 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
     $this->drupalGet('session-test/id');
     $matches = array();
     preg_match('/\s*session_id:(.*)\n/', $this->drupalGetContent(), $matches);
-    $this->assertTrue(!empty($matches[1]) , t('Found session ID after logging in.'));
+    $this->assertTrue(!empty($matches[1]), t('Found session ID after logging in.'));
     $this->assertTrue($matches[1] != $original_session, t('Session ID changed after login.'));
   }
 
@@ -73,12 +76,15 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
    * Test data persistence via the session_test module callbacks. Also tests
    * drupal_session_count() since session data is already generated here.
    */
-  function testDataPersistence() {
+  public function testDataPersistence() {
     $user = $this->drupalCreateUser(array('access content'));
     // Enable sessions.
     $this->sessionReset($user->uid);
 
     $this->drupalLogin($user);
+
+    // Confirm that the session value really exists in memcache.
+    $this->assertTrue(dmemcache_get($user->uid, 'users'), t('Memcache sessions are configured correctly.'));
 
     $value_1 = $this->randomName();
     $this->drupalGet('session-test/set/' . $value_1);
@@ -135,7 +141,7 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
   /**
    * Test that empty anonymous sessions are destroyed.
    */
-  function testEmptyAnonymousSession() {
+  public function testEmptyAnonymousSession() {
     // Verify that no session is automatically created for anonymous user.
     $this->drupalGet('');
     $this->assertSessionCookie(FALSE);
@@ -185,9 +191,10 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
   /**
    * Reset the cookie file so that it refers to the specified user.
    *
-   * @param $uid User id to set as the active session.
+   * @param int $uid
+   *   User id to set as the active session.
    */
-  function sessionReset($uid = 0) {
+  protected function sessionReset($uid = 0) {
     // Close the internal browser.
     $this->curlClose();
     $this->loggedInUser = FALSE;
@@ -203,7 +210,7 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
   /**
    * Assert whether the SimpleTest browser sent a session cookie.
    */
-  function assertSessionCookie($sent) {
+  protected function assertSessionCookie($sent) {
     if ($sent) {
       $this->assertNotNull($this->session_id, t('Session cookie was sent.'));
     }
@@ -215,7 +222,7 @@ class MemcacheSessionTestCase extends DrupalWebTestCase {
   /**
    * Assert whether $_SESSION is empty at the beginning of the request.
    */
-  function assertSessionEmpty($empty) {
+  protected function assertSessionEmpty($empty) {
     if ($empty) {
       $this->assertIdentical($this->drupalGetHeader('X-Session-Empty'), '1', t('Session was empty.'));
     }
