@@ -26,6 +26,11 @@
  *   will be boolean TRUE. This is usually used in conjunction with immedate
  *   JavaScript-based toggling of flags.
  *
+ * Template suggestions available, listed from the most specific template to
+ * the least. Drupal will use the most specific template it finds:
+ * - flag--name.tpl.php
+ * - flag--link-type.tpl.php
+ *
  * NOTE: This template spaces out the <span> tags for clarity only. When doing some
  * advanced theming you may have to remove all the whitespace.
  */
