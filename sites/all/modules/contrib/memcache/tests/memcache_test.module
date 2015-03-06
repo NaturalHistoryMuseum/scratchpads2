@@ -18,7 +18,7 @@ function memcache_test_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['memcache-test/set/%/%'] = array(
+  $items['memcache-test/set/%'] = array(
     'title' => 'Set a value with a key',
     'page callback' => 'memcache_test_set',
     'page arguments' => array(2, 3),
@@ -91,8 +91,8 @@ function memcache_test_lock_exit() {
  * Set a value into the cache.
  */
 function memcache_test_set($key, $value) {
-  $cache = cache_set($key, $value, 'memcache');
-  drupal_json_output(cache_get($key, 'memcache'));
+  $cache = cache_set($key, $value, 'MemcacheDrupal');
+  drupal_json_output(cache_get($key, 'MemcacheDrupal'));
 }
 
 /**
@@ -100,14 +100,14 @@ function memcache_test_set($key, $value) {
  */
 function memcache_test_get($key) {
   $GLOBALS['in_test'] = TRUE;
-  drupal_json_output(cache_get($key, 'memcache'));
+  drupal_json_output(cache_get($key, 'MemcacheDrupal'));
 }
 
 /**
  * Clear cache using a wildcard.
  */
 function memcache_test_wildcard_flush($key) {
-  cache_clear_all($key, 'memcache', TRUE);
+  cache_clear_all($key, 'MemcacheDrupal', TRUE);
   drupal_json_output($key);
 }
 
@@ -115,7 +115,7 @@ function memcache_test_wildcard_flush($key) {
  * Clear cache using a specific key.
  */
 function memcache_test_clear($key) {
-  cache_clear_all($key, 'memcache');
+  cache_clear_all($key, 'MemcacheDrupal');
 
   drupal_json_output($key);
 }
@@ -124,6 +124,6 @@ function memcache_test_clear($key) {
 * Clear complete cache.
 */
 function memcache_test_clear_cache() {
-  cache_clear_all(NULL, 'memcache');
+  cache_clear_all(NULL, 'MemcacheDrupal');
   drupal_json_output();
 }
