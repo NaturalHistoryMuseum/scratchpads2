@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file update functions for memcache_admin.
+ * @file
+ * Update functions for memcache_admin.
  */
 
 /**
@@ -10,4 +11,11 @@
 function memcache_admin_update_7001() {
   drupal_flush_all_caches();
   menu_rebuild();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function memcache_admin_uninstall() {
+  variable_del('show_memcache_statistics');
 }
