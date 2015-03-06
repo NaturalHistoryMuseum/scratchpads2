@@ -7,9 +7,9 @@ configure = admin/structure/webform/flags
 
 files[] = flag.install
 files[] = flag_actions.module
-; Information added by drupal.org packaging script on 2012-09-17
-version = "7.x-2.0"
+; Information added by Drupal.org packaging script on 2014-02-23
+version = "7.x-2.2"
 core = "7.x"
 project = "flag"
-datestamp = "1347917009"
+datestamp = "1393145610"
 
