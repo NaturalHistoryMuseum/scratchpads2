@@ -68,3 +68,12 @@ function biblio_dump_node_update($node){
 function biblio_dump_node_insert($node){
   biblio_dump_node_update($node);
 }
+
+/**
+ * Implements hook_node_delete()
+ */
+function biblio_dump_node_delete($node){
+  if($node->type == 'biblio'){
+    db_delete('biblio_dump')->condition('nid', $node->nid)->execute();
+  }
+}
