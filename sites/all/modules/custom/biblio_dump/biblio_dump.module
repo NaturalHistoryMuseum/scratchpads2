@@ -45,3 +45,35 @@ function biblio_dump_file_download($uri){
     );
   }
 }
+
+/**
+ * Implements hook_node_update()
+ */
+function biblio_dump_node_update($node){
+  if($node->type == 'biblio'){
+    module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+    variable_set('biblio_dump_rebuild', TRUE);
+    db_merge('biblio_dump')->key(array(
+      'nid' => $node->nid
+    ))->fields(array(
+      'nid' => $node->nid,
+      'bibtex' => _biblio_bibtex_export($node)
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function biblio_dump_node_insert($node){
+  biblio_dump_node_update($node);
+}
+
+/**
+ * Implements hook_node_delete()
+ */
+function biblio_dump_node_delete($node){
+  if($node->type == 'biblio'){
+    db_delete('biblio_dump')->condition('nid', $node->nid)->execute();
+  }
+}
