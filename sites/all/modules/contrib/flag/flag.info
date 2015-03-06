@@ -10,13 +10,14 @@ files[] = flag.rules.inc
 files[] = includes/flag_handler_argument_content_id.inc
 files[] = includes/flag_handler_field_ops.inc
 files[] = includes/flag_handler_filter_flagged.inc
+files[] = includes/flag_handler_sort_flagged.inc
 files[] = includes/flag_handler_relationships.inc
 files[] = includes/flag_plugin_argument_validate_flaggability.inc
 files[] = tests/flag.test
 
-; Information added by drupal.org packaging script on 2012-09-17
-version = "7.x-2.0"
+; Information added by Drupal.org packaging script on 2014-02-23
+version = "7.x-2.2"
 core = "7.x"
 project = "flag"
-datestamp = "1347917009"
+datestamp = "1393145610"
 
