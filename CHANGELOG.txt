@@ -1,3 +1,7 @@
+2.6.0.10.1 (2015-03-06)
+
+- Improve the scratchpads_statistics_cron function to prevent memory issues and possible timeouts
+
 2.6.0.10 (2015-03-04)
 
 - Fixes the display of text and application files when attached to nodes (#4321)
