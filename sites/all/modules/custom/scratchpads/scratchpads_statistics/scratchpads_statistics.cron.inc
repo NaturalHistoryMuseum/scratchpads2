@@ -32,23 +32,44 @@ function _scratchpads_statistics_cron($force_update = FALSE){
     }
   }
   // Ensure we have a comprehensive list of users
-  $results = db_select('users', 'u')->fields('u', array(
-    'uid'
-  ))->condition('uid', 1, '>')->orderBy('uid')->execute();
+  $query = db_select('users', 'u');
+  $query->innerJoin('field_data_field_user_family_name', 'fn', 'u.uid = fn.entity_id');
+  $query->innerJoin('field_data_field_user_given_names', 'gn', 'u.uid = gn.entity_id');
+  $query->leftJoin('scratchpads_statistics_user', 's', 'u.mail = s.email');
+  $query->fields('u', array(
+    'uid',
+    'mail',
+    'name'
+  ))->fields('fn', array(
+    'field_user_family_name_value'
+  ))->fields('gn', array(
+    'field_user_given_names_value'
+  ))->fields('s', array(
+    'id',
+    'latitude',
+    'longitude',
+    'country'
+  ));
+  $results = $query->condition('u.uid', 1, '>')->orderBy('u.uid')->execute();
+  $sql = 'REPLACE INTO {scratchpads_statistics_user} (id, name, email, country, latitude, longitude) VALUES ';
+  $sql_extra = array();
+  $values = array();
   foreach($results as $row){
-    $user = user_load($row->uid);
-    $name = $user->name;
-    $lang = field_language('user', $user, 'field_user_family_name');
-    $lang_given_names = field_language('user', $user, 'field_user_given_names');
-    if(@isset($user->field_user_family_name[$lang][0]['value']) && isset($user->field_user_given_names[$lang_given_names][0]['value'])){
-      $name = trim($user->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $user->field_user_family_name[$lang][0]['value']);
+    $name = $row->name;
+    if(!empty($row->field_user_family_name_value) && !empty($row->field_user_given_names_value)){
+      $name = trim($row->field_user_given_names_value . ' ' . $row->field_user_family_name_value);
     }
-    $query = db_merge('scratchpads_statistics_user')->key(array(
-      'email' => $user->mail
-    ))->fields(array(
-      'name' => $name,
-      'email' => $user->mail
-    ))->execute();
+    $sql_extra[] = '(?, ?, ?, ?, ?, ?)';
+    $values[] = $row->id;
+    $values[] = $name;
+    $values[] = $row->mail;
+    $values[] = empty($row->country) ? NULL : $row->country;
+    $values[] = empty($row->latitude) ? NULL : $row->latitude;
+    $values[] = empty($row->longitude) ? NULL : $row->longitude;
+  }
+  if(count($sql_extra)){
+    $sql .= implode(',', $sql_extra);
+    db_query($sql, $values);
   }
   // Sadly the MergeQuery class does not have a "from" method, so we need to
   // delete the items in the login table relating to this site.
