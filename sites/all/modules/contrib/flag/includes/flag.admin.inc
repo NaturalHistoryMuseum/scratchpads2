@@ -470,10 +470,11 @@ function flag_form($form, &$form_state, $flag) {
     '#title' => t('Link type'),
     '#options' => _flag_link_type_options(),
     '#option_descriptions' => _flag_link_type_descriptions(),
-    '#flag_link_fields' => _flag_link_type_fields(),
     '#after_build' => array('flag_expand_link_option', 'flag_check_link_types'),
     '#default_value' => $flag->link_type,
-    '#weight' => 2,
+    // Give this a high weight so additions by the flag classes for entity-
+    // specific options go above.
+    '#weight' => 18,
     '#access' => empty($flag->locked['link_type']),
   );
 
