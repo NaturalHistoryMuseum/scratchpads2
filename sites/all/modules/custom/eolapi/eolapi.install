@@ -466,7 +466,9 @@ function eolapi_update_7003(&$sandbox){
       try{
         db_update('file_managed')->fields(array(
           'uri' => $data->mediaURL,
-          'filename' => $filename
+          'filename' => $filename,
+          'filemime' => 'image/jpeg',
+          'type' => 'image'
         ))->condition('fid', $file->fid)->execute();
       }
       catch(Exception $e){
@@ -481,7 +483,7 @@ function eolapi_update_7003(&$sandbox){
 }
 
 /**
- * Delete any files/eolapi entities that have not been updated.
+ * Delete any files / eolapi entities that have not been updated.
  */
 function eolapi_update_7004(&$sandbox){
   if(empty($sandbox['fids']) && empty($sandbox['eids'])){
