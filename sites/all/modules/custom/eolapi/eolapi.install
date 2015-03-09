@@ -188,8 +188,6 @@ function eolapi_enable(){
   );
   field_create_field($field);
   field_create_instance($instance);
-  // Create the folder for images and their derivatives.
-  @drupal_mkdir('public://eolapi');
 }
 
 /**
@@ -211,20 +209,21 @@ function eolapi_disable(){
   }
   // Delete all the files that were associated with those entities.
   db_delete('file_usage')->condition('type', 'eolapi')->execute();
-  // We do it this way round, as this will catch all eolapi files, and not just
-  // those that still have entries in the file_usage table (which I would expect
-  // to be emptied after the entity is deleted).
-  $results = db_select('file_managed', 'f')->fields('f', array(
-    'fid'
-  ))->condition('uri', db_like('public://eolapi/') . '%', 'LIKE')->execute();
-  $fids = array();
-  foreach($results as $row){
-    $fids[] = $row->fid;
-  }
-  $files = file_load_multiple($fids);
-  foreach($files as $file){
-    file_delete($file);
-  }
+  //   // We do it this way round, as this will catch all eolapi files, and not just
+  //   // those that still have entries in the file_usage table (which I would expect
+  //   // to be emptied after the entity is deleted).
+  //   $results = db_select('file_managed', 'f')->fields('f', array(
+  //     'fid'
+  //   ))->condition('uri', db_like('public://eolapi/') . '%', 'LIKE')->execute();
+  //   $fids = array();
+  //   foreach($results as $row){
+  //     $fids[] = $row->fid;
+  //   }
+  //   $files = file_load_multiple($fids);
+  //   foreach($files as $file){
+  //     file_delete($file);
+  //   }
+  // FIXME - We need to delete the EOLAPI files.
 }
 
 /**
@@ -434,4 +433,42 @@ function eolapi_update_7001(){
  */
 function eolapi_update_7002(){
   variable_set('image_allow_insecure_derivatives', TRUE);
+}
+
+/**
+ * Convert images to be stored remotely.
+ */
+function eolapi_update_7003(&$sandbox){
+  if(empty($sandbox['eids'])){
+    // Enable the remote_stream_wrapper module.
+    module_enable(array(
+      'remote_stream_wrapper'
+    ));
+    // Delete the eolapi directory
+    file_unmanaged_delete_recursive('public://eolapi/');
+    // Get the eids to update
+    $sandbox['eids'] = db_select('eolapi', 'e')->condition('type', 'stillimage')->fields('e', array(
+      'eid'
+    ))->execute()->fetchCol();
+    $sandbox['total'] = count($sandbox['eids']);
+    // Check we have eids to update, if not, we go no further.
+    if(!$sandbox['total']){return;}
+  }
+  $count = 0;
+  // Process 50 eids at a time.
+  while($count < 50 && ($eid = array_pop($sandbox['eids']))){
+    $eolapi = eolapi_load($eid);
+    $data = unserialize($eolapi->data);
+    if($data && $data->mediaURL){
+      $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
+      file_unmanaged_delete($file->uri);
+      $file->uri = $data->mediaURL;
+      $file->filename = basename($file->uri);
+      $file->title = $file->filename;
+      file_save($file);
+    }
+    $count++;
+  }
+  $sandbox['finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
+  $sandbox['message'] = ($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total'];
 }
