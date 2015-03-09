@@ -1,0 +1,14 @@
+diff --git a/remote_stream_wrapper.inc b/remote_stream_wrapper.inc
+index 492272b..54492a0 100644
+--- a/remote_stream_wrapper.inc
++++ b/remote_stream_wrapper.inc
+@@ -271,6 +271,9 @@ class DrupalRemoteStreamWrapper implements DrupalStreamWrapperInterface {
+   public function stream_stat() {
+     $stat = array();
+     $request = drupal_http_request($this->uri, array('method' => 'HEAD'));
++    if (!empty($request->error)) {
++      $request = drupal_http_request($this->uri, array('method' => 'GET'));
++    }
+     if (empty($request->error)) {
+       if (isset($request->headers['content-length'])) {
+         $stat['size'] = $request->headers['content-length'];
