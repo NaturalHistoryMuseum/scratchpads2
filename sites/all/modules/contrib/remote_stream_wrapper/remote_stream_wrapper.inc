@@ -271,6 +271,9 @@ class DrupalRemoteStreamWrapper implements DrupalStreamWrapperInterface {
   public function stream_stat() {
     $stat = array();
     $request = drupal_http_request($this->uri, array('method' => 'HEAD'));
+    if (!empty($request->error)) {
+      $request = drupal_http_request($this->uri, array('method' => 'GET'));
+    }
     if (empty($request->error)) {
       if (isset($request->headers['content-length'])) {
         $stat['size'] = $request->headers['content-length'];
