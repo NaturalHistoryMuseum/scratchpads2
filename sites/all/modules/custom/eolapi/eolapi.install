@@ -509,3 +509,10 @@ function eolapi_update_7004(&$sandbox){
   drupal_set_message(($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total']);
   $sandbox['#finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
 }
+
+/**
+ * Clear all caches following EOLAPI updates
+ */
+function eolapi_update_7005(){
+  drupal_flush_all_caches();
+}
