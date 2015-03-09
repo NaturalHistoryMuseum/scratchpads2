@@ -8,7 +8,7 @@ function theme_eolapi_stillimage_full($variables){
   $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
   return theme('image_style', array(
     'style_name' => 'large',
-    'path' => substr($variables['entity']->eolapi_image[$lang][0]['uri'], 9),
+    'path' => $variables['entity']->eolapi_image[$lang][0]['uri'],
     'width' => $variables['entity']->eolapi_image[$lang][0]['width'],
     'height' => $variables['entity']->eolapi_image[$lang][0]['height'],
     'alt' => $data->title,
@@ -26,7 +26,7 @@ function theme_eolapi_stillimage_teaser($variables){
   $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
   return l(theme('image_style', array(
     'style_name' => 'square_thumbnail',
-    'path' => substr($variables['entity']->eolapi_image[$lang][0]['uri'], 9),
+    'path' => $variables['entity']->eolapi_image[$lang][0]['uri'],
     'width' => $variables['entity']->eolapi_image[$lang][0]['width'],
     'height' => $variables['entity']->eolapi_image[$lang][0]['height'],
     'alt' => (isset($data->title) ? $data->title : ''),
