@@ -93,24 +93,20 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     // Download the original image so that we can perform image_styles magic on
     // it.
     $data = unserialize($eolapi->data);
+    // Create a file object by downloading the original image. We then delete
+    // the file and replace the URI with the original URI.
     $file = file_save_data(@file_get_contents($data->mediaURL));
-    if(!$file->filesize){
-      // We failed to download a file.  We should therefore delete this file, and
-      // continue with the EOL preview.
-      file_delete($file);
-      $file = file_save_data(@file_get_contents($data->eolMediaURL));
-    }
     $toolkit = image_get_toolkit();
     $image = new stdClass();
     $image->source = $file->uri;
     $image->toolkit = $toolkit;
     $details = image_toolkit_invoke('get_info', $image);
-    $file = file_move($file, 'public://eolapi/' . $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'], FILE_EXISTS_REPLACE);
-    $file->title = '';
+    file_unmanaged_delete($file->uri);
+    $file->uri = $data->mediaURL;
     $file->alt = '';
     $file->width = $details['width'];
     $file->height = $details['height'];
-    $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
+    $file->filename = basename($file->uri);
     file_save($file);
     $lang = field_language('eolapi', $eolapi, 'eolapi_image');
     $eolapi->eolapi_image = array(
