@@ -462,15 +462,22 @@ function eolapi_update_7003(&$sandbox){
     if($data && $data->mediaURL){
       $file = file_load($eolapi->eolapi_image[LANGUAGE_NONE][0]['fid']);
       file_unmanaged_delete($file->uri);
-      $file->uri = $data->mediaURL;
-      $file->filename = basename($file->uri);
-      $file->title = $file->filename;
-      file_save($file);
+      $filename = basename($data->mediaURL);
+      try{
+        db_update('file_managed')->fields(array(
+          'uri' => $data->mediaURL,
+          'filename' => $filename
+        ))->condition('fid', $file->fid)->execute();
+      }
+      catch(Exception $e){
+        // We've already got this URL/image, so we delete the EOLAPI entity.
+        entity_delete('eolapi', $eid);
+      }
     }
     $count++;
   }
-  $sandbox['finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
-  $sandbox['message'] = ($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total'];
+  drupal_set_message(($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total']);
+  $sandbox['#finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
 }
 
 /**
@@ -494,10 +501,11 @@ function eolapi_update_7004(&$sandbox){
   $count = 0;
   // Process 50 eids at a time.
   $eids = array();
-  while($count < 50 && ($eid = array_pop($sandbox['eids']))){
+  while($count < 5 && ($eid = array_pop($sandbox['eids']))){
     $eids[] = $eid;
+    $count++;
   }
   entity_delete_multiple('eolapi', $eids);
-  $sandbox['finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
-  $sandbox['message'] = ($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total'];
+  drupal_set_message(($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total']);
+  $sandbox['#finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
 }

@@ -16,7 +16,7 @@
   (7.x-1.2), auto_entitylabel (7.x-1.3), date (7.x-2.8), advagg (7.x-2.7), views
   (7.x-3.10)
 - Generate the biblio_dump.bib file much more efficiently, rather than every
-  cron run.
+  cron run (#4239)
 - Created a basic taxonomy statistics module (#4266)
 - Prevent access to the updates pages
 - Strip metadata from resized images which reduces their size
@@ -26,7 +26,7 @@
 2.6.0.10.1 (2015-03-06)
 
 - Improve the scratchpads_statistics_cron function to prevent memory issues and
-  possible timeouts
+  possible timeouts (#4239)
 
 2.6.0.10 (2015-03-04)
 
