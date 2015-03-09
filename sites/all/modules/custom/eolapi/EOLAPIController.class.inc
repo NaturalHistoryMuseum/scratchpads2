@@ -14,7 +14,7 @@ class EOLAPIController extends EntityAPIController{
       'eolapi_image_fid'
     ))->condition('entity_id', $ids)->execute()->fetchCol();
     if(count($fids)){
-      entity_delete('file', $fids);
+      entity_delete_multiple('file', $fids);
     }
   }
 }
