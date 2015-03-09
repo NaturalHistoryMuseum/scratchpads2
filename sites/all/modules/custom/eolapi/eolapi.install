@@ -484,7 +484,7 @@ function eolapi_update_7004(&$sandbox){
     ));
     $sandbox['eids'] = db_select('field_data_eolapi_image', 'e')->fields('e', array(
       'entity_id'
-    ))->condition('eolapi_image_fid', $subquery)->fields('e', array(
+    ))->condition('eolapi_image_fid', $subquery, 'IN')->fields('e', array(
       'entity_id'
     ))->execute()->fetchCol();
     $sandbox['total'] = count($sandbox['eids']);
