@@ -472,3 +472,32 @@ function eolapi_update_7003(&$sandbox){
   $sandbox['finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
   $sandbox['message'] = ($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total'];
 }
+
+/**
+ * Delete any files/eolapi entities that have not been updated.
+ */
+function eolapi_update_7004(&$sandbox){
+  if(empty($sandbox['fids']) && empty($sandbox['eids'])){
+    // Get the eids that we need to delete
+    $subquery = db_select('file_managed', 'f')->condition('uri', 'public://eolapi/%', 'LIKE')->fields('f', array(
+      'fid'
+    ));
+    $sandbox['eids'] = db_select('field_data_eolapi_image', 'e')->fields('e', array(
+      'entity_id'
+    ))->condition('eolapi_image_fid', $subquery)->fields('e', array(
+      'entity_id'
+    ))->execute()->fetchCol();
+    $sandbox['total'] = count($sandbox['eids']);
+    // Check we have eids to update, if not, we go no further.
+    if(!$sandbox['total']){return;}
+  }
+  $count = 0;
+  // Process 50 eids at a time.
+  $eids = array();
+  while($count < 50 && ($eid = array_pop($sandbox['eids']))){
+    $eids[] = $eid;
+  }
+  entity_delete_multiple('eolapi', $eids);
+  $sandbox['finished'] = ($sandbox['total'] - count($sandbox['eids'])) / $sandbox['total'];
+  $sandbox['message'] = ($sandbox['total'] - count($sandbox['eids'])) . ' of ' . $sandbox['total'];
+}
