@@ -322,6 +322,8 @@ function scratchpads_tweaks_install(){
   scratchpads_tweaks_update_7081();
   // Ensure we do not send out update emails to our users.
   variable_del('update_notify_emails');
+  // Increase the length of the biblio_keywords field
+  scratchpads_tweaks_update_7089();
 }
 
 /**
@@ -1538,4 +1540,13 @@ function scratchpads_tweaks_update_7088(){
   foreach($styles as $style){
     image_style_flush($style);
   }
+}
+
+/**
+ * Increase the length of the biblio_keywords field
+ */
+function scratchpads_tweaks_update_7089(){
+  db_update('biblio_fields')->fields(array(
+    'maxsize' => 65535
+  ))->condition('name', 'biblio_keywords')->execute();
 }
