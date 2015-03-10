@@ -1,7 +1,7 @@
 2.6.1 (2015-03-10)
 
-- Altered EOLAPI module so that it does not store locally full images (just 
-  thumbs and previews)
+- Altered EOLAPI module so that it does not store full images locally (just 
+  thumbnails and previews)
 - Upgraded memcache module to 7.x-1.5 which will enable us to run memcache 
   without the "-I 16M" flag
 - Removed unused contrib modules
