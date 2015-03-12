@@ -190,8 +190,8 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
     case 'front_page_slideshow':
       $view->args[] = scratchpads_front_variable_get($var);
       if(!user_access('administer front page')){
-        $view->display_handler->default_display->options['empty'] = FALSE;
-        $view->display_handler->options['empty'] = FALSE;
+        $view->display_handler->default_display->options['empty'] = array();
+        $view->display_handler->options['empty'] = array();
       }
       break;
   }
