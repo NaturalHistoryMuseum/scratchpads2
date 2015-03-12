@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
@@ -27,7 +27,12 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
               data.node = data.node.$;
             }
             if (selection.getType() == CKEDITOR.SELECTION_TEXT) {
-              data.content = selection.getSelectedText();
+              if (CKEDITOR.env.ie) {
+                data.content = selection.getNative().createRange().text;
+              }
+              else {
+                data.content = selection.getNative().toString();
+              }
             }
             else if (data.node) {
               // content is supposed to contain the "outerHTML".

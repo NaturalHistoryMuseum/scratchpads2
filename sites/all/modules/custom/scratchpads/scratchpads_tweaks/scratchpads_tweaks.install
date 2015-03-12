@@ -582,9 +582,20 @@ function scratchpads_tweaks_update_7014(){
   }
   db_delete('ckeditor_settings')->condition('name', 'CKEditor Global Profile', '!=')->execute();
   $default_settings = array(
+    'filters' => array(
+      'filter_html' => 1
+    ),
     'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
     'toolbar' => '[
-    [\'Format\',\'Bold\',\'Italic\',\'Underline\'],
+    [\'Bold\',\'Italic\',\'Underline\'],
     [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
     [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
     [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
@@ -596,16 +607,10 @@ function scratchpads_tweaks_update_7014(){
     [\'Maximize\']
 ]',
     'expand' => 't',
-    'default' => 't',
-    'show_toggle' => 't',
-    'uicolor' => 'default',
-    'uicolor_user' => 'default',
     'width' => '100%',
     'lang' => 'en',
     'auto_lang' => 't',
     'language_direction' => 'default',
-    'allowed_content' => 't',
-    'extraAllowedContent' => '',
     'enter_mode' => 'p',
     'shift_enter_mode' => 'br',
     'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
@@ -629,12 +634,20 @@ function scratchpads_tweaks_update_7014(){
     'filebrowser_flash' => '',
     'UserFilesPath' => '%b%f/',
     'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
     'forcePasteAsPlainText' => 't',
     'html_entities' => 't',
     'scayt_autoStartup' => 'f',
     'theme_config_js' => 'f',
     'js_conf' => '',
     'loadPlugins' => array(
+      'scratchpads_backend_tweaks' => array(
+        'name' => 'scratchpads_backend_tweaks',
+        'desc' => 'Ensure that image width/height/align are set as attributes, not as styles when using the image editor',
+        'path' => '%base_path%sites/all/modules/custom/scratchpads/scratchpads_backend/ckeditor/',
+        'buttons' => FALSE
+      ),
       'counter' => array(
         'name' => 'counter',
         'desc' => 'Plugin to count symbols, symbols without blanks and words',
@@ -683,16 +696,28 @@ function scratchpads_tweaks_update_7014(){
         ),
         'default' => 'f'
       ),
-      'scratchpads_backend_tweaks' => array(
-        'name' => 'scratchpads_backend_tweaks',
-        'desc' => 'Ensure that image width/height/align are set as attributes, not as styles when using the image editor',
-        'path' => '%base_path%sites/all/modules/custom/scratchpads/scratchpads_backend/ckeditor/',
-        'buttons' => false
+      'tableresize' => array(
+        'name' => 'tableresize',
+        'desc' => 'Table Resize plugin',
+        'path' => '%editor_path%plugins/tableresize/',
+        'buttons' => false,
+        'default' => 't'
       )
     )
   );
   $limited_settings = array(
+    'filters' => array(
+      'filter_html' => 1
+    ),
     'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
     'toolbar' => '[
     [\'Bold\',\'Italic\',\'Underline\'],
     [\'NumberedList\',\'BulletedList\'],
@@ -702,16 +727,10 @@ function scratchpads_tweaks_update_7014(){
     [\'Media\']
 ]',
     'expand' => 't',
-    'default' => 't',
-    'show_toggle' => 't',
-    'uicolor' => 'default',
-    'uicolor_user' => 'default',
     'width' => '100%',
     'lang' => 'en',
     'auto_lang' => 't',
     'language_direction' => 'default',
-    'allowed_content' => 't',
-    'extraAllowedContent' => '',
     'enter_mode' => 'p',
     'shift_enter_mode' => 'br',
     'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
@@ -735,6 +754,8 @@ function scratchpads_tweaks_update_7014(){
     'filebrowser_flash' => '',
     'UserFilesPath' => '%b%f/',
     'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
     'forcePasteAsPlainText' => 't',
     'html_entities' => 't',
     'scayt_autoStartup' => 't',
@@ -1549,4 +1570,13 @@ function scratchpads_tweaks_update_7089(){
   db_update('biblio_fields')->fields(array(
     'maxsize' => 65535
   ))->condition('name', 'biblio_keywords')->execute();
+}
+
+
+/**
+ * Add the entityfilter CKEditor plugin, and also update the settings for the
+ * latest version of CKEditor.
+ */
+function scratchpads_tweaks_update_7090(){
+  scratchpads_tweaks_update_7014();
 }
