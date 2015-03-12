@@ -251,7 +251,7 @@ function scratchpads_form_search_block_form_alter(&$form, &$form_state, $form_id
 function scratchpads_preprocess_node(&$variables){
   if($variables['view_mode'] == 'linked_node'){
     $node_info = node_type_load($variables['type']);
-    $variables['title'] = $node_info->name;
+    $variables['title'] = $node_info->name . ' <span style="font-size:80%">(' . $variables['title'] . ')</span>';
     $variables['display_submitted'] = false;
   }
 }
