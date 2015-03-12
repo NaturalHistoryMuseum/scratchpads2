@@ -247,6 +247,14 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
     'header'
   );
   switch($form_id){
+    case 'system_site_maintenance_mode':
+      // Replace the text in the string, rather than creating a new translation
+      // string without the URL in
+      preg_match('$<a href="' . url('admin/people/permissions') . '">([^<]*)</a>$', $form['maintenance_mode']['#description'], $matches);
+      if(count($matches) == 2){
+        $form['maintenance_mode']['#description'] = str_replace($matches[0], $matches[1], $form['maintenance_mode']['#description']);
+      }
+      break;
     case 'block_admin_configure':
       foreach(element_children($form['regions']) as $child_key){
         foreach($forbidden_regions as $forbidden_region){
