@@ -1,0 +1,23 @@
+diff --git a/legal.module b/legal.module
+index e569d1c..10ebf87 100644
+--- a/legal.module
++++ b/legal.module
+@@ -97,6 +97,18 @@ function legal_menu() {
+ }
+ 
+ /**
++ * Implements hook_menu_site_status_alter().
++ */
++function legal_menu_site_status_alter(&$menu_site_status, $path){
++  if(arg(0) == 'legal_accept'){
++    $account = user_load(arg(1));
++    if($account && user_access('access site in maintenance mode', $account) && arg(2) == md5($account->name . $account->pass . $account->login)){
++      $menu_site_status = MENU_SITE_ONLINE;
++    }
++  }
++}
++
++/**
+  * Implements hook_theme().
+  */
+ function legal_theme() {
