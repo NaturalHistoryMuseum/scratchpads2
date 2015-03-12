@@ -1,3 +1,8 @@
+2.6.2 (2015-03-12)
+
+- Revert the changes to the CKEditor plugin/module (#4343)
+- Ensure users can login and accept T&Cs on offline sites (#4342)
+
 2.6.1.1 (2015-03-10)
 
 - Increase the length of the biblio_keywords field (#4225)
