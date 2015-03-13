@@ -94,7 +94,9 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     // it.
     $data = unserialize($eolapi->data);
     // Create a file object by downloading the original image. We then delete
-    // the file and replace the URI with the original URI.
+    // the file and replace the URI with the original URI. Note, we do this so
+    // that we can get the width and height of the image (not sure if they're
+    // actually required).
     $file = file_save_data(@file_get_contents($data->mediaURL));
     $toolkit = image_get_toolkit();
     $image = new stdClass();
