@@ -118,8 +118,6 @@ function morphbank_harvest_enable(){
     );
     field_create_instance($image_instance);
   }
-  // Make the directory where images will be stored
-  @drupal_mkdir('public://morphbank');
 }
 
 /**
@@ -144,6 +142,14 @@ function morphbank_harvest_disable(){
   // delete - we may need to batch this process.
   if(count($fids) > 0){
     entity_delete_multiple('file', $fids);
+  }
+  // Delete each of the fields
+  foreach(array(
+    'field_morphbank_image_id',
+    'field_morphbank_specimen_id',
+    'field_morphbank_view_id'
+  ) as $field_name){
+    field_delete_field($field_name);
   }
 }
 
