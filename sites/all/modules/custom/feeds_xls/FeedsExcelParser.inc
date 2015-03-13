@@ -59,10 +59,6 @@ class FeedsExcelParser extends FeedsParser{
     // Note, we're caching this in a file as PDO/MySQL complain when it is 
     // included in the $this->state object (dodgy characters).
     if(!$this->state->reader_object_cache_path || !file_exists($this->state->reader_object_cache_path)){
-      // Upper case the mappings
-      foreach($source->importer->processor->config['mappings'] as $key => $mapping){
-        $source->importer->processor->config['mappings'][$key]['source'] = strtoupper($mapping['source']);
-      }
       // We use drupal_realpath here as it appears that the ZipArchive class is
       // not able to handle our use of public://... Stream URIs.  This will need
       // to be fixed before Drupal 8.
@@ -86,6 +82,10 @@ class FeedsExcelParser extends FeedsParser{
       $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
       $this->reader = $previous_this->reader;
       $this->chunk_filter = $previous_this->chunk_filter;
+    }
+    // Upper case the mappings
+    foreach($source->importer->processor->config['mappings'] as $key => $mapping){
+      $source->importer->processor->config['mappings'][$key]['source'] = strtoupper($mapping['source']);
     }
     // P A R S E !
     $rows = array();
