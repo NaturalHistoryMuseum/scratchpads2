@@ -5,9 +5,10 @@ dependencies[] = feeds
 files[] = FeedsExcelParser.inc
 core = 7.x
 
-; Information added by drupal.org packaging script on 2011-09-27
+; Information added by Drupal.org packaging script on 2015-03-13
+version = "7.x-1.2"
 core = "7.x"
-datestamp = "1317161804"
+datestamp = "1426241092"
 
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
