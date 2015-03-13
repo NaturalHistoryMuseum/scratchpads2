@@ -18,6 +18,7 @@ function morphbank_harvest_form(){
       '#type' => 'select',
       '#title' => t('Vocabulary'),
       '#options' => $taxonomies,
+      '#default_value' => ((count($taxonomies) === 1) ? 'morphbank_harvest_' . $vocabulary->vid : NULL),
       '#required' => TRUE
     );
     // How many images to save?  -1 means unlimited
