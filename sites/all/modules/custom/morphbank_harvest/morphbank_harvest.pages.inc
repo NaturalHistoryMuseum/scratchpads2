@@ -16,9 +16,8 @@ function morphbank_harvest_form(){
     // Make the select element
     $form['vid'] = array(
       '#type' => 'select',
-      '#title' => '',
+      '#title' => t('Vocabulary'),
       '#options' => $taxonomies,
-      '#empty_option' => t('Select vocabulary'),
       '#required' => TRUE
     );
     // How many images to save?  -1 means unlimited
