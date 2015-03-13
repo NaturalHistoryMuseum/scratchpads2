@@ -1,3 +1,8 @@
+2.6.2.1 (2015-03-13)
+
+- Fixed an issue with Feeds XLS that prevented more than 49 rows being imported
+- Display the title of a linked node for a node reference field (#4161)
+
 2.6.2 (2015-03-12)
 
 - Revert the changes to the CKEditor plugin/module (#4343)
