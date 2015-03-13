@@ -106,13 +106,6 @@ function morphbank_harvest_form_validate($form, &$form_state){
       '@maxerrors' => $max_errors
     )));
   }
-  // Some warnings need only be thrown once
-  global $warned;
-  $warned['permission_dir'] = FALSE;
-  $warned['permission_file'] = FALSE;
-  $warned['missing_fid'] = FALSE;
-  $warned['missing_mid'] = FALSE;
-  $warned['processed'] = FALSE;
 }
 
 /**
@@ -393,13 +386,9 @@ function _harvest_from_morphbank($harvest_details, &$context){
                 break;
             }
             if(!$found_result){
-              global $warned;
-              if(array_key_exists('processed', $warned) && $warned['processed']){
-                drupal_set_message(t("Error when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", array(
-                  '@termname' => $term_name
-                )), 'warning');
-                $warned['processed'] = TRUE;
-              }
+              _morphbank_harvest_set_warning_once('processed', array(
+                '@termname' => $term_name
+              ));
             }
           }
         }
@@ -585,7 +574,7 @@ function _query_morphbank($term_name, $maximages){
   if($code == 200){ // What about 201?
     // Convert the 'data' object returned from drupal_http_request from string to an XML object
     // Suppressing warning in case Morphbank is returning malformed XML
-    if($response_xml = simplexml_load_string($result->data, "SimpleXMLElement", $options = LIBXML_NOERROR)){
+    if(($response_xml = simplexml_load_string($result->data, "SimpleXMLElement", $options = LIBXML_NOERROR)) != FALSE){
       // No numReturned element, something probably went wrong
       if(is_null($response_xml->numReturned)){return FALSE;}
       $response_array = array();
@@ -739,13 +728,9 @@ function _process_response($response, $term_name, $tid, $hid){
     // Morphbank specimen ID changed)
     _remove_outdated_links($fid, $morphbank_specimen_id);
   }else{
-    global $warned;
-    if(array_key_exists('missing_fid', $warned) && !$warned['missing_fid']){
-      drupal_set_message(t("No fid when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", array(
-        '@termname' => $term_name
-      )), 'warning');
-      $warned['missing_fid'] = TRUE;
-    }
+    _morphbank_harvest_set_warning_once('missing_fid', array(
+      '@termname' => $term_name
+    ));
   }
   return $to_return;
 }
@@ -770,51 +755,16 @@ function _process_response($response, $term_name, $tid, $hid){
  *   of the file (as listed in file_managed table); if no file was saved, returns FALSE.
  */
 function _retrieve_morphbank_image($morphbank_image_id, $term_name, $original_filename){
-  global $warned;
   if($morphbank_image_id > 0){
     $image_location = MORPHBANK_IMAGE_URL . '?id=' . $morphbank_image_id . '&imgType=jpg';
-    $destination_directory = variable_get('file_default_scheme', 'public') . '://morphbank';
-    if(file_prepare_directory($destination_directory, FILE_CREATE_DIRECTORY)){
-      // For the file name, will want the taxonomic name, the morphbank id, and the original file name
-      // Keeping this info will make it easier for users to find the files they are looking for
-      // Replace whitespace with dashes for file name
-      $name_string = preg_replace('/\s+/', '-', $term_name);
-      // Replace plus sign with dashes
-      $name_string = str_replace('+', '-', $name_string);
-      $new_file_name = $name_string . '-' . $morphbank_image_id . '-' . $original_filename;
-      if(strpos(strtolower($new_file_name), ".jpg") == 0){
-        // No .jpg, see if there's a jpeg
-        if(strpos(strtolower($new_file_name), ".jpeg") == 0){
-          // No .jpeg, just append .jpg
-          $new_file_name = $new_file_name . '.jpg';
-        }else{
-          // Replace .jpeg with .jpg
-          $new_file_name = str_ireplace('.jpeg', '.jpg', $new_file_name);
-        }
-      }
-      $destination = file_stream_wrapper_uri_normalize($destination_directory . '/' . $new_file_name);
-      $image = file_get_contents($image_location);
-      // This save sets status == 1
-      $file = file_save_data($image, $destination, FILE_EXISTS_REPLACE); // Replaces file if already exists
-      if(is_object($file)){
-        $fid = $file->fid;
-        return $fid;
-      }else{
-        if(array_key_exists('permission_file', $warned) && !$warned['permission_file']){
-          drupal_set_message(t("File save unsuccessful for @newname, you may not have appropriate permissions; message will be suppressed for subsequent errors of this type.", array(
-            '@newname' => $destination
-          )), 'warning');
-          $warned['permission_file'] = TRUE;
-        }
-      }
-    }
+    $file = remote_stream_wrapper_file_create_by_uri($image_location);
+    $file->filename = $morphbank_image_id;
+    file_save($file);
+    return $file->fid;
   }else{
-    if(array_key_exists('missing_mid', $warned) && !$warned['missing_mid']){
-      drupal_set_message(t("No morphbank id passed for image file named @filename; message will be suppressed for subsequent errors of this type.", array(
-        '@filename' => $original_filename
-      )), 'warning');
-      $warned['missing_mid'] = TRUE;
-    }
+    _morphbank_harvest_set_warning_once('missing_mid', array(
+      '@filename' => $original_filename
+    ));
   }
   return FALSE;
 }
@@ -1068,5 +1018,30 @@ function _remove_outdated_links($fid, $morphbank_specimen_id){
         }
       }
     }
+  }
+}
+
+/**
+ * Only set a type of error message once. Note, we can't use the
+ * drupal_set_message() repeat flag, as the error messages vary a little.
+ */
+function _morphbank_harvest_set_warning_once($type, $args = array()){
+  static $warned = array();
+  if(empty($warned[$type])){
+    switch($type){
+      case 'missing_fid':
+        drupal_set_message(t("No fid when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", $args), 'warning');
+        break;
+      case 'permission_file':
+        drupal_set_message(t("File save unsuccessful for @newname, you may not have appropriate permissions; message will be suppressed for subsequent errors of this type.", $args), 'warning');
+        break;
+      case 'missing_mid':
+        drupal_set_message(t("No morphbank id passed for image file named @filename; message will be suppressed for subsequent errors of this type.", $args), 'warning');
+        break;
+      case 'processed':
+        drupal_set_message(t("Error when processing Morphbank response for term named @termname; message will be suppressed for subsequent errors of this type.", $args), 'warning');
+        break;
+    }
+    $warned[$type] = TRUE;
   }
 }

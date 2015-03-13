@@ -5,3 +5,4 @@ core = 7.x
 dependencies[] = entity
 dependencies[] = field
 dependencies[] = field_sql_storage
+dependencies[] = remote_stream_wrapper
