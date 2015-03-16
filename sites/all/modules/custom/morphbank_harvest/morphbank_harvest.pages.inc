@@ -758,7 +758,7 @@ function _retrieve_morphbank_image($morphbank_image_id, $term_name, $original_fi
   if($morphbank_image_id > 0){
     $image_location = MORPHBANK_IMAGE_URL . '?id=' . $morphbank_image_id . '&imgType=jpg';
     $file = remote_stream_wrapper_file_create_by_uri($image_location);
-    $file->filename = $morphbank_image_id;
+    $file->filename = preg_replace('/[\s\+]+/', '-', $term_name) . '-' . $morphbank_image_id . '-' . $original_filename;
     file_save($file);
     return $file->fid;
   }else{
