@@ -221,10 +221,7 @@ function spm_field_default_fields(){
         'active' => 1,
         'module' => 'media_multiselect',
         'settings' => array(
-          'allowed_schemes' => array(
-            'module' => 0,
-            'public' => 'public'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             'audio' => 'audio',
             'default' => 0,
