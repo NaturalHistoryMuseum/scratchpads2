@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * scratchpads_biography.features.field.inc
  */
-
 /**
  * Implements hook_field_default_fields().
  */
-function scratchpads_biography_field_default_fields() {
+function scratchpads_biography_field_default_fields(){
   $fields = array();
-
   // Exported field: 'user-user-field_alternative_name'
   $fields['user-user-field_alternative_name'] = array(
     'field_config' => array(
@@ -21,22 +20,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -58,17 +57,17 @@ function scratchpads_biography_field_default_fields() {
             'textformatter_separator_custom_class' => 'textformatter-separator',
             'textformatter_separator_custom_tag' => 'span',
             'textformatter_term_plain' => 0,
-            'textformatter_type' => 'comma',
+            'textformatter_type' => 'comma'
           ),
           'type' => 'textformatter_list',
-          'weight' => '4',
+          'weight' => '4'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_alternative_name',
@@ -77,23 +76,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '29',
-      ),
-    ),
+        'weight' => '29'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_areas_of_professional_inte'
   $fields['user-user-field_areas_of_professional_inte'] = array(
     'field_config' => array(
@@ -105,20 +103,20 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -140,17 +138,17 @@ function scratchpads_biography_field_default_fields() {
             'textformatter_separator_custom_class' => 'textformatter-separator',
             'textformatter_separator_custom_tag' => 'span',
             'textformatter_term_plain' => 0,
-            'textformatter_type' => 'comma',
+            'textformatter_type' => 'comma'
           ),
           'type' => 'textformatter_list',
-          'weight' => '7',
+          'weight' => '7'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_areas_of_professional_inte',
@@ -159,23 +157,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '18',
-      ),
-    ),
+        'weight' => '18'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_biography'
   $fields['user-user-field_biography'] = array(
     'field_config' => array(
@@ -187,20 +184,20 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -213,14 +210,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '11',
+          'weight' => '11'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_biography',
@@ -229,23 +226,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '35',
-      ),
-    ),
+        'weight' => '35'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_birth_date'
   $fields['user-user-field_birth_date'] = array(
     'field_config' => array(
@@ -266,14 +262,14 @@ function scratchpads_biography_field_default_fields() {
           'minute' => 0,
           'month' => 'month',
           'second' => 0,
-          'year' => 'year',
+          'year' => 'year'
         ),
         'timezone_db' => '',
         'todate' => 'optional',
-        'tz_handling' => 'none',
+        'tz_handling' => 'none'
       ),
       'translatable' => '0',
-      'type' => 'datetime',
+      'type' => 'datetime'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -288,17 +284,17 @@ function scratchpads_biography_field_default_fields() {
             'fromto' => 'both',
             'multiple_from' => '',
             'multiple_number' => '',
-            'multiple_to' => '',
+            'multiple_to' => ''
           ),
           'type' => 'date_default',
-          'weight' => '7',
+          'weight' => '7'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_birth_date',
@@ -309,7 +305,7 @@ function scratchpads_biography_field_default_fields() {
         'default_value2' => 'blank',
         'default_value_code' => '',
         'default_value_code2' => '',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
@@ -320,14 +316,13 @@ function scratchpads_biography_field_default_fields() {
           'input_format_custom' => '',
           'label_position' => 'above',
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '-3:+3'
         ),
         'type' => 'date_text',
-        'weight' => '32',
-      ),
-    ),
+        'weight' => '32'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_birth_place'
   $fields['user-user-field_birth_place'] = array(
     'field_config' => array(
@@ -339,22 +334,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -367,14 +362,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '8',
+          'weight' => '8'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_birth_place',
@@ -383,23 +378,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '31',
-      ),
-    ),
+        'weight' => '31'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_comments'
   $fields['user-user-field_comments'] = array(
     'field_config' => array(
@@ -411,20 +405,20 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(),
       'translatable' => '0',
-      'type' => 'text_long',
+      'type' => 'text_long'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -437,14 +431,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '5',
+          'weight' => '5'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_comments',
@@ -453,23 +447,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '1',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'rows' => '5',
+          'rows' => '5'
         ),
         'type' => 'text_textarea',
-        'weight' => '20',
-      ),
-    ),
+        'weight' => '20'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_death_date'
   $fields['user-user-field_death_date'] = array(
     'field_config' => array(
@@ -490,14 +483,14 @@ function scratchpads_biography_field_default_fields() {
           'minute' => 0,
           'month' => 'month',
           'second' => 0,
-          'year' => 'year',
+          'year' => 'year'
         ),
         'timezone_db' => '',
         'todate' => 'optional',
-        'tz_handling' => 'none',
+        'tz_handling' => 'none'
       ),
       'translatable' => '0',
-      'type' => 'datetime',
+      'type' => 'datetime'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -512,17 +505,17 @@ function scratchpads_biography_field_default_fields() {
             'fromto' => 'both',
             'multiple_from' => '',
             'multiple_number' => '',
-            'multiple_to' => '',
+            'multiple_to' => ''
           ),
           'type' => 'date_default',
-          'weight' => '9',
+          'weight' => '9'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_death_date',
@@ -533,7 +526,7 @@ function scratchpads_biography_field_default_fields() {
         'default_value2' => 'blank',
         'default_value_code' => '',
         'default_value_code2' => '',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
@@ -544,15 +537,14 @@ function scratchpads_biography_field_default_fields() {
           'input_format_custom' => '',
           'label_position' => 'above',
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '-3:+3'
         ),
         'type' => 'date_text',
-        'weight' => '33',
-      ),
-    ),
+        'weight' => '33'
+      )
+    )
   );
-
-// Exported field: 'user-user-field_example_of_handwriting'
+  // Exported field: 'user-user-field_example_of_handwriting'
   $fields['user-user-field_example_of_handwriting'] = array(
     'field_config' => array(
       'active' => '1',
@@ -563,24 +555,24 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
-            'fid' => 'fid',
+            'fid' => 'fid'
           ),
-          'table' => 'file_managed',
-        ),
+          'table' => 'file_managed'
+        )
       ),
       'indexes' => array(
         'fid' => array(
-          0 => 'fid',
-        ),
+          0 => 'fid'
+        )
       ),
       'module' => 'file',
       'settings' => array(
         'display_default' => 0,
         'display_field' => 0,
-        'uri_scheme' => 'public',
+        'uri_scheme' => 'public'
       ),
       'translatable' => '0',
-      'type' => 'file',
+      'type' => 'file'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -592,14 +584,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'styles',
           'settings' => array(),
           'type' => 'styles_file_square_thumbnail',
-          'weight' => '12',
+          'weight' => '12'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_example_of_handwriting',
@@ -610,37 +602,32 @@ function scratchpads_biography_field_default_fields() {
         'file_directory' => 'signature',
         'file_extensions' => 'png gif jpg jpeg pdf',
         'max_filesize' => '',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            'module' => 0,
-            'public' => 'public',
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 0,
             'audio' => 0,
             'default' => 0,
             'image' => 'image',
-            'video' => 0,
+            'video' => 0
           ),
           'browser_plugins' => array(
             'media_default--media_browser_1' => 'media_default--media_browser_1',
             'media_default--media_browser_my_files' => 'media_default--media_browser_my_files',
-            'upload' => 'upload',
+            'upload' => 'upload'
           ),
-          'progress_indicator' => 'throbber',
+          'progress_indicator' => 'throbber'
         ),
         'type' => 'media_generic',
-        'weight' => '34',
-      ),
-    ),
+        'weight' => '34'
+      )
+    )
   );
-  
-
   // Exported field: 'user-user-field_gender'
   $fields['user-user-field_gender'] = array(
     'field_config' => array(
@@ -652,26 +639,26 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          0 => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
           'male' => 'Male',
-          'female' => 'Female',
+          'female' => 'Female'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '0',
-      'type' => 'list_text',
+      'type' => 'list_text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
       'default_value' => array(
         0 => array(
-          'value' => 'unknown',
-        ),
+          'value' => 'unknown'
+        )
       ),
       'deleted' => '0',
       'description' => '',
@@ -681,32 +668,31 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'list',
           'settings' => array(),
           'type' => 'list_default',
-          'weight' => '6',
+          'weight' => '6'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_gender',
       'label' => 'Gender',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '30',
-      ),
-    ),
+        'weight' => '30'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_known_for'
   $fields['user-user-field_known_for'] = array(
     'field_config' => array(
@@ -718,22 +704,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -755,17 +741,17 @@ function scratchpads_biography_field_default_fields() {
             'textformatter_separator_custom_class' => 'textformatter-separator',
             'textformatter_separator_custom_tag' => 'span',
             'textformatter_term_plain' => 0,
-            'textformatter_type' => 'comma',
+            'textformatter_type' => 'comma'
           ),
           'type' => 'textformatter_list',
-          'weight' => '6',
+          'weight' => '6'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_known_for',
@@ -774,24 +760,23 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '20',
-      ),
-    ),
+        'weight' => '20'
+      )
+    )
   );
-
-// Exported field: 'user-user-field_main_collaborators_co_auth'
+  // Exported field: 'user-user-field_main_collaborators_co_auth'
   $fields['user-user-field_main_collaborators_co_auth'] = array(
     'field_config' => array(
       'active' => '1',
@@ -802,15 +787,15 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'uid' => array(
           'columns' => array(
-            'uid' => 'uid',
+            'uid' => 'uid'
           ),
-          'table' => 'users',
-        ),
+          'table' => 'users'
+        )
       ),
       'indexes' => array(
         'uid' => array(
-          0 => 'uid',
-        ),
+          0 => 'uid'
+        )
       ),
       'module' => 'user_reference',
       'settings' => array(
@@ -818,20 +803,20 @@ function scratchpads_biography_field_default_fields() {
           2 => '2',
           3 => '3',
           4 => '4',
-          5 => '5',
+          5 => '5'
         ),
         'referenceable_status' => array(
           0 => 0,
-          1 => '1',
+          1 => '1'
         ),
         'view' => array(
           'args' => array(),
           'display_name' => 'references_1',
-          'view_name' => 'users_references',
-        ),
+          'view_name' => 'users_references'
+        )
       ),
       'translatable' => '0',
-      'type' => 'user_reference',
+      'type' => 'user_reference'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -844,14 +829,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'user_reference',
           'settings' => array(),
           'type' => 'user_reference_default',
-          'weight' => '5',
+          'weight' => '5'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'entityconnect_unload_add' => '1',
@@ -860,7 +845,7 @@ function scratchpads_biography_field_default_fields() {
       'label' => 'Main collaborators/co-authors',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
@@ -868,14 +853,13 @@ function scratchpads_biography_field_default_fields() {
         'settings' => array(
           'autocomplete_match' => 'contains',
           'autocomplete_path' => 'user_reference/autocomplete',
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'user_reference_autocomplete',
-        'weight' => '19',
-      ),
-    ),
+        'weight' => '19'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_make_this_profile_public_'
   $fields['user-user-field_make_this_profile_public_'] = array(
     'field_config' => array(
@@ -887,26 +871,26 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'value' => array(
-          0 => 'value',
-        ),
+          0 => 'value'
+        )
       ),
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
           0 => 'No',
-          1 => 'Yes',
+          1 => 'Yes'
         ),
-        'allowed_values_function' => '',
+        'allowed_values_function' => ''
       ),
       'translatable' => '0',
-      'type' => 'list_boolean',
+      'type' => 'list_boolean'
     ),
     'field_instance' => array(
       'bundle' => 'user',
       'default_value' => array(
         0 => array(
-          'value' => 0,
-        ),
+          'value' => 0
+        )
       ),
       'deleted' => '0',
       'description' => 'Do you want the user profile to be public?',
@@ -915,34 +899,33 @@ function scratchpads_biography_field_default_fields() {
           'label' => 'hidden',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '4',
+          'weight' => '4'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_make_this_profile_public_',
       'label' => 'Make this profile public?',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'options',
         'settings' => array(
-          'display_label' => 1,
+          'display_label' => 1
         ),
         'type' => 'options_onoff',
-        'weight' => '2',
-      ),
-    ),
+        'weight' => '2'
+      )
+    )
   );
-  
   // Exported field: 'user-user-field_orcid'
   $fields['user-user-field_orcid'] = array(
     'field_config' => array(
@@ -954,22 +937,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -982,14 +965,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'scratchpads_biography',
           'settings' => array(),
           'type' => 'scratchpads_biography_link_to_orcid',
-          'weight' => '6',
+          'weight' => '6'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_orcid',
@@ -998,23 +981,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '31',
-      ),
-    ),
+        'weight' => '31'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_places_worked'
   $fields['user-user-field_places_worked'] = array(
     'field_config' => array(
@@ -1026,22 +1008,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -1063,17 +1045,17 @@ function scratchpads_biography_field_default_fields() {
             'textformatter_separator_custom_class' => 'textformatter-separator',
             'textformatter_separator_custom_tag' => 'span',
             'textformatter_term_plain' => 0,
-            'textformatter_type' => 'comma',
+            'textformatter_type' => 'comma'
           ),
           'type' => 'textformatter_list',
-          'weight' => '4',
+          'weight' => '4'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_places_worked',
@@ -1082,23 +1064,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '22',
-      ),
-    ),
+        'weight' => '22'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_related_links'
   $fields['user-user-field_related_links'] = array(
     'field_config' => array(
@@ -1114,19 +1095,19 @@ function scratchpads_biography_field_default_fields() {
         'attributes' => array(
           'class' => '',
           'rel' => '',
-          'target' => 'default',
+          'target' => 'default'
         ),
         'display' => array(
-          'url_cutoff' => 80,
+          'url_cutoff' => 80
         ),
         'enable_tokens' => 1,
         'title' => 'optional',
         'title_maxlength' => 128,
         'title_value' => '',
-        'url' => 0,
+        'url' => 0
       ),
       'translatable' => '0',
-      'type' => 'link_field',
+      'type' => 'link_field'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -1139,14 +1120,14 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'link',
           'settings' => array(),
           'type' => 'link_default',
-          'weight' => '6',
+          'weight' => '6'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_related_links',
@@ -1158,33 +1139,32 @@ function scratchpads_biography_field_default_fields() {
           'configurable_title' => 0,
           'rel' => '',
           'target' => 'default',
-          'title' => '',
+          'title' => ''
         ),
         'display' => array(
-          'url_cutoff' => '80',
+          'url_cutoff' => '80'
         ),
         'enable_tokens' => 1,
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'title' => 'optional',
         'title_maxlength' => '128',
         'title_value' => '',
         'url' => 0,
         'user_register_form' => 1,
-        'validate_url' => 1,
+        'validate_url' => 1
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'link',
         'settings' => array(),
         'type' => 'link_field',
-        'weight' => '21',
-      ),
-    ),
+        'weight' => '21'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_standard_form'
   $fields['user-user-field_standard_form'] = array(
     'field_config' => array(
@@ -1196,22 +1176,22 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
-            'format' => 'format',
+            'format' => 'format'
           ),
-          'table' => 'filter_format',
-        ),
+          'table' => 'filter_format'
+        )
       ),
       'indexes' => array(
         'format' => array(
-          0 => 'format',
-        ),
+          0 => 'format'
+        )
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '255',
+        'max_length' => '255'
       ),
       'translatable' => '0',
-      'type' => 'text',
+      'type' => 'text'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -1233,17 +1213,17 @@ function scratchpads_biography_field_default_fields() {
             'textformatter_separator_custom_class' => 'textformatter-separator',
             'textformatter_separator_custom_tag' => 'span',
             'textformatter_term_plain' => 0,
-            'textformatter_type' => 'comma',
+            'textformatter_type' => 'comma'
           ),
           'type' => 'textformatter_list',
-          'weight' => '5',
+          'weight' => '5'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_standard_form',
@@ -1252,23 +1232,22 @@ function scratchpads_biography_field_default_fields() {
       'settings' => array(
         'linkit' => array(
           'enable' => 0,
-          'insert_plugin' => '',
+          'insert_plugin' => ''
         ),
         'text_processing' => '0',
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '60',
+          'size' => '60'
         ),
         'type' => 'text_textfield',
-        'weight' => '30',
-      ),
-    ),
+        'weight' => '30'
+      )
+    )
   );
-
   // Exported field: 'user-user-field_user_keywords'
   $fields['user-user-field_user_keywords'] = array(
     'field_config' => array(
@@ -1280,67 +1259,67 @@ function scratchpads_biography_field_default_fields() {
       'foreign keys' => array(
         'tid' => array(
           'columns' => array(
-            'tid' => 'tid',
+            'tid' => 'tid'
           ),
-          'table' => 'taxonomy_term_data',
-        ),
+          'table' => 'taxonomy_term_data'
+        )
       ),
       'indexes' => array(
         'tid' => array(
-          0 => 'tid',
-        ),
+          0 => 'tid'
+        )
       ),
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
           0 => array(
             'vocabulary' => 0,
-            'parent' => 0,
+            'parent' => 0
           ),
           1 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           2 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           3 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           4 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           5 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           6 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           7 => array(
             'parent' => 0,
-            'vocabulary' => 'user_keywords',
+            'vocabulary' => 'user_keywords'
           ),
           8 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           9 => array(
             'parent' => 0,
-            'vocabulary' => 0,
+            'vocabulary' => 0
           ),
           10 => array(
             'parent' => 0,
-            'vocabulary' => 0,
-          ),
-        ),
+            'vocabulary' => 0
+          )
+        )
       ),
       'translatable' => '0',
-      'type' => 'taxonomy_term_reference',
+      'type' => 'taxonomy_term_reference'
     ),
     'field_instance' => array(
       'bundle' => 'user',
@@ -1353,35 +1332,34 @@ function scratchpads_biography_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_plain',
-          'weight' => '4',
+          'weight' => '4'
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0,
-        ),
+          'weight' => 0
+        )
       ),
       'entity_type' => 'user',
       'field_name' => 'field_user_keywords',
       'label' => 'Keywords',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => 1,
+        'user_register_form' => 1
       ),
       'widget' => array(
         'active' => 0,
         'module' => 'scratchpads_taxonomic_name_field',
         'settings' => array(
           'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60,
+          'size' => 60
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '19',
-      ),
-    ),
+        'weight' => '19'
+      )
+    )
   );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('A comma delimited list of key words that describe a person.');
@@ -1407,7 +1385,6 @@ function scratchpads_biography_field_default_fields() {
   t('Related links');
   t('Standard Form');
   t('The standard form of a name is a surname, or an abbreviation of it (e.g. Adans. for Adanson), or rarely a contraction of it (e.g. Michx. for Michaux), with or without initials or other distinguishing appendages');
-
   return $fields;
 }
 
