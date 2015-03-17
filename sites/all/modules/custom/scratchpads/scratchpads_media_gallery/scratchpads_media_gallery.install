@@ -255,10 +255,7 @@ function scratchpads_media_gallery_update_7005(){
       'active' => 1,
       'module' => 'media_multiselect',
       'settings' => array(
-        'allowed_schemes' => array(
-          'module' => 0,
-          'public' => 'public'
-        ),
+        'allowed_schemes' => array(),
         'allowed_types' => array(
           'audio' => 'audio',
           'default' => 0,
@@ -523,4 +520,18 @@ function scratchpads_media_gallery_update_7019(){
   ))->key(array(
     'page_id' => 'media_gallery'
   ))->execute();
+}
+
+/**
+ * Remove the allowed_scheme options from the field_media field 
+ */
+function scratchpads_media_gallery_update_7020(){
+  foreach(array(
+    'page',
+    'media_gallery'
+  ) as $bundle){
+    $field_instance = field_info_instance('node', 'field_media', $bundle);
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
 }
