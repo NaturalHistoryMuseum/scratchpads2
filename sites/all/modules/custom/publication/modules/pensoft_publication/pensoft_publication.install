@@ -98,3 +98,16 @@ function pensoft_publication_update_7005(){
     field_update_instance($field_instance);
   }
 }
+
+/**
+ * Remove the allowed_scheme options from the field_publication_figure_figure
+ * field
+ */
+function pensoft_publication_update_7006(){
+  $field_instance = field_info_instance('field_collection_item', 'field_publication_figure_figure', 'field_publication_figures');
+  $field_instance['widget']['settings']['allowed_schemes'] = array();
+  field_update_instance($field_instance);
+  $field_instance = field_info_instance('publication', 'field_pensoft_files', 'pensoft');
+  $field_instance['widget']['settings']['allowed_schemes'] = array();
+  field_update_instance($field_instance);
+}
