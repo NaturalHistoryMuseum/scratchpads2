@@ -572,10 +572,7 @@ function pensoft_publication_field_default_fields(){
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            'module' => 0,
-            'public' => 'public'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             'audio' => 0,
             'default' => 0,
@@ -998,9 +995,7 @@ Tables are numbered once the publication is saved.',
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            'public' => 'public'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             'audio' => 0,
             'default' => 'default',

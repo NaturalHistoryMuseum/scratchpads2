@@ -52,3 +52,12 @@ function scratchpads_biblio_update_7004(){
     'locked' => 1
   ))->condition('field_name', $fields_to_lock)->execute();
 }
+
+/**
+ * Remove the allowed_scheme options from the field_file field
+ */
+function scratchpads_biblio_update_7005(){
+  $field_instance = field_info_instance('node', 'field_file', 'biblio');
+  $field_instance['widget']['settings']['allowed_schemes'] = array();
+  field_update_instance($field_instance);
+}

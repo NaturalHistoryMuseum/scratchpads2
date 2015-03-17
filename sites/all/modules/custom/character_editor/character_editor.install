@@ -764,3 +764,23 @@ function character_editor_update_7014(){
     }
   }
 }
+
+/**
+ * Remove the allowed_scheme options from the field_example_of_handwriting field
+ */
+function character_editor_update_7015(){
+  $field_instance = field_info_instance('field_collection_item', 'field_char_state_image', 'field_char_states');
+  $field_instance['widget']['settings']['allowed_schemes'] = array();
+  field_update_instance($field_instance);
+  foreach(array(
+    'controlled',
+    'dna',
+    'group',
+    'numeric',
+    'text'
+  ) as $bundle){
+    $field_instance = field_info_instance('character_editor_character', 'field_char_image', $bundle);
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}

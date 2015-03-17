@@ -260,10 +260,7 @@ function character_editor_field_default_fields(){
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -581,10 +578,7 @@ function character_editor_field_default_fields(){
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -849,10 +843,7 @@ function character_editor_field_default_fields(){
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -1116,10 +1107,7 @@ function character_editor_field_default_fields(){
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -1457,10 +1445,7 @@ other|Other',
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -1725,10 +1710,7 @@ other|Other',
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
@@ -2224,10 +2206,7 @@ other|Other',
         'active' => 1,
         'module' => 'media',
         'settings' => array(
-          'allowed_schemes' => array(
-            0 => 'public',
-            1 => 'private'
-          ),
+          'allowed_schemes' => array(),
           'allowed_types' => array(
             0 => 'image'
           ),
