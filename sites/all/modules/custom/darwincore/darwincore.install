@@ -103,10 +103,7 @@ function darwincore_update_7004(){
     'active' => 1,
     'module' => 'media_multiselect',
     'settings' => array(
-      'allowed_schemes' => array(
-        'module' => 0,
-        'public' => 'public'
-      ),
+      'allowed_schemes' => array(),
       'allowed_types' => array(
         'audio' => 'audio',
         'default' => 0,
@@ -536,4 +533,13 @@ function darwincore_update_7021(){
   drupal_uninstall_modules(array(
     'auto_nodetitle'
   ), FALSE);
+}
+
+/**
+ * Remove the allowed_scheme options from the field_example_of_handwriting field
+ */
+function darwincore_update_7022(){
+  $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  $field_instance['widget']['settings']['allowed_schemes'] = array();
+  field_update_instance($field_instance);
 }
