@@ -85,13 +85,16 @@ function remote_stream_wrapper_stream_wrappers() {
  * Return a list of remote stream wrappers.
  */
 function file_get_remote_stream_wrappers() {
-  $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_REMOTE);
-  foreach ($wrappers as $scheme => $wrapper) {
-    if (empty($wrapper['remote'])) {
-      unset($wrappers[$scheme]);
+  $wrappers = &drupal_static(__FUNCTION__);
+  if (!isset($wrappers)) {
+    $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_REMOTE);
+    foreach ($wrappers as $scheme => $wrapper) {
+      if (empty($wrapper['remote'])) {
+        unset($wrappers[$scheme]);
+      }
     }
+    //$wrappers = array_diff_key($wrappers, file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_NORMAL
   }
-  //$wrappers = array_diff_key($wrappers, file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_NORMAL));
   return $wrappers;
 }
 
@@ -108,9 +111,12 @@ function file_is_scheme_remote($scheme) {
  */
 function remote_stream_wrapper_file_url_alter(&$uri) {
   $scheme = file_uri_scheme($uri);
-  $wrappers = file_get_remote_stream_wrappers();
-  if ($scheme && isset($wrappers[$scheme]) && strpos($uri, "$scheme://styles/") === 0) {
+  if ($scheme && file_is_scheme_remote($scheme) && strpos($uri, "$scheme://styles/") === 0) {
     $uri = file_default_scheme() . '://' . file_uri_target($uri);
+    if (!variable_get('clean_url') && file_uri_scheme($uri) == 'public' && !file_exists($uri)) {
+      $directory_path = file_stream_wrapper_get_instance_by_uri($uri)->getDirectoryPath();
+      $uri = url($directory_path . '/' . file_uri_target($uri), array('absolute' => TRUE));
+    }
   }
 }
 
@@ -143,7 +149,7 @@ function remote_stream_wrapper_form_field_ui_field_edit_form_alter(&$form, &$for
  * Validation callback for remote URLs.
  */
 function remote_stream_wrapper_validate_url($element, &$form_state) {
-  $value = $element['#value'];
+  $value = trim($element['#value']);
   if ($value != '' && !valid_url($value, TRUE)) {
     form_error($element, t('Invalid URL %url.', array('%url' => $value)));
   }
@@ -267,7 +273,7 @@ function remote_stream_wrapper_file_add_form($form, &$form_state, array $options
  * @see DrupalRemoteStreamWrapper
  */
 function remote_stream_wrapper_file_add_form_submit($form, &$form_state) {
-  $uri = $url = $form_state['values']['url'];
+  $uri = $url = trim($form_state['values']['url']);
 
   try {
     $file = remote_stream_wrapper_file_load_by_uri($uri);
@@ -299,5 +305,25 @@ function remote_stream_wrapper_file_add_form_submit($form, &$form_state) {
   }
   else {
     $form_state['redirect'] = 'admin/content/file';
+  }
+}
+
+/**
+ * Implements hook_file_delete().
+ */
+function remote_stream_wrapper_file_delete($file) {
+  $scheme = file_uri_scheme($file->uri);
+  if ($scheme && file_is_scheme_remote($scheme)) {
+    remote_stream_wrapper_image_path_flush($file->uri);
+  }
+}
+
+function remote_stream_wrapper_image_path_flush($path) {
+  $styles = image_styles();
+  foreach ($styles as $style) {
+    $image_path = remote_stream_wrapper_image_style_path($style['name'], $path);
+    if (file_exists($image_path)) {
+      file_unmanaged_delete($image_path);
+    }
   }
 }
