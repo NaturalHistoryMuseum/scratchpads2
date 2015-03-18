@@ -1572,11 +1572,33 @@ function scratchpads_tweaks_update_7089(){
   ))->condition('name', 'biblio_keywords')->execute();
 }
 
-
 /**
  * Add the entityfilter CKEditor plugin, and also update the settings for the
  * latest version of CKEditor.
  */
 function scratchpads_tweaks_update_7090(){
   scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Update all file and image field types to allow linking to all schemes. 
+ */
+function scratchpads_tweaks_update_7091(){
+  foreach(db_select('field_config', 'f')->fields('f', array(
+    'field_name'
+  ))->condition('type', array(
+    'file',
+    'image'
+  ))->execute()->fetchCol() as $field_name){
+    foreach(db_select('field_config_instance', 'f')->fields('f', array(
+      'entity_type',
+      'bundle'
+    ))->condition('field_name', $field_name)->execute() as $row){
+      $instance = field_info_instance($row->entity_type, $field_name, $row->bundle);
+      if(!empty($instance['widget']['settings']['allowed_schemes'])){
+        $instance['widget']['settings']['allowed_schemes'] = array();
+        field_update_instance($instance);
+      }
+    }
+  }
 }
