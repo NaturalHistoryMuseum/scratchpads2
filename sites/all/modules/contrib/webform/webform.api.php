@@ -545,6 +545,26 @@ function hook_webform_results_access($node, $account) {
 }
 
 /**
+ * Determine if a user has access to clear the results of a webform.
+ *
+ * Access via this hook is in addition (adds permission) to the standard
+ * webform access (delete all webform submissions).
+ *
+ * @see webform_results_clear_access().
+ *
+ * @param $node object
+ *   The Webform node to check access on.
+ * @param $account object
+ *   The user account to check access on.
+ * @return boolean
+ *   TRUE or FALSE if the user can access the webform results.
+ */
+function hook_webform_results_clear_access($node, $account) {
+  return user_access('my additional access', $account);
+}
+
+
+/**
  * Return an array of files associated with the component.
  *
  * The output of this function will be used to attach files to e-mail messages.
