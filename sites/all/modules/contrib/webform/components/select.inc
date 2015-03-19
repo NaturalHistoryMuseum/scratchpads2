@@ -332,44 +332,31 @@ function _webform_render_select($component, $value = NULL, $filter = TRUE) {
   // Set the component options.
   $element['#options'] = $options;
 
+  // Use the component's default value if the component is currently empty.
+  if (!isset($value)) {
+    // The default for multiple selects is a comma-delimited list, without white-space or empty entries.
+    $value = $component['extra']['multiple'] ? array_filter(array_map('trim', explode(',', $default_value)), 'strlen') : $default_value;
+  }
+
+  // Convert all values into an array; component may now be single but was previously multiple, or vice-versa
+  $value = (array)$value;
+
   // Set the default value. Note: "No choice" is stored as an empty string,
   // which will match a 0 key for radios; NULL is used to avoid unintentional
   // defaulting to the 0 option.
-  if (isset($value)) {
-    if ($component['extra']['multiple']) {
-      // Set the value as an array.
-      $element['#default_value'] = array();
-      foreach ((array) $value as $key => $option_value) {
-        $element['#default_value'][] = $option_value === '' ? NULL : $option_value;
-      }
-    }
-    else {
-      // Set the value as a single string.
-      $element['#default_value'] = '';
-      foreach ((array) $value as $option_value) {
-        $element['#default_value'] = $option_value === '' ? NULL : $option_value;
-      }
-    }
-  }
-  elseif ($default_value !== '') {
-    // Convert default value to a list if necessary.
-    if ($component['extra']['multiple']) {
-      $varray = explode(',', $default_value);
-      foreach ($varray as $key => $v) {
-        $v = trim($v);
-        if ($v !== '') {
-          $element['#default_value'][] = $v;
-        }
-      }
-    }
-    else {
-      $element['#default_value'] = $default_value;
-    }
-  }
-  elseif ($component['extra']['multiple']) {
+  if ($component['extra']['multiple']) {
+    // Set the value as an array.
     $element['#default_value'] = array();
+    foreach ($value as $option_value) {
+      $element['#default_value'][] = $option_value === '' ? NULL : $option_value;
+    }
   }
-
+  else {
+    // Set the value as a single string.
+    $option_value = reset($value);
+    $element['#default_value'] = $option_value === '' ? NULL : $option_value;
+  }
+  
   if ($component['extra']['other_option'] && module_exists('select_or_other')) {
     // Set display as a select_or_other element:
     $element['#type'] = 'select_or_other';
@@ -476,6 +463,10 @@ function webform_expand_select_ids($element) {
  * Implements _webform_display_component().
  */
 function _webform_display_select($component, $value, $format = 'html') {
+  // Sort values by numeric key. These may be in alphabetic order from the database query,
+  // which is not numeric order for keys '10' and higher.
+  $value = (array) $value;
+  ksort($value, SORT_NUMERIC);
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
@@ -485,7 +476,7 @@ function _webform_display_select($component, $value, $format = 'html') {
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
     '#options' => _webform_select_options($component, !$component['extra']['aslist']),
-    '#value' => (array) $value,
+    '#value' => $value,
     '#translatable' => array('title', 'options'),
   );
 }

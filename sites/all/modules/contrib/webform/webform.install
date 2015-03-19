@@ -676,7 +676,6 @@ function webform_uninstall() {
   variable_del('webform_blocks');
   variable_del('webform_tracking_mode');
   variable_del('webform_allowed_tags');
-  variable_del('webform_search_index');
   variable_del('webform_email_address_format');
   variable_del('webform_default_from_name');
   variable_del('webform_default_from_address');
@@ -1922,5 +1921,15 @@ function webform_update_7421() {
   return $capable
             ? t('An HTML-capable module is installed. The option to send HTML e-mail is enabled. ')
             : t('No commonly-known HTML capable module is installed. The option to send HTML e-mail is disabled.');
+}
+
+/**
+ * Remove the administrator option "Include webform forms in search index" and rely on the Search Index view mode instead.
+ */
+function webform_update_7422() {
+  variable_del('webform_search_index');
+  return module_exists('search')
+          ? t('Webform forms will now be included in the search index only if the Webform "field" is displayed in the "Search index" view mode.')
+          : NULL;
 }
 

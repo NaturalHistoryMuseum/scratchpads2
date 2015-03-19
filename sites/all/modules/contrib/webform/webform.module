@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * This module provides a simple way to create forms and questionnaires.
  *
  * The initial development of this module was sponsered by ÅF Industri AB, Open
@@ -562,7 +563,8 @@ function webform_confirmation_page_access($node) {
         return TRUE;
       }
     }
-  } else {
+  }
+  else {
     // No submission exists (such as auto-deleted by another module, such as
     // webform_clear), just ensure that the user has access to view the node page.
     if (node_access('view', $node)) {
@@ -1822,8 +1824,9 @@ function webform_node_view($node, $view_mode) {
     return;
   }
 
-  // Do not include the form in the search index if indexing is disabled.
-  if (module_exists('search') && $view_mode == 'search_index' && !webform_variable_get('webform_search_index')) {
+  // If the webform is not set to display in this view mode, return early.
+  $extra_fields = field_extra_fields_get_display('node', $node->type, $view_mode);
+  if (empty($extra_fields['webform']['visible'])) {
     return;
   }
 
@@ -1837,7 +1840,8 @@ function webform_node_view($node, $view_mode) {
   $closed = FALSE;
   $allowed_roles = array();
 
-  // If a teaser, tell the form to load subsequent pages on the node page.
+  // If a teaser, tell the form to load subsequent pages on the node page. A
+  // special exception is made for this view mode only.
   if ($view_mode == 'teaser' && !isset($node->webform['action'])) {
     $query = array_diff_key($_GET, array('q' => ''));
     $node->webform['action'] = url('node/' . $node->nid, array('query' => $query));
@@ -2361,6 +2365,9 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
         $input_values[$cid] = is_array($data) ? $data : array($data);
       }
     }
+
+    // Allow values from other pages to be sent to browser for conditionals.
+    $form['#conditional_values'] = $input_values;
 
     if ($page_count > 1) {
       $page_labels = webform_page_labels($node, $form_state);
@@ -3155,7 +3162,7 @@ function webform_client_form_pages($form, &$form_state) {
         if ($component['type'] == 'pagebreak') {
           if ($forward
                ? ($component['page_num'] > $form_state['storage']['page_num'])
-               : ($component['page_num'] <= $form_state['storage']['page_num'])){
+               : ($component['page_num'] <= $form_state['storage']['page_num'])) {
             $previous_pagebreak = $component;
           }
         }
@@ -3174,7 +3181,7 @@ function webform_client_form_pages($form, &$form_state) {
                 }
               }
               else {
-                $page_num = max (1, $page_num);
+                $page_num = max(1, $page_num);
               }
             }
             $form_state['storage']['page_num'] = $page_num;
@@ -3416,7 +3423,7 @@ function template_preprocess_webform_form(&$vars) {
 
   if (!empty($vars['form']['#node']->webform['conditionals'])) {
     module_load_include('inc', 'webform', 'includes/webform.conditionals');
-    $submission_data = isset($vars['form']['#parameters'][1]['storage']['submitted']) ? $vars['form']['#parameters'][1]['storage']['submitted'] : array();
+    $submission_data = isset($vars['form']['#conditional_values']) ? $vars['form']['#conditional_values'] : array();
     $settings = webform_conditional_prepare_javascript($vars['form']['#node'], $submission_data);
     drupal_add_js(array('webform' => array('conditionals' => array('webform-client-form-' . $vars['nid'] => $settings))), 'setting');
   }
@@ -3849,7 +3856,7 @@ function webform_replace_tokens($string, $node = NULL, $submission = NULL, $emai
   if ($email) {
     $token_data['webform-email'] = $email;
   }
-  return token_replace($string, $token_data, array('clear' => true, 'sanitize' => $sanitize));
+  return token_replace($string, $token_data, array('clear' => TRUE, 'sanitize' => $sanitize));
 }
 
 /**
@@ -4033,9 +4040,6 @@ function webform_variable_get($variable) {
       break;
     case 'webform_allowed_tags':
       $result = variable_get('webform_allowed_tags', array('a', 'em', 'strong', 'code', 'img'));
-      break;
-    case 'webform_search_index':
-      $result = variable_get('webform_search_index', 1);
       break;
     case 'webform_email_address_format':
       $result = variable_get('webform_email_address_format', 'long');
@@ -5031,7 +5035,7 @@ function webform_pre_render_input_vars($element) {
  * @return integer
  *   The number of elements in the form that will result in $_POST entries.
  */
-function webform_count_input_vars($element){
+function webform_count_input_vars($element) {
   static $input_types = array(
     'checkbox' => 1,
     'date' => 1,

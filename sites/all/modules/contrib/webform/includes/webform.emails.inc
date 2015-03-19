@@ -20,9 +20,9 @@ function webform_emails_form($form, $form_state, $node) {
   $form['components'] = array();
 
   foreach ($node->webform['emails'] as $eid => $email) {
-    $email_addresses = array_filter(explode(',', check_plain($email['email'])));
+    $email_addresses = array_filter(explode(',', $email['email']));
     foreach ($email_addresses as $key => $email_address) {
-      $email_addresses[$key] = webform_format_email_address($email_address, NULL, $node, NULL, FALSE);
+      $email_addresses[$key] = check_plain(webform_format_email_address($email_address, NULL, $node, NULL, FALSE));
     }
 
     $form['emails'][$eid]['email'] = array(

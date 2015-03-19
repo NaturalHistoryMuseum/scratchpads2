@@ -146,15 +146,6 @@ function webform_admin_settings() {
     '#weight' => 20,
   );
 
-  $form['advanced']['webform_search_index']  = array(
-    '#type' => 'checkbox',
-    '#checked_value' => 1,
-    '#title' => t('Include webform forms in search index'),
-    '#default_value' => webform_variable_get('webform_search_index'),
-    '#description' => t('When selected, all Webform nodes will have their form components indexed by the search engine.'),
-    '#access' => module_exists('search'),
-  );
-
   $form['advanced']['webform_tracking_mode']  = array(
     '#type' => 'radios',
     '#title' => t('Track anonymous users by:'),

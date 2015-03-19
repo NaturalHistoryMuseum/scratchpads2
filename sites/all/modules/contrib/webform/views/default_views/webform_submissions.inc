@@ -10,7 +10,7 @@
 $view = new view();
 $view->name = 'webform_submissions';
 $view->description = '';
-$view->tag = 'default';
+$view->tag = 'webform';
 $view->base_table = 'webform_submissions';
 $view->human_name = 'Webform Submissions';
 $view->core = 7;

@@ -10,7 +10,7 @@
 $view = new view();
 $view->name = 'webform_webforms';
 $view->description = 'An administrative list of webform nodes';
-$view->tag = 'default';
+$view->tag = 'webform';
 $view->base_table = 'webform';
 $view->human_name = 'Webforms';
 $view->core = 7;
