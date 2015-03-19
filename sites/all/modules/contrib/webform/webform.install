@@ -369,6 +369,7 @@ function webform_schema() {
     'indexes' => array(
       'nid' => array('nid'),
       'sid_nid' => array('sid', 'nid'),
+      'data' => array(array('data', 64)),
     ),
   );
 
@@ -850,4 +851,11 @@ function webform_update_7321() {
   foreach ($fids as $fid) {
     _webform_delete_file(NULL, array($fid));
   }
+}
+
+/**
+ * Add index on {webform_submitted_data}.data.
+ */
+function webform_update_7322() {
+  db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
 }

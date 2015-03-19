@@ -29,7 +29,6 @@ function webform_results_submissions($node, $user_filter, $pager_count) {
       drupal_set_title(t('Your submissions'));
       webform_disable_page_cache();
     }
-    webform_set_breadcrumb($node);
     $submissions = webform_get_submissions(array('nid' => $node->nid, 'uid' => $user->uid), $header, $pager_count);
     $count = webform_get_submission_count($node->nid, $user->uid);
   }
