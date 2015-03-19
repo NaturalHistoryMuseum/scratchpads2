@@ -1,3 +1,7 @@
+2.6.2.2 (2015-03-19)
+
+- Security update, updated Drupal to 7.35, Ctools to 7.x-1.7 and Webform to 7.x-3.23
+
 2.6.2.1 (2015-03-13)
 
 - Fixed an issue with Feeds XLS that prevented more than 49 rows being imported
