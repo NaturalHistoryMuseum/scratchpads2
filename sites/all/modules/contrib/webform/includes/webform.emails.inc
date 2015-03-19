@@ -25,9 +25,9 @@ function webform_emails_form($form, $form_state, $node) {
   );
 
   foreach ($node->webform['emails'] as $eid => $email) {
-    $email_addresses = array_filter(explode(',', check_plain($email['email'])));
+    $email_addresses = array_filter(explode(',', $email['email']));
     foreach ($email_addresses as $key => $email_address) {
-      $email_addresses[$key] = webform_format_email_address($email_address, NULL, $node, NULL, FALSE);
+      $email_addresses[$key] = check_plain(webform_format_email_address($email_address, NULL, $node, NULL, FALSE));
     }
 
     $form['emails'][$eid]['email'] = array(
@@ -453,7 +453,7 @@ function webform_email_edit_form_submit($form, &$form_state) {
 
   // Clear the entity cache if Entity Cache module is installed.
   if (module_exists('entitycache')) {
-    cache_clear_all($node->nid, 'cache_entity_node');
+    entity_get_controller('node')->resetCache(array($node->nid));
   }
 
   $form_state['redirect'] = array('node/' . $node->nid . '/webform/emails');
@@ -501,7 +501,7 @@ function webform_email_delete_form_submit($form, &$form_state) {
 
   // Clear the entity cache if Entity Cache module is installed.
   if (module_exists('entitycache')) {
-    cache_clear_all($node->nid, 'cache_entity_node');
+    entity_get_controller('node')->resetCache(array($node->nid));
   }
 
   $form_state['redirect'] = 'node/' . $node->nid . '/webform/emails';
