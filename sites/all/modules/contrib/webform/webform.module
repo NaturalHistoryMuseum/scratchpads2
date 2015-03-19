@@ -1233,7 +1233,7 @@ function webform_node_update($node) {
 }
 
 /**
- * Implements hook_delete().
+ * Implements hook_node_delete().
  */
 function webform_node_delete($node) {
   if (!in_array($node->type, webform_variable_get('webform_node_types'))) {
@@ -1434,6 +1434,12 @@ function webform_node_view($node, $view_mode) {
     return;
   }
 
+  // If the webform is not set to display in this view mode, return early.
+  $extra_fields = field_extra_fields_get_display('node', $node->type, $view_mode);
+  if (empty($extra_fields['webform']['visible'])) {
+    return;
+  }
+
   $info = array();
   $submission = array();
   $submission_count = 0;
@@ -1521,8 +1527,18 @@ function webform_node_view($node, $view_mode) {
     }
   }
 
-  // Render the form and generate the output.
-  $form = !empty($node->webform['components']) ? drupal_get_form('webform_client_form_' . $node->nid, $node, $submission, $is_draft) : '';
+  // Avoid building the same form twice on the same page request (which can
+  // happen if the webform is displayed in a panel or block) because this
+  // causes multistep forms to build incorrectly the second time.
+  $cached_forms = &drupal_static(__FUNCTION__, array());
+  if (isset($cached_forms[$node->nid])) {
+    $form = $cached_forms[$node->nid];
+  }
+  // If this is the first time, generate the form array.
+  else {
+    $form = drupal_get_form('webform_client_form_' . $node->nid, $node, $submission, $is_draft);
+    $cached_forms[$node->nid] = $form;
+  }
 
   // Remove the surrounding <form> tag if this is a preview.
   if (!empty($node->in_preview)) {
@@ -1734,8 +1750,6 @@ function webform_block_view($delta = '') {
   // This is a webform node block.
   $node->webform_block = TRUE;
 
-  // Use the node title for the block title.
-  $subject = $node->title;
 
   // If not displaying pages in the block, set the #action property on the form.
   if ($settings['pages_block']) {
@@ -1761,11 +1775,11 @@ function webform_block_view($delta = '') {
     $content['#contextual_links']['node'] = array('node', array($node->nid));
   }
 
-  // Create the block.
+  // Create the block, using the node title for the block title.
   // Note that we render the content immediately here rather than passing back
   // a renderable so that if the block is empty it is hidden.
   $block = array(
-    'subject' => $subject,
+    'subject' => check_plain($node->title),
     'content' => drupal_render($content),
   );
   return $block;
@@ -2628,7 +2642,7 @@ function _webform_client_form_submit_flatten($node, $fieldset, $parent = 0) {
  */
 function _webform_confirmation($node) {
   drupal_set_title($node->title);
-  webform_set_breadcrumb($node);
+  webform_set_breadcrumb($node, TRUE);
   $sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
   return theme(array('webform_confirmation_' . $node->nid, 'webform_confirmation'), array('node' => $node, 'sid' => $sid));
 }
@@ -2948,36 +2962,37 @@ function _webform_filter_values($string, $node = NULL, $submission = NULL, $emai
     $replacements['email'][$format] = array();
 
     // Populate token values for each component.
-    foreach ($submission->data as $cid => $value) {
-      $component = $node->webform['components'][$cid];
-
+    foreach ($node->webform['components'] as $cid => $component) {
       // Find by form key.
       $parents = webform_component_parent_keys($node, $component);
       $form_key = implode('][', $parents);
-      $display_element = webform_component_invoke($component['type'], 'display', $component, $value['value'], $format);
+      if (isset($submission->data[$cid])) {
+        $value = $submission->data[$cid];
 
-      // Ensure the component is added as a property.
-      $display_element['#webform_component'] = $component;
+        $display_element = webform_component_invoke($component['type'], 'display', $component, $value['value'], $format);
 
-      if (empty($display_element['#parents'])) {
-        $display_element['#parents'] = array_merge(array('submitted'), $parents);
+        // Ensure the component is added as a property.
+        $display_element['#webform_component'] = $component;
+
+        if (empty($display_element['#parents'])) {
+          $display_element['#parents'] = array_merge(array('submitted'), $parents);
+        }
+        if (empty($display_element['#id'])) {
+          $display_element['#id'] = drupal_html_id('edit-' . implode('-', $display_element['#parents']));
+        }
+        $replacements['email'][$format]['%email[' . $form_key . ']'] = render($display_element);
+        $display_element['#theme_wrappers'] = array(); // Remove label and wrappers.
+        $replacements['email'][$format]['%value[' . $form_key . ']'] = render($display_element);
       }
-      if (empty($display_element['#id'])) {
-        $display_element['#id'] = drupal_html_id('edit-' . implode('-', $display_element['#parents']));
+      else {
+        // Provide an empty value for components without submitted data.
+        $replacements['email'][$format]['%email[' . $form_key . ']'] = '';
+        $replacements['email'][$format]['%value[' . $form_key . ']'] = '';
       }
-      $replacements['email'][$format]['%email[' . $form_key . ']'] = render($display_element);
-      $display_element['#theme_wrappers'] = array(); // Remove label and wrappers.
-      $replacements['email'][$format]['%value[' . $form_key . ']'] = render($display_element);
     }
-
-    // Provide blanks for components in the webform but not in the submission.
-    $missing_components = array_diff_key($node->webform['components'], $submission->data);
-    foreach ($missing_components as $component) {
-      $parents = webform_component_parent_keys($node, $component);
-      $form_key = implode('][', $parents);
-      $replacements['email'][$format]['%email[' . $form_key . ']'] = '';
-      $replacements['email'][$format]['%value[' . $form_key . ']'] = '';
-    }
+    // Reverse the order of tokens so that nested tokens (ie. inside fieldsets)
+    // come before their parents.
+    $replacements['email'][$format] = array_reverse($replacements['email'][$format]);
 
     // Submission edit URL.
     $replacements['unsafe']['%submission_url'] = url('node/' . $node->nid . '/submission/' . $submission->sid, array('absolute' => TRUE));
@@ -3578,30 +3593,65 @@ function webform_disable_page_cache() {
 
 /**
  * Set the necessary breadcrumb for the page we are on.
+ *
+ * @param object $node
+ *   The loaded webform node.
+ * @param boolean|object $submission
+ *   The submission if the current page is viewing or dealing with a submission,
+ *   or TRUE to just include the webform node in the breadcrumbs (used for
+ *   the submission completion confirmation page), or NULL for no extra
+ *   processing
  */
 function webform_set_breadcrumb($node, $submission = NULL) {
-  $breadcrumb = drupal_get_breadcrumb();
+  $node_path = "node/{$node->nid}";
 
-  if (isset($node)) {
-    $webform_breadcrumb = array();
-    $webform_breadcrumb[] = empty($breadcrumb) ? l(t('Home'), '<front>') : array_shift($breadcrumb);
-    $webform_breadcrumb[] = l($node->title, 'node/' . $node->nid);
-    if (isset($submission)) {
-      $last_link = array_shift($breadcrumb);
-      if (webform_results_access($node)) {
-        $webform_breadcrumb[] = l(t('Webform results'), 'node/' . $node->nid . '/webform-results');
-      }
-      elseif (user_access('access own webform results')) {
-        $webform_breadcrumb[] = l(t('Submissions'), 'node/' . $node->nid . '/submissions');
-      }
-      if (isset($last_link)) {
-        $webform_breadcrumb[] = $last_link;
+  // Set the href of the current menu item to be the node's path. This has two
+  // effects. The active trail will be to the node's prefered menu tree location,
+  // expanding the menu as appropriate. And the breadcrumbs will be set as if
+  // the current page were under the node's preferred location.
+  // Note that menu_tree_set_path() could be used to set the path for the menu,
+  // but it will not affect the breadcrumbs when the webform is not in the
+  // default menu.
+  menu_set_item(NULL, array('href' => $node_path) + menu_get_item());
+
+  if ($submission) {
+    $breadcrumb = menu_get_active_breadcrumb();
+
+    // Append the node title (or its menu name), in case it isn't in the path already.
+    $active_trail = menu_get_active_trail();
+    $last_active = end($active_trail);
+    $breadcrumb[] = $last_active['href'] === $node_path && !empty($last_active['in_active_trail'])
+                      ? l($last_active['title'], $node_path, $last_active['localized_options'])
+                      : l($node->title, $node_path);
+
+    // Setting the current menu href will cause the submission title and current
+    // tab (if not the default tab) to be added to the active path when the
+    // webform is in the default location in the menu (node/NID). The title
+    // is desirable, but the tab name (e.g. Edit or Delete) isn't.
+    if (preg_match('/href=".*"/', end($breadcrumb), $matches)) {
+      foreach ($breadcrumb as $index => $link) {
+        if (stripos($link, $matches[0]) !== FALSE) {
+          $breadcrumb = array_slice($breadcrumb, 0, $index + 1);
+          break;
+        }
       }
     }
-    $breadcrumb = $webform_breadcrumb;
-  }
 
-  drupal_set_breadcrumb($breadcrumb);
+    // If the user is dealing with a submission, then the breadcrumb should
+    // be fudged to allow them to return to a likely list of webforms.
+    // Note that this isn't necessarily where they came from, but it's the
+    // best guess available.
+    if (is_object($submission)) {
+      if (webform_results_access($node)) {
+        $breadcrumb[] = l(t('Webform results'), $node_path . '/webform-results');
+      }
+      elseif (user_access('access own webform results')) {
+        $breadcrumb[] = l(t('Submissions'), $node_path . '/submissions');
+      }
+    }
+
+    drupal_set_breadcrumb($breadcrumb);
+  }
 }
 
 /**
