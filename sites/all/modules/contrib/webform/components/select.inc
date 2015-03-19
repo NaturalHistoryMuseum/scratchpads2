@@ -316,46 +316,36 @@ function _webform_render_select($component, $value = NULL, $filter = TRUE) {
   // Set the component options.
   $element['#options'] = $options;
 
-  // Set the default value.
-  if (isset($value)) {
-    if ($component['extra']['multiple']) {
-      // Set the value as an array.
-      $element['#default_value'] = array();
-      foreach ((array) $value as $key => $option_value) {
-        $element['#default_value'][] = $option_value;
-      }
-    }
-    else {
-      // Set the value as a single string.
-      $element['#default_value'] = '';
-      foreach ((array) $value as $option_value) {
-        $element['#default_value'] = $option_value;
-      }
-    }
+  // Use the component's default value if the component is currently empty.
+  if (!isset($value)) {
+    // The default for multiple selects is a comma-delimited list, without white-space or empty entries.
+    $value = $component['extra']['multiple'] ? array_filter(array_map('trim', explode(',', $default_value)), 'strlen') : $default_value;
   }
-  elseif ($default_value !== '') {
-    // Convert default value to a list if necessary.
-    if ($component['extra']['multiple']) {
-      $varray = explode(',', $default_value);
-      foreach ($varray as $key => $v) {
-        $v = trim($v);
-        if ($v !== '') {
-          $element['#default_value'][] = $v;
-        }
-      }
-    }
-    else {
-      $element['#default_value'] = $default_value;
-    }
-  }
-  elseif ($component['extra']['multiple']) {
+
+  // Convert all values into an array; component may now be single but was previously multiple, or vice-versa
+  $value = (array)$value;
+
+  // Set the default value. Note: "No choice" is stored as an empty string,
+  // which will match a 0 key for radios; NULL is used to avoid unintentional
+  // defaulting to the 0 option.
+  if ($component['extra']['multiple']) {
+    // Set the value as an array.
     $element['#default_value'] = array();
+    foreach ($value as $option_value) {
+      $element['#default_value'][] = $option_value === '' ? NULL : $option_value;
+    }
+  }
+  else {
+    // Set the value as a single string.
+    $option_value = reset($value);
+    $element['#default_value'] = $option_value === '' ? NULL : $option_value;
   }
 
   if ($component['extra']['other_option'] && module_exists('select_or_other')) {
     // Set display as a select_or_other element:
     $element['#type'] = 'select_or_other';
     $element['#other'] = !empty($component['extra']['other_text']) ? check_plain($component['extra']['other_text']) : t('Other...');
+    $element['#translatable'][] = 'other';
     $element['#other_title'] = $element['#title'] . ' ' . $element['#other'];
     $element['#other_title_display'] = 'invisible';
     $element['#other_unknown_defaults'] = 'other';
@@ -389,11 +379,6 @@ function _webform_render_select($component, $value = NULL, $filter = TRUE) {
       $element['#type'] = 'checkboxes';
       $element['#theme_wrappers'] = array_merge(array('checkboxes'), $element['#theme_wrappers']);
       $element['#process'] = array_merge(element_info_property('checkboxes', '#process'), array('webform_expand_select_ids'));
-
-      // Entirely replace the normal expand checkboxes with our custom version.
-      // This helps render checkboxes in multipage forms.
-      $process_key = array_search('form_process_checkboxes', $element['#process']);
-      $element['#process'][$process_key] = 'webform_expand_checkboxes';
     }
     else {
       // Set display as a radio set.
@@ -435,35 +420,6 @@ function webform_expand_select_or_other($element) {
     $element['select']['#process'] = array_merge(element_info_property($element['#select_type'], '#process'), array('webform_expand_select_ids'));
   }
 
-  return $element;
-}
-
-/**
- * Drupal 6 hack that properly *renders* checkboxes in multistep forms. This is
- * different than the value hack needed in Drupal 5, which is no longer needed.
- */
-function webform_expand_checkboxes($element) {
-  // Elements that have a value set are already in the form structure cause
-  // them not to be written when the expand_checkboxes function is called.
-  $default_value = array();
-  foreach (element_children($element) as $key) {
-    if (isset($element[$key]['#default_value'])) {
-      $default_value[$key] = $element[$key]['#default_value'];
-      unset($element[$key]);
-    }
-  }
-
-  $element = form_process_checkboxes($element);
-
-  // Escape the values of checkboxes.
-  foreach (element_children($element) as $key) {
-    $element[$key]['#return_value'] = check_plain($element[$key]['#return_value']);
-    $element[$key]['#name'] = $element['#name'] . '[' . $element[$key]['#return_value'] . ']';
-  }
-
-  foreach ($default_value as $key => $val) {
-    $element[$key]['#default_value'] = $val;
-  }
   return $element;
 }
 
