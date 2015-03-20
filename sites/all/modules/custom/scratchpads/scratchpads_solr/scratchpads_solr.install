@@ -13,7 +13,7 @@ function scratchpads_solr_install(){
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk:8983/solr/scratchpads-2.6.x'
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.6.x'
   ))->condition('env_id', 'solr')->execute();
   // Ensure we're indexing the requried content types.
   $entity_info = entity_get_info('node');
@@ -145,6 +145,6 @@ function scratchpads_solr_update_7005(&$sandbox){
 function scratchpads_solr_update_7006(){
   $env_id = apachesolr_default_environment();
   $environment = _apachesolr_drush_environment_load_and_validate($env_id);
-  $environment['url'] = 'http://web-scratchpad-solr.nhm.ac.uk:8983/solr/scratchpads-2.6.x';
+  $environment['url'] = 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.6.x';
   apachesolr_environment_save($environment);
 }
