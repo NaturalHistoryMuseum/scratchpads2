@@ -13,7 +13,7 @@ function scratchpads_solr_install(){
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
+    'url' => 'http://web-scratchpad-solr.nhm.ac.uk:8983/solr/scratchpads-2.6.x'
   ))->condition('env_id', 'solr')->execute();
   // Ensure we're indexing the requried content types.
   $entity_info = entity_get_info('node');
@@ -95,28 +95,9 @@ function scratchpads_solr_update_7003(){
 
 /**
  * Change to the new solr instance.
+ * 
+ * Removed scratchpads_solr_update_7004
  */
-function scratchpads_solr_update_7004(){
-  // Set the Solr server
-  db_update('apachesolr_environment')->fields(array(
-    'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads2-2'
-  ))->condition('env_id', 'solr')->execute();
-  // Update the content type pages to add the apachesolr_search_custom_enable
-  // setting.
-  $results = db_select('apachesolr_search_page', 'a')->fields('a', array(
-    'page_id',
-    'settings'
-  ))->condition('page_id', 'content_type_%', 'LIKE')->execute();
-  foreach($results as $row){
-    $settings = unserialize($row->settings);
-    $settings['apachesolr_search_custom_enable'] = 1;
-    db_update('apachesolr_search_page')->fields(array(
-      'settings' => serialize($settings)
-    ))->condition('page_id', $row->page_id)->execute();
-  }
-}
-
 /**
  * Reindex ALL content.
  */
@@ -156,4 +137,14 @@ function scratchpads_solr_update_7005(&$sandbox){
     $sandbox['progress'] = $sandbox['max'] - $current_status['remaining'];
     $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
   }
+}
+
+/**
+ * Update the URL of the Solr instance
+ */
+function scratchpads_solr_update_7006(){
+  $env_id = apachesolr_default_environment();
+  $environment = _apachesolr_drush_environment_load_and_validate($env_id);
+  $environment['url'] = 'http://web-scratchpad-solr.nhm.ac.uk:8983/solr/scratchpads-2.6.x';
+  apachesolr_environment_save($environment);
 }
