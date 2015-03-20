@@ -57,6 +57,11 @@ function scratchpads_messages_schema(){
       'primary key' => array(
         'rid',
         'mid'
+      ),
+      'indexes' => array(
+        'scratchpads_messages_roles_index_mid' => array(
+          'mid'
+        )
       )
     ),
     'scratchpads_messages_viewed' => array(
@@ -103,4 +108,15 @@ function scratchpads_messages_schema(){
 function scratchpads_messages_update_7001(){
   $schema = scratchpads_messages_schema();
   db_create_table('scratchpads_messages_roles', $schema['scratchpads_messages_roles']);
+}
+
+/**
+ * Add an index on the mid column to the scratchpads_messages_roles table.
+ */
+function scratchpads_messages_update_7002(){
+  if(!db_index_exists('scratchpads_messages_roles', 'scratchpads_messages_roles_index_mid')){
+    db_add_index('scratchpads_messages_roles', 'scratchpads_messages_roles_index_mid', array(
+      'mid'
+    ));
+  }
 }
