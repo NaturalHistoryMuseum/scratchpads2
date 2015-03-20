@@ -757,6 +757,10 @@ function _process_response($response, $term_name, $tid, $hid){
 function _retrieve_morphbank_image($morphbank_image_id, $term_name, $original_filename){
   if($morphbank_image_id > 0){
     $image_location = MORPHBANK_IMAGE_URL . '?id=' . $morphbank_image_id . '&imgType=jpg';
+    // Check to see if we've already created this file - if so, we use it!
+    if(($fid = db_select('file_managed', 'f')->fields('f', array(
+      'fid'
+    ))->condition('uri', $image_location)->execute()->fetchField()) != FALSE){return $fid;}
     $file = remote_stream_wrapper_file_create_by_uri($image_location);
     $file->filename = preg_replace('/[\s\+]+/', '-', $term_name) . '-' . $morphbank_image_id . '-' . $original_filename;
     file_save($file);
