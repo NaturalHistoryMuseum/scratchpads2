@@ -715,6 +715,8 @@ function _process_response($response, $term_name, $tid, $hid){
         ))->condition('mid', $mid, '=')->execute();
         if($num_updated > 0){
           $to_return = 'u';
+        } else {
+          $to_return = 'c';
         }
       }
     }
