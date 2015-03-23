@@ -92,7 +92,12 @@ function scratchpads_width_and_height_theme_image($variables){
       $image = FALSE;
       if($failed_downloads <= SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS){
         if(substr($variables['path'], 0, 4) == 'http'){
-          $file = file_unmanaged_save_data(@file_get_contents($variables['path']), 'temporary://');
+          $context = stream_context_create(array(
+            'http' => array(
+              'timeout' => 3
+            )
+          ));
+          $file = file_unmanaged_save_data(@file_get_contents($variables['path'], FALSE, $context), 'temporary://');
           $path = drupal_realpath($file);
           if(substr($path, 0, 1) == '/' && file_exists($path) && filesize($path)){
             $image = image_load($path);
