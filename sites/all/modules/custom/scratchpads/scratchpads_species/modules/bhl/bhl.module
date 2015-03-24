@@ -91,7 +91,7 @@ function bhl_block_view($delta = ''){
           drupal_get_path('module', 'bhl') . '/js/bhl.js'
         )
       ),
-      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the @name references.', array(
+      '#markup' => '<p>' . t('Unable to fetch references from @name.', array(
         '@name' => 'BHL'
       )) . '</p>'
     )

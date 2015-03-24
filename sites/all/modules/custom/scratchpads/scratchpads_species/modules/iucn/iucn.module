@@ -41,7 +41,7 @@ function iucn_block_view($delta = ''){
           drupal_get_path('module', 'iucn') . '/css/iucn.css'
         )
       ),
-      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the IUCN block.') . '</p>'
+      '#markup' => '<p>' . t('Unable to fetch data from IUCN.') . '</p>'
     )
   );
   // We load the term from the menu
