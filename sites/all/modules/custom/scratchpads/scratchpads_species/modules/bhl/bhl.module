@@ -22,6 +22,18 @@ function bhl_menu(){
 }
 
 /**
+ * Implements hook_flush_caches()
+ */
+function bhl_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_bhl'
+  );
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function bhl_admin_paths(){
