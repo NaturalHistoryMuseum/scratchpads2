@@ -40,5 +40,9 @@ function scratchpads_apachesolr_instant_shutdown(){
   }
   module_load_include('index.inc', 'apachesolr');
   $env_id = apachesolr_default_environment();
-  apachesolr_index_entities($env_id, $limit);
+  $environment = apachesolr_environment_load($env_id);
+  $status = apachesolr_index_status($environment["env_id"]);
+  if($status['remaining']){
+    apachesolr_index_entities($env_id, $limit);
+  }
 }
