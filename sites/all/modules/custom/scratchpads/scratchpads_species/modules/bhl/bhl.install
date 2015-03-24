@@ -1,10 +1,81 @@
 <?php
 
 /**
+ * Implements hook_enable
+ */
+function bhl_enable(){
+  // Add the bhl block to the ajaxblock settings.
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'bhl-default'
+  ))->fields(array(
+    'block_id' => 'bhl-default',
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+  variable_set('cache_class_cache_bhl', 'DrupalDatabaseCache');
+}
+
+function bhl_disable(){
+  db_delete('ajaxblocks')->condition('block_id', 'bhl-default')->execute();
+  variable_del('cache_class_cache_bhl');
+}
+
+/**
  * Update the URL from taxonomy/term/-/services to taxonomy/term/-/literature.
  */
 function bhl_update_7001(){
   db_update('block')->fields(array(
     'pages' => 'taxonomy/term/*/literature'
   ))->condition('module', 'bhl')->condition('pages', 'taxonomy/term/*/services')->execute();
+}
+
+/**
+ * Use ajaxblocks to load bhl
+ */
+function bhl_update_7002(){
+  // Use the database cache for bhl (to avoid pointless waste of space).
+  variable_set('cache_class_cache_bhl', 'DrupalDatabaseCache');
+  // Create the cache table
+  $schema = bhl_schema();
+  db_create_table('cache_bhl', $schema['cache_bhl']);
+  // Enable the ajaxblocks module (should already be enabled).
+  module_enable(array(
+    'ajaxblocks'
+  ));
+  // Add the bhl block to the ajaxblock settings.
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'bhl-default'
+  ))->fields(array(
+    'block_id' => 'bhl-default',
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Implements hook_schema
+ */
+function bhl_schema(){
+  module_load_include('install', 'system');
+  $system_schema = system_schema();
+  $schema = array();
+  $schema['cache_bhl'] = $system_schema['cache'];
+  $schema['cache_bhl']['description'] = 'Cache BHL stuff, as we can not rely on the block cache due to our use of ajaxblocks.';
+  return $schema;
 }
