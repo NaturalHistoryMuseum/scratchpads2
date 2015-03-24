@@ -4,6 +4,7 @@
  * Callback function.  This will help to populate an empty view.
  */
 function eolapi_callback(){
+  if(variable_get('eolapi_is_disabled', FALSE)){return FALSE;}
   $callbacks = module_invoke_all('eolapi_callbacks');
   if(!empty($callbacks[$_POST['view-name']])){
     call_user_func($callbacks[$_POST['view-name']], $_POST['tid']);
