@@ -55,6 +55,19 @@ function eolapi_entity_info(){
 }
 
 /**
+ * Implements hook_tools_pre_disable().
+ */
+function eolapi_tools_pre_disable(){
+  return array(
+    'can_disable' => (db_select('eolapi', 'e')->countQuery()->execute()->fetchField() > 100 ? 0 : 1),
+    'cannot_disable_message' => t('You cannot disable the EOLAPI module before <a href="!url">deleting the content</a>.', array(
+      '!url' => url('admin/config/eolapi')
+    )),
+    'disable_message' => 'All EOLAPI content, including files, will be removed.'
+  );
+}
+
+/**
  * Implements hook_apachesolr_index_documents_alter().
  */
 function eolapi_apachesolr_index_documents_alter(array &$documents, $entity, $entity_type){
@@ -150,6 +163,16 @@ function eolapi_views_api(){
  */
 function eolapi_menu(){
   return array(
+    'admin/config/content/eolapi' => array(
+      'title' => 'EOLAPI Content',
+      'description' => 'Disable the harvesting of additional content, and delete existing content.',
+      'page arguments' => array(
+        'eolapi_config_form'
+      ),
+      'page callback' => 'drupal_get_form',
+      'access arguments' => array('administer site configuration'),
+      'file' => 'eolapi.pages.inc'
+    ),
     'eolapi' => array(
       'title' => 'EOLAPI Callback',
       'description' => 'Endpoint to enable dynamic creation of EOLAPI content.',
