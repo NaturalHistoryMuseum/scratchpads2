@@ -38,7 +38,9 @@ function refindit_block_view($delta = ''){
   $content = array(
     'subject' => t('ReFindit'),
     'content' => array(
-      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the ReFindit references.') . '</p>'
+      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the @name references.', array(
+        '@name' => 'ReFindit'
+      )) . '</p>'
     )
   );
   if($term){
