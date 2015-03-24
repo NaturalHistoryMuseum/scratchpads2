@@ -18,17 +18,38 @@ function ncbi_block_info(){
 }
 
 /**
+ * Implements hook_flush_caches()
+ */
+function ncbi_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_ncbi'
+  );
+}
+
+/**
  * Implements hook_block_view().
  */
 function ncbi_block_view($delta = ''){
-  switch($delta){
-    default:
-      // We load the term from the menu
-      $term = menu_get_object('taxonomy_term', 2);
-      if($term && !(isset($term->usage) && in_array($term->usage['und'][0]['value'], array(
-        'not accepted',
-        'invalid'
-      )))){
+  $content = array(
+    'subject' => t('NCBI'),
+    'content' => array(
+      '#markup' => '<p>' . t('Unable to fetch data from NCBI.') . '</p>'
+    )
+  );
+  // We load the term from the menu
+  $term = menu_get_object('taxonomy_term', 2);
+  if($term && !(isset($term->usage) && in_array($term->usage['und'][0]['value'], array(
+    'not accepted',
+    'invalid'
+  )))){
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cache = cache_get($term->tid, 'cache_ncbi');
+      if($cache->data){
+        $content['content']['#markup'] = $cache->data;
+      }else{
         $items = _ncbi_get_data($term);
         foreach($items as $key => $item){
           $items[$key] = array(
@@ -36,21 +57,21 @@ function ncbi_block_view($delta = ''){
             'style' => 'margin-left:0'
           );
         }
-        if(count($items)){return array(
-            'subject' => t('NCBI'),
-            'content' => array(
-              'block' => array(
-                '#theme' => 'item_list',
-                '#items' => $items,
-                '#attributes' => array(
-                  'style' => 'padding-left:0'
-                )
-              )
+        if(count($items)){
+          $block_content = array(
+            '#theme' => 'item_list',
+            '#items' => $items,
+            '#attributes' => array(
+              'style' => 'padding-left:0'
             )
-          );}
+          );
+          $content['content']['#markup'] = drupal_render($block_content);
+          cache_set($term->tid, $content['content']['#markup'], 'cache_ncbi');
+        }
       }
+    }
   }
-  return array();
+  return $content;
 }
 
 /**
@@ -134,7 +155,7 @@ function ncbi_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
   if($form['module']['#value'] == 'ncbi'){
     // Prevent editing of this block.
     if(!user_access('scratchpad team')){
-      drupal_set_message(t('You may not edit the IUCN block'));
+      drupal_set_message(t('You may not edit the ncbi block'));
       drupal_goto();
     }
   }
