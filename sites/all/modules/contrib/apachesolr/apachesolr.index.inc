@@ -329,7 +329,7 @@ function apachesolr_convert_entity_to_documents($entity, $entity_type, $env_id) 
  * @return bool|int number indexed, or FALSE on failure.
  * @throws Exception
  */
-function apachesolr_index_send_to_solr($env_id, array $documents) {
+function apachesolr_index_send_to_solr($env_id, $documents) {
   try {
     // Get the $solr object
     $solr = apachesolr_get_solr($env_id);
