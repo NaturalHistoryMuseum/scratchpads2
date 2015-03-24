@@ -18,14 +18,35 @@ function refindit_block_info(){
 }
 
 /**
+ * Implements hook_flush_caches()
+ */
+function refindit_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_refindit'
+  );
+}
+
+/**
  * Implements hook_block_view().
  */
 function refindit_block_view($delta = ''){
-  switch($delta){
-    default:
-      // We load the term from the menu
-      $term = menu_get_object('taxonomy_term', 2);
-      if($term){
+  // We load the term from the menu
+  $term = menu_get_object('taxonomy_term', 2);
+  $content = array(
+    'subject' => t('ReFindit'),
+    'content' => array(
+      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the ReFindit references.') . '</p>'
+    )
+  );
+  if($term){
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cache = cache_get($term->tid, 'cache_refindit');
+      if($cache->data){
+        $content['content']['#markup'] = $cache->data;
+      }else{
         $items = array();
         $results = json_decode(str_replace('][', ',', file_get_contents('http://refinder.org/find?search=simple&text=' . urlencode($term->name))));
         if($results){
@@ -38,26 +59,28 @@ function refindit_block_view($delta = ''){
               'style' => 'list-style:disc;padding-bottom:3px;'
             );
           }
-          if(count($items)){return array(
-              'subject' => t('ReFindit'),
-              'content' => array(
-                'list' => array(
-                  '#theme' => 'item_list',
-                  '#items' => $items
-                ),
-                'link_to_gscholar' => array(
-                  '#markup' => '<p><strong>' . l(t('View results on ReFindit'), 'http://refindit.org/?search=simple&text=' . urlencode($term->name), array(
-                    'attributes' => array(
-                      'target' => '_blank'
-                    )
-                  )) . '</strong></p>'
-                )
+          if(count($items)){
+            $block_content = array(
+              'list' => array(
+                '#theme' => 'item_list',
+                '#items' => $items
+              ),
+              'link_to_gscholar' => array(
+                '#markup' => '<p><strong>' . l(t('View results on ReFindit'), 'http://refindit.org/?search=simple&text=' . urlencode($term->name), array(
+                  'attributes' => array(
+                    'target' => '_blank'
+                  )
+                )) . '</strong></p>'
               )
-            );}
+            );
+            $content['content']['#markup'] = drupal_render($block_content);
+            cache_set($term->tid, $content['content']['#markup'], 'cache_refindit');
+          }
         }
       }
+    }
   }
-  return array();
+  return $content;
 }
 
 /**
