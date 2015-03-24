@@ -1,3 +1,14 @@
+2.6.3 (2015-03-24)
+
+- Updated NCBI, BHL, IUCN and ReFindit modules to use ajaxblocks module
+- Added a timeout to scratchpads_width_and_height to prevent it taking a lot of
+  time
+- Changed the Solr instance we are using
+- Performance improvement for scratchpads_messages loading
+- Release of the morphbank_harvest module to Bembidion.info (available to others
+  on request, and will be available in a later release following testing)
+- Update all file/media fields so they can reference remote images
+
 2.6.2.4 (2015-03-23)
 
 - Prevent scratchpads_width_and_height causing very slow page loads.
@@ -8,7 +19,8 @@
 
 2.6.2.2 (2015-03-19)
 
-- Security update, updated Drupal to 7.35, Ctools to 7.x-1.7 and Webform to 7.x-3.23
+- Security update, updated Drupal to 7.35, Ctools to 7.x-1.7 and Webform to
+  7.x-3.23
 
 2.6.2.1 (2015-03-13)
 
