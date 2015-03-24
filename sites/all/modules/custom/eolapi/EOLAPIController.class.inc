@@ -16,5 +16,7 @@ class EOLAPIController extends EntityAPIController{
     if(count($fids)){
       entity_delete_multiple('file', $fids);
     }
+    // Delete this entity
+    parent::delete($ids, $transaction);
   }
 }
