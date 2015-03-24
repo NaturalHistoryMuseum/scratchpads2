@@ -34,16 +34,12 @@ function bhl_admin_paths(){
  * Thickbox display breaks bhl view layout - but not if we use an inline iframe
  */
 function bhl_viewer($page_id){
-  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&imageDetailURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F17384483&render=overlay
-  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp/cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F';
-  //$url = 'http://whbhl01.ubio.org/adore-djatoka/viewer.jsp?cat=&client=&image=&imageURL=http%3A%2F%2Fwww.biodiversitylibrary.org%2Fpageimage%2F' . $page_id;
-  //return '<iframe hspace="0" frameborder="0" id="TB_iframeContent" style="width: 100%; height: 700px;" align="center" src="' . $url . '">' . $url . '</iframe>';
   $url = 'http://www.biodiversitylibrary.org/pageimage/' . $page_id;
   return array(
     '#attached' => array(
       'js' => array(
         drupal_get_path('module', 'bhl') . '/js/jquery.elevateZoom-2.5.5.min.js',
-        drupal_get_path('module', 'bhl') . '/js/bhl.js',
+        drupal_get_path('module', 'bhl') . '/js/bhl.js'
       )
     ),
     'markup' => array(
@@ -73,11 +69,27 @@ function bhl_block_info(){
  * Implements hook_block_view().
  */
 function bhl_block_view($delta = ''){
-  switch($delta){
-    default:
-      // We load the term from the menu
-      $term = menu_get_object('taxonomy_term', 2);
-      if($term){
+  // We load the term from the menu
+  $term = menu_get_object('taxonomy_term', 2);
+  $content = array(
+    'subject' => t('Biodiversity Heritage Library'),
+    'content' => array(
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'bhl') . '/js/bhl.js'
+        )
+      ),
+      '#markup' => '<p>' . t('Please ensure Javascript is enable to see the @name references.', array(
+        '@name' => 'BHL'
+      )) . '</p>'
+    )
+  );
+  if($term){
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cache = cache_get($term->tid, 'cache_bhl');
+      if($cache->data){
+        $content['content']['#markup'] = $cache->data;
+      }else{
         $titles = _bhl_get_namebank_titles($term->name);
         $items = array();
         //print_r($titles);exit;
@@ -106,33 +118,35 @@ function bhl_block_view($delta = ''){
             );
           }
         }
-        if(count($items)){return array(
-            'subject' => t('Biodiversity Heritage Library'),
-            'content' => array(
-              'list' => array(
-                '#attached' => array(
-                  'js' => array(
-                    drupal_get_path('module', 'bhl') . '/js/bhl.js'
-                  )
-                ),
-                '#theme' => 'item_list',
-                '#items' => $items,
-                '#attributes' => array(
-                  'class' => 'bhl'
+        if(count($items)){
+          $block_content = array(
+            'list' => array(
+              '#attached' => array(
+                'js' => array(
+                  drupal_get_path('module', 'bhl') . '/js/bhl.js'
                 )
               ),
-              'link_to_bhl' => array(
-                '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name)), array(
-                  'attributes' => array(
-                    'target' => '_blank'
-                  )
-                )) . '</strong></p>'
+              '#theme' => 'item_list',
+              '#items' => $items,
+              '#attributes' => array(
+                'class' => 'bhl'
               )
+            ),
+            'link_to_bhl' => array(
+              '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name)), array(
+                'attributes' => array(
+                  'target' => '_blank'
+                )
+              )) . '</strong></p>'
             )
-          );}
+          );
+          $content['content']['#markup'] = drupal_render($block_content);
+          cache_set($term->tid, $content['content']['#markup'], 'cache_bhl');
+        }
       }
+    }
   }
-  return array();
+  return $content;
 }
 
 /**
@@ -159,46 +173,44 @@ function bhl_contextual_links_view_alter(&$element, $items){
 
 function _bhl_get_namebank_titles($term_name, $limit = 20){
   $titles = array();
-  $request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name);
-  $namebank_ids_xml = file_get_contents($request);
-  if($namebank_ids_xml){
-    $namebank_ids = new SimpleXMLElement($namebank_ids_xml);
-    foreach($namebank_ids->Result->Name as $data){
-      if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
-        $detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID);
-        $namebank_details_xml = file_get_contents($detail_request);
-        try{
-          $namebank_details = new SimpleXMLElement($namebank_details_xml);
+  //$request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name);
+  $request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name;
+  $namebank_ids = new SimpleXMLElement($request, NULL, TRUE);
+  foreach($namebank_ids->Result->Name as $data){
+    if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
+      //$detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID);
+      $detail_request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
+      try{
+        $namebank_details = new SimpleXMLElement($detail_request, NULL, TRUE);
+      }
+      catch(Exception $e){
+        // Not valid XML
+        return array();
+      }
+      foreach($namebank_details->Result->Titles->Title as $title){
+        // no content so don't add
+        if(!$title->Items->Item){
+          continue;
         }
-        catch(Exception $e){
-          // Not valid XML
-          return array();
+        //convert the titleID to numeric
+        $title_id = intval($title->TitleID);
+        // if the publication has already been added, just add the items
+        if(!empty($titles[$title_id])){
+          $titles[$title_id]['items'][] = $title->Items;
+        }else{ //else add some publication details - expand here for more publication data if nec.
+          // convert to an array - numerical key causing error
+          $title_array = (array)$title->ShortTitle;
+          $title_url = (array)$title->TitleUrl;
+          $titles[$title_id] = array(
+            'title' => $title_array[0],
+            'items' => array(
+              $title->Items
+            ),
+            'title_url' => $title_url[0]
+          );
         }
-        foreach($namebank_details->Result->Titles->Title as $title){
-          // no content so don't add
-          if(!$title->Items->Item){
-            continue;
-          }
-          //convert the titleID to numeric
-          $title_id = intval($title->TitleID);
-          // if the publication has already been added, just add the items
-          if(!empty($titles[$title_id])){
-            $titles[$title_id]['items'][] = $title->Items;
-          }else{ //else add some publication details - expand here for more publication data if nec.
-            // convert to an array - numerical key causing error
-            $title_array = (array)$title->ShortTitle;
-            $title_url = (array)$title->TitleUrl;
-            $titles[$title_id] = array(
-              'title' => $title_array[0],
-              'items' => array(
-                $title->Items
-              ),
-              'title_url' => $title_url[0]
-            );
-          }
-          if(count($titles) == $limit){
-            break 2;
-          }
+        if(count($titles) == $limit){
+          break 2;
         }
       }
     }
