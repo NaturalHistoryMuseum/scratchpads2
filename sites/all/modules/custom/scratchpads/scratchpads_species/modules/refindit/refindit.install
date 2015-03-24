@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * Implements hook_enable
+ */
+function refindit_enable(){
+  // Add the refindit block to the ajaxblock settings.
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'refindit-default'
+  ))->fields(array(
+    'block_id' => 'refindit-default',
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+  variable_set('cache_class_cache_refindit', 'DrupalDatabaseCache');
+}
+
+function refindit_disable(){
+  db_delete('ajaxblocks')->condition('block_id', 'refindit-default')->execute();
+  variable_del('cache_class_cache_refindit');
+}
+
+/**
+ * Use ajaxblocks to load refindit
+ */
+function refindit_update_7001(){
+  // Use the database cache for refindit (to avoid pointless waste of space).
+  variable_set('cache_class_cache_refindit', 'DrupalDatabaseCache');
+  // Create the cache table
+  $schema = refindit_schema();
+  db_create_table('cache_refindit', $schema['cache_refindit']);
+  // Enable the ajaxblocks module (should already be enabled).
+  module_enable(array(
+    'ajaxblocks'
+  ));
+  // Add the refindit block to the ajaxblock settings.
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'refindit-default'
+  ))->fields(array(
+    'block_id' => 'refindit-default',
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Implements hook_schema
+ */
+function refindit_schema(){
+  module_load_include('install', 'system');
+  $system_schema = system_schema();
+  $schema = array();
+  $schema['cache_refindit'] = $system_schema['cache'];
+  $schema['cache_refindit']['description'] = 'Cache refindit stuff, as we can not rely on the block cache due to our use of ajaxblocks.';
+  return $schema;
+}
