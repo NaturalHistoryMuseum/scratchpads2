@@ -1,3 +1,7 @@
+2.6.3.1 (2015-03-25)
+
+- Fixed an issue that prevented some sites from upgrading to 2.6.3
+
 2.6.3 (2015-03-24)
 
 - Updated NCBI, BHL, IUCN and ReFindit modules to use ajaxblocks module
