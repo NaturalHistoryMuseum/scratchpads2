@@ -69,6 +69,8 @@ function scratchpads_biography_update_7001(){
  */
 function scratchpads_biography_update_7002(){
   $field_instance = field_info_instance('user', 'field_example_of_handwriting', 'user');
-  $field_instance['widget']['settings']['allowed_schemes'] = array();
-  field_update_instance($field_instance);
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
 }
