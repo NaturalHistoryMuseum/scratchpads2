@@ -193,6 +193,8 @@ function spm_update_7013(){
  */
 function spm_update_7014(){
   $field_instance = field_info_instance('node', 'field_media', 'spm');
-  $field_instance['widget']['settings']['allowed_schemes'] = array();
-  field_update_instance($field_instance);
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
 }
