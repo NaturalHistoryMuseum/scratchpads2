@@ -540,7 +540,7 @@ function darwincore_update_7021(){
  */
 function darwincore_update_7022(){
   $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
-  if($field_instance('field_media')){
+  if($field_instance){
     $field_instance['widget']['settings']['allowed_schemes'] = array();
     field_update_instance($field_instance);
   }
