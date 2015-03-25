@@ -58,6 +58,8 @@ function scratchpads_biblio_update_7004(){
  */
 function scratchpads_biblio_update_7005(){
   $field_instance = field_info_instance('node', 'field_file', 'biblio');
-  $field_instance['widget']['settings']['allowed_schemes'] = array();
-  field_update_instance($field_instance);
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
 }
