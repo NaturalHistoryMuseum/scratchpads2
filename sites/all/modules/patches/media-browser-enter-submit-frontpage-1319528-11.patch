@@ -1,0 +1,20 @@
+diff --git a/js/plugins/media.views.js b/js/plugins/media.views.js
+index 95b673b..1581e0e 100644
+--- a/js/plugins/media.views.js
++++ b/js/plugins/media.views.js
+@@ -10,6 +10,15 @@
+ Drupal.behaviors.mediaViews = {
+   attach: function (context, settings) {
+ 
++    // Make sure when pressing enter on text inputs, the form isn't submitted
++    $('.ctools-auto-submit-full-form .views-exposed-form input:text, input:text.ctools-auto-submit', context)
++      .filter(':not(.ctools-auto-submit-exclude)')
++      .bind('keydown keyup', function (e) {
++        if(e.keyCode === 13) {
++          e.stopImmediatePropagation();
++          e.preventDefault();
++        }
++      });
+     // Disable the links on media items list
+     $('.view-content ul.media-list-thumbnails a').click(function() {
+       return false;
