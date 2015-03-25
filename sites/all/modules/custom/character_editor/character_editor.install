@@ -770,8 +770,10 @@ function character_editor_update_7014(){
  */
 function character_editor_update_7015(){
   $field_instance = field_info_instance('field_collection_item', 'field_char_state_image', 'field_char_states');
-  $field_instance['widget']['settings']['allowed_schemes'] = array();
-  field_update_instance($field_instance);
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
   foreach(array(
     'controlled',
     'dna',
@@ -779,8 +781,12 @@ function character_editor_update_7015(){
     'numeric',
     'text'
   ) as $bundle){
-    $field_instance = field_info_instance('character_editor_character', 'field_char_image', $bundle);
-    $field_instance['widget']['settings']['allowed_schemes'] = array();
-    field_update_instance($field_instance);
+    if(field_info_field('field_char_image')){
+      $field_instance = field_info_instance('character_editor_character', 'field_char_image', $bundle);
+      if($field_instance){
+        $field_instance['widget']['settings']['allowed_schemes'] = array();
+        field_update_instance($field_instance);
+      }
+    }
   }
 }
