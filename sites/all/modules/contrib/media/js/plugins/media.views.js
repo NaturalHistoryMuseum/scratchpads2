@@ -11,6 +11,15 @@ namespace('Drupal.media.browser.views');
 Drupal.behaviors.mediaViews = {
   attach: function (context, settings) {
 
+    // Make sure when pressing enter on text inputs, the form isn't submitted
+    $('.ctools-auto-submit-full-form .views-exposed-form input:text, input:text.ctools-auto-submit, .views-exposed-form input:text', context)
+      .filter(':not(.ctools-auto-submit-exclude)')
+      .bind('keydown keyup', function (e) {
+        if(e.keyCode === 13) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      });
     // Disable the links on media items list
     $('.view-content ul.media-list-thumbnails a').click(function() {
       return false;
