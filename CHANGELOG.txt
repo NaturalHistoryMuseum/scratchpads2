@@ -1,3 +1,7 @@
+2.6.3.2 (2015-03-26)
+
+- Ensure all EoL DwC-A rows are returned (#4353)
+
 2.6.3.1 (2015-03-25)
 
 - Fixed an issue that prevented some sites from upgrading to 2.6.3
