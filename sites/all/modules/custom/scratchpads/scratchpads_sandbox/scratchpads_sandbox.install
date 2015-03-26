@@ -72,7 +72,7 @@ function scratchpads_sandbox_install(){
   include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.biblio_nodes.inc";
   foreach($nodes as $node){
     $node->field_taxonomic_name = array(
-      LANGUAGE_NONE => array(
+      'und' => array(
         array(
           'tid' => $pediculus_tid
         )
@@ -82,7 +82,7 @@ function scratchpads_sandbox_install(){
   }
   include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.spm_node.inc";
   $node->field_taxonomic_name = array(
-    LANGUAGE_NONE => array(
+    'und' => array(
       array(
         'tid' => $pediculus_tid
       )
@@ -93,14 +93,14 @@ function scratchpads_sandbox_install(){
   node_save($node);
   include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.darwincore_nodes.inc";
   node_save($location_node);
-  $specimen_node->field_location[LANGUAGE_NONE][0]['nid'] = $location_node->nid;
-  $specimen_node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'] = $pediculus_tid;
+  $specimen_node->field_location['und'][0]['nid'] = $location_node->nid;
+  $specimen_node->field_taxonomic_name['und'][0]['tid'] = $pediculus_tid;
   node_save($specimen_node);
   // Create the images
   for($i = 1; $i <= 4; $i++){
     $file = file_save_data(file_get_contents(drupal_get_path('module', 'scratchpads_sandbox') . '/sample_images/' . $i . '.jpg'), 'public://' . $i . '.jpg', FILE_EXISTS_REPLACE);
     $file->field_taxonomic_name = array(
-      LANGUAGE_NONE => array(
+      'und' => array(
         array(
           'tid' => $pediculus_tid
         )
@@ -126,7 +126,7 @@ function scratchpads_sandbox_install(){
     }
     $file->title = $title;
     $file->field_creator = array(
-      LANGUAGE_NONE => array(
+      'und' => array(
         array(
           'value' => $attribution
         )
