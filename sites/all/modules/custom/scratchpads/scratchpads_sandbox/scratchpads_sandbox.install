@@ -35,4 +35,133 @@ function scratchpads_sandbox_install(){
   // Accept the legals for UID 2.
   legal_save_accept(1, 1, 'en', 2);
   variable_set('sandbox_site_created', time());
+  //
+  // Create the content.
+  //
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.taxonomy_vocabulary.inc";
+  taxonomy_vocabulary_save($vocabulary);
+  itis_term_taxonomy_vocabulary_biological_classification($vocabulary);
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.taxonomy_terms.inc";
+  $tids_before_and_after = array();
+  foreach($terms as $term){
+    // We unset the TID, but keep a record of it so that we can update the
+    // "parent" of other terms.
+    $tid = $term->tid;
+    unset($term->tid);
+    // Set the vid to that of the vocabulary we just saved
+    $term->vid = $vocabulary->vid;
+    // Alter the field_aan field so that it is "correct".
+    if(isset($term->field_aan[0]) && isset($tids_before_and_after[$term->field_aan[0]])){
+      $term->field_aan[0] = $tids_before_and_after[$term->field_aan[0]];
+    }
+    $term->{"field_aan_{$vocabulary->vid}"} = $term->field_aan;
+    unset($term->field_aan);
+    // Alter the parent so that they're corrected.
+    if(!empty($term->parent[0]) && isset($tids_before_and_after[$term->parent[0]])){
+      $term->parent[0] = $tids_before_and_after[$term->parent[0]];
+    }
+    // Save the term, and make a note of the new TID.
+    taxonomy_term_save($term);
+    // We make a note of the TID of Pediculus humanus so that we can use it for
+    // tagging later.
+    if($term->name == 'Pediculus humanus'){
+      $pediculus_tid = $term->tid;
+    }
+    $tids_before_and_after[$tid] = $term->tid;
+  }
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.biblio_nodes.inc";
+  foreach($nodes as $node){
+    $node->field_taxonomic_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $pediculus_tid
+        )
+      )
+    );
+    node_save($node);
+  }
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.spm_node.inc";
+  $node->field_taxonomic_name = array(
+    LANGUAGE_NONE => array(
+      array(
+        'tid' => $pediculus_tid
+      )
+    )
+  );
+  node_save($node);
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.page_node.inc";
+  node_save($node);
+  include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.darwincore_nodes.inc";
+  node_save($location_node);
+  $specimen_node->field_location[LANGUAGE_NONE][0]['nid'] = $location_node->nid;
+  $specimen_node->field_taxonomic_name[LANGUAGE_NONE][0]['tid'] = $pediculus_tid;
+  node_save($specimen_node);
+  // Create the images
+  for($i = 1; $i <= 4; $i++){
+    $file = file_save_data(file_get_contents(drupal_get_path('module', 'scratchpads_sandbox') . '/sample_images/' . $i . '.jpg'), 'public://' . $i . '.jpg', FILE_EXISTS_REPLACE);
+    $file->field_taxonomic_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $pediculus_tid
+        )
+      )
+    );
+    switch($i){
+      case 1:
+        $title = 'Pediculus humanus clutching on to hairs';
+        $attribution = 'Gilles San Martin (https://www.flickr.com/photos/sanmartin/4900274585)';
+        break;
+      case 2:
+        $title = 'Pediculus humanus slide';
+        $attribution = '(CDC)/Dr. Dennis D. Juranek (http://phil.cdc.gov/)';
+        break;
+      case 3:
+        $title = 'Head louse on a cotton bud';
+        $attribution = 'Eran Finkle (http://commons.wikimedia.org/wiki/User:Finklez)';
+        break;
+      case 4:
+        $title = 'Egg';
+        $attribution = 'Gilles San Martin (https://www.flickr.com/photos/sanmartin/4900274585)';
+        break;
+    }
+    $file->title = $title;
+    $file->field_creator = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $attribution
+        )
+      )
+    );
+    file_save($file);
+  }
+  // Set a few settings
+  variable_set('front_page_main_block_slideshow_text_creator', 1);
+  variable_set('front_page_main_block_slideshow_text_licence', 1);
+  variable_set('site_slogan', 'Teaching old taxonomists new tricks');
+  variable_set('front_page_override_welcome_title', 1);
+  variable_set('front_page_welcome_title', 'Scratchpads Sandbox');
+  variable_set('front_page_welcome_message', array(
+    'value' => '<p>This site is built to allow people interested in Scratchpads to try out all the available functions before applying for their own site.</p>
+<p>Please use the following credentials to login to this site:<br />
+  Username: username<br />
+  Password: password</p>
+<p><strong>What can you do in the Sandbox?</strong></p>
+<ul>
+  <li>familiarise yourself with the interface and menus</li>
+  <li>change the structure and create custom content</li>
+  <li>experiment with all Scratchpads functions and available modules</li>
+  <li>evaluate whether Scratchpads are a viable tool for creating, curating and disseminating your data</li>
+</ul>
+<p><strong>What should you also know before using the Sandbox:</strong></p>
+<ul>
+	<li>Do not upload or create valuable data in this site</li>
+	<li>The Sandbox will reset and all content permanently deleted every 6 hours</li>
+	<li>The time left before Sandbox resets is shown on the footer of every page</li>
+	<li>Other users can edit the Sandbox Scratchpad site at the same time as you</li>
+</ul>',
+    'format' => 'filtered_html'
+  ));
+  variable_set('scratchpads_setup', 6);
+  // Finally clear the caches to rebuild the menus and other magic
+  drupal_flush_all_caches();
 }
