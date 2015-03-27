@@ -79,40 +79,48 @@ function ncbi_block_view($delta = ''){
  */
 function _ncbi_get_data($term){
   $items = array();
-  $esearch_xml = file_get_contents('http://fencedine.myspecies.info/?url=' . urlencode('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=' . urlencode($term->name)));
-  if($esearch_xml){
-    $esearch_results = new SimpleXMLElement($esearch_xml);
+  $request = drupal_http_request('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=' . urlencode($term->name), array(
+    'timeout' => 5
+  ));
+  if($request->code == 200){
+    $esearch_results = new SimpleXMLElement($request->data);
   }
   if($esearch_results){
     if($esearch_results->IdList->Id){
       foreach($esearch_results->IdList->Id as $id){
-        $dom = DOMDocument::loadHTMLFile('http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=' . $id);
-        $tables = $dom->getElementsByTagName('table');
-        foreach($tables as $table){
-          if($table->getAttribute('align') == 'right'){
-            $trs = $table->getElementsByTagName('tr');
-            $rows = array();
-            $row_num = 0;
-            foreach($trs as $tr){
-              if($row_num > 0){
-                $tds = $tr->getElementsByTagName('td');
-                $row = array();
-                foreach($tds as $td){
-                  $html = preg_replace('/\xC2\xA0/', ' ', $dom->saveXML($td));
-                  $html = str_replace('href="', 'target="_blank" href="http://www.ncbi.nlm.nih.gov', $html);
-                  $row[] = filter_xss($html);
+        $request = drupal_http_request('http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=' . $id, array(
+          'timeout' => 5
+        ));
+        if($request->code == 200){
+          $dom = DOMDocument::loadHTML($request->data);
+          $tables = $dom->getElementsByTagName('table');
+          foreach($tables as $table){
+            if($table->getAttribute('align') == 'right'){
+              $trs = $table->getElementsByTagName('tr');
+              $rows = array();
+              $row_num = 0;
+              foreach($trs as $tr){
+                if($row_num > 0){
+                  $tds = $tr->getElementsByTagName('td');
+                  $row = array();
+                  foreach($tds as $td){
+                    $html = preg_replace('/\xC2\xA0/', ' ', $dom->saveXML($td));
+                    $html = str_replace('href="', 'target="_blank" href="http://www.ncbi.nlm.nih.gov', $html);
+                    $row[] = filter_xss($html);
+                  }
+                  $rows[] = $row;
                 }
-                $rows[] = $row;
+                $row_num++;
               }
-              $row_num++;
             }
           }
         }
         $headers = array_shift($rows);
-        $elink_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=taxonomy&db=all&id=' . $id . '&cmd=llinks');
-        $elink_request_xml = file_get_contents($elink_request);
-        if($elink_request_xml){
-          $elinks = new SimpleXMLElement($elink_request_xml);
+        $request = drupal_http_request('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=taxonomy&db=all&id=' . $id . '&cmd=llinks', array(
+          'timeout' => 5
+        ));
+        if($request->code == 200){
+          $elinks = new SimpleXMLElement($request->data);
           $links = array();
           foreach($elinks->LinkSet->IdUrlList->IdUrlSet->ObjUrl as $link){
             if($link->LinkName){
