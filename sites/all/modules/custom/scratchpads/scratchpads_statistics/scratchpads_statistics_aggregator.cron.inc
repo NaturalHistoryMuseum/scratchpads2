@@ -87,18 +87,17 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
 }
 
 /**
- * Simple file_get_contents without following redirects as we can end up with
+ * Simple drupal_http_request without following redirects as we can end up with
  * duplicate records if we do.
  */
 function _scratchpads_statistics_aggregator_get_data($url){
-  $context = stream_context_create(array(
-    'http' => array(
-      'follow_location' => false
-    )
+  $request = drupal_http_request($url, array(
+    'max_redirects' => 0,
+    'timeout' => 5
   ));
-  $data = @file_get_contents($url, false, $context);
-  if($data){
-    $data = @json_decode($data, TRUE);
+  $data = FALSE;
+  if($request->code == 200){
+    $data = @json_decode($request->data);
   }
   return $data;
 }

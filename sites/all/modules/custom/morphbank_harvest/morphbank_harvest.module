@@ -33,6 +33,10 @@ define("MORPHBANK_NET_URL", "http://morphbank.net/");
  * The URL for morphbank images
  */
 define("MORPHBANK_IMAGE_URL", "http://images.morphbank.net/");
+/**
+ * The timeout for requests to the Morphbank service
+ */
+define('MORPHBANK_TIMEOUT', 5);
 
 /**
  * Implements hook_menu().

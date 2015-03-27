@@ -41,11 +41,10 @@ function gbif_ecat_silver(){
  */
 function gbif_ecat_import_form($form, &$form_state){
   // Create a soap client to ensure that the service is up.
-  $gbif_ecat_service_status = file_get_contents(GBIF_ECAT_BASE_URL, 0, stream_context_create(array(
-    'http' => array(
-      'timeout' => 3
-    )
-  )));
+  $request = drupal_http_request(GBIF_ECAT_BASE_URL, array(
+    'timeout' => 3
+  ));
+  $gbif_ecat_service_status = $request->code == 200;
   $vocabularies = taxonomy_get_vocabularies();
   $taxonomies = array(
     '- SELECT VOCABULARY -'
@@ -149,12 +148,17 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
       $id => 0
     );
     $context['sandbox']['imported'] = 0;
-    $record = json_decode(utf8_encode(file_get_contents(GBIF_ECAT_BASE_URL . "usage/$id")), TRUE);
-    $context['sandbox']['max'] = $record['data']['numDescendants'] + 1;
-    $vocabulary = taxonomy_vocabulary_load($vid);
-    $context['sandbox']['vid'] = $vid;
-    $context['sandbox']['vmn'] = $vocabulary->machine_name;
-    $_SESSION['tcsdc_import_vid'] = $vid;
+    $request = drupal_http_request(GBIF_ECAT_BASE_URL . "usage/$id", array(
+      'timeout' => 5
+    ));
+    if($request->code == 200){
+      $record = json_decode(utf8_encode($request->data), TRUE);
+      $context['sandbox']['max'] = $record['data']['numDescendants'] + 1;
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      $context['sandbox']['vid'] = $vid;
+      $context['sandbox']['vmn'] = $vocabulary->machine_name;
+      $_SESSION['tcsdc_import_vid'] = $vid;
+    }
   }
   $keys = array_keys($context['sandbox']['ids']);
   $importable_found = FALSE;
@@ -163,8 +167,10 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
   $parent = $context['sandbox']['ids'][$id];
   unset($context['sandbox']['ids'][$id]);
   // Save the record
-  $record = json_decode(utf8_encode(file_get_contents(GBIF_ECAT_BASE_URL . "usage/$id?showVernaculars=en")), TRUE);
-  if($record && $record['success'] && count($record['data'])){
+  $request = drupal_http_request(GBIF_ECAT_BASE_URL . "usage/$id?showVernaculars=en", array(
+    'timeout' => 5
+  ));
+  if($request->code == 200 && ($record = json_decode(utf8_encode($request->data), TRUE)) != FALSE && $record['success'] && count($record['data'])){
     preg_match("/[\(A-Z]/", $record['data']['scientificName'], $matches, 0, 1);
     if(count($matches)){
       $first_cap = strpos($record['data']['scientificName'], $matches[0]);
@@ -272,9 +278,13 @@ function gbif_ecat_batch_importer($id, $vid, &$context){
     }
     $context['sandbox']['imported']++;
     // Get the children.
-    $children = json_decode(utf8_encode(file_get_contents(GBIF_ECAT_BASE_URL . "nav/$id")), TRUE);
-    foreach($children['data'] as $child){
-      $context['sandbox']['ids'][$child['taxonID']] = $term->tid;
+    $request = drupal_http_request(GBIF_ECAT_BASE_URL . "nav/$id", array(
+      'timeout' => 5
+    ));
+    if($request->code == 200 && ($children = json_decode(utf8_encode($request->data))) != FALSE){
+      foreach($children['data'] as $child){
+        $context['sandbox']['ids'][$child['taxonID']] = $term->tid;
+      }
     }
   }else{
     watchdog('gbif_ecat', 'Failed to download/decode: !url', array(
@@ -362,17 +372,21 @@ function _gbif_ecat_sort_records($a, $b){
  * Callback for the ajax
  */
 function gbif_ecat_classifications_js($form, $form_state){
-  $records = json_decode(utf8_encode(file_get_contents(GBIF_ECAT_BASE_URL . 'usage/?searchType=canonical&q=' . urlencode($_POST['gbif_ecat-name']))), TRUE);
-  uasort($records['data'], '_gbif_ecat_sort_records');
-  if($records && count($records['data'])){
-    foreach($records['data'] as $record){
-      // FIXME - Add the number of children.
-      $options[$record['taxonID']] = t('@scientific_name and @num descendants [GBIF ID: @gbif_id] (@source)', array(
-        '@scientific_name' => $record['scientificName'],
-        '@num' => $record['numDescendants'],
-        '@gbif_id' => $record['taxonID'],
-        '@source' => $record['datasetName']
-      ));
+  $request = drupal_http_request(GBIF_ECAT_BASE_URL . 'usage/?searchType=canonical&q=' . urlencode($_POST['gbif_ecat-name']), array(
+    'timeout' => 5
+  ));
+  if($request->code == 200 && ($records = json_decode(utf8_encode($request->data), TRUE)) != FALSE){
+    uasort($records['data'], '_gbif_ecat_sort_records');
+    if($records && count($records['data'])){
+      foreach($records['data'] as $record){
+        // FIXME - Add the number of children.
+        $options[$record['taxonID']] = t('@scientific_name and @num descendants [GBIF ID: @gbif_id] (@source)', array(
+          '@scientific_name' => $record['scientificName'],
+          '@num' => $record['numDescendants'],
+          '@gbif_id' => $record['taxonID'],
+          '@source' => $record['datasetName']
+        ));
+      }
     }
   }
   $form['gbif_ecat']['gbif_ecat-import-id'] = array(

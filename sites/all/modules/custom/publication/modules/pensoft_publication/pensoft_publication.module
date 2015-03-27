@@ -712,6 +712,15 @@ function pensoft_publication_publish_form_submit($form, &$form_state){
     )
   );
   $context = stream_context_create($options);
+  //
+  //
+  //
+  //
+  //
+  //
+  // FIXME - This instance of file_get_contents MUST be converted to 
+  // drupal_http_request() and a timeout added. If the request times out, we
+  // must add the ability to handle the timeout.
   $result = file_get_contents($url, false, $context);
   try{
     $xml_result = new SimpleXMLElement($result);
