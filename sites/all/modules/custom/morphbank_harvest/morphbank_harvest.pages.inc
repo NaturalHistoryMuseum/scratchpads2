@@ -177,7 +177,10 @@ function morphbank_harvest_form_submit($form, &$form_state){
       'problem' => 1
     ))->execute();
     if($hid > 0){
-      if(file_get_contents(MORPHBANK_SERVICE)){
+      $is_service_up = drupal_http_request(MORPHBANK_SERVICE, array(
+        'timeout' => MORPHBANK_TIMEOUT
+      ));
+      if($is_service_up->code == 200){
         // Set up the batch job
         $batch = array(
           'title' => t('Harvesting images ...'),
@@ -358,7 +361,10 @@ function _harvest_from_morphbank($harvest_details, &$context){
       '@term_name' => $term_name
     ));
     // Make sure Morphbank is responsive
-    if(file_get_contents(MORPHBANK_SERVICE)){
+    $is_service_up = drupal_http_request(MORPHBANK_SERVICE, array(
+      'timeout' => MORPHBANK_TIMEOUT
+    ));
+    if($is_service_up->code == 200){
       $responses = _query_morphbank($term_name, $maximages);
       if(is_array($responses)){ // The numReturned element was not empty (see _query_morphbank)
         $context['results']['num_queries']++;
@@ -566,7 +572,9 @@ function _query_morphbank($term_name, $maximages){
   // Build the url
   $request_url = MORPHBANK_SERVICE . 'request?' . $query_string;
   // Make the request
-  $result = drupal_http_request($request_url);
+  $result = drupal_http_request($request_url, array(
+    'timeout' => MORPHBANK_TIMEOUT
+  ));
   //Make sure code == 200
   $code = $result->code;
   if($code == 200){ // What about 201?
