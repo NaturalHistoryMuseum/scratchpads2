@@ -84,7 +84,7 @@ function dwcarchiver_menu(){
         4
       ),
       'access arguments' => array(
-        'configure dwcarchiver'
+        'preview dwcarchiver'
       ),
       'file' => 'dwcarchiver.pages.inc'
     ),
@@ -254,6 +254,20 @@ function dwcarchiver_permission(){
   return array(
     'configure dwcarchiver' => array(
       'title' => t('Configure DwC-Archiver')
+    ),
+    'preview dwcarchiver' => array(
+      'title' => t('Preview DwC-Archiver')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function dwcarchiver_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'preview dwcarchiver'
     )
   );
 }
