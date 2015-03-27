@@ -7,17 +7,17 @@ define('EOL_REQUEST_URL', 'http://services.eol.org/lifedesk/service.php?function
  */
 function eol_tcsdc_form($form, $form_state){
   // Request for Phthiraptera or Pediculus!
-  $xml = file_get_contents(EOL_REQUEST_URL . '34238633', 0, stream_context_create(array(
-    'http' => array(
-      'timeout' => 10
-    )
-  )));
+  $request = drupal_http_request(EOL_REQUEST_URL . '34238633', array(
+    'timeout' => 10
+  ));
   $eol_service_status = FALSE;
-  try{
-    $eol_service_status = new SimpleXMLElement($xml);
-  }
-  catch(Exception $e){
-    ;
+  if($request->code == 200){
+    try{
+      $eol_service_status = new SimpleXMLElement($request->data);
+    }
+    catch(Exception $e){
+      ;
+    }
   }
   return array(
     'eol' => array(
@@ -89,10 +89,11 @@ function eol_classifications_js($form, $form_state){
   // We rebuild the form here, and output only the bit that we need (the eol
   // options).
   // sleep(30);
-  $url = EOL_QUERY_URL . urlencode($_POST['eol-name']);
-  $eol_xml = file_get_contents($url);
-  if($eol_xml){
-    $eol_xml = new SimpleXMLElement($eol_xml);
+  $request = drupal_http_request(EOL_QUERY_URL . urlencode($_POST['eol-name']), array(
+    'timeout' => 5
+  ));
+  if($request->code == 200){
+    $eol_xml = new SimpleXMLElement($request->data);
     $num_results = count($eol_xml->value);
     $options = array();
     for($i = 0; $i < $num_results; $i++){
