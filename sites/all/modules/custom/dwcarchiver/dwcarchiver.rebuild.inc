@@ -200,6 +200,11 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
  */
 function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity){
   switch($field){
+    case 'feeds_item':
+      $alias = $query->leftJoin('feeds_item', $field, $field . ".entity_id = base.{$info['entity keys']['id']}");
+      $or = db_or()->condition($alias . '.entity_type', $entity)->condition($alias . '.entity_type', NULL);
+      $query->condition($or);
+      return $alias;
     case 'parent':
       $query->leftJoin('taxonomy_term_hierarchy', $field, $field . ".tid = base.{$info['entity keys']['id']}");
       return $query->leftJoin('taxonomy_term_data', "{$field}_term_data", "{$field}_term_data.tid = {$field}.parent");
