@@ -1,7 +1,16 @@
 <?php
-// Constants
+/**
+ * URL of the EOL API.
+ */
 DEFINE('EOLAPI_URL', 'http://eol.org/api/');
+/**
+ * Version of the EOL API to use
+ */
 DEFINE('EOLAPI_VERSION', '1.0');
+/**
+ * Timeout for requests to the EOL API.
+ */
+DEFINE('EOLAPI_TIMEOUT', 10);
 
 /**
  * This will create a new EOL search entity and return it.  If an identical
@@ -97,26 +106,34 @@ function eolapi_data_objects($id, $tid, $age = 604800){
     // the file and replace the URI with the original URI. Note, we do this so
     // that we can get the width and height of the image (not sure if they're
     // actually required).
-    $file = file_save_data(@file_get_contents($data->mediaURL));
-    $toolkit = image_get_toolkit();
-    $image = new stdClass();
-    $image->source = $file->uri;
-    $image->toolkit = $toolkit;
-    $details = image_toolkit_invoke('get_info', $image);
-    file_unmanaged_delete($file->uri);
-    $file->uri = $data->mediaURL;
-    $file->alt = '';
-    $file->width = $details['width'];
-    $file->height = $details['height'];
-    $file->filename = basename($file->uri);
-    file_save($file);
-    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
-    $eolapi->eolapi_image = array(
-      $lang => array(
-        (array)$file
-      )
-    );
-    entity_save('eolapi', $eolapi);
+    $request = drupal_http_request($data->mediaURL, array(
+      'timeout' => EOLAPI_TIMEOUT
+    ));
+    if($request->code == 200){
+      $file = file_save_data($request->data);
+      $toolkit = image_get_toolkit();
+      $image = new stdClass();
+      $image->source = $file->uri;
+      $image->toolkit = $toolkit;
+      $details = image_toolkit_invoke('get_info', $image);
+      file_unmanaged_delete($file->uri);
+      $file->uri = $data->mediaURL;
+      $file->alt = '';
+      $file->width = $details['width'];
+      $file->height = $details['height'];
+      $file->filename = basename($file->uri);
+      file_save($file);
+      $lang = field_language('eolapi', $eolapi, 'eolapi_image');
+      $eolapi->eolapi_image = array(
+        $lang => array(
+          (array)$file
+        )
+      );
+      entity_save('eolapi', $eolapi);
+    }else{
+      // The download of the image failed.
+      return FALSE;
+    }
   }
   return $eolapi;
 }
@@ -137,12 +154,16 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800){
       if(REQUEST_TIME - $age < $row->changed){return entity_load_single('eolapi', $row->eid);}
     }
     // Check first that the service is up. Else we set a warning message.
-    if(file_get_contents(EOLAPI_URL . 'ping')){
+    $is_service_up = drupal_http_request(EOLAPI_URL . 'ping', array(
+      'timeout' => EOLAPI_TIMEOUT
+    ));
+    if($is_service_up->code == 200){
       // We get the full amount of data that we can.
-      $data = file_get_contents(EOLAPI_URL . $type . '/' . EOLAPI_VERSION . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query);
-      if($data){
-        $data = json_decode($data);
-        if($data){
+      $request = drupal_http_request(EOLAPI_URL . $type . '/' . EOLAPI_VERSION . '/' . fullescape(urlencode($id)) . '.json?' . $additional_query, array(
+        'timeout' => EOLAPI_TIMEOUT
+      ));
+      if($request->code == 200){
+        if(($data = json_decode($request->data)) != FALSE){
           // Search has worked, we should update the current $row (if set), or
           // save a new eolapi entity
           if($row){

@@ -1,3 +1,8 @@
+2.6.3.3 (2015-03-27)
+
+- Converted most instances of file_get_contents() to drupal_http_request(), and
+  ensured a timeout is set for each request.
+
 2.6.3.2 (2015-03-26)
 
 - Ensure all EoL DwC-A rows are returned (#4353)

@@ -406,9 +406,11 @@ function scratchpads_statistics_user_login(&$edit, $account){
     $country = $account->field_user_country[$lang][0]['iso2'];
   }
   // Do a GeoIP lookup on the remote hostname.
-  $data = file_get_contents('http://freegeoip.net/json/' . $_SERVER['REMOTE_ADDR']);
-  if($data){
-    $geoip = json_decode($data, 1);
+  $request = drupal_http_request('http://freegeoip.net/json/' . $_SERVER['REMOTE_ADDR'], array(
+    'timeout' => 3
+  ));
+  if($request->code == 200){
+    $geoip = json_decode($request->data, 1);
     $latitude = $geoip['latitude'];
     $longitude = $geoip['longitude'];
   }
