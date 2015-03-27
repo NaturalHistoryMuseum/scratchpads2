@@ -1,3 +1,7 @@
+2.6.3.4 (2015-03-28)
+
+- Performance improvements for remote_stream_wrapper files
+
 2.6.3.3 (2015-03-27)
 
 - Converted most instances of file_get_contents() to drupal_http_request(), and

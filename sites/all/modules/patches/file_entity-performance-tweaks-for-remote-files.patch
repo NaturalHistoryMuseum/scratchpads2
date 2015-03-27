@@ -1,0 +1,45 @@
+diff --git a/sites/all/modules/contrib/file_entity/file_entity.file.inc b/sites/all/modules/contrib/file_entity/file_entity.file.inc
+index 3b76626..7b9881c 100644
+--- a/sites/all/modules/contrib/file_entity/file_entity.file.inc
++++ b/sites/all/modules/contrib/file_entity/file_entity.file.inc
+@@ -10,7 +10,7 @@
+  */
+ function file_entity_file_presave($file) {
+   // Always ensure the filemime property is current.
+-  if (!empty($file->original) || empty($file->filemime)) {
++  if ((!empty($file->original) && file_entity_file_is_local($file)) || empty($file->filemime)) {
+     $file->filemime = file_get_mimetype($file->uri);
+   }
+ 
+@@ -50,12 +50,18 @@ function file_entity_file_update($file) {
+   file_entity_invalidate_field_caches($file);
+ 
+   // Clear the page and block caches.
+-  cache_clear_all();
++  static $registered = FALSE;
++  if(!$registered){
++    $registered = TRUE;
++    drupal_register_shutdown_function('cache_clear_all');
++  }
+ 
+   // Reset the image dimensions for a file.
+   // @todo We should fetch image dimensions in file_entity_file_presave and
+   // then save them in this hook.
+-  file_entity_image_dimensions($file, TRUE);
++  if(file_entity_file_is_local($file)){
++    file_entity_image_dimensions($file, TRUE);
++  }
+ 
+   if ($file->type == 'image' && module_exists('image')) {
+     // If the image dimensions have changed, update any image field references
+@@ -65,7 +71,9 @@ function file_entity_file_update($file) {
+     }
+ 
+     // Flush image style derivatives whenever an image is updated.
+-    image_path_flush($file->uri);
++    if(file_entity_file_is_local($file)){
++      image_path_flush($file->uri);
++    }
+   }
+ }
+ 
