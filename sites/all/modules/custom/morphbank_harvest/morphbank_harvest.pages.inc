@@ -511,11 +511,9 @@ function morphbank_harvest_finished($success, $results, $operations){
     if($maxerrors != 0){
       // only report $maxerrors; unless $maxerrors = -1, then report them all
       while(($reported < $maxerrors && $reported < $total) || $maxerrors == -1){
-        $message_array = array(
-          '@term_name' => $term_name,
+        drupal_set_message(t('Query for one of the terms returned: @description.', array(
           '@description' => $description
-        );
-        drupal_set_message(t('Query for term \'@term_name\' returned: @description.', $message_array), 'error');
+        )), 'error');
         $reported++;
       }
       if($reported < $total){
@@ -715,7 +713,7 @@ function _process_response($response, $term_name, $tid, $hid){
         ))->condition('mid', $mid, '=')->execute();
         if($num_updated > 0){
           $to_return = 'u';
-        } else {
+        }else{
           $to_return = 'c';
         }
       }
