@@ -295,6 +295,12 @@ function dwcarchiver_dwcarchiver_archives(){
                   'processor' => 'dwcarchiver_raw_text'
                 ),
                 array(
+                  'field' => 'feeds_item:guid',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
+                  'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
                   'field' => 'field_type_status',
                   'uri' => 'http://rs.tdwg.org/dwc/terms/typeStatus',
                   'required' => 0,
@@ -546,6 +552,12 @@ function dwcarchiver_dwcarchiver_archives(){
             array(
               'field' => 'uuid',
               'uri' => 'coreid',
+              'required' => 0,
+              'processor' => 'dwcarchiver_raw_text'
+            ),
+            array(
+              'field' => 'feeds_item:guid',
+              'uri' => 'http://purl.org/dc/terms/identifier',
               'required' => 0,
               'processor' => 'dwcarchiver_raw_text'
             ),
