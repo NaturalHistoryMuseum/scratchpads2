@@ -22,33 +22,36 @@ function biblio_refbank_menu(){
  */
 function biblio_refbank_autocomplete($search_string, $return_xml = FALSE){
   $text = explode(" ", $search_string);
-  $name = $text[0];
   $year = array_pop($text);
   if(!is_numeric($year) || $year < 1000){
     drupal_json_output(array());
     return;
   }
-  $name = implode(" ", $text);
-  $url = sprintf(REFBANK_URL, urlencode($name), $year);
-  $xml = file_get_contents($url);
-  $_SESSION['biblio_refbank_xml'] = $xml;
+  $request = drupal_http_request(sprintf(REFBANK_URL, urlencode(implode(" ", $text)), $year), array(
+    'timeout' => 5
+  ));
   $options = array();
-  try{
-    $refbank = new SimpleXMLElement($xml);
-    if($return_xml){return $refbank;}
-    $i = 0;
-    foreach($refbank->ref as $ref){
-      $ref_attributes = $ref->attributes();
-      $id = (string)$ref_attributes->id;
-      $options["$search_string (REFBANKID:$id)"] = (string)$ref->refString;
-      $i++;
-      if($i == 10){
-        break;
+  if($request->code == 200){
+    $_SESSION['biblio_refbank_xml'] = $request->data;
+    try{
+      $refbank = new SimpleXMLElement($request->data);
+      if($return_xml){return $refbank;}
+      $i = 0;
+      foreach($refbank->ref as $ref){
+        $ref_attributes = $ref->attributes();
+        $id = (string)$ref_attributes->id;
+        $options["$search_string (REFBANKID:$id)"] = (string)$ref->refString;
+        $i++;
+        if($i == 10){
+          break;
+        }
       }
     }
+    catch(Exception $e){
+      // Do nothing, most likely the service is down.
+    }
   }
-  catch(Exception $e){
-    // Do nothing, most likely the service is down.
+  if(!$options){
     drupal_set_message(t('We are having issues with RefBank, please come back later.'));
   }
   drupal_json_output($options);
