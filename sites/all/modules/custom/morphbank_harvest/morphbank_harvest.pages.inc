@@ -177,7 +177,10 @@ function morphbank_harvest_form_submit($form, &$form_state){
       'problem' => 1
     ))->execute();
     if($hid > 0){
-      if(file_get_contents(MORPHBANK_SERVICE)){
+      $is_service_up = drupal_http_request(MORPHBANK_SERVICE, array(
+        'timeout' => MORPHBANK_TIMEOUT
+      ));
+      if($is_service_up->code == 200){
         // Set up the batch job
         $batch = array(
           'title' => t('Harvesting images ...'),
@@ -358,7 +361,10 @@ function _harvest_from_morphbank($harvest_details, &$context){
       '@term_name' => $term_name
     ));
     // Make sure Morphbank is responsive
-    if(file_get_contents(MORPHBANK_SERVICE)){
+    $is_service_up = drupal_http_request(MORPHBANK_SERVICE, array(
+      'timeout' => MORPHBANK_TIMEOUT
+    ));
+    if($is_service_up->code == 200){
       $responses = _query_morphbank($term_name, $maximages);
       if(is_array($responses)){ // The numReturned element was not empty (see _query_morphbank)
         $context['results']['num_queries']++;
@@ -511,11 +517,9 @@ function morphbank_harvest_finished($success, $results, $operations){
     if($maxerrors != 0){
       // only report $maxerrors; unless $maxerrors = -1, then report them all
       while(($reported < $maxerrors && $reported < $total) || $maxerrors == -1){
-        $message_array = array(
-          '@term_name' => $term_name,
+        drupal_set_message(t('Query for one of the terms returned: @description.', array(
           '@description' => $description
-        );
-        drupal_set_message(t('Query for term \'@term_name\' returned: @description.', $message_array), 'error');
+        )), 'error');
         $reported++;
       }
       if($reported < $total){
@@ -568,7 +572,9 @@ function _query_morphbank($term_name, $maximages){
   // Build the url
   $request_url = MORPHBANK_SERVICE . 'request?' . $query_string;
   // Make the request
-  $result = drupal_http_request($request_url);
+  $result = drupal_http_request($request_url, array(
+    'timeout' => MORPHBANK_TIMEOUT
+  ));
   //Make sure code == 200
   $code = $result->code;
   if($code == 200){ // What about 201?
@@ -715,7 +721,7 @@ function _process_response($response, $term_name, $tid, $hid){
         ))->condition('mid', $mid, '=')->execute();
         if($num_updated > 0){
           $to_return = 'u';
-        } else {
+        }else{
           $to_return = 'c';
         }
       }

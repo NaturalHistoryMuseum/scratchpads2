@@ -71,9 +71,11 @@ function _scratchpads_tweaks_cron(){
       ));
       $sites = array();
       foreach($central_servers as $central_server){
-        $content = file_get_contents($central_server . 'scratchpads/serial');
-        if($content){
-          $sites = array_merge($sites, unserialize($content));
+        $request = drupal_http_request($central_server . 'scratchpads/serial', array(
+          'timeout' => 5
+        ));
+        if($request->code == 200 && ($remote_sites = unserialize($request->data)) != FALSE){
+          $sites = array_merge($sites, $remote_sites);
         }
       }
       variable_set('scratchpad_sites_list', $sites);

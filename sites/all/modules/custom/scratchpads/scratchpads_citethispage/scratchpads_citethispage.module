@@ -332,6 +332,15 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
   }else{
     $cite_service_url = variable_get('scratchpads_citethispage_cite_preview_url', CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT);
   }
+  //
+  //
+  //
+  //
+  //
+  //
+  // FIXME - This instance of file_get_contents MUST be converted to 
+  // drupal_http_request() and a timeout added. If the request times out, we
+  // must add the ability to handle the timeout.
   $raw_result = file_get_contents($cite_service_url, false, $context);
   $cite_result = json_decode($raw_result);
   if(!$preview){
