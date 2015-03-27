@@ -18,13 +18,18 @@ function eol_gbif_maps_gm3_map_alter(&$map){
         'taxon_id' => array_pop($col)
       );
     }else{
-      $json = json_decode(file_get_contents('http://api.gbif.org/v1/species?name=' . $term->name), TRUE);
-      if($json && !empty($json['results'][0]['nubKey'])){
-        $id = $json['results'][0]['nubKey'];
-        db_insert('eol_gbif_maps_tid_map')->fields(array(
-          'tid' => $term->tid,
-          'taxon_id' => "$id"
-        ))->execute();
+      $request = drupal_http_request('http://api.gbif.org/v1/species?name=' . $term->name, array(
+        'timeout' => 3
+      ));
+      if($request->code == 200){
+        $json = json_decode($request->data, TRUE);
+        if($json && !empty($json['results'][0]['nubKey'])){
+          $id = $json['results'][0]['nubKey'];
+          db_insert('eol_gbif_maps_tid_map')->fields(array(
+            'tid' => $term->tid,
+            'taxon_id' => "$id"
+          ))->execute();
+        }
       }
     }
   }
