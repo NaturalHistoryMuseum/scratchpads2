@@ -97,12 +97,17 @@ function scratchpads_width_and_height_theme_image($variables){
               'timeout' => 3
             )
           ));
-          $file = file_unmanaged_save_data(@file_get_contents($variables['path'], FALSE, $context), 'temporary://');
-          $path = drupal_realpath($file);
-          if(substr($path, 0, 1) == '/' && file_exists($path) && filesize($path)){
-            $image = image_load($path);
+          $request = file_get_contents($variables['path'], array(
+            'timeout' => 3
+          ));
+          if($request->code == 200){
+            $file = file_unmanaged_save_data($request->data, 'temporary://');
+            $path = drupal_realpath($file);
+            if(substr($path, 0, 1) == '/' && file_exists($path) && filesize($path)){
+              $image = image_load($path);
+            }
+            unlink($path);
           }
-          unlink($path);
         }else{
           $image = image_load($variables['path']);
         }
