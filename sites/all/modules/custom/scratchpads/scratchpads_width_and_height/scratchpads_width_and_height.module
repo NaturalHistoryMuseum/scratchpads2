@@ -97,7 +97,7 @@ function scratchpads_width_and_height_theme_image($variables){
               'timeout' => 3
             )
           ));
-          $request = file_get_contents($variables['path'], array(
+          $request = drupal_http_request($variables['path'], array(
             'timeout' => 3
           ));
           if($request->code == 200){
