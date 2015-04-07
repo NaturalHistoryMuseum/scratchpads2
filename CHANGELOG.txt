@@ -1,3 +1,8 @@
+2.6.3.5 (2015-04-07)
+
+- Fix a minor issue with scratchpads_width_and_height that prevented remote
+  images from having their widths/heights calculated (#4357)
+
 2.6.3.4 (2015-03-28)
 
 - Performance improvements for remote_stream_wrapper files
