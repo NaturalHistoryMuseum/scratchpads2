@@ -116,6 +116,14 @@ function eolapi_data_objects($id, $tid, $age = 604800){
       $image->source = $file->uri;
       $image->toolkit = $toolkit;
       $details = image_toolkit_invoke('get_info', $image);
+      // Because Drupal is a little stupid when it comes to mime types, we need
+      // to calculate the mime here.
+      if(function_exists('finfo_open')){
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimetype = finfo_file($finfo, $file->uri);
+        $file->mimetype = $mimetype;
+        finfo_close($finfo);
+      }
       file_unmanaged_delete($file->uri);
       $file->uri = $data->mediaURL;
       $file->alt = '';
