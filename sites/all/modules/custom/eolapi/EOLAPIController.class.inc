@@ -10,13 +10,15 @@ class EOLAPIController extends EntityAPIController{
 
   public function delete($ids, DatabaseTransaction $transaction = NULL){
     // Delete the files associated with the entity.
-    $fids = db_select('field_data_eolapi_image', 'f')->fields('f', array(
-      'eolapi_image_fid'
-    ))->condition('entity_id', $ids)->execute()->fetchCol();
-    if(count($fids)){
-      entity_delete_multiple('file', $fids);
+    if(db_table_exists('field_data_eolapi_image')){
+      $fids = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+        'eolapi_image_fid'
+      ))->condition('entity_id', $ids)->execute()->fetchCol();
+      if(count($fids)){
+        entity_delete_multiple('file', $fids);
+      }
+      // Delete this entity
+      parent::delete($ids, $transaction);
     }
-    // Delete this entity
-    parent::delete($ids, $transaction);
   }
 }
