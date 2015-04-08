@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/file_entity/file_entity.module b/sites/all/modules/contrib/file_entity/file_entity.module
+index 8930149..e74f0e9 100644
+--- a/sites/all/modules/contrib/file_entity/file_entity.module
++++ b/sites/all/modules/contrib/file_entity/file_entity.module
+@@ -570,7 +570,7 @@ function file_entity_file_formatter_file_image_view($file, $display, $langcode)
+     return;
+   }
+ 
+-  if (file_entity_file_is_local($file) && isset($file->image_dimensions)) {
++  if (isset($file->image_dimensions)) {
+     if (!empty($display['settings']['image_style'])) {
+       $element = array(
+         '#theme' => 'image_style',
