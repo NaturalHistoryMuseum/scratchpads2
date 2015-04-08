@@ -1,3 +1,7 @@
+2.6.3.6 (2015-04-08)
+
+- Fix a error that resulted in a redirect to a private file when viewing a private file in a media gallery (#4360)
+
 2.6.3.5 (2015-04-07)
 
 - Fix a minor issue with scratchpads_width_and_height that prevented remote
