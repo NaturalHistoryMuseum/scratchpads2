@@ -120,8 +120,8 @@ function eolapi_data_objects($id, $tid, $age = 604800){
       // to calculate the mime here.
       if(function_exists('finfo_open')){
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimetype = finfo_file($finfo, $file->uri);
-        $file->mimetype = $mimetype;
+        $filemime = finfo_file($finfo, $file->uri);
+        $file->filemime = $filemime;
         finfo_close($finfo);
       }
       file_unmanaged_delete($file->uri);
