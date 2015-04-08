@@ -471,7 +471,7 @@ function character_editor_update_7007(){
   if(isset($r['character_editor_project'])){
     foreach(array_keys($r['character_editor_project']) as $entity_id){
       $project = entity_load_single('character_editor_project', $entity_id);
-      if(empty($project->field_char_proj_flags)){
+      if($project && empty($project->field_char_proj_flags)){
         foreach($flag_defaults as $flag_abbr => $flag){
           $f = entity_create('field_collection_item', array(
             'item_id' => NULL,
