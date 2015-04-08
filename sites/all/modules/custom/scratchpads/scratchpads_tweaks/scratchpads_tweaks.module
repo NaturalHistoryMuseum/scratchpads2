@@ -184,6 +184,19 @@ function scratchpads_tweaks_cron(){
 }
 
 /**
+ * Implements hook_customerror_pre_render()
+ * 
+ * Fix for the customerror module - Ensure we don't set the
+ * customerror_destination if we've tried to view a file that we could not
+ * actually view. 
+ */
+function scratchpads_tweaks_customerror_pre_render($code){
+  if(!empty($_SESSION['customerror_destination']) && strpos($_SESSION['customerror_destination'], 'system/files') !== FALSE){
+    unset($_SESSION['customerror_destination']);
+  }
+}
+
+/**
  * Implements hook_flush_caches
  */
 function scratchpads_tweaks_flush_caches(){
