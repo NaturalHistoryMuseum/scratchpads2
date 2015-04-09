@@ -26,7 +26,9 @@ function scratchpads_sandbox_install(){
   ))->condition('uid', 1)->execute();
   // Create a new account for the trainee.
   $edit['name'] = 'username';
-  user_save(NULL, $edit);
+  if(!user_load(2)){
+    user_save(NULL, $edit);
+  }
   // No idea why, but having issues with setting the password for this user, so
   // instead we'll hard code it!
   db_update('users')->fields(array(
