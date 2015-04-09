@@ -205,6 +205,46 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                 case 'iso2':
                   $cell_values[] = $value['iso2'];
                   break;
+                case 'guid':
+                  $field = field_info_field($target[0]);
+                  if(is_array($entity->{$target[0]}) && count($entity->{$target[0]})){
+                    $cell_values = array();
+                    foreach($entity->{$target[0]} as $language => $values){
+                      foreach($entity->{$target[0]}[$language] as $value){
+                        foreach($value as $subkey => $item){
+                          // Change to the allowed values array().
+                          if($field && !empty($field['settings']['allowed_values'][$item])){
+                            $item = $field['settings']['allowed_values'][$item];
+                          }
+                          switch($subkey){
+                            case 'tid':
+                              // Note, we could do this with a single query, but that would place a requirement on the UUID module/column,
+                              // so doing it this way keeps it a little simpler.
+                              $guid = db_select('feeds_item', 'f')->condition('entity_type', 'taxonomy_term')->condition('entity_id', $item)->fields('f', array(
+                                'guid'
+                              ))->execute()->fetchField();
+                              if(!$guid){
+                                $term = taxonomy_term_load($item);
+                                $guid = empty($term->uuid) ? '' : $term->uuid;
+                              }
+                              $cell_values[] = $guid;
+                              break;
+                            case 'nid':
+                              $guid = db_select('feeds_item', 'f')->condition('entity_type', 'taxonomy_term')->condition('entity_id', $item)->fields('f', array(
+                                'guid'
+                              ))->execute()->fetchField();
+                              if(!$guid){
+                                $node = node_load($item);
+                                $guid = empty($node->uuid) ? '' : $node->uuid;
+                              }
+                              $cell_values[] = $guid;
+                              break;
+                          }
+                        }
+                      }
+                    }
+                  }
+                  break;
                 case 'tid':
                   $cell_values[] = $value['tid'];
                   break;
