@@ -209,12 +209,8 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
       $query->leftJoin('taxonomy_term_hierarchy', $field, $field . ".tid = base.{$info['entity keys']['id']}");
       return $query->leftJoin('taxonomy_term_data', "{$field}_term_data", "{$field}_term_data.tid = {$field}.parent");
     case 'special_biblio_back_reference':
-      $query->leftJoin('field_data_field_taxonomic_name', $field, $field . ".field_taxonomic_name_tid = base.{$info['entity keys']['id']}");
-      $or = db_or()->condition($field . '.entity_type', 'node')->condition($field . '.entity_type', NULL);
-      $query->condition($or);
-      $alias = $query->leftJoin('node', "special_biblio_back_reference_node", "special_biblio_back_reference_node.nid = {$field}.entity_id");
-      $or = db_or()->condition('special_biblio_back_reference_node.type', 'biblio')->condition('special_biblio_back_reference_node.type', NULL);
-      $query->condition($or);
+      $query->leftJoin('field_data_field_taxonomic_name', $field, "({$field}.field_taxonomic_name_tid = base.{$info['entity keys']['id']} AND {$field}.entity_type = 'node')");
+      $alias = $query->leftJoin('node', "special_biblio_back_reference_node", "(special_biblio_back_reference_node.nid = {$field}.entity_id AND 'special_biblio_back_reference_node.type' = 'biblio')");
       return $alias;
     case 'user':
       return $query->leftJoin('users', "{$field}", "{$field}.uid = base.uid");

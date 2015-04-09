@@ -170,7 +170,9 @@ function eolapi_menu(){
         'eolapi_config_form'
       ),
       'page callback' => 'drupal_get_form',
-      'access arguments' => array('administer site configuration'),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
       'file' => 'eolapi.pages.inc'
     ),
     'eolapi' => array(
@@ -197,6 +199,20 @@ function eolapi_menu(){
       )
     )
   );
+}
+
+/**
+ * Alter the query for files done by the Feeds XLS module
+ */
+function eolapi_feeds_xls_template_query_alter(&$query, $entity_type, $entity_key){
+  if($entity_type == 'file'){
+    if(db_table_exists('field_data_eolapi_image')){
+      $subquery = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+        'eolapi_image_fid'
+      ));
+      $query->condition('fid', $subquery, 'NOT IN');
+    }
+  }
 }
 
 /**

@@ -112,31 +112,31 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
     $context['sandbox']['conditions'] = array();
     switch($entity_guess){
       case 'node':
-        $results = db_select('node', 'e')->fields('e', array(
+        $query = db_select('node', 'e')->fields('e', array(
           'nid'
-        ))->condition('type', $feeds_importer->processor->config['bundle'])->execute();
+        ))->condition('type', $feeds_importer->processor->config['bundle']);
         $entity_key = 'nid';
         $context['sandbox']['entity'] = 'node';
         break;
       case 'term':
         // The bundle for a term is actually the vid.
         $vocabulary = taxonomy_vocabulary_machine_name_load($feeds_importer->processor->config['vocabulary']);
-        $results = db_select('taxonomy_term_data', 'e')->fields('e', array(
+        $query = db_select('taxonomy_term_data', 'e')->fields('e', array(
           'tid'
-        ))->condition('vid', $vocabulary->vid)->execute();
+        ))->condition('vid', $vocabulary->vid);
         $entity_key = 'tid';
         $entity_guess = 'taxonomy_term';
         $context['sandbox']['entity'] = 'taxonomy_term';
         break;
       case 'file':
-        $results = db_select('file_managed', 'e')->fields('e', array(
+        $query = db_select('file_managed', 'e')->fields('e', array(
           'fid'
-        ))->condition('type', $feeds_importer->processor->config['bundle'])->condition('uri', 'public://eolapi/%', 'NOT LIKE')->execute();
+        ))->condition('type', $feeds_importer->processor->config['bundle']);
         $entity_key = 'fid';
         $context['sandbox']['entity'] = 'file';
         break;
       case 'user':
-        $results = db_select('users', 'e')->fields('e')->condition('uid', 1, '>')->execute();
+        $query = db_select('users', 'e')->fields('e')->condition('uid', 1, '>');
         $entity_key = 'uid';
         $context['sandbox']['entity'] = 'user';
         break;
@@ -156,6 +156,8 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
         $context['sandbox']['conditions']['character_project_id'] = $feeds_importer->processor->config['character_project'];
         break;
     }
+    drupal_alter('feeds_xls_template_query', $query, $context['sandbox']['entity'], $entity_key);
+    $results = $query->execute();
     $context['sandbox']['progress'] = 0;
     foreach($results as $row){
       $context['sandbox']['entity_ids'][] = $row->{$entity_key};
