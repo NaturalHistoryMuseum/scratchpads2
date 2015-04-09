@@ -225,7 +225,7 @@ function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value)
       unset($value[$k]);
     }
   }
-  text_feeds_set_target($source, $entity, $target, $value, TRUE);
+  text_feeds_set_target($source, $entity, $target, $value);
 }
 
 /**
