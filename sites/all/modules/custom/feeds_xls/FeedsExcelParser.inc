@@ -58,7 +58,7 @@ class FeedsExcelParser extends FeedsParser{
     // Load the PHPExcel shenanigans
     // Note, we're caching this in a file as PDO/MySQL complain when it is 
     // included in the $this->state object (dodgy characters).
-    if(!$this->state->reader_object_cache_path || !file_exists($this->state->reader_object_cache_path)){
+    if(empty($this->state->reader_object_cache_path) || !file_exists($this->state->reader_object_cache_path)){
       // We use drupal_realpath here as it appears that the ZipArchive class is
       // not able to handle our use of public://... Stream URIs.  This will need
       // to be fixed before Drupal 8.
@@ -73,7 +73,7 @@ class FeedsExcelParser extends FeedsParser{
         $this->reader->setReadDataOnly(true);
       }
       $tempnam = drupal_tempnam('temporary://', 'feeds_xls_data_');
-      chmod($tempnam, 0660);
+      @chmod($tempnam, 0660);
       file_put_contents($tempnam, serialize($this));
       $this->state->reader_object_cache_path = $tempnam;
       // Set pointer to 0
@@ -82,10 +82,6 @@ class FeedsExcelParser extends FeedsParser{
       $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
       $this->reader = $previous_this->reader;
       $this->chunk_filter = $previous_this->chunk_filter;
-    }
-    // Upper case the mappings
-    foreach($source->importer->processor->config['mappings'] as $key => $mapping){
-      $source->importer->processor->config['mappings'][$key]['source'] = strtoupper($mapping['source']);
     }
     // P A R S E !
     $rows = array();
@@ -101,9 +97,9 @@ class FeedsExcelParser extends FeedsParser{
       foreach($cellIterator as $cell){
         if(!is_null($cell)){
           if(!isset($this->state->column_names)){
-            $row_values[] = strtoupper(trim($cell->getCalculatedValue()));
+            $row_values[] = trim($cell->getCalculatedValue());
           }else{
-            if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) ? $this->state->column_names[$column] : $column) == 'GUID'){
+            if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) && strtoupper($this->state->column_names[$column]) == 'GUID')){
               $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();
             }
           }
@@ -116,6 +112,20 @@ class FeedsExcelParser extends FeedsParser{
         $row_values['GUID'] = '';
       }
       if(!isset($this->state->column_names)){
+        // Loop through the headers we have been provided with, and convert them
+        // to the exact case/capitalisation as the mappings that the importer
+        // was set up with.
+        // Note, I am not sure if Feeds allows two mappings with the same name
+        // that differ only by case, but if it does, it's very silly and will
+        // cause issues here.
+        foreach($row_values as $key => $value){
+          foreach($source->importer->processor->config['mappings'] as $key => $mapping){
+            if(strtolower($value) == strtolower($mapping['source'])){
+              $row_values[$key] = $mapping['source'];
+              break;
+            }
+          }
+        }
         $this->state->column_names = $row_values;
       }else{
         if($this->isRowNotEmpty($row_values)){
