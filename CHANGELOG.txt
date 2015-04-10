@@ -1,6 +1,11 @@
+2.6.3.7 (2015-04-10)
+
+- Fix an issue with the Tinytax block on multilingual sites
+
 2.6.3.6 (2015-04-08)
 
-- Fix a error that resulted in a redirect to a private file when viewing a private file in a media gallery (#4360)
+- Fix a error that resulted in a redirect to a private file when viewing a
+  private file in a media gallery (#4360)
 
 2.6.3.5 (2015-04-07)
 
