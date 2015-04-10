@@ -3,7 +3,7 @@
     // Slide Toggles
     // Re-organise the login block to make this easier
     $('#zone-slide-top #block-user-login', context).addClass('scratchpads-slide-toggle-container');
-    $('#region-slide-top a[href="/user"]', context).detach().appendTo('#zone-slide-top #block-user-login');
+    $('#region-slide-top a[href="' + Drupal.settings.basePath + Drupal.settings.pathPrefix + 'user"]', context).detach().appendTo('#zone-slide-top #block-user-login');
     $('#zone-slide-top #block-user-login form', context).addClass('scratchpads-slide-toggle-body');
     // Place the labels in the top region
     var pos = 0;
