@@ -215,7 +215,7 @@ function tinytax_block_view($delta = ''){
     // cache.
     $content = '';
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
-      $cid = $delta . ':' . implode(',', $open_tids);
+      $cid = $delta . ':' . (isset($GLOBALS['language']) && is_object($GLOBALS['language']) ? $GLOBALS['language']->language : '') . ':' . implode(',', $open_tids);
       $cache = cache_get($cid, 'cache_tinytax');
       if($cache->data){
         $content = $cache->data;
