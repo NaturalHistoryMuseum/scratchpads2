@@ -74,6 +74,10 @@ function scratchpads_sandbox_install(){
     }
     $tids_before_and_after[$tid] = $term->tid;
   }
+  // Set the default term for the Phthiraptera vocabulary
+  variable_set('scratchpads_default_term', array(
+    $vocabulary->vid => $pediculus_tid
+  ));
   include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_sandbox') . "/scratchpads_sandbox.biblio_nodes.inc";
   foreach($nodes as $node){
     $node->field_taxonomic_name = array(
