@@ -36,6 +36,7 @@ function scratchpads_multilingual_scratchpads_default_permissions(){
  */
 function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
   $urls = array_merge($urls, array(
+    'admin/config/regional/language/edit',
     'admin/config/regional/language/update',
     'admin/config/regional/language/configure',
     'admin/config/regional/translate'
@@ -72,6 +73,109 @@ function scratchpads_multilingual_form_locale_translation_filter_form_alter(&$fo
     'locale_translation_filter_form_submit',
     'scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit'
   );
+}
+
+/**
+ * Implements hook_theme
+ */
+function scratchpads_multilingual_theme(){
+  return array(
+    'scratchpads_multilingual_locale_languages_overview_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ * 
+ * Remove the "edit" and "Operations" columns from the language page
+ */
+function scratchpads_multilingual_form_locale_languages_overview_form_alter(&$form, &$form_state, $form_id){
+  if(!user_access('scratchpads team')){
+    $form['#theme'] = 'scratchpads_multilingual_locale_languages_overview_form';
+  }
+}
+
+/**
+ * Copy of theme_locale_languages_overview_form(), but without the Operations
+ * column.
+ */
+function theme_scratchpads_multilingual_locale_languages_overview_form($variables){
+  $form = $variables['form'];
+  $default = language_default();
+  foreach($form['name'] as $key => $element){
+    // Do not take form control structures.
+    if(is_array($element) && element_child($key)){
+      // Disable checkbox for the default language, because it cannot be disabled.
+      if($key == $default->language){
+        $form['enabled'][$key]['#attributes']['disabled'] = 'disabled';
+      }
+      // Add invisible labels for the checkboxes and radio buttons in the table
+      // for accessibility. These changes are only required and valid when the
+      // form is themed as a table, so it would be wrong to perform them in the
+      // form constructor.
+      $title = drupal_render($form['name'][$key]);
+      $form['enabled'][$key]['#title'] = t('Enable !title', array(
+        '!title' => $title
+      ));
+      $form['enabled'][$key]['#title_display'] = 'invisible';
+      $form['site_default'][$key]['#title'] = t('Set !title as default', array(
+        '!title' => $title
+      ));
+      $form['site_default'][$key]['#title_display'] = 'invisible';
+      $rows[] = array(
+        'data' => array(
+          '<strong>' . $title . '</strong>',
+          drupal_render($form['native'][$key]),
+          check_plain($key),
+          drupal_render($form['direction'][$key]),
+          array(
+            'data' => drupal_render($form['enabled'][$key]),
+            'align' => 'center'
+          ),
+          drupal_render($form['site_default'][$key]),
+          drupal_render($form['weight'][$key])
+        ),
+        'class' => array(
+          'draggable'
+        )
+      );
+    }
+  }
+  $header = array(
+    array(
+      'data' => t('English name')
+    ),
+    array(
+      'data' => t('Native name')
+    ),
+    array(
+      'data' => t('Code')
+    ),
+    array(
+      'data' => t('Direction')
+    ),
+    array(
+      'data' => t('Enabled')
+    ),
+    array(
+      'data' => t('Default')
+    ),
+    array(
+      'data' => t('Weight')
+    )
+  );
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(
+      'id' => 'language-order'
+    )
+  ));
+  $output .= drupal_render_children($form);
+  drupal_add_tabledrag('language-order', 'order', 'sibling', 'language-order-weight');
+  return $output;
 }
 
 /**
