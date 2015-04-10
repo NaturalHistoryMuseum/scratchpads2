@@ -39,3 +39,11 @@ function scratchpads_multilingual_update_7002(){
     language_negotiation_set('language', $negotiation);
   }
 }
+
+/**
+ * Ensure the prefix is the same as the language code. Not sure why users would
+ * change this, but one of ours did!
+ */
+function scratchpads_multilingual_update_7003(){
+  db_update('languages')->expression('prefix', 'language')->execute();
+}
