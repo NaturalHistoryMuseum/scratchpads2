@@ -304,6 +304,54 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 }
 
 /**
+ * Implementation of hook_captcha_default_points_alter().
+ *
+ * Provide some default captchas only if defaults are not already
+ * provided by other modules.
+ */
+function captcha_captcha_default_points_alter(&$items) {
+  $modules = array(
+    'comment' => array(
+    ),
+    'contact' => array(
+      'contact_site_form',
+      'contact_personal_form'
+    ),
+    'forum' => array(
+      'forum_node_form',
+    ),
+    'user' => array(
+      'user_register_form',
+      'user_pass',
+      'user_login',
+      'user_login_block',
+    ),
+  );
+  // Add comment form_ids of all currently known node types.
+  foreach (node_type_get_names() as $type => $name) {
+    $modules['comment'][] = 'comment_node_' . $type . '_form';
+  }
+
+  foreach ($modules as $module => $form_ids) {
+    // Only give defaults if the module exists.
+    if (module_exists($module)) {
+      foreach ($form_ids as $form_id) {
+        // Ensure a default has not been provided already.
+        if (!isset($items[$form_id])) {
+          $captcha = new stdClass;
+          $captcha->disabled = FALSE;
+          $captcha->api_version = 1;
+          $captcha->form_id = $form_id;
+          $captcha->module = '';
+          $captcha->captcha_type = 'default';
+          $items[$form_id] = $captcha;
+        }
+      }
+    }
+  }
+}
+
+/**
  * Theme function for a CAPTCHA element.
  *
  * Render it in a fieldset if a description of the CAPTCHA
@@ -438,8 +486,11 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
     $form['caching']['captcha'] = array(
       '#type' => 'item',
       '#title' => t('CAPTCHA'),
-      '#markup' => t('!icon The CAPTCHA module will disable the caching of pages that contain a CAPTCHA element.', array(
-        '!icon' => '<span class="icon">' . $icon . '</span>')
+      '#markup' => t(
+        '!icon The CAPTCHA module will disable the caching of pages that contain a CAPTCHA element.',
+        array(
+          '!icon' => '<span class="icon">' . $icon . '</span>'
+        )
       ),
       '#attributes' => array('class' => array('warning')),
     );
@@ -512,7 +563,8 @@ function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
 }
 
 /**
- * Helper function for getting the posted CAPTCHA info (posted form_id and CAPTCHA sessions ID) from a form in case it is posted.
+ * Helper function for getting the posted CAPTCHA info (posted form_id and
+ * CAPTCHA sessions ID) from a form in case it is posted.
  *
  * This function hides the form processing mess for several use cases an
  * browser bug workarounds.
@@ -556,7 +608,7 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) 
     // we should be extra cautious and filter this data.
     $posted_form_id = isset($form_state['input']['form_id']) ? preg_replace("/[^a-z0-9_]/", "", (string) $form_state['input']['form_id']) : NULL;
     $posted_captcha_sid = isset($form_state['input']['captcha_sid']) ? (int) $form_state['input']['captcha_sid'] : NULL;
-    $posted_captcha_token = isset($form_state['input']['captcha_token']) ? preg_replace("/[^a-zA-Z0-9]/", "", (string) $form_state['input']['captcha_token']) : NULL;
+    $posted_captcha_token = !empty($form_state['input']['captcha_token']) ? preg_replace("/[^a-zA-Z0-9]/", "", (string) $form_state['input']['captcha_token']) : NULL;
 
     if ($posted_form_id == $this_form_id) {
       // Check if the posted CAPTCHA token is valid for the posted CAPTCHA
@@ -571,15 +623,18 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) 
           "SELECT token FROM {captcha_sessions} WHERE csid = :csid",
           array(':csid' => $posted_captcha_sid)
         )->fetchField();
+
         if ($expected_captcha_token !== $posted_captcha_token) {
           drupal_set_message(t('CAPTCHA session reuse attack detected.'), 'error');
           // Invalidate the CAPTCHA session.
           $posted_captcha_sid = NULL;
         }
+
         // Invalidate CAPTCHA token to avoid reuse.
         db_update('captcha_sessions')
           ->fields(array('token' => NULL))
-          ->condition('csid', $posted_captcha_sid);
+          ->condition('csid', $posted_captcha_sid)
+          ->execute();
       }
     }
     else {
@@ -600,6 +655,10 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) 
  * files).
  */
 function captcha_validate($element, &$form_state) {
+  // If disable captcha mode is enabled, bypass captcha validation.
+  if (variable_get('disable_captcha', FALSE)) {
+    return;
+  }
 
   $captcha_info = $form_state['captcha_info'];
   $form_id = $captcha_info['this_form_id'];
