@@ -3,9 +3,12 @@ description = "Adds a switch field element."
 package = "Fields"
 dependencies[] = options
 core = 7.x
-php = 5.x
-
 
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-project = switch
+
+; Information added by drupal.org packaging script on 2013-01-03
+version = "7.x-1.0"
+core = "7.x"
+project = "switch"
+datestamp = "1357232938"
