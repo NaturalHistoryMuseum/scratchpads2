@@ -17,8 +17,8 @@
  */
 function _customerror_enum_errors() {
   $errors = array(
-    404 => t('requested page not found'),
-    403 => t('access denied'),
+    404 => array(t('Page not found'), t('The requested page could not be found.')),
+    403 => array(t('Access denied'), t('You are not authorized to access this page.')),
   );
 
   // Sorting array here by keys so they are logically sorted on form.
@@ -32,17 +32,13 @@ function _customerror_enum_errors() {
  */
 function _customerror_fetch_error($error_code) {
   $errors = _customerror_enum_errors();
-
-  $default_desc = t('unknown error: @error_code', array('@error_code' => $error_code));
-
-  $r = $default_desc;
-
-  foreach ($errors as $code => $desc) {
-    if ($error_code == $code) {
-      $r = $desc;
-    }
-  }
-  return $r;
+  $ret = isset($errors[$error_code]) ?
+    $errors[$error_code] :
+    array(
+      t('unknown error: @error_code', array('@error_code' => $error_code)),
+      t('This error has no description.'),
+    );
+  return $ret;
 }
 
 /**
@@ -95,7 +91,7 @@ function customerror_admin_settings($form, &$form_state) {
     $form[$group]['customerror_' . $code . '_title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title for @code', array('@code' => $code)),
-      '#default_value' => variable_get('customerror_' . $code . '_title', $desc),
+      '#default_value' => variable_get('customerror_' . $code . '_title', $desc[0]),
       '#size' => 70,
       '#maxlength' => 70,
       '#description' => t('Title of @code error page', array('@code' => $code)),
@@ -103,9 +99,9 @@ function customerror_admin_settings($form, &$form_state) {
     $form[$group]['customerror_' . $code] = array(
       '#type' => 'textarea',
       '#title' => t('Description for @code', array('@code' => $code)),
-      '#default_value' => variable_get('customerror_' . $code, $desc),
+      '#default_value' => variable_get('customerror_' . $code, $desc[1]),
       '#rows' => 10,
-      '#description' => t('This text will be displayed if a @code (@desc) error occurs.', array('@code' => $code, '@desc' => $desc)),
+      '#description' => t('This text will be displayed if a @code (@desc) error occurs.', array('@code' => $code, '@desc' => $desc[1])),
     );
   }
 
@@ -164,10 +160,12 @@ function customerror_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['customerror'] = array(
-    'title' => 'customerror',
+  $items['customerror/%'] = array(
+    'title callback' => 'customerror_page_title',
+    'title arguments' => array(1),
     'access callback' => TRUE,
     'page callback' => 'customerror_page',
+    'page arguments' => array(1),
     'theme callback' => 'customerror_theme_callback',
     'type' => MENU_CALLBACK,
   );
@@ -176,13 +174,22 @@ function customerror_menu() {
 }
 
 /**
- * Returns the content to display on the the 403 or 404 error page.
- *
- * Does not seem to do any themeing.
+ * Return the page title associated to the customerror code.
  */
-function customerror_page() {
-  $code = arg(1);
+function customerror_page_title($code) {
+  module_invoke_all('customerror_pre_render', $code);
 
+  if (module_exists('customerroralt') && customerroralt_code($code)) {
+    $code = customerroralt_code($code);
+  }
+  $desc = _customerror_fetch_error($code);
+  return variable_get('customerror_' . $code . '_title', $desc[0]);
+}
+
+/**
+ * Returns the content to display on the the 403 or 404 error page.
+ */
+function customerror_page($code) {
   switch ($code) {
     case 403:
       $internal_path = substr(request_uri(), strlen(base_path()));
@@ -222,10 +229,11 @@ function customerror_page() {
         $code = customerroralt_code($code);
       }
 
-      drupal_set_title(variable_get('customerror_' . $code . '_title', _customerror_fetch_error($code)));
+      $desc = _customerror_fetch_error($code);
+      //drupal_set_title(variable_get('customerror_' . $code . '_title', $desc[0]));
       $output = theme('customerror', array(
         'code' => $code,
-        'content' => variable_get('customerror_' . $code, _customerror_fetch_error($code)),
+        'content' => variable_get('customerror_' . $code, $desc[1]),
       ));
       if (module_exists('php')) {
         $output = php_eval($output);
@@ -283,7 +291,7 @@ function theme_customerror(array $variables) {
  * Implements hook_drupal_goto_alter().
  */
 function customerror_drupal_goto_alter(&$path, &$options, &$http_response_code) {
-  if (!isset($_SESSION['customerror_destination'])) {
+  if (!user_is_logged_in() || !isset($_SESSION['customerror_destination'])) {
     return;
   }
   $dest = drupal_parse_url($_SESSION['customerror_destination']);
@@ -303,7 +311,9 @@ function customerror_drupal_goto_alter(&$path, &$options, &$http_response_code) 
  * Check list of redirects.
  */
 function customerror_check_redirect() {
-  $destination = $_GET['destination'];
+  if (isset($_GET['destination'])) {
+    $destination = $_GET['destination'];
+  }
   if (empty($destination)) {
     return;
   }
@@ -372,3 +382,19 @@ function customerror_custom_theme() {
   return $theme;
 }
 
+/*
+* Theme function for LoginToboggan's 'lt_access_denied'.
+*/
+function _customerror__theme_lt_access_denied() {
+  return customerror_page(403);
+}
+
+/**
+* Implements hook_theme_registry_alter()
+*/
+function customerror_theme_registry_alter(&$theme_registry) {
+  if (module_exists('logintoboggan')) {
+    $theme_registry['lt_access_denied']['theme path'] = drupal_get_path('module', 'customerror');
+    $theme_registry['lt_access_denied']['function'] = '_customerror__theme_lt_access_denied';
+  }
+}
