@@ -1,12 +1,7 @@
 <?php
 
-/*********************************************************************************************
- *
- * HOOKS
- *
- ********************************************************************************************/
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function formflow_menu(){
   $items = array();
@@ -145,7 +140,7 @@ function formflow_field_group_formatter_info(){
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function formflow_theme(){
   return array(
@@ -162,7 +157,7 @@ function formflow_theme(){
 }
 
 /**
- * Implementation of hook_features_api().
+ * Implements hook_features_api().
  */
 function formflow_features_api(){
   return array(
@@ -177,14 +172,13 @@ function formflow_features_api(){
 }
 
 /**
- *
  * Get all flows
  */
 function formflow_get_flows($name = null){
   // Load the flows from the DB
   $flows = formflow_load($name);
   // If we're just after one flow, see if we've got it at this point & return it
-  if($name && isset($flows[$name])){return $flows[$name];}
+  if($name && !empty($flows) && isset($flows[$name])){return $flows[$name];}
   // Call hook_default_flows to get any modules defined in code
   foreach(module_implements('default_flows') as $module){
     foreach(module_invoke($module, 'default_flows') as $default_flow){
@@ -196,15 +190,12 @@ function formflow_get_flows($name = null){
       $flows[$default_flow['name']]['module'] = $module;
     }
   }
-  if($name){
-    return $flows[$name];
-  }else{
-    return $flows;
-  }
+  if($name && !empty($flows)){return isset($flows[$name]) ? $flows[$name] : array();}
+  return $flows;
 }
 
 /**
- * Implementation of hook_module_implements_alter().
+ * Implements hook_module_implements_alter().
  *
  * We need to ensure that this module's entity_info_alter fires after other
  * modules (particularly file_styles and media).
@@ -378,7 +369,7 @@ function formflow_page($flow, $current_step = 0){
       'uid' => $user->uid,
       'name' => (isset($user->name) ? $user->name : ''),
       'type' => $node_type,
-      'language' => $user->language,
+      'language' => $user->language
     );
     $form_state['build_info']['args'] = array(
       $node
@@ -453,11 +444,9 @@ function formflow_menu_item($flow){
   return $item;
 }
 
-/*********************************************************************************************
- *
- * FORMS
- *
- ********************************************************************************************/
+/**
+ * Submit function for formflow
+ */
 function formflow_submit(&$form, &$form_state){
   $form_state['formflow']['cache'][$form_state['step']] = array(
     'form' => $form,
@@ -466,11 +455,6 @@ function formflow_submit(&$form, &$form_state){
   formflow_cache_set($form_state['formflow']['cache_id'], $form_state['formflow']['cache']);
 }
 
-/*********************************************************************************************
- *
- * Wizard helpers
- *
- ********************************************************************************************/
 /**
  * Handle the 'finish' click
  */
@@ -506,11 +490,9 @@ function formflow_cancel(&$form_state){
   $form_state['cancel'] = TRUE;
 }
 
-/*********************************************************************************************
- *
- * Cache functions
- *
- ********************************************************************************************/
+/**
+ * Specific cache_set and cache_get functions
+ */
 function formflow_cache_set($id, $cache){
   ctools_include('object-cache');
   ctools_object_cache_set('formflow', $id, $cache);
@@ -530,18 +512,12 @@ function formflow_cache_clear($id){
 }
 
 /**
- *
  * Clear the menu caches
  */
 function formflow_menu_cache_clear(){
   menu_rebuild();
 }
 
-/*********************************************************************************************
- *
- * Field group
- *
- ********************************************************************************************/
 /**
  * Attach groups to the (form) build.
  * @param Array $element The part of the form.
@@ -659,7 +635,6 @@ function formflow_field_group_next_submit($form, &$form_state){
 }
 
 /**
- *
  * Helper function for handling next/back navigation
  * @param string - direction of travel $op
  * @param array $form
@@ -732,8 +707,7 @@ function formflow_field_group_pre_render(&$element, $group, &$form){
 }
 
 /**
- *
- * Implementation of hook_field_group_build_pre_render_alter
+ * Implements hook_field_group_build_pre_render_alter
  * Make changes so only relevant bits of the form are shown
  * @param form $element
  */
@@ -773,7 +747,6 @@ function formflow_field_group_build_pre_render_alter(&$form){
 }
 
 /**
- *
  * Remove the default submit buttons
  * @param form element $element
  */

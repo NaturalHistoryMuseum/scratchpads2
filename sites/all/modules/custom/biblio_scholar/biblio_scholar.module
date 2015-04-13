@@ -1,5 +1,6 @@
 <?php
 
+// $Id$
 /**
  * @file
  * Add Google Scholar metatags to Biblio node pages
@@ -16,14 +17,18 @@ function biblio_scholar_preprocess_node($variables){
     //Sort out the authors
     $i = 0;
     foreach($variables['biblio_contributors'] as $author){
-      drupal_add_html_head(array(
-        '#tag' => 'meta',
-        '#attributes' => array(
-          'name' => 'citation_author',
-          'content' => $author['name']
-        )
-      ), 'biblio_scholar_author' . $i);
-      $i++;
+      $author_types = array(1,2,3,4);
+      if(in_array($author['auth_type'], $author_types) ){
+        drupal_add_html_head(array(
+          '#tag' => 'meta',
+          '#attributes' => array(
+            'name' => 'citation_author',
+            'content' => $author['name']
+          ),
+          '#weight' => $i,
+        ), 'biblio_scholar_author' . $i);
+        $i++;
+      }
     }
     if($variables['biblio_year'] != ''){
       drupal_add_html_head(array(
@@ -71,6 +76,7 @@ function biblio_scholar_preprocess_node($variables){
       ), 'biblio_scholar_isbn');
     }
     if($variables['biblio_issn'] != ''){
+      // drupal_set_html_head('<meta name="citation_issn" content="' . $variables['biblio_issn'] . '"/>');
       drupal_add_html_head(array(
         '#tag' => 'meta',
         '#attributes' => array(
@@ -78,6 +84,22 @@ function biblio_scholar_preprocess_node($variables){
           'content' => $variables['biblio_issn']
         )
       ), 'biblio_scholar_issn');
+    }
+    
+    foreach ($variables as $key => $field){
+      if (is_array($field) && isset($field[0]['fid'])){
+      	foreach ($field as $file){
+      	  if ($file['filemime'] == 'application/pdf'){
+    		drupal_add_html_head(array(
+    		  '#tag' => 'meta',
+    		  '#attributes' => array(
+    		    'name' => 'citation_pdf_url',
+    		    'content' => url(file_create_url($file['uri']), array('absolute' => TRUE))
+    		)
+    		), 'biblio_scholar_url');
+    	  }
+      	}
+      }
     }
   }
 }

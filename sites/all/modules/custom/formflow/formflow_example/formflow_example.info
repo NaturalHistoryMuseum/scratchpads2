@@ -5,4 +5,9 @@ dependencies[] = formflow_ui
 dependencies[] = ctools_ajax_sample
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-project = formflow_example
+; Information added by Drupal.org packaging script on 2015-04-13
+version = "7.x-1.2"
+core = "7.x"
+project = "formflow"
+datestamp = "1428927782"
+
