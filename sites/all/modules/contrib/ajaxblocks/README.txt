@@ -9,7 +9,7 @@ after loading the whole cached page itself. The module is suitable for sites whi
 and the page caching for anonymous users is a great benefit, but there are some pieces of information that have to be dynamic.
 
 The classical example is Ubercart sites which has to show the cart content in a block.
-The other example is showing random pictures or liks to nodes (from some view output which randomizes data).
+The other example is showing random pictures or links to nodes (from some view output which randomizes data).
 
 The module is a fork of existing module: http://drupal.org/project/ajaxify_regions
 
@@ -41,5 +41,5 @@ LIMITATIONS
 TODO
 
 1. Check page access permissions when loading blocks for that page.
-2. Support aditional css and js file loading.
+2. Support additional css and js file loading.
 3. Support operation mode which doesn't require full Drupal bootstrap.
