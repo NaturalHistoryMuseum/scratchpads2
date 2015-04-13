@@ -175,15 +175,17 @@ function scratchpads_media_gallery_views_default_views_alter(&$views){
       'media_browser_1',
       'media_browser_my_files'
     ) as $display_id){
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+      if(module_exists('eolapi')){
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+      }
     }
   }
 }
