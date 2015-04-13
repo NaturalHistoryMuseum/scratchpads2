@@ -11,6 +11,7 @@ CONTENTS OF THIS FILE
   - Redirecting upon login
   - Custom redirects for 404 errors
 * Submodule
+* Integration with other modules
 * FAQ
 * Maintainers
 
@@ -55,11 +56,11 @@ This module does not require any new database tables to be installed.
 INSTALLATION
 ------------
 
-1. Install the customerror module directory in the directory where you
+1. Install the CustomError module directory in the directory where you
    keep contributed modules (e.g. sites/all/modules/).
 
 2. Go to the Modules page
-   - Enable the customerror module.
+   - Enable the CustomError module.
    Click on Save configuration.
 
 3. Configure Error reporting
@@ -159,20 +160,19 @@ print $output;
 Note that enabling the PHP filter module is depreciated (it will no
 longer be part of core for Drupal 8).  For a safer method to show
 different error pages for access denied pages for anonymous and logged
-in users, enable the submodule that is part of the project: Custom
-error alternate for authenticated.
+in users, enable the submodule that is part of the project:
+CustomError alternate for authenticated.
 
 If your handling of access denied errors allows the user to log in
-after been shown the message, customerror keeps track of what page the
+after been shown the message, CustomError keeps track of what page the
 user is trying to access. After succesfully logging in, the user will
 be redirected to the page he or she originally requested.
-
 
 
 SUBMODULE
 ---------
 
-Packaged with the project is the submodule: Custom error alternate for
+Packaged with the project is the submodule: CustomError alternate for
 authenticated.
 
 Enabling this sub-module will add fields that allow the administrator
@@ -181,6 +181,38 @@ authenticated users that are different from status code 403 (access
 denied) for anonymous users.
 
 See the submodule's own README.md for more documentation.
+
+
+INTEGRATION WITH OTHER MODULES
+------------------------------
+
+The function customerror_page() can be called by other modules to have
+CustomError or CustomError alternate for authenticated handle the
+error.
+
+* LoginToboggan[1]:
+  If this module is enabled, in can enhance CustomError's handling of
+  access-denied messages, but you have to be careful to set them up to
+  work together correctly.
+
+  These two modules both attempt to take over handling of system 403
+  ("access denied") messages, and can conflict. CustomError does it by
+  asking you to go to "admin/config/system/site-information" and
+  manually setting the "Default 403 (access denied) page" to
+  "customerror/403", whereas LoginToboggan sets that same field to
+  "toboggan/denied" automatically (overwriting any other value that
+  was there), when you enable its "Present login form on access denied
+  (403)".
+
+  If you are using CustomError with LoginToboggan, you should allow
+  LoginToboggan to perform this take-over (in other words, don't set
+  the "Default 403 (access denied) page" to "customerror/403"). This
+  way, if someone attempts to access a page that they don't have
+  access to, LoginToboggan will first give them a chance to log in if
+  they haven't yet. If they still don't have access to the page,
+  CustomError then takes over from LoginToboggan (by overriding one of
+  its theme functions), displaying its customisable messages for
+  access-denied errors.
 
 
 FAQ
@@ -204,7 +236,6 @@ A: Duplicate your page.tpl.php page to be
 
 Q: Some 403 errors (e.g. "http://example.org/includes") are served by
    the Apache web server and not by CustomError. Isn't that a bug?
-
 A: No. CustomError is only designed to provide a custom error page
    when the page is processed by Drupal.  The .htaccess file that
    comes with Drupal will catch some attempts to access forbidden
@@ -222,8 +253,11 @@ Principal author is Khalid Baheyeldin
 (http://baheyeldin.com/khalid and http://2bits.com).
 
 Port to Drupal 7 port has been overseen by Gisle Hannemyr
-(https://drupal.org/user/409554).
+(https://www.drupal.org/u/gisle).
 
 The authors can be contacted for paid customizations of this module
 as well as Drupal consulting, installation, development, and
 customizations.
+
+
+[1]: https://www.drupal.org/project/logintoboggan
