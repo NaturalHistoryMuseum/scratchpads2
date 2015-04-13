@@ -15,11 +15,10 @@ function formflow_features_export_options(){
  * Implementation of hook_features_export().
  */
 function formflow_features_export($data, &$export, $module_name = ''){
-	
 	$export['dependencies']['formflow'] = 'formflow';
   // Load the flow into the features export array
   foreach($data as $name){
-    $export['features']['formflow'][$name] = formflow_get_flows($name);
+    $export['features']['formflow'][$name] = $name;
   }
   $pipe = array();
   return $pipe;
@@ -32,9 +31,10 @@ function formflow_features_export_render($module, $data, $export = NULL){
   $code = array();
   $code[] = '  $flows = array();';
   $code[] = '';
-  foreach($data as $flow){
+  foreach ($data as $name){
+    $flow = formflow_get_flows($name);
     $flow_export = features_var_export($flow, '  ');
-    $flow_identifier = features_var_export($flow['name']);
+    $flow_identifier = features_var_export($name);
     $code[] = "  // Exported flow: {$flow['title']}";
     $code[] = "  \$flows[{$flow_identifier}] = {$flow_export};";
     $code[] = "";
