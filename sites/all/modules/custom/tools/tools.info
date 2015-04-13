@@ -7,8 +7,8 @@ dependencies[] = features
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 
-; Information added by drupal.org packaging script on 2013-01-03
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2015-04-13
+version = "7.x-1.1"
 core = "7.x"
 project = "tools"
-datestamp = "1357235041"
+datestamp = "1428926542"
