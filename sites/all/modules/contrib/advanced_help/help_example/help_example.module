@@ -19,7 +19,7 @@ function help_example_menu() {
 }
 
 /**
- * Help topic index.
+ * Topic index callback.
  */
 function help_example_index_page() {
   $output = theme('advanced_help_topic', array(

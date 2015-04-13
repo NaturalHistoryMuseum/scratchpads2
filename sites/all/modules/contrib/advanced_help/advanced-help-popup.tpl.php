@@ -15,7 +15,7 @@
   <?php print $scripts; ?>
   <script type="text/javascript"><?php /* Needed to avoid Flash of Unstyled Content in IE */ ?> </script>
 </head>
-<body>
+<body class="advanced-help-popup-body">
   <div id="page">
     <div id="header">
       <?php if (!empty($search_box)): ?>

@@ -760,7 +760,7 @@ function formflow_ui_list_forms(){
       'description' => t('Create @name node.', array(
         '@name' => $node_type->name
       )),
-      'path' => 'node/add/' . $node_type->name
+      'path' => 'node/add/' . $node_type->type
     );
   }
   ksort($forms);
