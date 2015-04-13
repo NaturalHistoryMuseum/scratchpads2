@@ -215,4 +215,3 @@ This will place the CAPTCHA element
   - in the 'my_fancy_form' form inside the container $form['items']['buttons'],
     just before the element $form['items']['buttons']['sacebutton'].
   - in the 'another_form' form at the toplevel of the form, with a weight 34.
-

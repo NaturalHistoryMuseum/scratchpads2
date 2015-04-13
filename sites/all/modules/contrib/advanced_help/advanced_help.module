@@ -205,7 +205,7 @@ function advanced_help_index_page($module = '') {
 
   $output = array();
   // Print a search widget.
-  $output['advanced_help_search'] = module_exists('search') ? drupal_get_form('advanced_help_search_form') : t('Enable the search module to search help.');
+  $output['advanced_help_search'] = module_exists('search') ? drupal_get_form('advanced_help_search_form') : array('#markup' => t('Enable the search module to search help.'));
 
   $breadcrumb = array();
   if ($module) {
@@ -230,7 +230,7 @@ function advanced_help_index_page($module = '') {
     $result = db_query('SELECT * FROM {system}');
     foreach ($result as $info) {
       $module_info = unserialize($info->info);
-      $modules[$info->name] = $module_info['name'];
+      $modules[$info->name] = isset($module_info['name']) ? $module_info['name'] : $info->name;
     }
 
     asort($modules);
@@ -563,7 +563,7 @@ function theme_advanced_help_topic($variables) {
       'html' => TRUE)
     );
   }
-  else {
+  elseif (user_access('view advanced help topic')) {
     return l($text, "help/$module/$topic", array(
       'attributes' => array(
         'class' => $class,
@@ -632,8 +632,23 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
 
     $output = file_get_contents($file);
     if (isset($info['readme file']) && $info['readme file']) {
-      // Readme files are treated as plain text: filter accordingly.
-      $output = check_plain($output);
+      $ext = pathinfo($file, PATHINFO_EXTENSION);
+      if ('md' == $ext && module_exists('markdown')) {
+        $filters = module_invoke('markdown', 'filter_info');
+        $md_info = $filters['filter_markdown'];
+	
+        if (function_exists($md_info['process callback'])) {
+          $function = $md_info['process callback'];
+          $output = '<div class="advanced-help-topic">' . filter_xss_admin($function($output, NULL)) . '</div>';
+        }
+        else {
+          $output = '<div class="advanced-help-topic"><pre class="readme">' . check_plain($output) . '</pre></div>';
+        }
+      }
+      else {
+        $output = '<div class="advanced-help-topic"><pre class="readme">' . check_plain($output) . '</pre></div>';
+      }
+      return $output;
     }
 
     // Make some exchanges. The strtr is because url() translates $ into %24
@@ -714,13 +729,13 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
         $navigation = '<div class="help-navigation clear-block">';
 
         if ($prev) {
-          $navigation .= advanced_help_l('<< ' . $topics[$prev[0]][$prev[1]]['title'], "help/$prev[0]/$prev[1]", array('attributes' => array('class' => 'help-left')));
+          $navigation .= advanced_help_l('«« ' . $topics[$prev[0]][$prev[1]]['title'], "help/$prev[0]/$prev[1]", array('attributes' => array('class' => 'help-left')));
         }
         if ($up) {
           $navigation .= advanced_help_l(t('Up'), $up, array('attributes' => array('class' => $prev ? 'help-up' : 'help-up-noleft')));
         }
         if ($next) {
-          $navigation .= advanced_help_l($topics[$next[0]][$next[1]]['title'] . ' >>', "help/$next[0]/$next[1]", array('attributes' => array('class' => 'help-right')));
+          $navigation .= advanced_help_l($topics[$next[0]][$next[1]]['title'] . ' »»', "help/$next[0]/$next[1]", array('attributes' => array('class' => 'help-right')));
         }
 
         $navigation .= '</div>';
@@ -735,6 +750,7 @@ function advanced_help_view_topic($module, $topic, $popup = FALSE) {
 
     $output = '<div class="advanced-help-topic">' . $output . '</div>';
     drupal_alter('advanced_help_topic', $output, $popup);
+    
     return $output;
   }
 }
@@ -783,8 +799,9 @@ function _advanced_help_parse_ini() {
     $ini = array('topics' => array(), 'settings' => array());
 
     $help_path = drupal_get_path('module', 'advanced_help') . '/modules';
-    foreach (module_list() as $module) {
-      $module_path = drupal_get_path('module', $module);
+    foreach (array_merge(module_list(), list_themes()) as $plugin) {
+      $module = is_string($plugin) ? $plugin : $plugin->name;
+      $module_path = drupal_get_path(is_string($plugin) ? 'module' : 'theme', $module);
       $info = array();
       if (file_exists("$module_path/help/$module.help.ini")) {
         $path = "$module_path/help";
@@ -797,7 +814,7 @@ function _advanced_help_parse_ini() {
       elseif (!file_exists("$module_path/help")) {
         // Look for one or more README files.
         $files = file_scan_directory("./$module_path",
-          '/^(README|readme).*\.(txt|TXT)$/', array('recurse' => FALSE));
+          '/^(readme).*\.(txt|md)$/i', array('recurse' => FALSE));
         $path = "./$module_path";
         foreach ($files as $name => $fileinfo) {
           $info[$fileinfo->filename] = array(
@@ -1075,11 +1092,12 @@ function template_preprocess_advanced_help_popup(&$variables) {
   $css = drupal_add_css();
 
   // Remove theme css.
-  foreach ($css as $media => $types) {
-    if (isset($css[$media]['theme'])) {
-      $css[$media]['theme'] = array();
+  foreach ($css as $key => $value) {
+    if ($value['group'] == CSS_THEME) {
+      $exclude[$key] = FALSE;
     }
   }
+  $css = array_diff_key($css, $exclude);
 
   $variables['styles']            = drupal_get_css($css);
   $variables['scripts']           = drupal_get_js();

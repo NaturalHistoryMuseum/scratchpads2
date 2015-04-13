@@ -7,11 +7,11 @@
 
 Drupal.ajaxblocksSendRequest = function (request, delay) {
   if (delay) {
-    setTimeout(function () {Drupal.ajaxblocksSendRequest(request, 0);}, delay);
+    setTimeout(function () { Drupal.ajaxblocksSendRequest(request, 0); }, delay);
     return;
   }
   $.ajax({
-    url: ((typeof Drupal.settings.ajaxblocks_path !== 'undefined') ? Drupal.settings.ajaxblocks_path : (Drupal.settings.basePath + "ajaxblocks")),
+    url: ((typeof Drupal.settings.ajaxblocks_path !== 'undefined') ? Drupal.settings.ajaxblocks_path : (Drupal.settings.basePath + Drupal.settings.pathPrefix + "ajaxblocks")),
     type: "GET",
     dataType: "json",
     // SDRycroft
@@ -27,7 +27,7 @@ Drupal.ajaxblocksSendRequest = function (request, delay) {
       Drupal.unfreezeHeight();
     }
   });
-}
+};
 
 Drupal.ajaxblocksSetBlockContent = function (id, data) {
   if (data['delay']) {
@@ -35,15 +35,21 @@ Drupal.ajaxblocksSetBlockContent = function (id, data) {
     return;
   }
   var wrapper = $('#block-' + id + '-ajax-content');
-  if (!wrapper) return;
+  if (!wrapper) {
+    return;
+  }
   var context = wrapper.parent();
   Drupal.detachBehaviors(context);
-  if (!context) return;
+  if (!context) {
+    return;
+  }
   $('#block-' + id).addClass('ajaxblocks-loaded');
   context.html(data['content']);
-  if (data['ajaxblocks_settings']) $.extend(true, Drupal.settings, data['ajaxblocks_settings']);
+  if (data['ajaxblocks_settings']) {
+    $.extend(true, Drupal.settings, data['ajaxblocks_settings']);
+  }
   Drupal.attachBehaviors(context);
-}
+};
 
 $(document).ready(function () {
   if (typeof Drupal.settings.ajaxblocks !== 'undefined') {
