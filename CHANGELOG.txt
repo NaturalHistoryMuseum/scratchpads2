@@ -1,3 +1,24 @@
+2.6.4 (2015-04-13)
+
+- Updated Drupal and many contrib modules
+- Hide the updates from our users (#4371)
+- Fixed the Sandbox install to ensure images and content are correct (#427)
+- Prevent editing of languages by our users, and restore "prefix" to be the same
+  as the ID
+- Ensure the login block opens on translated pages
+- Include values for '{field}:guid' mappings (#4366)
+- Fix an issue with the EOL DwC-Archive that resulted in fewer rows than
+  expected
+- Filter out EOL API files from Grid and Media library views (#4359)
+- Ensure remote files work in the media browser
+- Allow altering of data to be included in the Feeds XLS template file (by
+  altering the query that returns the list of IDs)
+- Remove Drush specific code from an update (#4362)
+- Ensure Colorbox popups work on translated pages (#4365)
+- Correctly set mimetype of EOL API files
+- Converted most instances of file_get_contents() to drupal_http_request()
+- Patched media module to redirect to home page
+
 2.6.3.8 (2015-04-10)
 
 - Ensure files associated with a gallery more than once can be indexed
