@@ -70,7 +70,7 @@ function darwincore_field_default_fields(){
       'entity_type' => 'node',
       'field_name' => 'field_media',
       'label' => 'Media',
-      'required' => 1,
+      'required' => 0,
       'settings' => array(
         'description_field' => 0,
         'file_directory' => '',

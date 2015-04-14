@@ -580,15 +580,17 @@ function scratchpads_front_views_default_views(){
     1 => '1'
   );
   /* Filter criterion: File: Path */
-  $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
-  $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
-  $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
-  $handler->display->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
-  $handler->display->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
-  $handler->display->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
-  $handler->display->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
-  $handler->display->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
-  $handler->display->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+  if(module_exists('eolapi')){
+    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
+    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
+    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
+    $handler->display->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
+    $handler->display->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
+    $handler->display->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
+    $handler->display->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
+    $handler->display->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
+    $handler->display->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+  }
   /* Filter criterion: File: Path */
   $handler->display->display_options['filters']['uri_1']['id'] = 'uri_1';
   $handler->display->display_options['filters']['uri_1']['table'] = 'file_managed';
