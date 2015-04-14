@@ -53,4 +53,4 @@ features[variable][] = "node_submitted_collections_profile"
 features[views_view][] = "collections_profiles"
 features[views_view][] = "collections_specimen_statistics"
 
-tool = "true"
+;tool = "true"
