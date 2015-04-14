@@ -545,3 +545,15 @@ function darwincore_update_7022(){
     field_update_instance($field_instance);
   }
 }
+
+/**
+ * The field_media field should not be required (it appears it doesn't fail when
+ * not populated, but does alter the UI)
+ */
+function darwincore_update_7023(){
+  $instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  if($instance){
+    $instance['required'] = 0;
+    field_update_instance($instance);
+  }
+}
