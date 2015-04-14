@@ -261,7 +261,10 @@ function scratchpads_media_gallery_block_view_alter(&$data, $block){
  */
 function scratchpads_media_gallery_contextual_links_view_alter(&$element, $items){
   if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
-    if(@isset($element['#contextual_links']['block'][1][1]) && $element['#contextual_links']['block'][1][1] == 'species_media-block' && user_access('administer taxonomy')){
+    if(@isset($element['#contextual_links']['block'][1][1]) && in_array($element['#contextual_links']['block'][1][1], array(
+      'species_media-block',
+      'species_slideshow-block'
+    )) && user_access('create file')){
       $element['#links']['add-file'] = array(
         'title' => t('Add file'),
         'href' => 'file/add',
