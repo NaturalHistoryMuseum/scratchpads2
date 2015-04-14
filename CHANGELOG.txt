@@ -1,3 +1,7 @@
+2.6.4.1 (2015-04-13)
+
+- Ensure we only filter EOLAPI files out if the EOLAPI module is enabled
+
 2.6.4 (2015-04-13)
 
 - Updated Drupal and many contrib modules
