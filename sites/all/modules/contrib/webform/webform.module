@@ -1737,6 +1737,7 @@ function webform_node_load($nodes, $types) {
       }
     }
   }
+
 }
 
 /**
@@ -1825,8 +1826,9 @@ function webform_node_view($node, $view_mode) {
   }
 
   // If the webform is not set to display in this view mode, return early.
+  // View mode of 'form' is exempted to allow blocks and views to force display.
   $extra_fields = field_extra_fields_get_display('node', $node->type, $view_mode);
-  if (empty($extra_fields['webform']['visible'])) {
+  if ($view_mode != 'form' && empty($extra_fields['webform']['visible'])) {
     return;
   }
 
@@ -2046,7 +2048,6 @@ function theme_webform_view_messages($variables) {
     else {
       $message = t('You may not submit another entry at this time.');
     }
-    $type = 'error';
   }
   elseif ($total_limit_exceeded && !$cached) {
     if ($node->webform['total_submit_interval'] == -1 && $node->webform['total_submit_limit'] > 1) {
@@ -2055,7 +2056,6 @@ function theme_webform_view_messages($variables) {
     else {
       $message = t('You may not submit another entry at this time.');
     }
-    $type = 'error';
   }
 
   // If the user has submitted before, give them a link to their submissions.
@@ -2151,7 +2151,7 @@ function webform_block_view($delta = '') {
 
   // Generate the content of the block based on display settings.
   if ($settings['display'] == 'form') {
-    webform_node_view($node, 'full');
+    webform_node_view($node, 'form');
     $content = isset($node->content['webform']) ? $node->content['webform'] : array();
   }
   else {
@@ -2368,6 +2368,9 @@ function webform_client_form($form, &$form_state, $node, $submission = FALSE, $i
 
     // Allow values from other pages to be sent to browser for conditionals.
     $form['#conditional_values'] = $input_values;
+
+    // Generate conditional topological order & report any errors.
+    webform_get_conditional_sorter($node)->reportErrors();
 
     if ($page_count > 1) {
       $page_labels = webform_page_labels($node, $form_state);
@@ -2888,6 +2891,10 @@ function webform_client_form_validate($form, &$form_state) {
     // Prevalidation failed. The form cannot be submitted. Do not attemp futher validation.
     return;
   }
+  if ($form_state['webform']['preview']) {
+    // Form has already passed validation and is on the preview page.
+    return;
+  }
 
   module_load_include('inc', 'webform', 'includes/webform.submissions');
   $node = $form['#node'];
@@ -2900,10 +2907,13 @@ function webform_client_form_validate($form, &$form_state) {
     foreach ($new_values as $cid => $values) {
       $input_values[$cid] = $values;
     }
+    // Ensure that all conditionally-hidden values are removed.
+    $input_values = webform_get_conditional_sorter($node)->executeConditionals($input_values, $form_state['webform']['page_num']);
   }
   else {
     $input_values = NULL;
   }
+
 
   // Run all #element_validate and #required checks. These are skipped initially
   // by setting #validated = TRUE on all components when they are added.
@@ -3097,23 +3107,23 @@ function webform_client_form_pages($form, &$form_state) {
   // Assume the form is completed unless the page logic says otherwise.
   $form_state['webform_completed'] = TRUE;
 
+  // Merge any stored submission data for multistep forms.
+  $original_values = is_array($form_state['values']['submitted']) ? $form_state['values']['submitted'] : array();
+  if (isset($form_state['storage']['submitted'])) {
+    // Array + operator keeps all elements of left operand and discards any duplicate elements in right operand.
+    $original_values += $form_state['storage']['submitted'];
+  }
+
+  // Execute conditionals on submission values.
+  $form_state['values']['submitted'] = webform_get_conditional_sorter($node)->executeConditionals($original_values);
+
   // Check for a multi-page form that is not yet complete.
   $submit_op = !empty($form['actions']['submit']['#value']) ? $form['actions']['submit']['#value'] : t('Submit');
   $draft_op = !empty($form['actions']['draft']['#value']) ? $form['actions']['draft']['#value'] : t('Save Draft');
   if (!in_array($form_state['values']['op'], array($submit_op, $draft_op, '__AUTOSAVE__'))) {
-    // Store values from the current page in the form state storage.
-    if (is_array($form_state['values']['submitted'])) {
-      foreach ($form_state['values']['submitted'] as $key => $val) {
-        $form_state['storage']['submitted'][$key] = $val;
-      }
-    }
 
-    // Update form state values with those from storage.
-    if (isset($form_state['storage']['submitted'])) {
-      foreach ($form_state['storage']['submitted'] as $key => $val) {
-        $form_state['values']['submitted'][$key] = $val;
-      }
-    }
+    // Store values from the current page in the form state storage.
+    $form_state['storage']['submitted'] = $form_state['values']['submitted'];
 
     // Set the page number.
     if (!isset($form_state['storage']['page_num'])) {
@@ -3196,22 +3206,6 @@ function webform_client_form_pages($form, &$form_state) {
     $form_state['webform_completed'] = $form_state['storage']['page_num'] > $form_state['storage']['page_count'];
   }
 
-  // Merge any stored submission data for multistep forms.
-  if (isset($form_state['storage']['submitted'])) {
-    $original_values = is_array($form_state['values']['submitted']) ? $form_state['values']['submitted'] : array();
-    unset($form_state['values']['submitted']);
-
-    foreach ($form_state['storage']['submitted'] as $key => $val) {
-      $form_state['values']['submitted'][$key] = $val;
-    }
-    foreach ($original_values as $key => $val) {
-      $form_state['values']['submitted'][$key] = $val;
-    }
-
-    // Remove the variable so it doesn't show up in the additional processing.
-    unset($original_values);
-  }
-
   // Inform the submit handlers that a draft will be saved.
   $form_state['save_draft'] = in_array($form_state['values']['op'], array($draft_op, '__AUTOSAVE__')) ||
                               ($node->webform['auto_save'] && !$form_state['values']['details']['finished'] && !$form_state['webform_completed'] && user_is_logged_in());
@@ -3254,8 +3248,13 @@ function webform_client_form_submit($form, &$form_state) {
     // Merge with new submission data. The + operator maintains numeric keys.
     // This maintains existing data with just-submitted data when a user resumes
     // a submission previously saved as a draft.
-    $new_data = webform_submission_data($node, $form_state['values']['submitted']);
-    $submission->data = $new_data + $submission->data;
+    // Remove any existing data on this and previous pages. If components are hidden, they may
+    // be in the $submission->data but absent entirely from $new_data;
+    $page_map = webform_get_conditional_sorter($node)->getPageMap();
+    for ($page_nr = 1; $page_nr <= $form_state['webform']['page_num']; $page_nr++) {
+      $submission->data = array_diff_key($submission->data, $page_map[$page_nr]);
+    }
+    $submission->data = webform_submission_data($node, $form_state['values']['submitted']) + $submission->data;
   }
   else {
     // Create a new submission object.
@@ -3309,7 +3308,7 @@ function webform_client_form_submit($form, &$form_state) {
 
   // Strip out empty tags added by WYSIWYG editors if needed.
   $confirmation = strlen(trim(strip_tags($node->webform['confirmation']))) ? $node->webform['confirmation'] : '';
-  $confirmation = webform_replace_tokens($confirmation, $node, $submission, NULL, TRUE);
+  $confirmation = webform_replace_tokens($confirmation, $node, $submission);
 
   // Check confirmation and redirect_url fields.
   $message = NULL;
@@ -3344,11 +3343,11 @@ function webform_client_form_submit($form, &$form_state) {
 
   // Show a message if manually set.
   if (isset($message)) {
-    drupal_set_message(webform_replace_tokens($message, $node, NULL, NULL, TRUE));
+    drupal_set_message($message);
   }
   // If redirecting and we have a confirmation message, show it as a message.
   elseif (!$is_draft && !$external_url && (!empty($redirect_url) && $redirect_url != '<confirmation>') && !empty($confirmation)) {
-    drupal_set_message(check_markup(webform_replace_tokens($confirmation, $node), $node->webform['confirmation_format'], '', TRUE));
+    drupal_set_message(check_markup($confirmation, $node->webform['confirmation_format'], '', TRUE));
   }
 
   $form_state['redirect'] = $redirect;
@@ -3421,10 +3420,12 @@ function template_preprocess_webform_form(&$vars) {
     $vars['nid'] = $vars['form']['submission']['#value']->nid;
   }
 
-  if (!empty($vars['form']['#node']->webform['conditionals'])) {
+  if (!empty($vars['form']['#node']->webform['conditionals']) && empty($vars['form']['preview'])) {
     module_load_include('inc', 'webform', 'includes/webform.conditionals');
     $submission_data = isset($vars['form']['#conditional_values']) ? $vars['form']['#conditional_values'] : array();
-    $settings = webform_conditional_prepare_javascript($vars['form']['#node'], $submission_data);
+    $settings = webform_conditional_prepare_javascript($vars['form']['#node'],
+                                                       $submission_data,
+                                                       $vars['form']['details']['page_num']['#value']);
     drupal_add_js(array('webform' => array('conditionals' => array('webform-client-form-' . $vars['nid'] => $settings))), 'setting');
   }
 
@@ -3811,6 +3812,19 @@ function _webform_fetch_draft_sid($nid, $uid) {
 }
 
 /**
+ * Returns a new or cached WebformConditionals object for the specified node.
+ *
+ * @param object $node
+ *   The loaded webform node.
+ * @returns object
+ *   Object of type WebformConditionals, possibly with the conditionals already
+ *   analyzed for dependencies.
+ */
+function webform_get_conditional_sorter($node) {
+  return WebformConditionals::factory($node);
+}
+
+/**
  * This function is deprecated! Use webform_replace_tokens() instead.
  *
  * @deprecated
@@ -3856,7 +3870,7 @@ function webform_replace_tokens($string, $node = NULL, $submission = NULL, $emai
   if ($email) {
     $token_data['webform-email'] = $email;
   }
-  return token_replace($string, $token_data, array('clear' => TRUE, 'sanitize' => $sanitize));
+  return token_replace($string, $token_data, array('clear' => FALSE, 'sanitize' => $sanitize));
 }
 
 /**

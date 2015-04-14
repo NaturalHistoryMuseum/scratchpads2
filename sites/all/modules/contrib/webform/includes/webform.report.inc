@@ -829,6 +829,7 @@ function webform_results_export($node, $format = 'delimited', $options = array()
   $export_info['row_count'] = $row_count;
   $export_info['col_count'] = $col_count;
   $export_info['last_sid'] = $sid;
+  $export_info['exporter'] = $exporter;
 
   return $export_info;
 }

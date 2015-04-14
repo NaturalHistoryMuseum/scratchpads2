@@ -10,6 +10,8 @@ dependencies[] = views
 test_dependencies[] = token
 
 ; Files that contain classes:
+files[] = includes/webform.webformconditionals.inc
+
 files[] = includes/exporters/webform_exporter_delimited.inc
 files[] = includes/exporters/webform_exporter_excel_delimited.inc
 files[] = includes/exporters/webform_exporter_excel_xlsx.inc
@@ -37,9 +39,9 @@ files[] = tests/permissions.test
 files[] = tests/submission.test
 files[] = tests/webform.test
 
-; Information added by Drupal.org packaging script on 2015-03-17
-version = "7.x-4.5"
+; Information added by Drupal.org packaging script on 2015-03-26
+version = "7.x-4.7"
 core = "7.x"
 project = "webform"
-datestamp = "1426611481"
+datestamp = "1427387585"
 

@@ -561,7 +561,7 @@ function webform_schema() {
     'indexes' => array(
       'nid' => array('nid'),
       'sid_nid' => array('sid', 'nid'),
-      'data' => array(array('data', 64)),
+      // For all but MS SQL Server databases, 64-character index is created on the data column after the schema is installed.
     ),
   );
 
@@ -666,6 +666,12 @@ function webform_install() {
     // Disable comments by default on Webform nodes.
     variable_set('comment_webform', '0');
   }
+
+  // Note: MS SQL Server does not support size-limited indexes and the column
+  // type (text) is too big to fit inside index size limits.
+  if (!db_index_exists('webform_submitted_data', 'data') && db_driver() != 'sqlsrv') {
+    db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
+  }
 }
 
 /**
@@ -712,6 +718,23 @@ function webform_uninstall() {
   // Delete uploaded files.
   $filepath = file_build_uri('webform');
   file_unmanaged_delete_recursive($filepath);
+
+  // Delete the content type "webform" if:
+  //   a) there are no existing nodes of type webform and
+  //   b) no additional fields have been defined for node type webform, beyond
+  //      the default body field.
+  $query = new EntityFieldQuery();
+  $results = $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'webform')
+    ->range(0,1)
+    ->execute();
+  $instances = field_info_instances('node', 'webform');
+  unset($instances['body']);
+  if (!$results && !$instances) {
+    node_type_delete('webform');
+    drupal_flush_all_caches();
+  }
+
 }
 
 /**
@@ -1900,7 +1923,11 @@ function webform_update_7418() {
  * Add an index on submitted data.
  */
 function webform_update_7419() {
-  db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
+  // Note: MS SQL Server does not support size-limited indexes and the column
+  // type (text) is too big to fit inside index size limits.
+  if (!db_index_exists('webform_submitted_data', 'data') && db_driver() != 'sqlsrv') {
+    db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
+  }
 }
 
 /**

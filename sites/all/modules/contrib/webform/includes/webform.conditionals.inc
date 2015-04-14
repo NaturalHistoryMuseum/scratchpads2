@@ -31,6 +31,14 @@ function webform_conditionals_form($form, &$form_state, $node) {
     }
   }
 
+  // Check the current topological sort order for the conditionals and report any errors,
+  // but only for actual form submissions and not for ajax-related form builds, such as
+  // adding or removing a condtion or conditional group.
+  if (empty($form_state['triggering_element']['#ajax'])) {
+    $node->webform['conditionals'] = $conditionals;
+    webform_get_conditional_sorter($node)->reportErrors($conditionals);
+  }
+
   $form['#tree'] = TRUE;
   $form['#node'] = $node;
 
@@ -157,12 +165,13 @@ function webform_conditionals_form_validate($form, &$form_state) {
     return;
   }
 
+  $components = $form['#node']->webform['components'];
   foreach ($form_state['complete form']['conditionals'] as $conditional_key => $element) {
     if (substr($conditional_key, 0, 1) !== '#' && $conditional_key !== 'new') {
       $conditional = $element['conditional'];
       foreach ($conditional['rules'] as $rule_key => $rule) {
         if (substr($rule_key, 0, 1) !== '#' && $rule['source']['#value'] === $conditional['target']['#value']) {
-          form_set_error('conditionals][' . $conditional_key . '][rules][' . $rule_key . '][source', t('The subject of the conditional cannot be the same as the component that is shown or hidden (%target).', array('%target' => $conditional['target']['#options'][$conditional['target']['#value']])));
+          form_set_error('conditionals][' . $conditional_key . '][rules][' . $rule_key . '][source', t('The subject of the conditional cannot be the same as the component that is shown or hidden (%target).', array('%target' => $components[$conditional['target']['#value']]['name'])));
         }
       }
     }
@@ -194,11 +203,6 @@ function webform_conditionals_form_submit($form, &$form_state) {
       $conditional['rules'][$rid]['source_type'] = 'component';
     }
     $conditionals[$rgid] = $conditional;
-    // Warn if there are multiple conditionals targetting the same component.
-    if (isset($targets[$conditional['target']])) {
-      drupal_set_message(t('More than one conditional hides or shows component "@name". Only the most-recently evaluated conditional will determine whether "@name" is displayed.',
-                           array('@name' => $node->webform['components'][$conditional['target']]['name'])), 'warning', FALSE);
-    }
     $targets[$conditional['target']] = TRUE;
   }
 
@@ -889,45 +893,63 @@ function webform_conditional_delete($node, $conditional) {
  * settings. We remove unnecessary data structures and provide a "source map"
  * so that JavaScript can quickly determine if it needs to check rules when a
  * field on the page has been modified.
+ *
+ * @param object $node
+ *   The loaded node object, containing the webform.
+ * @param array $submission_data
+ *   The cid-indexed array of existing submission values to be included for
+ *   sources outside of the current page.
+ * @param integer $page_num
+ *   The number of the page for which javascript settings should be generated.
+ * @return array
+ *   Array of settings to be send to the browser as javascript settings.
  */
-function webform_conditional_prepare_javascript($node, $submission_data) {
+function webform_conditional_prepare_javascript($node, $submission_data, $page_num) {
   $settings = array(
     'ruleGroups' => array(),
     'sourceMap' => array(),
     'values' => array(),
   );
   $operators = webform_conditional_operators();
-  foreach ($node->webform['conditionals'] as $conditional) {
+  $conditionals = $node->webform['conditionals'];
+  $components = $node->webform['components'];
+  $topological_order = webform_get_conditional_sorter($node)->getOrder();
+  foreach ($topological_order[$page_num] as $conditional_spec) {
+    $conditional = $conditionals[$conditional_spec['rgid']];
     $rgid_key = 'rgid_' . $conditional['rgid'];
     // Assemble the main conditional group settings.
     if ($conditional['target_type'] == 'component') {
-      $target_component = $node->webform['components'][$conditional['target']];
+      $target_component = $components[$conditional['target']];
       $target_parents = webform_component_parent_keys($node, $target_component);
-      $target_id = 'webform-component--' . str_replace('_', '-', implode('--', $target_parents));
-      $settings['ruleGroups'][$rgid_key]['target'] = $target_id;
-      $settings['ruleGroups'][$rgid_key]['andor'] = $conditional['andor'];
-      $settings['ruleGroups'][$rgid_key]['action'] = $conditional['action'];
+      $settings['ruleGroups'][$rgid_key] = array(
+        'target' => 'webform-component--' . str_replace('_', '-', implode('--', $target_parents)),
+        'andor' => $conditional['andor'],
+        'action' => $conditional['action'],
+      );
     }
     // Add on the list of rules to the conditional group.
     foreach ($conditional['rules'] as $rule) {
       if ($rule['source_type'] == 'component') {
-        $source_component = $node->webform['components'][$rule['source']];
+        $source_component = $components[$rule['source']];
         $source_parents = webform_component_parent_keys($node, $source_component);
         $source_id = 'webform-component--' . str_replace('_', '-', implode('--', $source_parents));
         $rid_key = 'rid_' . $rule['rid'];
 
         // If this source has a value set, add that as a setting.
+        // NULL or array(NULL) should be sent as an empty array to simplify the jQuery.
         if (isset($submission_data[$source_component['cid']])) {
           $source_value = $submission_data[$source_component['cid']];
-          $settings['values'][$source_id] = is_array($source_value) ? $source_value : array($source_value);
+          $source_value = is_array($source_value) ? $source_value : array($source_value);
+          $settings['values'][$source_id] = $source_value === array(NULL) ? array() : $source_value;
         }
 
         $conditional_type = webform_component_property($source_component['type'], 'conditional_type');
         $operator_info = $operators[$conditional_type][$rule['operator']];
-        $rule_settings = array();
-        $rule_settings['source'] = $source_id;
-        $rule_settings['value'] = $rule['value'];
-        $rule_settings['callback'] = $operator_info['js comparison callback'];
+        $rule_settings = array(
+          'source' => $source_id,
+          'value' => $rule['value'],
+          'callback' => $operator_info['js comparison callback'],
+        );
         if (isset($operator_info['comparison prepare js'])) {
           $callback = $operator_info['comparison prepare js'];
           $rule_settings['value'] = $callback($rule['value']);

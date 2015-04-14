@@ -694,6 +694,7 @@ function _webform_table_select($component, $value) {
   $options = _webform_select_options($component, TRUE);
 
   $value = (array) $value;
+  ksort($value, SORT_NUMERIC);
   $items = array();
   // Set the value as a single string.
   foreach ($value as $option_value) {
