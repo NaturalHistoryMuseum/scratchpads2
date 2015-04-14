@@ -65,6 +65,53 @@ function scratchpads_media_gallery_file_load($files){
 }
 
 /**
+ * Implements hook_file_pre_save()
+ */
+function scratchpads_media_gallery_file_presave($file){
+  if(isset($_GET['field_taxonomic_name']) && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    $file->field_taxonomic_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $term->tid
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_media_gallery_form_file_entity_add_upload_alter(&$form, &$form_state, $form_id){
+  if($_GET['field_taxonomic_name'] && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    // We add a submit function that will alter the redirect to take us back to
+    // where we want to go!
+    $form['#submit'][] = 'scratchpads_media_gallery_file_entity_add_upload_submit';
+  }
+}
+
+/**
+ * Submit function as defined in the above form alter. This redirects us to
+ * where we need to go!
+ */
+function scratchpads_media_gallery_file_entity_add_upload_submit($form, &$form_state){
+  // We add a submit function that will alter the redirect to take us back to
+  // where we want to go!
+  if($_GET['field_taxonomic_name'] && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    if($form_state['file']){
+      $form_state['redirect'] = array(
+        'file/' . $form_state['file']->fid . '/edit',
+        array(
+          'query' => array(
+            'destination' => 'taxonomy/term/' . $term->tid . '/media'
+          )
+        )
+      );
+    }
+  }
+}
+
+/**
  * Check to see if we're viewing a single gallery
  */
 function scratchpads_media_gallery_is_gallery_node(){
@@ -175,15 +222,17 @@ function scratchpads_media_gallery_views_default_views_alter(&$views){
       'media_browser_1',
       'media_browser_my_files'
     ) as $display_id){
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
-      $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
-      $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+      if(module_exists('eolapi')){
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+      }
     }
   }
 }
@@ -192,15 +241,37 @@ function scratchpads_media_gallery_views_default_views_alter(&$views){
  * Implementation of hook_block_view_alter()
  */
 function scratchpads_media_gallery_block_view_alter(&$data, $block){
-  if($block->module == 'facetapi'){
-    $map = facetapi_get_delta_map();
-    $facet_info = scratchpads_media_gallery_facetapi_facet_info();
-    foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
-      $delta = array_search($facet->name, $map);
-      if($delta == $block->delta && isset($facet_info[$facet->facet])){
-        $data['subject'] = $facet_info[$facet->facet]['label'];
-        break;
+  switch($block->module){
+    case 'facetapi':
+      $map = facetapi_get_delta_map();
+      $facet_info = scratchpads_media_gallery_facetapi_facet_info();
+      foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
+        $delta = array_search($facet->name, $map);
+        if($delta == $block->delta && isset($facet_info[$facet->facet])){
+          $data['subject'] = $facet_info[$facet->facet]['label'];
+          break;
+        }
       }
+      break;
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function scratchpads_media_gallery_contextual_links_view_alter(&$element, $items){
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    if(@isset($element['#contextual_links']['block'][1][1]) && in_array($element['#contextual_links']['block'][1][1], array(
+      'species_media-block',
+      'species_slideshow-block'
+    )) && user_access('create file')){
+      $element['#links']['add-file'] = array(
+        'title' => t('Add file'),
+        'href' => 'file/add',
+        'query' => array(
+          'field_taxonomic_name' => arg(2)
+        )
+      );
     }
   }
 }
