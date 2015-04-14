@@ -1,0 +1,13 @@
+.view-collections-profiles .views-field.views-field-field-media {
+  float: left;
+  margin: 5px 10px 5px 5px;
+}
+
+.view-collections-profiles .view-footer {
+  margin-top: 20px;
+}
+
+/* help text for date floats in the wrong position */
+.page-content .date-no-float .form-item .description {
+  left: -15px;
+}
