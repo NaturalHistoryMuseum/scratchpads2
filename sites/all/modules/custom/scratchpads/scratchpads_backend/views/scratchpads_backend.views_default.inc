@@ -1400,15 +1400,17 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
   );
   /* Filter criterion: File: Path */
   if($entity_type == 'file'){
-    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
-    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
-    $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
-    $handler->display->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
-    $handler->display->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
-    $handler->display->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
-    $handler->display->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
-    $handler->display->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
-    $handler->display->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+    if(module_exists('eolapi')){
+      $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
+      $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
+      $handler->display->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
+      $handler->display->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
+      $handler->display->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
+      $handler->display->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
+      $handler->display->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
+      $handler->display->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
+      $handler->display->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+    }
     // Sort by most recent at the top.
     $handler->display->display_options['sorts']['timestamp']['id'] = 'timestamp';
     $handler->display->display_options['sorts']['timestamp']['table'] = 'file_managed';
