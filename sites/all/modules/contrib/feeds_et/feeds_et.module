@@ -1,0 +1,80 @@
+<?php
+
+module_load_include('inc', 'feeds_et', 'feeds_et.mappers');
+
+/**
+ * @file
+ * Adds support for importing translations via Entity Translation.
+ */
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function feeds_et_feeds_plugins() {
+  $info = array();
+  $info['FeedsEntityTranslation'] = array(
+    'name' => 'Feeds: Entity Translation',
+    'description' => 'Adds support for importing translations via Entity Translation.',
+    'help' => 'Extends fields for all enabled languages when importing.',
+    'handler' => array(
+      'parent' => 'FeedsImporter',
+      'class' => 'FeedsEntityTranslation',
+      'file' => 'FeedsEntityTranslation.inc',
+      'path' => drupal_get_path('module', 'feeds_et'),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ *
+ * @param $targets array of target fields
+ * @param $entity_type
+ * @param $bundle_name
+ */
+function feeds_et_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $translatable_entities = variable_get('entity_translation_entity_types', array());
+
+  // If entity has Entity Translation enabled
+  if (in_array($entity_type, array_values($translatable_entities))) {
+    $fields = field_info_instances($entity_type, $bundle_name);
+    foreach ($fields as $field_name => $field) {
+
+       // If field is an original target
+      if (in_array($field_name, array_keys($targets))) {
+        $field_info = field_info_field($field_name);
+        $original_target = $targets[$field_name];
+
+        // If field is translatable, obviously! And we have implemented a callback for this target
+        if ($field_info['translatable'] && function_exists('_feeds_et_' . $targets[$field_name]['callback'])) {
+          $languages = language_list('enabled');
+          _feeds_et_process_targets($targets, $field_name, $original_target, $languages[1]);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Populates and determines fields to reproduce per language.
+ */
+function _feeds_et_process_targets(&$targets, $field_name, $original_target, $field_languages) {
+  $und_language = new stdClass();
+  $und_language->name = t('Undefined language');
+  $field_languages += array(LANGUAGE_NONE => $und_language);
+  $callback = $targets[$field_name]['callback'];
+
+  foreach ($field_languages as $language_code => $language_info) {
+    
+    // Add new targets to parse language along
+    $targets[$field_name . ':et:' . $language_code] = array(
+      'name' => t($original_target['name'] . ' [' . $language_info->name . ']'),
+      'description' => t($original_target['description'] . ' [' . $language_info->name . ']'),
+      'callback' => '_feeds_et_' . $callback,
+    );
+
+    // Remove the original target
+    unset($targets[$field_name]);
+  }
+}
