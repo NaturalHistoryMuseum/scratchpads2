@@ -324,6 +324,9 @@ function scratchpads_tweaks_install(){
   variable_del('update_notify_emails');
   // Increase the length of the biblio_keywords field
   scratchpads_tweaks_update_7089();
+  // Incase the webform module is installed, we set that it uses the old table
+  // views for results.
+  variable_set('webform_table', TRUE);
 }
 
 /**
@@ -1601,4 +1604,12 @@ function scratchpads_tweaks_update_7091(){
       }
     }
   }
+}
+
+/**
+ * New webform module tries to use views and fails. Set that it should use the
+ * old table method.
+ */
+function scratchpads_tweaks_update_7092(){
+  variable_set('webform_table', TRUE);
 }
