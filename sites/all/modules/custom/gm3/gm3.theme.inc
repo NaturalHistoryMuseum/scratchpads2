@@ -184,6 +184,9 @@ function gm3_add(&$map = array()){
  * Theme a GM3 view.
  */
 function theme_gm3_view_gm3($variables){
+  static $colours = 0;
+  $colours++;
+  //$colours = $colours % 8;
   $geo_fields = array();
   $none_geo_fields = array();
   foreach($variables['view']->field as $field_key => $field){
@@ -199,7 +202,8 @@ function theme_gm3_view_gm3($variables){
   // Because it's not possible to click on two points with the exact same
   // location, we group content that have the exact same location.
   $array_points = array();
-  foreach($variables['view']->result as $index => $row){
+  foreach(array_keys($variables['rows']) as $index){
+    $row = $variables['view']->result[$index];
     $content = $variables['rows'][$index];
     foreach($geo_fields as $key => $type){
       switch($type){
@@ -258,7 +262,7 @@ function theme_gm3_view_gm3($variables){
             }
           }
           foreach(array_keys($map['libraries']['point']['points']) as $key){
-            $map['libraries']['point']['points'][$key]['colour'] = 7;
+            $map['libraries']['point']['points'][$key]['colour'] = $colours;
           }
           break;
         case 'gm3_combination':
