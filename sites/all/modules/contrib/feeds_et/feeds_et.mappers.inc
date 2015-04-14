@@ -14,7 +14,7 @@
  *
  * Ensure that $value is a numeric to avoid database errors.
  */
-function _feeds_et_field_feeds_set_target_numeric($source, $entity, $target, $value) {
+function _feeds_et_number_feeds_set_target($source, $entity, $target, $value) {
   if (!is_array($value)) {
     $value = array($value);
   }
@@ -33,7 +33,7 @@ function _feeds_et_field_feeds_set_target_numeric($source, $entity, $target, $va
 /**
  * Callback for mapping text fields.
  */
-function _feeds_et_field_feeds_set_target_text($source, $entity, $target, $value) {
+function _feeds_et_text_feeds_set_target($source, $entity, $target, $value) {
   if (!is_array($value) && $value !== '') {
     $value = array($value);
   }
