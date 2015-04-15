@@ -130,6 +130,8 @@ class i18nMenuTestCase extends Drupali18nTestCase {
       $this->drupalGet('admin/structure/menu/item/' . $node->menu['mlid'] . '/edit');
       $this->assertText(t('This menu item belongs to a node, so it will have the same language as the node and cannot be localized.'));
       $this->assertNoField('language', 'We cannot edit language for menu items that belong to nodes.');
+      // Edit the node and submit it to see if the menu link stays enabled.
+      $this->drupalPost('node/' . $node->nid . '/edit', array(), t('Save'));
     }
     // Check menu items show up for the right language.
     $this->drupalGet('<front>');

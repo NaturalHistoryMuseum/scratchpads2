@@ -28,6 +28,10 @@ function i18n_string_install() {
     i18n_string_update_7000();
     i18n_string_update_7001();
   }
+  // Create new index in {locales_source}, performance improvement in sites with i18n.
+  if (!db_index_exists('locales_source', 'textgroup_context')) {
+    db_add_index('locales_source', 'textgroup_context', array('textgroup', array('context', 50)));
+  }
 }
 
 /**
@@ -36,6 +40,8 @@ function i18n_string_install() {
 function i18n_string_uninstall() {
   // Drop custom field.
   db_drop_field('locales_target', 'i18n_status');
+  // Drop custom index in locales_source table
+  db_drop_index('locales_source', 'textgroup_context');
 }
 
 /**
@@ -102,7 +108,7 @@ function i18n_string_schema() {
     ),
     'primary key' => array('lid'),
     'indexes' => array(
-      'group_context' => array('textgroup', 'context'),
+      'group_context' => array('textgroup', array('context', 50)),
     ),
   );
   return $schema;
@@ -229,6 +235,16 @@ function i18n_string_update_7001() {
     db_drop_table('i18n_strings');
   }
 }
+
+/**
+ *  Create new index in {locales_source}, performance improvement in sites with i18n.
+ */
+function i18n_string_update_7002() {
+  if (!db_index_exists('locales_source', 'textgroup_context')) {
+    db_add_index('locales_source', 'textgroup_context', array('textgroup', array('context', 50)));
+  }
+}
+
 
 /**
  * Notes for update script

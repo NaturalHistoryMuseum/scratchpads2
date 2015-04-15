@@ -72,6 +72,7 @@ function i18n_field_i18n_string_info() {
     'description' => t('Configurable fields descriptions, defaults, options, etc.'),
     'format' => FALSE, // This group doesn't have formatted strings
     'list' => TRUE, // This group can list all strings
+    'class' => 'i18n_string_textgroup_cached',
   );
   return $groups;
 }
