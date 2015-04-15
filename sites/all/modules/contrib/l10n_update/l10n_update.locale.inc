@@ -46,13 +46,6 @@ function _l10n_update_locale_import_po($file, $langcode, $mode, $group = NULL) {
     drupal_set_message(t('The translation file %filename appears to have a missing or malformed header.', array('%filename' => $file->filename)), 'error');
   }
 
-  // Clear cache and force refresh of JavaScript translations.
-  _locale_invalidate_js($langcode);
-  cache_clear_all('locale:', 'cache', TRUE);
-
-  // Rebuild the menu, strings may have changed.
-  menu_rebuild();
-
   watchdog('locale', 'Imported %file into %locale: %number new strings added, %update updated and %delete removed.', array('%file' => $file->filename, '%locale' => $langcode, '%number' => $additions, '%update' => $updates, '%delete' => $deletes));
   if ($skips) {
     watchdog('locale', '@count disallowed HTML string(s) in %file', array('@count' => $skips, '%file' => $file->uri), WATCHDOG_WARNING);
