@@ -85,7 +85,7 @@ class FeedsExcelParser extends FeedsParser{
     }
     // P A R S E !
     $rows = array();
-    $this->chunk_filter->setRows($this->state->pointer, isset($source_config['chunk_size']) ? $source_config['chunk_size'] : 50);
+    $this->chunk_filter->setRows($this->state->pointer, isset($source_config['chunk_size']) ? $source_config['chunk_size'] : variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT));
     // Excel object for doing the do.
     $excel_obj = $this->reader->load($import_file_path);
     $excel_obj->setActiveSheetIndex();
