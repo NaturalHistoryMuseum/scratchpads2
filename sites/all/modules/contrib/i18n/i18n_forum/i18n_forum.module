@@ -35,7 +35,7 @@ function i18n_forum_menu_local_tasks_alter(&$data, $router_item, $root_path) {
       if ($vid && ($vocabulary = taxonomy_vocabulary_load($vid)) && ($field = field_info_field('taxonomy_' . $vocabulary->machine_name))) {
         foreach ($field['bundles']['node'] as $type) {
           if (isset($data['actions']['output'][$type])) {
-            $data['actions']['output'][$type]['#link']['title'] = t('Add new @node_type', array('@node_type' => i18n_node_type_name($type, node_type_get_name($type))));
+            $data['actions']['output'][$type]['#link']['title'] = t('Add new @node_type', array('@node_type' => i18n_node_type_name($type)));
           }
         }
       }

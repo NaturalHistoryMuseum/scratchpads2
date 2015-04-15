@@ -123,8 +123,8 @@ function i18n_menu_item_translation_page($type, $item) {
   module_load_include('admin.inc', 'i18n_menu');
   // If the item has a language code, we can only support translation sets.
   $translation_set = !empty($item['i18n_tsid']) ? i18n_translation_set_load($item['i18n_tsid']) : NULL;
-  $build['overview'] = i18n_menu_translation_item_overview($item, $translation_set);
-  $build['translation_form'] = drupal_get_form('i18n_menu_translation_form', $translation_set, $item);
-  return $build;
+  $overview = i18n_menu_translation_item_overview($item, $translation_set);
+  $translation_form = drupal_get_form('i18n_menu_translation_form', $translation_set, $item);
+  return $overview + $translation_form;
 }
 
