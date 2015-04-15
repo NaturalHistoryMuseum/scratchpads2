@@ -510,12 +510,13 @@ function scratchpads_tweaks_menu(){
 function scratchpads_tweaks_update_status_alter(&$projects){
   $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
   foreach($projects as $name => $project){
-    //     print_r($name);
-    //     print_r($project);
-    //     exit();
     switch($name){
       case 'ckeditor':
       case 'role_delegation':
+      case 'entitycache':
+      case 'taxonomy_breadcrumb_lite':
+      case 'apachesolr_file':
+      case 'biblio':
         $projects[$name]['status'] = UPDATE_CURRENT;
         break;
       default:

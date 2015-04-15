@@ -38,7 +38,6 @@ define('L10N_UPDATE_CRON_PROJECTS', 10);
  */
 define('L10N_UPDATE_CRON_UPDATES', 2);
 
-
 /**
  * Implements hook_help().
  */
@@ -87,7 +86,9 @@ function l10n_update_menu() {
  */
 function l10n_update_menu_alter(&$menu) {
   // Redirect l10n_client AJAX callback path for strings.
-  $menu['l10n_client/save']['page callback'] = 'l10n_update_client_save_string';
+  if (module_exists('l10n_client')) {
+    $menu['l10n_client/save']['page callback'] = 'l10n_update_client_save_string';
+  }
 }
 
 /**
@@ -101,7 +102,7 @@ function l10n_update_cron() {
   if ($frequency && $last < REQUEST_TIME - $frequency) {
     module_load_include('check.inc', 'l10n_update');
     list($checked, $updated) = l10n_update_check_translations(L10N_UPDATE_CRON_PROJECTS, REQUEST_TIME - $frequency, L10N_UPDATE_CRON_UPDATES);
-    if (count($checked) || count($updates)) {
+    if (count($checked) || count($updated)) {
       watchdog('l10n_update', 'Automatically checked @checked translations, updated @updated.', array('@checked' => count($checked), '@updated' => count($updated)));
     }
     variable_set('l10n_update_last_check', REQUEST_TIME);
@@ -114,8 +115,8 @@ function l10n_update_cron() {
 function l10n_update_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     case 'locale_translate_edit_form':
-      // Replace the submit callback by our own customized version
-      $form['#submit'] = array('l10n_update_locale_translate_edit_form_submit');
+    case 'i18n_string_locale_translate_edit_form':
+      $form['#submit'][] = 'l10n_update_locale_translate_edit_form_submit';
       break;
     case 'locale_languages_predefined_form':
     case 'locale_languages_custom_form':
@@ -182,62 +183,25 @@ function l10n_update_languages_delete_submit($form, $form_state) {
 }
 
 /**
- * Replacement submit handler for translation edit form.
+ * Additional submit handler for locale and i18n_string translation edit form.
  *
- * Process string editing form submissions marking translations as customized.
- * Saves all translations of one string submitted from a form.
+ * Mark locally edited translations as customized.
  *
  * @see l10n_update_form_alter()
- * @todo Just mark as customized when string changed.
  */
 function l10n_update_locale_translate_edit_form_submit($form, &$form_state) {
   module_load_include('inc', 'l10n_update');
   $lid = $form_state['values']['lid'];
-  foreach ($form_state['values']['translations'] as $key => $value) {
-    $translation = db_query("SELECT translation FROM {locales_target} WHERE lid = :lid AND language = :language", array(':lid' => $lid, ':language' => $key))->fetchField();
-    if (!empty($value)) {
-      // Only update or insert if we have a value to use.
-      if (!empty($translation)) {
-        db_update('locales_target')
-          ->fields(array(
-            'translation' => $value,
-            'l10n_status' => L10N_UPDATE_STRING_CUSTOM,
-          ))
-          ->condition('lid', $lid)
-          ->condition('language', $key)
-          ->execute();
-      }
-      else {
-        db_insert('locales_target')
-          ->fields(array(
-            'lid' => $lid,
-            'translation' => $value,
-            'language' => $key,
-            'l10n_status' => L10N_UPDATE_STRING_CUSTOM,
-          ))
-          ->execute();
-      }
-    }
-    elseif (!empty($translation)) {
-      // Empty translation entered: remove existing entry from database.
-      db_delete('locales_target')
+  foreach ($form_state['values']['translations'] as $langcode => $value) {
+    if (!empty($value) && $value != $form_state['complete form']['translations'][$langcode]['#default_value']) {
+      // An update has been made, mark the string as customized.
+      db_update('locales_target')
+        ->fields(array('l10n_status' => L10N_UPDATE_STRING_CUSTOM))
         ->condition('lid', $lid)
-        ->condition('language', $key)
+        ->condition('language', $langcode)
         ->execute();
     }
-
-    // Force JavaScript translation file recreation for this language.
-    _locale_invalidate_js($key);
   }
-
-  drupal_set_message(t('The string has been saved.'));
-
-  // Clear locale cache.
-  _locale_invalidate_js();
-  cache_clear_all('locale:', 'cache', TRUE);
-
-  $form_state['redirect'] = 'admin/config/regional/translate/translate';
-  return;
 }
 
 /**
@@ -251,7 +215,7 @@ function l10n_update_client_save_string() {
       // Ensure we have this source string before we attempt to save it.
       // @todo: add actual context support.
       $lid = db_query("SELECT lid FROM {locales_source} WHERE source = :source AND context = :context AND textgroup = :textgroup", array(':source' => $_POST['source'], ':context' => '', ':textgroup' => $_POST['textgroup']))->fetchField();
-      
+
       if (!empty($lid)) {
         module_load_include('inc', 'l10n_update');
         $report = array('skips' => 0, 'additions' => 0, 'updates' => 0, 'deletes' => 0);
