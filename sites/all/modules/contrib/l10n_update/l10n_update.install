@@ -182,29 +182,30 @@ function l10n_update_uninstall() {
  */
 function l10n_update_requirements($phase) {
   if ($phase == 'runtime') {
-    if (l10n_update_get_projects() && l10n_update_language_list()) {
-      $requirements['l10n_update']['title'] = t('Translation update status');
-      if (l10n_update_available_updates()) {
-        $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
-        $requirements['l10n_update']['value'] = t('There are available updates');
-        $requirements['l10n_update']['description'] = t(
-          'There are new or updated translations available for currently installed modules and themes. To check for updates, you can visit the <a href="@check_manually">translation update page</a>.',
-          array(
-            '@check_manually' => url('admin/config/regional/translate/update')
-          )
-        );
+    $requirements['l10n_update']['title'] = t('Translation update status');
+    if (variable_get('l10n_update_check_frequency', 0)) {
+      if (l10n_update_get_projects() && l10n_update_language_list()) {
+        if (l10n_update_available_updates()) {
+          $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
+          $requirements['l10n_update']['value'] = t('There are available updates');
+          $requirements['l10n_update']['description'] = t('There are new or updated translations available for currently installed modules and themes. To check for updates, you can visit the <a href="@check_manually">translation update page</a>.', array(
+              '@check_manually' => url('admin/config/regional/translate/update')
+            ));
+        }
+        else {
+          $requirements['l10n_update']['severity'] = REQUIREMENT_OK;
+          $requirements['l10n_update']['value'] = t('All your translations are up to date');
+        }
       }
       else {
-        $requirements['l10n_update']['severity'] = REQUIREMENT_OK;
-        $requirements['l10n_update']['value'] = t('All your translations are up to date');
+        $requirements['l10n_update']['value'] = t('No update data available');
+        $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
+        $requirements['l10n_update']['description'] = _l10n_update_no_data();
       }
     }
     else {
-      $requirements['l10n_update']['title'] = t('Translation update status');
-      $requirements['l10n_update']['value'] = t('No update data available');
-      $requirements['l10n_update']['severity'] = REQUIREMENT_WARNING;
-      //$requirements['update_core']['reason'] = UPDATE_UNKNOWN;
-      $requirements['l10n_update']['description'] = _l10n_update_no_data();
+      $requirements['l10n_update']['value'] = t('Not enabled');
+      $requirements['l10n_update']['severity'] = REQUIREMENT_INFO;
     }
     return $requirements;
   }
@@ -281,4 +282,18 @@ function l10n_update_update_7004() {
     $schema['description'] = 'Cache table for the Localization Update module to store information about available releases, fetched from central server.';
     db_create_table('cache_l10n_update', $schema);
   }
+}
+
+/**
+ * Rebuild registry for 'translations' stream wrapper.
+ */
+function l10n_update_update_7005() {
+  registry_rebuild();
+}
+
+/**
+ * Rebuild registry after removing the stream wrapper.
+ */
+function l10n_update_update_7006() {
+  registry_rebuild();
 }
