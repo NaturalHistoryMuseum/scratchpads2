@@ -27,6 +27,7 @@
  *   Node operation (insert|update).
  */
 function i18n_sync_node_translation($node, $translations, $field_names, $op) {
+  $total = count($translations);
   $count = 0;
   // Disable language selection and synchronization temporarily, enable it again later
   $i18n_select = i18n_select(FALSE);
@@ -34,10 +35,12 @@ function i18n_sync_node_translation($node, $translations, $field_names, $op) {
   foreach ($translations as $translation) {
     // If translation is the same node, we cannot synchronize with itself
     if ($node->nid == $translation->nid) {
+      $total--;
       continue;
     }
     // Load full node, we need all data here.
-    $translation = node_load($translation->nid, NULL, TRUE);
+    entity_get_controller('node')->resetCache(array($translation->nid));
+    $translation = node_load($translation->nid);
     $i18n_options = i18n_sync_node_options($node->type);
     // Invoke callback for each field, the default is just copy over
     foreach ($field_names as $field) {
@@ -53,6 +56,13 @@ function i18n_sync_node_translation($node, $translations, $field_names, $op) {
     module_invoke_all('i18n_sync_translation', 'node', $translation, $translation->language, $node, $node->language, $field_names);
     node_save($translation);
     $count++;
+    // Flush each entity from the load cache after processing, to
+    // avoid exceeding PHP memory limits. It should be safe to keep
+    // at least one, however; so we retain the final translation in
+    // the cache after saving it.
+    if ($count < $total) {
+      entity_get_controller('node')->resetCache(array($translation->nid));
+    }
   }
   i18n_sync(TRUE);
   i18n_select($i18n_select);
