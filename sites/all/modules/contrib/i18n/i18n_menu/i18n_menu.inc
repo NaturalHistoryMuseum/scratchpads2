@@ -69,6 +69,7 @@ class i18n_menu_link extends i18n_string_object_wrapper {
       return I18N_MODE_NONE;
     }
   }
+
   /**
    * Access to object translation. This should check object properties and permissions
    */
