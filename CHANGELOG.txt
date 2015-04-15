@@ -1,3 +1,7 @@
+2.6.4.2 (2015-04-15)
+
+- Don't CAPTCHA the user_login and user_login_block forms
+
 2.6.4.1 (2015-04-13)
 
 - Ensure we only filter EOLAPI files out if the EOLAPI module is enabled
