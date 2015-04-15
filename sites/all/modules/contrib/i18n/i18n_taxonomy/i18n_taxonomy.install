@@ -12,7 +12,7 @@
  */
 function i18n_taxonomy_install() {
   module_load_install('i18n');
-  i18n_install_create_fields('taxonomy_vocabulary', array('language', 'i18n_mode'));
+  i18n_install_create_fields('taxonomy_vocabulary', array('language', 'i18n_mode'), TRUE);
   i18n_install_create_fields('taxonomy_term_data', array('language', 'i18n_tsid'));
   // Set module weight for it to run after core modules, but before views.
   db_query("UPDATE {system} SET weight = 5 WHERE name = 'i18n_taxonomy' AND type = 'module'");
