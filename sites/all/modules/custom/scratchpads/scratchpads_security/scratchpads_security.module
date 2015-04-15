@@ -33,6 +33,25 @@ function scratchpads_security_flush_caches(){
 }
 
 /**
+ * Implements hook_module_implements_alter.
+ */
+function scratchpads_security_module_implements_alter(&$implementations, $hook){
+  if($hook == 'captcha_default_points_alter'){
+    $group = $implementations['scratchpads_security'];
+    unset($implementations['scratchpads_security']);
+    $implementations['scratchpads_security'] = $group;
+  }
+}
+
+/**
+ * Implements hook_captcha_default_points_alter()
+ */
+function scratchpads_security_captcha_default_points_alter(&$items){
+  unset($items['user_login']);
+  unset($items['user_login_block']);
+}
+
+/**
  * Implements hook_scratchpads_security_captcha_form_ids_alter()
  * 
  * Adds form_ids that the comment module provides.
