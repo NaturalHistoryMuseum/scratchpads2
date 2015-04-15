@@ -1,8 +1,8 @@
 name = Variable translation
 description = Multilingual variables that switch language depending on page language.
 dependencies[] = i18n
-dependencies[] = variable_store (7.x-2.x)
-dependencies[] = variable_realm (7.x-2.x)
+dependencies[] = variable_store
+dependencies[] = variable_realm
 package = Multilingual - Internationalization
 core = 7.x
 configure = admin/config/regional/i18n/variable
