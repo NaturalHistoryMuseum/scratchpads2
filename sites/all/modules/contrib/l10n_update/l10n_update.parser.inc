@@ -115,7 +115,9 @@ class l10n_update_xml_parser {
         $this->current_server['languages'] = $this->current_languages;
         break;
       default:
-        $this->current_object[strtolower($this->current_tag)] = trim($this->current_object[strtolower($this->current_tag)]);
+        if (isset($this->current_object[strtolower($this->current_tag)])) {
+          $this->current_object[strtolower($this->current_tag)] = trim($this->current_object[strtolower($this->current_tag)]);
+        }
         $this->current_tag = '';
     }
   }
