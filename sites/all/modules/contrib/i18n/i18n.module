@@ -403,9 +403,17 @@ function i18n_get_object($type, $key, $object = NULL) {
   $index = is_array($key) ? implode(':', $key) : $key;
   if (!isset($cache[$type][$index])) {
     $class = i18n_object_info($type, 'class', 'i18n_object_wrapper');
-    $cache[$type][$index] = new $class($type, $key, $object);
+    $object_wrapper = new $class($type, $key, $object);
+    // Do not cache object with empty index.
+    if (!empty($index)) {
+      $cache[$type][$index] = $object_wrapper;
+    }
   }
-  return $cache[$type][$index];
+  else {
+    $object_wrapper = $cache[$type][$index];
+  }
+
+  return $object_wrapper;
 }
 
 /**
@@ -498,9 +506,12 @@ function i18n_object_translate_access($type, $object) {
  *
  * @param $path
  *   Path to get translations for or '<front>' for front page.
+ * @param $check_access
+ *   Whether to check access to paths, defaults to TRUE
  */
-function i18n_get_path_translations($path) {
+function i18n_get_path_translations($path, $check_access = TRUE) {
   $translations = &drupal_static(__FUNCTION__);
+
   if (!isset($translations[$path])) {
     $translations[$path] = array();
     foreach (module_implements('i18n_translate_path') as $module) {
@@ -510,10 +521,31 @@ function i18n_get_path_translations($path) {
         $translations[$path] += $translated;
       }
     }
+    // Add access information if not there.
+    foreach ($translations[$path] as $langcode => &$info) {
+      if (!isset($info['access'])) {
+        $item = menu_get_item($info['href']);
+        // If no menu item, it may be an external URL, we allow access.
+        $info['access'] = $item ? !empty($item['access']) : TRUE;
+      }
+    }
     // Chance for altering the results.
     drupal_alter('i18n_translate_path', $translations[$path], $path);
   }
-  return $translations[$path];
+
+  if ($check_access) {
+    return array_filter($translations[$path], '_i18n_get_path_translations_access');
+  }
+  else {
+    return $translations[$path];
+  }
+}
+
+/**
+ * Helper function to check access to path translation.
+ */
+function _i18n_get_path_translations_access($path) {
+  return $path['access'];
 }
 
 /**

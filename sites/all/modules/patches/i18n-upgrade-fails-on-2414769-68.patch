@@ -1,0 +1,55 @@
+From eba3417bd52927ffe777daef6381c98c91f76188 Mon Sep 17 00:00:00 2001
+From: Alexandre Amiche <taradof@gmail.com>
+Date: Mon, 16 Mar 2015 16:41:46 +0100
+Subject: Issue #2414769 by Alexandre Amiche, torotil, Nux: Upgrade fails on
+ database upgrade
+
+---
+ i18n_string/i18n_string.install | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/i18n_string/i18n_string.install b/i18n_string/i18n_string.install
+index 100d7c0..30e8cd2 100644
+--- a/i18n_string/i18n_string.install
++++ b/i18n_string/i18n_string.install
+@@ -29,7 +29,9 @@ function i18n_string_install() {
+     i18n_string_update_7001();
+   }
+   // Create new index in {locales_source}, performance improvement in sites with i18n.
+-  db_add_index('locales_source', 'textgroup_context', array('textgroup', 'context'));
++  if (!db_index_exists('locales_source', 'textgroup_context')) {
++    db_add_index('locales_source', 'textgroup_context', array('textgroup', array('context', 50)));
++  }
+ }
+
+ /**
+@@ -106,7 +108,7 @@ function i18n_string_schema() {
+     ),
+     'primary key' => array('lid'),
+     'indexes' => array(
+-      'group_context' => array('textgroup', 'context'),
++      'group_context' => array('textgroup', array('context', 50)),
+     ),
+   );
+   return $schema;
+@@ -238,7 +240,9 @@ function i18n_string_update_7001() {
+  *  Create new index in {locales_source}, performance improvement in sites with i18n.
+  */
+ function i18n_string_update_7002() {
+-  db_add_index('locales_source', 'textgroup_context', array('textgroup', 'context'));
++  if (!db_index_exists('locales_source', 'textgroup_context')) {
++    db_add_index('locales_source', 'textgroup_context', array('textgroup', array('context', 50)));
++  }
+ }
+
+
+@@ -269,4 +273,4 @@ function i18n_string_update_7002() {
+  * Node type
+  *  nodetype:type:[type]:[property] -> node:type:[type]:[property]
+  *  Property names: title -> title_label
+- */
+\ No newline at end of file
++ */
+--
+1.9.3 (Apple Git-50)
+

@@ -144,12 +144,14 @@ class Drupali18nTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Create a "Basic page" in the specified language.
-   *
+   * Create a node of the specified type in the specified language.
+   
+   * @param $type
+   *   The node type.
    * @param $title
-   *   Title of basic page in specified language.
+   *   Title of node in specified language.
    * @param $body
-   *   Body of basic page in specified language.
+   *   Body of node in specified language.
    * @param $langcode
    *   Language code.
    */
@@ -159,7 +161,9 @@ class Drupali18nTestCase extends DrupalWebTestCase {
     $edit["body[$lang][0][value]"] = $body;
     $edit['language'] = $langcode;
     $this->drupalPost('node/add/' . $type, $edit, t('Save'));
-    $this->assertRaw(t('Basic @type %title has been created.', array('@type' => $type, '%title' => $title)), t('Basic page created.'));
+    $info = node_type_load($type);
+    $message = t('@name %title has been created.', array('@name' => $info->name, '%title' => $title));
+    $this->assertRaw($message);
 
     // Check to make sure the node was created.
     $node = $this->drupalGetNodeByTitle($title);
@@ -169,15 +173,14 @@ class Drupali18nTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Create a translation for the specified basic page in the specified
-   * language.
+   * Create a translation for the specified node in the specified language.
    *
    * @param $node
    *   The basic page to create translation for.
    * @param $title
-   *   Title of basic page in specified language.
+   *   Title of node in specified language.
    * @param $body
-   *   Body of basic page in specified language.
+   *   Body of node in specified language.
    * @param $language
    *   Language code.
    */
@@ -196,8 +199,9 @@ class Drupali18nTestCase extends DrupalWebTestCase {
     $edit["title"] = $title;
     $edit[$body_key] = $body;
     $this->drupalPost(NULL, $edit, t('Save'));
-    $this->assertRaw(t('Basic page %title has been created.', array('%title' => $title)), t('Translation created.'));
-
+    $info = node_type_load($node->type);
+    $message = t('@name %title has been created.', array('@name' => $info->name, '%title' => $title));
+    $this->assertRaw($message);
     // Check to make sure that translation was successful.
     $translation = $this->drupalGetNodeByTitle($title);
     $this->assertTrue($translation, t('Node found in database.'));
