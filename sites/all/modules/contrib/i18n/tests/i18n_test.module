@@ -36,6 +36,12 @@ function i18n_test_i18n_string_info() {
     'format' => FALSE, // This group doesn't have strings with format
     'refresh callback' => 'i18n_test_i18n_string_refresh',
   );
+  $groups['test_cached'] = array(
+    'title' => t('Test Cached Strings'),
+    'description' => t('Translatable items of a textgroup with caching enabled.'),
+    'format' => FALSE, // This group doesn't have strings with format
+    'class' => 'i18n_string_textgroup_cached_logged',
+  );
   return $groups;
 }
 /**
@@ -43,4 +49,53 @@ function i18n_test_i18n_string_info() {
  */
 function i18n_test_i18n_string_refresh() {
   return TRUE;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function i18n_test_menu() {
+  // Required for the i18n_string caching tests.
+  $items['tests/i18n/i18n_string_build/%'] = array(
+    'title' => 'Load string',
+    'access callback' => TRUE,
+    'page callback' => 'i18n_string_build',
+    'page arguments' => array(3),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+  $items['tests/i18n/i18n_string_build/%/%'] = array(
+    'title' => 'Load string',
+    'access callback' => TRUE,
+    'page callback' => 'i18n_string_build',
+    'page arguments' => array(3, 4),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+  $items['tests/i18n/i18n_string_translation_search/%'] = array(
+    'title' => 'Search string translations',
+    'access callback' => TRUE,
+    'page callback' => 'i18n_string_translation_search',
+    'page arguments' => array(3),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+  $items['tests/i18n/i18n_string_translation_search/%/%'] = array(
+    'title' => 'Search string translations',
+    'access callback' => TRUE,
+    'page callback' => 'i18n_string_translation_search',
+    'page arguments' => array(3, 4),
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'drupal_json_output',
+  );
+  return $items;
+}
+
+class i18n_string_textgroup_cached_logged extends i18n_string_textgroup_cached {
+  public static function load_translation($i18nstring, $langcode) {
+    $strings = variable_get('i18n_loaded_translations', array());
+    $strings[$i18nstring->get_name()] = true;
+    variable_set('i18n_loaded_translations', $strings);
+    parent::load_translation($i18nstring, $langcode);
+  }
 }

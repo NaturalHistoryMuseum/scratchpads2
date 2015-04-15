@@ -223,7 +223,7 @@ function _i18n_select_table_alias($table) {
 function i18n_select_check_conditions($query, $table_alias = NULL) {
   $conditions =& $query->conditions();
   foreach ($conditions as $index => $condition) {
-    if (is_array($condition) && isset($condition['field'])) {
+    if (is_array($condition) && !empty($condition['field'])) {
       if (strpos($condition['field'], '.') === FALSE) {
         if ($table_alias) {
           // Change the condition to include a table alias.
