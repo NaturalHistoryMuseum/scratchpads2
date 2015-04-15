@@ -513,6 +513,10 @@ function scratchpads_tweaks_update_status_alter(&$projects){
     switch($name){
       case 'ckeditor':
       case 'role_delegation':
+      case 'entitycache':
+      case 'taxonomy_breadcrumb_lite':
+      case 'apachesolr_file':
+      case 'biblio':
         $projects[$name]['status'] = UPDATE_CURRENT;
         break;
       default:
