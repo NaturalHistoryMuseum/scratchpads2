@@ -510,28 +510,15 @@ function scratchpads_tweaks_menu(){
 function scratchpads_tweaks_update_status_alter(&$projects){
   $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
   foreach($projects as $name => $project){
-    switch($name){
-      case 'ckeditor':
-      case 'role_delegation':
-      case 'entitycache':
-      case 'taxonomy_breadcrumb_lite':
-      case 'apachesolr_file':
-      case 'biblio':
-        $projects[$name]['status'] = UPDATE_CURRENT;
-        break;
-      default:
-        if(!user_access('scratchpads team')){
-          if(strpos(drupal_get_path('module', $name), 'sites/all/modules/custom') !== FALSE){
-            $projects[$name]['info']['version'] = $version;
-            $projects[$name]['existing_version'] = $version;
-            $projects[$name]['latest_version'] = $version;
-            $projects[$name]['recommended'] = $version;
-            $projects[$name]['status'] = UPDATE_CURRENT;
-          }
-          if($projects[$name]['status'] != UPDATE_CURRENT){
-            $projects[$name]['status'] = UPDATE_CURRENT;
-          }
-        }
+    if(strpos(drupal_get_path('module', $name), 'sites/all/modules/custom') !== FALSE){
+      $projects[$name]['info']['version'] = $version;
+      $projects[$name]['existing_version'] = $version;
+      $projects[$name]['latest_version'] = $version;
+      $projects[$name]['recommended'] = $version;
+      $projects[$name]['status'] = UPDATE_CURRENT;
+    }
+    if($projects[$name]['status'] != UPDATE_CURRENT){
+      $projects[$name]['status'] = UPDATE_CURRENT;
     }
   }
 }
