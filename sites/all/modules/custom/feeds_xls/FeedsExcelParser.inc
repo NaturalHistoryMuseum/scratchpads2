@@ -33,7 +33,7 @@ class FeedsExcelParser extends FeedsParser{
 
   private $state;
 
-  private $chunk_size = 50;
+  private $chunk_size = variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT);
 
   private $chunk_filter;
 
