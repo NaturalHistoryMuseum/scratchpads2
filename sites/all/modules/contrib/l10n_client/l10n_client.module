@@ -44,12 +44,13 @@ function l10n_client_menu() {
     'weight' => 10,
   );
 
-  $items['admin/config/regional/language/share'] = array(
-    'title' => 'Sharing',
+  $items['admin/config/regional/translate/client'] = array(
+    'title' => 'Client',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('l10n_client_settings_form'),
     'access arguments' => array('administer languages'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'l10n_client.admin.inc',
     'weight' => 40,
   );
   return $items;
@@ -114,7 +115,11 @@ function l10n_client_access($account = NULL) {
     global $user;
     $account = $user;
   }
-  return user_access('use on-page translation', $account) && empty($account->data['l10n_client_disabled']);
+  $user_enabled = empty($account->data['l10n_client_disabled']);
+  $user_access = user_access('use on-page translation', $account);
+  $paths = variable_get('l10n_client_disabled_paths', '');
+  $paths_disabled = !empty($paths) && drupal_match_path(current_path(), $paths);
+  return $user_access && $user_enabled && !$paths_disabled;
 }
 
 /**
@@ -323,7 +328,7 @@ function _l10n_client_dom_strings($strings) {
     $source = $source === TRUE ? '' : htmlspecialchars($source, ENT_NOQUOTES, 'UTF-8');
     $target = $target === TRUE ? '' : htmlspecialchars($target, ENT_NOQUOTES, 'UTF-8');
     $context = htmlspecialchars($context, ENT_NOQUOTES, 'UTF-8');
-    $output .= "<div><span class='source'>$source</span><span class='target'>$target</span><span class='textgroup'>$textgroup</span><span class='context'>$context</context></div>";
+    $output .= "<div><span class='source'>$source</span><span class='target'>$target</span><span class='textgroup'>$textgroup</span><span class='context'>$context</span></div>";
   }
   return "<div id='l10n-client-data'>$output</div>";
 }
@@ -393,6 +398,7 @@ function l10n_client_form($form_id, $strings) {
   $form['save'] = array(
     '#value' => t('Save translation'),
     '#type' => 'submit',
+    '#attributes' => array('class' => array('edit-save')),
   );
   $form['textgroup'] = array(
     '#type' => 'hidden',
@@ -520,56 +526,6 @@ function theme_l10n_client_message($vars) {
 // -----------------------------------------------------------------------------
 
 /**
- * Settings form for l10n_client.
- *
- * Enable users to set up a central server to share translations with.
- */
-function l10n_client_settings_form() {
-  $form = array();
-  $form['l10n_client_use_server'] = array(
-    '#title' => t('Enable sharing translations with server'),
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('l10n_client_use_server', FALSE),
-  );
-  $form['l10n_client_server'] = array(
-    '#title' => t('Address of localization server to use'),
-    '#type' => 'textfield',
-    '#description' => t('Each translation submission will also be submitted to this server. We suggest you enter <a href="@localize">http://localize.drupal.org</a> to share with the greater Drupal community. Make sure you set up an API-key in the user account settings for each user that will participate in the translations.', array('@localize' => 'http://localize.drupal.org')),
-    '#default_value' => variable_get('l10n_client_server', 'http://localize.drupal.org'),
-  );
-  return system_settings_form($form);
-}
-
-/**
- * Validation to make sure the provided server can handle our submissions.
- *
- * Make sure it supports the exact version of the API we will try to use.
- */
-function l10n_client_settings_form_validate($form, &$form_state) {
-  if ($form_state['values']['l10n_client_use_server']) {
-
-    if (!empty($form_state['values']['l10n_client_server'])) {
-      // Try to invoke the remote string submission with a test request.
-      $response = xmlrpc($form_state['values']['l10n_client_server'] .'/xmlrpc.php', array('l10n.server.test' => array('2.0')));
-      if ($response && !empty($response['name']) && !empty($response['version'])) {
-        if (empty($response['supported']) || !$response['supported']) {
-          form_set_error('l10n_client_server', t('The given server could not handle the v2.0 remote submission API.'));
-        }
-        else {
-          drupal_set_message(t('Verified that the specified server can handle remote string submissions. Supported languages: %languages.', array('%languages' => $response['languages'])));
-        }
-      }
-      else {
-        form_set_error('l10n_client_server', t('Invalid localization server address specified. Make sure you specified the right server address.'));
-      }
-    }
-    else {
-      form_set_error('l10n_client_server', t('You should provide a server address, such as http://localize.drupal.org'));
-    }
-  }
-}
-
-/**
  * Implement hook_user_form().
  *
  * Set up API key for localization server.
@@ -578,13 +534,15 @@ function l10n_client_form_user_profile_form_alter(&$form, &$form_state) {
   if ($form['#user_category'] == 'account') {
     $items = array();
     $account = $form['#user'];
+    $use_server = variable_get('l10n_client_use_server', FALSE);
+    $server_root = variable_get('l10n_client_server', 'http://localize.drupal.org');
 
-    if (variable_get('l10n_client_use_server', FALSE) && user_access('submit translations to localization server', $account)) {
+    if ($use_server && user_access('submit translations to localization server', $account)) {
       // Build link to retrieve user key.
-      $server_link = variable_get('l10n_client_server', 'http://localize.drupal.org') .'?q=translate/remote/userkey/'. l10n_client_user_token($account);
+      $server_link = $server_root . '?q=translate/remote/userkey/' . l10n_client_user_token($account);
       $items['l10n_client_key'] = array(
         '#type' => 'textfield',
-        '#title' => t('Your Localization Server API key'),
+        '#title' => t('Your API key for @server', array('@server' => $server_root)),
         '#default_value' => !empty($account->data['l10n_client_key']) ? $account->data['l10n_client_key'] : '',
         '#description' => t('This is a unique key that will allow you to send translations to the remote server. To get your API key go to !server-link.', array('!server-link' => l($server_link, $server_link))),
       );
@@ -666,4 +624,16 @@ function l10n_client_submit_translation($langcode, $source, $translation, $user_
     watchdog('l10n_client', 'The connection with @server failed with the following error: %error_code: %error_message.', array('%error_code' => xmlrpc_errno(), '%error_message' => xmlrpc_error_msg(), '@server' => $server_url), WATCHDOG_ERROR);
     return array(FALSE, $message);
   }
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function l10n_client_field_extra_fields() {
+  $extra['user']['user']['form']['l10nclient'] = array(
+    'label' => 'Localization client',
+    'description' => t('On-page localization form element.'),
+    'weight' => 10,
+  );
+  return $extra;
 }

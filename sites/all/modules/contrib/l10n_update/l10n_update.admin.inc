@@ -59,7 +59,7 @@ function l10n_update_admin_overview() {
     $build['admin_import_form'] = drupal_get_form('l10n_update_admin_import_form', $projects, $updates);
   }
   else {
-    $build['no_projects'] = array('#markup' => t('No projects or languages to update.'));
+    $build['no_languages'] = array('#markup' => t('No translatable language defined. <a href="/admin/config/regional/language">Add a language</a>.'));
   }
   return $build;
 }
@@ -96,30 +96,29 @@ function l10n_update_admin_import_form($form, $form_state, $projects, $updates) 
       '#type' => 'value',
       '#value' => $updates,
     );
-    // @todo Only show this language fieldset if we have more than 1 language.
-    $form['lang'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Languages'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#description' => t('Select one or more languages to download and update. If you select none, all of them will be updated.'),
-    );
-    $form['lang']['languages'] = array(
-      '#type' => 'checkboxes',
-      '#options' => $languages,
-    );
-    $form['mode'] = array(
-      '#type' => 'radios',
-      '#title' => t('Update mode'),
-      '#default_value' => variable_get('l10n_update_import_mode', LOCALE_IMPORT_KEEP),
-      '#options' => _l10n_update_admin_import_options(),
-    );
-    $form['buttons']['download'] = array(
-      '#type' => 'submit',
-      '#value' => t('Update translations'),
-    );
+
+    if (count($languages) > 1) {
+      $form['lang'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Languages'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE ,
+        '#description' => t('Select one or more languages to download and update. If you select none, all of them will be updated.'),
+      );
+      $form['lang']['languages'] = array(
+        '#type' => 'checkboxes',
+        '#options' => $languages,
+      );
+    }
+
+    if ($updates) {
+      $form['actions']['download'] = array(
+        '#type' => 'submit',
+        '#value' => t('Update translations'),
+      );
+    }
   }
-  $form['buttons']['refresh'] = array(
+  $form['actions']['refresh'] = array(
     '#type' => 'submit',
     '#value' => t('Refresh information'),
   );
@@ -137,18 +136,16 @@ function l10n_update_admin_import_form_submit($form, $form_state) {
   $projects = l10n_update_get_projects();
 
   if ($op == t('Update translations')) {
-    $languages = array_filter($form_state['values']['languages']);
+    $languages = isset($form_state['values']['languages']) ? array_filter($form_state['values']['languages']) : NULL;
     $updates = $form_state['values']['updates'];
-    $mode = $form_state['values']['mode'];
+    $mode = variable_get('l10n_update_import_mode', LOCALE_IMPORT_KEEP);
+
     if ($projects && $updates) {
       module_load_include('batch.inc', 'l10n_update');
       // Filter out updates in other languages. If no languages, all of them will be updated
       $updates = _l10n_update_prepare_updates($updates, NULL, $languages);
       $batch = l10n_update_batch_multiple($updates, $mode);
       batch_set($batch);
-    }
-    else {
-      drupal_set_message(t('Cannot find any translation updates.'), 'error');
     }
   }
   elseif ($op == t('Refresh information')) {
@@ -344,6 +341,7 @@ function theme_l10n_update_project_status($variables) {
   // Plus add our own css and js.
   drupal_add_css(drupal_get_path('module', 'update') . '/update.css');
   drupal_add_css(drupal_get_path('module', 'l10n_update') . '/css/l10n_update.admin.css');
+  drupal_add_js('misc/collapse.js');
   drupal_add_js(drupal_get_path('module', 'l10n_update') . '/js/l10n_update.js');
 
   return $output;

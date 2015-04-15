@@ -73,6 +73,11 @@ Open the list of all the website's interface strings by selecting Translate
 Strings from the menu (http://www.example.com/locale). Click "TRANSLATE TEXT"
 to start translating.
 
+Note: If you are using the Overlay module, Localization client won't be able to
+translate string in the overlay, we recommend that you disable the module or if
+need be, access the administration pages directly (remove the '#overlay=' part
+in url)
+
 SHARING TRANSLATIONS
 --------------------
 
