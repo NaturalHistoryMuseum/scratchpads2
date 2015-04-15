@@ -172,6 +172,10 @@ function _l10n_update_batch_import($id, $file, $mode, &$context) {
     $file = $context['results'][$id]['file'];
   }
   if ($file) {
+    // Create a result if none exists yet.
+    if (!isset($context['results'][$id])) {
+      $context['results'][$id] = array();
+    }
     if ($import_result = l10n_update_source_import($file, $mode)) {
       $context['message'] = $t('Imported: %name.', array('%name' => $file->filename));
       $context['results'][$id] = array_merge((array)$context['results'][$id], $import_result, array('file' => $file));
@@ -249,6 +253,14 @@ function _l10n_update_batch_finished($success, $results) {
             array('!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog'))),
         'warning');
       }
+
+      // Clear cache and force refresh of JavaScript translations and rebuild
+      // the menu as strings may have changed.
+      foreach (array_keys($totals) as $langcode) {
+        _locale_invalidate_js($langcode);
+      }
+      cache_clear_all('locale:', 'cache', TRUE);
+      menu_rebuild();
     }
 
     // Error for failed imports.

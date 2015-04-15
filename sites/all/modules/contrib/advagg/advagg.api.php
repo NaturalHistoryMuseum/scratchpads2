@@ -15,16 +15,16 @@
  *
  * @param array $files
  *   An associative array.
- *    filename - data
+ *    filename - data.
  * @param bool $modified
  *   Set this to TRUE if the $files structure has been changed.
  * @param string $type
- *   css or js.
+ *   Lowercase css or js.
  *
  * @see advagg_build_aggregate_plans()
  * @see advagg_advagg_build_aggregate_plans_alter()
  */
-function hook_advagg_build_aggregate_plans_alter(&$files, &$modified, $type) {
+function hook_advagg_build_aggregate_plans_alter(array &$files, &$modified, $type) {
   // Do nothing if core grouping is disabled.
   if (!variable_get('advagg_core_groups', ADVAGG_CORE_GROUPS)) {
     return;
@@ -65,7 +65,7 @@ function hook_advagg_build_aggregate_plans_alter(&$files, &$modified, $type) {
  *
  * @param array $files
  *   An associative array.
- *    filename - meta_data
+ *    filename - meta_data.
  * @param array $types
  *   Array containing css and/or js.
  *
@@ -75,16 +75,16 @@ function hook_advagg_build_aggregate_plans_alter(&$files, &$modified, $type) {
  * @see advagg_push_new_changes()
  * @see advagg_js_compress_advagg_changed_files()
  */
-function hook_advagg_changed_files($files, $types) {
+function hook_advagg_changed_files(array $files, array $types) {
   // Only care about js files.
   if (empty($types['js'])) {
-    return;
+    return array();
   }
   $return = array();
   foreach ($files as $filename => $meta_data) {
     // Only care about js files.
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
-    if ($ext != 'js') {
+    if ($ext !== 'js') {
       continue;
     }
 
@@ -102,26 +102,26 @@ function hook_advagg_changed_files($files, $types) {
  * @see advagg_current_hooks_hash_array()
  * @see advagg_js_compress_advagg_current_hooks_hash_array_alter()
  */
-function hook_advagg_current_hooks_hash_array_alter(&$aggregate_settings) {
+function hook_advagg_current_hooks_hash_array_alter(array &$aggregate_settings) {
   $aggregate_settings['variables']['advagg_js_compressor'] = variable_get('advagg_js_compressor', ADVAGG_JS_COMPRESSOR);
   $aggregate_settings['variables']['advagg_js_compress_packer'] = variable_get('advagg_js_compress_packer', ADVAGG_JS_COMPRESS_PACKER);
-  $aggregate_settings['variables']['advagg_js_max_compress_ratio'] = variable_get('advagg_js_max_compress_ratio', ADVAGG_JS_MAX_COMPRESS_RATIO);
+  $aggregate_settings['variables']['advagg_js_compress_max_ratio'] = variable_get('advagg_js_compress_max_ratio', ADVAGG_JS_COMPRESS_MAX_RATIO);
 }
 
 /**
  * Allow other modules to alter the contents and add new files to save (.gz).
  *
  * @param array $files_to_save
- *   array($uri => $contents)
+ *   Array($uri => $contents).
  * @param array $aggregate_settings
- *   array of settings.
+ *   Array of settings.
  * @param array $other_parameters
- *   array of containing $files & $type.
+ *   Array of containing $files & $type.
  *
  * @see advagg_save_aggregate()
  * @see advagg_advagg_save_aggregate_alter()
  */
-function hook_advagg_save_aggregate_alter(&$files_to_save, $aggregate_settings, $other_parameters) {
+function hook_advagg_save_aggregate_alter(array &$files_to_save, array $aggregate_settings, array $other_parameters) {
   // Return if gzip is disabled.
   if (empty($aggregate_settings['variables']['advagg_gzip'])) {
     return;
@@ -164,7 +164,7 @@ function hook_advagg_save_aggregate_alter(&$files_to_save, $aggregate_settings, 
  * @see advagg_get_root_files_dir()
  * @see advagg_mod_advagg_get_root_files_dir_alter()
  */
-function hook_advagg_get_root_files_dir(&$css_paths, &$js_paths) {
+function hook_advagg_get_root_files_dir(array &$css_paths, array &$js_paths) {
   $dir = rtrim(variable_get('advagg_mod_unified_multisite_dir', ''), '/');
   if (empty($dir) || !file_exists($dir) || !is_dir($dir)) {
     return;
@@ -177,14 +177,8 @@ function hook_advagg_get_root_files_dir(&$css_paths, &$js_paths) {
   file_prepare_directory($js_paths[0], FILE_CREATE_DIRECTORY);
 
   // Set the URI of the directory.
-  $css_paths[1] = parse_url(file_create_url($css_paths[0]), PHP_URL_PATH);
-  if (substr($css_paths[1], 0, strlen($GLOBALS['base_path'])) == $GLOBALS['base_path']) {
-    $css_paths[1] = substr($css_paths[1], strlen($GLOBALS['base_path']));
-  }
-  $js_paths[1] = parse_url(file_create_url($js_paths[0]), PHP_URL_PATH);
-  if (substr($js_paths[1], 0, strlen($GLOBALS['base_path'])) == $GLOBALS['base_path']) {
-    $js_paths[1] = substr($js_paths[1], strlen($GLOBALS['base_path']));
-  }
+  $css_paths[1] = advagg_get_relative_path($css_paths[0]);
+  $js_paths[1] = advagg_get_relative_path($js_paths[0]);
 }
 
 /**
@@ -200,7 +194,7 @@ function hook_advagg_get_root_files_dir(&$css_paths, &$js_paths) {
  * @see advagg_get_css_aggregate_contents()
  * @see advagg_css_compress_advagg_get_css_aggregate_contents_alter()
  */
-function hook_advagg_get_css_aggregate_contents_alter(&$data, $files, $aggregate_settings) {
+function hook_advagg_get_css_aggregate_contents_alter(&$data, array $files, array $aggregate_settings) {
   if (empty($aggregate_settings['variables']['advagg_css_compressor'])) {
     return;
   }
@@ -220,10 +214,10 @@ function hook_advagg_get_css_aggregate_contents_alter(&$data, $files, $aggregate
  * @param array $aggregate_settings
  *   An associative array of hooks and settings used.
  *
- * @see advagg_get_css_aggregate_contents()
- * @see advagg_css_compress_advagg_get_css_aggregate_contents_alter()
+ * @see advagg_get_js_aggregate_contents()
+ * @see advagg_js_compress_advagg_get_js_aggregate_contents_alter()
  */
-function hook_advagg_get_js_aggregate_contents_alter(&$data, $files, $aggregate_settings) {
+function hook_advagg_get_js_aggregate_contents_alter(&$data, array $files, array $aggregate_settings) {
   // Do nothing if js file compression is disabled.
   if (empty($aggregate_settings['variables']['advagg_js_compressor'])) {
     return;
@@ -240,14 +234,14 @@ function hook_advagg_get_js_aggregate_contents_alter(&$data, $files, $aggregate_
  * @param string $contents
  *   Raw file data.
  * @param string $file
- *   Filename
+ *   Filename.
  * @param array $aggregate_settings
  *   An associative array of hooks and settings used.
  *
  * @see advagg_get_css_aggregate_contents()
  * @see advagg_css_compress_advagg_get_css_aggregate_contents_alter()
  */
-function hook_advagg_get_css_file_contents_alter(&$contents, $file, $aggregate_settings) {
+function hook_advagg_get_css_file_contents_alter(&$contents, $file, array $aggregate_settings) {
   if (empty($aggregate_settings['variables']['advagg_css_compressor'])) {
     return;
   }
@@ -262,15 +256,15 @@ function hook_advagg_get_css_file_contents_alter(&$contents, $file, $aggregate_s
  *
  * @param string $contents
  *   Raw file data.
- * @param string $file
- *   Filename
+ * @param string $filename
+ *   Filename.
  * @param array $aggregate_settings
  *   An associative array of hooks and settings used.
  *
  * @see advagg_get_css_aggregate_contents()
  * @see advagg_css_compress_advagg_get_css_aggregate_contents_alter()
  */
-function hook_advagg_get_js_file_contents_alter(&$contents, $file, $aggregate_settings) {
+function hook_advagg_get_js_file_contents_alter(&$contents, $filename, array $aggregate_settings) {
   // Do nothing if js file compression is disabled.
   if (empty($aggregate_settings['variables']['advagg_js_compressor'])) {
     return;
@@ -296,14 +290,14 @@ function hook_advagg_get_js_file_contents_alter(&$contents, $file, $aggregate_se
  *
  * @param array $css_groups
  *   An associative array.
- *    key - group
+ *    key - group.
  * @param bool $preprocess_css
  *   TRUE if preprocessing is enabled.
  *
  * @see _advagg_aggregate_css()
  * @see advagg_css_cdn_advagg_css_groups_alter()
  */
-function hook_advagg_css_groups_alter(&$css_groups, $preprocess_css) {
+function hook_advagg_css_groups_alter(array &$css_groups, $preprocess_css) {
   // Work around a bug with seven_css_alter.
   // http://drupal.org/node/1937860
   $theme_keys[] = $GLOBALS['theme'];
@@ -314,7 +308,7 @@ function hook_advagg_css_groups_alter(&$css_groups, $preprocess_css) {
   }
   $match = FALSE;
   foreach ($theme_keys as $name) {
-    if ($name == 'seven') {
+    if ($name === 'seven') {
       $match = TRUE;
     }
   }
@@ -329,9 +323,9 @@ function hook_advagg_css_groups_alter(&$css_groups, $preprocess_css) {
   $replaced = FALSE;
   foreach ($css_groups as $key => $group) {
     if (empty($target)) {
-      if ($group['type'] == 'external' && $group['preprocess'] && $preprocess_css) {
+      if ($group['type'] === 'external' && $group['preprocess'] && $preprocess_css) {
         foreach ($group['items'] as $k => $value) {
-          if ($value['data'] == 'themes/seven/jquery.ui.theme.css') {
+          if ($value['data'] === 'themes/seven/jquery.ui.theme.css') {
             // Type should be file and not external (core bug).
             $value['type'] = 'file';
             $target = $value;
@@ -347,25 +341,25 @@ function hook_advagg_css_groups_alter(&$css_groups, $preprocess_css) {
     else {
       $diff = array_merge(array_diff_assoc($group['browsers'], $target['browsers']), array_diff_assoc($target['browsers'], $group['browsers']));
       // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
-      if (   $group['type'] != $target['type']
-          || $group['group'] != $target['group']
-          || $group['every_page'] != $target['every_page']
-          || $group['media'] != $target['media']
-          || $group['media'] != $target['media']
-          || $group['preprocess'] != $target['preprocess']
-          || !empty($diff)
-          ) {
+      if ( $group['type'] != $target['type']
+        || $group['group'] != $target['group']
+        || $group['every_page'] != $target['every_page']
+        || $group['media'] != $target['media']
+        || $group['media'] != $target['media']
+        || $group['preprocess'] != $target['preprocess']
+        || !empty($diff)
+      ) {
         if (!empty($last_group)) {
           $diff = array_merge(array_diff_assoc($last_group['browsers'], $target['browsers']), array_diff_assoc($target['browsers'], $last_group['browsers']));
           // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
-          if (   $last_group['type'] != $target['type']
-              || $last_group['group'] != $target['group']
-              || $last_group['every_page'] != $target['every_page']
-              || $last_group['media'] != $target['media']
-              || $last_group['media'] != $target['media']
-              || $last_group['preprocess'] != $target['preprocess']
-              || !empty($diff)
-              ) {
+          if ( $last_group['type'] != $target['type']
+            || $last_group['group'] != $target['group']
+            || $last_group['every_page'] != $target['every_page']
+            || $last_group['media'] != $target['media']
+            || $last_group['media'] != $target['media']
+            || $last_group['preprocess'] != $target['preprocess']
+            || !empty($diff)
+          ) {
             // Insert New.
             $css_groups[$kill_key] = array(
               'group' => $target['group'],
@@ -405,14 +399,14 @@ function hook_advagg_css_groups_alter(&$css_groups, $preprocess_css) {
  *
  * @param array $js_groups
  *   An associative array.
- *    key - group
+ *    key - group.
  * @param bool $preprocess_js
  *   TRUE if preprocessing is enabled.
  *
  * @see _advagg_aggregate_js()
  * @see labjs_advagg_js_groups_alter()
  */
-function hook_advagg_js_groups_alter(&$js_groups, $preprocess_js) {
+function hook_advagg_js_groups_alter(array &$js_groups, $preprocess_js) {
   if (!$preprocess_js) {
     return;
   }
@@ -427,7 +421,9 @@ function hook_advagg_js_groups_alter(&$js_groups, $preprocess_js) {
         break 2;
       }
     }
+    unset($values);
   }
+  unset($data);
 }
 
 /**
@@ -448,9 +444,9 @@ function hook_advagg_js_groups_alter(&$js_groups, $preprocess_js) {
  * @see advagg_modify_css_pre_render()
  * @see advagg_css_compress_advagg_modify_css_pre_render_alter()
  */
-function hook_advagg_modify_css_pre_render_alter(&$children, &$elements) {
+function hook_advagg_modify_css_pre_render_alter(array &$children, array &$elements) {
   // Get variables.
-  $compressor = variable_get('advagg_css_inline_compressor', ADVAGG_CSS_INLINE_COMPRESSOR);
+  $compressor = variable_get('advagg_css_compress_inline', ADVAGG_CSS_COMPRESS_INLINE);
 
   // Do nothing if the compressor is disabled.
   if (empty($compressor)) {
@@ -459,7 +455,7 @@ function hook_advagg_modify_css_pre_render_alter(&$children, &$elements) {
 
   // Do nothing if the page is not cacheable and inline compress if not
   // cacheable is not checked.
-  if (!variable_get('advagg_css_inline_compress_if_not_cacheable', ADVAGG_CSS_INLINE_COMPRESS_IF_NOT_CACHEABLE) && !drupal_page_is_cacheable()) {
+  if (!variable_get('advagg_css_compress_inline_if_not_cacheable', ADVAGG_CSS_COMPRESS_INLINE_IF_NOT_CACHEABLE) && !drupal_page_is_cacheable()) {
     return;
   }
 
@@ -471,6 +467,7 @@ function hook_advagg_modify_css_pre_render_alter(&$children, &$elements) {
         advagg_css_compress_yui_cssmin($values['#value']);
       }
     }
+    unset($values);
   }
 }
 
@@ -492,10 +489,10 @@ function hook_advagg_modify_css_pre_render_alter(&$children, &$elements) {
  * @see advagg_modify_js_pre_render()
  * @see advagg_js_compress_advagg_modify_js_pre_render_alter()
  */
-function hook_advagg_modify_js_pre_render_alter(&$children, &$elements) {
+function hook_advagg_modify_js_pre_render_alter(array &$children, array &$elements) {
   // Get variables.
-  $aggregate_settings['variables']['advagg_js_compressor'] = variable_get('advagg_js_inline_compressor', ADVAGG_JS_INLINE_COMPRESSOR);
-  $aggregate_settings['variables']['advagg_js_max_compress_ratio'] = variable_get('advagg_js_max_compress_ratio', ADVAGG_JS_MAX_COMPRESS_RATIO);
+  $aggregate_settings['variables']['advagg_js_compressor'] = variable_get('advagg_js_compress_inline', ADVAGG_JS_COMPRESS_INLINE);
+  $aggregate_settings['variables']['advagg_js_compress_max_ratio'] = variable_get('advagg_js_compress_max_ratio', ADVAGG_JS_COMPRESS_MAX_RATIO);
 
   // Do nothing if the compressor is disabled.
   if (empty($aggregate_settings['variables']['advagg_js_compressor'])) {
@@ -504,7 +501,7 @@ function hook_advagg_modify_js_pre_render_alter(&$children, &$elements) {
 
   // Do nothing if the page is not cacheable and inline compress if not
   // cacheable is not checked.
-  if (!variable_get('advagg_js_inline_compress_if_not_cacheable', ADVAGG_JS_INLINE_COMPRESS_IF_NOT_CACHEABLE) && !drupal_page_is_cacheable()) {
+  if (!variable_get('advagg_js_compress_inline_if_not_cacheable', ADVAGG_JS_COMPRESS_INLINE_IF_NOT_CACHEABLE) && !drupal_page_is_cacheable()) {
     return;
   }
 
@@ -518,23 +515,24 @@ function hook_advagg_modify_js_pre_render_alter(&$children, &$elements) {
       $values['#value'] = $contents;
     }
   }
+  unset($values);
 }
 
 /**
- * Allow other modules to modify $css_groups right before it is processed.
+ * Allow other modules to swap important contextual information on generation.
  *
  * @param array $original
- *   array of original settings.
+ *   Array of original settings.
  * @param array $aggregate_settings
- *   array of contextual settings.
+ *   Array of contextual settings.
  * @param int $mode
- *   0 to change context to what is inside of $aggregate_settings.
- *   1 to change context back.
+ *   Use 0 to change context to what is inside of $aggregate_settings.
+ *   Use 1 to change context back.
  *
- * @see advagg_context_css()
+ * @see advagg_context_switch()
  * @see advagg_advagg_context_alter()
  */
-function hook_advagg_context_alter(&$original, $aggregate_settings, $mode) {
+function hook_advagg_context_alter(array &$original, array $aggregate_settings, $mode) {
   if ($mode == 0) {
     // Change context.
     $original['base_root'] = $GLOBALS['base_root'];
@@ -567,6 +565,114 @@ function hook_advagg_context_alter(&$original, $aggregate_settings, $mode) {
       $GLOBALS['is_https'] = $original['is_https'];
     }
   }
+}
+
+/**
+ * Let other modules know about the aggregate files that have been removed.
+ *
+ * @param array $kill_list
+ *   An array of aggregate files that have been removed.
+ *
+ * @see advagg_delete_files_if_stale()
+ */
+function hook_advagg_removed_aggregates(array $kill_list) {
+  foreach ($kill_list as $uri) {
+    // Do something else.
+  }
+}
+
+/**
+ * Let other modules tell advagg that a file has changed.
+ *
+ * Useful for things like embedded images in CSS; generating a new aggregate
+ * when the image in the CSS file has changed.
+ *
+ * @param string $filename
+ *   Name of the root CSS or JavaScript file.
+ *
+ * @return bool
+ *   Set to TRUE to trigger a rebuild of the aggregates that contain this file.
+ *
+ * @see advagg_scan_for_changes()
+ * @see css_emimage_advagg_scan_for_changes()
+ */
+function hook_advagg_scan_for_changes($filename) {
+  if ($filename) {
+    return FALSE;
+  }
+}
+
+/**
+ * Let other modules add/alter additional information about files passed in.
+ *
+ * @param array $return
+ *   An associative array; filename -> data.
+ * @param array $cached_data
+ *   What data was found in the cache; cache_id -> data.
+ * @param bool $bypass_cache
+ *   If TRUE the loaded data did not come from the cache.
+ *
+ * @see advagg_get_info_on_files()
+ * @see advagg_advagg_get_info_on_files_alter()
+ */
+function hook_advagg_get_info_on_files_alter(array &$return, array $cached_data, $bypass_cache) {
+  if (!variable_get('advagg_ie_css_selector_limiter', ADVAGG_IE_CSS_SELECTOR_LIMITER)) {
+    return;
+  }
+  $limit_value = variable_get('advagg_ie_css_selector_limiter_value', ADVAGG_IE_CSS_SELECTOR_LIMITER_VALUE);
+  list($css_path, $js_path) = advagg_get_root_files_dir();
+  $parts_path = $css_path[1] . '/parts';
+
+  foreach ($return as $filename => &$info) {
+    if (empty($info['fileext']) || $info['fileext'] !== 'css') {
+      continue;
+    }
+
+    // Break large file into multiple small files.
+    if ($info['linecount'] > $limit_value) {
+      advagg_split_css_file($info);
+    }
+    elseif (strpos($info['data'], $parts_path) === 0) {
+      $info['split'] = TRUE;
+    }
+  }
+  unset($info);
+}
+
+/**
+ * Tell advagg about other hooks related to advagg.
+ *
+ * @param array $hooks
+ *   Array of hooks related to advagg.
+ * @param bool $all
+ *   If FALSE get only the subset of hooks that alter the filename/contents.
+ *
+ * @see advagg_hooks_implemented()
+ * @see advagg_bundler_advagg_hooks_implemented_alter()
+ */
+function hook_advagg_hooks_implemented_alter(array &$hooks, $all) {
+  if ($all) {
+    $hooks['advagg_bundler_analysis_alter'] = array();
+  }
+}
+
+/**
+ * Let other modules modify the analysis array before it is used.
+ *
+ * @param array $analysis
+ *   An associative array; filename -> data.
+ *
+ * @see advagg_bundler_analysis()
+ */
+function hook_advagg_bundler_analysis_alter(array &$analysis) {
+  foreach ($analysis as $filename => &$data) {
+    // This changes often; 604800 is 1 week.
+    if ($data['changes'] > 10 && $data['mtime'] >= REQUEST_TIME - 604800) {
+      // Modify the group hash so this doesn't end up in a big aggregate.
+      $data['group_hash'];
+    }
+  }
+  unset($data);
 }
 
 /**

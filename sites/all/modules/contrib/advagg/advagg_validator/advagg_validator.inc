@@ -78,7 +78,6 @@ function advagg_validator_test_css_files($files, $options = array()) {
     $lines = file($filename);
     $filename_hash = drupal_hash_base64($filename);
     $content_hash = drupal_hash_base64($file_contents);
-    $update = FALSE;
 
     // See if this file needs to be scanned.
     $file_ok = db_select('advagg_validator', 'av')
@@ -94,7 +93,6 @@ function advagg_validator_test_css_files($files, $options = array()) {
           continue 2;
         }
       }
-      $update = TRUE;
     }
 
     // Run jigsaw.w3.org validator.
@@ -102,7 +100,7 @@ function advagg_validator_test_css_files($files, $options = array()) {
 
     // Get extra context for errors.
     if (!empty($output[$filename]['jigsaw.w3.org']['errors'])) {
-      foreach ($output[$filename]['jigsaw.w3.org']['errors'] as $key => &$value) {
+      foreach ($output[$filename]['jigsaw.w3.org']['errors'] as &$value) {
         if (isset($value['line'])) {
           $value['linedata'] = $lines[($value['line'] - 1)];
           if (strlen($value['linedata']) > 512) {
@@ -110,9 +108,10 @@ function advagg_validator_test_css_files($files, $options = array()) {
           }
         }
       }
+      unset($value);
     }
     if (!empty($output[$filename]['jigsaw.w3.org']['warnings'])) {
-      foreach ($output[$filename]['jigsaw.w3.org']['warnings'] as $key => &$value) {
+      foreach ($output[$filename]['jigsaw.w3.org']['warnings'] as &$value) {
         if (isset($value['line'])) {
           $value['linedata'] = $lines[$value['line'] - 1];
           if (strlen($value['linedata']) > 512) {
@@ -120,6 +119,7 @@ function advagg_validator_test_css_files($files, $options = array()) {
           }
         }
       }
+      unset($value);
     }
 
     // Save data.
@@ -220,7 +220,7 @@ function advagg_validator_parse_soap_response_w3c($xml) {
 
   // Handle the element validity and get errors if not valid.
   $element = $doc->getElementsByTagName('validity');
-  if ($element->length && $element->item(0)->nodeValue == 'true') {
+  if ($element->length && $element->item(0)->nodeValue === 'true') {
     $response['validity'] = TRUE;
   }
   else {
@@ -245,7 +245,7 @@ function advagg_validator_parse_soap_response_w3c($xml) {
  * Extract info from the DOMNode Object.
  *
  * @param object $dom
- *   DOMNode Class
+ *   DOMNode Class.
  *
  * @return array
  *   Key Value pair from the DOM Node.
@@ -314,7 +314,7 @@ function advagg_validator_file_scan_directory($dir, $mask, $options = array(), $
   // @ignore druplart_andor_assignment
   if (is_dir($dir) && $handle = opendir($dir)) {
     while (FALSE !== ($filename = readdir($handle))) {
-      if (!preg_match($options['nomask'], $filename) && $filename[0] != '.') {
+      if (!preg_match($options['nomask'], $filename) && $filename[0] !== '.') {
         $uri = "$dir/$filename";
         $uri = file_stream_wrapper_uri_normalize($uri);
         if (is_dir($uri) && $options['recurse'] && !preg_match($options['nodirmask'], $uri)) {
