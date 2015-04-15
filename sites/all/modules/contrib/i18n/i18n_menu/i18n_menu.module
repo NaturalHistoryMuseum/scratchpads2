@@ -343,6 +343,8 @@ function i18n_menu_variable_info_alter(&$variables, $options) {
   // Make menu variables translatable
   $variables['menu_main_links_source']['localize'] = TRUE;
   $variables['menu_secondary_links_source']['localize'] = TRUE;
+  $variables['menu_parent_[node_type]']['localize'] = TRUE;
+  $variables['menu_options_[node_type]']['localize'] = TRUE;
 }
 
 /**
@@ -468,7 +470,8 @@ function i18n_menu_navigation_links($menu_name, $level = 0) {
  * Get localized menu title
  */
 function _i18n_menu_link_title($link, $langcode = NULL) {
-  return i18n_string_translate(array('menu', 'item', $link['mlid'], 'title'), $link['link_title'], array('langcode' => $langcode, 'sanitize' => FALSE));
+  $key = i18n_object_info('menu_link', 'key');
+  return i18n_string_translate(array('menu', 'item', $link[$key], 'title'), $link['link_title'], array('langcode' => $langcode, 'sanitize' => FALSE));
 }
 
 /**
@@ -500,7 +503,8 @@ function _i18n_menu_link_localize(&$link, $langcode = NULL) {
  */
 function _i18n_menu_link_description($link, $langcode = NULL) {
   if (!empty($link['options']['attributes']['title'])) {
-    return i18n_string_translate(array('menu', 'item', $link['mlid'], 'description'), $link['options']['attributes']['title'], array('langcode' => $langcode));
+    $key = i18n_object_info('menu_link', 'key');
+    return i18n_string_translate(array('menu', 'item', $link[$key], 'description'), $link['options']['attributes']['title'], array('langcode' => $langcode));
   }
   else {
     return NULL;
@@ -524,6 +528,10 @@ function _i18n_menu_link_process(&$link) {
       elseif (arg(3) == 'item' && arg(4) == $link['mlid']) {
         return FALSE;
       }
+    }
+    // Skip if administering this menu item through the node edit form.
+    elseif (arg(0) == 'node' && arg(2) == 'edit' && $link['link_path'] == arg(0) . '/' . arg(1)) {
+      return FALSE;
     }
     return TRUE;
   }
@@ -710,6 +718,26 @@ function i18n_menu_form_menu_edit_item_alter(&$form, &$form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ * FORM_ID = menu-overview-form.
+ * Add a "translate" link in operations column for each menu item.
+ */
+function i18n_menu_form_menu_overview_form_alter(&$form, &$form_state) {
+  foreach (element_children($form) as $element) {
+    if (substr($element, 0, 5) == 'mlid:') {
+      $mlid = $form[$element]['#item']['mlid'];
+      if (i18n_get_object('menu', $mlid)->get_translate_access()) {
+        $form[$element]['operations']['translate'] = array(
+          '#type' => 'link',
+          '#title' => t('translate'),
+          '#href' => "admin/structure/menu/item/{$mlid}/translate",
+        );
+      }
+    }
+  }
+}
+
+/**
  * Normal path should be checked with menu item's language to avoid
  * troubles when a node and it's translation has the same url alias.
  */
@@ -727,6 +755,9 @@ function i18n_menu_item_get_language($item) {
   }
   else {
     $menu = menu_load($item['menu_name']);
+    if (!isset($menu['i18n_mode'])) {
+      return LANGUAGE_NONE;
+    }
     switch ($menu['i18n_mode']) {
       case I18N_MODE_LANGUAGE:
         return $menu['language'];
@@ -856,6 +887,14 @@ function i18n_menu_link_load($path, $langcode) {
     _menu_link_translate($item);
     return $item;
   }
+}
+
+/**
+ * Implements hook_query_TAG_alter() for features_menu_links.
+ * Add needed fields to properly serialize localization information.
+ */
+function i18n_menu_query_features_menu_link_alter($query) {
+  $query->fields('menu_links', array('language', 'customized'));
 }
 
 /**

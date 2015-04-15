@@ -184,11 +184,11 @@ function i18n_taxonomy_field_formatter_info() {
 }
 
  /**
-- * Implements hook_field_formatter_prepare_view().
-- *
-- * This preloads all taxonomy terms for multiple loaded objects at once and
-- * unsets values for invalid terms that do not exist.
-- */
+ * Implements hook_field_formatter_prepare_view().
+ *
+ * This preloads all taxonomy terms for multiple loaded objects at once and
+ * unsets values for invalid terms that do not exist.
+ */
 function i18n_taxonomy_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
   return taxonomy_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, $items, $displays);
 }
@@ -318,7 +318,7 @@ function i18n_taxonomy_field_storage_details_alter(&$details, &$field) {
 
 /**
  * Implements hook_field_attach_prepare_translation_alter().
-
+ *
  * Prepare and synchronize translation for term reference fields.
  */
 function i18n_taxonomy_field_attach_prepare_translation_alter(&$entity, $context) {
@@ -452,23 +452,13 @@ function i18n_taxonomy_translate_path($path, $path_prefix = 'taxonomy/term/') {
     return $links;
   }
 }
-/**
- * Implements hook_theme().
- */
-function i18n_taxonomy_theme() {
-  return array(
-    'i18n_taxonomy_term_page' => array(
-      'arguments' => array('tids' => array(), 'result' => NULL),
-      'file' => 'i18n_taxonomy.pages.inc',
-    ),
-  );
-}
 
 /**
  * Get localized term name unfiltered.
  */
 function i18n_taxonomy_term_name($term, $langcode = NULL) {
-  return i18n_taxonomy_vocabulary_mode($term->vid, I18N_MODE_LOCALIZE) ? i18n_string(array('taxonomy', 'term', $term->tid, 'name'), $term->name, array('langcode' => $langcode, 'sanitize' => FALSE)) : $term->name;
+  $key = i18n_object_info('taxonomy_term', 'key');
+  return i18n_taxonomy_vocabulary_mode($term->vid, I18N_MODE_LOCALIZE) ? i18n_string(array('taxonomy', 'term', $term->{$key}, 'name'), $term->name, array('langcode' => $langcode, 'sanitize' => FALSE)) : $term->name;
 }
 
 
@@ -476,7 +466,8 @@ function i18n_taxonomy_term_name($term, $langcode = NULL) {
  * Get localized term description unfiltered.
  */
 function i18n_taxonomy_term_description($term, $langcode = NULL) {
-  return i18n_taxonomy_vocabulary_mode($term->vid, I18N_MODE_LOCALIZE) ? i18n_string(array('taxonomy', 'term', $term->tid, 'description'), $term->description, array('langcode' => $langcode, 'sanitize' => FALSE)) : $term->description;
+  $key = i18n_object_info('taxonomy_term', 'key');
+  return i18n_taxonomy_vocabulary_mode($term->vid, I18N_MODE_LOCALIZE) ? i18n_string(array('taxonomy', 'term', $term->{$key}, 'description'), $term->description, array('langcode' => $langcode, 'sanitize' => FALSE)) : $term->description;
 }
 
 /**
@@ -1229,6 +1220,9 @@ function i18n_taxonomy_entity_info_alter(&$entity_info) {
     // Core doesn't provide a label callback for taxonomy terms. By setting one
     // we can use it to return the correct localized term name.
     $entity_info['taxonomy_term']['label callback'] = 'i18n_taxonomy_taxonomy_term_label';
+
+    // Also let core know terms have languages, now.
+    $entity_info['taxonomy_term']['entity keys']['language'] = 'language';
   }
 }
 
@@ -1260,10 +1254,10 @@ function i18n_taxonomy_modules_enabled($modules) {
   $modules = drupal_map_assoc($modules);
   if (isset($modules['i18n_taxonomy'])) {
     foreach (field_info_fields() as $fieldname => $field) {
-        if ($field['type'] == 'taxonomy_term_reference') {
-          $field['settings']['options_list_callback'] = 'i18n_taxonomy_allowed_values';
-          field_update_field($field);
-        }
+      if ($field['type'] == 'taxonomy_term_reference') {
+        $field['settings']['options_list_callback'] = 'i18n_taxonomy_allowed_values';
+        field_update_field($field);
       }
+    }
   }
 }

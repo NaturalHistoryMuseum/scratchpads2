@@ -59,7 +59,7 @@ function i18n_block_menu_alter(&$items) {
  */
 function i18n_block_translate_tab_access($module, $delta) {
   $block = block_load($module, $delta);
-  return user_access('translate interface') && isset($block) && ($block->i18n_mode == I18N_MODE_LOCALIZE);
+  return user_access('translate interface') && $block && isset($block->i18n_mode) && ($block->i18n_mode == I18N_MODE_LOCALIZE);
 }
 
 /**

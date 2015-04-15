@@ -11,8 +11,6 @@
  *
  * Notes:
  * This module needs to run after taxonomy, i18n, translation. Check module weight.
- *
- * @ TODO Test with CCK when possible, api may have changed.
  */
 
 /**
@@ -74,25 +72,6 @@ function i18n_sync_field_info_alter(&$fields) {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function i18n_sync_form_node_admin_content_alter(&$form, &$form_state) {
-  if (!empty($form['operation']) && $form['operation']['#value'] == 'delete') {
-    $form['#submit'] = array_merge(array('i18n_sync_node_delete_submit'), $form['#submit']);
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function i18n_sync_form_node_delete_confirm_alter(&$form, &$form_state) {
-  // Intercept form submission so we can handle uploads, replace callback
-  $form['#submit'] = array_merge(array('i18n_sync_node_delete_submit'), $form['#submit']);
-}
-
-
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
 function i18n_sync_form_node_type_form_alter(&$form, &$form_state) {
   if (isset($form['type'])) {
     $type = $form['#node_type']->type;
@@ -141,42 +120,6 @@ function i18n_sync_form_node_type_form_alter(&$form, &$form_state) {
           '#description' => isset($info['description']) ? $info['description'] : '',
         );
       }
-    }
-  }
-}
-
-/**
- * Submit callback for
- * - node delete confirm
- * - node multiple delete confirm
- */
-function i18n_sync_node_delete_submit($form, $form_state) {
-  if ($form_state['values']['confirm']) {
-    if (!empty($form_state['values']['nid'])) {
-      // Single node
-      i18n_sync_node_delete_prepare($form_state['values']['nid']);
-    }
-    elseif (!empty($form_state['values']['nodes'])) {
-      // Multiple nodes
-      foreach ($form_state['values']['nodes'] as $nid => $value) {
-        i18n_sync_node_delete_prepare($nid);
-      }
-    }
-  }
-  // Then it will go through normal form submission
-}
-
-/**
- * Prepare node for deletion, work out synchronization issues
- */
-function i18n_sync_node_delete_prepare($nid) {
-  $node = node_load($nid);
-  // Delete file associations when files are shared with existing translations
-  // so they are not removed by upload module
-  if (!empty($node->tnid) && module_exists('upload')) {
-    $result = db_query('SELECT u.* FROM {upload} u WHERE u.nid = %d AND u.fid IN (SELECT t.fid FROM {upload} t WHERE t.fid = u.fid AND t.nid <> u.nid)', $nid);
-    while ($up = db_fetch_object($result)) {
-      db_query("DELETE FROM {upload} WHERE fid = %d AND vid = %d", $up->fid, $up->vid);
     }
   }
 }

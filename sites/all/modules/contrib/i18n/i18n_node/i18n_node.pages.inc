@@ -25,7 +25,7 @@ function i18n_node_add_page() {
     if ($type) {
       // We just need to translate the description, the title is translated by the menu system
       // The string will be filtered (xss_admin) on the theme layer
-      $item['description'] = i18n_node_translate_type($type, 'description', $item['description']);
+      $item['description'] = i18n_node_translate_type($type, 'description', $item['description'], array('sanitize' => FALSE));
     }
   }
   return theme('node_add_list', array('content' => $content));
@@ -213,6 +213,7 @@ function i18n_node_select_translation_submit($form, &$form_state) {
       ))
       ->condition('nid', $add)
       ->execute();
+    entity_get_controller('node')->resetCache($add);
     if (count($new)) {
       drupal_set_message(format_plural(count($new), 'Added a node to the translation set.', 'Added @count nodes to the translation set.'));
     }
@@ -224,6 +225,7 @@ function i18n_node_select_translation_submit($form, &$form_state) {
       ))
       ->condition('nid', $remove)
       ->execute();
+    entity_get_controller('node')->resetCache($remove);
     drupal_set_message(format_plural(count($remove), 'Removed a node from the translation set.', 'Removed @count nodes from the translation set.'));
   }
 }
@@ -246,7 +248,7 @@ function i18n_node_autocomplete($type, $language, $string = '') {
  */
 function i18n_node_nid2autocomplete($nid) {
   if ($node = node_load($nid)) {
-    return check_plain($node->title) . ' [nid:' . $nid . ']';
+    return $node->title . ' [nid:' . $nid . ']';
   }
   else {
     return t('Not found');
