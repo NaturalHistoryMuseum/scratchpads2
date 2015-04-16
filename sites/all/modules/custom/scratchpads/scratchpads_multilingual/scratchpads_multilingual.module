@@ -61,7 +61,7 @@ function scratchpads_multilingual_module_implements_alter(&$implementations, $ho
  * Implements hook_menu_alter()
  */
 function scratchpads_multilingual_menu_alter(&$items){
-  $items['admin/config/regional/language/edit/%']['access arguments'] = array(
+  $items['admin/config/regional/translate/edit/%']['access arguments'] = array(
     'administer languages'
   );
 }
