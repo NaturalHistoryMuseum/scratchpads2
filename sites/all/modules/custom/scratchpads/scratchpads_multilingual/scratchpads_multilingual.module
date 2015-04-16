@@ -44,6 +44,29 @@ function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ * 
+ * Change the order in which the hooks are run, to ensure that our menu alter
+ * occurs after the hands off menu alter.
+ */
+function scratchpads_multilingual_module_implements_alter(&$implementations, $hook){
+  if($hook == 'menu_alter'){
+    $group = $implementations['scratchpads_multilingual'];
+    unset($implementations['scratchpads_multilingual']);
+    $implementations['scratchpads_multilingual'] = $group;
+  }
+}
+
+/**
+ * Implements hook_menu_alter()
+ */
+function scratchpads_multilingual_menu_alter(&$items){
+  $items['admin/config/regional/language/edit/%']['access arguments'] = array(
+    'administer languages'
+  );
+}
+
+/**
  * Implements hook_menu()
  */
 function scratchpads_multilingual_menu(){
