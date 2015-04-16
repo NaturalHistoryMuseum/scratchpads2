@@ -27,7 +27,7 @@ function _feeds_et_number_feeds_set_target($source, $entity, $target, $value) {
   $target_parts = explode(':', $target);
   $language_code = end($target_parts);
   $target = $target_parts[0];
-  _field_feeds_set_target($source, $entity, $target, $value, FALSE, $language_code);
+  _feeds_et_field_feeds_set_target($source, $entity, $target, $value, FALSE, $language_code);
 }
 
 /**
