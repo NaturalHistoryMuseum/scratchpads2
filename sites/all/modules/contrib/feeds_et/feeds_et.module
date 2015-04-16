@@ -47,9 +47,15 @@ function feeds_et_feeds_processor_targets_alter(&$targets, $entity_type, $bundle
         $original_target = $targets[$field_name];
 
         // If field is translatable, obviously! And we have implemented a callback for this target
-        if ($field_info['translatable'] && function_exists('_feeds_et_' . $targets[$field_name]['callback'])) {
-          $languages = language_list('enabled');
-          _feeds_et_process_targets($targets, $field_name, $original_target, $languages[1]);
+        if ($field_info['translatable']){
+          if(function_exists('_feeds_et_' . $targets[$field_name]['callback'])) {
+            $languages = language_list('enabled');
+            _feeds_et_process_targets($targets, $field_name, $original_target, $languages[1]);
+          } else {
+            // FIXME - This should be removed once we (Scratchpads Team) are happy
+            // that all field types that should, have a callback.
+            watchdog('feeds_et_missing_callback', $targets[$field_name]['callback']);
+          }
         }
       }
     }
