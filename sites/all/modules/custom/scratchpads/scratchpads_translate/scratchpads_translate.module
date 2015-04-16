@@ -121,7 +121,7 @@ function scratchpads_translate_field_attach_load($entity_type, $queried_entities
       if(count($queried_entities[$id]->{$instance['field_name']})){
         $field = field_info_field_by_id($instance['field_id']);
         if($field['translatable']){
-          if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
+          if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
             $queried_entities[$id]->{$instance['field_name']} = _scratchpads_translate_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
           }
         }
@@ -134,6 +134,9 @@ function scratchpads_translate_field_attach_load($entity_type, $queried_entities
  * Helper function to merge values from LANGUAGE_NONE into the currently
  * selected language. Note, we retain the LANGUAGE_NONE values so that they can
  * be merged into other languages.
+ * 
+ * Note, this function is only called on arrays that HAVE LANGUAGE_NONE values,
+ * so there is no need to check that first.
  */
 function _scratchpads_translate_merge_language_none_values($values){
   // First we loop through the language we are merging into, and create hashes
