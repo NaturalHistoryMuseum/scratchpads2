@@ -112,20 +112,17 @@ function scratchpads_translate_module_implements_alter(&$imps, $hook){
  * Implements hook_field_attach_load()
  */
 function scratchpads_translate_field_attach_load($entity_type, $queried_entities, $age, $options){
-  global $language;
-  if(is_object($language) && $language->language != LANGUAGE_NONE){
-    foreach($queried_entities as $entity){
-      list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
-      $instances = _field_invoke_get_instances($entity_type, $bundle, array(
-        'deleted' => FALSE
-      ));
-      foreach($instances as $instance){
-        if(count($queried_entities[$id]->{$instance['field_name']})){
-          $field = field_info_field_by_id($instance['field_id']);
-          if($field['translatable']){
-            if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
-              $queried_entities[$id]->{$instance['field_name']} = _scratchpads_translate_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
-            }
+  foreach($queried_entities as $entity){
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $instances = _field_invoke_get_instances($entity_type, $bundle, array(
+      'deleted' => FALSE
+    ));
+    foreach($instances as $instance){
+      if(count($queried_entities[$id]->{$instance['field_name']})){
+        $field = field_info_field_by_id($instance['field_id']);
+        if($field['translatable']){
+          if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
+            $queried_entities[$id]->{$instance['field_name']} = _scratchpads_translate_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
           }
         }
       }
@@ -141,19 +138,22 @@ function scratchpads_translate_field_attach_load($entity_type, $queried_entities
 function _scratchpads_translate_merge_language_none_values($values){
   // First we loop through the language we are merging into, and create hashes
   // of each value which we can then compare against.
-  global $language;
-  $hashes = array();
-  foreach($values[$language->language] as $id => $value){
-    $hash = md5(serialize($value));
-    $hashes[$hash] = $hash;
-  }
-  // Now we loop through the undefined language, and add any values that are not
-  // in the current language to the current language
-  foreach($values[LANGUAGE_NONE] as $id => $value){
-    $hash = md5(serialize($value));
-    if(!isset($hashes[$hash])){
-      $values[$language->language][] = $value;
+  $languages = language_list('enabled');
+  foreach($languages[1] as $language){
+    $hashes = array();
+    foreach($values[$language->language] as $id => $value){
+      $hash = md5(serialize($value));
+      $hashes[$hash] = $hash;
+    }
+    // Now we loop through the undefined language, and add any values that are not
+    // in the current language to the current language
+    foreach($values[LANGUAGE_NONE] as $id => $value){
+      $hash = md5(serialize($value));
+      if(!isset($hashes[$hash])){
+        $values[$language->language][] = $value;
+      }
     }
   }
+  unset($values[LANGUAGE_NONE]);
   return $values;
 }
