@@ -1,3 +1,11 @@
+2.6.4.5 (2015-04-17)
+
+- Removed GBIF ECat module
+
+2.6.4.4 (2015-04-16)
+
+- Allow users to edit translation strings
+
 2.6.4.3 (2015-04-16)
 
 - Stop the update module from moaning completely
