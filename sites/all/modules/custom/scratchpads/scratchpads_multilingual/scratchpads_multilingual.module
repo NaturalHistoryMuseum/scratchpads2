@@ -44,6 +44,29 @@ function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ * 
+ * Change the order in which the hooks are run, to ensure that our menu alter
+ * occurs after the hands off menu alter.
+ */
+function scratchpads_multilingual_module_implements_alter(&$implementations, $hook){
+  if($hook == 'menu_alter'){
+    $group = $implementations['scratchpads_multilingual'];
+    unset($implementations['scratchpads_multilingual']);
+    $implementations['scratchpads_multilingual'] = $group;
+  }
+}
+
+/**
+ * Implements hook_menu_alter()
+ */
+function scratchpads_multilingual_menu_alter(&$items){
+  $items['admin/config/regional/translate/edit/%']['access arguments'] = array(
+    'administer languages'
+  );
+}
+
+/**
  * Implements hook_menu()
  */
 function scratchpads_multilingual_menu(){
@@ -302,9 +325,7 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
   if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
     if(empty($info['version']) || $info['version'] != VERSION){
       if(SCRATCHPADS_VERSION == 'TAG'){
-        // Hard coded to allow sites on the 2317 branch to work.  This can be
-        // removed once the 2317 branch is merged.
-        $info['version'] = '7.x-2.5.1';
+        // Do nothing here, we're on a development branch, and not on a release.
       }else{
         $info['version'] = '7.x-' . SCRATCHPADS_VERSION;
       }
