@@ -332,3 +332,76 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
     }
   }
 }
+
+/**
+ * Implements hook_field_attach_load()
+ */
+function scratchpads_multilingual_field_attach_load($entity_type, $queried_entities, $age, $options){
+  foreach($queried_entities as $entity){
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $instances = _field_invoke_get_instances($entity_type, $bundle, array(
+      'deleted' => FALSE
+    ));
+    foreach($instances as $instance){
+      if(count($queried_entities[$id]->{$instance['field_name']})){
+        $field = field_info_field_by_id($instance['field_id']);
+        if($field['translatable']){
+          if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
+            $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_storage_pre_insert()
+ */
+function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, $skip_fields){
+  list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+  $instances = _field_invoke_get_instances($entity_type, $bundle, array(
+    'deleted' => FALSE
+  ));
+  foreach($instances as $instance){
+    if(count($queried_entities[$id]->{$instance['field_name']})){
+      $field = field_info_field_by_id($instance['field_id']);
+      if($field['translatable']){
+        if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
+          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to merge values from LANGUAGE_NONE into the currently
+ * selected language. Note, we retain the LANGUAGE_NONE values so that they can
+ * be merged into other languages.
+ * 
+ * Note, this function is only called on arrays that HAVE LANGUAGE_NONE values,
+ * so there is no need to check that first.
+ */
+function _scratchpads_multilingual_merge_language_none_values($values){
+  // First we loop through the language we are merging into, and create hashes
+  // of each value which we can then compare against.
+  $languages = language_list('enabled');
+  foreach($languages[1] as $language){
+    $hashes = array();
+    foreach($values[$language->language] as $id => $value){
+      $hash = md5(serialize($value));
+      $hashes[$hash] = $hash;
+    }
+    // Now we loop through the undefined language, and add any values that are not
+    // in the current language to the current language
+    foreach($values[LANGUAGE_NONE] as $id => $value){
+      $hash = md5(serialize($value));
+      if(!isset($hashes[$hash])){
+        $values[$language->language][] = $value;
+      }
+    }
+  }
+  unset($values[LANGUAGE_NONE]);
+  return $values;
+}
