@@ -47,3 +47,70 @@ function scratchpads_multilingual_update_7002(){
 function scratchpads_multilingual_update_7003(){
   db_update('languages')->expression('prefix', 'language')->execute();
 }
+
+/**
+ * Loop through ALL content, and resave it, which should hopefully remove all of
+ * the pointless LANGUAGE_NONE values.
+ */
+function scratchpads_multilingual_update_7004(&$sandbox){
+  if(!isset($sandbox['max'])){
+    $entity_bundle_combos = array();
+    $query = db_select('field_config', 'f');
+    $query->distinct();
+    $query->innerJoin('field_config_instance', 'i', 'i.field_name = f.field_name');
+    $query->fields('i', array(
+      'entity_type',
+      'bundle'
+    ))->condition('translatable', 1)->condition('f.deleted', 0)->condition('i.deleted', 0);
+    $results = $query->execute();
+    $entity_info = entity_get_info();
+    $sandbox['ids'] = array();
+    foreach($results as $row){
+      if($row->entity_type == 'node'){
+        $break = 'here';
+      }
+      try{
+        $query = db_select($entity_info[$row->entity_type]['base table'], 'base');
+        $query->addExpression($entity_info[$row->entity_type]['entity keys']['id'], 'id');
+        if($row->entity_type == 'taxonomy_term'){
+          $query->innerJoin('taxonomy_vocabulary', 'v', 'v.vid = base.vid');
+          $query->condition('v.machine_name', $row->bundle);
+        }else if($row->entity_type == 'user'){
+          // Do nothing, we do not need a condition on the user table.
+        }else{
+          $query->condition($entity_info[$row->entity_type]['entity keys']['bundle'], $row->bundle);
+        }
+        $sandbox['ids'][$row->entity_type] = !empty($sandbox['ids'][$row->entity_type]) ? array_merge($sandbox['ids'][$row->entity_type], $query->execute()->fetchCol()) : $query->execute()->fetchCol();
+      }
+      catch(Exception $e){
+        // Catch the error
+      }
+    }
+    $sandbox['max'] = 0;
+    $counts = array();
+    foreach(array_keys($sandbox['ids']) as $entity_type){
+      $count = count($sandbox['ids'][$entity_type]);
+      if($count){
+        $sandbox['max'] += $count;
+      }else{
+        unset($sandbox['ids'][$entity_type]);
+      }
+    }
+    $sandbox['progress'] = 0;
+  }
+  $first_key = array_keys($sandbox['ids']);
+  $first_key = array_shift($first_key);
+  $i = 0;
+  $entity_ids = array();
+  while(count($sandbox['ids'][$first_key]) && $i < 50){
+    $i++;
+    $entity_ids[] = array_pop($sandbox['ids'][$first_key]);
+  }
+  $entities = entity_load($first_key, $entity_ids);
+  foreach($entities as $entity){
+    entity_save($first_key, $entity);
+  }
+  $sandbox['progress'] += count($entities);
+  $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  drupal_set_message($sandbox['progress'] . "/" . $sandbox['max']);
+}
