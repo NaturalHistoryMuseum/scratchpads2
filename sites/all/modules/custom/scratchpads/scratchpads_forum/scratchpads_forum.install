@@ -8,6 +8,29 @@
 function scratchpads_forum_disable(){
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
-  drupal_register_shutdown_function('module_disable', array('forum'));
+  drupal_register_shutdown_function('module_disable', array(
+    'forum'
+  ));
   drupal_register_shutdown_function('drupal_flush_all_caches');
+}
+
+/**
+ * Implements hook_enable()
+ * 
+ * If a user is enabling this module, we really should allow logged in users to
+ * post comments, otherwise there is little point in having a forum module!
+ */
+function scratchpads_forum_enable(){
+  foreach(array(
+    'authenticated user',
+    'contributor',
+    'editor',
+    'maintainer'
+  ) as $role){
+    if(($role = user_role_load_by_name($role)) != FALSE){
+      user_role_change_permissions($role->rid, array(
+        'post comments' => TRUE
+      ));
+    }
+  }
 }
