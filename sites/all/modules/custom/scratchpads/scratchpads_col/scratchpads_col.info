@@ -1,0 +1,5 @@
+name = Scratchpads Classification :: CoL
+description =  Catalogue of Life provider for the Scratchpads classification service
+package = "Scratchpads"
+core = 7.x
+dependencies[] = scratchpads_classification_service
