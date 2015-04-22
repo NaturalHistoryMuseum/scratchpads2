@@ -87,6 +87,7 @@ function silver_feeds_importer_default(){
         '!vocabulary_name' => $vocabulary->name,
         '!type' => 'CSV'
       ));
+      $csv_importer->config['fetcher']['config']['allowed_extensions'] = 'csv';
       $csv_importer->config['parser'] = array(
         'plugin_key' => 'FeedsCSVParser',
         'config' => array(
@@ -183,6 +184,7 @@ function silver_feeds_importer_default(){
         '!node_type_name' => $node_type_info['label'],
         '!type' => 'CSV'
       ));
+      $csv_importer->config['fetcher']['config']['allowed_extensions'] = 'csv';
       $csv_importer->config['parser'] = array(
         'plugin_key' => 'FeedsCSVParser',
         'config' => array(
@@ -257,6 +259,7 @@ function silver_feeds_importer_default(){
         '@file_type_name' => $file_type_info['label'],
         '!type' => 'CSV'
       ));
+      $csv_importer->config['fetcher']['config']['allowed_extensions'] = 'csv';
       $csv_importer->config['parser'] = array(
         'plugin_key' => 'FeedsCSVParser',
         'config' => array(
@@ -368,6 +371,7 @@ function silver_feeds_importer_default(){
       $csv_importer->config['name'] = t('Import into: Users (!type)', array(
         '!type' => 'CSV'
       ));
+      $csv_importer->config['fetcher']['config']['allowed_extensions'] = 'csv';
       $csv_importer->config['parser'] = array(
         'plugin_key' => 'FeedsCSVParser',
         'config' => array(
