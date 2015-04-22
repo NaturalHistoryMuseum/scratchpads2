@@ -15,8 +15,8 @@ define('CC_0', 8); // CC0 Licene type
 define('CC_PD', 9); // Public domain
 define('CC_SMALL_IMAGE', '80x15.png');
 define('CC_LARGE_IMAGE', '88x31.png');
-define('CC_IMAGE_URI', 'http://i.creativecommons.org/l');
-define('CC_LICENCE_URI', 'http://creativecommons.org/licences');
+define('CC_IMAGE_URI', '//i.creativecommons.org/l');
+define('CC_LICENCE_URI', '//creativecommons.org/licences');
 define('CC_DEFAULT_VERSION', '3.0');
 define('CC_URL', 'cc_url');
 
@@ -179,9 +179,11 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       '#tag' => 'a',
       '#attributes' => array(
         'href' => url($url, array(
-          'absolute' => true
+          'absolute' => TRUE,
+          'external' => TRUE
         )),
-        'class' => ($display_type == CC_LARGE_IMAGE ? 'cc-large' : 'cc-small')
+        'class' => ($display_type == CC_LARGE_IMAGE ? 'cc-large' : 'cc-small'),
+        'target' => '_blank'
       ),
       '#value' => theme('image', array(
         'alt' => t('Creative Commons Licence'),
