@@ -36,7 +36,7 @@ function scratchpads_classification_service_download($page, $module, $service, $
       if(function_exists($details[$service]['download'])){
         $temp_file = drupal_tempnam('temporary://', 'scratchpads_classification_service');
         $csvf = fopen($temp_file, 'a');
-        $this_results = $details[$service]['download']($id, $csvf, $page, 100000);
+        $details[$service]['download']($id, $csvf, $page, 100000);
         fclose($csvf);
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="classification-' . $page . '.csv"');
@@ -44,6 +44,9 @@ function scratchpads_classification_service_download($page, $module, $service, $
         file_unmanaged_delete($temp_file);
       }
     }
+    // If we're here, everything went well.
+    // FIXME - Add errors above.
+    return "";
   }
 }
 
