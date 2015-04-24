@@ -6,24 +6,24 @@
 function scratchpads_col_search($search){
   // Do the query, and return the results.
   // We look for exact matches first, if we find any, we return them.
-  $id = db_select('_taxon_tree', 't')->condition('name', $search)->fields('t', array(
+  $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', $search)->fields('t', array(
     'taxon_id',
-    'name'
+    'Term_name'
   ))->execute()->fetchAllKeyed();
   if(!$id){
     // We didn't find any exact matches, so we look for names that START with
     // the provided string
-    $id = db_select('_taxon_tree', 't')->condition('name', $search . '%', 'LIKE')->fields('t', array(
+    $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', $search . '%', 'LIKE')->fields('t', array(
       'taxon_id',
-      'name'
+      'Term_name'
     ))->execute()->fetchAllKeyed();
   }
   if(!$id){
     // We didn't find any exact matches, so we look for names that START with
     // the provided string
-    $id = db_select('_taxon_tree', 't')->condition('name', '%' . $search . '%', 'LIKE')->fields('t', array(
+    $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', '%' . $search . '%', 'LIKE')->fields('t', array(
       'taxon_id',
-      'name'
+      'Term_name'
     ))->execute()->fetchAllKeyed();
   }
   return $id;
@@ -33,91 +33,99 @@ function scratchpads_col_search($search){
  * Return a MySQL result set which can be parsed through. Note, the headers are
  * based on the column names in the Query.
  */
-function scratchpads_col_download($id, $page = 0){
-  $row = db_select('leftandright', 'l')->condition('id', $id)->fields('l', array(
+function scratchpads_col_download($id, $csvf, $page = 0, $limit = 50000){
+  $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
     'rgt',
     'lft'
   ))->execute()->fetchAssoc();
-  return db_query("SELECT * FROM (SELECT
-  _taxon_tree.name AS `Term name`,
-  '' AS `Parent Term Name`,
-  COALESCE(taxon_detail.additional_data, '') AS `Term description`,
-  _taxon_tree.lsid AS `GUID`,
-  parent.lsid AS `Parent GUID`,
-  '' AS `Associated accepted name (Name)`,
-  '' AS `Associated accepted name (TID)`,
-  '' AS `Associated accepted name (GUID)`,
-  COALESCE(GROUP_CONCAT(common_name_element.name SEPARATOR '|'), '') AS `Vernacular names: Vernacular name`,
-  COALESCE(GROUP_CONCAT(common_name.language_iso SEPARATOR '|'), '') AS `Vernacular names: Language`,
-  '' AS `Vernacular names: Source (GUID)`,
-  '' AS `Vernacular names: Source (NID)`,
-  '' AS `Vernacular names: Source (Title)`,
-  '' AS `Vernacular names: Area from which the vernacular name usage originates`,
-  '' AS `Vernacular names: Vernacular name remarks`,
-  COALESCE(author_string.string, '') AS 'Authors',
-  '' AS `Page number`,
-  _taxon_tree.rank AS `Rank`,
-  '' AS `Reference (GUID)`,
-  '' AS `Reference (NID)`,
-  '' AS `Reference (Title)`,
-  '' AS `Unacceptability Reason`
-  FROM
-  leftandright
-  INNER JOIN
-  _taxon_tree ON _taxon_tree.taxon_id = leftandright.id
-  INNER JOIN
-  _taxon_tree AS parent ON _taxon_tree.parent_id = parent.taxon_id
-  LEFT JOIN
-  taxon_detail ON _taxon_tree.taxon_id = taxon_detail.taxon_id
-  LEFT JOIN
-  author_string ON taxon_detail.author_string_id = author_string.id
-  LEFT JOIN
-  common_name ON _taxon_tree.taxon_id = common_name.taxon_id
-  LEFT JOIN
-  common_name_element ON common_name.common_name_element_id = common_name_element.id
-  WHERE lft >= :lft AND rgt <= :rgt
-  GROUP BY _taxon_tree.taxon_id ORDER BY leftandright.lft) AS pointlessalias
-  UNION
+  $this_results = db_query("
   SELECT
-  TRIM(GROUP_CONCAT(name_element SEPARATOR ' ')) AS `Term name`,
-  '' AS `Parent Term Name`,
-  '' AS `Term description`,
-  '' AS `GUID`,
-  _taxon_tree.lsid AS `Parent GUID`,
-  '' AS `Associated accepted name (Name)`,
-  '' AS `Associated accepted name (TID)`,
-  _taxon_tree.lsid AS `Associated accepted name (GUID)`,
-  '' AS `Vernacular names: Vernacular name`,
-  '' AS `Vernacular names: Language`,
-  '' AS `Vernacular names: Source (GUID)`,
-  '' AS `Vernacular names: Source (NID)`,
-  '' AS `Vernacular names: Source (Title)`,
-  '' AS `Vernacular names: Area from which the vernacular name usage originates`,
-  '' AS `Vernacular names: Vernacular name remarks`,
-  author_string.string AS 'Authors',
-  '' AS `Page number`,
-  _taxon_tree.rank AS `Rank`,
-  '' AS `Reference (GUID)`,
-  '' AS `Reference (NID)`,
-  '' AS `Reference (Title)`,
-  '' AS `Unacceptability Reason`
+    `Term_name` AS `Term name`,
+    '' AS `Parent Term Name`,
+    `Term_description` AS `Term description`,
+    `GUID`,
+    `Parent_GUID` AS `Parent GUID`,
+    '' AS `Associated accepted name (Name)`,
+    '' AS `Associated accepted name (TID)`,
+    '' AS `Associated accepted name (GUID)`,
+    `Vernacular_names_COLON__Vernacular_name` AS `Vernacular names: Vernacular name`,
+    `Vernacular_names_COLON__Language` AS `Vernacular names: Language`,
+    '' AS `Vernacular names: Source (GUID)`,
+    '' AS `Vernacular names: Source (NID)`,
+    '' AS `Vernacular names: Source (Title)`,
+    '' AS `Vernacular names: Area from which the vernacular name usage originates`,
+    '' AS `Vernacular names: Vernacular name remarks`,
+    `Authors`,
+    '' AS `Page number`,
+    `Rank`,
+    '' AS `Reference (GUID)`,
+    '' AS `Reference (NID)`,
+    '' AS `Reference (Title)`,
+    '' AS `Unacceptability Reason`
   FROM
-  leftandright
-  INNER JOIN
-  synonym ON synonym.taxon_id = leftandright.id
-  INNER JOIN
-  _taxon_tree ON leftandright.id = _taxon_tree.taxon_id
-  INNER JOIN
-  synonym_name_element ON synonym.id = synonym_name_element.synonym_id
-  INNER JOIN
-  scientific_name_element ON synonym_name_element.scientific_name_element_id = scientific_name_element.id
-  INNER JOIN
-  author_string ON author_string.id = synonym.author_string_id
-  WHERE lft >= :lft AND rgt <= :rgt
-  GROUP BY synonym.id LIMIT " . ($page * 50000) . ", 50000;", array(
-    ':lft' => $row['lft'],
-    ':rgt' => $row['rgt'],
+    scratchpads_col_terms
+  WHERE lft >= :lft AND rgt <= :rgt  ORDER BY lft LIMIT " . ($page * $limit) . ", {$limit};", array(
     ':lft' => $row['lft'],
     ':rgt' => $row['rgt']
   ));
+  $done_header = FALSE;
+  $i = 0;
+  while(($row = $this_results->fetchAssoc()) != FALSE){
+    $i++;
+    $name_parts = explode(' ', $row['Term name']);
+    for($i = 1; $i <= 4; $i++){
+      $row['Unit name ']
+      if(!$done_header){
+        fputcsv($csvf, array_keys($row));
+        $done_header = TRUE;
+      }
+    }
+    fputcsv($csvf, $row);
+  }
+  if($i < $limit){
+    // Need to work out how many results we actually need, and possibly also the
+    // offset.
+    $total = db_select('scratchpads_col_terms', 's')->condition('lft', $row['lft'], '>=')->condition('rgt', $row['rgt'], '<=')->countQuery()->execute()->fetchField();
+    $offset = ($page * $limit) - $total;
+    if($offset < 0){
+      $offset = 0;
+    }
+    $limit = $limit - $i;
+    $this_results = db_query("SELECT
+    `Term_name` AS `Term name`,
+    '' AS `Parent Term Name`,
+    '' AS `Term description`,
+    '' AS `GUID`,
+    `Parent_GUID` AS `Parent GUID`,
+    '' AS `Associated accepted name (Name)`,
+    '' AS `Associated accepted name (TID)`,
+    `Associated_accepted_name__OPEN_GUID_CLOSE_` AS `Associated accepted name (GUID)`,
+    '' AS `Vernacular names: Vernacular name`,
+    '' AS `Vernacular names: Language`,
+    '' AS `Vernacular names: Source (GUID)`,
+    '' AS `Vernacular names: Source (NID)`,
+    '' AS `Vernacular names: Source (Title)`,
+    '' AS `Vernacular names: Area from which the vernacular name usage originates`,
+    '' AS `Vernacular names: Vernacular name remarks`,
+    `Authors`,
+    '' AS `Page number`,
+    `Rank`,
+    '' AS `Reference (GUID)`,
+    '' AS `Reference (NID)`,
+    '' AS `Reference (Title)`,
+    '' AS `Unacceptability Reason`
+  FROM
+    scratchpads_col_synonyms
+  WHERE lft >= :lft AND rgt <= :rgt ORDER BY `Term_name` LIMIT $offset, $limit", array(
+      ':lft' => $row['lft'],
+      ':rgt' => $row['rgt']
+    ));
+    while(($row = $this_results->fetchAssoc()) != FALSE){
+      if(!$done_header){
+        fputcsv($csvf, array_keys($row));
+        $done_header = TRUE;
+      }
+      fputcsv($csvf, $row);
+    }
+  }
 }

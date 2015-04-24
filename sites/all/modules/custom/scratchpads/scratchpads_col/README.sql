@@ -51,12 +51,12 @@
       _taxon_tree.taxon_id AS `taxon_id`,
       leftandright.lft AS `lft`,
       leftandright.rgt AS `rgt`,
-      _taxon_tree.name AS `Term name`,
-      COALESCE(taxon_detail.additional_data, '') AS `Term description`,
+      _taxon_tree.name AS `Term_name`,
+      COALESCE(taxon_detail.additional_data, '') AS `Term_description`,
       _taxon_tree.lsid AS `GUID`,
       parent.lsid AS `Parent GUID`,
-      COALESCE(GROUP_CONCAT(common_name_element.name SEPARATOR '|'), '') AS `Vernacular names: Vernacular name`,
-      COALESCE(GROUP_CONCAT(common_name.language_iso SEPARATOR '|'), '') AS `Vernacular names: Language`,
+      COALESCE(GROUP_CONCAT(common_name_element.name SEPARATOR '|'), '') AS `Vernacular_names_COLON__Vernacular_name`,
+      COALESCE(GROUP_CONCAT(common_name.language_iso SEPARATOR '|'), '') AS `Vernacular_names_COLON__Language`,
       COALESCE(author_string.string, '') AS 'Authors',
       _taxon_tree.rank AS `Rank`
      FROM
@@ -78,9 +78,9 @@
      CREATE TABLE scratchpads_col_synonyms AS SELECT
       leftandright.lft AS `lft`,
       leftandright.rgt AS `rgt`,
-      TRIM(GROUP_CONCAT(name_element SEPARATOR ' ')) AS `Term name`,
-      _taxon_tree.lsid AS `Parent GUID`,
-      _taxon_tree.lsid AS `Associated accepted name (GUID)`,
+      TRIM(GROUP_CONCAT(name_element SEPARATOR ' ')) AS `Term_name`,
+      _taxon_tree.lsid AS `Parent_GUID`,
+      _taxon_tree.lsid AS `Associated accepted_name__OPEN_GUID_CLOSE_`,
       author_string.string AS 'Authors',
       _taxon_tree.rank AS `Rank`
      FROM
@@ -103,8 +103,10 @@
      ALTER TABLE scratchpads_col_terms ADD INDEX (`lft`);
      ALTER TABLE scratchpads_col_terms ADD INDEX (`rgt`);
      ALTER TABLE scratchpads_col_terms ADD INDEX (`Term name`);
+     ALTER TABLE scratchpads_col_terms ADD INDEX (`lft`,`rgt`);
      ALTER TABLE scratchpads_col_synonyms ADD INDEX (`lft`);
      ALTER TABLE scratchpads_col_synonyms ADD INDEX (`rgt`);
+     ALTER TABLE scratchpads_col_synonyms ADD INDEX (`lft`,`rgt`);
 
 -- 8. Dump the two tables into the load file
 
