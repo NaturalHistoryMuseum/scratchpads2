@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_classification_service_info()
+ */
+function scratchpads_col_scratchpads_classification_service_info(){
+  return array(
+    'col' => array(
+      'name' => t('Catalogue of Life'),
+      'search' => 'scratchpads_col_search',
+      'download' => 'scratchpads_col_download'
+    )
+  );
+}

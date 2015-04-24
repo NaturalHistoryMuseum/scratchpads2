@@ -1,0 +1,5 @@
+name = Scratchpads classification service
+description = Provide a service for the creation of CSV/Excel files that can be imported into a Scratchpad
+package = "Scratchpads"
+core = 7.x
+dependencies[] = libraries
