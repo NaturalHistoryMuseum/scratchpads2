@@ -61,6 +61,11 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
   if(substr($entity_type, 0, 5) == 'feeds'){
     $entity_type = substr($entity_type, 5);
   }
+  switch($entity_type){
+    case 'term':
+      $entity_type = 'taxonomy_term';
+      break;
+  }
   if(!entity_get_info($entity_type)){
     $entity_type = 'node';
   }
