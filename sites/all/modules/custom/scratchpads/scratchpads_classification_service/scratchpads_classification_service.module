@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_classification_service_menu(){
+  return array(
+    'classification/search/%' => array(
+      'title' => 'Classification search',
+      'description' => 'Classification search',
+      'page callback' => 'scratchpads_classification_service_search',
+      'page arguments' => array(
+        2
+      ),
+      'delivery callback' => 'scratchpads_classification_service_json_deliver',
+      'access callback' => TRUE,
+      'file' => 'scratchpads_classification_service.pages.inc',
+      'type' => MENU_CALLBACK
+    ),
+    'classification/download/%/%/%/%' => array(
+      'title' => 'Classification download',
+      'description' => 'Classification download',
+      'page callback' => 'scratchpads_classification_service_download',
+      'page arguments' => array(
+        2,
+        3,
+        4,
+        5
+      ),
+      'delivery callback' => 'scratchpads_classification_service_json_deliver',
+      'access callback' => TRUE,
+      'file' => 'scratchpads_classification_service.pages.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
