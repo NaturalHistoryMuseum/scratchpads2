@@ -74,11 +74,11 @@ function scratchpads_col_download($id, $csvf, $page = 0, $limit = 50000){
     $i++;
     $name_parts = explode(' ', $row['Term name']);
     for($i = 1; $i <= 4; $i++){
-      $row['Unit name ']
-      if(!$done_header){
-        fputcsv($csvf, array_keys($row));
-        $done_header = TRUE;
-      }
+      $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
+    }
+    if(!$done_header){
+      fputcsv($csvf, array_keys($row));
+      $done_header = TRUE;
     }
     fputcsv($csvf, $row);
   }
