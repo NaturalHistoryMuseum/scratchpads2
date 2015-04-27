@@ -33,14 +33,17 @@ function scratchpads_col_search($search){
  * Return a MySQL result set which can be parsed through. Note, the headers are
  * based on the column names in the Query.
  */
-function scratchpads_col_download($id, $csvf, $page = 0, $limit = 50000){
-  $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
-    'rgt',
-    'lft'
-  ))->execute()->fetchAssoc();
-  $lft = $row['lft'];
-  $rgt = $row['rgt'];
-  $this_results = db_query("
+function scratchpads_col_download($id, $page = 0, $limit = 50000){
+  $folder = 'public://scratchpads_col';
+  if(file_prepare_directory($folder)){
+    $csvf = fopen("{$folder}/{$id}-{$page}.csv", 'a');
+    $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
+      'rgt',
+      'lft'
+    ))->execute()->fetchAssoc();
+    $lft = $row['lft'];
+    $rgt = $row['rgt'];
+    $this_results = db_query("
   SELECT
     `Term_name` AS `Term name`,
     '' AS `Parent Term Name`,
@@ -67,33 +70,33 @@ function scratchpads_col_download($id, $csvf, $page = 0, $limit = 50000){
   FROM
     scratchpads_col_terms
   WHERE lft >= :lft AND rgt <= :rgt  ORDER BY lft LIMIT " . ($page * $limit) . ", {$limit};", array(
-    ':lft' => $lft,
-    ':rgt' => $rgt
-  ));
-  $done_header = FALSE;
-  $i = 0;
-  while(($row = $this_results->fetchAssoc()) != FALSE){
-    $i++;
-    $name_parts = explode(' ', $row['Term name']);
-    for($i = 1; $i <= 4; $i++){
-      $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
+      ':lft' => $lft,
+      ':rgt' => $rgt
+    ));
+    $done_header = FALSE;
+    $i = 0;
+    while(($row = $this_results->fetchAssoc()) != FALSE){
+      $i++;
+      $name_parts = explode(' ', $row['Term name']);
+      for($i = 1; $i <= 4; $i++){
+        $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
+      }
+      if(!$done_header){
+        fputcsv($csvf, array_keys($row));
+        $done_header = TRUE;
+      }
+      fputcsv($csvf, $row);
     }
-    if(!$done_header){
-      fputcsv($csvf, array_keys($row));
-      $done_header = TRUE;
-    }
-    fputcsv($csvf, $row);
-  }
-  if($i < $limit){
-    // Need to work out how many results we actually need, and possibly also the
-    // offset.
-    $total = db_select('scratchpads_col_terms', 's')->condition('lft', $lft, '>=')->condition('rgt', $rgt, '<=')->countQuery()->execute()->fetchField();
-    $offset = ($page * $limit) - $total;
-    if($offset < 0){
-      $offset = 0;
-    }
-    $limit = $limit - $i;
-    $this_results = db_query("SELECT
+    if($i < $limit){
+      // Need to work out how many results we actually need, and possibly also the
+      // offset.
+      $total = db_select('scratchpads_col_terms', 's')->condition('lft', $lft, '>=')->condition('rgt', $rgt, '<=')->countQuery()->execute()->fetchField();
+      $offset = ($page * $limit) - $total;
+      if($offset < 0){
+        $offset = 0;
+      }
+      $limit = $limit - $i;
+      $this_results = db_query("SELECT
     `Term_name` AS `Term name`,
     '' AS `Parent Term Name`,
     '' AS `Term description`,
@@ -119,21 +122,24 @@ function scratchpads_col_download($id, $csvf, $page = 0, $limit = 50000){
   FROM
     scratchpads_col_synonyms
   WHERE lft >= :lft AND rgt <= :rgt ORDER BY `Term_name` LIMIT $offset, $limit", array(
-      ':lft' => $lft,
-      ':rgt' => $rgt
-    ));
-    $i = 0;
-    while(($row = $this_results->fetchAssoc()) != FALSE){
-      $i++;
-      $name_parts = explode(' ', $row['Term name']);
-      for($i = 1; $i <= 4; $i++){
-        $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
+        ':lft' => $lft,
+        ':rgt' => $rgt
+      ));
+      $i = 0;
+      while(($row = $this_results->fetchAssoc()) != FALSE){
+        $i++;
+        $name_parts = explode(' ', $row['Term name']);
+        for($i = 1; $i <= 4; $i++){
+          $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
+        }
+        if(!$done_header){
+          fputcsv($csvf, array_keys($row));
+          $done_header = TRUE;
+        }
+        fputcsv($csvf, $row);
       }
-      if(!$done_header){
-        fputcsv($csvf, array_keys($row));
-        $done_header = TRUE;
-      }
-      fputcsv($csvf, $row);
     }
+    fclose($csvf);
+    return "{$folder}/{$id}-{$page}.csv";
   }
 }
