@@ -34,14 +34,10 @@ function scratchpads_classification_service_download($page, $module, $service, $
     $details = module_invoke($module, 'scratchpads_classification_service_info');
     if($details && isset($details[$service])){
       if(function_exists($details[$service]['download'])){
-        $temp_file = drupal_tempnam('temporary://', 'scratchpads_classification_service');
-        $csvf = fopen($temp_file, 'a');
-        $details[$service]['download']($id, $csvf, $page, 100000);
-        fclose($csvf);
+        $filename = $details[$service]['download']($id, $page, 100000);
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment;filename="classification-' . $page . '.csv"');
-        readfile($temp_file);
-        file_unmanaged_delete($temp_file);
+        readfile($filename);
       }
     }
     // If we're here, everything went well.
