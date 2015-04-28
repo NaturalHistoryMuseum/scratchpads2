@@ -34,10 +34,7 @@ function scratchpads_classification_service_download($page, $module, $service, $
     $details = module_invoke($module, 'scratchpads_classification_service_info');
     if($details && isset($details[$service])){
       if(function_exists($details[$service]['download'])){
-        $filename = $details[$service]['download']($id, $page, 100000);
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment;filename="classification-' . $page . '.csv"');
-        readfile($filename);
+        $details[$service]['download']($id, $page, 100000);
       }
     }
     // If we're here, everything went well.

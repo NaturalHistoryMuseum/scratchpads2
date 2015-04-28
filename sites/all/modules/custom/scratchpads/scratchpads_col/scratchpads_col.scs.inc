@@ -35,7 +35,9 @@ function scratchpads_col_search($search){
  */
 function scratchpads_col_download($id, $page = 0, $limit = 50000){
   $folder = 'public://scratchpads_col';
-  if(file_prepare_directory($folder)){
+  if(file_prepare_directory($folder, FILE_CREATE_DIRECTORY)){
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="classification-' . $page . '.csv"');
     $csvf = fopen("{$folder}/{$id}-{$page}.csv", 'a');
     $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
       'rgt',
@@ -140,6 +142,6 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
       }
     }
     fclose($csvf);
-    return "{$folder}/{$id}-{$page}.csv";
+    readfile("{$folder}/{$id}-{$page}.csv");
   }
 }
