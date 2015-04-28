@@ -27,7 +27,7 @@ function scratchpads_classification_service_menu(){
         4,
         5
       ),
-      'delivery callback' => 'scratchpads_classification_service_json_deliver',
+      'delivery callback' => 'scratchpads_classification_service_do_nothing',
       'access callback' => TRUE,
       'file' => 'scratchpads_classification_service.pages.inc',
       'type' => MENU_CALLBACK
