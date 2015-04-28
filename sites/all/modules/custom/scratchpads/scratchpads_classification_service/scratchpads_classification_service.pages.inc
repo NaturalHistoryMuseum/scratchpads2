@@ -35,11 +35,19 @@ function scratchpads_classification_service_download($page, $module, $service, $
     if($details && isset($details[$service])){
       if(function_exists($details[$service]['download'])){
         $details[$service]['download']($id, $page, 100000);
+        return TRUE;
       }
     }
-    // If we're here, everything went well.
-    // FIXME - Add errors above.
-    return "";
+    return FALSE;
+  }
+}
+
+/**
+ * Basic delivery function which does nothing (we've already delivered).
+ */
+function scratchpads_classification_service_do_nothing($result){
+  if(!$result){
+    // We should output an error here, although we could catch it above.
   }
 }
 
