@@ -71,8 +71,6 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
         $field_info = field_info_field($instance['field_name']);
         if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
           $search_fields[$key] = $instance['label'];
-        }else{
-          drupal_set_message('<pre>' . print_r($field_info, 1) . '</pre>');
         }
       }
     }
