@@ -60,10 +60,12 @@ function scratchpads_pages_menu_alter(&$items){
  */
 function scratchpads_pages_taxonomy_term_insert($term){
   global $conf;
+  static $shutdown_registered = FALSE;
   // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
   if(function_exists('scratchpads_species_term_is_biological_classification') && scratchpads_species_term_is_biological_classification($term)){
-    if(!menu_get_item('classification/' . $term->vid)){
-      menu_rebuild();
+    if(!$shutdown_registered && !menu_get_item('classification/' . $term->vid)){
+      $shutdown_registered = TRUE;
+      drupal_register_shutdown_function('menu_rebuild');
     }
   }
 }
