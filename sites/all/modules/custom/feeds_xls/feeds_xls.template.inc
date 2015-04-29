@@ -236,7 +236,7 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
                               $cell_values[] = $guid;
                               break;
                             case 'nid':
-                              $guid = db_select('feeds_item', 'f')->condition('entity_type', 'taxonomy_term')->condition('entity_id', $item)->fields('f', array(
+                              $guid = db_select('feeds_item', 'f')->condition('entity_type', 'node')->condition('entity_id', $item)->fields('f', array(
                                 'guid'
                               ))->execute()->fetchField();
                               if(!$guid){
