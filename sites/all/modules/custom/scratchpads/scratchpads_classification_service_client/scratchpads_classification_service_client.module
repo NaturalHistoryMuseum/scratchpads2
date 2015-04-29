@@ -17,6 +17,35 @@ function scratchpads_classification_service_client_menu(){
 }
 
 /**
+ * Implements hook_feeds_after_parse()
+ */
+function scratchpads_classification_service_client_feeds_after_parse($source, $parser_result){
+  if(strpos($source->id, 'taxonomy_importer_') === 0 && strpos($source->id, '_scsc')){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($source->importer->processor->config['vocabulary']);
+    $biological_vids = variable_get('biological_vids', array());
+    if(isset($biological_vids[$vocabulary->vid])){
+      foreach($parser_result->items as $key => $row){
+        switch($biological_vids[$vocabulary->vid]){
+          case 1:
+          case 3:
+            $parser_result->items[$key]['usage'] = 'valid';
+            if(!empty($row['associated accepted name (guid)'])){
+              $parser_result->items[$key]['usage'] = 'invalid';
+            }
+            break;
+          case 2:
+            $parser_result->items[$key]['usage'] = 'accepted';
+            if(!empty($row['associated accepted name (guid)'])){
+              $parser_result->items[$key]['usage'] = 'not accepted';
+            }
+            break;
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_feeds_importer_default_alter()
  */
 function scratchpads_classification_service_client_feeds_importer_default_alter(&$data){
