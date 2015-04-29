@@ -1,3 +1,8 @@
+2.6.4.6 (2015-04-29)
+
+- Fixed a typo that resulted in incorrect GUIDs for node reference (GUID)
+  columns in the Feeds Excel template (#4366)
+
 2.6.4.5 (2015-04-17)
 
 - Removed GBIF ECat module
