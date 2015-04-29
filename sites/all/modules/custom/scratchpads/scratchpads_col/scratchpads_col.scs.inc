@@ -198,8 +198,8 @@ function _scratchpads_col_download_helper(&$row){
         break;
       default:
         $row['Unit name ' . $unit_name_number] = $name_part;
+        $unit_name_number++;
         break;
     }
-    $unit_name_number++;
   }
 }
