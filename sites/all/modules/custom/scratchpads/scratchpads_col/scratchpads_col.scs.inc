@@ -197,7 +197,7 @@ function _scratchpads_col_download_helper(&$row){
         $row['Unit indicator ' . $unit_name_number] = 'var.';
         break;
       default:
-        $row['Unit name ' . $unit_name_number] = $name_part;
+        $row['Unit name ' . $unit_name_number] = ($unit_name_number == 1 ? ucfirst($name_part) : $name_part);
         $unit_name_number++;
         break;
     }
