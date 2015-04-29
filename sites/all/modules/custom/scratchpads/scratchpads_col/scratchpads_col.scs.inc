@@ -79,10 +79,7 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
       $i = 0;
       while(($row = $this_results->fetchAssoc()) != FALSE){
         $i++;
-        $name_parts = explode(' ', $row['Term name']);
-        for($i = 1; $i <= 4; $i++){
-          $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
-        }
+        _scratchpads_col_download_helper($row);
         if(!$done_header){
           fputcsv($csvf, array_keys($row));
           $done_header = TRUE;
@@ -130,10 +127,7 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
         $i = 0;
         while(($row = $this_results->fetchAssoc()) != FALSE){
           $i++;
-          $name_parts = explode(' ', $row['Term name']);
-          for($i = 1; $i <= 4; $i++){
-            $row['Unit name ' . $i] = isset($name_parts[$i - 1]) ? $name_parts[$i - 1] : '';
-          }
+          _scratchpads_col_download_helper($row);
           if(!$done_header){
             fputcsv($csvf, array_keys($row));
             $done_header = TRUE;
@@ -146,5 +140,65 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment;filename="classification-' . $page . '.csv"');
     readfile($filename);
+  }
+}
+
+/**
+ * Helper to the above to alter unit names/unit indicators.
+ */
+function _scratchpads_col_download_helper(&$row){
+  for($i = 1; $i <= 4; $i++){
+    $row['Unit name ' . $i] = '';
+    $row['Unit indicator ' . $i] = '';
+  }
+  $name_parts = explode(' ', $row['Term name']);
+  $unit_name_number = 1;
+  foreach($name_parts as $name_part){
+    switch($name_part){
+      case 'f.':
+      case 'f':
+        $row['Unit indicator ' . $unit_name_number] = 'f.';
+        break;
+      case 'ser.':
+      case 'ser':
+        $row['Unit indicator ' . $unit_name_number] = 'ser.';
+        break;
+      case 'ssp.':
+      case 'ssp':
+        $row['Unit indicator ' . $unit_name_number] = 'ssp.';
+        break;
+      case 'subf.':
+      case 'subf':
+        $row['Unit indicator ' . $unit_name_number] = 'subf.';
+        break;
+      case 'subser.':
+      case 'subser':
+        $row['Unit indicator ' . $unit_name_number] = 'subser.';
+        break;
+        break;
+      case 'subvar.':
+      case 'subvar':
+        $row['Unit indicator ' . $unit_name_number] = 'subvar.';
+        break;
+      case 'var.':
+      case 'var':
+        $row['Unit indicator ' . $unit_name_number] = 'var.';
+        break;
+      case 'x':
+      case '×':
+        $row['Unit indicator ' . $unit_name_number] = '×';
+        break;
+      case 'subsp':
+      case 'subsp.':
+        $row['Unit indicator ' . $unit_name_number] = 'subsp.';
+        break;
+      case 'var.':
+      case 'var':
+        $row['Unit indicator ' . $unit_name_number] = 'var.';
+        break;
+      default:
+        $row['Unit name ' . $unit_name_number] = $name_part;
+        break;
+    }
   }
 }
