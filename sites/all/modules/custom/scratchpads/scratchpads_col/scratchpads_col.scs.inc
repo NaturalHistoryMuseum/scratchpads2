@@ -200,5 +200,6 @@ function _scratchpads_col_download_helper(&$row){
         $row['Unit name ' . $unit_name_number] = $name_part;
         break;
     }
+    $unit_name_number++;
   }
 }
