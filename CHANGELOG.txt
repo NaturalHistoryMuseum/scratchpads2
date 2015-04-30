@@ -1,3 +1,7 @@
+2.6.4.7 (2015-04-30)
+
+- Upgraded views to 7.x-3.11
+
 2.6.4.6 (2015-04-29)
 
 - Fixed a typo that resulted in incorrect GUIDs for node reference (GUID)
