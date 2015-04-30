@@ -419,7 +419,25 @@ function scratchpads_simple_taxonomy_page_views_api(){
  * - It hides the unit name fields
  */
 function scratchpads_simple_taxonomy_page_taxonomy_term_page($term){
-  drupal_set_title($term->name);
+  $name = theme('scratchpads_species_name', array(
+    'term' => $term
+  ));
+  $subtitle = '&nbsp;';
+  $lang = field_language('taxonomy_term', $term, 'field_authors');
+  if(isset($term->field_authors[$lang][0]['safe_value'])){
+    $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
+  }
+  $lang = field_language('taxonomy_term', $term, 'field_usage');
+  if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
+    $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
+  }
+  //drupal_set_title($name);
+  $return_build = array(
+    'title' => $name,
+    'subtitle' => $subtitle,
+    '#theme' => 'page',
+    'content' => ''
+  );
   $current = (object)array(
     'tid' => $term->tid
   );
@@ -474,7 +492,8 @@ function scratchpads_simple_taxonomy_page_taxonomy_term_page($term){
   for($x = 1; $x <= 4; $x++){
     unset($build['term_heading']['term']['field_unit_name' . $x]);
   }
-  return $build;
+  $return_build['content'] = drupal_render($build);
+  return $return_build;
 }
 
 /**
