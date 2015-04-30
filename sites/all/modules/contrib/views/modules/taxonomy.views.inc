@@ -430,7 +430,12 @@ function taxonomy_field_views_data($field) {
     foreach ($table_data as $field_name => $field_data) {
       if (isset($field_data['filter']) && $field_name != 'delta') {
         $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_term_node_tid';
-        $data[$table_name][$field_name]['filter']['vocabulary'] = $field['settings']['allowed_values'][0]['vocabulary'];
+        if(!isset($field['settings']['allowed_values'][0])){
+          watchdog('taxonomy_term_field', "Inappropriate settings for:\n@field", array(
+            '@field' => print_r($field, 1)
+          ));
+        }
+        @$data[$table_name][$field_name]['filter']['vocabulary'] = $field['settings']['allowed_values'][0]['vocabulary'];
       }
     }
 
