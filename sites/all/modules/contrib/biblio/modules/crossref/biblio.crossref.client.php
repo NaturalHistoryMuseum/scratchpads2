@@ -292,7 +292,7 @@ class BiblioCrossRefClient
           break;
         case 'resource':
           if ($this->doi_data) {
-              $this->_set_data('biblio_url', $data);
+              $this->node['biblio_url'] = $data;
           }
           break;
 
