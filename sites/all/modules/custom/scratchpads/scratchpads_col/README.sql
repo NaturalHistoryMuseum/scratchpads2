@@ -29,7 +29,7 @@
 
      CREATE TEMPORARY TABLE temp_taxon_tree_data AS SELECT MAX(taxon_id)+1 AS id
       FROM _taxon_tree;
-     UPDATE _taxon_tree SET parent_id = SELECT id FROM temp_taxon_tree_data
+     UPDATE _taxon_tree SET parent_id = (SELECT id FROM temp_taxon_tree_data)
       WHERE parent_id = 0;
      INSERT INTO _taxon_tree (taxon_id, name, rank, parent_id, lsid,
       number_of_children, total_species_estimation, total_species,
