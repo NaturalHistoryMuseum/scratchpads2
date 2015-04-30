@@ -291,8 +291,13 @@ class BiblioCrossRefClient
           }
           break;
         case 'resource':
-          if ($this->doi_data) {
-              $this->node['biblio_url'] = $data;
+          static $finished = FALSE;
+          if ($this->doi_data && !$finished) {
+              if(strlen($this->node['biblio_url']) && (strpos($data, 'http://')!==FALSE || strpos($data, 'https://'))){
+                $finished = TRUE;
+              } else {
+                $this->_set_data('biblio_url', $data);
+              }
           }
           break;
 
