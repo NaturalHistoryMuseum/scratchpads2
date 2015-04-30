@@ -1,0 +1,57 @@
+diff --git a/sites/all/modules/contrib/views/includes/admin.inc b/sites/all/modules/contrib/views/includes/admin.inc
+index 1643b34..d177161 100644
+--- a/sites/all/modules/contrib/views/includes/admin.inc
++++ b/sites/all/modules/contrib/views/includes/admin.inc
+@@ -2002,7 +2002,7 @@ function views_ui_import_validate($form, &$form_state) {
+     $form_state['values']['view'] = substr($form_state['values']['view'], 5);
+   }
+   ob_start();
+-  eval($form_state['values']['view']);
++  //eval($form_state['values']['view']);
+   ob_end_clean();
+ 
+   if (!is_object($view)) {
+diff --git a/sites/all/modules/contrib/views/modules/taxonomy.views.inc b/sites/all/modules/contrib/views/modules/taxonomy.views.inc
+index 58d62d1..333af5b 100644
+--- a/sites/all/modules/contrib/views/modules/taxonomy.views.inc
++++ b/sites/all/modules/contrib/views/modules/taxonomy.views.inc
+@@ -430,7 +430,12 @@ function taxonomy_field_views_data($field) {
+     foreach ($table_data as $field_name => $field_data) {
+       if (isset($field_data['filter']) && $field_name != 'delta') {
+         $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_term_node_tid';
+-        $data[$table_name][$field_name]['filter']['vocabulary'] = $field['settings']['allowed_values'][0]['vocabulary'];
++        if(!isset($field['settings']['allowed_values'][0])){
++          watchdog('taxonomy_term_field', "Inappropriate settings for:\n@field", array(
++            '@field' => print_r($field, 1)
++          ));
++        }
++        @$data[$table_name][$field_name]['filter']['vocabulary'] = $field['settings']['allowed_values'][0]['vocabulary'];
+       }
+     }
+ 
+diff --git a/sites/all/modules/contrib/views/plugins/views_plugin_argument_default_php.inc b/sites/all/modules/contrib/views/plugins/views_plugin_argument_default_php.inc
+index c2fb14f..afb471f 100644
+--- a/sites/all/modules/contrib/views/plugins/views_plugin_argument_default_php.inc
++++ b/sites/all/modules/contrib/views/plugins/views_plugin_argument_default_php.inc
+@@ -50,7 +50,7 @@ class views_plugin_argument_default_php extends views_plugin_argument_default {
+     $view = &$this->view;
+     $argument = &$this->argument;
+     ob_start();
+-    $result = eval($this->options['code']);
++    //$result = eval($this->options['code']);
+     ob_end_clean();
+     return $result;
+   }
+diff --git a/sites/all/modules/contrib/views/plugins/views_plugin_argument_validate_php.inc b/sites/all/modules/contrib/views/plugins/views_plugin_argument_validate_php.inc
+index 83b22b4..3f6d7ed 100644
+--- a/sites/all/modules/contrib/views/plugins/views_plugin_argument_validate_php.inc
++++ b/sites/all/modules/contrib/views/plugins/views_plugin_argument_validate_php.inc
+@@ -50,7 +50,7 @@ class views_plugin_argument_validate_php extends views_plugin_argument_validate
+     $handler = &$this->argument;
+ 
+     ob_start();
+-    $result = eval($this->options['code']);
++    //$result = eval($this->options['code']);
+     ob_end_clean();
+     return $result;
+   }
