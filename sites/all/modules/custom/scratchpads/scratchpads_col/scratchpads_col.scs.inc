@@ -53,7 +53,7 @@ function scratchpads_col_download($id, $page = 0, $year = 2014, $limit = 50000){
     $filename = "{$folder}/{$year}-{$id}-{$page}.csv";
     if(!file_exists($filename)){
       $csvf = fopen($filename, 'a');
-      $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
+      $row = db_select('scratchpads_col_terms_' . $year, 'l')->condition('taxon_id', $id)->fields('l', array(
         'rgt',
         'lft'
       ))->execute()->fetchAssoc();
