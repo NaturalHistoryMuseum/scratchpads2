@@ -121,7 +121,7 @@ class FeedsExcelParser extends FeedsParser{
         // that differ only by case, but if it does, it's very silly and will
         // cause issues here.
         foreach($row_values as $key => $value){
-          foreach($source->importer->processor->config['mappings'] as $key => $mapping){
+          foreach($source->importer->processor->config['mappings'] as $new_key => $mapping){
             if(strtolower($value) == strtolower($mapping['source'])){
               $row_values[$key] = $mapping['source'];
               break;
