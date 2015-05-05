@@ -1,3 +1,8 @@
+2.6.4.8 (2015-05-05)
+
+- Fix a minor typo in the Excel importer that had a major effect on the import.
+  (#4388, 4389, #4393) 
+
 2.6.4.7 (2015-04-30)
 
 - Upgraded views to 7.x-3.11
