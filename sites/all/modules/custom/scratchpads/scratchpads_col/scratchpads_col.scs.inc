@@ -3,17 +3,17 @@
 /**
  * Search on the Catalogue of Life
  */
-function scratchpads_col_search($search){
+function scratchpads_col_search($search, $year = 2014){
   // Do the query, and return the results.
   // We look for exact matches first, if we find any, we return them.
-  $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', $search)->fields('t', array(
+  $id = db_select('scratchpads_col_terms_' . $year, 't')->condition('Term_name', $search)->fields('t', array(
     'taxon_id',
     'Term_name'
   ))->execute()->fetchAllKeyed();
   if(!$id){
     // We didn't find any exact matches, so we look for names that START with
     // the provided string
-    $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', $search . '%', 'LIKE')->fields('t', array(
+    $id = db_select('scratchpads_col_terms_' . $year, 't')->condition('Term_name', $search . '%', 'LIKE')->fields('t', array(
       'taxon_id',
       'Term_name'
     ))->execute()->fetchAllKeyed();
@@ -21,7 +21,7 @@ function scratchpads_col_search($search){
   if(!$id){
     // We didn't find any exact matches, so we look for names that START with
     // the provided string
-    $id = db_select('scratchpads_col_terms', 't')->condition('Term_name', '%' . $search . '%', 'LIKE')->fields('t', array(
+    $id = db_select('scratchpads_col_terms_' . $year, 't')->condition('Term_name', '%' . $search . '%', 'LIKE')->fields('t', array(
       'taxon_id',
       'Term_name'
     ))->execute()->fetchAllKeyed();
@@ -30,13 +30,27 @@ function scratchpads_col_search($search){
 }
 
 /**
+ * 2014 functions
+ */
+function scratchpads_col_download_2014($id, $page, $limit = 50000){
+  return scratchpads_col_download($id, $page, 2014, $limit);
+}
+
+function scratchpads_col_search_2014($search){
+  return scratchpads_col_search($search, 2014);
+}
+
+/**
  * Return a MySQL result set which can be parsed through. Note, the headers are
  * based on the column names in the Query.
  */
-function scratchpads_col_download($id, $page = 0, $limit = 50000){
+function scratchpads_col_download($id, $page = 0, $year = 2014, $limit = 50000){
   $folder = 'public://scratchpads_col';
+  if(function_exists('mysqli_real_escape_string')){
+    $year = mysqli_real_escape_string($year);
+  }
   if(file_prepare_directory($folder, FILE_CREATE_DIRECTORY)){
-    $filename = "{$folder}/{$id}-{$page}.csv";
+    $filename = "{$folder}/{$year}-{$id}-{$page}.csv";
     if(!file_exists($filename)){
       $csvf = fopen($filename, 'a');
       $row = db_select('scratchpads_col_terms', 'l')->condition('taxon_id', $id)->fields('l', array(
@@ -70,7 +84,7 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
       '' AS `Reference (Title)`,
       '' AS `Unacceptability Reason`
     FROM
-      scratchpads_col_terms
+      scratchpads_col_terms_{$year}
     WHERE lft >= :lft AND rgt <= :rgt  ORDER BY lft LIMIT " . ($page * $limit) . ", {$limit};", array(
         ':lft' => $lft,
         ':rgt' => $rgt
@@ -119,7 +133,7 @@ function scratchpads_col_download($id, $page = 0, $limit = 50000){
       '' AS `Reference (Title)`,
       '' AS `Unacceptability Reason`
     FROM
-      scratchpads_col_synonyms
+      scratchpads_col_synonyms_{$year}
     WHERE lft >= :lft AND rgt <= :rgt ORDER BY `Term_name` LIMIT $offset, $limit", array(
           ':lft' => $lft,
           ':rgt' => $rgt
