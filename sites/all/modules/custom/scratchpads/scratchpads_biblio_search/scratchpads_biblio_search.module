@@ -488,7 +488,7 @@ function scratchpads_biblio_search_facetapi_default_facet_settings(){
     $facet->enabled = FALSE;
     $facet->settings = array(
       'operator' => 'and',
-      'hard_limit' => '200',
+      'hard_limit' => '255',
       'dependencies' => array(),
       'facet_mincount' => 1,
       'facet_missing' => 0,
