@@ -6,8 +6,14 @@
 function scratchpads_classification_service_search($search){
   module_load_all_includes('scs.inc');
   $details = array();
-  foreach(module_implements('scratchpads_classification_service_info') as $module){
-    $details[$module] = module_invoke($module, 'scratchpads_classification_service_info');
+  $data = cache_get('scratchpads_classification_service_info');
+  if(empty($data->data)){
+    foreach(module_implements('scratchpads_classification_service_info') as $module){
+      $details[$module] = module_invoke($module, 'scratchpads_classification_service_info');
+    }
+    cache_set('scratchpads_classification_service_info', $details);
+  }else{
+    $details = $data->data;
   }
   $results = array();
   foreach($details as $module => $detail){
