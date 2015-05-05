@@ -46,9 +46,6 @@ function scratchpads_col_search_2014($search){
  */
 function scratchpads_col_download($id, $page = 0, $year = 2014, $limit = 50000){
   $folder = 'public://scratchpads_col';
-  if(function_exists('mysqli_real_escape_string')){
-    $year = mysqli_real_escape_string($year);
-  }
   if(file_prepare_directory($folder, FILE_CREATE_DIRECTORY)){
     $filename = "{$folder}/{$year}-{$id}-{$page}.csv";
     if(!file_exists($filename)){
@@ -103,7 +100,7 @@ function scratchpads_col_download($id, $page = 0, $year = 2014, $limit = 50000){
       if($i < $limit){
         // Need to work out how many results we actually need, and possibly also the
         // offset.
-        $total = db_select('scratchpads_col_terms', 's')->condition('lft', $lft, '>=')->condition('rgt', $rgt, '<=')->countQuery()->execute()->fetchField();
+        $total = db_select('scratchpads_col_terms_' . $year, 's')->condition('lft', $lft, '>=')->condition('rgt', $rgt, '<=')->countQuery()->execute()->fetchField();
         $offset = ($page * $limit) - $total;
         if($offset < 0){
           $offset = 0;
