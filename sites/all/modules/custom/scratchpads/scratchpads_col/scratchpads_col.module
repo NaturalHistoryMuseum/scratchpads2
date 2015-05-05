@@ -5,10 +5,10 @@
  */
 function scratchpads_col_scratchpads_classification_service_info(){
   return array(
-    'col' => array(
-      'name' => t('Catalogue of Life'),
-      'search' => 'scratchpads_col_search',
-      'download' => 'scratchpads_col_download'
+    'col2014' => array(
+      'name' => t('Catalogue of Life - 2014'),
+      'search' => 'scratchpads_col_search_2014',
+      'download' => 'scratchpads_col_download_2014'
     )
   );
 }
