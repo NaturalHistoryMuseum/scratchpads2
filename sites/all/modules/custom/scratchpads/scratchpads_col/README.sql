@@ -47,6 +47,8 @@
 -- 6. Create flattened tables of the data that we want. Note, this query will
 --    take quite some time to run, so be patient.
 
+     SET SESSION group_concat_max_len = 10000000;
+
      CREATE TABLE scratchpads_col_terms AS SELECT
       _taxon_tree.taxon_id AS `taxon_id`,
       leftandright.lft AS `lft`,
@@ -54,7 +56,7 @@
       _taxon_tree.name AS `Term_name`,
       COALESCE(taxon_detail.additional_data, '') AS `Term_description`,
       _taxon_tree.lsid AS `GUID`,
-      parent.lsid AS `Parent GUID`,
+      parent.lsid AS `Parent_GUID`,
       COALESCE(GROUP_CONCAT(common_name_element.name SEPARATOR '|'), '') AS `Vernacular_names_COLON__Vernacular_name`,
       COALESCE(GROUP_CONCAT(common_name.language_iso SEPARATOR '|'), '') AS `Vernacular_names_COLON__Language`,
       COALESCE(author_string.string, '') AS 'Authors',
@@ -80,7 +82,7 @@
       leftandright.rgt AS `rgt`,
       TRIM(GROUP_CONCAT(name_element SEPARATOR ' ')) AS `Term_name`,
       _taxon_tree.lsid AS `Parent_GUID`,
-      _taxon_tree.lsid AS `Associated accepted_name__OPEN_GUID_CLOSE_`,
+      _taxon_tree.lsid AS `Associated_accepted_name__OPEN_GUID_CLOSE_`,
       author_string.string AS 'Authors',
       _taxon_tree.rank AS `Rank`
      FROM
@@ -309,5 +311,5 @@
 
 /*
      mysqldump {database} scratchpads_col_synonyms scratchpads_col_terms \
-     > load.sql
+     > | gzip > load.sql.gz
 */
