@@ -247,6 +247,19 @@ function silver_silver(){
       )
     ));
   }
+  if(module_exists('scratchpads_classification_service_client')){
+    $silvers = array_merge($silvers, array(
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'Scratchpads Classification Service',
+        //'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'silver_taxonomy_scsc_form'
+      )
+    ));
+  }
   return $silvers;
 }
 
@@ -502,6 +515,35 @@ function silver_taxonomy_csv_form(){
     foreach($vocabularies as $vocabulary){
       $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv_' . $language] = $vocabulary->name . ' (' . $language_name . ')';
     }
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_scsc_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $vocabulary->name;
+  }
+  $biological_vids = variable_get('biological_vids', array());
+  $taxonomies = array();
+  foreach($biological_vids as $vid => $type){
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_scsc'] = $vocabulary->name;
   }
   return array(
     'silver_import_subform_feeds' => array(
