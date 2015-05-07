@@ -66,11 +66,13 @@ class FeedsExcelParser extends FeedsParser{
       $this->reader = PHPExcel_IOFactory::createReader($file_type);
       // No need to check for the presence of the chunkReadFilter function, if
       // it doesn't exist, we're screwed anyway.
-      //if(method_exists($this->reader, 'setReadFilter'))
-      $this->chunk_filter = new chunkReadFilter();
-      $this->reader->setReadFilter($this->chunk_filter);
-      if(method_exists($this->reader, 'setReadDataOnly')){
-        $this->reader->setReadDataOnly(true);
+      if($source_config['use_chunk_reader']){
+        if(method_exists($this->reader, 'setReadFilter'))
+          $this->chunk_filter = new chunkReadFilter();
+        $this->reader->setReadFilter($this->chunk_filter);
+        if(method_exists($this->reader, 'setReadDataOnly')){
+          $this->reader->setReadDataOnly(true);
+        }
       }
       $tempnam = drupal_tempnam('temporary://', 'feeds_xls_data_');
       @chmod($tempnam, 0660);
@@ -81,55 +83,68 @@ class FeedsExcelParser extends FeedsParser{
     }else{
       $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
       $this->reader = $previous_this->reader;
-      $this->chunk_filter = $previous_this->chunk_filter;
+      if($source_config['use_chunk_reader']){
+        $this->chunk_filter = $previous_this->chunk_filter;
+      }
     }
     // P A R S E !
     $rows = array();
-    $this->chunk_filter->setRows($this->state->pointer, isset($source_config['chunk_size']) ? $source_config['chunk_size'] : variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT));
+    if($source_config['use_chunk_reader']){
+      $this->chunk_filter->setRows($this->state->pointer, isset($source_config['chunk_size']) ? $source_config['chunk_size'] : variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT));
+    }
     // Excel object for doing the do.
     $excel_obj = $this->reader->load($import_file_path);
     $excel_obj->setActiveSheetIndex();
+    $row_in_file = 0;
+    $num_rows_pulled = 0;
     foreach($excel_obj->getActiveSheet()->getRowIterator() as $row){
-      $cellIterator = $row->getCellIterator();
-      $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
-      $column = 0;
-      $row_values = array();
-      foreach($cellIterator as $cell){
-        if(!is_null($cell)){
-          if(!isset($this->state->column_names)){
-            $row_values[] = trim($cell->getCalculatedValue());
-          }else{
-            if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) && strtoupper($this->state->column_names[$column]) == 'GUID')){
-              $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+      $row_in_file++;
+      if($row_in_file > $this->state->pointer || $source_config['use_chunk_reader']){
+        $num_rows_pulled++;
+        $cellIterator = $row->getCellIterator();
+        $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
+        $column = 0;
+        $row_values = array();
+        foreach($cellIterator as $cell){
+          if(!is_null($cell)){
+            if(!isset($this->state->column_names)){
+              $row_values[] = trim($cell->getCalculatedValue());
+            }else{
+              if(strlen(trim('' . $cell->getCalculatedValue())) || (count($this->state->column_names) && strtoupper($this->state->column_names[$column]) == 'GUID')){
+                $row_values[count($this->state->column_names) ? $this->state->column_names[$column] : $column] = '' . $cell->getCalculatedValue();
+              }
             }
           }
+          $column++;
         }
-        $column++;
-      }
-      // A special case.  We need to ensure that the GUID column has a value
-      // defined, even if that value is the empty string.
-      if(count($row_values) && $column < count($this->state->column_names) && !isset($row_values['GUID']) && array_search('GUID', $this->state->column_names)){
-        $row_values['GUID'] = '';
-      }
-      if(!isset($this->state->column_names)){
-        // Loop through the headers we have been provided with, and convert them
-        // to the exact case/capitalisation as the mappings that the importer
-        // was set up with.
-        // Note, I am not sure if Feeds allows two mappings with the same name
-        // that differ only by case, but if it does, it's very silly and will
-        // cause issues here.
-        foreach($row_values as $key => $value){
-          foreach($source->importer->processor->config['mappings'] as $new_key => $mapping){
-            if(strtolower($value) == strtolower($mapping['source'])){
-              $row_values[$key] = $mapping['source'];
-              break;
+        // A special case.  We need to ensure that the GUID column has a value
+        // defined, even if that value is the empty string.
+        if(count($row_values) && $column < count($this->state->column_names) && !isset($row_values['GUID']) && array_search('GUID', $this->state->column_names)){
+          $row_values['GUID'] = '';
+        }
+        if(!isset($this->state->column_names)){
+          // Loop through the headers we have been provided with, and convert them
+          // to the exact case/capitalisation as the mappings that the importer
+          // was set up with.
+          // Note, I am not sure if Feeds allows two mappings with the same name
+          // that differ only by case, but if it does, it's very silly and will
+          // cause issues here.
+          foreach($row_values as $key => $value){
+            foreach($source->importer->processor->config['mappings'] as $new_key => $mapping){
+              if(strtolower($value) == strtolower($mapping['source'])){
+                $row_values[$key] = $mapping['source'];
+                break;
+              }
             }
           }
+          $this->state->column_names = $row_values;
+        }else{
+          if($this->isRowNotEmpty($row_values)){
+            $rows[] = $row_values;
+          }
         }
-        $this->state->column_names = $row_values;
-      }else{
-        if($this->isRowNotEmpty($row_values)){
-          $rows[] = $row_values;
+        if(!$source_config['use_chunk_reader'] && $num_rows_pulled >= (isset($source_config['chunk_size']) ? $source_config['chunk_size'] : variable_get('feeds_process_limit', FEEDS_PROCESS_LIMIT))){
+          break;
         }
       }
     }
@@ -207,6 +222,12 @@ class FeedsExcelParser extends FeedsParser{
           40 => 40,
           50 => 50
         )
+      ),
+      'use_chunk_reader' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Use chunk reader'),
+        '#description' => t('For most content this should be left checked. If you have functions/equations that act across many rows (e.g. a SUM() of a column, then you may need to uncheck this box.'),
+        '#default_value' => $this->config['use_chunk_reader']
       )
     );
   }
@@ -218,7 +239,8 @@ class FeedsExcelParser extends FeedsParser{
     return array(
       'all_worksheets' => 0,
       'max_rows' => 65535,
-      'chunk_size' => 50
+      'chunk_size' => 50,
+      'use_chunk_reader' => 1
     );
   }
 
@@ -229,7 +251,8 @@ class FeedsExcelParser extends FeedsParser{
     return array(
       'all_worksheets' => $this->config['all_worksheets'],
       'max_rows' => $this->config['max_rows'],
-      'chunk_size' => $this->config['chunk_size']
+      'chunk_size' => $this->config['chunk_size'],
+      'use_chunk_reader' => $this->config['use_chunk_reader']
     );
   }
 
@@ -282,6 +305,10 @@ class FeedsExcelParser extends FeedsParser{
     $form['chunk_size'] = array(
       '#type' => 'hidden',
       '#value' => $this->config['chunk_size']
+    );
+    $form['use_chunk_reader'] = array(
+      '#type' => 'hidden',
+      '#value' => $this->config['use_chunk_reader']
     );
     $form['max_rows'] = array(
       '#type' => 'select',
