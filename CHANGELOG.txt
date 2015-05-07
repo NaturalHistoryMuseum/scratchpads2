@@ -1,3 +1,17 @@
+2.7.0 (2015-05-07)
+
+- Added a module that uses our own Classification Service, which currently
+  provides classifications from the Catalogue of Life
+  (http://classifications.scratchpads.eu) (#4375)
+
+- Display 255 years in the biblio facet (#4387)
+- Fixed the Biblio module again (#4384)
+- Format simple taxonomy page titles in the same way as standard taxon pages
+- Updated Drupal to 7.37, advagg (7.x-2.8), i18n (7.x-1.12)
+- Minor performance improvement for imports
+- Field Media no longer required for Specimen/Observation nodes (although it was
+  never actually required)
+
 2.6.4.8 (2015-05-05)
 
 - Fix a minor typo in the Excel importer that had a major effect on the import.
