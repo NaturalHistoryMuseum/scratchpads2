@@ -8,7 +8,7 @@
 /**
  * The current system version.
  */
-define('VERSION', '7.36');
+define('VERSION', '7.37');
 
 /**
  * Core API compatibility.
@@ -2550,10 +2550,9 @@ function drupal_valid_test_ua() {
     // The file properties add more entropy not easily accessible to others.
     $key = drupal_get_hash_salt() . filectime(__FILE__) . fileinode(__FILE__);
     $time_diff = REQUEST_TIME - $time;
-    // Since we are making a local request a 5 seconds time window is allowed,
-    // and the HMAC must match. However, for selenium it's usually not enough to
-    // pull-up a browser window and render a page, so we set 500 seconds window.
-    if ($time_diff >= 0 && $time_diff <= 500 && $hmac == drupal_hmac_base64($check_string, $key)) {
+    // Since we are making a local request a 5 second time window is allowed,
+    // and the HMAC must match.
+    if ($time_diff >= 0 && $time_diff <= 5 && $hmac == drupal_hmac_base64($check_string, $key)) {
       $test_prefix = $prefix;
       return $test_prefix;
     }
