@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_classification_service_client_menu(){
+  return array(
+    'scsc-autocomplete' => array(
+      'title' => 'Scratchpads Classification Service Client Autocomplete Callback',
+      'page callback' => 'scratchpads_classification_service_client_autocomplete_callback',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_feeds_after_parse()
+ */
+function scratchpads_classification_service_client_feeds_after_parse($source, $parser_result){
+  if(strpos($source->id, 'taxonomy_importer_') === 0 && strpos($source->id, '_scsc')){
+    $vocabulary = taxonomy_vocabulary_machine_name_load($source->importer->processor->config['vocabulary']);
+    $biological_vids = variable_get('biological_vids', array());
+    if(isset($biological_vids[$vocabulary->vid])){
+      foreach($parser_result->items as $key => $row){
+        switch($biological_vids[$vocabulary->vid]){
+          case 1:
+          case 3:
+            $parser_result->items[$key]['usage'] = 'valid';
+            if(!empty($row['associated accepted name (guid)'])){
+              $parser_result->items[$key]['usage'] = 'invalid';
+            }
+            break;
+          case 2:
+            $parser_result->items[$key]['usage'] = 'accepted';
+            if(!empty($row['associated accepted name (guid)'])){
+              $parser_result->items[$key]['usage'] = 'not accepted';
+            }
+            break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_feeds_importer_default_alter()
+ */
+function scratchpads_classification_service_client_feeds_importer_default_alter(&$data){
+  // We copy each of the biological classification CSV imports, tweaking the
+  // source so that they import from a URL rather than a file.
+  $biological_vids = variable_get('biological_vids', array());
+  foreach($biological_vids as $vid => $type){
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    if($vocabulary && isset($data['taxonomy_importer_' . $vocabulary->machine_name . '_csv'])){
+      $importer = clone $data['taxonomy_importer_' . $vocabulary->machine_name . '_csv'];
+      $importer->config['fetcher'] = array(
+        'plugin_key' => 'FeedsHTTPFetcher',
+        'config' => array(
+          'auto_detect_feeds' => FALSE,
+          'use_pubsubhubbub' => FALSE,
+          'designated_hub' => '',
+          'request_timeout' => 25
+        )
+      );
+      $importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_scsc';
+      $data[$importer->id] = $importer;
+    }
+  }
+}
+
+/**
+ * 
+ */
+function scratchpads_classification_service_client_autocomplete_callback($search){
+  $request = drupal_http_request('http://classifications.scratchpads.eu/classification/search/' . urlencode($search), array(
+    'timeout' => 3
+  ));
+  drupal_add_http_header('Content-Type', 'application/json');
+  if($request->code == 200){
+    echo $request->data;
+  }else{
+    drupal_json_output(array());
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ * 
+ * Alter the import form to add a search box for querying the service
+ */
+function scratchpads_classification_service_client_form_feeds_import_form_alter(&$form, &$form_state, $form_id){
+  if(strpos($form['#importer_id'], 'taxonomy_importer_') === 0 && strpos($form['#importer_id'], '_scsc')){
+    //print_r($form);exit;
+    // Add the autocomplete.
+    $form['feeds']['FeedsHTTPFetcher']['source']['#autocomplete_path'] = 'scsc-autocomplete';
+    $form['feeds']['FeedsHTTPFetcher']['source']['#title'] = t('Taxon name');
+    $form['feeds']['FeedsHTTPFetcher']['source']['#description'] = t('Enter a taxon name, and select the result from the drop down that will appear. The field will be populated by a URL.');
+    // Hide the delimitter and header options.
+    $form['feeds']['FeedsCSVParser']['delimiter']['#prefix'] = '<div style="display:none">';
+    $form['feeds']['FeedsCSVParser']['no_headers']['#prefix'] = '<div style="display:none">';
+    $form['feeds']['FeedsCSVParser']['delimiter']['#suffix'] = '</div>';
+    $form['feeds']['FeedsCSVParser']['no_headers']['#suffix'] = '</div>';
+    // Hide the help - it doesn't make any sense for this importer.
+    unset($form['feeds']['FeedsCSVParser']['help']);
+  }
+}

@@ -1,0 +1,5 @@
+name = Scratchpads classification service client
+description = Imports classifications from the Scratchpads Classification Service (http://classifications.scratchpads.eu/)
+package = "Scratchpads"
+core = 7.x
+dependencies[] = silvercsv
