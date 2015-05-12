@@ -1,3 +1,8 @@
+2.7.0.1 (2015-05-07)
+
+- Ensure the Scratchpads CoL module is dependent on the classification client
+  module.
+
 2.7.0 (2015-05-07)
 
 - Added a module that uses our own Classification Service, which currently
