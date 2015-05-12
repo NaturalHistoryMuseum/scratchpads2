@@ -3,3 +3,4 @@ description = Imports classifications from the Scratchpads Classification Servic
 package = "Scratchpads"
 core = 7.x
 dependencies[] = silvercsv
+tool = true
