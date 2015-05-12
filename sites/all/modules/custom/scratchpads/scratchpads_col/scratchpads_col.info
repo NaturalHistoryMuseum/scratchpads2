@@ -2,5 +2,4 @@ name = Scratchpads Classification :: CoL
 description =  Catalogue of Life classifications provided by the Scratchpads classification service
 package = "Data provider"
 core = 7.x
-dependencies[] = scratchpads_classification_service_client
-tool = true
+dependencies[] = scratchpads_classification_service
