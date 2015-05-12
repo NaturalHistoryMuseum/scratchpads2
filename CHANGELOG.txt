@@ -1,7 +1,6 @@
-2.7.0.1 (2015-05-07)
+2.7.0.2 (2015-05-07)
 
-- Ensure the Scratchpads CoL module is dependent on the classification client
-  module.
+- We do not want the scratchpads_col module enabled on sites
 
 2.7.0 (2015-05-07)
 
