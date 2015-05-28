@@ -208,7 +208,7 @@ function scratchpads_statistics_schema(){
         'scratchpads_statistics_user_name_index' => array(
           array(
             'name',
-            767
+            255
           )
         ),
         'scratchpads_statistics_user_email_index' => array(
