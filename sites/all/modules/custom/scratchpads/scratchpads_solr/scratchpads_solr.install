@@ -13,7 +13,7 @@ function scratchpads_solr_install(){
   // Set the Solr server
   db_update('apachesolr_environment')->fields(array(
     'name' => 'Scratchpad solr server',
-    'url' => 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.7.x'
+    'url' => variable_get('scratchpads_solr_url', 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.7.x')
   ))->condition('env_id', 'solr')->execute();
   // Ensure we're indexing the requried content types.
   $entity_info = entity_get_info('node');
