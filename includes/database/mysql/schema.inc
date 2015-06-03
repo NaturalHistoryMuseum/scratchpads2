@@ -108,6 +108,11 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     if (!empty($info['collation'])) {
       $sql .= ' COLLATE ' . $info['collation'];
     }
+    // We specify the row_format to allow us to reduce disk space, and also to
+    // increase the size of indexes.
+    if (!empty($info['row_format'])) {
+      $sql .= ' ROW_FORMAT=' . $info['row_format'];
+    }
 
     // Add table comment.
     if (!empty($table['description'])) {
