@@ -5,9 +5,11 @@
  */
 function scratchpads_twitter_install(){
   $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
+  if(!variable_get('twitter_consumer_key', FALSE) || variable_get('twitter_consumer_secret', FALSE)){
+    variable_set('twitter_consumer_key', $ini['key']);
+    variable_set('twitter_consumer_secret', $ini['secret']);
+  }
   variable_set('twitter_api', 'https://api.twitter.com');
-  variable_set('twitter_consumer_key', $ini['key']);
-  variable_set('twitter_consumer_secret', $ini['secret']);
   variable_set('twitter_expire', 0);
   variable_set('twitter_host', 'http://twitter.com');
   variable_set('twitter_import', 0);
