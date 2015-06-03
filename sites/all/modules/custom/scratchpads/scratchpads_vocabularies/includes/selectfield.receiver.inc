@@ -297,7 +297,7 @@ class SelectFieldReceiver extends VocabularyReceiver{
     if($update->type() !== VocabularyUpdate::T_REMOVE){return FALSE;}
     foreach($update->items() as $id => $label){
       $efq = new EntityFieldQuery();
-      $result = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $id, 'COLLATE utf8_bin =')->execute();
+      $result = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $id)->execute();
       if(!empty($result)){return TRUE;}
     }
     return FALSE;
@@ -324,7 +324,7 @@ class SelectFieldReceiver extends VocabularyReceiver{
     $result = array();
     foreach($item_ids as $item_id){
       $efq = new EntityFieldQuery();
-      $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id, 'COLLATE utf8_bin =')->execute();
+      $r = $efq->entityCondition('bundle', $this->field['bundles'])->fieldCondition($this->field['field_name'], 'value', $item_id)->execute();
       foreach($r as $type => $entity_ids){
         if(!isset($result[$type])){
           $result[$type] = array();
