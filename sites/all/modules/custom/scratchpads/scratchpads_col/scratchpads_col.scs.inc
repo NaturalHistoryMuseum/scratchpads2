@@ -3,7 +3,7 @@
 /**
  * Search on the Catalogue of Life
  */
-function scratchpads_col_search($search, $year = 2014){
+function scratchpads_col_search($search, $year = 2015){
   // Do the query, and return the results.
   // We look for exact matches first, if we find any, we return them.
   $id = db_select('scratchpads_col_terms_' . $year, 't')->condition('Term_name', $search)->fields('t', array(
@@ -41,10 +41,21 @@ function scratchpads_col_search_2014($search){
 }
 
 /**
+ * 2015 functions
+ */
+function scratchpads_col_download_2015($id, $page, $limit = 50000){
+  return scratchpads_col_download($id, $page, 2015, $limit);
+}
+
+function scratchpads_col_search_2015($search){
+  return scratchpads_col_search($search, 2015);
+}
+
+/**
  * Return a MySQL result set which can be parsed through. Note, the headers are
  * based on the column names in the Query.
  */
-function scratchpads_col_download($id, $page = 0, $year = 2014, $limit = 50000){
+function scratchpads_col_download($id, $page = 0, $year = 2015, $limit = 50000){
   $folder = 'public://scratchpads_col';
   if(file_prepare_directory($folder, FILE_CREATE_DIRECTORY)){
     $filename = "{$folder}/{$year}-{$id}-{$page}.csv";
