@@ -9,6 +9,7 @@ function scratchpads_multilingual_contribute_install(){
   variable_set('l10n_client_server', 'http://localize.scratchpads.eu');
   // Add the API Key to all users on the site.
   $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_multilingual_contribute') . '/scratchpads_multilingual_contribute.ini');
+  $ini = variable_get('scratchpads_multilingual_contribute_ini', $ini);
   if($ini['key']){
     $results = db_select('users', 'u')->fields('u', array(
       'uid'
