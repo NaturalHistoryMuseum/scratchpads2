@@ -33,6 +33,7 @@ class GBIFRegistry extends GBIF\Registry{
       // We try to set the username/password at this point by loading them from
       // a configuration file.
       $ini = @parse_ini_file(drupal_get_path('module', 'gbif_registry') . '/login.ini');
+      $ini = variable_get('scratchpads_gbif_registry_ini', $ini);
       if(isset($ini['username']) && isset($ini['password'])){
         self::$instance->setUser($ini['username']);
         self::$instance->setPassword($ini['password']);
