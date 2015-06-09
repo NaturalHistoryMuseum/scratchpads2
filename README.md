@@ -7,7 +7,7 @@ Scratchpads are an online virtual research environment for biodiversity,
 allowing anyone to share their data and create their own research networks. 
 Sites are hosted at the Natural History Museum London, and offered freely to 
 any scientist that completes an online [registration 
-form](http://git.scratchpads.eu).
+form](http://get.scratchpads.eu).
 
 Sites can focus on specific taxonomic groups, or the biodiversity of a 
 biogeographic region, or indeed any aspect of natural history. Scratchpads are 
