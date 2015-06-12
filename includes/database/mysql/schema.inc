@@ -81,7 +81,7 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     // Provide defaults if needed.
     $table += array(
       'mysql_engine' => 'InnoDB',
-      'mysql_character_set' => (isset($info['charset']) ? ($info['charset'] == 'utf8mb4' ? 'utf8mb4' : 'utf8') : 'utf8'),
+      'mysql_character_set' => (isset($info['charset']) && $info['charset'] == 'utf8mb4') ? 'utf8mb4' : 'utf8',
     );
 
     $sql = "CREATE TABLE {" . $name . "} (\n";
