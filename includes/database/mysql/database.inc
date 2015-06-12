@@ -67,7 +67,7 @@ class DatabaseConnection_mysql extends DatabaseConnection {
     // utf8mb4 for better internationalization and full 4-byte UTF-8 support if
     // set. Also set the collation, if a certain one has been set; otherwise,
     // MySQL defaults to 'utf8_general_ci' for UTF-8.
-    $this->charset = (isset($connection_options['charset']) ? ($connection_options['charset'] == 'utf8mb4' ? 'utf8mb4' : 'utf8') : 'utf8');
+    $this->charset = (isset($connection_options['charset']) && $connection_options['charset'] == 'utf8mb4') ? 'utf8mb4' : 'utf8';
     if (!empty($connection_options['collation'])) {
       $this->exec('SET NAMES ' . $this->charset . ' COLLATE ' . $connection_options['collation']);
     }
