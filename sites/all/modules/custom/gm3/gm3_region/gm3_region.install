@@ -230,6 +230,11 @@ function gm3_region_update_7008(){
  * Load the data.
  */
 function gm3_region_update_7009(&$sandbox){
+  global $databases;
+  if(isset($databases['gm3'])){
+    $sandbox['#finished'] = 1;
+    return;
+  }
   if(db_select('gm3_region_data', 'g')->countQuery()->execute()->fetchField() < 1151){
     // If this is being run on Quartz, then it is highly likely that the data has
     // been loaded already.  We get a count of the cache table to check.
