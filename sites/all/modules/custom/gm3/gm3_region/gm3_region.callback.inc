@@ -4,6 +4,7 @@
  * Get the region_id from the lat,lng and zoom
  */
 function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
+  gm3_region_switch_to_gm3_database();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // Because the TDWG data and Google data don't quite match, here we convert
   // some of the codes sent to us by Google.
@@ -135,6 +136,9 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
     $results->code = substr($results->code, 0, 15);
   }
   print json_encode($region_id);
+  // Set back to the default database, in case some exit functions require the
+  // original database.
+  db_set_active();
   // Perform end-of-request tasks.
   ajax_footer();
   exit();
@@ -154,6 +158,7 @@ function gm3_region_get_points($region_ids){
     }else{
       print ",";
     }
+    gm3_region_switch_to_gm3_database();
     $polygons = cache_get($region_id, 'cache_gm3_polygon');
     if($polygons === false){
       module_load_include('functions.inc', 'gm3');
@@ -212,6 +217,7 @@ function gm3_region_get_points($region_ids){
     print $polygons;
   }
   print "]";
+  db_set_active();
   // Perform end-of-request tasks.
   ajax_footer();
 }
