@@ -14,11 +14,11 @@
           // Only continue if the path has three or more points.
           if(paths.length > 2) {
             new_value += "POLYGON (("
-            for( var j = 0; j < paths.length; j++) {
-              if(j > 0) {
+            for( var ii = 0; ii < paths.length; ii++) {
+              if(ii > 0) {
                 new_value += ",";
               }
-              new_value += paths.b[j].lng() + " " + paths.b[j].lat()
+              new_value += paths.j[ii].lng() + " " + paths.j[ii].lat()
             }
             new_value += "))"
           }
