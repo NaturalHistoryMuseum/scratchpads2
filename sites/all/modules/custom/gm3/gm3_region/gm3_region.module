@@ -40,6 +40,16 @@ function gm3_region_menu(){
 }
 
 /**
+ * Switch database to 'gm3'
+ */
+function gm3_region_switch_to_gm3_database(){
+  global $databases;
+  if(isset($databases['gm3'])){
+    db_set_active('gm3');
+  }
+}
+
+/**
  * Implementation of hook_library().
  * 
  * FIXME - Select countries.  Click on a region could bring up an option to 
