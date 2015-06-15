@@ -1226,7 +1226,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
           )
         ),
         '#default_value' => $default_value_string,
-        '#type' => $data_field_type,
+        '#type' => ($data_field_type == 'textfield' ? 'textarea' : 'hidden'),
         '#maxlength' => 10000000
       );
       break;
@@ -1312,7 +1312,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
               'id' => $element['#field_name']
             ));
             $widget['children']['gm3_' . $poly_type] = array(
-              '#type' => $data_field_type,
+              '#type' => ($data_field_type == 'textfield' ? 'textarea' : 'hidden'),
               '#title' => $poly_type,
               '#maxlength' => 10000000,
               '#attributes' => array(
