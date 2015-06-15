@@ -26,6 +26,7 @@ function gm3_region_field_field_info(){
  * to enter REGION: REGION-ID rather than REGION_FIELD: REGION-ID
  */
 function gm3_region_items_validate($items, $field_name, &$errors){
+  gm3_region_switch_to_gm3_database();
   foreach($items as $item){
     if(is_string($item)){
       $item = trim($item);
@@ -71,6 +72,7 @@ function gm3_region_items_validate($items, $field_name, &$errors){
       }
     }
   }
+  db_set_active();
 }
 
 /**
@@ -105,6 +107,7 @@ function gm3_region_field_field_insert($entity_type, $entity, $field, $instance,
  * Helper function to convert a value like 'ITA-IT' to '1:13:ITA:ITA-IT'.
  */
 function _gm3_region_convert_short_code_to_full_code($val){
+  gm3_region_switch_to_gm3_database();
   // We have simply been sent an id, we must get the full hierarchy.
   if(is_numeric($val)){
     // We have a region 1 or 2 code.  No need to do anything to a region 1
@@ -140,6 +143,7 @@ function _gm3_region_convert_short_code_to_full_code($val){
       }
     }
   }
+  db_set_active();
   return $val;
 }
 
@@ -304,6 +308,7 @@ function gm3_region_field_field_is_empty($item, $field){
  * Helper function to get the options for the region field.
  */
 function _gm3_region_field_get_options(){
+  gm3_region_switch_to_gm3_database();
   // We cache this, as it should only change if the module is updated.
   $result = db_select('gm3_region_data', 'g')->fields('g', array(
     'name',
@@ -330,6 +335,7 @@ function _gm3_region_field_get_options(){
     }
   }
   uksort($options, '_gm3_region_field_array_sort');
+  db_set_active();
   return $options;
 }
 

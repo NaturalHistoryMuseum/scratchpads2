@@ -13,11 +13,11 @@
         var path = this.polylines[i].getPath();
         if(path.length > 1) {
           new_value += "POLYGON (("
-          for( var j = 0; j < path.length; j++) {
-            if(j > 0) {
+          for( var ii = 0; ii < path.length; ii++) {
+            if(ii > 0) {
               new_value += ",";
             }
-            new_value += path.b[j].lng() + " " + path.b[j].lat()
+            new_value += path.j[ii].lng() + " " + path.j[ii].lat()
           }
           new_value += "))"
         }
