@@ -473,12 +473,20 @@ function scratchpads_tweaks_translate_after_check_plain($string){
   return strtr($string, array(
     '[i]' => '<em>',
     '[em]' => '<em>',
+    '[sup]' => '<sup>',
+    '[sub]' => '<sub>',
     '[/i]' => '</em>',
     '[/em]' => '</em>',
+    '[/sup]' => '</sup>',
+    '[/sub]' => '</sub>',
     '&lt;i&gt;' => '<em>',
     '&lt;em&gt;' => '<em>',
+    '&lt;sup&gt;' => '<sup>',
+    '&lt;sub&gt;' => '<sub>',
     '&lt;/i&gt;' => '</em>',
     '&lt;/em&gt;' => '</em>'
+    '&lt;/sup&gt;' => '</sup>',
+    '&lt;/sub&gt;' => '</sub>'
   ));
 }
 
