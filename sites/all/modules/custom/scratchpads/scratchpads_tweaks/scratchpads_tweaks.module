@@ -484,7 +484,7 @@ function scratchpads_tweaks_translate_after_check_plain($string){
     '&lt;sup&gt;' => '<sup>',
     '&lt;sub&gt;' => '<sub>',
     '&lt;/i&gt;' => '</em>',
-    '&lt;/em&gt;' => '</em>'
+    '&lt;/em&gt;' => '</em>',
     '&lt;/sup&gt;' => '</sup>',
     '&lt;/sub&gt;' => '</sub>'
   ));
