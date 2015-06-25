@@ -1,0 +1,4 @@
+name = "TEMPORARY DarwinCore Archive importer for the GIASIP site"
+description = "Imports data from two DwC-A into the site."
+core = "7.x"
+package = "Import"

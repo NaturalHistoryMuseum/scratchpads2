@@ -316,7 +316,10 @@ function scratchpads_species_term_page($term, $op = 'overview'){
   // We check first whether we actually want to use the Scratchpads species pages
   // or Solr, or just the simple Drupal core page.
   $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
-  if(isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid]){
+  $custom_view_paths = variable_get('scratchpads_simple_taxonomy_page_vids_view_path', array());
+  if(!empty($custom_view_paths[$term->vid])){
+    drupal_goto(str_replace('%', $term->tid, $custom_view_paths[$term->vid]));
+  }elseif(isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid]){
     drupal_goto('simpletaxonomy/term/' . arg(2));
   }
   if(scratchpads_species_term_is_biological_classification($term)){

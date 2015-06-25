@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implementation of hook_feeds_plugins().
+ *
+ * Include in the path the tools that are necesary to get the 
+ * importers working.
+ *
+ * That is the DwCAParser, DwCALocationProcessor and DwCAObservationProcessor
+ */
+function feeds_dwca_feeds_plugins(){
+  return array(
+    'DwCAParser' => array(
+      'name' => 'DwC-A Parser',
+      'description' => 'Parses a DwC-A file.',
+      'handler' => array(
+        'parent' => 'FeedsParser',
+        'class' => 'DwCAParser',
+        'file' => 'DwCAParser.inc',
+        'path' => drupal_get_path('module', 'feeds_dwca') . '/includes'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_enable()
+ */
+function feeds_dwca_enable(){
+  //clear the cache to display in Feeds as available plugin.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}
+
+/**
+ * Implementation of hook_silver
+ */
+function feeds_dwca_silver(){
+  return array(
+    array(
+      'type' => 'Nodes',
+      'name' => 'Darwin Core Archive Import',
+      'access arguments' => array(
+        'administer feeds'
+      ),
+      'form_id' => 'feeds_dwca_primary_form'
+    )
+  );
+}

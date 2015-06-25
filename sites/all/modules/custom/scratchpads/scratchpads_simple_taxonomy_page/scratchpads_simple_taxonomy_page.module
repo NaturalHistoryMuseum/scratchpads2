@@ -39,8 +39,11 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
     $vids = variable_get('none_biological_vids', array());
     // We default to NOT using the simple view.
     $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
-    $default_value = 0;
+    $custom_views = variable_get('scratchpads_simple_taxonomy_page_vids_view_path', array());
+    $custom_view_by_vid = $default_value = 0;
     $default_simple_value = 1;
+    $default_custom_view = 0;
+    $default_custom_view_path = '';
     if(isset($form['vid'])){
       // Vocabulary already exists, default to off
       if(isset($vids[$form['vid']['#value']])){
@@ -50,6 +53,10 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
       if(isset($simple_vids[$form['vid']['#value']])){
         // Set before, use the setting.
         $default_simple_value = $simple_vids[$form['vid']['#value']];
+      }
+      if(!empty($custom_views[$form['vid']['#value']])){
+        $default_custom_view = 1;
+        $default_custom_view_path = $custom_views[$form['vid']['#value']];
       }
     }else{
       // New vocabulary, default to on.
@@ -82,6 +89,35 @@ function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$
         'visible' => array(
           ':input[name="biological_classification"]' => array(
             'value' => ''
+          )
+        )
+      )
+    );
+    $form['simple_taxonomy_display']['display_custom_view'] = array(
+      '#title' => t('Display custom view'),
+      '#description' => t('Check this box to display terms using a custom view.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_custom_view,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          ),
+          ':input[name="display_facets"]' => array(
+            'checked' => FALSE
+          )
+        )
+      )
+    );
+    $form['simple_taxonomy_display']['display_custom_view_path'] = array(
+      '#title' => '<span class="form-required" title="This field is required.">*</span> ' . t('Custom view path'),
+      '#description' => t('Specify the path of the custom view.  e.g. special/view/% where % will be converted to the TID of the term being viewed.'),
+      '#type' => 'textfield',
+      '#default_value' => $default_custom_view_path,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="display_custom_view"]' => array(
+            'checked' => TRUE
           )
         )
       )
@@ -165,13 +201,21 @@ function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_update($vocabulary
  */
 function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary){
   $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  $custom_view_paths = variable_get('scratchpads_simple_taxonomy_page_vids_view_path', array());
   // Which form field we read depends on what type of vocabulary this is
   if(!empty($vocabulary->biological_classification)){
     $simple_vids[$vocabulary->vid] = isset($vocabulary->use_scratchpads_species_pages) && $vocabulary->use_scratchpads_species_pages ? 1 : 0;
   }else{
     $simple_vids[$vocabulary->vid] = isset($vocabulary->display_facets) && $vocabulary->display_facets ? 1 : 0;
+    if(!$simple_vids[$vocabulary->vid]){
+      // Save whether or not we're using a custom view.
+      if(isset($vocabulary->display_custom_view) && isset($vocabulary->display_custom_view_path)){
+        $custom_view_paths[$vocabulary->vid] = $vocabulary->display_custom_view_path;
+      }
+    }
   }
   variable_set('scratchpads_simple_taxonomy_page_vids', $simple_vids);
+  variable_set('scratchpads_simple_taxonomy_page_vids_view_path', $custom_view_paths);
   // Set whether or not this is a none_biological_vid
   $none_biological_vids = variable_get('none_biological_vids', array());
   $none_biological_vids[$vocabulary->vid] = empty($vocabulary->biological_classification) && !empty($vocabulary->display_tab) ? 1 : 0;
@@ -366,6 +410,7 @@ function scratchpads_simple_taxonomy_page_menu(){
   // We need to stick with taxonomy/term/[tid] for "simple" view taxonomies (ie
   // those not using Solr).
   $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  $custom_path_vids = variable_get('scratchpads_simple_taxonomy_page_vids_view_path', array());
   foreach(variable_get('none_biological_vids', array()) as $vid => $display_tab){
     if($display_tab){
       $vocabulary = taxonomy_vocabulary_load($vid);
@@ -376,15 +421,17 @@ function scratchpads_simple_taxonomy_page_menu(){
         if(isset($default_terms[$vid])){
           $tid = $default_terms[$vid];
         }
-        $path = 'nontaxonomy/term/';
-        if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){
-          $path = 'simpletaxonomy/term/';
+        $path = 'nontaxonomy/term/' . $tid;
+        if(!empty($custom_path_vids[$vid])){
+          $path = str_replace('%', $tid, $custom_path_vids[$vid]);
+        }else if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){
+          $path = 'simpletaxonomy/term/' . $tid;
         }
         $items['classification/' . $vid] = array(
           'title' => $vocabulary->name,
           'page callback' => 'drupal_goto',
           'page arguments' => array(
-            $path . $tid
+            $path
           ),
           'access arguments' => array(
             'access content'

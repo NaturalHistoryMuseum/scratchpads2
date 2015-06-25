@@ -40,6 +40,7 @@ dependencies[] = clone
 dependencies[] = comment_notify
 dependencies[] = dictionary_export
 dependencies[] = diff
+dependencies[] = email
 dependencies[] = emptyparagraphkiller
 dependencies[] = entitycache
 dependencies[] = entityconnect

@@ -6,6 +6,23 @@
 function scratchpads_species_context_default_contexts(){
   global $conf;
   $contexts = array();
+  // Get the views with taxonomy/term/%/[xxx] paths so that we can add them to
+  // the conditions
+  $paths = array();
+  $views = views_get_applicable_views('uses hook menu');
+  foreach($views as $data){
+    list($view, $display_id) = $data;
+    $result = $view->execute_hook_menu($display_id);
+    if(is_array($result)){
+      foreach($result as $path => $menu){
+        if(strpos($path, 'taxonomy/term/%/') === 0 && (MENU_LOCAL_TASK & $menu['type'])){
+          $path = str_replace('%', '*', $path);
+          $paths[$path] = $path;
+        }
+      }
+    }
+    $view->destroy();
+  }
   if(isset($conf['biological_vids'])){
     foreach(taxonomy_get_vocabularies() as $vocabulary){
       if(array_key_exists($vocabulary->vid, $conf['biological_vids'])){
@@ -42,6 +59,11 @@ function scratchpads_species_context_default_contexts(){
           'menu' => 'classification/' . $vocabulary->vid
         );
         $context->condition_mode = 0;
+        if($paths){
+          $context->conditions['path'] = array(
+            'values' => $paths
+          );
+        }
         $contexts[$name] = $context;
       }
     }
@@ -67,10 +89,10 @@ function scratchpads_species_context_default_contexts(){
     if(count($views = scratchpads_species_get_context_views($context->name))){
       $weight = 0;
       foreach($views as $view){
-      	$delta = $view . '-block';
-      	if(strlen($delta)>32){
-      	  $delta = md5($delta);
-      	}
+        $delta = $view . '-block';
+        if(strlen($delta) > 32){
+          $delta = md5($delta);
+        }
         $context->reactions['block']['blocks']['views-' . $delta] = array(
           'module' => 'views',
           'delta' => $delta,

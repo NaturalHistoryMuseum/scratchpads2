@@ -1,0 +1,6 @@
+package = INBio 
+name = Feeds DwC-A Parser
+description = Provides a Feeds Parser for handling DwC-A files.
+core = 7.x
+dependencies[] = feeds
+dependencies[] = libraries

@@ -15,7 +15,8 @@ function itis_term_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $fo
       '#options' => array(
         1 => 'Animal',
         2 => 'Algae/Fungi/Plants',
-        3 => 'Bacteria/Archaea'
+        3 => 'Bacteria/Archaea',
+        4 => 'Life'
       ),
       '#empty_option' => t('Not a biological classification'),
       '#default_value' => (isset($form['vid']) && isset($vids[$form['vid']['#value']])) ? $vids[$form['vid']['#value']] : 0,

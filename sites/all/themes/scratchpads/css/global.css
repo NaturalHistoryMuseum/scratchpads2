@@ -1003,6 +1003,9 @@ article.comment.odd {
 }
 
 /************************ VIEWS TABLES *********************/
+table caption h1{
+  text-align:left !important;
+}
 table,tbody,tfoot,thead,tr,th,td {
   vertical-align: middle !important;
 }
