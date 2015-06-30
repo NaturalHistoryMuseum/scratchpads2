@@ -1,10 +1,18 @@
+/**
+ * @file
+ * Enhancements for webform node type forms.
+ */
+
 (function ($) {
+
+  "use strict";
+
   Drupal.behaviors.webformContentTypes = {
     attach: function (context) {
       // Provide the vertical tab summaries.
-      $('fieldset#edit-webform', context).drupalSetSummary(function(context) {
+      $('fieldset#edit-webform', context).drupalSetSummary(function (context) {
         var vals = [];
-        $('input[type=checkbox]', context).each(function() {
+        $('input[type=checkbox]', context).each(function () {
           if (this.checked && this.attributes['data-enabled-description']) {
             vals.push(this.attributes['data-enabled-description'].value);
           }

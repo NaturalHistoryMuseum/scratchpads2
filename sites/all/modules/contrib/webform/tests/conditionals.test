@@ -41,15 +41,18 @@ class WebformConditionalsTestCase extends WebformTestCase {
     $this->webformReset();
 
     $test_components = $this->testWebformComponents();
+    $test_specs = array(
+      'match conditional values' => TRUE,
+      'mismatch conditional values' => FALSE,
+    );
+    // Test each component, processing all 'match conditional values' for TRUE
+    // and all 'mismatch conditional values for FALSE.
     foreach ($test_components as $key => $component_info) {
-      if (isset($component_info['match conditional values'])) {
-        foreach ($component_info['match conditional values'] as $operator => $match_value) {
-          $this->webformTestConditionalComponent($component_info['component'], $component_info['sample values'], $operator, $match_value, TRUE);
-        }
-      }
-      if (isset($component_info['mismatch conditional values'])) {
-        foreach ($component_info['mismatch conditional values'] as $operator => $mismatch_value) {
-          $this->webformTestConditionalComponent($component_info['component'], $component_info['sample values'], $operator, $mismatch_value, FALSE);
+      foreach ($test_specs as $values_key => $result) {
+        if (isset($component_info[$values_key])) {
+          foreach ($component_info[$values_key] as $operator => $match_value) {
+            $this->webformTestConditionalComponent($component_info['component'], $component_info['sample values'], $operator, $match_value, $result);
+          }
         }
       }
     }
@@ -86,7 +89,7 @@ class WebformConditionalsTestCase extends WebformTestCase {
     $match_string = (is_array($conditional_values) ? print_r($conditional_values, 1) : $conditional_values);
     $conditional_string = $should_match ? 'should' : 'should not';
     $settings = array(
-      'title' => 'Test conditional webform: ' . $component['type'] . ' "' . $input_string .'"' . $conditional_string . ' be ' . $operator . ' "' . $match_string . '"',
+      'title' => 'Test conditional webform: ' . $component['type'] . ' "' . $input_string . '"' . $conditional_string . ' be ' . $operator . ' "' . $match_string . '"',
       'type' => 'webform',
       'webform' => webform_node_defaults(),
     );
@@ -132,15 +135,21 @@ class WebformConditionalsTestCase extends WebformTestCase {
     }
     $conditional = array(
       'rgid' => 0,
-      'andor' => 'and',
-      'action' => 'hide',
-      'target_type' => 'component',
-      'target' => NULL, // Target set individually.
-      'weight' => 0,
       'rules' => $rules,
+      'andor' => 'and',
+      'actions' => array(
+        0 => array(
+          'action' => 'show',
+          'target' => NULL, // Target set individually.
+          'target_type' => 'component',
+          'invert' => '1',
+          'argument' => NULL,
+        ),
+      ),
+      'weight' => 0,
     );
 
-    $conditional['target'] = 2; // The same-page textfield test.
+    $conditional['actions'][0]['target'] = 2; // The same-page textfield test.
     $node->webform['conditionals'] = array($conditional);
     node_save($node);
 
@@ -159,7 +168,7 @@ class WebformConditionalsTestCase extends WebformTestCase {
     }
 
     // Adjust the conditionals to make them separate-page conditionals.
-    $conditional['target'] = 3; // The separate-page textfield test.
+    $conditional['actions'][0]['target'] = 3; // The separate-page textfield test.
     $node->webform['conditionals'] = array($conditional);
     $node->webform['components'][2]['required'] = '0';
     node_save($node);

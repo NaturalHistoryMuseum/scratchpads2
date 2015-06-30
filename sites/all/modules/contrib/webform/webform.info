@@ -17,6 +17,7 @@ files[] = includes/exporters/webform_exporter_excel_delimited.inc
 files[] = includes/exporters/webform_exporter_excel_xlsx.inc
 files[] = includes/exporters/webform_exporter.inc
 
+files[] = views/webform_handler_area_result_pager.inc
 files[] = views/webform_handler_field_form_body.inc
 files[] = views/webform_handler_field_is_draft.inc
 files[] = views/webform_handler_field_node_link_edit.inc
@@ -28,9 +29,9 @@ files[] = views/webform_handler_field_webform_status.inc
 files[] = views/webform_handler_filter_is_draft.inc
 files[] = views/webform_handler_filter_submission_data.inc
 files[] = views/webform_handler_filter_webform_status.inc
-files[] = views/webform_handler_area_result_pager.inc
-files[] = views/webform_plugin_row_submission_view.inc
+files[] = views/webform_handler_numeric_data.inc
 files[] = views/webform_handler_relationship_submission_data.inc
+files[] = views/webform_plugin_row_submission_view.inc
 files[] = views/webform.views.inc
 
 files[] = tests/components.test
@@ -39,9 +40,9 @@ files[] = tests/permissions.test
 files[] = tests/submission.test
 files[] = tests/webform.test
 
-; Information added by Drupal.org packaging script on 2015-03-26
-version = "7.x-4.7"
+; Information added by Drupal.org packaging script on 2015-05-26
+version = "7.x-4.9"
 core = "7.x"
 project = "webform"
-datestamp = "1427387585"
+datestamp = "1432669985"
 

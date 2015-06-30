@@ -209,13 +209,53 @@ function webform_views_data() {
   // Submitted timestamp.
   $data['webform_submissions']['submitted'] = array(
     'title' => t('Submitted'),
-    'help' => t('The date this submission was submitted.'),
+    'help' => t('Timestamp when the form was first saved as draft or submitted.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,
     ),
     'filter' => array(
       'title' => t('Submitted'),
+      'handler' => 'views_handler_filter_date',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_date',
+    ),
+  );
+
+  // Completed timestamp.
+  $data['webform_submissions']['completed'] = array(
+    'title' => t('Completed'),
+    'help' => t('Timestamp when the form was submitted as complete (not draft).'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'title' => t('Completed'),
+      'handler' => 'views_handler_filter_date',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_date',
+    ),
+  );
+
+  // Modified timestamp.
+  $data['webform_submissions']['modified'] = array(
+    'title' => t('Modified'),
+    'help' => t('Timestamp when the form was last saved (complete or draft).'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'title' => t('Modified'),
       'handler' => 'views_handler_filter_date',
     ),
     'sort' => array(
@@ -329,6 +369,30 @@ function webform_views_data() {
     ),
     'sort' => array(
       'handler' => 'views_handler_sort',
+    ),
+  );
+
+  // Same as 'data', but handled as numeric data.
+  $data['webform_submitted_data']['data_numeric'] = array(
+    'table' => 'webform_submitted_data',
+    'title' => t('Data field (numeric)'),
+    'help' => t('The numeric value of a component as submitted by a user.'),
+    'real field' => 'data',
+    'field' => array(
+      'title' => t('Numeric value (raw)'), // Distinguish from the normal value handler.
+      'help' => t('The raw value from the database, cast to a number, as submitted by a user. Use only when needing to sort on a field value.'),
+      'handler' => 'webform_handler_field_numeric_data',
+      'click sortable' => TRUE,
+      'float' => TRUE,
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+    'filter' => array(
+      'handler' => 'webform_handler_filter_numeric_data',
+    ),
+    'sort' => array(
+      'handler' => 'webform_handler_sort_numeric_data',
     ),
   );
 
@@ -510,7 +574,7 @@ function webform_views_pre_view($view, $display_id, $args) {
         if (webform_component_implements($component['type'], 'view_field')) {
           $new_fields = webform_component_invoke($component['type'], 'view_field', $component, $new_fields);
         }
-        foreach($new_fields as $sub_id => $new_field) {
+        foreach ($new_fields as $sub_id => $new_field) {
           $field_id = $new_id . ($sub_id ? '_' . $sub_id : '');
           $fields[$field_id] = $new_field;
           $new_columns[$field_id] = $field_id;

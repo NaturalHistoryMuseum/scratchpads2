@@ -16,6 +16,7 @@
  * - $confirmation_message: The confirmation message input by the webform
  *   author.
  * - $sid: The unique submission ID of this submission.
+ * - $url: The URL of the form (or for in-block confirmations, the same page).
  */
 ?>
 <?php print $progressbar; ?>
@@ -29,5 +30,5 @@
 </div>
 
 <div class="links">
-  <a href="<?php print url('node/'. $node->nid) ?>"><?php print t('Go back to the form') ?></a>
+  <a href="<?php print $url; ?>"><?php print t('Go back to the form') ?></a>
 </div>

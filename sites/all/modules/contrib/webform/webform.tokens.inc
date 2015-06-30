@@ -24,9 +24,23 @@ function webform_token_info() {
     'name' => t('Submission ID'),
     'description' => t('The unique indentifier for the webform submission.'),
   );
+  $info['tokens']['submission']['access-token'] = array(
+    'name' => t('Access token'),
+    'description' => t('The security token used to gain access to this webform submission.'),
+  );
   $info['tokens']['submission']['date'] = array(
     'name' => t('Date submitted'),
-    'description' => t('The date the webform was submitted.'),
+    'description' => t('The date the webform was first save as draft or completed.'),
+    'type' => 'date',
+  );
+  $info['tokens']['submission']['completed_date'] = array(
+    'name' => t('Date completed'),
+    'description' => t('The date the webform was first completed (not draft).'),
+    'type' => 'date',
+  );
+  $info['tokens']['submission']['modified_date'] = array(
+    'name' => t('Date modified'),
+    'description' => t('The date the webform was last saved (draft or completed).'),
     'type' => 'date',
   );
   $info['tokens']['submission']['ip-address'] = array(
@@ -50,7 +64,15 @@ function webform_token_info() {
   );
   $info['tokens']['submission']['values'] = array(
     'name' => t('Webform submission values'),
-    'description' => t('Webform tokens from submitted data. Replace the "?" with the "field key", including any parent field keys separated by colons. You may append ":label" for just the label or ":withlabel" for both the label and value together. Append ":key" for just the key in a key|label pair.'),
+    'description' => '<div>' . t('Webform tokens from submitted data. Replace the "?" with the "field key", including any parent field keys separated by colons. You can append:') . '</div>' .
+                     '<ul>' .
+                     '<li>' . t('the question key for just that one question (grid components).') . '</li>' .
+                     '<li>' . t('the option key for just that one option (grid and select components).') . '</li>' .
+                     '<li>' . t('<code>@token</code> for the value without the label (the default).', array('@token' => ':nolabel')) . '</li>' .
+                     '<li>' . t('<code>@token</code> for just the label.', array('@token' => ':label')) . '</li>' .
+                     '<li>' . t('<code>@token</code> for both the label and value together.', array('@token' => ':withlabel')) . '</li>' .
+                     '<li>' . t('<code>@token</code> for just the key in a key|label pair (grid and select components).', array('@token' => ':key')) . '</li>' .
+                     '</ul>',
     'dynamic' => TRUE,
   );
 
@@ -92,8 +114,19 @@ function webform_tokens($type, $tokens, array $data = array(), array $options = 
         case 'sid':
           $replacements[$original] = $submission->sid ? $submission->sid : '';
           break;
+        case 'access-token':
+          $replacements[$original] = webform_get_submission_access_token($submission);
+          break;
         case 'date':
-          $replacements[$original] = format_date($submission->submitted, 'medium', '', NULL, $language_code);
+          $replacements[$original] = format_date($submission->submitted, webform_variable_get('webform_date_type'), '', NULL, $language_code);
+          break;
+        case 'completed_date':
+          if ($submission->completed) {
+            $replacements[$original] = format_date($submission->completed, webform_variable_get('webform_date_type'), '', NULL, $language_code);
+          }
+          break;
+        case 'modified_date':
+          $replacements[$original] = format_date($submission->modified, webform_variable_get('webform_date_type'), '', NULL, $language_code);
           break;
         case 'ip-address':
           $replacements[$original] = $sanitize ? check_plain($submission->remote_addr) : $submission->remote_addr;
@@ -151,19 +184,29 @@ function webform_tokens($type, $tokens, array $data = array(), array $options = 
           // not displayed when printing the whole renderable.
           $display_element['#access'] = TRUE;
 
-          // For grid components, see if optional option key is present.
+          // For grid components, see if optional question key is present.
           $matched_token = $parent_token;
           if ($display_element['#webform_component']['type'] === 'grid') {
-            list($option_key) = explode(':', substr($name, strlen($parent_token) + 1));
-            if (strlen($option_key) && isset($display_element[$option_key]['#value'])) {
+            list($question_key) = explode(':', substr($name, strlen($matched_token) + 1));
+            if (strlen($question_key) && isset($display_element[$question_key]['#value'])) {
               // Generate a faux select component for this grid question.
               $select_component = _webform_defaults_select();
               $select_component['type'] = 'select';
               $select_component['nid'] = $display_element['#webform_component']['nid'];
-              $select_component['name'] = $display_element['#grid_questions'][$option_key];
+              $select_component['name'] = $display_element['#grid_questions'][$question_key];
               $select_component['extra']['items'] = $display_element['#webform_component']['extra']['options'];
-              $display_element = _webform_display_select($select_component, $display_element[$option_key]['#value'], $format);
+              $display_element = _webform_display_select($select_component, $display_element[$question_key]['#value'], $format);
               $display_element['#webform_component'] = $select_component;
+              $matched_token .= ':' . $question_key;
+            }
+          }
+
+          // For select components, see if the optional option key is present.
+          if ($display_element['#webform_component']['type'] === 'select') {
+            list($option_key) = explode(':', substr($name, strlen($matched_token) + 1));
+            if (strlen($option_key) && strpos("\n" . $display_element['#webform_component']['extra']['items'], "\n" . $option_key . '|') !== FALSE) {
+              // Return only this specified option and no other values.
+              $display_element['#value'] = array_intersect($display_element['#value'], array($option_key));
               $matched_token .= ':' . $option_key;
             }
           }
@@ -207,6 +250,12 @@ function webform_tokens($type, $tokens, array $data = array(), array $options = 
     // Chained token relationships.
     if ($date_tokens = token_find_with_prefix($tokens, 'date')) {
       $replacements += token_generate('date', $date_tokens, array('date' => $submission->submitted), $options);
+    }
+    if ($submission->completed && ($date_tokens = token_find_with_prefix($tokens, 'completed_date'))) {
+      $replacements += token_generate('date', $date_tokens, array('date' => $submission->completed), $options);
+    }
+    if ($date_tokens = token_find_with_prefix($tokens, 'modified_date')) {
+      $replacements += token_generate('date', $date_tokens, array('date' => $submission->modified), $options);
     }
     if (($user_tokens = token_find_with_prefix($tokens, 'user')) && $account = user_load($submission->uid)) {
       $replacements += token_generate('user', $user_tokens, array('user' => $account), $options);

@@ -1,7 +1,10 @@
 <?php
+
 /**
+ * @file
  * This exporter creates an XLSX file readable by newer versions of Excel.
  */
+
 class webform_exporter_excel_xlsx extends webform_exporter {
   /**
    * Regular expression that checks for a valid ISO 8601 date/time.

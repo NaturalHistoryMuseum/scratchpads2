@@ -149,12 +149,16 @@ class WebformTestCase extends DrupalWebTestCase {
         'match conditional values' => array(
           'equal' => '1982/9/30',
           'before' => '1982/10/1',
+          'before_equal' => '1982/9/30',
           'after' => '1982/9/29',
+          'after_equal' => '1982/9/29',
         ),
         'mismatch conditional values' => array(
           'equal' => '1981/9/30',
           'before' => '1982/9/30',
+          'before_equal' => '1982/9/29',
           'after' => '1982/9/30',
+          'after_equal' => '1982/10/1',
         ),
       ),
 
@@ -301,6 +305,40 @@ class WebformTestCase extends DrupalWebTestCase {
         'mismatch conditional values' => array(
           'equal' => '1',
           'not_equal' => '0',
+        ),
+      ),
+      'radios_relative' => array(
+        'component' => array(
+          'form_key' => 'radios_relative',
+          'name' => 'Radios relative',
+          'type' => 'select',
+          'value' => 'one',
+          'extra' => array(
+            'items' => "zero|Zero\none|One\ntwo|Two\nthree|Three\n",
+          ),
+          'required' => '1',
+          'pid' => '0',
+          'weight' => '-9',
+        ),
+        'sample values' => 'one',
+        'database values' => array('one'),
+        'database default values' => array('one'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'one',
+          'not_equal' => 'zero',
+          'less_than' => 'two',
+          'less_than_equal' => 'one',
+          'greater_than' => 'zero',
+          'greater_than_equal' => 'zero',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => 'zero',
+          'not_equal' => 'one',
+          'less_than' => 'one',
+          'less_than_equal' => 'zero',
+          'greater_than' => 'two',
+          'greater_than_equal' => 'two',
         ),
       ),
       'select' => array(
@@ -471,6 +509,41 @@ class WebformTestCase extends DrupalWebTestCase {
         'database values' => array('one', 'two'),
         'database default values' => array('one', 'two'),
       ),
+      'select_relative' => array(
+        'component' => array(
+          'form_key' => 'select_relative',
+          'name' => 'Select relative',
+          'type' => 'select',
+          'value' => 'one',
+          'extra' => array(
+            'items' => "zero|Zero\none|One\ntwo|Two\nthree|Three\n",
+            'aslist' => 1,
+          ),
+          'required' => '1',
+          'pid' => '0',
+          'weight' => '-9',
+        ),
+        'sample values' => 'one',
+        'database values' => array('one'),
+        'database default values' => array('one'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'one',
+          'not_equal' => 'zero',
+          'less_than' => 'two',
+          'less_than_equal' => 'one',
+          'greater_than' => 'zero',
+          'greater_than_equal' => 'zero',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => 'zero',
+          'not_equal' => 'one',
+          'less_than' => 'one',
+          'less_than_equal' => 'zero',
+          'greater_than' => 'two',
+          'greater_than_equal' => 'two',
+        ),
+      ),
 
       // Test date components.
       'date_textfield' => array(
@@ -496,12 +569,16 @@ class WebformTestCase extends DrupalWebTestCase {
         'match conditional values' => array(
           'equal' => '1982/9/30',
           'before' => '1982/10/1',
+          'before_equal' => '1982/9/30',
           'after' => '1982/9/29',
+          'after_equal' => '1982/9/29',
         ),
         'mismatch conditional values' => array(
           'equal' => '1981/9/30',
           'before' => '1982/9/30',
+          'before_equal' => '1982/9/29',
           'after' => '1982/9/30',
+          'after_equal' => '1982/10/1',
         ),
       ),
 
@@ -691,11 +768,14 @@ class WebformTestCase extends DrupalWebTestCase {
         'match conditional values' => array(
           'equal' => '12:00pm',
           'before' => '1:00pm',
+          'before_equal' => '12:00pm',
           'after' => '11:00am',
+          'after_equal' => '11:00am',
         ),
         'mismatch conditional values' => array(
           'equal' => '12:00am',
           'before' => '12:00pm',
+          'before_equal' => '11:00am',
           'after' => '12:00pm',
         ),
       ),
@@ -720,12 +800,16 @@ class WebformTestCase extends DrupalWebTestCase {
         'match conditional values' => array(
           'equal' => '5:00',
           'before' => '24:00',
+          'before_equal' => '5:00',
           'after' => '00:00',
+          'after_equal' => '00:00',
         ),
         'mismatch conditional values' => array(
           'equal' => '5:01',
           'before' => '5:00',
+          'before_equal' => '4:59',
           'after' => '5:00',
+          'after_equal' => '5:01',
         ),
       ),
 
@@ -755,14 +839,18 @@ class WebformTestCase extends DrupalWebTestCase {
           'equal' => '2',
           'not_equal' => '0',
           'less_than' => '3',
+          'less_than_equal' => '2',
           'greater_than' => '1',
+          'greater_than_equal' => '1',
           'not_empty' => TRUE,
         ),
         'mismatch conditional values' => array(
           'equal' => '0',
           'not_equal' => '2',
           'less_than' => '2',
+          'less_than_equal' => '1',
           'greater_than' => '2',
+          'greater_than_equal' => '3',
           'empty' => TRUE,
         ),
         'error values' => array(

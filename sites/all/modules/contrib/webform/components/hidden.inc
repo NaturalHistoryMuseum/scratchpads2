@@ -68,7 +68,7 @@ function _webform_edit_hidden($component) {
 /**
  * Implements _webform_render_component().
  */
-function _webform_render_hidden($component, $value = NULL, $filter = TRUE) {
+function _webform_render_hidden($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $default_value = $filter ? webform_replace_tokens($component['value'], $node) : $component['value'];
@@ -126,14 +126,18 @@ function theme_webform_display_hidden($variables) {
 /**
  * Implements _webform_analysis_component().
  */
-function _webform_analysis_hidden($component, $sids = array()) {
+function _webform_analysis_hidden($component, $sids = array(), $single = FALSE, $join = NULL) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
     ->fields('wsd', array('no', 'data'))
-    ->condition('nid', $component['nid'])
-    ->condition('cid', $component['cid']);
+    ->condition('wsd.nid', $component['nid'])
+    ->condition('wsd.cid', $component['cid']);
 
   if (count($sids)) {
-    $query->condition('sid', $sids, 'IN');
+    $query->condition('wsd.sid', $sids, 'IN');
+  }
+
+  if ($join) {
+    $query->innerJoin($join, 'ws2_', 'wsd.sid = ws2_.sid');
   }
 
   $nonblanks = 0;

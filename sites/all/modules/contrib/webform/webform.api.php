@@ -669,9 +669,9 @@ function hook_webform_results_access($node, $account) {
  *
  * @see webform_results_clear_access().
  *
- * @param $node object
+ * @param object $node
  *   The Webform node to check access on.
- * @param $account object
+ * @param object $account
  *   The user account to check access on.
  * @return boolean
  *   TRUE or FALSE if the user can access the webform results.
@@ -697,9 +697,9 @@ function hook_webform_results_clear_access($node, $account) {
  *
  * @see webform_node_update_access().
  *
- * @param $node object
+ * @param object $node
  *   The Webform node to check access on.
- * @param $account object
+ * @param object $account
  *   The user account to check access on.
  * @return boolean|NULL
  *   TRUE or FALSE if the user can access the webform results, or NULL if
@@ -890,10 +890,14 @@ function _webform_edit_component($component) {
  *   Whether or not to filter the contents of descriptions and values when
  *   rendering the component. Values need to be unfiltered to be editable by
  *   Form Builder.
+ * @param $submission
+ *   The submission from which this component is being rendered. Usually not
+ *   needed. Used by _webform_render_date() to validate using the submission's
+ *   completion date.
  *
  * @see _webform_client_form_add_component()
  */
-function _webform_render_component($component, $value = NULL, $filter = TRUE) {
+function _webform_render_component($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $form_item = array(
     '#type' => 'textfield',
     '#title' => $filter ? webform_filter_xss($component['name']) : $component['name'],
@@ -1090,6 +1094,9 @@ function _webform_theme_component() {
  *   Boolean flag determining if the details about a single component are being
  *   shown. May be used to provided detailed information about a single
  *   component's analysis, such as showing "Other" options within a select list.
+ * @param $join
+ *   An optional SelectQuery object to be used to join with the submissions
+ *   table to restrict the submissions being analyzed.
  * @return
  *   An array containing one or more of the following keys:
  *   - table_rows: If this component has numeric data that can be represented in
@@ -1110,7 +1117,7 @@ function _webform_theme_component() {
  *
  * @see _webform_defaults_component()
  */
-function _webform_analysis_component($component, $sids = array(), $single = FALSE) {
+function _webform_analysis_component($component, $sids = array(), $single = FALSE, $join = NULL) {
   // Generate the list of options and questions.
   $options = _webform_select_options_from_text($component['extra']['options'], TRUE);
   $questions = _webform_select_options_from_text($component['extra']['questions'], TRUE);
@@ -1127,6 +1134,10 @@ function _webform_analysis_component($component, $sids = array(), $single = FALS
 
   if (count($sids)) {
     $query->condition('sid', $sids, 'IN');
+  }
+
+  if ($join) {
+    $query->innerJoin($join, 'ws2_', 'wsd.sid = ws2_.sid');
   }
 
   $result = $query->execute();

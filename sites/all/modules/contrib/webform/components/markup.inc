@@ -79,14 +79,14 @@ function _webform_edit_markup_validate($form, &$form_state) {
 /**
  * Implements _webform_render_component().
  */
-function _webform_render_markup($component, $value = NULL, $filter = TRUE) {
+function _webform_render_markup($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $element = array(
     '#type' => 'markup',
     '#title' => $filter ? NULL : $component['name'],
     '#weight' => $component['weight'],
-    '#markup' => $filter ? check_markup(webform_replace_tokens($component['value'], $node, NULL, NULL, TRUE), $component['extra']['format'], '', TRUE) : $component['value'],
+    '#markup' => $filter ? webform_replace_tokens($component['value'], $node, NULL, NULL, $component['extra']['format']) : $component['value'],
     '#format' => $component['extra']['format'],
     '#theme_wrappers' => array('webform_element'),
     '#translatable' => array('title', 'markup'),
@@ -106,7 +106,7 @@ function _webform_display_markup($component, $value, $format = 'html') {
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_markup',
     '#format' => $format,
-    '#value' => check_markup(webform_replace_tokens($component['value'], $node, NULL, NULL, TRUE), $component['extra']['format'], '', TRUE),
+    '#value' => webform_replace_tokens($component['value'], $node, NULL, NULL, $component['extra']['format']),
     '#translatable' => array('title'),
     '#access' => $component['extra']['display_on'] != 'form',
   );

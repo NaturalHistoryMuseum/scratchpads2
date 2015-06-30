@@ -79,6 +79,13 @@ function webform_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'confidential' => array(
+        'description' => 'Boolean value for whether to anonymize submissions.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'submit_text' => array(
         'description' => 'The title of the submit button on the form.',
         'type' => 'varchar',
@@ -283,22 +290,7 @@ function webform_schema() {
         'default' => 0,
       ),
       'andor' => array(
-        'description' => 'Whether to AND or OR the actions in this group. All actions within the same crid should have the same andor value.',
-        'type' => 'varchar',
-        'length' => 128,
-      ),
-      'action' => array(
-        'description' => 'The action to be performed on the target. Typically "show" or "hide" for targets of type "component", and "send" for targets of type "email".',
-        'type' => 'varchar',
-        'length' => 128,
-      ),
-      'target_type' => array(
-        'description' => 'The type of target to be affected. Either "component" or "email". Indicates what type of ID the "target" column contains.',
-        'type' => 'varchar',
-        'length' => 128,
-      ),
-      'target' => array(
-        'description' => 'The ID of the target to be affected. Typically a component ID.',
+        'description' => 'Whether to AND or OR the actions in this group. All actions within the same rgid should have the same andor value.',
         'type' => 'varchar',
         'length' => 128,
       ),
@@ -365,6 +357,63 @@ function webform_schema() {
     'primary key' => array('nid', 'rgid', 'rid'),
   );
 
+  $schema['webform_conditional_actions'] = array(
+    'description' => 'Holds information about conditional actions.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rgid' => array(
+        'description' => 'The rule group identifier for this group of rules.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'aid' => array(
+        'description' => 'The rule identifier for this conditional action.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'target_type' => array(
+        'description' => 'The type of target to be affected. Currently always "component". Indicates what type of ID the "target" column contains.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'target' => array(
+        'description' => 'The ID of the target to be affected. Typically a component ID.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'invert' => array(
+        'description' => 'If inverted, execute when rule(s) are false.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'action' => array(
+        'description' => 'The action to be performed on the target.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'argument' => array(
+        'description' => 'Optional argument for action.',
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('nid', 'rgid', 'aid'),
+  );
+
   $schema['webform_emails'] = array(
     'description' => 'Holds information regarding e-mails that should be sent upon submitting a webform',
     'fields' => array(
@@ -429,8 +478,16 @@ function webform_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'exclude_empty' => array(
+        'description' => 'Determines if the e-mail will include component with an empty value.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
       'extra' => array(
-        'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
+        'description' => 'A serialized array of additional options for the e-mail configuration, including value mapping for the TO and FROM addresses for select lists.',
         'type' => 'text',
         'not null' => TRUE,
       ),
@@ -495,8 +552,27 @@ function webform_schema() {
          'not null' => TRUE,
          'default' => 0,
       ),
+      'highest_valid_page' => array(
+         'description' => 'For drafts, the highest validated page number.',
+         'type' => 'int',
+         'size' => 'small',
+         'not null' => TRUE,
+         'default' => 0,
+      ),
       'submitted' => array(
-        'description' => 'Timestamp of when the form was submitted.',
+        'description' => 'Timestamp when the form was first saved as draft or submitted.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'completed' => array(
+        'description' => 'Timestamp when the form was submitted as complete (not draft).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'modified' => array(
+        'description' => 'Timestamp when the form was last saved (complete or draft).',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
@@ -683,6 +759,7 @@ function webform_uninstall() {
   variable_del('webform_tracking_mode');
   variable_del('webform_allowed_tags');
   variable_del('webform_email_address_format');
+  variable_del('webform_email_address_individual');
   variable_del('webform_default_from_name');
   variable_del('webform_default_from_address');
   variable_del('webform_default_subject');
@@ -692,6 +769,7 @@ function webform_uninstall() {
   variable_del('webform_format_override');
   variable_del('webform_email_select_max');
   variable_del('webform_node_types_primary');
+  variable_del('webform_date_type');
   variable_del('webform_export_format');
   variable_del('webform_csv_delimiter');
   variable_del('webform_export_wordwrap');
@@ -726,7 +804,7 @@ function webform_uninstall() {
   $query = new EntityFieldQuery();
   $results = $query->entityCondition('entity_type', 'node')
     ->entityCondition('bundle', 'webform')
-    ->range(0,1)
+    ->range(0, 1)
     ->execute();
   $instances = field_info_instances('node', 'webform');
   unset($instances['body']);
@@ -975,7 +1053,7 @@ function webform_update_7314() {
  */
 function webform_update_7315() {
   if (!db_field_exists('webform_last_download', 'requested')) {
-    db_add_field('webform_last_download', 'requested', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,));
+    db_add_field('webform_last_download', 'requested', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
   }
 }
 
@@ -1870,7 +1948,7 @@ function webform_update_7416() {
       ->execute();
   }
   // Commit the transaction
-  unset ($txn);
+  unset($txn);
 
   // Now that every submission has a serial number, make serial numbers required.
   $spec['not null'] = TRUE;
@@ -1918,7 +1996,6 @@ function webform_update_7418() {
   db_change_field('webform_emails', 'extra', 'extra', $spec);
 }
 
-
 /**
  * Add an index on submitted data.
  */
@@ -1946,7 +2023,7 @@ function webform_update_7421() {
                           FALSE);
   variable_set('webform_email_html_capable', $capable);
   return $capable
-            ? t('An HTML-capable module is installed. The option to send HTML e-mail is enabled. ')
+            ? t('An HTML-capable module is installed. The option to send HTML e-mail is enabled.')
             : t('No commonly-known HTML capable module is installed. The option to send HTML e-mail is disabled.');
 }
 
@@ -1958,5 +2035,228 @@ function webform_update_7422() {
   return module_exists('search')
           ? t('Webform forms will now be included in the search index only if the Webform "field" is displayed in the "Search index" view mode.')
           : NULL;
+}
+
+/**
+ * Convert conditionals to be able to support multiple actions per conditional. Backup your database before proceeding. WARNING: Sites with many, many conditionals should execute this update via drush to avoid a PHP timeout.
+ */
+function webform_update_7423() {
+  // Create webform_condtional_actions table.
+  // The table might already exist if this update previously timed-out
+  if (!db_table_exists('webform_conditional_actions')) {
+    $schema['webform_conditional_actions'] = array(
+      'description' => 'Holds information about conditional actions.',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'The node identifier of a webform.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'rgid' => array(
+          'description' => 'The rule group identifier for this group of rules.',
+          'type' => 'int',
+          'size' => 'small',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'aid' => array(
+          'description' => 'The rule identifier for this conditional action.',
+          'type' => 'int',
+          'size' => 'small',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'target_type' => array(
+          'description' => 'The type of target to be affected. Currently always "component". Indicates what type of ID the "target" column contains.',
+          'type' => 'varchar',
+          'length' => 128,
+        ),
+        'target' => array(
+          'description' => 'The ID of the target to be affected. Typically a component ID.',
+          'type' => 'varchar',
+          'length' => 128,
+        ),
+        'invert' => array(
+          'description' => 'If inverted, execute when rule(s) are false.',
+          'type' => 'int',
+          'size' => 'small',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'action' => array(
+          'description' => 'The action to be performed on the target.',
+          'type' => 'varchar',
+          'length' => 128,
+        ),
+        'argument' => array(
+          'description' => 'Optional argument for action.',
+          'type' => 'text',
+        ),
+      ),
+      'primary key' => array('nid', 'rgid', 'aid'),
+    );
+    db_create_table('webform_conditional_actions', $schema['webform_conditional_actions']);
+  }
+
+  // In a site with many, many conditionals, the db_insert may timeout. Start a transaction to ensure atomic action.
+  $tx = db_transaction();
+  // Copy target information from existing webform_conditional table to new webfrom_condtional_actions table.
+  $select = db_select('webform_conditional', 'c')
+    ->fields('c', array('nid', 'rgid', 'action', 'target_type', 'target'))
+    ->orderBy('nid')->orderBy('rgid');
+  $select->addExpression("''", 'argument');
+  db_insert('webform_conditional_actions')
+    ->from($select)
+    ->execute();
+
+  // Commit the insert
+  unset($tx);
+
+  // Remove unneeded columns from webform_conditional.
+  foreach (array('action', 'target_type', 'target') as $fieldname) {
+    if (db_field_exists('webform_conditional', $fieldname)) {
+      db_drop_field('webform_conditional', $fieldname);
+    }
+  }
+
+  // Rebuild the registry because this point release contains a new class: WebformConditionals.
+  registry_rebuild();
+  
+  return t('Webform database tables were successfully adjusted to allow more than one action for each conditional.');
+}
+
+/**
+ * Convert conditional actions of "hide" to "isn't shown".
+ */
+function webform_update_7424() {
+  $count = db_update('webform_conditional_actions')
+    ->fields(array('action' => 'show', 'invert' => 1))
+    ->condition('action', 'hide')
+    ->execute();
+  return format_plural($count,
+                       '1 "hide" conditional converted to "isn\'t" shown.',
+                       '@count conditionals converted to "isn\'t" shown.');
+}
+
+/**
+ * Add "exclude empty" option to emails.
+ */
+function webform_update_7425() {
+  // Add next_serial column to webform.
+  $spec = array(
+    'description' => 'Determines if the e-mail will include component with an empty value.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  if (!db_field_exists('webform_emails', 'exclude_empty')) {
+    db_add_field('webform_emails', 'exclude_empty', $spec);
+  }
+
+  // Clear the views cache since this release use the webform_analysis view.
+  cache_clear_all('*', 'cache_views', TRUE);
+
+  return t('Webform e-mails were sucessfully updated to add the option to exclude empty components.');
+}
+
+/**
+ * Add configuration to continue sending individual e-mails to multiple recipients.
+ */
+function webform_update_7426() {
+  variable_set('webform_email_address_individual', 1);
+}
+
+/**
+ * Add database columns for submission completed and modified timestamps. Sites with many submissions may wish to use drush to execute this update.
+ */
+function webform_update_7427() {
+  // Create new timestamp columns.
+  $specs = array(
+    'completed' => array(
+      'description' => 'Timestamp when the form was submitted as complete (not draft).',
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+    'modified' => array(
+      'description' => 'Timestamp when the form was last saved (complete or draft).',
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+  );
+  foreach ($specs as $field_name => $spec) {
+    if (!db_field_exists('webform_submissions', $field_name)) {
+      db_add_field('webform_submissions', $field_name, $spec);
+    }
+  }
+
+  // In a site with many submissions, the db_update may timeout. Start a transaction to ensure atomic action.
+  $tx = db_transaction();
+  // Copy submitted to completed for non-draft submissions.
+  db_update('webform_submissions')
+    ->expression('completed', 'submitted')
+    ->condition('is_draft', 0)
+    ->execute();
+  // Commit the update.
+  unset($tx);
+
+  // Start another transaction.
+  $tx = db_transaction();
+  db_update('webform_submissions')
+    ->expression('modified', 'submitted')
+    ->execute();
+  // Commit the update.
+  unset($tx);
+
+  // Clear the views cache since to see the completed and modified views fields.
+  cache_clear_all('*', 'cache_views', TRUE);
+
+  return t('Webform submissions were updated with completed and modified timestamps.');
+}
+
+/**
+ * Add a "confidential" option to webforms.
+ */
+function webform_update_7428() {
+  // Add confidential column to webform.
+  if (!db_field_exists('webform', 'confidential')) {
+    $spec = array(
+      'description' => 'Boolean value for whether to anonymize submissions.',
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    db_add_field('webform', 'confidential', $spec);
+  }
+
+  return t('Webforms may now be configured to anonymize confidential submissions.');
+}
+
+/**
+ * Add a column to the submission table to store the page on which to resume a draft. Sites with many, many submissions may wish to execute this update with 'drush updatedb'.
+ */
+function webform_update_7429() {
+  // Add highest_valid_page column to webform_submissions.
+  if (!db_field_exists('webform_submissions', 'highest_valid_page')) {
+    $spec = array(
+      'description' => 'For drafts, the highest validated page number.',
+      'type' => 'int',
+      'size' => 'small',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    db_add_field('webform_submissions', 'highest_valid_page', $spec);
+  }
+
+  return t('Webforms will now resume draft submissions on the page where the submitter left off.');
 }
 
