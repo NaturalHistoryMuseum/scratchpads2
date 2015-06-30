@@ -1602,3 +1602,19 @@ function scratchpads_tweaks_update_7091(){
     }
   }
 }
+
+/**
+ * Update all field data tables deleting values that are not associated with the
+ * current revision.
+ */
+function scratchpads_tweaks_update_7092(){
+  $subquery = db_select('node', 'n')->fields('n', array(
+    'vid'
+  ));
+  foreach(field_info_fields() as $field){
+    $table_name = 'field_data_' . $field['field_name'];
+    if(db_table_exists($table_name)){
+      db_delete($table_name)->condition('entity_type', 'node')->condition('revision_id', $subquery, 'NOT IN')->execute();
+    }
+  }
+}
