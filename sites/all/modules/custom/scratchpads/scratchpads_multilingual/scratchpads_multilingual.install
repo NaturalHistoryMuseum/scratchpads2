@@ -41,7 +41,8 @@ function scratchpads_multilingual_update_7002(){
 }
 
 /**
- * Ensure the prefix is the same as the language code. Not sure why users would
+ * Ensure the prefix is the same as the language code.
+ * Not sure why users would
  * change this, but one of ours did!
  */
 function scratchpads_multilingual_update_7003(){
@@ -66,9 +67,6 @@ function scratchpads_multilingual_update_7004(&$sandbox){
     $entity_info = entity_get_info();
     $sandbox['ids'] = array();
     foreach($results as $row){
-      if($row->entity_type == 'node'){
-        $break = 'here';
-      }
       try{
         $query = db_select($entity_info[$row->entity_type]['base table'], 'base');
         $query->addExpression($entity_info[$row->entity_type]['entity keys']['id'], 'id');
@@ -81,8 +79,7 @@ function scratchpads_multilingual_update_7004(&$sandbox){
           $query->condition($entity_info[$row->entity_type]['entity keys']['bundle'], $row->bundle);
         }
         $sandbox['ids'][$row->entity_type] = !empty($sandbox['ids'][$row->entity_type]) ? array_merge($sandbox['ids'][$row->entity_type], $query->execute()->fetchCol()) : $query->execute()->fetchCol();
-      }
-      catch(Exception $e){
+      }catch(Exception $e){
         // Catch the error
       }
     }
@@ -105,6 +102,9 @@ function scratchpads_multilingual_update_7004(&$sandbox){
   while(count($sandbox['ids'][$first_key]) && $i < 50){
     $i++;
     $entity_ids[] = array_pop($sandbox['ids'][$first_key]);
+  }
+  if(!count($sandbox['ids'][$first_key])){
+    unset($sandbox['ids'][$first_key]);
   }
   $entities = entity_load($first_key, $entity_ids);
   foreach($entities as $entity){
