@@ -1353,7 +1353,11 @@ function scratchpads_backend_views_get_view($base_table, $entity_type, $bundle, 
         $default_group = t('Default');
         $handler->display->display_options['style_options']['tabs'] .= $default_group . PHP_EOL;
       }
-      scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], FALSE, $default_group);
+      if($entity_type == 'node' && function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $bundle, 'title')){
+        scratchpads_backend_views_add_field($handler, $entity_type, 'field_data_title_field', 'title_field', FALSE, $default_group);
+      }else{
+        scratchpads_backend_views_add_field($handler, $entity_type, $entity_info['base table'], $entity_info['entity keys']['label'], FALSE, $default_group);
+      }
     }
   }
   // If groups, display this content type in a tab
@@ -1686,9 +1690,16 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
     )
   );
   /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
+  if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $bundle, 'title')){
+    $handler->display->display_options['fields']['title_field']['id'] = 'title_field';
+    $handler->display->display_options['fields']['title_field']['table'] = 'field_data_title_field';
+    $handler->display->display_options['fields']['title_field']['field'] = 'title_field';
+    $handler->display->display_options['fields']['title_field']['link_to_entity'] = 1;
+  }else{
+    $handler->display->display_options['fields']['title']['id'] = 'title';
+    $handler->display->display_options['fields']['title']['table'] = 'node';
+    $handler->display->display_options['fields']['title']['field'] = 'title';
+  }
   /* Field: Content: Link */
   $handler->display->display_options['fields']['view_node']['id'] = 'view_node';
   $handler->display->display_options['fields']['view_node']['table'] = 'views_entity_node';

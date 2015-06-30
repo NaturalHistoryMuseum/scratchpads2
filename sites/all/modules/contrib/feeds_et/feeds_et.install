@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Handles actions upon enabling and disabling the module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function feeds_et_enable() {
+	db_query("UPDATE {system} SET weight = 999 WHERE name = 'feeds_et'");
+  // Clear the cache to display in Feeds as available plugin.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}
+
+/**
+ * Implements hook_disable().
+ */
+function feeds_et_disable() {
+  // Clear the cache to display in Feeds as available plugin.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}

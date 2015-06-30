@@ -10,6 +10,7 @@ dependencies[] = i18n_variable
 dependencies[] = translation
 dependencies[] = scratchpads_multilingual
 dependencies[] = title
+dependencies[] = feeds_et
 configure = admin/config/regional/translate-setup
 tool = true
 l10n server = localize.scratchpads.eu

@@ -22,7 +22,9 @@ function scratchpads_tweaks_install(){
   if(count($backtrace) > 4){
     if(isset($backtrace[4]['file'])){
       $backtrace = explode('/', $backtrace[4]['file']);
-      if(array_pop($backtrace) == 'scratchpads_tweaks.test'){return;}
+      if(array_pop($backtrace) == 'scratchpads_tweaks.test'){
+        return;
+      }
     }
   }
   // Install the filters.
@@ -277,7 +279,7 @@ function scratchpads_tweaks_install(){
   variable_set('admin_theme', 'scratchpads_admin');
   variable_set('node_admin_theme', '1');
   /*
-   * Additional Scratchpad settings: 
+   * Additional Scratchpad settings:
    */
   // Date API stuff
   variable_set('site_default_country', 'GB');
@@ -294,7 +296,7 @@ function scratchpads_tweaks_install(){
     'node' => 0,
     'user' => 0
   ));
-  // Delete all shortcut links - we'll allow users to edit these.  
+  // Delete all shortcut links - we'll allow users to edit these.
   menu_delete_links('shortcut-set-1');
   // Set the image toolkit as imagemagick.
   variable_set('image_toolkit', 'imagemagick');
@@ -324,6 +326,9 @@ function scratchpads_tweaks_install(){
   variable_del('update_notify_emails');
   // Increase the length of the biblio_keywords field
   scratchpads_tweaks_update_7089();
+  // Incase the webform module is installed, we set that it uses the old table
+  // views for results.
+  variable_set('webform_table', TRUE);
 }
 
 /**
@@ -421,12 +426,12 @@ function scratchpads_tweaks_update_7002(){
 
 /**
  * Update WYSIWYG and filter formats.
- * 
+ *
  * scratchpads_tweaks_update_7003 - Removed. No longer required.
  */
 /**
  * Set the default for all comment forms to be on a separate page.
- * 
+ *
  * 7004 removed due to an error.
  */
 function scratchpads_tweaks_update_7005(){
@@ -558,15 +563,15 @@ function scratchpads_tweaks_update_7008(){
  */
 /**
  * Disable the wysiwyg module and enable the ckeditor module.
- * 
+ *
  * Updated to 7014 to set the forcePasteAsPlainText option.
- * 
+ *
  * NOTE. IF THIS FUNCTION NAME IS CHANGED, IT MUST BE CHANGED IN THE INSTALL
  * FUNCTION ABOVE.
  */
 function scratchpads_tweaks_update_7014(){
   // This function gets reused when the settings for the CKEditor are altered,
-  // and also during install.  We therefore only uninstall/install if required.
+  // and also during install. We therefore only uninstall/install if required.
   if(module_exists('wysiwyg')){
     module_disable(array(
       'wysiwyg'
@@ -852,7 +857,7 @@ function scratchpads_tweaks_update_7019(){
  * REMOVED 7020 - REPLACED BY 7026.
  */
 /**
- * Update field_quick_delete field to long blob 
+ * Update field_quick_delete field to long blob
  */
 function scratchpads_tweaks_update_7021(){
   if(db_table_exists('field_quick_delete')){
@@ -895,7 +900,7 @@ function scratchpads_tweaks_update_7025(){
 
 /**
  * Enable the twitter script module.
- * 
+ *
  * Removed - the module has been removed from Scratchpads
  */
 /**
@@ -939,7 +944,7 @@ function scratchpads_tweaks_update_7030(){
 
 /**
  * Enable comment_notify for ALL content types.
- * 
+ *
  * DO NOT RENAME THIS FUNCTION WITHOUT UPDATING THE CALL ABOVE.
  */
 function scratchpads_tweaks_update_7032(){
@@ -977,8 +982,8 @@ function scratchpads_tweaks_update_7034(){
 
 /**
  * Add HTMLPurifier module.
- * 
- * Removed code as could result in an error if run on a site once the 
+ *
+ * Removed code as could result in an error if run on a site once the
  * htmlpurifier module has been removed.
  */
 function scratchpads_tweaks_update_7036(){}
@@ -1069,7 +1074,7 @@ function scratchpads_tweaks_update_7043(){
 
 /**
  * Drop the primary key from the file_display table.
- * 
+ *
  * Renamed from from scratchpads_tweaks_update_7044.
  */
 function scratchpads_tweaks_update_7046(){
@@ -1180,7 +1185,7 @@ function scratchpads_tweaks_update_7057(){
  */
 function scratchpads_tweaks_update_7058(&$sandbox){
   if(!isset($sandbox['cids'])){
-    // Get a list of all the comments that have been authored by anonymous, and 
+    // Get a list of all the comments that have been authored by anonymous, and
     // that have not been approved.
     $query = db_select('comment', 'c')->fields('c', array(
       'cid'
@@ -1226,7 +1231,6 @@ function scratchpads_tweaks_update_7061(){
 
 /**
  * Uninstall mollom and scratchpads_mollom
- * 
  */
 function scratchpads_tweaks_update_7062(){
   drupal_uninstall_modules(array(
@@ -1323,8 +1327,7 @@ function scratchpads_tweaks_update_7067(&$sandbox){
                 $revision_id = $entity->{$entity_info['entity keys']['revision']};
               }
               db_delete('field_revision_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
-            }
-            catch(Exception $e){
+            }catch(Exception $e){
               ;
             }
           }
@@ -1420,7 +1423,8 @@ function scratchpads_tweaks_update_7077(){
 }
 
 /**
- * Don't set the error reporting level.  We use aegir's global includes file to
+ * Don't set the error reporting level.
+ * We use aegir's global includes file to
  * set this, so now dev machines can easily set their own value too.
  */
 function scratchpads_tweaks_update_7078(){
@@ -1581,7 +1585,7 @@ function scratchpads_tweaks_update_7090(){
 }
 
 /**
- * Update all file and image field types to allow linking to all schemes. 
+ * Update all file and image field types to allow linking to all schemes.
  */
 function scratchpads_tweaks_update_7091(){
   foreach(db_select('field_config', 'f')->fields('f', array(
@@ -1599,6 +1603,30 @@ function scratchpads_tweaks_update_7091(){
         $instance['widget']['settings']['allowed_schemes'] = array();
         field_update_instance($instance);
       }
+    }
+  }
+}
+
+/**
+ * New webform module tries to use views and fails. Set that it should use the
+ * old table method.
+ */
+function scratchpads_tweaks_update_7092(){
+  variable_set('webform_table', TRUE);
+}
+
+/**
+ * Update all field data tables deleting values that are not associated with the
+ * current revision.
+ */
+function scratchpads_tweaks_update_7093(){
+  $subquery = db_select('node', 'n')->fields('n', array(
+    'vid'
+  ));
+  foreach(field_info_fields() as $field){
+    $table_name = 'field_data_' . $field['field_name'];
+    if(db_table_exists($table_name)){
+      db_delete($table_name)->condition('entity_type', 'node')->condition('revision_id', $subquery, 'NOT IN')->execute();
     }
   }
 }

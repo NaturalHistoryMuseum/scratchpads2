@@ -231,6 +231,8 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
         $target = explode(':', $target);
         // The country field is a little awkward, so we strip off the first
         // two parts.
+        // FIXME - This WILL break with the entity language module and some
+        // mappings, so we need to look for the specific field type.
         if(count($target) == 4){
           array_shift($target);
           array_shift($target);
@@ -241,11 +243,14 @@ function feeds_xls_create_csv_of_data($feeds_importer, &$context){
           // The date field users field:start/field:end, while the node_ref
           // field uses field:nid/field:title.  We guess which we're using.
           foreach($entity->{$target[0]} as $language => $values){
+            if($language == LANGUAGE_NONE && count($cell_values)){
+              continue;
+            }
             // FIXME - Why is this loop not foreach($values as ...)?
             foreach($entity->{$target[0]}[$language] as $value){
               switch($target[1]){
                 case 'et':
-                  if($target[2] == $language){
+                  if($target[2] == $language || $language == LANGUAGE_NONE){
                     _feeds_xls_create_csv_of_data_helper(FALSE, $mapping, $value, $cell_values);
                   }
                   break;
@@ -464,6 +469,7 @@ function _feeds_xls_create_csv_of_data_helper($field, $mapping, $value, &$cell_v
         break;
       // The following cases should not be saved to the file
       case 'summary':
+      case 'safe_summary':
       case 'safe_value':
       case 'format':
         break;

@@ -35,4 +35,3 @@ class webform_handler_field_webform_status extends views_handler_field_boolean {
     }
   }
 }
-
