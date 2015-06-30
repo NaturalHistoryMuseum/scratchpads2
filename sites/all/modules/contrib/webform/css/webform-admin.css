@@ -24,6 +24,39 @@
   margin-left: 20px;
 }
 
+/* Analysis pages */
+.webform-analysis-component {
+  width: 33.33%;
+  margin: 0 -2px;
+  padding: 0;
+  display: inline-block;
+  vertical-align: top;
+}
+@media all and (max-width: 1024px) {
+  .webform-analysis-component {
+    width: 50%;
+  }
+}
+@media all and (max-width: 600px) {
+  .webform-analysis-component {
+    width: 100%;
+  }
+}
+.webform-analysis-component-grid {
+  width: 100%;
+  clear: both;
+}
+.webform-analysis-component-inner {
+  padding: 12px;
+  overflow: auto;
+}
+.webform-analysis-component table {
+  width: 100%;
+}
+.webform-analysis-component table td {
+  white-space: normal;
+}
+
 /* Element for selecting components, i.e. included components for e-mails. */
 .webform-component-select-wrapper {
   max-height: 300px;
@@ -99,9 +132,6 @@ table.webform-file-extensions input.form-text {
 .webform-container-inline div.form-item {
   display: inline;
 }
-.webform-default-value {
-  color: #999;
-}
 .webform-results-per-page a.selected {
   font-weight: bold;
 }
@@ -116,4 +146,79 @@ tr.webform-add-form .tabledrag-changed {
 }
 #webform-components tr.webform-add-form {
   background-color: inherit;
+}
+
+/* E-mail configuration */
+html.js .webform-email-mapping {
+  display: none;
+}
+td.webform-email-option {
+  text-align: right;
+}
+
+/* Conditionals */
+.webform-conditional,
+.webform-conditional-new {
+  display: block;
+  position: relative;
+  padding-left: 1em;
+  padding-right: 8em;
+  margin-left: 3em;
+  max-width: 500px;
+}
+
+.webform-conditional-new {
+  text-align: right;
+  margin-left: 8em;
+}
+
+.webform-conditional-if {
+  position: absolute;
+  left: -.5em;
+  margin-top: .2em;
+}
+
+.webform-conditional-rule {
+  margin: .5em 0;
+}
+
+.webform-conditional-condition {
+  display: inline;
+}
+
+.webform-conditional-operations {
+  position: absolute;
+  right: 0;
+  margin-top: .2em;
+}
+
+.webform-conditional-new input.form-submit,
+.webform-conditional-operations input.form-submit {
+  margin: 0 2px;
+  padding: 2px 6px;
+}
+
+#webform-conditionals-table input.progress-disabled,
+.webform-conditional-operations input.progress-disabled {
+  float: none;
+}
+
+#webform-conditionals-table .ahah-progress-throbber {
+  float: none;
+  display: inline;
+}
+
+#webform-conditionals-table .ahah-progress-throbber .throbber {
+  float: none;
+  display: inline;
+  padding-right: 12px;
+}
+
+.webform-conditional-andor {
+  display: inline;
+}
+
+.webform-conditional-andor .form-item {
+  margin: 0;
+  padding: 0;
 }
