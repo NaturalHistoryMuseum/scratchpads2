@@ -389,9 +389,11 @@ function _scratchpads_multilingual_merge_language_none_values($values){
   $languages = language_list('enabled');
   foreach($languages[1] as $language){
     $hashes = array();
-    foreach($values[$language->language] as $id => $value){
-      $hash = md5(serialize($value));
-      $hashes[$hash] = $hash;
+    if(isset($values[$language->language])){
+      foreach($values[$language->language] as $id => $value){
+        $hash = md5(serialize($value));
+        $hashes[$hash] = $hash;
+      }
     }
     // Now we loop through the undefined language, and add any values that are not
     // in the current language to the current language
