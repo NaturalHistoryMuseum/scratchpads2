@@ -22,8 +22,8 @@ class WebformComponentsTestCase extends WebformTestCase {
   /**
    * Implements setUp().
    */
-  function setUp() {
-    parent::setUp();
+  function setUp($added_modules = array()) {
+    parent::setUp($added_modules);
   }
 
   /**

@@ -1,0 +1,182 @@
+<?php
+
+/**
+ * @file
+ * Webform module conditional tests.
+ */
+
+include_once(dirname(__FILE__) . '/webform.test');
+
+class WebformConditionalsTestCase extends WebformTestCase {
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Webform conditionals'),
+      'description' => t('Generates webforms to test conditional showing and hiding of fields.'),
+      'group' => t('Webform'),
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  function setUp($added_modules = array()) {
+    parent::setUp($added_modules);
+  }
+
+  /**
+   * Implements tearDown().
+   */
+  function tearDown() {
+    parent::tearDown();
+  }
+
+  /**
+   * Test that required fields with no default value can't be submitted as-is.
+   */
+  function testWebformConditionals() {
+    $this->drupalLogin($this->webform_users['admin']);
+    $this->webformReset();
+
+    $test_components = $this->testWebformComponents();
+    foreach ($test_components as $key => $component_info) {
+      if (isset($component_info['match conditional values'])) {
+        foreach ($component_info['match conditional values'] as $operator => $match_value) {
+          $this->webformTestConditionalComponent($component_info['component'], $component_info['sample values'], $operator, $match_value, TRUE);
+        }
+      }
+      if (isset($component_info['mismatch conditional values'])) {
+        foreach ($component_info['mismatch conditional values'] as $operator => $mismatch_value) {
+          $this->webformTestConditionalComponent($component_info['component'], $component_info['sample values'], $operator, $mismatch_value, FALSE);
+        }
+      }
+    }
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Assembles a test node for checking if conditional properties are respected.
+   *
+   * @param $component
+   *   The sample component that should be tested as the source of a conditional
+   *   operator.
+   * @param $operator
+   *   The operator that will be used to check the source component, such as
+   *   "equal" or "starts_with". See _webform_conditional_operator_info().
+   * @param $conditional_values
+   *   The string match value that will be entered into the source component's
+   *   conditional configuration. If passed in as an array, multiple rules
+   *   will be added to the conditional.
+   * @param $should_match
+   *   Boolean value indicating if the source values will cause the conditional
+   *   operation to trigger or not. If TRUE, the submission should succeed.
+   *   If FALSE, validation errors are expected to be triggered. The input
+   *   $value will be compared against the "sample values" input provided by
+   *   testWebformComponents().
+   * @return
+   *   None. This function executes its own assert statements to show results.
+   */
+  private function webformTestConditionalComponent($component, $input_values, $operator, $conditional_values, $should_match) {
+    // Create the Webform test node and add a same-page conditional followed
+    // by a second-page conditional. Insert page breaks between all components.
+    $input_string = (is_array($input_values) ? print_r($input_values, 1) : $input_values);
+    $match_string = (is_array($conditional_values) ? print_r($conditional_values, 1) : $conditional_values);
+    $conditional_string = $should_match ? 'should' : 'should not';
+    $settings = array(
+      'title' => 'Test conditional webform: ' . $component['type'] . ' "' . $input_string .'"' . $conditional_string . ' be ' . $operator . ' "' . $match_string . '"',
+      'type' => 'webform',
+      'webform' => webform_node_defaults(),
+    );
+
+    $components = array();
+    $components[] = $component;
+
+    $test_components = $this->testWebformComponents();
+    $textfield = $test_components['textfield']['component'];
+
+    // Add a test textfield on the first page.
+    $textfield['weight'] = '199';
+    $textfield['form_key'] = $this->randomName();
+    $textfield['required'] = '1';
+    $components[] = $textfield;
+
+    // Then add a page break and another textfield on the second page.
+    $components[] = array(
+      'type' => 'pagebreak',
+      'form_key' => 'pagebreak_' . $this->randomName(),
+      'pid' => 0,
+      'name' => 'Page break',
+      'weight' => '200',
+    );
+    $textfield['form_key'] = $this->randomName();
+    $textfield['weight'] = '201';
+    $components[] = $textfield;
+
+    $settings['webform']['components'] = $components;
+    $node = $this->drupalCreateNode($settings);
+    $node = node_load($node->nid); // Needed to get a complete object.
+
+    // We now have a new test node. First try checking same-page conditionals.
+    $rules = array();
+    $conditional_values = is_array($conditional_values) ? $conditional_values : array($conditional_values);
+    foreach ($conditional_values as $conditional_value) {
+      $rules[] = array(
+        'source_type' => 'component',
+        'source' => 1, // The first component in the form is always the source.
+        'operator' => $operator,
+        'value' => $conditional_value,
+      );
+    }
+    $conditional = array(
+      'rgid' => 0,
+      'andor' => 'and',
+      'action' => 'hide',
+      'target_type' => 'component',
+      'target' => NULL, // Target set individually.
+      'weight' => 0,
+      'rules' => $rules,
+    );
+
+    $conditional['target'] = 2; // The same-page textfield test.
+    $node->webform['conditionals'] = array($conditional);
+    node_save($node);
+
+    // Submit our test data.
+    $edit = $this->testWebformPost(array($component['form_key'] => $input_values));
+    $this->drupalPost('node/' . $node->nid, $edit, 'Next Page >', array(), array(), 'webform-client-form-' . $node->nid);
+
+    // Ensure we reached the second page for matched conditionals.
+    $message = t('Conditional same-page skipping of validation passed for "%form_key": %input_values @conditional_string be @operator %match_string', array('%form_key' => $component['form_key'], '%input_values' => $input_string, '@conditional_string' => $conditional_string, '@operator' => $operator, '%match_string' => $match_string));
+    if ($should_match) {
+      $this->assertRaw('&lt; Previous Page', $message, t('Webform'));
+    }
+    // Or that we did not reach the second page for mismatched conditionals.
+    else {
+      $this->assertNoRaw('&lt; Previous Page', $message, t('Webform'));
+    }
+
+    // Adjust the conditionals to make them separate-page conditionals.
+    $conditional['target'] = 3; // The separate-page textfield test.
+    $node->webform['conditionals'] = array($conditional);
+    $node->webform['components'][2]['required'] = '0';
+    node_save($node);
+
+    // Re-submit the form again, this time checking for the field on the
+    // second page.
+    $this->drupalPost('node/' . $node->nid, $edit, 'Next Page >', array(), array(), 'webform-client-form-' . $node->nid);
+    $string_match = 'name="submitted[' . $textfield['form_key'] . ']"';
+
+    // Ensure that the field is properly hidden based on a match.
+    $message = t('Conditional separate-page skipping of validation passed for "%form_key": %input_values @conditional_string be @operator %match_string', array('%form_key' => $component['form_key'], '%input_values' => $input_string, '@conditional_string' => $conditional_string, '@operator' => $operator, '%match_string' => $match_string));
+    if ($should_match) {
+      $this->assertNoRaw($string_match, $message, t('Webform'));
+    }
+    // Or that the field is still present on a mismatch.
+    else {
+      $this->assertRaw($string_match, $message, t('Webform'));
+    }
+  }
+}

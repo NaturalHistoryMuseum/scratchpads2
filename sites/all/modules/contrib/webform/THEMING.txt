@@ -66,7 +66,7 @@ the confirmation page of a single node or all webforms on your site.
     <li><a href="<?php print url('node/'. $node->nid . '/submission/'. $sid)?>">View your submission</a></li>
     <li><a href="<?php print url('node/'. $node->nid . '/submission/'. $sid .'/edit')?>">Edit your submission</a></li>
   </ul>
-  
+
   <?php /* End sample webform confirmation page */ ?>
 
 - You may edit the webform-confirmation.tpl.php file in your theme directory,
@@ -111,5 +111,5 @@ The template file for theming submissions is webform-submission.tpl.php. You can
 use webform-submission-[node id here].tpl.php for individual nodes if desired.
 Note that the contents of this template are used not only for display of
 submissions in the Webform interface but also in e-mails when printing out
-the %email_values token.
+the [submission:values] token.
 

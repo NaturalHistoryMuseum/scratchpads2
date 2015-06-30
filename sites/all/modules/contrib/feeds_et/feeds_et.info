@@ -1,0 +1,14 @@
+name = Feeds: Entity Translation
+description = Adds support for importing translations via Entity Translation.
+core = 7.x
+dependencies[] = "feeds"
+dependencies[] = "entity_translation"
+package = Feeds
+files[] = FeedsYoutubeParser.inc
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "feeds_et"
+datestamp = "1380578314"
+
