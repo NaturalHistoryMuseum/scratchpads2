@@ -13,12 +13,34 @@ class WebformTestCase extends DrupalWebTestCase {
   /**
    * Implements setUp().
    */
-  function setUp() {
-    // Enable Webform.
-    parent::setUp('webform', 'profile');
+  function setUp($added_modules = array()) {
+    // Enable Webform and Token module if available.
+    if (module_exists('token')) {
+      $modules = array('webform', 'token');
+    }
+    else {
+      $modules = array('webform');
+    }
+    parent::setUp(array_merge($modules, $added_modules));
 
-    // Create a profile field to test %profile tokens.
-    db_query("INSERT INTO {profile_field} (title, name, explanation, category, type, weight, required, register, visibility, autocomplete, options, page) VALUES ('Gender', 'profile_gender', '', 'Profile', 'textfield', 0, 0, 0, 2, 0, '', '')");
+    // Create a profile field to test [user:?] tokens.
+    $field = array(
+      'field_name' => 'gender',
+      'type' => 'text',
+      'cardinality' => 1,
+    );
+    $instance = array(
+      'field_name' => 'gender',
+      'entity_type' => 'user',
+      'bundle' => 'user',
+      'label' => 'Gender',
+      'widget' => array(
+        'type' => 'text_textfield',
+        'label' => 'Gender',
+      ),
+    );
+    field_create_field($field);
+    field_create_instance($instance);
 
     // Create a normal user that can view their own submissions.
     $permissions['userAccess'] = array(
@@ -53,9 +75,8 @@ class WebformTestCase extends DrupalWebTestCase {
 
     foreach ($permissions as $user_key => $role_permissions) {
       $this->webform_users[$user_key] = $this->drupalCreateUser($role_permissions);
-      $profile = array('profile_gender' => 'Female');
-      $this->webform_users[$user_key]->profile_gender = 'Female';
-      profile_save_profile($profile, $this->webform_users[$user_key], 'Profile');
+      $this->webform_users[$user_key]->gender = array(LANGUAGE_NONE => array(array('value' => 'Female')));
+      user_save($this->webform_users[$user_key]);
     }
   }
 
@@ -117,13 +138,24 @@ class WebformTestCase extends DrupalWebTestCase {
             'start_date' => '-100 years',
             'end_date' => '+2 years',
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => array('day' => '30', 'month' => '9', 'year' => '1982'),
         'database values' => array('1982-09-30'),
         'database default values' => array('1978-11-19'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '1982/9/30',
+          'before' => '1982/10/1',
+          'after' => '1982/9/29',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '1981/9/30',
+          'before' => '1982/9/30',
+          'after' => '1982/9/30',
+        ),
       ),
 
       // Test grid components.
@@ -137,7 +169,7 @@ class WebformTestCase extends DrupalWebTestCase {
             'questions' => "0|Ålphå\n1|ıé†å\n2|Îé¬†å", // Left side
             'options' => "0|øne\n1|twö\n2|ǼBƇ\n3|€Euro", // Top
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '2',
           'weight' => '-19',
         ),
@@ -155,7 +187,7 @@ class WebformTestCase extends DrupalWebTestCase {
             'questions' => "one|What's your option?\ntwo|Agåin?\nthree|One more time!", // Left side.
             'options' => "one|Option one\ntwo|Option 2\nthree| Three is me", // Top
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
@@ -175,13 +207,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "one|one\ntwo|two\nthree|three",
             'multiple' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => array('one' => TRUE, 'two' => FALSE, 'three' => TRUE),
         'database values' => array('one', 'three'),
         'database default values' => array('two'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => array('one', 'three'), // ANDed together match.
+          'not_equal' => array('two'),
+        ),
+        'mismatch conditional values' => array(
+          'equal' => array('one', 'two'),
+          'not_equal' => array('two', 'three'),
+        ),
       ),
       'checkboxes_zero' => array(
         'component' => array(
@@ -193,13 +234,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "0|zero\n1|one\n2|two",
             'multiple' => 1,
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-9',
         ),
         'sample values' => array('0' => TRUE),
         'database values' => array('0'),
         'database default values' => array('0'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '1',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '1',
+          'not_equal' => '0',
+        ),
       ),
       'radios' => array(
         'component' => array(
@@ -210,13 +260,22 @@ class WebformTestCase extends DrupalWebTestCase {
           'extra' => array(
             'items' => "one|one\ntwo|two\nthree|three",
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-9',
         ),
         'sample values' => 'one',
         'database values' => array('one'),
         'database default values' => array('two'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'one',
+          'not_equal' => 'two',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => 'two',
+          'not_equal' => 'one',
+        ),
       ),
       'radios_zero' => array(
         'component' => array(
@@ -227,13 +286,22 @@ class WebformTestCase extends DrupalWebTestCase {
           'extra' => array(
             'items' => "0|zero\n1|one\n2|two",
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-9',
         ),
         'sample values' => '0',
         'database values' => array('0'),
         'database default values' => array('0'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '1',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '1',
+          'not_equal' => '0',
+        ),
       ),
       'select' => array(
         'component' => array(
@@ -246,13 +314,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "one|one\ntwo|two\nthree|three\nfour|four\nfive|five\nsix|six",
             'aslist' => 1,
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => 'two',
         'database values' => array('two'),
         'database default values' => array('one'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'two',
+          'not_equal' => 'one',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => 'one',
+          'not_equal' => 'two',
+        ),
       ),
       'select_zero' => array(
         'component' => array(
@@ -265,13 +342,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "0|zero\n1|one\n2|two",
             'aslist' => 1,
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => '0',
         'database values' => array('0'),
         'database default values' => array('0'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '1',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '1',
+          'not_equal' => '0',
+        ),
       ),
       'select_no_default' => array(
         'component' => array(
@@ -284,13 +370,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "one|one\ntwo|two\nthree|three\nfour|four\nfive|five\nsix|six",
             'aslist' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => 'two',
         'database values' => array('two'),
         'database default values' => array(''),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'two',
+          'not_equal' => '',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '',
+          'not_equal' => 'two',
+        ),
       ),
       'select_no_default_zero' => array(
         'component' => array(
@@ -303,13 +398,22 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "0|zero\n1|one\n2|two",
             'aslist' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
         'sample values' => '0',
         'database values' => array('0'),
         'database default values' => array(''),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '',
+          'not_equal' => '0',
+        ),
       ),
       'select_optgroup' => array(
         'component' => array(
@@ -322,7 +426,7 @@ class WebformTestCase extends DrupalWebTestCase {
             'items' => "<Group 1>\noption 1-1|option 1-1\noption 1-2|option 1-2\noption 1-3|option 1-3\n<Group 2>\noption 2-1|option 2-1\noption 2-2|option 2-2\noption 2-3|option 2-3",
             'aslist' => 1,
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-15',
         ),
@@ -339,7 +443,7 @@ class WebformTestCase extends DrupalWebTestCase {
           'extra' => array(
             'items' => "nate@localhost.localhost|one\nadmin@localhost.localhost|two",
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '2',
           'weight' => '-17',
         ),
@@ -358,7 +462,7 @@ class WebformTestCase extends DrupalWebTestCase {
             'multiple' => 1,
             'aslist' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-10',
         ),
@@ -381,13 +485,24 @@ class WebformTestCase extends DrupalWebTestCase {
             'end_date' => '+2 years',
             'year_textfield' => 1,
           ),
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-7',
         ),
         'sample values' => array('day' => '30', 'month' => '9', 'year' => '1982'),
         'database values' => array('1982-09-30'),
         'database default values' => array('1978-11-19'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '1982/9/30',
+          'before' => '1982/10/1',
+          'after' => '1982/9/29',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '1981/9/30',
+          'before' => '1982/9/30',
+          'after' => '1982/9/30',
+        ),
       ),
 
       // Test email components.
@@ -396,8 +511,8 @@ class WebformTestCase extends DrupalWebTestCase {
           'form_key' => 'email',
           'name' => 'E-mail',
           'type' => 'email',
-          'value' => '%useremail',
-          'mandatory' => '0',
+          'value' => '[current-user:mail]',
+          'required' => '0',
           'extra' => array(
             // SimpleTest does not support type="email" input fields.
             'attributes' => array('type' => 'text'),
@@ -408,6 +523,25 @@ class WebformTestCase extends DrupalWebTestCase {
         'sample values' => 'admin@localhost.localhost',
         'database values' => array('admin@localhost.localhost'),
         'database default values' => array($this->webform_users['admin']->mail),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'admin@localhost.localhost',
+          'not_equal' => '',
+          'contains' => 'admin',
+          'does_not_contain' => 'foo',
+          'begins_with' => 'admin',
+          'ends_with' => 'localhost',
+          'not_empty' => TRUE,
+        ),
+        'mismatch conditional values' => array(
+          'equal' => 'foo@localhost.localhost',
+          'not_equal' => 'admin@localhost.localhost',
+          'contains' => 'foo',
+          'does_not_contain' => 'admin',
+          'begins_with' => 'localhost',
+          'ends_with' => 'admin',
+          'empty' => TRUE,
+        ),
       ),
 
       // Test hidden components.
@@ -417,13 +551,32 @@ class WebformTestCase extends DrupalWebTestCase {
           'name' => 'Hidden',
           'type' => 'hidden',
           'value' => 'default hidden value',
-          'mandatory' => '1',
+          'required' => '1',
           'pid' => '0',
           'weight' => '-4',
         ),
         'sample values' => NULL,
         'database values' => array('default hidden value'),
         'database default values' => array('default hidden value'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'default hidden value',
+          'not_equal' => '',
+          'contains' => 'hidden',
+          'does_not_contain' => 'foo',
+          'begins_with' => 'default',
+          'ends_with' => 'value',
+          'not_empty' => TRUE,
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '',
+          'not_equal' => 'default hidden value',
+          'contains' => 'foo',
+          'does_not_contain' => 'hidden',
+          'begins_with' => 'value',
+          'ends_with' => 'default',
+          'empty' => TRUE,
+        ),
       ),
 
       // Test textarea components.
@@ -434,49 +587,86 @@ class WebformTestCase extends DrupalWebTestCase {
           'type' => 'textarea',
           'value' => 'sample textarea default value',
           'extra' => array(),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '15',
         ),
         'sample values' => 'sample textarea value',
         'database values' => array('sample textarea value'),
         'database default values' => array('sample textarea default value'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => 'sample textarea value',
+          'not_equal' => '',
+          'contains' => 'sample',
+          'does_not_contain' => 'foo',
+          'begins_with' => 'sample',
+          'ends_with' => 'value',
+          'not_empty' => TRUE,
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '',
+          'not_equal' => 'sample textarea value',
+          'contains' => 'foo',
+          'does_not_contain' => 'sample',
+          'begins_with' => 'value',
+          'ends_with' => 'sample',
+          'empty' => TRUE,
+        ),
       ),
 
       // Test textfield components.
+      'textfield' => array(
+        'component' => array(
+          'form_key' => 'textfield',
+          'name' => 'Textfield',
+          'type' => 'textfield',
+          'value' => '',
+          'required' => '0',
+          'pid' => '0',
+          'weight' => '-14',
+        ),
+        'sample values' => '',
+        'database values' => array(''),
+        'database default values' => array(''),
+      ),
       'textfield_disabled' => array(
         'component' => array(
           'form_key' => 'textfield_disabled',
           'name' => 'Textfield Disabled',
           'type' => 'textfield',
-          'value' => '%get[foo]',
+          'value' => '[current-page:query:foo]',
           'extra' => array(
             'disabled' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-15',
         ),
-        'sample values' => NULL,
+        // Manually hard-code the input if token is not available.
+        // TODO: Update after http://drupal.org/node/1347790 is finished.
+        'sample values' => module_exists('token') ? NULL : 'bar',
         'database values' => array('bar'),
-        'database default values' => array('bar'),
+        'database default values' => module_exists('token') ? array('bar') : array(''),
       ),
       'textfield_profile' => array(
         'component' => array(
           'form_key' => 'textfield_profile',
           'name' => 'Textfield Profile',
           'type' => 'textfield',
-          'value' => '%profile[profile_gender]',
+          'value' => '[current-user:gender]',
           'extra' => array(
             'width' => '20',
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '-6',
         ),
         'sample values' => 'Female',
         'database values' => array('Female'),
-        'database default values' => array($this->webform_users['admin']->profile_gender),
+        // The default value will be blank if token does not exist.
+        // TODO: Update after http://drupal.org/node/1347790 is finished.
+        'database default values' => module_exists('token') ? array($this->webform_users['admin']->gender[LANGUAGE_NONE][0]['value']) : array(''),
       ),
 
       // Test time components.
@@ -490,13 +680,24 @@ class WebformTestCase extends DrupalWebTestCase {
             'timezone' => 'site',
             'hourformat' => '12-hour',
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '16',
         ),
-        'sample values' => array('hour' => '5', 'minute' => '0', 'ampm' => 'am'),
-        'database values' => array('05:00:00'),
+        'sample values' => array('hour' => '12', 'minute' => '0', 'ampm' => 'pm'),
+        'database values' => array('12:00:00'),
         'database default values' => array('22:30:00'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '12:00pm',
+          'before' => '1:00pm',
+          'after' => '11:00am',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '12:00am',
+          'before' => '12:00pm',
+          'after' => '12:00pm',
+        ),
       ),
       'time_24h' => array(
         'component' => array(
@@ -508,13 +709,24 @@ class WebformTestCase extends DrupalWebTestCase {
             'timezone' => 'site',
             'hourformat' => '24-hour',
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '17',
         ),
         'sample values' => array('hour' => '5', 'minute' => '0'),
         'database values' => array('05:00:00'),
         'database default values' => array('22:30:00'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '5:00',
+          'before' => '24:00',
+          'after' => '00:00',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '5:01',
+          'before' => '5:00',
+          'after' => '5:00',
+        ),
       ),
 
       // Test number components.
@@ -531,16 +743,31 @@ class WebformTestCase extends DrupalWebTestCase {
             // SimpleTest does not support type="number" input fields.
             'attributes' => array('type' => 'text'),
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '18',
         ),
         'sample values' => '2',
         'database values' => array('2'),
         'database default values' => array('1'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '2',
+          'not_equal' => '0',
+          'less_than' => '3',
+          'greater_than' => '1',
+          'not_empty' => TRUE,
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '2',
+          'less_than' => '2',
+          'greater_than' => '2',
+          'empty' => TRUE,
+        ),
         'error values' => array(
-          '1.5' => t('%name field value of @value must be an integer.', array('%name' => 'Integer', '@value' => '1.5')),
-          '101' => t('%name field value must be less than @max.', array('%name' => 'Integer', '@max' => '100')),
+          '1.5' => t('!name field value of @value must be an integer.', array('!name' => 'Integer', '@value' => '1.5')),
+          '101' => t('!name field value must be less than @max.', array('!name' => 'Integer', '@max' => '100')),
         ),
       ),
       'integer_range' => array(
@@ -556,7 +783,7 @@ class WebformTestCase extends DrupalWebTestCase {
             'step' => 5,
             'integer' => 1,
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '19',
         ),
@@ -581,15 +808,30 @@ class WebformTestCase extends DrupalWebTestCase {
             // SimpleTest does not support type="number" input fields.
             'attributes' => array('type' => 'text'),
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '20',
         ),
         'sample values' => '2.00',
         'database values' => array('2.00'),
         'database default values' => array('1'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '2',
+          'not_equal' => '0',
+          'less_than' => '3.000',
+          'greater_than' => '1.000',
+          'not_empty' => TRUE,
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '0',
+          'not_equal' => '2',
+          'less_than' => '2.0',
+          'greater_than' => '2.00',
+          'empty' => TRUE,
+        ),
         'error values' => array(
-          '-1' => t('%name field value must be greater than @min.', array('%name' => 'Decimal positive', '@min' => '0')),
+          '-1' => t('!name field value must be greater than @min.', array('!name' => 'Decimal positive', '@min' => '0')),
         ),
       ),
       'decimal_range' => array(
@@ -608,7 +850,7 @@ class WebformTestCase extends DrupalWebTestCase {
             // SimpleTest does not support type="number" input fields.
             'attributes' => array('type' => 'text'),
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '21',
         ),
@@ -616,8 +858,8 @@ class WebformTestCase extends DrupalWebTestCase {
         'database values' => array('11.5'),
         'database default values' => array('1'),
         'error values' => array(
-          '2' => t('%name field value must be @start plus a multiple of @step.', array('%name' => 'Decimal range', '@start' => '1', '@step' => '1.5')),
-          '13' => t('%name field value of @value should be in the range @min to @max.', array('%name' => 'Decimal range', '@value' => '13', '@min' => '1', '@max' => '12')),
+          '2' => t('!name field value must be @start plus a multiple of @step.', array('!name' => 'Decimal range', '@start' => '1', '@step' => '1.5')),
+          '13' => t('!name field value of @value should be in the range @min to @max.', array('!name' => 'Decimal range', '@value' => '13', '@min' => '1', '@max' => '12')),
         ),
       ),
       'decimal_range_select' => array(
@@ -634,13 +876,26 @@ class WebformTestCase extends DrupalWebTestCase {
             'max' => '12',
             'step' => '1.5',
           ),
-          'mandatory' => '0',
+          'required' => '0',
           'pid' => '0',
           'weight' => '21',
         ),
-        'sample values' => '11.5',
-        'database values' => array('11.5'),
+        'sample values' => '10',
+        'database values' => array('10'),
         'database default values' => array('1'),
+        // Conditionals match against the 'sample values'.
+        'match conditional values' => array(
+          'equal' => '10',
+          'not_equal' => '2.5',
+          'less_than' => '11.5',
+          'greater_than' => '1',
+        ),
+        'mismatch conditional values' => array(
+          'equal' => '2.5',
+          'not_equal' => '10',
+          'less_than' => '10',
+          'greater_than' => '11.5',
+        ),
       ),
     );
 
@@ -663,24 +918,11 @@ class WebformTestCase extends DrupalWebTestCase {
      'tnid' => '0',
      'translate' => '0',
      'title' => 'Test Webform',
-     'body' => array(LANGUAGE_NONE => array(array('value' => 'Donec placerat. Nullam nibh dolor, blandit sed, fermentum id, imperdiet sit amet, neque. Nam mollis ultrices justo. Sed tempor. Sed vitae tellus. Etiam sem arcu, eleifend sit amet, gravida eget, porta at, wisi. Nam non lacus vitae ipsum viverra pretium. Phasellus massa. Fusce magna sem, gravida in, feugiat ac, molestie eget, wisi. Fusce consectetuer luctus ipsum. Vestibulum nunc. Suspendisse dignissim adipiscing libero. Integer leo. Sed pharetra ligula a dui. Quisque ipsum nibh, ullamcorper eget, pulvinar sed, posuere vitae, nulla. Sed varius nibh ut lacus. Curabitur fringilla. Nunc est ipsum, pretium quis, dapibus sed, varius non, lectus. Proin a quam. Praesent lacinia, eros quis aliquam porttitor, urna lacus volutpat urna, ut fermentum neque mi egestas dolor.'))),
-     'teaser' => array(LANGUAGE_NONE => array(array('value' => 'Donec placerat. Nullam nibh dolor, blandit sed, fermentum id, imperdiet sit amet, neque. Nam mollis ultrices justo. Sed tempor. Sed vitae tellus. Etiam sem arcu, eleifend sit amet, gravida eget, porta at, wisi. Nam non lacus vitae ipsum viverra pretium. Phasellus massa. Fusce magna sem, gravida in, feugiat ac, molestie eget, wisi. Fusce consectetuer luctus ipsum. Vestibulum nunc. Suspendisse dignissim adipiscing libero. Integer leo. Sed pharetra ligula a dui. Quisque ipsum nibh, ullamcorper eget, pulvinar sed, posuere vitae, nulla. Sed varius nibh ut lacus. Curabitur fringilla.'))),
      'log' => '',
      'format' => '1',
      'webform' => array(
         'confirmation' => 'Thanks!',
-        'confirmation_format' => filter_default_format(),
-        'redirect_url' => '<confirmation>',
-        'teaser' => '0',
-        'allow_draft' => '1',
-        'submit_text' => '',
-        'submit_limit' => '-1',
-        'submit_interval' => '-1',
-        'submit_notice' => '1',
-        'roles' => array('1', '2'),
-        'components' => array(),
-        'emails' => array(),
-      ),
+      ) + webform_node_defaults(),
     );
 
     $cid = 0;
@@ -698,17 +940,29 @@ class WebformTestCase extends DrupalWebTestCase {
 
   /**
    * Generate a list of all values that would result in a valid submission.
+   *
+   * @param $input_values
+   *   An array of input values keyed by the component form key. If none
+   *   are specified, the defaults will be pulled from testWebformComponents().
    */
-  function testWebformPost() {
+  function testWebformPost($input_values = NULL) {
     $edit = array();
-    foreach ($this->testWebformComponents() as $key => $component_info) {
-      if (is_array($component_info['sample values'])) {
-        foreach ($component_info['sample values'] as $subkey => $value) {
+
+    if (empty($input_values)) {
+      $input_values = array();
+      foreach ($this->testWebformComponents() as $key => $component_info) {
+        $input_values[$key] = $component_info['sample values'];
+      }
+    }
+
+    foreach ($input_values as $key => $values) {
+      if (is_array($values)) {
+        foreach ($values as $subkey => $value) {
           $edit["submitted[$key][$subkey]"] = $value;
         }
       }
-      elseif ($component_info['sample values'] != NULL) {
-        $value = $component_info['sample values'];
+      elseif ($values != NULL) {
+        $value = $values;
         // Multiple selects have a funky extra empty bracket in the name.
         $extra = $key == 'select_multiple' ? '[]' : '';
         $edit["submitted[$key]$extra"] = $value;
@@ -765,7 +1019,8 @@ class WebformGeneralTestCase extends WebformTestCase {
    */
   function testWebformCreateNewType() {
     // Enable webforms on the page content type.
-    variable_set('webform_node_types', array('webform', 'page'));
+    variable_set('webform_node_webform', TRUE);
+    variable_set('webform_node_page', TRUE);
 
     $settings = array(
       'title' => 'Test webform-enabled page',

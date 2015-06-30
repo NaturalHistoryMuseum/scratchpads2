@@ -250,7 +250,8 @@ function webform_scratchpads_default_permissions(){
     'contributor' => array(
       'access own webform results',
       'access own webform submissions',
-      'edit own webform submissions'
+      'edit own webform submissions',
+      'edit webform components'
     )
   );
 }

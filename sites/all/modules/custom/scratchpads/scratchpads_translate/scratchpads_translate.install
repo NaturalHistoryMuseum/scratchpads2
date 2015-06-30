@@ -108,3 +108,12 @@ function scratchpads_translate_update_7004(){
   $value['front_page_welcome_title'] = 'front_page_welcome_title';
   variable_realm_set('global', 'default', 'variable_realm_list_language', $value);
 }
+
+/**
+ * Install the feeds_et module so that translations can be imported
+ */
+function scratchpads_translate_update_7005(){
+  module_enable(array(
+    'feeds_et'
+  ));
+}
