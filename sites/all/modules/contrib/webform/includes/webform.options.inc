@@ -37,7 +37,7 @@ function _webform_options_info() {
 /**
  * Option list containing the days of the week.
  */
-function webform_options_days($component, $flat, $filter, $arguments) {
+function webform_options_days($component, $flat, $arguments) {
   $days = array(
     'sunday' => t('Sunday'),
     'monday' => t('Monday'),
@@ -60,7 +60,7 @@ function webform_options_days($component, $flat, $filter, $arguments) {
 /**
  * Options list containing country names.
  */
-function webform_options_countries($component, $flat, $filter, $arguments) {
+function webform_options_countries($component, $flat, $arguments) {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   return country_get_list();
 }
@@ -68,7 +68,7 @@ function webform_options_countries($component, $flat, $filter, $arguments) {
 /**
  * Options list containing United States states and territories.
  */
-function webform_options_united_states($component, $flat, $filter, $arguments) {
+function webform_options_united_states($component, $flat, $arguments) {
   return array(
     'AL' => t('Alabama'),
     'AK' => t('Alaska'),

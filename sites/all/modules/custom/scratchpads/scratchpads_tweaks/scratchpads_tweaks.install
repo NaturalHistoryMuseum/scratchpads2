@@ -1,4 +1,5 @@
 <?php
+
 function scratchpads_tweaks_install(){
   // Drop the primary key from the file_display table.
   scratchpads_tweaks_update_7046();
@@ -325,6 +326,9 @@ function scratchpads_tweaks_install(){
   variable_del('update_notify_emails');
   // Increase the length of the biblio_keywords field
   scratchpads_tweaks_update_7089();
+  // Incase the webform module is installed, we set that it uses the old table
+  // views for results.
+  variable_set('webform_table', TRUE);
 }
 
 /**
@@ -1604,10 +1608,18 @@ function scratchpads_tweaks_update_7091(){
 }
 
 /**
+ * New webform module tries to use views and fails. Set that it should use the
+ * old table method.
+ */
+function scratchpads_tweaks_update_7092(){
+  variable_set('webform_table', TRUE);
+}
+
+/**
  * Update all field data tables deleting values that are not associated with the
  * current revision.
  */
-function scratchpads_tweaks_update_7092(){
+function scratchpads_tweaks_update_7093(){
   $subquery = db_select('node', 'n')->fields('n', array(
     'vid'
   ));

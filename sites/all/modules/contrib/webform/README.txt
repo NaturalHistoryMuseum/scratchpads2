@@ -1,9 +1,9 @@
 Description
 -----------
 This module adds a webform content type to your Drupal site.
-A webform can be a questionnaire, contact or request form. These can be used 
+A webform can be a questionnaire, contact or request form. These can be used
 by visitor to make contact or to enable a more complex survey than polls
-provide. Submissions from a webform are saved in a database table and 
+provide. Submissions from a webform are saved in a database table and
 can optionally be mailed to e-mail addresses upon submission.
 
 Requirements
@@ -23,16 +23,27 @@ Installation
 
 Upgrading from previous versions
 --------------------------------
-Note that if you are upgrading from a Drupal 6 installation of Webform, you MUST
-have been running Webform 3.x on your Drupal 6 site before upgrading to Drupal
-7 and Webform 3.x. You cannot upgrade directly from Webform 6.x-2.x to Webform
-7.x-3.x.
+Note that you must be running the latest 3.x version of Webform (for either
+Drupal 6 or Drupal 7) before upgrading to Webform 4.x.
 
-1. Copy the entire webform directory the Drupal modules directory.
+If you have contributed modules, custom modules, or theming on your Webforms,
+please read over the documentation for upgrading your code for Webform 4.x at
+https://drupal.org/node/1609324.
 
-2. Login as the FIRST user or change the $access_check in update.php to FALSE
+1. MAKE A DATABASE BACKUP. Upgrading to Webform 4.x makes a signficant number of
+   database changes. If you encounter an error and need to downgrade, you must
+   restore the previous database. You can make a database backup with your
+   hosting provider, using the Backup and Migrate module, or from the command
+   line.
 
-3. Run update.php (at http://www.example.com/update.php)
+2. Copy the entire webform directory the Drupal modules directory, replacing the
+   old copy of Webform. DO NOT KEEP THE OLD COPY in the same directory or
+   anywhere Drupal could possibily find it. Delete it from the server.
+
+3. Login as an administrative user or change the $update_free_access in
+   update.php to TRUE.
+
+4. Run update.php (at http://www.example.com/update.php).
 
 Support
 -------
