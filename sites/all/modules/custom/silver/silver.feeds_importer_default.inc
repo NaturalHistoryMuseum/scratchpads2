@@ -154,11 +154,28 @@ function silver_feeds_importer_default(){
     // The title field may not have been enabled.
     if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
       if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => 'Title',
-          'target' => 'title_field',
-          'unique' => FALSE
-        );
+        $fallback = TRUE;
+        if(module_exists('feeds_et')){
+          $field_info = field_info_field('title_field');
+          if($field_info['translatable']){
+            $languages = language_list('enabled');
+            foreach(array_pop($languages) as $language){
+              $fallback = FALSE;
+              $feeds_importer->config['processor']['config']['mappings'][] = array(
+                'source' => 'Title [' . $language->native . ']',
+                'target' => 'title_field:et:' . $language->language,
+                'unique' => FALSE
+              );
+            }
+          }
+        }
+        if($fallback){
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => 'Title',
+            'target' => 'title_field',
+            'unique' => FALSE
+          );
+        }
       }
     }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
       $feeds_importer->config['processor']['config']['mappings'][] = array(
@@ -554,11 +571,30 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           );
           break;
         default:
-          $feeds_importer->config['processor']['config']['mappings'][] = array(
-            'source' => $field_collection_label_addition . trim($field['label']),
-            'target' => $map_field_collection ? $map_field_collection . $key : $key,
-            'unique' => 0
-          );
+          $fallback = TRUE;
+          if(module_exists('feeds_et')){
+            if($field_info['translatable'] && in_array($field_info['module'], array(
+              'text',
+              'number'
+            ))){
+              $languages = language_list('enabled');
+              foreach(array_pop($languages) as $language){
+                $feeds_importer->config['processor']['config']['mappings'][] = array(
+                  'source' => $field_collection_label_addition . trim($field['label']) . ' [' . $language->native . ']',
+                  'target' => ($map_field_collection ? $map_field_collection . $key : $key) . ':et:' . $language->language,
+                  'unique' => FALSE
+                );
+                $fallback = FALSE;
+              }
+            }
+          }
+          if($fallback){
+            $feeds_importer->config['processor']['config']['mappings'][] = array(
+              'source' => $field_collection_label_addition . trim($field['label']),
+              'target' => $map_field_collection ? $map_field_collection . $key : $key,
+              'unique' => 0
+            );
+          }
       }
     }
   }
