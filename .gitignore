@@ -2,6 +2,7 @@
 sites/*/settings*.php
 sites/*/files
 sites/*/private
+sites/monkey.nhm.ac.uk
 
 # Examples/Devel modules
 sites/all/modules/contrib/examples
