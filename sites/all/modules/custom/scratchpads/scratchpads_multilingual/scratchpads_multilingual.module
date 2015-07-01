@@ -44,10 +44,9 @@ function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
 }
 
 /**
- * Implements hook_module_implements_alter().
- * 
- * Change the order in which the hooks are run, to ensure that our menu alter
- * occurs after the hands off menu alter.
+ * Implements hook_module_implements_alter(). Change the order in which the
+ * hooks are run, to ensure that our menu alter occurs after the hands off menu
+ * alter.
  */
 function scratchpads_multilingual_module_implements_alter(&$implementations, $hook){
   if($hook == 'menu_alter'){
@@ -86,10 +85,9 @@ function scratchpads_multilingual_menu(){
 }
 
 /**
- * Implements hook_form_FORM_ID_alter
- * 
- * Add an additional submit function so that we can remove the redirect that
- * is pointlessly added byu the locale_translation_filter_form_submit() function
+ * Implements hook_form_FORM_ID_alter Add an additional submit function so that
+ * we can remove the redirect that is pointlessly added byu the
+ * locale_translation_filter_form_submit() function
  */
 function scratchpads_multilingual_form_locale_translation_filter_form_alter(&$form, &$form_state, $form_id){
   $form['#submit'] = array(
@@ -110,9 +108,8 @@ function scratchpads_multilingual_theme(){
 }
 
 /**
- * Implements hook_form_FORM_ID_alter
- * 
- * Remove the "edit" and "Operations" columns from the language page
+ * Implements hook_form_FORM_ID_alter Remove the "edit" and "Operations" columns
+ * from the language page
  */
 function scratchpads_multilingual_form_locale_languages_overview_form_alter(&$form, &$form_state, $form_id){
   if(!user_access('scratchpads team')){
@@ -130,7 +127,8 @@ function theme_scratchpads_multilingual_locale_languages_overview_form($variable
   foreach($form['name'] as $key => $element){
     // Do not take form control structures.
     if(is_array($element) && element_child($key)){
-      // Disable checkbox for the default language, because it cannot be disabled.
+      // Disable checkbox for the default language, because it cannot be
+      // disabled.
       if($key == $default->language){
         $form['enabled'][$key]['#attributes']['disabled'] = 'disabled';
       }
@@ -338,7 +336,7 @@ function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
  */
 function scratchpads_multilingual_field_attach_load($entity_type, $queried_entities, $age, $options){
   foreach($queried_entities as $entity){
-    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    list ( $id, $vid, $bundle ) = entity_extract_ids($entity_type, $entity);
     $instances = _field_invoke_get_instances($entity_type, $bundle, array(
       'deleted' => FALSE
     ));
@@ -358,8 +356,8 @@ function scratchpads_multilingual_field_attach_load($entity_type, $queried_entit
 /**
  * Implements hook_field_storage_pre_insert()
  */
-function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, $skip_fields){
-  list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, &$skip_fields){
+  list ( $id, $vid, $bundle ) = entity_extract_ids($entity_type, $entity);
   $instances = _field_invoke_get_instances($entity_type, $bundle, array(
     'deleted' => FALSE
   ));
@@ -378,10 +376,8 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
 /**
  * Helper function to merge values from LANGUAGE_NONE into the currently
  * selected language. Note, we retain the LANGUAGE_NONE values so that they can
- * be merged into other languages.
- * 
- * Note, this function is only called on arrays that HAVE LANGUAGE_NONE values,
- * so there is no need to check that first.
+ * be merged into other languages. Note, this function is only called on arrays
+ * that HAVE LANGUAGE_NONE values, so there is no need to check that first.
  */
 function _scratchpads_multilingual_merge_language_none_values($values){
   // First we loop through the language we are merging into, and create hashes
@@ -395,7 +391,8 @@ function _scratchpads_multilingual_merge_language_none_values($values){
         $hashes[$hash] = $hash;
       }
     }
-    // Now we loop through the undefined language, and add any values that are not
+    // Now we loop through the undefined language, and add any values that are
+    // not
     // in the current language to the current language
     foreach($values[LANGUAGE_NONE] as $id => $value){
       $hash = md5(serialize($value));

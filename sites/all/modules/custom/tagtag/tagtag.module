@@ -18,9 +18,9 @@
  */
 /**
  * Implementation of hook_form_FORM_ID_alter().
- * 
- * This function basically allows us to setup each of the Tag modules for a 
- * specific content type.  A site administrator will be required to select the 
+ *
+ * This function basically allows us to setup each of the Tag modules for a
+ * specific content type. A site administrator will be required to select the
  * search service to use with this content type, the fields to search, the field
  * to populate, and the user interface for selecting tags.
  */
@@ -76,7 +76,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     }
   }
   // Set the default value to the search fields to be ALL text fields.
-  $search_fields_default = array(); //variable_get('tagtag_search_fields_' . $form['#node_type']->type, array());
+  $search_fields_default = array(); // variable_get('tagtag_search_fields_' . $form['#node_type']->type, array());
   if(!count($search_fields_default)){
     $search_fields_default = array_keys($search_fields);
   }
@@ -227,13 +227,13 @@ function tagtag_node_type_delete($info){
 
 /**
  * Callback for the submit
- * 
+ *
  * This does a lot of the heavy lifting, ensuring that tags are saved to the
  * correct fields.
  */
 function tagtag_submit_form($form, &$form_state){
-  // Do the searches on each of the fields that we want to search.  The
-  // searches should return an array of tags which simply get added to the 
+  // Do the searches on each of the fields that we want to search. The
+  // searches should return an array of tags which simply get added to the
   // tagtag element of the $node (entity???)
   // First we get the list of fields that we're searching.
   $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
@@ -296,7 +296,9 @@ function tagtag_get_values($array){
     if(is_array($array)){
       foreach($array as $array_part){
         $value = tagtag_get_values($array_part);
-        if($value){return $value;}
+        if($value){
+          return $value;
+        }
       }
     }
   }
@@ -304,7 +306,8 @@ function tagtag_get_values($array){
 }
 
 /**
- * Helper function for UI modules.  This adds the tags specified to a node.
+ * Helper function for UI modules.
+ * This adds the tags specified to a node.
  * This function will do checks to ensure that tags can be added to a specific
  * field.
  */
@@ -315,7 +318,7 @@ function tagtag_add_tags(&$form_state){
   if($field){
     // Get the field
     $field_instance = field_read_instance('node', $field, $form_state['values']['type']);
-    //kprint_r($field_instance);
+    // kprint_r($field_instance);
     // Get whether or not this field is set to replace or append
     $append = isset($settings['tagtag_append']) ? $settings['tagtag_append'] : 1;
     $map = array(
