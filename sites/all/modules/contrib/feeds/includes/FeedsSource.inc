@@ -18,7 +18,6 @@ define('FEEDS_FETCH', 'fetch');
 define('FEEDS_PARSE', 'parse');
 define('FEEDS_PROCESS', 'process');
 define('FEEDS_PROCESS_CLEAR', 'process_clear');
-define('FEEDS_PROCESS_EXPIRE', 'process_expire');
 
 /**
  * Declares an interface for a class that defines default values and form
@@ -87,14 +86,8 @@ class FeedsState {
   public $created;
   public $updated;
   public $deleted;
-  public $unpublished;
   public $skipped;
   public $failed;
-
-  /**
-   * IDs of entities to be removed.
-   */
-  public $removeList;
 
   /**
    * Constructor, initialize variables.
@@ -105,7 +98,6 @@ class FeedsState {
     $this->created =
     $this->updated =
     $this->deleted =
-    $this->unpublished =
     $this->skipped =
     $this->failed = 0;
   }
@@ -186,9 +178,6 @@ class FeedsSource extends FeedsConfigurable {
   // Timestamp when this source was imported the last time.
   protected $imported;
 
-  // Holds an exception object in case an exception occurs during importing.
-  protected $exception;
-
   /**
    * Instantiate a unique object per class/id/feed_nid. Don't use
    * directly, use feeds_source() instead.
@@ -248,6 +237,7 @@ class FeedsSource extends FeedsConfigurable {
    *   method may throw the same exceptions as FeedsSource::import().
    */
   public function startImport() {
+    module_invoke_all('feeds_before_import', $this);
     $config = $this->importer->getConfig();
     if ($config['process_in_background']) {
       $this->startBackgroundJob('import');
@@ -284,7 +274,6 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function schedule() {
     $this->scheduleImport();
-    $this->scheduleExpire();
   }
 
   /**
@@ -297,44 +286,19 @@ class FeedsSource extends FeedsConfigurable {
     if (is_numeric($fetcher_period)) {
       $period = $fetcher_period;
     }
+    $period = $this->progressImporting() === FEEDS_BATCH_COMPLETE ? $period : 0;
     $job = array(
       'type' => $this->id,
       'id' => $this->feed_nid,
+      // Schedule as soon as possible if a batch is active.
       'period' => $period,
       'periodic' => TRUE,
     );
-    if ($period == FEEDS_SCHEDULE_NEVER && $this->progressImporting() === FEEDS_BATCH_COMPLETE) {
-      JobScheduler::get('feeds_source_import')->remove($job);
-    }
-    elseif ($this->progressImporting() === FEEDS_BATCH_COMPLETE) {
+    if ($period != FEEDS_SCHEDULE_NEVER) {
       JobScheduler::get('feeds_source_import')->set($job);
     }
     else {
-      // Feed is not fully imported yet, so we put this job back in the queue
-      // immediately for further processing.
-      $queue = DrupalQueue::get('feeds_source_import');
-      $queue->createItem($job);
-    }
-  }
-
-  /**
-   * Schedule background expire tasks.
-   */
-  public function scheduleExpire() {
-    // Schedule as soon as possible if a batch is active.
-    $period = $this->progressExpiring() === FEEDS_BATCH_COMPLETE ? 3600 : 0;
-
-    $job = array(
-      'type' => $this->id,
-      'id' => $this->feed_nid,
-      'period' => $period,
-      'periodic' => TRUE,
-    );
-    if ($this->importer->processor->expiryTime() == FEEDS_EXPIRE_NEVER) {
-      JobScheduler::get('feeds_source_expire')->remove($job);
-    }
-    else {
-      JobScheduler::get('feeds_source_expire')->set($job);
+      JobScheduler::get('feeds_source_import')->remove($job);
     }
   }
 
@@ -376,7 +340,6 @@ class FeedsSource extends FeedsConfigurable {
     try {
       // If fetcher result is empty, we are starting a new import, log.
       if (empty($this->fetcher_result)) {
-        module_invoke_all('feeds_before_import', $this);
         $this->state[FEEDS_START] = time();
       }
 
@@ -393,16 +356,9 @@ class FeedsSource extends FeedsConfigurable {
 
       // Process.
       $this->importer->processor->process($this, $parser_result);
-
-      // Import finished without exceptions, so unset any potentially previously
-      // recorded exceptions.
-      unset($this->exception);
     }
     catch (Exception $e) {
-      // $e is stored and re-thrown once we've had a chance to log our progress.
-      // Set the exception so that other modules can check if an exception
-      // occurred in hook_feeds_after_import().
-      $this->exception = $e;
+      // Do nothing.
     }
     $this->releaseLock();
 
@@ -443,7 +399,7 @@ class FeedsSource extends FeedsConfigurable {
       $this->importer->processor->clear($this);
     }
     catch (Exception $e) {
-      // $e is stored and re-thrown once we've had a chance to log our progress.
+      // Do nothing.
     }
     $this->releaseLock();
 
@@ -457,26 +413,6 @@ class FeedsSource extends FeedsConfigurable {
     if (isset($e)) {
       throw $e;
     }
-    return $result;
-  }
-
-  /**
-   * Removes all expired items from a feed.
-   */
-  public function expire() {
-    $this->acquireLock();
-    try {
-      $result = $this->importer->processor->expire($this);
-    }
-    catch (Exception $e) {
-      // Will throw after the lock is released.
-    }
-    $this->releaseLock();
-
-    if (isset($e)) {
-      throw $e;
-    }
-
     return $result;
   }
 
@@ -512,13 +448,6 @@ class FeedsSource extends FeedsConfigurable {
    */
   public function progressClearing() {
     return $this->state(FEEDS_PROCESS_CLEAR)->progress;
-  }
-
-  /**
-   * Report progress on expiry.
-   */
-  public function progressExpiring() {
-    return $this->state(FEEDS_PROCESS_EXPIRE)->progress;
   }
 
   /**
@@ -627,7 +556,6 @@ class FeedsSource extends FeedsConfigurable {
       'id' => $this->feed_nid,
     );
     JobScheduler::get('feeds_source_import')->remove($job);
-    JobScheduler::get('feeds_source_expire')->remove($job);
   }
 
   /**
@@ -798,13 +726,4 @@ class FeedsSource extends FeedsConfigurable {
   protected function releaseLock() {
     lock_release("feeds_source_{$this->id}_{$this->feed_nid}");
   }
-
-  /**
-   * Implements FeedsConfigurable::dependencies().
-   */
-  public function dependencies() {
-    $dependencies = parent::dependencies();
-    return array_merge($dependencies, $this->importer()->dependencies());
-  }
-
 }
