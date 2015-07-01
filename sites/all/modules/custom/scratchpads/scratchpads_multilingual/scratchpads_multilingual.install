@@ -14,6 +14,19 @@ function scratchpads_multilingual_disable(){
 }
 
 /**
+ * Implements hook_update_dependencies()
+ */
+function scratchpads_multilingual_update_dependencies(){
+  return array(
+    'scratchpads_tweaks' => array(
+      '7093' => array(
+        'scratchpads_multilingual' => 7004
+      )
+    )
+  );
+}
+
+/**
  * Enable the l10n_update module which is now required.
  */
 function scratchpads_multilingual_update_7001(){

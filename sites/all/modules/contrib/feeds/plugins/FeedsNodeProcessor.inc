@@ -6,6 +6,12 @@
  */
 
 /**
+ * Option for handling content in Drupal but not in source data (unpublish
+ * instead of skip/delete).
+ */
+define('FEEDS_UNPUBLISH_NON_EXISTENT', 'unpublish');
+
+/**
  * Creates nodes from feed items.
  */
 class FeedsNodeProcessor extends FeedsProcessor {
@@ -34,7 +40,6 @@ class FeedsNodeProcessor extends FeedsProcessor {
     $node->type = $this->bundle();
     $node->changed = REQUEST_TIME;
     $node->created = REQUEST_TIME;
-    $node->language = LANGUAGE_NONE;
     $node->is_new = TRUE;
     node_object_prepare($node);
     // Populate properties that are set by node_object_prepare().
@@ -104,8 +109,15 @@ class FeedsNodeProcessor extends FeedsProcessor {
       }
 
       if (!$access) {
-        $message = 'User %name is not authorized to %op content type %content_type.';
-        throw new FeedsAccessException(t($message, array('%name' => $author->name, '%op' => $op, '%content_type' => $entity->type)));
+        $message = t('The user %name is not authorized to %op content of type %content_type. To import this item, either the user "@name" (author of the item) must be given the permission to @op content of type @content_type, or the option "Authorize" on the Node processor settings must be turned off.', array(
+          '%name' => $author->name,
+          '%op' => $op,
+          '%content_type' => $entity->type,
+          '@name' => $author->name,
+          '@op' => $op,
+          '@content_type' => $entity->type,
+        ));
+        throw new FeedsAccessException($message);
       }
     }
   }
@@ -134,28 +146,12 @@ class FeedsNodeProcessor extends FeedsProcessor {
   }
 
   /**
-   * Implement expire().
-   *
-   * @todo: move to processor stage?
+   * Overrides parent::expiryQuery().
    */
-  public function expire($time = NULL) {
-    if ($time === NULL) {
-      $time = $this->expiryTime();
-    }
-    if ($time == FEEDS_EXPIRE_NEVER) {
-      return;
-    }
-    $count = $this->getLimit();
-    $nodes = db_query_range("SELECT n.nid FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND n.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
-    $nids = array();
-    foreach ($nodes as $node) {
-      $nids[$node->nid] = $node->nid;
-    }
-    $this->entityDeleteMultiple($nids);
-    if (db_query_range("SELECT 1 FROM {node} n JOIN {feeds_item} fi ON fi.entity_type = 'node' AND n.nid = fi.entity_id WHERE fi.id = :id AND n.created < :created", 0, 1, array(':id' => $this->id, ':created' => REQUEST_TIME - $time))->fetchField()) {
-      return FEEDS_BATCH_ACTIVE;
-    }
-    return FEEDS_BATCH_COMPLETE;
+  protected function expiryQuery(FeedsSource $source, $time) {
+    $select = parent::expiryQuery($source, $time);
+    $select->condition('e.created', REQUEST_TIME - $time, '<');
+    return $select;
   }
 
   /**
@@ -201,9 +197,13 @@ class FeedsNodeProcessor extends FeedsProcessor {
       '#type' => 'select',
       '#title' => t('Expire nodes'),
       '#options' => $period,
-      '#description' => t('Select after how much time nodes should be deleted. The node\'s published date will be used for determining the node\'s age, see Mapping settings.'),
+      '#description' => t("Select after how much time nodes should be deleted. The node's published date will be used for determining the node's age, see Mapping settings."),
       '#default_value' => $this->config['expire'],
     );
+    // Add on the "Unpublish" option for nodes, update wording.
+    if (isset($form['update_non_existent'])) {
+      $form['update_non_existent']['#options'][FEEDS_UNPUBLISH_NON_EXISTENT] = t('Unpublish non-existent nodes');
+    }
     return $form;
   }
 
@@ -378,4 +378,33 @@ class FeedsNodeProcessor extends FeedsProcessor {
     }
     return 0;
   }
+
+  /**
+   * Overrides FeedsProcessor::clean().
+   *
+   * Allow unpublish instead of delete.
+   *
+   * @param FeedsState $state
+   *   The FeedsState object for the given stage.
+   */
+  protected function clean(FeedsState $state) {
+    // Delegate to parent if not unpublishing or option not set.
+    if (!isset($this->config['update_non_existent']) || $this->config['update_non_existent'] != FEEDS_UNPUBLISH_NON_EXISTENT) {
+      return parent::clean($state);
+    }
+
+    $total = count($state->removeList);
+    if ($total) {
+      $nodes = node_load_multiple($state->removeList);
+      foreach ($nodes as &$node) {
+        if ($node->status == 0) {
+          continue;
+        }
+        node_unpublish_action($node);
+        node_save($node);
+        $state->unpublished++;
+      }
+    }
+  }
+
 }
