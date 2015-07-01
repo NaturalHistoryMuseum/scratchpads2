@@ -20,8 +20,6 @@ function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
           'callback' => 'link_feeds_set_target',
           'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
           'real_target' => $name,
-          'summary_callback' => 'feeds_mapper_summary_language',
-          'form_callback' => 'feeds_mapper_form_language',
         );
       }
       if (array_key_exists('title', $info['columns'])) {
@@ -30,8 +28,6 @@ function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
           'callback' => 'link_feeds_set_target',
           'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
           'real_target' => $name,
-          'summary_callback' => 'feeds_mapper_summary_language',
-          'form_callback' => 'feeds_mapper_form_language',
         );
       }
     }
@@ -45,25 +41,36 @@ function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  * user has decided to map to and $value contains the value of the feed item
  * element the user has picked as a source.
  */
-function link_feeds_set_target($source, $entity, $target, array $values, $mapping = array()) {
-  list($field_name, $column) = explode(':', $target);
-
-  $field = isset($entity->$field_name) ? $entity->$field_name : array('und' => array());
-  $delta = 0;
-
-  // Set the language of the field depending on the mapping configuration.
-  $langcode = isset($mapping['language']) ? $mapping['language'] : LANGUAGE_NONE;
-
-  foreach ($values as $value) {
-    if (is_object($value) && ($value instanceof FeedsElement)) {
-      $value = $value->getValue();
-    }
-
-    if (is_scalar($value)) {
-      $field[$langcode][$delta][$column] = (string) $value;
-    }
-    $delta++;
+function link_feeds_set_target($source, $entity, $target, $value) {
+  if (empty($value)) {
+    return;
   }
 
+  // Handle non-multiple value fields.
+  if (!is_array($value)) {
+    $value = array($value);
+  }
+
+  // Iterate over all values.
+  list($field_name, $column) = explode(':', $target);
+  $info = field_info_field($field_name);
+
+  $field = isset($entity->$field_name) ? $entity->$field_name : array();
+  $delta = 0;
+
+  foreach ($value as $v) {
+    if ($info['cardinality'] == $delta) {
+      break;
+    }
+
+    if (is_object($v) && ($v instanceof FeedsElement)) {
+      $v = $v->getValue();
+    }
+
+    if (is_scalar($v)) {
+      $field['und'][$delta][$column] = $v;
+      $delta++;
+    }
+  }
   $entity->$field_name = $field;
 }
