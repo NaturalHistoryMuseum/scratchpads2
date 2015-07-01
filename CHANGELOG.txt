@@ -1,3 +1,20 @@
+2.7.1.1 (2015-07-01)
+
+- Fix a bug with the tag/tagtag module that prevented it from being possible to
+  disable tag/autotag altogether
+- Ensure the removal of LANGUAGE_NONE values works as expected
+
+2.7.1 (2015-06-30)
+
+- Upgrades: Webform (7.x-4.9), Drupal (7.38) 
+- Fixed a long standing bug with the handling of translated fields and imported
+  data (#1324, #3401, #3657, #4028, #4162, #4332)
+- Fixed an issue that resulted in skipped rows in Slickgrid views (#4416)
+- Made changes to ensure Scratchpads is compatible with Aegir 7.x-3.x
+- Enable 'sup' and 'sub' tags in node titles (#4408)
+- Ensure users can create polygons on maps (#4414)
+- Enable importing from Catalogue of Life's 2015 checklist
+
 2.7.0.3 (2015-05-15)
 
 - Updated the URL of the Scratchpads Solr instance

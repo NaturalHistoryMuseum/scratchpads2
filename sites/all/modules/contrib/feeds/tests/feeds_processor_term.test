@@ -11,7 +11,7 @@
 class FeedsCSVtoTermsTest extends FeedsWebTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'CSV import to taxonomy',
+      'name' => 'Processor: Taxonomy',
       'description' => 'Tests a standalone import configuration that uses file fetcher and CSV parser to import taxonomy terms from a CSV file.',
       'group' => 'Feeds',
     );
@@ -92,4 +92,32 @@ class FeedsCSVtoTermsTest extends FeedsWebTestCase {
     $this->assertNoText('Gomez');
     $this->assertNoText('Pugsley');
   }
+
+  /**
+   * Test that saving an invalid vocabulary throws an exception.
+   */
+  public function testInvalidVocabulary() {
+
+    $mappings = array(
+      0 => array(
+        'source' => 'name',
+        'target' => 'name',
+        'unique' => 1,
+      ),
+    );
+    $this->addMappings('term_import', $mappings);
+
+    // Force configuration to be invalid.
+    $config = unserialize(db_query("SELECT config FROM {feeds_importer} WHERE id = :id", array(':id' => 'term_import'))->fetchField());
+    $config['processor']['config']['bundle'] = 'does_not_exist';
+    db_update('feeds_importer')
+      ->fields(array('config' => serialize($config)))
+      ->condition('id', 'term_import')
+      ->execute();
+
+    // Import and assert.
+    $this->importFile('term_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText(t('No vocabulary defined for Taxonomy Term processor.'));
+  }
+
 }

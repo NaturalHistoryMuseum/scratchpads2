@@ -1,0 +1,261 @@
+<?php
+
+/**
+ * @file
+ * Test case for multilingual feeds
+ */
+
+/**
+ * Class for testing Feeds <em>content</em> mapper (with field translation
+ * provided by the entity_translation module)
+ */
+class FeedsMapperMultilingualFieldsTestCase extends FeedsMapperTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Mapper: Multilingual Fields',
+      'description' => 'Test Feeds Multilingual support.',
+      'group' => 'Feeds',
+      'dependencies' => array('entity_translation'),
+    );
+  }
+
+  function setUp() {
+
+    // Modules
+    $modules = array(
+      'locale',
+      'entity_translation',
+      'link',
+      'number',
+    );
+
+    $permissions = array(
+      'administer entity translation',
+      'translate any entity',
+      'administer languages',
+    );
+
+    parent::setUp($modules, $permissions);
+
+    // Add Categories vocabulary
+    $edit = array(
+      'name' => 'Categories',
+      'machine_name' => 'categories',
+    );
+    $this->drupalPost('admin/structure/taxonomy/add', $edit, 'Save');
+
+    // Create content type.
+    $typename = $this->createContentType(array(),
+      array(
+        'number' => 'number_integer',
+        'link' => 'link_field',
+        'image' => 'image',
+      )
+    );
+
+    // Create term reference field.
+    $field = array(
+      'field_name' => 'field_category',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'categories',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    );
+    field_create_field($field);
+
+    // Add term reference field to article bundle.
+    $this->instance = array(
+      'field_name' => 'field_category',
+      'bundle' => $typename,
+      'entity_type' => 'node',
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'taxonomy_term_reference_link',
+        ),
+      ),
+    );
+    field_create_instance($this->instance);
+
+    // Configure Multilingual
+    $this->setupMultilingual($typename);
+
+    // Copy directory of source files, CSV file expects them in public://images
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', 'public://images');
+
+    // Create an importer configuration with basic mapping.
+    $this->createImporterConfiguration('Test Multilingual Fields import from CSV', 'node');
+    $this->setPlugin('node', 'FeedsCSVParser');
+    $this->setPlugin('node', 'FeedsFileFetcher');
+    $this->setSettings('node', NULL, array('content_type' => ''));
+    $this->setSettings('node', 'FeedsNodeProcessor', array('bundle' => $typename, 'language' => 'en'));
+    $this->addMappings('node',
+      array(
+        array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+        array(
+          'source' => 'title',
+          'target' => 'title',
+        ),
+        array(
+          'source' => 'body',
+          'target' => 'body',
+          'language' => 'en',
+        ),
+        array(
+          'source' => 'body_fr',
+          'target' => 'body',
+          'language' => 'fr',
+        ),
+        array(
+          'source' => 'number',
+          'target' => 'field_number',
+          'language' => 'en',
+        ),
+        array(
+          'source' => 'number_fr',
+          'target' => 'field_number',
+          'language' => 'fr',
+        ),
+        array(
+          'source' => 'link',
+          'target' => 'field_link:url',
+          'language' => 'en',
+        ),
+        array(
+          'source' => 'link_fr',
+          'target' => 'field_link:url',
+          'language' => 'fr',
+        ),
+        array(
+          'source' => 'image',
+          'target' => 'field_image:uri',
+          'language' => 'en',
+        ),
+        array(
+          'source' => 'image_fr',
+          'target' => 'field_image:uri',
+          'language' => 'fr',
+        ),
+        array(
+          'source' => 'category',
+          'target' => 'field_category',
+          'language' => 'en',
+          'autocreate' => TRUE,
+        ),
+        array(
+          'source' => 'category_fr',
+          'target' => 'field_category',
+          'language' => 'fr',
+          'autocreate' => TRUE,
+        ),
+      )
+    );
+  }
+
+  /**
+   * Tests multilingual mappings to translatable fields (entity translation)
+   */
+  public function testMultilingualFieldMappings() {
+
+    // Run Import
+    // Import CSV file.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/multilingual.csv');
+    $this->assertText('Created 1 node');
+
+    // Check english field values
+    $this->drupalGet('en/node/1/edit');
+    $this->assertFieldByName("body[en][0][value]", 'This is the body', t('Found english form field for <em>body</em> with the expected value.'));
+    $this->assertFieldByName("field_number[en][0][value]", 1000, t('Found english form field for <em>number</em> with the expected value.'));
+    $this->assertFieldByName("field_link[en][0][url]", 'http://google.ca', t('Found english form field for <em>link</em> with the expected value.'));
+    $this->assertText("foosball.jpeg", t('Found english form field for <em>image</em> with the expected value.'));
+    $this->assertOptionSelected('edit-field-category-en', 1, t('Found english form field for <em>category</em> with the expected value'));
+
+    //
+    // Check French Field Values
+    $this->drupalGet('fr/node/1/edit');
+    $this->assertFieldByName("body[fr][0][value]", 'Ceci est la corps', t('Found french form field for <em>body</em> with the expected value.'));
+    $this->assertFieldByName("field_number[fr][0][value]", 2000, t('Found french form field for <em>number</em> with the expected value.'));
+    $this->assertFieldByName("field_link[fr][0][url]", 'http://google.fr', t('Found french form field for <em>link</em> with the expected value.'));
+    $this->assertText("la fayette.jpeg", t('Found french form field for <em>image</em> with the expected value.'));
+    $this->assertOptionSelected('edit-field-category-fr', 2, t('Found french form field for <em>category</em> with the expected value'));
+
+  }
+
+  /**
+   * Configures Drupal to be multilingual
+   */
+  public function setupMultilingual($typename) {
+    // Setup Other Language (french)
+    $edit = array(
+      'langcode' => 'fr',
+    );
+    $this->drupalPost('admin/config/regional/language/add', $edit, 'Add language');
+    $this->assertText('The language French has been created and can now be used.');
+
+    // Configure English Path Prefix
+    $edit = array(
+      'prefix' => 'en',
+    );
+    $this->drupalPost('admin/config/regional/language/edit/en', $edit, 'Save language');
+    // Configure French Path Prefix
+    $edit = array(
+      'prefix' => 'fr',
+    );
+    $this->drupalPost('admin/config/regional/language/edit/fr', $edit, 'Save language');
+
+    // Configure Language Detection
+    $edit = array(
+      'language[enabled][locale-url]' =>  1,
+      'language[weight][locale-url]' =>  -10,
+      'language[weight][locale-browser]' =>  -9,
+      'language[weight][locale-session]' =>  -8,
+      'language[weight][locale-user]' =>  -7,
+      'language[weight][language-default]' =>  -6,
+      'language_content[enabled][locale-url]' =>  1,
+      'language_content[weight][locale-url]' =>  -10,
+      'language_content[weight][locale-browser]' =>  -9,
+      'language_content[weight][locale-session]' =>  -8,
+      'language_content[weight][locale-user]' =>  -7,
+      'language_content[enabled][locale-interface]' =>  1,
+      'language_content[weight][locale-interface]' =>  -6,
+      'language_content[weight][language-default]' =>  -5,
+    );
+    $this->drupalPost('admin/config/regional/language/configure', $edit, 'Save settings');
+
+    // Enable entity field translation for content type
+    $edit = array(
+      'language_content_type' => 4,
+      'entity_translation_hide_translation_links' => 1,
+      'entity_translation_node_metadata' => 0,
+    );
+    $this->drupalPost('admin/structure/types/manage/' . $typename, $edit, t('Save content type'));
+
+    // Enable field translation on fields
+    $edit = array(
+      'field[translatable]' => 1,
+    );
+    $field_names = array(
+      'body' => 'body',
+      'field_number' => 'field_number',
+      'field_link' => 'field_link',
+      'field_image' => 'field_image',
+      'field_category' => 'field_category',
+    );
+    foreach ($field_names as $field_name) {
+      $this->drupalPost("admin/structure/types/manage/{$typename}/fields/{$field_name}", $edit, t('Save settings'));
+    }
+  }
+
+}

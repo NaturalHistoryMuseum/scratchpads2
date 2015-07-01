@@ -188,6 +188,13 @@ function hook_feeds_after_save(FeedsSource $source, $entity, $item, $entity_id) 
  */
 function hook_feeds_after_import(FeedsSource $source) {
   // See geotaxonomy module's implementation for an example.
+
+  // We can also check for an exception in this hook. The exception should not
+  // be thrown here, Feeds will handle it.
+  if (isset($source->exception)) {
+    watchdog('mymodule', 'An exception occurred during importing!', array(), WATCHDOG_ERROR);
+    mymodule_panic_reaction($source);
+  }
 }
 
 /**
@@ -250,8 +257,10 @@ function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $k
 }
 
 /**
- * Alter mapping targets for entities. Use this hook to add additional target
- * options to the mapping form of Node processors.
+ * Alters mapping targets for processors.
+ *
+ * This hook allows additional target options to be added to the processors
+ * mapping form.
  *
  * If the key in $targets[] does not correspond to the actual key on the node
  * object ($node->key), real_target MUST be specified. See mappers/link.inc
@@ -264,10 +273,10 @@ function my_source_get_source(FeedsSource $source, FeedsParserResult $result, $k
  *   Remove with caution.
  * @param $entity_type
  *   The entity type of the target, for instance a 'node' entity.
- * @param $bundle_name
+ * @param $bundle
  *   The bundle name for which to alter targets.
  */
-function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle) {
   if ($entity_type == 'node') {
     $targets['my_node_field'] = array(
       'name' => t('My custom node field'),
@@ -285,6 +294,17 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
       'callback' => 'my_module_set_target2',
       'real_target' => 'my_node_field_two', // Specify real target field on node.
     );
+    $targets['my_node_field3'] = array(
+      'name' => t('My third custom node field'),
+      'description' => t('Description of what my third custom node field does.'),
+      'callback' => 'my_module_set_target3',
+
+      // Set optional_unique to TRUE and specify unique_callbacks to allow the
+      // target to be unique. Existing entities can be updated based on unique
+      // targets.
+      'optional_unique' => TRUE,
+      'unique_callbacks' => array('my_module_mapper_unique'),
+    );
   }
 }
 
@@ -297,17 +317,16 @@ function hook_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
  *   An entity object, for instance a node object.
  * @param $target
  *   A string identifying the target on the node.
- * @param $value
+ * @param $values
  *   The value to populate the target with.
  * @param $mapping
  *  Associative array of the mapping settings from the per mapping
  *  configuration form.
  */
-function my_module_set_target($source, $entity, $target, $value, $mapping) {
-  $entity->{$target}[$entity->language][0]['value'] = $value;
+function my_module_set_target($source, $entity, $target, array $values, $mapping) {
+  $entity->{$target}[$entity->language][0]['value'] = reset($values);
   if (isset($source->importer->processor->config['input_format'])) {
-    $entity->{$target}[$entity->language][0]['format'] =
-      $source->importer->processor->config['input_format'];
+    $entity->{$target}[$entity->language][0]['format'] = $source->importer->processor->config['input_format'];
   }
 }
 
@@ -360,6 +379,42 @@ function my_module_form_callback($mapping, $target, $form, $form_state) {
       '#default_value' => !empty($mapping['my_setting']),
     ),
   );
+}
+
+/**
+ * Example of the unique_callbacks specified in
+ * hook_feeds_processor_targets_alter().
+ *
+ * @param FeedsSource $source
+ *   The Feed source.
+ * @param string $entity_type
+ *   Entity type for the entity to be processed.
+ * @param string $bundle
+ *   Bundle name for the entity to be processed.
+ * @param string $target
+ *   A string identifying the unique target on the entity.
+ * @param array $values
+ *   The unique values to be checked.
+ *
+ * @return int
+ *   The existing entity id, or NULL if no existing entity is found.
+ *
+ * @see hook_feeds_processor_targets_alter()
+ * @see FeedsProcessor::existingEntityId()
+ */
+function my_module_mapper_unique(FeedsSource $source, $entity_type, $bundle, $target, array $values) {
+  list($field_name, $column) = explode(':', $target . ':value');
+  // Example for if the target is a field.
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', $entity_type)
+    ->entityCondition('bundle', $bundle)
+    ->fieldCondition($field_name, $column, $values)
+    ->execute();
+
+  if (!empty($result[$entity_type])) {
+    return key($result[$entity_type]);
+  }
 }
 
 /**

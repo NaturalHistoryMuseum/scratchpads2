@@ -20,22 +20,26 @@ class FeedsResult {}
 abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInterface {
 
   /**
-   * Constructor.
-   *
-   * Initialize class variables.
-   */
-  protected function __construct($id) {
-    parent::__construct($id);
-    $this->source_config = $this->sourceDefaults();
-  }
-
-  /**
    * Returns the type of plugin.
    *
    * @return string
    *   One of either 'fetcher', 'parser', or 'processor'.
    */
   abstract public function pluginType();
+
+  /**
+   * Returns the plugin definition.
+   *
+   * @return array
+   *   The plugin definition array.
+   *
+   * @see ctools_get_plugins()
+   */
+  public function pluginDefinition() {
+    $importer = feeds_importer($this->id);
+    $plugin_key = $importer->config[$this->pluginType()]['plugin_key'];
+    return ctools_get_plugins('feeds', 'plugins', $plugin_key);
+  }
 
   /**
    * Save changes to the configuration of this object.
@@ -204,6 +208,21 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
       }
     }
     return $result;
+  }
+
+  /**
+   * Implements FeedsConfigurable::dependencies().
+   */
+  public function dependencies() {
+    $dependencies = parent::dependencies();
+
+    // Find out which module provides this plugin.
+    $plugin_info = $this->pluginDefinition();
+    if (isset($plugin_info['module'])) {
+      $dependencies[$plugin_info['module']] = $plugin_info['module'];
+    }
+
+    return $dependencies;
   }
 }
 
