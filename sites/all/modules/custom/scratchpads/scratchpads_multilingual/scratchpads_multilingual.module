@@ -354,6 +354,13 @@ function scratchpads_multilingual_field_attach_load($entity_type, $queried_entit
 }
 
 /**
+ * Implements hook_field_storage_pre_update()
+ */
+function scratchpads_multilingual_field_storage_pre_update($entity_type, $entity, &$skip_fields){
+  scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, $skip_fields);
+}
+
+/**
  * Implements hook_field_storage_pre_insert()
  */
 function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, &$skip_fields){
@@ -362,11 +369,16 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
     'deleted' => FALSE
   ));
   foreach($instances as $instance){
-    if(count($queried_entities[$id]->{$instance['field_name']})){
+    if(count($entity->{$instance['field_name']})){
       $field = field_info_field_by_id($instance['field_id']);
       if($field['translatable']){
-        if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
-          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
+        try{
+          db_delete('field_data_' . $instance['field_name'])->condition('entity_id', $id)->condition('entity_type', $entity_type)->execute();
+        }catch(Exception $e){
+          ;
+        }
+        if(isset($entity->{$instance['field_name']}[LANGUAGE_NONE]) && count($entity->{$instance['field_name']}[LANGUAGE_NONE])){
+          $entity->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($entity->{$instance['field_name']});
         }
       }
     }
