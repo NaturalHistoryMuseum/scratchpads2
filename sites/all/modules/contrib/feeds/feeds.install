@@ -11,43 +11,46 @@
 function feeds_requirements($phase) {
   $t = get_t();
 
-  $requirements = array(
-    'simplexml' => array(
-      'title' => $t('SimpleXML'),
-      'value' => extension_loaded('SimpleXML') ? $t('Enabled') : $t('Disabled'),
-      'description' => $t('SimpleXML PHP module is required for Feeds Syndication Parser.'),
-      'severity' => REQUIREMENT_INFO,
-    ),
-    'simplepie' => array(
-      'title' => $t('SimplePie'),
-      'value' => $t('Unknown at install time.'),
-      'description' => $t('SimplePie library is required for Feeds SimplePie Parser.'),
-      'severity' => REQUIREMENT_INFO,
-    )
-  );
-  if ($phase == 'runtime') {
-    // Check for SimpleXML, required by FeedsSyndicationParser.
-    if (extension_loaded('SimpleXML')) {
-      $requirements['simplexml']['severity'] = REQUIREMENT_OK;
-    }
-    else {
-      $requirements['simplexml']['severity'] = REQUIREMENT_WARNING;
-      $requirements['simplexml']['description'] .= ' ' . t('It has been disabled at compile time, seek instructions from the server mantainers to enable it.');
-    }
-    // Check for SimplePie, required by FeedsSimplePieParser.
-    if (feeds_simplepie_exists()) {
-      $requirements['simplepie']['value'] = t('Enabled');
-      $requirements['simplepie']['severity'] = REQUIREMENT_OK;
-    }
-    else {
-      $requirements['simplepie']['value'] = t('Not installed');
-      $requirements['simplepie']['severity'] = REQUIREMENT_WARNING;
-      $requirements['simplepie']['description'] .= ' ' . t(
-        'Download the compiled version of the library from <a href="@simplepie-download-url">SimplePie download page</a>.',
-        array('@simplepie-download-url' => 'http://simplepie.org/downloads/')
-      );
+  $requirements = array();
+
+  module_load_include('module', 'feeds');
+  // Check if we have any SimplePie importers.
+  $needs_simplepie = FALSE;
+  foreach (feeds_importer_load_all() as $importer) {
+    if ($importer->config['parser']['plugin_key'] === 'FeedsSimplePieParser') {
+      $needs_simplepie = TRUE;
+      break;
     }
   }
+
+  if (!$needs_simplepie) {
+    return $requirements;
+  }
+
+  $requirements['simplepie'] = array(
+    'title' => $t('SimplePie'),
+    'value' => $t('Installed'),
+    'description' => $t('The SimplePie library is required for Feeds SimplePie Parser.'),
+    'severity' => REQUIREMENT_OK,
+  );
+
+  if (!feeds_simplepie_exists()) {
+    $requirements['simplepie']['value'] = $t('Not installed');
+
+    $folder = drupal_get_path('module', 'feeds') . '/libraries';
+    if (module_exists('libraries')) {
+      $folder = 'sites/all/libraries/simplepie';
+    }
+
+    $args = array(
+      '!url' => 'http://simplepie.org/downloads/',
+      '%folder' => $folder,
+      '%file' => 'simplepie.compiled.php',
+    );
+    $requirements['simplepie']['description'] .= $t('<br />Download the compiled, single-file version of the library from the <a href="!url">SimplePie download page</a>, place it into %folder and rename it to %file.', $args);
+    $requirements['simplepie']['severity'] = REQUIREMENT_ERROR;
+  }
+
   return $requirements;
 }
 
@@ -56,6 +59,7 @@ function feeds_requirements($phase) {
   */
 function feeds_uninstall() {
   variable_del('http_request_timeout');
+  variable_del('feeds_reschedule');
 }
 
 /**
@@ -663,5 +667,81 @@ function feeds_update_7208(&$sandbox) {
   }
   else {
     $sandbox['#finished'] = 1;
+  }
+}
+
+/**
+ * Reschedules feeds jobs.
+ */
+function feeds_update_7209() {
+  // Reschedule all importers.
+  variable_set('feeds_reschedule', TRUE);
+
+  // Our expire callback has changed names, remove all existing callbacks.
+  db_delete('job_schedule')
+    ->condition('name', 'feeds_importer_expire')
+    ->execute();
+
+  DrupalQueue::get('feeds_importer_expire')->deleteQueue();
+}
+
+/**
+ * Fix importer mappings for file and image fields to use :uri convention.
+ */
+function feeds_update_7211(&$sandbox) {
+  // If this is the first pass through this update function then set some
+  // variables.
+  if (!isset($sandbox['progress'])) {
+    $importers = feeds_importer_load_all(TRUE);
+    $sandbox['importers'] = array_keys($importers);
+    $sandbox['progress'] = 0;
+    $sandbox['updated_count'] = 0;
+    $sandbox['max'] = count($sandbox['importers']);
+  }
+
+  if (empty($sandbox['importers'])) {
+    return t('No importers to process.');
+  }
+
+  // Load a single importer.
+  $importer = array_pop($sandbox['importers']);
+  $importer = feeds_importer($importer);
+  $mappings = $importer->processor->getMappings();
+
+  foreach ($mappings as $key => $mapping) {
+    // Act on mappings that do not contain a colon.
+    if (strpos($mapping['target'], ':') !== FALSE) {
+      continue;
+    }
+
+    // Get field data. Check if $info is empty to weed out non-field mappings
+    // like temporary targets.
+    if (!$info = field_info_field($mapping['target'])) {
+      continue;
+    }
+
+    // Act on file or image fields.
+    if (in_array($info['type'], array('file', 'image'))) {
+      // Add ':uri' to fix the mapping.
+      $mappings[$key]['target'] = $mapping['target'] . ':uri';
+    }
+  }
+
+  // If importer has changed, add the updated config and save it.
+  if ($importer->processor->getMappings() !== $mappings) {
+    $importer->processor->addConfig(array('mappings' => $mappings));
+    $importer->save();
+    $sandbox['updated_count']++;
+  }
+
+  $sandbox['progress']++;
+
+  // Set the value for finished. If progress == max then finished will be 1,
+  // signifying we are done.
+  $sandbox['#finished'] = ($sandbox['progress'] / $sandbox['max']);
+
+  if (empty($sandbox['importers'])) {
+    $sandbox['#finished'] = 1;
+    return t('@importers total importers processed, @updated_count with fields that were updated.', array('@importers' => $sandbox['max'], '@updated_count' => $sandbox['updated_count']));
   }
 }
