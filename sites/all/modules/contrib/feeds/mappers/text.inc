@@ -25,23 +25,7 @@ function text_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
         'name' => check_plain($instance['label']),
         'callback' => 'text_feeds_set_target',
         'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
-        'summary_callback' => 'feeds_mapper_summary_language',
-        'form_callback' => 'feeds_mapper_form_language',
       );
-      if ($info['type'] == 'text_with_summary') {
-        // Allow mapping to summary.
-        $targets[$name . ':summary'] = array(
-          'name' => t('@name: Summary', array('@name' => $instance['label'])),
-          'callback' => 'text_feeds_set_target',
-          'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
-          'real_target' => $name,
-        );
-      }
-    }
-
-    if (!empty($instance['settings']['text_processing'])) {
-      $targets[$name]['summary_callback'] = 'text_feeds_summary_callback';
-      $targets[$name]['form_callback'] = 'text_feeds_form_callback';
     }
   }
 }
@@ -49,108 +33,47 @@ function text_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
 /**
  * Callback for mapping text fields.
  */
-function text_feeds_set_target(FeedsSource $source, $entity, $target, array $values, array $mapping = array()) {
-  list($field_name, $column) = explode(':', $target . ':value');
+function text_feeds_set_target($source, $entity, $target, $value) {
+  if (is_string($value) && !strlen(trim($value))) {
+    return;
+  }
 
-  if ($column === 'value' && isset($source->importer->processor->config['input_format'])) {
+  if (!is_array($value)) {
+    $value = array($value);
+  }
+
+  if (isset($source->importer->processor->config['input_format'])) {
     $format = $source->importer->processor->config['input_format'];
-    // Add in default values.
-    $mapping += array(
-      'format' => $format,
-    );
   }
 
-  // Set the language of the field depending on the mapping configuration.
-  $langcode = isset($mapping['language']) ? $mapping['language'] : LANGUAGE_NONE;
-
-  $field = isset($entity->$target) ? $entity->$target : array($langcode => array());
-
-  // If it's a new language we need to add it to the field
-  if (!isset($field[$langcode])) {
-    $field[$langcode] = array();
-  }
+  $info = field_info_field($target);
 
   // Iterate over all values.
-  $delta = 0;
-  foreach ($values as $value) {
+  $field = isset($entity->$target) ? $entity->$target : array('und' => array());
 
-    if (is_object($value) && $value instanceof FeedsElement) {
-      $value = $value->getValue();
+  // Allow for multiple mappings to the same target.
+  $delta = count($field['und']);
+
+  foreach ($value as $v) {
+
+    if ($info['cardinality'] == $delta) {
+      break;
     }
 
-    if (is_scalar($value) && strlen($value)) {
+    if (is_object($v) && ($v instanceof FeedsElement)) {
+      $v = $v->getValue();
+    }
 
-      $field[$langcode][$delta][$column] = (string) $value;
+    if (is_scalar($v)) {
+      $field['und'][$delta]['value'] = $v;
 
-      if (isset($mapping['format'])) {
-        $field[$langcode][$delta]['format'] = $mapping['format'];
+      if (isset($format)) {
+        $field['und'][$delta]['format'] = $format;
       }
+
+      $delta++;
     }
-
-    $delta++;
   }
 
-  $entity->$field_name = $field;
-}
-
-/**
- * Summary callback for text field targets.
- *
- * Displays which text format will be used for the text field target.
- *
- * @see text_feeds_processor_targets_alter()
- * @see text_feeds_form_callback()
- */
-function text_feeds_summary_callback(array $mapping, $target, array $form, array $form_state) {
-  global $user;
-  $formats = filter_formats($user);
-
-  // Processor-wide input format setting.
-  $importer = feeds_importer($form['#importer']);
-  $default_format = !empty($importer->processor->config['input_format']) ? $importer->processor->config['input_format'] : filter_fallback_format();
-  $mapping += array(
-    'format' => $default_format,
-  );
-
-  $summary_language = feeds_mapper_summary_language($mapping, $target, $form, $form_state);
-  $summary = t('Text format: %format', array('%format' => $formats[$mapping['format']]->name));
-  if (!empty($summary_language)) {
-    $summary = $summary . ' ' . $summary_language;
-  }
-  return $summary;
-}
-
-/**
- * Form callback for text field targets.
- *
- * Allows to select a text format for the text field target.
- *
- * @see text_feeds_processor_targets_alter()
- * @see text_feeds_summary_callback()
- */
-function text_feeds_form_callback(array $mapping, $target, array $form, array $form_state) {
-  global $user;
-  $formats_options = array();
-  $formats = filter_formats($user);
-  foreach ($formats as $id => $format) {
-    $formats_options[$id] = $format->name;
-  }
-
-  // Processor-wide text format setting.
-  $importer = feeds_importer($form['#importer']);
-  $default_format = !empty($importer->processor->config['input_format']) ? $importer->processor->config['input_format'] : filter_fallback_format();
-  $mapping += array(
-    'format' => $default_format,
-  );
-
-  $form_language = feeds_mapper_form_language($mapping, $target, $form, $form_state);
-
-  return array(
-    'format' => array(
-      '#type' => 'select',
-      '#title' => t('Text format'),
-      '#options' => $formats_options,
-      '#default_value' => $mapping['format'],
-    ),
-  ) + $form_language;
+  $entity->$target = $field;
 }
