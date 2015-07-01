@@ -1,3 +1,9 @@
+2.7.1.1 (2015-07-01)
+
+- Fix a bug with the tag/tagtag module that prevented it from being possible to
+  disable tag/autotag altogether
+- Ensure the removal of LANGUAGE_NONE values works as expected
+
 2.7.1 (2015-06-30)
 
 - Upgrades: Webform (7.x-4.9), Drupal (7.38) 
