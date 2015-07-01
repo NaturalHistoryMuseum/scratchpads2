@@ -34,6 +34,7 @@ class FeedsTermProcessor extends FeedsProcessor {
     $term = new stdClass();
     $term->vid = $vocabulary->vid;
     $term->vocabulary_machine_name = $vocabulary->machine_name;
+    $term->format = isset($this->config['input_format']) ? $this->config['input_format'] : filter_fallback_format();
     return $term;
   }
 
@@ -83,11 +84,9 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Overrides parent::setTargetElement().
-   *
-   * Operate on a target item that is a taxonomy term.
+   * Override setTargetElement to operate on a target item that is a taxonomy term.
    */
-  public function setTargetElement(FeedsSource $source, $target_term, $target_element, $value, array $mapping = array()) {
+  public function setTargetElement(FeedsSource $source, $target_term, $target_element, $value) {
     switch ($target_element) {
       case 'parent':
         if (!empty($value)) {
@@ -98,27 +97,25 @@ class FeedsTermProcessor extends FeedsProcessor {
               $parent_tid = $term->tid;
             }
           }
-          if (!empty($parent_tid)) {
-            $target_term->parent[] = $parent_tid;
+          if ($parent_tid) {
+            if(!isset($target_term->parent) || array_search($parent_tid, $target_term->parent) === FALSE){
+              $target_term->parent[] = $parent_tid;
+            }
           }
-          else {
-            $target_term->parent[] = 0;
-          }
-        }
-        else {
-          $target_term->parent[] = 0;
         }
         break;
-
       case 'parentguid':
         // value is parent_guid field value
         $query = db_select('feeds_item')
           ->fields('feeds_item', array('entity_id'))
           ->condition('entity_type', $this->entityType());
         $parent_tid = $query->condition('guid', $value)->execute()->fetchField();
-        $target_term->parent[] = ($parent_tid) ? $parent_tid : 0;
+        if($parent_tid){
+          if(!isset($target_term->parent) || array_search($parent_tid, $target_term->parent) === FALSE){
+            $target_term->parent[] = $parent_tid;
+          }
+        }
         break;
-
       case 'weight':
         if (!empty($value)) {
           $weight = intval($value);
@@ -128,20 +125,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         }
         $target_term->weight = $weight;
         break;
-
-      case 'description':
-        if (!empty($mapping['format'])) {
-          $target_term->format = $mapping['format'];
-        }
-        elseif (!empty($this->config['input_format'])) {
-          $target_term->format = $this->config['input_format'];
-        }
-        else {
-          $target_term->format = filter_fallback_format();
-        }
-        $target_term->description = $value;
-        break;
-
       default:
         parent::setTargetElement($source, $target_term, $target_element, $value);
         break;
@@ -177,8 +160,6 @@ class FeedsTermProcessor extends FeedsProcessor {
       'description' => array(
         'name' => t('Term description'),
         'description' => t('Description of the taxonomy term.'),
-        'summary_callback' => 'text_feeds_summary_callback',
-        'form_callback' => 'text_feeds_form_callback',
       ),
     );
 
@@ -224,14 +205,4 @@ class FeedsTermProcessor extends FeedsProcessor {
     }
     throw new Exception(t('No vocabulary defined for Taxonomy Term processor.'));
   }
-
-  /**
-   * Overrides FeedsProcessor::dependencies().
-   */
-  public function dependencies() {
-    $dependencies = parent::dependencies();
-    $dependencies['taxonomy'] = 'taxonomy';
-    return $dependencies;
-  }
-
 }

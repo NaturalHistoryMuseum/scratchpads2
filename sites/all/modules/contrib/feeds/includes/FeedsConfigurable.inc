@@ -44,16 +44,15 @@ abstract class FeedsConfigurable {
   protected $disabled;
 
   /**
-   * Instantiates a FeedsConfigurable object.
+   * Instantiate a FeedsConfigurable object.
    *
-   * Don't use directly, use feeds_importer() or feeds_plugin() instead.
-   *
-   * @see feeds_importer()
-   * @see feeds_plugin()
+   * Don't use directly, use feeds_importer() or feeds_plugin()
+   * instead.
    */
   public static function instance($class, $id) {
-    if (!strlen($id)) {
-      throw new InvalidArgumentException(t('Empty configuration identifier.'));
+    // This is useful at least as long as we're developing.
+    if (empty($id)) {
+      throw new Exception(t('Empty configuration identifier.'));
     }
     static $instances = array();
     if (!isset($instances[$class][$id])) {
@@ -171,17 +170,6 @@ abstract class FeedsConfigurable {
   }
 
   /**
-   * Returns whether or not the configurable has a config form.
-   *
-   * @return bool
-   *   True if the configurable has a config form, and false if not.
-   */
-  public function hasConfigForm() {
-    $form_state = array();
-    return (bool) $this->configForm($form_state);
-  }
-
-  /**
    * Return configuration form for this object. The keys of the configuration
    * form must match the keys of the array returned by configDefaults().
    *
@@ -213,16 +201,6 @@ abstract class FeedsConfigurable {
     $this->save();
     drupal_set_message(t('Your changes have been saved.'));
     feeds_cache_clear(FALSE);
-  }
-
-  /**
-   * Returns an array of required modules.
-   *
-   * @return array
-   *   The modules that this configurable requires.
-   */
-  public function dependencies() {
-    return array();
   }
 }
 
