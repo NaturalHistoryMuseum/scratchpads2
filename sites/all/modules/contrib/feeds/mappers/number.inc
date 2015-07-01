@@ -27,6 +27,8 @@ function number_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_n
         'name' => check_plain($instance['label']),
         'callback' => 'number_feeds_set_target',
         'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
+        'summary_callback' => 'feeds_mapper_summary_language',
+        'form_callback' => 'feeds_mapper_form_language',
       );
     }
   }
@@ -37,36 +39,26 @@ function number_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_n
  *
  * Ensure that $value is a numeric to avoid database errors.
  */
-function number_feeds_set_target($source, $entity, $target, $value) {
-
-  // Do not perform the regular empty() check here. 0 is a valid value. That's
-  // really just a performance thing anyway.
-
-  if (!is_array($value)) {
-    $value = array($value);
-  }
-
-  $info = field_info_field($target);
+function number_feeds_set_target($source, $entity, $target, array $values, $mapping = array()) {
+  // Set the language of the field depending on the mapping configuration.
+  $langcode = isset($mapping['language']) ? $mapping['language'] : LANGUAGE_NONE;
 
   // Iterate over all values.
-  $field = isset($entity->$target) ? $entity->$target : array('und' => array());
+  $field = isset($entity->$target) ? $entity->$target : array($langcode => array());
 
-  // Allow for multiple mappings to the same target.
-  $delta = count($field['und']);
+  // If it's a new language we need to add it to the field
+  if (!isset($field[$langcode])) {
+    $field[$langcode] = array();
+  }
 
-  foreach ($value as $v) {
+  foreach ($values as $value) {
 
-    if ($info['cardinality'] == $delta) {
-      break;
+    if (is_object($value) && ($value instanceof FeedsElement)) {
+      $value = $value->getValue();
     }
 
-    if (is_object($v) && ($v instanceof FeedsElement)) {
-      $v = $v->getValue();
-    }
-
-    if (is_numeric($v)) {
-      $field['und'][$delta]['value'] = $v;
-      $delta++;
+    if (is_numeric($value)) {
+      $field[$langcode][] = array('value' => $value);
     }
   }
 
