@@ -54,7 +54,7 @@ function http_request_get_common_syndication($url, $settings = NULL) {
   // @see http_request_get.
   $downloaded_string = $download->data;
   // If this happens to be a feed then just return the url.
-  if (http_request_is_feed($download->headers['content-type'], $downloaded_string)) {
+  if (isset($download->headers['content-type']) && http_request_is_feed($download->headers['content-type'], $downloaded_string)) {
     return $url;
   }
 
@@ -178,6 +178,22 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
       curl_setopt($download, CURLOPT_RETURNTRANSFER, TRUE);
       curl_setopt($download, CURLOPT_ENCODING, '');
       curl_setopt($download, CURLOPT_TIMEOUT, $request_timeout);
+
+      $proxy_server = variable_get('proxy_server');
+
+      if ($proxy_server && _drupal_http_use_proxy($uri['host'])) {
+        curl_setopt($download, CURLOPT_PROXY, $proxy_server);
+        curl_setopt($download, CURLOPT_PROXYPORT, variable_get('proxy_port', 8080));
+
+        // Proxy user/password.
+        if ($proxy_username = variable_get('proxy_username')) {
+          $username_password = $proxy_username . ':' . variable_get('proxy_password', '');
+
+          curl_setopt($download, CURLOPT_PROXYUSERPWD, $username_password);
+          curl_setopt($download, CURLOPT_PROXYAUTH, variable_get('proxy_auth_method', CURLAUTH_BASIC));
+        }
+      }
+
       if ($accept_invalid_cert) {
         curl_setopt($download, CURLOPT_SSL_VERIFYPEER, 0);
       }
@@ -191,6 +207,18 @@ function http_request_get($url, $username = NULL, $password = NULL, $accept_inva
             '@url' => $url,
           )), curl_errno($download)
         );
+      }
+
+      // When using a proxy, remove extra data from the header which is not
+      // considered by CURLINFO_HEADER_SIZE (possibly cURL bug).
+      // This data is only added when to HTTP header when working with a proxy.
+      // Example string added: <HTTP/1.0 200 Connection established\r\n\r\n>
+      if ($proxy_server && _drupal_http_use_proxy($uri['host'])) {
+        $http_header_break = "\r\n\r\n";
+        $response = explode($http_header_break, $data);
+        if (count($response) > 2) {
+          $data = substr($data, strlen($response[0] . $http_header_break), strlen($data));
+        }
       }
 
       $header_size = curl_getinfo($download, CURLINFO_HEADER_SIZE);
@@ -323,7 +351,11 @@ function http_request_find_feeds($html) {
     preg_match_all(HTTP_REQUEST_PCRE_TAG_ATTRIBUTES, $link_tag, $attributes, PREG_SET_ORDER);
     foreach ($attributes as $attribute) {
       // Find the key value pairs, attribute[1] is key and attribute[2] is the
-      // value.
+      // value.  However, if the link tag used single quotes, the value might
+      // be in attribute[3] instead.
+      if (empty($attribute[2])) {
+        $attribute[2] = $attribute[3];
+      }
       if (!empty($attribute[1]) && !empty($attribute[2])) {
         $candidate[drupal_strtolower($attribute[1])] = drupal_strtolower(decode_entities($attribute[2]));
       }

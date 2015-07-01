@@ -29,7 +29,7 @@ class FeedsFileFetcherResult extends FeedsFetcherResult {
    * Overrides parent::getFilePath().
    */
   public function getFilePath() {
-    if (!file_exists($this->file_path)) {
+    if (!is_readable($this->file_path)) {
       throw new Exception(t('File @filepath is not accessible.', array('@filepath' => $this->file_path)));
     }
     return $this->sanitizeFile($this->file_path);
@@ -109,7 +109,7 @@ class FeedsFileFetcher extends FeedsFetcher {
         '#type' => 'file',
         '#title' => empty($this->config['direct']) ? t('File') : NULL,
         '#description' => empty($source_config['source']) ? t('Select a file from your local system.') : t('Select a different file from your local system.'),
-        '#theme' => 'feeds_upload',
+        '#theme_wrappers' => array('feeds_upload'),
         '#file_info' => empty($source_config['fid']) ? NULL : file_load($source_config['fid']),
         '#size' => 10,
       );
@@ -164,8 +164,8 @@ class FeedsFileFetcher extends FeedsFetcher {
       if (!$scheme || !in_array($scheme, $this->config['allowed_schemes'])) {
         form_set_error('feeds][FeedsFileFetcher][source', t("The file needs to reside within the site's files directory, its path needs to start with scheme://. Available schemes: @schemes.", array('@schemes' => implode(', ', $this->config['allowed_schemes']))));
       }
-      // Check wether the given path exists.
-      elseif (!file_exists($values['source'])) {
+      // Check whether the given path is readable.
+      elseif (!is_readable($values['source'])) {
         form_set_error('feeds][FeedsFileFetcher][source', t('The specified file or directory does not exist.'));
       }
     }

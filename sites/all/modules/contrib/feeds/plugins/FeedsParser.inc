@@ -340,7 +340,7 @@ class FeedsEnclosure extends FeedsElement {
    *   If file object could not be created.
    */
   public function getFile($destination) {
-
+    $file = NULL;
     if ($this->getValue()) {
       // Prepare destination directory.
       file_prepare_directory($destination, FILE_MODIFY_PERMISSIONS | FILE_CREATE_DIRECTORY);
@@ -592,11 +592,16 @@ class FeedsDateTime extends DateTime {
    *   PHP DateTimeZone object, NULL allowed
    */
   public function __construct($time = '', $tz = NULL) {
-    // Assume UNIX timestamp if numeric.
     if (is_numeric($time)) {
-      // Make sure it's not a simple year
-      if ((is_string($time) && strlen($time) > 4) || is_int($time)) {
+      // Assume UNIX timestamp if it doesn't look like a simple year.
+      if (strlen($time) > 4) {
         $time = "@" . $time;
+      }
+      // If it's a year, add a default month too, because PHP's date functions
+      // won't parse standalone years after 2000 correctly (see explanation at
+      // http://aaronsaray.com/blog/2007/07/11/helpful-strtotime-reminders/#comment-47).
+      else {
+        $time = 'January ' . $time;
       }
     }
 
