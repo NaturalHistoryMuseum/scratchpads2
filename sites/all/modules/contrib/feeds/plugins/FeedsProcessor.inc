@@ -9,16 +9,10 @@
 define('FEEDS_SKIP_EXISTING', 0);
 define('FEEDS_REPLACE_EXISTING', 1);
 define('FEEDS_UPDATE_EXISTING', 2);
-// Options for handling content in Drupal but not in source data.
-define('FEEDS_SKIP_NON_EXISTENT', 'skip');
-define('FEEDS_DELETE_NON_EXISTENT', 'delete');
 
 // Default limit for creating items on a page load, not respected by all
 // processors.
 define('FEEDS_PROCESS_LIMIT', 50);
-
-// Default Language trigger
-define('FEEDS_LANGUAGE_DEFAULT', 'xx_');
 
 /**
  * Thrown if a validation fails.
@@ -78,23 +72,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
       else {
         $options[$bundle] = $bundle;
       }
-    }
-    return $options;
-  }
-
-  /**
-   * Provides a list of language options for use in select lists.
-   *
-   * @return array
-   *   A keyed array of langcode => language.
-   */
-  public function languageOptions() {
-    $options = array(
-      FEEDS_LANGUAGE_DEFAULT => t('Default Language'),
-      LANGUAGE_NONE => t('Language neutral'),
-    );
-    foreach (language_list() as $langcode => $language) {
-      $options[$langcode] = $language->name;
     }
     return $options;
   }
@@ -199,18 +176,11 @@ abstract class FeedsProcessor extends FeedsPlugin {
    */
   public function process(FeedsSource $source, FeedsParserResult $parser_result) {
     $state = $source->state(FEEDS_PROCESS);
-    if (!isset($state->removeList) && $parser_result->items) {
-      $this->initEntitiesToBeRemoved($source, $state);
-    }
 
     while ($item = $parser_result->shiftItem()) {
 
       // Check if this item already exists.
       $entity_id = $this->existingEntityId($source, $parser_result);
-      // If it's included in the feed, it must not be removed on clean.
-      if ($entity_id) {
-        unset($state->removeList[$entity_id]);
-      }
       $skip_existing = $this->config['update_existing'] == FEEDS_SKIP_EXISTING;
 
       module_invoke_all('feeds_before_update', $source, $item, $entity_id);
@@ -220,17 +190,17 @@ abstract class FeedsProcessor extends FeedsPlugin {
         continue;
       }
 
+      $hash = $this->hash($item);
+      $changed = ($hash !== $this->getHash($entity_id));
+      $force_update = $this->config['skip_hash_check'];
+
+      // Do not proceed if the item exists, has not changed, and we're not
+      // forcing the update.
+      if ($entity_id && !$changed && !$force_update) {
+        continue;
+      }
+
       try {
-
-        $hash = $this->hash($item);
-        $changed = ($hash !== $this->getHash($entity_id));
-        $force_update = $this->config['skip_hash_check'];
-
-        // Do not proceed if the item exists, has not changed, and we're not
-        // forcing the update.
-        if ($entity_id && !$changed && !$force_update) {
-          continue;
-        }
 
         // Load an existing entity.
         if ($entity_id) {
@@ -246,16 +216,11 @@ abstract class FeedsProcessor extends FeedsPlugin {
         // Build a new entity.
         else {
           $entity = $this->newEntity($source);
-          // Set the language if it wasn't set specifically by a processor
-          if (!isset($entity->language)) {
-            $entity->language = $this->getConfigLanguage();
-          }
           $this->newItemInfo($entity, $source->feed_nid, $hash);
         }
 
         // Set property and field values.
         $this->map($source, $parser_result, $entity);
-        $this->processEntityTitleReplacements($entity);
         $this->entityValidate($entity);
 
         // Allow modules to alter the entity before saving.
@@ -271,7 +236,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
 
         // This will throw an exception on failure.
         $this->entitySaveAccess($entity);
-        $this->processTranslations($entity);
         $this->entitySave($entity);
 
         // Allow modules to perform operations using the saved entity data.
@@ -300,10 +264,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
     if ($source->progressImporting() != FEEDS_BATCH_COMPLETE) {
       return;
     }
-    // Remove not included items if needed.
-    // It depends on the implementation of the clean() method what will happen
-    // to items that were no longer in the source.
-    $this->clean($state);
     $info = $this->entityInfo();
     $tokens = array(
       '@entity' => strtolower($info['label']),
@@ -330,26 +290,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
         ),
       );
     }
-    if ($state->unpublished) {
-      $messages[] = array(
-        'message' => format_plural(
-            $state->unpublished,
-            'Unpublished @number @entity.',
-            'Unpublished @number @entities.',
-            array('@number' => $state->unpublished) + $tokens
-        ),
-      );
-    }
-    if ($state->deleted) {
-      $messages[] = array(
-       'message' => format_plural(
-          $state->deleted,
-          'Removed @number @entity.',
-          'Removed @number @entities.',
-          array('@number' => $state->deleted) + $tokens
-        ),
-      );
-    }
     if ($state->failed) {
       $messages[] = array(
        'message' => format_plural(
@@ -369,65 +309,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
     foreach ($messages as $message) {
       drupal_set_message($message['message']);
       $source->log('import', $message['message'], array(), isset($message['level']) ? $message['level'] : WATCHDOG_INFO);
-    }
-  }
-
-  /**
-   * Initialize the array of entities to remove with all existing entities
-   * previously imported from the source.
-   *
-   * @param FeedsSource $source
-   *   Source information about this import.
-   * @param FeedsState $state
-   *   The FeedsState object for the given stage.
-   */
-  protected function initEntitiesToBeRemoved(FeedsSource $source, FeedsState $state) {
-    $state->removeList = array();
-    // We fill it only if needed.
-    if (!isset($this->config['update_non_existent']) || $this->config['update_non_existent'] == FEEDS_SKIP_NON_EXISTENT) {
-      return;
-    }
-    // Build base select statement.
-    $info = $this->entityInfo();
-    $id_key = db_escape_field($info['entity keys']['id']);
-    $select = db_select($info['base table'], 'e');
-    $select->addField('e', $info['entity keys']['id'], 'entity_id');
-    $select->join(
-      'feeds_item',
-      'fi',
-      'e.' . $id_key . ' = fi.entity_id AND fi.entity_type = :entity_type', array(
-        ':entity_type' => $this->entityType(),
-    ));
-
-    $select->condition('fi.id', $this->id);
-    $select->condition('fi.feed_nid', $source->feed_nid);
-    $entities = $select->execute();
-    // If not found on process, existing entities will be deleted.
-    foreach ($entities as $entity) {
-      // Obviously, items which are still included in the source feed will be
-      // removed from this array when processed.
-      $state->removeList[$entity->entity_id] = $entity->entity_id;
-    }
-  }
-
-  /**
-   * Deletes entities which were not found during processing.
-   *
-   * @todo batch delete?
-   *
-   * @param FeedsState $state
-   *   The FeedsState object for the given stage.
-   */
-  protected function clean(FeedsState $state) {
-    // We clean only if needed.
-    if (!isset($this->config['update_non_existent']) || $this->config['update_non_existent'] == FEEDS_SKIP_NON_EXISTENT) {
-      return;
-    }
-
-    $total = count($state->removeList);
-    if ($total) {
-      $this->entityDeleteMultiple($state->removeList);
-      $state->deleted += $total;
     }
   }
 
@@ -519,87 +400,23 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
-   * Deletes feed items older than REQUEST_TIME - $time.
+   * Delete feed items younger than now - $time. Do not invoke expire on a
+   * processor directly, but use FeedsImporter::expire() instead.
    *
-   * Do not invoke expire on a processor directly, but use
-   * FeedsSource::expire() instead.
-   *
-   * @param FeedsSource $source
-   *   The source to expire entities for.
+   * @see FeedsImporter::expire().
+   * @see FeedsDataProcessor::expire().
    *
    * @param $time
-   *   (optional) All items produced by this configuration that are older than
-   *   REQUEST_TIME - $time should be deleted. If NULL, processor should use
-   *   internal configuration. Defaults to NULL.
+   *   If implemented, all items produced by this configuration that are older
+   *   than REQUEST_TIME - $time should be deleted.
+   *   If $time === NULL processor should use internal configuration.
    *
-   * @return float
+   * @return
    *   FEEDS_BATCH_COMPLETE if all items have been processed, a float between 0
    *   and 0.99* indicating progress otherwise.
-   *
-   * @see FeedsSource::expire()
    */
-  public function expire(FeedsSource $source, $time = NULL) {
-    $state = $source->state(FEEDS_PROCESS_EXPIRE);
-
-    if ($time === NULL) {
-      $time = $this->expiryTime();
-    }
-    if ($time == FEEDS_EXPIRE_NEVER) {
-      return;
-    }
-
-    $select = $this->expiryQuery($source, $time);
-
-    // If there is no total, query it.
-    if (!$state->total) {
-      $state->total = $select->countQuery()->execute()->fetchField();
-    }
-
-    // Delete a batch of entities.
-    $entity_ids = $select->range(0, $this->getLimit())->execute()->fetchCol();
-    if ($entity_ids) {
-      $this->entityDeleteMultiple($entity_ids);
-      $state->deleted += count($entity_ids);
-      $state->progress($state->total, $state->deleted);
-    }
-    else {
-      $state->progress($state->total, $state->total);
-    }
-  }
-
-  /**
-   * Returns a database query used to select entities to expire.
-   *
-   * Processor classes should override this method to set the age portion of the
-   * query.
-   *
-   * @param FeedsSource $source
-   *   The feed source.
-   * @param int $time
-   *   Delete entities older than this.
-   *
-   * @return SelectQuery
-   *   A select query to execute.
-   *
-   * @see FeedsNodeProcessor::expiryQuery()
-   */
-  protected function expiryQuery(FeedsSource $source, $time) {
-    // Build base select statement.
-    $info = $this->entityInfo();
-    $id_key = db_escape_field($info['entity keys']['id']);
-
-    $select = db_select($info['base table'], 'e');
-    $select->addField('e', $info['entity keys']['id'], 'entity_id');
-    $select->join(
-      'feeds_item',
-      'fi',
-      "e.$id_key = fi.entity_id AND fi.entity_type = :entity_type", array(
-        ':entity_type' => $this->entityType(),
-    ));
-    $select->condition('fi.id', $this->id);
-    $select->condition('fi.feed_nid', $source->feed_nid);
-
-    return $select;
+  public function expire($time = NULL) {
+    return FEEDS_BATCH_COMPLETE;
   }
 
   /**
@@ -653,10 +470,10 @@ abstract class FeedsProcessor extends FeedsPlugin {
     // mapping on a prepopulated item such as an existing node.
     foreach ($this->config['mappings'] as $mapping) {
       if (isset($targets[$this->id][$mapping['target']]['real_target'])) {
-        $target_item->{$targets[$this->id][$mapping['target']]['real_target']} = NULL;
+        unset($target_item->{$targets[$this->id][$mapping['target']]['real_target']});
       }
-      else {
-        $target_item->{$mapping['target']} = NULL;
+      elseif (isset($target_item->{$mapping['target']})) {
+        unset($target_item->{$mapping['target']});
       }
     }
 
@@ -689,19 +506,12 @@ abstract class FeedsProcessor extends FeedsPlugin {
           isset($targets[$this->id][$mapping['target']]['callback']) &&
           function_exists($targets[$this->id][$mapping['target']]['callback'])) {
         $callback = $targets[$this->id][$mapping['target']]['callback'];
-
-        // All target callbacks expect an array.
-        if (!is_array($value)) {
-          $value = array($value);
-        }
-
         $callback($source, $target_item, $mapping['target'], $value, $mapping);
       }
       else {
         $this->setTargetElement($source, $target_item, $mapping['target'], $value, $mapping);
       }
     }
-
     return $target_item;
   }
 
@@ -725,11 +535,9 @@ abstract class FeedsProcessor extends FeedsPlugin {
     return array(
       'mappings' => array(),
       'update_existing' => FEEDS_SKIP_EXISTING,
-      'update_non_existent' => FEEDS_SKIP_NON_EXISTENT,
       'input_format' => NULL,
       'skip_hash_check' => FALSE,
       'bundle' => $bundle,
-      'language' => LANGUAGE_NONE,
     );
   }
 
@@ -755,14 +563,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
         '#value' => $this->entityType(),
       );
     }
-
-    $form['language'] = array(
-      '#type' => 'select',
-      '#options' => $this->languageOptions(),
-      '#title' => t('Language'),
-      '#required' => TRUE,
-      '#default_value' => $this->config['language'],
-    );
 
     $tokens = array('@entities' => strtolower($info['label plural']));
 
@@ -792,21 +592,10 @@ abstract class FeedsProcessor extends FeedsPlugin {
     $form['input_format'] = array(
       '#type' => 'select',
       '#title' => t('Text format'),
-      '#description' => t('Select the default input format for the text fields of the nodes to be created.'),
+      '#description' => t('Select the input format for the body field of the nodes to be created.'),
       '#options' => $format_options,
       '#default_value' => isset($this->config['input_format']) ? $this->config['input_format'] : 'plain_text',
       '#required' => TRUE,
-    );
-
-    $form['update_non_existent'] = array(
-      '#type' => 'radios',
-      '#title' => t('Action to take when previously imported @entities are missing in the feed', $tokens),
-      '#description' => t('Select how @entities previously imported and now missing in the feed should be updated.', $tokens),
-      '#options' => array(
-        FEEDS_SKIP_NON_EXISTENT => t('Skip non-existent @entities', $tokens),
-        FEEDS_DELETE_NON_EXISTENT => t('Delete non-existent @entities', $tokens),
-      ),
-      '#default_value' => $this->config['update_non_existent'],
     );
 
     return $form;
@@ -872,155 +661,42 @@ abstract class FeedsProcessor extends FeedsPlugin {
   }
 
   /**
-   * Returns the configured language for the processor
-   *
-   * @return
-   *   The language code configured for the processor
-   */
-  public function getConfigLanguage() {
-    return ($this->config['language'] == FEEDS_LANGUAGE_DEFAULT) ? language_default('language') : $this->config['language'];
-  }
-
-  /**
-   * Returns the language for the entity.
-   *
-   * @param string $entity
-   *   The entity for which to get the language.
-   *
-   * @return
-   *   The language code for the entity, or the language code that's configured
-   *   for the processor if the entity doesn't have any language support.
-   */
-  public function getEntityLanguage($entity) {
-    $language = entity_language($this->entityType(), $entity);
-    return $language ? $language : $this->getConfigLanguage();
-  }
-
-  /**
-   * Process entity properties that have been replaced with the title module
-   *
-   * @param  object $entity
-   *   The entity to check for replaced properties
-   */
-  public function processEntityTitleReplacements(&$entity) {
-    if (module_exists('title')) {
-      // Get the possible replacements for this entity type
-      if ($replacements = title_field_replacement_info($this->entityType())) {
-        // Loop through replacements
-        foreach ($replacements as $legacy_field => $field_info) {
-          // Populate legacy field with value from the field of the language
-          // for the entity.
-          $language = $this->getEntityLanguage($entity);
-          if (!empty($entity->{$field_info['field']['field_name']}[$language]) && empty($entity->{$legacy_field})) {
-            $entity->{$legacy_field} = $entity->{$field_info['field']['field_name']}[$language][0]['value'];
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Add translations to an entity for each mapped language
-   *
-   * @param  object $entity
-   *   The entity to add translations to
-   */
-  public function processTranslations(&$entity) {
-    // Add translations (if the entity_translation module exists) provided at
-    // least one field has a translation
-    if (module_exists('entity_translation')) {
-      $handler = entity_translation_get_handler($this->entityType(), $entity);
-      $languages = array();
-      $default_langcode = $this->getEntityLanguage($entity);
-
-      // Init the translations if there's not translation data yet
-      if (empty($entity->translations->data)) {
-        $handler->initTranslations();
-      }
-
-      // Loop through the mappings
-      foreach ($this->getMappings() as $mapping) {
-        if (!empty($mapping['language']) && $mapping['language'] != LANGUAGE_NONE && $mapping['language'] != $default_langcode && empty($entity->translations->data[$mapping['language']])) {
-          list($field_name) = explode(':', $mapping['target']);
-
-          // If this field's language has items we create a translation for it
-          if (!empty($entity->{$field_name}[$mapping['language']])) {
-            $translation = array(
-              'translate' => 0,
-              'status' => 1,
-              'language' => $mapping['language'],
-              'source' => $default_langcode,
-            );
-            $handler->setTranslation($translation, $entity);
-          }
-        }
-      }
-
-      // Loop through every language for the site, and remove translations for
-      // the one that hasn't got any values.
-      foreach (language_list() as $language) {
-        if (!isset($entity->translations->data[$language->language])) {
-          $handler->removeTranslation($language->language);
-        }
-      }
-    }
-  }
-
-  /**
    * Retrieve the target entity's existing id if available. Otherwise return 0.
    *
    * @ingroup mappingapi
    *
    * @param FeedsSource $source
    *   The source information about this import.
-   * @param FeedsParserResult $result
+   * @param $result
    *   A FeedsParserResult object.
    *
-   * @return int
+   * @return
    *   The serial id of an entity if found, 0 otherwise.
    */
   protected function existingEntityId(FeedsSource $source, FeedsParserResult $result) {
-    $targets = &drupal_static('FeedsProcessor::existingEntityId', array());
-    if (!isset($targets[$this->id])) {
-      $targets[$this->id] = $this->getMappingTargets();
-    }
+    $query = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('feed_nid', $source->feed_nid)
+      ->condition('entity_type', $this->entityType())
+      ->condition('id', $source->id);
 
-    $entity_id = 0;
-
-    // Iterate through all unique targets and test whether they already exist in
-    // the database.
+    // Iterate through all unique targets and test whether they do already
+    // exist in the database.
     foreach ($this->uniqueTargets($source, $result) as $target => $value) {
-      if ($target === 'guid' || $target === 'url') {
-        $entity_id = db_select('feeds_item')
-          ->fields('feeds_item', array('entity_id'))
-          ->condition('feed_nid', $source->feed_nid)
-          ->condition('entity_type', $this->entityType())
-          ->condition('id', $source->id)
-          ->condition($target, $value)
-          ->execute()
-          ->fetchField();
+      switch ($target) {
+        case 'url':
+          $entity_id = $query->condition('url', $value)->execute()->fetchField();
+          break;
+        case 'guid':
+          $entity_id = $query->condition('guid', $value)->execute()->fetchField();
+          break;
       }
-
-      if (!$entity_id && !empty($targets[$this->id][$target]['unique_callbacks'])) {
-        if (!is_array($value)) {
-          $value = array($value);
-        }
-
-        foreach ($targets[$this->id][$target]['unique_callbacks'] as $callback) {
-          if (is_callable($callback) && $entity_id = call_user_func_array($callback, array($source, $this->entityType(), $this->bundle(), $target, $value))) {
-            // Stop at the first unique ID returned by a callback.
-            break;
-          }
-        }
-      }
-
-      // Return with the content id found.
-      if ($entity_id) {
+      if (isset($entity_id)) {
+        // Return with the content id found.
         return $entity_id;
       }
     }
-
-    return $entity_id;
+    return 0;
   }
 
 
@@ -1140,21 +816,6 @@ abstract class FeedsProcessor extends FeedsPlugin {
     $message .= '<h3>Entity</h3>';
     $message .= '<pre>' . drupal_var_export($entity) . '</pre>';
     return $message;
-  }
-
-  /**
-   * Overrides FeedsPlugin::dependencies().
-   */
-  public function dependencies() {
-    $dependencies = parent::dependencies();
-
-    // Find out which module defined the entity type.
-    $info = $this->entityInfo();
-    if (isset($info['module'])) {
-      $dependencies[$info['module']] = $info['module'];
-    }
-
-    return $dependencies;
   }
 
 }

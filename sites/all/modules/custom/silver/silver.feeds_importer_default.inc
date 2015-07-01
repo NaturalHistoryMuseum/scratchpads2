@@ -6,75 +6,42 @@
 function silver_feeds_importer_default(){
   // Array of Feeds importers.
   $export = array();
-  $languages = array(
-    'und' => t('Undefined')
-  );
-  if(module_exists('locale')){
-    $languages = locale_language_list('name');
-  }
-  foreach($languages as $language => $language_name){
-    // Get a list of the vocabularies.
-    $vocabularies = taxonomy_get_vocabularies();
-    foreach($vocabularies as $vocabulary){
-      $feeds_importer = new stdClass();
-      $feeds_importer->disabled = FALSE;
-      $feeds_importer->api_version = 1;
-      $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls_' . $language;
-      $feeds_importer->config = array(
-        'name' => t('Import into: !vocabulary_name (!type) in !language', array(
-          '!vocabulary_name' => $vocabulary->name,
-          '!type' => 'XLS',
-          '!language' => $language_name
-        )),
-        'description' => t('Import a classification into a specific vocabulary.'),
-        'fetcher' => array(
-          'plugin_key' => 'FeedsFileFetcher',
-          'config' => array(
-            'allowed_extensions' => 'xls xlsx',
-            'direct' => 0,
-            'directory' => 'public://feeds',
-            'allowed_schemes' => array(
-              0 => 'public'
-            )
-          )
-        ),
-        'parser' => array(
-          'plugin_key' => 'FeedsExcelParser',
-          'config' => array(
-            'max_rows' => 65535,
-            'all_worksheets' => 1
-          )
-        ),
-        'processor' => array(
-          'plugin_key' => 'FeedsTermProcessor',
-          'config' => array(
-            'vocabulary' => $vocabulary->machine_name,
-            'mappings' => array(
-              array(
-                'source' => 'Term name',
-                'target' => 'name',
-                'unique' => 0
-              ),
-              array(
-                'source' => 'Parent Term Name',
-                'target' => 'parent',
-                'unique' => 0
-              ),
-              array(
-                'source' => 'Term description',
-                'target' => 'description',
-                'unique' => FALSE
-              ),
-              array(
-                'source' => 'GUID',
-                'target' => 'guid',
-                'unique' => 1
-              ),
-              array(
-                'source' => 'Parent GUID',
-                'target' => 'parentguid',
-                'unique' => 0
-              )
+  // Get a list of the vocabularies.
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $feeds_importer = new stdClass();
+    $feeds_importer->disabled = FALSE;
+    $feeds_importer->api_version = 1;
+    $feeds_importer->id = 'taxonomy_importer_' . $vocabulary->machine_name . '_xls';
+    $feeds_importer->config = array(
+      'name' => t('Import into: !vocabulary_name (!type)', array(
+        '!vocabulary_name' => $vocabulary->name,
+        '!type' => 'XLS'
+      )),
+      'description' => t('Import a classification into a specific vocabulary.'),
+      'fetcher' => array(
+        'plugin_key' => 'FeedsFileFetcher',
+        'config' => array(
+          'allowed_extensions' => 'xls xlsx',
+          'direct' => 0
+        )
+      ),
+      'parser' => array(
+        'plugin_key' => 'FeedsExcelParser',
+        'config' => array(
+          'no_headers' => 0,
+          'all_worksheets' => 1
+        )
+      ),
+      'processor' => array(
+        'plugin_key' => 'FeedsTermProcessor',
+        'config' => array(
+          'vocabulary' => $vocabulary->machine_name,
+          'mappings' => array(
+            array(
+              'source' => 'Term name',
+              'target' => 'name',
+              'unique' => 0
             ),
             array(
               'source' => 'Parent Term Name',
@@ -187,11 +154,28 @@ function silver_feeds_importer_default(){
     // The title field may not have been enabled.
     if(function_exists('title_field_replacement_enabled') && title_field_replacement_enabled('node', $node_type, 'title')){
       if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
-        $feeds_importer->config['processor']['config']['mappings'][] = array(
-          'source' => 'Title',
-          'target' => 'title_field',
-          'unique' => FALSE
-        );
+        $fallback = TRUE;
+        if(module_exists('feeds_et')){
+          $field_info = field_info_field('title_field');
+          if($field_info['translatable']){
+            $languages = language_list('enabled');
+            foreach(array_pop($languages) as $language){
+              $fallback = FALSE;
+              $feeds_importer->config['processor']['config']['mappings'][] = array(
+                'source' => 'Title [' . $language->native . ']',
+                'target' => 'title_field:et:' . $language->language,
+                'unique' => FALSE
+              );
+            }
+          }
+        }
+        if($fallback){
+          $feeds_importer->config['processor']['config']['mappings'][] = array(
+            'source' => 'Title',
+            'target' => 'title_field',
+            'unique' => FALSE
+          );
+        }
       }
     }else if(function_exists('auto_entitylabel_get_setting') && auto_entitylabel_get_setting($node_type) != AUTO_ENTITYLABEL_ENABLED){
       $feeds_importer->config['processor']['config']['mappings'][] = array(
@@ -587,11 +571,30 @@ function _silver_feeds_importer_default_helper($field_info, &$feeds_importer, $a
           );
           break;
         default:
-          $feeds_importer->config['processor']['config']['mappings'][] = array(
-            'source' => $field_collection_label_addition . trim($field['label']),
-            'target' => $map_field_collection ? $map_field_collection . $key : $key,
-            'unique' => 0
-          );
+          $fallback = TRUE;
+          if(module_exists('feeds_et')){
+            if($field_info['translatable'] && in_array($field_info['module'], array(
+              'text',
+              'number'
+            ))){
+              $languages = language_list('enabled');
+              foreach(array_pop($languages) as $language){
+                $feeds_importer->config['processor']['config']['mappings'][] = array(
+                  'source' => $field_collection_label_addition . trim($field['label']) . ' [' . $language->native . ']',
+                  'target' => ($map_field_collection ? $map_field_collection . $key : $key) . ':et:' . $language->language,
+                  'unique' => FALSE
+                );
+                $fallback = FALSE;
+              }
+            }
+          }
+          if($fallback){
+            $feeds_importer->config['processor']['config']['mappings'][] = array(
+              'source' => $field_collection_label_addition . trim($field['label']),
+              'target' => $map_field_collection ? $map_field_collection . $key : $key,
+              'unique' => 0
+            );
+          }
       }
     }
   }
