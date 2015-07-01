@@ -53,28 +53,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   }
   // Get a list of fields that this data can be saved to
   $field_options = array();
-  $instances = field_info_instances('node', $form['#node_type']->type);
-  $search_fields = array();
-  $field_types = array(
-    'taxonomy',
-    'text',
-    'options',
-    'tree_widget'
-  );
-  drupal_alter('tag_field_types', $field_types);
-  foreach($instances as $key => $instance){
-    if(in_array($instance['widget']['module'], $field_types)){
-      $field_options[$key] = $instance['label'];
-      if(substr($instance['widget']['type'], 0, 5) == 'text_'){
-        $search_fields[$key] = $instance['label'];
-      }else{
-        $field_info = field_info_field($instance['field_name']);
-        if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
-          $search_fields[$key] = $instance['label'];
-        }
-      }
-    }
-  }
+  $search_fields = _tagtag_fields_list($form['#node_type']->type);
   // Set the default value to the search fields to be ALL text fields.
   $search_fields_default = array(); // variable_get('tagtag_search_fields_' . $form['#node_type']->type, array());
   if(!count($search_fields_default)){
@@ -226,6 +205,35 @@ function tagtag_node_type_delete($info){
 }
 
 /**
+ * Helper function to get a list of fields that can be used!
+ */
+function _tagtag_fields_list($node_type){
+  $instances = field_info_instances('node', $node_type);
+  $search_fields = array();
+  $field_types = array(
+    'taxonomy',
+    'text',
+    'options',
+    'tree_widget'
+  );
+  drupal_alter('tag_field_types', $field_types);
+  foreach($instances as $key => $instance){
+    if(in_array($instance['widget']['module'], $field_types)){
+      $field_options[$key] = $instance['label'];
+      if(substr($instance['widget']['type'], 0, 5) == 'text_'){
+        $search_fields[$key] = $instance['label'];
+      }else{
+        $field_info = field_info_field($instance['field_name']);
+        if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
+          $search_fields[$key] = $instance['label'];
+        }
+      }
+    }
+  }
+  return $search_fields;
+}
+
+/**
  * Callback for the submit
  *
  * This does a lot of the heavy lifting, ensuring that tags are saved to the
@@ -237,7 +245,7 @@ function tagtag_submit_form($form, &$form_state){
   // tagtag element of the $node (entity???)
   // First we get the list of fields that we're searching.
   $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
-  $implementations = isset($settings['tagtag_search']) ? $settings['tagtag_search'] : array();
+  $implementations = isset($settings['tagtag_search']) ? array_filter($settings['tagtag_search']) : array();
   $search_services = module_invoke_all('tag_suggestion_info');
   $tags = array();
   // Loop through each field
@@ -246,12 +254,7 @@ function tagtag_submit_form($form, &$form_state){
     // We haven't set the fields to search - we probably don't have
     // implementations anyway, but in case we do, we'll get the fields to search
     if(count($implementations)){
-      // Get a list of fields that the search service should look in for tags.
-      $instances = field_info_instances('node', $form['type']['#value']);
-      $fields_to_search = array();
-      foreach($instances as $key => $instance){
-        $fields_to_search[] = $key;
-      }
+      $fields_to_search = array_keys(_tagtag_fields_list($form['type']['#value']));
     }
   }
   foreach($implementations as $implementation){
@@ -317,6 +320,7 @@ function tagtag_add_tags(&$form_state){
   $field = isset($settings['tagtag_field']) ? $settings['tagtag_field'] : FALSE;
   if($field){
     // Get the field
+    $field_language = field_language('node', $form_state['node'], $field);
     $field_instance = field_read_instance('node', $field, $form_state['values']['type']);
     // kprint_r($field_instance);
     // Get whether or not this field is set to replace or append
@@ -332,20 +336,20 @@ function tagtag_add_tags(&$form_state){
       switch($map[$field_instance['widget']['module']]){
         case 'taxonomy':
           if(!$append){
-            $form_state['values'][$field][LANGUAGE_NONE] = array();
+            $form_state['values'][$field][$field_language] = array();
           }
           // We have a taxonomy field, here we'll add the values/
           foreach($form_state['values']['tagtag'] as $tag){
             // Check that the tag hasn't already been saved to the field (yes, the
             // same tag can be saved multiple times to a taxonomy field).
             $already_set = FALSE;
-            foreach($form_state['values'][$field][LANGUAGE_NONE] as $value){
+            foreach($form_state['values'][$field][$field_language] as $value){
               if($value['tid'] == $tag->tid){
                 $already_set = TRUE;
               }
             }
             if(!$already_set){
-              $form_state['values'][$field][LANGUAGE_NONE][] = (array)$tag;
+              $form_state['values'][$field][$field_language][] = (array)$tag;
             }
           }
           break;
@@ -360,9 +364,9 @@ function tagtag_add_tags(&$form_state){
             }
           }
           if($append){
-            $form_state['values'][$field][LANGUAGE_NONE][0]['value'] .= ' ' . implode("; ", $tag_text);
+            $form_state['values'][$field][$field_language][0]['value'] .= ' ' . implode("; ", $tag_text);
           }else{
-            $form_state['values'][$field][LANGUAGE_NONE][0]['value'] = implode("; ", $tag_text);
+            $form_state['values'][$field][$field_language][0]['value'] = implode("; ", $tag_text);
           }
           break;
         default:
