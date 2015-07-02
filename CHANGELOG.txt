@@ -1,3 +1,8 @@
+2.7.1.2 (2015-07-02)
+
+- Ensure that when rows are skipped in Slickgrid, that the rows are correctly 
+  indexed (#4416)
+
 2.7.1.1 (2015-07-01)
 
 - Fix a bug with the tag/tagtag module that prevented it from being possible to
