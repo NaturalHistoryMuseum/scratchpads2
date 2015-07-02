@@ -180,4 +180,207 @@ class XMLExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
     $this->executeAndCompareGivenView($view, $expected, $message);
   }
 
+  /**
+   * Test to ensure that XML nodes names can be manually specified.
+   */
+  protected function testCustomiseXMLNodes() {
+    $view = $this->getBasicExportView();
+
+    // Load the include that contains the _views_data_export_xml_tag_clean function.
+    module_load_include('inc', 'views_data_export', 'theme/views_data_export.theme');
+
+
+    $root_node = _views_data_export_xml_tag_clean($this->randomName());
+    $item_node = _views_data_export_xml_tag_clean($this->randomName());
+
+    $style_options = array(
+      'root_node' => $root_node,
+      'item_node' => $item_node,
+    );
+
+    $expected = '<?xml version="1.0" encoding="UTF-8" ?>
+<' . $root_node . '>
+  <' . $item_node . '>
+    <ID>1</ID>
+    <Name>John</Name>
+    <Age>25</Age>
+  </' . $item_node . '>
+  <' . $item_node . '>
+    <ID>2</ID>
+    <Name>George</Name>
+    <Age>27</Age>
+  </' . $item_node . '>
+  <' . $item_node . '>
+    <ID>3</ID>
+    <Name>Ringo</Name>
+    <Age>28</Age>
+  </' . $item_node . '>
+  <' . $item_node . '>
+    <ID>4</ID>
+    <Name>Paul</Name>
+    <Age>26</Age>
+  </' . $item_node . '>
+  <' . $item_node . '>
+    <ID>5</ID>
+    <Name>Meredith</Name>
+    <Age>30</Age>
+  </' . $item_node . '>
+</' . $root_node . '>';
+
+    $message = 'Custom XML nodes test in ' . $this->vde_export_type . ' export matched expected output.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
+  /**
+   * Test to ensure certain fields can be optionally non-escaped.
+   */
+  protected function testXMLNoEntityEncode() {
+    $view = $this->getBasicExportView();
+
+    $display = $view->display['default']->handler;
+
+    $style_options = array(
+      'no_entity_encode' => array(
+        'id' => 'id',
+      ),
+    );
+
+    $display->override_option('fields', array(
+      'id' => array(
+        'id' => 'id',
+        'table' => 'views_test',
+        'field' => 'id',
+        'relationship' => 'none',
+        'alter' => array(
+          'alter_text' => TRUE,
+          'text' => '<strong>[id]</strong>',
+        ),
+      ),
+      'name' => array(
+        'id' => 'name',
+        'table' => 'views_test',
+        'field' => 'name',
+        'relationship' => 'none',
+        'alter' => array(
+          'alter_text' => TRUE,
+          'text' => '<em>[name]</em>',
+        ),
+      ),
+      'age' => array(
+        'id' => 'age',
+        'table' => 'views_test',
+        'field' => 'age',
+        'relationship' => 'none',
+      ),
+    ));
+
+    $expected = '<?xml version="1.0" encoding="UTF-8" ?>
+<views_tests>
+  <views_test>
+    <ID><strong>1</strong></ID>
+    <Name>&lt;em&gt;John&lt;/em&gt;</Name>
+    <Age>25</Age>
+  </views_test>
+  <views_test>
+    <ID><strong>2</strong></ID>
+    <Name>&lt;em&gt;George&lt;/em&gt;</Name>
+    <Age>27</Age>
+  </views_test>
+  <views_test>
+    <ID><strong>3</strong></ID>
+    <Name>&lt;em&gt;Ringo&lt;/em&gt;</Name>
+    <Age>28</Age>
+  </views_test>
+  <views_test>
+    <ID><strong>4</strong></ID>
+    <Name>&lt;em&gt;Paul&lt;/em&gt;</Name>
+    <Age>26</Age>
+  </views_test>
+  <views_test>
+    <ID><strong>5</strong></ID>
+    <Name>&lt;em&gt;Meredith&lt;/em&gt;</Name>
+    <Age>30</Age>
+  </views_test>
+</views_tests>';
+
+    $message = 'XML in values test in ' . $this->vde_export_type . ' export matched expected output.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
+  /**
+   * Test to ensure certain fields can be optionally non-escaped.
+   */
+  protected function testXMLCDATAWrapper() {
+    $view = $this->getBasicExportView();
+
+    $style_options = array(
+      'cdata_wrapper' => array(
+        'id' => 'id',
+        'name' => 'name',
+      ),
+    );
+
+    $display = $view->display['default']->handler;
+
+    $display->override_option('fields', array(
+      'id' => array(
+        'id' => 'id',
+        'table' => 'views_test',
+        'field' => 'id',
+        'relationship' => 'none',
+      ),
+      'name' => array(
+        'id' => 'name',
+        'table' => 'views_test',
+        'field' => 'name',
+        'relationship' => 'none',
+        'alter' => array(
+          'alter_text' => TRUE,
+          'text' => '<em>[name]</em>',
+        ),
+      ),
+      'age' => array(
+        'id' => 'age',
+        'table' => 'views_test',
+        'field' => 'age',
+        'relationship' => 'none',
+      ),
+    ));
+
+    $expected = '<?xml version="1.0" encoding="UTF-8" ?>
+<views_tests>
+  <views_test>
+    <ID><![CDATA[1]]></ID>
+    <Name><![CDATA[<em>John</em>]]></Name>
+    <Age>25</Age>
+  </views_test>
+  <views_test>
+    <ID><![CDATA[2]]></ID>
+    <Name><![CDATA[<em>George</em>]]></Name>
+    <Age>27</Age>
+  </views_test>
+  <views_test>
+    <ID><![CDATA[3]]></ID>
+    <Name><![CDATA[<em>Ringo</em>]]></Name>
+    <Age>28</Age>
+  </views_test>
+  <views_test>
+    <ID><![CDATA[4]]></ID>
+    <Name><![CDATA[<em>Paul</em>]]></Name>
+    <Age>26</Age>
+  </views_test>
+  <views_test>
+    <ID><![CDATA[5]]></ID>
+    <Name><![CDATA[<em>Meredith</em>]]></Name>
+    <Age>30</Age>
+  </views_test>
+</views_tests>';
+
+    $message = 'XML in values test in ' . $this->vde_export_type . ' export matched expected output.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
 }

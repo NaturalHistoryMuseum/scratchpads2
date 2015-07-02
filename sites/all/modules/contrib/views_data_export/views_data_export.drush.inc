@@ -17,6 +17,7 @@ function views_data_export_drush_command() {
       'output_file' => 'The file to write the results to - will be overwritten if it already exists',
     ),
     'options' => array (
+      '--arguments' => 'Comma separated list of arguments to be passed to the view.',
       '--format' => 'csv,doc,txt,xls or xml. These options are ignored if the display_id passed is a "views_data_export" display.',
       '--separator' => 'csv only: What character separates the fields (default:,)',
       '--trim-whitespace' => 'csv only: Trim whitespace from either side of fields (default:1)',
@@ -158,13 +159,23 @@ function drush_views_data_export($view_name, $display_id, $output_file) {
   // We execute the view normally, and take advantage
   // of an alter function to interject later and batch it ourselves
 
-  $options = array (
-    'output_file' => substr($output_file, 0, 1) == '/' ? $output_file : realpath(drush_get_context('DRUSH_OLDCWD', getcwd())) . '/' . $output_file,
-  );
+  $options = array();
+  // Let's see if the given $output_file is a absolute path.
+  if (strpos($output_file, '/') === 0) {
+    $options['output_file'] = $output_file;
+  }
+  else {
+    $options['output_file'] = realpath(drush_get_context('DRUSH_OLDCWD', getcwd())) . '/' . $output_file;
+  }
+
+
   if ($view->display_handler->is_batched()) {
     // This is a batched export, and needs to be handled as such.
     _drush_views_data_export_override_batch($view_name, $display_id, $options);
-    $view->execute_display($display_id);
+
+    $arguments = drush_get_option('arguments', '');
+    $arguments = explode(',', $arguments);
+    $view->execute_display($display_id, $arguments);
   }
   else {
     // This export isn't batched.

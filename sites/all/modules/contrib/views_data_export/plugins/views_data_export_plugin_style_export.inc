@@ -149,29 +149,33 @@ class views_data_export_plugin_style_export extends views_plugin_style {
    * feed image link.
    */
   function attach_to($display_id, $path, $title) {
-
-    $type = $this->definition['export feed type'];
-    $theme_pattern = array(
-      'views_data_export_feed_icon__' . $this->view->name . '__' . $display_id . '__' . $type,
-      'views_data_export_feed_icon__' . $this->view->name . '__' . $display_id,
-      'views_data_export_feed_icon__' . $this->view->name . '__' . $type,
-      'views_data_export_feed_icon__' . $display_id . '__' . $type,
-      'views_data_export_feed_icon__' . $display_id,
-      'views_data_export_feed_icon__' . $type,
-      'views_data_export_feed_icon',
-    );
-    $query = $this->view->get_exposed_input();
-    // Stash the display id we're coming form in the url so we can hijack it later.
-    if ($this->options['parent_sort']) {
-      $query['attach'] = $display_id;
+    if ($this->display->handler->access()) {
+      $type = $this->definition['export feed type'];
+      $theme_pattern = array(
+        'views_data_export_feed_icon__' . $this->view->name . '__' . $display_id . '__' . $type,
+        'views_data_export_feed_icon__' . $this->view->name . '__' . $display_id,
+        'views_data_export_feed_icon__' . $this->view->name . '__' . $type,
+        'views_data_export_feed_icon__' . $display_id . '__' . $type,
+        'views_data_export_feed_icon__' . $display_id,
+        'views_data_export_feed_icon__' . $type,
+        'views_data_export_feed_icon',
+      );
+      $query = $this->view->get_exposed_input();
+      // Stash the display id we're coming form in the url so we can hijack it later.
+      if ($this->options['parent_sort']) {
+        $query['attach'] = $display_id;
+      }
+      if (!isset($this->view->feed_icon)) {
+        $this->view->feed_icon = '';
+      }
+      $this->view->feed_icon .= theme($theme_pattern, array(
+          'image_path' => $this->definition['export feed icon'],
+          'url' => $this->view->get_url(NULL, $path),
+          'query' => $query,
+          'text' => $this->options['attach_text'],
+        )
+      );
     }
-    $this->view->feed_icon .= theme($theme_pattern, array(
-        'image_path' => $this->definition['export feed icon'],
-        'url' => $this->view->get_url(NULL, $path),
-        'query' => $query,
-        'text' => $this->options['attach_text'],
-      )
-    );
   }
 
   function build_sort() {
@@ -291,7 +295,6 @@ class views_data_export_plugin_style_export extends views_plugin_style {
    * Add any HTTP headers that this style plugin wants to.
    */
   function add_http_headers() {
-    $view = &$this->view;
 
     drupal_add_http_header('Cache-Control', 'max-age=60, must-revalidate');
 
@@ -300,6 +303,22 @@ class views_data_export_plugin_style_export extends views_plugin_style {
         drupal_add_http_header($name, $value);
       }
     }
+
+    if (isset($this->options['filename']) && !empty($this->options['provide_file'])) {
+      $filename = $this->generate_filename();
+
+      if ($filename) {
+        drupal_add_http_header('Content-Disposition', 'attachment; filename="'. $filename .'"');
+      }
+    }
+  }
+
+  /**
+   * Generate the filename for the export.
+   */
+  function generate_filename() {
+    $view = $this->view;
+    $filename = '';
 
     if (isset($this->options['filename']) && !empty($this->options['provide_file'])) {
       // General tokens.
@@ -311,7 +330,7 @@ class views_data_export_plugin_style_export extends views_plugin_style {
       $count = 0;
       foreach ($view->display_handler->get_handlers('argument') as $arg => $handler) {
         $token = '%' . ++$count;
-        $tokens[$token . '-title'] = check_plain($handler->title());
+        $tokens[$token . '-title'] = $handler->get_title();
         $tokens[$token . '-value'] = isset($view->args[$count - 1]) ? check_plain($view->args[$count - 1]) : '';
       }
 
@@ -322,7 +341,14 @@ class views_data_export_plugin_style_export extends views_plugin_style {
           continue;
         }
         if (!empty($view->exposed_input[$handler->options['expose']['identifier']])) {
-          $exposed[] = check_plain($handler->options['expose']['identifier']) . '_' . check_plain($view->exposed_input[$handler->options['expose']['identifier']]);
+          $identifier = $handler->options['expose']['identifier'];
+          $option = $view->exposed_input[$identifier];
+          // The option may be a string or an array, depending on whether the
+          // widget is a text box/area or a select box.
+          if (is_array($option)) {
+            $option = implode('--', $option);
+          }
+          $exposed[] = check_plain($identifier) . '_' . check_plain($option);
         }
       }
       if (!empty($exposed)) {
@@ -351,11 +377,8 @@ class views_data_export_plugin_style_export extends views_plugin_style {
       }
 
       $filename = strtr($this->options['filename'], $tokens);
-
-
-      if ($filename) {
-        drupal_add_http_header('Content-Disposition', 'attachment; filename="'. $filename .'"');
-      }
     }
+
+    return $filename;
   }
 }
