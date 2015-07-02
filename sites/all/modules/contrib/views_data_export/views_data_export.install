@@ -75,7 +75,7 @@ function views_data_export_schema() {
         'description' => 'The time this cache was created or updated.',
       ),
       'data' => array(
-        'type' => 'text',
+        'type' => 'blob',
         'size' => 'big',
         'description' => 'Serialized data being stored.',
         'serialize' => TRUE,
@@ -142,7 +142,18 @@ function views_data_export_update_7300() {
     db_change_field('views_data_export', $field_name, $field_name, $spec);
   }
 }
-
+/**
+ * Change the object cache table to support postgres installations
+ */
+function views_data_export_update_7301(){
+  $spec = array(
+        'type' => 'blob',
+        'size' => 'big',
+        'description' => 'Serialized data being stored.',
+        'serialize' => TRUE,
+      );
+  db_change_field('views_data_export_object_cache', 'data', 'data', $spec);
+}
 
 
 /**
@@ -156,6 +167,20 @@ function views_data_export_requirements($phase) {
 
   switch ($phase) {
     case 'runtime':
+
+      $requirements['views_data_export_temp'] = array(
+        'title' => t('Views Data Export temporary directory'),
+        'severity' => REQUIREMENT_OK,
+        'value' => t('Exists'),
+      );
+
+      $path = variable_get('views_data_export_directory', 'temporary://views_plugin_display');
+      if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
+        $requirements['views_data_export_temp']['description'] = t('The Views Data Export temporary directory, %path could not be created due to a misconfigured directory. Please ensure that the temporary directory is correctly configured and that the webserver has permission to create directories.', array('%path' => file_uri_target($path)));
+        $requirements['views_data_export_temp']['severity'] = REQUIREMENT_ERROR;
+        $requirements['views_data_export_temp']['value'] = t('Unable to create');
+      }
+
       $db_type = Database::getConnection()->databaseType();
       switch ($db_type) {
         case 'mysql':
