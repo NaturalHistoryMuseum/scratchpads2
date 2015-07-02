@@ -110,14 +110,11 @@ class views_data_export_plugin_style_export_csv extends views_data_export_plugin
       '#title' => t('Keep HTML tags.'),
     );
     $form['encoding'] = array(
-      '#type' => 'select',
+      '#type' => 'textfield',
       '#default_value' => !empty($this->options['encoding']) ? $this->options['encoding'] : '',
       '#title' => t('Character encoding conversion'),
-      '#options' => array (
-        '' => t('No conversion'),
-        'ASCII' => t('ASCII'),
-      ),
-      '#description' => t('Optionally specify a character conversion that some CSV file readers need. Note, using an external tool is always preferred and you should only use this option as a last resort. This feature requires the "iconv" PHP extension.'),
+      '#description' => t('Optionally specify a character conversion that some CSV file readers need. Use "utf8_decode" for ISO-8859-1 via <a href="@utf8_decode">utf8_decode PHP function</a>, other values will be passed <a href="@iconv">iconv</a> (this requires the iconv PHP extension), empty or illegal values will leave the output as UTF-8.',
+        array('@iconv' => 'http://www.php.net/manual/en/function.iconv.php', '@utf8_decode' => 'http://www.php.net/manual/en/function.utf8-decode.php')),
     );
   }
 }

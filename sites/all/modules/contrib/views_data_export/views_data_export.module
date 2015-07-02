@@ -144,7 +144,7 @@ function views_data_export_garbage_collect($expires = NULL, $chunk = NULL) {
  * Batch API callback.
  * Handles all batching operations by executing the appropriate view.
  */
-function _views_data_export_batch_process($export_id, $display_id, &$context) {
+function _views_data_export_batch_process($export_id, $display_id, $exposed_input, &$context) {
   // Don't show the admin menu on batch page, some people don't like it.
   if (module_exists('admin_menu')) {
     module_invoke('admin_menu', 'suppress');
@@ -153,7 +153,9 @@ function _views_data_export_batch_process($export_id, $display_id, &$context) {
   // Fetch the view in question from our cache
   $view = views_data_export_view_retrieve($export_id);
   $view->set_display($display_id);
-
+  if (!empty($exposed_input)) {
+    $view->set_exposed_input($exposed_input);
+  }
   // Inform the data_export display which export it corresponds to and execute
   if (!isset($view->display_handler->batched_execution_state)) {
     $view->display_handler->batched_execution_state = new stdClass();
@@ -262,14 +264,19 @@ function views_data_export_view_retrieve($export_id) {
  *   An export ID or an array of export IDs to clear from the object cache.
  */
 function views_data_export_view_clear($export_id) {
-  if (is_array($export_id)) {
-    db_delete('views_data_export_object_cache')
-    ->condition('eid', $export_id, 'IN')
-    ->execute();
-  }
-  else {
-    db_delete('views_data_export_object_cache')
+  db_delete('views_data_export_object_cache')
     ->condition('eid', $export_id)
     ->execute();
+}
+
+/**
+ * Implements hook_file_presave().
+ */
+function views_data_export_file_presave($file) {
+  // Ensure temporary files really are temporary.
+  // @see: https://drupal.org/node/2198399
+  if (strpos($file->filename, 'views_data_export') === 0) {
+    // There is no FILE_STATUS_TEMPORARY.
+    $file->status = 0;
   }
 }
