@@ -1,3 +1,7 @@
+2.7.1.3 (2015-07-03)
+
+- Upgraded views_data_export module to 7.x-3.0beta8
+
 2.7.1.2 (2015-07-02)
 
 - Ensure that when rows are skipped in Slickgrid, that the rows are correctly 
