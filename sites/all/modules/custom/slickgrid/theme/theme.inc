@@ -247,7 +247,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             'key' => $key
           );
         }else{
-          $key = $count;
+          $key = count($view->data);
         }
         // If the key already exists, we need to add the item to the middle of the array
         if(array_key_exists($key, $view->data)){

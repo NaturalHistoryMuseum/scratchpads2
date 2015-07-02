@@ -299,21 +299,21 @@ abstract class ViewsDataExportBaseTest extends ViewsTestCase {
     return $view;
   }
 
-  public function logViewResult($result) {
-    $this->verbose('View result:<br><pre>' . check_plain($result) .'</pre>');
+  public function logViewResult($result, $prefix = 'View result:<br>') {
+    $this->verbose($prefix . '<br><pre>' . check_plain($result) .'</pre>');
   }
 
   public function assertBatchedExportEqual($path, $expected, $message) {
     $this->drupalGet($path);
     $output = $this->drupalGetContent();
     $this->logViewResult($output);
-    $this->logViewResult($expected);
+    $this->logViewResult($expected, 'Expected result:<br>');
     $this->assertEqual($this->normaliseString($output), $this->normaliseString($expected), $message);
   }
 
   public function assertExportEqual($a, $b, $message) {
     $this->logViewResult($a);
-    $this->logViewResult($b);
+    $this->logViewResult($b, 'Expected result:<br>');
     $this->assertEqual($this->normaliseString($a), $this->normaliseString($b), $message);
   }
 

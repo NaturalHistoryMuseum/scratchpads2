@@ -1,3 +1,12 @@
+2.7.1.3 (2015-07-03)
+
+- Upgraded views_data_export module to 7.x-3.0beta8
+
+2.7.1.2 (2015-07-02)
+
+- Ensure that when rows are skipped in Slickgrid, that the rows are correctly 
+  indexed (#4416)
+
 2.7.1.1 (2015-07-01)
 
 - Fix a bug with the tag/tagtag module that prevented it from being possible to
