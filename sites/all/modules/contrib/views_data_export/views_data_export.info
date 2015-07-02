@@ -4,7 +4,6 @@ description = "Plugin to export views data into various file formats"
 package = Views
 core = 7.x
 
-files[] = views_data_export.module
 dependencies[] = views
 
 ; Plugins
@@ -21,9 +20,9 @@ files[] = "tests/txt_export.test"
 files[] = "tests/xls_export.test"
 files[] = "tests/xml_export.test"
 
-; Information added by drupal.org packaging script on 2013-01-05
-version = "7.x-3.0-beta6+25-dev"
+; Information added by Drupal.org packaging script on 2014-08-27
+version = "7.x-3.0-beta8"
 core = "7.x"
 project = "views_data_export"
-datestamp = "1357352538"
+datestamp = "1409118835"
 

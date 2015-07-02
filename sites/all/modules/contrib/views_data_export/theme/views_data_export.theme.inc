@@ -41,7 +41,7 @@ function theme_views_data_export_message($var) {
  */
 function theme_views_data_export_feed_icon($variables) {
   extract($variables, EXTR_SKIP);
-  $url_options = array('html' => true);
+  $url_options = array('html' => TRUE);
   if ($query) {
     $url_options['query'] = $query;
   }
@@ -111,16 +111,18 @@ function template_preprocess_views_data_export_csv_header(&$vars) {
       $output = trim($output);
     }
     if (!empty($vars['options']['encoding']) && function_exists('iconv')) {
-        switch($vars['options']['encoding']) {
-          case 'ASCII':
-            $converted = iconv("UTF-8", "ASCII//TRANSLIT", $output);
-            if ($converted !== FALSE) {
-              $output = $converted;
-            }
-            break;
-        }
+      switch($vars['options']['encoding']) {
+        case 'utf8_decode':
+          $converted = utf8_decode($output);
+          break;
+        default:
+          $converted = iconv("UTF-8", $vars['options']['encoding'], $output);
+          break;
       }
-
+      if ($converted !== FALSE) {
+        $output = $converted;
+      }
+    }
     $vars['header'][$key] = $wrap . str_replace('"', $replace_value, $output) . $wrap;
   }
 }
@@ -157,12 +159,15 @@ function template_preprocess_views_data_export_csv_body(&$vars) {
 
       if (!empty($vars['options']['encoding']) && function_exists('iconv')) {
         switch($vars['options']['encoding']) {
-          case 'ASCII':
-            $converted = iconv("UTF-8", "ASCII//TRANSLIT", $output);
-            if ($converted !== FALSE) {
-              $output = $converted;
-            }
+          case 'utf8_decode':
+            $converted = utf8_decode($output);
             break;
+          default:
+            $converted = iconv("UTF-8", $vars['options']['encoding'], $output);
+            break;
+        }
+        if ($converted !== FALSE) {
+          $output = $converted;
         }
       }
       if (!empty($vars['options']['replace_newlines'])) {
@@ -350,24 +355,14 @@ function template_preprocess_views_data_export_msoffice_header(&$vars) {
  * Preprocess xml output template.
  */
 function template_preprocess_views_data_export_xml_header(&$vars) {
-  // Compute the root XML node, using the base table, and appending an 's' if needed.
-  $root_node = $vars['view']->base_table;
-  if (rtrim($root_node, 's') == $root_node) {
-    $root_node .= 's';
-  }
-  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+  $vars['root_node'] = _views_data_export_xml_tag_clean($vars['options']['root_node']);
 }
 
 /**
  * Preprocess xml output template.
  */
 function template_preprocess_views_data_export_xml_footer(&$vars) {
-  // Compute the root XML node, using the base table, and appending an 's' if needed.
-  $root_node = $vars['view']->base_table;
-  if (rtrim($root_node, 's') == $root_node) {
-    $root_node .= 's';
-  }
-  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+  $vars['root_node'] = _views_data_export_xml_tag_clean($vars['options']['root_node']);
 }
 
 /**
@@ -379,18 +374,37 @@ function template_preprocess_views_data_export_xml_body(&$vars) {
   $vars['hide_empty_support'] = TRUE;
   _views_data_export_body_shared_preprocess($vars);
 
-  // Compute the tag name based on the views base table, minus any trailing 's'.
-  $vars['item_node'] = _views_data_export_xml_tag_clean(rtrim($vars['view']->base_table, 's'));
+  $view = $vars['view'];
+  $style_options = $view->display_handler->get_option('style_options');
+
+  $no_encode = isset($style_options['no_entity_encode']) ? $style_options['no_entity_encode'] : array();
+
+  $cdata_wrapper = isset($style_options['cdata_wrapper']) ? $style_options['cdata_wrapper'] : array();
+
+  $vars['item_node'] = _views_data_export_xml_tag_clean($vars['options']['item_node']);
 
   foreach ($vars['themed_rows'] as $num => $row) {
     foreach ($row as $field => $content) {
-      // Prevent double encoding of the ampersand. Look for the entities produced by check_plain().
-      $content = preg_replace('/&(?!(amp|quot|#039|lt|gt);)/', '&amp;', $content);
-      // Convert < and > to HTML entities.
-      $content = str_replace(
-        array('<', '>'),
-        array('&lt;', '&gt;'),
-        $content);
+
+      // Perform xml entity encoding unless excluded by style options.
+      if (empty($no_encode[$field]) && empty($cdata_wrapper[$field])) {
+
+        // Prevent double encoding of the ampersand. Look for the entities produced by check_plain().
+        $content = preg_replace('/&(?!(amp|quot|#039|lt|gt);)/', '&amp;', $content);
+        // Convert < and > to HTML entities.
+        $content = str_replace(
+          array('<', '>'),
+          array('&lt;', '&gt;'),
+          $content);
+      }
+
+      // Perform wrapping the field data using the CDATA tag
+      // unless excluded by style options.
+      if (!empty($cdata_wrapper[$field])) {
+        // Escape CDATA end sequence only.
+        $content = '<![CDATA[' . str_replace(']]>', ']]]]><![CDATA[>', $content) . ']]>';
+      }
+
       $vars['themed_rows'][$num][$field] = $content;
     }
   }

@@ -51,7 +51,7 @@ class CSVExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
         'field' => 'id',
         'relationship' => 'none',
         // Add a label to include HTML
-        'label' => '<strong>ID</strong>',
+        'label' => '<strong id="id">ID</strong>',
       ),
       'name' => array(
         'id' => 'name',
@@ -76,7 +76,7 @@ class CSVExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
       'keep_html' => TRUE,
     );
 
-    $expected = '"<strong>ID</strong>","Name","Age"
+    $expected = '"<strong id=""id"">ID</strong>","Name","Age"
 "1","<em>John</em>","25"
 "2","<em>George</em>","27"
 "3","<em>Ringo</em>","28"
@@ -103,6 +103,109 @@ class CSVExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
     $message = 'Keep HTML reverse test in ' . $this->vde_export_type . ' export matched expected output.';
 
     $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
+  /**
+   * Test to ensure that HTML tags are kept in CSV files when requested.
+   */
+  protected function testTrimFields() {
+    $view = $this->getBasicExportView();
+
+    $display = $view->display['default']->handler;
+
+    $display->override_option('fields', array(
+      'id' => array(
+        'id' => 'id',
+        'table' => 'views_test',
+        'field' => 'id',
+        'relationship' => 'none',
+        'label' => 'ID',
+      ),
+      'name' => array(
+        'id' => 'name',
+        'table' => 'views_test',
+        'field' => 'name',
+        'relationship' => 'none',
+        // Alter this field to include HTML.
+        'alter' => array(
+          'alter_text' => TRUE,
+          'text' => ' [name]  ',
+        ),
+      ),
+      'age' => array(
+        'id' => 'age',
+        'table' => 'views_test',
+        'field' => 'age',
+        'relationship' => 'none',
+      ),
+    ));
+
+    $style_options = array(
+      'trim' => FALSE,
+    );
+
+    $expected = '"ID","Name","Age"
+"1"," John  ","25"
+"2"," George  ","27"
+"3"," Ringo  ","28"
+"4"," Paul  ","26"
+"5"," Meredith  ","30"';
+
+    $message = 'Trim reverse test in ' . $this->vde_export_type . ' export matched expected output.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+
+    // And now make sure that trimming works as expected.
+    $style_options = array(
+      'trim' => TRUE,
+    );
+
+    $expected = '"ID","Name","Age"
+"1","John","25"
+"2","George","27"
+"3","Ringo","28"
+"4","Paul","26"
+"5","Meredith","30"';
+
+    $message = 'Trim test in ' . $this->vde_export_type . ' export matched expected output.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
+  /**
+   * Test to ensure that Encoding options work.
+   */
+  protected function testIconvEncoding() {
+    $view = $this->getBasicExportView();
+
+    db_update('views_test')
+      ->fields(array('name' => 'Jo€hn'))
+      ->condition('name', 'John')
+      ->execute();
+
+    $encodings = array(
+      'ISO-8859-1//TRANSLIT' => 'EUR',
+      'utf8_decode' => '?',
+    );
+
+    foreach ($encodings as $encoding => $conversion) {
+
+      $style_options = array(
+        'encoding' => $encoding,
+      );
+
+      $expected = '"ID","Name","Age"
+"1","Jo' . $conversion . 'hn","25"
+"2","George","27"
+"3","Ringo","28"
+"4","Paul","26"
+"5","Meredith","30"';
+
+      $message = 'Character encoding ' . $encoding . ' worked correctly.';
+
+      $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+    }
+
   }
 
 }
