@@ -131,7 +131,7 @@ function entityfilter_filter($text, $filter){
                 if($value && is_string($value)){
                   $replaced = TRUE;
                   $text = str_replace($match, $value, $text);
-                } else if(is_array($value) && isset($value['value'])){
+                } else if(is_array($value) && isset($value['value']) && is_string($value['value'])){
                   $replaced = TRUE;
                   $text = str_replace($match, $value['value'], $text);
                 }
