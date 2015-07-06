@@ -16,8 +16,8 @@ function scratchpads_tweaks_install(){
       watchdog('scratchpads_tweaks_install', $message);
     }
   }
-  // In order for testing to work, we need to go no further at this point so that
-  // the minimal_install() function does not barf.
+  // In order for testing to work, we need to go no further at this point so
+  // that the minimal_install() function does not barf.
   $backtrace = debug_backtrace();
   if(count($backtrace) > 4){
     if(isset($backtrace[4]['file'])){
@@ -260,7 +260,8 @@ function scratchpads_tweaks_install(){
   ));
   variable_set('comment_page', COMMENT_NODE_HIDDEN);
   variable_set('node_submitted_page', TRUE);
-  // Enable user picture support and set the default to a square thumbnail option.
+  // Enable user picture support and set the default to a square thumbnail
+  // option.
   variable_set('user_pictures', '1');
   variable_set('user_picture_dimensions', '1024x1024');
   variable_set('user_picture_file_size', '800');
@@ -426,12 +427,10 @@ function scratchpads_tweaks_update_7002(){
 
 /**
  * Update WYSIWYG and filter formats.
- *
  * scratchpads_tweaks_update_7003 - Removed. No longer required.
  */
 /**
  * Set the default for all comment forms to be on a separate page.
- *
  * 7004 removed due to an error.
  */
 function scratchpads_tweaks_update_7005(){
@@ -558,14 +557,11 @@ function scratchpads_tweaks_update_7008(){
 }
 
 /**
- * REMOVED 7011 - REPLACED BY 7026.
- * REMOVED 7012 - REPLACED BY 7026.
+ * REMOVED 7011 - REPLACED BY 7026. REMOVED 7012 - REPLACED BY 7026.
  */
 /**
  * Disable the wysiwyg module and enable the ckeditor module.
- *
  * Updated to 7014 to set the forcePasteAsPlainText option.
- *
  * NOTE. IF THIS FUNCTION NAME IS CHANGED, IT MUST BE CHANGED IN THE INSTALL
  * FUNCTION ABOVE.
  */
@@ -900,12 +896,11 @@ function scratchpads_tweaks_update_7025(){
 
 /**
  * Enable the twitter script module.
- *
  * Removed - the module has been removed from Scratchpads
  */
 /**
- * Add the twitter script filter.
- * Removed - the module has been removed from Scratchpads
+ * Add the twitter script filter. Removed - the module has been removed from
+ * Scratchpads
  */
 /**
  * Add h1, h2 and div tags.
@@ -944,7 +939,6 @@ function scratchpads_tweaks_update_7030(){
 
 /**
  * Enable comment_notify for ALL content types.
- *
  * DO NOT RENAME THIS FUNCTION WITHOUT UPDATING THE CALL ABOVE.
  */
 function scratchpads_tweaks_update_7032(){
@@ -982,7 +976,6 @@ function scratchpads_tweaks_update_7034(){
 
 /**
  * Add HTMLPurifier module.
- *
  * Removed code as could result in an error if run on a site once the
  * htmlpurifier module has been removed.
  */
@@ -1005,8 +998,8 @@ function scratchpads_tweaks_update_7038(){
 }
 
 /**
- * Set the "body" field to be weight "0".
- * Set the "field_taxonomic_name" field to be weight "-3".
+ * Set the "body" field to be weight "0". Set the "field_taxonomic_name" field
+ * to be weight "-3".
  */
 function scratchpads_tweaks_update_7039(){
   // Update the weight of all "body" instances.
@@ -1074,7 +1067,6 @@ function scratchpads_tweaks_update_7043(){
 
 /**
  * Drop the primary key from the file_display table.
- *
  * Renamed from from scratchpads_tweaks_update_7044.
  */
 function scratchpads_tweaks_update_7046(){
@@ -1423,8 +1415,7 @@ function scratchpads_tweaks_update_7077(){
 }
 
 /**
- * Don't set the error reporting level.
- * We use aegir's global includes file to
+ * Don't set the error reporting level. We use aegir's global includes file to
  * set this, so now dev machines can easily set their own value too.
  */
 function scratchpads_tweaks_update_7078(){
@@ -1441,8 +1432,8 @@ function scratchpads_tweaks_update_7078(){
 }
 
 /**
- * Uninstall Google Scholar module (Google broke it).
- * Enable the Taxonomy revisions modules.
+ * Uninstall Google Scholar module (Google broke it). Enable the Taxonomy
+ * revisions modules.
  */
 function scratchpads_tweaks_update_7079(){
   module_disable(array(
@@ -1475,7 +1466,7 @@ function scratchpads_tweaks_update_7081(){
   variable_set('advagg_gzip', TRUE);
   variable_set('advagg_core_groups', FALSE);
   variable_set('advagg_use_httprl', FALSE);
-  variable_set('advagg_cache_level', 1);
+  variable_set('advagg_cache_level', 3);
   variable_set('advagg_combine_css_media', 1);
   variable_set('advagg_ie_css_selector_limiter', 1);
   variable_set('advagg_ie_css_selector_limiter_value', 4095);
@@ -1488,6 +1479,8 @@ function scratchpads_tweaks_update_7081(){
   variable_set('advagg_js_inline_compressor', 1);
   variable_set('advagg_js_inline_compress_if_not_cacheable', 1);
   variable_set('advagg_js_compress_packer', 1);
+  variable_set('advagg_use_httprl', 1);
+  variable_set('drupal_http_request_function', 'httprl_override_core');
 }
 
 /**
@@ -1629,4 +1622,11 @@ function scratchpads_tweaks_update_7093(){
       db_delete($table_name)->condition('entity_type', 'node')->condition('revision_id', $subquery, 'NOT IN')->execute();
     }
   }
+}
+
+/**
+ * Use httprl for advagg building.
+ */
+function scratchpads_tweaks_update_7094(){
+  scratchpads_tweaks_update_7081();
 }
