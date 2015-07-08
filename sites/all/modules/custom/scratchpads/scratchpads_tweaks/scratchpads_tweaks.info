@@ -47,6 +47,7 @@ dependencies[] = entityconnect
 dependencies[] = feeds_oai_pmh
 dependencies[] = globalredirect
 dependencies[] = gravatar
+dependencies[] = httprl
 dependencies[] = imagemagick
 dependencies[] = link
 dependencies[] = linkit
