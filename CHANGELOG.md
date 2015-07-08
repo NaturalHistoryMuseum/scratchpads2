@@ -1,3 +1,7 @@
+2.7.1.4 (2015-07-08)
+
+- Only convert LANGUAGE_NONE values in node entities (#4426)
+
 2.7.1.3 (2015-07-03)
 
 - Upgraded views_data_export module to 7.x-3.0beta8
