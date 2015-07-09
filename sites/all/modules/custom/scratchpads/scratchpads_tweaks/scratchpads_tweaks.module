@@ -568,6 +568,10 @@ function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
     unset($implementations['scratchpads_tweaks']);
     $implementations['scratchpads_tweaks'] = $move;
   }
+  // Remove the hook_requirements from the httprl module - IT'S FUCKING STUPID!
+  if($hook == 'requirements'){
+    unset($implementations['httprl']);
+  }
 }
 
 /**
