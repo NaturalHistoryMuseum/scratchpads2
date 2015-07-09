@@ -1,3 +1,8 @@
+2.7.1.5 (2015-07-09)
+
+- Check the field_langauge of all fields and tweak the values accordingly
+  (#4426)
+
 2.7.1.4 (2015-07-08)
 
 - Only convert LANGUAGE_NONE values in node entities (#4426)
