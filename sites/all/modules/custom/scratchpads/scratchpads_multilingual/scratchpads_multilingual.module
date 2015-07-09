@@ -344,17 +344,12 @@ function scratchpads_multilingual_field_attach_load($entity_type, $queried_entit
       if(count($queried_entities[$id]->{$instance['field_name']})){
         $field = field_info_field_by_id($instance['field_id']);
         if($field['translatable']){
-          switch($entity_type){
-            case 'node':
-              if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
-                $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
-              }
-              break;
-            case 'taxonomy_term':
-              $vocabulary = taxonomy_vocabulary_load($entity->vid);
-              $entity->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($entity->{$instance['field_name']}, (function_exists('i18n_taxonomy_vocabulary_mode') ? !i18n_taxonomy_vocabulary_mode($vocabulary) : TRUE));
-              break;
+          $language = field_language($entity_type, $entity, $field['field_name']);
+          $set_to_language_none = FALSE;
+          if($language == LANGUAGE_NONE){
+            $set_to_language_none = TRUE;
           }
+          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']}, $set_to_language_none);
         }
       }
     }
@@ -386,17 +381,12 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
           ;
         }
         if($field['translatable']){
-          switch($entity_type){
-            case 'node':
-              if(isset($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE]) && count($queried_entities[$id]->{$instance['field_name']}[LANGUAGE_NONE])){
-                $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']});
-              }
-              break;
-            case 'taxonomy_term':
-              $vocabulary = taxonomy_vocabulary_load($entity->vid);
-              $entity->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($entity->{$instance['field_name']}, (function_exists('i18n_taxonomy_vocabulary_mode') ? !i18n_taxonomy_vocabulary_mode($vocabulary) : TRUE));
-              break;
+          $language = field_language($entity_type, $entity, $field['field_name']);
+          $set_to_language_none = FALSE;
+          if($language == LANGUAGE_NONE){
+            $set_to_language_none = TRUE;
           }
+          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']}, $set_to_language_none);
         }
       }
     }
@@ -409,54 +399,52 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
  * be merged into other languages. Note, this function is only called on arrays
  * that HAVE LANGUAGE_NONE values, so there is no need to check that first.
  */
-function _scratchpads_multilingual_merge_language_none_values($values, $set_to_language_none){
+function _scratchpads_multilingual_merge_language_none_values($values, $set_to_language_none = FALSE){
   $languages = language_list('enabled');
-  switch($set_to_language_none){
-    case TRUE:
-      $hashes = array();
-      foreach($values[LANGUAGE_NONE] as $id => $value){
-        $hash = md5(serialize($value));
-        $hashes[$hash] = $hash;
-      }
-      // First we loop through the language we are merging into, and create
-      // hashes
-      // of each value which we can then compare against.
-      foreach($languages[1] as $language){
-        if(isset($values[$language->language])){
-          foreach($values[$language->language] as $id => $value){
-            $hash = md5(serialize($value));
-            if(!isset($hashes[$hash])){
-              $hashes[$hash] = $hash;
-              $values[LANGUAGE_NONE][] = $value;
-            }
-          }
-        }
-      }
-      break;
-    case FALSE:
-      // First we loop through the language we are merging into, and create
-      // hashes
-      // of each value which we can then compare against.
-      foreach($languages[1] as $language){
-        $hashes = array();
-        if(isset($values[$language->language])){
-          foreach($values[$language->language] as $id => $value){
-            $hash = md5(serialize($value));
-            $hashes[$hash] = $hash;
-          }
-        }
-        // Now we loop through the undefined language, and add any values that
-        // are
-        // not
-        // in the current language to the current language
-        foreach($values[LANGUAGE_NONE] as $id => $value){
+  if($set_to_language_none){
+    $hashes = array();
+    foreach($values[LANGUAGE_NONE] as $id => $value){
+      $hash = md5(serialize($value));
+      $hashes[$hash] = $hash;
+    }
+    // First we loop through the language we are merging into, and create
+    // hashes
+    // of each value which we can then compare against.
+    foreach($languages[1] as $language){
+      if(isset($values[$language->language])){
+        foreach($values[$language->language] as $id => $value){
           $hash = md5(serialize($value));
           if(!isset($hashes[$hash])){
-            $values[$language->language][] = $value;
+            $hashes[$hash] = $hash;
+            $values[LANGUAGE_NONE][] = $value;
           }
         }
       }
-      unset($values[LANGUAGE_NONE]);
+    }
+  }else{
+    // First we loop through the language we are merging into, and create
+    // hashes
+    // of each value which we can then compare against.
+    foreach($languages[1] as $language){
+      $hashes = array();
+      if(isset($values[$language->language])){
+        foreach($values[$language->language] as $id => $value){
+          $hash = md5(serialize($value));
+          $hashes[$hash] = $hash;
+        }
+      }
+      // Now we loop through the undefined language, and add any values that
+      // are
+      // not
+      // in the current language to the current language
+      foreach($values[LANGUAGE_NONE] as $id => $value){
+        $hash = md5(serialize($value));
+        if(!isset($hashes[$hash])){
+          $values[$language->language][] = $value;
+        }
+      }
+    }
+    unset($values[LANGUAGE_NONE]);
   }
   return $values;
 }
