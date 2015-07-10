@@ -292,7 +292,7 @@ function silver_access_callback(){
  */
 function silver_get_silvers(){
   global $user;
-  $cache = cache_get('silvers:' . $user->uid);
+  $cache = cache_get('silvers:' . implode('.',array_keys($user->roles)));
   if(empty($cache->data)){
     $silvers_we_can_access = array();
     $modules = module_implements('silver');
