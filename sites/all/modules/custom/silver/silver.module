@@ -291,24 +291,31 @@ function silver_access_callback(){
  * Get an array of the silvers we can access
  */
 function silver_get_silvers(){
-  $silvers_we_can_access = array();
-  $modules = module_implements('silver');
-  foreach($modules as $module){
-    $silvers = call_user_func($module . '_silver');
-    foreach($silvers as $info){
-      // Include the file
-      if(isset($info['file'])){
-        require_once (drupal_get_path('module', $module) . '/' . $info['file']);
-      }
-      $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
-      if(call_user_func_array($callback, $info['access arguments'])){
-        $info['module'] = $module;
-        $silvers_we_can_access[] = $info;
+  global $user;
+  $cache = cache_get('silvers:' . $user->uid);
+  if(empty($cache->data)){
+    $silvers_we_can_access = array();
+    $modules = module_implements('silver');
+    foreach($modules as $module){
+      $silvers = call_user_func($module . '_silver');
+      foreach($silvers as $info){
+        // Include the file
+        if(isset($info['file'])){
+          require_once (drupal_get_path('module', $module) . '/' . $info['file']);
+        }
+        $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+        if(call_user_func_array($callback, $info['access arguments'])){
+          $info['module'] = $module;
+          $silvers_we_can_access[] = $info;
+        }
       }
     }
+    usort($silvers_we_can_access, 'silvers_array_sort');
+    drupal_alter('silver', $silvers_we_can_access);
+    cache_set('silvers:'.$user->uid, $silvers_we_can_access);
+  }else{
+    $silvers_we_can_access = $cache->data;
   }
-  usort($silvers_we_can_access, 'silvers_array_sort');
-  drupal_alter('silver', $silvers_we_can_access);
   return $silvers_we_can_access;
 }
 
