@@ -571,7 +571,7 @@ function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
   // Remove the hook_requirements from the httprl and advagg modules. They're
   // both a little stupid, and DO NOT need to run every time an admin page is
   // loaded.
-  if($hook == 'requirements'){
+  if($hook == 'requirements' && variable_get('scratchpads_remove_requirements', TRUE)){
     unset($implementations['httprl'], $implementations['advagg'], $implementations['varnish']);
   }
 }
