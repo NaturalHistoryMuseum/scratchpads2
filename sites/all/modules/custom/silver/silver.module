@@ -6,7 +6,9 @@ include_once ('silver.features.inc');
  */
 function silver_feeds_presave(FeedsSource $source, $entity){
   // We do nothing if this is a user entity.
-  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){return;}
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    return;
+  }
   // Set the UID.
   if(isset($entity->uid) && !$entity->uid){
     global $user;
@@ -31,8 +33,7 @@ function silver_feeds_presave(FeedsSource $source, $entity){
     try{
       $lang = field_language($entity_type, $entity, 'field_taxonomic_name');
       $entity->title = $entity->field_taxonomic_name[$lang][0]['value'];
-    }
-    catch(Exception $e){
+    }catch(Exception $e){
       ; // Oh well, that didn't work!
     }
   }
@@ -159,19 +160,16 @@ function silver_menu(){
 function silver_import_taxonomy(){
   $vocabularies = taxonomy_get_vocabularies();
   foreach($vocabularies as $vocabulary){
-    if(user_access('edit terms in ' . $vocabulary->vid)){return TRUE;}
+    if(user_access('edit terms in ' . $vocabulary->vid)){
+      return TRUE;
+    }
   }
   return FALSE;
 }
 
 /**
- * Implementation of hook_silver().
- * 
- * * type
- * * name
- * * access arguments
- * * file
- * * form_id
+ * Implementation of hook_silver(). * type * name * access arguments * file *
+ * form_id
  */
 function silver_silver(){
   // Here we tell ourselves about the Feeds module forms, and such like.
@@ -179,10 +177,10 @@ function silver_silver(){
     array(
       'type' => 'Nodes',
       'name' => 'Excel file import',
-      //'access callback' => 'user_access',
+      // 'access callback' => 'user_access',
       'access arguments' => array(
-        'create page content' // FIXME
-      ),
+        'create page content'
+      ), // FIXME
       'form_id' => 'silver_pages_excel_form'
     ),
     array(
@@ -214,16 +212,16 @@ function silver_silver(){
       array(
         'type' => 'Nodes',
         'name' => 'CSV file import',
-        //'access callback' => 'user_access',
+        // 'access callback' => 'user_access',
         'access arguments' => array(
-          'create page content' // FIXME
-        ),
+          'create page content'
+        ), // FIXME
         'form_id' => 'silver_pages_csv_form'
       ),
       array(
         'type' => 'Taxonomy',
         'name' => 'CSV file import',
-        //'access callback' => 'user_access',
+        // 'access callback' => 'user_access',
         'access arguments' => array(
           'administer taxonomy'
         ),
@@ -252,7 +250,7 @@ function silver_silver(){
       array(
         'type' => 'Taxonomy',
         'name' => 'Scratchpads Classification Service',
-        //'access callback' => 'user_access',
+        // 'access callback' => 'user_access',
         'access arguments' => array(
           'administer taxonomy'
         ),
@@ -280,8 +278,8 @@ function biblio_silver(){
 }
 
 /**
- * If one import method that supports silver allows access to this user, then
- * we allow the user to view the form.
+ * If one import method that supports silver allows access to this user, then we
+ * allow the user to view the form.
  */
 function silver_access_callback(){
   // Note, this function conveniently loads all the required files for us,
@@ -319,7 +317,9 @@ function silver_get_silvers(){
  */
 function silvers_array_sort($a, $b){
   $type_diff = strcmp($a['type'], $b['type']);
-  if($type_diff !== 0){return $type_diff;}
+  if($type_diff !== 0){
+    return $type_diff;
+  }
   return strcmp($a['name'], $b['name']);
 }
 
@@ -606,7 +606,7 @@ function silver_pages_excel_form(){
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
     if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
-      //'biblio',
+      // 'biblio',
       'media_gallery'
     )))){
       $content_types['node_importer_' . $node_type . '_xls'] = $node_type_info['label'];
@@ -636,7 +636,7 @@ function silver_pages_csv_form(){
   $entity_info = entity_get_info('node');
   foreach($entity_info['bundles'] as $node_type => $node_type_info){
     if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
-      //'biblio',
+      // 'biblio',
       'media_gallery'
     )))){
       $content_types['node_importer_' . $node_type . '_csv'] = $node_type_info['label'];
