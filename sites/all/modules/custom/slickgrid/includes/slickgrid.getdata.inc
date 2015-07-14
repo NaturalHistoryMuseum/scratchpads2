@@ -205,6 +205,8 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   }else{
     $path = $referer['path'];
   }
+  $lang_path = language_url_split_prefix($path, language_list());
+  $path = $lang_path[1];
   $path = explode('/', $path);
   $argumnets = array();
   foreach($view->display['default']->display_options['arguments'] as $argument){
