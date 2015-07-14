@@ -3,6 +3,7 @@
 function scratchpads_sandbox_install(){
   // Clear caches first to ensure that we have the fields and other shizzle that
   // we require.
+  ini_set('max_execution_time', 300);
   drupal_flush_all_caches();
   variable_set('site_name', 'Scratchpad Sandbox');
   variable_set('site_mail', 'scratchpad@nhm.ac.uk');
