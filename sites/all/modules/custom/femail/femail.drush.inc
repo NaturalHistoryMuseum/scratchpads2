@@ -228,6 +228,8 @@ function _femail_post_forum_topic($msg, $user, $status){
   $term = taxonomy_term_load($tid);
   $node = new stdClass();
   $node->uid = $user->uid;
+  $node->type = 'forum';
+  node_object_prepare($node);
   $lang = field_language('node', $node, 'body');
   $node->body = array(
     $lang => array(
@@ -238,7 +240,6 @@ function _femail_post_forum_topic($msg, $user, $status){
   );
   $node->comment = variable_get('comment_forum', COMMENT_NODE_OPEN);
   $node->title = $msg['title'];
-  $node->type = 'forum';
   $node->taxonomy = array(
     $term->vid => $tid
   );
