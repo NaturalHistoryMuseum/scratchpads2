@@ -572,7 +572,7 @@ function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
   // both a little stupid, and DO NOT need to run every time an admin page is
   // loaded.
   if($hook == 'requirements' && variable_get('scratchpads_remove_requirements', TRUE)){
-    unset($implementations['httprl'], $implementations['advagg'], $implementations['varnish'], $implementations['update']);
+    unset($implementations['httprl'], $implementations['advagg'], $implementations['varnish'], $implementations['update'], $implementations['apachesolr']);
   }
 }
 
