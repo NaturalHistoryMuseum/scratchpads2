@@ -61,7 +61,7 @@ function eolapi_tools_pre_disable(){
   return array(
     'can_disable' => (db_select('eolapi', 'e')->countQuery()->execute()->fetchField() > 100 ? 0 : 1),
     'cannot_disable_message' => t('You cannot disable the EOLAPI module before <a href="!url">deleting the content</a>.', array(
-      '!url' => url('admin/config/eolapi')
+      '!url' => url('admin/config/content/eolapi')
     )),
     'disable_message' => 'All EOLAPI content, including files, will be removed.'
   );
