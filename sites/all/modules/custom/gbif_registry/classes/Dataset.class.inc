@@ -43,9 +43,9 @@ class Dataset extends RegistryChild{
 
   private $homepage;
 
-  private $technicalInstallation;
+  private $installation;
 
-  private $technicalInstallationKey;
+  private $installationKey;
 
   private $identifiers;
 

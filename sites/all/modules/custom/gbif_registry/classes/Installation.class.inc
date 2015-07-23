@@ -21,7 +21,7 @@
  */
 namespace GBIF;
 
-class TechnicalInstallation extends RegistryObject{
+class Installation extends RegistryObject{
 
   /**
    * getURLPrefix
@@ -29,7 +29,7 @@ class TechnicalInstallation extends RegistryObject{
    * @return string
    */
   final public function getURLPrefix(){
-    return 'technical_installation';
+    return 'installation';
   }
 
   public function __toString(){
