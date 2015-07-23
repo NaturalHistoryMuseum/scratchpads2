@@ -132,10 +132,10 @@ class Registry{
   }
 
   /**
-   * Same again, but returning technicalInstallations
+   * Same again, but returning installations
    */
-  public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
-    return new TechnicalInstallations(FALSE, $tag, $name, $isoCountryCode);
+  public function getInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+    return new Installations(FALSE, $tag, $name, $isoCountryCode);
   }
 
   /**

@@ -58,7 +58,7 @@ class RegistryObject extends RegistryChild{
   protected $hostingOrganization;
 
   protected $contacts = array();
-  // Endpoints can be associated with a node/organization/technical_installation
+  // Endpoints can be associated with a node/organization/installation
   protected $endpoints = array();
 
   protected $identifiers = array();
@@ -100,7 +100,7 @@ class RegistryObject extends RegistryChild{
           case 'longitude':
             $this->{$key} = $value;
             break;
-          case 'technicalInstallations':
+          case 'installations':
           case 'contacts':
           case 'endpoints':
           case 'identifiers':
