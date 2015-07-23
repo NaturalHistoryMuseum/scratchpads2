@@ -92,24 +92,24 @@ function gbif_registry_view_object($type = FALSE, $id = FALSE){
           $content['endpoints']['#title'] = t('Endpoints');
         }
       }
-      if(method_exists($class, 'getTechnicalInstallations')){
-        foreach($class->getTechnicalInstallations() as $ti){
-          $content['technicalinstallations'][] = array(
+      if(method_exists($class, 'getInstallations')){
+        foreach($class->getInstallations() as $ti){
+          $content['installations'][] = array(
             '#theme' => 'table',
             '#prefix' => '<div style="margin:3px;">',
             '#suffix' => '</div>',
             '#header' => array(
               array(
-                'data' => 'Technical Installation',
+                'data' => 'Installation',
                 'colspan' => 2
               )
             ),
             '#rows' => gbif_registry_get_as_formatted_array($ti)
           );
         }
-        if(isset($content['technicalinstallations'])){
-          $content['technicalinstallations']['#type'] = 'fieldset';
-          $content['technicalinstallations']['#title'] = t('Technical installations');
+        if(isset($content['installations'])){
+          $content['installations']['#type'] = 'fieldset';
+          $content['installations']['#title'] = t('Installations');
         }
       }
       return $content;

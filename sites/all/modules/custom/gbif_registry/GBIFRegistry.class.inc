@@ -39,7 +39,7 @@ class GBIFRegistry extends GBIF\Registry{
         self::$instance->setPassword($ini['password']);
       }
       // We set the Registry URL based on the settings
-      self::$instance->setRegistryURL(variable_get('gbif_registry_web_service_url', 'http://gbrds.gbif.org/registry/'));
+      self::$instance->setRegistryURL(variable_get('gbif_registry_web_service_url', 'http://api.gbif.org/v1/'));
     }
     return self::$instance;
   }
@@ -74,13 +74,13 @@ class GBIFRegistry extends GBIF\Registry{
   }
 
   /**
-   * Same again, but returning technicalInstallations
+   * Same again, but returning installations
    */
-  public function getTechnicalInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
+  public function getInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     $rc = $this->getRegistryCache();
-    $cid = "all_technicalinstallations:$tag:$name:$isoCountryCode";
+    $cid = "all_installations:$tag:$name:$isoCountryCode";
     if($cache = $rc->retrieve($cid)){return $cache;}
-    $tis = parent::getTechnicalInstallations();
+    $tis = parent::getInstallations();
     $cache_tis = array();
     foreach($tis as $ti){
       $cache_tis[] = $ti;

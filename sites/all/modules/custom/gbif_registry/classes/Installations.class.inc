@@ -21,12 +21,12 @@
  */
 namespace GBIF;
 
-class TechnicalInstallations extends Iterator{
+class Installations extends Iterator{
 
   protected $supportsPaging = TRUE;
   // We set a default path of "organization" for simplicity as this class can be
   // called direct from the Registry class.
-  protected $path = 'technical_installation';
+  protected $path = 'installation';
 
   public function __construct($path = FALSE, $tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
     if($path){
@@ -52,7 +52,7 @@ class TechnicalInstallations extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new TechnicalInstallation($value);
+        $this->results[$key] = new Installation($value);
       }
     }
   }
