@@ -26,17 +26,17 @@ function scratchpads_gbif_registry_client_install($uuid = FALSE){
     watchdog('scratchpads_gbif_registry', 'Updated GBIF Registry for UUID: !uuid', array(
       '!uuid' => $uuid
     ));
-    $ti = new GBIF\TechnicalInstallation($uuid);
+    $ti = new GBIF\Installation($uuid);
     $ti->setTitle(variable_get('site_name', 'Scratchpad'));
     $ti->setHomepage(url('', array(
       'absolute' => TRUE
     )));
     $ti->save();
   }else{
-    // We need to create a new TechnicalInstallation from the Scratchpad
+    // We need to create a new Installation from the Scratchpad
     // organization.
     $organization = new GBIF\Organization(SCRATCHPAD_ORGANIZATION);
-    $ti = $organization->addTechnicalInstallation(array(
+    $ti = $organization->addInstallation(array(
       'title' => variable_get('site_name', 'Scratchpad'),
       'homepage' => url('', array(
         'absolute' => TRUE

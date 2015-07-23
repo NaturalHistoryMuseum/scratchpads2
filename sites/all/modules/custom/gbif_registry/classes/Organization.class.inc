@@ -23,7 +23,7 @@ namespace GBIF;
 
 class Organization extends RegistryObject{
 
-  protected $technicalInstallations = array();
+  protected $installations = array();
 
   final public function getURLPrefix(){
     return 'organization';
@@ -41,25 +41,25 @@ class Organization extends RegistryObject{
   }
 
   /**
-   * Get the technical installations.
+   * Get the installations.
    *
-   * @return \GBIF\TechnicalInstallations
+   * @return \GBIF\Installations
    */
-  public function getTechnicalInstallations(){
-    return new TechnicalInstallations($this->getURLPrefix() . "/{$this->key}/technical_installation");
+  public function getInstallations(){
+    return new Installations($this->getURLPrefix() . "/{$this->key}/installation");
   }
 
   /**
-   * Add a single technical installation.
+   * Add a single installation.
    *
-   * @return \GBIF\TechnicalInstallation
+   * @return \GBIF\Installation
    */
-  public function addTechnicalInstallation($ti){
+  public function addInstallation($ti){
     // Ensure we have been sent an array.
     if(!is_array($ti)){return FALSE;}
     // Set the key to this organization's key.
     $ti['hostingOrganizationKey'] = $this->getKey();
-    $ti = new TechnicalInstallation($ti);
+    $ti = new Installation($ti);
     $ti->save();
     return $ti;
   }

@@ -77,15 +77,15 @@ function gbif_registry_menu(){
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
     ),
-    'admin/config/services/gbif_registry/browse/technicalInstallations' => array(
-      'title' => 'Technical installations',
-      'description' => t('Lists all "technical installations" held in the registry.'),
+    'admin/config/services/gbif_registry/browse/installations' => array(
+      'title' => 'Installations',
+      'description' => t('Lists all "installations" held in the registry.'),
       'page callback' => 'gbif_registry_browse_page',
       'access arguments' => array(
         'view gbif registry data'
       ),
       'page arguments' => array(
-        'TechnicalInstallations'
+        'Installations'
       ),
       'type' => MENU_LOCAL_TASK,
       'file' => 'gbif_registry.admin.inc'
