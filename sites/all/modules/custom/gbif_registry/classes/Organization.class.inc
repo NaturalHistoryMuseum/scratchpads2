@@ -58,7 +58,7 @@ class Organization extends RegistryObject{
     // Ensure we have been sent an array.
     if(!is_array($ti)){return FALSE;}
     // Set the key to this organization's key.
-    $ti['hostingOrganizationKey'] = $this->getKey();
+    $ti['organizationKey'] = $this->getKey();
     $ti = new Installation($ti);
     $ti->save();
     return $ti;

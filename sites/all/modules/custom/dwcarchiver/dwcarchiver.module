@@ -170,6 +170,26 @@ function dwcarchiver_menu(){
 }
 
 /**
+ * Implements hook_gbif_registry_endpoints
+ */
+function dwcarchiver_gbif_registry_endpoints(){
+  $endpoints = array();
+  foreach(dwcarchiver_load_all() as $archive){
+    // We only add the gbif-dwca as an endpoint.
+    if($archive->machine_name == 'gbif-dwca'){
+      $url = url($archive->machine_name . '.zip', array(
+        'absolute' => TRUE
+      ));
+      $endpoints[$url] = array(
+        'url' => $url,
+        'type' => 'DWC_ARCHIVE'
+      );
+    }
+  }
+  return $endpoints;
+}
+
+/**
  * Page title which takes a dwcarchiver object and extracts the label.
  */
 function dwcarchiver_title($title, $dwcarchiver){
@@ -196,7 +216,6 @@ function dwcarchiver_theme($existing, $type, $theme, $path){
 
 /**
  * Return the dwcarchiver object matching a machine name.
- *
  */
 function dwcarchiver_machine_name_load($name){
   $did = db_select('dwcarchiver_archive', 'd')->fields('d', array(
@@ -206,7 +225,9 @@ function dwcarchiver_machine_name_load($name){
     return dwcarchiver_load($did);
   }else{
     foreach(dwcarchiver_load_all() as $archive){
-      if($archive->machine_name == $name){return $archive;}
+      if($archive->machine_name == $name){
+        return $archive;
+      }
     }
   }
   return FALSE;
@@ -225,9 +246,8 @@ function dwcarchiver_extension_machine_name_load($name, $element = FALSE, $form_
 }
 
 /**
- * Implements hook_menu_alter()
- * 
- * Add the DwC-A paths as defined in the settings above.
+ * Implements hook_menu_alter() Add the DwC-A paths as defined in the settings
+ * above.
  */
 function dwcarchiver_menu_alter(&$items){
   foreach(dwcarchiver_load_all() as $archive){
@@ -305,10 +325,8 @@ function dwcarchiver_load($did){
 }
 
 /**
- * Load function to load ALL dwcarchives and return them, along with the archives
- * that are stored in code.
- * 
- * FIXME - This needs caching or speeding up!
+ * Load function to load ALL dwcarchives and return them, along with the
+ * archives that are stored in code. FIXME - This needs caching or speeding up!
  */
 function dwcarchiver_load_all($reset = FALSE){
   $cache = FALSE;
@@ -454,7 +472,9 @@ function dwcarchiver_get_processors($field_type = 'ALL', $reset = FALSE){
       cache_set('all_processors', $processors, 'cache_dwcarchiver');
     }
   }
-  if($field_type == 'ALL'){return $processors;}
+  if($field_type == 'ALL'){
+    return $processors;
+  }
   // We filter out the processors we can accept.
   $processors_to_return = array();
   foreach($processors as $key => $processor){
@@ -816,7 +836,7 @@ function dwcarchiver_entity_update($entity, $type){
  * Rebuild the archive files on cron.
  */
 function dwcarchiver_cron(){
-  // We only rebuild one archive at a time, so if we have three archives, we 
+  // We only rebuild one archive at a time, so if we have three archives, we
   // need three cron runs to rebuild them all.
   $when = variable_get('dwcarchiver_rebuild_frequency', 'change');
   $last = variable_get('dwcarchiver_last_cron_run', array());

@@ -28,19 +28,27 @@ class Endpoint extends RegistryChild{
   protected $url;
 
   protected $type;
+  
+  protected $parent;
 
-  public function __construct($data = FALSE){
+  public function __construct($data = FALSE, $parent){
+    $this->parent = $parent;
     if($data){
       foreach($data as $key => $value){
         switch($key){
           case 'id':
           case 'type':
           case 'url':
+          case 'machineTags':
             $this->{$key} = $value;
             break;
         }
       }
     }
+  }
+  
+  public function getURLPrefix(){
+    return 'endpoint';
   }
 
   public function getID(){

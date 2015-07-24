@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -21,7 +22,7 @@
  */
 namespace GBIF;
 
-class RegistryChild{
+class RegistryChild {
 
   public function __construct(){}
 
@@ -31,5 +32,19 @@ class RegistryChild{
 
   public function __toString(){
     return (isset($this->key) ? $this->key . ': ' : '') . (isset($this->title) ? $this->title : '');
+  }
+
+  public function save(){
+    if($this->key){
+      // A key has already been set. This object already exists on the server,
+      // and therefore just needs updating.
+    }else{
+      // No key, we simply need to create a new object, and save the key.
+      $this->key = json_decode(Registry::singleton()->post($this->parent->getURLPrefix() . '/' . $this->parent->getKey() . '/' . $this->getURLPrefix(), json_encode($this->getAsArray())), TRUE);
+      if(!$this->key){
+        // An error occurred. PANIC!
+        throw new Exception('Unable to save object');
+      }
+    }
   }
 }
