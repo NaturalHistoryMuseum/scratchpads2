@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -21,13 +22,13 @@
  */
 namespace GBIF;
 
-class Contact extends RegistryChild{
+class Contact extends RegistryChild {
 
-  protected $id;
+  protected $key;
 
   protected $type;
 
-  protected $preferred;
+  protected $primary;
 
   protected $networkEntityKey;
 
@@ -43,7 +44,10 @@ class Contact extends RegistryChild{
 
   protected $address;
 
-  public function __construct($data = FALSE){
+  protected $parent;
+
+  public function __construct($data = FALSE, $parent){
+    $this->parent = $parent;
     if($data){
       foreach($data as $key => $value){
         $this->{$key} = $value;
@@ -57,5 +61,9 @@ class Contact extends RegistryChild{
     }else{
       return "Contact ID: {$this->id}";
     }
+  }
+  
+  public function getURLPrefix(){
+    return 'contact';
   }
 }

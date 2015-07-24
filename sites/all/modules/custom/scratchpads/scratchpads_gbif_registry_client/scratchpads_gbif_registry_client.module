@@ -5,17 +5,70 @@ define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
  * Implements hook_cron().
  */
 function scratchpads_gbif_registry_client_cron(){
-  // Go no further if we're not the right profile.
-  if(!in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles())){
-    watchdog('scratchpads_gbif_registry', 'Not registering this site');
-    return;
-  }
-  if(variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 > time()){return;}
-  // Once a week we update the information that GBIF holds about us.
-  module_load_include('install', 'scratchpads_gbif_registry_client');
-  scratchpads_gbif_registry_client_install(variable_get('scratchpads_gbif_registry_client_uuid', FALSE));
-  if(variable_get('scratchpads_gbif_registry_client_uuid', FALSE)){
-    variable_set('scratchpads_gbif_registry_client_last_update', time());
+  // Go no further if we're not the right profile or we updated less than a week
+  // ago.
+  if(in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles()) && variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 < time()){
+    // Once a week we update the information that GBIF holds about us.
+    $registry = GBIFRegistry::singleton();
+    if(($uuid = variable_get('scratchpads_gbif_registry_client_uuid', FALSE)) != FALSE){
+      $installation = new GBIF\Installation($uuid);
+      $installation->setTitle(variable_get('site_name', 'Scratchpad'));
+      $installation->setHomepage(url('', array(
+        'absolute' => TRUE
+      )));
+      $installation->save();
+    }else{
+      // We need to create a new Installation from the Scratchpad
+      // organization.
+      $organization = new GBIF\Organization(SCRATCHPAD_ORGANIZATION);
+      $installation = $organization->addInstallation(array(
+        'title' => variable_get('site_name', 'Scratchpad'),
+        'tags' => array(),
+        'type' => 'HTTP_INSTALLATION'
+      ));
+      variable_set('scratchpads_gbif_registry_client_uuid', $installation->getKey());
+      // Add a technical contact, which is the scratchpads team.
+      $installation->addContact(array(
+        'type' => 'TECHNICAL_POINT_OF_CONTACT',
+        'primary' => false,
+        'firstName' => 'Scratchpads',
+        'lastName' => 'Team',
+        'email' => array(
+          'scratchpads@nhm.ac.uk'
+        )
+      ));
+      $query = db_select('users', 'u')->fields('u', array(
+        'uid'
+      ));
+      // And add all maintainers as "contacts"
+      $query->innerJoin('users_roles', 'ur', 'u.uid = ur.uid');
+      $query->innerJoin('role', 'r', 'ur.rid = r.rid');
+      $query->condition('r.name', 'maintainer');
+      $uids = $query->execute()->fetchCol();
+      $users = user_load_multiple($uids);
+      foreach($users as $user){
+        $installation->addContact(array(
+          'type' => 'POINT_OF_CONTACT',
+          'primary' => FALSE,
+          'firstName' => isset($user->field_user_given_names[LANGUAGE_NONE][0]['value']) ? $user->field_user_given_names[LANGUAGE_NONE][0]['value'] : '',
+          'lastName' => isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) ? $user->field_user_family_name[LANGUAGE_NONE][0]['value'] : '',
+          'email' => array(
+            $user->mail
+          )
+        ));
+      }
+    }
+    // Get a list of endpoints that we need to register for this installation.
+    $endpoints = module_invoke_all('gbif_registry_endpoints');
+    foreach($installation->getEndpoints() as $endpoint){
+      unset($endpoints[$endpoint->getURL()]);
+    }
+    foreach($endpoints as $endpoint){
+      $installation->addEndpoint($endpoint);
+    }
+    if(variable_get('scratchpads_gbif_registry_client_uuid', FALSE)){
+      variable_set('scratchpads_gbif_registry_client_last_update', time());
+    }
   }
 }
 
@@ -31,8 +84,3 @@ function scratchpads_gbif_registry_client_profiles(){
     'emonocot_2_migrate'
   );
 }
-
-/**
- * Implements hook_gbif_registry_endpoint().
- */
-function scratchpads_gbif_registry_client_gbif_registry_endpoint(){}

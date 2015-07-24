@@ -35,7 +35,7 @@ namespace GBIF;
  */
 class Registry{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
-  private $registryURL = 'http://gbrds.gbif.org/registry/';
+  private $registryURL = 'http://api.gbif.org/v1/';
 
   private $organisationKey;
 
@@ -214,6 +214,7 @@ class Registry{
     ));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     $response = curl_exec($ch);
+    $error = curl_error($ch);
     if(!curl_errno($ch)){
       return $response;
     }else{
