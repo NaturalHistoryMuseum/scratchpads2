@@ -170,6 +170,26 @@ function dwcarchiver_menu(){
 }
 
 /**
+ * Implements hook_gbif_registry_endpoints
+ */
+function dwcarchiver_gbif_registry_endpoints(){
+  $endpoints = array();
+  foreach(dwcarchiver_load_all() as $archive){
+    // We only add the gbif-dwca as an endpoint.
+    if($archive->machine_name == 'gbif-dwca'){
+      $url = url($archive->machine_name . '.zip', array(
+        'absolute' => TRUE
+      ));
+      $endpoints[$url] = array(
+        'url' => $url,
+        'type' => 'DWC_ARCHIVE'
+      );
+    }
+  }
+  return $endpoints;
+}
+
+/**
  * Page title which takes a dwcarchiver object and extracts the label.
  */
 function dwcarchiver_title($title, $dwcarchiver){
