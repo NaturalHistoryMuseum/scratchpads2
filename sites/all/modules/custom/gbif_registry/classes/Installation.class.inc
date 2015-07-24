@@ -35,17 +35,4 @@ class Installation extends RegistryObject{
   public function __toString(){
     return trim("{$this->key} {$this->title} - {$this->description}");
   }
-/**
- * Get the datasets
- *
- * FIXME - This function isn't currently listed in the documenation, but
- * probably should be, hence why it is here.
- */
-  // function getDatasets($type = 'hosted'){
-  // if($type == 'hosted' || $type == 'owned'){
-  // return new Datasets($this->getURLPrefix() . "/{$this->key}/dataset/$type");
-  // }else{
-  // // Throw an error.
-  // }
-  // }
 }

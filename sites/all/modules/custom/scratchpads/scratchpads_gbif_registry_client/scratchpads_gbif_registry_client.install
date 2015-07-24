@@ -1,70 +1,9 @@
 <?php
 
 /**
- * Install file for the Scratchpads GBIF registry module.
- *
- * All the work for this module is done in this install file. There should not
- * be any need for any code to run regularly, unless of course registration of
- * the site fails on install.
+ * Clear the scratchpads_gbif_registry_* variables. (Renamed from 7001 and 7002)
  */
-/**
- * Implements hook_install().
- *
- * This funciton should register an individual instance of a Scratchpad with the
- * GBIF registry, and set the scratchpads_gbif_registry_client_uuid variable to
- * the
- * UUID returned by the service. This means we can then register endpoints and
- * associate them with this instance.
- */
-function scratchpads_gbif_registry_client_install($uuid = FALSE){
-  // Ensure we have the module file included.
-  module_load_include('module', 'scratchpads_gbif_registry_client');
-  // We have added a parameter to this to enable us to call this function from
-  // the .module file.
-  $registry = GBIFRegistry::singleton();
-  if($uuid){
-    watchdog('scratchpads_gbif_registry', 'Updated GBIF Registry for UUID: !uuid', array(
-      '!uuid' => $uuid
-    ));
-    $ti = new GBIF\Installation($uuid);
-    $ti->setTitle(variable_get('site_name', 'Scratchpad'));
-    $ti->setHomepage(url('', array(
-      'absolute' => TRUE
-    )));
-    $ti->save();
-  }else{
-    // We need to create a new Installation from the Scratchpad
-    // organization.
-    $organization = new GBIF\Organization(SCRATCHPAD_ORGANIZATION);
-    $ti = $organization->addInstallation(array(
-      'title' => variable_get('site_name', 'Scratchpad'),
-      'homepage' => url('', array(
-        'absolute' => TRUE
-      ))
-    ));
-    variable_set('scratchpads_gbif_registry_client_uuid', $ti->getKey());
-    watchdog('scratchpads_gbif_registry', 'Created new GBIF Registry object with UUID: !uuid', array(
-      '!uuid' => $ti->getKey()
-    ));
-  }
-  // Get a list of endpoints that we need to register for this TI.
-  $endpoints = module_invoke_all('gbif_registry_endpoints');
-  foreach($endpoints as $endpoint){
-    ;
-  }
-}
-
-/**
- * Ensure the 7001 update and any other subsequent updates that erase the site's
- * UUID are not run.
- */
-function scratchpads_gbif_registry_client_update_7000(){}
-
-/**
- * Clear the scratchpads_gbif_registry_* variables.
- * (Renamed from 7001).
- */
-function scratchpads_gbif_registry_client_update_7002(){
+function scratchpads_gbif_registry_client_update_7003(){
   variable_del('scratchpads_gbif_registry_client_last_update');
   variable_del('scratchpads_gbif_registry_client_uuid');
 }

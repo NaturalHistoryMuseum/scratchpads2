@@ -28,10 +28,48 @@ function scratchpads_statistics_block_info(){
  * Implements hook_ctools_plugin_api().
  */
 function scratchpads_statistics_ctools_plugin_api(){
-  list($module, $api) = func_get_args();
-  if($module == "context" && $api == "context"){return array(
+  list ( $module, $api ) = func_get_args();
+  if($module == "context" && $api == "context"){
+    return array(
       "version" => "3"
-    );}
+    );
+  }
+}
+
+/**
+ * Implements hook_gbif_registry_endpoints
+ */
+function scratchpads_statistics_gbif_registry_endpoints(){
+  $endpoints = array();
+  $url = url('login.json', array(
+    'absolute' => TRUE
+  ));
+  $endpoints[$url] = array(
+    'url' => $url,
+    'type' => 'OTHER',
+    'machineTags' => array(
+      array(
+        'namespace' => 'http://scratchpads.eu/',
+        'name' => 'name',
+        'value' => 'scratchpads-statistics-login'
+      )
+    )
+  );
+  $url = url('stats.json', array(
+    'absolute' => TRUE
+  ));
+  $endpoints[$url] = array(
+    'url' => $url,
+    'type' => 'OTHER',
+    'machineTags' => array(
+      array(
+        'namespace' => 'http://scratchpads.eu/',
+        'name' => 'name',
+        'value' => 'scratchpads-statistics'
+      )
+    )
+  );
+  return $endpoints;
 }
 
 /**
@@ -39,11 +77,15 @@ function scratchpads_statistics_ctools_plugin_api(){
  */
 function scratchpads_statistics_block_view($delta = ''){
   // We only display the site block if the aggregator module is enabled.
-  if($delta == 'site' && !module_exists('scratchpads_statistics_aggregator')){return;}
+  if($delta == 'site' && !module_exists('scratchpads_statistics_aggregator')){
+    return;
+  }
   if($delta == 'category'){
     $tagged_sites = db_select('scratchpads_statistics_site_site_type', 's')->fields('s')->countQuery()->execute()->fetchCol();
     $tagged_sites = array_pop($tagged_sites);
-    if(!$tagged_sites){return array();}
+    if(!$tagged_sites){
+      return array();
+    }
   }
   return array(
     'subject' => t('Filter by ' . ucfirst($delta)),
@@ -77,8 +119,8 @@ function scratchpads_statistics_forms($form_id, $args){
 }
 
 /**
- * Allow other modules (namely the scratchpads_setup module) to set the
- * category for this and other sites.
+ * Allow other modules (namely the scratchpads_setup module) to set the category
+ * for this and other sites.
  */
 function scratchpads_statistics_set_site_categories($categories, $site = 1){
   $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
@@ -121,7 +163,9 @@ function scratchpads_statistics_insert_item($item, $table, $key){
       $key
     );
   }
-  if(@isset($items[$table][$itemkey])){return $items[$table][$itemkey];}
+  if(@isset($items[$table][$itemkey])){
+    return $items[$table][$itemkey];
+  }
   $query = db_merge($table);
   foreach($key as $k){
     $query->key(array(
@@ -145,8 +189,8 @@ function scratchpads_statistics_insert_item($item, $table, $key){
 }
 
 /**
- * Allow other modules (namely the scratchpads_setup module) to set the
- * category for this and other sites.
+ * Allow other modules (namely the scratchpads_setup module) to set the category
+ * for this and other sites.
  */
 function scratchpads_statistics_get_site_categories($site = 1){
   $query = db_select('scratchpads_statistics_site_type', 'st');
@@ -390,7 +434,9 @@ function scratchpads_statistics_user_login(&$edit, $account){
   // Check to see if we already have this user's details.
   $row = db_select('scratchpads_statistics_user', 'u')->fields('u')->condition('email', $account->mail)->execute()->fetch();
   // Stop if we already have the data.
-  if($row && $row->latitude){return;}
+  if($row && $row->latitude){
+    return;
+  }
   // We're here, we need to save the data.
   $name = $account->name;
   $country = NULL;
@@ -429,7 +475,7 @@ function scratchpads_statistics_user_login(&$edit, $account){
  * Implements hook_query_TAG_alter().
  */
 function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterableInterface $query){
-  // If we're here, we should have one table, and possibly one field.  We look
+  // If we're here, we should have one table, and possibly one field. We look
   // through each of the fields for the "entity_id" field, and this is then used
   // to left-join to the field_taxonomic_name table.
   foreach($query->getTables() as $table){
@@ -466,7 +512,8 @@ function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterabl
       // the character project).
       $query->innerJoin('node_revision', 'nr', "nr.nid = {$table['alias']}.nid");
       $query->addField('nr', 'uid', 'revision_uid');
-      // Join to the scratchpads_statistics_user table again, but for the revision
+      // Join to the scratchpads_statistics_user table again, but for the
+      // revision
       // user
       $query->innerJoin('users', 'ru', 'ru.uid = nr.uid');
       $query->innerJoin('scratchpads_statistics_user', 'ssu_r', 'ssu_r.email = ru.mail');
@@ -477,9 +524,7 @@ function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterabl
 
 /**
  * Basic function that seems to be missing to deliver JSON to the browser or to
- * another service.
- *
- * Based on ajax_delver (see documentation there).
+ * another service. Based on ajax_delver (see documentation there).
  */
 function json_deliver($json){
   if($json == MENU_ACCESS_DENIED){
@@ -520,13 +565,15 @@ function scratchpads_statistics_permission(){
  * Access callback for the JSON page.
  */
 function scratchpads_statistics_access(){
-  // We allow access from Quartz and from localhost.  Anybody else must
+  // We allow access from Quartz and from localhost. Anybody else must
   // authenticate using a hash.
   if(in_array($_SERVER['REMOTE_ADDR'], array(
     '127.0.0.1',
     '157.140.2.32',
     '157.140.127.32',
     '157.140.127.252'
-  )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){return TRUE;}
+  )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){
+    return TRUE;
+  }
   return FALSE;
 }
