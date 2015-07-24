@@ -100,12 +100,14 @@ class RegistryObject extends RegistryChild{
           case 'longitude':
             $this->{$key} = $value;
             break;
+          case 'tags':
+            $this->{$key} = $value;
+            break;
           case 'installations':
           case 'contacts':
           case 'endpoints':
           case 'identifiers':
-          case 'tags':
-            // We ignore the contacts/endpoints/identifiers/tags, and rely on
+            // We ignore the contacts/endpoints/identifiers, and rely on
             // the /[node|organization|...]/<k1>/[contact|identifier|...]
             // service
             break;
@@ -211,10 +213,9 @@ class RegistryObject extends RegistryChild{
       $this->key = json_decode(Registry::singleton()->post($this->getURLPrefix(), json_encode($this->getAsArray())), TRUE);
       if(!$this->key){
         // An error occurred. PANIC!
+        throw new Exception('Unable to save object');
       }
     }
-    // Now save any additional child objects.
-    // FIXME - Add the save stuff.
   }
 
   /**
@@ -269,11 +270,19 @@ class RegistryObject extends RegistryChild{
    */
   /**
    * Add a single contact to this node.
-   *
-   * FIXME - Nothing is done here.
    */
-  public function addContact(Contact $contact){
+  public function addContact($data){
+    $contact = new Contact($data, $this);
+    $contact->save();
     $this->contacts[] = $contact;
+  }
+  /**
+   * Add a single endpoint to this object.
+   */
+  public function addEndpoint($data){
+    $endpoint = new Endpoint($data, $this);
+    $endpoint->save();
+    $this->endpoints[] = $endpoint;
   }
 
   /**
