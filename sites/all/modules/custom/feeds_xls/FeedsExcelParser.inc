@@ -193,7 +193,7 @@ class FeedsExcelParser extends FeedsParser{
         '#type' => 'select',
         '#title' => t('Maximum number of rows'),
         '#description' => t('Select the maximum number of rows your Excel file contains.  This number MUST be greater than the total number of rows in your file.  Selecting this value will improve the progress bar feedback.'),
-        '#default_value' => $this->config['all_worksheets'],
+        '#default_value' => $this->config['max_rows'],
         '#options' => array(
           100 => 100,
           1000 => 1000,
