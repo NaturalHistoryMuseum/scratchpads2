@@ -272,6 +272,11 @@ function scratchpads_front_page_view(){
 
 /**
  * Implements hook_entity_view
+ * 
+ * REMOVE links from the species slideshow, and ADD links to the front page
+ * slideshow. This is a thoroughly shit way of doing this, but the styles and
+ * file entity code is so messed up that I'm reluctant to spend time trying to
+ * do this correctly.
  */
 function scratchpads_front_entity_view_alter(&$build, $type){
   if($type == 'file' && isset($build['#view_mode']) && $build['#view_mode'] == 'file_styles_slideshow_large'){
@@ -281,6 +286,12 @@ function scratchpads_front_entity_view_alter(&$build, $type){
       $build['file']['#markup'] = str_replace($matches[0], l($matches[0], 'file/' . $build['file']['#file']->fid, array(
         'html' => TRUE
       )), $build['file']['#markup']);
+    }
+  } elseif($type == 'file' && isset($build['#view_mode']) && $build['#view_mode'] == 'file_styles_species_slideshow_thumbnail'){
+    $matches = FALSE;
+    preg_match('|(<a href[^>]*>)<img [^>]*>(</a>)|', $build['file']['#markup'], $matches);
+    for($i = 1; $i <= 2; $i++){
+      $build['file']['#markup'] = str_replace($matches[$i], '', $build['file']['#markup']);
     }
   }
 }
