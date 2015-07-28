@@ -1,3 +1,18 @@
+2.7.2 (2015-07-28)
+
+- Added caching to drupal_system_listing() and drupal_parse_info_file()
+- Upgraded PHPExcel library to 1.8.1
+- Added httprl to be used by the advagg module
+- Upgraded GBIF registry to work with the real registry
+- Register DwC-A endpoints with the GBIF registry
+- Register statistics endpoints with the GBIF registry
+- Fix the URL link to the EOL API page
+- Fix the Species Slideshow so that only big images can be clicked
+- Updated the Lucid applet so that it is the signed version
+- Removed some hook_requirements() functions to speed up admin pages
+- Ensure Slickgrid works correctly on translated sites
+- Ensure that the correct term is 'bold' on each taxonomy term page (#4437)
+
 2.7.1.5 (2015-07-09)
 
 - Check the field_langauge of all fields and tweak the values accordingly
