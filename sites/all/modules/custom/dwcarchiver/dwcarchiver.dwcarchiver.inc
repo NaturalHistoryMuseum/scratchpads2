@@ -152,12 +152,6 @@ function dwcarchiver_dwcarchiver_archives(){
         'processor' => 'dwcarchiver_content_language'
       ),
       array(
-        'field' => 'uuid',
-        'uri' => 'http://purl.org/dc/terms/identifier',
-        'required' => 0,
-        'processor' => 'dwcarchiver_raw_text'
-      ),
-      array(
         'field' => 'field_' . $field,
         'uri' => 'http://purl.org/dc/terms/description',
         'required' => '1',
@@ -296,7 +290,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'feeds_item:guid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/occurrenceID',
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
                 ),
@@ -314,13 +308,13 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLongitude',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/verbatimLongitude',
                   'required' => 0,
                   'processor' => 'gm3_longitude'
                 ),
                 array(
                   'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLatitude',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/verbatimLatitude',
                   'required' => 0,
                   'processor' => 'gm3_latitude'
                 ),
@@ -358,19 +352,19 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'biblio_issn',
-                  'uri' => 'http://purl.org/ontology/bibo/issn',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
                 ),
                 array(
                   'field' => 'biblio_isbn',
-                  'uri' => 'http://purl.org/ontology/bibo/isbn',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
                 ),
                 array(
                   'field' => 'biblio_doi',
-                  'uri' => 'http://purl.org/ontology/bibo/doi',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
                 ),
@@ -385,12 +379,6 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://purl.org/dc/terms/title',
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
-                ),
-                array(
-                  'field' => 'changed',
-                  'uri' => 'http://purl.org/dc/terms/modified',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_timestamp'
                 ),
                 array(
                   'field' => 'content_language',
@@ -415,12 +403,6 @@ function dwcarchiver_dwcarchiver_archives(){
                   'uri' => 'http://purl.org/dc/terms/creator',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
-                ),
-                array(
-                  'field' => 'created',
-                  'uri' => 'http://purl.org/dc/terms/created',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_timestamp'
                 )
               )
             )
@@ -470,7 +452,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'file_url',
-                  'uri' => 'http://rs.tdwg.org/ac/terms/accessURI',
+                  'uri' => 'http://purl.org/dc/terms/identifier',
                   'required' => 0,
                   'processor' => 'dwcarchiver_file_url'
                 ),
@@ -494,7 +476,7 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'field_cc_licence',
-                  'uri' => 'http://ns.adobe.com/xap/1.0/rights/UsageTerms',
+                  'uri' => 'http://purl.org/dc/terms/license',
                   'required' => 0,
                   'processor' => 'dwcarchiver_creative_commons_url'
                 )
@@ -557,7 +539,7 @@ function dwcarchiver_dwcarchiver_archives(){
             ),
             array(
               'field' => 'feeds_item:guid',
-              'uri' => 'http://purl.org/dc/terms/identifier',
+              'uri' => 'http://rs.tdwg.org/dwc/terms/taxonID',
               'required' => 0,
               'processor' => 'dwcarchiver_raw_text'
             ),

@@ -33,8 +33,7 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE){
     if($deliver){
       drupal_goto('admin/config/content/dwcarchiver');
     }
-  }
-  catch(Exception $e){
+  }catch(Exception $e){
     $function = 'drupsl_set_message';
     if(function_exists('drush_log')){
       $function = 'drush_log';
@@ -58,10 +57,11 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
   // simply read in the namespaces from a string.
   // Note, this is possible using DOMDocument!
   $archive = new SimpleXMLElement('<archive
+    metadata="eml.xml"
     xmlns="http://rs.tdwg.org/dwc/text/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd"/>');
-  //$archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
+  // $archive->addAttribute('xmlns', 'http://rs.tdwg.org/dwc/text/');
   $core = $archive->addChild('core');
   _dwcarchiver_add_default_attributes($core);
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
@@ -92,6 +92,156 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     }
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
+  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/eml.xml', _dwcarchiver_get_eml());
+}
+
+/**
+ *
+ * @return XML string
+ */
+function _dwcarchiver_get_eml(){
+  $eml = new SimpleXMLElement('<eml:eml
+    xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:dc="http://purl.org/dc/terms/"
+    xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 eml.xsd"
+    xml:lang="en"
+    packageId="619a4b95-1a82-4006-be6a-7dbe3c9b33c5/v7" system="http://gbif.org" scope="system"/>');
+  $dataset = $eml->addChild('dataset', NULL, '');
+  $title = $dataset->addChild('title', variable_get('site_name', 'Scratchpad'));
+  $title->addAttribute('xml:lang', 'en', 'xml');
+  $add_to = $dataset->addChild('creator');
+  $contact = $dataset->addChild('contact');
+  foreach(array(
+    $contact,
+    $add_to
+  ) as $add_to){
+    $individualName = $add_to->addChild('individualName');
+    $first_maintainer = _dwcarchiver_get_first_maintainer();
+    $individualName->addChild('givenName', $first_maintainer->field_user_given_names[LANGUAGE_NONE][0]['value']);
+    $individualName->addChild('surName', $first_maintainer->field_user_family_name[LANGUAGE_NONE][0]['value']);
+    if(!empty($first_maintainer->field_user_institution[LANGUAGE_NONE][0]['value'])){
+      $add_to->addChild('organizationName', $first_maintainer->field_user_institution[LANGUAGE_NONE][0]['value']);
+    }
+    $add_to->addChild('electronicMailAddress', $first_maintainer->mail);
+    if(!empty($first_maintainer->field_homepage[LANGUAGE_NONE][0]['url'])){
+      $add_to->addChild('onlineUrl', $first_maintainer->field_homepage[LANGUAGE_NONE][0]['url']);
+    }
+  }
+  $metadataProvider = $dataset->addChild('metadataProvider');
+  $individualName = $metadataProvider->addChild('individualName');
+  $individualName->addChild('givenName', 'Simon');
+  $individualName->addChild('surName', 'Rycroft');
+  $address = $metadataProvider->addChild('address');
+  $address->addChild('deliveryPoint', 'Natural History Museum, Cromwell Road');
+  $address->addChild('city', 'London');
+  $address->addChild('administrativeArea', 'London');
+  $address->addChild('postalCode', 'SW7 5BD');
+  $address->addChild('country', 'UK');
+  $metadataProvider->addChild('phone', '+442079426279');
+  $metadataProvider->addChild('electronicMailAddress', 's.rycroft@nhm.ac.uk');
+  $metadataProvider->addChild('onlineUrl', 'http://scratchpads.eu/');
+  foreach(_dwcarchiver_get_other_maintainers() as $other_maintainer){
+    $associatedParty = $dataset->addChild('associatedParty');
+    $individualName = $associatedParty->addChild('individualName');
+    $individualName->addChild('givenName', $other_maintainer->field_user_given_names[LANGUAGE_NONE][0]['value']);
+    $individualName->addChild('surName', $other_maintainer->field_user_family_name[LANGUAGE_NONE][0]['value']);
+    $associatedParty->addChild('electronicMailAddress', $other_maintainer->mail);
+    $associatedParty->addChild('role', 'pointOfContact');
+  }
+  $dataset->addChild('language', 'en');
+  $dataset->addChild('pubData', date('Y-m-d'));
+  $distribution = $dataset->addChild('distribution');
+  $distribution->addAttribute('scope', 'document');
+  $online = $distribution->addChild('online');
+  $biological_vids = variable_get('biological_vids', array());
+  $vids = array_filter($biological_vids);
+  $vids = array_keys($biological_vids);
+  $vid = array_shift($vids);
+  $url = $online->addChild('url', url('classification/' . $vid, array(
+    'absolute' => TRUE
+  )));
+  $url->addAttribute('function', 'information');
+  $coverage = $dataset->addChild('coverage');
+  $taxonomicCoverage = $coverage->addChild('taxonomicCoverage');
+  $root_terms = taxonomy_get_tree(4, 0, 1);
+  foreach($root_terms as $term){
+    $taxonomicClassification = $taxonomicCoverage->addChild('taxonomicClassification');
+    $taxonomicClassification->addChild('taxonRankValue', $term->name);
+  }
+  $project = $dataset->addChild('project');
+  $project->addChild('title', variable_get('site_name', 'Scratchpad'));
+  $additionalMetadata = $eml->addChild('additionalMetadata', NULL, '');
+  $metadata = $additionalMetadata->addChild('metadata');
+  $gbif = $metadata->addChild('gbif');
+  $gbif->addChild('dateStamp', date('Y-m-d'));
+  $gbif->addChild('hierarchyLevel', 'dataset');
+  $gbif->addChild('citation', url('', array(
+    'absolute' => TRUE
+  )) . ' - ' . variable_get('site_name', 'Scratchpad'));
+  $intrights = $dataset->addChild('intellectualRights');
+  $cc_markup = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+  $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
+  $ulink = $para->addChild('ulink');
+  $ulink->addAttribute('url', 'https:'.$cc_markup['#markup']);
+  return $eml->saveXML();
+  // Due to the slightly silly structure of the para element, we need to use the
+  // DOM functions to manipulate the XML.
+  /*
+   * $dom = new DOMDocument(); $dom->loadXML($eml->asXML()); $para = new
+   * DOMDocument(); $cc_markup =
+   * creative_commons_display(variable_get('creative_commons_block_licence_type',
+   * CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+   * $para->loadXML('<intellectualRights><para>This work is licensed under a
+   * <ulink url="https:' . array_pop($cc_markup) . '"><citetitle>Creative
+   * Commons 3.0 License</citetitle></ulink>.</para></intellectualRights>');
+   * $node = $para->getElementsByTagName('intellectualRights')->item(0); $para =
+   * $dom->importNode($node, TRUE); // print_r($dom);exit; $node =
+   * $dom->getElementsByTagName('dataset')->item(0); $node->appendChild($para);
+   * return $dom->saveXML();
+   */
+}
+
+/**
+ * Get other maintainers.
+ */
+function _dwcarchiver_get_other_maintainers(){
+  $query = db_select('users', 'u');
+  $query->fields('u', array(
+    'uid'
+  ));
+  $query->innerJoin('users_roles', 'ur', 'u.uid = ur.uid');
+  $query->innerJoin('role', 'r', 'r.rid = ur.rid');
+  $query->innerJoin('field_data_field_user_family_name', 'fn', 'fn.entity_id = u.uid');
+  $query->innerJoin('field_data_field_user_given_names', 'gn', 'gn.entity_id = u.uid');
+  $query->condition('r.name', 'maintainer');
+  $query->condition('u.status', '1');
+  $query->orderBy('u.uid');
+  // Limit to 10 maintainers. If we have more than that, then our users have
+  // misunderstood the role of maintainer.
+  $query->range(1, 10);
+  $uids = $query->execute()->fetchCol();
+  return user_load_multiple($uids);
+}
+
+/**
+ * Get the first maintainer.
+ */
+function _dwcarchiver_get_first_maintainer(){
+  $query = db_select('users', 'u');
+  $query->fields('u', array(
+    'uid'
+  ));
+  $query->innerJoin('users_roles', 'ur', 'u.uid = ur.uid');
+  $query->innerJoin('role', 'r', 'r.rid = ur.rid');
+  $query->innerJoin('field_data_field_user_family_name', 'fn', 'fn.entity_id = u.uid');
+  $query->innerJoin('field_data_field_user_given_names', 'gn', 'gn.entity_id = u.uid');
+  $query->condition('r.name', 'maintainer');
+  $query->condition('u.status', '1');
+  $query->orderBy('u.uid');
+  $query->range(0, 1);
+  $uid = $query->execute()->fetchAssoc();
+  return user_load($uid['uid']);
 }
 
 /**
@@ -99,7 +249,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
  * file to the zip.
  */
 function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiver, $zip = FALSE, $limit = FALSE){
-  //$entity, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
+  // $entity, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
   // We create an SQL query that will pull out all the data required for the map
   $info = entity_get_info($archive_or_extension->entity);
   $base_query = db_select($info['base table'], 'base');
@@ -161,16 +311,14 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     }
     $results = $query->execute();
     while(($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE){
-      /*foreach($row as $key => $value){
-        $row[$key] = str_replace("\r", "", $value);
-        // TEMPORARY UNTIL EOL FIX THEIR DwC-A parser.
-        //
-        // EOL are not currently able to parse line breaks WITHIN values (i.e.
-        // those within the defined value enclosure for the CSV file.  For this
-        // reason, we need to escape the new lines to prevent them from causing
-        // issues.
-        $row[$key] = str_replace("\n", '\\n', $row[$key]);
-      }*/
+      /*
+       * foreach($row as $key => $value){ $row[$key] = str_replace("\r", "",
+       * $value); // TEMPORARY UNTIL EOL FIX THEIR DwC-A parser. // // EOL are
+       * not currently able to parse line breaks WITHIN values (i.e. // those
+       * within the defined value enclosure for the CSV file. For this //
+       * reason, we need to escape the new lines to prevent them from causing //
+       * issues. $row[$key] = str_replace("\n", '\\n', $row[$key]); }
+       */
       fputcsv($f, $row, ',', '"');
     }
   }
@@ -263,7 +411,9 @@ function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $
  * Add default attributes for meta.xml
  */
 function _dwcarchiver_add_default_attributes(SimpleXMLElement $element){
-  // encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon"
+  // encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy=","
+  // fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
+  // rowType="http://rs.tdwg.org/dwc/terms/Taxon"
   $element->addAttribute('encoding', 'UTF-8');
   $element->addAttribute('linesTerminatedBy', '\n');
   $element->addAttribute('fieldsTerminatedBy', ',');
