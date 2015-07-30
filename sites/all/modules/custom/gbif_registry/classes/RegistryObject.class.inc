@@ -75,12 +75,7 @@ class RegistryObject extends RegistryChild{
       foreach($data as $key => $value){
         switch($key){
           default:
-            if(is_string($value)){
-              $this->{$key} = $value;
-            }else{
-              // FIXME - Remove this code once complete.
-              //echo "$key\n";
-            }
+            $this->{$key} = $value;
             break;
           case 'hostingOrganizationKey':
             $this->hostingOrganization = $value;
@@ -96,13 +91,6 @@ class RegistryObject extends RegistryChild{
               $this->{$key} = $value['key'];
             }
             break;
-          case 'latitude':
-          case 'longitude':
-            $this->{$key} = $value;
-            break;
-          case 'tags':
-            $this->{$key} = $value;
-            break;
           case 'installations':
           case 'contacts':
           case 'endpoints':
@@ -111,12 +99,10 @@ class RegistryObject extends RegistryChild{
             // the /[node|organization|...]/<k1>/[contact|identifier|...]
             // service
             break;
-          case 'language':
-            $this->language = $value;
-            break;
         }
       }
     }
+    $break = 'here';
   }
 
   /**
