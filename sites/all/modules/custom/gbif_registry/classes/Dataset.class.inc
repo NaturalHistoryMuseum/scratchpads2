@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -21,154 +22,96 @@
  */
 namespace GBIF;
 
-class Dataset extends RegistryChild{
-
-  private $bibliographicCitations;
-
-  private $citation;
-
-  private $contacts;
-
-  private $curatorialUnits;
-
-  private $dataAvailable;
-
-  private $dataIndexable;
-
-  private $description;
-
-  private $endpoints;
-
-  private $geographicCoverages;
-
-  private $homepage;
-
-  private $installation;
-
-  private $installationKey;
-
-  private $identifiers;
-
-  private $isoCountryCodes;
-
-  private $key;
-
-  private $keywordCollections;
-
-  private $keywords;
-
-  private $language;
-
-  private $logoURL;
-
-  private $networkOfOrigin;
-
-  private $owningOrganization;
-
-  private $owningOrganizationKey;
-
-  private $registered;
-
-  private $tags;
-
-  private $taxonomicCoverages;
-
-  private $temporalCoverages;
-
-  private $title;
-
-  private $type;
-
-  public function __construct($data = FALSE){
-    parent::__construct();
-    // If we passed a string, we assume it's the ID of a dataset.
-    if(is_string($data)){
-      $data = Registry::singleton()->get_json("dataset/$data");
-    }
-    foreach($data as $key => $value){
-      switch($key){
-        default:
-          $this->{$key} = $value;
-        case 'contacts':
-        case 'endpoints':
-        case 'identifiers':
-        case 'tags':
-          break;
-      }
-    }
+class Dataset extends RegistryObject {
+  
+  /**
+   * @return the $urlprefix
+   */
+  public function getURLPrefix(){
+    return 'dataset';
   }
 
   /**
- * @return the $description
- */
-public function getDescription(){
+   *
+   * @return the $description
+   */
+  public function getDescription(){
     return $this->description;
-}
+  }
 
-/**
- * @return the $homepage
- */
-public function getHomepage(){
+  /**
+   *
+   * @return the $homepage
+   */
+  public function getHomepage(){
     return $this->homepage;
-}
+  }
 
-/**
- * @return the $key
- */
-public function getKey(){
+  /**
+   *
+   * @return the $key
+   */
+  public function getKey(){
     return $this->key;
-}
+  }
 
-/**
- * @return the $title
- */
-public function getTitle(){
+  /**
+   *
+   * @return the $title
+   */
+  public function getTitle(){
     return $this->title;
-}
+  }
 
-/**
- * @return the $type
- */
-public function getType(){
+  /**
+   *
+   * @return the $type
+   */
+  public function getType(){
     return $this->type;
-}
+  }
 
-/**
- * @param field_type $description
- */
-public function setDescription($description){
+  /**
+   *
+   * @param field_type $description          
+   */
+  public function setDescription($description){
     $this->description = $description;
-}
+  }
 
-/**
- * @param field_type $homepage
- */
-public function setHomepage($homepage){
+  /**
+   *
+   * @param field_type $homepage          
+   */
+  public function setHomepage($homepage){
     $this->homepage = $homepage;
-}
+  }
 
-/**
- * @param field_type $key
- */
-public function setKey($key){
+  /**
+   *
+   * @param field_type $key          
+   */
+  public function setKey($key){
     $this->key = $key;
-}
+  }
 
-/**
- * @param field_type $title
- */
-public function setTitle($title){
+  /**
+   *
+   * @param field_type $title          
+   */
+  public function setTitle($title){
     $this->title = $title;
-}
+  }
 
-/**
- * @param field_type $type
- */
-public function setType($type){
+  /**
+   *
+   * @param field_type $type          
+   */
+  public function setType($type){
     $this->type = $type;
-}
+  }
 
-/**
+  /**
    */
   public function getIdentifiers(){
     return new Identifiers("dataset/{$this->key}/identifier");
