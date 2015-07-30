@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Clear the scratchpads_gbif_registry_* variables. (Renamed from 7001 and 7002)
+ * Clear the scratchpads_gbif_registry_* variables.
  */
-function scratchpads_gbif_registry_client_update_7003(){
+function scratchpads_gbif_registry_client_update_7004(){
   variable_del('scratchpads_gbif_registry_client_last_update');
   variable_del('scratchpads_gbif_registry_client_uuid');
 }
