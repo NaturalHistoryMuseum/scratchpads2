@@ -92,13 +92,12 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip){
     }
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
-  $eml = _dwcarchiver_get_eml();
-  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/eml.xml', $eml->saveXML());
+  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/eml.xml', _dwcarchiver_get_eml());
 }
 
 /**
  *
- * @return SimpleXMLElement
+ * @return XML string
  */
 function _dwcarchiver_get_eml(){
   $eml = new SimpleXMLElement('<eml:eml
@@ -180,7 +179,27 @@ function _dwcarchiver_get_eml(){
   $gbif->addChild('citation', url('', array(
     'absolute' => TRUE
   )) . ' - ' . variable_get('site_name', 'Scratchpad'));
-  return $eml;
+  $intrights = $dataset->addChild('intellectualRights');
+  $cc_markup = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+  $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
+  $ulink = $para->addChild('ulink');
+  $ulink->addAttribute('url', 'https:'.$cc_markup['#markup']);
+  return $eml->saveXML();
+  // Due to the slightly silly structure of the para element, we need to use the
+  // DOM functions to manipulate the XML.
+  /*
+   * $dom = new DOMDocument(); $dom->loadXML($eml->asXML()); $para = new
+   * DOMDocument(); $cc_markup =
+   * creative_commons_display(variable_get('creative_commons_block_licence_type',
+   * CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+   * $para->loadXML('<intellectualRights><para>This work is licensed under a
+   * <ulink url="https:' . array_pop($cc_markup) . '"><citetitle>Creative
+   * Commons 3.0 License</citetitle></ulink>.</para></intellectualRights>');
+   * $node = $para->getElementsByTagName('intellectualRights')->item(0); $para =
+   * $dom->importNode($node, TRUE); // print_r($dom);exit; $node =
+   * $dom->getElementsByTagName('dataset')->item(0); $node->appendChild($para);
+   * return $dom->saveXML();
+   */
 }
 
 /**
