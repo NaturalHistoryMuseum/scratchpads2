@@ -52,7 +52,7 @@ function iucn_block_view($delta = ''){
       if($cache->data){
         $content['content']['#markup'] = $cache->data;
       }else{
-        $request = drupal_http_request('http://api.iucnredlist.org/index/species/' . str_replace(' ', '-', $term->name) . '.js', array(
+        $request = drupal_http_request('http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js', array(
           'timeout' => '3.0'
         ));
         if($request->code == 200 && ($json = json_decode($request->data)) !== FALSE){
