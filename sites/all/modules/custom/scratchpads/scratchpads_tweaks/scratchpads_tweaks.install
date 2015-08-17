@@ -317,7 +317,8 @@ function scratchpads_tweaks_install(){
   // Enable the subpermissions module which has lay dormant for many many months
   variable_set('subpermissions_config', array(
     'show download links' => 'show download links',
-    'post comments' => 'post comments'
+    'post comments' => 'post comments',
+    'view revisions' => 'view revisions'
   ));
   // Use our mirror of the CC images site
   variable_set('creative_commons_image_uri', 'http://cc-mirror.scratchpads.eu/l');
@@ -1629,4 +1630,15 @@ function scratchpads_tweaks_update_7093(){
  */
 function scratchpads_tweaks_update_7094(){
   scratchpads_tweaks_update_7081();
+}
+
+/**
+ * Allow a site to hide the revisions tab
+ */
+function scratchpads_tweaks_update_7095(){
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments',
+    'view revisions' => 'view revisions'
+  ));
 }
