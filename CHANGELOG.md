@@ -1,3 +1,10 @@
+2.7.3 (2015-08-27)
+
+- Upgrade Drupal to 7.39
+- Fix registration with GBIF
+- Fixed a minor bug with IUCN (#4442)
+- Allow hiding of the Revisions tab by role
+
 2.7.2 (2015-07-28)
 
 - Added caching to drupal_system_listing() and drupal_parse_info_file()
