@@ -31,7 +31,7 @@ function scratchpads_gbif_registry_client_cron(){
         'language' => 'eng',
         'homepage' => $homepage,
         'citation' => array(
-          'text' => 'Specimen/Occurrence records from the Scratchpad "' . ($site_name ? $site_name : $homepage) . '"' . ($site_name ? " $homepage" : '')
+          'text' => ($site_name ? $site_name : 'Scratchpad: "'.$homepage.'"')
         ),
         'lockedForAutoUpdate' => FALSE,
         'tags' => array()
