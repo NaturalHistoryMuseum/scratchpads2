@@ -1,3 +1,8 @@
+2.7.3.1 (2015-08-28)
+
+- Remove the Scratchpads statistics endpoints from the GBIF registry
+- Register datasets with the GBIF registry as Checklists
+
 2.7.3 (2015-08-27)
 
 - Upgrade Drupal to 7.39
