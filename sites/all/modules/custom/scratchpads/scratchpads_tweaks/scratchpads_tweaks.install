@@ -427,12 +427,12 @@ function scratchpads_tweaks_update_7002(){
 }
 
 /**
- * Update WYSIWYG and filter formats.
- * scratchpads_tweaks_update_7003 - Removed. No longer required.
+ * Update WYSIWYG and filter formats. scratchpads_tweaks_update_7003 - Removed.
+ * No longer required.
  */
 /**
- * Set the default for all comment forms to be on a separate page.
- * 7004 removed due to an error.
+ * Set the default for all comment forms to be on a separate page. 7004 removed
+ * due to an error.
  */
 function scratchpads_tweaks_update_7005(){
   foreach(node_type_get_names() as $type => $name){
@@ -561,10 +561,9 @@ function scratchpads_tweaks_update_7008(){
  * REMOVED 7011 - REPLACED BY 7026. REMOVED 7012 - REPLACED BY 7026.
  */
 /**
- * Disable the wysiwyg module and enable the ckeditor module.
- * Updated to 7014 to set the forcePasteAsPlainText option.
- * NOTE. IF THIS FUNCTION NAME IS CHANGED, IT MUST BE CHANGED IN THE INSTALL
- * FUNCTION ABOVE.
+ * Disable the wysiwyg module and enable the ckeditor module. Updated to 7014 to
+ * set the forcePasteAsPlainText option. NOTE. IF THIS FUNCTION NAME IS CHANGED,
+ * IT MUST BE CHANGED IN THE INSTALL FUNCTION ABOVE.
  */
 function scratchpads_tweaks_update_7014(){
   // This function gets reused when the settings for the CKEditor are altered,
@@ -896,8 +895,8 @@ function scratchpads_tweaks_update_7025(){
 }
 
 /**
- * Enable the twitter script module.
- * Removed - the module has been removed from Scratchpads
+ * Enable the twitter script module. Removed - the module has been removed from
+ * Scratchpads
  */
 /**
  * Add the twitter script filter. Removed - the module has been removed from
@@ -939,8 +938,8 @@ function scratchpads_tweaks_update_7030(){
 }
 
 /**
- * Enable comment_notify for ALL content types.
- * DO NOT RENAME THIS FUNCTION WITHOUT UPDATING THE CALL ABOVE.
+ * Enable comment_notify for ALL content types. DO NOT RENAME THIS FUNCTION
+ * WITHOUT UPDATING THE CALL ABOVE.
  */
 function scratchpads_tweaks_update_7032(){
   $array_node_types = array();
@@ -976,9 +975,8 @@ function scratchpads_tweaks_update_7034(){
 }
 
 /**
- * Add HTMLPurifier module.
- * Removed code as could result in an error if run on a site once the
- * htmlpurifier module has been removed.
+ * Add HTMLPurifier module. Removed code as could result in an error if run on a
+ * site once the htmlpurifier module has been removed.
  */
 function scratchpads_tweaks_update_7036(){}
 
@@ -1067,8 +1065,8 @@ function scratchpads_tweaks_update_7043(){
 }
 
 /**
- * Drop the primary key from the file_display table.
- * Renamed from from scratchpads_tweaks_update_7044.
+ * Drop the primary key from the file_display table. Renamed from from
+ * scratchpads_tweaks_update_7044.
  */
 function scratchpads_tweaks_update_7046(){
   db_drop_primary_key('file_display');
@@ -1640,5 +1638,20 @@ function scratchpads_tweaks_update_7095(){
     'show download links' => 'show download links',
     'post comments' => 'post comments',
     'view revisions' => 'view revisions'
+  ));
+}
+
+/**
+ * Disable the EOL module Enable the scratchpads_col module
+ */
+function scratchpads_tweaks_update_7096(){
+  module_disable(array(
+    'eol'
+  ));
+  drupal_uninstall_modules(array(
+    'eol'
+  ));
+  module_enable(array(
+    'scratchpads_col'
   ));
 }
