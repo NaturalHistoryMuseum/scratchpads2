@@ -3,6 +3,7 @@ require_once (str_replace('.module', '.authors.inc', __FILE__));
 DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://cite.scratchpads.eu');
 DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', 'http://cite.scratchpads.eu/generate');
 DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', 'http://cite.scratchpads.eu/preview');
+DEFINE('CITE_SCRATCHPADS_EU_TIMEOUT', 10);
 
 /**
  * Implement hook_block_info_alter
@@ -319,30 +320,24 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'post' => 'scratchpads_citethispage_msg_token=' . urlencode($rand_token_id) . $open_tids
   );
   $arguments_str = http_build_query($arguments, '', '&');
-  $context = stream_context_create(array(
-    'http' => array(
-      'method' => 'POST',
-      'header' => 'Content-type: application/x-www-form-urlencoded' . "\r\n" . 'Content-Length: ' . strlen($arguments_str),
-      'content' => $arguments_str
-    )
-  ));
   // Invoke the cite.scratchpads.eu service
   if(!$preview){
     $cite_service_url = variable_get('scratchpads_citethispage_cite_service_url', CITE_SCRATCHPADS_EU_GENERATE_DEFAULT);
   }else{
     $cite_service_url = variable_get('scratchpads_citethispage_cite_preview_url', CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT);
   }
-  //
-  //
-  //
-  //
-  //
-  //
-  // FIXME - This instance of file_get_contents MUST be converted to 
-  // drupal_http_request() and a timeout added. If the request times out, we
-  // must add the ability to handle the timeout.
-  $raw_result = file_get_contents($cite_service_url, false, $context);
-  $cite_result = json_decode($raw_result);
+  $http_request = drupal_http_request($cite_service_url, array(
+    'method' => 'POST',
+    'headers' => array(
+      'Content-type' => 'application/x-www-form-urlencoded',
+      'Content-Length' => strlen($arguments_str)
+    ),
+    'data' => $arguments_str,
+    'timeout' => CITE_SCRATCHPADS_EU_TIMEOUT
+  ));
+  if($http_request){
+    $cite_result = json_decode($http_request->data);
+  }
   if(!$preview){
     if(empty($cite_result->status)){
       drupal_set_message(t("There was an error generating the PDF citation: %error", array(
