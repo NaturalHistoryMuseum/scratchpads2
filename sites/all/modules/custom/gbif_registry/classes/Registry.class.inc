@@ -167,19 +167,15 @@ class Registry{
    * FIXME - Need to add authentication to this.
    * FIXME - Should this be data, or a filename?
    */
-  public function put($path, $filename){
+  public function put($path, $file_handle){
     $ch = curl_init($this->registryURL . $path);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_PUT, TRUE);
-    $file_handle = fopen($filename, 'r');
     curl_setopt($ch, CURLOPT_INFILE, $file_handle);
-    curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
+    //curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
     $response = curl_exec($ch);
-    print_r(curl_getinfo($ch));
-    print_r(curl_errno($ch));
-    print_r($response);
   }
 
   /**

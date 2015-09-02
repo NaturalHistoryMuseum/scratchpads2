@@ -38,7 +38,6 @@ function scratchpads_statistics_ctools_plugin_api(){
 
 /**
  * Implements hook_gbif_registry_endpoints
- */
 function scratchpads_statistics_gbif_registry_endpoints(){
   $endpoints = array();
   $url = url('login.json', array(
@@ -71,6 +70,7 @@ function scratchpads_statistics_gbif_registry_endpoints(){
   );
   return $endpoints;
 }
+ */
 
 /**
  * Implements hook_block_view()
