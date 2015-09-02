@@ -1642,3 +1642,18 @@ function scratchpads_tweaks_update_7095(){
     'view revisions' => 'view revisions'
   ));
 }
+
+/**
+ * Disable the EOL module Enable the scratchpads_col module
+ */
+function scratchpads_tweaks_update_7096(){
+  module_disable(array(
+    'eol'
+  ));
+  drupal_uninstall_modules(array(
+    'eol'
+  ));
+  module_enable(array(
+    'scratchpads_col'
+  ));
+}
