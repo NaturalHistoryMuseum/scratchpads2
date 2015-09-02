@@ -3,7 +3,7 @@ require_once (str_replace('.module', '.authors.inc', __FILE__));
 DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://cite.scratchpads.eu');
 DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', 'http://cite.scratchpads.eu/generate');
 DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', 'http://cite.scratchpads.eu/preview');
-DEFINE('CITE_SCRATCHPADS_EU_TIMEOUT', 10);
+DEFINE('CITE_SCRATCHPADS_EU_TIMEOUT', 20);
 
 /**
  * Implement hook_block_info_alter
@@ -311,7 +311,7 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'url' => url($path, array(
       'absolute' => TRUE
     )),
-    'title' => $results['title'],
+    'title' => (empty($results['title'])?t('No title'):$results['title']),
     'site' => variable_get('site_name', 'Scratchpads'),
     'date' => $results['date'],
     'date_data' => serialize($results['date_data']),
