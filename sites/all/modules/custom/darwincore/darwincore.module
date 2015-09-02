@@ -148,41 +148,25 @@ function darwincore_specimen_observation_node_form_submit($form, &$form_state){
  * Validate function to ensure that the IDs for this specimen are unique.
  */
 function darwincore_specimen_observation_node_form_validate($form, &$form_state){
-  // Because we hold the data in separate fields (yay for the efficient fields
-  // modules!), we'll start with the catalogue number and work up.
-  $lang = field_language('node', $form_state['node'], 'field_catalogue_number');
-  $count = db_query('SELECT COUNT(*) FROM {field_data_field_catalogue_number} WHERE field_catalogue_number_value = :value AND entity_id != :nid', array(
-    ':value' => $form_state['values']['field_catalogue_number'][$lang][0]['value'],
-    ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
-  ))->fetchCol();
-  if(array_pop($count)){
-    // We have a matching catalogue number. Now we need to check the
-    // collection code
-    $lang = field_language('node', $form_state['node'], 'field_institution_code');
-    $count = db_query('SELECT COUNT(*) FROM {field_data_field_institution_code} WHERE field_institution_code_value = :value AND entity_id != :nid', array(
-      ':value' => $form_state['values']['field_institution_code'][$lang][0]['value'],
-      ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
-    ))->fetchCol();
-    if(array_pop($count)){
-      // We have a matching institution code number. Now we need to check the
-      // institution code.
-      $lang = field_language('node', $form_state['node'], 'field_collection_code');
-      $count = db_query('SELECT COUNT(*) FROM {field_data_field_collection_code} WHERE field_collection_code_value = :value AND entity_id != :nid', array(
-        ':value' => $form_state['values']['field_collection_code'][$lang][0]['value'],
-        ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
-      ))->fetchCol();
-      if(array_pop($count)){
-        // A match. Set an error.
-        form_set_error('field_catalogue_number', t('The "Institution code/Collection code/Catalogue number" combination is not unique.'));
-        // The following is one almightly cludge!
-        form_set_error('field_collection_code', 'REMOVETHISMESSAGE');
-        form_set_error('field_institution_code', 'REMOVETHISMESSAGE');
-        $messages = drupal_get_messages('error');
-        foreach($messages['error'] as $value){
-          if($value != 'REMOVETHISMESSAGE'){
-            drupal_set_message($value, 'error');
-          }
-        }
+  // Check if we already have a specimen with this combination of IDs.  
+  $query = db_select('field_data_field_collection_code','col');
+  $query->innerJoin('field_data_field_catalogue_number','cat', 'col.entity_type = cat.entity_type AND col.entity_id = cat.entity_id');
+  $query->innerJoin('field_data_field_institution_code','ins', 'col.entity_type = ins.entity_type AND col.entity_id = ins.entity_id');
+  $query->condition('col.field_collection_code_value', $form_state['values']['field_collection_code'][field_language('node', $form_state['node'], 'field_collection_code')][0]['value']);
+  $query->condition('cat.field_catalogue_number_value',$form_state['values']['field_catalogue_number'][field_language('node', $form_state['node'], 'field_catalogue_number')][0]['value']);
+  $query->condition('ins.field_institution_code_value',$form_state['values']['field_institution_code'][field_language('node', $form_state['node'], 'field_institution_code')][0]['value']);
+  $query->condition('col.entity_id', (isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0), '!=');
+  $query = $query->countQuery();
+  if($query->execute()->fetchField()){
+    // A match. Set an error.
+    form_set_error('field_catalogue_number', t('The "Institution code/Collection code/Catalogue number" combination is not unique.'));
+    // The following is one almightly cludge!
+    form_set_error('field_collection_code', 'REMOVETHISMESSAGE');
+    form_set_error('field_institution_code', 'REMOVETHISMESSAGE');
+    $messages = drupal_get_messages('error');
+    foreach($messages['error'] as $value){
+      if($value != 'REMOVETHISMESSAGE'){
+        drupal_set_message($value, 'error');
       }
     }
   }
