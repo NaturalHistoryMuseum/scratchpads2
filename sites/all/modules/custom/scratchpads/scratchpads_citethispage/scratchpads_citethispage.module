@@ -311,7 +311,7 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'url' => url($path, array(
       'absolute' => TRUE
     )),
-    'title' => $results['title'],
+    'title' => (empty($results['title'])?t('No title'):$results['title']),
     'site' => variable_get('site_name', 'Scratchpads'),
     'date' => $results['date'],
     'date_data' => serialize($results['date_data']),
