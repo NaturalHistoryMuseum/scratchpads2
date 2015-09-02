@@ -1645,6 +1645,7 @@ function scratchpads_tweaks_update_7095(){
  * Disable the EOL module Enable the scratchpads_col module
  */
 function scratchpads_tweaks_update_7096(){
+  drupal_flush_all_caches();
   module_disable(array(
     'eol'
   ));
