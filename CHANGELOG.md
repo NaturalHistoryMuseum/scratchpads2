@@ -1,3 +1,7 @@
+2.7.3.2 (2015-09-02)
+
+- Code for detecting duplicate Specimen IDs reported false positives
+
 2.7.3.1 (2015-08-28)
 
 - Remove the Scratchpads statistics endpoints from the GBIF registry

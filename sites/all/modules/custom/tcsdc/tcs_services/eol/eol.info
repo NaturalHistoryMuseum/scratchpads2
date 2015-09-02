@@ -3,7 +3,6 @@ description = "Allows the import of a classification from the EOL service."
 package = "Data provider"
 dependencies[] = tcsdc
 core = 7.x
-tool=true
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = tcsdc
