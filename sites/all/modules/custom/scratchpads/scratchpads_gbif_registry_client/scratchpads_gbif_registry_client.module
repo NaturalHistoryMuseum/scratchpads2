@@ -25,13 +25,13 @@ function scratchpads_gbif_registry_client_cron(){
         'publishingOrganizationKey' => variable_get('scratchpads_gbif_registry_client_scratchpads_organization', SCRATCHPADS_ORGANIZATION),
         'external' => FALSE,
         'numConstituents' => 0,
-        'type' => 'OCCURRENCE',
-        'title' => 'Specimen/Occurrence records from the Scratchpad "' . ($site_name ? $site_name : $homepage) . '"',
+        'type' => 'CHECKLIST',
+        'title' => 'Checklist ' . (module_exists('darwincore') ? 'and specimen ' : '') . 'records from the Scratchpad "' . ($site_name ? $site_name : $homepage) . '"',
         'description' => variable_get('scratchpads_gbif_registry_client_description', ''),
         'language' => 'eng',
         'homepage' => $homepage,
         'citation' => array(
-          'text' => 'Specimen/Occurrence records from the Scratchpad "' . ($site_name ? $site_name : $homepage) . '"' . ($site_name ? " $homepage" : '')
+          'text' => ($site_name ? $site_name : 'Scratchpad: "'.$homepage.'"')
         ),
         'lockedForAutoUpdate' => FALSE,
         'tags' => array()

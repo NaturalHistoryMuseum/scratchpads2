@@ -199,9 +199,11 @@ function emonocot_views_field_formatter_view($entity_type, $entity, $field, $ins
                 $doc->strictErrorChecking = FALSE;
                 $doc->loadHTML(file_get_contents('http://' . $parse['host']));
                 $xml = simplexml_import_dom($doc);
-                $arr = $xml->xpath('//link[@rel="shortcut icon"]');
-                $info['icon'] = 'http://' . $parse['host'] . $arr[0]['href'];
-                $info['host'] = $parse['host'];
+                if($xml){
+                  $arr = $xml->xpath('//link[@rel="shortcut icon"]');
+                  $info['icon'] = 'http://' . $parse['host'] . $arr[0]['href'];
+                  $info['host'] = $parse['host'];
+                }
                 break;
               case 'file':
                 $info['icon'] = $icon_path . 'default.png';

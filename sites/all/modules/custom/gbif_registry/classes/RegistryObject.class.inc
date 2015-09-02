@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -21,7 +22,7 @@
  */
 namespace GBIF;
 
-class RegistryObject extends RegistryChild{
+class RegistryObject extends RegistryChild {
   // String properties
   protected $address;
 
@@ -102,7 +103,6 @@ class RegistryObject extends RegistryChild{
         }
       }
     }
-    $break = 'here';
   }
 
   /**
@@ -194,6 +194,15 @@ class RegistryObject extends RegistryChild{
     if($this->key){
       // A key has already been set. This object already exists on the server,
       // and therefore just needs updating.
+      $current_data = Registry::singleton()->get_json($this->getURLPrefix() . "/{$this->key}");
+      foreach($this->getAsArray() as $key => $value){
+        $current_data[$key] = $value;
+      }
+      $f = tmpfile();
+      fwrite($f, json_encode($current_data));
+      fseek($f, 0);
+      Registry::singleton()->put($this->getURLPrefix() . "/{$this->key}", $f);
+      unlink($filename);
     }else{
       // No key, we simply need to create a new object, and save the key.
       $this->key = json_decode(Registry::singleton()->post($this->getURLPrefix(), json_encode($this->getAsArray())), TRUE);
@@ -262,6 +271,7 @@ class RegistryObject extends RegistryChild{
     $contact->save();
     $this->contacts[] = $contact;
   }
+
   /**
    * Add a single endpoint to this object.
    */
