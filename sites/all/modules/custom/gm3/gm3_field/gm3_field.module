@@ -421,6 +421,26 @@ function _gm3_field_get_array_from_points_string($value, &$items, $type = FALSE)
       $value = preg_split("/[\n\r|]+/", $value);
     }
     foreach($value as $lat_lng){
+      if(preg_match('/[a-zA-Z][a-zA-Z][0-9]/', $lat_lng)){
+        try{
+          if(($path = libraries_get_path('gridrefutils')) != FALSE && file_exists("$path/gridrefutils.php")){
+            include_once "$path/gridrefutils.php";
+          }
+          $grutoolbox = Grid_Ref_Utils::toolbox();
+          // convert to a numeric reference
+          $uk_grid_numbers = $grutoolbox->get_UK_grid_nums($lat_lng);
+          // convert to global latitude/longitude
+          $grid_ref = $grutoolbox->grid_to_lat_long($uk_grid_numbers, $grutoolbox->COORDS_GPS_UK, $grutoolbox->HTML);
+          // Remove deg symbol.
+          $lat_lng = str_replace('&deg;', '', $grid_ref);
+        }
+        catch(Exception $e){
+          // We've experienced an error. Give an error message, and do nothing
+          // more.
+          drupal_set_message(t('Unable to convert grid reference %grid_ref', array('%grid_ref'=> $lat_lng)), 'error', FALSE);
+          break;
+        }
+      }
       $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
       $lat_lng = explode(", ", $lat_lng);
       if(count($lat_lng) == 1){
