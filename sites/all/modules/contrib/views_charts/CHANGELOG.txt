@@ -1,0 +1,48 @@
+Views Charts 6.x-1.2, xxxx-xx-xx
+---------------------------
+feature #1155330 by rsevero: Implemented the hook_views_charts_graph_alter()
+  hook to allow free chart customization.
+
+
+Views Charts 6.x-1.1, 2010-11-18
+---------------------------
+feature #971600 by rsevero: Make Views Charts support Charts and Graphs y_min,
+  y_max and y_step options.
+feature #778174 by rsevero: Implemented graph background colour definition.
+task #973612: by rsevero: Included in README.txt warning to always upgrade
+  Charts and Graphs when upgrading Views Charts.
+feature #815752 by recidive and rsevero: Re-enabled grouping.
+feature #431472 by rsevero: Implemented series colours setting.
+
+
+Views Charts 6.x-1.0, 2010-07-22
+---------------------------
+task by rsevero: Renamed RC3 to stable.
+
+
+Views Charts 6.x-1.0-RC3, 2010-07-14
+---------------------------
+bug #854428 by WorldFallz and rsevero: Fixed chart title.
+feature #691164 by rsevero: Created Advanced Help page with simple example.
+
+
+Views Charts 6.x-1.0-RC2, 2010-07-08
+---------------------------
+task #848706 by rsevero: Created README.txt file.
+task #848698 by rsevero: Created translation template and brazilian portuguese
+  translation.
+task #848388 by rsevero: Fixed a few remaining issues in
+  views_plugin_style_chart.inc
+task #848388 by rsevero: Fixed CVS Id string in views_charts.css
+task #848388 by rsevero: Made Views Charts Coder and Drupal coding standards
+  complaint.
+task #848360 by rsevero: Reduced the default chart size so default chart works
+  with Google Charts.
+bug #845338 by rsevero: Included missing substitution.
+bug #833388 by rsevero: Removed notices and warnings.
+bug #845338 by rsevero: Created substitute function in Views Charts.
+task #848290 by rsevero: Created CHANGELOG.txt file.
+
+
+Views Charts 6.x-1.0-RC1, 2010-01-12
+---------------------------

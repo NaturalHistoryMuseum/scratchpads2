@@ -1,0 +1,8 @@
+.views-flot .legend table {
+  margin: 0;
+  width: auto;
+}
+
+.views-flot .legend-bottom{
+  margin-bottom: 15px;
+}
