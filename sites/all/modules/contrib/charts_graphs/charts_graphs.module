@@ -1,0 +1,242 @@
+<?php
+
+/**
+ * @File
+ *   Charts and Graphs module file.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function charts_graphs_init() {
+  require_once drupal_get_path('module', 'charts_graphs') . '/charts_graphs_canvas.class.inc';
+  $api_providers = array();
+
+  $hook = 'chartgraph_provider';
+  foreach (module_implements($hook) as $module) {
+    $function = $module . '_' . $hook;
+    $result = call_user_func_array($function, array());
+    if (!empty($result) && is_object($result)) {
+      $result->modulename = $module;
+      //save it as a provider;
+      charts_graphs_apis($result);
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ *
+ */
+function charts_graphs_menu() {
+  $items = array();
+
+  // For testing and Advanced Help examples.
+  $items['charts_graphs/test'] = array(
+    'page callback' => 'charts_graphs_test',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/charts_graphs'] = array(
+    'title' => 'Charts and Graphs',
+    'description' => 'Main configurations for Charts and Graphs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('charts_graphs_main_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ *  Main Charts and Graphs settings form.
+ */
+function charts_graphs_main_settings_form($form, &$form_state) {
+  $form = array();
+
+  $form['charts_graphs_check_chart_api'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Check presence of Chart API module'),
+    '#description' => t(
+      'Defines if !charts_graphs will check for the presence of the !chart_api
+        module. This only affects the presentation of a warning in the
+        !status_page complaining about both the Charts and Graphs module and the
+        Chart API module being installed at the same time.',
+      array(
+      '!charts_graphs' => l(
+          t('Charts and Graphs'),
+          'http://drupal.org/project/charts_graphs'
+        ),
+      '!chart_api' => l(
+          t('Chart API'),
+          'http://drupal.org/project/chart'
+        ),
+      '!status_page' => l(t('Status report'), 'admin/reports/status'),
+    )
+    ),
+    '#default_value' => variable_get('charts_graphs_check_chart_api', 1),
+    '#required' => TRUE,
+  );
+
+  $form['charts_graphs_check_charts'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Check presence of Charts module'),
+    '#description' => t(
+      'Defines if !charts_graphs will check for the presence of the !charts
+        module. This only affects the presentation of a warning in the
+        !status_page complaining about both the Charts and Graphs module and the
+        Charts module being installed at the same time.',
+      array(
+      '!charts_graphs' => l(
+          t('Charts and Graphs'),
+          'http://drupal.org/project/charts_graphs'
+        ),
+      '!charts' => l(
+          t('Charts'),
+          'http://drupal.org/project/charts'
+        ),
+      '!status_page' => l(t('Status report'), 'admin/reports/status'),
+    )
+    ),
+    '#default_value' => variable_get('charts_graphs_check_charts', 1),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * For testing and Advanced Help examples.
+ *
+ * @return <string>
+ */
+function charts_graphs_test($submodule = NULL, $type = 'bar', $title = 'The Title', $series = NULL, $labels = NULL) {
+  if ($submodule === NULL) {
+    $submodule = array_shift(array_keys(charts_graphs_apis()));
+  }
+
+  if ($series === NULL) {
+    $series = array(
+      'Some Value' => array(91, 60, 70, 90, 5, 72, 63, 9, 72),
+      'Page Views' => array(63, 70, 94, 50, 7, 62, 93, 71, 3),
+    );
+  }
+  else {
+    $series = unserialize($series);
+  }
+
+  if ($labels === NULL) {
+    $labels = array(
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine',
+    );
+  }
+  else {
+    $labels = unserialize($labels);
+  }
+
+  $canvas = charts_graphs_get_graph($submodule);
+
+//  if ((strpos($type, 'pie') !== FALSE) || (strpos($type, 'donut') !== FALSE)) {
+//    $series = array(
+//      reset(array_keys($series)) => reset(array_values($series)),
+//    );
+//  }
+
+  $canvas->title = check_plain($title);
+  $canvas->width = 500;
+  $canvas->height = 400;
+  $canvas->type = $type;
+  $canvas->y_legend = 'Y Legend';
+  $canvas->colour = '#ffffff';
+  $canvas->series = $series;
+  $canvas->x_labels = $labels;
+
+  $out = $canvas->get_chart();
+
+  return $out;
+}
+
+/**
+ * Return the list of graphing implementations available if no parameter is
+ * passed or add a new implementation to the static list.
+ *
+ * @staticvar <array> $apis
+ * @param <ChartsGraphsCanvas> $api_class
+ * @return <string>
+ */
+function charts_graphs_apis($api_class = NULL) {
+  static $apis = array();
+
+  if (!empty($api_class)) {
+    $apis[$api_class->name] = $api_class;
+  }
+  else {
+    return $apis;
+  }
+}
+
+/**
+ * Factory method that allows instantiating of a charting implementation class
+ * by implementation name.
+ *
+ * @param <ChartsGraphsCanvas> $name
+ * @return <type>
+ */
+function charts_graphs_get_graph($name) {
+  $apis = charts_graphs_apis();
+  $api = $apis[$name];
+
+  if (!empty($api) && is_object($api)) {
+    require_once DRUPAL_ROOT . '/' . $api->path;
+    $canvas = new $api->clazz($api->modulename);
+    return $canvas;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Sequential generator of IDs, guaranteeing unique value per HTTP request.
+ *
+ * @staticvar <int> $id
+ * @return <int>
+ */
+function charts_graphs_chart_id_generator() {
+  static $id = 0;
+
+  $id++;
+
+  return $id;
+}
+
+/**
+ * Random, unique string generator, to be used for cache_id in async data
+ * retrieval.
+ *
+ * @return <string>
+ */
+function charts_graphs_random_hash() {
+  list($usec, $sec) = explode(' ', microtime());
+  $seed = (float) $sec + ((float) $usec * 100000);
+  mt_srand($seed);
+
+  $randval1 = (string) mt_rand();
+  $randval2 = (string) mt_rand();
+  $randval3 = (string) mt_rand();
+
+  $rand = $randval1 . $randval2 . $randval3;
+  $randhash = md5($rand);
+
+  return 'chgr_' . (string) $randhash;
+}

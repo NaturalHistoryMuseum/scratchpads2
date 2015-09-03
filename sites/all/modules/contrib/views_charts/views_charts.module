@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function views_charts_views_api() {
+  return array(
+    'api' => 2,
+  );
+}
+
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function views_charts_init() {
+  $mpath = drupal_get_path('module', 'views_charts');
+  drupal_add_js($mpath . '/views_charts.js', array('preprocess' => FALSE));
+  drupal_add_css($mpath . '/views_charts.css');
+}
+
+/**
+ * module_invoke_all() substitute that works with referenced parameters.
+ *
+ * @param string $hook
+ * @param array $args
+ * @return array
+ */
+function views_charts_invoke_all($hook, $args) {
+  $return = array();
+  foreach (module_implements($hook) as $module) {
+    $function = $module . '_' . $hook;
+    $result = call_user_func_array($function, $args);
+    if (isset($result) && is_array($result)) {
+      $return = array_merge_recursive($return, $result);
+    }
+    elseif (isset($result)) {
+      $return[] = $result;
+    }
+  }
+
+  return $return;
+}
