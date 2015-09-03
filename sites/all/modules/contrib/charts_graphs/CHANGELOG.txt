@@ -1,0 +1,226 @@
+Charts and Graphs 6.x-2.8, xxxx-xx-xx
+---------------------------
+bug #1154456 by rsevero: Removed Bluff limitation where data were not recognized 
+  if cell keys weren't identical to x labels.
+bug #1155840 by rsevero: Fixed Open Flash Chart 2 to draw chart even if user 
+  defined no y legend.
+
+
+Charts and Graphs 6.x-2.7, 2011-05-10
+---------------------------
+task by rsevero: Updating CHANGELOG.txt for release.
+feature #1000718 by roborat and rsevero: Implemented title colour property for 
+  Google Charts.
+task #1133818 by rsevero: Updated amCharts installation instructions.
+feature #996690 by hish and rsevero: Implemented support for several different 
+  chart types on the same graph.
+feature #999460 by roborat and rsevero: Implemented legend position parameter 
+  for Google Charts.
+bug #992142 by roborat, dsnopek rsevero: Fixed scaling in Google Charts with 
+  several series.
+feature #996448 by justafish and rsevero: Created new general property "theme",
+  implemented it on the Bluff library, documented it on all charting libraries
+  and created new provider "themes" property to list all available themes for
+  each charting library.
+bug #957672 by rsevero: Implemented new 'orientation' parameter for Bluff 
+  library with which the user can force rows or columns to be mapped as data 
+  series.
+bug #1024734 by rsevero: Created INSTALL.TXT file for Open Flash Chart 2.
+bug #1024734 by btbroot and rsevero: Included bluff-src.js file.
+bug #1024734 by btbroot and rsevero: Removed open-flash-chart.swf file from
+  release as it's LGPL. Fixed Open Flash Chart 2 library name across the code.
+bug #1024738 by btbroot and rsevero: Removed .cvsignore files.
+bug #1024744 by btbroot and rsevero: Removed excessive license file from Bluff
+  directory.
+bug #1024730 by btbroot and rsevero: Removed excanvas.js as it's not GPL. Fixed 
+  Bluff's installation instructions also.
+bug #1003432 by rsevero: Fixed pie charts across graphing libraries.
+bug #1006054 by rsevero: Fixed amCharts pie charts when x_labels array keys
+  aren't 0, 1, 2 etc.
+bug #1006058 by rsevero: Fixed Open Flash pie charts when x_labels array keys
+  aren't 0, 1, 2 etc.
+
+
+Charts and Graphs 6.x-2.6, 2010-11-17
+---------------------------
+bug #943062 by mike234 and rsevero: Fixed data labels order in Google Charts
+  side bar graph.
+bug #970726 by rsevero: amCharts side bar graphs present data in the same order
+  as Bluff and Google Charts.
+bug #972170 by rsevero: Fixed background colour setting for amCharts library.
+bug #972170 by rsevero: Documented lack of support for background colour setting
+  in Bluff.
+bug #972170 by rsevero: Implemented background colour setting for Google Charts 
+  library.
+bug #972170 by rsevero: Implemented background colour setting for Open Flash
+  Charts 2 library.
+feature #969758 by rsevero: Implemented series colouring in amCharts.
+feature #969758 by rsevero: Implemented series colouring in Bluff.
+feature #969758 by rsevero: Implemented series colouring in Google Charts and
+  Open Flash Charts 2.
+
+
+Charts and Graphs 6.x-2.5, 2010-11-06
+---------------------------
+feature# 936410 by DeepS and rsevero: Implemented standard method to include 
+  licensing info for amCharts. Also updated documentation.
+bug #921748 by deepM and AllRob: Fixed Open Charts Flash 2 path.
+
+
+Charts and Graphs 6.x-2.4, 2010-10-30
+---------------------------
+feature #889422 by awakenedvoice and rsevero: Implemented series legend for
+  Google Charts.
+support #893498 by hshana and rsevero: Included "Limitations" section on Google
+  Charts help page mentioning limit of data accepted for a Google Chart.
+bug #569268 by lucor: Implemented variable colors for Open Charts Flash 2 pie
+  charts.
+feature #957674 by rsevero: Default Bluff graphs presenting tooltips.
+feature #948748 by drupalshrek and rsevero: Improved installation instructions
+  for amCharts.
+
+
+Charts and Graphs 6.x-2.3, 2010-08-13
+---------------------------
+feature #866516 by Canongia and rsevero: Implemented new chart properties: min,
+  max and step for y axis values.
+bug #879992 by Berdir: Fixed swf and data URLs in Open Charts Flash 2.
+bug #877672 by archnode and rsevero: Changed minimum value of each y data series
+  to zero in Google Charts.
+task #879966 by rsevero: Implemented data series and labels setting through URL
+  on test function.
+
+
+Charts and Graphs 6.x-2.2, 2010-08-03
+---------------------------
+task #866538 by rsevero: Updated installation instructions in Bluff Advanced
+  Help page.
+
+
+Charts and Graphs 6.x-2.1, 2010-08-03
+---------------------------
+task #866538 by rsevero: Adapted Charts and Graphs to Bluff version 3.6.1 and
+  included it in Charts and Graphs as it's now dual licensed: MIT and GPL.
+
+
+Charts and Graphs 6.x-2.0, 2010-07-28
+---------------------------
+task by rsevero: Updated 6.x-2.0 release date in CHANGELOG.
+task #867096 by rsevero: Implemented variable cache clearing in uninstall.
+task #862752 by rsevero: Implemented new charting library default for
+  'charts_graphs/test'.
+task by rsevero: Mentioned the new configuration options in README.txt.
+
+
+Charts and Graphs 6.x-2.0-RC2, 2010-07-22
+---------------------------
+task #861494 by rsevero: Implemented warnings in status report page about Charts 
+  and Graphs being installed together with "Charts" or "Chart API" modules.
+
+
+Charts and Graphs 6.x-2.0-RC1, 2010-07-22
+---------------------------
+task by rsevero: Renamed BETA2 to RC1.
+
+
+Charts and Graphs 6.x-2.0-BETA2, 2010-07-16
+---------------------------
+task by rsevero: Set 6.x-2.0-BETA2 date in CHANGELOG.
+bug #855202 by WorldFallz: Removed spurious % in pie amCharts labels.
+bug #569268 by rsevero: Fixed Google Charts data series colors.
+bug #569268 by rsevero: Fixed amCharts data series colors.
+bug #849946 by rsevero: Fixed wrongly encoded accented chars in amCharts.
+
+
+Charts and Graphs 6.x-2.0-BETA1, 2010-07-08
+---------------------------
+task by rsevero: Fixed typos in Open Charts Flash 2 files.
+feature #842758 by rsevero: Completed amCharts documentation on arbitrary 
+  settings interface.
+feature #842758 by rsevero: Implemented and documented arbitrary settings
+  interface for amCharts.
+bug #845366 by rsevero: Fixed Open Charts Flash 2.
+task #845350 by rsevero: ChartCanvas class renamed to ChartsGraphsCanvas.
+task #845346 by rsevero: Moved set_data() function to ChartCanvas.
+task #845342 by rsevero: Created new abstract class ChartsGraphsFlashCanvas.
+task #842902 by rsevero: Included mention of main function rename.
+task #842502 by rsevero: Fixed identification name for Bluff submodule.
+task #842502 by rsevero: Fixed identification name for Open Charts Flash 2 
+  submodule.
+task #842502 by rsevero: Created requirement for removal of old amCharts 
+  submodule.
+task #842902 by rsevero: Fixed functions prefixes.
+task #842978 by rsevero: Implemented pie and donuts 2D and 3D in amCharts.
+bug #842964: by rsevero: Fixed pie X donut differentiation in amCharts.
+task #842502 by rsevero: Fixed identification name for amCharts submodule.
+feature #842758 by rsevero: Improved Bluff documentation for arbitrary
+  parameters.
+feature #842758 by rsevero: Implemented and documented arbitrary settings
+  interface for Bluff and Google Charts.
+bug #842774 by rsevero: Implemented bar resizing in Google Charts bar graphs.
+task #842502 by rsevero: Fixed identification name for Google Charts submodule.
+feature #842132 by rsevero: Implemented Bluff requirements.
+feature #842132 by rsevero: Implemented amCharts requirements.
+feature #842130 by rsevero: Created requirement for at least one charting
+  library.
+feature #840922 by rsevero: Completed first version of Google Charts support for 
+  Charts and Graphs.
+feature #840922 by rsevero: Continued Google Charts support for Charts and
+  Graphs.
+feature #840922 by rsevero: Started Google Charts support for Charts and Graphs.
+task #840898 by rsevero: Changed standardized chart types from "horizontal bar"
+  to "side bar" (from 6.x-1.0-RC4).
+bug #840888 by rsevero: Fixed announced chart types (from 6.x-1.0-RC4).
+task by rsevero: Fixed .info submodule description module name.
+task by rsevero: Fixed minor README.txt text issues.
+task by rsevero: Fixed release date for 6.x-1.0-RC3 in CHANGELOG.txt.
+
+
+Charts and Graphs 6.x-1.0-RC3, 2010-06-28
+---------------------------
+task by rsevero: Documented available graph types for Open Charts Flash 2.
+feature by rsevero: Implemented new chart types for Bluff.
+feature by rsevero: Implemented several new chart types in amCharts.
+task 839664 by rsevero: Improved documentation mentioning standardize graph
+  types and including links to each charting library home and reference pages on
+  help pages.
+task by rsevero: Included "general reference" Advanced Help page.
+bug by rsevero: amCharts implementation presenting y legend.
+task by rsevero: Created "General Reference" Advanced Help page.
+bug #803654 by seanr, rsevero: Fixed (?) by attaching a behavior to the page
+  that recalls the chart drawing function.
+task by rsevero: Gave proper credit for bug #711486 resolution in CHANGELOG.txt.
+bug #711486 by un11imig, seanr, rsevero: Fixed presentation of Bluff graphs on
+  IE.
+task #836588 by rsevero: Standardized module names and submodule nice names.
+task by rsevero: Ignored non-distributable files in bluff directory.
+bug #837126 by rsevero: Fixed data series and legend color mismatch in Bluff.
+bug #831970 by rsevero: Removed automatic data sorting by Bluff.
+feature #831962 by rsevero: Improved Bluff's Advanced Help page "transpose"
+  definition.
+feature #831962 by rsevero: Patch applied and included definition of Bluff's
+  special parameter "transpose" in Bluff's Advanced Help page.
+task by rsevero: Applied the right fix for NOTICEs on pie charts by Open Flash:
+  only they have series as an array of objects and only they don't need min and
+  max values for y axis. Removed min and max values search and attribution for
+  pie charts.
+task by rsevero: Fixed NOTICEs generated when looking for min and max values for
+  pie charts in Open Flash. These values aren't even useful for pie charts but
+  it might affect other types of graphs so I didn't disabled this search for pie
+  graphs.
+task by rsevero: Included live examples in Advanced Help submodule pages.
+task by rsevero: Implemented option parameters on charts_graphs_test() so it can
+  be used also for Advanced Help examples.
+task by rsevero: Included CVS Id in some more files.
+task #835964 by rsevero: Made amCharts files Coder compliant.
+task #835964 by rsevero: Made Open Charts Flash 2 files Coder compliant.
+task by rsevero: Fixing which graphing libraries work out of the box in
+  README.txt file.
+task #835964 by rsevero: Made Bluff files Coder compliant.
+task #835964 by rsevero: Made Charts and Graphs files Coder compliant.
+task #835960 by rsevero: Created Advanced Help pages.
+task #835956 by rsevero: Created CHANGELOG.txt and README.txt files.
+
+
+Charts and Graphs 6.x-1.0-RC2, 2010-01-12
+---------------------------

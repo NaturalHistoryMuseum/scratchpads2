@@ -1,0 +1,475 @@
+<?php
+
+/**
+ * Implements hook_requirements().
+ */
+function flot_requirements($phase) {
+  $requirements = array();
+  // Check for the flot library.
+  if (file_exists(_flot_get_library_path() . '/jquery.flot.js')) {
+    $requirements['flot'] = array(
+      'value' => t('Flot library found at !path', array('!path' => _flot_get_library_path() . '/jquery.flot.js')),
+    );
+  }
+  else {
+    $path = module_exists('libraries') ? 'sites/all/libraries/flot or ' . drupal_get_path('module', 'flot') . '/flot' : drupal_get_path('module', 'flot') . '/flot';
+    $requirements['flot'] = array(
+      'value' => t('Not installed'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => t(
+        'The flot library was not installed. !download the flot library and extract it to %path so that the file jquery.flot.js can be found at %flotpath',
+        array(
+          '!download' => l(
+            'Download',
+            'http://code.google.com/p/flot/downloads/list',
+            array('attributes' => array('title' => t('Download flot')))
+          ),
+          '%path' => $path,
+          '%flotpath' => $path . '/jquery.flot.js',
+        )
+      ),
+    );
+  }
+  $requirements['flot']['title'] = t('Flot Library');
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function flot_theme() {
+  return array(
+    'flot_graph' => array(
+      'variables' => array(
+        'element' => NULL,
+        'data' => NULL,
+        'options' => NULL,
+      ),
+    ),
+  );
+}
+
+function template_preprocess_flot_graph(&$variables) {
+  static $n = 0;
+  $zoom = (isset($variables['addselectionfilter']) && $variables['addselectionfilter']) || (isset($variables['zoom']) && $variables['zoom']);
+  $data = array();
+  if (isset($variables['data'])) {
+    $data = $variables['data'];
+  }
+
+  if (!isset($variables['element']['style'])) {
+    $variables['element']['style'] = "width:100%;height:200px";
+  }
+
+  $options = new stdClass();
+  if (isset($variables['options'])) {
+    $options = $variables['options'];
+  }
+
+  if ($zoom) {
+    $variables['element']['class'] = (isset($variables['element']['class'])) ? $variables['element']['class'] . ' flot-with-zoom' : 'flot-with-zoom';
+    $variables['element']['id'] = 'flot-view-zoomable-' . $n++;
+    $options->selection['mode'] = 'x';
+  }
+  else {
+    if (!isset($variables['element']['id'])) {
+      $n++;
+      $variables['element']['id'] = 'flot-auto-identifier-' . $n;
+    }
+  }
+
+  if (isset($variables['legend']) && $variables['legend']) {
+    if (!isset($options->legend)) {
+      // Default position bottom
+      $options->legend->show = TRUE;
+      $options->legend->position = 'bottom';
+    }
+    else {
+      $options->legend->show = TRUE;
+      if (!isset($options->legend->position)) {
+        $options->legend->position = 'bottom';
+      }
+    }
+  }
+  $variables['options'] = $options;
+  $legend_element = array();
+  if (isset($options->legend) && $options->legend->position == 'bottom' && !isset($options->legend->container)) {
+    $variables['element']['legendid'] = $variables['element']['id'] . '-legend';
+    $options->legend->container = '#' . $variables['element']['legendid'];
+    $options->legend->containerid = $variables['element']['legendid'];
+    $legend_element = array(
+      'id' => $variables['element']['legendid'],
+      'class' => array('legend', 'legend-bottom'),
+    );
+  }
+  
+  flot_add_js('core');
+  if (isset($options->selection)) {
+    flot_add_js('selection');
+  }
+  if (isset($options->series->pie->show) && $options->series->pie->show) {
+    flot_add_js('pie');
+  }
+  foreach ($variables['data'] as $s => $serie) {
+    if (isset($serie->stack)) {
+      flot_add_js('stack');
+    }
+  }
+
+  $jsdata = '
+    jQuery(document).ready(function() {
+      Drupal.flot[\'' . str_replace('-', '_', $variables['element']['id']) . '\'] = {};
+      Drupal.flot[\'' . str_replace('-', '_', $variables['element']['id']) . '\'][\'flot\'] = jQuery.plot(jQuery("#' . $variables['element']['id'] . '"), ' . drupal_json_encode((array) $data) . ', ' . drupal_json_encode($options) . ');
+      Drupal.flot[\'' . str_replace('-', '_', $variables['element']['id']) . '\'][\'options\'] = ' . drupal_json_encode((array) $options) . ';
+      Drupal.flot[\'' . str_replace('-', '_', $variables['element']['id']) . '\'][\'data\'] = ' . drupal_json_encode((array) $data) . ';
+    });
+  ';
+  drupal_add_js($jsdata, array('type' => 'inline', 'scope' => 'footer'));
+
+  $variables['element'] = array(
+    'graph' => array(
+      'style' => $variables['element']['style'],
+      'class' => isset($variables['element']['class']) ? array($variables['element']['class']) : array(),
+      'id' => $variables['element']['id'],
+    )
+  );
+
+  $zoom_element = array();
+  if($zoom && (!isset($options->series->pie->show) || $options->series->pie->show == FALSE)) {
+    $zoom_options = clone $options;
+    $zoom_data = $data;
+    $zoom_options->series->points->show = FALSE;
+    $zoom_options->series->lines->lineWidth = 1;
+    $zoom_options->series->shadowSize = 0;
+    $zoom_options->grid->hoverable = FALSE;
+    $zoom_options->selection['mode'] = 'x';
+    $zoom_options->legend->show = FALSE;
+    if (isset($zoom_options->xaxis)) {
+      unset($zoom_options->xaxis->min);
+      unset($zoom_options->xaxis->max);
+    }
+    if (isset($zoom_options->yaxis)) {
+      unset($zoom_options->yaxis->min);
+      unset($zoom_options->yaxis->max);
+      unset($zoom_options->yaxis->autoscaleMargin);
+    }
+    foreach ($zoom_data as &$zdata) {
+      $zdata->points->show = FALSE;
+    }
+    $jszoomdata = '
+      jQuery(document).ready(function() {
+        Drupal.flot[\'' . str_replace('-', '_', $variables['element']['graph']['id'] . '-zoom') . '\'] = {};
+        Drupal.flot[\'' . str_replace('-', '_', $variables['element']['graph']['id'] . '-zoom') . '\'][\'flot\'] = jQuery.plot(jQuery("#' . $variables['element']['graph']['id'] . '-zoom' . '"), ' . drupal_json_encode((array) $zoom_data) . ', ' . drupal_json_encode($zoom_options) . ');
+        Drupal.flot[\'' . str_replace('-', '_', $variables['element']['graph']['id'] . '-zoom') . '\'][\'options\'] = ' . drupal_json_encode((array) $zoom_options) . ';
+        Drupal.flot[\'' . str_replace('-', '_', $variables['element']['graph']['id'] . '-zoom') . '\'][\'data\'] = ' . drupal_json_encode((array) $zoom_data) . ';
+      });
+    ';
+    drupal_add_js($jszoomdata, array('type' => 'inline', 'scope' => 'footer'));
+    $width = array();
+    preg_match('/width:(.*)px;/', $variables['element']['graph']['style'], $width);
+    $zoom_element = array(
+      'id' => $variables['element']['graph']['id'] . '-zoom',
+      'style' => 'width:' . $width[1] . 'px;height:100px',
+      'class' => array('flot-zoom'),
+    );
+  }
+  $variables['element']['zoom'] = $zoom_element;
+  $variables['element']['legend'] = $legend_element;
+}
+
+/**
+ * Main flot graphing function
+ *
+ * @param $element
+ *   An associative array to define a placeholder element. If an 'id' is
+ *   omitted one will be generated, If no 'style' is specified and width and
+ *   height style will be added. In short you can just pass an empty array and
+ *   everything will still work. This argument is essentially optional and has
+ *   been kept as the first argument to remain consistant with flots own api.
+ * @param $data
+ *   The data series for the graph. Optional. See flot's API.txt for more
+ *   details. This module defines the flotData class which can  be used or
+ *   extended to make generating data objects simpler.
+ * @param $options
+ *   Options to pass to flot. Optional. See flot's API.txt for more details.
+ * @param $loader
+ *   Allows alterative loading of flot data. If 'FALSE' data will passed
+ *   directly to an invocation of $.plot(). Otherwise the contents of $loader
+ *   should be js.
+ *
+ * @return
+ *   The placeholder element
+ */
+function theme_flot_graph($variables) {
+  $element = $variables['element'];
+  $output = array(
+    'graph' => array(
+      '#type' => 'container',
+      '#attributes' => $element['graph'],
+    ),
+    'zoom' => array(
+      '#type' => 'container',
+      '#attributes' => $element['zoom'],
+    ),
+    'legend' => array(
+      '#type' => 'container',
+      '#attributes' => $element['legend'],
+    ),
+  );
+  return drupal_render($output);
+  /*$element = array();
+  if (isset($variables['element'])) {
+    $element = $variables['element'];
+  }
+  
+  if (empty($variables['data'])) {
+    return '<div ' . drupal_attributes($element) . '> ' . t('No data') . ' </div>';
+  }
+  $extra = '';
+  if (isset($element['legendid'])) {
+    $extra = '<div id="' . $element['legendid'] . '"> </div>';
+  }
+  return '<div ' . drupal_attributes($element) . '> </div>';// . $extra;*/
+}
+
+/**
+ * Helper to add flot's js
+ */
+function flot_add_js($type = 'core') {
+  drupal_add_js(drupal_get_path('module', 'flot') . '/flot.utils.js');
+  static $added = array();
+  $path = _flot_get_library_path();
+  if (!isset($added['core']) && $type = 'core') {
+    $forie = array(
+      '#type' => 'markup',
+      '#markup' => '<!--[if IE]><script language="javascript" type="text/javascript" src="' . base_path() . $path . '/excanvas.js"></script><![endif]-->',
+    );
+    drupal_add_html_head($forie, 'flot');
+
+    drupal_add_js($path . '/jquery.flot.js');
+    drupal_add_js('Drupal.flot = {};', 'inline');
+
+    $added['core'] = TRUE;
+  }
+  if (!isset($added['stack']) && $type == 'stack') {
+    drupal_add_js($path . '/jquery.flot.stack.js');
+    $added['stack'] = TRUE;
+  }
+  if (!isset($added['pie']) && $type == 'pie') {
+    drupal_add_js($path . '/jquery.flot.pie.js');
+    drupal_add_css(drupal_get_path('module', 'flot') . '/flot.pie.css');
+    $added['pie'] = TRUE;
+  }
+  if (!isset($added['selection']) && $type == 'selection') {
+    drupal_add_js($path . '/jquery.flot.selection.js');
+    $added['selection'] = TRUE;
+  }
+}
+
+function _flot_get_library_path() {
+  if (module_exists('libraries') && libraries_get_path('flot')) {
+    $path = libraries_get_path('flot');
+  }
+  if (!isset($path)) {
+    $path = drupal_get_path('module', 'flot') . '/flot';
+  }
+  return $path;
+}
+
+/**
+ * Data class for the flot API.
+ *
+ * Make some nested objects to keep things simple when creating a data series.
+ */
+class flotData {
+
+  public $data;
+  public $series;
+
+  function __construct($data) {
+    $this->data = $data;
+    $this->series = new stdClass();
+    $this->series->lines = new stdClass();
+    $this->series->bars = new stdClass();
+    $this->series->points = new stdClass();
+    $this->series->pie = new stdClass();
+    $this->grid = new stdClass();
+  }
+
+}
+
+/**
+ * Style class for the flot API.
+ *
+ * Provides some sensible defaults and helper methods for managing axes.
+ */
+class flotStyle {
+
+  // Use flot's default colors: public $colors;
+  public $grid;
+  public $series;
+
+  function __construct() {
+    $this->series = new stdClass();
+    $this->series->lines = new stdClass();
+    $this->series->bars = new stdClass();
+    $this->series->points = new stdClass();
+    $this->series->pie = new stdClass();
+
+    // Use flot's default colors: $this->colors = array('#666', '#999', '#ccc');
+    $this->shadowSize = 0;
+
+    $this->grid = new stdClass();
+    $this->grid->labelMargin = 0;
+    $this->grid->tickColor = '#eee';
+    $this->grid->backgroundColor = '#f8f8f8';
+    $this->grid->borderWidth = 0;
+    $this->grid->hoverable = TRUE;
+    $this->grid->autoHighlight = TRUE;
+    $this->grid->clickable = FALSE;
+  }
+
+  function axis_ticks($axis = 'yaxis', $ticks = array()) {
+    if (count($ticks)) {
+      $this->{$axis} = new stdClass();
+      $this->{$axis}->ticks = $ticks;
+    }
+  }
+
+  function axis_range($axis = 'yaxis', $range = array(), $granularity = 0) {
+    if (count($range)) {
+      $this->{$axis} = new stdClass();
+      $this->{$axis}->min = min($range);
+      $this->{$axis}->max = max($range);
+
+      if (is_numeric($granularity) && $granularity != 0) {
+        $tickSize = ($this->{$axis}->max - $this->{$axis}->min) / $granularity;
+        $this->{$axis}->tickSize = floor($tickSize);
+      }
+    }
+  }
+
+  function createPie() {
+    $this->series->pie = new flotPie();
+  }
+}
+/*
+ * Parent class for Flot elements
+ */
+class flot {
+  function __construct($settings = NULL) {
+    if (is_array($settings)) {
+      foreach ($settings as $key => $setting) {
+        if (!empty($setting) && $setting !== 0) {
+          $this->{$key} = $setting;
+        }
+      }
+    }
+  }
+}
+/**
+ * Basic line style class for the flot.
+ */
+class flotLine extends flot {
+
+  function __construct($settings = NULL) {
+    parent::__construct($settings);
+    $this->show = TRUE;
+    $this->lineWidth = 1;
+  }
+
+}
+
+/**
+ * Basic bar style class for the flot.
+ */
+class flotBar extends flot {
+
+  function __construct($settings = NULL) {
+    parent::__construct($settings);
+    $this->show = TRUE;
+    $this->lineWidth = 4;
+    $this->fill = .5;
+  }
+
+}
+
+/**
+ * Points style class for the flot.
+ */
+class flotPoint extends flot {
+
+  function __construct($settings = NULL) {
+    parent::__construct($settings);
+    $this->show = TRUE;
+    $this->lineWidth = 1;
+    $this->fill = .1;
+  }
+
+}
+
+/**
+ * Basic pie style class for the flot.
+ */
+class flotPie extends flot {
+  function __construct($settings = NULL) {
+    parent::__construct($settings);
+    $this->show = TRUE;
+    $this->radius = 1;
+    $this->label->show = TRUE;
+    $this->label->radius = 2/3;
+    $this->label->threshold = 0.1;
+    $this->label->background->opacity = 1;
+  }
+
+}
+
+/**
+ * Legacy: Datapoints
+ */
+class flotStyleLine extends flotStyle {
+
+  function __construct() {
+    parent::__construct();
+    $this->series->lines->show = TRUE;
+    $this->series->lines->lineWidth = 1;
+    $this->series->lines->fill = .1;
+  }
+}
+
+class flotStyleBar extends flotStyle {
+
+  function __construct() {
+    parent::__construct();
+    $this->series->bars->show = TRUE;
+    $this->series->bars->lineWidth = 0;
+    $this->series->bars->fill = .5;
+   }
+
+ }
+
+class flotStylePoint extends flotStyle {
+
+  function __construct() {
+    parent::__construct();
+    $this->series->points->show = TRUE;
+    $this->series->points->lineWidth = 1;
+    $this->series->points->fill = .1;
+  }
+
+}
+
+class flotStylePie extends flotStyle {
+
+  function __construct() {
+    parent::__construct();
+    $this->series->pie->show = TRUE;
+    $this->series->pie->radius = 1;
+    $this->series->pie->label->show = TRUE;
+    $this->series->pie->label->radius = 2/3;
+    $this->series->pie->label->threshold = 0.1;
+    $this->series->pie->label->background->opacity = 1;
+  }
+ 
+}
