@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * @file
+ *   Install file for Charts and Graphs module.
+ *
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function charts_graphs_uninstall() {
+  db_delete('variable')
+  ->condition('name', 'charts_graphs_%%', 'LIKE')
+  ->execute();
+  cache_clear_all('variables', 'cache');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function charts_graphs_requirements($phase) {
+  $requirements = array();
+
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+
+    if (count(charts_graphs_apis()) == 0) {
+      $requirements['charts_graphs_submodule'] = array(
+        'title' => $t('Charts and Graphs charting library'),
+        'description' => $t('Charts and Graphs requires at least one charting
+          library enabled. Please go to !modules_page and enable at least one
+          charting library.',
+          array('!modules_page' => l(t('modules list page'), 'admin/modules/list'))
+        ),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('None enabled'),
+      );
+    }
+
+    if (variable_get('charts_graphs_check_chart_api', 1) && module_exists('chart')) {
+      $requirements['charts_graphs_check_chart_api'] = array(
+        'title' => $t('Chart API'),
+        'description' => $t("You have both !charts_graphs and !chart_api
+          installed. Unless you have different modules that require both the
+          Charts and Graphs module and the Chart API module one of them
+          should be uninstalled. A common module that requires Charts and
+          Graphs is the Views Charts module so if you use the later, you need
+          the first. If you don't want this warning to be shown any more, please
+          set the proper option at !charts_graphs_settings_page.",
+          array(
+          '!charts_graphs' => l(
+              t('Charts and Graphs'),
+              'http://drupal.org/project/charts_graphs'
+            ),
+          '!chart_api' => l(
+              t('Chart API'),
+              'http://drupal.org/project/chart'
+            ),
+          '!charts_graphs_settings_page' => l(
+              t('Charts and Graphs settings page'),
+              'admin/config/charts_graphs'
+            ),
+        )
+        ),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('Enabled'),
+      );
+    }
+
+    if (variable_get('charts_graphs_check_charts', 1) && module_exists('charts')) {
+      $requirements['charts_graphs_check_charts'] = array(
+        'title' => $t('Charts'),
+        'description' => $t("You have both !charts_graphs and !charts
+          installed. Unless you have different modules that require both the
+          Charts and Graphs module and the Charts module one of them
+          should be uninstalled. A common module that requires Charts and
+          Graphs is the Views Charts module so if you use the later, you need
+          the first. If you don't want this warning to be shown any more, please
+          set the proper option at !charts_graphs_settings_page.",
+          array(
+          '!charts_graphs' => l(
+              t('Charts and Graphs'),
+              'http://drupal.org/project/charts_graphs'
+            ),
+          '!charts' => l(
+              t('Charts'),
+              'http://drupal.org/project/charts'
+            ),
+          '!charts_graphs_settings_page' => l(
+              t('Charts and Graphs settings page'),
+              'admin/config/charts_graphs'
+            ),
+        )
+        ),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('Enabled'),
+      );
+    }
+
+  }
+
+  return $requirements;
+}

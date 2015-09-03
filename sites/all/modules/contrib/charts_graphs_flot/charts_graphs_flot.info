@@ -1,0 +1,15 @@
+name = "Charts and Graphs: Flot"
+description = "Flot implementation for Charts and Graphs."
+dependencies[] = charts_graphs
+dependencies[] = flot
+package = "Charts"
+core = 7.x
+php = 5.1
+
+
+; Information added by drupal.org packaging script on 2013-04-25
+version = "7.x-1.0"
+core = "7.x"
+project = "charts_graphs_flot"
+datestamp = "1366896612"
+
