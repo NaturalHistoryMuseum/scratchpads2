@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Charts and Graphs - General Reference</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Here you have the reference for the properties available for all
+      charting libraries. Any library that doesn't implements some of this
+      properties should document it so in it's specific page.</p>
+    <h3>Properties list</h3>
+      <ul>
+        <li><a href="#colour">colour</a></li>
+        <li><a href="#height">height</a></li>
+        <li><a href="#series">series</a></li>
+        <li><a href="#series_colours">series_colours</a></li>
+        <li><a href="#theme">theme</a></li>
+        <li><a href="#title">title</a></li>
+        <li><a href="#type">type</a></li>
+        <li><a href="#width">width</a></li>
+        <li><a href="#x_labels">x_labels</a></li>
+        <li><a href="#y_legend">y_legend</a></li>
+        <li><a href="#y_min">y_min</a></li>
+        <li><a href="#y_max">y_max</a></li>
+        <li><a href="#y_step">y_step</a></li>
+      </ul>
+    <h3>Properties</h3>
+      <h4><a name="colour">colour</a></h4>
+        <p>The <i>colour</i> property sets the graph background colour. It
+          should contain the hex value of the colour.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->colour = '#123456' // This way you get a dark blue background.
+</pre>
+      <h4><a name="height">height</a></h4>
+        <p>The <i>height</i> property sets the graph height in pixels.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->height = 300;
+</pre>
+      <h4><a name="series">series</a></h4>
+        <p>The <i>series</i> property sets the data to be plotted on the graph.</p>
+        <p>It's an associative array of arrays. The keys are the data series
+          names (which will appear on the legend of the graph). Each inside
+          array holds the values for that data serie.</p>
+        <p>In a pie chart there should be only one data series and the key for
+          this data serie is ignored as the values are named after the
+          <a href="#x_labels">x labels</a>.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->series = array(
+  array(1000, 1200, 1300, 1150),
+  array(345, 1300, 120, 937),
+);
+</pre>
+      <h4><a name="series_colours">series_colours</a></h4>
+        <p>The <i>series_colours</i> property sets the series colours. It
+          should contain an array of hex value of the desired colours.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->series_colours = array('#123456', '#654321); // This way you get a dark blue and a medium brown.
+</pre>
+      <h4><a name="theme">theme</a></h4>
+        <p>The <i>theme</i> property sets a library dependent theme.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->theme = 'keynote'; // This example works for Bluff.
+</pre>
+      <h4><a name="title">title</a></h4>
+        <p>The <i>title</i> property sets the graph title.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->title = 'Graph title';
+</pre>
+      <h4><a name="type">type</a></h4>
+        <p>The <i>type</i> property sets the graph type. All charting libraries
+          support at least the following types:</p>
+        <dl>
+          <dt>bar</dt>
+          <dd>Bar graph</dd>
+          <dt>line</dt>
+          <dd>Line graph</dd>
+          <dt>pie</dt>
+          <dd>Pie graph</dd>
+        </dl>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->type = 'line';
+</pre>
+      <h5><a name="other_standardized_types">Others standardized graph types</a></h5>
+        <p>Here is a complete list of standardized chart types (see each
+          charting library Advanced Help page for a specific list of supported
+          chart types):</p>
+        <dl>
+          <dt>area</dt>
+            <dd>Area graph. It's similar to a line graph with line/axis area
+              painted.</dd>
+          <dt>donut</dt>
+            <dd>Similar to a pie graph but with a hole in the middle.</dd>
+          <dt>side_bar</dt>
+            <dd>Side bar graph, also known as sidebar.</dd>
+          <dt>stacked_area</dt>
+            <dd>Similar to an area graph where each new data series is presented
+              above the other.</dd>
+          <dt>stacked_bar</dt>
+            <dd>Similar to a bar graph where the bars for the same x reference are
+              stacke one over the other instead of being side by side.</dd>
+          <dt>stacked_side_bar</dt>
+            <dd>Similar to a side bar graph where each bar for the same y
+              reference is put to the right of each other instead of one below the
+              other.</dd>
+        </dl>
+      <h5><a name="other_types">Other graph types</a></h5>
+        <p>Each charting library might support other graph types. Please see the
+        accompanying Advanced Help page or the charting library documentation
+        page.</p>
+      <h4><a name="width">width</a></h4>
+        <p>The <i>width</i> property sets the graph width in pixels.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->width = 500;
+</pre>
+      <h4><a name="x_labels">x_labels</a></h4>
+        <p>The <i>x_labels</i> property sets the labels for each point in the x
+          axis of the graph.</p>
+        <p>In a pie chart these are the names used to identify each value in the
+          data series.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->x_labels = array('2007', '2008', '2009', '2010');
+</pre>
+      <h4><a name="y_legend">y_legend</a></h4>
+        <p>The <i>y_legend</i> property sets the text presented next to the y
+          axis of the graph.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->y_legend = 'population';
+</pre>
+      <h4><a name="y_min">y_min</a></h4>
+        <p>The <i>y_min</i> property sets the minimum value to be presented in
+          the y axis of the graph.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->y_min = -18;
+</pre>
+      <h4><a name="y_max">y_max</a></h4>
+        <p>The <i>y_max</i> property sets the maximum value to be presented in
+          the y axis of the graph.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->y_max = 164;
+</pre>
+      <h4><a name="y_step">y_step</a></h4>
+        <p>The <i>y_step</i> property sets the step used to define intermediate
+          values to be presented in the y axis of the graph.</p>
+        <h5>Example:</h5>
+<pre>
+&lt;?php
+$canvas->y_step = 4;
+</pre>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ *
+ */
+/**
+ * Implements of hook_views_api().
+ */
+function flot_views_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'flot_views') . '/views',
+  );
+}
