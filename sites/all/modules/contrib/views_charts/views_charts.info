@@ -1,0 +1,16 @@
+name = Views Charts
+description = "Views Charts provides a new style for views: Charts."
+dependencies[] = views
+dependencies[] = charts_graphs
+package = "Views"
+core = 7.x
+php = 5.1
+
+files[] = views_plugin_style_chart.inc
+
+; Information added by Drupal.org packaging script on 2015-02-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "views_charts"
+datestamp = "1424935419"
+

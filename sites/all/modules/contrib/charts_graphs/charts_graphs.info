@@ -1,0 +1,15 @@
+
+name = "Charts and Graphs"
+description = "Charts and Graphs Core API."
+package = "Charts"
+core = 7.x
+php = 5.1
+
+files[] = charts_graphs_canvas.class.inc
+
+; Information added by drupal.org packaging script on 2013-04-26
+version = "7.x-2.0"
+core = "7.x"
+project = "charts_graphs"
+datestamp = "1366954212"
+

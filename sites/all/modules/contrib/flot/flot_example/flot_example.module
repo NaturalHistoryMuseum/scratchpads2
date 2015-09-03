@@ -1,0 +1,57 @@
+<?php
+
+// $Id $
+
+/**
+ * Implements hook_menu
+ */
+function flot_example_menu() {
+  $items['flot_example'] = array(
+    'title' => t('Flot example'),
+    'page callback' => 'flot_example_page',
+    'access callback' => TRUE,
+  );
+
+  if(module_exists('flot_views')){
+    $items['flot_views_example'] = array(
+      'title' => t('Flot views example'),
+      'page callback' => 'flot_views_example_page',
+      'access callback' => TRUE,
+    );
+  }
+
+  return $items;
+}
+
+function flot_example_page(){
+  $d1 = new flotData(array(array(0, 1), array(4, 8), array(8, 5)));
+  $d1->label = t('Example data 1');
+  $d2 = new flotData(array(array(0, 8), array(3, 5), array(8, 0.5)));
+  $d2->label = t('Example data 2');
+  $variables = array(
+    'data' => array($d1, $d2),
+    'element' => array(
+      'id' => 'flot-example-normal',
+      'class' => 'flot-example',
+      'style' => "width:600px;height:400px",
+    ),
+    'legend' => TRUE,
+    'zoom' => TRUE,
+  );
+  return theme('flot_graph', $variables);
+}
+
+function flot_views_example_page(){
+  $output = "<p> You can see the raw view " . l('here', 'flot-example-view-raw') . '</p>';
+  return views_embed_view('flot_example_view', 'page') . $output;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function flot_example_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'flot_example') . '/views',
+  );
+}
