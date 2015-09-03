@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_charts_disable(){
+  drupal_register_shutdown_function('module_disable', array(
+    'flot',
+    'views_charts',
+    'charts_graphs',
+    'charts_graphs_flot'
+  ));
+}

@@ -1,0 +1,10 @@
+name = Views :: Charts
+description = Allows the creation of dynamic charts and graphs in coordination with the Views module. For most uses, data must be contained in numeric fields. 
+package = "Views"
+core = 7.x
+tool=true
+dependencies[] = views_ui
+dependencies[] = flot
+dependencies[] = views_charts
+dependencies[] = charts_graphs
+dependencies[] = charts_graphs_flot
