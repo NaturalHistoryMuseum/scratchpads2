@@ -176,9 +176,12 @@ function _dwcarchiver_get_eml(){
   $gbif = $metadata->addChild('gbif');
   $gbif->addChild('dateStamp', date('Y-m-d'));
   $gbif->addChild('hierarchyLevel', 'dataset');
-  $gbif->addChild('citation', url('', array(
+  $citation = $gbif->addChild('citation', url('', array(
     'absolute' => TRUE
   )) . ' - ' . variable_get('site_name', 'Scratchpad'));
+  if(($identifier = variable_get('dwcarchiver_alternative_identifier', FALSE)) != FALSE){
+    $citation->addAttribute('identifier', $identifier);
+  }
   $intrights = $dataset->addChild('intellectualRights');
   $cc_markup = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
   $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
