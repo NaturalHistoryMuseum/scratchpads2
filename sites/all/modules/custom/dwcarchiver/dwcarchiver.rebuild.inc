@@ -176,9 +176,9 @@ function _dwcarchiver_get_eml(){
   $gbif = $metadata->addChild('gbif');
   $gbif->addChild('dateStamp', date('Y-m-d'));
   $gbif->addChild('hierarchyLevel', 'dataset');
-  $citation = $gbif->addChild('citation', url('', array(
+  $citation = $gbif->addChild('citation', variable_get('dwcarchiver_alternative_citation', url('', array(
     'absolute' => TRUE
-  )) . ' - ' . variable_get('site_name', 'Scratchpad'));
+  )) . ' - ' . variable_get('site_name', 'Scratchpad')));
   if(($identifier = variable_get('dwcarchiver_alternative_identifier', FALSE)) != FALSE){
     $citation->addAttribute('identifier', $identifier);
   }

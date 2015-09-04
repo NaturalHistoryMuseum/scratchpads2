@@ -7,6 +7,19 @@
  */
 function dwcarchiver_menu(){
   return array(
+    'admin/config/content/dwca' => array(
+      'title' => 'DwC-Archive settings',
+      'description' => 'Alter some of the basic metadata included in all DwC-Archives produced by this site.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwcarchiver_settings_page'
+      ),
+      'access arguments' => array(
+        'configure dwcarchiver settings'
+      ),
+      'file' => 'dwcarchiver.pages.inc',
+      'type' => MENU_NORMAL_ITEM
+    ),
     'admin/config/content/dwcarchiver' => array(
       'title' => 'DwC-Archiver',
       'description' => 'Add and configure custom Darwin Core Archives.',
@@ -275,6 +288,9 @@ function dwcarchiver_permission(){
     'configure dwcarchiver' => array(
       'title' => t('Configure DwC-Archiver')
     ),
+    'configure dwcarchiver settings' => array(
+      'title' => t('Alter DwC-Archiver metadata')
+    ),
     'preview dwcarchiver' => array(
       'title' => t('Preview DwC-Archiver')
     )
@@ -287,7 +303,8 @@ function dwcarchiver_permission(){
 function dwcarchiver_scratchpads_default_permissions(){
   return array(
     'maintainer' => array(
-      'preview dwcarchiver'
+      'preview dwcarchiver',
+      'configure dwcarchiver settings'
     )
   );
 }
