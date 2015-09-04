@@ -1,6 +1,24 @@
 <?php
 
 /**
+ * Basic callback to alter metadata for an archive.
+ */
+function dwcarchiver_settings_page(){
+  return system_settings_form(array(
+    'dwcarchiver_alternative_identifier' => array(
+      '#type' => 'textfield',
+      '#default_value' => variable_get('dwcarchiver_alternative_identifier', ''),
+      '#title' => t('Alternative identifier')
+    ),
+    'dwcarchiver_alternative_citation' => array(
+      '#type' => 'textfield',
+      '#default_value' => variable_get('dwcarchiver_alternative_citation', ''),
+      '#title' => t('Alternative citation')
+    )
+  ));
+}
+
+/**
  * Callback for listing archives.
  */
 function dwcarchiver_overview_page(){
