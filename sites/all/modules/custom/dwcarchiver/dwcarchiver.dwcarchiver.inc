@@ -538,7 +538,7 @@ function dwcarchiver_dwcarchiver_archives(){
               'processor' => 'dwcarchiver_raw_text'
             ),
             array(
-              'field' => 'feeds_item:guid',
+              'field' => 'uuid',
               'uri' => 'http://rs.tdwg.org/dwc/terms/taxonID',
               'required' => 0,
               'processor' => 'dwcarchiver_raw_text'
