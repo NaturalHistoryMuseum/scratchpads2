@@ -327,6 +327,15 @@ function scratchpads_solr_menu_alter(&$items){
 }
 
 /**
+ * Implements hook_apachesolr_query_alter.
+ * 
+ * Allows us to make searches "AND" rather than "OR".
+ */
+function scratchpads_solr_apachesolr_query_alter($query){
+  $query->replaceParam('mm', '100%');
+}
+
+/**
  * Implements hook_update_dependencies().
  */
 function scratchpads_solr_update_dependencies(){
