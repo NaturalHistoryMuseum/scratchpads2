@@ -45,7 +45,8 @@ function spm_menu(){
   );
   return $items;
 }
-/*
+
+/**
  * Create an admin form for taxon description fields
  */
 function _spm_form_builder(){
@@ -95,30 +96,48 @@ function _spm_form_builder(){
   }
   return system_settings_form($form);
 }
-/*
+
+/**
  * Helper function, compares fields by weight and alphabetically
  */
 function _spm_compare($field_one, $field_two){
   $comp1 = $field_one['display']['default']['weight'];
   $comp2 = $field_two['display']['default']['weight'];
-  if($comp1 == $comp2){return strcmp($field_one['label'], $field_two['label']);}
+  if($comp1 == $comp2){
+    return strcmp($field_one['label'], $field_two['label']);
+  }
   return ($comp1 < $comp2) ? -1 : 1;
 }
-/*
-   * Get the field group of a field
-   */
+
+/**
+ * Get the field group of a field
+ */
 function field_get_field_group($field){
   $group_info = field_group_read_groups(array(
     'entity_type' => $field['entity_type'],
     'bundle' => $field['bundle']
   ));
   foreach($group_info[$field['entity_type']][$field['bundle']]['form'] as $group){
-    if(in_array($field['field_name'], $group->children)){return $group;}
+    if(in_array($field['field_name'], $group->children)){
+      return $group;
+    }
   }
   return FALSE;
 }
 
-
-
-
-  
+/**
+ * Implements hook_taxonomy_term_update()
+ */
+function spm_taxonomy_term_update($term){
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node');
+  $query->propertyCondition('status', 1);
+  $query->propertyCondition('type', 'spm');
+  $query->fieldCondition('field_taxonomic_name', 'tid', $term->tid, '=');
+  $result = $query->execute();
+  $nodes = node_load_multiple(array_keys($result['node']));
+  foreach($nodes as $node){
+    $node->title = $term->name;
+    node_save($node);
+  }
+}
