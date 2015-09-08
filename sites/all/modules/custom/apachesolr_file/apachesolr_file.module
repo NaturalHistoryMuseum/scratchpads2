@@ -15,7 +15,7 @@ if(module_exists('apachesolr_access')){
  */
 function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
   $entity_info['file']['indexable'] = TRUE;
-  $entity_info['file']['status callback'] = 'apachesolr_file_status_callback';
+  $entity_info['file']['status callback'][] = 'apachesolr_file_status_callback';
   $entity_info['file']['document callback'][] = 'apachesolr_file_solr_document';
   $entity_info['file']['reindex callback'] = 'apachesolr_file_solr_reindex';
   $entity_info['file']['index_table'] = 'apachesolr_index_entities';
@@ -59,11 +59,16 @@ function apachesolr_file_facetapi_searcher_info_alter(&$searcher_info){
 /**
  * Apachesolr: status callback
  */
-function apachesolr_file_status_callback($file, $type){
+function apachesolr_file_status_callback($id, $type, $file = FALSE){
+  if(!$file){
+    $file = file_load($id);
+  }
   if($file->status){
     $file_parts = parse_url($file->uri);
     // 1 means we want to index.
-    if($file_parts && isset($file_parts['scheme']) && $file_parts['scheme'] == 'public'){return 1;}
+    if($file_parts && isset($file_parts['scheme']) && $file_parts['scheme'] == 'public'){
+      return 1;
+    }
   }
   // 0 means we don't want to index.
   return 0;
