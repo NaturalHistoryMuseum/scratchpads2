@@ -274,7 +274,7 @@ function dwcarchiver_dwcarchiver_archives(){
           array(
             'name' => 'Specimen',
             'machine_name' => 'specimen',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/TypesAndSpecimen',
+            'rowtype' => 'http://rs.tdwg.org/dwc/terms/Occurrence',
             'entity' => 'node',
             'bundles' => array(
               'specimen_observation'
@@ -289,9 +289,15 @@ function dwcarchiver_dwcarchiver_archives(){
                   'processor' => 'dwcarchiver_raw_text'
                 ),
                 array(
-                  'field' => 'feeds_item:guid',
+                  'field' => 'uuid',
                   'uri' => 'http://rs.tdwg.org/dwc/terms/occurrenceID',
                   'required' => 0,
+                  'processor' => 'dwcarchiver_raw_text'
+                ),
+                array(
+                  'field' => 'field_basis_of_record',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/basisOfRecord',
+                  'required' => 1,
                   'processor' => 'dwcarchiver_raw_text'
                 ),
                 array(
@@ -308,13 +314,13 @@ function dwcarchiver_dwcarchiver_archives(){
                 ),
                 array(
                   'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/verbatimLongitude',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLongitude',
                   'required' => 0,
                   'processor' => 'gm3_longitude'
                 ),
                 array(
                   'field' => 'field_location:field_map',
-                  'uri' => 'http://rs.tdwg.org/dwc/terms/verbatimLatitude',
+                  'uri' => 'http://rs.tdwg.org/dwc/terms/decimalLatitude',
                   'required' => 0,
                   'processor' => 'gm3_latitude'
                 ),
