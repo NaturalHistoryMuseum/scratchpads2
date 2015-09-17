@@ -1,3 +1,7 @@
+2.7.3.3 (2015-09-17)
+
+- Added a couple of minor changes for the BioAcousti.ca site
+
 2.7.3.2 (2015-09-02)
 
 - Code for detecting duplicate Specimen IDs reported false positives
