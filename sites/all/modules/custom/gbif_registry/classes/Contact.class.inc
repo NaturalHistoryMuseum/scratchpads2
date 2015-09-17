@@ -46,7 +46,7 @@ class Contact extends RegistryChild {
 
   protected $parent;
 
-  public function __construct($data = FALSE, $parent){
+  public function __construct($data = FALSE, $parent = FALSE){
     $this->parent = $parent;
     if($data){
       foreach($data as $key => $value){
