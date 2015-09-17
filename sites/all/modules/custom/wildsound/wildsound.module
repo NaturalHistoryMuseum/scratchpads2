@@ -37,8 +37,8 @@ function wildsound_form_comment_node_recording_form_alter(&$form, &$form_state, 
   $form['#validate'] = array(
     0 => 'wildsound_comment_validator'
   );
-  $form['field_start_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-start-time-und-0-value\')">Use current time.</a>';
-  $form['field_end_time']['#suffix'] = '<a onclick="wildsound_current_time(\'edit-field-end-time-und-0-value\')">Use current time.</a>';
+  $form['field_start_time']['#suffix'] = '<a style="cursor:pointer;" onclick="wildsound_current_time(\'edit-field-start-time-und-0-value\')">Use current time.</a>';
+  $form['field_end_time']['#suffix'] = '<a style="cursor:pointer;" onclick="wildsound_current_time(\'edit-field-end-time-und-0-value\')">Use current time.</a>';
   $form['#attached']['js'][] = drupal_get_path('module', 'wildsound') . '/js/wildsound.js';
   //Can only comment on annotation!
   if(wildsound_parent_is_annotation($form['pid']['#value'])){

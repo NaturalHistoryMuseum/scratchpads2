@@ -2,14 +2,10 @@
  * Used to get current playback position form a wavesurfer and enter it into an input field
  */
 function wildsound_current_time(target_element){
-  for( var comment_id in Drupal.settings.wildsound.comments) {
-    var comment = Drupal.settings.wildsound.comments[comment_id];
-    var surfer_id = comment.fid;
-    var surfer_time = String(eval("window.surfers["+surfer_id+"].getCurrentTime()"));
-    var return_time = surfer.time.substring(0, 8);
-    document.getElementById(target_element).value = return_time;
-  } 
+  document.getElementById(target_element).value = first(window.surfers).getCurrentTime().toString().substring(0, 8);
 }
+
+function first(p){for(var i in p)return p[i];}
 
 /*
  * AJAX for getting currrent status of an analysis and updating comment as required
