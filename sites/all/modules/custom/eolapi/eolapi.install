@@ -404,6 +404,9 @@ function eolapi_schema(){
         ),
         'erid' => array(
           'erid'
+        ),
+        'label' => array(
+          'label'
         )
       ),
       'primary key' => array(
@@ -517,4 +520,13 @@ function eolapi_update_7004(&$sandbox){
  */
 function eolapi_update_7005(){
   drupal_flush_all_caches();
+}
+
+/**
+ * Add an index to the label field on the eolapi table.
+ */
+function eolapi_update_7006(){
+  db_add_index('eolapi', 'label', array(
+    'label'
+  ));
 }
