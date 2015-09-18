@@ -129,7 +129,7 @@ function scratchpads_solr_update_7005(&$sandbox){
   if($current_status['remaining'] == $sandbox['progress']){
     $sandbox['we_are_looping']++;
     if($current_status['remaining'] == 0 || $sandbox['we_are_looping'] == 5){
-      // We failed to index anything.  Set the progress to 1 and finished to ture.
+      // We failed to index anything.  Set the progress to 1 and finished to true.
       $sandbox['progress'] = $sandbox['#finished'] = 1;
     }else{
       drupal_set_message("Potentially in a loop");
@@ -143,10 +143,18 @@ function scratchpads_solr_update_7005(&$sandbox){
 
 /**
  * Update the URL of the Solr instance
+ * Renamed from scratchpads_solr_update_7006().
  */
-function scratchpads_solr_update_7006(){
+function scratchpads_solr_update_7007(){
   $env_id = apachesolr_default_environment();
   $environment = apachesolr_environment_load($env_id);
-  $environment['url'] = 'http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.6.x';
+  $environment['url'] = 'http://sp-control-1.nhm.ac.uk/solr/scratchpads2';
   apachesolr_environment_save($environment);
+}
+
+/**
+ * Reindex ALL content.
+ */
+function scratchpads_solr_update_7008(&$sandbox){
+  return scratchpads_solr_update_7005($sandbox);
 }
