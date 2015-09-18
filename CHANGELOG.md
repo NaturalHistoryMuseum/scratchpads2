@@ -1,3 +1,11 @@
+2.7.3.4 (2015-09-17)
+
+- Fix an issue with the GBIF Registry code that resulted in an error on install
+
+2.7.3.3 (2015-09-17)
+
+- Fixed a bug with the bio.acousti.ca site
+
 2.7.3.2 (2015-09-02)
 
 - Code for detecting duplicate Specimen IDs reported false positives
