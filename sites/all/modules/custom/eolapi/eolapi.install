@@ -526,7 +526,9 @@ function eolapi_update_7005(){
  * Add an index to the label field on the eolapi table.
  */
 function eolapi_update_7006(){
-  db_add_index('eolapi', 'label', array(
-    'label'
-  ));
+  if(!db_index_exists('eolapi', 'label')){
+    db_add_index('eolapi', 'label', array(
+      'label'
+    ));
+  }
 }
