@@ -1,3 +1,17 @@
+2.8.0 (2015-09-21)
+
+- Added a tool that allows users to create graphs using views (#4453)
+- The map field allows the use of UK grid references (#4452)
+
+- Fixed an issue with the indexing of public/private files (#4360)
+- Ensure the GBIF DwC-A is correctly structured for GBIF
+- Fixed a minor issue with the e-monocot views module
+- Added an index to the eolapi.label field to improve performance
+- Moved from our old Solr server to our new one
+- Ensure Scratchpads Catalogue of Life module is enabled on all sites
+- Update the name of an SPM node if the term it's associated with is updated
+  (#4356)
+
 2.7.3.4 (2015-09-17)
 
 - Fix an issue with the GBIF Registry code that resulted in an error on install
