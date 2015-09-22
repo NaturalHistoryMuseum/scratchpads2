@@ -1,5 +1,5 @@
 <?php
-define('SCRATCHPAD_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
+define('SCRATCHPADS_NHM_INSTALLATION', '69818b49-38c9-41ad-b504-e5cd53dff238');
 
 /**
  * Weekly cron
@@ -17,20 +17,10 @@ function _scratchpads_statistics_aggregator_cron($execution_time = 60){
   // Start a timer so that we don't go over 60 seconds.
   timer_start('scratchpads_statistics_aggregator');
   $urls = array();
-  foreach($gbif_registry->getTechnicalInstallations() as $ti){
-    // Get this site from the list of sites.
-    //$technical_installation = $technical_installation->getAsArray();
-    $organization = $ti->getHostingOrganization();
-    if($organization->getKey() == SCRATCHPAD_ORGANIZATION){
-      // We haven't actually registered an endpoint for each of the Scratchpads,
-      // so for now will assume the location of the end point (this will only
-      // be an issue when hosting of sites external to the NHM becomes more
-      // prevalent).
-      $url = $ti->getHomePage();
-      if(!strpos($url, '/s2.') && !strpos($url, 'taxon.name') && !strpos($url, 'training') && !strpos($url, 'sandbox') && !strpos($url, '/dev.') && !strpos($url, '/dev-')){
-        $urls[$url] = $url;
-      }
-    }
+  $gbif_registry = GBIFRegistry::singleton();
+  $datasets = new GBIF\Datasets('installation/' . SCRATCHPADS_NHM_INSTALLATION . '/dataset');
+  foreach($datasets as $dataset){
+    $urls[] = $dataset->getHomepage();
   }
   // Random order the URLs so that we stand a chance of getting all of the sites
   // over a six day period.
