@@ -437,10 +437,12 @@ function _scratchpads_multilingual_merge_language_none_values($values, $set_to_l
       // are
       // not
       // in the current language to the current language
-      foreach($values[LANGUAGE_NONE] as $id => $value){
-        $hash = md5(serialize($value));
-        if(!isset($hashes[$hash])){
-          $values[$language->language][] = $value;
+      if(!empty($values[LANGUAGE_NONE]) && (is_array($values[LANGUAGE_NONE]) || is_object($values[LANGUAGE_NONE]))){
+        foreach($values[LANGUAGE_NONE] as $id => $value){
+          $hash = md5(serialize($value));
+          if(!isset($hashes[$hash])){
+            $values[$language->language][] = $value;
+          }
         }
       }
     }
