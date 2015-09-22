@@ -126,7 +126,7 @@ function scratchpads_solr_update_7005(&$sandbox){
   // decrease, and then we're done.
   apachesolr_cron($env_id);
   $current_status = apachesolr_index_status($env_id);
-  if($current_status['remaining'] == $sandbox['progress']){
+  if(($sandbox['max'] - $current_status['remaining']) == $sandbox['progress']){
     $sandbox['we_are_looping']++;
     if($current_status['remaining'] == 0 || $sandbox['we_are_looping'] == 5){
       // We failed to index anything.  Set the progress to 1 and finished to true.
