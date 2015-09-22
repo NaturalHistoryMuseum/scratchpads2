@@ -10,6 +10,7 @@ function _scratchpads_statistics_cron($force_update = FALSE){
   if(count($col)){
     $last_capture = array_pop($col);
   }
+  if(variable_get('scratchpads_statistics_skip', FALSE)){return;}
   if($last_capture + 518400 > time() && !$force_update){return;}
   // Ensure we have a comprehensive list of entities and bundles.
   $info = entity_get_info();
