@@ -87,7 +87,7 @@ function _scratchpads_statistics_aggregator_get_data($url){
   ));
   $data = FALSE;
   if($request->code == 200){
-    $data = @json_decode($request->data);
+    $data = @json_decode($request->data, TRUE);
   }
   return $data;
 }
