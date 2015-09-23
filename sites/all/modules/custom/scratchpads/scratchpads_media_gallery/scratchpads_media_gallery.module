@@ -374,17 +374,19 @@ function scratchpads_media_gallery_apachesolr_index_document_build(ApacheSolrDoc
         // We load the media gallery node, and try to find where this file is
         // in the list.
         $media_gallery_node = node_load($value['nid']);
-        foreach($media_gallery_node->field_media[LANGUAGE_NONE] as $delta => $mgn_value){
-          if($mgn_value['fid'] == $entity->fid && empty($nids_added[$value['nid']])){
-            // Keep a record of adding this NID. This is because it is actually
-            // possible to associate a file with a single gallery more than
-            // once - clearly a bug that needs fixing elsewhere, but we should
-            // still handle the error.
-            $nids_added[$value['nid']] = TRUE;
-            // We try to find the gallery nodes that this file is associated with, and
-            // then save a sortable field for each one.
-            $document->addField('iss_scratchpads_media_gallery_delta_for_nid_' . $value['nid'], $delta);
-            break;
+        if(!empty($media_gallery_node->field_media[LANGUAGE_NONE]) && (is_array($media_gallery_node->field_media[LANGUAGE_NONE]) || is_object($media_gallery_node->field_media[LANGUAGE_NONE]))){
+          foreach($media_gallery_node->field_media[LANGUAGE_NONE] as $delta => $mgn_value){
+            if($mgn_value['fid'] == $entity->fid && empty($nids_added[$value['nid']])){
+              // Keep a record of adding this NID. This is because it is actually
+              // possible to associate a file with a single gallery more than
+              // once - clearly a bug that needs fixing elsewhere, but we should
+              // still handle the error.
+              $nids_added[$value['nid']] = TRUE;
+              // We try to find the gallery nodes that this file is associated with, and
+              // then save a sortable field for each one.
+              $document->addField('iss_scratchpads_media_gallery_delta_for_nid_' . $value['nid'], $delta);
+              break;
+            }
           }
         }
       }
