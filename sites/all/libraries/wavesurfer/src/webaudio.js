@@ -7,17 +7,26 @@ WaveSurfer.WebAudio = {
     PAUSED_STATE: 1,
     FINISHED_STATE: 2,
 
-    getAudioContext: function () {
-        if (!(window.AudioContext || window.webkitAudioContext)) {
-            throw new Error("Your browser doesn't support Web Audio");
-        }
+    supportsWebAudio: function () {
+        return !!(window.AudioContext || window.webkitAudioContext);
+    },
 
+    getAudioContext: function () {
         if (!WaveSurfer.WebAudio.audioContext) {
             WaveSurfer.WebAudio.audioContext = new (
                 window.AudioContext || window.webkitAudioContext
             );
         }
         return WaveSurfer.WebAudio.audioContext;
+    },
+
+    getOfflineAudioContext: function (sampleRate) {
+        if (!WaveSurfer.WebAudio.offlineAudioContext) {
+            WaveSurfer.WebAudio.offlineAudioContext = new (
+                window.OfflineAudioContext || window.webkitOfflineAudioContext
+            )(1, 2, sampleRate);
+        }
+        return WaveSurfer.WebAudio.offlineAudioContext;
     },
 
     init: function (params) {
@@ -146,11 +155,12 @@ WaveSurfer.WebAudio = {
     },
 
     decodeArrayBuffer: function (arraybuffer, callback, errback) {
-        var my = this;
-        this.ac.decodeAudioData(arraybuffer, function (data) {
-            my.buffer = data;
+        if (!this.offlineAc) {
+            this.offlineAc = this.getOfflineAudioContext(this.ac ? this.ac.sampleRate : 44100);
+        }
+        this.offlineAc.decodeAudioData(arraybuffer, (function (data) {
             callback(data);
-        }, errback);
+        }).bind(this), errback);
     },
 
     /**
@@ -209,7 +219,7 @@ WaveSurfer.WebAudio = {
     },
 
     destroy: function () {
-	if (!this.isPaused()) {
+        if (!this.isPaused()) {
             this.pause();
         }
         this.unAll();
@@ -246,7 +256,10 @@ WaveSurfer.WebAudio = {
     },
 
     getDuration: function () {
-        return this.buffer.duration || 0;
+        if (this.buffer === undefined) {
+            return 0;
+        }
+        return this.buffer.duration;
     },
 
     seekTo: function (start, end) {

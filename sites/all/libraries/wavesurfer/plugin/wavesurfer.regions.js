@@ -106,6 +106,12 @@ WaveSurfer.Region = {
         if (null != params.data) {
             this.data = params.data;
         }
+        if (null != params.resize) {
+            this.data = Boolean(params.resize);
+        }
+        if (null != params.drag) {
+            this.data = Boolean(params.drag);
+        }
         this.updateRender();
         this.fireEvent('update');
         this.wavesurfer.fireEvent('region-updated', this);
@@ -179,8 +185,8 @@ WaveSurfer.Region = {
     formatTime: function (start, end) {
         return (end ? [ start, end ] : [ start ]).map(function (time) {
             return [
-                ~~(start / 60),                   // minutes
-                ('00' + ~~(time % 60)).slice(-2)  // seconds
+                Math.floor((time % 3600) / 60), // minutes
+                ('00' + Math.floor(time % 60)).slice(-2) // seconds
             ].join(':');
         }).join('–');
     },
@@ -188,7 +194,19 @@ WaveSurfer.Region = {
     /* Update element's position, width, color. */
     updateRender: function () {
         var dur = this.wavesurfer.getDuration();
+        var fillParentNoScroll = (!this.wavesurfer.params.scrollParent && this.wavesurfer.params.fillParent);
+        var width = fillParentNoScroll ? this.wavesurfer.drawer.getWidth() : this.wrapper.scrollWidth;
+
         var width = this.wrapper.scrollWidth;
+        var seconds = this.end - this.start;
+        if (this.start < 0) {
+          this.start = 0;
+          this.end = seconds;
+        }
+        if (this.end > dur) {
+          this.end = dur;
+          this.start = dur - seconds;
+        }
         this.style(this.element, {
             left: ~~(this.start / dur * width) + 'px',
             width: ~~((this.end / dur - this.start / dur) * width) + 'px',

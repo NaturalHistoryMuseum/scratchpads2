@@ -29,7 +29,8 @@ var WaveSurfer = {
         audioRate     : 1,
         interact      : true,
         renderer      : 'Canvas',
-        backend       : 'WebAudio'
+        backend       : 'WebAudio',
+        mediaType     : 'audio'
     },
 
     init: function (params) {
@@ -42,6 +43,18 @@ var WaveSurfer = {
 
         if (!this.container) {
             throw new Error('Container element not found');
+        }
+
+        if (typeof this.params.mediaContainer == 'undefined') {
+            this.mediaContainer = this.container;
+        } else if (typeof this.params.mediaContainer == 'string') {
+            this.mediaContainer = document.querySelector(this.params.mediaContainer);
+        } else {
+            this.mediaContainer = this.params.mediaContainer;
+        }
+
+        if (!this.mediaContainer) {
+            throw new Error('Media Container element not found');
         }
 
         // Used to save the current volume when muting so we can
@@ -85,7 +98,12 @@ var WaveSurfer = {
             this.backend.destroy();
         }
 
+        if (this.params.backend == 'WebAudio' && !WaveSurfer.WebAudio.supportsWebAudio()) {
+            this.params.backend = 'AudioElement';
+        }
+
         this.backend = Object.create(WaveSurfer[this.params.backend]);
+        this.backend.init(this.params);
 
         this.backend.on('finish', function () {
             my.fireEvent('finish');
@@ -94,16 +112,6 @@ var WaveSurfer = {
         this.backend.on('audioprocess', function (time) {
             my.fireEvent('audioprocess', time);
         });
-
-        try {
-            this.backend.init(this.params);
-        } catch (e) {
-            if (e.message == "Your browser doesn't support Web Audio") {
-                this.params.backend = 'AudioElement';
-                this.backend = null;
-                this.createBackend();
-            }
-        }
     },
 
     restartAnimationLoop: function () {
@@ -197,7 +205,7 @@ var WaveSurfer = {
     },
 
     /**
-     * Set the playback volume.
+     * Set the playback rate.
      *
      * @param {Number} rate A positive number. E.g. 0.5 means half the
      * normal speed, 2 means double speed and so on.
@@ -237,14 +245,20 @@ var WaveSurfer = {
     },
 
     drawBuffer: function () {
-        if (this.params.fillParent && !this.params.scrollParent) {
-            var length = this.drawer.getWidth();
-        } else {
-            length = Math.round(this.getDuration() * this.params.minPxPerSec * this.params.pixelRatio);
+        var nominalWidth = Math.round(
+            this.getDuration() * this.params.minPxPerSec * this.params.pixelRatio
+        );
+        var parentWidth = this.drawer.getWidth();
+        var width = nominalWidth;
+
+        // Fill container
+        if (this.params.fillParent && (!this.params.scrollParent || nominalWidth < parentWidth)) {
+            width = parentWidth;
         }
-        var peaks = this.backend.getPeaks(length);
-        this.drawer.drawPeaks(peaks, length);
-        this.fireEvent('redraw', peaks, length);
+
+        var peaks = this.backend.getPeaks(width);
+        this.drawer.drawPeaks(peaks, width);
+        this.fireEvent('redraw', peaks, width);
     },
 
     /**
@@ -297,7 +311,8 @@ var WaveSurfer = {
     load: function (url, peaks) {
         switch (this.params.backend) {
             case 'WebAudio': return this.loadBuffer(url);
-            case 'AudioElement': return this.loadAudioElement(url, peaks);
+            case 'AudioElement': // for backwards compatibility
+            case 'MediaElement': return this.loadMediaElement(url, peaks);
         }
     },
 
@@ -310,16 +325,29 @@ var WaveSurfer = {
         return this.downloadArrayBuffer(url, this.loadArrayBuffer.bind(this));
     },
 
-    loadAudioElement: function (url, peaks) {
+    loadMediaElement: function (url, peaks) {
         this.empty();
-        this.backend.load(url, peaks, this.container);
+        this.backend.load(url, this.mediaContainer, peaks);
+
         this.backend.once('canplay', (function () {
             this.drawBuffer();
             this.fireEvent('ready');
         }).bind(this));
+
         this.backend.once('error', (function (err) {
             this.fireEvent('error', err);
         }).bind(this));
+
+        // If no pre-decoded peaks provided, attempt to download the
+        // audio file and decode it with Web Audio.
+        if (!peaks && this.backend.supportsWebAudio()) {
+            this.downloadArrayBuffer(url, (function (data) {
+                this.backend.decodeArrayBuffer(data, (function (buffer) {
+                    this.backend.buffer = buffer;
+                    this.drawBuffer();
+                }).bind(this));
+            }).bind(this));
+        }
     },
 
     downloadArrayBuffer: function (url, callback) {
@@ -395,6 +423,9 @@ var WaveSurfer = {
 
 /* Observer */
 WaveSurfer.Observer = {
+    /**
+     * Attach a handler function for an event.
+     */
     on: function (event, fn) {
         if (!this.handlers) { this.handlers = {}; }
 
@@ -405,6 +436,9 @@ WaveSurfer.Observer = {
         handlers.push(fn);
     },
 
+    /**
+     * Remove an event handler.
+     */
     un: function (event, fn) {
         if (!this.handlers) { return; }
 
@@ -422,14 +456,21 @@ WaveSurfer.Observer = {
         }
     },
 
+    /**
+     * Remove all event handlers.
+     */
     unAll: function () {
         this.handlers = null;
     },
 
+    /**
+     * Attach a handler to an event. The handler is executed at most once per
+     * event type.
+     */
     once: function (event, handler) {
         var my = this;
         var fn = function () {
-            handler();
+            handler.apply(this, arguments);
             setTimeout(function () {
                 my.un(event, fn);
             }, 0);
