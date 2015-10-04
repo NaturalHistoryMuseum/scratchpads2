@@ -17,9 +17,6 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
         };
 
         this.mediaType = params.mediaType.toLowerCase();
-
-
-        this.ac = params.audioContext || this.getAudioContext();
         this.elementPosition = params.elementPosition;
     },
 
@@ -56,11 +53,13 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
 
         this.media = media;
         this.peaks = peaks;
+        this.onPlayEnd = null;
+        this.buffer = null;
         this.setPlaybackRate(this.playbackRate);
     },
 
     isPaused: function () {
-        return this.media.paused;
+        return !this.media || this.media.paused;
     },
 
     getDuration: function () {
@@ -72,7 +71,7 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
     },
 
     getCurrentTime: function () {
-        return this.media.currentTime;
+        return this.media && this.media.currentTime;
     },
 
     getPlayedPercents: function () {
@@ -91,6 +90,7 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
         if (start != null) {
             this.media.currentTime = start;
         }
+        this.clearPlayEnd();
     },
 
     /**
@@ -98,17 +98,41 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
      *
      * @param {Number} start Start offset in seconds,
      * relative to the beginning of a clip.
+     * @param {Number} end End offset in seconds,
+     * relative to the beginning of a clip.
      */
-    play: function (start) {
+    play: function (start, end) {
         this.seekTo(start);
         this.media.play();
+        end && this.setPlayEnd(end);
+        this.fireEvent('play');
     },
 
     /**
      * Pauses the loaded audio.
      */
     pause: function () {
-        this.media.pause();
+        this.media && this.media.pause();
+        this.clearPlayEnd();
+        this.fireEvent('pause');
+    },
+
+    setPlayEnd: function (end) {
+        var my = this;
+        this.onPlayEnd = function (time) {
+            if (time >= end) {
+                my.pause();
+                my.seekTo(end);
+            }
+        };
+        this.on('audioprocess', this.onPlayEnd);
+    },
+
+    clearPlayEnd: function () {
+        if (this.onPlayEnd) {
+            this.un('audioprocess', this.onPlayEnd);
+            this.onPlayEnd = null;
+        }
     },
 
     getPeaks: function (length) {
@@ -129,7 +153,7 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
     destroy: function () {
         this.pause();
         this.unAll();
-        this.media.parentNode && this.media.parentNode.removeChild(this.media);
+        this.media && this.media.parentNode && this.media.parentNode.removeChild(this.media);
         this.media = null;
     }
 });
