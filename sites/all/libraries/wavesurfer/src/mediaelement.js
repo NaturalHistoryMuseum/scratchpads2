@@ -1,8 +1,8 @@
 'use strict';
 
-WaveSurfer.AudioElement = Object.create(WaveSurfer.WebAudio);
+WaveSurfer.MediaElement = Object.create(WaveSurfer.WebAudio);
 
-WaveSurfer.util.extend(WaveSurfer.AudioElement, {
+WaveSurfer.util.extend(WaveSurfer.MediaElement, {
     init: function (params) {
         this.params = params;
 
@@ -15,14 +15,18 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
             play: function () {},
             pause: function () {}
         };
+
+        this.mediaType = params.mediaType.toLowerCase();
+        this.elementPosition = params.elementPosition;
     },
 
-    load: function (url, peaks, container) {
+    load: function (url, container, peaks) {
         var my = this;
 
-        var media = document.createElement('audio');
+        var media = document.createElement(this.mediaType);
         media.controls = false;
         media.autoplay = false;
+        media.preload = 'auto';
         media.src = url;
 
         media.addEventListener('error', function () {
@@ -41,7 +45,7 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
             my.fireEvent('audioprocess', my.getCurrentTime());
         });
 
-        var prevMedia = container.querySelector('audio');
+        var prevMedia = container.querySelector(this.mediaType);
         if (prevMedia) {
             container.removeChild(prevMedia);
         }
@@ -49,11 +53,13 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
 
         this.media = media;
         this.peaks = peaks;
+        this.onPlayEnd = null;
+        this.buffer = null;
         this.setPlaybackRate(this.playbackRate);
     },
 
     isPaused: function () {
-        return this.media.paused;
+        return !this.media || this.media.paused;
     },
 
     getDuration: function () {
@@ -65,7 +71,7 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
     },
 
     getCurrentTime: function () {
-        return this.media.currentTime;
+        return this.media && this.media.currentTime;
     },
 
     getPlayedPercents: function () {
@@ -84,6 +90,7 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
         if (start != null) {
             this.media.currentTime = start;
         }
+        this.clearPlayEnd();
     },
 
     /**
@@ -91,20 +98,47 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
      *
      * @param {Number} start Start offset in seconds,
      * relative to the beginning of a clip.
+     * @param {Number} end End offset in seconds,
+     * relative to the beginning of a clip.
      */
-    play: function (start) {
+    play: function (start, end) {
         this.seekTo(start);
         this.media.play();
+        end && this.setPlayEnd(end);
+        this.fireEvent('play');
     },
 
     /**
      * Pauses the loaded audio.
      */
     pause: function () {
-        this.media.pause();
+        this.media && this.media.pause();
+        this.clearPlayEnd();
+        this.fireEvent('pause');
+    },
+
+    setPlayEnd: function (end) {
+        var my = this;
+        this.onPlayEnd = function (time) {
+            if (time >= end) {
+                my.pause();
+                my.seekTo(end);
+            }
+        };
+        this.on('audioprocess', this.onPlayEnd);
+    },
+
+    clearPlayEnd: function () {
+        if (this.onPlayEnd) {
+            this.un('audioprocess', this.onPlayEnd);
+            this.onPlayEnd = null;
+        }
     },
 
     getPeaks: function (length) {
+        if (this.buffer) {
+            return WaveSurfer.WebAudio.getPeaks.call(this, length);
+        }
         return this.peaks || [];
     },
 
@@ -119,7 +153,10 @@ WaveSurfer.util.extend(WaveSurfer.AudioElement, {
     destroy: function () {
         this.pause();
         this.unAll();
-        this.media.parentNode && this.media.parentNode.removeChild(this.media);
+        this.media && this.media.parentNode && this.media.parentNode.removeChild(this.media);
         this.media = null;
     }
 });
+
+//For backwards compatibility
+WaveSurfer.AudioElement = WaveSurfer.MediaElement;

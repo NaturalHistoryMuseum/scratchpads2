@@ -17,12 +17,8 @@ function wavesurfer_libraries_info(){
     'version callback' => 'wavesurfer_bypass_version_control',
     'files' => array(
       'js' => array(
-        'src/wavesurfer.js',
-        'src/webaudio.js',
-        'src/audioelement.js',
-        'src/drawer.js',
-        'src/drawer.canvas.js',
-        'plugin/wavesurfer.regions.js'
+        'dist/wavesurfer.min.js',
+        'dist/plugin/wavesurfer.regions.min.js'
       )
     )
   );
