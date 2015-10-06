@@ -29,7 +29,7 @@ class TavernaService{
    */
   function __construct($run_details = FALSE){
     // Check for the PECL extension.
-    if(!function_exists('http_post_data')){throw new TavernaServiceException(t('PECL pecl_http is not installed.'));}
+    if(!function_exists('curl_init')){throw new TavernaServiceException(t('PHP Curl is not installed.'));}
     if($run_details){
       if(is_array($run_details)){
         foreach($run_details as $key => $value){
@@ -165,23 +165,6 @@ class TavernaService{
   }
 
   /**
-   * Do an interaction
-   */
-  function interact(){
-    $this->get_response(TRUE);
-    $raw_data = file_get_contents("php://input");
-    $response = http_post_data($this->response['interaction']['reply_uri'], $raw_data, array(
-      'timeout' => 10,
-      'headers' => array(
-        'Content-Type' => 'application/json',
-        'Accept' => 'application/json',
-        'Authorization' => self::get_authentication_string(),
-        'X-Taverna-Interaction-Reply' => $_SERVER['HTTP_X_TAVERNA_INTERACTION_REPLY']
-      )
-    ), $info);
-  }
-
-  /**
    * Submit the run to the Taverna server.
    */
   function run(){
@@ -202,23 +185,17 @@ class TavernaService{
         );
       }
     }
-    $this->response = http_post_data(self::$service . 'runs', json_encode($json), array(
-      'timeout' => 10,
-      'headers' => array(
-        'Content-Type' => 'application/json',
-        'Accept' => 'application/json',
-        'Authorization' => self::get_authentication_string()
-      )
-    ), $info);
-    if($this->response){
-      $http_reply = http_parse_message($this->response);
-      if(isset($http_reply->body)){
-        $this->response = json_decode($http_reply->body, TRUE);
-        if($info['response_code'] == 201 || $info['response_code'] == 200){
-          $this->status = 1;
-          return TRUE;
-        }
-      }
+    $c = curl_init(self::$service . 'runs');
+    curl_setopt($c, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . self::get_authentication_string()));
+    curl_setopt($c, CURLOPT_POST, TRUE);
+    curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($json));
+    curl_setopt($c, CURLOPT_RETURNTRANSFER, TRUE);
+    $this->response = curl_exec($c);
+    curl_close($c);
+    if($this->response && $json = json_decode($this->response, TRUE)){
+      $this->response = $json;
+      $this->status = 1;
+      return TRUE;
     }
     return FALSE;
   }
