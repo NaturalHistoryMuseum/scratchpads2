@@ -76,7 +76,7 @@ function scratchpads_classification_service_client_feeds_importer_default_alter(
  */
 function scratchpads_classification_service_client_autocomplete_callback($search){
   $request = drupal_http_request('http://classifications.scratchpads.eu/classification/search/' . urlencode($search), array(
-    'timeout' => 3
+    'timeout' => 10
   ));
   drupal_add_http_header('Content-Type', 'application/json');
   if($request->code == 200){
