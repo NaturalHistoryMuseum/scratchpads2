@@ -2,16 +2,15 @@
 
 WaveSurfer.WebAudio = {
     scriptBufferSize: 256,
-    fftSize: 128,
     PLAYING_STATE: 0,
     PAUSED_STATE: 1,
     FINISHED_STATE: 2,
 
-    getAudioContext: function () {
-        if (!(window.AudioContext || window.webkitAudioContext)) {
-            throw new Error("Your browser doesn't support Web Audio");
-        }
+    supportsWebAudio: function () {
+        return !!(window.AudioContext || window.webkitAudioContext);
+    },
 
+    getAudioContext: function () {
         if (!WaveSurfer.WebAudio.audioContext) {
             WaveSurfer.WebAudio.audioContext = new (
                 window.AudioContext || window.webkitAudioContext
@@ -20,12 +19,22 @@ WaveSurfer.WebAudio = {
         return WaveSurfer.WebAudio.audioContext;
     },
 
+    getOfflineAudioContext: function (sampleRate) {
+        if (!WaveSurfer.WebAudio.offlineAudioContext) {
+            WaveSurfer.WebAudio.offlineAudioContext = new (
+                window.OfflineAudioContext || window.webkitOfflineAudioContext
+            )(1, 2, sampleRate);
+        }
+        return WaveSurfer.WebAudio.offlineAudioContext;
+    },
+
     init: function (params) {
         this.params = params;
         this.ac = params.audioContext || this.getAudioContext();
 
         this.lastPlay = this.ac.currentTime;
         this.startPosition = 0;
+        this.scheduledPause = null;
 
         this.states = [
             Object.create(WaveSurfer.WebAudio.state.playing),
@@ -33,11 +42,11 @@ WaveSurfer.WebAudio = {
             Object.create(WaveSurfer.WebAudio.state.finished)
         ];
 
-        this.setState(this.PAUSED_STATE);
-
         this.createVolumeNode();
         this.createScriptNode();
         this.createAnalyserNode();
+
+        this.setState(this.PAUSED_STATE);
         this.setPlaybackRate(this.params.audioRate);
     },
 
@@ -47,6 +56,8 @@ WaveSurfer.WebAudio = {
                 filter && filter.disconnect();
             });
             this.filters = null;
+            // Reconnect direct path
+            this.analyser.connect(this.gainNode);
         }
     },
 
@@ -66,48 +77,59 @@ WaveSurfer.WebAudio = {
      * @param {Array} filters Packed ilters array
      */
     setFilters: function (filters) {
+        // Remove existing filters
         this.disconnectFilters();
 
+        // Insert filters if filter array not empty
         if (filters && filters.length) {
             this.filters = filters;
+
+            // Disconnect direct path before inserting filters
+            this.analyser.disconnect();
 
             // Connect each filter in turn
             filters.reduce(function (prev, curr) {
                 prev.connect(curr);
                 return curr;
             }, this.analyser).connect(this.gainNode);
-        } else {
-            this.analyser.connect(this.gainNode);
         }
+
     },
 
     createScriptNode: function () {
-        var my = this;
-        var bufferSize = this.scriptBufferSize;
         if (this.ac.createScriptProcessor) {
-            this.scriptNode = this.ac.createScriptProcessor(bufferSize);
+            this.scriptNode = this.ac.createScriptProcessor(this.scriptBufferSize);
         } else {
-            this.scriptNode = this.ac.createJavaScriptNode(bufferSize);
+            this.scriptNode = this.ac.createJavaScriptNode(this.scriptBufferSize);
         }
+
         this.scriptNode.connect(this.ac.destination);
+    },
+
+    addOnAudioProcess: function () {
+        var my = this;
 
         this.scriptNode.onaudioprocess = function () {
             var time = my.getCurrentTime();
 
-            if (my.state === my.states[my.PLAYING_STATE]) {
-                my.fireEvent('audioprocess', time);
-            }
-
-            if (my.buffer && time > my.getDuration()) {
+            if (time >= my.getDuration()) {
                 my.setState(my.FINISHED_STATE);
+                my.fireEvent('pause');
+            } else if (time >= my.scheduledPause) {
+                my.setState(my.PAUSED_STATE);
+                my.fireEvent('pause');
+            } else if (my.state === my.states[my.PLAYING_STATE]) {
+                my.fireEvent('audioprocess', time);
             }
         };
     },
 
+    removeOnAudioProcess: function () {
+        this.scriptNode.onaudioprocess = null;
+    },
+
     createAnalyserNode: function () {
         this.analyser = this.ac.createAnalyser();
-        this.analyser.fftSize = this.fftSize;
-        this.analyserData = new Uint8Array(this.analyser.frequencyBinCount);
         this.analyser.connect(this.gainNode);
     },
 
@@ -146,45 +168,64 @@ WaveSurfer.WebAudio = {
     },
 
     decodeArrayBuffer: function (arraybuffer, callback, errback) {
-        var my = this;
-        this.ac.decodeAudioData(arraybuffer, function (data) {
-            my.buffer = data;
+        if (!this.offlineAc) {
+            this.offlineAc = this.getOfflineAudioContext(this.ac ? this.ac.sampleRate : 44100);
+        }
+        this.offlineAc.decodeAudioData(arraybuffer, (function (data) {
             callback(data);
-        }, errback);
+        }).bind(this), errback);
     },
 
     /**
-     * @returns {Float32Array} Array of peaks.
+     * Compute the max and min value of the waveform when broken into
+     * <length> subranges.
+     * @param {Number} How many subranges to break the waveform into.
+     * @returns {Array} Array of 2*<length> peaks or array of arrays
+     * of peaks consisting of (max, min) values for each subrange.
      */
     getPeaks: function (length) {
-        var buffer = this.buffer;
-        var sampleSize = buffer.length / length;
+        var sampleSize = this.buffer.length / length;
         var sampleStep = ~~(sampleSize / 10) || 1;
-        var channels = buffer.numberOfChannels;
-        var peaks = new Float32Array(length);
+        var channels = this.buffer.numberOfChannels;
+        var splitPeaks = [];
+        var mergedPeaks = [];
 
         for (var c = 0; c < channels; c++) {
-            var chan = buffer.getChannelData(c);
+            var peaks = splitPeaks[c] = [];
+            var chan = this.buffer.getChannelData(c);
+
             for (var i = 0; i < length; i++) {
                 var start = ~~(i * sampleSize);
                 var end = ~~(start + sampleSize);
-                var max = 0;
+                var min = chan[0];
+                var max = chan[0];
+
                 for (var j = start; j < end; j += sampleStep) {
                     var value = chan[j];
+
                     if (value > max) {
                         max = value;
-                    // faster than Math.abs
-                    } else if (-value > max) {
-                        max = -value;
+                    }
+
+                    if (value < min) {
+                        min = value;
                     }
                 }
-                if (c == 0 || max > peaks[i]) {
-                    peaks[i] = max;
+
+                peaks[2 * i] = max;
+                peaks[2 * i + 1] = min;
+
+                if (c == 0 || max > mergedPeaks[2 * i]) {
+                    mergedPeaks[2 * i] = max;
+                }
+
+                if (c == 0 || min < mergedPeaks[2 * i + 1]) {
+                    mergedPeaks[2 * i + 1] = min;
                 }
             }
         }
 
-        return peaks;
+        return this.params.splitChannels ? splitPeaks : mergedPeaks;
     },
 
     getPlayedPercents: function () {
@@ -197,19 +238,8 @@ WaveSurfer.WebAudio = {
         }
     },
 
-    /**
-     * Returns the real-time waveform data.
-     *
-     * @return {Uint8Array} The frequency data.
-     * Values range from 0 to 255.
-     */
-    waveform: function () {
-        this.analyser.getByteTimeDomainData(this.analyserData);
-        return this.analyserData;
-    },
-
     destroy: function () {
-	if (!this.isPaused()) {
+        if (!this.isPaused()) {
             this.pause();
         }
         this.unAll();
@@ -246,10 +276,15 @@ WaveSurfer.WebAudio = {
     },
 
     getDuration: function () {
-        return this.buffer.duration || 0;
+        if (!this.buffer) {
+            return 0;
+        }
+        return this.buffer.duration;
     },
 
     seekTo: function (start, end) {
+        this.scheduledPause = null;
+
         if (start == null) {
             start = this.getCurrentTime();
             if (start >= this.getDuration()) {
@@ -291,19 +326,27 @@ WaveSurfer.WebAudio = {
         start = adjustedTime.start;
         end = adjustedTime.end;
 
+        this.scheduledPause = end;
+
         this.source.start(0, start, end - start);
 
         this.setState(this.PLAYING_STATE);
+
+        this.fireEvent('play');
     },
 
     /**
      * Pauses the loaded audio.
      */
     pause: function () {
+        this.scheduledPause = null;
+
         this.startPosition += this.getPlayedTime();
         this.source && this.source.stop(0);
 
         this.setState(this.PAUSED_STATE);
+
+        this.fireEvent('pause');
     },
 
     /**
@@ -332,6 +375,7 @@ WaveSurfer.WebAudio.state = {};
 
 WaveSurfer.WebAudio.state.playing = {
     init: function () {
+        this.addOnAudioProcess();
     },
     getPlayedPercents: function () {
         var duration = this.getDuration();
@@ -344,6 +388,7 @@ WaveSurfer.WebAudio.state.playing = {
 
 WaveSurfer.WebAudio.state.paused = {
     init: function () {
+        this.removeOnAudioProcess();
     },
     getPlayedPercents: function () {
         var duration = this.getDuration();
@@ -356,6 +401,7 @@ WaveSurfer.WebAudio.state.paused = {
 
 WaveSurfer.WebAudio.state.finished = {
     init: function () {
+        this.removeOnAudioProcess();
         this.fireEvent('finish');
     },
     getPlayedPercents: function () {
