@@ -1,3 +1,7 @@
+2.8.0.1 (2015-09-24)
+
+- Minor fixes
+
 2.8.0 (2015-09-21)
 
 - Added a tool that allows users to create graphs using views (#4453)
