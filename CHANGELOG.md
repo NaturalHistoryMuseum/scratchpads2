@@ -1,3 +1,8 @@
+2.8.0.2 (2015-10-07)
+
+- Upgrade the Wavesurfer library
+- Update the Taverna module to use Curl
+
 2.8.0.1 (2015-09-24)
 
 - Minor fixes
