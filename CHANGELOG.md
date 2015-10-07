@@ -1,3 +1,7 @@
+2.8.0.4 (2015-10-07)
+
+- Allow missing parent menu items (#4468)
+
 2.8.0.3 (2015-10-07)
 
 - Moved the scratchpads_em theme to fix issues with e-monocot sites.
