@@ -1,3 +1,7 @@
+2.8.0.3 (2015-10-07)
+
+- Moved the scratchpads_em theme to fix issues with e-monocot sites.
+
 2.8.0.2 (2015-10-07)
 
 - Upgrade the Wavesurfer library
