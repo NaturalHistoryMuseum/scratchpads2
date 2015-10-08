@@ -1,3 +1,7 @@
+2.8.0.5 (2015-10-08)
+
+- Delete JSPhylo temporary files
+
 2.8.0.4 (2015-10-07)
 
 - Allow missing parent menu items (#4468)
