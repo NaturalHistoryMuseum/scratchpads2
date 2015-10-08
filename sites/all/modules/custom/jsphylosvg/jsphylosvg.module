@@ -59,6 +59,7 @@ function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instanc
         $filename = drupal_tempnam(file_directory_temp(), 'jsphylo');
         file_put_contents($filename, $xml);
         exec('curl -F "file=@' . $filename . '" http://www.nexml.org/nexml/phylows/nex2xml', $output, $return_status);
+        drupal_unlink($filename);
         $xml = implode("\n", $output);
         if($return_status || substr($xml, 0, 10) != '<nex:nexml'){
           // Failed to process this data, we'll skip it and add a warning message
