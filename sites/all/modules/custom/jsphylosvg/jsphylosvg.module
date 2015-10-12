@@ -63,7 +63,7 @@ function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instanc
         $xml = implode("\n", $output);
         if($return_status || substr($xml, 0, 10) != '<nex:nexml'){
           // Failed to process this data, we'll skip it and add a warning message
-          drupal_set_message(t('Unable to parse Nexus data'), 'error');
+          drupal_set_message(t('Unable to parse Nexus data'), 'warning');
           continue;
         }
         cache_set($cid, $xml, 'cache_jsphylosvg');
