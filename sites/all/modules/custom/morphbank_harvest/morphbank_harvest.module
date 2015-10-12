@@ -24,7 +24,7 @@
 /**
  * The URL for the morphbank service; append 'request' for queries
  */
-define("MORPHBANK_SERVICE", "http://services.morphbank.net/mb3/");
+define("MORPHBANK_SERVICE", "http://services.morphbank.net/mbsvc3/");
 /**
  * The URL for morphbank records
  */
