@@ -568,19 +568,19 @@ function taverna_entity_access($op, $entity_type, $entity = NULL, $account = NUL
       return $entity->uid == $account->uid;
     case 'create':
       if(strlen($entity_type) > 100){
-        $key = md5($entity_type);
+        $entity_type = md5($entity_type);
       }
-      return user_access("create taverna $key content");
+      return user_access("create taverna $entity_type content");
     case 'delete':
       if(strlen($entity->type) > 100){
-        $key = md5($entity_type);
+        $entity_type = md5($entity_type);
       }
-      if(user_access("delete any taverna $key content")){return TRUE;}
+      if(user_access("delete any taverna $entity_type content")){return TRUE;}
       if(!$account){
         global $user;
         $account = $user;
       }
-      if($account->uid == $entity->uid && user_access("delete own taverna $key content")){return TRUE;}
+      if($account->uid == $entity->uid && user_access("delete own taverna $entity_type content")){return TRUE;}
   }
   return FALSE;
 }
