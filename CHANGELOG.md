@@ -1,3 +1,7 @@
+2.8.0.6 (2015-10-21)
+
+- Fix a permissions issue with the Taverna module
+
 2.8.0.5 (2015-10-08)
 
 - Delete JSPhylo temporary files
