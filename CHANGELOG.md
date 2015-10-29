@@ -1,3 +1,9 @@
+2.8.0.7 (2015-10-29)
+
+- Upgraded Drupal to 7.41
+- Hide the OBOE module (needs removing)
+- Minor fix to the Morphbank harvest module
+
 2.8.0.6 (2015-10-21)
 
 - Fix a permissions issue with the Taverna module
