@@ -1,3 +1,8 @@
+2.8.0.8 (2015-10-30)
+
+- Fix an issue with scratchpads_tweaks_cron() caused by new security
+  constraints in Drupal 7.40
+
 2.8.0.7 (2015-10-29)
 
 - Upgraded Drupal to 7.41
