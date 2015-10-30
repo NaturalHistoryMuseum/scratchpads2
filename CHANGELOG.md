@@ -1,3 +1,7 @@
+2.8.0.9 (2015-10-30)
+
+- One last release before I leave (#4477)
+
 2.8.0.8 (2015-10-30)
 
 - Fix an issue with scratchpads_tweaks_cron() caused by new security
