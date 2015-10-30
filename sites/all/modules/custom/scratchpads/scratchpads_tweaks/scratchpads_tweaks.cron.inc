@@ -131,7 +131,10 @@ function _scratchpads_tweaks_cron(){
     }
   }
   // Clean up the file_display table now that we have removed its primary key
-  db_query('CREATE TEMPORARY TABLE file_display_temp AS SELECT DISTINCT * FROM {file_display}; TRUNCATE {file_display}; INSERT INTO {file_display} SELECT * FROM file_display_temp;');
+  db_query('CREATE TABLE {file_display_temp} AS SELECT DISTINCT * FROM {file_display};'); 
+  db_query('TRUNCATE {file_display};');
+  db_query('INSERT INTO {file_display} SELECT * FROM {file_display_temp};');
+  db_query('DROP TABLE {file_display_temp}');
   // Delete files from the temporary directory (assuming the path is different
   // to the files folder) if they're over one month old.
   $temp_folder = drupal_realpath('temporary://');
