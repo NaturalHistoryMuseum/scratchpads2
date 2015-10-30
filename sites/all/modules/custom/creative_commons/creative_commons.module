@@ -407,7 +407,7 @@ function creative_commons_block_view($delta = ''){
       $licence = variable_get('creative_commons_block_licence_type', CC_BY);
       $block['content'] = array(
         '#theme' => 'creative_commons_block',
-        '#licence' => creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), variable_get('creative_commons_block_display_type', CC_LARGE_IMAGE)),
+        '#licence' => $licence == CC_NONE ? '' : creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), variable_get('creative_commons_block_display_type', CC_LARGE_IMAGE)),
         '#text' => $licence == CC_NONE ? t('All rights reserved, except where otherwise stated.') : t('Except where otherwise noted, content on this site is licensed under a Creative Commons !licence Licence.', array(
           '!licence' => creative_commons_get_licence_types($licence)
         ))
