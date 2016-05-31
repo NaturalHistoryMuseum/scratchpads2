@@ -2,15 +2,12 @@
 
 function scratchpad_admin_openids(){
   return array(
-    'http://vbrant.eu/users/alice-heaton/openid' => 'Alice Heaton (http://vbrant.eu/users/alice-heaton/openid)',
     'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
     'http://vbrant.eu/users/dimitris-koureas/openid' => 'Dimitris Koureas (http://vbrant.eu/users/dimitris-koureas/openid)',
     'https://id.ebaker.me.uk/ed' => 'Edward Baker (https://id.ebaker.me.uk/ed)',
-    'http://vbrant.eu/users/katherine-bouton/openid' => 'Katherine Bouton (http://vbrant.eu/users/katherine-bouton/openid)',
     'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
     'http://simon.rycroft.name/' => 'Simon Rycroft (http://simon.rycroft.name/)',
     'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
-    'http://vsmithuk.myopenid.com/' => 'Vincent Smith (http://vsmithuk.myopenid.com)'
   );
 }
 
@@ -55,8 +52,12 @@ function scratchpad_logins(){
   switch($_SERVER['SERVER_ADDR']){
     case '157.140.127.10':
       $default_value = 'http://vbrant.eu/user/57/identity';
+      break;
+    case '157.140.126.27':
+      $default_value = 'http://vbrant.eu/users/vince-smith/openid';
+      break;
     default:
-      $default_value = 'http://simon.rycroft.name/';
+      $default_value = 'https://id.ebaker.me.uk/ed';
   }
   return array(
     'boost_warning' => array(
