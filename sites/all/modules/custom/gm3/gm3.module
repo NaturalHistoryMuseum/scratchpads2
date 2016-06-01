@@ -100,8 +100,7 @@ function gm3_library(){
       'version' => '2.0.7',
       'js' => array(
         array(
-          'data' => 'http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerclustererplus/2.0.7/src/markerclusterer_packed.js',
-          'options' => 'external',
+          'data' => drupal_get_path('module', 'gm3') . '/js/markerclusterer.min.js',
           'preprocess' => FALSE
         )
       )
