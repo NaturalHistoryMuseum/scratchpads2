@@ -1,4 +1,4 @@
-2.8.0.12 (2016-06-01)
+2.8.0.10 (2016-06-01)
 
 - Upgrade Drupal
 - Fix maps issue
