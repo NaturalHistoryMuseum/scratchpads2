@@ -97,13 +97,23 @@ function title_field_formatter_settings_summary($field, $instance, $view_mode) {
  */
 function title_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
-  $output = isset($items[0]) ? $items[0]['safe_value'] : '';
+  $output = '';
+  if (isset($items[0]['safe_value'])) {
+    $output = $items[0]['safe_value'];
+  }
+  elseif (isset($items[0]['value'])) {
+    $output = _text_sanitize($instance, $langcode, $items[0], 'value');
+  }
   $element = array();
 
   if (!empty($output)) {
     if ($settings['title_link'] == 'content') {
       $uri = entity_uri($entity_type, $entity);
-      $output = l($output, $uri['path'], array('html' => TRUE));
+      $options = array('html' => TRUE);
+      if (!empty($uri['options'])) {
+        $options = array_merge($options, $uri['options']);
+      }
+      $output = l($output, $uri['path'], $options);
     }
 
     $wrap_tag = empty($settings['title_style']) ? '_none' : $settings['title_style'];

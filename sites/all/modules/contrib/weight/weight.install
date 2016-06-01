@@ -499,6 +499,16 @@ function weight_update_7211() {
 }
 
 /**
+ * Remove unused id column from {weight_settings}.
+ */
+function weight_update_7212() {
+  if (db_field_exists('weight_settings', 'id')) {
+    db_drop_field('weight_settings', 'id');
+    db_add_primary_key('weight_settings', array('type'));
+  }
+}
+
+/**
  * Decode weight from sticky column.
  */
 function _weight_update_7202_decode($sticky) {

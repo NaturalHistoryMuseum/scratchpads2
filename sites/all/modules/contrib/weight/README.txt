@@ -2,7 +2,7 @@ Overview
 --------
 This module provides a weight field for enabled content types. The default
 frontpage is overridden to sort nodes first by sticky, then weight, then created
-date. Nodes with a lower weight will be positiioned before those with higher
+date. Nodes with a lower weight will be positioned before those with higher
 weights.
 
 Installation
@@ -27,7 +27,7 @@ Views
 Weight includes a default view that provides a drag-and-drop interface for
 reordering nodes. Go to Administration > Structure > Views, locate the disabled
 Weight view, and click enable. This view can now be edited as normal to fit your
-needs.
+needs. Note that the Weight field can’t be the first field in the view.
 
 Node weights can also be used in new or existing views as Filters, Sorts, or
 Arguments.

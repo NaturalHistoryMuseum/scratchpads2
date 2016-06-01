@@ -105,17 +105,7 @@ function title_field_replacement_info($entity_type, $legacy_field = NULL) {
 }
 
 /**
- * Return an entity label value.
- *
- * @param $entity
- *   The entity whose label has to be displayed.
- * @param $type
- *   The name of the entity type.
- * @param $langcode
- *   (Optional) The language the entity label has to be displayed in.
- *
- * @return
- *   The entity label as a string value.
+ * Implements callback_entity_info_label().
  */
 function title_entity_label($entity, $type, $langcode = NULL) {
   $entity_info = entity_get_info($type);
