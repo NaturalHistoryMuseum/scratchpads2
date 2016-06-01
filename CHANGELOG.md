@@ -1,3 +1,9 @@
+2.8.0.12 (2016-06-01)
+
+- Upgrade Drupal
+- Fix maps issue
+- Update team logins
+
 2.8.0.9 (2015-10-30)
 
 - One last release before I leave (#4477)
