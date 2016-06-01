@@ -1,9 +1,23 @@
 
 Title 7.x-1.x, xxxx-xx-xx
 -------------------------
+
+
+Title 7.x-1.0-alpha8, 2016-03-28
+--------------------------------
+#2465141 by DuaelFr, Matthijs, jfrederick: Used entity_uri() options if given.
+#2602568 by sdstyles: Fixed title_entity_label() should be documented as
+  callback implementation.
+#2605040 by ShaxA, joelpittet, sylus: Removed recursive call to
+  entity_get_info().
+#2040055 by flux423, cs_shadow, visabhishek, plach, OlyN: Fixed Notice:
+  Undefined index: safe_value in title_field_formatter_view().
+#2426105 by Peacog, jcisio: Fixed Views "Link this field to the original entity"
+  doesn't work when using relationship.
 #2286147 by plach: Language fallback does not work when an entity translation is
   unpublished.
-#2286145 by plach: Prevent empty translations from being synced into the legacy field.
+#2286145 by plach: Prevent empty translations from being synced into the legacy
+  field.
 #1772116 by duellj, GaëlG | f4o: Fixed Menu link title is not getting node title
   by default.
 #1779268 by ndobromirov | brycesenz: Undefined index: field_name in
