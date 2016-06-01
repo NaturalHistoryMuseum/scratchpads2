@@ -264,27 +264,20 @@ function role_delegation_user_operations($form = array(), $form_state = array())
   $remove_roles = array();
   foreach (_role_delegation_roles() as $rid => $role) {
     if (user_access('assign all roles') || user_access("assign $role role")) {
-      $add_roles['role_delegation_add_role-' . $rid] = $role;
-      $remove_roles['role_delegation_remove_role-' . $rid] = $role;
+      $add_roles['role_delegation_add_role-' . $rid]['label'] = t('Add role: !role', array('!role' => $role));
+      $remove_roles['role_delegation_remove_role-' . $rid]['label'] = t('Remove role: !role', array('!role' => $role));
     }
   }
-  $operations = array(
-    t('Add a role to the selected users') => array(
-      'label' => $add_roles,
-    ),
-    t('Remove a role from the selected users') => array(
-      'label' => $remove_roles,
-    ),
-  );
+  $operations = $add_roles + $remove_roles;
 
   // If the form has been posted, insert the proper data for role editing.
   if (!empty($form_state['submitted'])) {
     $operation_rid = explode('-', $form_state['values']['operation']);
     $operation = $operation_rid[0];
     if ($operation == 'role_delegation_add_role' || $operation == 'role_delegation_remove_role') {
-      if (isset($remove_roles[$form_state['values']['operation']]) || isset($add_roles[$form_state['values']['operation']])) {
+      if (array_key_exists($form_state['values']['operation'], $operations)) {
         $rid = $operation_rid[1];
-        $operations[$form_state['values']['operation']] = array(
+        $operations[$form_state['values']['operation']] += array(
           // use the standard add_role and remove_role operations:
           'callback' => 'user_multiple_role_edit',
           'callback arguments' => array(str_replace('role_delegation_', '', $operation), $rid),
