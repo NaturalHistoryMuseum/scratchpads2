@@ -29,7 +29,7 @@ function weight_menu_alter(&$items) {
 
   // If we have an enabled type and the option to override the front page is set,
   // change the callback for the frontpage.
-  if ($enabled && variable_get('weight_frontpage', 1)) {
+  if ($enabled && variable_get('weight_frontpage', 0)) {
     $items['node']['page callback'] = 'weight_page_default';
   }
 }
@@ -126,7 +126,7 @@ function weight_form_system_site_information_settings_alter(&$form, &$form_state
       but the nodes will be sorted by weight. Only nodes of content types that are
       weight enabled will be shown.'),
     '#return_value' => 1,
-    '#default_value' => variable_get('weight_frontpage', 1),
+    '#default_value' => variable_get('weight_frontpage', 0),
     '#weight' => 5,
   );
 
@@ -236,12 +236,17 @@ function weight_node_admin($form_element, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function weight_form_node_type_form_alter(&$form, &$form_state) {
-  $settings = _weight_get_settings($form['#node_type']->type);
-  if (isset($settings['range'])) {
-    $range = $settings['range'];
+  if (!empty($form_state['values']['weight_range'])) {
+    $range = $form_state['values']['weight_range'];
   }
   else {
-    $range = 20;
+    $settings = _weight_get_settings($form['#node_type']->type);
+    if (isset($settings['range'])) {
+      $range = $settings['range'];
+    }
+    else {
+      $range = 20;
+    }
   }
 
   $form['weight_settings'] = array(
@@ -272,6 +277,11 @@ function weight_form_node_type_form_alter(&$form, &$form_state) {
       100 => '&plusmn; 100',
     ),
     '#default_value' => $range,
+    '#ajax' => array(
+      'callback' => 'weight_range_callback',
+      'wrapper' => 'weight-default',
+      'method' => 'replace',
+    ),
   );
 
   $form['weight_settings']['weight_menu'] = array(
@@ -288,6 +298,8 @@ function weight_form_node_type_form_alter(&$form, &$form_state) {
     '#description' => t('This weight will be applied to nodes if none is selected.'),
     '#options' => _weight_get_options($range),
     '#default_value' => isset($settings['default']) ? $settings['default'] : 0,
+    '#prefix' => '<div id="weight-default">',
+    '#suffix' => '</div>',
   );
 
   $form['weight_settings']['sync_translations'] = array(
@@ -306,6 +318,13 @@ function weight_form_node_type_form_alter(&$form, &$form_state) {
 
   $form['additional_settings']['#attached']['js'][] = drupal_get_path('module', 'weight') . '/weight.js';
   $form['#submit'][] = 'weight_node_type_form_submit';
+}
+
+/**
+ * Ajax callback to set the Default Weight select options.
+ */
+function weight_range_callback($form, $form_state) {
+  return $form['weight_settings']['weight_default'];
 }
 
 /**
@@ -563,7 +582,13 @@ function weight_preprocess_views_view_table(&$variables) {
  * Implements hook_apachesolr_index_document_build_node().
  */
 function weight_apachesolr_index_document_build_node(ApacheSolrDocument $document, $node, $env_id) {
-  $document->is_weight = (int) $node->weight_weight;
+  if (isset($node->weight_weight)) {
+    $document->is_weight = (int) $node->weight_weight;
+  }
+  else {
+    $settings = _weight_get_settings($node->type);
+    $document->is_weight = (int) $settings['default'];
+  }
 }
 
 /**
@@ -625,7 +650,7 @@ function _weight_set_weight($node) {
     }
   }
 
-  if ($node->nid && $weight) {
+  if ($node->nid && is_numeric($weight)) {
     db_merge('weight_weights')
     ->key(array('entity_id' => $node->nid))
     ->fields(array(
@@ -640,6 +665,11 @@ function _weight_set_weight($node) {
 
     // Reset this node's cache.
     entity_get_controller('node')->resetCache(array($node->nid));
+
+    // Let Search API know the weight has been updated.
+    if (module_exists('search_api')) {
+      search_api_track_item_change('node', array($node->nid));
+    }
   }
 }
 
@@ -739,10 +769,10 @@ function _weight_get_settings($type = NULL) {
  * Get content types that are weight enabled.
  */
 function _weight_get_types() {
-  $types = array();
-  $result = db_query('SELECT type FROM {weight_settings} WHERE weight_enabled=1');
-  foreach ($result as $row) {
-    $types[] = $row->type;
+  // No need to use shared static cache for this.
+  static $types = NULL;
+  if ($types === NULL) {
+    $types = db_query('SELECT type FROM {weight_settings} WHERE weight_enabled=1')->fetchCol();
   }
 
   return $types;
