@@ -1,3 +1,7 @@
+2.8.0.11 (2016-06-01)
+
+- Upgrades to some of the easier ocntrib modules to check.
+
 2.8.0.10 (2016-06-01)
 
 - Upgrade Drupal
