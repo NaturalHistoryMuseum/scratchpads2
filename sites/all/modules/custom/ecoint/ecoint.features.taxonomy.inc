@@ -33,7 +33,7 @@ function ecoint_taxonomy_default_vocabularies() {
       ),
       'show_synonym_data' => FALSE,
       'biological_classification' => 0,
-      'use_scratchpads_species_pages' => 1,
+      'use_scratchpads_species_pages' => 0,
     ),
     'presence_status' => array(
       'name' => 'Presence Status',
@@ -59,7 +59,7 @@ function ecoint_taxonomy_default_vocabularies() {
       ),
       'show_synonym_data' => FALSE,
       'biological_classification' => 0,
-      'use_scratchpads_species_pages' => 1,
+      'use_scratchpads_species_pages' => 0,
     ),
   );
 }
