@@ -74,4 +74,5 @@ features[variable][] = menu_parent_ecological_interactions
 features[variable][] = node_options_ecological_interactions
 features[variable][] = node_preview_ecological_interactions
 features[variable][] = node_submitted_ecological_interactions
+tool=true
 mtime = 1465222213
