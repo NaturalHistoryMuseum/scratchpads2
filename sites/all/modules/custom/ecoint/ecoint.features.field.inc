@@ -854,7 +854,7 @@ function ecoint_field_default_fields() {
       ),
       'entity_type' => 'node',
       'field_name' => 'field_int_collection',
-      'label' => 'int_collection',
+      'label' => 'Taxon 2',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE,

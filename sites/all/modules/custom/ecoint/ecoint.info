@@ -1,6 +1,7 @@
-name = EcoInt
+name = Ecological Interactions
+description = Provides a content type for recording associations between taxa.
 core = 7.x
-package = Features
+package = Ecology
 php = 5.2.4
 dependencies[] = ctools
 dependencies[] = date

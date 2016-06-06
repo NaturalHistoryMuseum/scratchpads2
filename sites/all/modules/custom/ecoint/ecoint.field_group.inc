@@ -20,7 +20,7 @@ function ecoint_field_group_info() {
   $field_group->mode = 'default';
   $field_group->parent_name = '';
   $field_group->data = array(
-    'label' => 'Interactions',
+    'label' => 'Interaction',
     'weight' => '5',
     'children' => array(
       0 => 'field_reference',
