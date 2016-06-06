@@ -1,0 +1,498 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function uuid_features_menu() {
+  $items['admin/config/content/uuid_features'] = array(
+    'access arguments' => array('administer site configuration'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('uuid_features_settings'),
+    'title' => 'UUID Features Integration',
+    'description' => 'Configure the settings for UUID Features Integration.',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function uuid_features_entity_info_alter(&$entity_info) {
+  // Provide a list of entities that provide bundles
+  // to be exported by uuid_features.
+  $entity_types = array('bean', 'node', 'taxonomy_term');
+  foreach ($entity_types as $type) {
+    // Only add flag on existing entity types.
+    if (isset($entity_info[$type])) {
+      $entity_info[$type]['uuid features'] = TRUE;
+    }
+  }
+}
+
+/**
+ * Implements hook_features_api().
+ */
+function uuid_features_features_api() {
+  $components = array();
+
+  $components['uuid_node'] = array(
+    'name' => t('Content'),
+    'feature_source' => TRUE,
+    'default_hook' => 'uuid_features_default_content',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_node.features.inc',
+  );
+
+  if (module_exists('taxonomy')) {
+    $components['uuid_term'] = array(
+      'name' => t('Taxonomy Term'),
+      'feature_source' => TRUE,
+      'default_hook' => 'uuid_features_default_terms',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_term.features.inc',
+    );
+  }
+
+  if (function_exists('uuid_file_insert')) {
+    $components['uuid_file'] = array(
+      'name' => t('File'),
+      'default_hook' => 'uuid_features_default_files',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_file.features.inc',
+    );
+  }
+
+  $components['uuid_bean'] = array(
+    'name' => t('Bean'),
+    'feature_resource' => TRUE,
+    'default_hook' => 'uuid_features_default_beans',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_bean.features.inc',
+  );
+
+  return $components;
+}
+
+/**
+ * Load all include files for enabled modules that this module provides
+ * on-behalf-of functionality for.
+ */
+function uuid_features_load_module_includes() {
+  static $loaded = FALSE;
+
+  if (!$loaded) {
+    $inc_path = drupal_get_path('module', 'uuid_features') . '/includes/modules';
+    foreach (module_list() as $module) {
+      $file = "$inc_path/$module.inc";
+      if (file_exists($file)) {
+        include_once DRUPAL_ROOT . '/' . $file;
+      }
+    }
+    $loaded = TRUE;
+  }
+}
+
+/**
+ * Implements hook_features_pipe_COMPONENT_alter().
+ *
+ * When exporting a vocabulary, include its terms.
+ */
+function uuid_features_features_pipe_taxonomy_alter(&$pipe, $data, $export) {
+  if (variable_get('uuid_features_vocabulary_terms', FALSE) == TRUE) {
+    if (!is_array($data)) {
+      $data = array($data);
+    }
+    if (empty($pipe['uuid_term'])) {
+      $pipe['uuid_term'] = array();
+    }
+    foreach ($data as $machine_name) {
+      if ($vocab = taxonomy_vocabulary_machine_name_load($machine_name)) {
+        $export['features']['uuid_term'] = array();
+        foreach (taxonomy_get_tree($vocab->vid) as $term) {
+          uuid_term_features_get_dependencies($export, $term->uuid);
+        }
+        if (!empty($export['features']['uuid_term'])) {
+          $pipe['uuid_term'] = array_merge($pipe['uuid_term'], $export['features']['uuid_term']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Menu callback to configure module settings.
+ */
+function uuid_features_settings($form, &$form_state) {
+
+  $form['settings']['uuid_features_vocabulary_terms'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto detect uuid terms'),
+    '#description' => t('When exporting a vocabulary, include its terms.'),
+    '#default_value' => variable_get('uuid_features_vocabulary_terms', FALSE),
+  );
+
+  $entity_info = entity_get_info();
+
+  foreach ($entity_info as $type => $info) {
+    foreach($info['bundles'] as $bundle => $bundle_info) {
+      $bundles[$type][$bundle] = $bundle_info['label'];
+    }
+    if (isset($info['uuid features']) && $info['uuid features'] === TRUE) {
+      $form['entity']['uuid_features_entity_' . $type] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Exportable ' . $info['label']  . ' bundles'),
+        '#default_value' => variable_get('uuid_features_entity_' . $type, array()),
+        '#options' => $bundles[$type],
+      );
+      $form['file']['uuid_features_file_' . $type] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Files exported for ' . $info['label'] . ' bundles'),
+        '#default_value' => variable_get('uuid_features_file_' . $type, array()),
+        '#options' => $bundles[$type],
+      );
+    }
+  }
+
+  $form['file']['uuid_features_file_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('File export mode'),
+    '#default_value' => variable_get('uuid_features_file_mode', 'inline'),
+    '#options' => array(
+      'inline' => t('Inline Base64'),
+      'local' => t('Local file export'),
+      'remote' => t('Remote file export, URL')
+     ),
+    '#description' => t('Should file exports be inline inside the export code, a local path to the file, or a URL? Inline Base64 is the easiest option to use but can sometimes exceed PHP post limits, local and remote modes are more useful for power users.  <em>NOTE: Remote mode only works with a public files directory.</em>'),
+  );
+
+  $form['file']['uuid_features_file_assets_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Local file field assets path'),
+    '#size' => 60,
+    '#maxlength' => 255,
+    '#default_value' => variable_get('uuid_features_file_assets_path', ''),
+    '#description' => t(
+      'Optionally, copy files to this path when the node is exported.
+      The primary advantage of this is to divert exported files into a
+      safe location so they can be committed to source control (eg: SVN,
+      CVS, Git).  <em>Tip: For install profile developers, setting this
+      path to <code>profiles/my_profile/uuid_features_assets</code> may be
+      useful.</em>'
+    ),
+    '#required' => FALSE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name=uuid_features_file_mode]' => array('value' => 'local'),
+      ),
+    ),
+  );
+
+  $form['file']['uuid_features_file_supported_fields'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Supported file field types'),
+    '#default_value' => variable_get('uuid_features_file_supported_fields', 'file, image'),
+    '#maxlength' => 512,
+    '#description' => t('Comma seperated list of file field types to detect for export/import.'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Handle exporting file fields.
+ */
+function uuid_features_file_field_export(&$export, $entity_type) {
+  switch ($entity_type) {
+    case "taxonomy_term":
+      $export_bundle = $export->vocabulary_machine_name;
+      break;
+    case "bean":
+      $export_bundle = $export->type;
+      break;
+    case "node":
+      $export_bundle = $export->type;
+      break;
+  }
+  $fields = field_info_instances($entity_type, $export_bundle);
+  $supported_fields = array_map('trim', explode(',', variable_get('uuid_features_file_supported_fields', 'file, image')));
+  $bundles = variable_get('uuid_features_file_' . $entity_type);
+  if ($bundles == '') {
+    $bundles = array();
+  }
+  if (!in_array($export_bundle, $bundles)) {
+    foreach ($fields as $field_instance) {
+      $field = &$export->{$field_instance['field_name']};
+      $info = field_info_field($field_instance['field_name']);
+      // If this field should implement file import/export system but
+      // filefield exports are not enabled for this entity, just set the field
+      // to an empty array.
+      if (in_array($info['type'], $supported_fields)) {
+        $field = array();
+      }
+    }
+  }
+  else {
+    $orig_assets_path = $assets_path = variable_get('uuid_features_file_assets_path', '');
+    $export_mode = variable_get('uuid_features_file_mode', 'inline');
+
+    switch ($export_mode) {
+      case 'local':
+        $export_var = 'uuid_features_file_path';
+        break;
+      case 'remote':
+        $export_var = 'uuid_features_file_url';
+        break;
+      default:
+      case 'inline':
+        $export_var = 'uuid_features_file_data';
+        break;
+    }
+    // If files are supposed to be copied to the assets path.
+    if ($export_mode == 'local' && $assets_path) {
+      // Ensure the assets path is created
+      if ((!is_dir($assets_path) && mkdir($assets_path, 0777, TRUE) == FALSE)
+        || !is_writable($assets_path)
+      ) {
+        // Try creating a public path if the local path isn't writeable.
+        // This is a kludgy solution to allow writing file assets to places
+        // such as the profiles/myprofile directory, which isn't supposed to
+        // be writeable
+        $new_assets_path = 'public://' . $assets_path;
+        if (!is_dir($new_assets_path) && mkdir($new_assets_path, 0777, TRUE) == FALSE) {
+          drupal_set_message(t("Could not create assets path! '!path'", array('!path' => $assets_path)), 'error');
+          // Don't continue if the assets path is not ready
+          return;
+        }
+        $assets_path = $new_assets_path;
+      }
+    }
+
+    // get all fields from this entity
+    foreach ($fields as $field_instance) {
+      // load field infos to check the type
+      $field = &$export->{$field_instance['field_name']};
+      $info = field_info_field($field_instance['field_name']);
+      // check if this field should implement file import/export system
+      if (in_array($info['type'], $supported_fields)) {
+        // we need to loop into each language because i18n translation can build
+        // fields with different language than the node one.
+        foreach($field as $language => $files) {
+          if (is_array($files)) {
+            foreach($files as $i => $file) {
+
+              // convert file to array to stay into the default uuid_features_file format
+              $file = (object) $file;
+
+              // Check the file
+              if (!isset($file->uri) || !is_file($file->uri)) {
+                drupal_set_message(t("File field found on term, but file doesn't exist on disk? '!path'", array('!path' => $file->uri)), 'error');
+                continue;
+              }
+
+              if ($export_mode == 'local') {
+                if ($assets_path) {
+                  // The writeable path may be different from the path that gets saved
+                  // during the feature export to handle the public path/local path
+                  // dilemma mentioned above.
+                  $writeable_export_data = $assets_path . '/' . basename($file->uri);
+                  $export_data = $orig_assets_path . '/' . basename($file->uri);
+                  if (!copy($file->uri, $writeable_export_data)) {
+                    drupal_set_message(t("Export file error, could not copy '%filepath' to '%exportpath'.", array('%filepath' => $file->uri, '%exportpath' => $writeable_export_data)), 'error');
+                    return FALSE;
+                  }
+                }
+                else {
+                  $export_data = $file->uri;
+                }
+              }
+              // Remote export mode
+              elseif ($export_mode == 'remote') {
+                $export_data = url($file->uri, array('absolute' => TRUE));
+              }
+              // Default is 'inline' export mode
+              else {
+                $export_data = base64_encode(file_get_contents($file->uri));
+              }
+
+              // build the field again, and remove fid to be sure that imported node
+              // will rebuild the file again, or keep an existing one with a different fid
+              $field[$language][$i]['fid'] = NULL;
+              $field[$language][$i]['timestamp'] = NULL;
+              $field[$language][$i][$export_var] = $export_data;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Handle importing file fields.
+ */
+function uuid_features_file_field_import(&$import, $entity_type) {
+  switch ($entity_type) {
+    case "taxonomy_term":
+      $import_bundle = $import->vocabulary_machine_name;
+      break;
+    case "bean":
+      $import_bundle = $import->type;
+      break;
+    case "node":
+      $import_bundle = $import->type;
+      break;
+  }
+  // Get all fields from this bundle.
+  $fields = field_info_instances($entity_type, $import_bundle);
+
+  foreach($fields as $field_instance) {
+    // Load field info to check the type.
+    $field = &$import->{$field_instance['field_name']};
+    $info = field_info_field($field_instance['field_name']);
+    $supported_fields = array_map('trim', explode(',', variable_get('uuid_features_file_supported_fields', 'file, image')));
+    // Check if this field should implement file import/export system.
+    if (in_array($info['type'], $supported_fields)) {
+      // We need to loop into each language because i18n translation can build
+      // fields with different language than the term one.
+      foreach($field as $language => $files) {
+        if (is_array($files)) {
+          foreach($files as $i => $file) {
+            // Convert file to array to stay into the default uuid_features_file format.
+            $file = (object)$file;
+            $result = _uuid_features_file_field_import_file($file);
+            // The file was saved successfully, update the file field (by reference).
+            if ($result == TRUE && isset($file->fid)) {
+              $field[$language][$i] = (array)$file;
+            }
+            else {
+              $field[$language][$i] = array();
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Detects remote and local file exports and imports accordingly.
+ *
+ * @param &$file
+ *   The file, passed by reference.
+ * @return TRUE or FALSE
+ *   Depending on success or failure.  On success the $file object will
+ *   have a valid $file->fid attribute.
+ */
+function _uuid_features_file_field_import_file(&$file) {
+  // This is here for historical reasons to support older exports.  It can be
+  // removed in the next major version.
+  $file->uri = strtr($file->uri, array('#FILES_DIRECTORY_PATH#' => 'public:/'));
+
+  // The file is already in the right location AND either the
+  // uuid_features_file_path is not set or the uuid_features_file_path and filepath
+  // contain the same file
+  if (is_file($file->uri) &&
+    (
+      (!isset($file->uuid_features_file_path) || !is_file($file->uuid_features_file_path)) ||
+      (
+        is_file($file->uuid_features_file_path) &&
+        filesize($file->uri) == filesize($file->uuid_features_file_path) &&
+        strtoupper(dechex(crc32(file_get_contents($file->uri)))) ==
+          strtoupper(dechex(crc32(file_get_contents($file->uuid_features_file_path))))
+      )
+    )
+  ) {
+    // Keep existing file if it exists already at this uri (see also #1023254)
+    // Issue #1058750.
+    $query = db_select('file_managed', 'f')
+        ->fields('f', array('fid'))
+        ->condition('uri', $file->uri)
+        ->execute()
+        ->fetchCol();
+
+    if (!empty($query)) {
+      watchdog('uuid_features', 'kept existing managed file at uri "%uri"', array('%uri' => $file->uri), WATCHDOG_NOTICE);
+      $file = file_load(array_shift($query));
+    }
+
+    $file = file_save($file);
+  }
+  elseif (isset($file->uuid_features_file_data)) {
+    $directory = drupal_dirname($file->uri);
+    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+      if (file_put_contents($file->uri, base64_decode($file->uuid_features_file_data))) {
+        $file = file_save($file);
+      }
+    }
+  }
+  // The file is in a local location, move it to the
+  // destination then finish the save
+  elseif (isset($file->uuid_features_file_path) && is_file($file->uuid_features_file_path)) {
+    $directory = drupal_dirname($file->uri);
+    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+      // The $file->uuid_features_file_path is passed to reference, and modified
+      // by file_unmanaged_copy().  Making a copy to avoid tainting the original.
+      $uuid_features_file_path = $file->uuid_features_file_path;
+      file_unmanaged_copy($uuid_features_file_path, $directory, FILE_EXISTS_REPLACE);
+
+      // At this point the $file->uuid_features_file_path will contain the
+      // destination of the copied file
+      //$file->uri = $uuid_features_file_path;
+      $file = file_save($file);
+    }
+  }
+  // The file is in a remote location, attempt to download it
+  elseif (isset($file->uuid_features_file_url)) {
+    // Need time to do the download
+    ini_set('max_execution_time', 900);
+
+    $temp_path = file_directory_temp() . '/' . md5(mt_rand()) . '.txt';
+    if (($source = fopen($file->uuid_features_file_url, 'r')) == FALSE) {
+      drupal_set_message(t("Could not open '@file' for reading.", array('@file' => $file->uuid_features_file_url)));
+      return FALSE;
+    }
+    elseif (($dest = fopen($temp_path, 'w')) == FALSE) {
+      drupal_set_message(t("Could not open '@file' for writing.", array('@file' => $file->uri)));
+      return FALSE;
+    }
+    else {
+      // PHP5 specific, downloads the file and does buffering
+      // automatically.
+      $bytes_read = @stream_copy_to_stream($source, $dest);
+
+      // Flush all buffers and wipe the file statistics cache
+      @fflush($source);
+      @fflush($dest);
+      clearstatcache();
+
+      if ($bytes_read != filesize($temp_path)) {
+        drupal_set_message(t("Remote export '!url' could not be fully downloaded, '@file' to temporary location '!temp'.", array('!url' => $file->uuid_features_file_url, '@file' => $file->uri, '!temp' => $temp_path)));
+        return FALSE;
+      }
+      // File was downloaded successfully!
+      else {
+        if (!@copy($temp_path, $file->uri)) {
+          unlink($temp_path);
+          drupal_set_message(t("Could not move temporary file '@temp' to '@file'.", array('@temp' => $temp_path, '@file' => $file->uri)));
+          return FALSE;
+        }
+
+        unlink($temp_path);
+        $file->filesize = filesize($file->uri);
+        $file->filemime = file_get_mimetype($file->uri);
+      }
+    }
+
+    fclose($source);
+    fclose($dest);
+
+    $file = file_save($file);
+  }
+  // Unknown error
+  else {
+    drupal_set_message(t("Unknown error occurred attempting to import file: @filepath", array('@filepath' => $file->uri)), 'error');
+    return FALSE;
+  }
+
+  return TRUE;
+}

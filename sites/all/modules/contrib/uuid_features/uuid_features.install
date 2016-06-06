@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the uuid_features module.
+ *
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function uuid_features_enable() {
+  db_update('system')
+    ->fields(array(
+      'weight' => -50,
+    ))
+    ->condition('name', 'uuid_features')
+    ->condition('type', 'module')
+    ->execute();
+}
