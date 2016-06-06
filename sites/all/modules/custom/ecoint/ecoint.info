@@ -13,7 +13,6 @@ dependencies[] = list
 dependencies[] = node
 dependencies[] = node_reference
 dependencies[] = options
-dependencies[] = scratchpads_group
 dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = strongarm
 dependencies[] = taxonomy
