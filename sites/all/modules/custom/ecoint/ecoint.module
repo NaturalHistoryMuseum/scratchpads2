@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the EcoInt feature.
+ */
+
+include_once 'ecoint.features.inc';
