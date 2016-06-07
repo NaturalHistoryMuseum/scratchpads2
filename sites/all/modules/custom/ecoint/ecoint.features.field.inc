@@ -9,6 +9,84 @@
  */
 function ecoint_field_default_fields() {
   $fields = array();
+  
+  // Exported field: 'node-ecological_interactions-field_importance'.
+  $fields['node-ecological_interactions-field_importance'] = array(
+      'field_config' => array(
+          'active' => '1',
+          'cardinality' => '1',
+          'deleted' => '0',
+          'entity_types' => array(),
+          'field_name' => 'field_importance',
+          'foreign keys' => array(),
+          'indexes' => array(
+              'value' => array(
+                  0 => 'value',
+              ),
+          ),
+          'locked' => '0',
+          'module' => 'list',
+          'settings' => array(
+              'allowed_values' => array(
+                  'economic' => 'economic',
+                  'economic (crop pest)' => 'economic (crop pest)',
+                  'economic (timber pest)' => 'economic (timber pest)',
+                  'medical' => 'medical',
+                  'veterinary' => 'veterinary',
+              ),
+              'allowed_values_function' => '',
+          ),
+          'translatable' => '0',
+          'type' => 'list_text',
+      ),
+      'field_instance' => array(
+          'bundle' => 'ecological_interactions',
+          'default_value' => NULL,
+          'deleted' => '0',
+          'description' => '',
+          'display' => array(
+              'default' => array(
+                  'label' => 'above',
+                  'module' => 'list',
+                  'settings' => array(),
+                  'type' => 'list_default',
+                  'weight' => 1005,
+              ),
+              'entityconnectpreview' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+              'linked_node' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+              'teaser' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+          ),
+          'entity_type' => 'node',
+          'field_name' => 'field_importance',
+          'label' => 'Importance',
+          'required' => 0,
+          'settings' => array(
+              'user_register_form' => FALSE,
+          ),
+          'widget' => array(
+              'active' => 1,
+              'module' => 'options',
+              'settings' => array(),
+              'type' => 'options_select',
+              'weight' => '11',
+          ),
+      ),
+  );
 
   // Exported field: 'field_collection_item-field_int_collection-field_life_cycle_stage_2'.
   $fields['field_collection_item-field_int_collection-field_life_cycle_stage_2'] = array(

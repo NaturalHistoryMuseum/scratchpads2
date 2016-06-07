@@ -29,6 +29,7 @@ function ecoint_field_group_info() {
       3 => 'field_interaction_type',
       4 => 'field_location_ref',
       5 => 'field_reference',
+      6 => 'field_importance',
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
@@ -57,6 +58,7 @@ function ecoint_field_group_info() {
       3 => 'field_interaction_type',
       4 => 'field_location_ref',
       5 => 'field_reference',
+      6 => 'field_importance',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
