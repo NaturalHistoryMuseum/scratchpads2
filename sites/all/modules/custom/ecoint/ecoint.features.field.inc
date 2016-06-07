@@ -182,40 +182,8 @@ function ecoint_field_default_fields() {
       'settings' => array(
         'allowed_values' => array(
           0 => array(
-            'vocabulary' => 0,
-            'parent' => 0,
-          ),
-          1 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          2 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          3 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          4 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          5 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          6 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          7 => array(
             'parent' => 0,
             'vocabulary' => 'presence_status',
-          ),
-          8 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
           ),
         ),
       ),
@@ -690,36 +658,8 @@ function ecoint_field_default_fields() {
       'settings' => array(
         'allowed_values' => array(
           0 => array(
-            'vocabulary' => 0,
-            'parent' => 0,
-          ),
-          1 => array(
             'parent' => 0,
             'vocabulary' => 'ecological_interactions',
-          ),
-          2 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          3 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          4 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          5 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          6 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          7 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
           ),
         ),
       ),
@@ -1161,40 +1101,8 @@ function ecoint_field_default_fields() {
       'settings' => array(
         'allowed_values' => array(
           0 => array(
-            'vocabulary' => 0,
-            'parent' => 0,
-          ),
-          1 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          2 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          3 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          4 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          5 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          6 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
-          ),
-          7 => array(
             'parent' => 0,
             'vocabulary' => 'presence_status',
-          ),
-          8 => array(
-            'parent' => 0,
-            'vocabulary' => 0,
           ),
         ),
       ),
