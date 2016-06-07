@@ -21,7 +21,7 @@ function ecoint_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'auto_entitylabel_pattern_node_ecological_interactions';
-  $strongarm->value = '[node:field_taxonomic_name] [node:field_interaction_type] [node:field_taxonomic_name_2]';
+  $strongarm->value = '[node:uuid]';
   $export['auto_entitylabel_pattern_node_ecological_interactions'] = $strongarm;
 
   $strongarm = new stdClass();
