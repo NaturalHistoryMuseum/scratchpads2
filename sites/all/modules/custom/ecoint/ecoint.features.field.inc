@@ -252,14 +252,6 @@ function ecoint_field_default_fields() {
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          0 => array(
-            'parent' => 0,
-            'vocabulary' => 'phasmida',
-          ),
-          1 => array(
-            'parent' => 0,
-            'vocabulary' => 'animal_associations',
-          ),
         ),
       ),
       'translatable' => '1',
@@ -1285,14 +1277,6 @@ function ecoint_field_default_fields() {
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          0 => array(
-            'parent' => 0,
-            'vocabulary' => 'phasmida',
-          ),
-          1 => array(
-            'parent' => 0,
-            'vocabulary' => 'animal_associations',
-          ),
         ),
       ),
       'translatable' => '1',
