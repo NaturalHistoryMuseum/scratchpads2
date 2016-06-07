@@ -50,7 +50,7 @@ function ecoint_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 2,
+          'weight' => '3',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -123,7 +123,7 @@ function ecoint_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 3,
+          'weight' => '4',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -233,7 +233,7 @@ function ecoint_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 1,
+          'weight' => '2',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -283,7 +283,16 @@ function ecoint_field_default_fields() {
       'locked' => '1',
       'module' => 'taxonomy',
       'settings' => array(
-        'allowed_values' => array(),
+        'allowed_values' => array(
+          0 => array(
+            'parent' => 0,
+            'vocabulary' => 'phasmida',
+          ),
+          1 => array(
+            'parent' => 0,
+            'vocabulary' => 'animal_associations',
+          ),
+        ),
       ),
       'translatable' => '1',
       'type' => 'taxonomy_term_reference',
@@ -299,7 +308,7 @@ function ecoint_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 0,
+          'weight' => '1',
         ),
         'linked_node' => array(
           'label' => 'above',
@@ -323,292 +332,6 @@ function ecoint_field_default_fields() {
         ),
         'type' => 'taxonomy_autocomplete',
         'weight' => '2',
-      ),
-    ),
-  );
-
-  // Exported field: 'field_collection_item-field_vernacular_name_collection-field_language'.
-  $fields['field_collection_item-field_vernacular_name_collection-field_language'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_language',
-      'foreign keys' => array(),
-      'indexes' => array(
-        'value' => array(
-          0 => 'value',
-        ),
-      ),
-      'locked' => '1',
-      'module' => 'languagefield',
-      'settings' => array(
-        'enabled' => '1',
-        'excluded_languages' => array(),
-        'format' => array(
-          'iso' => 'iso',
-          'name' => 'name',
-          'name_native' => 0,
-        ),
-        'groups' => '',
-        'languages' => array(),
-      ),
-      'translatable' => '1',
-      'type' => 'language_field',
-    ),
-    'field_instance' => array(
-      'bundle' => 'field_vernacular_name_collection',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'languagefield',
-          'settings' => array(
-            'format' => array(
-              'name' => 'name',
-            ),
-          ),
-          'type' => 'language_default',
-          'weight' => 2,
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'field_collection_item',
-      'field_name' => 'field_language',
-      'label' => 'Language',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'options',
-        'settings' => array(),
-        'type' => 'options_select',
-        'weight' => '1',
-      ),
-    ),
-  );
-
-  // Exported field: 'field_collection_item-field_vernacular_name_collection-field_vernacular_locality'.
-  $fields['field_collection_item-field_vernacular_name_collection-field_vernacular_locality'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_vernacular_locality',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '1',
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '1',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'field_vernacular_name_collection',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '3',
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'field_collection_item',
-      'field_name' => 'field_vernacular_locality',
-      'label' => 'Area from which the vernacular name usage originates',
-      'required' => 0,
-      'settings' => array(
-        'linkit' => array(
-          'enable' => 0,
-          'insert_plugin' => '',
-        ),
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '3',
-      ),
-    ),
-  );
-
-  // Exported field: 'field_collection_item-field_vernacular_name_collection-field_vernacular_name'.
-  $fields['field_collection_item-field_vernacular_name_collection-field_vernacular_name'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_vernacular_name',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '1',
-      'module' => 'text',
-      'settings' => array(
-        'max_length' => '255',
-      ),
-      'translatable' => '0',
-      'type' => 'text',
-    ),
-    'field_instance' => array(
-      'bundle' => 'field_vernacular_name_collection',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '1',
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'field_collection_item',
-      'field_name' => 'field_vernacular_name',
-      'label' => 'Vernacular name',
-      'required' => 0,
-      'settings' => array(
-        'linkit' => array(
-          'enable' => 0,
-          'insert_plugin' => '',
-        ),
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'size' => '60',
-        ),
-        'type' => 'text_textfield',
-        'weight' => '0',
-      ),
-    ),
-  );
-
-  // Exported field: 'field_collection_item-field_vernacular_name_collection-field_vernacular_name_remarks'.
-  $fields['field_collection_item-field_vernacular_name_collection-field_vernacular_name_remarks'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_vernacular_name_remarks',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '1',
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '1',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'field_vernacular_name_collection',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => '5',
-        ),
-        'linked_node' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'field_collection_item',
-      'field_name' => 'field_vernacular_name_remarks',
-      'label' => 'Vernacular name remarks',
-      'required' => 0,
-      'settings' => array(
-        'linkit' => array(
-          'enable' => 0,
-          'insert_plugin' => '',
-        ),
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '5',
       ),
     ),
   );
@@ -653,7 +376,7 @@ function ecoint_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '7',
+          'weight' => '9',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -679,7 +402,7 @@ function ecoint_field_default_fields() {
       ),
       'entity_type' => 'node',
       'field_name' => 'body',
-      'label' => 'Body',
+      'label' => 'Notes',
       'required' => FALSE,
       'settings' => array(
         'display_summary' => TRUE,
@@ -821,17 +544,13 @@ function ecoint_field_default_fields() {
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
+          'label' => 'hidden',
           'module' => 'field_collection',
           'settings' => array(
-            'add' => 'Add',
-            'delete' => 'Delete',
-            'description' => TRUE,
-            'edit' => 'Edit',
             'view_mode' => 'full',
           ),
-          'type' => 'field_collection_view',
-          'weight' => 12,
+          'type' => 'field_collection_fields',
+          'weight' => '2',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -1096,7 +815,7 @@ function ecoint_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '4',
+          'weight' => '1004',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -1283,7 +1002,7 @@ function ecoint_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => '3',
+          'weight' => '1003',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -1493,7 +1212,7 @@ function ecoint_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => '2',
+          'weight' => '1002',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -1589,7 +1308,7 @@ function ecoint_field_default_fields() {
           'module' => 'node_reference',
           'settings' => array(),
           'type' => 'node_reference_default',
-          'weight' => 10,
+          'weight' => '1001',
         ),
         'entityconnectpreview' => array(
           'label' => 'above',
@@ -1635,7 +1354,42 @@ function ecoint_field_default_fields() {
 
   // Exported field: 'node-ecological_interactions-field_taxonomic_name'.
   $fields['node-ecological_interactions-field_taxonomic_name'] = array(
-    'field_config' => field_info_field('field_taxonomic_name'),
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_taxonomic_name',
+      'foreign keys' => array(
+        'tid' => array(
+          'columns' => array(
+            'tid' => 'tid',
+          ),
+          'table' => 'taxonomy_term_data',
+        ),
+      ),
+      'indexes' => array(
+        'tid' => array(
+          0 => 'tid',
+        ),
+      ),
+      'locked' => '1',
+      'module' => 'taxonomy',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'parent' => 0,
+            'vocabulary' => 'phasmida',
+          ),
+          1 => array(
+            'parent' => 0,
+            'vocabulary' => 'animal_associations',
+          ),
+        ),
+      ),
+      'translatable' => '1',
+      'type' => 'taxonomy_term_reference',
+    ),
     'field_instance' => array(
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
@@ -1646,48 +1400,54 @@ function ecoint_field_default_fields() {
           'label' => 'above',
           'module' => 'taxonomy_formatter',
           'settings' => array(
+            'append_vocabulary' => 1,
             'element_class' => '',
             'element_option' => '- None -',
             'links_option' => 1,
-            'append_vocabulary' => 1,
             'separator_option' => ', ',
             'wrapper_class' => '',
-            'wrapper_option' => '- None -'
+            'wrapper_option' => '- None -',
           ),
           'type' => 'taxonomy_term_reference_csv',
-          'weight' => '1000'
+          'weight' => '1000',
+        ),
+        'entityconnectpreview' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
         'linked_node' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0
+          'weight' => 0,
         ),
         'teaser' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => 0
-        )
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'field_taxonomic_name',
       'label' => 'Taxonomic name',
       'required' => 0,
       'settings' => array(
-        'user_register_form' => FALSE
+        'user_register_form' => FALSE,
       ),
       'widget' => array(
         'active' => 0,
-        'module' => 'taxonomy',
+        'module' => 'scratchpads_taxonomic_name_field',
         'settings' => array(
           'autocomplete_path' => 'taxonomy/autocomplete',
-          'size' => 60
+          'size' => 60,
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '-3'
-      )
-    )
+        'weight' => '-3',
+      ),
+    ),
   );
 
   // Exported field: 'taxonomy_term-ecological_interactions-field_ontology_term_url_reverse_'.
@@ -1836,11 +1596,25 @@ function ecoint_field_default_fields() {
     ),
   );
 
+  
+
+  
+
+  
+
   // Translatables
   // Included for use with string extractors like potx.
+  t('A category indicator located within a polynomial taxonomic name.');
+  t('A category indicator located within a polynomial taxonomic name. Allowed values are: "ssp." (algae, fungi and plants), "subsp." (animals, bacteria and archaea), "var.", "subvar.", "f.", "subf.", and "X".');
+  t('A category indicator positioned between the first and second parts of a binomial/polynomial taxonomic name.');
+  t('An explanation regarding why a given scientific name is judged to be invalid or not accepted.');
   t('Area from which the vernacular name usage originates');
+  t('Associated accepted name');
+  t('Authors');
   t('Body');
+  t('Current standing of an occurrence of Taxonomic Units.');
   t('Date');
+  t('Indicator of an occurrence of a plant hybrid at the generic level.');
   t('Interaction Record Type');
   t('Interaction Type');
   t('Language');
@@ -1851,16 +1625,37 @@ function ecoint_field_default_fields() {
   t('Ontology Term URL (reverse)');
   t('Organism Part');
   t('Organism Part 2');
+  t('Page number');
+  t('Rank');
   t('Reference');
   t('Species Status');
   t('Species Status 2');
   t('Specimen 1');
+  t('Taxon 2');
   t('Taxonomic name');
-  t('Taxonomic name 1');
+  t('The author(s) associated with the name of a taxon. This can include the year of publication and brackets, e.g. "(Quoy and Gaimard, 1832)".');
+  t('The fourth part of a scientifically accepted label for a polynomial occurrence of Taxonomic Units.');
+  t('The full name of the lowest level taxon to which the organism has been identified in the most recent accepted determination, specified as precisely as possible');
+  t('The label associated with the specific level of a taxonomic hierarchy, e.g. "Family", "Genus" or "Species".');
+  t('The page number the taxon was described on in the protologue.');
+  t('The scientific name of the valid or accepted taxon identified as the currently accepted name used for a given invalid or not accepted name. Each name that is in synonymy (junior synonyms, obsolete combinations, etc.) must be connected to one accepted or valid name.');
+  t('The second part of a scientifically accepted label for a binomial/polynomial occurrence of Taxonomic Units (the species epithet).');
+  t('The singular or first part of a scientifically accepted label for an occurrence of Taxonomic Units. For uninomials (1-part names like family or genus names) this will be the only name field entered. For binomials/polynomials, this field will be used for the first part of the name (the genus name). The names in this position require the initial letter to be capitalized.');
+  t('The third portion of a scientifically accepted label for a polynomial occurrence of Taxonomic Units (e.g. subspecies name).');
   t('URL from a suitable ontology that defines this interaction type');
+  t('Unacceptability Reason');
+  t('Unit indicator 1');
+  t('Unit indicator 2');
+  t('Unit indicator 3');
+  t('Unit indicator 4');
+  t('Unit name 1');
+  t('Unit name 2');
+  t('Unit name 3');
+  t('Unit name 4');
+  t('Usage');
   t('Vernacular name');
   t('Vernacular name remarks');
-  t('int_collection');
+  t('Vernacular names');
 
   return $fields;
 }
