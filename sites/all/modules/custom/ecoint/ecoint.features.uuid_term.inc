@@ -11,10 +11,10 @@ function ecoint_uuid_features_default_terms() {
   $terms = array();
 
   $terms[] = array(
-    'revision_id' => '17',
+    'revision_id' => '33',
     'log' => NULL,
-    'timestamp' => '1465242201',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'ectoparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -44,10 +44,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '19',
+    'revision_id' => '34',
     'log' => NULL,
-    'timestamp' => '1465242319',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'intercellular endoparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -77,10 +77,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '24',
+    'revision_id' => '35',
     'log' => NULL,
-    'timestamp' => '1465242568',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'is vector for',
     'description' => '',
     'format' => 'plain_text',
@@ -107,10 +107,34 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '12',
+    'revision_id' => '50',
     'log' => NULL,
-    'timestamp' => '1465241922',
+    'timestamp' => '1465294798',
     'uid' => '1',
+    'name' => 'Naturalised',
+    'description' => 'The organism reproduces naturally and forms part of the local ecology.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '24bd8019-c7cd-4580-84d9-0f117c5e6b69',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '46',
+    'log' => NULL,
+    'timestamp' => '1465294709',
+    'uid' => '1',
+    'name' => 'Native',
+    'description' => 'The organism either evolved in this region or arrived by non-anthropogenic means.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '2eed3452-78b1-48ad-8ed7-7417eebc84cd',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '36',
+    'log' => NULL,
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'parasitoid of',
     'description' => '',
     'format' => 'plain_text',
@@ -140,10 +164,22 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '25',
-    'log' => '',
-    'timestamp' => '1465242581',
+    'revision_id' => '53',
+    'log' => NULL,
+    'timestamp' => '1465294843',
     'uid' => '1',
+    'name' => 'Invasive',
+    'description' => 'The organism is having a deleterious impact on another organism,multiple organisms or the ecosystem as a whole.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '3d630c9d-bd28-40c4-9218-92a928849082',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '37',
+    'log' => '',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'is parasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -170,10 +206,34 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '13',
+    'revision_id' => '51',
     'log' => NULL,
-    'timestamp' => '1465241982',
+    'timestamp' => '1465294800',
     'uid' => '1',
+    'name' => 'Introduced',
+    'description' => 'The organism arrived in the region via an anthropogenic mechanism or mechanisms.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '4e8aab27-595e-4bae-a676-f4ea60ac92be',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '57',
+    'log' => NULL,
+    'timestamp' => '1465294915',
+    'uid' => '1',
+    'name' => 'Captivity',
+    'description' => 'The organism is kept in captivity.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '4fff4f3d-ec9c-44af-8498-3c94c5e5133c',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '38',
+    'log' => NULL,
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'obligate parasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -195,10 +255,22 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '27',
+    'revision_id' => '55',
     'log' => NULL,
-    'timestamp' => '1465242788',
+    'timestamp' => '1465294895',
     'uid' => '1',
+    'name' => 'Managed',
+    'description' => 'The organism maintains its presence through intentional cultivation or husbandry.',
+    'format' => 'plain_text',
+    'weight' => '0',
+    'uuid' => '73c47c83-5f38-431f-808b-39fd272dabe7',
+    'vocabulary_machine_name' => 'presence_status',
+  );
+  $terms[] = array(
+    'revision_id' => '39',
+    'log' => NULL,
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'hyperparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -228,10 +300,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '18',
+    'revision_id' => '40',
     'log' => NULL,
-    'timestamp' => '1465242254',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'endoparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -261,10 +333,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '26',
+    'revision_id' => '41',
     'log' => NULL,
-    'timestamp' => '1465242654',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'pollinates',
     'description' => '',
     'format' => 'plain_text',
@@ -294,10 +366,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '20',
+    'revision_id' => '42',
     'log' => NULL,
-    'timestamp' => '1465242362',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'intracellular endoparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -327,10 +399,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '15',
+    'revision_id' => '43',
     'log' => NULL,
-    'timestamp' => '1465242101',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'hemiparasite of',
     'description' => '',
     'format' => 'plain_text',
@@ -352,10 +424,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '22',
+    'revision_id' => '44',
     'log' => NULL,
-    'timestamp' => '1465242477',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'eats',
     'description' => '',
     'format' => 'plain_text',
@@ -382,10 +454,10 @@ function ecoint_uuid_features_default_terms() {
     ),
   );
   $terms[] = array(
-    'revision_id' => '16',
+    'revision_id' => '45',
     'log' => '',
-    'timestamp' => '1465242112',
-    'uid' => '1',
+    'timestamp' => '1465294393',
+    'uid' => '0',
     'name' => 'faculative parasite of',
     'description' => '',
     'format' => 'plain_text',
