@@ -61,7 +61,7 @@ function ecoint_field_default_fields() {
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_life_cycle_stage_2',
-      'label' => 'Life Cycle Stage 2',
+      'label' => 'Life Cycle Stage',
       'required' => 0,
       'settings' => array(
         'linkit' => array(
@@ -134,7 +134,7 @@ function ecoint_field_default_fields() {
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_organism_part_2',
-      'label' => 'Organism Part 2',
+      'label' => 'Organism Part',
       'required' => 0,
       'settings' => array(
         'linkit' => array(
@@ -244,7 +244,7 @@ function ecoint_field_default_fields() {
       ),
       'entity_type' => 'field_collection_item',
       'field_name' => 'field_species_status_2',
-      'label' => 'Species Status 2',
+      'label' => 'Species Status',
       'required' => 0,
       'settings' => array(
         'user_register_form' => FALSE,
@@ -1596,66 +1596,25 @@ function ecoint_field_default_fields() {
     ),
   );
 
-  
-
-  
-
-  
-
   // Translatables
   // Included for use with string extractors like potx.
-  t('A category indicator located within a polynomial taxonomic name.');
-  t('A category indicator located within a polynomial taxonomic name. Allowed values are: "ssp." (algae, fungi and plants), "subsp." (animals, bacteria and archaea), "var.", "subvar.", "f.", "subf.", and "X".');
-  t('A category indicator positioned between the first and second parts of a binomial/polynomial taxonomic name.');
-  t('An explanation regarding why a given scientific name is judged to be invalid or not accepted.');
-  t('Area from which the vernacular name usage originates');
-  t('Associated accepted name');
-  t('Authors');
-  t('Body');
-  t('Current standing of an occurrence of Taxonomic Units.');
+  t('Notes');
   t('Date');
-  t('Indicator of an occurrence of a plant hybrid at the generic level.');
   t('Interaction Record Type');
   t('Interaction Type');
   t('Language');
   t('Life Cycle Stage');
-  t('Life Cycle Stage 2');
   t('Location');
   t('Ontology Term URL');
   t('Ontology Term URL (reverse)');
   t('Organism Part');
-  t('Organism Part 2');
-  t('Page number');
-  t('Rank');
   t('Reference');
   t('Species Status');
-  t('Species Status 2');
-  t('Specimen 1');
+  t('Specimen');
   t('Taxon 2');
   t('Taxonomic name');
-  t('The author(s) associated with the name of a taxon. This can include the year of publication and brackets, e.g. "(Quoy and Gaimard, 1832)".');
-  t('The fourth part of a scientifically accepted label for a polynomial occurrence of Taxonomic Units.');
   t('The full name of the lowest level taxon to which the organism has been identified in the most recent accepted determination, specified as precisely as possible');
-  t('The label associated with the specific level of a taxonomic hierarchy, e.g. "Family", "Genus" or "Species".');
-  t('The page number the taxon was described on in the protologue.');
-  t('The scientific name of the valid or accepted taxon identified as the currently accepted name used for a given invalid or not accepted name. Each name that is in synonymy (junior synonyms, obsolete combinations, etc.) must be connected to one accepted or valid name.');
-  t('The second part of a scientifically accepted label for a binomial/polynomial occurrence of Taxonomic Units (the species epithet).');
-  t('The singular or first part of a scientifically accepted label for an occurrence of Taxonomic Units. For uninomials (1-part names like family or genus names) this will be the only name field entered. For binomials/polynomials, this field will be used for the first part of the name (the genus name). The names in this position require the initial letter to be capitalized.');
-  t('The third portion of a scientifically accepted label for a polynomial occurrence of Taxonomic Units (e.g. subspecies name).');
   t('URL from a suitable ontology that defines this interaction type');
-  t('Unacceptability Reason');
-  t('Unit indicator 1');
-  t('Unit indicator 2');
-  t('Unit indicator 3');
-  t('Unit indicator 4');
-  t('Unit name 1');
-  t('Unit name 2');
-  t('Unit name 3');
-  t('Unit name 4');
-  t('Usage');
-  t('Vernacular name');
-  t('Vernacular name remarks');
-  t('Vernacular names');
 
   return $fields;
 }
