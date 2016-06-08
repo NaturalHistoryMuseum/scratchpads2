@@ -7,7 +7,7 @@
 /**
  * Implements hook_context_default_contexts().
  */
-function ecoint2_context_default_contexts() {
+function ecoint_context_default_contexts() {
   $export = array();
 
   $context = new stdClass();
