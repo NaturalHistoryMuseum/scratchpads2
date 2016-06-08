@@ -5,3 +5,12 @@
  */
 
 include_once 'ecoint.features.inc';
+
+function ecoint_apachesolr_index_document_build($document, $entity, $entity_type, $env_id) {
+  if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
+    drupal_set_message($entity, "warning");
+    drupal_set_message($document, "warning");
+    foreach($entity as $key => $value){
+    }
+  }
+}
