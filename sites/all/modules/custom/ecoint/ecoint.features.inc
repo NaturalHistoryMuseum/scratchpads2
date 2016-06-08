@@ -19,6 +19,9 @@ function ecoint_ctools_plugin_api() {
   if ($module == "apachesolr_search" && $api == "apachesolr_search_defaults") {
     return array("version" => "3");
   }
+  if ($module == "context" && $api == "context") {
+    return array("version" => "3");
+  }
 }
 
 /**
