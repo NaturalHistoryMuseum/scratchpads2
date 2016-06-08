@@ -31,6 +31,7 @@ function ecoint_field_default_fields() {
                   'economic' => 'economic',
                   'economic (crop pest)' => 'economic (crop pest)',
                   'economic (timber pest)' => 'economic (timber pest)',
+                  'economic (pest control)' => 'economic (pest control)',
                   'medical' => 'medical',
                   'veterinary' => 'veterinary',
               ),

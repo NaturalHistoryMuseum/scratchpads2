@@ -16,6 +16,9 @@ function ecoint_ctools_plugin_api() {
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
   }
+  if ($module == "apachesolr_search" && $api == "apachesolr_search_defaults") {
+    return array("version" => "3");
+  }
 }
 
 /**
