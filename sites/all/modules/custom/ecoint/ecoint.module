@@ -6,11 +6,11 @@
 
 include_once 'ecoint.features.inc';
 
-function ecoint_apachesolr_index_document_build($document, $entity, $entity_type, $env_id) {
+function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
-    drupal_set_message($entity, "warning");
-    drupal_set_message($document, "warning");
-    foreach($entity as $key => $value){
-    }
+    $extra_taxonomic_name_field = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
+    $extra_taxonomic_name_field = $extra_taxonomic_name_field->field_taxonomic_name['und'][0]['taxonomy_term'];
+    $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
   }
 }
+
