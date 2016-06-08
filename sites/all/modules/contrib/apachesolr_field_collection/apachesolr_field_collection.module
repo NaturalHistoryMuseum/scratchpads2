@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @file
+ * Allows field collections to be indexed and faceted via the entity they are attached to.
+ */
+
+/**
+ * Implements hook_facetapi_facet_info().
+ */
+function apachesolr_field_collection_facetapi_facet_info($searcher_info) {
+  // Allow fields attached to any field collection item to be used as facets.
+  return apachesolr_entity_field_facets('field_collection_item');
+}
+
+/**
+ * Implements hook_apachesolr_field_mappings().
+ */
+function apachesolr_field_collection_apachesolr_field_mappings() {
+  $mappings['field_collection'] = array(
+    'indexing_callback' => 'apachesolr_field_collection_indexing_callback',
+    'query types' => array('term'),
+  );
+  return $mappings;
+}
+
+/**
+ * Indexing callback for field collection fields.
+ */
+function apachesolr_field_collection_indexing_callback($entity, $field_name, $index_key, $field_info) {
+  // Load each field collection item and add its fields to the index.
+  $fields = array();
+  if (!empty($entity->{$field_name})) {
+    foreach ($entity->{$field_name} as $field_collections) {
+      foreach ($field_collections as $field_collection) {
+        if (($item_id = $field_collection['value']) && ($field_collection_item = field_collection_item_load($item_id))) {
+          apachesolr_field_collection_add_field_collection_fields($fields, $field_collection_item);
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Adds fields from a field collection to an existing array, for Solr indexing.
+ *
+ * @param $fields
+ *   An array of existing fields, to be modified by reference.
+ * @param $entity
+ *   The field collection entity whose fields should be added.
+ */
+function apachesolr_field_collection_add_field_collection_fields(&$fields, $entity) {
+  // This function is modeled after field_apachesolr_index_document_build() but
+  // with changes to prevent single-value Solr fields from getting indexed
+  // twice.
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  $entity_type = 'field_collection_item';
+  $info = entity_get_info($entity_type);
+  if ($info['fieldable']) {
+    $indexed_fields = apachesolr_entity_fields($entity_type);
+    foreach ($indexed_fields as $index_key => $field_info) {
+      // Find the single-value version of this field, which (for many fields)
+      // apachesolr_fields_default_indexing_callback() will add to the Solr
+      // index.
+      $field_info = $field_info[0];
+      $singular_field_info = $field_info;
+      $singular_field_info['multiple'] = FALSE;
+      $single_key = apachesolr_index_key($singular_field_info);
+      // Call the field's indexing callback function.
+      $field_name = $field_info['field']['field_name'];
+      if (isset($entity->{$field_name})) {
+        $function = $field_info['indexing_callback'];
+        if ($function && function_exists($function)) {
+          $new_fields = $function($entity, $field_name, $index_key, $field_info);
+          // If any of the new fields are single-valued fields already added by
+          // apachesolr_fields_default_indexing_callback(), do not add them
+          // again, since doing so will break the Solr index. (This can happen
+          // when the same field is attached to more than one field collection
+          // item on the same entity; the Apache Solr module does not handle
+          // the possibility that the same field will be associated with the
+          // same entity more than once.)
+          // @todo: Find a more elegant way to handle this. Especially since it
+          //   will probably fail on more complicated setups (e.g., field
+          //   collections within field collections).
+          foreach ($new_fields as $new_field) {
+            $add = TRUE;
+            if ($new_field['key'] == $single_key) {
+              foreach ($fields as $existing_field) {
+                if ($existing_field['key'] == $single_key) {
+                  $add = FALSE;
+                  break;
+                }
+              }
+            }
+            if ($add) {
+              $fields[] = $new_field;
+            }
+          }
+        }
+      }
+    }
+  }
+}
