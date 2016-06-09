@@ -30,6 +30,7 @@ function ecoint_field_group_info() {
       4 => 'field_location_ref',
       5 => 'field_reference',
       6 => 'field_importance',
+      7 => 'field_reference_page',
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(

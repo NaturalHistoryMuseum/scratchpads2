@@ -9,6 +9,91 @@
  */
 function ecoint_field_default_fields() {
   $fields = array();
+
+  // Exported field: 'node-ecological_interactions-field_reference_page'.
+  $fields['node-ecological_interactions-field_reference_page'] = array(
+      'field_config' => array(
+          'active' => '1',
+          'cardinality' => '1',
+          'deleted' => '0',
+          'entity_types' => array(),
+          'field_name' => 'field_reference_page',
+          'foreign keys' => array(
+              'format' => array(
+                  'columns' => array(
+                      'format' => 'format',
+                  ),
+                  'table' => 'filter_format',
+              ),
+          ),
+          'indexes' => array(
+              'format' => array(
+                  0 => 'format',
+              ),
+          ),
+          'locked' => '0',
+          'module' => 'text',
+          'settings' => array(
+              'max_length' => '255',
+          ),
+          'translatable' => '0',
+          'type' => 'text',
+      ),
+      'field_instance' => array(
+          'bundle' => 'ecological_interactions',
+          'default_value' => NULL,
+          'deleted' => '0',
+          'description' => '',
+          'display' => array(
+              'default' => array(
+                  'label' => 'above',
+                  'module' => 'text',
+                  'settings' => array(),
+                  'type' => 'text_default',
+                  'weight' => 1006,
+              ),
+              'entityconnectpreview' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+              'linked_node' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+              'teaser' => array(
+                  'label' => 'above',
+                  'settings' => array(),
+                  'type' => 'hidden',
+                  'weight' => 0,
+              ),
+          ),
+          'entity_type' => 'node',
+          'field_name' => 'field_reference_page',
+          'label' => 'Reference Page',
+          'required' => 0,
+          'settings' => array(
+              'linkit' => array(
+                  'enable' => 0,
+                  'insert_plugin' => '',
+              ),
+              'text_processing' => '0',
+              'user_register_form' => FALSE,
+          ),
+          'widget' => array(
+              'active' => 1,
+              'module' => 'text',
+              'settings' => array(
+                  'size' => '60',
+              ),
+              'type' => 'text_textfield',
+              'weight' => '15',
+          ),
+      ),
+  );
   
   // Exported field: 'node-ecological_interactions-field_importance'.
   $fields['node-ecological_interactions-field_importance'] = array(
