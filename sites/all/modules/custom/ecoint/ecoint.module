@@ -40,7 +40,7 @@ function ecoint_theme(){
  */
 function ecoint_scratchpads_solr_info(){
   return array(
-      'biblio' => array(
+      'interactions' => array(
           'theme' => 'ecoint_search',
           'empty' => 'ecoint_search_empty'
       )
