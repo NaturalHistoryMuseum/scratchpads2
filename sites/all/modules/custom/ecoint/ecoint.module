@@ -46,3 +46,36 @@ function ecoint_scratchpads_solr_info(){
       )
   );
 }
+
+function ecoint_block_info() {
+  $blocks = array();
+  $blocks['species-interactions'] = array(
+    'info' => t('Species Interactions'),  
+  );
+}
+
+function ecoint_block_view($delta = '') {
+  $block = array();
+  
+  switch($delta) {
+    case 'species-interactions':
+      $block['subject'] = 'Species Interactions';
+      $block['content'] = ecoint_species_block_content();
+  }
+}
+
+function ecoint_species_block_content() {
+  $solr_page = apache_solr_search_page_load('interactions');
+  $conditions = array(
+      'fq' => array(
+          0 => 'bundle:ecological_interactions',
+          1 => 'entity_type:node',
+      ),
+      'f' => array(
+        0 => 'im_field_taxonomic_name:34'  
+      ),
+  );
+  $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
+  print_r($results);exit;
+  return $output;
+}
