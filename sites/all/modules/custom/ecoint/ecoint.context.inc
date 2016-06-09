@@ -8,8 +8,6 @@
  * Implements hook_context_default_contexts().
  */
 function ecoint_context_default_contexts() {
-  $export = array();
-
   $context = new stdClass();
   $context->disabled = FALSE; /* Edit this to true to make a default context disabled initially */
   $context->api_version = 3;
@@ -32,6 +30,18 @@ function ecoint_context_default_contexts() {
           'region' => 'sidebar',
           'weight' => '-10',
         ),
+        'facetapi-PCnS59XlcNSt7woFeylhjr86UAc94r0o' => array(
+          'module' => 'facetapi',
+          'delta' => 'PCnS59XlcNSt7woFeylhjr86UAc94r0o',
+          'region' => 'sidebar',
+          'weight' => '-6',
+        ),
+        'facetapi-Wr1e4IFwO0qbQnewTe4MUD1SvbKJLuUb' => array(
+          'module' => 'facetapi',
+          'delta' => 'Wr1e4IFwO0qbQnewTe4MUD1SvbKJLuUb',
+          'region' => 'sidebar',
+          'weight' => '-9',
+        ),
       ),
     ),
   );
@@ -41,6 +51,7 @@ function ecoint_context_default_contexts() {
   // Included for use with string extractors like potx.
   t('Provides the ecological interactions search page');
   t('solr');
+  
   $export['interactions'] = $context;
 
   return $export;
