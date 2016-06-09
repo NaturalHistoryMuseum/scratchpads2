@@ -52,6 +52,7 @@ function ecoint_block_info() {
   $blocks['species-interactions'] = array(
     'info' => t('Species Interactions'),  
   );
+  return $blocks;
 }
 
 function ecoint_block_view($delta = '') {
@@ -62,6 +63,7 @@ function ecoint_block_view($delta = '') {
       $block['subject'] = 'Species Interactions';
       $block['content'] = ecoint_species_block_content();
   }
+  return $block;
 }
 
 function ecoint_species_block_content() {
