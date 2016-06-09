@@ -8,6 +8,7 @@ include_once 'ecoint.features.inc';
 
 function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
+    /*Both taxonomic name fields are sent as the same field*/
     $extra_taxonomic_name_field = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
     $extra_taxonomic_name_field = $extra_taxonomic_name_field->field_taxonomic_name['und'][0]['taxonomy_term'];
     $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
