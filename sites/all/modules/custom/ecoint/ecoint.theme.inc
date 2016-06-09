@@ -19,7 +19,7 @@ function theme_ecoint_search($variables) {
     $right_term = taxonomy_term_load($right_fields->field_taxonomic_name['und'][0]['tid']);
     //print "<PRE>";print_r($right_fields);exit;
     $row[] = l($right_term->name, 'taxonomy/term/'.$right_term->tid)." ".$right_fields->field_life_cycle_stage_2['und'][0]['safe_value']." ".$right_terms->field_organism_part_2['und'][0]['safe_value'];
-
+    
     $row[] = l('view', 'node/'.$ecoint_node->nid);
 
     $rows[] = $row;

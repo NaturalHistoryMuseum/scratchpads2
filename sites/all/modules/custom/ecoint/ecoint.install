@@ -1,0 +1,17 @@
+<?php
+
+ecoint_enable() {
+  /*Enable the search facets we use */
+  db_update('facetapi')
+    ->fields(array(
+        'enabled' => 1,
+    ))
+    ->condition('name', 
+        array(
+            'apachesolr@solr:block:im_field_interaction_type', 
+            'apachesolr@solr:block:sm_field_importance'
+            ),
+        'IN'
+        )
+    ->execute();
+}
