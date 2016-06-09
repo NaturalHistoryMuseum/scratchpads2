@@ -14,3 +14,34 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
   }
 }
 
+/**
+ * Implementation of hook_theme().
+ */
+function ecoint_theme(){
+  return array(
+      'ecoint_search' => array(
+          'variables' => array(
+              'results' => NULL,
+              'module' => NULL
+          ),
+          'file' => 'ecoint.theme.inc'
+      ),
+      'ecoint_search_empty' => array(
+          'variables' => array(),
+          'file' => 'ecoint.theme.inc'
+      )
+  );
+}
+
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function ecoint_scratchpads_solr_info(){
+  return array(
+      'biblio' => array(
+          'theme' => 'ecoint_search',
+          'empty' => 'ecoint_search_empty'
+      )
+  );
+}
