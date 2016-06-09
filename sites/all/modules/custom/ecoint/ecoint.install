@@ -1,6 +1,6 @@
 <?php
 
-ecoint_enable() {
+function ecoint_enable() {
   /*Enable the search facets we use */
   db_update('facetapi')
     ->fields(array(
@@ -16,7 +16,7 @@ ecoint_enable() {
     ->execute();
 }
 
-ecoint_update_7001() {
+function ecoint_update_7001() {
   /*Enable the search facets we use */
   db_update('facetapi')
   ->fields(array(
