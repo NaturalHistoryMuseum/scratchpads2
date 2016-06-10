@@ -88,3 +88,21 @@ function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
     $query->addFilter("im_field_taxonomic_name", arg(2));
   }
 }
+
+function ecoint_context_load_alter(&$context){
+  if($context->name == 'species_overview'){
+      $context->reactions = array(
+          'block' => array(
+              'blocks' => array(
+                  'species-interactions' => array(
+                      'module' => 'ecoint',
+                      'delta' => 'species-interactions',
+                      'region' => 'content',
+                      'weight' => '10'
+                  )
+              )
+          ),
+          'menu' => 'classification/' . $vid
+      );
+  }
+}
