@@ -68,10 +68,13 @@ function ecoint_block_view($delta = '') {
 
 function ecoint_species_block_content() {
   $solr_page = apachesolr_search_page_load('interactions');
+  $solr_page['search_path'] = 'interactions-species-page';
   $conditions = array(
       'fq' => array(
-          0 => 'bundle:ecological_interactions',
-          1 => 'entity_type:node',
+          0 => array( 
+            0 => 'bundle:ecological_interactions',
+            1 => 'entity_type:node',
+          ),
       ),
       'f' => array(
         0 => 'im_field_taxonomic_name:34'
@@ -80,4 +83,10 @@ function ecoint_species_block_content() {
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
   include('ecoint.theme.inc');
   return theme_ecoint_search(array('results' => $results));
+}
+
+function ecoint_apachesolr_query_alter($query) {
+  print "<PRE>";
+  print_r($query);exit; 
+}
 }
