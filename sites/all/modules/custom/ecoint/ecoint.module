@@ -68,7 +68,6 @@ function ecoint_block_view($delta = '') {
 
 function ecoint_species_block_content() {
   $solr_page = apachesolr_search_page_load('interactions');
-  $solr_page['search_path'] = 'interactions-species-page';
   $conditions = array(
       'fq' => array(
           0 => array( 
