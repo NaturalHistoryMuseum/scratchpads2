@@ -77,7 +77,6 @@ function ecoint_species_block_content() {
           ),
       ),
       'f' => array(
-        0 => 'im_field_taxonomic_name:34'
       ),
   );
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
@@ -85,8 +84,8 @@ function ecoint_species_block_content() {
   return theme_ecoint_search(array('results' => $results));
 }
 
-function ecoint_apachesolr_query_alter($query) {
-  print "<PRE>";
-  print_r($query);exit; 
-}
+function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  if (substr(current_path(), 0, 14) == 'taxonomy/term/') {
+    $query->addFilter("im_field_taxonomic_name", arg(2));
+  }
 }
