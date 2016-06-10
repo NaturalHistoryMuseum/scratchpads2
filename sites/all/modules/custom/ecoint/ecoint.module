@@ -102,7 +102,6 @@ function ecoint_context_load_alter(&$context){
                   )
               )
           ),
-          'menu' => 'classification/' . $vid
       );
   }
 }
