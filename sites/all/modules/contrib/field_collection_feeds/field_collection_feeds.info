@@ -3,6 +3,7 @@ description = Provides feeds integration for field collection.
 core = 7.x
 dependencies[] = field_collection
 dependencies[] = feeds
+files[] = plugins/FeedsFieldCollectionProcessor.inc
 
 
 ; Information added by drupal.org packaging script on 2013-06-18
