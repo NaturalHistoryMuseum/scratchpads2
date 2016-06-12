@@ -22,23 +22,9 @@ function ecoint_ctools_plugin_api() {
   if ($module == "context" && $api == "context") {
     return array("version" => "3");
   }
-  if ($module == 'feeds' && $api == 'plugins') {
-    return array('version' => 1);
-  }
 }
 
-/**
- * Implements hook_ctools_plugin_type().
- */
-function ecoint_ctools_plugin_type() {
-  return array(
-      'plugins' => array(
-          'cache' => TRUE,
-          'use hooks' => TRUE,
-          'classes' => array('handler'),
-      ),
-  );
-}
+
 
 /**
  * Implements hook_node_info().
@@ -55,22 +41,4 @@ function ecoint_node_info() {
     ),
   );
   return $items;
-}
-
-/**
- * Implements hook_feeds_plugins().
- */
-function ecoint_feeds_plugins() {
-  $info['EcointFeedsProcessor'] = array(
-      'name' => t('Ecoint Processor'),
-      'description' => t('Add and update ecological relations.'),
-      'help' => t('Add and update ecological relations.'),
-      'handler' => array(
-          'parent' => 'FeedsProcessor',
-          'class' => 'EcointFeedsProcessor',
-          'file' => 'EcointFeedsProcessor.inc',
-          'path' => drupal_get_path('module', 'ecoint'),
-      ),
-  );
-  return $info;
 }
