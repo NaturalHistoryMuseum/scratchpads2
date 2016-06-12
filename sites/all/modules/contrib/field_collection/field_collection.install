@@ -84,6 +84,10 @@ function field_collection_field_schema($field) {
   );
   return array(
     'columns' => $columns,
+    'indexes' => array(
+      'value' => array('value'),
+      'revision_id' => array('revision_id'),
+    ),
   );
 }
 
@@ -110,7 +114,10 @@ function field_collection_update_7001() {
     // Set default to 0 temporarily.
     'initial' => 0,
   );
-  db_add_field('field_collection_item', 'revision_id', $revision_id_spec);
+  // Field may already exist due to bug in 7.x-1.0-beta5.
+  if (!db_field_exists('field_collection_item', 'revision_id')) {
+    db_add_field('field_collection_item', 'revision_id', $revision_id_spec);
+  }
 
   // Initialize the revision_id to be the same as the item_id.
   db_update('field_collection_item')
@@ -124,7 +131,10 @@ function field_collection_update_7001() {
     'not null' => TRUE,
     'default' => 0,
   );
-  db_add_field('field_collection_item', 'archived', $archived_spec);
+  // Field may already exist due to bug in 7.x-1.0-beta5.
+  if (!db_field_exists('field_collection_item', 'archived')) {
+    db_add_field('field_collection_item', 'archived', $archived_spec);
+  }
 
   // Create the new table. It is important to explicitly define the schema here
   // rather than use the hook_schema definition: http://drupal.org/node/150220.
@@ -153,6 +163,10 @@ function field_collection_update_7001() {
       ),
     ),
   );
+  // Table may already exist due to bug in 7.x-1.0-beta5.
+  if (db_table_exists('field_collection_item_revision')) {
+    db_drop_table('field_collection_item_revision');
+  }
   db_create_table('field_collection_item_revision', $schema['field_collection_item_revision']);
 
   // Fill the new table with the correct data.
@@ -170,6 +184,10 @@ function field_collection_update_7001() {
   }
 
   // Update the field_collection_field_schema columns for all tables.
+  // Add a revision_id column.
+  $revision_id_spec['description'] = 'The field collection item revision id.';
+  // Because $value_column below can be null, so must $revision_id_column.
+  $revision_id_spec['not null'] = FALSE;
   foreach (field_read_fields(array('type' => 'field_collection')) as $field_name => $field) {
     $table_prefixes = array('field_data', 'field_revision');
     foreach ($table_prefixes as $table_prefix) {
@@ -178,9 +196,13 @@ function field_collection_update_7001() {
       $value_column = sprintf('%s_value', $field_name);
       $revision_id_column = sprintf('%s_revision_id', $field_name);
 
-      // Add a revision_id column.
-      $revision_id_spec['description'] = 'The field collection item revision id.';
-      db_add_field($table, $revision_id_column, $revision_id_spec);
+      // Field may already exist due to bug in 7.x-1.0-beta5.
+      if (!db_field_exists($table, $revision_id_column)) {
+        db_add_field($table, $revision_id_column, $revision_id_spec);
+      }
+      else {
+        db_change_field($table, $revision_id_column, $revision_id_column, $revision_id_spec);
+      }
 
       // Initialize the revision_id to be the same as the item_id.
       db_update($table)
@@ -209,7 +231,153 @@ function field_collection_update_7002() {
     $ids = $select->execute()->fetchCol(0);
 
     entity_delete_multiple('field_collection_item', $ids);
-    $count = count($ids);
-    drupal_set_message("Deleted $count orphaned field collection items.");
+    drupal_set_message(t('Deleted @count orphaned field collection items.', array('@count' => count($ids))));
+  }
+}
+
+/**
+ * Update field_collection_field_schema columns for all tables.
+ */
+function field_collection_update_7003() {
+  // Revision_id column.
+  $revision_id_spec = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'description' => 'The field collection item revision id.',
+    'initial' => 0,
+  );
+
+  // Update the field_collection_field_schema columns for all tables,
+  // in case the buggy beta5 version of field_collection_update_7001()
+  // completed without complaint.
+  foreach (field_read_fields(array('type' => 'field_collection')) as $field_name => $field) {
+    $table_prefixes = array('field_data', 'field_revision');
+    foreach ($table_prefixes as $table_prefix) {
+      $table = sprintf('%s_%s', $table_prefix, $field_name);
+      $value_column = sprintf('%s_value', $field_name);
+      $revision_id_column = sprintf('%s_revision_id', $field_name);
+      db_change_field($table, $revision_id_column, $revision_id_column, $revision_id_spec);
+    }
+  }
+
+  // Need to get the system up-to-date so drupal_schema_fields_sql() will work.
+  $schema = drupal_get_schema('field_collection_item_revision', TRUE);
+}
+
+/**
+ * Add index on {$field_collection_field}_revision_id column for all tables.
+ */
+function field_collection_update_7004() {
+  // Update the field_collection_field_schema columns for all tables.
+  foreach (field_read_fields(array('type' => 'field_collection')) as $field_name => $field) {
+    $table_prefixes = array('field_data', 'field_revision');
+    foreach ($table_prefixes as $table_prefix) {
+
+      $table = sprintf('%s_%s', $table_prefix, $field_name);
+      $revision_id_column = sprintf('%s_revision_id', $field_name);
+
+      // Add index on revision_id column.
+      if (!db_index_exists($table, $revision_id_column)) {
+        db_add_index($table, $revision_id_column, array($revision_id_column));
+      }
+    }
+  }
+}
+
+/**
+ * Force the creation of the table cache_entity_field_collection_item.
+ *
+ * entity_update_7003 will attempt to install entitycache tables for existing
+ * modules, but it uses module_list() to get the list of available modules,
+ * which, when called from a database update, may not return field_collection
+ * since drupal is bootstrapped at a lower level.
+ */
+function field_collection_update_7005() {
+  if (module_exists('entitycache')) {
+    $entity_type = 'field_collection_item';
+    $table = 'cache_entity_' . $entity_type;
+    if (!db_table_exists($table)) {
+      $schema = drupal_get_schema_unprocessed('system', 'cache');
+      $schema['description'] = 'Cache table used to store' . $entity_type . ' entity records.';
+      db_create_table($table, $schema);
+    }
+  }
+}
+
+/**
+ * Ensures revision_id indexes are present at field_config table.
+ */
+function field_collection_update_7006() {
+  $result = db_query("SELECT id, field_name, data FROM {field_config} WHERE type = 'field_collection'");
+  foreach ($result as $field_config) {
+    $data = unserialize($field_config->data);
+    // Skip this record if the revision_id index is already present.
+    if (isset($data['indexes']['revision_id'])) {
+      continue;
+    }
+    // Otherwise, add the revision_id index and update the record.
+    $data['indexes']['revision_id'] = array('revision_id');
+    $data = serialize($data);
+    $num_updated = db_update('field_config')
+      ->fields(array('data' => $data))
+      ->condition('id', $field_config->id)
+      ->execute();
+    // If for some reason the update failed, throw an exception.
+    if ($num_updated != 1) {
+      $t_args['@field'] = $field_config->field_name;
+      throw new DrupalUpdateException(t('An error was detected when attempting to update field configuration for field @field.', $t_args));
+    }
+  }
+}
+
+/**
+ * Add index on {$field_collection_field}_value column for all tables.
+ */
+function field_collection_update_7007() {
+  foreach (field_read_fields(array('type' => 'field_collection')) as $field_name => $field) {
+    if (!isset($field['indexes']['value'])) {
+      // Add index on the value column and update the field.
+      $field['indexes']['value'] = array('value');
+      field_update_field($field);
+    }
+
+    $table_prefixes = array('field_data', 'field_revision');
+    foreach ($table_prefixes as $table_prefix) {
+      $table = "{$table_prefix}_{$field_name}";
+      $value_column = "{$field_name}_value";
+      if (!db_index_exists($table, $value_column)) {
+        // Add index on the value column.
+        db_add_index($table, $value_column, array($value_column));
+      }
+    }
+  }
+}
+
+/**
+ * Update fields in field collections already set to use Entity Translation.
+ */
+function field_collection_update_7008() {
+  // Include FieldCollectionItemEntity class.
+  module_load_include('inc', 'field_collection', 'field_collection.entity');
+
+  $results = array();
+  foreach (field_info_fields() as $f_name => $field) {
+    if ($field['translatable'] == 1 && isset($field['bundles']['field_collection_item'])) {
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', 'field_collection_item')
+            ->fieldLanguageCondition($f_name, LANGUAGE_NONE);
+      $query_result = $query->execute();
+      if (isset($query_result['field_collection_item'])) {
+        $results = $results + $query_result['field_collection_item'];
+      }
+    }
+  }
+  if (count($results)) {
+    $ids = array_keys($results);
+    $field_collection_items = entity_load('field_collection_item', $ids);
+    foreach ($field_collection_items as $item) {
+      $item->copyTranslations(LANGUAGE_NONE);
+      $item->save();
+    }
   }
 }
