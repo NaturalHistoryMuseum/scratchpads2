@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Provides feeds integration for field collection.
+ */
+
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function field_collection_feeds_feeds_plugins() {
+  $path = drupal_get_path('module', 'field_collection_feeds') . '/plugins';
+  $info = array();
+  $info['FeedsFieldCollectionProcessor'] = array(
+    'name' => 'Field collection processor',
+    'description' => 'Create and update field collection items.',
+    'help' => 'Create and update field collection items from parsed content.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'FeedsFieldCollectionProcessor',
+      'file' => 'FeedsFieldCollectionProcessor.inc',
+      'path' => $path,
+    ),
+  );
+  return $info;
+}
+
