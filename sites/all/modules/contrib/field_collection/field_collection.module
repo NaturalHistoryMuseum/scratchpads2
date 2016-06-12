@@ -1933,11 +1933,14 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
   $info = field_info_field($target);
   // Delete existing fieldcollection value in case of update.
   $fielddelete = isset($entity->$target) ? $entity->$target : array();
+  $field_collection_item_values = array();
   foreach ($fielddelete['und'] as $k => $v) {
     $field_collection_item_values[] = $v['value'];
     unset($fielddelete['und'][$k]);
   }
-  entity_delete_multiple('field_collection_item', $field_collection_item_values);
+  if (count($field_collection_item_values) > 0 ) {
+    entity_delete_multiple('field_collection_item', $field_collection_item_values);
+  }
   // end of delete of existing fieldcollection
   // Iterate over all values.
   $delta = 0;
@@ -1974,6 +1977,7 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
 	   $sub_field_info = field_info_field($sub_target[0]);
       if (isset($_sub_targets[$sub_target]['callback']) && function_exists($_sub_targets[$sub_target]['callback'])) {
         $callback = $_sub_targets[$sub_target]['callback'];
+        unset($field_collection_item->{$sub_target});
 		 if($sub_field_info['cardinality'] == 1) {
 		   $callback($source, $field_collection_item, $sub_target, array($v), $sub_mapping);
 	     }
