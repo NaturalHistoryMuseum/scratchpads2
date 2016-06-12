@@ -50,7 +50,8 @@ function ecoint_scratchpads_solr_info(){
 function ecoint_block_info() {
   $blocks = array();
   $blocks['species-interactions'] = array(
-    'info' => t('Species Interactions'),  
+    'info' => t('Species Interactions'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
   );
   return $blocks;
 }
@@ -91,17 +92,11 @@ function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
 
 function ecoint_context_load_alter(&$context){
   if($context->name == 'species_overview'){
-      $context->reactions = array(
-          'block' => array(
-              'blocks' => array(
-                  'species-interactions' => array(
-                      'module' => 'ecoint',
-                      'delta' => 'species-interactions',
-                      'region' => 'content',
-                      'weight' => '10'
-                  )
-              )
-          ),
-      );
+    $context->reactions['block']['blocks']['species-interactions'] = array(
+      'module' => 'ecoint',
+      'delta' => 'species-interactions',
+      'region' => 'content',
+      'weight' => 10,
+    );
   }
 }
