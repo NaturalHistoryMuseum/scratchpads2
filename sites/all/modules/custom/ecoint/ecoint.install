@@ -14,6 +14,11 @@ function ecoint_enable() {
         'IN'
         )
     ->execute();
+  
+    // Clear cache so plugins provided by this module are properly discovered.
+    cache_clear_all('plugins:feeds:plugins', 'cache');
+    // Reset static cache as well.
+    ctools_get_plugins_reset();
 }
 
 function ecoint_update_7001() {
@@ -30,14 +35,4 @@ function ecoint_update_7001() {
       'IN'
       )
       ->execute();
-}
-
-/**
- * Implements hook_enable().
- */
-function ecoint_enable(){
-  // Clear cache so plugins provided by this module are properly discovered.
-  cache_clear_all('plugins:feeds:plugins', 'cache');
-  // Reset static cache as well.
-  ctools_get_plugins_reset();
 }
