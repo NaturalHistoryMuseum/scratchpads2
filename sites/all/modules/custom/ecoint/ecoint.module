@@ -6,21 +6,30 @@
 
 include_once 'ecoint.features.inc';
 
+/**
+ * Implementation of hook_menu_link_alter().
+ */
 function ecoint_menu_link_alter(&$item) {
+  //Set the default content type link to hidden
   if ($item['link_path'] == 'ecological_interactions') {
     $item['hidden'] = 1;
   }
+  //Enable the Solr page link
   if ($item['link_path'] == 'interactions') {
     $item['hidden'] = 0;
     $item['menu_name'] = 'main-menu';
   }
 }
 
+/**
+ * Implementation of hook_apachesolr_index_document_build().
+ */
 function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
-    /*Both taxonomic name fields are sent as the same field*/
+    //Both taxonomic name fields are sent as the same field, so load attached field_collection item
     $extra_taxonomic_name_field = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
     $extra_taxonomic_name_field = $extra_taxonomic_name_field->field_taxonomic_name['und'][0]['taxonomy_term'];
+    //Add term and it's parents to the search index
     if (isset($extra_taxonomic_name_field->tid)) {
       $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
       $terms_to_add = taxonomy_get_parents($extra_taxonomic_name_field->tid);
@@ -65,8 +74,12 @@ function ecoint_scratchpads_solr_info(){
   );
 }
 
+/**
+ * Implementation of hook_block_info().
+ */
 function ecoint_block_info() {
   $blocks = array();
+  //The EcoInt block for Scratchpads species pages
   $blocks['species-interactions'] = array(
     'info' => t('Species Interactions'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
@@ -74,9 +87,11 @@ function ecoint_block_info() {
   return $blocks;
 }
 
+/**
+ * Implementation of hook_block_view().
+ */
 function ecoint_block_view($delta = '') {
   $block = array();
-  
   switch($delta) {
     case 'species-interactions':
       $block['subject'] = 'Species Interactions';
@@ -85,13 +100,18 @@ function ecoint_block_view($delta = '') {
   return $block;
 }
 
+/**
+ * Implementation of hook_preprocess_block().
+ */
 function ecoint_preprocess_block(&$variables) {
   if ($variables['block']->module == 'ecoint' && $variables['block']->delta == 'species-interactions') {
     $variables['classes_array'][] = drupal_html_class('grid-8');
   }
 }
 
-
+/**
+ * Provides content for the EcoInt species page block
+ */
 function ecoint_species_block_content() {
   $solr_page = apachesolr_search_page_load('interactions');
   $conditions = array(
@@ -109,13 +129,21 @@ function ecoint_species_block_content() {
   return theme_ecoint_search(array('results' => $results));
 }
 
+/**
+ * Implementation of hook_apachesolr_query_alter().
+ */
 function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  //Provide the tid of the species page we're on to filter Solr
   if (substr(current_path(), 0, 14) == 'taxonomy/term/') {
     $query->addFilter("im_field_taxonomic_name", arg(2));
   }
 }
 
+/**
+ * Implementation of hook_context_load_alter().
+ */
 function ecoint_context_load_alter(&$context){
+  //Add the EcoInt species page block to the species page overview context
   if($context->name == 'species_overview'){
     $context->reactions['block']['blocks']['species-interactions'] = array(
       'module' => 'ecoint',
@@ -123,5 +151,14 @@ function ecoint_context_load_alter(&$context){
       'region' => 'content',
       'weight' => 10,
     );
+  }
+}
+
+/**
+ * Implementation of hook_node_view_alter().
+ */
+function ecoint_node_view_alter(&$build) {
+  if($build['#node']->type == 'ecological-interactions') {
+    print "<PRE>";print_r($build);exit;
   }
 }

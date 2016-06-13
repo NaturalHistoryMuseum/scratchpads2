@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Theme function for an empty results page.
+ * Theme function for EcoInt Solr results page
  */
 function theme_ecoint_search($variables) {
   $rows = array();
@@ -17,8 +17,7 @@ function theme_ecoint_search($variables) {
 
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
     $right_term = taxonomy_term_load($right_fields->field_taxonomic_name['und'][0]['tid']);
-    //print "<PRE>";print_r($right_fields);exit;
-    $row[] = l($right_term->name, 'taxonomy/term/'.$right_term->tid)." ".$right_fields->field_life_cycle_stage_2['und'][0]['safe_value']." ".$right_terms->field_organism_part_2['und'][0]['safe_value'];
+    $row[] = l($right_term->name, 'taxonomy/term/'.$right_term->tid)." ".$right_fields->field_life_cycle_stage_2['und'][0]['safe_value']." ".$right_fields->field_organism_part_2['und'][0]['safe_value'];
     
     $row[] = l('view', 'node/'.$ecoint_node->nid);
 
@@ -57,7 +56,10 @@ function theme_ecoint_search($variables) {
       'tags' => NULL
   ));
 }
- 
+
+/**
+ * Theme function for an empty results page.
+ */
 function theme_ecoint_search_empty($variables){
   return t('<p>Either no ecological interaction content has been added to this site, or it has not yet been indexed. Indexing can take up to one hour, so please check back later.</p>');
 }
