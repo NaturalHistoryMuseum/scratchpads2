@@ -14,7 +14,9 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
     $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
     $terms_to_add = taxonomy_get_parents($extra_taxonomic_name_field->tid);
     foreach ($terms_to_add as $term_to_add) {
-      $document->addField('im_field_taxonomic_name', $term_to_add->tid);
+      if (isset($term_to_add->tid)) {
+        $document->addField('im_field_taxonomic_name', $term_to_add->tid);
+      }
     }
   }
 }
