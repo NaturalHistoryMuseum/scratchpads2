@@ -6,6 +6,15 @@
 
 include_once 'ecoint.features.inc';
 
+function ecoint_menu_link_alter(&$item) {
+  if ($item['link_path'] == 'ecological_interactions') {
+    $item['hidden'] = 1;
+  }
+  if ($item['link_path'] == 'interactions') {
+    $item['hidden'] = 0;
+  }
+}
+
 function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
     /*Both taxonomic name fields are sent as the same field*/
