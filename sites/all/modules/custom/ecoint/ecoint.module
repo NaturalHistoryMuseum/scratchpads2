@@ -11,11 +11,13 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
     /*Both taxonomic name fields are sent as the same field*/
     $extra_taxonomic_name_field = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
     $extra_taxonomic_name_field = $extra_taxonomic_name_field->field_taxonomic_name['und'][0]['taxonomy_term'];
-    $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
-    $terms_to_add = taxonomy_get_parents($extra_taxonomic_name_field->tid);
-    foreach ($terms_to_add as $term_to_add) {
-      if (isset($term_to_add->tid)) {
-        $document->addField('im_field_taxonomic_name', $term_to_add->tid);
+    if (isset($extra_taxonomic_name_field->tid)) {
+      $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
+      $terms_to_add = taxonomy_get_parents($extra_taxonomic_name_field->tid);
+      foreach ($terms_to_add as $term_to_add) {
+        if (isset($term_to_add->tid)) {
+          $document->addField('im_field_taxonomic_name', $term_to_add->tid);
+        }
       }
     }
   }
