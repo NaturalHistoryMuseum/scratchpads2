@@ -12,6 +12,7 @@ function ecoint_menu_link_alter(&$item) {
   }
   if ($item['link_path'] == 'interactions') {
     $item['hidden'] = 0;
+    $item['menu_name'] = 'main-menu';
   }
 }
 
