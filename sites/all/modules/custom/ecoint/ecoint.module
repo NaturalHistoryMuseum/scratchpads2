@@ -27,8 +27,8 @@ function ecoint_menu_link_alter(&$item) {
 function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
     //Both taxonomic name fields are sent as the same field, so load attached field_collection item
-    $extra_taxonomic_name_field = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
-    $extra_taxonomic_name_field = $extra_taxonomic_name_field->field_taxonomic_name['und'][0]['taxonomy_term'];
+    $field_collection = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
+    $extra_taxonomic_name_field = $field_collection->field_taxonomic_name['und'][0]['taxonomy_term'];
     //Add term and it's parents to the search index
     if (isset($extra_taxonomic_name_field->tid)) {
       $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
@@ -36,6 +36,31 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
       foreach ($terms_to_add as $term_to_add) {
         if (isset($term_to_add->tid)) {
           $document->addField('im_field_taxonomic_name', $term_to_add->tid);
+        }
+      }
+    }
+    //For some nodes the taxonomic name should come from the attached specimens
+    if (isset(array_values($entity->field_specimen_1)[0][0]['node'])) {  
+      $specimen_node = array_values($entity->field_specimen_1)[0][0]['node'];
+      if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
+        $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
+        $document->addField('im_field_taxonomic_name', $tid);
+        //add parents
+        $terms_to_add = taxonomy_get_praents($tid);
+        foreach ($terms_to_add as $term_to_add) {
+          $document->addfield('im_field_taxonomic_name', $term_to_add->tid);
+        }
+      }
+    }
+    if (isset(array_values($field_collection->field_specimen_2)[0][0]['node'])) {
+      $specimen_node = array_values($entity->field_specimen_2)[0][0]['node'];
+      if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
+        $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
+        $document->addField('im_field_taxonomic_name', $tid);
+        //add parents
+        $terms_to_add = taxonomy_get_praents($tid);
+        foreach ($terms_to_add as $term_to_add) {
+          $document->addfield('im_field_taxonomic_name', $term_to_add->tid);
         }
       }
     }
