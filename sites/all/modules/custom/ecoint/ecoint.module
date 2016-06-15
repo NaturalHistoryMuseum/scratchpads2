@@ -169,5 +169,6 @@ function ecoint_node_view($node, $view_mode) {
 function ecoint_form_ecological_interactions_node_form_alter(&$form, &$form_state, $form_id) {
   if (!module_exists('darwincore')) {
     $form['field_specimen_1']['#access'] = 0;
+    $form['field_int_collection']['und'][0]['field_specimen_2']['#access'] = 0;
   }
 }
