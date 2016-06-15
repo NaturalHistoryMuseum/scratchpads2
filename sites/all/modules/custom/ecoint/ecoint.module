@@ -183,5 +183,14 @@ function ecoint_form_ecological_interactions_node_form_alter(&$form, &$form_stat
 }
 
 function _ecoint_form_ecological_interactions_node_form_validate($form, &$form_state) {
-  print "<PRE>"; print_r($form_state);  exit;
+  if (isset(array_values($form_state['values']['field_taxonomic_name'])[0][0]['tid']) && array_values($form_state['values']['field_specimen_1'])[0][0][nid] != '') {
+    form_set_error('field_taxonomic_name', 'Taxon 1: can\'t set specimen and taxonomic name');
+  }
+  $taxon2_fields = array_values($form_state['values']['field_int_collection'])[0][0];
+  if (isset(array_values($taxon2_fields['field_taxonomic_name'])[0][0]['tid']) && array_values($taxon2_fields['field_specimen_2'])[0][0][nid] != '') {
+    form_set_error('field_specimen_2', 'Taxon 2: can\'t set specimen and taxonomic name');
+  }
 }
+
+
+
