@@ -151,6 +151,7 @@ function ecoint_field_group_info() {
       1 => 'field_organism_part_2',
       2 => 'field_species_status_2',
       3 => 'field_taxonomic_name',
+      4 => 'field_specimen_2'
     ),
     'format_type' => 'field_group_stripy_div',
     'format_settings' => array(
