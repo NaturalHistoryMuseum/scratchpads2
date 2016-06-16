@@ -229,7 +229,7 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
     $html = '';
     foreach ($specimen_nids as $nid) {
       $pre_text = '';
-      if ($count > 0) {$pre_text = ', ';}
+      if ($item_count > 0) {$pre_text = ', ';}
       $specimen_node = node_load($nid);
       if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
         $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
@@ -241,7 +241,7 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
   }
   if ($html != '') {
     $element[] = array(
-        '#markup' => $html;
+        '#markup' => $html,
     );
   }
 }
