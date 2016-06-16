@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * ecoint.features.uuid_term.inc
  */
-
 /**
  * Implements hook_uuid_features_default_terms().
  */
-function ecoint_uuid_features_default_terms() {
+function ecoint_uuid_features_default_terms(){
   $terms = array();
-
   $terms[] = array(
     'revision_id' => '33',
     'log' => NULL,
@@ -26,22 +25,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002633',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002633',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002633'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002632',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002632',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002632'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '34',
@@ -59,22 +58,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002639',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002639',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002639'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002638',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002638',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002638'
+        )
+      )
     ),
     'parent' => array(
-      0 => '9c1f2691-8ba5-40bf-9e1b-753020ee7858',
-    ),
+      0 => '9c1f2691-8ba5-40bf-9e1b-753020ee7858'
+    )
   );
   $terms[] = array(
     'revision_id' => '35',
@@ -92,19 +91,19 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002460',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002460',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002460'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002459',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002459',
-        ),
-      ),
-    ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002459'
+        )
+      )
+    )
   );
   $terms[] = array(
     'revision_id' => '50',
@@ -116,7 +115,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '24bd8019-c7cd-4580-84d9-0f117c5e6b69',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '46',
@@ -128,7 +127,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '2eed3452-78b1-48ad-8ed7-7417eebc84cd',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '36',
@@ -146,22 +145,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002209',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002209',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002209'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002208',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002208',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002208'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '53',
@@ -173,7 +172,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '3d630c9d-bd28-40c4-9218-92a928849082',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '37',
@@ -191,19 +190,19 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002445',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002445',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002445'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002444',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002444',
-        ),
-      ),
-    ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002444'
+        )
+      )
+    )
   );
   $terms[] = array(
     'revision_id' => '51',
@@ -215,7 +214,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '4e8aab27-595e-4bae-a676-f4ea60ac92be',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '57',
@@ -227,7 +226,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '4fff4f3d-ec9c-44af-8498-3c94c5e5133c',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '38',
@@ -246,13 +245,13 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002227',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002227',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002227'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '55',
@@ -264,7 +263,7 @@ function ecoint_uuid_features_default_terms() {
     'format' => 'plain_text',
     'weight' => '0',
     'uuid' => '73c47c83-5f38-431f-808b-39fd272dabe7',
-    'vocabulary_machine_name' => 'presence_status',
+    'vocabulary_machine_name' => 'presence_status'
   );
   $terms[] = array(
     'revision_id' => '39',
@@ -282,22 +281,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002554',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002554',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002554'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002553',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002553',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002553'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '40',
@@ -315,22 +314,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002635',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002635',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002635'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002634',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002634',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002634'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '41',
@@ -348,19 +347,19 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002455',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002455',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002455'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002455',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002455',
-        ),
-      ),
-    ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002455'
+        )
+      )
+    )
   );
   $terms[] = array(
     'revision_id' => '42',
@@ -378,22 +377,22 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002641',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002641',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002641'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002640',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002640',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002640'
+        )
+      )
     ),
     'parent' => array(
-      0 => '9c1f2691-8ba5-40bf-9e1b-753020ee7858',
-    ),
+      0 => '9c1f2691-8ba5-40bf-9e1b-753020ee7858'
+    )
   );
   $terms[] = array(
     'revision_id' => '43',
@@ -412,13 +411,13 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002237',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002237',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002237'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   $terms[] = array(
     'revision_id' => '44',
@@ -436,19 +435,19 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002471',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002471',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002471'
+        )
+      )
     ),
     'field_ontology_url' => array(
       'und' => array(
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002470',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002470',
-        ),
-      ),
-    ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002470'
+        )
+      )
+    )
   );
   $terms[] = array(
     'revision_id' => '45',
@@ -467,13 +466,13 @@ function ecoint_uuid_features_default_terms() {
         0 => array(
           'value' => 'http://purl.obolibrary.org/obo/RO_0002228',
           'format' => NULL,
-          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002228',
-        ),
-      ),
+          'safe_value' => 'http://purl.obolibrary.org/obo/RO_0002228'
+        )
+      )
     ),
     'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
+      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484'
+    )
   );
   return $terms;
 }

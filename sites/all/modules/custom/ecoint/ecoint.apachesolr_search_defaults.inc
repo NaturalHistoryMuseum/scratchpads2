@@ -1,17 +1,19 @@
 <?php
+
 /**
  * @file
  * dummy.apachesolr_search_defaults.inc
  */
-
 /**
  * Implements hook_apachesolr_search_default_searchers().
  */
-function ecoint_apachesolr_search_default_searchers() {
+function ecoint_apachesolr_search_default_searchers(){
   $export = array();
-
   $searcher = new stdClass();
-  $searcher->disabled = FALSE; /* Edit this to true to make a default searcher disabled initially */
+  $searcher->disabled = FALSE; /*
+                                * Edit this to true to make a default searcher
+                                * disabled initially
+                                */
   $searcher->api_version = 3;
   $searcher->page_id = 'ecological_interactions';
   $searcher->label = 'Ecological Interactions';
@@ -22,7 +24,7 @@ function ecoint_apachesolr_search_default_searchers() {
   $searcher->settings = array(
     'fq' => array(
       0 => 'bundle:ecological_interactions',
-      1 => 'entity_type:node',
+      1 => 'entity_type:node'
     ),
     'apachesolr_search_custom_enable' => 1,
     'apachesolr_search_search_type' => 'custom',
@@ -30,9 +32,8 @@ function ecoint_apachesolr_search_default_searchers() {
     'apachesolr_search_spellcheck' => 1,
     'apachesolr_search_search_box' => 0,
     'apachesolr_search_allow_user_input' => 0,
-    'apachesolr_search_browse' => 'results',
+    'apachesolr_search_browse' => 'results'
   );
   $export['ecological_interactions'] = $searcher;
-
   return $export;
 }

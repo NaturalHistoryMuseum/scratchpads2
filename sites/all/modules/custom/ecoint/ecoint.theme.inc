@@ -3,68 +3,64 @@
 /**
  * Theme function for EcoInt Solr results page
  */
-function theme_ecoint_search($variables) {
+function theme_ecoint_search($variables){
   $rows = array();
   foreach($variables['results'] as $result){
     $ecoint_node = node_load($result['node']->entity_id);
     $row = array();
-    if (isset($ecoint_node->field_taxonomic_name['und'][0]['tid'])) {
+    if(isset($ecoint_node->field_taxonomic_name['und'][0]['tid'])){
       $left_term = taxonomy_term_load($ecoint_node->field_taxonomic_name['und'][0]['tid']);
-    } elseif (isset(array_values($ecoint_node->field_specimen_1)[0][0]['nid'])) {
+    }elseif(isset(array_values($ecoint_node->field_specimen_1)[0][0]['nid'])){
       $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
       $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
       $left_term = taxonomy_term_load($tid);
     }
-    $row[] = l($left_term->name, 'taxonomy/term/'.$left_term->tid)." ".$ecoint_node->field_life_cycle_stage['und'][0]['safe_value']." ".$ecoint_node->field_organism_part['und'][0]['safe_value'];
-    
+    $row[] = l($left_term->name, 'taxonomy/term/' . $left_term->tid) . " " . $ecoint_node->field_life_cycle_stage['und'][0]['safe_value'] . " " . $ecoint_node->field_organism_part['und'][0]['safe_value'];
     $interaction = taxonomy_term_load($ecoint_node->field_interaction_type['und'][0]['tid']);
     $row[] = $interaction->name;
-
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
-    if (isset($right_fields->field_taxonomic_name['und'][0]['tid'])) {
+    if(isset($right_fields->field_taxonomic_name['und'][0]['tid'])){
       $right_term = taxonomy_term_load($right_fields->field_taxonomic_name['und'][0]['tid']);
-    } else if (isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])) {
+    }else if(isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])){
       $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
       $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
       $right_term = taxonomy_term_load($tid);
     }
-    $row[] = l($right_term->name, 'taxonomy/term/'.$right_term->tid)." ".$right_fields->field_life_cycle_stage_2['und'][0]['safe_value']." ".$right_fields->field_organism_part_2['und'][0]['safe_value'];
-    
-    $row[] = l('view', 'node/'.$ecoint_node->nid);
-
+    $row[] = l($right_term->name, 'taxonomy/term/' . $right_term->tid) . " " . $right_fields->field_life_cycle_stage_2['und'][0]['safe_value'] . " " . $right_fields->field_organism_part_2['und'][0]['safe_value'];
+    $row[] = l('view', 'node/' . $ecoint_node->nid);
     $rows[] = $row;
   }
   return theme('table', array(
-      'header' => array(
-          array(
-              'data' => t('Species A'),
-              'field' => '',
-              'sort' => 'asc'
-          ),
-          array(
-              'data' => t('Interaction'),
-              'field' => '',
-              'sort' => ''
-          ),
-          array(
-              'data' => t('Species B'),
-              'field' => '',
-              'sort' => ''
-          ),
-          array(
-              'data' => t('Link'),
-              'field' => '',
-              'sort' => '',
-          ),
+    'header' => array(
+      array(
+        'data' => t('Species A'),
+        'field' => '',
+        'sort' => 'asc'
       ),
-      'rows' => $rows,
-      'attributes' => array(
-          'class' => array(
-              'ecoint'
-          )
+      array(
+        'data' => t('Interaction'),
+        'field' => '',
+        'sort' => ''
+      ),
+      array(
+        'data' => t('Species B'),
+        'field' => '',
+        'sort' => ''
+      ),
+      array(
+        'data' => t('Link'),
+        'field' => '',
+        'sort' => ''
       )
+    ),
+    'rows' => $rows,
+    'attributes' => array(
+      'class' => array(
+        'ecoint'
+      )
+    )
   )) . theme('pager', array(
-      'tags' => NULL
+    'tags' => NULL
   ));
 }
 

@@ -1,13 +1,13 @@
 <?php
+
 /**
  * @file
  * ecoint.features.taxonomy.inc
  */
-
 /**
  * Implements hook_taxonomy_default_vocabularies().
  */
-function ecoint_taxonomy_default_vocabularies() {
+function ecoint_taxonomy_default_vocabularies(){
   return array(
     'ecological_interactions' => array(
       'name' => 'Ecological Interactions',
@@ -18,22 +18,22 @@ function ecoint_taxonomy_default_vocabularies() {
       'weight' => '0',
       'rdf_mapping' => array(
         'rdftype' => array(
-          0 => 'skos:ConceptScheme',
+          0 => 'skos:ConceptScheme'
         ),
         'name' => array(
           'predicates' => array(
-            0 => 'dc:title',
-          ),
+            0 => 'dc:title'
+          )
         ),
         'description' => array(
           'predicates' => array(
-            0 => 'rdfs:comment',
-          ),
-        ),
+            0 => 'rdfs:comment'
+          )
+        )
       ),
       'show_synonym_data' => FALSE,
       'biological_classification' => 0,
-      'use_scratchpads_species_pages' => 0,
+      'use_scratchpads_species_pages' => 0
     ),
     'presence_status' => array(
       'name' => 'Presence Status',
@@ -44,22 +44,22 @@ function ecoint_taxonomy_default_vocabularies() {
       'weight' => '0',
       'rdf_mapping' => array(
         'rdftype' => array(
-          0 => 'skos:ConceptScheme',
+          0 => 'skos:ConceptScheme'
         ),
         'name' => array(
           'predicates' => array(
-            0 => 'dc:title',
-          ),
+            0 => 'dc:title'
+          )
         ),
         'description' => array(
           'predicates' => array(
-            0 => 'rdfs:comment',
-          ),
-        ),
+            0 => 'rdfs:comment'
+          )
+        )
       ),
       'show_synonym_data' => FALSE,
       'biological_classification' => 0,
-      'use_scratchpads_species_pages' => 0,
-    ),
+      'use_scratchpads_species_pages' => 0
+    )
   );
 }

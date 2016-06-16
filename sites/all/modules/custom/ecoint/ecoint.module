@@ -3,19 +3,18 @@
  * @file
  * Code for the EcoInt feature.
  */
-
 include_once 'ecoint.features.inc';
 
 /**
  * Implementation of hook_menu_link_alter().
  */
-function ecoint_menu_link_alter(&$item) {
-  //Set the default content type link to hidden
-  if ($item['link_path'] == 'ecological_interactions') {
+function ecoint_menu_link_alter(&$item){
+  // Set the default content type link to hidden
+  if($item['link_path'] == 'ecological_interactions'){
     $item['hidden'] = 1;
   }
-  //Enable the Solr page link
-  if ($item['link_path'] == 'interactions') {
+  // Enable the Solr page link
+  if($item['link_path'] == 'interactions'){
     $item['hidden'] = 0;
     $item['menu_name'] = 'main-menu';
   }
@@ -24,38 +23,37 @@ function ecoint_menu_link_alter(&$item) {
 /**
  * Implementation of hook_apachesolr_index_document_build().
  */
-function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id) {
+function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
   if($entity_type == 'node' && $entity->type == 'ecological_interactions'){
-    //Both taxonomic name fields are sent as the same field, so load attached field_collection item
+    // Both taxonomic name fields are sent as the same field, so load attached
+    // field_collection item
     $field_collection = field_collection_item_load($entity->field_int_collection['und'][0]['value']);
     $extra_taxonomic_name_field = $field_collection->field_taxonomic_name['und'][0]['taxonomy_term'];
-    //Add term and it's parents to the search index
-    if (isset($extra_taxonomic_name_field->tid)) {
+    // Add term and it's parents to the search index
+    if(isset($extra_taxonomic_name_field->tid)){
       $document->addField('im_field_taxonomic_name', $extra_taxonomic_name_field->tid);
       $terms_to_add = taxonomy_get_parents($extra_taxonomic_name_field->tid);
-      foreach ($terms_to_add as $term_to_add) {
-        if (isset($term_to_add->tid)) {
+      foreach($terms_to_add as $term_to_add){
+        if(isset($term_to_add->tid)){
           $document->addField('im_field_taxonomic_name', $term_to_add->tid);
         }
       }
     }
-    //For some nodes the taxonomic name should come from the attached specimens
-    if (isset(array_values($entity->field_specimen_1)[0][0]['node'])) {
+    // For some nodes the taxonomic name should come from the attached specimens
+    if(isset(array_values($entity->field_specimen_1)[0][0]['node'])){
       $specimen_node = array_values($entity->field_specimen_1)[0][0]['node'];
-      if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
+      if(isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])){
         $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
         $document->addField('im_field_taxonomic_name', $tid);
-        //add parents
+        // add parents
         $terms_to_add = taxonomy_get_parents($tid);
-        foreach ($terms_to_add as $term_to_add) {
+        foreach($terms_to_add as $term_to_add){
           $document->addfield('im_field_taxonomic_name', $term_to_add->tid);
         }
       }
     }
-
-    if (isset(array_values($field_collection->field_specimen_2)[0][0]['node'])) {
+    if(isset(array_values($field_collection->field_specimen_2)[0][0]['node'])){
       $specimen_node = array_values($field_collection->field_specimen_2)[0][0]['node'];
-
     }
   }
 }
@@ -65,42 +63,41 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
  */
 function ecoint_theme(){
   return array(
-      'ecoint_search' => array(
-          'variables' => array(
-              'results' => NULL,
-              'module' => NULL
-          ),
-          'file' => 'ecoint.theme.inc'
+    'ecoint_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
       ),
-      'ecoint_search_empty' => array(
-          'variables' => array(),
-          'file' => 'ecoint.theme.inc'
-      )
+      'file' => 'ecoint.theme.inc'
+    ),
+    'ecoint_search_empty' => array(
+      'variables' => array(),
+      'file' => 'ecoint.theme.inc'
+    )
   );
 }
-
 
 /**
  * Implementation of hook_scratchpads_solr_info().
  */
 function ecoint_scratchpads_solr_info(){
   return array(
-      'interactions' => array(
-          'theme' => 'ecoint_search',
-          'empty' => 'ecoint_search_empty'
-      )
+    'interactions' => array(
+      'theme' => 'ecoint_search',
+      'empty' => 'ecoint_search_empty'
+    )
   );
 }
 
 /**
  * Implementation of hook_block_info().
  */
-function ecoint_block_info() {
+function ecoint_block_info(){
   $blocks = array();
-  //The EcoInt block for Scratchpads species pages
+  // The EcoInt block for Scratchpads species pages
   $blocks['species-interactions'] = array(
     'info' => t('Species Interactions'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_CACHE_PER_PAGE
   );
   return $blocks;
 }
@@ -108,9 +105,9 @@ function ecoint_block_info() {
 /**
  * Implementation of hook_block_view().
  */
-function ecoint_block_view($delta = '') {
+function ecoint_block_view($delta = ''){
   $block = array();
-  switch($delta) {
+  switch($delta){
     case 'species-interactions':
       $block['subject'] = 'Species Interactions';
       $block['content'] = ecoint_species_block_content();
@@ -121,8 +118,8 @@ function ecoint_block_view($delta = '') {
 /**
  * Implementation of hook_preprocess_block().
  */
-function ecoint_preprocess_block(&$variables) {
-  if ($variables['block']->module == 'ecoint' && $variables['block']->delta == 'species-interactions') {
+function ecoint_preprocess_block(&$variables){
+  if($variables['block']->module == 'ecoint' && $variables['block']->delta == 'species-interactions'){
     $variables['classes_array'][] = drupal_html_class('grid-8');
   }
 }
@@ -130,29 +127,30 @@ function ecoint_preprocess_block(&$variables) {
 /**
  * Provides content for the EcoInt species page block
  */
-function ecoint_species_block_content() {
+function ecoint_species_block_content(){
   $solr_page = apachesolr_search_page_load('interactions');
   $conditions = array(
-      'fq' => array(
-          0 => array( 
-            0 => 'bundle:ecological_interactions',
-            1 => 'entity_type:node',
-          ),
-      ),
-      'f' => array(
-      ),
+    'fq' => array(
+      0 => array(
+        0 => 'bundle:ecological_interactions',
+        1 => 'entity_type:node'
+      )
+    ),
+    'f' => array()
   );
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
-  include('ecoint.theme.inc');
-  return theme_ecoint_search(array('results' => $results));
+  include ('ecoint.theme.inc');
+  return theme_ecoint_search(array(
+    'results' => $results
+  ));
 }
 
 /**
  * Implementation of hook_apachesolr_query_alter().
  */
-function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
-  //Provide the tid of the species page we're on to filter Solr
-  if (substr(current_path(), 0, 14) == 'taxonomy/term/') {
+function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query){
+  // Provide the tid of the species page we're on to filter Solr
+  if(substr(current_path(), 0, 14) == 'taxonomy/term/'){
     $query->addFilter("im_field_taxonomic_name", arg(2));
   }
 }
@@ -161,13 +159,13 @@ function ecoint_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
  * Implementation of hook_context_load_alter().
  */
 function ecoint_context_load_alter(&$context){
-  //Add the EcoInt species page block to the species page overview context
+  // Add the EcoInt species page block to the species page overview context
   if($context->name == 'species_overview'){
     $context->reactions['block']['blocks']['species-interactions'] = array(
       'module' => 'ecoint',
       'delta' => 'species-interactions',
       'region' => 'content',
-      'weight' => 10,
+      'weight' => 10
     );
   }
 }
@@ -175,73 +173,80 @@ function ecoint_context_load_alter(&$context){
 /**
  * Implementation of hook_node_view_alter().
  */
-function ecoint_node_view($node, $view_mode) {
-  if ($view_mode == 'full' && $node->type == 'ecological_interactions') {
-    drupal_set_title('Ecological Interaction ['.$node->nid.']');
+function ecoint_node_view($node, $view_mode){
+  if($view_mode == 'full' && $node->type == 'ecological_interactions'){
+    drupal_set_title('Ecological Interaction [' . $node->nid . ']');
   }
 }
 
 /**
  * Implementation of hook_form_ecological_interactions_node_form_alter().
  */
-function ecoint_form_ecological_interactions_node_form_alter(&$form, &$form_state, $form_id) {
+function ecoint_form_ecological_interactions_node_form_alter(&$form, &$form_state, $form_id){
   $form['#validate'][] = '_ecoint_form_ecological_interactions_node_form_validate';
-  //If darwincore module is not enabled there will be no specimen or location data
-  if (!module_exists('darwincore')) {
+  // If darwincore module is not enabled there will be no specimen or location
+  // data
+  if(!module_exists('darwincore')){
     $form['field_specimen_1']['#access'] = 0;
     $form['field_location_ref']['#access'] = 0;
     $form['field_int_collection']['und'][0]['field_specimen_2']['#access'] = 0;
-    //As there is no specimen data, we can make the taxonomic name fields required
+    // As there is no specimen data, we can make the taxonomic name fields
+    // required
     $form['field_taxonomic_name']['und']['#required'] = 1;
     $form['field_int_collection']['und'][0]['field_taxonomic_name']['und']['#required'] = 1;
-  } else {
-    //We need to add a check to ensure that either taxon or specimen fields are present
+  }else{
+    // We need to add a check to ensure that either taxon or specimen fields are
+    // present
     $form['#validate'][] = '_ecoint_form_ecological_interactions_node_form_validate';
   }
 }
 
-function _ecoint_form_ecological_interactions_node_form_validate($form, &$form_state) {
-  if (isset(array_values($form_state['values']['field_taxonomic_name'])[0][0]['tid']) && array_values($form_state['values']['field_specimen_1'])[0][0][nid] != '') {
+function _ecoint_form_ecological_interactions_node_form_validate($form, &$form_state){
+  if(isset(array_values($form_state['values']['field_taxonomic_name'])[0][0]['tid']) && array_values($form_state['values']['field_specimen_1'])[0][0][nid] != ''){
     form_set_error('field_taxonomic_name', 'Taxon 1: can\'t set specimen and taxonomic name');
   }
   $taxon2_fields = array_values($form_state['values']['field_int_collection'])[0][0];
-  if (isset(array_values($taxon2_fields['field_taxonomic_name'])[0][0]['tid']) && array_values($taxon2_fields['field_specimen_2'])[0][0][nid] != '') {
+  if(isset(array_values($taxon2_fields['field_taxonomic_name'])[0][0]['tid']) && array_values($taxon2_fields['field_specimen_2'])[0][0][nid] != ''){
     form_set_error('field_specimen_2', 'Taxon 2: can\'t set specimen and taxonomic name');
   }
 }
 
-function ecoint_field_formatter_info() {
+function ecoint_field_formatter_info(){
   return array(
     'specimen_taxon_formatter' => array(
       'label' => t('Specimen and Taxon'),
-      'field types' => array('node_reference'),
-    ),  
+      'field types' => array(
+        'node_reference'
+      )
+    )
   );
 }
 
-function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
   $element = array();
-  foreach ($items as $delta => $item) {
+  foreach($items as $delta => $item){
     $specimen_nids[] = $item['nid'];
   }
   $item_count = 0;
-  if (isset($specimen_nids)) {
+  if(isset($specimen_nids)){
     $html = '';
-    foreach ($specimen_nids as $nid) {
+    foreach($specimen_nids as $nid){
       $pre_text = '';
-      if ($item_count > 0) {$pre_text = '; ';}
+      if($item_count > 0){
+        $pre_text = '; ';
+      }
       $specimen_node = node_load($nid);
-      if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
+      if(isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])){
         $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
         $term = taxonomy_term_load($tid);
-        $html .= $pre_text . l($specimen_node->title, 'node/'.$specimen_node->nid).' ('. l($term->name, 'taxonomy/term/'.$term->tid).')';
+        $html .= $pre_text . l($specimen_node->title, 'node/' . $specimen_node->nid) . ' (' . l($term->name, 'taxonomy/term/' . $term->tid) . ')';
         $item_count++;
       }
     }
   }
-  if ($html != '') {
+  if($html != ''){
     $element[] = array(
-        '#markup' => $html,
+      '#markup' => $html
     );
   }
   return $element;
