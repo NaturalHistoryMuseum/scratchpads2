@@ -361,9 +361,6 @@ function ecoint_uuid_features_default_terms() {
         ),
       ),
     ),
-    'parent' => array(
-      0 => '46f4c73e-36e3-4acb-95f1-c397b6302484',
-    ),
   );
   $terms[] = array(
     'revision_id' => '42',
