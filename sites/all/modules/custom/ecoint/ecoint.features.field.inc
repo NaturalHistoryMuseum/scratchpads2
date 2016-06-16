@@ -57,13 +57,13 @@ function ecoint_field_default_fields() {
           'deleted' => '0',
           'description' => '',
           'display' => array(
-              'default' => array(
-                  'label' => 'above',
-                  'module' => 'node_reference',
-                  'settings' => array(),
-                  'type' => 'node_reference_default',
-                  'weight' => 5,
-              ),
+        'default' => array(
+          'label' => 'above',
+          'module' => 'ecoint',
+          'settings' => array(),
+          'type' => 'specimen_taxon_formatter',
+          'weight' => '1001',
+        ),
               'linked_node' => array(
                   'label' => 'above',
                   'settings' => array(),
@@ -1452,9 +1452,9 @@ function ecoint_field_default_fields() {
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'node_reference',
+          'module' => 'ecoint',
           'settings' => array(),
-          'type' => 'node_reference_default',
+          'type' => 'specimen_taxon_formatter',
           'weight' => '1001',
         ),
         'entityconnectpreview' => array(
