@@ -210,5 +210,29 @@ function _ecoint_form_ecological_interactions_node_form_validate($form, &$form_s
   }
 }
 
+function ecoint_field_formatter_info() {
+  return array(
+    'specimen_taxon_formatter' => array(
+      'label' => t('Specimen and Taxon'),
+      'field types' => array('node_reference'),
+      'settings' => array(),
+    ),  
+  );
+}
+
+function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  foreach ($items as $delta => $item) {
+    print_r($item);exit;
+    $text = '';
+  }
+  if (isset($text)) {
+    $link = l('spec-taxon', 'node/nid');
+    $element[] = array(
+        '#markup' => $link,
+    );
+  }
+}
+
 
 
