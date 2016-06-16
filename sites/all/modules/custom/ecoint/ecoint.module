@@ -40,29 +40,22 @@ function ecoint_apachesolr_index_document_build(ApacheSolrDocument $document, $e
       }
     }
     //For some nodes the taxonomic name should come from the attached specimens
-    if (isset(array_values($entity->field_specimen_1)[0][0]['node'])) {  
+    if (isset(array_values($entity->field_specimen_1)[0][0]['node'])) {
       $specimen_node = array_values($entity->field_specimen_1)[0][0]['node'];
       if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
         $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
         $document->addField('im_field_taxonomic_name', $tid);
         //add parents
-        $terms_to_add = taxonomy_get_praents($tid);
+        $terms_to_add = taxonomy_get_parents($tid);
         foreach ($terms_to_add as $term_to_add) {
           $document->addfield('im_field_taxonomic_name', $term_to_add->tid);
         }
       }
     }
+
     if (isset(array_values($field_collection->field_specimen_2)[0][0]['node'])) {
-      $specimen_node = array_values($entity->field_specimen_2)[0][0]['node'];
-      if (isset(array_values($specimen_node->field_taxonomic_name)[0][0]['tid'])) {
-        $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
-        $document->addField('im_field_taxonomic_name', $tid);
-        //add parents
-        $terms_to_add = taxonomy_get_praents($tid);
-        foreach ($terms_to_add as $term_to_add) {
-          $document->addfield('im_field_taxonomic_name', $term_to_add->tid);
-        }
-      }
+      $specimen_node = array_values($field_collection->field_specimen_2)[0][0]['node'];
+
     }
   }
 }
