@@ -81,6 +81,16 @@ function ecoint_views_default_views(){
   $handler->display->display_options['relationships']['field_reference_nid']['id'] = 'field_reference_nid';
   $handler->display->display_options['relationships']['field_reference_nid']['table'] = 'field_data_field_reference';
   $handler->display->display_options['relationships']['field_reference_nid']['field'] = 'field_reference_nid';
+  /* Relationship: Content: Location (field_location_ref) */
+  $handler->display->display_options['relationships']['field_location_ref_nid']['id'] = 'field_location_ref_nid';
+  $handler->display->display_options['relationships']['field_location_ref_nid']['table'] = 'field_data_field_location_ref';
+  $handler->display->display_options['relationships']['field_location_ref_nid']['field'] = 'field_location_ref_nid';
+  $handler->display->display_options['relationships']['field_location_ref_nid']['delta'] = '-1';
+  /* Relationship: Content: Country (field_country) */
+  $handler->display->display_options['relationships']['field_country_iso2']['id'] = 'field_country_iso2';
+  $handler->display->display_options['relationships']['field_country_iso2']['table'] = 'field_data_field_country';
+  $handler->display->display_options['relationships']['field_country_iso2']['field'] = 'field_country_iso2';
+  $handler->display->display_options['relationships']['field_country_iso2']['relationship'] = 'field_location_ref_nid';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
@@ -201,6 +211,29 @@ function ecoint_views_default_views(){
   $handler->display->display_options['fields']['field_species_status_2']['field'] = 'field_species_status_2';
   $handler->display->display_options['fields']['field_species_status_2']['relationship'] = 'field_int_collection_value';
   $handler->display->display_options['fields']['field_species_status_2']['label'] = 'Species2Status';
+  /* Field: Content: Node UUID */
+  $handler->display->display_options['fields']['uuid_4']['id'] = 'uuid_4';
+  $handler->display->display_options['fields']['uuid_4']['table'] = 'node';
+  $handler->display->display_options['fields']['uuid_4']['field'] = 'uuid';
+  $handler->display->display_options['fields']['uuid_4']['relationship'] = 'field_location_ref_nid';
+  $handler->display->display_options['fields']['uuid_4']['label'] = 'LocationUUID';
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title_1']['id'] = 'title_1';
+  $handler->display->display_options['fields']['title_1']['table'] = 'node';
+  $handler->display->display_options['fields']['title_1']['field'] = 'title';
+  $handler->display->display_options['fields']['title_1']['relationship'] = 'field_location_ref_nid';
+  $handler->display->display_options['fields']['title_1']['label'] = 'LocationName';
+  /* Field: Countries: Name */
+  $handler->display->display_options['fields']['name_2']['id'] = 'name_2';
+  $handler->display->display_options['fields']['name_2']['table'] = 'countries_country';
+  $handler->display->display_options['fields']['name_2']['field'] = 'name';
+  $handler->display->display_options['fields']['name_2']['relationship'] = 'field_country_iso2';
+  $handler->display->display_options['fields']['name_2']['label'] = 'LocationCountryName';
+  /* Field: Countries: ISO2 */
+  $handler->display->display_options['fields']['iso2']['id'] = 'iso2';
+  $handler->display->display_options['fields']['iso2']['table'] = 'countries_country';
+  $handler->display->display_options['fields']['iso2']['field'] = 'iso2';
+  $handler->display->display_options['fields']['iso2']['relationship'] = 'field_country_iso2';
   /* Field: Content: Importance */
   $handler->display->display_options['fields']['field_importance']['id'] = 'field_importance';
   $handler->display->display_options['fields']['field_importance']['table'] = 'field_data_field_importance';
