@@ -55,7 +55,7 @@ function ecoint_field_default_fields() {
           'bundle' => 'field_int_collection',
           'default_value' => NULL,
           'deleted' => '0',
-          'description' => '',
+          'description' => 'A specimen that forms part of this ecological interactions record.',
           'display' => array(
         'default' => array(
           'label' => 'above',
@@ -126,7 +126,7 @@ function ecoint_field_default_fields() {
           'bundle' => 'ecological_interactions',
           'default_value' => NULL,
           'deleted' => '0',
-          'description' => '',
+          'description' => 'The page number in the reference this data can be found on.',
           'display' => array(
               'default' => array(
                   'label' => 'above',
@@ -212,7 +212,7 @@ function ecoint_field_default_fields() {
           'bundle' => 'ecological_interactions',
           'default_value' => NULL,
           'deleted' => '0',
-          'description' => '',
+          'description' => 'If this association is medically or otherwise importance, record it here.',
           'display' => array(
               'default' => array(
                   'label' => 'above',
@@ -290,7 +290,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'field_int_collection',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Life cycle stage of this taxon, e.g. adult or egg',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -363,7 +363,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'field_int_collection',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The part of the organism involved inthe association, e.g. leaves.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -441,7 +441,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'field_int_collection',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The status of the species in the area this association was recorded.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -508,7 +508,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'field_int_collection',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Taxonomic name of the organism involved in this interaction.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -576,7 +576,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Any details that do not fit elsewhere.',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -661,7 +661,7 @@ function ecoint_field_default_fields() {
     'field_instance' => array(
       'bundle' => 'ecological_interactions',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'When was this interaction recorded?',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -701,8 +701,8 @@ function ecoint_field_default_fields() {
       'label' => 'Date',
       'required' => 0,
       'settings' => array(
-        'default_value' => 'now',
-        'default_value2' => 'same',
+        'default_value' => '',
+        'default_value2' => '',
         'default_value_code' => '',
         'default_value_code2' => '',
         'user_register_form' => FALSE,
@@ -717,7 +717,7 @@ function ecoint_field_default_fields() {
           'label_position' => 'above',
           'no_fieldset' => 0,
           'text_parts' => array(),
-          'year_range' => '-3:+3',
+          'year_range' => '-100:+0',
         ),
         'type' => 'date_text',
         'weight' => '12',
@@ -826,7 +826,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'How was theis interaction recorded?',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -909,7 +909,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The kind of interaction you wish to record.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -987,7 +987,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Life cycle stage of this taxon, e.g. adult or egg',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -1090,7 +1090,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'where was this association recorded?',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -1174,7 +1174,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The part of the organism involved inthe association, e.g. leaves.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -1266,7 +1266,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Published reference where this association is recorded.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -1352,7 +1352,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'The status of the species in the area this association was recorded.',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -1448,7 +1448,7 @@ function ecoint_field_default_fields() {
       'bundle' => 'ecological_interactions',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => '',
+      'description' => 'A specimen that forms part of this ecological interactions record.',
       'display' => array(
         'default' => array(
           'label' => 'above',
