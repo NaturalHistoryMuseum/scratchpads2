@@ -48,3 +48,11 @@ function ecoint_node_info(){
   );
   return $items;
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function viewthign_views_api() {
+  return array("version" => "3.0");
+}
+
