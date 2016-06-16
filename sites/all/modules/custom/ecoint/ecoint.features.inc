@@ -52,7 +52,9 @@ function ecoint_node_info(){
 /**
  * Implements hook_views_api().
  */
-function ecoint_views_api() {
-  return array("version" => "3.0");
+function ecoint_views_api(){
+  return array(
+    "version" => "3.0"
+  );
 }
 

@@ -1,15 +1,14 @@
 <?php
+
 /**
  * @file
  * ecoint.views_default.inc
  */
-
 /**
  * Implements hook_views_default_views().
  */
-function ecoint_views_default_views() {
+function ecoint_views_default_views(){
   $export = array();
-
   $view = new view();
   $view->name = 'ecoint_csv_export';
   $view->description = '';
@@ -18,13 +17,17 @@ function ecoint_views_default_views() {
   $view->human_name = 'EcoInt-CSV-export';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-
+  $view->disabled = FALSE; /*
+                            * Edit this to true to make a default view disabled
+                            * initially
+                            */
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['cache']['type'] = 'time';
+  $handler->display->display_options['cache']['results_lifespan'] = -1;
+  $handler->display->display_options['cache']['output_lifespan'] = 300;
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
@@ -74,6 +77,10 @@ function ecoint_views_default_views() {
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_3']['field'] = 'field_taxonomic_name_tid';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_3']['relationship'] = 'field_specimen_2_nid';
   $handler->display->display_options['relationships']['field_taxonomic_name_tid_3']['label'] = 'spec2_taxon';
+  /* Relationship: Field: Reference (field_reference) */
+  $handler->display->display_options['relationships']['field_reference_nid']['id'] = 'field_reference_nid';
+  $handler->display->display_options['relationships']['field_reference_nid']['table'] = 'field_data_field_reference';
+  $handler->display->display_options['relationships']['field_reference_nid']['field'] = 'field_reference_nid';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
@@ -118,21 +125,6 @@ function ecoint_views_default_views() {
   $handler->display->display_options['fields']['field_taxonomic_name']['empty'] = '[name]';
   $handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_plain';
   $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
-  /* Field: Taxonomy term: Authority */
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['id'] = 'field_textformattedauthority_1';
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['table'] = 'field_data_field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['field'] = 'field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['relationship'] = 'field_taxonomic_name_tid_2';
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['label'] = '';
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['field_textformattedauthority_1']['element_label_colon'] = FALSE;
-  /* Field: Taxonomy term: Authority */
-  $handler->display->display_options['fields']['field_textformattedauthority']['id'] = 'field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority']['table'] = 'field_data_field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority']['field'] = 'field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority']['relationship'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['fields']['field_textformattedauthority']['label'] = 'Species1Authority';
-  $handler->display->display_options['fields']['field_textformattedauthority']['empty'] = '[field_textformattedauthority_1]';
   /* Field: Content: Life Cycle Stage */
   $handler->display->display_options['fields']['field_life_cycle_stage']['id'] = 'field_life_cycle_stage';
   $handler->display->display_options['fields']['field_life_cycle_stage']['table'] = 'field_data_field_life_cycle_stage';
@@ -191,21 +183,6 @@ function ecoint_views_default_views() {
   $handler->display->display_options['fields']['field_taxonomic_name_1']['empty'] = '[name_1]';
   $handler->display->display_options['fields']['field_taxonomic_name_1']['type'] = 'taxonomy_term_reference_plain';
   $handler->display->display_options['fields']['field_taxonomic_name_1']['delta_offset'] = '0';
-  /* Field: Taxonomy term: Authority */
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['id'] = 'field_textformattedauthority_3';
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['table'] = 'field_data_field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['field'] = 'field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['relationship'] = 'field_taxonomic_name_tid_3';
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['label'] = '';
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['field_textformattedauthority_3']['element_label_colon'] = FALSE;
-  /* Field: Taxonomy term: Authority */
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['id'] = 'field_textformattedauthority_2';
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['table'] = 'field_data_field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['field'] = 'field_textformattedauthority';
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['relationship'] = 'field_taxonomic_name_tid_1';
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['label'] = 'Species2Authority';
-  $handler->display->display_options['fields']['field_textformattedauthority_2']['empty'] = '[field_textformattedauthority_3]';
   /* Field: Field collection item: Life Cycle Stage */
   $handler->display->display_options['fields']['field_life_cycle_stage_2']['id'] = 'field_life_cycle_stage_2';
   $handler->display->display_options['fields']['field_life_cycle_stage_2']['table'] = 'field_data_field_life_cycle_stage_2';
@@ -237,6 +214,14 @@ function ecoint_views_default_views() {
   $handler->display->display_options['fields']['field_reference']['id'] = 'field_reference';
   $handler->display->display_options['fields']['field_reference']['table'] = 'field_data_field_reference';
   $handler->display->display_options['fields']['field_reference']['field'] = 'field_reference';
+  $handler->display->display_options['fields']['field_reference']['type'] = 'scratchpads_biblio_biblio_ref';
+  /* Field: Biblio: DOI */
+  $handler->display->display_options['fields']['biblio_doi']['id'] = 'biblio_doi';
+  $handler->display->display_options['fields']['biblio_doi']['table'] = 'biblio';
+  $handler->display->display_options['fields']['biblio_doi']['field'] = 'biblio_doi';
+  $handler->display->display_options['fields']['biblio_doi']['relationship'] = 'field_reference_nid';
+  $handler->display->display_options['fields']['biblio_doi']['label'] = 'ReferenceDOI';
+  $handler->display->display_options['fields']['biblio_doi']['biblio_label'] = 1;
   /* Field: Content: Reference Page */
   $handler->display->display_options['fields']['field_reference_page']['id'] = 'field_reference_page';
   $handler->display->display_options['fields']['field_reference_page']['table'] = 'field_data_field_reference_page';
@@ -263,9 +248,8 @@ function ecoint_views_default_views() {
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'ecological_interactions' => 'ecological_interactions',
+    'ecological_interactions' => 'ecological_interactions'
   );
-
   /* Display: Data export */
   $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
   $handler->display->display_options['pager']['type'] = 'some';
@@ -332,9 +316,8 @@ function ecoint_views_default_views() {
     t('Reference'),
     t('Reference Page'),
     t('Notes'),
-    t('Data export'),
+    t('Data export')
   );
   $export['ecoint_csv_export'] = $view;
-
   return $export;
 }
