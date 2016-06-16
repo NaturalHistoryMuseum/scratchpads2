@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * viewthign.views_default.inc
+ * ecoint.views_default.inc
  */
 
 /**
