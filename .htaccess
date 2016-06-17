@@ -38,6 +38,7 @@ DirectoryIndex index.php index.html index.htm
   php_value mbstring.http_input             pass
   php_value mbstring.http_output            pass
   php_flag mbstring.encoding_translation    off
+  php_value memory_limit 		    512M
 </IfModule>
 
 # Requires mod_expires to be enabled.
