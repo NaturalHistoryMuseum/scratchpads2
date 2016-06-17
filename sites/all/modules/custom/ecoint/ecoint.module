@@ -283,8 +283,37 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
  * Implements hook_cron().
  */
 function ecoint_cron(){
-  module_load_include('cron.inc', 'ecoint');
-  _ecoint_export_cron();
+  if(variable_get('ecoint_export', FALSE)){
+    module_load_include('cron.inc', 'ecoint');
+    _ecoint_export_cron();
+  }
+}
+
+/**
+ * Implements hook_entity_insert()
+ */
+function ecoint_entity_insert($entity, $type){
+  switch($type){
+    case 'taxonomy_term':
+      variable_set('ecoint_export', TRUE);
+      break;
+    case 'node':
+        variable_set('ecoint_export', TRUE);
+  }
+}
+
+/**
+ * Implements hook_entity_delete()
+ */
+function ecoint_entity_delete($entity, $type){
+  ecoint_entity_insert($entity, $type);
+}
+
+/**
+ * Implements hook_entity_update()
+ */
+function ecoint_entity_update($entity, $type){
+  ecoint_entity_insert($entity, $type);
 }
 
 
