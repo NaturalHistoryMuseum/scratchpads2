@@ -1,3 +1,7 @@
+2.8.1 (2016-06-17)
+
+- Ecological interactions.
+
 2.8.0.11 (2016-06-01)
 
 - Upgrades to some of the easier ocntrib modules to check.
