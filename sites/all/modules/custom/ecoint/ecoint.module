@@ -6,6 +6,21 @@
 include_once 'ecoint.features.inc';
 
 /**
+ * Implements hook_menu().
+ */
+function ecoint_menu(){
+  return array(
+    'interactions.txt' => array(
+      'page callback' => 'ecoint_deliver_export',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
  * Implementation of hook_menu_link_alter().
  */
 function ecoint_menu_link_alter(&$item){
@@ -17,6 +32,18 @@ function ecoint_menu_link_alter(&$item){
   if($item['link_path'] == 'interactions'){
     $item['hidden'] = 0;
     $item['menu_name'] = 'main-menu';
+  }
+}
+
+function ecoint_deliver_export(){
+  if(file_exists('public://interactions/interactions-export.txt')){
+    file_transfer('public://interactions/interactions-export.txt', array(
+      'Content-Type' => 'application/text',
+      'Last-Modified' => gmdate(DATE_RFC1123, filemtime('public://interactions/interactions-export.txt'))
+    ));
+  }else{
+    drupal_set_message('The Darwincore Archive for this site has not yet been created');
+    drupal_goto('/');
   }
 }
 
@@ -253,12 +280,11 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
 }
 
 /**
- *
  * Implements hook_cron().
  */
 function ecoint_cron(){
-    module_load_include('cron.inc', 'ecoint');
-    _ecoint_export_cron();
+  module_load_include('cron.inc', 'ecoint');
+  _ecoint_export_cron();
 }
 
 
