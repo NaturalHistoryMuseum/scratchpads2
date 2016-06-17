@@ -5,8 +5,9 @@ function _ecoint_export_cron($break = TRUE){
   // This only works from Drush, so return if we're not using Drush.
   if(!function_exists('drush_get_context')){return;}
   // Get a list of views on which to operate
-  //module_load_include('views_default.inc', 'ecoint');
-  $view = view_get_view('ecoint_csv_export');
+  module_load_include('views_default.inc', 'ecoint');
+  $views = ecoint_views_default_views();
+  $view = $views['ecoint_csv_export'];
   $filename = 'interactions-export.txt';
   $output_filename = drupal_realpath('public://interactions') . '/' . $filename;
 

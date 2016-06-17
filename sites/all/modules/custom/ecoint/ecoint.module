@@ -256,7 +256,7 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
  *
  * Implements hook_cron().
  */
-function dwca_export_cron(){
+function ecoint_cron(){
     module_load_include('cron.inc', 'ecoint');
     _ecoint_export_cron();
 }
