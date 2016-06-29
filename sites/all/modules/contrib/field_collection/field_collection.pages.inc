@@ -63,6 +63,11 @@ function field_collection_item_form_submit_build_field_collection($form, $form_s
 function field_collection_item_form_submit($form, &$form_state) {
   $field_collection_item = field_collection_item_form_submit_build_field_collection($form, $form_state);
   $field_collection_item->save();
+	if (isset($field_collection_item->item_id)) {
+		$field_collection_item->save(TRUE);
+	} else {
+		$field_collection_item->save();
+	}
   drupal_set_message(t('The changes have been saved.'));
   $form_state['redirect'] = $field_collection_item->path();
 }
