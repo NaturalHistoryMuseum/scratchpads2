@@ -1,0 +1,7 @@
+<?php
+
+function hortus_node_view($node, $view_mode, $langcode) {
+  if ($view_mode == 'full') {
+    drupal_add_css(drupal_get_path('module', 'hortus').'/css/hortus.css', array('group' => CSS_DEFAULT, 'every_page => TRUE'));
+  }
+}
