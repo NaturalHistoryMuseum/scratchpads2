@@ -136,7 +136,7 @@ function ecoint_block_view($delta = ''){
   $block = array();
   switch($delta){
     case 'species-interactions':
-      $block['subject'] = 'Species Interactions';
+      $block['subject'] = 'Ecological Interactions';
       $block['content'] = ecoint_species_block_content();
   }
   return $block;
@@ -163,7 +163,8 @@ function ecoint_species_block_content(){
         1 => 'entity_type:node'
       )
     ),
-    'f' => array()
+    'f' => array(),
+    'apachesolr_search_per_page' => 30,
   );
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
   include ('ecoint.theme.inc');
