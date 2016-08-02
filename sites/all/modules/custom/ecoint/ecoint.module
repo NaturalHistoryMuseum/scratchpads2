@@ -155,17 +155,7 @@ function ecoint_preprocess_block(&$variables){
  * Provides content for the EcoInt species page block
  */
 function ecoint_species_block_content(){
-  $solr_page = apachesolr_search_page_load('interactions');
-  $conditions = array(
-    'fq' => array(
-      0 => array(
-        0 => 'bundle:ecological_interactions',
-        1 => 'entity_type:node'
-      )
-    ),
-    'f' => array(),
-    'apachesolr_search_per_page' => 30,
-  );
+  $solr_page = apachesolr_search_page_load('ecological_interactions');
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
   include ('ecoint.theme.inc');
   return theme_ecoint_search(array(
