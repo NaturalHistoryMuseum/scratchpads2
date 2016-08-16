@@ -227,7 +227,7 @@ function theme_tinytax_term($variables){
             $term_text = $term_text . ' nom. rej.';
             break;
           case 'subsequent name/combination':
-            $term_text = $term_text . ' n. comb.';
+            $term_text = $term_text . ' subs. comb.';
             break;
           case 'unjustified emendation':
             $term_text = $term_text . ' unjustified emendation';
