@@ -1,0 +1,5 @@
+<?php
+
+function algaevision_menu_alter(&$items) {
+  $items['taxonomy/term/%taxonomy_term/literature']['access callback'] = FALSE;
+}
