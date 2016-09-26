@@ -2,4 +2,7 @@
 
 function algaevision_menu_alter(&$items) {
   $items['taxonomy/term/%taxonomy_term/literature']['access callback'] = FALSE;
+  $items['taxonomy/term/%taxonomy_term/specimens']['access callback'] = FALSE;
+  $items['taxonomy/term/%taxonomy_term/revisions']['access callback'] = FALSE;
+  $items['taxonomy/term/%taxonomy_term/maps']['access callback'] = FALSE;
 }
