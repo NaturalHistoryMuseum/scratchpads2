@@ -1,8 +1,9 @@
 <?php
 
 function hortus_module_implements_alter(&$implementations, $hook) {
-  print_r($hook);
-  exit;
+  if (isset($implementations['scratchpads_file_colorboxed'])) {
+    unset($implementations['scratchpads_file_colorboxed']);
+  }
 }
 
 function hortus_node_view($node, $view_mode, $langcode) {
