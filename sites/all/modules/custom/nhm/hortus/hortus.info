@@ -1,0 +1,5 @@
+core = "7.x"
+description = "Hortus customisations."
+name = "Hortus"
+package = "NHM"
+project = hortus

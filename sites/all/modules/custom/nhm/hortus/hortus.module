@@ -1,0 +1,6 @@
+<?php
+
+function hortus_module_implements_alter(&$implementations, $hook) {
+  print_r($hook);e
+  xit;
+}
