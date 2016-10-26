@@ -141,9 +141,10 @@ function wildsound_analysis_fields(){
  */
 function wildsound_comment_view_alter(&$build){
   $comment = $build['#comment'];
-  $is_annotation = (isset($build['comment_body'])) ? false : true;
+  $is_annotation = (isset($build['comment_body']) || $build['comment_body'] == "") ? false : true;
   if(!$is_annotation){
     //Hide anlaysis section
+    drupal_set_message($build['comment_body'], 'status');
     unset($build['#groups']['group_accordion_wrapper']);
   }
   //Add region to wavesurfer
