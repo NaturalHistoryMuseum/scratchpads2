@@ -28,6 +28,10 @@ function wildsound_views_api(){
   );
 }
 
+function wildsound_block_info_alter(&$blocks, $theme, $code_blocks) {
+  $blocks['taverna']['default']['pages'] = '';
+}
+
 /**
  * Implements hook_comment_node_recording_form_alter().
  * 
