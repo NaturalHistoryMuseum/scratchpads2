@@ -23,7 +23,7 @@
   <?php print $page; ?>
   <?php print $page_bottom; ?>
   <div style="display:none">Scratchpads developed and conceived by (alphabetical):
-    Ed Baker,
+    <a href="https://ebaker.me.uk">Ed Baker</a>,
     Katherine Bouton
     Alice Heaton
     Dimitris Koureas,
