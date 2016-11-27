@@ -3,345 +3,413 @@
 function wildsound_views_default_views(){
   $views = array();
   $view = new view();
-  $view->name = 'analyses';
-  $view->description = '';
-  $view->tag = 'default';
-  $view->base_table = 'comment';
-  $view->human_name = 'Analyses';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Analyses';
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '20';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'field_taxonomic_name' => 'field_taxonomic_name',
-    'field_type' => 'field_type',
-    'field_oscilo' => 'field_oscilo',
-    'field_spec' => 'field_spec',
-    'field_spectro' => 'field_spectro',
-    'field_dfreq_plot' => 'field_dfreq_plot',
-    'field_aci' => 'field_aci',
-    'view_comment' => 'view_comment',
-    'title' => 'field_taxonomic_name'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'field_taxonomic_name' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_type' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_oscilo' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_spec' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_spectro' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_dfreq_plot' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_aci' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'view_comment' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  /* Relationship: Comment: Content */
-  $handler->display->display_options['relationships']['nid']['id'] = 'nid';
-  $handler->display->display_options['relationships']['nid']['table'] = 'comment';
-  $handler->display->display_options['relationships']['nid']['field'] = 'nid';
-  $handler->display->display_options['relationships']['nid']['required'] = TRUE;
-  /* Relationship: Comment: Type (field_type) */
-  $handler->display->display_options['relationships']['field_type_tid']['id'] = 'field_type_tid';
-  $handler->display->display_options['relationships']['field_type_tid']['table'] = 'field_data_field_type';
-  $handler->display->display_options['relationships']['field_type_tid']['field'] = 'field_type_tid';
-  /* Field: Field: Taxonomic name */
-  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['field_taxonomic_name']['alter']['text'] = 'Species: [field_taxonomic_name]<br/>';
-  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
-  /* Field: Content: Path */
-  $handler->display->display_options['fields']['path']['id'] = 'path';
-  $handler->display->display_options['fields']['path']['table'] = 'node';
-  $handler->display->display_options['fields']['path']['field'] = 'path';
-  $handler->display->display_options['fields']['path']['relationship'] = 'nid';
-  $handler->display->display_options['fields']['path']['exclude'] = TRUE;
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['relationship'] = 'nid';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['title']['alter']['text'] = 'Recording: <a href="[path]">[title]</a>';
-  $handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
-  /* Field: Comment: Type */
-  $handler->display->display_options['fields']['field_type']['id'] = 'field_type';
-  $handler->display->display_options['fields']['field_type']['table'] = 'field_data_field_type';
-  $handler->display->display_options['fields']['field_type']['field'] = 'field_type';
-  $handler->display->display_options['fields']['field_type']['type'] = 'taxonomy_term_reference_plain';
-  /* Field: Comment: Oscillogram */
-  $handler->display->display_options['fields']['field_oscilo']['id'] = 'field_oscilo';
-  $handler->display->display_options['fields']['field_oscilo']['table'] = 'field_data_field_oscilo';
-  $handler->display->display_options['fields']['field_oscilo']['field'] = 'field_oscilo';
-  $handler->display->display_options['fields']['field_oscilo']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_oscilo']['type'] = 'styles_file_square_thumbnail';
-  /* Field: Comment: Frequency Spectrum */
-  $handler->display->display_options['fields']['field_spec']['id'] = 'field_spec';
-  $handler->display->display_options['fields']['field_spec']['table'] = 'field_data_field_spec';
-  $handler->display->display_options['fields']['field_spec']['field'] = 'field_spec';
-  $handler->display->display_options['fields']['field_spec']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_spec']['type'] = 'styles_file_square_thumbnail';
-  /* Field: Comment: Spectrogram */
-  $handler->display->display_options['fields']['field_spectro']['id'] = 'field_spectro';
-  $handler->display->display_options['fields']['field_spectro']['table'] = 'field_data_field_spectro';
-  $handler->display->display_options['fields']['field_spectro']['field'] = 'field_spectro';
-  $handler->display->display_options['fields']['field_spectro']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_spectro']['type'] = 'styles_file_square_thumbnail';
-  /* Field: Comment: Dominant Frequency */
-  $handler->display->display_options['fields']['field_dfreq_plot']['id'] = 'field_dfreq_plot';
-  $handler->display->display_options['fields']['field_dfreq_plot']['table'] = 'field_data_field_dfreq_plot';
-  $handler->display->display_options['fields']['field_dfreq_plot']['field'] = 'field_dfreq_plot';
-  $handler->display->display_options['fields']['field_dfreq_plot']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_dfreq_plot']['type'] = 'styles_file_square_thumbnail';
-  /* Field: Comment: Acoustic Complexity Index */
-  $handler->display->display_options['fields']['field_aci']['id'] = 'field_aci';
-  $handler->display->display_options['fields']['field_aci']['table'] = 'field_data_field_aci';
-  $handler->display->display_options['fields']['field_aci']['field'] = 'field_aci';
-  $handler->display->display_options['fields']['field_aci']['settings'] = array(
-    'thousand_separator' => ' ',
-    'decimal_separator' => '.',
-    'scale' => '2',
-    'prefix_suffix' => 1
-  );
-  /* Field: Comment: View link */
-  $handler->display->display_options['fields']['view_comment']['id'] = 'view_comment';
-  $handler->display->display_options['fields']['view_comment']['table'] = 'comment';
-  $handler->display->display_options['fields']['view_comment']['field'] = 'view_comment';
-  $handler->display->display_options['fields']['view_comment']['label'] = '';
-  $handler->display->display_options['fields']['view_comment']['element_label_colon'] = FALSE;
-  /* Filter criterion: Comment: Approved */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'comment';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status_node']['id'] = 'status_node';
-  $handler->display->display_options['filters']['status_node']['table'] = 'node';
-  $handler->display->display_options['filters']['status_node']['field'] = 'status';
-  $handler->display->display_options['filters']['status_node']['relationship'] = 'nid';
-  $handler->display->display_options['filters']['status_node']['value'] = 1;
-  $handler->display->display_options['filters']['status_node']['group'] = 1;
-  $handler->display->display_options['filters']['status_node']['expose']['operator'] = FALSE;
-  /* Filter criterion: Taxonomy term: Analyze (field_analyze) */
-  $handler->display->display_options['filters']['field_analyze_value']['id'] = 'field_analyze_value';
-  $handler->display->display_options['filters']['field_analyze_value']['table'] = 'field_data_field_analyze';
-  $handler->display->display_options['filters']['field_analyze_value']['field'] = 'field_analyze_value';
-  $handler->display->display_options['filters']['field_analyze_value']['relationship'] = 'field_type_tid';
-  $handler->display->display_options['filters']['field_analyze_value']['value'] = array(
-    1 => '1'
-  );
-  /* Filter criterion: Comment: Acoustic Complexity Index (field_aci) */
-  $handler->display->display_options['filters']['field_aci_value']['id'] = 'field_aci_value';
-  $handler->display->display_options['filters']['field_aci_value']['table'] = 'field_data_field_aci';
-  $handler->display->display_options['filters']['field_aci_value']['field'] = 'field_aci_value';
-  $handler->display->display_options['filters']['field_aci_value']['operator'] = 'not empty';
-  /* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomic name';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0
-  );
-  $handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'orthoptera';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'analyses';
-  $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Analyses';
-  $handler->display->display_options['menu']['weight'] = '0';
-  $handler->display->display_options['menu']['name'] = 'main-menu';
-  $handler->display->display_options['menu']['context'] = 0;
-  $handler->display->display_options['menu']['context_only_inline'] = 0;
+$view->name = 'analyses';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'comment';
+$view->human_name = 'Analyses';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'Analyses';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['pager']['options']['items_per_page'] = '20';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'field_taxonomic_name' => 'field_taxonomic_name',
+  'field_type' => 'field_type',
+  'field_oscilo' => 'field_oscilo',
+  'field_spec' => 'field_spec',
+  'field_spectro' => 'field_spectro',
+  'field_dfreq_plot' => 'field_dfreq_plot',
+  'field_aci' => 'field_aci',
+  'view_comment' => 'view_comment',
+  'title' => 'field_taxonomic_name',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'field_taxonomic_name' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_type' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_oscilo' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_spec' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_spectro' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_dfreq_plot' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_aci' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'view_comment' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Text area */
+$handler->display->display_options['header']['area']['id'] = 'area';
+$handler->display->display_options['header']['area']['table'] = 'views';
+$handler->display->display_options['header']['area']['field'] = 'area';
+$handler->display->display_options['header']['area']['content'] = '<p>Analyses are performed using the <a href="http://rug.mnhn.fr/seewave/">seewave</a> package for R (<a href="http://dx.doi.org/10.1080/09524622.2008.9753600">Sueur et al, 2008</a>) using the <a href="http://www.biovel.eu/">BioVeL</a> infrastructure.</p>';
+$handler->display->display_options['header']['area']['format'] = 'filtered_html';
+/* Relationship: Comment: Content */
+$handler->display->display_options['relationships']['nid']['id'] = 'nid';
+$handler->display->display_options['relationships']['nid']['table'] = 'comment';
+$handler->display->display_options['relationships']['nid']['field'] = 'nid';
+$handler->display->display_options['relationships']['nid']['required'] = TRUE;
+/* Relationship: Comment: Type (field_type) */
+$handler->display->display_options['relationships']['field_type_tid']['id'] = 'field_type_tid';
+$handler->display->display_options['relationships']['field_type_tid']['table'] = 'field_data_field_type';
+$handler->display->display_options['relationships']['field_type_tid']['field'] = 'field_type_tid';
+/* Field: Field: Taxonomic name */
+$handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_taxonomic_name']['alter']['text'] = 'Species: [field_taxonomic_name]<br/>';
+$handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+/* Field: Content: Path */
+$handler->display->display_options['fields']['path']['id'] = 'path';
+$handler->display->display_options['fields']['path']['table'] = 'node';
+$handler->display->display_options['fields']['path']['field'] = 'path';
+$handler->display->display_options['fields']['path']['relationship'] = 'nid';
+$handler->display->display_options['fields']['path']['exclude'] = TRUE;
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['relationship'] = 'nid';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['title']['alter']['text'] = 'Recording: <a href="[path]">[title]</a>';
+$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+/* Field: Comment: Type */
+$handler->display->display_options['fields']['field_type']['id'] = 'field_type';
+$handler->display->display_options['fields']['field_type']['table'] = 'field_data_field_type';
+$handler->display->display_options['fields']['field_type']['field'] = 'field_type';
+$handler->display->display_options['fields']['field_type']['type'] = 'taxonomy_term_reference_plain';
+/* Field: Comment: Oscillogram */
+$handler->display->display_options['fields']['field_oscilo']['id'] = 'field_oscilo';
+$handler->display->display_options['fields']['field_oscilo']['table'] = 'field_data_field_oscilo';
+$handler->display->display_options['fields']['field_oscilo']['field'] = 'field_oscilo';
+$handler->display->display_options['fields']['field_oscilo']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_oscilo']['type'] = 'styles_file_square_thumbnail';
+/* Field: Comment: Frequency Spectrum */
+$handler->display->display_options['fields']['field_spec']['id'] = 'field_spec';
+$handler->display->display_options['fields']['field_spec']['table'] = 'field_data_field_spec';
+$handler->display->display_options['fields']['field_spec']['field'] = 'field_spec';
+$handler->display->display_options['fields']['field_spec']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_spec']['type'] = 'styles_file_square_thumbnail';
+/* Field: Comment: Spectrogram */
+$handler->display->display_options['fields']['field_spectro']['id'] = 'field_spectro';
+$handler->display->display_options['fields']['field_spectro']['table'] = 'field_data_field_spectro';
+$handler->display->display_options['fields']['field_spectro']['field'] = 'field_spectro';
+$handler->display->display_options['fields']['field_spectro']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_spectro']['type'] = 'styles_file_square_thumbnail';
+/* Field: Comment: Dominant Frequency */
+$handler->display->display_options['fields']['field_dfreq_plot']['id'] = 'field_dfreq_plot';
+$handler->display->display_options['fields']['field_dfreq_plot']['table'] = 'field_data_field_dfreq_plot';
+$handler->display->display_options['fields']['field_dfreq_plot']['field'] = 'field_dfreq_plot';
+$handler->display->display_options['fields']['field_dfreq_plot']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_dfreq_plot']['type'] = 'styles_file_square_thumbnail';
+/* Field: Comment: Acoustic Complexity Index */
+$handler->display->display_options['fields']['field_aci']['id'] = 'field_aci';
+$handler->display->display_options['fields']['field_aci']['table'] = 'field_data_field_aci';
+$handler->display->display_options['fields']['field_aci']['field'] = 'field_aci';
+$handler->display->display_options['fields']['field_aci']['settings'] = array(
+  'thousand_separator' => ' ',
+  'decimal_separator' => '.',
+  'scale' => '2',
+  'prefix_suffix' => 1,
+);
+/* Field: Comment: View link */
+$handler->display->display_options['fields']['view_comment']['id'] = 'view_comment';
+$handler->display->display_options['fields']['view_comment']['table'] = 'comment';
+$handler->display->display_options['fields']['view_comment']['field'] = 'view_comment';
+$handler->display->display_options['fields']['view_comment']['label'] = '';
+$handler->display->display_options['fields']['view_comment']['element_label_colon'] = FALSE;
+/* Sort criterion: Comment: ID */
+$handler->display->display_options['sorts']['cid']['id'] = 'cid';
+$handler->display->display_options['sorts']['cid']['table'] = 'comment';
+$handler->display->display_options['sorts']['cid']['field'] = 'cid';
+$handler->display->display_options['sorts']['cid']['order'] = 'DESC';
+/* Filter criterion: Comment: Approved */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'comment';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status_node']['id'] = 'status_node';
+$handler->display->display_options['filters']['status_node']['table'] = 'node';
+$handler->display->display_options['filters']['status_node']['field'] = 'status';
+$handler->display->display_options['filters']['status_node']['relationship'] = 'nid';
+$handler->display->display_options['filters']['status_node']['value'] = 1;
+$handler->display->display_options['filters']['status_node']['group'] = 1;
+$handler->display->display_options['filters']['status_node']['expose']['operator'] = FALSE;
+/* Filter criterion: Taxonomy term: Analyze (field_analyze) */
+$handler->display->display_options['filters']['field_analyze_value']['id'] = 'field_analyze_value';
+$handler->display->display_options['filters']['field_analyze_value']['table'] = 'field_data_field_analyze';
+$handler->display->display_options['filters']['field_analyze_value']['field'] = 'field_analyze_value';
+$handler->display->display_options['filters']['field_analyze_value']['relationship'] = 'field_type_tid';
+$handler->display->display_options['filters']['field_analyze_value']['value'] = array(
+  1 => '1',
+);
+/* Filter criterion: Comment: Acoustic Complexity Index (field_aci) */
+$handler->display->display_options['filters']['field_aci_value']['id'] = 'field_aci_value';
+$handler->display->display_options['filters']['field_aci_value']['table'] = 'field_data_field_aci';
+$handler->display->display_options['filters']['field_aci_value']['field'] = 'field_aci_value';
+$handler->display->display_options['filters']['field_aci_value']['operator'] = 'not empty';
+/* Filter criterion: Field: Taxonomic name (field_taxonomic_name) */
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['value'] = '';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['exposed'] = TRUE;
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator_id'] = 'field_taxonomic_name_tid_op';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['label'] = 'Taxonomic name';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['operator'] = 'field_taxonomic_name_tid_op';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['identifier'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+  4 => 0,
+  5 => 0,
+);
+$handler->display->display_options['filters']['field_taxonomic_name_tid']['vocabulary'] = 'orthoptera';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page');
+$handler->display->display_options['path'] = 'analyses';
+$handler->display->display_options['menu']['type'] = 'normal';
+$handler->display->display_options['menu']['title'] = 'Analyses';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['name'] = 'main-menu';
+$handler->display->display_options['menu']['context'] = 0;
+$handler->display->display_options['menu']['context_only_inline'] = 0;
+$translatables['analyses'] = array(
+  t('Master'),
+  t('Analyses'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<p>Analyses are performed using the <a href="http://rug.mnhn.fr/seewave/">seewave</a> package for R (<a href="http://dx.doi.org/10.1080/09524622.2008.9753600">Sueur et al, 2008</a>) using the <a href="http://www.biovel.eu/">BioVeL</a> infrastructure.</p>'),
+  t('Content'),
+  t('term from field_type'),
+  t('Taxonomic name'),
+  t('Species: [field_taxonomic_name]<br/>'),
+  t('Path'),
+  t('Recording: <a href="[path]">[title]</a>'),
+  t('Type'),
+  t('Oscillogram'),
+  t('Frequency Spectrum'),
+  t('Spectrogram'),
+  t('Dominant Frequency'),
+  t('Acoustic Complexity Index'),
+  t('Page'),
+);
+
+
   $views[] = $view;
-  $view = new view();
-  $view->name = 'biblio_uses_specimens';
-  $view->description = '';
-  $view->tag = 'default';
-  $view->base_table = 'node';
-  $view->human_name = 'biblio_uses_specimens';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['group_by'] = TRUE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'title' => 'title',
-    'field_taxonomic_name' => 'field_taxonomic_name',
-    'field_recording' => 'field_recording'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_taxonomic_name' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_recording' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  /* Header: Global: Unfiltered text */
-  $handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
-  $handler->display->display_options['header']['area_text_custom']['table'] = 'views';
-  $handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
-  $handler->display->display_options['header']['area_text_custom']['content'] = '<h2>Specimens used in this work</h2>';
-  /* Relationship: Content: Specimen (field_specimen) - reverse */
-  $handler->display->display_options['relationships']['reverse_field_specimen_node']['id'] = 'reverse_field_specimen_node';
-  $handler->display->display_options['relationships']['reverse_field_specimen_node']['table'] = 'node';
-  $handler->display->display_options['relationships']['reverse_field_specimen_node']['field'] = 'reverse_field_specimen_node';
-  /* Field: Content: Nid */
-  $handler->display->display_options['fields']['nid']['id'] = 'nid';
-  $handler->display->display_options['fields']['nid']['table'] = 'node';
-  $handler->display->display_options['fields']['nid']['field'] = 'nid';
-  $handler->display->display_options['fields']['nid']['exclude'] = TRUE;
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Field: Field: Taxonomic name */
-  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
-  $handler->display->display_options['fields']['field_taxonomic_name']['label'] = '';
-  $handler->display->display_options['fields']['field_taxonomic_name']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
-  /* Field: COUNT(DISTINCT Content: Recording) */
-  $handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
-  $handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
-  $handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
-  $handler->display->display_options['fields']['field_recording']['relationship'] = 'reverse_field_specimen_node';
-  $handler->display->display_options['fields']['field_recording']['group_type'] = 'count_distinct';
-  $handler->display->display_options['fields']['field_recording']['label'] = '';
-  $handler->display->display_options['fields']['field_recording']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['field_recording']['alter']['path'] = 'node/[nid]#recordings';
-  $handler->display->display_options['fields']['field_recording']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_recording']['separator'] = ', ';
-  $handler->display->display_options['fields']['field_recording']['suffix'] = ' recording(s)';
-  /* Sort criterion: Content: Post date */
-  $handler->display->display_options['sorts']['created']['id'] = 'created';
-  $handler->display->display_options['sorts']['created']['table'] = 'node';
-  $handler->display->display_options['sorts']['created']['field'] = 'created';
-  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Contextual filter: Content: Cited In  (field_cited_in_) */
-  $handler->display->display_options['arguments']['field_cited_in__nid']['id'] = 'field_cited_in__nid';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['table'] = 'field_data_field_cited_in_';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['field'] = 'field_cited_in__nid';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['default_action'] = 'not found';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['default_argument_type'] = 'fixed';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['field_cited_in__nid']['summary_options']['items_per_page'] = '25';
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['value'] = array(
-    'specimen_observation' => 'specimen_observation'
-  );
+$view = new view();
+$view->name = 'biblio_uses_specimens';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'biblio_uses_specimens';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['group_by'] = TRUE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+  'field_taxonomic_name' => 'field_taxonomic_name',
+  'field_recording' => 'field_recording',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_taxonomic_name' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_recording' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Unfiltered text */
+$handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['table'] = 'views';
+$handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['content'] = '<h2>Specimens used in this work</h2>';
+/* Relationship: Content: Specimen (field_specimen) - reverse */
+$handler->display->display_options['relationships']['reverse_field_specimen_node']['id'] = 'reverse_field_specimen_node';
+$handler->display->display_options['relationships']['reverse_field_specimen_node']['table'] = 'node';
+$handler->display->display_options['relationships']['reverse_field_specimen_node']['field'] = 'reverse_field_specimen_node';
+/* Field: Content: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'node';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['exclude'] = TRUE;
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Field: Taxonomic name */
+$handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['label'] = '';
+$handler->display->display_options['fields']['field_taxonomic_name']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+/* Field: COUNT(DISTINCT Content: Recording) */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['relationship'] = 'reverse_field_specimen_node';
+$handler->display->display_options['fields']['field_recording']['group_type'] = 'count_distinct';
+$handler->display->display_options['fields']['field_recording']['label'] = '';
+$handler->display->display_options['fields']['field_recording']['alter']['make_link'] = TRUE;
+$handler->display->display_options['fields']['field_recording']['alter']['path'] = 'node/[nid]#recordings';
+$handler->display->display_options['fields']['field_recording']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['field_recording']['separator'] = ', ';
+$handler->display->display_options['fields']['field_recording']['suffix'] = ' recording(s)';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Cited In  (field_cited_in_) */
+$handler->display->display_options['arguments']['field_cited_in__nid']['id'] = 'field_cited_in__nid';
+$handler->display->display_options['arguments']['field_cited_in__nid']['table'] = 'field_data_field_cited_in_';
+$handler->display->display_options['arguments']['field_cited_in__nid']['field'] = 'field_cited_in__nid';
+$handler->display->display_options['arguments']['field_cited_in__nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['field_cited_in__nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['field_cited_in__nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['field_cited_in__nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['field_cited_in__nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'specimen_observation' => 'specimen_observation',
+);
+$translatables['biblio_uses_specimens'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<h2>Specimens used in this work</h2>'),
+  t('field_specimen'),
+  t('Nid'),
+  t('All'),
+);
+
   $views[] = $view;
   $view = new view();
   $view->name = 'contributors';
@@ -744,102 +812,124 @@ function wildsound_views_default_views(){
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $views[] = $view;
-  $view = new view();
-  $view->name = 'recordings_of_specimens';
-  $view->description = '';
-  $view->tag = 'default';
-  $view->base_table = 'node';
-  $view->human_name = 'recordings of specimens';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'title' => 'title',
-    'field_recording' => 'field_recording'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    ),
-    'field_recording' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  /* Header: Global: Unfiltered text */
-  $handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
-  $handler->display->display_options['header']['area_text_custom']['table'] = 'views';
-  $handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
-  $handler->display->display_options['header']['area_text_custom']['empty'] = TRUE;
-  $handler->display->display_options['header']['area_text_custom']['content'] = '<span id="recordings"></span>';
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Field: Content: Recording */
-  $handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
-  $handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
-  $handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
-  $handler->display->display_options['fields']['field_recording']['label'] = '';
-  $handler->display->display_options['fields']['field_recording']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
-  $handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
-  $handler->display->display_options['fields']['field_recording']['settings'] = array(
-    'controls' => 1,
-    'width' => '300',
-    'height' => '30',
-    'download_link' => 0,
-    'download_text' => 'Download'
-  );
-  /* Sort criterion: Content: Post date */
-  $handler->display->display_options['sorts']['created']['id'] = 'created';
-  $handler->display->display_options['sorts']['created']['table'] = 'node';
-  $handler->display->display_options['sorts']['created']['field'] = 'created';
-  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Contextual filter: Content: Specimen (field_specimen) */
-  $handler->display->display_options['arguments']['field_specimen_nid']['id'] = 'field_specimen_nid';
-  $handler->display->display_options['arguments']['field_specimen_nid']['table'] = 'field_data_field_specimen';
-  $handler->display->display_options['arguments']['field_specimen_nid']['field'] = 'field_specimen_nid';
-  $handler->display->display_options['arguments']['field_specimen_nid']['default_action'] = 'not found';
-  $handler->display->display_options['arguments']['field_specimen_nid']['default_argument_type'] = 'fixed';
-  $handler->display->display_options['arguments']['field_specimen_nid']['default_argument_options']['argument'] = '11800';
-  $handler->display->display_options['arguments']['field_specimen_nid']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['field_specimen_nid']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['field_specimen_nid']['summary_options']['items_per_page'] = '25';
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['value'] = array(
-    'recording' => 'recording'
-  );
+
+
+$view = new view();
+$view->name = 'recordings_of_specimens';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'recordings of specimens';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+  'field_recording' => 'field_recording',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_recording' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Unfiltered text */
+$handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['table'] = 'views';
+$handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['content'] = '<h2 id="recordings">Recordings of this specimen</h2>';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = 'Recording name';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Content: Recording */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+$handler->display->display_options['fields']['field_recording']['settings'] = array(
+  'controls' => 1,
+  'width' => '420',
+  'height' => '30',
+  'download_link' => 0,
+  'download_text' => 'Download',
+);
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Specimen (field_specimen) */
+$handler->display->display_options['arguments']['field_specimen_nid']['id'] = 'field_specimen_nid';
+$handler->display->display_options['arguments']['field_specimen_nid']['table'] = 'field_data_field_specimen';
+$handler->display->display_options['arguments']['field_specimen_nid']['field'] = 'field_specimen_nid';
+$handler->display->display_options['arguments']['field_specimen_nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['field_specimen_nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['field_specimen_nid']['default_argument_options']['argument'] = '11800';
+$handler->display->display_options['arguments']['field_specimen_nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['field_specimen_nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['field_specimen_nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+$translatables['recordings_of_specimens'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<h2 id="recordings">Recordings of this specimen</h2>'),
+  t('Recording name'),
+  t('Recording'),
+  t('All'),
+);
+
   $views[] = $view;
   $view = new view();
   $view->name = 'specimens_from_location';
@@ -1057,83 +1147,109 @@ function wildsound_views_default_views(){
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $views[] = $view;
+
+
+
+
   $view = new view();
-  $view->name = 'check_no_audio';
-  $view->description = '';
-  $view->tag = 'default';
-  $view->base_table = 'node';
-  $view->human_name = 'check-no-audio';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Records with no audio file';
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
-  $handler->display->display_options['pager']['options']['offset'] = '0';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'title' => 'title'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  /* Relationship: Content: Recording (field_recording:fid) */
-  $handler->display->display_options['relationships']['field_recording_fid']['id'] = 'field_recording_fid';
-  $handler->display->display_options['relationships']['field_recording_fid']['table'] = 'field_data_field_recording';
-  $handler->display->display_options['relationships']['field_recording_fid']['field'] = 'field_recording_fid';
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Field: Content: Published */
-  $handler->display->display_options['fields']['status']['id'] = 'status';
-  $handler->display->display_options['fields']['status']['table'] = 'node';
-  $handler->display->display_options['fields']['status']['field'] = 'status';
-  $handler->display->display_options['fields']['status']['not'] = 0;
-  /* Sort criterion: Content: Published */
-  $handler->display->display_options['sorts']['status']['id'] = 'status';
-  $handler->display->display_options['sorts']['status']['table'] = 'node';
-  $handler->display->display_options['sorts']['status']['field'] = 'status';
-  $handler->display->display_options['sorts']['status']['order'] = 'DESC';
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['value'] = array(
-    'recording' => 'recording'
-  );
-  /* Filter criterion: File: File UUID */
-  $handler->display->display_options['filters']['uuid']['id'] = 'uuid';
-  $handler->display->display_options['filters']['uuid']['table'] = 'file_managed';
-  $handler->display->display_options['filters']['uuid']['field'] = 'uuid';
-  $handler->display->display_options['filters']['uuid']['relationship'] = 'field_recording_fid';
-  $handler->display->display_options['filters']['uuid']['operator'] = 'empty';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'check-no-audio';
-  $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Records with no audio';
-  $handler->display->display_options['menu']['weight'] = '0';
-  $handler->display->display_options['menu']['name'] = 'main-menu';
-  $handler->display->display_options['menu']['context'] = 0;
-  $handler->display->display_options['menu']['context_only_inline'] = 0;
+$view->name = 'check_no_audio';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'check-no-audio';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'Records with no audio file';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'time';
+$handler->display->display_options['cache']['results_lifespan'] = -1;
+$handler->display->display_options['cache']['output_lifespan'] = 300;
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Relationship: Content: Recording (field_recording:fid) */
+$handler->display->display_options['relationships']['field_recording_fid']['id'] = 'field_recording_fid';
+$handler->display->display_options['relationships']['field_recording_fid']['table'] = 'field_data_field_recording';
+$handler->display->display_options['relationships']['field_recording_fid']['field'] = 'field_recording_fid';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Content: Published */
+$handler->display->display_options['fields']['status']['id'] = 'status';
+$handler->display->display_options['fields']['status']['table'] = 'node';
+$handler->display->display_options['fields']['status']['field'] = 'status';
+$handler->display->display_options['fields']['status']['not'] = 0;
+/* Sort criterion: Content: Title */
+$handler->display->display_options['sorts']['title']['id'] = 'title';
+$handler->display->display_options['sorts']['title']['table'] = 'node';
+$handler->display->display_options['sorts']['title']['field'] = 'title';
+/* Sort criterion: Content: Published */
+$handler->display->display_options['sorts']['status']['id'] = 'status';
+$handler->display->display_options['sorts']['status']['table'] = 'node';
+$handler->display->display_options['sorts']['status']['field'] = 'status';
+$handler->display->display_options['sorts']['status']['order'] = 'DESC';
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+/* Filter criterion: File: File UUID */
+$handler->display->display_options['filters']['uuid']['id'] = 'uuid';
+$handler->display->display_options['filters']['uuid']['table'] = 'file_managed';
+$handler->display->display_options['filters']['uuid']['field'] = 'uuid';
+$handler->display->display_options['filters']['uuid']['relationship'] = 'field_recording_fid';
+$handler->display->display_options['filters']['uuid']['operator'] = 'empty';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page');
+$handler->display->display_options['path'] = 'check-no-audio';
+$handler->display->display_options['menu']['type'] = 'normal';
+$handler->display->display_options['menu']['title'] = 'Records with no audio';
+$handler->display->display_options['menu']['weight'] = '0';
+$handler->display->display_options['menu']['name'] = 'main-menu';
+$handler->display->display_options['menu']['context'] = 0;
+$handler->display->display_options['menu']['context_only_inline'] = 0;
+$translatables['check_no_audio'] = array(
+  t('Master'),
+  t('Records with no audio file'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('file from field_recording'),
+  t('Published'),
+  t('Page'),
+);
+
   $views[] = $view;
   $view = new view();
   $view->name = 'check_ready_to_publish';
@@ -1351,84 +1467,107 @@ function wildsound_views_default_views(){
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $views[] = $view;
+
+
+
+
   $view = new view();
-  $view->name = 'check_no_taxon';
-  $view->description = '';
-  $view->tag = 'default';
-  $view->base_table = 'node';
-  $view->human_name = 'check-no-taxon';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Records not associated with a taxon name';
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
-  $handler->display->display_options['pager']['options']['offset'] = '0';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'title' => 'title'
-  );
-  $handler->display->display_options['style_options']['default'] = '-1';
-  $handler->display->display_options['style_options']['info'] = array(
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0
-    )
-  );
-  /* Relationship: Content: Taxonomy terms on node */
-  $handler->display->display_options['relationships']['term_node_tid']['id'] = 'term_node_tid';
-  $handler->display->display_options['relationships']['term_node_tid']['table'] = 'node';
-  $handler->display->display_options['relationships']['term_node_tid']['field'] = 'term_node_tid';
-  $handler->display->display_options['relationships']['term_node_tid']['vocabularies'] = array(
-    'orthoptera' => 'orthoptera',
-    'image_keywords' => 0,
-    'imaging_technique' => 0,
-    'preparation_technique' => 0
-  );
-  /* Field: Content: Title */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
-  /* Field: Content: Published */
-  $handler->display->display_options['fields']['status']['id'] = 'status';
-  $handler->display->display_options['fields']['status']['table'] = 'node';
-  $handler->display->display_options['fields']['status']['field'] = 'status';
-  $handler->display->display_options['fields']['status']['not'] = 0;
-  /* Sort criterion: Content: Published */
-  $handler->display->display_options['sorts']['status']['id'] = 'status';
-  $handler->display->display_options['sorts']['status']['table'] = 'node';
-  $handler->display->display_options['sorts']['status']['field'] = 'status';
-  $handler->display->display_options['sorts']['status']['order'] = 'DESC';
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['value'] = array(
-    'recording' => 'recording'
-  );
-  /* Filter criterion: Content: Species (field_species) */
-  $handler->display->display_options['filters']['field_species_tid']['id'] = 'field_species_tid';
-  $handler->display->display_options['filters']['field_species_tid']['table'] = 'field_data_field_species';
-  $handler->display->display_options['filters']['field_species_tid']['field'] = 'field_species_tid';
-  $handler->display->display_options['filters']['field_species_tid']['operator'] = 'empty';
-  $handler->display->display_options['filters']['field_species_tid']['type'] = 'select';
-  $handler->display->display_options['filters']['field_species_tid']['vocabulary'] = 'orthoptera';
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'check-no-taxon';
+$view->name = 'check_no_taxon';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'check-no-taxon';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'Records not associated with a taxon name';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Relationship: Content: Taxonomy terms on node */
+$handler->display->display_options['relationships']['term_node_tid']['id'] = 'term_node_tid';
+$handler->display->display_options['relationships']['term_node_tid']['table'] = 'node';
+$handler->display->display_options['relationships']['term_node_tid']['field'] = 'term_node_tid';
+$handler->display->display_options['relationships']['term_node_tid']['vocabularies'] = array(
+  'orthoptera' => 'orthoptera',
+  'image_keywords' => 0,
+  'imaging_technique' => 0,
+  'preparation_technique' => 0,
+);
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Content: Published */
+$handler->display->display_options['fields']['status']['id'] = 'status';
+$handler->display->display_options['fields']['status']['table'] = 'node';
+$handler->display->display_options['fields']['status']['field'] = 'status';
+$handler->display->display_options['fields']['status']['not'] = 0;
+/* Sort criterion: Content: Published */
+$handler->display->display_options['sorts']['status']['id'] = 'status';
+$handler->display->display_options['sorts']['status']['table'] = 'node';
+$handler->display->display_options['sorts']['status']['field'] = 'status';
+$handler->display->display_options['sorts']['status']['order'] = 'DESC';
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+/* Filter criterion: Content: Species (field_species) */
+$handler->display->display_options['filters']['field_species_tid']['id'] = 'field_species_tid';
+$handler->display->display_options['filters']['field_species_tid']['table'] = 'field_data_field_species';
+$handler->display->display_options['filters']['field_species_tid']['field'] = 'field_species_tid';
+$handler->display->display_options['filters']['field_species_tid']['operator'] = 'empty';
+$handler->display->display_options['filters']['field_species_tid']['type'] = 'select';
+$handler->display->display_options['filters']['field_species_tid']['vocabulary'] = 'orthoptera';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page');
+$handler->display->display_options['defaults']['title'] = FALSE;
+$handler->display->display_options['title'] = 'Grabaciones sin asociación taxonómica';
+$handler->display->display_options['path'] = 'check-no-taxon';
+$translatables['check_no_taxon'] = array(
+  t('Master'),
+  t('Records not associated with a taxon name'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('term'),
+  t('Published'),
+  t('Page'),
+  t('Grabaciones sin asociación taxonómica'),
+);
+
   $views[] = $view;
   $view = new view();
   $view->name = 'integrity_nhm_no_specimen';
@@ -1723,5 +1862,1374 @@ function wildsound_views_default_views(){
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $views[] = $view;
+$view = new view();
+$view->name = 'biblio_uses_recordings';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'biblio_uses_recordings';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+  'field_taxonomic_name' => 'field_taxonomic_name',
+  'field_recording' => 'field_recording',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_taxonomic_name' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_recording' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Unfiltered text */
+$handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['table'] = 'views';
+$handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['content'] = '<h2>Recordings used in this work</h2>';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = 'Recording name';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Content: Species */
+$handler->display->display_options['fields']['field_species']['id'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['table'] = 'field_data_field_species';
+$handler->display->display_options['fields']['field_species']['field'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['type'] = 'taxonomy_term_reference_link';
+$handler->display->display_options['fields']['field_species']['delta_offset'] = '0';
+/* Field: Content: Recording */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+$handler->display->display_options['fields']['field_recording']['settings'] = array(
+  'controls' => 1,
+  'width' => '420',
+  'height' => '30',
+  'download_link' => 0,
+  'download_text' => 'Download',
+);
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Published Reference (field_published_reference) */
+$handler->display->display_options['arguments']['field_published_reference_nid']['id'] = 'field_published_reference_nid';
+$handler->display->display_options['arguments']['field_published_reference_nid']['table'] = 'field_data_field_published_reference';
+$handler->display->display_options['arguments']['field_published_reference_nid']['field'] = 'field_published_reference_nid';
+$handler->display->display_options['arguments']['field_published_reference_nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['field_published_reference_nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['field_published_reference_nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['field_published_reference_nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['field_published_reference_nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+$translatables['biblio_uses_recordings'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<h2>Recordings used in this work</h2>'),
+  t('Recording name'),
+  t('Species'),
+  t('Recording'),
+  t('All'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'collection_citation';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'collection_citation';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'Cite this Collection';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['group_by'] = TRUE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['pager']['options']['id'] = '0';
+$handler->display->display_options['pager']['options']['quantity'] = '9';
+$handler->display->display_options['style_plugin'] = 'list';
+$handler->display->display_options['style_options']['default_row_class'] = FALSE;
+$handler->display->display_options['style_options']['row_class_special'] = FALSE;
+$handler->display->display_options['style_options']['wrapper_class'] = '';
+$handler->display->display_options['row_plugin'] = 'fields';
+$handler->display->display_options['row_options']['default_field_elements'] = FALSE;
+/* Header: Global: Text area */
+$handler->display->display_options['header']['area_1']['id'] = 'area_1';
+$handler->display->display_options['header']['area_1']['table'] = 'views';
+$handler->display->display_options['header']['area_1']['field'] = 'area';
+$handler->display->display_options['header']['area_1']['label'] = 'Title';
+$handler->display->display_options['header']['area_1']['content'] = '<h2>How to cite this collection</h2>';
+$handler->display->display_options['header']['area_1']['format'] = 'filtered_html';
+/* Header: Global: View area */
+$handler->display->display_options['header']['view']['id'] = 'view';
+$handler->display->display_options['header']['view']['table'] = 'views';
+$handler->display->display_options['header']['view']['field'] = 'view';
+$handler->display->display_options['header']['view']['view_to_insert'] = 'collection_citation_short:default';
+$handler->display->display_options['header']['view']['inherit_arguments'] = TRUE;
+/* Header: Global: Text area */
+$handler->display->display_options['header']['area']['id'] = 'area';
+$handler->display->display_options['header']['area']['table'] = 'views';
+$handler->display->display_options['header']['area']['field'] = 'area';
+$handler->display->display_options['header']['area']['content'] = '<ul>
+<li>Baker E, Price BW, Rycroft SD, Hill J, Smith VS. BioAcoustica: a free and open repository and analysis platform for bioacoustics. Database. 2015;2015:bav054. Available at: http://database.oxfordjournals.org/cgi/doi/10.1093/database/bav054.</li>
+</ul>';
+$handler->display->display_options['header']['area']['format'] = 'filtered_html';
+/* Relationship: Content: Recordings (field_recordings) */
+$handler->display->display_options['relationships']['field_recordings_nid']['id'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['table'] = 'field_data_field_recordings';
+$handler->display->display_options['relationships']['field_recordings_nid']['field'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['delta'] = '-1';
+/* Relationship: Content: Project (field_project) */
+$handler->display->display_options['relationships']['field_project_tid']['id'] = 'field_project_tid';
+$handler->display->display_options['relationships']['field_project_tid']['table'] = 'field_data_field_project';
+$handler->display->display_options['relationships']['field_project_tid']['field'] = 'field_project_tid';
+$handler->display->display_options['relationships']['field_project_tid']['relationship'] = 'field_recordings_nid';
+/* Field: Taxonomy term: Project Citation */
+$handler->display->display_options['fields']['field_project_citation']['id'] = 'field_project_citation';
+$handler->display->display_options['fields']['field_project_citation']['table'] = 'field_data_field_project_citation';
+$handler->display->display_options['fields']['field_project_citation']['field'] = 'field_project_citation';
+$handler->display->display_options['fields']['field_project_citation']['relationship'] = 'field_project_tid';
+$handler->display->display_options['fields']['field_project_citation']['label'] = '';
+$handler->display->display_options['fields']['field_project_citation']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_project_citation']['alter']['text'] = '[field_project_citation]<br/>';
+$handler->display->display_options['fields']['field_project_citation']['alter']['strip_tags'] = TRUE;
+$handler->display->display_options['fields']['field_project_citation']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['field_project_citation']['element_default_classes'] = FALSE;
+$handler->display->display_options['fields']['field_project_citation']['type'] = 'scratchpads_biblio_biblio_ref';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Nid */
+$handler->display->display_options['arguments']['nid']['id'] = 'nid';
+$handler->display->display_options['arguments']['nid']['table'] = 'node';
+$handler->display->display_options['arguments']['nid']['field'] = 'nid';
+$handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+$translatables['collection_citation'] = array(
+  t('Master'),
+  t('Cite this Collection'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('Title'),
+  t('<h2>How to cite this collection</h2>'),
+  t('<ul>
+<li>Baker E, Price BW, Rycroft SD, Hill J, Smith VS. BioAcoustica: a free and open repository and analysis platform for bioacoustics. Database. 2015;2015:bav054. Available at: http://database.oxfordjournals.org/cgi/doi/10.1093/database/bav054.</li>
+</ul>'),
+  t('field_recordings'),
+  t('term from field_project'),
+  t('[field_project_citation]<br/>'),
+  t('All'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'collection_citation_short';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'collection_citation_short';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['group_by'] = TRUE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['pager']['options']['id'] = '0';
+$handler->display->display_options['pager']['options']['quantity'] = '9';
+$handler->display->display_options['style_plugin'] = 'views_delimited_list';
+$handler->display->display_options['style_options']['delimiter'] = '; ';
+$handler->display->display_options['style_options']['long_count'] = '3';
+$handler->display->display_options['style_options']['separator_long'] = 'delimiter';
+$handler->display->display_options['style_options']['prefix'] = 'This work makes use of the BioAcoustica framework (Baker et al, 2015) and contributed datasets described in ';
+$handler->display->display_options['style_options']['suffix'] = '.';
+$handler->display->display_options['row_plugin'] = 'fields';
+$handler->display->display_options['row_options']['default_field_elements'] = FALSE;
+/* Footer: Global: Text area */
+$handler->display->display_options['footer']['area']['id'] = 'area';
+$handler->display->display_options['footer']['area']['table'] = 'views';
+$handler->display->display_options['footer']['area']['field'] = 'area';
+$handler->display->display_options['footer']['area']['content'] = 'Data used is listed at <a href="[path]">[path]</a>.';
+$handler->display->display_options['footer']['area']['format'] = 'filtered_html';
+$handler->display->display_options['footer']['area']['tokenize'] = TRUE;
+/* Relationship: Content: Recordings (field_recordings) */
+$handler->display->display_options['relationships']['field_recordings_nid']['id'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['table'] = 'field_data_field_recordings';
+$handler->display->display_options['relationships']['field_recordings_nid']['field'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['delta'] = '-1';
+/* Relationship: Content: Project (field_project) */
+$handler->display->display_options['relationships']['field_project_tid']['id'] = 'field_project_tid';
+$handler->display->display_options['relationships']['field_project_tid']['table'] = 'field_data_field_project';
+$handler->display->display_options['relationships']['field_project_tid']['field'] = 'field_project_tid';
+$handler->display->display_options['relationships']['field_project_tid']['relationship'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_project_tid']['label'] = 'term_from_field_project';
+/* Relationship: Taxonomy term: Project Citation (field_project_citation) */
+$handler->display->display_options['relationships']['field_project_citation_nid']['id'] = 'field_project_citation_nid';
+$handler->display->display_options['relationships']['field_project_citation_nid']['table'] = 'field_data_field_project_citation';
+$handler->display->display_options['relationships']['field_project_citation_nid']['field'] = 'field_project_citation_nid';
+$handler->display->display_options['relationships']['field_project_citation_nid']['relationship'] = 'field_project_tid';
+$handler->display->display_options['relationships']['field_project_citation_nid']['required'] = TRUE;
+$handler->display->display_options['relationships']['field_project_citation_nid']['delta'] = '-1';
+/* Field: Content: Path */
+$handler->display->display_options['fields']['path']['id'] = 'path';
+$handler->display->display_options['fields']['path']['table'] = 'node';
+$handler->display->display_options['fields']['path']['field'] = 'path';
+$handler->display->display_options['fields']['path']['label'] = '';
+$handler->display->display_options['fields']['path']['exclude'] = TRUE;
+$handler->display->display_options['fields']['path']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['path']['absolute'] = TRUE;
+/* Field: Biblio: Authors */
+$handler->display->display_options['fields']['biblio_authors']['id'] = 'biblio_authors';
+$handler->display->display_options['fields']['biblio_authors']['table'] = 'biblio';
+$handler->display->display_options['fields']['biblio_authors']['field'] = 'biblio_authors';
+$handler->display->display_options['fields']['biblio_authors']['relationship'] = 'field_project_citation_nid';
+$handler->display->display_options['fields']['biblio_authors']['label'] = '';
+$handler->display->display_options['fields']['biblio_authors']['exclude'] = TRUE;
+$handler->display->display_options['fields']['biblio_authors']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['biblio_authors']['biblio_label'] = 1;
+$handler->display->display_options['fields']['biblio_authors']['auth_category'] = '1';
+$handler->display->display_options['fields']['biblio_authors']['initialize'] = 1;
+$handler->display->display_options['fields']['biblio_authors']['initialize_with'] = '';
+$handler->display->display_options['fields']['biblio_authors']['separator'] = ', ';
+$handler->display->display_options['fields']['biblio_authors']['sort_separator'] = ' ';
+$handler->display->display_options['fields']['biblio_authors']['name_order'] = 'last-first';
+/* Field: Biblio: Year of Publication */
+$handler->display->display_options['fields']['biblio_year']['id'] = 'biblio_year';
+$handler->display->display_options['fields']['biblio_year']['table'] = 'biblio';
+$handler->display->display_options['fields']['biblio_year']['field'] = 'biblio_year';
+$handler->display->display_options['fields']['biblio_year']['relationship'] = 'field_project_citation_nid';
+$handler->display->display_options['fields']['biblio_year']['label'] = '';
+$handler->display->display_options['fields']['biblio_year']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['biblio_year']['alter']['text'] = '[biblio_authors] ([biblio_year])';
+$handler->display->display_options['fields']['biblio_year']['alter']['path'] = '[path]';
+$handler->display->display_options['fields']['biblio_year']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['biblio_year']['element_default_classes'] = FALSE;
+$handler->display->display_options['fields']['biblio_year']['biblio_label'] = 0;
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Nid */
+$handler->display->display_options['arguments']['nid']['id'] = 'nid';
+$handler->display->display_options['arguments']['nid']['table'] = 'node';
+$handler->display->display_options['arguments']['nid']['field'] = 'nid';
+$handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+$translatables['collection_citation_short'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('Data used is listed at <a href="[path]">[path]</a>.'),
+  t('field_recordings'),
+  t('term_from_field_project'),
+  t('field_project_citation'),
+  t('[biblio_authors] ([biblio_year])'),
+  t('All'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'collection_recordings';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'collection_recordings';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Text area */
+$handler->display->display_options['header']['area']['id'] = 'area';
+$handler->display->display_options['header']['area']['table'] = 'views';
+$handler->display->display_options['header']['area']['field'] = 'area';
+$handler->display->display_options['header']['area']['content'] = '<h2>Recordings in this collection</h2>';
+$handler->display->display_options['header']['area']['format'] = 'filtered_html';
+/* Relationship: Content: Recordings (field_recordings) */
+$handler->display->display_options['relationships']['field_recordings_nid']['id'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['table'] = 'field_data_field_recordings';
+$handler->display->display_options['relationships']['field_recordings_nid']['field'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['required'] = TRUE;
+$handler->display->display_options['relationships']['field_recordings_nid']['delta'] = '-1';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['relationship'] = 'field_recordings_nid';
+$handler->display->display_options['fields']['title']['label'] = 'Recording';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
+/* Field: Content: Species */
+$handler->display->display_options['fields']['field_species']['id'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['table'] = 'field_data_field_species';
+$handler->display->display_options['fields']['field_species']['field'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['relationship'] = 'field_recordings_nid';
+$handler->display->display_options['fields']['field_species']['delta_offset'] = '0';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Nid */
+$handler->display->display_options['arguments']['nid']['id'] = 'nid';
+$handler->display->display_options['arguments']['nid']['table'] = 'node';
+$handler->display->display_options['arguments']['nid']['field'] = 'nid';
+$handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+$translatables['collection_recordings'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<h2>Recordings in this collection</h2>'),
+  t('field_recordings'),
+  t('Recording'),
+  t('Species'),
+  t('All'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'r';
+$view->description = '';
+$view->tag = 'default, r';
+$view->base_table = 'comment';
+$view->human_name = 'R annotations';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Relationship: Comment: Content */
+$handler->display->display_options['relationships']['nid']['id'] = 'nid';
+$handler->display->display_options['relationships']['nid']['table'] = 'comment';
+$handler->display->display_options['relationships']['nid']['field'] = 'nid';
+$handler->display->display_options['relationships']['nid']['required'] = TRUE;
+/* Relationship: Field: Taxonomic name (field_taxonomic_name) */
+$handler->display->display_options['relationships']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['relationships']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['relationships']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+/* Relationship: Comment: Type (field_type) */
+$handler->display->display_options['relationships']['field_type_tid']['id'] = 'field_type_tid';
+$handler->display->display_options['relationships']['field_type_tid']['table'] = 'field_data_field_type';
+$handler->display->display_options['relationships']['field_type_tid']['field'] = 'field_type_tid';
+/* Field: Comment: ID */
+$handler->display->display_options['fields']['cid']['id'] = 'cid';
+$handler->display->display_options['fields']['cid']['table'] = 'comment';
+$handler->display->display_options['fields']['cid']['field'] = 'cid';
+$handler->display->display_options['fields']['cid']['label'] = 'id';
+/* Field: Comment: Type */
+$handler->display->display_options['fields']['field_type']['id'] = 'field_type';
+$handler->display->display_options['fields']['field_type']['table'] = 'field_data_field_type';
+$handler->display->display_options['fields']['field_type']['field'] = 'field_type';
+$handler->display->display_options['fields']['field_type']['label'] = 'type';
+$handler->display->display_options['fields']['field_type']['type'] = 'taxonomy_term_reference_link';
+/* Field: Field: Taxonomic name */
+$handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'taxon';
+$handler->display->display_options['fields']['field_taxonomic_name']['type'] = 'taxonomy_term_reference_link';
+$handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid']['id'] = 'tid';
+$handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid']['field'] = 'tid';
+$handler->display->display_options['fields']['tid']['relationship'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['fields']['tid']['label'] = 'taxon_id';
+/* Field: Comment: Start Time */
+$handler->display->display_options['fields']['field_start_time']['id'] = 'field_start_time';
+$handler->display->display_options['fields']['field_start_time']['table'] = 'field_data_field_start_time';
+$handler->display->display_options['fields']['field_start_time']['field'] = 'field_start_time';
+$handler->display->display_options['fields']['field_start_time']['label'] = 'start';
+/* Field: Comment: End Time */
+$handler->display->display_options['fields']['field_end_time']['id'] = 'field_end_time';
+$handler->display->display_options['fields']['field_end_time']['table'] = 'field_data_field_end_time';
+$handler->display->display_options['fields']['field_end_time']['field'] = 'field_end_time';
+$handler->display->display_options['fields']['field_end_time']['label'] = 'end';
+/* Field: Content: Recording */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['relationship'] = 'nid';
+$handler->display->display_options['fields']['field_recording']['label'] = 'file';
+$handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_recording']['type'] = 'file_url_plain';
+/* Field: Comment: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'comment';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['label'] = 'recording';
+$handler->display->display_options['fields']['nid']['separator'] = '';
+/* Field: Content: Original Tape Number */
+$handler->display->display_options['fields']['field_original_cd_nhm_tape_numbe']['id'] = 'field_original_cd_nhm_tape_numbe';
+$handler->display->display_options['fields']['field_original_cd_nhm_tape_numbe']['table'] = 'field_data_field_original_cd_nhm_tape_numbe';
+$handler->display->display_options['fields']['field_original_cd_nhm_tape_numbe']['field'] = 'field_original_cd_nhm_tape_numbe';
+$handler->display->display_options['fields']['field_original_cd_nhm_tape_numbe']['relationship'] = 'nid';
+$handler->display->display_options['fields']['field_original_cd_nhm_tape_numbe']['label'] = 'original_tape';
+/* Field: Comment: Author */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'comment';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['label'] = 'author';
+$handler->display->display_options['fields']['name']['link_to_user'] = FALSE;
+/* Field: Comment: Post date */
+$handler->display->display_options['fields']['created']['id'] = 'created';
+$handler->display->display_options['fields']['created']['table'] = 'comment';
+$handler->display->display_options['fields']['created']['field'] = 'created';
+$handler->display->display_options['fields']['created']['label'] = 'date';
+$handler->display->display_options['fields']['created']['date_format'] = 'short';
+$handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+$handler->display->display_options['fields']['created']['format_date_sql'] = 0;
+/* Sort criterion: Comment: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'comment';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Filter criterion: Comment: Approved */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'comment';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status_node']['id'] = 'status_node';
+$handler->display->display_options['filters']['status_node']['table'] = 'node';
+$handler->display->display_options['filters']['status_node']['field'] = 'status';
+$handler->display->display_options['filters']['status_node']['relationship'] = 'nid';
+$handler->display->display_options['filters']['status_node']['value'] = 1;
+$handler->display->display_options['filters']['status_node']['group'] = 1;
+$handler->display->display_options['filters']['status_node']['expose']['operator'] = FALSE;
+/* Filter criterion: Taxonomy term: Name */
+$handler->display->display_options['filters']['name']['id'] = 'name';
+$handler->display->display_options['filters']['name']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['filters']['name']['field'] = 'name';
+$handler->display->display_options['filters']['name']['relationship'] = 'field_taxonomic_name_tid';
+$handler->display->display_options['filters']['name']['exposed'] = TRUE;
+$handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
+$handler->display->display_options['filters']['name']['expose']['label'] = 'Name';
+$handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
+$handler->display->display_options['filters']['name']['expose']['identifier'] = 'name';
+$handler->display->display_options['filters']['name']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+  4 => 0,
+  5 => 0,
+);
+/* Filter criterion: Taxonomy term: Name */
+$handler->display->display_options['filters']['name_1']['id'] = 'name_1';
+$handler->display->display_options['filters']['name_1']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['filters']['name_1']['field'] = 'name';
+$handler->display->display_options['filters']['name_1']['relationship'] = 'field_type_tid';
+$handler->display->display_options['filters']['name_1']['exposed'] = TRUE;
+$handler->display->display_options['filters']['name_1']['expose']['operator_id'] = 'name_1_op';
+$handler->display->display_options['filters']['name_1']['expose']['label'] = 'Name';
+$handler->display->display_options['filters']['name_1']['expose']['operator'] = 'name_1_op';
+$handler->display->display_options['filters']['name_1']['expose']['identifier'] = 'name_1';
+$handler->display->display_options['filters']['name_1']['expose']['remember_roles'] = array(
+  2 => '2',
+  1 => 0,
+  3 => 0,
+  4 => 0,
+  5 => 0,
+);
+/* Filter criterion: Comment: End Time (field_end_time) */
+$handler->display->display_options['filters']['field_end_time_value']['id'] = 'field_end_time_value';
+$handler->display->display_options['filters']['field_end_time_value']['table'] = 'field_data_field_end_time';
+$handler->display->display_options['filters']['field_end_time_value']['field'] = 'field_end_time_value';
+$handler->display->display_options['filters']['field_end_time_value']['operator'] = 'longerthan';
+$handler->display->display_options['filters']['field_end_time_value']['value'] = '0';
+/* Filter criterion: Comment: Start Time (field_start_time) */
+$handler->display->display_options['filters']['field_start_time_value']['id'] = 'field_start_time_value';
+$handler->display->display_options['filters']['field_start_time_value']['table'] = 'field_data_field_start_time';
+$handler->display->display_options['filters']['field_start_time_value']['field'] = 'field_start_time_value';
+$handler->display->display_options['filters']['field_start_time_value']['operator'] = 'longerthan';
+$handler->display->display_options['filters']['field_start_time_value']['value'] = '0';
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'R/annotations';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page_1');
+$handler->display->display_options['path'] = 'R/annotations-page';
+$translatables['r'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('Content'),
+  t('term from field_taxonomic_name'),
+  t('term from field_type'),
+  t('id'),
+  t('type'),
+  t('taxon'),
+  t('taxon_id'),
+  t('.'),
+  t(','),
+  t('start'),
+  t('end'),
+  t('file'),
+  t('recording'),
+  t('original_tape'),
+  t('author'),
+  t('date'),
+  t('Name'),
+  t('Data export'),
+  t('Page'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'r_collections';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'R collections';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'R recording';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'none';
+$handler->display->display_options['style_plugin'] = 'views_delimited_list';
+$handler->display->display_options['style_options']['long_count'] = '3';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Field: Content: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'node';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['label'] = 'id';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'collection' => 'collection',
+);
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'R/collections';
+$translatables['r_collections'] = array(
+  t('Master'),
+  t('R recording'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('id'),
+  t('Title'),
+  t('Data export'),
+);
+$views[] = $view;
+
+$view = new view();
+$view->name = 'r_recording';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'R recording';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'R recording';
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'none';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'node';
+/* Relationship: Content: Species (field_species) */
+$handler->display->display_options['relationships']['field_species_tid']['id'] = 'field_species_tid';
+$handler->display->display_options['relationships']['field_species_tid']['table'] = 'field_data_field_species';
+$handler->display->display_options['relationships']['field_species_tid']['field'] = 'field_species_tid';
+/* Relationship: Content: Author */
+$handler->display->display_options['relationships']['uid']['id'] = 'uid';
+$handler->display->display_options['relationships']['uid']['table'] = 'node';
+$handler->display->display_options['relationships']['uid']['field'] = 'uid';
+/* Relationship: Content: Recording (field_recording:fid) */
+$handler->display->display_options['relationships']['field_recording_fid']['id'] = 'field_recording_fid';
+$handler->display->display_options['relationships']['field_recording_fid']['table'] = 'field_data_field_recording';
+$handler->display->display_options['relationships']['field_recording_fid']['field'] = 'field_recording_fid';
+$handler->display->display_options['relationships']['field_recording_fid']['required'] = TRUE;
+/* Field: Content: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'node';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['label'] = 'id';
+/* Field: Content: Species */
+$handler->display->display_options['fields']['field_species']['id'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['table'] = 'field_data_field_species';
+$handler->display->display_options['fields']['field_species']['field'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['label'] = 'taxon';
+$handler->display->display_options['fields']['field_species']['type'] = 'taxonomy_term_reference_link';
+$handler->display->display_options['fields']['field_species']['delta_offset'] = '0';
+/* Field: Content: Recording */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['label'] = 'file';
+$handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_recording']['type'] = 'file_url_plain';
+/* Field: User: Name */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'users';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['relationship'] = 'uid';
+$handler->display->display_options['fields']['name']['label'] = 'author';
+/* Field: Content: Post date */
+$handler->display->display_options['fields']['created']['id'] = 'created';
+$handler->display->display_options['fields']['created']['table'] = 'node';
+$handler->display->display_options['fields']['created']['field'] = 'created';
+$handler->display->display_options['fields']['created']['label'] = 'date';
+$handler->display->display_options['fields']['created']['date_format'] = 'short';
+$handler->display->display_options['fields']['created']['second_date_format'] = 'long';
+$handler->display->display_options['fields']['created']['format_date_sql'] = 0;
+/* Field: File: Size */
+$handler->display->display_options['fields']['filesize']['id'] = 'filesize';
+$handler->display->display_options['fields']['filesize']['table'] = 'file_managed';
+$handler->display->display_options['fields']['filesize']['field'] = 'filesize';
+$handler->display->display_options['fields']['filesize']['relationship'] = 'field_recording_fid';
+$handler->display->display_options['fields']['filesize']['label'] = 'size';
+/* Field: File: Size */
+$handler->display->display_options['fields']['filesize_1']['id'] = 'filesize_1';
+$handler->display->display_options['fields']['filesize_1']['table'] = 'file_managed';
+$handler->display->display_options['fields']['filesize_1']['field'] = 'filesize';
+$handler->display->display_options['fields']['filesize_1']['relationship'] = 'field_recording_fid';
+$handler->display->display_options['fields']['filesize_1']['label'] = 'size_raw';
+$handler->display->display_options['fields']['filesize_1']['file_size_display'] = 'bytes';
+/* Field: File: Mime type */
+$handler->display->display_options['fields']['filemime']['id'] = 'filemime';
+$handler->display->display_options['fields']['filemime']['table'] = 'file_managed';
+$handler->display->display_options['fields']['filemime']['field'] = 'filemime';
+$handler->display->display_options['fields']['filemime']['relationship'] = 'field_recording_fid';
+$handler->display->display_options['fields']['filemime']['label'] = 'type';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Has taxonomy term ID (with depth) */
+$handler->display->display_options['arguments']['term_node_tid_depth']['id'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['table'] = 'node';
+$handler->display->display_options['arguments']['term_node_tid_depth']['field'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_action'] = 'default';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_type'] = 'taxonomy_tid';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['term_node_tid_depth']['depth'] = '10';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+/* Filter criterion: Content: Recording (field_recording:fid) */
+$handler->display->display_options['filters']['field_recording_fid']['id'] = 'field_recording_fid';
+$handler->display->display_options['filters']['field_recording_fid']['table'] = 'field_data_field_recording';
+$handler->display->display_options['filters']['field_recording_fid']['field'] = 'field_recording_fid';
+$handler->display->display_options['filters']['field_recording_fid']['operator'] = 'not empty';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page');
+$handler->display->display_options['defaults']['pager'] = FALSE;
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['pager']['options']['items_per_page'] = '10';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['pager']['options']['id'] = '0';
+$handler->display->display_options['pager']['options']['quantity'] = '9';
+$handler->display->display_options['defaults']['arguments'] = FALSE;
+$handler->display->display_options['path'] = 'R/recordings-page';
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['defaults']['arguments'] = FALSE;
+/* Contextual filter: Taxonomy term: Name */
+$handler->display->display_options['arguments']['name']['id'] = 'name';
+$handler->display->display_options['arguments']['name']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['arguments']['name']['field'] = 'name';
+$handler->display->display_options['arguments']['name']['relationship'] = 'field_species_tid';
+$handler->display->display_options['arguments']['name']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['name']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['name']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['name']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['name']['limit'] = '0';
+/* Contextual filter: Content: Has taxonomy term ID */
+$handler->display->display_options['arguments']['tid']['id'] = 'tid';
+$handler->display->display_options['arguments']['tid']['table'] = 'taxonomy_index';
+$handler->display->display_options['arguments']['tid']['field'] = 'tid';
+$handler->display->display_options['arguments']['tid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['tid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['tid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['tid']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['path'] = 'R/recordings';
+
+/* Display: Data export 2 */
+$handler = $view->new_display('views_data_export', 'Data export 2', 'views_data_export_2');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'R/recordings-depth';
+
+/* Display: Page */
+$handler = $view->new_display('page', 'Page', 'page_1');
+$handler->display->display_options['path'] = 'R/recordings/depth-page';
+$translatables['r_recording'] = array(
+  t('Master'),
+  t('R recording'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('term from field_species'),
+  t('author'),
+  t('file from field_recording'),
+  t('id'),
+  t('taxon'),
+  t('file'),
+  t('date'),
+  t('size'),
+  t('size_raw'),
+  t('type'),
+  t('All'),
+  t('Page'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('Data export'),
+  t('Data export 2'),
+);
+
+$views[] = $view;
+
+
+$view = new view();
+$view->name = 'r_taxa';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'taxonomy_term_data';
+$view->human_name = 'R taxa';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid']['id'] = 'tid';
+$handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid']['field'] = 'tid';
+$handler->display->display_options['fields']['tid']['label'] = 'id';
+$handler->display->display_options['fields']['tid']['separator'] = '';
+/* Field: Taxonomy term: Name */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['label'] = 'taxon';
+$handler->display->display_options['fields']['name']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['name']['alter']['ellipsis'] = FALSE;
+$handler->display->display_options['fields']['name']['link_to_taxonomy'] = TRUE;
+/* Field: Taxonomy term: Unit name 1 */
+$handler->display->display_options['fields']['field_unit_name1']['id'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['table'] = 'field_data_field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['field'] = 'field_unit_name1';
+/* Field: Taxonomy term: Unit name 2 */
+$handler->display->display_options['fields']['field_unit_name2']['id'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['table'] = 'field_data_field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['field'] = 'field_unit_name2';
+/* Field: Taxonomy term: Unit name 3 */
+$handler->display->display_options['fields']['field_unit_name3']['id'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['table'] = 'field_data_field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['field'] = 'field_unit_name3';
+/* Field: Taxonomy term: Unit name 4 */
+$handler->display->display_options['fields']['field_unit_name4']['id'] = 'field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4']['table'] = 'field_data_field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4']['field'] = 'field_unit_name4';
+/* Field: Taxonomy term: Rank */
+$handler->display->display_options['fields']['field_rank']['id'] = 'field_rank';
+$handler->display->display_options['fields']['field_rank']['table'] = 'field_data_field_rank';
+$handler->display->display_options['fields']['field_rank']['field'] = 'field_rank';
+/* Filter criterion: Taxonomy vocabulary: Machine name */
+$handler->display->display_options['filters']['machine_name']['id'] = 'machine_name';
+$handler->display->display_options['filters']['machine_name']['table'] = 'taxonomy_vocabulary';
+$handler->display->display_options['filters']['machine_name']['field'] = 'machine_name';
+$handler->display->display_options['filters']['machine_name']['value'] = array(
+  'orthoptera' => 'orthoptera',
+);
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'R/taxa';
+$translatables['r_taxa'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('id'),
+  t('.'),
+  t('taxon'),
+  t('Unit name 1'),
+  t('Unit name 2'),
+  t('Unit name 3'),
+  t('Unit name 4'),
+  t('Rank'),
+  t('Data export'),
+);
+
+$views[] = $view;
+
+
+
+$view = new view();
+$view->name = 'r_types';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'taxonomy_term_data';
+$view->human_name = 'R types';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Field: Taxonomy term: Name */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['label'] = 'Type';
+$handler->display->display_options['fields']['name']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['name']['alter']['ellipsis'] = FALSE;
+$handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid']['id'] = 'tid';
+$handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid']['field'] = 'tid';
+/* Filter criterion: Taxonomy vocabulary: Machine name */
+$handler->display->display_options['filters']['machine_name']['id'] = 'machine_name';
+$handler->display->display_options['filters']['machine_name']['table'] = 'taxonomy_vocabulary';
+$handler->display->display_options['filters']['machine_name']['field'] = 'machine_name';
+$handler->display->display_options['filters']['machine_name']['value'] = array(
+  'annotation_types' => 'annotation_types',
+);
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'R/types';
+$translatables['r_types'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('Type'),
+  t('Term ID'),
+  t('.'),
+  t(','),
+  t('Data export'),
+);
+
+$views[] = $view;
+
+$view = new view();
+$view->name = 'recording_in_collections';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'recording_in_collections';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Relationship: Content: Recordings (field_recordings) */
+$handler->display->display_options['relationships']['field_recordings_nid']['id'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['table'] = 'field_data_field_recordings';
+$handler->display->display_options['relationships']['field_recordings_nid']['field'] = 'field_recordings_nid';
+$handler->display->display_options['relationships']['field_recordings_nid']['required'] = TRUE;
+$handler->display->display_options['relationships']['field_recordings_nid']['delta'] = '-1';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = '';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Recordings (field_recordings) */
+$handler->display->display_options['arguments']['field_recordings_nid']['id'] = 'field_recordings_nid';
+$handler->display->display_options['arguments']['field_recordings_nid']['table'] = 'field_data_field_recordings';
+$handler->display->display_options['arguments']['field_recordings_nid']['field'] = 'field_recordings_nid';
+$handler->display->display_options['arguments']['field_recordings_nid']['default_action'] = 'not found';
+$handler->display->display_options['arguments']['field_recordings_nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['field_recordings_nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['field_recordings_nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['field_recordings_nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+$translatables['recording_in_collections'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('field_recordings'),
+  t('All'),
+);
+
+$views[] = $view;
+$view = new view();
+$view->name = 'recordings_from_location';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'recordings from location';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'table';
+$handler->display->display_options['style_options']['columns'] = array(
+  'title' => 'title',
+  'field_taxonomic_name' => 'field_taxonomic_name',
+  'field_date_collected' => 'field_date_collected',
+);
+$handler->display->display_options['style_options']['default'] = '-1';
+$handler->display->display_options['style_options']['info'] = array(
+  'title' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_taxonomic_name' => array(
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+  'field_date_collected' => array(
+    'sortable' => 0,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => 0,
+  ),
+);
+/* Header: Global: Unfiltered text */
+$handler->display->display_options['header']['area_text_custom']['id'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['table'] = 'views';
+$handler->display->display_options['header']['area_text_custom']['field'] = 'area_text_custom';
+$handler->display->display_options['header']['area_text_custom']['content'] = '<h2>Recordings made here</h2>';
+/* No results behavior: Global: Text area */
+$handler->display->display_options['empty']['area']['id'] = 'area';
+$handler->display->display_options['empty']['area']['table'] = 'views';
+$handler->display->display_options['empty']['area']['field'] = 'area';
+$handler->display->display_options['empty']['area']['empty'] = TRUE;
+$handler->display->display_options['empty']['area']['content'] = 'No results found.';
+$handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+/* Field: Content: Title */
+$handler->display->display_options['fields']['title']['id'] = 'title';
+$handler->display->display_options['fields']['title']['table'] = 'node';
+$handler->display->display_options['fields']['title']['field'] = 'title';
+$handler->display->display_options['fields']['title']['label'] = 'Recording name';
+$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+/* Field: Content: Species */
+$handler->display->display_options['fields']['field_species']['id'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['table'] = 'field_data_field_species';
+$handler->display->display_options['fields']['field_species']['field'] = 'field_species';
+$handler->display->display_options['fields']['field_species']['type'] = 'taxonomy_term_reference_link';
+$handler->display->display_options['fields']['field_species']['delta_offset'] = '0';
+/* Field: Content: Recording */
+$handler->display->display_options['fields']['field_recording']['id'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['table'] = 'field_data_field_recording';
+$handler->display->display_options['fields']['field_recording']['field'] = 'field_recording';
+$handler->display->display_options['fields']['field_recording']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['field_recording']['type'] = 'mediaelement_audio';
+$handler->display->display_options['fields']['field_recording']['settings'] = array(
+  'controls' => 1,
+  'width' => '420',
+  'height' => '30',
+  'download_link' => 0,
+  'download_text' => 'Download',
+);
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Location (field_recording_location) */
+$handler->display->display_options['arguments']['field_recording_location_nid']['id'] = 'field_recording_location_nid';
+$handler->display->display_options['arguments']['field_recording_location_nid']['table'] = 'field_data_field_recording_location';
+$handler->display->display_options['arguments']['field_recording_location_nid']['field'] = 'field_recording_location_nid';
+$handler->display->display_options['arguments']['field_recording_location_nid']['default_action'] = 'empty';
+$handler->display->display_options['arguments']['field_recording_location_nid']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['field_recording_location_nid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['field_recording_location_nid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['field_recording_location_nid']['summary_options']['items_per_page'] = '25';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+$translatables['recordings_from_location'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('<h2>Recordings made here</h2>'),
+  t('No results found.'),
+  t('Recording name'),
+  t('Species'),
+  t('Recording'),
+  t('All'),
+);
+
+
+$views[] = $view;
+
+
   return $views;
 }
