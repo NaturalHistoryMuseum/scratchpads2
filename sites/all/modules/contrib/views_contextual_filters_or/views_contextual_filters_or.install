@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Contains install and update functions for Views Contextual Filters OR.
+ */
+
+/**
+ * Implements hook_disable().
+ */
+function views_contextual_filters_or_disable() {
+  cache_clear_all('*', 'cache', TRUE);
+}
