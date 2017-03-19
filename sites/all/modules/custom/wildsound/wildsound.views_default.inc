@@ -3260,5 +3260,215 @@ function wildsound_views_default_views(){
     t('All')
   );
   $views[] = $view;
+  $view = new view();
+  $view->name = 'r_acoustic_traits';
+  $view->description = '';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'R/acoustic_traits';
+  $view->core = 7;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  
+  /* Display: Master */
+  $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['pager']['type'] = 'full';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+      'title' => 'title',
+      'field_call_type' => 'field_call_type',
+      'field_sex_trait' => 'field_sex_trait',
+      'field_temperature' => 'field_temperature',
+      'field_trait' => 'field_trait',
+      'field_value' => 'field_value',
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+      'title' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'field_call_type' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'field_sex_trait' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'field_temperature' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'field_trait' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'field_value' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+  );
+  /* Relationship: Content: Bioacoustic Traits (field_bioacoustic_traits) */
+  $handler->display->display_options['relationships']['field_bioacoustic_traits_value']['id'] = 'field_bioacoustic_traits_value';
+  $handler->display->display_options['relationships']['field_bioacoustic_traits_value']['table'] = 'field_data_field_bioacoustic_traits';
+  $handler->display->display_options['relationships']['field_bioacoustic_traits_value']['field'] = 'field_bioacoustic_traits_value';
+  $handler->display->display_options['relationships']['field_bioacoustic_traits_value']['required'] = TRUE;
+  $handler->display->display_options['relationships']['field_bioacoustic_traits_value']['delta'] = '-1';
+  /* Relationship: Field collection item: Trait (field_trait) */
+  $handler->display->display_options['relationships']['field_trait_tid']['id'] = 'field_trait_tid';
+  $handler->display->display_options['relationships']['field_trait_tid']['table'] = 'field_data_field_trait';
+  $handler->display->display_options['relationships']['field_trait_tid']['field'] = 'field_trait_tid';
+  $handler->display->display_options['relationships']['field_trait_tid']['relationship'] = 'field_bioacoustic_traits_value';
+  $handler->display->display_options['relationships']['field_trait_tid']['required'] = TRUE;
+  /* Relationship: Field: Taxonomic name (field_taxonomic_name) */
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['id'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['relationships']['field_taxonomic_name_tid']['field'] = 'field_taxonomic_name_tid';
+  /* Field: Field collection item: Field collection item ID */
+  $handler->display->display_options['fields']['item_id']['id'] = 'item_id';
+  $handler->display->display_options['fields']['item_id']['table'] = 'field_collection_item';
+  $handler->display->display_options['fields']['item_id']['field'] = 'item_id';
+  $handler->display->display_options['fields']['item_id']['relationship'] = 'field_bioacoustic_traits_value';
+  $handler->display->display_options['fields']['item_id']['label'] = 'traitID';
+  $handler->display->display_options['fields']['item_id']['separator'] = '';
+  /* Field: Taxonomy term: Term ID */
+  $handler->display->display_options['fields']['tid']['id'] = 'tid';
+  $handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+  $handler->display->display_options['fields']['tid']['field'] = 'tid';
+  $handler->display->display_options['fields']['tid']['relationship'] = 'field_taxonomic_name_tid';
+  $handler->display->display_options['fields']['tid']['label'] = 'taxonID';
+  $handler->display->display_options['fields']['tid']['separator'] = '';
+  /* Field: Field: Taxonomic name */
+  $handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+  $handler->display->display_options['fields']['field_taxonomic_name']['group_rows'] = FALSE;
+  $handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+  /* Field: Field collection item: Trait */
+  $handler->display->display_options['fields']['field_trait']['id'] = 'field_trait';
+  $handler->display->display_options['fields']['field_trait']['table'] = 'field_data_field_trait';
+  $handler->display->display_options['fields']['field_trait']['field'] = 'field_trait';
+  $handler->display->display_options['fields']['field_trait']['relationship'] = 'field_bioacoustic_traits_value';
+  /* Field: Taxonomy term: Ontology Link */
+  $handler->display->display_options['fields']['field_ontology_link']['id'] = 'field_ontology_link';
+  $handler->display->display_options['fields']['field_ontology_link']['table'] = 'field_data_field_ontology_link';
+  $handler->display->display_options['fields']['field_ontology_link']['field'] = 'field_ontology_link';
+  $handler->display->display_options['fields']['field_ontology_link']['relationship'] = 'field_trait_tid';
+  /* Field: Field collection item: Value */
+  $handler->display->display_options['fields']['field_value']['id'] = 'field_value';
+  $handler->display->display_options['fields']['field_value']['table'] = 'field_data_field_value';
+  $handler->display->display_options['fields']['field_value']['field'] = 'field_value';
+  $handler->display->display_options['fields']['field_value']['relationship'] = 'field_bioacoustic_traits_value';
+  /* Field: Field collection item: Call Type */
+  $handler->display->display_options['fields']['field_call_type']['id'] = 'field_call_type';
+  $handler->display->display_options['fields']['field_call_type']['table'] = 'field_data_field_call_type';
+  $handler->display->display_options['fields']['field_call_type']['field'] = 'field_call_type';
+  $handler->display->display_options['fields']['field_call_type']['relationship'] = 'field_bioacoustic_traits_value';
+  /* Field: Field collection item: Sex */
+  $handler->display->display_options['fields']['field_sex_trait']['id'] = 'field_sex_trait';
+  $handler->display->display_options['fields']['field_sex_trait']['table'] = 'field_data_field_sex_trait';
+  $handler->display->display_options['fields']['field_sex_trait']['field'] = 'field_sex_trait';
+  $handler->display->display_options['fields']['field_sex_trait']['relationship'] = 'field_bioacoustic_traits_value';
+  /* Field: Field collection item: Temperature */
+  $handler->display->display_options['fields']['field_temperature']['id'] = 'field_temperature';
+  $handler->display->display_options['fields']['field_temperature']['table'] = 'field_data_field_temperature';
+  $handler->display->display_options['fields']['field_temperature']['field'] = 'field_temperature';
+  $handler->display->display_options['fields']['field_temperature']['relationship'] = 'field_bioacoustic_traits_value';
+  /* Field: Field: Reference */
+  $handler->display->display_options['fields']['field_reference']['id'] = 'field_reference';
+  $handler->display->display_options['fields']['field_reference']['table'] = 'field_data_field_reference';
+  $handler->display->display_options['fields']['field_reference']['field'] = 'field_reference';
+  /* Field: Field collection item: Cascade down */
+  $handler->display->display_options['fields']['field_cascade_down']['id'] = 'field_cascade_down';
+  $handler->display->display_options['fields']['field_cascade_down']['table'] = 'field_data_field_cascade_down';
+  $handler->display->display_options['fields']['field_cascade_down']['field'] = 'field_cascade_down';
+  $handler->display->display_options['fields']['field_cascade_down']['relationship'] = 'field_bioacoustic_traits_value';
+  $handler->display->display_options['fields']['field_cascade_down']['label'] = 'Cascade';
+  /* Sort criterion: Content: Post date */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'node';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+      'bioacoustic_traits' => 'bioacoustic_traits',
+  );
+  
+  /* Display: Data export */
+  $handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+  $handler->display->display_options['pager']['type'] = 'some';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '0';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+  $handler->display->display_options['path'] = 'R/bioacoustic_traits';
+  $handler->display->display_options['use_batch'] = 'batch';
+  $handler->display->display_options['segment_size'] = '250';
+  $translatables['r_acoustic_traits'] = array(
+      t('Master'),
+      t('more'),
+      t('Apply'),
+      t('Reset'),
+      t('Sort by'),
+      t('Asc'),
+      t('Desc'),
+      t('Items per page'),
+      t('- All -'),
+      t('Offset'),
+      t('« first'),
+      t('‹ previous'),
+      t('next ›'),
+      t('last »'),
+      t('field collection item from field_bioacoustic_traits'),
+      t('term from field_trait'),
+      t('term from field_taxonomic_name'),
+      t('traitID'),
+      t('.'),
+      t('taxonID'),
+      t('Taxonomic name'),
+      t('Trait'),
+      t('Ontology Link'),
+      t('Value'),
+      t('Call Type'),
+      t('Sex'),
+      t('Temperature'),
+      t('Reference'),
+      t('Cascade'),
+      t('Data export'),
+  );
+  $views[] = $view;
   return $views;
 }

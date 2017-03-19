@@ -373,3 +373,11 @@ function wildsound_hex2rgb($hex){
 function wildsound_wavesurfer_onready() {
 	return 'wildsound_onready';
 }
+
+/**
+ * Implements hook_cron().
+ */
+function wildsound_cron(){
+  module_load_include('cron.inc', 'wildsound');
+  _wildsound_export_cron();
+}
