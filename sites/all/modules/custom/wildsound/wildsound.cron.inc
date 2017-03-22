@@ -15,5 +15,5 @@ function _wildsound_export_cron($break = TRUE){
   $output_filename = drupal_realpath('public://traits') . '/' . $filename;
   global $base_url;
   drush_log(dt("Forking: drush vde {$view->name} views_data_export_1 $output_filename"), 'success');
-  exec("nohup drush @" . parse_url($base_url, PHP_URL_HOST) . " vde {$view->name} views_data_export_1 {$output_filename}");
+  exec("nohup drush @" . parse_url($base_url, PHP_URL_HOST) . " vde {$view->name} views_data_export_2 {$output_filename}");
 }
