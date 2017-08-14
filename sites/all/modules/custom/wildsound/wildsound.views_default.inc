@@ -3470,5 +3470,518 @@ function wildsound_views_default_views(){
       t('Data export'),
   );
   $views[] = $view;
+  $view = new view();
+$view->name = 'aao_orthoptera';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'aao/orthoptera';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Relationship: Content: Species (field_species) */
+$handler->display->display_options['relationships']['field_species_tid']['id'] = 'field_species_tid';
+$handler->display->display_options['relationships']['field_species_tid']['table'] = 'field_data_field_species';
+$handler->display->display_options['relationships']['field_species_tid']['field'] = 'field_species_tid';
+$handler->display->display_options['relationships']['field_species_tid']['required'] = TRUE;
+/* Relationship: Taxonomy term: Associated accepted name (field_aan_4) */
+$handler->display->display_options['relationships']['field_aan_4_tid']['id'] = 'field_aan_4_tid';
+$handler->display->display_options['relationships']['field_aan_4_tid']['table'] = 'field_data_field_aan_4';
+$handler->display->display_options['relationships']['field_aan_4_tid']['field'] = 'field_aan_4_tid';
+$handler->display->display_options['relationships']['field_aan_4_tid']['relationship'] = 'field_species_tid';
+/* Field: Taxonomy term: Unit name 1 */
+$handler->display->display_options['fields']['field_unit_name1']['id'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['table'] = 'field_data_field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['field'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 2 */
+$handler->display->display_options['fields']['field_unit_name2']['id'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['table'] = 'field_data_field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['field'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name2']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 3 */
+$handler->display->display_options['fields']['field_unit_name3']['id'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['table'] = 'field_data_field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['field'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name3']['label'] = 'Taxa';
+$handler->display->display_options['fields']['field_unit_name3']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3']['alter']['text'] = '[field_unit_name1] [field_unit_name3]';
+$handler->display->display_options['fields']['field_unit_name3']['empty'] = '[field_unit_name1] [field_unit_name2]';
+/* Field: Taxonomy term: Unit name 1 */
+$handler->display->display_options['fields']['field_unit_name1_1']['id'] = 'field_unit_name1_1';
+$handler->display->display_options['fields']['field_unit_name1_1']['table'] = 'field_data_field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1_1']['field'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name1_1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 2 */
+$handler->display->display_options['fields']['field_unit_name2_1']['id'] = 'field_unit_name2_1';
+$handler->display->display_options['fields']['field_unit_name2_1']['table'] = 'field_data_field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2_1']['field'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name2_1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 3 */
+$handler->display->display_options['fields']['field_unit_name3_1']['id'] = 'field_unit_name3_1';
+$handler->display->display_options['fields']['field_unit_name3_1']['table'] = 'field_data_field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3_1']['field'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name3_1']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3_1']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3_1']['alter']['text'] = '[field_unit_name1_1] [field_unit_name3_1]';
+$handler->display->display_options['fields']['field_unit_name3_1']['alter']['trim_whitespace'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3_1']['empty'] = '[field_unit_name1_1] [field_unit_name2_1]';
+$handler->display->display_options['fields']['field_unit_name3_1']['hide_empty'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3_1']['type'] = 'text_plain';
+$handler->display->display_options['fields']['field_unit_name3_1']['settings'] = array(
+  'trim_length' => '600',
+);
+/* Field: Global: Custom text */
+$handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+$handler->display->display_options['fields']['nothing']['table'] = 'views';
+$handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+$handler->display->display_options['fields']['nothing']['label'] = 'SupertreeTaxon';
+$handler->display->display_options['fields']['nothing']['alter']['text'] = '[field_unit_name3_1]';
+$handler->display->display_options['fields']['nothing']['empty'] = '[field_unit_name3]';
+$handler->display->display_options['fields']['nothing']['hide_alter_empty'] = TRUE;
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid']['id'] = 'tid';
+$handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid']['field'] = 'tid';
+$handler->display->display_options['fields']['tid']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['tid']['label'] = 'TaxonID';
+$handler->display->display_options['fields']['tid']['exclude'] = TRUE;
+$handler->display->display_options['fields']['tid']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['tid']['separator'] = '';
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid_1']['id'] = 'tid_1';
+$handler->display->display_options['fields']['tid_1']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid_1']['field'] = 'tid';
+$handler->display->display_options['fields']['tid_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['tid_1']['label'] = 'taxon_id';
+$handler->display->display_options['fields']['tid_1']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['tid_1']['empty'] = '[tid]';
+$handler->display->display_options['fields']['tid_1']['empty_zero'] = TRUE;
+$handler->display->display_options['fields']['tid_1']['hide_alter_empty'] = FALSE;
+$handler->display->display_options['fields']['tid_1']['separator'] = '';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Has taxonomy term ID (with depth) */
+$handler->display->display_options['arguments']['term_node_tid_depth']['id'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['table'] = 'node';
+$handler->display->display_options['arguments']['term_node_tid_depth']['field'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_action'] = 'default';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_options']['argument'] = '56';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['term_node_tid_depth']['depth'] = '10';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+/* Filter criterion: Taxonomy term: Rank (field_rank) */
+$handler->display->display_options['filters']['field_rank_value']['id'] = 'field_rank_value';
+$handler->display->display_options['filters']['field_rank_value']['table'] = 'field_data_field_rank';
+$handler->display->display_options['filters']['field_rank_value']['field'] = 'field_rank_value';
+$handler->display->display_options['filters']['field_rank_value']['relationship'] = 'field_species_tid';
+$handler->display->display_options['filters']['field_rank_value']['value'] = array(
+  'Species' => 'Species',
+);
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['style_options']['provide_file'] = 0;
+$handler->display->display_options['style_options']['parent_sort'] = 0;
+$handler->display->display_options['style_options']['quote'] = 1;
+$handler->display->display_options['style_options']['trim'] = 0;
+$handler->display->display_options['style_options']['replace_newlines'] = 0;
+$handler->display->display_options['style_options']['header'] = 1;
+$handler->display->display_options['style_options']['keep_html'] = 0;
+$handler->display->display_options['path'] = 'aao/orthoptera';
+$translatables['aao_orthoptera'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('term from field_species'),
+  t('term from field_aan_4'),
+  t('Unit name 1'),
+  t('Unit name 2'),
+  t('Taxa'),
+  t('[field_unit_name1] [field_unit_name3]'),
+  t('[field_unit_name1] [field_unit_name2]'),
+  t('Unit name 3'),
+  t('[field_unit_name1_1] [field_unit_name3_1]'),
+  t('[field_unit_name1_1] [field_unit_name2_1]'),
+  t('SupertreeTaxon'),
+  t('[field_unit_name3_1]'),
+  t('[field_unit_name3]'),
+  t('TaxonID'),
+  t('.'),
+  t('taxon_id'),
+  t('[tid]'),
+  t('All'),
+  t('Data export'),
+);
+$views[] = $view;
+$view = new view();
+$view->name = 'aao_orthoptera_subspecies';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'aao/orthoptera/subspecies';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Relationship: Content: Species (field_species) */
+$handler->display->display_options['relationships']['field_species_tid']['id'] = 'field_species_tid';
+$handler->display->display_options['relationships']['field_species_tid']['table'] = 'field_data_field_species';
+$handler->display->display_options['relationships']['field_species_tid']['field'] = 'field_species_tid';
+$handler->display->display_options['relationships']['field_species_tid']['required'] = TRUE;
+/* Relationship: Taxonomy term: Associated accepted name (field_aan_4) */
+$handler->display->display_options['relationships']['field_aan_4_tid']['id'] = 'field_aan_4_tid';
+$handler->display->display_options['relationships']['field_aan_4_tid']['table'] = 'field_data_field_aan_4';
+$handler->display->display_options['relationships']['field_aan_4_tid']['field'] = 'field_aan_4_tid';
+$handler->display->display_options['relationships']['field_aan_4_tid']['relationship'] = 'field_species_tid';
+/* Field: Taxonomy term: Unit name 1 */
+$handler->display->display_options['fields']['field_unit_name1']['id'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['table'] = 'field_data_field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['field'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 2 */
+$handler->display->display_options['fields']['field_unit_name2']['id'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['table'] = 'field_data_field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['field'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name2']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name2']['alter']['trim_whitespace'] = TRUE;
+/* Field: Taxonomy term: Unit name 3 */
+$handler->display->display_options['fields']['field_unit_name3']['id'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['table'] = 'field_data_field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['field'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name3']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name3']['alter']['text'] = '[field_unit_name1] [field_unit_name3]';
+$handler->display->display_options['fields']['field_unit_name3']['alter']['trim_whitespace'] = TRUE;
+/* Field: Taxonomy term: Unit name 4 */
+$handler->display->display_options['fields']['field_unit_name4']['id'] = 'field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4']['table'] = 'field_data_field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4']['field'] = 'field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['field_unit_name4']['label'] = 'Taxa';
+$handler->display->display_options['fields']['field_unit_name4']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name4']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name4']['alter']['text'] = '[field_unit_name1] [field_unit_name3] [field_unit_name4]';
+$handler->display->display_options['fields']['field_unit_name4']['empty'] = '[field_unit_name1] [field_unit_name2] [field_unit_name3]';
+/* Field: Taxonomy term: Unit name 1 */
+$handler->display->display_options['fields']['field_unit_name1_1']['id'] = 'field_unit_name1_1';
+$handler->display->display_options['fields']['field_unit_name1_1']['table'] = 'field_data_field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1_1']['field'] = 'field_unit_name1';
+$handler->display->display_options['fields']['field_unit_name1_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name1_1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 2 */
+$handler->display->display_options['fields']['field_unit_name2_1']['id'] = 'field_unit_name2_1';
+$handler->display->display_options['fields']['field_unit_name2_1']['table'] = 'field_data_field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2_1']['field'] = 'field_unit_name2';
+$handler->display->display_options['fields']['field_unit_name2_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name2_1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 3 */
+$handler->display->display_options['fields']['field_unit_name3_1']['id'] = 'field_unit_name3_1';
+$handler->display->display_options['fields']['field_unit_name3_1']['table'] = 'field_data_field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3_1']['field'] = 'field_unit_name3';
+$handler->display->display_options['fields']['field_unit_name3_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name3_1']['exclude'] = TRUE;
+/* Field: Taxonomy term: Unit name 4 */
+$handler->display->display_options['fields']['field_unit_name4_1']['id'] = 'field_unit_name4_1';
+$handler->display->display_options['fields']['field_unit_name4_1']['table'] = 'field_data_field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4_1']['field'] = 'field_unit_name4';
+$handler->display->display_options['fields']['field_unit_name4_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['field_unit_name4_1']['exclude'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name4_1']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name4_1']['alter']['text'] = '[field_unit_name1_1] [field_unit_name3_1] [field_unit_name4_1]';
+$handler->display->display_options['fields']['field_unit_name4_1']['alter']['trim_whitespace'] = TRUE;
+$handler->display->display_options['fields']['field_unit_name4_1']['empty'] = '[field_unit_name1_1] [field_unit_name2_1] [field_unit_name3_1]';
+/* Field: Global: Custom text */
+$handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+$handler->display->display_options['fields']['nothing']['table'] = 'views';
+$handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+$handler->display->display_options['fields']['nothing']['label'] = 'SupertreeTaxon';
+$handler->display->display_options['fields']['nothing']['alter']['text'] = '[field_unit_name4_1]';
+$handler->display->display_options['fields']['nothing']['empty'] = '[field_unit_name4]';
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid']['id'] = 'tid';
+$handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid']['field'] = 'tid';
+$handler->display->display_options['fields']['tid']['relationship'] = 'field_species_tid';
+$handler->display->display_options['fields']['tid']['label'] = 'TaxonID';
+$handler->display->display_options['fields']['tid']['exclude'] = TRUE;
+$handler->display->display_options['fields']['tid']['separator'] = '';
+/* Field: Taxonomy term: Term ID */
+$handler->display->display_options['fields']['tid_1']['id'] = 'tid_1';
+$handler->display->display_options['fields']['tid_1']['table'] = 'taxonomy_term_data';
+$handler->display->display_options['fields']['tid_1']['field'] = 'tid';
+$handler->display->display_options['fields']['tid_1']['relationship'] = 'field_aan_4_tid';
+$handler->display->display_options['fields']['tid_1']['label'] = 'taxon_id';
+$handler->display->display_options['fields']['tid_1']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['tid_1']['empty'] = '[tid]';
+$handler->display->display_options['fields']['tid_1']['empty_zero'] = TRUE;
+$handler->display->display_options['fields']['tid_1']['separator'] = '';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Contextual filter: Content: Has taxonomy term ID (with depth) */
+$handler->display->display_options['arguments']['term_node_tid_depth']['id'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['table'] = 'node';
+$handler->display->display_options['arguments']['term_node_tid_depth']['field'] = 'term_node_tid_depth';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_action'] = 'default';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_type'] = 'fixed';
+$handler->display->display_options['arguments']['term_node_tid_depth']['default_argument_options']['argument'] = '56';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['term_node_tid_depth']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['term_node_tid_depth']['depth'] = '10';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'recording' => 'recording',
+);
+/* Filter criterion: Taxonomy term: Rank (field_rank) */
+$handler->display->display_options['filters']['field_rank_value']['id'] = 'field_rank_value';
+$handler->display->display_options['filters']['field_rank_value']['table'] = 'field_data_field_rank';
+$handler->display->display_options['filters']['field_rank_value']['field'] = 'field_rank_value';
+$handler->display->display_options['filters']['field_rank_value']['relationship'] = 'field_species_tid';
+$handler->display->display_options['filters']['field_rank_value']['value'] = array(
+  'Subspecies' => 'Subspecies',
+);
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['style_options']['provide_file'] = 0;
+$handler->display->display_options['style_options']['parent_sort'] = 0;
+$handler->display->display_options['style_options']['quote'] = 1;
+$handler->display->display_options['style_options']['trim'] = 0;
+$handler->display->display_options['style_options']['replace_newlines'] = 0;
+$handler->display->display_options['style_options']['header'] = 1;
+$handler->display->display_options['style_options']['keep_html'] = 0;
+$handler->display->display_options['path'] = 'aao/orthoptera/subspecies';
+$translatables['aao_orthoptera_subspecies'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('term from field_species'),
+  t('term from field_aan_4'),
+  t('Unit name 1'),
+  t('Unit name 2'),
+  t('Unit name 3'),
+  t('[field_unit_name1] [field_unit_name3]'),
+  t('Taxa'),
+  t('[field_unit_name1] [field_unit_name3] [field_unit_name4]'),
+  t('[field_unit_name1] [field_unit_name2] [field_unit_name3]'),
+  t('Unit name 4'),
+  t('[field_unit_name1_1] [field_unit_name3_1] [field_unit_name4_1]'),
+  t('[field_unit_name1_1] [field_unit_name2_1] [field_unit_name3_1]'),
+  t('SupertreeTaxon'),
+  t('[field_unit_name4_1]'),
+  t('[field_unit_name4]'),
+  t('TaxonID'),
+  t('.'),
+  t('taxon_id'),
+  t('[tid]'),
+  t('All'),
+  t('Data export'),
+);
+$views[] = $view;
+$view = new view();
+$view->name = 'aao_silent_species';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'node';
+$view->human_name = 'aao/silent_species';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['use_more_always'] = FALSE;
+$handler->display->display_options['access']['type'] = 'perm';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'full';
+$handler->display->display_options['style_plugin'] = 'default';
+$handler->display->display_options['row_plugin'] = 'fields';
+/* Relationship: Content: Bioacoustic Traits (field_bioacoustic_traits) */
+$handler->display->display_options['relationships']['field_bioacoustic_traits_value']['id'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['relationships']['field_bioacoustic_traits_value']['table'] = 'field_data_field_bioacoustic_traits';
+$handler->display->display_options['relationships']['field_bioacoustic_traits_value']['field'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['relationships']['field_bioacoustic_traits_value']['required'] = TRUE;
+$handler->display->display_options['relationships']['field_bioacoustic_traits_value']['delta'] = '-1';
+/* Field: Field: Taxonomic name */
+$handler->display->display_options['fields']['field_taxonomic_name']['id'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['table'] = 'field_data_field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['field'] = 'field_taxonomic_name';
+$handler->display->display_options['fields']['field_taxonomic_name']['label'] = 'Taxon';
+$handler->display->display_options['fields']['field_taxonomic_name']['delta_offset'] = '0';
+/* Field: Field collection item: Trait */
+$handler->display->display_options['fields']['field_trait']['id'] = 'field_trait';
+$handler->display->display_options['fields']['field_trait']['table'] = 'field_data_field_trait';
+$handler->display->display_options['fields']['field_trait']['field'] = 'field_trait';
+$handler->display->display_options['fields']['field_trait']['relationship'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['fields']['field_trait']['exclude'] = TRUE;
+/* Field: Field collection item: Value */
+$handler->display->display_options['fields']['field_value']['id'] = 'field_value';
+$handler->display->display_options['fields']['field_value']['table'] = 'field_data_field_value';
+$handler->display->display_options['fields']['field_value']['field'] = 'field_value';
+$handler->display->display_options['fields']['field_value']['relationship'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['fields']['field_value']['alter']['alter_text'] = TRUE;
+$handler->display->display_options['fields']['field_value']['alter']['text'] = '[field_trait] ([field_value])';
+/* Sort criterion: Content: Post date */
+$handler->display->display_options['sorts']['created']['id'] = 'created';
+$handler->display->display_options['sorts']['created']['table'] = 'node';
+$handler->display->display_options['sorts']['created']['field'] = 'created';
+$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+/* Filter criterion: Content: Published */
+$handler->display->display_options['filters']['status']['id'] = 'status';
+$handler->display->display_options['filters']['status']['table'] = 'node';
+$handler->display->display_options['filters']['status']['field'] = 'status';
+$handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
+$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'node';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'bioacoustic_traits' => 'bioacoustic_traits',
+);
+/* Filter criterion: Field collection item: Trait (field_trait) */
+$handler->display->display_options['filters']['field_trait_tid']['id'] = 'field_trait_tid';
+$handler->display->display_options['filters']['field_trait_tid']['table'] = 'field_data_field_trait';
+$handler->display->display_options['filters']['field_trait_tid']['field'] = 'field_trait_tid';
+$handler->display->display_options['filters']['field_trait_tid']['relationship'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['filters']['field_trait_tid']['value'] = array(
+  1860 => '1860',
+);
+$handler->display->display_options['filters']['field_trait_tid']['type'] = 'select';
+$handler->display->display_options['filters']['field_trait_tid']['vocabulary'] = 'bioacoustics_ontology';
+$handler->display->display_options['filters']['field_trait_tid']['hierarchy'] = 1;
+/* Filter criterion: Field collection item: Value (field_value) */
+$handler->display->display_options['filters']['field_value_value']['id'] = 'field_value_value';
+$handler->display->display_options['filters']['field_value_value']['table'] = 'field_data_field_value';
+$handler->display->display_options['filters']['field_value_value']['field'] = 'field_value_value';
+$handler->display->display_options['filters']['field_value_value']['relationship'] = 'field_bioacoustic_traits_value';
+$handler->display->display_options['filters']['field_value_value']['value'] = 'None';
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'some';
+$handler->display->display_options['pager']['options']['items_per_page'] = '0';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['path'] = 'aao/silent_species';
+$translatables['aao_silent_species'] = array(
+  t('Master'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('field collection item from field_bioacoustic_traits'),
+  t('Taxon'),
+  t('Trait'),
+  t('Value'),
+  t('[field_trait] ([field_value])'),
+  t('Data export'),
+);
+$views[] = $view;
   return $views;
 }
