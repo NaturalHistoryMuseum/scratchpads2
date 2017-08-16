@@ -12,7 +12,7 @@ function _wildsound_export_cron($break = TRUE){
   $views = wildsound_views_default_views();
   $view = $views['r_acoustic_traits'];
   $filename = 'bioacoustic_traits.txt';
-  $output_filename = drupal_realpath('public://traits') . '/' . $filename;
+  $output_filename = drupal_realpath('public://R') . '/' . $filename;
   global $base_url;
   drush_log(dt("Forking: drush vde {$view->name} views_data_export_2 {$output_filename}"), 'success');
   exec("nohup drush @" . parse_url($base_url, PHP_URL_HOST) . " vde {$view->name} views_data_export_2 {$output_filename}");
