@@ -1,0 +1,4 @@
+Title	Date	Date free	Location	Reference	Min	Max	depth free	substrate free	Collection notes
+TTDB-Actinoposthia_caudata-A	1926-08-01	July-August 1926	5989	5089	250	250	250 m to (?300 m)	mud	
+TTDB-Actinoposthia_haplovata-A	1964-10-01	Oct 1964	5989	5089	5	5	5 m	fine sand	museum specimen number: SMF 3270-73
+TTDB-Actinoposthia_haplovata-B	2002-05-01	May 12-16, 2002	5989	5089	1	1	mid-eulittoral	rock	Site 7, rockpool at mid-littoral.  Sediment and aufwuchs settled on Laminaria holdfasts, algae, Porifera and Cnidaria were sampled.  Sublittoral samples by SCUBA.
