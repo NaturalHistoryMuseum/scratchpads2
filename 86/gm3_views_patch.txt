@@ -1,0 +1,62 @@
+diff --git a/sites/all/modules/custom/gm3/css/gm3.css b/sites/all/modules/custom/gm3/css/gm3.css
+index ab5f0cb..06a3d22 100644
+--- a/sites/all/modules/custom/gm3/css/gm3.css
++++ b/sites/all/modules/custom/gm3/css/gm3.css
+@@ -41,6 +41,13 @@
+  padding:0;
+  margin:0;
+ }
++.gm3_infobubble span.views-label{
++  font-weight: bold;
++  float: left;
++}
++.gm3_infobubble div.field-content {
++  margin-left: 100px;
++}
+ .gm3-container{
+  padding:0;
+  margin:0;
+diff --git a/sites/all/modules/custom/gm3/gm3.theme.inc b/sites/all/modules/custom/gm3/gm3.theme.inc
+index b60c33b..aa41715 100644
+--- a/sites/all/modules/custom/gm3/gm3.theme.inc
++++ b/sites/all/modules/custom/gm3/gm3.theme.inc
+@@ -196,24 +196,8 @@ function theme_gm3_view_gm3($variables){
+   $map = array(
+     'libraries' => array()
+   );
+-  // foreach($variables['view']->result as $index => $row){
+-  foreach($variables['rows'] as $index => $row){
+-    $content = '';
+-    foreach($none_geo_fields as $key){
+-      if($key == 'title'){
+-        // Need a way of setting the title on all entity types.
+-      }else{
+-        if(isset($row->{"field_$key"})){
+-          foreach($row->{"field_$key"} as $key => $value){
+-            if(is_array($value['rendered'])){
+-              $content .= drupal_render($value['rendered']);
+-            }else{
+-              $content .= $value['rendered'];
+-            }
+-          }
+-        }
+-      }
+-    }
++  foreach($variables['view']->result as $index => $row){
++    $content = $variables['rows'][$index];
+     foreach($geo_fields as $key => $type){
+       switch($type){
+         case 'gm3_rectangle':
+diff --git a/sites/all/modules/custom/gm3/gm3.views.inc b/sites/all/modules/custom/gm3/gm3.views.inc
+index a452e67..e38684e 100644
+--- a/sites/all/modules/custom/gm3/gm3.views.inc
++++ b/sites/all/modules/custom/gm3/gm3.views.inc
+@@ -11,7 +11,7 @@ function gm3_views_plugins(){
+         'help' => t('Displays rows as a map.'),
+         'handler' => 'gm3_plugin_style_gm3',
+         'theme' => 'gm3_view_gm3',
+-        'uses row plugin' => FALSE,
++        'uses row plugin' => TRUE, //FALSE,
+         'uses row class' => TRUE,
+         'uses fields' => TRUE,
+         'uses grouping' => TRUE,
