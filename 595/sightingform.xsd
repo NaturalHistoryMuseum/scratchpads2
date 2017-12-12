@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0">
+		
+	<xs:element name="SightingForms">	
+	
+		<xs:complexType>
+		<xs:sequence>
+			<xs:element name="SightingForm" minOccurs="1"> 
+				<xs:complexType>
+				<xs:sequence>							
+					<xs:element type="xs:string" name="FormUUID" />
+					<xs:element type="xs:string" name="FormName" />
+					<xs:element name="Fields">
+						<xs:complexType>
+						<xs:choice minOccurs="1" maxOccurs="unbounded">
+							<xs:element name="Text" type="formField" />
+							
+							<xs:element name="Number" type="formNumberField" />	
+
+							<xs:element name="SelectOne" type="selectField" />
+							
+							<xs:element name="Checkbox" type="checkBoxField" />
+							
+							<xs:element name="CheckboxSet" type="choiceField" />
+							
+						</xs:choice>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="iso2language" type="xs:string" use="required"/>
+				<xs:attribute name="isPublic" type="xs:boolean" use="required"/>
+				<xs:attribute name="version" type="xs:integer" use="required"/> 
+				<xs:attribute name="xsdversion" type="xs:decimal" use="required"/> 
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+	
+	
+	<xs:complexType name="formFieldBase">
+		<xs:attribute name="name" type="xs:string" />
+		<xs:attribute name="sticky" type="xs:boolean" />
+		<xs:attribute name="required" type="xs:boolean" />
+	</xs:complexType>
+	
+	<xs:complexType name="formField">
+		<xs:complexContent>
+			<xs:extension base="formFieldBase">
+				<xs:choice minOccurs="0" maxOccurs="1">
+					<xs:element name="Value" type="xs:string"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="formNumberField">
+		<xs:complexContent>
+			<xs:extension base="formFieldBase">
+				<xs:choice minOccurs="0" maxOccurs="1">
+					<xs:element name="Value" type="xs:integer"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="checkBoxField">
+		<xs:complexContent>
+			<xs:extension base="formFieldBase">
+				<xs:choice minOccurs="0" maxOccurs="1">
+					<xs:element name="Value" type="xs:boolean"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	<xs:complexType name="choiceField">
+		<xs:complexContent>
+			<xs:extension base="formFieldBase">
+				<xs:choice minOccurs="2" maxOccurs="unbounded">
+
+					<xs:element name="Choice">
+						<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:string">
+								<xs:attribute name="selected" type="xs:boolean"/>
+								<xs:attribute name="default" type="xs:boolean"/>
+							</xs:extension>
+						</xs:simpleContent>
+						</xs:complexType>
+					</xs:element>
+
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	
+	
+	<xs:complexType name="selectField">
+		<xs:complexContent>
+			<xs:extension base="choiceField">
+				<xs:choice minOccurs="0" maxOccurs="1">
+					<xs:element name="Value" type="xs:string"/>
+				</xs:choice>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+</xs:schema>
