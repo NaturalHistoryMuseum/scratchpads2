@@ -1,0 +1,94 @@
+/* custom styling for views table set within views custom classes */
+.table-no-header table thead {
+	display: none;
+}
+/* table level */
+.table-no-zebra table tr:nth-child(odd),.table-no-zebra table tr.odd {
+	background: #fff !important;
+}
+
+.table-valign-top table tr td {
+	vertical-align: top !important;
+}
+
+.table-valign-bottom table tr td {
+	vertical-align: bottom !important;
+}
+
+.table-p-sm-bottom-margin table p {
+	margin-bottom: 10px;
+}
+
+.table-no-bottom-padding table tr td {
+	padding-bottom: 0px;
+}
+/* just combine a few to make styling a bit easier */
+.table-compact-to-top table tr td {
+	vertical-align: top !important;
+	padding-bottom: 0px;
+}
+
+.table-compact-to-top table p {
+	margin-bottom: 10px;
+}
+
+/* row level */
+table tr.row-valign-top td {
+	vertical-align: top !important;
+}
+
+table tr.row-valign-bottom td {
+	vertical-align: bottom !important;
+}
+
+table tr.row-p-sm-bottom-margin p {
+	margin-bottom: 10px;
+}
+
+table tr.row-no-bottom-padding td {
+	padding-bottom: 0px;
+}
+/* just combine a few to make styling a bit easier */
+table tr.row-compact-to-top td {
+	vertical-align: top !important;
+	padding-bottom: 0px;
+}
+
+table tr.row-compact-to-top td p {
+	margin-bottom: 10px;
+}
+
+/* cell level */
+table tr td.table-cell-nowrap {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+table tr td.table-cell-valign-top {
+	vertical-align: top !important;
+}
+
+table tr td.table-cell-valign-bottom {
+	vertical-align: bottom !important;
+}
+
+table tr td.table-cell-p-sm-bottom-margin p {
+	margin-bottom: 10px;
+}
+
+table tr td.table-cell-no-bottom-padding {
+	padding-bottom: 0px;
+}
+
+table tr.odd td.table-cell-no-zebra {
+	background: #fff !important;
+}
+/* just combine a few to make styling a bit easier */
+table tr td.table-cell-compact-to-top {
+	vertical-align: top !important;
+	padding-bottom: 0px;
+}
+
+table tr td.table-cell-compact-to-top p {
+	margin-bottom: 10px;;
+}
