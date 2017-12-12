@@ -1,0 +1,1994 @@
+﻿@article{
+   author = {Basquin, P},
+   title = {Deux nouveaux Lépidoptères du Burkina Faso (Lepidoptera Sphingidae et Saturniidae)},
+   journal = {Bull. Soc. Sci. Nat.},
+   volume = {62},
+   pages = {13-14},
+   year = {1989},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Basquin, P},
+   title = {Contribution à la connaissance des Sphinx de l'île de São Tomé (Lepidoptera, Sphingidae). Description d'une nouvelle espèce},
+   journal = {Bull. Soc. Sci. Nat.},
+   volume = {75-76},
+   pages = {46-49},
+   year = {1992},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Basquin, P and Cadiou, J-M},
+   title = {Un nouveau genre de Sphingidae d'Afrique Centrale, Afrosataspes (Lepidoptera)},
+   journal = {Lambillionea},
+   volume = {86},
+   pages = {127-130},
+   year = {1986},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Basquin, P and Pierre, J},
+   title = {Contribution à la connaissance des Sphinx de la République Centrafricaine avec descriptions de nouvelles espèce et sous-espèce et d'une femelle inédite (Lepidoptera, Sphingidae)},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {110},
+   pages = {495-508},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Becker, VO},
+   title = {A new Nyceryx Boisduval (Lepidoptera, Sphingidae) from central Brazil},
+   journal = {Revta bras. Zool.},
+   volume = {18},
+   pages = {159-161},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Brechlin, R},
+   title = {Neue Eupanacra aus China und von den Philippinen, mit Fundortergänzungen zum Philippinischen Archipel (Lepidoptera:Sphingidae)},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {22},
+   pages = {71-78},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Brechlin, R and Melichar, T},
+   title = {Sechs neue Schwärmerarten aus China (Lepidoptera: Sphingidae). Nachr. entomol. Ver. Apollo, 27 (N.F.), 205-213.},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {27},
+   number = {N.F.},
+   pages = {205-213},
+   year = {2006},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Brooke Worth, C and Muller, J},
+   title = {Captures of large moths by an ultraviolet light trap},
+   journal = {J. Lepid. Soc.},
+   volume = {33},
+   pages = {261-264},
+   year = {1979},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Description d'un nouveau Sphingide de Guyane Française: Xylophanes haxairei (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {84},
+   pages = {52-56},
+   year = {1985},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Seven new species of Sphingidae (Lepidoptera)},
+   journal = {Lambillionea},
+   volume = {95},
+   pages = {499-515},
+   year = {1995},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Two new species of Sphingidae from South East Asia (Lepidoptera)},
+   journal = {Ent. Africana},
+   volume = {1},
+   pages = {15-24},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {A new sphingid from southern Brasil: Pachygonidia mielkei (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {97},
+   pages = {515-518},
+   year = {1997},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Three new taxa in the family Sphingidae (Lepidoptera)},
+   journal = {Ent. Africana},
+   volume = {2},
+   pages = {Jun-16},
+   year = {1997},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {A new Sonoran Sphinx and another new Cypa from Sulawesi (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {98},
+   pages = {620-628},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Three new day-flying Sphingidae from Sulawesi (Lepidoptera)},
+   journal = {Lambillionea},
+   volume = {98},
+   pages = {02-Jun},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {A new Theretra from Halmahera and a new Cephonodes from Sulawesi (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {99},
+   pages = {503-510},
+   year = {1999},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {A new Litosphingia from Tanzania and a new Craspedortha from China (Lepidoptera, Sphingidae)},
+   journal = {Ent. Africana},
+   volume = {5},
+   pages = {35-40},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {A new Xylophanes from northern Peru (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {100},
+   pages = {555-556},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M},
+   title = {Two new Temnora from Parc National de l'Upemba, République Démocratic du Congo (Lepidoptera, Sphingidae)},
+   journal = {Ent. Africana},
+   volume = {8},
+   pages = {02-Jun},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M and Haxaire, J},
+   title = {Description of new taxa in the genera Paonias, Nyceryx and Xylophanes with a revision of associated species (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {97},
+   pages = {569-584},
+   year = {1997},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M and Holloway, JD},
+   title = {Endemic Sphingidae from Sulawesi (Lepidoptera)},
+   journal = {Lambillionea},
+   volume = {89},
+   pages = {130-158},
+   year = {1989},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M and Kitching, IJ},
+   title = {New Sphingidae from Thailand (Lepidoptera)},
+   journal = {Lambillionea},
+   volume = {90},
+   number = {4},
+   pages = {Mar-34},
+   year = {1990},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cadiou, J-M and Rawlins, JE},
+   title = {Description of a new Perigonia from the Dominican Republic},
+   journal = {Lambillionea},
+   volume = {98},
+   pages = {613-619},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Carcasson, RH},
+   title = {Revised catalogue of the African Sphingidae (Lepidoptera) with descriptions of the East African species},
+   journal = {Jl E. Afr. nat. Hist. Soc. natn. Mus.},
+   volume = {26},
+   number = {3},
+   pages = {1-148},
+   year = {1968},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Carcasson, RH},
+   title = {Revisional notes on the African Sphingidae (Lepidoptera)},
+   journal = {J. Ent.},
+   volume = {41},
+   pages = {175-190},
+   year = {1972},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cary, CR},
+   title = {A new sphinx moth from the West Indies (Sphingidae)},
+   journal = {J. Lepid. Soc.},
+   volume = {24},
+   pages = {267-270},
+   year = {1970},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Cary, MM},
+   title = {Reports on the Margaret M. Cary and Carnegie Museum Expedition to Baja California, Mexico, 1961. The family Sphingidae (Lep.)},
+   journal = {Ann. Carneg. Mus.},
+   volume = {36},
+   pages = {193-204},
+   year = {1963},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Chacín Rivas, ME and Clavijo, A J and de Marmels, J},
+   title = {Xylophanes fernandezi sp. n., ein neuer Schwärmer aus Venezuela (Lepidoptera: Sphingidae)},
+   journal = {Mitt. ent. Ges. Basel},
+   volume = {46},
+   pages = {78-84},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Chalumeau, F and Delplanque, A},
+   title = {Catalogue raisonné des Sphingidae des Antilles françaises},
+   journal = {Bull. mens. Soc. linn. Lyon},
+   volume = {43},
+   pages = {121-128, 156-167},
+   year = {1974},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {New American Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {6},
+   pages = {39-50},
+   year = {1916},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {New Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {6},
+   pages = {57-72},
+   year = {1917},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Some undescribed Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {6},
+   pages = {99-114},
+   year = {1919},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Sixteen new Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {7},
+   pages = {65-78},
+   year = {1920},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Twenty-five new Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {8},
+   pages = {Jan-23},
+   year = {1922},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Thirty-three new Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {8},
+   pages = {47-77},
+   year = {1923},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Twelve new Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {9},
+   pages = {Nov-21},
+   year = {1924},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Eight new Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {9},
+   pages = {31-40},
+   year = {1925},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of twelve new Sphingidae and remarks upon some other species},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {9},
+   pages = {45-59},
+   year = {1926},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of twelve new Sphingidae and remarks upon two other species},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {9},
+   pages = {99-109},
+   year = {1927},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Sundry notes on Sphingidae and descriptions of ten new species},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {10},
+   pages = {33-46},
+   year = {1928},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Sundry notes on Sphingidae, descriptions of sixteen new species, and of one new genus},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {11},
+   pages = {Jul-24},
+   year = {1929},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Sundry notes on Sphingidae and descriptions of seven new forms},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {12},
+   pages = {25-30},
+   year = {1930},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of seven new Sphingidae and a note on one other},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {12},
+   pages = {77-83},
+   year = {1931},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of four new Sphingidae and notes concerning two others},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {13},
+   pages = {39-42},
+   year = {1932},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of three new subspecies of Sphingidae},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {13},
+   pages = {101-103},
+   year = {1933},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of twenty new Sphingidae and notes on three others},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {15},
+   pages = {19-39},
+   year = {1935},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Descriptions of twenty-four new Sphingidae and notes concerning two others},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {15},
+   pages = {71-91},
+   year = {1936},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Twelve new Sphingidae and notes on seven others},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {16},
+   pages = {27-39},
+   year = {1937},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Clark, BP},
+   title = {Eight new Sphingidae and notes on two others},
+   journal = {Proc. New Engl. zool. Club},
+   volume = {17},
+   pages = {37-44},
+   year = {1938},
+   type = {Journal Article}
+}
+
+@article{
+   author = {D'Abrera, B},
+   title = {Sphingidae mundi. Hawk moths of the world. Based on a checklist by Alan Hayes and the collection he curated in the British Museum (Natural History)},
+   pages = {226},
+   year = {1987},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Daniel, F},
+   title = {Neue Sphingidae Südamerikas (Lep. Het.)},
+   journal = {Mitt. münch. ent. Ges.},
+   volume = {35-39},
+   pages = {230-234},
+   year = {1949},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Danner, F and Eitschberger, U and Surholt, B},
+   title = {Die Schwärmer der westlichen Palaearktis. Bausteine zu einer Revision (Lepidoptera: Sphingidae)},
+   journal = {Herbipoliana},
+   volume = {4},
+   number = {1,2},
+   pages = {1-368, 1-720},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Lépidoptères Attacidae et Sphingidae de l'île de São Tomé},
+   journal = {Bull. Inst. fond. Afr. noire},
+   volume = {32},
+   pages = {495-500},
+   year = {1970},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Description d'une sous-espèce nouvelle du genre Antinephele originaire de Madagascar [Lep. Sphingidae]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {77},
+   pages = {293-294},
+   year = {1972},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Saturniidae et Sphingidae africains nouveaux ou peu connus [Lep.]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {78},
+   pages = {139-149},
+   year = {1973},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Description de Lépidoptères des genres Temnora (Sphingidae) et Orthogonioptilum Attacidae},
+   journal = {Annls Fac. Sci. Univ. féd. Cameroun},
+   volume = {20},
+   pages = {15-22},
+   year = {1975},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Lépidoptères Attacidae et Sphingidae de République Unie du Cameroun, du Rwanda et de l'Ethiopie avec description de deux espèces et six sous-espèces nouvelles},
+   journal = {Annls Fac. Sci. Univ. féd. Cameroun},
+   volume = {19},
+   pages = {73-96},
+   year = {1975},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Un Sphingidae mal connu de République Unie de Cameroun: Theretra tessmanni Gehlen (Lepidoptera)},
+   journal = {Annls Fac. Sci. Univ. féd. Cameroun},
+   volume = {21-22},
+   pages = {135-138},
+   year = {1976},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Sphingidae de Bioko},
+   journal = {Lambillionea},
+   volume = {89},
+   pages = {42-43},
+   year = {1989},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Lépidoptères Sphingidae des îles du Golfe de Guinée},
+   journal = {Bull. Soc. ent. Mulhouse},
+   volume = {1991},
+   pages = {62-64},
+   year = {1991},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Deux nouveaux Temnora orophiles de l'Afrique orientale},
+   journal = {Bull. Soc. ent. Mulhouse},
+   volume = {60},
+   pages = {08-Dec},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Deux nouvelles sous-espèces de Temnora originaires d'Afrique de l'Est},
+   journal = {Bull. Soc. ent. Mulhouse},
+   volume = {60},
+   pages = {67-70},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Nouveaux Temnora néo-endémiques de l'Arc montagneux oriental de Tanzanie (Lepidoptera, Sphingidae)},
+   journal = {Bull. Soc. ent. Mulhouse},
+   volume = {60},
+   pages = {38-40},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Une nouvelle espèce du complexe de Pseudoclanis postica (Walker, 1856), originaire de Tanzanie (Lepidoptera, Sphingidae)},
+   journal = {Ent. Africana},
+   volume = {10},
+   pages = {38, 43-46},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Darge, P},
+   title = {Un nouveau Theretra de l'île de Bioko (Lepidoptera, Sphingidae)},
+   journal = {Bull. Soc. ent. Mulhouse},
+   volume = {62},
+   pages = {37-39},
+   year = {2006},
+   type = {Journal Article}
+}
+
+@article{
+   author = {de Freina, JJ and Geck, M},
+   title = {Studien zur Ökologie, Biologie, Verbreitung und geographischen Variabilität von Akbesia davidi (Oberthür, 1884) (Lepidoptera: Sphingidae)},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {23},
+   pages = {167-180},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {de Marmels, J and Clavijo, A J and Chacín Rivas, ME},
+   title = {A new subspecies of Xylophanes tersa (Sphingidae) from Venezuela},
+   journal = {J. Lepid. Soc.},
+   volume = {50},
+   pages = {303-308},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Diehl, EW},
+   title = {Die Sphingiden Sumatras},
+   journal = {Heteroc. Sumatr.},
+   volume = {1},
+   pages = {Jan-97},
+   year = {1982},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Dupont, F},
+   title = {Three moths new to the fauna of Java (Sphingidae, Brahmaeidae and Cossidae)},
+   journal = {Ent. Meded. Ned.-Indië},
+   volume = {3},
+   pages = {10-Dec},
+   year = {1937},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Dyar, HG},
+   title = {Descriptions of new species and genera of Lepidoptera, chiefly from Mexico},
+   journal = {Proc. U.S. natn. Mus.},
+   volume = {42},
+   pages = {39-106},
+   year = {1912},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Ein neues Taxon der Gattung Isognathus Felder & Felder 1862 (Lepidoptera: Sphingidae)},
+   journal = {Ent. Z.},
+   volume = {109},
+   pages = {222-227},
+   year = {1999},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Zwei neue Schwärmerarten von den Insel Sulawesi (Lepidoptera: Sphingidae)},
+   journal = {Ent. Z.},
+   volume = {109},
+   pages = {182-191},
+   year = {1999},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Eine neue Art der Gattung Callionima Lucas, 1857 aus Peru (Lepidoptera, Sphingidae)},
+   journal = {Atalanta},
+   volume = {31},
+   pages = {493-496, 594-595},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Eine neue Theretra-Art von der Insel Sulawesi (Lepidoptera, Sphingidae)},
+   journal = {Neue Entomologische Nachrichten},
+   volume = {48},
+   pages = {101-107},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Zur Verbreitung von Theretra natashae Cadiou, 1995 mit Beschreibung einer neuen Unterart von der Insel Lombok (Lepidoptera, Sphingidae)},
+   journal = {Atalanta},
+   volume = {31},
+   pages = {497-503},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Die Gattung Callionima Lucas, 1857 (Lepidoptera, Sphingidae)},
+   journal = {Neue Entomologische Nachrichten},
+   volume = {51},
+   pages = {153-224},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Die Xylophanes rothschildi-Gruppe mit der Beschreibung einer neuen Art (Lepidoptera, Sphingidae)},
+   journal = {Atalanta},
+   volume = {32},
+   pages = {435-452},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Macroglossum paukstadtorum spec. nov. vom Babar-Archipel (Lepidoptera, Sphingidae)},
+   journal = {Atalanta},
+   volume = {36},
+   pages = {257-263, 408-411},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Beitrag zur Kenntnis der Gattung Angonyx Boisduval, [1875] mit der Beschreibung von zwei neuen Arten (Lepidoptera, Sphingidae)},
+   journal = {Neue Entomologische Nachrichten},
+   volume = {59},
+   pages = {107-166, 420-431},
+   year = {2006},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U},
+   title = {Hippotion eson auct. (nec. Cramer, 1779): ein Artenkomplex? (Lepidoptera, Sphingidae)},
+   journal = {Neue Entomologische Nachrichten},
+   volume = {59},
+   pages = {370-397, 472-475},
+   year = {2006},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U and Haxaire, J},
+   title = {A new hawkmoth from western Ecuador: Pachygonidia odile (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {102},
+   pages = {501-504},
+   year = {2002},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U and Kravchenko, V and Li, C and Speidel, W and Witt, T and Müller, GC},
+   title = {Zwei neue Hemaris Dalman, 1816-Arten (Subgenus Mandarina Eitschberger, Danner & Surholt, 1998) aus dem Nahen Osten (Lepidoptera, Sphingidae)},
+   journal = {Atalanta},
+   volume = {36},
+   pages = {199-208, 400-409},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Eitschberger, U and Schnitzler, H},
+   title = {Eine neue Art aus der Macroglossum loeffleri-Gruppe (sensu Eitschberger, 2004) von Ceylon aus der Sammlung H. Schnitzler (Lepidoptera, Sphingidae)},
+   journal = {Neue Entomologische Nachrichten},
+   volume = {59},
+   pages = {364-369, 471-472},
+   year = {2006},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Fukuda, H},
+   title = {A new subspecies of Theretra nessus (Lepidoptera, Sphingidae, Macroglossinae) from Fiji},
+   journal = {Trans. lepid. Soc. Japan},
+   volume = {54},
+   pages = {116-119},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Int. ent. Z.},
+   volume = {20},
+   pages = {172-176, 248-252},
+   year = {1926},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden-Arten, -Unterarten und -Formen},
+   journal = {Int. ent. Z.},
+   volume = {21},
+   pages = {391-401},
+   year = {1928},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphigiden [sic]},
+   journal = {Ent. Z.},
+   volume = {44},
+   pages = {258-259},
+   year = {1930},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Ent. Z.},
+   volume = {44},
+   pages = {174-176},
+   year = {1930},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Int. ent. Z.},
+   volume = {24},
+   pages = {217-220},
+   year = {1930},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Ent. Z.},
+   volume = {44},
+   pages = {362-364},
+   year = {1931},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neues über Sphingiden},
+   journal = {Ent. Z.},
+   volume = {45},
+   pages = {119-121},
+   year = {1931},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Ent. Rdsch.},
+   volume = {49},
+   pages = {62-64, 65-66, 84-85},
+   year = {1932},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Ent. Z.},
+   volume = {55},
+   pages = {178-179},
+   year = {1941},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Gehlen, B},
+   title = {Neue Sphingiden},
+   journal = {Ent. Z.},
+   volume = {56},
+   pages = {127-128},
+   year = {1942},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Griveaud, P},
+   title = {Insectes Lépidoptères Sphingidae},
+   journal = {Faune Madagascar},
+   volume = {8},
+   pages = {1-161},
+   year = {1959},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Griveaud, P},
+   title = {Sur quelques Sphingides nouveaux ou peu connus de la région malgache [Lep.]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {65},
+   pages = {40-47},
+   year = {1960},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hampson, GF},
+   title = {Two new Indian Sphingidae in the British Museum},
+   journal = {Novitates Zoologicae},
+   volume = {14},
+   pages = {327},
+   year = {1907},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'un nouveau Sphinx vénézuélien: Xylophanes sarae [Lep. Sphingidae]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {93},
+   pages = {175-179},
+   year = {1989},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d;un nouveau Sphinx équatorien Xylophanes schwartzi (Lep. Sphingidae)},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {96},
+   pages = {291-293},
+   year = {1992},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Temnora ntombi herlanti n. ssp. nouveau Sphingidae de Côte d'Ivoire},
+   journal = {Lambillionea},
+   volume = {93},
+   pages = {463-465},
+   year = {1993},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'un nouveau Sphingidae de Guyane française: Xylophanes colinae n. sp},
+   journal = {Lambillionea},
+   volume = {94},
+   pages = {137-141},
+   year = {1994},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'un nouveau Sphingidae brésilien: Nyceryx furtadoi n. sp. (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {96},
+   pages = {351-354},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'une nouvelle espèce de Sphingidae du genre Protaleuron Rothschild & Jordan 1903 (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {101},
+   pages = {139-143},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Un nouveau Sphingidae du nord-est de Madagascar: Hippotion melichari (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {101},
+   pages = {600-604},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'un nouveau Sphingidae de l'ile de Tahiti: Gnathothlibus collardi (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {102},
+   pages = {495-499},
+   year = {2002},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Un nouveau Sphingidae des Iles St Barthélémy et de St Martin (Petites Antilles): Cautethia noctuiformis choveti (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {102},
+   pages = {263-266},
+   year = {2002},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Un nouveau Sphingidae d'Equateur occidental: Xylophanes vagliai (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {103},
+   pages = {659-662},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J},
+   title = {Description d'un nouveau Sphingidae bolivien Nyceryx janzeni sp. n. (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {105},
+   pages = {583-588},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J and Cadiou, J-M},
+   title = {Description of a new species in the genus Nyceryx, and notes on allied species (Lepidoptera, Sphingidae)},
+   journal = {Lambillionea},
+   volume = {99},
+   pages = {344-350},
+   year = {1999},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J and Eitschberger, U},
+   title = {Description d'un nouveau Sphingidae d'Amerique centrale, Xylophanes monzoni n. sp. (Lepidoptera, Sphingidae)},
+   journal = {Lépidoptères},
+   volume = {1},
+   number = {2},
+   pages = {01-Jun},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J and Kitching, IJ},
+   title = {On the identity of Cechenena aegrota (Butler, 1875) and related species (Lepidoptera, Sphingidae)},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {108},
+   pages = {355-360},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J and Schmit, P},
+   title = {Un nouveau Sphingidae de République Dominicaine: Cautethia carsusi (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {101},
+   pages = {605-608},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Haxaire, J and Vaglia, T},
+   title = {Nouveaux Sphingidae équatoriens et boliviens du genre Xylophanes Hübner, [1819] (Lepidoptera Sphingidae)},
+   journal = {Lépidoptères},
+   volume = {2},
+   number = {3},
+   pages = {27-33},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hayes, AH},
+   title = {A new species of Andriasa (Lepidoptera: Sphingidae) from Zambia},
+   journal = {Entomologist},
+   volume = {106},
+   pages = {266},
+   year = {1973},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hayes, AH},
+   title = {A striking new species of Gnathothlibus (Lepidoptera: Sphingidae (Macroglossinae)) from Sulawesi},
+   journal = {Entomologist's Rec. J. Var.},
+   volume = {95},
+   pages = {19-20},
+   year = {1983},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hering, M},
+   title = {Sphingidae},
+   journal = {Gross-Schmetterl. Erde},
+   volume = {14},
+   pages = {357-386},
+   year = {1927},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hodges, RW},
+   title = {Sphingoidea},
+   journal = {Moths Amer. north of Mexico},
+   volume = {21},
+   pages = {1-158},
+   year = {1971},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hogenes, W},
+   title = {A new species of Macroglossum from Tanimbar Islands (Lepidoptera: Sphingidae)},
+   journal = {Ent. Ber., Amst.},
+   volume = {44},
+   pages = {124-125},
+   year = {1984},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hogenes, W and Treadaway, CG},
+   title = {New hawk moths from the Philippines (Lepidoptera, Sphingidae)},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {13},
+   pages = {533-552},
+   year = {1993},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hogenes, W and Treadaway, CG},
+   title = {New taxa of Sphingidae (Lepidoptera) from the Philippines},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {17},
+   pages = {117-122},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Hogenes, W and Treadaway, CG},
+   title = {The Sphingidae (Lepidoptera) of the Philippines},
+   journal = {Nachrichten des Entomologischen Vereins Apollo},
+   volume = {17},
+   pages = {17-132},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Holloway, JD},
+   title = {The moths of Borneo: superfamily Bombycoidea: families Lasiocampidae, Eupterotidae, Bombycidae, Brahmaeidae, Saturniidae, Sphingidae},
+   journal = {Moths of Borneo},
+   volume = {3},
+   pages = {1-199},
+   year = {1987},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Holloway, JD},
+   title = {The Lepidoptera of Easter, Pitcairn and Henderson Islands},
+   journal = {J. nat. Hist.},
+   volume = {24},
+   pages = {719-729},
+   year = {1990},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Inoue, H},
+   title = {65. Sphingidae. Pp. 317-322},
+   journal = {Moths of Japan},
+   pages = {552},
+   year = {1982},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Inoue, H},
+   title = {Supplementary notes on the Sphingidae of Taiwan, with special reference to Marumba spectabilis-complex},
+   journal = {Tinea},
+   volume = {12},
+   pages = {245-258},
+   year = {1990},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Izerskii, VV},
+   title = {Bombycoid Lepidoptera (fam. Bombycidae, Endromididae, Lasiocampidae, Brachmaeidae [sic], Saturniidae, Sphingidae) and notodontids (fam. Notodontidae) of Siberia and the Russian Far East},
+   pages = {160},
+   year = {1999},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Joicey, JJ and Talbot, G},
+   title = {New forms of Sphingidae},
+   journal = {Entomologist},
+   volume = {54},
+   pages = {105-109},
+   year = {1921},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Some new Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {18},
+   pages = {135-136},
+   year = {1911},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {A new hawk-moth from Ecuador},
+   journal = {Novitates Zoologicae},
+   volume = {18},
+   pages = {599-600},
+   year = {1912},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Notes on and descriptions of Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {27},
+   pages = {159-162},
+   year = {1920},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Über einige alte und neue Spingiden [sic] (Lep.)},
+   journal = {Ent. Mitt.},
+   volume = {12},
+   pages = {51-57},
+   year = {1923},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Two new subspecies of Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {31},
+   pages = {298},
+   year = {1924},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Some new eastern Sphingidae in Tring Museum},
+   journal = {Ann. Mag. nat. Hist.},
+   volume = {18},
+   pages = {207-209},
+   year = {1926},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {On some Oriental Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {35},
+   pages = {85-89},
+   year = {1929},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Description of new Sphingidae and remarks on some others},
+   journal = {Novitates Zoologicae},
+   volume = {36},
+   pages = {01-May},
+   year = {1930},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {On the geographical variation of the Pine Hawkmoth, Hyloicus pinastri},
+   journal = {Novitates Zoologicae},
+   volume = {36},
+   pages = {243-249},
+   year = {1931},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {A new sphingid from Madagascar (Lepidoptera)},
+   journal = {Novitates Zoologicae},
+   volume = {38},
+   pages = {342},
+   year = {1933},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {On the remarkable variation of an oriental hawkmoth (Lepidoptera)},
+   journal = {Novitates Zoologicae},
+   volume = {41},
+   pages = {126-129},
+   year = {1938},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Jordan, K},
+   title = {Results of the Oxford University Biological Expedition to the Cayman Islands, 1938. Sphingidae (Lep.)},
+   journal = {Entomologist's mon. Mag.},
+   volume = {76},
+   pages = {275-277},
+   year = {1940},
+   type = {Journal Article}
+}
+
+@article{
+   author = {JR, Alvarez Corral},
+   title = {Descripción de un nuevo Sphingidae de Venezuela: Xylophanes alvarezsierrai n. sp. (Lepidoptera)},
+   journal = {Nouv. Revue Ent.},
+   volume = {18},
+   pages = {313-315},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kernbach, K},
+   title = {Eine neue Sphingidenart aus Argentinien: Sphinx phalerata n. sp},
+   journal = {Z. Lepid.},
+   volume = {3},
+   pages = {101-103},
+   year = {1955},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kernbach, K},
+   title = {Die Schwärmer einiger Galapagos-Inseln (Lep. Sphingidae)},
+   journal = {Opusc. zool. Münch.},
+   volume = {63},
+   pages = {Jan-19},
+   year = {1962},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kishida, Y},
+   title = {Description of a new subspecies of Sphinx crassistriga (Rothschild & Jordan) (Lepidoptera, Sphingidae) from Hokkaido, northern Japan},
+   journal = {Gekkan-Mushi},
+   volume = {231},
+   pages = {10-Nov},
+   year = {1990},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kishida, Y and Yano, T},
+   title = {A new subspecies of Amperophaga [sic] rubiginosa (Lepidoptera, Sphingidae) from Yakushima I},
+   journal = {Trans. lepid. Soc. Japan},
+   volume = {52},
+   pages = {277-278},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kitching, IJ and Cadiou, J-M},
+   title = {Hawkmoths of the world: an annotated and illustrated revisionary checklist},
+   pages = {226},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Kitching, IJ and Jin, XB},
+   title = {A new species of Sphinx (Lepidoptera: Sphingidae) from Sichuan province, China},
+   journal = {Tinea},
+   volume = {15},
+   pages = {275-280},
+   year = {1998},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lachlan, RB},
+   title = {Description of a second species of Gnathothlibus Wallengren (Lepidoptera: Sphingidae) from Australia},
+   journal = {Aust. Ent.},
+   volume = {31},
+   pages = {111-118},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lachlan, RB},
+   title = {A new subspecies and a revised status in Theretra Hübner (Lepidoptera: Sphingidae) of Vanuatu and New Caledonia},
+   journal = {Aust. Ent.},
+   volume = {31},
+   pages = {169-176},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lachlan, RB and Moulds, MS},
+   title = {A new species of Gnathothlibus Wallengren (Lepidoptera: Sphingidae) from Vanuatu},
+   journal = {Aust. Ent.},
+   volume = {28},
+   pages = {123-128},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lachlan, RB and Moulds, MS},
+   title = {A second new species of Gnathothlibus Wallengren (Lepidoptera: Sphingidae) from Vanuatu},
+   journal = {Aust. Ent.},
+   volume = {30},
+   pages = {115-122},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lichy, R},
+   title = {Documentos para servir al estudio de los Sphingidae de Venezuela (Lepidoptera, Heterocera) (10a nota)},
+   journal = {Revta Fac. Agric. Univ. cent. Venez.},
+   volume = {2},
+   pages = {53-178},
+   year = {1962},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Lichy, R},
+   title = {Documentos para el estudio de los Sphingidae de Venezuela (Lepidoptera Heterocera) (15a nota) Baniwa yavitensis gen.n., sp.n. e Isognathus mossi fabianae ssp.n., nuevos Sphingidae de la Region Amazonica de Venezuela},
+   journal = {Boln Ent. venez.},
+   volume = {1},
+   pages = {57-70},
+   year = {1981},
+   type = {Journal Article}
+}
+
+@article{
+   author = {McCabe, TL},
+   title = {A new Cautethia from the Bahamas (Lepidoptera: Sphingidae)},
+   journal = {Proc. ent. Soc. Wash.},
+   volume = {86},
+   pages = {614-618},
+   year = {1984},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Mell, R},
+   title = {Beiträge zur Fauna sinica. Biologie und Systematik der südchinesischen Sphingiden},
+   volume = {1 & 2},
+   pages = {177 + 331},
+   year = {1922},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Mell, R},
+   title = {Neue südchinesische Lepidoptera},
+   journal = {Dt. ent. Z. Berlin},
+   volume = {1922},
+   pages = {113-129},
+   year = {1922},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Miyata, A},
+   title = {The hawk moths collected in the Dominican Republic, the West Indies, in 1993-1995},
+   journal = {Yugatô},
+   volume = {147},
+   pages = {13-24},
+   year = {1997},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Mooser, O},
+   title = {Sphinx libocedrus achotla, subsp. nov. (Lepidoptera, Sphingidae)},
+   journal = {An. Inst. Biol. Univ. Autón. Méx.},
+   volume = {15},
+   pages = {191-192},
+   year = {1944},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Mooser, O},
+   title = {Sphinx pitzahuac n. sp. (Lepidoptera, Sphingidae)},
+   journal = {An. Inst. Biol. Univ. Autón. Méx.},
+   volume = {18},
+   pages = {547-549},
+   year = {1947},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Neidhoefer, JR},
+   title = {Descriptions of Madoryx (Sphingidae), Hemeroplanes (Sphingidae), Charaxes (Nymphalidae), and Anaea (Nymphalidae)},
+   journal = {Occ. Pap. Milwaukee publ. Mus.},
+   volume = {1},
+   pages = {03-Aug},
+   year = {1968},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Oberthür, C},
+   title = {Description d'une nouvelle espèce de Sphingides [Lép.]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {1904},
+   pages = {13-14},
+   year = {1904},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Oberthür, C},
+   title = {Descriptions de nouveaux Sphingides [Lép.]},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {1904},
+   pages = {76-79},
+   year = {1904},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Owada, M and Kogi, H},
+   title = {Discovery of a sphingid moth of Hyloicus morio (Lepidoptera) from northern Hokkaido, Japan},
+   journal = {Mem. natn. Sci. Mus., Tokyo},
+   volume = {25},
+   pages = {163-170},
+   year = {1992},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Pierre, J},
+   title = {Nouveaux sphinx africains [Lepidoptera, Sphingidae]},
+   journal = {Revue fr. Ent.},
+   volume = {11},
+   pages = {117-128},
+   year = {1989},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Pierre, J},
+   title = {Les Sphinx du Gabon (Lepidoptera, Sphingidae)},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {106},
+   pages = {261-271},
+   year = {2001},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Pierre, J},
+   title = {Cephonodes santome, un nouveau Sphinx de l'île de Sâo Tomé (Lepidoptera, Sphingidae)},
+   journal = {Revue fr. Ent.},
+   volume = {24},
+   pages = {18},
+   year = {2002},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Pierre, J},
+   title = {Révision du genre Neopolyptychus (Lepidoptera, Sphingidae)},
+   journal = {Bulletin de la Société Entomologique de France},
+   volume = {109},
+   pages = {155-168},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Pittaway, AR and Kitching, IJ},
+   title = {Sphingidae of the Eastern Palaearctic},
+   year = {2000},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rebel, H},
+   title = {[No title] Beschreibung einer neuen Sphingide aus Neu-Guinea. P. (34),in: Rebel, H, Versammlung am 1. März 1907},
+   journal = {Verh. zool.-bot. Ges. Wien},
+   volume = {57},
+   pages = {(33)-(40)},
+   year = {1907},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Riotte, JCE},
+   title = {Eine neue Art der Gattung Sphinx von Formosa (Lep., Sphingidae)},
+   journal = {Ent. Z.},
+   volume = {80},
+   pages = {13-18},
+   year = {1970},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Riotte, JCE},
+   title = {Sphinx poecila, a valid North American hawkmoth species (Lepidoptera: Sphingidae)},
+   journal = {Gt Lakes Ent.},
+   volume = {13},
+   pages = {115-130},
+   year = {1980},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Riotte, JCE},
+   title = {The genus Agrius in the Pacific region with description of a new species (Lepidoptera: Sphingidae)},
+   journal = {Int. J. Ent.},
+   volume = {26},
+   pages = {339-350},
+   year = {1984},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Röber, JKM},
+   title = {Über einige exotische Falter},
+   journal = {Int. ent. Z.},
+   volume = {23},
+   pages = {323-327},
+   year = {1929},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW},
+   title = {New Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {11},
+   pages = {435-440},
+   year = {1904},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW},
+   title = {Preliminary descriptions of some new species and subspecies of Indo-Malayan Sphingidae},
+   journal = {Ann. Mag. nat. Hist.},
+   volume = {5},
+   pages = {479-482},
+   year = {1920},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {A revision of the lepidopterous family Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {9},
+   pages = {1-972},
+   year = {1903},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {New Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {13},
+   pages = {178-185},
+   year = {1906},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {New Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {14},
+   pages = {92-95},
+   year = {1907},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Some new Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {15},
+   pages = {259-260},
+   year = {1908},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {List of the Sphingidae collected by the late W. Hoffmanns at Allianca, Rio Madeira, Amazonas},
+   journal = {Novitates Zoologicae},
+   volume = {17},
+   pages = {447-455},
+   year = {1910},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Some new Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {17},
+   pages = {456-459},
+   year = {1910},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Some new Sphingidae in the collection of the British Museum},
+   journal = {Novitates Zoologicae},
+   volume = {22},
+   pages = {291-294},
+   year = {1915},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Thirteen new Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {22},
+   pages = {281-290},
+   year = {1915},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Corrections of and additions to our Revision of the Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {23},
+   pages = {115-123},
+   year = {1916},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Rothschild, LW and Jordan, K},
+   title = {Further corrections of and additions to our Revision of the Sphingidae},
+   journal = {Novitates Zoologicae},
+   volume = {23},
+   pages = {247-263},
+   year = {1916},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Schaus, W},
+   title = {New species of Heterocera from Costa Rica},
+   journal = {Ann. Mag. nat. Hist.},
+   volume = {9},
+   pages = {33-57, 202-214, 289-311, 423-433, 537-551, 656-681},
+   year = {1912},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Schaus, W},
+   title = {New species of Sphingidae and Saturniidae in the U.S. National Museum},
+   journal = {J. Wash. Acad. Sci.},
+   volume = {22},
+   pages = {137-148},
+   year = {1932},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Schmit, P},
+   title = {Première note sur les Sphingides du Malawi. Desription d'une nouvelle espèce du genre Hippotion Hübner [1819]: Hippotion adelinae n. sp},
+   journal = {Bull. Lepid. Paris.},
+   volume = {14},
+   pages = {36-38},
+   year = {2005},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Skell, F},
+   title = {Ein Massenauftreten von Protoparce convolvuli var. indica in Ost-Sumatra},
+   journal = {Mitt. münch. ent. Ges.},
+   volume = {4},
+   pages = {56-61},
+   year = {1913},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Smetacek, P},
+   title = {Descriptions of new Lepidoptera from the Kumaon Himalaya},
+   journal = {J. Bombay nat. Hist. Soc.},
+   volume = {101},
+   pages = {269-274},
+   year = {2004},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Soares, A},
+   title = {Nota sôbre o gênero Callionima Lucas, 1856 (Lepidoptera, Sphingidae, Macroglossinae, Dilophonotini)},
+   journal = {Revta bras. Ent.},
+   volume = {37},
+   pages = {35-39},
+   year = {1993},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Soares, A and Motta, C da S},
+   title = {Um novo Xylophanes Hübner, [1819] da Bahia, Brasil (Lepidoptera, Sphingidae)},
+   journal = {Entomol. Vect.},
+   volume = {9},
+   pages = {93-103},
+   year = {2002},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Stevenson, RHR},
+   title = {The Sphingidae of South Africa, with special reference to those of Southern Rhodesia},
+   journal = {Trans. Rhod. scient. Ass.},
+   volume = {36},
+   pages = {133-151},
+   year = {1938},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Tatarinov, AG and Sedykh, KF and Dolgin, MM},
+   title = {Fauna of the European North-East of Russia. Metaheterocera (families Saturniidae, Endromidae, Lasiocampidae, Lemoniidae, Sphingidae, Drepanidae, Thyatiridae, Notodontidae, Lymantriidae, Nolidae, Arctiidae)},
+   volume = {7(2)},
+   pages = {223},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Tennent, WJ},
+   title = {Notes on some Borneo hawk moths (Lepidoptera: Sphingidae) including Eupanacra hollowayi sp. n. and Macroglossum amoenum Rothschild & Jordan, new to Borneo},
+   journal = {Entomologist's Rec. J. Var.},
+   volume = {103},
+   pages = {223-235},
+   year = {1991},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Turlin, B},
+   title = {Faune lépidoptèrologique de l'archipel des Comores (Océan Indien) (Rhopalocera, Sphingidae, Attacidae) (9)},
+   journal = {Lambillionea},
+   volume = {96},
+   pages = {329-339},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Turlin, B},
+   title = {Faune lepidopterologique de l'archipel des Comores (Océan Indien). (Rhopalocères, Sphingidae, Attacidae)},
+   journal = {Lambillionea},
+   volume = {96},
+   pages = {159-173},
+   year = {1996},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Vaglia, T and Haxaire, J},
+   title = {Description d'un nouveau Sphingidae du Costa Rica Xylophanes letiranti (Lepidoptera Sphingidae)},
+   journal = {Lambillionea},
+   volume = {103},
+   pages = {287-290},
+   year = {2003},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Vázquez-G, L},
+   title = {Notas sobre Lepidópteros des las islas Revillagigedo. II},
+   journal = {An. Inst. Biol. Univ. Autón. Méx.},
+   volume = {29},
+   pages = {349-353},
+   year = {1959},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Wood, WC},
+   title = {The Cuban variety of Protoparce rustica Fabricius (Lep.)},
+   journal = {Ent. News},
+   volume = {26},
+   pages = {433-434},
+   year = {1915},
+   type = {Journal Article}
+}
+
+@article{
+   author = {Zhu, HF and Wang, LY},
+   title = {Lepidoptera Sphingidae},
+   journal = {Fauna Sinica},
+   volume = {11},
+   pages = {1-410},
+   year = {1997},
+   type = {Journal Article}
+}
+
