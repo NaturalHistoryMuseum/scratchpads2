@@ -1,0 +1,31 @@
+diff --git a/sites/all/modules/custom/gm3/js/gm3.point.js b/sites/all/modules/custom/gm3/js/gm3.point.js
+index e6b3b65..3a8d929 100644
+--- a/sites/all/modules/custom/gm3/js/gm3.point.js
++++ b/sites/all/modules/custom/gm3/js/gm3.point.js
+@@ -63,18 +63,18 @@
+         this.clusterer.repaint();
+         break;
+       case 'click':
+-        switch(event_object.getClass()){
+-          case 'Map':
+-            if(this.GM3.active_class == 'point') {
++        if (this.GM3.active_class == 'point') {
++          switch(event_object.getClass()){
++            case 'Map':
+               this.add_marker(event.latLng, true, true);
+               if(this.update_field) {
+                 this.update_field();
+               }
+-            }
+-            break;
+-          case 'Marker':
+-            this.GM3.message(event_object.position.toString(), 'status', 10000);
+-            break;
++              break;
++            case 'Marker':
++              this.GM3.message(event_object.position.toString(), 'status', 10000);
++              break;
++          }
+         }
+         break;
+       case 'rightclick':
