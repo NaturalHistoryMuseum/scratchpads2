@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SightingForms xmlns:xs="http://localhost/media/schemas/sightingform/1.0/sightingform.xsd">
+	<SightingForm isPublic="1" iso2language="en" version="1" xsdversion="1.0">
+		<FormUUID>6ca95f50-f470-11e2-b778-0800200c9a66</FormUUID>
+		<FormName>Example for a anymals+plants Sighting Form</FormName>
+		<Fields>
+			<Text name="TextName" required="1" sticky="1">
+				<Value>bla</Value>
+			</Text>
+			
+			<Text name="TextName2" required="1" sticky="1">
+				<Value>blo</Value>
+			</Text>
+			
+			<Number name="NumName" required="1" sticky="1">
+				<Value>1000</Value>
+			</Number>
+			
+			<SelectOne name="SelName" required="1" sticky="1">
+				<Choice default="1">------</Choice>
+				<Choice>1</Choice>
+				<Choice>2</Choice>
+				<Value>2</Value>
+			</SelectOne>
+			
+			<Checkbox name="CBname" required="1" sticky="1">
+				<Value>1</Value>
+			</Checkbox>
+			
+			<CheckboxSet name="CBSname" required="1" sticky="1">
+				<Choice selected="1">one</Choice>
+				<Choice>two</Choice>
+				<Choice selected="false">three</Choice>
+			</CheckboxSet>
+		</Fields>
+	</SightingForm>
+</SightingForms>
