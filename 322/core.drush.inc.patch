@@ -1,0 +1,19 @@
+*** commands/core/core.drush.inc	2013-02-13 12:27:48.305827142 +0000
+--- commands/core/core.drush.inc	2013-02-13 12:19:05.000000000 +0000
+***************
+*** 283,289 ****
+      return FALSE;
+    }
+  
+!   if (drush_drupal_major_version() <= 6) {
+      // Clear all caches. We just performed major surgery.
+      drush_drupal_cache_clear_all();
+    }
+--- 283,289 ----
+      return FALSE;
+    }
+  
+!   if (drush_drupal_major_version() <= 7) {
+      // Clear all caches. We just performed major surgery.
+      drush_drupal_cache_clear_all();
+    }
