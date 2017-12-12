@@ -1,0 +1,855 @@
+unit_name1	unit_name2	unit_ind3	unit_name3	taxon_author	rank_name	usage	parent_name	unacceptability_reason	accepted_name	page_number
+Acoela				Uljanin, 1870	Order	valid
+Actinoposthiidae				Hooge, 2001	Family	valid	Acoela Uljanin, 1870
+Actinoposthia				An der Lan, 1936	Genus	valid	Actinoposthiidae Hooge, 2001
+Actinoposthia	beklemischevi			Mamkaev, 1965	Species	valid	Actinoposthia An der Lan, 1936
+Actinoposthia	biaculeata			Faubel, 1974	Species	valid	Actinoposthia An der Lan, 1936
+Actinoposthia	caudata			An der Lan, 1936	Species	valid	Actinoposthia An der Lan, 1936
+Actinoposthia	haplovata			Dörjes, 1968	Species	valid	Actinoposthia An der Lan, 1936
+Actinoposthia	longa			Faubel, 1976	Species	valid	Actinoposthia An der Lan, 1936
+Actinoposthia	pigmentea			Faubel, 1976	Species	valid	Actinoposthia An der Lan, 1936
+Archactinoposthia				Dörjes, 1968	Genus	valid	Actinoposthiidae Hooge, 2001
+Proactinoposthia				Dörjes, 1968	Genus	invalid	Archactinoposthia Dörjes, 1968	original misspelling	Archactinoposthia
+Archactinoposthia	pelophila			Dörjes, 1968	Species	valid	Archactinoposthia Dörjes, 1968
+Proactinoposthia	pelophila			Dörjes, 1968	Species	invalid	Archactinoposthia pelophila Dörjes, 1968		Archactinoposthia pelophila
+Atriofronta				Dörjes, 1968	Genus	valid	Actinoposthiidae Hooge, 2001
+Atriofronta	polyvacuola			Dörjes, 1968	Species	valid	Atriofronta Dörjes, 1968
+Childianea				Faubel & Cameron, 2001	Genus	valid	Actinoposthiidae Hooge, 2001
+Childianea	coomerensis			Faubel & Cameron, 2001	Species	valid	Childianea Faubel & Cameron, 2001
+Microposthia				Faubel, 1974	Genus	valid	Actinoposthiidae Hooge, 2001
+Microposthia	listensis			Faubel, 1974	Species	valid	Microposthia Faubel, 1974
+Paractinoposthia				Ehlers & Dörjes, 1981	Genus	valid	Actinoposthiidae Hooge, 2001
+Monoposthia				Ehlers & Dörjes, 1981	Genus	invalid	Paractinoposthia Ehlers & Dörjes, 1981	preoccupied	Paractinoposthia
+Paractinoposthia	pseudovesicula			(Ehlers & Dörjes, 1979)	Species	valid	Paractinoposthia Ehlers & Dörjes, 1981
+Monoposthia	pseudovesicula			Ehlers & Dörjes, 1979	Species	invalid	Paractinoposthia pseudovesicula (Ehlers & Dörjes, 1979)		Paractinoposthia pseudovesicula
+Paraproporus				Westblad, 1945	Genus	valid	Actinoposthiidae Hooge, 2001
+Adeloposthia				Westblad, 1945	Genus	invalid	Paraproporus Westblad, 1945	nomen nudum	Paraproporus
+Paraproporus	diovatus			Dörjes, 1968	Species	valid	Paraproporus Westblad, 1945
+Paraproporus	elegans			(An der Lan, 1936)	Species	valid	Paraproporus Westblad, 1945
+Adeloposthia	elegans			An der Lan, 1936	Species	invalid	Paraproporus elegans (An der Lan, 1936)		Paraproporus elegans
+Paraproporus	rosettiformis			Faubel, 1974	Species	valid	Paraproporus Westblad, 1945
+Paraproporus	rubescens			Westblad, 1945	Species	valid	Paraproporus Westblad, 1945
+Paraproporus	xanthus			Marcus, 1950	Species	valid	Paraproporus Westblad, 1945
+Pelophila				Dörjes, 1968	Genus	valid	Actinoposthiidae Hooge, 2001
+Pelophila	lutheri			(Westblad, 1946)	Species	valid	Pelophila Dörjes, 1968
+Aphanostoma	lutheri			Westblad, 1946	Species	invalid	Pelophila lutheri (Westblad, 1946)	homonym & junior synonym	Pelophila lutheri
+Convoluta	lutheri			Westblad, 1940	Species	invalid	Pelophila lutheri (Westblad, 1946)	nomen nudum	Pelophila lutheri
+Mecynostomum	lutheri			Westblad, 1948	Species	invalid	Pelophila lutheri (Westblad, 1946)	homonym & junior synonym	Pelophila lutheri
+Pelophila	cavernosa			Dörjes, 1968	Species	invalid	Pelophila lutheri (Westblad, 1946)	junior synonym	Pelophila lutheri
+Praeaphanostoma	lutheri			Westblad, 1946	Species	invalid	Pelophila lutheri (Westblad, 1946)	homonym & junior synonym	Pelophila lutheri
+Pelophila	pachymorpha			Dörjes, 1968	Species	valid	Pelophila Dörjes, 1968
+Philactinoposthia				Dörjes, 1968	Genus	valid	Actinoposthiidae Hooge, 2001
+Philactinoposthia	adenogonaria			Dörjes, 1968	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	coneyi			Hooge & Rocha, 2006	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	diploposthia			Dörjes, 1968	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	helgolandica			Dörjes, 1968	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	pusilla			(Westblad, 1946)	Species	valid	Philactinoposthia Dörjes, 1968
+Convoluta	pusilla			Westblad, 1946	Species	invalid	Philactinoposthia pusilla (Westblad, 1946)		Philactinoposthia pusilla
+Philactinoposthia	rhammifera			(Westblad, 1946)	Species	valid	Philactinoposthia Dörjes, 1968
+Convoluta	rhammifera			Westblad, 1946	Species	invalid	Philactinoposthia rhammifera (Westblad, 1946)		Philactinoposthia rhammifera
+Philactinoposthia	saliens			(Graff, 1882)	Species	valid	Philactinoposthia Dörjes, 1968
+Convoluta	saliens			(Graff, 1882)	Species	invalid	Philactinoposthia saliens (Graff, 1882)		Philactinoposthia saliens
+Cyrtomorpha	saliens			Graff L, 1882	Species	invalid	Philactinoposthia saliens (Graff, 1882)		Philactinoposthia saliens
+Philactinoposthia	sp. NC			Smith & Tyler, 1985	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	stylifera			(Westblad, 1946)	Species	valid	Philactinoposthia Dörjes, 1968
+Convoluta	stylifera			Westblad, 1946	Species	invalid	Philactinoposthia stylifera (Westblad, 1946)		Philactinoposthia stylifera
+Pseudohaplogonaria	stylifera			(Westblad, 1946)	Species	invalid	Philactinoposthia stylifera (Westblad, 1946)		Philactinoposthia stylifera
+Philactinoposthia	tenebrosa			Ehlers & Dörjes, 1979	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	viridis			Dörjes, 1968	Species	valid	Philactinoposthia Dörjes, 1968
+Philactinoposthia	viridorhabditis			Dörjes, 1968	Species	valid	Philactinoposthia Dörjes, 1968
+Pseudactinoposthia				Dörjes, 1968	Genus	valid	Actinoposthiidae Hooge, 2001
+Pseudactinoposthia	daena			(Marcus, 1954)	Species	valid	Pseudactinoposthia Dörjes, 1968
+Mecynostomum	daenum			Marcus, 1954	Species	invalid	Pseudactinoposthia daena (Marcus, 1954)		Pseudactinoposthia daena
+Pseudactinoposthia	granaria			Dörjes, 1968	Species	valid	Pseudactinoposthia Dörjes, 1968
+Pseudactinoposthia	parva			Ehlers & Dörjes, 1979	Species	valid	Pseudactinoposthia Dörjes, 1968
+Pseudactinoposthia	saltans			Dörjes, 1968	Species	valid	Pseudactinoposthia Dörjes, 1968
+Tetraposthia				An der Lan, 1936	Genus	valid	Actinoposthiidae Hooge, 2001
+Tetraposthia	colymbetes			An der Lan, 1936	Species	valid	Tetraposthia An der Lan, 1936
+Tetraposthia	colymbetes			Steinböck, 1931	Species	invalid	Tetraposthia colymbetes An der Lan, 1936	nomen nudum	Tetraposthia colymbetes
+Anaperidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Achoerus				Beklemischev, 1914	Genus	valid	Anaperidae Dörjes, 1968
+Achoerus	caspius			Beklemischev, 1914	Species	valid	Achoerus Beklemischev, 1914
+Achoerus	ferox			Beklemischev, 1937	Species	valid	Achoerus Beklemischev, 1914
+Achoerus	pachycaudatus			Dörjes, 1968	Species	valid	Achoerus Beklemischev, 1914
+Anaperus				Graff, 1911	Genus	valid	Anaperidae Dörjes, 1968
+Anaperus	australis			Westblad, 1952	Species	valid	Anaperus Graff, 1911
+Anaperus	biaculeatus			Boguta, 1970	Species	valid	Anaperus Graff, 1911
+Anaperus	gardineri			(Graff, 1911)	Species	valid	Anaperus Graff, 1911
+Amphiscolops	gardineri			Graff, 1911	Species	invalid	Anaperus gardineri (Graff, 1911)		Anaperus gardineri
+Anaperus	ornatus			Beltagi, 2001	Species	valid	Anaperus Graff, 1911
+Anaperus	rubellus			Westblad, 1945	Species	valid	Anaperus Graff, 1911
+Anaperus	diploposthia			(Steinböck, 1931)	Species	invalid	Anaperus rubellus Westblad, 1945		Anaperus rubellus
+Convoluta	diploposthia			Steinböck, 1931	Species	invalid	Anaperus rubellus Westblad, 1945	nomen nudum	Anaperus rubellus
+Scoliopharyngia	arenicola			Ehlers, Reise, & Armonies, 1995	Species	invalid	Anaperus rubellus Westblad, 1945		Anaperus rubellus
+Anaperus	singularis			Hooge & Smith, 2004	Species	valid	Anaperus Graff, 1911
+Anaperus	sulcatus			Beklemischev, 1914	Species	valid	Anaperus Graff, 1911
+Anaperus	tvaerminnensis			(Luther, 1912)	Species	valid	Anaperus Graff, 1911
+Anaperus	balticus			Meixner, 1938	Species	invalid	Anaperus tvaerminnensis (Luther, 1912)	junior synonym	Anaperus tvaerminnensis
+Palmenia	tvaerminnensis			Luther, 1912	Species	invalid	Anaperus tvaerminnensis (Luther, 1912)		Anaperus tvaerminnensis
+Palmeniola	tvaerminnensis			Forsius, 1925	Species	invalid	Anaperus tvaerminnensis (Luther, 1912)		Anaperus tvaerminnensis
+Conaperta				Antonius, 1968	Genus	valid	Anaperidae Dörjes, 1968
+Conaperta	antonii			Achatz, Hooge & Tyler, 2007	Species	valid	Conaperta Antonius, 1968
+Conaperta	cirrata			Achatz, Hooge & Tyler, 2007	Species	valid	Conaperta Antonius, 1968
+Conaperta	flavibacillum			(Jensen, 1878)	Species	valid	Conaperta Antonius, 1968
+Convoluta	flavibacillum			Jensen, 1878	Species	invalid	Conaperta flavibacillum (Jensen, 1878)		Conaperta flavibacillum
+Conaperta	lineata			(Peebles, 1915)	Species	valid	Conaperta Antonius, 1968
+Convoluta	lineata			(Peebles, 1915)	Species	invalid	Conaperta lineata (Peebles, 1915)		Conaperta lineata
+Monochoerus	lineatus			Peebles, 1915	Species	invalid	Conaperta lineata (Peebles, 1915)		Conaperta lineata
+Neochildia				Bush, 1975	Genus	valid	Anaperidae Dörjes, 1968
+Neochildia	fusca			Bush, 1975	Species	valid	Neochildia Bush, 1975
+Oxyposthia				Ivanov, 1952	Genus	valid	Anaperidae Dörjes, 1968
+Oxyposthia	praedator			Ivanov, 1952	Species	valid	Oxyposthia Ivanov, 1952
+Palmenia				Luther, 1912	Genus	valid	Anaperidae Dörjes, 1968
+Palmeniola				Forsius, 1925	Genus	valid	Anaperidae Dörjes, 1968
+Philachoerus				Dörjes, 1968	Genus	valid	Anaperidae Dörjes, 1968
+Philachoerus	johanni			Dörjes, 1968	Species	valid	Philachoerus Dörjes, 1968
+Pseudanaperus				Dörjes, 1968	Genus	valid	Anaperidae Dörjes, 1968
+Pseudanaperus	tinctus			(Marcus, 1952)	Species	valid	Pseudanaperus Dörjes, 1968
+Paraproporus	tinctus			Marcus, 1952	Species	invalid	Pseudanaperus tinctus (Marcus, 1952)		Pseudanaperus tinctus
+Antigonariidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Antigonaria				Dörjes, 1968	Genus	valid	Antigonariidae Dörjes, 1968
+Antigonaria	arenaria			Dörjes, 1968	Species	valid	Antigonaria Dörjes, 1968
+Antroposthiidae				Faubel, 1976	Family	valid	Acoela Uljanin, 1870
+Antroposthia				Faubel, 1974	Genus	valid	Antroposthiidae Faubel, 1976
+Antroposthia	axi			Faubel, 1974	Species	valid	Antroposthia Faubel, 1974
+Antroposthia	unipora			Faubel, 1974	Species	valid	Antroposthia Faubel, 1974
+Convoluella				Faubel, 1974	Genus	valid	Antroposthiidae Faubel, 1976
+Convoluella	brunea			Faubel, 1974	Species	valid	Convoluella Faubel, 1974
+Unantra				Faubel, 1976	Genus	valid	Antroposthiidae Faubel, 1976
+Unantra	polyvacuola			Faubel, 1976	Species	valid	Unantra Faubel, 1976
+Childiidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Childia				Graff, 1910	Genus	valid	Childiidae Dörjes, 1968
+Childia	brachyposthium			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	brachyposthium			Westblad, 1942	Species	invalid	Childia brachyposthium (Westblad, 1942)		Childia brachyposthium
+Childia	crassum			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	crassum			Westblad, 1942	Species	invalid	Childia crassum (Westblad, 1942)		Childia crassum
+Childia	cycloposthium			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	cycloposthium			Westblad, 1942	Species	invalid	Childia cycloposthium (Westblad, 1942)		Childia cycloposthium
+Childia	dubium			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	dubium			Westblad, 1942	Species	invalid	Childia dubium (Westblad, 1942)		Childia dubium
+Childia	etium			(Marcus, 1954)	Species	valid	Childia Graff, 1910
+Paraphanostoma	etium			Marcus, 1954	Species	invalid	Childia etium (Marcus, 1954)		Childia etium
+Childia	gracilis			(Westblad, 1945)	Species	valid	Childia Graff, 1910
+Parahaploposthia	gracilis			Faubel 1977	Species	invalid	Childia gracilis (Westblad, 1945)	literature misspelling	Childia gracilis
+Paraphanostoma	gracilis			Westblad, 1945	Species	invalid	Childia gracilis (Westblad, 1945)		Childia gracilis
+Childia	groenlandica			(Levinsen, 1879)	Species	valid	Childia Graff, 1910
+Childia	baltica			Luther, 1912	Species	invalid	Childia groenlandica (Levinsen, 1879)	junior synonym	Childia groenlandica
+Childia	pansa			Marcus, 1950	Species	invalid	Childia groenlandica (Levinsen, 1879)	junior synonym	Childia groenlandica
+Childia	spinosa			Graff, 1911	Species	invalid	Childia groenlandica (Levinsen, 1879)	junior synonym	Childia groenlandica
+Convoluta	groenlandica			Levinsen, 1879	Species	invalid	Childia groenlandica (Levinsen, 1879)		Childia groenlandica
+Childia	leptoposthium			(Riedl, 1956)	Species	valid	Childia Graff, 1910
+Paraphanostoma	leptoposthium			Riedl, 1956	Species	invalid	Childia leptoposthium (Riedl, 1956)		Childia leptoposthium
+Childia	macroposthium			(Steinböck, 1931)	Species	valid	Childia Graff, 1910
+Convoluta	macroposthia			Steinböck, 1931	Species	invalid	Childia macroposthium (Steinböck, 1931)		Childia macroposthium
+Paraphanostoma	macroposthium			Steinböck, 1931	Species	invalid	Childia macroposthium (Steinböck, 1931)		Childia macroposthium
+Childia	submaculatum			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	submaculatum			Westblad, 1942	Species	invalid	Childia submaculatum (Westblad, 1942)		Childia submaculatum
+Childia	trianguliferum			(Westblad, 1942)	Species	valid	Childia Graff, 1910
+Paraphanostoma	triangulipherum			Westblad, 1942	Species	invalid	Childia trianguliferum (Westblad, 1942)		Childia trianguliferum
+Childia	vivipara			Tekle, Raikova & Jondelius 2006	Species	valid	Childia Graff, 1910
+Childia	westbladi			(Marcus, 1950)	Species	valid	Childia Graff, 1910
+Paraphanostoma	westbladi			Marcus, 1950	Species	invalid	Childia westbladi (Marcus, 1950)		Childia westbladi
+Paraphanostoma				Westblad, 1942	Genus	valid	Childiidae Dörjes, 1968
+Tetraposthia				Steinböck, 1931	Genus	valid	Childiidae Dörjes, 1968
+Convolutidae				Graff, 1905	Family	valid	Acoela Uljanin, 1870
+Adenopea				Antonius, 1968	Genus	valid	Convolutidae Graff, 1905
+Monochoerus				Loehner & Micoletzky, 1911	Genus	invalid	Adenopea Antonius, 1968	nomen nudum	Adenopea
+Adenopea	cenata			(Marcus EDB-R, 1955)	Species	valid	Adenopea Antonius, 1968
+Convoluta	cenata			Marcus EDB-R, 1955	Species	invalid	Adenopea cenata (Marcus EDB-R, 1955)		Adenopea cenata
+Adenopea	chuni			(Brauner, 1920)	Species	valid	Adenopea Antonius, 1968
+Convoluta	chuni			(Brauner, 1920)	Species	invalid	Adenopea chuni (Brauner, 1920)		Adenopea chuni
+Monochoerus	chuni			Brauner, 1920	Species	invalid	Adenopea chuni (Brauner, 1920)		Adenopea chuni
+Adenopea	illardatus			(Lohner & Micoletzky, 1911)	Species	valid	Adenopea Antonius, 1968
+Monochoerus	illardatus			Lohner & Micoletzky, 1911	Species	invalid	Adenopea illardatus (Lohner & Micoletzky, 1911)		Adenopea illardatus
+Amphiscolops				Graff, 1904	Genus	valid	Convolutidae Graff, 1905
+Amphichoerus				Graff, 1891	Genus	invalid	Amphiscolops Graff, 1904	preoccupied	Amphiscolops
+Amphiscolopus				Kato, 1957	Genus	invalid	Amphiscolops Graff, 1904	literature misspelling	Amphiscolops
+Oruphiscolops				Kato, 1957	Genus	invalid	Amphiscolops Graff, 1904	literature misspelling	Amphiscolops
+Amphiscolops	bermudensis			Hyman, 1939	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	cinereus			(Graff, 1874)	Species	valid	Amphiscolops Graff, 1904
+Amphichoerus	cinereus			(Graff, 1874)	Species	invalid	Amphiscolops cinereus (Graff, 1874)		Amphiscolops cinereus
+Convoluta	cinereus			Graff, 1874	Species	invalid	Amphiscolops cinereus (Graff, 1874)		Amphiscolops cinereus
+Cyrtomorpha	cinerea			(Graff L, 1874)	Species	invalid	Amphiscolops cinereus (Graff, 1874)		Amphiscolops cinereus
+Amphiscolops	evelinae			Marcus, 1947	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	fuligineus			Peebles, 1913	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	gemelliporus			Marcus, 1954	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	japonicus			Kato, 1947	Species	valid	Amphiscolops Graff, 1904
+Amphiscolopus	japonicus			Kato, 1957	Species	invalid	Amphiscolops japonicus Kato, 1947		Amphiscolops japonicus
+Oruphiscolops	japonicus			Kato, 1957	Species	invalid	Amphiscolops japonicus Kato, 1947		Amphiscolops japonicus
+Amphiscolops	marinelliensis			Beltagi & Khafagi, 1984	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	mosaicus			Kozloff, 1998	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	potocani			Achatz, 2008	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp.			Steinböck, 1938	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 1			Yamasu & Okazaki, 1987	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 2			Yamasu & Okazaki, 1987	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 3			Yamasu & Okazaki, 1987	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 4			Yamasu & Okazaki, 1987	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 5			Yamasu & Okazaki, 1987	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	sp. 6			Achatz, 2008	Species	valid	Amphiscolops Graff, 1904
+Amphiscolops	trifurcatus			(Beltagi, 1983)	Species	valid	Amphiscolops Graff, 1904
+Anaperus	trifurcatus			Beltagi, 1983	Species	invalid	Amphiscolops trifurcatus (Beltagi, 1983)		Amphiscolops trifurcatus
+Amphiscolops	zeii			Riedl, 1956	Species	valid	Amphiscolops Graff, 1904
+Brachypea				Antonius, 1968	Genus	valid	Convolutidae Graff, 1905
+Brachypea	kenoma			Antonius, 1968	Species	valid	Brachypea Antonius, 1968
+Convoluta				Ørsted, 1843	Genus	valid	Convolutidae Graff, 1905
+Bohmigia				Sabussow, 1899	Genus	invalid	Convoluta Ørsted, 1843	junior synonym	Convoluta
+Convoluta	adaica			Beklemisch, 1964	Species	valid	Convoluta Ørsted, 1843
+Convoluta	agilis			An der Lan, 1936	Species	valid	Convoluta Ørsted, 1843
+Convoluta	albomaculata			(Pereyaslawzewa, 1892)	Species	valid	Convoluta Ørsted, 1843
+Convoluta	anotica			Schmarda, 1859	Species	valid	Convoluta Ørsted, 1843
+Convoluta	bathycola			Steinböck & Lanser, 1932	Species	valid	Convoluta Ørsted, 1843
+Convoluta	bimaculata			Graff, 1882	Species	valid	Convoluta Ørsted, 1843
+Convoluta	boehmigi			(Brauner, 1920)	Species	valid	Convoluta Ørsted, 1843
+Convoluta	aegyptica			Antonius, 1968	Species	invalid	Convoluta boehmigi (Brauner, 1920)	junior synonym	Convoluta boehmigi
+Monochoerus	boehmigi			Brauner, 1920	Species	invalid	Convoluta boehmigi (Brauner, 1920)		Convoluta boehmigi
+Convoluta	borealis			Sabussow, 1900	Species	valid	Convoluta Ørsted, 1843
+groenlandica	borealis			Steinböck, 1932	Species	invalid	Convoluta borealis Sabussow, 1900		Convoluta borealis
+Convoluta	boyeri			Bush, 1984	Species	valid	Convoluta Ørsted, 1843
+Convoluta	chiridotae			(Beklemischev, 1915)	Species	valid	Convoluta Ørsted, 1843
+Otocelis	chiridotae			Beklemischev, 1915	Species	invalid	Convoluta chiridotae (Beklemischev, 1915)	incertae sedis	Convoluta chiridotae
+Convoluta	confusa			Graff, 1904	Species	valid	Convoluta Ørsted, 1843
+Convoluta	convoluta			(Abildgaard, 1806)	Species	valid	Convoluta Ørsted, 1843
+Convoluta	albicincta			Schultze M, 1851	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	armata			Graff, 1874	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	diesingii			Schmidt, 1852	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	haustrum			Dalyell, 1853	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	infundibulum			Schmidt, 1861	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	johnstoni			Diesing, 1862	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Convoluta	paradoxa			Ørsted, 1843	Species	invalid	Convoluta convoluta (Abildgaard, 1806)	junior synonym	Convoluta convoluta
+Monotus	paradoxa			(Claperede, 1861)	Species	invalid	Convoluta convoluta (Abildgaard, 1806)		Convoluta convoluta
+Planaria	convoluta			Abildgaard, 1806	Species	invalid	Convoluta convoluta (Abildgaard, 1806)		Convoluta convoluta
+Convoluta	dubia			Brauner, 1926	Species	valid	Convoluta Ørsted, 1843
+Convoluta	elegans			Pereyaslawzewa, 1892	Species	valid	Convoluta Ørsted, 1843
+Convoluta	enelitta			Antonius, 1968	Species	valid	Convoluta Ørsted, 1843
+Convoluta	furugelmi			Mamkaev, 1971	Species	valid	Convoluta Ørsted, 1843
+Convoluta	hamata			An der Lan, 1936	Species	valid	Convoluta Ørsted, 1843
+Convoluta	henseni			Bohmig, 1895	Species	valid	Convoluta Ørsted, 1843
+Convoluta	hipparchia			Pereyaslawzewa, 1892	Species	valid	Convoluta Ørsted, 1843
+Convoluta	festiva			Uljanin, 1870	Species	invalid	Convoluta hipparchia Pereyaslawzewa, 1892	nomen dubium	Convoluta hipparchia
+Convoluta	kikaiensis			Yamasu, 1982	Species	valid	Convoluta Ørsted, 1843
+Convoluta	krana			Antonius, 1968	Species	valid	Convoluta Ørsted, 1843
+Conaperta	krana			Antonius, 1968	Species	invalid	Convoluta krana Antonius, 1968		Convoluta krana
+Convoluta	lacrimosa			Achatz, Hooge & Tyler, 2007	Species	valid	Convoluta Ørsted, 1843
+Convoluta	marginalis			Ivanov, 1952	Species	valid	Convoluta Ørsted, 1843
+Convoluta	maris-alba			(Sabussow, 1899)	Species	valid	Convoluta Ørsted, 1843
+Bohmigia	maris-alba			Sabussow, 1899	Species	invalid	Convoluta maris-alba (Sabussow, 1899)		Convoluta maris-alba
+Otocelis	maris-alba			(Sabussow, 1899)	Species	invalid	Convoluta maris-alba (Sabussow, 1899)		Convoluta maris-alba
+Convoluta	minima			Westblad, 1948	Species	valid	Convoluta Ørsted, 1843
+Convoluta	naviculae			Yamasu, 1982	Species	valid	Convoluta Ørsted, 1843
+Convoluta	niphoni			Achatz, 2008	Species	valid	Convoluta Ørsted, 1843
+Convoluta	pelagica			Lohner & Micoletzky, 1911	Species	valid	Convoluta Ørsted, 1843
+Convoluta	philippinensis			Bush, 1984	Species	valid	Convoluta Ørsted, 1843
+Convoluta	punctata			Riedl, 1959	Species	valid	Convoluta Ørsted, 1843
+Convoluta	pygopora			Antonius, 1968	Species	valid	Convoluta Ørsted, 1843
+Convoluta	schmidti			Czerniavsky, 1881	Species	valid	Convoluta Ørsted, 1843
+Convoluta	schuelii			Achatz, 2008	Species	valid	Convoluta Ørsted, 1843
+Convoluta	semperi			Graff, 1882	Species	valid	Convoluta Ørsted, 1843
+Convoluta	sordida			Graff, 1882	Species	valid	Convoluta Ørsted, 1843
+Convoluta	lacazii			Graff, 1891	Species	invalid	Convoluta sordida Graff, 1882	junior synonym	Convoluta sordida
+Convoluta	subtilis			(Graff, 1882)	Species	invalid	Convoluta sordida Graff, 1882		Convoluta sordida
+Cyrtomorpha	subtilis			Graff L, 1882	Species	invalid	Convoluta sordida Graff, 1882		Convoluta sordida
+Darwinia	subtilis			Pereyaslawzewa, 1892	Species	invalid	Convoluta sordida Graff, 1882		Convoluta sordida
+Convoluta	sp.			Sabussow, 1897	Species	valid	Convoluta Ørsted, 1843
+Convoluta	sp. 1			Yamasu & Okazaki, 1987	Species	valid	Convoluta Ørsted, 1843
+Convoluta	sp. 2			Yamasu & Okazaki, 1987	Species	valid	Convoluta Ørsted, 1843
+Convoluta	sp. 3			Yamasu & Okazaki, 1987	Species	valid	Convoluta Ørsted, 1843
+Convoluta	sp. Panama			Hooge & Tyler, 2008	Species	valid	Convoluta Ørsted, 1843
+Convoluta	thela			(Antonius, 1968)	Species	valid	Convoluta Ørsted, 1843
+Conaperta	thela			Antonius, 1968	Species	invalid	Convoluta thela (Antonius, 1968)		Convoluta thela
+Convoluta	uljanini			Graff, 1904	Species	valid	Convoluta Ørsted, 1843
+Convoluta	variabilis			(Pereyaslawzewa, 1892)	Species	valid	Convoluta Ørsted, 1843
+Darwinia	variabilis			Pereyaslawzewa, 1892	Species	invalid	Convoluta variabilis (Pereyaslawzewa, 1892)		Convoluta variabilis
+Convoluta	virescens			Wilhelmi, 1913	Species	valid	Convoluta Ørsted, 1843
+Haplodiscus				Weldon, 1888	Genus	valid	Convolutidae Graff, 1905
+Haplodiscus	acuminatus			Bohmig, 1895	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	bocki			Dörjes, 1970	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	incola			Wilhelmi, 1913	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	obtusus			Bohmig, 1895	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	ovatus			Bohmig, 1895	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	piger			Weldon, 1888	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	orbicularis			Bohmig, 1895	Species	invalid	Haplodiscus piger Weldon, 1888	junior synonym	Haplodiscus piger
+Haplodiscus	ussowi			Sabussow, 1896	Species	invalid	Haplodiscus piger Weldon, 1888	nomen dubium	Haplodiscus piger
+Haplodiscus	scutiformis			Bohmig, 1895	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	sp.			Yamasu & Okazaki, 1987	Species	valid	Haplodiscus Weldon, 1888
+Haplodiscus	weldoni			Bohmig, 1895	Species	valid	Haplodiscus Weldon, 1888
+Heterochaerus				Haswell, 1905	Genus	valid	Convolutidae Graff, 1905
+Heterochaerus	australis			Haswell, 1905	Species	valid	Heterochaerus Haswell, 1905
+Amphiscolops	australis			(Haswell, 1905)	Species	invalid	Heterochaerus australis Haswell, 1905		Heterochaerus australis
+Heterochaerus	blumi			(Achatz, Hooge & Tyler, 2007)	Species	valid	Heterochaerus Haswell, 1905
+Amphiscolops	blumi			Achatz, Hooge & Tyler, 2007	Species	invalid	Heterochaerus blumi (Achatz, Hooge & Tyler, 2007)		Heterochaerus blumi
+Heterochaerus	carvalhoi			(Marcus, 1952)	Species	valid	Heterochaerus Haswell, 1905
+Amphiscolops	carvalhoi			Marcus, 1952	Species	invalid	Heterochaerus carvalhoi (Marcus, 1952)		Heterochaerus carvalhoi
+Heterochaerus	langerhansi			(Graff, 1882)	Species	valid	Heterochaerus Haswell, 1905
+Amphichoerus	langerhansi			(Graff, 1882)	Species	invalid	Heterochaerus langerhansi (Graff, 1882)		Heterochaerus langerhansi
+Amphiscolops	langerhansi			Graff, 1882	Species	invalid	Heterochaerus langerhansi (Graff, 1882)		Heterochaerus langerhansi
+Convoluta	langerhansi			Graff, 1882	Species	invalid	Heterochaerus langerhansi (Graff, 1882)		Heterochaerus langerhansi
+Polychoerus	langerhansi			(Graff, 1882)	Species	invalid	Heterochaerus langerhansi (Graff, 1882)		Heterochaerus langerhansi
+Heterochaerus	sargassi			(Hyman, 1939)	Species	valid	Heterochaerus Haswell, 1905
+Amphiscolops	sargassi			Hyman, 1939	Species	invalid	Heterochaerus sargassi (Hyman, 1939)		Heterochaerus sargassi
+Oligochoerus				Beklemischev, 1963	Genus	valid	Convolutidae Graff, 1905
+Oligochoerus	bakuensis			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	chlorella			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	conops			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	erythrophthalmus			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	limnophilus			Ax & Dörjes, 1966	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	melanops			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	sp.			(Mack-Fira, 1974)	Species	valid	Oligochoerus Beklemischev, 1963
+Oligochoerus	xanthella			Beklemischev, 1963	Species	valid	Oligochoerus Beklemischev, 1963
+Polychoerus				Mark, 1892	Genus	valid	Convolutidae Graff, 1905
+Polychaerus				Buchanan, 1892	Genus	invalid	Polychoerus Mark, 1892	literature misspelling	Polychoerus
+Polychoerus	carmelensis			Costello & Costello, 1938	Species	valid	Polychoerus Mark, 1892
+Polychoerus	caudatus			Mark, 1892	Species	valid	Polychoerus Mark, 1892
+Polychoerus	ebenhochi			Achatz, Hooge & Tyler, 2007	Species	valid	Polychoerus Mark, 1892
+Polychoerus	gordoni			Achatz, Hooge, Wallberg, Jondelius, & Tyler, 2009	Species	valid	Polychoerus Mark, 1892
+Polychoerus	langherhansi			Beklemischev, 1914	Species	valid	Polychoerus Mark, 1892
+Polychoerus	parvus			Achatz, Hooge & Tyler, 2007`	Species	valid	Polychoerus Mark, 1892
+Praesagittifera				Kostenko & Mamkaev, 1990	Genus	valid	Convolutidae Graff, 1905
+Praesagittifera	gracilis			(Yamasu, 1982)	Species	valid	Praesagittifera Kostenko & Mamkaev, 1990
+Convoluta	gracilis			Yamasu, 1982	Species	invalid	Praesagittifera gracilis (Yamasu, 1982)		Praesagittifera gracilis
+Praesagittifera	naikaiensis			(Yamasu, 1982)	Species	valid	Praesagittifera Kostenko & Mamkaev, 1990
+Convoluta	naikaiensis			Yamasu, 1982	Species	invalid	Praesagittifera naikaiensis (Yamasu, 1982)		Praesagittifera naikaiensis
+Praesagittifera	shikoki			Kostenko & Mamkaev, 1990	Species	valid	Praesagittifera Kostenko & Mamkaev, 1990
+Pseudoconvoluta				Beklemischev, 1929	Genus	valid	Convolutidae Graff, 1905
+Pseudoconvoluta	aurantiaca			Beklemischev, 1929	Species	valid	Pseudoconvoluta Beklemischev, 1929
+Pseudoconvoluta	flava			Beklemisch, 1964	Species	valid	Pseudoconvoluta Beklemischev, 1929
+Stomatricha				Hooge, 2003	Genus	valid	Convolutidae Graff, 1905
+Stomatricha	hochbergi			Hooge, 2003	Species	valid	Stomatricha Hooge, 2003
+Waminoa				Winsor, 1990	Genus	valid	Convolutidae Graff, 1905
+Waminoa	brickneri			Ogunlana et al., 2005	Species	valid	Waminoa Winsor, 1990
+Waminoa	litus			Winsor, 1990	Species	valid	Waminoa Winsor, 1990
+Haplodiscus	sp.			Trench & Winsor, 1987	Species	invalid	Waminoa litus Winsor, 1990	nomen nudum	Waminoa litus
+Waminoa	sp. 1			Winsor, 1990	Species	valid	Waminoa Winsor, 1990
+Waminoa	sp. 2			Winsor, 1990	Species	valid	Waminoa Winsor, 1990
+Wulguru				Winsor, 1988	Genus	valid	Convolutidae Graff, 1905
+Wulguru	cuspidata			Winsor, 1988	Species	valid	Wulguru Winsor, 1988
+Dakuidae				Hooge, 2003	Family	valid	Acoela Uljanin, 1870
+Daku				Hooge, 2003	Genus	valid	Dakuidae Hooge, 2003
+Daku	riegeri			Hooge & Tyler, 2008	Species	valid	Daku Hooge, 2003
+Daku	woorimensis			Hooge, 2003	Species	valid	Daku Hooge, 2003
+Diopisthoporidae				Westblad, 1940	Family	valid	Acoela Uljanin, 1870
+Diopisthoporus				Westblad, 1940	Genus	valid	Diopisthoporidae Westblad, 1940
+Diopisthoporus	brachypharyngeus			Dörjes, 1968	Species	valid	Diopisthoporus Westblad, 1940
+Diopisthoporus	gymnopharyngeus			Smith & Tyler, 1985	Species	valid	Diopisthoporus Westblad, 1940
+Diopisthoporus	lofolitis			Hooge & Smith, 2004	Species	valid	Diopisthoporus Westblad, 1940
+Diopisthoporus	longitubus			Westblad, 1940	Species	valid	Diopisthoporus Westblad, 1940
+Diopisthoporus	psammophilus			Dörjes, 1968	Species	valid	Diopisthoporus Westblad, 1940
+Hallangiidae				Westblad, 1946	Family	valid	Acoela Uljanin, 1870
+Aechmalotus				Beklemischev, 1915	Genus	valid	Hallangiidae Westblad, 1946
+Aechmalotus	pyrula			Beklemischev, 1915	Species	valid	Aechmalotus Beklemischev, 1915
+Aechmalotus	pyrola			Dörjes, 1968	Species	invalid	Aechmalotus pyrula Beklemischev, 1915	literature misspelling	Aechmalotus pyrula
+Hallangia				Westblad, 1946	Genus	valid	Hallangiidae Westblad, 1946
+Hallangia	proporoides			Westblad, 1946	Species	valid	Hallangia Westblad, 1946
+Haploposthiidae				Westblad, 1948	Family	valid	Acoela Uljanin, 1870
+Adenocauda				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Adenocauda	helgolandica			Dörjes, 1968	Species	valid	Adenocauda Dörjes, 1968
+Afronta				Hyman, 1944	Genus	valid	Haploposthiidae Westblad, 1948
+Afronta	aurantiaca			Hyman, 1944	Species	valid	Afronta Hyman, 1944
+Afronta	rubra			Faubel, 1976	Species	valid	Afronta Hyman, 1944
+Deuterogonaria				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Picola				Achatz & Hooge, 2006	Genus	invalid	Deuterogonaria Dörjes, 1968		Deuterogonaria
+Deuterogonaria	carribea			(Achatz, Hooge, & Tyler, 2007)	Species	valid	Deuterogonaria Dörjes, 1968
+Picola	carribea			Achatz, Hooge, & Tyler, 2007	Species	invalid	Deuterogonaria carribea (Achatz, Hooge, & Tyler, 2007)		Deuterogonaria carribea
+Deuterogonaria	renei			(Achatz & Hooge, 2006)	Species	valid	Deuterogonaria Dörjes, 1968
+Picola	renei			Achatz & Hooge, 2006	Species	invalid	Deuterogonaria renei (Achatz & Hooge, 2006)		Deuterogonaria renei
+Deuterogonaria	thauma			(Marcus, 1952)	Species	valid	Deuterogonaria Dörjes, 1968
+Convoluta	thauma			Marcus, 1952	Species	invalid	Deuterogonaria thauma (Marcus, 1952)		Deuterogonaria thauma
+Haplogonaria				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Haplogonaria	amarilla			Hooge & Eppinger, 2005	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	arenaria			(Ax, 1959)	Species	valid	Haplogonaria Dörjes, 1968
+Mecynostomum	arenarium			Ax, 1959	Species	invalid	Haplogonaria arenaria (Ax, 1959)		Haplogonaria arenaria
+Haplogonaria	arenicolae			Faubel & Warwick, 2005	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	elegans			Faubel, 1976	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	glandulifera			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	idia			(Marcus, 1954)	Species	valid	Haplogonaria Dörjes, 1968
+Mecynostomum	idium			Marcus, 1954	Species	invalid	Haplogonaria idia (Marcus, 1954)		Haplogonaria idia
+Haplogonaria	macrobursalia			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	minima			(Westblad, 1946)	Species	valid	Haplogonaria Dörjes, 1968
+Aphanostoma	minimum			Westblad, 1946	Species	invalid	Haplogonaria minima (Westblad, 1946)		Haplogonaria minima
+Mecynostomum	minima			(Westblad, 1946)	Species	invalid	Haplogonaria minima (Westblad, 1946)		Haplogonaria minima
+Haplogonaria	pellita			(Marcus, 1951)	Species	valid	Haplogonaria Dörjes, 1968
+Mecynostomum	pellitum			Marcus, 1951	Species	invalid	Haplogonaria pellita (Marcus, 1951)		Haplogonaria pellita
+Haplogonaria	phyllospadicis			Hooge & Tyler, 2003	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	psammalia			Faubel, 1974	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	simplex			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	sinubursalia			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	sophiae			Hooge & Rocha, 2006	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	sp. 1			Yamasu & Okazaki, 1987	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	stradbrokensis			Hooge, 2003	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	syltensis			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haplogonaria	viridis			Dörjes, 1968	Species	valid	Haplogonaria Dörjes, 1968
+Haploposthia				An der Lan, 1936	Genus	valid	Haploposthiidae Westblad, 1948
+Parahaplodiscus				An der Lan, 1936	Genus	invalid	Haploposthia An der Lan, 1936		Haploposthia
+Paranaperus				Westblad, 1942	Genus	invalid	Haploposthia An der Lan, 1936		Haploposthia
+Haploposthia	brunea			An der Lan, 1936	Species	valid	Haploposthia An der Lan, 1936
+Haploposthia	erythrocephala			Kozloff, 2000	Species	valid	Haploposthia An der Lan, 1936
+Haploposthia	lactomaculata			Tekle, 2004	Species	valid	Haploposthia An der Lan, 1936
+Haploposthia	microphoca			Marcus, 1950	Species	valid	Haploposthia An der Lan, 1936
+Haploposthia	opisthorcus			Mamkaev, 1967	Species	valid	Haploposthia An der Lan, 1936
+Pseudaphanostoma	opisthorchis			(Mamkaev, 1967)	Species	invalid	Haploposthia opisthorcus Mamkaev, 1967		Haploposthia opisthorcus
+Haploposthia	pellucidus			(Westblad, 1942)	Species	valid	Haploposthia An der Lan, 1936
+Paranaperus	pellucidus			Westblad, 1942	Species	invalid	Haploposthia pellucidus (Westblad, 1942)		Haploposthia pellucidus
+Haploposthia	rubra			(An der Lan, 1936)	Species	valid	Haploposthia An der Lan, 1936
+Parahaplodiscus	ruber			An der Lan, 1936	Species	invalid	Haploposthia rubra (An der Lan, 1936)		Haploposthia rubra
+Haploposthia	rubropunctata			Westblad, 1945	Species	valid	Haploposthia An der Lan, 1936
+Haploposthia	vandula			Hooge & Tyler, 2002	Species	valid	Haploposthia An der Lan, 1936
+Kuma				Marcus, 1950	Genus	valid	Haploposthiidae Westblad, 1948
+Kuma	albiventer			(Marcus, 1954)	Species	valid	Kuma Marcus, 1950
+Haploposthia	albiventer			Marcus, 1954	Species	invalid	Kuma albiventer (Marcus, 1954)		Kuma albiventer
+Kuma	asilhas			Hooge & Rocha, 2006	Species	valid	Kuma Marcus, 1950
+Kuma	belca			Marcus, 1952	Species	valid	Kuma Marcus, 1950
+Kuma	blacki			Hooge & Tyler, 2008	Species	valid	Kuma Marcus, 1950
+Kuma	brevicauda			Marcus, 1950	Species	valid	Kuma Marcus, 1950
+Kuma	flava			Hooge & Smith, 2004	Species	valid	Kuma Marcus, 1950
+Kuma	monogonophora			(Westblad, 1946)	Species	valid	Kuma Marcus, 1950
+Haploposthia	monogonophora			Westblad, 1946	Species	invalid	Kuma monogonophora (Westblad, 1946)		Kuma monogonophora
+Kuma	sp.			Tyler, 1975	Species	valid	Kuma Marcus, 1950
+Kuma	viridis			(An der Lan, 1936)	Species	valid	Kuma Marcus, 1950
+Haploposthia	viridis			(An der Lan, 1936)	Species	invalid	Kuma viridis (An der Lan, 1936)		Kuma viridis
+Proaphanostoma	viride			An der Lan, 1936	Species	invalid	Kuma viridis (An der Lan, 1936)		Kuma viridis
+Parahaplogonaria				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Parahaplogonaria	maxima			Dörjes, 1968	Species	valid	Parahaplogonaria Dörjes, 1968
+Parahaploposthia				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Parahaploposthia	avesicula			Dörjes, 1968	Species	valid	Parahaploposthia Dörjes, 1968
+Parahaploposthia	brunea			Faubel, 1976	Species	valid	Parahaploposthia Dörjes, 1968
+Parahaploposthia	cerebroepitheliata			Dörjes, 1968	Species	valid	Parahaploposthia Dörjes, 1968
+Parahaploposthia	longituba			Hooge & Tyler, 2007	Species	valid	Parahaploposthia Dörjes, 1968
+Parahaploposthia	thiophilus			Fegley, Smith & Rieger, 1984	Species	valid	Parahaploposthia Dörjes, 1968
+Parahaploposthia	velvetum			Hooge & Tyler, 2002	Species	valid	Parahaploposthia Dörjes, 1968
+Praeanaperus				Faubel & Regier, 1983	Genus	valid	Haploposthiidae Westblad, 1948
+Praeanaperus	tetraposthia			Faubel & Regier, 1983	Species	valid	Praeanaperus Faubel & Regier, 1983
+Pseudohaplogonaria				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Pseudohaplogonaria	cerasina			Hooge & Smith, 2004	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Pseudohaplogonaria	minima			Ehlers & Dörjes, 1979	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Pseudohaplogonaria	opisthandropora			(Mamkaev, 1971)	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Pseudohaplogonaria	rodmani			Hooge & Tyler, 2007	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Pseudohaplogonaria	sutcliffei			(Hanson, 1961)	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Convoluta	sutcliffei			Hanson, 1961	Species	invalid	Pseudohaplogonaria sutcliffei (Hanson, 1961)		Pseudohaplogonaria sutcliffei
+Pseudohaplogonaria	vacua			Dörjes, 1968	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Pseudohaplogonaria	viridipunctata			(Westblad, 1946)	Species	valid	Pseudohaplogonaria Dörjes, 1968
+Convoluta	viridipunctata			Westblad, 1946	Species	invalid	Pseudohaplogonaria viridipunctata (Westblad, 1946)		Pseudohaplogonaria viridipunctata
+Pseudokuma				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Pseudokuma	orphinum			(Marcus, 1950)	Species	valid	Pseudokuma Dörjes, 1968
+Aphanostoma	orphinum			Marcus, 1950	Species	invalid	Pseudokuma orphinum (Marcus, 1950)		Pseudokuma orphinum
+Simplicomorpha				Dörjes, 1968	Genus	valid	Haploposthiidae Westblad, 1948
+Simplicomorpha	gigantorhabditis			Dörjes, 1968	Species	valid	Simplicomorpha Dörjes, 1968
+Hofsteniidae				Bock, 1923	Family	valid	Acoela Uljanin, 1870
+Hofstenia				Bock, 1923	Genus	valid	Hofsteniidae Bock, 1923
+Hofstenia	atroviridis			Bock, 1923	Species	valid	Hofstenia Bock, 1923
+Hofstenia	viridis			An der Lan, 1936	Species	invalid	Hofstenia atroviridis Bock, 1923	literature misspelling	Hofstenia atroviridis
+Hofstenia	beltagii			Steinböck, 1966	Species	valid	Hofstenia Bock, 1923
+Hofstenia	miamia			Correa, 1960	Species	valid	Hofstenia Bock, 1923
+Hofstenia	minuta			Palombi, 1928	Species	valid	Hofstenia Bock, 1923
+Hofsteniola				Papi, 1957	Genus	valid	Hofsteniidae Bock, 1923
+Hofsteniola	pardii			Papi, 1957	Species	valid	Hofsteniola Papi, 1957
+Marcusiola				Steinböck, 1966	Genus	valid	Hofsteniidae Bock, 1923
+Marcusiola	tinga			(Marcus EDB-R, 1957)	Species	valid	Marcusiola Steinböck, 1966
+Hofstenia	tinga			Marcus EDB-R, 1957	Species	invalid	Marcusiola tinga (Marcus EDB-R, 1957)		Marcusiola tinga
+Isodiametridae				Hooge & Tyler, 2005	Family	valid	Acoela Uljanin, 1870
+Alluna				Faubel & Regier, 1983	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Alluna	sublitoralis			Faubel & Regier, 1983	Species	valid	Alluna Faubel & Regier, 1983
+Alluna	vulgaris			Faubel & Regier, 1983	Species	invalid	Alluna sublitoralis Faubel & Regier, 1983	nomen nudum	Alluna sublitoralis
+Ancylocirrus				Kozloff, 2000	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Ancyclocirrus				Kozloff, 2000	Genus	invalid	Ancylocirrus Kozloff, 2000		Ancylocirrus
+Ancylocirrus	ornatus			Kozloff, 2000	Species	valid	Ancylocirrus Kozloff, 2000
+Aphanostoma				Ørsted, 1845	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Paraconvoluta				Ørsted, 1845	Genus	invalid	Aphanostoma Ørsted, 1845		Aphanostoma
+Aphanostoma	album			Dörjes, 1968	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	armatum			Steinböck & Lanser, 1932	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	aurantiacum			Verrill, 1893	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	auratiacum			Dörjes, 1968	Species	invalid	Aphanostoma aurantiacum Verrill, 1893	literature misspelling	Aphanostoma aurantiacum
+Aphanostoma	bimaculata			Steinböck & Lanser, 1932	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	bruscai			Hooge & Tyler, 2003	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	brusca			Hooge, 2001	Species	invalid	Aphanostoma bruscai Hooge & Tyler, 2003	nomen nudum	Aphanostoma bruscai
+Aphanostoma	cavernosum			Meixner, 1938	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	chromocephalum			Steinböck, 1933	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	collinae			Hooge & Tyler, 2008	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	divaceum			Verrill, 1893	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	elegans			Jensen, 1878	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	latum			Ørsted, 1845	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	minima			Steinböck, 1938	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	minuta			Bohmig, 1895	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	olivaceum			Verrill, 1893	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	rhomboides			Jensen, 1878	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	griseum			Ørsted, 1845	Species	invalid	Aphanostoma rhomboides Jensen, 1878	nomen nudum	Aphanostoma rhomboides
+Aphanostoma	sanguineum			Beklemischev, 1915	Species	valid	Aphanostoma Ørsted, 1845
+Eumecynostomum	sanguineum			(Beklemischev, 1915)	Species	invalid	Aphanostoma sanguineum Beklemischev, 1915		Aphanostoma sanguineum
+Mecynostomum	sanguineum			(Beklemischev, 1915)	Species	invalid	Aphanostoma sanguineum Beklemischev, 1915		Aphanostoma sanguineum
+Pseudactinoposthia	sanguineum			(Beklemischev, 1915)	Species	invalid	Aphanostoma sanguineum Beklemischev, 1915		Aphanostoma sanguineum
+Pseudmecynostomum	sanguineum			(Beklemischev, 1915)	Species	invalid	Aphanostoma sanguineum Beklemischev, 1915		Aphanostoma sanguineum
+Aphanostoma	sp.			Ferguson & Jones, 1949	Species	valid	Aphanostoma Ørsted, 1845
+Aphanostoma	virescens			Ørsted, 1845	Species	valid	Aphanostoma Ørsted, 1845
+Amphichoerus	virescens			Graff, 1902	Species	invalid	Aphanostoma virescens Ørsted, 1845		Aphanostoma virescens
+Amphiscolops	virescens			(Örsted AS, 1845)	Species	invalid	Aphanostoma virescens Ørsted, 1845	homonym & junior synonym	Aphanostoma virescens
+Paraconvoluta	virescens			Westblad, 1946	Species	invalid	Aphanostoma virescens Ørsted, 1845		Aphanostoma virescens
+Polychoerus	virescens			Lohner, 1913	Species	invalid	Aphanostoma virescens Ørsted, 1845	homonym & junior synonym	Aphanostoma virescens
+Archaphanostoma				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Archaphanostoma	agile			(Jensen, 1878)	Species	valid	Archaphanostoma Dörjes, 1968
+Aphanostoma	latissimum			Levinsen, 1879	Species	invalid	Archaphanostoma agile (Jensen, 1878)	junior synonym	Archaphanostoma agile
+Aphanostoma	rhomboides			Westblad, 1946	Species	invalid	Archaphanostoma agile (Jensen, 1878)	junior synonym	Archaphanostoma agile
+Baltalimania	agile			(Jensen, 1878)	Species	invalid	Archaphanostoma agile (Jensen, 1878)		Archaphanostoma agile
+Haplodiscus	agilis			Beklemischev, 1927	Species	invalid	Archaphanostoma agile (Jensen, 1878)	homonym & junior synonym	Archaphanostoma agile
+Mecynostomum	agile			Jensen, 1878	Species	invalid	Archaphanostoma agile (Jensen, 1878)		Archaphanostoma agile
+Mecynostomum	rhomboides			Westblad, 1946	Species	invalid	Archaphanostoma agile (Jensen, 1878)	junior synonym	Archaphanostoma agile
+Archaphanostoma	histobursalium			Dörjes, 1968	Species	valid	Archaphanostoma Dörjes, 1968
+Archaphanostoma	macrospiriferum			(Westblad, 1946)	Species	valid	Archaphanostoma Dörjes, 1968
+Aphanostoma	macrospiriferum			Westblad, 1946	Species	invalid	Archaphanostoma macrospiriferum (Westblad, 1946)		Archaphanostoma macrospiriferum
+Baltalimania	macrospiriferum			(Westblad, 1946)	Species	invalid	Archaphanostoma macrospiriferum (Westblad, 1946)		Archaphanostoma macrospiriferum
+Mecynostomum	macrospiriferum			Westblad, 1948	Species	invalid	Archaphanostoma macrospiriferum (Westblad, 1946)	homonym & junior synonym	Archaphanostoma macrospiriferum
+Archaphanostoma	marcusi			Hooge & Rocha, 2006	Species	valid	Archaphanostoma Dörjes, 1968
+Avagina				Leiper, 1902	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Avagina	glandulifera			Westblad, 1953	Species	valid	Avagina Leiper, 1902
+Avagina	incola			Leiper, 1902	Species	valid	Avagina Leiper, 1902
+Avagina	marci			Dörjes & Karling, 1975	Species	valid	Avagina Leiper, 1902
+Mecynostomum	tenuissimum			(Westblad, 1946)	Species	invalid	Avagina marci Dörjes & Karling, 1975		Avagina marci
+Avagina	polyvacuola			Ehlers & Dörjes, 1979	Species	valid	Avagina Leiper, 1902
+Avagina	sublitoralis			Faubel, 1976	Species	valid	Avagina Leiper, 1902
+Avagina	vivipara			Hickman, 1956	Species	valid	Avagina Leiper, 1902
+Baltalimania				Ax, 1959	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Baltalimania	kosswigi			Ax, 1959	Species	valid	Baltalimania Ax, 1959
+Bursosaphia				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Bursosaphia	baltalimaniaformis			Dörjes, 1968	Species	valid	Bursosaphia Dörjes, 1968
+Diatomovora				Kozloff, 1965	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Diatomovora	amoena			Kozloff, 1965	Species	valid	Diatomovora Kozloff, 1965
+Diatomovora	jacki			Hooge & Tyler, 2008	Species	valid	Diatomovora Kozloff, 1965
+Faerlea				Westblad, 1945	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Faerlea	antora			Marcus, 1952	Species	valid	Faerlea Westblad, 1945
+Faerlea	echinocardii			Dörjes, 1972	Species	valid	Faerlea Westblad, 1945
+Faerlea	fragilis			Westblad, 1945	Species	valid	Faerlea Westblad, 1945
+Faerlea	glomerata			Westblad, 1945	Species	valid	Faerlea Westblad, 1945
+Haplocelis				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Haplocelis	dichona			(Marcus, 1954)	Species	valid	Haplocelis Dörjes, 1968
+Otocelis	dichona			Marcus, 1954	Species	invalid	Haplocelis dichona (Marcus, 1954)		Haplocelis dichona
+Isodiametra				Hooge & Tyler, 2005	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Isodiametra	bajaensis			Hooge & Eppinger, 2005	Species	valid	Isodiametra Hooge & Tyler, 2005
+Isodiametra	colorata			(Ehlers & Dörjes, 1979)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	colorata			Ehlers & Dörjes, 1979	Species	invalid	Isodiametra colorata (Ehlers & Dörjes, 1979)		Isodiametra colorata
+Isodiametra	cuernos			Hooge & Tyler, 2008	Species	valid	Isodiametra Hooge & Tyler, 2005
+Isodiametra	divae			(Marcus, 1950)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	divae			Marcus, 1950	Species	invalid	Isodiametra divae (Marcus, 1950)		Isodiametra divae
+Convoluta	divae			Marcus, 1950	Species	invalid	Isodiametra divae (Marcus, 1950)		Isodiametra divae
+Isodiametra	earnhardti			(Hooge & Smith, 2004)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	earnhardti			Hooge & Smith, 2004	Species	invalid	Isodiametra earnhardti (Hooge & Smith, 2004)		Isodiametra earnhardti
+Isodiametra	helgolandica			(Dörjes, 1968)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Convoluta	helgolandica			Dörjes, 1968	Species	invalid	Isodiametra helgolandica (Dörjes, 1968)		Isodiametra helgolandica
+Isodiametra	hortulus			(Hooge & Tyler, 2003)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	hortula			Hooge, 2001	Species	invalid	Isodiametra hortulus (Hooge & Tyler, 2003)	nomen nudum	Isodiametra hortulus
+Conaperta	hortulus			Hooge, 2001	Species	invalid	Isodiametra hortulus (Hooge & Tyler, 2003)		Isodiametra hortulus
+Isodiametra	karpredi			(Hooge & Tyler, 2003)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Convoluta	karpredi			Hooge & Tyler, 2003	Species	invalid	Isodiametra karpredi (Hooge & Tyler, 2003)		Isodiametra karpredi
+Isodiametra	marginalis			(Ivanov, 1952)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Isodiametra	nicki			Hooge & Tyler, 2008	Species	valid	Isodiametra Hooge & Tyler, 2005
+Isodiametra	norvegica			(Westblad, 1946)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	norvegica			(Westblad, 1946)	Species	invalid	Isodiametra norvegica (Westblad, 1946)		Isodiametra norvegica
+Convoluta	norvegica			Westblad, 1946	Species	invalid	Isodiametra norvegica (Westblad, 1946)		Isodiametra norvegica
+Isodiametra	pulchra			(Smith & Bush, 1991)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Convoluta	pulchra			Smith & Bush, 1991	Species	invalid	Isodiametra pulchra (Smith & Bush, 1991)		Isodiametra pulchra
+Isodiametra	urua			(Marcus, 1954)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	urua			(Marcus, 1954)	Species	invalid	Isodiametra urua (Marcus, 1954)		Isodiametra urua
+Convoluta	urua			Marcus, 1954	Species	invalid	Isodiametra urua (Marcus, 1954)		Isodiametra urua
+Isodiametra	variomorpha			(Dörjes, 1968)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	variomorpha			Dörjes, 1968	Species	invalid	Isodiametra variomorpha (Dörjes, 1968)		Isodiametra variomorpha
+Convoluta	variomorpha			Dörjes, 1968	Species	invalid	Isodiametra variomorpha (Dörjes, 1968)		Isodiametra variomorpha
+Isodiametra	vexillaria			(Marcus, 1948)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	vexillaria			(Marcus, 1948)	Species	invalid	Isodiametra vexillaria (Marcus, 1948)		Isodiametra vexillaria
+Convoluta	vexillaria			Marcus, 1948	Species	invalid	Isodiametra vexillaria (Marcus, 1948)		Isodiametra vexillaria
+Isodiametra	westbladi			(Marcus, 1949)	Species	valid	Isodiametra Hooge & Tyler, 2005
+Conaperta	westbladi			(Marcus, 1949)	Species	invalid	Isodiametra westbladi (Marcus, 1949)		Isodiametra westbladi
+Convoluta	westbladi			Marcus, 1949	Species	invalid	Isodiametra westbladi (Marcus, 1949)		Isodiametra westbladi
+Otocelis				Diesing, 1862	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Monoporus				Graff, 1891	Genus	invalid	Otocelis Diesing, 1862	junior synonym	Otocelis
+Parotocelis				Ehlers & Dörjes, 1979	Genus	invalid	Posticopora Kozloff, 2000	preoccupied	Posticopora
+Otocelis	erinae			Hooge & Rocha, 2006	Species	valid	Otocelis Diesing, 1862
+Otocelis	luteola			(Kozloff, 1965)	Species	valid	Otocelis Diesing, 1862
+Parotocelis	luteola			Kozloff, 1965	Species	invalid	Otocelis luteola (Kozloff, 1965)		Otocelis luteola
+Otocelis	phycophilus			Ehlers & Dörjes, 1979	Species	valid	Otocelis Diesing, 1862
+Otocelis	rubropunctata			(Schmidt, 1852)	Species	valid	Otocelis Diesing, 1862
+Aphanostoma	rubropunctata			Pereyaslawzewa, 1892	Species	invalid	Otocelis rubropunctata (Schmidt, 1852)	homonym & junior synonym	Otocelis rubropunctata
+Monoporus	rubropunctata			(O. Schmidt, 1852)	Species	invalid	Otocelis rubropunctata (Schmidt, 1852)		Otocelis rubropunctata
+Proporus	rubropunctata			Schmidt, 1852	Species	invalid	Otocelis rubropunctata (Schmidt, 1852)		Otocelis rubropunctata
+Otocelis	sachalinensis			Ivanov, 1952	Species	valid	Otocelis Diesing, 1862
+Otocelis	sandara			Hooge & Tyler, 2003	Species	valid	Otocelis Diesing, 1862
+Otocelis	sp.			Nishimura, 1968	Species	valid	Otocelis Diesing, 1862
+Otocelis	westbladi			Ax, 1959	Species	valid	Otocelis Diesing, 1862
+Postaphanostoma				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Postaphanostoma	atriomagnum			Dörjes, 1968	Species	valid	Postaphanostoma Dörjes, 1968
+Postaphanostoma	filum			Dörjes, 1968	Species	valid	Postaphanostoma Dörjes, 1968
+Postaphanostoma	glandulosum			Dörjes, 1968	Species	valid	Postaphanostoma Dörjes, 1968
+Praeaphanostoma				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Praeaphanostoma	brevifrons			Dörjes, 1968	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	chaetocaudatum			Dörjes, 1968	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	foramivora			Hooge & Tyler, 2008	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	gusana			Hooge & Eppinger, 2005	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	longum			Dörjes, 1968	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	musculosum			Ehlers & Dörjes, 1979	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	parvum			Rieger & Ott, 1971	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	rubrum			Dörjes, 1968	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	sizilianum			(Riedl, 1954)	Species	valid	Praeaphanostoma Dörjes, 1968
+Mecynostomum	sizilianum			Riedl, 1954	Species	invalid	Praeaphanostoma sizilianum (Riedl, 1954)		Praeaphanostoma sizilianum
+Praeaphanostoma	thalasophilum			Ehlers & Dörjes, 1979	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	vitreum			Ehlers & Dörjes, 1979	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeaphanostoma	wadsworthi			Hooge & Tyler, 2003	Species	valid	Praeaphanostoma Dörjes, 1968
+Praeconvoluta				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Praeconvoluta	bocasensis			Hooge & Tyler, 2008	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	castinea			Hooge & Tyler, 2003	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	karinae			Dörjes, 1968	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	minor			Faubel, 1974	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	schmidti			Faubel, 1977	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	stephania			Faubel & Regier, 1983	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	tigrina			Hooge & Tyler, 2003	Species	valid	Praeconvoluta Dörjes, 1968
+Praeconvoluta	tigrinus			Hooge, 2001	Species	invalid	Praeconvoluta tigrina Hooge & Tyler, 2003	nomen nudum	Praeconvoluta tigrina
+Praeconvoluta	tornuva			Tyler & Hooge, 1999	Species	valid	Praeconvoluta Dörjes, 1968
+Proaphanostoma				(Dörjes, 1972)	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Proaphanostoma	tenuissima			(Westblad, 1946)	Species	valid	Proaphanostoma (Dörjes, 1972)
+Aphanostoma	tenuissima			Westblad, 1946	Species	invalid	Proaphanostoma tenuissima (Westblad, 1946)		Proaphanostoma tenuissima
+Avagina	tenuissima			(Westblad, 1946)	Species	invalid	Proaphanostoma tenuissima (Westblad, 1946)		Proaphanostoma tenuissima
+Proconvoluta				Dörjes, 1968	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Proconvoluta	primitiva			Dörjes, 1968	Species	valid	Proconvoluta Dörjes, 1968
+Pseudaphanostoma				Westblad, 1946	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Proantropora				Westblad, 1946	Genus	invalid	Pseudaphanostoma Westblad, 1946	unnecessary replacement	Pseudaphanostoma
+Pseudaphanostoma	brevicaudatum			Dörjes, 1968	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	divae			Marcus, 1952	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	herringi			Hooge & Rocha, 2006	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	murmanicus			(Mamkaev, 1967)	Species	valid	Pseudaphanostoma Westblad, 1946
+Proantropora	murmanicus			Mamkaev, 1967	Species	invalid	Pseudaphanostoma murmanicus (Mamkaev, 1967)		Pseudaphanostoma murmanicus
+Pseudaphanostoma	pelophilum			Dörjes, 1968	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	psammophilum			Dörjes, 1968	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	smithrii			Hooge & Tyler, 2003	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	sp.			Yamasu & Okazaki, 1987	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudaphanostoma	variabilis			Westblad, 1946	Species	valid	Pseudaphanostoma Westblad, 1946
+Pseudoposthia				Westblad, 1946	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Pseudoposthia	macrogonopora			Westblad, 1946	Species	valid	Pseudoposthia Westblad, 1946
+Raphidophallus				Kozloff, 1965	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Raphidophallus	actuosus			Kozloff, 1965	Species	valid	Raphidophallus Kozloff, 1965
+Conaperta	actuosa			(Kozloff, 1965)	Species	invalid	Raphidophallus actuosus Kozloff, 1965		Raphidophallus actuosus
+Convoluta	actuosa			(Kozloff, 1965)	Species	invalid	Raphidophallus actuosus Kozloff, 1965		Raphidophallus actuosus
+Rimicola				Bohmig, 1908	Genus	valid	Isodiametridae Hooge & Tyler, 2005
+Rimicola	glacialis			Bohmig, 1908	Species	valid	Rimicola Bohmig, 1908
+Mecynostomidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Eumecynostomum				Faubel & Regier, 1983	Genus	valid	Mecynostomidae Dörjes, 1968
+Eumecynostomum	altitudi			Faubel & Regier, 1983	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Eumecynostomum	asterium			Hooge & Tyler, 2003	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Eumecynostomum	bathycolum			(Westblad, 1948)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Mecynostomum	bathycola			Westblad, 1948	Species	invalid	Eumecynostomum bathycolum (Westblad, 1948)		Eumecynostomum bathycolum
+Pseudmecynostomum	bathycolum			(Westblad, 1948)	Species	invalid	Eumecynostomum bathycolum (Westblad, 1948)		Eumecynostomum bathycolum
+Eumecynostomum	boreale			(Faubel, 1977)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	boreale			Faubel, 1977	Species	invalid	Eumecynostomum boreale (Faubel, 1977)		Eumecynostomum boreale
+Eumecynostomum	evelinae			(Marcus, 1948)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Mecynostomum	evelinae			Marcus, 1948	Species	invalid	Eumecynostomum evelinae (Marcus, 1948)		Eumecynostomum evelinae
+Pseudmecynostomum	evelinae			(Marcus, 1948)	Species	invalid	Eumecynostomum evelinae (Marcus, 1948)		Eumecynostomum evelinae
+Eumecynostomum	flavescens			(Dörjes, 1968)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	flavescens			(Dörjes, 1968)	Species	invalid	Eumecynostomum flavescens (Dörjes, 1968)		Eumecynostomum flavescens
+auritum	flavescens			(Westblad, 1946)	Species	invalid	Eumecynostomum flavescens (Dörjes, 1968)		Eumecynostomum flavescens
+Eumecynostomum	fragilis			(Dörjes, 1968)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	fragilis			Dörjes, 1968	Species	invalid	Eumecynostomum fragilis (Dörjes, 1968)		Eumecynostomum fragilis
+Eumecynostomum	juistensis			(Dörjes, 1968)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	juistensis			Dörjes, 1968	Species	invalid	Eumecynostomum juistensis (Dörjes, 1968)		Eumecynostomum juistensis
+Eumecynostomum	luridum			Kozloff, 2000	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Eumecynostomum	macrobursalium			(Westblad, 1946)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Aphanostoma	macrobursalium			Westblad, 1946	Species	invalid	Eumecynostomum macrobursalium (Westblad, 1946)		Eumecynostomum macrobursalium
+Mecynostomum	macrobursalium			(Westblad, 1946)	Species	invalid	Eumecynostomum macrobursalium (Westblad, 1946)		Eumecynostomum macrobursalium
+Pseudmecynostomum	macrobursalium			(Westblad, 1946)	Species	invalid	Eumecynostomum macrobursalium (Westblad, 1946)		Eumecynostomum macrobursalium
+Eumecynostomum	maritimum			(Dörjes, 1968)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	maritimum			Dörjes, 1968	Species	invalid	Eumecynostomum maritimum (Dörjes, 1968)		Eumecynostomum maritimum
+Eumecynostomum	pallidum			(Beklemischev, 1915)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Aphanostoma	pallidum			Beklemischev, 1915	Species	invalid	Eumecynostomum pallidum (Beklemischev, 1915)		Eumecynostomum pallidum
+Mecynostomum	pallidum			(Beklemischev, 1915)	Species	invalid	Eumecynostomum pallidum (Beklemischev, 1915)		Eumecynostomum pallidum
+Pseudmecynostomum	pallidum			(Beklemischev, 1915)	Species	invalid	Eumecynostomum pallidum (Beklemischev, 1915)		Eumecynostomum pallidum
+Eumecynostomum	papillosum			(Faubel, 1974)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	papillosum			Faubel, 1974	Species	invalid	Eumecynostomum papillosum (Faubel, 1974)		Eumecynostomum papillosum
+Eumecynostomum	tardum			(Ehlers & Dörjes, 1979)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	tardum			Ehlers & Dörjes, 1979	Species	invalid	Eumecynostomum tardum (Ehlers & Dörjes, 1979)		Eumecynostomum tardum
+Eumecynostomum	westbladi			(Dörjes, 1968)	Species	valid	Eumecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	westbladi			Dörjes, 1968	Species	invalid	Eumecynostomum westbladi (Dörjes, 1968)		Eumecynostomum westbladi
+auritum	typica			(Westblad, 1946)	Species	invalid	Eumecynostomum westbladi (Dörjes, 1968)		Eumecynostomum westbladi
+Limnoposthia				Faubel & Kolasa, 1978	Genus	valid	Mecynostomidae Dörjes, 1968
+Limnoposthia	polonica			(Kolasa & Faubel, 1974)	Species	valid	Limnoposthia Faubel & Kolasa, 1978
+Oligochoerus	polonicus			Kolasa & Faubel, 1974	Species	invalid	Limnoposthia polonica (Kolasa & Faubel, 1974)		Limnoposthia polonica
+Mecynostomum				Beneden E, 1870	Genus	valid	Mecynostomidae Dörjes, 1968
+Mecynostomum	auritum			(Schultze M, 1851)	Species	valid	Mecynostomum Beneden E, 1870
+Aphanostoma	auritum			Westblad, 1946	Species	invalid	Mecynostomum auritum (Schultze M, 1851)	nomen nudum	Mecynostomum auritum
+Avagina	aurita			Meixner, 1938	Species	invalid	Mecynostomum auritum (Schultze M, 1851)	homonym & junior synonym	Mecynostomum auritum
+Macrostomum	auritum			Schultze M, 1851	Species	invalid	Mecynostomum auritum (Schultze M, 1851)		Mecynostomum auritum
+Monotus	excavatus			Diesing, 1862	Species	invalid	Mecynostomum auritum (Schultze M, 1851)		Mecynostomum auritum
+Mecynostomum	caudatum			(Uljanin, 1870)	Species	valid	Mecynostomum Beneden E, 1870
+Macrostomum	caudatum			Uljanin, 1870	Species	invalid	Mecynostomum caudatum (Uljanin, 1870)		Mecynostomum caudatum
+Mecynostomum	cordiforme			Levinsen, 1879	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	filiferum			Ax, 1963	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	haplovarium			Dörjes, 1968	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	lentiferum			Levinsen, 1879	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	predatum			Faubel, 1976	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	sp.			Ax, 1959	Species	valid	Mecynostomum Beneden E, 1870
+Mecynostomum	torquens			Kozloff, 2000	Species	valid	Mecynostomum Beneden E, 1870
+Neomecynostomum				Faubel & Regier, 1983	Genus	valid	Mecynostomidae Dörjes, 1968
+Neomecynostomum	granulum			(Dörjes, 1968)	Species	valid	Neomecynostomum Faubel & Regier, 1983
+Pseudmecynostomum	granulum			Dörjes, 1968	Species	invalid	Neomecynostomum granulum (Dörjes, 1968)		Neomecynostomum granulum
+Paedomecynostomum				Dörjes, 1968	Genus	valid	Mecynostomidae Dörjes, 1968
+Paedomecynostomum	bruneum			Dörjes, 1968	Species	valid	Paedomecynostomum Dörjes, 1968
+Paedomecynostomum	sp.			Smith & Tyler, 1985	Species	valid	Paedomecynostomum Dörjes, 1968
+Paramecynostomum				Dörjes, 1968	Genus	valid	Mecynostomidae Dörjes, 1968
+Paramecynostomum	carchedonium			Kozloff, 1998	Species	valid	Paramecynostomum Dörjes, 1968
+Paramecynostomum	diversicolor			(Ørsted, 1845)	Species	valid	Paramecynostomum Dörjes, 1968
+Aphanostoma	diversicolor			Ørsted, 1845	Species	invalid	Paramecynostomum diversicolor (Ørsted, 1845)		Paramecynostomum diversicolor
+Paraconvoluta	diversicolor			(Ørsted, 1845)	Species	invalid	Paramecynostomum diversicolor (Ørsted, 1845)		Paramecynostomum diversicolor
+Philomecynostomum				Dörjes, 1968	Genus	valid	Mecynostomidae Dörjes, 1968
+Philomecynostomum	lapillum			Dörjes, 1968	Species	valid	Philomecynostomum Dörjes, 1968
+Postmecynostomum				Dörjes, 1968	Genus	valid	Mecynostomidae Dörjes, 1968
+Postmecynostomum	glandulosum			(Westblad, 1946)	Species	valid	Postmecynostomum Dörjes, 1968
+Pseudmecynostomum	glandulosum			(Westblad, 1946)	Species	invalid	Postmecynostomum glandulosum (Westblad, 1946)		Postmecynostomum glandulosum
+auritum	glandulosum			(Westblad, 1946)	Species	invalid	Postmecynostomum glandulosum (Westblad, 1946)		Postmecynostomum glandulosum
+Postmecynostomum	pictum			Dörjes, 1968	Species	valid	Postmecynostomum Dörjes, 1968
+Pseudmecynostomum				Dörjes, 1968	Genus	valid	Mecynostomidae Dörjes, 1968
+Pseudomecynostomum				Dörjes, 1968	Genus	invalid	Pseudmecynostomum Dörjes, 1968	original misspelling	Pseudmecynostomum
+Pseudmecynostomum	bruneofilum			Faubel, 1974	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	bruneum			Dörjes, 1968	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	folium			Hooge & Tyler, 2003	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	pellucidum			Ehlers & Dörjes, 1979	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	pelophilum			Dörjes, 1968	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	phoca			Hooge & Tyler, 2003	Species	valid	Pseudmecynostomum Dörjes, 1968
+Pseudmecynostomum	phocum			Hooge, 2001	Species	invalid	Pseudmecynostomum phoca Hooge & Tyler, 2003	nomen nudum	Pseudmecynostomum phoca
+Stylomecynostomum				Hooge & Tyler, 2003	Genus	valid	Mecynostomidae Dörjes, 1968
+Stylomecynostomum	bodegensis			Hooge & Tyler, 2003	Species	valid	Stylomecynostomum Hooge & Tyler, 2003
+Nadinidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Myostomellidae				Riedl, 1954	Family	invalid	Acoela Uljanin, 1870	unnecessary replacement	Nadinidae
+Nadina				Uljanin, 1870	Genus	valid	Nadinidae Dörjes, 1968
+Myostomella				Riedl, 1954	Genus	invalid	Nadina Uljanin, 1870		Nadina
+Nadina	evelinae			(Marcus, 1952)	Species	valid	Nadina Uljanin, 1870
+Hallangia	evelinae			Marcus, 1952	Species	invalid	Nadina evelinae (Marcus, 1952)		Nadina evelinae
+Nadina	minuta			Claparede, 1863	Species	valid	Nadina Uljanin, 1870
+Convoluta	minuta			Claparede, 1863	Species	invalid	Nadina minuta Claparede, 1863		Nadina minuta
+Nadina	pulchella			Uljanin, 1870	Species	valid	Nadina Uljanin, 1870
+Aphanostoma	pulchella			Pereyaslawzewa, 1892	Species	invalid	Nadina pulchella Uljanin, 1870	homonym & junior synonym	Nadina pulchella
+Mecynostomum	pulchellum			(Uljanin, 1870)	Species	invalid	Nadina pulchella Uljanin, 1870		Nadina pulchella
+Myostomella	pulchella			Riedl, 1954	Species	invalid	Nadina pulchella Uljanin, 1870		Nadina pulchella
+Nadina	sensitiva			Uljanin, 1870	Species	valid	Nadina Uljanin, 1870
+Aphanostoma	sensitiva			Pereyaslawzewa, 1892	Species	invalid	Nadina sensitiva Uljanin, 1870	homonym & junior synonym	Nadina sensitiva
+Otocelididae				Westblad, 1948	Family	valid	Acoela Uljanin, 1870
+Archocelis				Dörjes, 1968	Genus	valid	Otocelididae Westblad, 1948
+Archocelis	macrorhabditis			Dörjes, 1968	Species	valid	Archocelis Dörjes, 1968
+Exocelis				Ehlers & Dörjes, 1979	Genus	valid	Otocelididae Westblad, 1948
+Exocelis	exopenis			Ehlers & Dörjes, 1979	Species	valid	Exocelis Ehlers & Dörjes, 1979
+Exocelis	reedi			Hooge & Tyler, 2008	Species	valid	Exocelis Ehlers & Dörjes, 1979
+Haplotestis				Dörjes, 1968	Genus	valid	Otocelididae Westblad, 1948
+Haplotestis	curvitubus			Dörjes, 1968	Species	valid	Haplotestis Dörjes, 1968
+Notocelis				Dörjes, 1968	Genus	valid	Otocelididae Westblad, 1948
+Notocelis	gullmarensis			(Westblad, 1946)	Species	valid	Notocelis Dörjes, 1968
+Otocelis	gullmarensis			Westblad, 1946	Species	invalid	Notocelis gullmarensis (Westblad, 1946)		Notocelis gullmarensis
+Notocelis	maculata			(Karling, Mack-Fira & Dörjes, 1972)	Species	valid	Notocelis Dörjes, 1968
+gullmarensis	maculata			Karling, Mack-Fira & Dörjes, 1972	Species	invalid	Notocelis maculata (Karling, Mack-Fira & Dörjes, 1972)		Notocelis maculata
+Notocelis	rubidocula			Kozloff, 2000	Species	valid	Notocelis Dörjes, 1968
+Notocelis	subsalina			(Ax, 1959)	Species	valid	Notocelis Dörjes, 1968
+Convoluta	subsalina			Ax, 1959	Species	invalid	Notocelis subsalina (Ax, 1959)		Notocelis subsalina
+Philocelis				Dörjes, 1968	Genus	valid	Otocelididae Westblad, 1948
+Philocelis	brueggemanni			Hooge & Tyler, 2003	Species	valid	Philocelis Dörjes, 1968
+Philocelis	cellata			Dörjes, 1968	Species	valid	Philocelis Dörjes, 1968
+Philocelis	karlingi			(Westblad, 1946)	Species	valid	Philocelis Dörjes, 1968
+Convoluta	karlingi			Westblad, 1946	Species	invalid	Philocelis karlingi (Westblad, 1946)		Philocelis karlingi
+Philocelis	robrochai			Hooge & Rocha, 2006	Species	valid	Philocelis Dörjes, 1968
+Posticopora				Kozloff, 2000	Genus	valid	Otocelididae Westblad, 1948
+Parotocelis				Ehlers & Dörjes, 1979	Genus	invalid	Posticopora Kozloff, 2000	preoccupied	Posticopora
+Posticopora	luteopunctata			(Ehlers & Dörjes, 1979)	Species	valid	Posticopora Kozloff, 2000
+Parotocelis	luteopunctata			Ehlers & Dörjes, 1979	Species	invalid	Posticopora luteopunctata (Ehlers & Dörjes, 1979)		Posticopora luteopunctata
+Paratomellidae				Dörjes, 1966	Family	valid	Acoela Uljanin, 1870
+Hesiolicium				Crezee & Tyler, 1976	Genus	valid	Paratomellidae Dörjes, 1966
+Hesiolicium	inops			Crezee & Tyler, 1976	Species	valid	Hesiolicium Crezee & Tyler, 1976
+Paratomella				Dörjes, 1966	Genus	valid	Paratomellidae Dörjes, 1966
+Paratomella	rubra			Rieger & Ott, 1971	Species	valid	Paratomella Dörjes, 1966
+Paratomella	sp.			Smith & Tyler, 1986	Species	valid	Paratomella Dörjes, 1966
+Paratomella	unichaeta			Dörjes, 1966	Species	valid	Paratomella Dörjes, 1966
+Polycanthiidae				Hooge, 2003	Family	valid	Acoela Uljanin, 1870
+Polycanthus				Hooge, 2003	Genus	valid	Polycanthiidae Hooge, 2003
+Polycanthus	torosus			Hooge, 2003	Species	valid	Polycanthus Hooge, 2003
+Proporidae				Graff, 1882	Family	valid	Acoela Uljanin, 1870
+Proporus				Schmidt, 1848	Genus	valid	Proporidae Graff, 1882
+Archiproporus				An der Lan, 1936	Genus	invalid	Proporus Schmidt, 1848	junior synonym	Proporus
+Schizoprora				Schmidt, 1852	Genus	invalid	Proporus Schmidt, 1848	junior synonym	Proporus
+Proporus	bermudensis			Hooge & Tyler, 2002	Species	valid	Proporus Schmidt, 1848
+Proporus	brochii			Westblad, 1946	Species	valid	Proporus Schmidt, 1848
+Proporus	carolinensis			Hooge & Smith, 2004	Species	valid	Proporus Schmidt, 1848
+Proporus	cyclops			Schmidt, 1848	Species	valid	Proporus Schmidt, 1848
+Proporus	lonchitis			Dörjes, 1971	Species	valid	Proporus Schmidt, 1848
+Proporus	minimus			(An der Lan, 1936)	Species	valid	Proporus Schmidt, 1848
+Archiproporus	minimus			An der Lan, 1936	Species	invalid	Proporus minimus (An der Lan, 1936)		Proporus minimus
+Proporus	venenosus			(Schmidt, 1852)	Species	valid	Proporus Schmidt, 1848
+Celidotus	venenosus			Diesing, 1862	Species	invalid	Proporus venenosus (Schmidt, 1852)		Proporus venenosus
+Schizoprora	venenosus			Schmidt, 1852	Species	invalid	Proporus venenosus (Schmidt, 1852)		Proporus venenosus
+Sagittiferidae				Kostenko & Mamkaev, 1990	Family	valid	Acoela Uljanin, 1870
+Antrosagittifera				Hooge & Tyler, 2001	Genus	valid	Sagittiferidae Kostenko & Mamkaev, 1990
+Antrosagittifera	corallina			Hooge & Tyler, 2001	Species	valid	Antrosagittifera Hooge & Tyler, 2001
+Convolutriloba				Hendelberg & Akesson, 1988	Genus	valid	Sagittiferidae Kostenko & Mamkaev, 1990
+Convolutriloba	hastifera			Winsor, 1990	Species	valid	Convolutriloba Hendelberg & Akesson, 1988
+Convolutriloba	longifissura			Bartolomaeus & Balzer, 1997	Species	valid	Convolutriloba Hendelberg & Akesson, 1988
+Convolutriloba	macropyga			Shannon & Achatz, 2007	Species	valid	Convolutriloba Hendelberg & Akesson, 1988
+Convolutriloba	retrogemma			Hendelberg & Akesson, 1988	Species	valid	Convolutriloba Hendelberg & Akesson, 1988
+Sagittifera				Kostenko & Mamkaev, 1990	Genus	valid	Sagittiferidae Kostenko & Mamkaev, 1990
+Sagittifera	sagittifera			(Ivanov, 1952)	Species	valid	Sagittifera Kostenko & Mamkaev, 1990
+Convoluta	sagittifera			Ivanov, 1952	Species	invalid	Sagittifera sagittifera (Ivanov, 1952)		Sagittifera sagittifera
+Symsagittifera				Kostenko & Mamkaev, 1990	Genus	valid	Sagittiferidae Kostenko & Mamkaev, 1990
+Simsagittifera				Kostenko & Mamkaev, 1990	Genus	invalid	Symsagittifera Kostenko & Mamkaev, 1990	original misspelling	Symsagittifera
+Symsagittifera	bifoveolata			(Mamkaev, 1971)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	bifoveolata			Mamkaev, 1971	Species	invalid	Symsagittifera bifoveolata (Mamkaev, 1971)		Symsagittifera bifoveolata
+Symsagittifera	corsicae			Gschwentner, Baric & Rieger, 2002	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Symsagittifera	japonica			(Kato, 1951)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	japonica			Kato, 1951	Species	invalid	Symsagittifera japonica (Kato, 1951)		Symsagittifera japonica
+Convolutriloba	japonica			(Kato, 1951)	Species	invalid	Symsagittifera japonica (Kato, 1951)		Symsagittifera japonica
+Symsagittifera	macnaei			(Marcus EDB-R, 1957)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	macnaei			Marcus EDB-R, 1957	Species	invalid	Symsagittifera macnaei (Marcus EDB-R, 1957)		Symsagittifera macnaei
+Pseudohaplogonaria	macnaei			(Marcus EDB-R, 1957)	Species	invalid	Symsagittifera macnaei (Marcus EDB-R, 1957)		Symsagittifera macnaei
+Symsagittifera	nitidae			(Yamasu, 1982)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	nitidae			Yamasu, 1982	Species	invalid	Symsagittifera nitidae (Yamasu, 1982)		Symsagittifera nitidae
+Symsagittifera	poenicea			Kozloff, 1998	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Symsagittifera	psammophila			(Beklemischev, 1957)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	psammophilum			Beklemischev, 1957	Species	invalid	Symsagittifera psammophila (Beklemischev, 1957)		Symsagittifera psammophila
+Paedomecynostomum	psammophilum			(Beklemischev, 1957)	Species	invalid	Symsagittifera psammophila (Beklemischev, 1957)		Symsagittifera psammophila
+Symsagittifera	roscoffensis			(Graff, 1891)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	roscoffensis			Graff, 1891	Species	invalid	Symsagittifera roscoffensis (Graff, 1891)		Symsagittifera roscoffensis
+Symsagittifera	schultzei			(Schmidt, 1852)	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Convoluta	schultzii			Schmidt, 1852	Species	invalid	Symsagittifera schultzei (Schmidt, 1852)		Symsagittifera schultzei
+Convoluta	viridis			Pereyaslawzewa, 1892	Species	invalid	Symsagittifera schultzei (Schmidt, 1852)		Symsagittifera schultzei
+Monotus	schultzii			(Schmidt, 1852)	Species	invalid	Symsagittifera schultzei (Schmidt, 1852)		Symsagittifera schultzei
+Symsagittifera	smaragdina			Achatz, Gschwentner, & Rieger, 2005	Species	valid	Symsagittifera Kostenko & Mamkaev, 1990
+Solenofilomorphidae				Dörjes, 1968	Family	valid	Acoela Uljanin, 1870
+Endocincta				Crezee, 1975	Genus	valid	Solenofilomorphidae Dörjes, 1968
+Endocincta	punctata			Crezee, 1975	Species	valid	Endocincta Crezee, 1975
+Fusantrum				Crezee, 1975	Genus	valid	Solenofilomorphidae Dörjes, 1968
+Fusantrum	rhammiphorum			Crezee, 1975	Species	valid	Fusantrum Crezee, 1975
+Myopea				Crezee, 1975	Genus	valid	Solenofilomorphidae Dörjes, 1968
+Myopea	crassula			Crezee, 1975	Species	valid	Myopea Crezee, 1975
+Myopea	latafaucium			Crezee, 1975	Species	valid	Myopea Crezee, 1975
+Myopea	sp.			Hooge, Haye, Tyler, Litvaitis & Kornfield, 2002	Species	valid	Myopea Crezee, 1975
+Oligofilomorpha				Dörjes, 1971	Genus	valid	Solenofilomorphidae Dörjes, 1968
+Oligofilomorpha	interstitiophilum			Faubel, 1974	Species	valid	Oligofilomorpha Dörjes, 1971
+Oligofilomorpha	karlingi			Dörjes, 1971	Species	valid	Oligofilomorpha Dörjes, 1971
+Oligofilomorpha	sp.			Crezee, 1975	Species	valid	Oligofilomorpha Dörjes, 1971
+Solenofilomorpha				Dörjes, 1968	Genus	valid	Solenofilomorphidae Dörjes, 1968
+Solenofilomorpha	funilis			Crezee, 1975	Species	valid	Solenofilomorpha Dörjes, 1968
+Solenofilomorpha	guaymensis			Crezee, 1975	Species	valid	Solenofilomorpha Dörjes, 1968
+Solenofilomorpha	longissima			Dörjes, 1968	Species	valid	Solenofilomorpha Dörjes, 1968
+Taurididae				Kostenko, 1989	Family	valid	Acoela Uljanin, 1870
+Taurida				Kostenko, 1989	Genus	valid	Taurididae Kostenko, 1989
+Taurida	fulvomaculata			(Ax, 1959)	Species	valid	Taurida Kostenko, 1989
+Convoluta	fulvomaculata			Ax, 1959	Species	invalid	Taurida fulvomaculata (Ax, 1959)		Taurida fulvomaculata
+Nemertodermatida				Karling, 1940	Order	valid
+Ascopariidae				Sterrer, 1998	Family	valid	Nemertodermatida Karling, 1940
+Ascoparia				Sterrer, 1998	Genus	valid	Ascopariidae Sterrer, 1998
+Ascoparia	neglecta			Sterrer, 1998	Species	valid	Ascoparia Sterrer, 1998
+Ascoparia	secunda			Sterrer, 1998	Species	valid	Ascoparia Sterrer, 1998
+Ascoparia	sp.			Sterrer, 1998	Species	valid	Ascoparia Sterrer, 1998
+Flagellophora				Faubel & Dörjes, 1978	Genus	valid	Ascopariidae Sterrer, 1998
+Flagellophora	apelti			Faubel & Dörjes, 1978	Species	valid	Flagellophora Faubel & Dörjes, 1978
+Flagellophora	sp.			Smith & Tyler, 1985	Species	invalid	Flagellophora apelti Faubel & Dörjes, 1978	nomen nudum	Flagellophora apelti
+Nemertodermatidae				Steinböck, 1930	Family	valid	Nemertodermatida Karling, 1940
+Meara				Westblad, 1949	Genus	valid	Nemertodermatidae Steinböck, 1930
+Meara	sp.			Smith, Tyler, Boatwright & Lundin, 1994	Species	valid	Meara Westblad, 1949
+Meara	stichopi			Westblad, 1949	Species	valid	Meara Westblad, 1949
+Nemertinoides				Riser, 1987	Genus	valid	Nemertodermatidae Steinböck, 1930
+Nemertinoides	elongatus			Riser, 1987	Species	valid	Nemertinoides Riser, 1987
+Nemertinoides	sp.			Smith & Tyler, 1985	Species	invalid	Nemertinoides elongatus Riser, 1987	junior synonym	Nemertinoides elongatus
+Nemertoderma				Steinböck, 1930	Genus	valid	Nemertodermatidae Steinböck, 1930
+Nemertoderma	bathycola			Steinböck, 1930	Species	valid	Nemertoderma Steinböck, 1930
+Nemertoderma	sp.			Westblad, 1937	Species	valid	Nemertoderma Steinböck, 1930
+Nemertoderma	sp. C			Tyler & Rieger, 1977	Species	valid	Nemertoderma Steinböck, 1930
+Nemertoderma	westbladi			(Westblad, 1937)	Species	valid	Nemertoderma Steinböck, 1930
+Sterreria				Lundin, 2000	Genus	valid	Nemertodermatidae Steinböck, 1930
+Sterreria	psammicola			(Sterrer, 1970)	Species	valid	Sterreria Lundin, 2000
+Nemertoderma	psammicola			Sterrer, 1970	Species	invalid	Sterreria psammicola (Sterrer, 1970)		Sterreria psammicola
+Nemertoderma	rubra			Faubel, 1976	Species	invalid	Sterreria psammicola (Sterrer, 1970)	junior synonym	Sterreria psammicola
