@@ -1,0 +1,349 @@
+diff --git sites/all/modules/custom/itis_term/itis_term.module sites/all/modules/custom/itis_term/itis_term.module
+index b7ab3a1..b341f25 100644
+--- sites/all/modules/custom/itis_term/itis_term.module
++++ sites/all/modules/custom/itis_term/itis_term.module
+@@ -581,3 +581,14 @@ function scratchpads_species_taxonomy_term_view_alter(&$build){
+     $build['#theme'] = 'biological_taxonomy_term';
+   }
+ }
++
++/**
++ * Implements hook_ctools_plugin_directory().
++ * 
++ * Contains a single hook based on MYMODULE_ctools_plugin_directory,
++ * which lets us tell Feed Tamper (via CTools) where our plugins are going to be.
++ * In this case they will be in a sub-folder of the module, itis_term/plugins.
++ */
++function itis_term_ctools_plugin_directory($module, $plugin){
++  if($module === 'feeds_tamper'){return 'plugins';}
++}
+diff --git sites/all/modules/custom/itis_term/plugins/itis_term_map_rank.inc sites/all/modules/custom/itis_term/plugins/itis_term_map_rank.inc
+new file mode 100644
+index 0000000..2d52e4e
+--- /dev/null
++++ sites/all/modules/custom/itis_term/plugins/itis_term_map_rank.inc
+@@ -0,0 +1,54 @@
++<?php
++/**
++ * feeds_tamper API definition for drupal 
++ * Allow for mapping values from an incoming term to an itis term
++ */
++$plugin = array(
++  'form' => 'itis_term_map_rank_form',
++  'callback' => 'itis_term_map_rank_callback',
++  'name' => 'Map rank',
++  'multi' => 'loop',
++  'category' => 'ITIS',
++  'description' => 'This will allow you to map an incoming pattern to an ITIS rank. For example incoming pattern "forma" mapped to ITIS rank "Form"'
++);
++
++/**
++ * Form for building the Brahms to Scratchpad rank term mapping
++ */
++function itis_term_map_rank_form($importer, $element_key, $settings){
++  $vocabulary = taxonomy_vocabulary_machine_name_load($importer->processor->config['vocabulary']);
++  $biological_classification = $vocabulary->biological_classification;
++  $form = array();
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_rank'
++  ), $biological_classification);
++  foreach($allowed_values as $key => $value){
++    $form['scratch_map_' . $key] = array(
++      '#type' => 'textfield',
++      '#title' => t('Patterns to map to ' . $key),
++      '#default_value' => isset($settings['scratch_map_' . $key]) ? $settings['scratch_map_' . $key] : ''
++    );
++  }
++  $form['scratch_map_biological_classification'] = array(
++    '#type' => 'hidden',
++    '#value' => isset($biological_classification) ? $biological_classification : ''
++  );
++  return $form;
++}
++
++/**
++ * Function to process the value conversion
++ * Called by the feed (via Feed Tamper) to modify data.
++ */
++function itis_term_map_rank_callback($result, $item_key, $element_key, &$field, $settings){
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_rank'
++  ), $settings['scratch_map_biological_classification']);
++  foreach($allowed_values as $key => $value){
++    $scratch_map_array = explode(",", $settings['scratch_map_' . $key]);
++    $scratch_map_array = array_map('trim', $scratch_map_array);
++    if(in_array($field, $scratch_map_array)){
++      $field = $key;
++    }
++  }
++}
+diff --git sites/all/modules/custom/itis_term/plugins/itis_term_map_unacceptibility.inc sites/all/modules/custom/itis_term/plugins/itis_term_map_unacceptibility.inc
+new file mode 100644
+index 0000000..2d60256
+--- /dev/null
++++ sites/all/modules/custom/itis_term/plugins/itis_term_map_unacceptibility.inc
+@@ -0,0 +1,56 @@
++<?php
++/**
++ * feeds_tamper API definition for drupal 
++ * Allow for mapping values from an incoming term to an itis term
++ */
++$plugin = array(
++  'form' => 'itis_term_map_unacceptibility_form',
++  'callback' => 'itis_term_map_unacceptibility_callback',
++  'name' => 'Map unacceptibility',
++  'multi' => 'loop',
++  'category' => 'ITIS',
++  'description' => 'This will allow you to map incoming patterns to ITIS unacceptibility terms. For example incoming "nn" could be mapped to ITIS "invalidly published, nomen nudum"'
++);
++
++/**
++ * Form for building the Brahms to Scratchpad unacceptibility term mapping
++ */
++function itis_term_map_unacceptibility_form($importer, $element_key, $settings){
++  $vocabulary = taxonomy_vocabulary_machine_name_load($importer->processor->config['vocabulary']);
++  $biological_classification = $vocabulary->biological_classification;
++  $form = array();
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unacceptability_reason'
++  ), $biological_classification);
++  foreach($allowed_values as $key){
++    $form['scratch_map_' . $key] = array(
++      '#type' => 'textfield',
++      '#title' => t('Patterns to map to ' . $key),
++      '#default_value' => isset($settings['scratch_map_' . $key]) ? $settings['scratch_map_' . $key] : ''
++    );
++  }
++  $form['scratch_map_biological_classification'] = array(
++    '#type' => 'hidden',
++    '#value' => isset($biological_classification) ? $biological_classification : ''
++  );
++  return $form;
++}
++
++/**
++ * Function to process the value conversion
++ * Called by the feed (via Feed Tamper) to modify data.
++ */
++function itis_term_map_unacceptibility_callback($result, $item_key, $element_key, &$field, $settings){
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unacceptability_reason'
++  ), $settings['scratch_map_biological_classification']);
++  foreach($allowed_values as $key){
++    if($settings['scratch_map_' . $key]){
++      $scratch_map_array = explode(",", $settings['scratch_map_' . $key]);
++      $scratch_map_array = array_map('trim', $scratch_map_array);
++      if(in_array($field, $scratch_map_array)){
++        $field = $key;
++      }
++    }
++  }
++}
+diff --git sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_3.inc sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_3.inc
+new file mode 100644
+index 0000000..db95d21
+--- /dev/null
++++ sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_3.inc
+@@ -0,0 +1,56 @@
++<?php
++/**
++ * feeds_tamper API definition for drupal 
++ * Allow for mapping values from an incoming term to an itis term
++ */
++$plugin = array(
++  'form' => 'itis_term_map_unit_indicator_3_form',
++  'callback' => 'itis_term_map_unit_indicator_3_callback',
++  'name' => 'Map unit indicator 3',
++  'multi' => 'loop',
++  'category' => 'ITIS',
++  'description' => 'This will allow you to map an incoming pattern to an ITIS unit indicator 3. For example incoming term "subforma" = ITIS "subf."'
++);
++
++/**
++ * Form for building the Brahms to Scratchpad unit indicator term mapping
++ */
++function itis_term_map_unit_indicator_3_form($importer, $element_key, $settings){
++  $vocabulary = taxonomy_vocabulary_machine_name_load($importer->processor->config['vocabulary']);
++  $biological_classification = $vocabulary->biological_classification;
++  $form = array();
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unit_indicator3'
++  ), $biological_classification);
++  foreach($allowed_values as $key){
++    $form['scratch_map_' . $key] = array(
++      '#type' => 'textfield',
++      '#title' => t('Patterns to map to ' . $key),
++      '#default_value' => isset($settings['scratch_map_' . $key]) ? $settings['scratch_map_' . $key] : ''
++    );
++  }
++  $form['scratch_map_biological_classification'] = array(
++    '#type' => 'hidden',
++    '#value' => isset($biological_classification) ? $biological_classification : ''
++  );
++  return $form;
++}
++
++/**
++ * Function to process the value conversion
++ * Called by the feed (via Feed Tamper) to modify data.
++ */
++function itis_term_map_unit_indicator_3_callback($result, $item_key, $element_key, &$field, $settings){
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unit_indicator3'
++  ), $settings['scratch_map_biological_classification']);
++  foreach($allowed_values as $key){
++    if($settings['scratch_map_' . $key]){
++      $scratch_map_array = explode(",", $settings['scratch_map_' . $key]);
++      $scratch_map_array = array_map('trim', $scratch_map_array);
++      if(in_array($field, $scratch_map_array)){
++        $field = $key;
++      }
++    }
++  }
++}
+diff --git sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_4.inc sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_4.inc
+new file mode 100644
+index 0000000..8c985ba
+--- /dev/null
++++ sites/all/modules/custom/itis_term/plugins/itis_term_map_unit_indicator_4.inc
+@@ -0,0 +1,56 @@
++<?php
++/**
++ * feeds_tamper API definition for drupal 
++ * Allow for mapping values from an incoming term to an itis term
++ */
++$plugin = array(
++  'form' => 'itis_term_map_unit_indicator_4_form',
++  'callback' => 'itis_term_map_unit_indicator_4_callback',
++  'name' => 'Map unit indicator 4',
++  'multi' => 'loop',
++  'category' => 'ITIS',
++  'description' => 'This will allow you to map an incoming pattern to an ITIS unit indicator 4. For example incoming term "subforma" = ITIS "subf."'
++);
++
++/**
++ * Form for building the Brahms to Scratchpad unit indicator term mapping
++ */
++function itis_term_map_unit_indicator_4_form($importer, $element_key, $settings){
++  $vocabulary = taxonomy_vocabulary_machine_name_load($importer->processor->config['vocabulary']);
++  $biological_classification = $vocabulary->biological_classification;
++  $form = array();
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unit_indicator4'
++  ), $biological_classification);
++  foreach($allowed_values as $key){
++    $form['scratch_map_' . $key] = array(
++      '#type' => 'textfield',
++      '#title' => t('Patterns to map to ' . $key),
++      '#default_value' => isset($settings['scratch_map_' . $key]) ? $settings['scratch_map_' . $key] : ''
++    );
++  }
++  $form['scratch_map_biological_classification'] = array(
++    '#type' => 'hidden',
++    '#value' => isset($biological_classification) ? $biological_classification : ''
++  );
++  return $form;
++}
++
++/**
++ * Function to process the value conversion
++ * Called by the feed (via Feed Tamper) to modify data.
++ */
++function itis_term_map_unit_indicator_4_callback($result, $item_key, $element_key, &$field, $settings){
++  $allowed_values = itis_term_allowed_values(array(
++    'field_name' => 'field_unit_indicator4'
++  ), $settings['scratch_map_biological_classification']);
++  foreach($allowed_values as $key){
++    if($settings['scratch_map_' . $key]){
++      $scratch_map_array = explode(",", $settings['scratch_map_' . $key]);
++      $scratch_map_array = array_map('trim', $scratch_map_array);
++      if(in_array($field, $scratch_map_array)){
++        $field = $key;
++      }
++    }
++  }
++}
+diff --git sites/all/modules/custom/silver/silver.feeds_tamper_default.inc sites/all/modules/custom/silver/silver.feeds_tamper_default.inc
+index 0352165..9cb2980 100644
+--- sites/all/modules/custom/silver/silver.feeds_tamper_default.inc
++++ sites/all/modules/custom/silver/silver.feeds_tamper_default.inc
+@@ -60,6 +60,66 @@ function silver_feeds_tamper_default(){
+           $feeds_tamper->weight = 0;
+           $feeds_tamper->description = 'Calculate hash';
+           $export[$feeds_tamper->id] = $feeds_tamper;
++          /*
++           * Tamper the rank
++           */
++          $feeds_tamper = new stdClass();
++          $feeds_tamper->disabled = FALSE;
++          $feeds_tamper->api_version = 2;
++          $feeds_tamper->id = $id . '-map_rank';
++          $feeds_tamper->importer = $id;
++          $feeds_tamper->source = 'Rank';
++          $feeds_tamper->plugin_id = 'itis_term_map_rank';
++          $feeds_tamper->settings = array(
++          );
++          $feeds_tamper->weight = 0;
++          $feeds_tamper->description = 'Map rank';
++          $export[$feeds_tamper->id] = $feeds_tamper;
++          /*
++           * Tamper unacceptibility
++          */
++          $feeds_tamper = new stdClass();
++          $feeds_tamper->disabled = FALSE; /* Edit this to true to make a default feeds_tamper disabled initially */
++          $feeds_tamper->api_version = 2;
++          $feeds_tamper->id = $id . '-map_unacceptibility';
++          $feeds_tamper->importer = $id;
++          $feeds_tamper->source = 'Unacceptability Reason';
++          $feeds_tamper->plugin_id = 'itis_term_map_unacceptibility';
++          $feeds_tamper->settings = array(
++          );
++          $feeds_tamper->weight = 0;
++          $feeds_tamper->description = 'Map unacceptibility';
++          $export[$feeds_tamper->id] = $feeds_tamper;
++          /*
++           * Tamper unit indicator 3
++          */
++          $feeds_tamper = new stdClass();
++          $feeds_tamper->disabled = FALSE; /* Edit this to true to make a default feeds_tamper disabled initially */
++          $feeds_tamper->api_version = 2;
++          $feeds_tamper->id = $id . '-map_unit_indicator_3';
++          $feeds_tamper->importer = $id;
++          $feeds_tamper->source = 'Unit indicator 3';
++          $feeds_tamper->plugin_id = 'itis_term_map_unit_indicator_3';
++          $feeds_tamper->settings = array(
++          );
++          $feeds_tamper->weight = 0;
++          $feeds_tamper->description = 'Map unit indicator 3';
++          $export[$feeds_tamper->id] = $feeds_tamper;
++          /*
++           * Tamper unit indicator 4
++          */
++          $feeds_tamper = new stdClass();
++          $feeds_tamper->disabled = FALSE; /* Edit this to true to make a default feeds_tamper disabled initially */
++          $feeds_tamper->api_version = 2;
++          $feeds_tamper->id = $id . '-map_unit_indicator_4';
++          $feeds_tamper->importer = $id;
++          $feeds_tamper->source = 'Unit indicator 4';
++          $feeds_tamper->plugin_id = 'itis_term_map_unit_indicator_4';
++          $feeds_tamper->settings = array(
++          );
++          $feeds_tamper->weight = 0;
++          $feeds_tamper->description = 'Map unit indicator 4';
++          $export[$feeds_tamper->id] = $feeds_tamper;
+           break;
+       }
+     }
+diff --git sites/all/themes/scratchpads/css/global.css sites/all/themes/scratchpads/css/global.css
+index 585f3bb..5ab2d7c 100644
+--- sites/all/themes/scratchpads/css/global.css
++++ sites/all/themes/scratchpads/css/global.css
+@@ -1104,7 +1104,7 @@ table,tbody,tfoot,thead,tr,th,td {
+   margin-bottom: 10px;
+ }
+ 
+-/* field items */
++/* field items */ 
+ .field-label-inline .field-item {
+   margin-right: 3px;
+ }
