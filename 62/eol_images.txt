@@ -1,0 +1,175 @@
+$view = new view;
+$view->name = 'eol_images';
+$view->description = '';
+$view->tag = 'default';
+$view->base_table = 'eolapi';
+$view->human_name = 'EOL Images';
+$view->core = 7;
+$view->api_version = '3.0';
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+/* Display: Master */
+$handler = $view->new_display('default', 'Master', 'default');
+$handler->display->display_options['title'] = 'EOL Images';
+$handler->display->display_options['css_class'] = 'grid-8 alpha omega';
+$handler->display->display_options['access']['type'] = 'none';
+$handler->display->display_options['cache']['type'] = 'none';
+$handler->display->display_options['query']['type'] = 'views_query';
+$handler->display->display_options['query']['options']['query_comment'] = FALSE;
+$handler->display->display_options['exposed_form']['type'] = 'basic';
+$handler->display->display_options['pager']['type'] = 'none';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'grid';
+$handler->display->display_options['style_options']['grouping'] = array(
+  0 => array(
+    'field' => 'catalogue_number',
+    'rendered' => 1,
+    'rendered_strip' => 0,
+  ),
+);
+$handler->display->display_options['style_options']['row_class'] = 'taxa-row';
+$handler->display->display_options['style_options']['fill_single_line'] = 1;
+$handler->display->display_options['row_plugin'] = 'fields';
+$handler->display->display_options['row_options']['hide_empty'] = 0;
+$handler->display->display_options['row_options']['default_field_elements'] = 1;
+/* No results behavior: Global: Text area */
+$handler->display->display_options['empty']['area']['id'] = 'area';
+$handler->display->display_options['empty']['area']['table'] = 'views';
+$handler->display->display_options['empty']['area']['field'] = 'area';
+$handler->display->display_options['empty']['area']['empty'] = FALSE;
+$handler->display->display_options['empty']['area']['format'] = 'filtered_html';
+$handler->display->display_options['empty']['area']['tokenize'] = 0;
+/* Field: Encyclopaedia of Life data: Encyclopaedia of life data ID */
+$handler->display->display_options['fields']['eid']['id'] = 'eid';
+$handler->display->display_options['fields']['eid']['table'] = 'eolapi';
+$handler->display->display_options['fields']['eid']['field'] = 'eid';
+$handler->display->display_options['fields']['eid']['label'] = '';
+$handler->display->display_options['fields']['eid']['exclude'] = TRUE;
+$handler->display->display_options['fields']['eid']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['external'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['eid']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['eid']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['eid']['alter']['html'] = 0;
+$handler->display->display_options['fields']['eid']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['eid']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['eid']['hide_empty'] = 0;
+$handler->display->display_options['fields']['eid']['empty_zero'] = 0;
+$handler->display->display_options['fields']['eid']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['eid']['separator'] = '';
+$handler->display->display_options['fields']['eid']['format_plural'] = 0;
+/* Field: Encyclopaedia of Life data: Catalogue_number */
+$handler->display->display_options['fields']['catalogue_number']['id'] = 'catalogue_number';
+$handler->display->display_options['fields']['catalogue_number']['table'] = 'eolapi';
+$handler->display->display_options['fields']['catalogue_number']['field'] = 'catalogue_number';
+$handler->display->display_options['fields']['catalogue_number']['label'] = '';
+$handler->display->display_options['fields']['catalogue_number']['exclude'] = TRUE;
+$handler->display->display_options['fields']['catalogue_number']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['make_link'] = 1;
+$handler->display->display_options['fields']['catalogue_number']['alter']['path'] = 'http://www.antweb.org/specimen.do?name=[catalogue_number]';
+$handler->display->display_options['fields']['catalogue_number']['alter']['absolute'] = 1;
+$handler->display->display_options['fields']['catalogue_number']['alter']['external'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['path_case'] = 'lower';
+$handler->display->display_options['fields']['catalogue_number']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['alt'] = '[catalogue_number]';
+$handler->display->display_options['fields']['catalogue_number']['alter']['target'] = '_blank';
+$handler->display->display_options['fields']['catalogue_number']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['catalogue_number']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['catalogue_number']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['alter']['html'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['catalogue_number']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['catalogue_number']['hide_empty'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['empty_zero'] = 0;
+$handler->display->display_options['fields']['catalogue_number']['hide_alter_empty'] = 1;
+/* Field: Encyclopaedia of Life data: Image */
+$handler->display->display_options['fields']['eolapi_image']['id'] = 'eolapi_image';
+$handler->display->display_options['fields']['eolapi_image']['table'] = 'field_data_eolapi_image';
+$handler->display->display_options['fields']['eolapi_image']['field'] = 'eolapi_image';
+$handler->display->display_options['fields']['eolapi_image']['label'] = '';
+$handler->display->display_options['fields']['eolapi_image']['alter']['alter_text'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['make_link'] = 1;
+$handler->display->display_options['fields']['eolapi_image']['alter']['path'] = 'eol/[eid]/ajax';
+$handler->display->display_options['fields']['eolapi_image']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['external'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['link_class'] = 'colorbox';
+$handler->display->display_options['fields']['eolapi_image']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['eolapi_image']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['eolapi_image']['alter']['more_link'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['alter']['html'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['element_label_colon'] = FALSE;
+$handler->display->display_options['fields']['eolapi_image']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['eolapi_image']['hide_empty'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['empty_zero'] = 0;
+$handler->display->display_options['fields']['eolapi_image']['hide_alter_empty'] = 1;
+$handler->display->display_options['fields']['eolapi_image']['click_sort_column'] = 'fid';
+$handler->display->display_options['fields']['eolapi_image']['settings'] = array(
+  'image_style' => 'specimen_thumbnail',
+  'image_link' => '',
+);
+$handler->display->display_options['fields']['eolapi_image']['field_api_classes'] = 0;
+/* Sort criterion: Encyclopaedia of Life data: Rating */
+$handler->display->display_options['sorts']['rating']['id'] = 'rating';
+$handler->display->display_options['sorts']['rating']['table'] = 'eolapi';
+$handler->display->display_options['sorts']['rating']['field'] = 'rating';
+$handler->display->display_options['sorts']['rating']['order'] = 'DESC';
+/* Sort criterion: Encyclopaedia of Life data: Weight */
+$handler->display->display_options['sorts']['weight']['id'] = 'weight';
+$handler->display->display_options['sorts']['weight']['table'] = 'eolapi';
+$handler->display->display_options['sorts']['weight']['field'] = 'weight';
+/* Contextual filter: Encyclopaedia of Life data: Taxonomy field (eolapi_taxonomy) */
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['id'] = 'eolapi_taxonomy_tid';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['table'] = 'field_data_eolapi_taxonomy';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['field'] = 'eolapi_taxonomy_tid';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_action'] = 'default';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_argument_type'] = 'taxonomy_tid';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_argument_options']['term_page'] = 1;
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_argument_options']['node'] = 0;
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_argument_options']['limit'] = 0;
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['default_argument_skip_url'] = 0;
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['summary']['number_of_records'] = '0';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['summary']['format'] = 'default_summary';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['summary_options']['items_per_page'] = '25';
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['break_phrase'] = 0;
+$handler->display->display_options['arguments']['eolapi_taxonomy_tid']['not'] = 0;
+/* Filter criterion: Encyclopaedia of Life data: Type */
+$handler->display->display_options['filters']['type']['id'] = 'type';
+$handler->display->display_options['filters']['type']['table'] = 'eolapi';
+$handler->display->display_options['filters']['type']['field'] = 'type';
+$handler->display->display_options['filters']['type']['value'] = array(
+  'stillimage' => 'stillimage',
+);
+/* Filter criterion: Encyclopaedia of Life data: Taxonomy field (eolapi_taxonomy) */
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['id'] = 'eolapi_taxonomy_tid';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['table'] = 'field_data_eolapi_taxonomy';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['field'] = 'eolapi_taxonomy_tid';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['operator'] = 'not empty';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['reduce_duplicates'] = 0;
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['type'] = 'select';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['vocabulary'] = 'taxa';
+$handler->display->display_options['filters']['eolapi_taxonomy_tid']['hierarchy'] = 1;
+/* Filter criterion: Encyclopaedia of Life data: Catalogue_number */
+$handler->display->display_options['filters']['catalogue_number']['id'] = 'catalogue_number';
+$handler->display->display_options['filters']['catalogue_number']['table'] = 'eolapi';
+$handler->display->display_options['filters']['catalogue_number']['field'] = 'catalogue_number';
+$handler->display->display_options['filters']['catalogue_number']['operator'] = '!=';
+
+/* Display: Block */
+$handler = $view->new_display('block', 'Block', 'block');
+ 
