@@ -1,0 +1,4 @@
+﻿Title	Primates	General Description	Biology	Behaviour	Diagnostic Description	Look Alikes	Morphology	Size	Taxon Biology	Associations	Distribution	Ecology	Habitat	Evolution	Phylogeny	Uses
+Homo sapiens	Homo sapiens	"two legs, two arms, not a lot of hair, can speak"	lives in houses	behaves strangely	can speak	twins	"two legs, two arms, one head"	1.5-2.0 m	lives in small family groups or single	has pets and parasites	world wide		cities	long	related to apes	lots of uses
+Pan troglodytes	Pan troglodytes	"lots of hair, can not speak"		jumps up and down	"dark hair, funny face"		bowed legs	1.0-1.5 m	see Goodall		Africa		forest			
+Gorilla gorilla	Gorilla gorilla	male with silver back			silver back					has some lice			cloud forest			
