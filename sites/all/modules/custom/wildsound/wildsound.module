@@ -381,3 +381,11 @@ function wildsound_cron(){
   module_load_include('cron.inc', 'wildsound');
   _wildsound_export_cron();
 }
+
+/**
+ * Implements hook_file_insert().
+ */
+function wildsound_file_insert($file) {
+  $request = "http://analysis-1.acousti.ca/bioacoustica-new-file.php?fileurl=".file_create_url($file->uri);
+  drupal_set_message($request, 'status');
+}
