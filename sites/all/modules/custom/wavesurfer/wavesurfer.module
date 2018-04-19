@@ -18,7 +18,8 @@ function wavesurfer_libraries_info(){
     'files' => array(
       'js' => array(
         'dist/wavesurfer.min.js',
-        'dist/plugin/wavesurfer.regions.min.js'
+        'dist/plugin/wavesurfer.regions.min.js',
+        'dist/wavesurfer.min.js.map'
       )
     )
   );
