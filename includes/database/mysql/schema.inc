@@ -39,8 +39,8 @@ class DatabaseSchema_mysql extends DatabaseSchema {
       $info['table'] = substr($table, ++$pos);
     }
     else {
-      $db_info = Database::getConnectionInfo();
-      $info['database'] = $db_info[$this->connection->getTarget()]['database'];
+      $db_info = $this->connection->getConnectionOptions();
+      $info['database'] = $db_info['database'];
       $info['table'] = $table;
     }
     return $info;
@@ -81,7 +81,8 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     // Provide defaults if needed.
     $table += array(
       'mysql_engine' => 'InnoDB',
-      'mysql_character_set' => (isset($info['charset']) && $info['charset'] == 'utf8mb4') ? 'utf8mb4' : 'utf8',
+      // Allow the default charset to be overridden in settings.php.
+      'mysql_character_set' => $this->connection->utf8mb4IsActive() ? 'utf8mb4' : 'utf8',
     );
 
     $sql = "CREATE TABLE {" . $name . "} (\n";
@@ -108,10 +109,12 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     if (!empty($info['collation'])) {
       $sql .= ' COLLATE ' . $info['collation'];
     }
-    // We specify the row_format to allow us to reduce disk space, and also to
-    // increase the size of indexes.
-    if (!empty($info['row_format'])) {
-      $sql .= ' ROW_FORMAT=' . $info['row_format'];
+
+    // The row format needs to be either DYNAMIC or COMPRESSED in order to allow
+    // for the innodb_large_prefix setting to take effect, see
+    // https://dev.mysql.com/doc/refman/5.6/en/create-table.html
+    if ($this->connection->utf8mb4IsActive()) {
+      $sql .= ' ROW_FORMAT=DYNAMIC';
     }
 
     // Add table comment.
@@ -150,12 +153,6 @@ class DatabaseSchema_mysql extends DatabaseSchema {
 
     if (!empty($spec['unsigned'])) {
       $sql .= ' unsigned';
-    }
-
-    // If it's a text field, check to see if we should use utf8mb4 (4-byte UTF8)
-    // as the character set.
-    if (in_array($spec['mysql_type'], array('TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'TEXT')) && Database::getConnection()->charset() == 'utf8mb4') {
-      $sql .= ' CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci';
     }
 
     if (isset($spec['not null'])) {

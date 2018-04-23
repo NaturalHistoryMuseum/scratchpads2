@@ -140,14 +140,15 @@ function file_file_download($uri, $field_type = 'file') {
   }
 
   // Find out which (if any) fields of this type contain the file.
-  $references = file_get_file_references($file, NULL, FIELD_LOAD_CURRENT, $field_type);
+  $references = file_get_file_references($file, NULL, FIELD_LOAD_CURRENT, $field_type, FALSE);
 
   // Stop processing if there are no references in order to avoid returning
   // headers for files controlled by other modules. Make an exception for
   // temporary files where the host entity has not yet been saved (for example,
   // an image preview on a node/add form) in which case, allow download by the
-  // file's owner.
-  if (empty($references) && ($file->status == FILE_STATUS_PERMANENT || $file->uid != $user->uid)) {
+  // file's owner. For anonymous file owners, only the browser session that
+  // uploaded the file should be granted access.
+  if (empty($references) && ($file->status == FILE_STATUS_PERMANENT || $file->uid != $user->uid || (!$user->uid && empty($_SESSION['anonymous_allowed_file_ids'][$file->fid])))) {
       return;
   }
 
@@ -280,9 +281,10 @@ function file_ajax_upload() {
     $form['#suffix'] .= '<span class="ajax-new-content"></span>';
   }
 
-  $output = theme('status_messages') . drupal_render($form);
+  $form['#prefix'] .= theme('status_messages');
+  $output = drupal_render($form);
   $js = drupal_add_js();
-  $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
+  $settings = drupal_array_merge_deep_array($js['settings']['data']);
 
   $commands[] = ajax_command_replace(NULL, $output, $settings);
   return array('#type' => 'ajax', '#commands' => $commands);
@@ -457,6 +459,17 @@ function file_managed_file_process($element, &$form_state, $form) {
       '#markup' => theme('file_link', array('file' => $element['#file'])) . ' ',
       '#weight' => -10,
     );
+    // Anonymous users who have uploaded a temporary file need a
+    // non-session-based token added so file_managed_file_value() can check
+    // that they have permission to use this file on subsequent submissions of
+    // the same form (for example, after an Ajax upload or form validation
+    // error).
+    if (!$GLOBALS['user']->uid && $element['#file']->status != FILE_STATUS_PERMANENT) {
+      $element['fid_token'] = array(
+        '#type' => 'hidden',
+        '#value' => drupal_hmac_base64('file-' . $fid, drupal_get_private_key() . drupal_get_hash_salt()),
+      );
+    }
   }
 
   // Add the extension list to the page as JavaScript settings.
@@ -533,13 +546,24 @@ function file_managed_file_value(&$element, $input = FALSE, $form_state = NULL) 
           $force_default = TRUE;
         }
         // Temporary files that belong to other users should never be allowed.
-        // Since file ownership can't be determined for anonymous users, they
-        // are not allowed to reuse temporary files at all.
-        elseif ($file->status != FILE_STATUS_PERMANENT && (!$GLOBALS['user']->uid || $file->uid != $GLOBALS['user']->uid)) {
-          $force_default = TRUE;
+        elseif ($file->status != FILE_STATUS_PERMANENT) {
+          if ($GLOBALS['user']->uid && $file->uid != $GLOBALS['user']->uid) {
+            $force_default = TRUE;
+          }
+          // Since file ownership can't be determined for anonymous users, they
+          // are not allowed to reuse temporary files at all. But they do need
+          // to be able to reuse their own files from earlier submissions of
+          // the same form, so to allow that, check for the token added by
+          // file_managed_file_process().
+          elseif (!$GLOBALS['user']->uid) {
+            $token = drupal_array_get_nested_value($form_state['input'], array_merge($element['#parents'], array('fid_token')));
+            if ($token !== drupal_hmac_base64('file-' . $file->fid, drupal_get_private_key() . drupal_get_hash_salt())) {
+              $force_default = TRUE;
+            }
+          }
         }
         // If all checks pass, allow the file to be changed.
-        else {
+        if (!$force_default) {
           $fid = $file->fid;
         }
       }
@@ -1043,11 +1067,18 @@ function file_icon_map($file) {
  * @param $field_type
  *   (optional) The name of a field type. If given, limits the reference check
  *   to fields of the given type.
+ * @param $check_access
+ *   (optional) A boolean that specifies whether the permissions of the current
+ *   user should be checked when retrieving references. If FALSE, all
+ *   references to the file are returned. If TRUE, only references from
+ *   entities that the current user has access to are returned. Defaults to
+ *   TRUE for backwards compatibility reasons, but FALSE is recommended for
+ *   most situations.
  *
  * @return
  *   An integer value.
  */
-function file_get_file_references($file, $field = NULL, $age = FIELD_LOAD_REVISION, $field_type = 'file') {
+function file_get_file_references($file, $field = NULL, $age = FIELD_LOAD_REVISION, $field_type = 'file', $check_access = TRUE) {
   $references = drupal_static(__FUNCTION__, array());
   $fields = isset($field) ? array($field['field_name'] => $field) : field_info_fields();
 
@@ -1058,6 +1089,11 @@ function file_get_file_references($file, $field = NULL, $age = FIELD_LOAD_REVISI
       $query
         ->fieldCondition($file_field, 'fid', $file->fid)
         ->age($age);
+      if (!$check_access) {
+        // Neutralize the 'entity_field_access' query tag added by
+        // field_sql_storage_field_storage_query().
+        $query->addTag('DANGEROUS_ACCESS_CHECK_OPT_OUT');
+      }
       $references[$field_name] = $query->execute();
     }
   }
