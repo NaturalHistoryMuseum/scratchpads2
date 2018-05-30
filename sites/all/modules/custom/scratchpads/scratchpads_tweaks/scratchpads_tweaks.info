@@ -27,6 +27,7 @@ dependencies[] = overlay
 dependencies[] = rdf
 dependencies[] = search
 dependencies[] = shortcut
+dependencies[] = statistics
 dependencies[] = taxonomy
 dependencies[] = toolbar
 dependencies[] = update
