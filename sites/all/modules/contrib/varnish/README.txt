@@ -24,7 +24,7 @@ Once you have Varnish working, use the module you need to do the following:
 * Add something like this to your settings.php file:
 
 // Add Varnish as a cache bin.
-$conf['cache_backends'] = array('sites/all/modules/varnish/varnish.cache.inc');
+$conf['cache_backends'][] = 'sites/all/modules/varnish/varnish.cache.inc';
 
 
 If you plan to use the expire module to be selective with your cache clearing you
