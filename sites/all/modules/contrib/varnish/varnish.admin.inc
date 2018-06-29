@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Administrative functions for Varnish integration.
  */
 
@@ -18,7 +17,6 @@ function varnish_admin_settings_form() {
   }
 
   // Begin socket-dependent configuration.
-
   // Decide whether or not to flush caches on cron runs.
   $form['varnish_flush_cron'] = array(
     '#type' => 'radios',
@@ -40,6 +38,13 @@ function varnish_admin_settings_form() {
       '2' => '2.0.x',
       '2.1' => '2.1.x',
       '3' => '3.x',
+      '4' => '4.x',
+    ),
+    '#ajax' => array(
+      'callback' => 'varnish_admin_settings_control_key_callback',
+      'wrapper' => 'wrapper-varnish-control-key',
+      'method' => 'replace',
+      'effect' => 'fade',
     ),
   );
 
@@ -49,21 +54,42 @@ function varnish_admin_settings_form() {
     '#default_value' => variable_get('varnish_control_terminal', '127.0.0.1:6082'),
     '#required' => TRUE,
     '#description' => t('Set this to the server IP or hostname that varnish runs on (e.g. 127.0.0.1:6082). This must be configured for Drupal to talk to Varnish. Separate multiple servers with spaces.'),
+    '#maxlength' => 256,
   );
 
   $form['varnish_control_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Varnish Control Key'),
     '#default_value' => variable_get('varnish_control_key', ''),
-    '#description' => t('Optional: if you have established a secret key for control terminal access, please put it here.'),
+    '#description' => t('If you have established a secret key for control terminal access, please put it here.'),
+    '#prefix' => '<div id="wrapper-varnish-control-key">',
+    '#suffix' => '</div>',
+    '#required' => variable_get('varnish_version', 2.1) == '4' ? TRUE : FALSE,
   );
+
+  $form['varnish_control_key_appendnewline'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Append Newline (\n)'),
+    '#default_value' => variable_get('varnish_control_key_appendnewline', TRUE),
+    '#description' => t('Most control keys have an embedded newline at the end. Uncheck this if you know it doesn\'t or if you are reading the file in direct with an fopen.'),
+  );
+
   $form['varnish_socket_timeout'] = array(
-   '#type' => 'textfield',
-   '#title' => t('Varnish connection timeout (milliseconds)'),
-   '#default_value' => variable_get('varnish_socket_timeout', VARNISH_DEFAULT_TIMEOUT),
-   '#description' => t('If Varnish is running on a different server, you may need to increase this value.'),
-   '#required' => TRUE,
+    '#type' => 'textfield',
+    '#title' => t('Varnish connection timeout (milliseconds)'),
+    '#default_value' => variable_get('varnish_socket_timeout', VARNISH_DEFAULT_TIMEOUT),
+    '#description' => t('If Varnish is running on a different server, you may need to increase this value.'),
+    '#required' => TRUE,
   );
+
+  $form['varnish_front_domains'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Front domains list'),
+    '#default_value' => variable_get('varnish_front_domains'),
+    '#required' => FALSE,
+    '#description' => t('If you have multiple front-end doamin to flush, each domain will be called when banning. Enter front domain names separated by spaces.'),
+  );
+
   $form['varnish_cache_clear'] = array(
     '#type' => 'radios',
     '#title' => t('Varnish Cache Clearing'),
@@ -96,16 +122,36 @@ function varnish_admin_settings_form() {
     ),
   );
 
-  // Check status
+  // Check status.
   $form['varnish_stats'] = array(
     '#type' => 'item',
     '#title' => t('Status'),
-    '#markup' => theme('varnish_status', varnish_get_status(), floatval(variable_get('varnish_version', 2.1))),
+    '#markup' => theme('varnish_status', array(
+      'status' => varnish_get_status(),
+      'version' => floatval(variable_get('varnish_version', 2.1)),
+    )),
   );
 
   return system_settings_form($form);
 }
 
+/**
+ * AJAX callback to set required property on varnish admin settings form.
+ */
+function varnish_admin_settings_control_key_callback($form, $form_state) {
+  if ($form_state['values']['varnish_version'] == '4') {
+    $form['varnish_control_key']['#required'] = TRUE;
+  }
+  else {
+    $form['varnish_control_key']['#required'] = FALSE;
+  }
+
+  return $form['varnish_control_key'];
+}
+
+/**
+ * Validator for the varnish admin settings form.
+ */
 function varnish_admin_settings_form_validate($form, &$form_state) {
   if (!is_numeric($form_state['values']['varnish_socket_timeout']) || $form_state['values']['varnish_socket_timeout'] < 0) {
     form_set_error('varnish_socket_timeout', t('Varnish connection timeout must be a positive number.'));
@@ -114,7 +160,6 @@ function varnish_admin_settings_form_validate($form, &$form_state) {
     $form_state['values']['varnish_socket_timeout'] = (int) $form_state['values']['varnish_socket_timeout'];
   }
 }
-
 
 /**
  * Menu callback for varnish admin settings.
