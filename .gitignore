@@ -1,29 +1,12 @@
-# Ignore configuration files that may contain sensitive information and user-generated content
+# Ignore configuration files that may contain sensitive information.
 sites/*/settings*.php
+
+# Ignore paths that contain user-generated content.
 sites/*/files
 sites/*/private
-sites/monkey.nhm.ac.uk
 
-# Examples/Devel modules
-sites/all/modules/contrib/examples
-sites/all/modules/contrib/devel
+sites/*.myspecies.info
+sites/*.org
+sites/*.taxon.name
+*-7.x-2.9.0.tar.gz
 
-# Mac shite and SQL files
-*.DS_Store
-*.sql
-*.dump
-
-# Zend studio files
-.buildpath
-.cache
-.project
-.settings
-
-# Development files
-index2.php
-
-# Files included for Vagrant that should not be committed
-scratchpads_twitter.ini
-
-
-# Additional files below.

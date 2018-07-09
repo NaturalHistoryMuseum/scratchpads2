@@ -157,6 +157,8 @@ function captcha_element_info() {
     '#process' => array('captcha_element_process'),
     // The type of challenge: e.g. 'default', 'none', 'captcha/Math', 'image_captcha/Image'.
     '#captcha_type' => 'default',
+    // Forces captcha validation for all cases if TRUE.
+    '#captcha_always' => FALSE,
     '#default_value' => '',
     // CAPTCHA in admin mode: presolve the CAPTCHA and always show it (despite previous successful responses).
     '#captcha_admin_mode' => FALSE,
@@ -179,15 +181,14 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 
   module_load_include('inc', 'captcha');
 
-  // Add Javascript for general CAPTCHA functionality.
+  // Add JavaScript for general CAPTCHA functionality.
   drupal_add_js(drupal_get_path('module', 'captcha') . '/captcha.js');
 
   // Prevent caching of the page with CAPTCHA elements.
   // This needs to be done even if the CAPTCHA will be ommitted later:
   // other untrusted users should not get a cached page when
   // the current untrusted user can skip the current CAPTCHA.
-  global $conf;
-  $conf['cache'] = FALSE;
+  drupal_page_is_cacheable(FALSE);
 
   // Get the form ID of the form we are currently processing (which is not
   // necessary the same form that is submitted (if any).
@@ -254,7 +255,7 @@ function captcha_element_process($element, &$form_state, $complete_form) {
     'captcha_sid' => $captcha_sid,
   );
 
-  if (_captcha_required_for_user($captcha_sid, $this_form_id) || $element['#captcha_admin_mode']) {
+  if (_captcha_required_for_user($captcha_sid, $this_form_id) || $element['#captcha_admin_mode'] || $element['#captcha_always']) {
     // Generate a CAPTCHA and its solution
     // (note that the CAPTCHA session ID is given as third argument).
     $captcha = module_invoke($captcha_type_module, 'captcha', 'generate', $captcha_type_challenge, $captcha_sid);
@@ -594,7 +595,18 @@ function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
  *     if the values could not be found, e.g. for a fresh form).
  */
 function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) {
-  if ($form_state['submitted'] && isset($form_state['captcha_info'])) {
+  //Handle Ajax scenarios
+  if (!empty($form_state['rebuild_info'])) {
+    if (!empty($form_state['captcha_info']['posted_form_id'])) {
+      $posted_form_id = $form_state['captcha_info']['posted_form_id'];
+    }
+    else {
+      $posted_form_id = $form_state['input']['form_id'];
+    }
+
+    $posted_captcha_sid = $form_state['captcha_info']['captcha_sid'];
+  }
+  else if ($form_state['submitted'] && isset($form_state['captcha_info'])) {
     // We are handling (or rebuilding) an already submitted form,
     // so we already determined the posted form ID and CAPTCHA session ID
     // for this form (from before submitting). Reuse this info.
@@ -764,7 +776,7 @@ function captcha_pre_render_process($element) {
   // of multi-page forms. Take previewing a node submission for example:
   // when the challenge is solved correctely on preview, the form is still
   // not completely submitted, but the CAPTCHA can be skipped.
-  if (_captcha_required_for_user($captcha_sid, $form_id) || $element['#captcha_admin_mode']) {
+  if (_captcha_required_for_user($captcha_sid, $form_id) || $element['#captcha_admin_mode'] || $element['#captcha_always']) {
     // Update captcha_sessions table: store the solution of the generated CAPTCHA.
     _captcha_update_captcha_session($captcha_sid, $captcha_info['solution']);
 

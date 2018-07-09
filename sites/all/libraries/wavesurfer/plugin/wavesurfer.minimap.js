@@ -94,7 +94,8 @@ WaveSurfer.Minimap = WaveSurfer.util.extend({}, WaveSurfer.Drawer, WaveSurfer.Dr
 
     bindWaveSurferEvents: function () {
         var my = this;
-        this.wavesurfer.on('ready', this.render.bind(this));
+        // render on load
+        this.render();
         this.wavesurfer.on('audioprocess', function (currentTime) {
             my.progress(my.wavesurfer.backend.getPlayedPercents());
         });
@@ -117,14 +118,15 @@ WaveSurfer.Minimap = WaveSurfer.util.extend({}, WaveSurfer.Drawer, WaveSurfer.Dr
         }
 
         var prevWidth = 0;
-        var onResize = function () {
+        var onResize = this.wavesurfer.util.debounce(function () {
             if (prevWidth != my.wrapper.clientWidth) {
                 prevWidth = my.wrapper.clientWidth;
                 my.render();
                 my.progress(my.wavesurfer.backend.getPlayedPercents());
             }
-        };
+        }, 100);
         window.addEventListener('resize', onResize, true);
+        window.addEventListener('orientationchange', onResize, true);
 
         this.wavesurfer.on('destroy', function () {
             my.destroy.bind(this);
@@ -178,8 +180,8 @@ WaveSurfer.Minimap = WaveSurfer.util.extend({}, WaveSurfer.Drawer, WaveSurfer.Dr
 
     render: function () {
         var len = this.getWidth();
-        var peaks = this.wavesurfer.backend.getPeaks(len);
-        this.drawPeaks(peaks, len);
+        var peaks = this.wavesurfer.backend.getPeaks(len, 0, len);
+        this.drawPeaks(peaks, len, 0, len);
 
         if (this.params.showOverview) {
             //get proportional width of overview region considering the respective

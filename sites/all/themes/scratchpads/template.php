@@ -1,5 +1,4 @@
 <?php
-
 /**
  *
  * Implentation of hook_block_view_alter

@@ -6,7 +6,7 @@
  */
 
 /**
- * Implements of hook_schema().
+ * Implements hook_schema().
  */
 function honeypot_schema() {
   $schema['honeypot_user'] = array(
@@ -17,6 +17,12 @@ function honeypot_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'hostname' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'Hostname of user that that triggered honeypot.',
       ),
       'timestamp' => array(
         'description' => 'Date/time when the form submission failed, as Unix timestamp.',
@@ -37,10 +43,15 @@ function honeypot_schema() {
  * Implements hook_install().
  */
 function honeypot_install() {
-  $t = get_t();
-  drupal_set_message($t("Honeypot installed successfully. Please !link to protect your forms from spam bots.", array(
-    '!link' => l($t('configure Honeypot'), 'admin/config/content/honeypot'),
-  )));
+  // Create CSS file.
+  honeypot_create_css(variable_get('honeypot_element_name', 'url'));
+
+  if (!drupal_is_cli()) {
+    $t = get_t();
+    drupal_set_message($t("Honeypot installed successfully. Please !link to protect your forms from spam bots.", array(
+      '!link' => l($t('configure Honeypot'), 'admin/config/content/honeypot'),
+    )));
+  }
 }
 
 /**
@@ -56,6 +67,9 @@ function honeypot_uninstall() {
       cache_clear_all($table, 'cache');
     }
   }
+
+  // Delete 'honeypot' directory from public file directory.
+  file_unmanaged_delete_recursive('public://honeypot');
 }
 
 /**
@@ -128,4 +142,44 @@ function honeypot_update_7003() {
 
     db_create_table('honeypot_user', $table);
   }
+}
+
+/**
+ * Create Honeypot CSS file.
+ */
+function honeypot_update_7004() {
+  drupal_load('module', 'honeypot');
+  module_load_include('inc', 'honeypot', 'honeypot.admin');
+  honeypot_create_css(variable_get('honeypot_element_name', 'url'));
+}
+
+/**
+ * Adds the 'hostname' column to the {honeypot_user} table.
+ */
+function honeypot_update_7100() {
+  $schema = honeypot_schema();
+  $spec = $schema['honeypot_user']['fields']['hostname'];
+  $spec['initial'] = '';
+  db_add_field('honeypot_user', 'hostname', $spec);
+}
+
+/**
+ * Transfer previous honeypot trigger info from {flood} to {honeypot_user}.
+ */
+function honeypot_update_7101() {
+  // Move all 'honeypot' events, which are honeypot captures for anonymous
+  // users, to the {honeypot_user}-table, since the latter now supports
+  // tracking based on ip/hostname for anonymous users.
+  $query = db_select('flood', 'f')
+    ->condition('event', 'honeypot');
+  $query->addExpression('0', 'uid');
+  $query->addField('f', 'identifier', 'hostname');
+  $query->addField('f', 'timestamp');
+  db_insert('honeypot_user')
+    ->from($query)
+    ->execute();
+
+  // Clean up the flood table by removing our events, since we are no longer
+  // relying on the flood mechanism to track anonymous honeypot captures.
+  flood_clear_event('honeypot');
 }

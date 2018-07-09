@@ -1,0 +1,200 @@
+<?php
+
+/**
+ * Media field should not be required
+ */
+function spm_update_7001(){
+  $instance = field_read_instance('node', 'field_media', 'spm');
+  $instance['required'] = 0;
+  field_update_instance($instance);
+  return 'Updated spm media field';
+}
+
+/**
+ * Update the description
+ */
+function spm_update_7002(){
+  $instance = field_read_instance('node', 'field_associations', 'spm');
+  $instance['description'] = 'Descriptions and lists of taxa that interact with the subject taxon. Includes explicit reference to the kind of ecological interaction: Predator/prey; host/parasite, pollinators, symbiosis, mutualism, commensalism; hybridisation, &hellip;';
+  field_update_instance($instance);
+  return 'Updated spm field_associations field';
+}
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function spm_update_7003(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'spm')->execute();
+}
+
+/**
+ * Change weight of fields to allow eMonocot fields to fit in nicely
+ */
+function spm_update_7004(){
+  module_load_include('features.field.inc', 'spm');
+  $spm_fields = spm_field_default_fields();
+  foreach($spm_fields as $spm_field){
+    $instance = field_read_instance('node', $spm_field['field_config']['field_name'], 'spm');
+    if($instance){
+      $instance['widget']['weight'] = $spm_field['field_instance']['widget']['weight'];
+      $instance['display']['default']['weight'] = $spm_field['field_instance']['display']['default']['weight'];
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Update the spm instance of the field_media field to alter its display. 
+ */
+function spm_update_7005(){
+  $field_instance = field_info_instance('node', 'field_media', 'spm');
+  $field_instance['display'] = array(
+    'default' => array(
+      'label' => 'above',
+      'module' => 'file_entity',
+      'settings' => array(
+        'file_view_mode' => 'file_styles_square_thumbnail'
+      ),
+      'type' => 'file_rendered',
+      'weight' => '12'
+    ),
+    'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 1
+    ),
+    'teaser' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0
+    )
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Update the spm instance of the field_media field to alter the widget it uses.
+ */
+function spm_update_7006(){
+  $field_instance = field_info_instance('node', 'field_media', 'spm');
+  $field_instance['widget'] = array(
+    'active' => 1,
+    'module' => 'media_multiselect',
+    'settings' => array(
+      'allowed_schemes' => array(),
+      'allowed_types' => array(
+        'audio' => 'audio',
+        'default' => 0,
+        'image' => 'image',
+        'video' => 'video'
+      ),
+      'browser_plugins' => array(
+        'media_default--media_browser_1' => 0,
+        'media_default--media_browser_my_files' => 0,
+        'upload' => 0
+      ),
+      'progress_indicator' => 'throbber'
+    ),
+    'type' => 'media_multiselect',
+    'weight' => '100'
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Set the Autotag options so that this content type is NOT autotaged.
+ */
+function spm_update_7007(){
+  variable_set('tagtag_node_spm', array());
+}
+
+/**
+ * Set the weight of the "General Description" and "Biology" fields.
+ */
+function spm_update_7008(){
+  module_load_include('features.field.inc', 'spm');
+  $fields = spm_field_default_fields();
+  if(field_info_field('field_biology')){
+    field_update_instance($fields['node-spm-field_biology']['field_instance']);
+  }
+  if(field_info_field('field_general_description')){
+    field_update_instance($fields['node-spm-field_general_description']['field_instance']);
+  }
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function spm_update_7009(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'spm');
+  foreach(spm_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
+
+/**
+ * Update to the token module requires a change to our ANT pattern.
+ */
+function spm_update_7010(){
+  variable_set('ant_pattern_spm', '[node:field_taxonomic_name]');
+}
+
+/**
+ * Update field field_media description
+ */
+function spm_update_7011(){
+  if(field_info_instance('node', 'field_media', 'spm')){
+    module_load_include('features.field.inc', 'spm');
+    $fields = spm_field_default_fields();
+    field_update_instance($fields['node-spm-field_media']['field_instance']);
+  }
+}
+
+/**
+ * Set the Autotag options so that this content type is NOT autotaged.
+ */
+function spm_update_7012(){
+  variable_set('tagtag_node_spm', array());
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function spm_update_7013(){
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}
+
+/**
+ * Remove the allowed_scheme options from the field_media field
+ */
+function spm_update_7014(){
+  $field_instance = field_info_instance('node', 'field_media', 'spm');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}

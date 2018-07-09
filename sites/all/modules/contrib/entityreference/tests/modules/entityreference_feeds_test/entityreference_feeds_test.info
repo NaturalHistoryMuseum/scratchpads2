@@ -1,0 +1,16 @@
+name = "Entityreference - Feeds integration tests"
+description = "Support module for the Entityreference - Feeds integration tests."
+package = Testing
+core = 7.x
+hidden = TRUE
+
+dependencies[] = feeds
+dependencies[] = feeds_ui
+dependencies[] = entityreference
+
+; Information added by Drupal.org packaging script on 2017-08-16
+version = "7.x-1.5"
+core = "7.x"
+project = "entityreference"
+datestamp = "1502895850"
+

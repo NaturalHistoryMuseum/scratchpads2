@@ -1,0 +1,354 @@
+<?php
+
+/**
+ * 7.x
+ */
+/**
+ * Implementation of hook_install
+ */
+function femail_install(){
+  // All we need to do here is loop through all of the forums, and set the email
+  // variable accordingly.
+  $forum_containers = variable_get('forum_containers', array());
+  // Select the name of the forums
+  $dbs = db_select('taxonomy_term_data', 't');
+  $dbs->fields('t', array(
+    'name',
+    'tid'
+  ));
+  $dbs->condition('vid', variable_get('forum_nav_vocabulary'));
+  // No containers
+  if($forum_containers){
+    foreach($forum_containers as $forum_container){
+      $dbs->condition('tid', $forum_container, '!=');
+    }
+  }
+  // Prepare end of email.
+  $emails = array();
+  global $base_url;
+  $parts = parse_url($base_url);
+  // Get results
+  $results = $dbs->execute();
+  foreach($results as $row){
+    // Create the email address.
+    $email = preg_replace("/[^0-9a-z\-]/", "", strtolower(str_replace(" ", "-", $row->name)));
+    // Check it doesn't already exist.
+    if(array_search($email, $emails)){
+      $i = 2;
+      while(array_search($email . "_" . $i, $emails)){
+        $i++;
+      }
+      $email = $email . "_" . $i;
+    }
+    $emails[$row->tid] = $email . '@' . $parts['host'];
+  }
+  variable_set('femail_emails', $emails);
+  // Set the install time for use in hashes
+  variable_set('femail_install_time', time());
+  // Set a message (if we have access to the permissions page) to tell users to
+  // go and set the permission.
+  if(user_access('administer permissions')){
+    drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
+      '!url' => url('admin/people/permissions')
+    )));
+  }
+  // Create a file field that can be used by both the comment and forum entities
+  $new_field = field_create_field(array(
+    'field_name' => 'femail_files',
+    'type' => 'file',
+    'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    'locked' => TRUE
+  ));
+  // Add the field to the forum entity and forum/comments entity.
+  module_load_include('crud.inc', 'field');
+  field_create_instance(array(
+    'field_name' => 'femail_files',
+    'entity_type' => 'comment',
+    'bundle' => 'comment_node_forum',
+    'label' => 'Files'
+  ));
+  field_create_instance(array(
+    'field_name' => 'femail_files',
+    'entity_type' => 'node',
+    'bundle' => 'forum',
+    'label' => 'Files'
+  ));
+  // Add the filters to the plain text content type.
+  // First check that we still have the "plain_text" input format.  If so, we
+  // add out filters at the of the list.
+  if(db_query("SELECT COUNT(*) FROM {filter_format} WHERE format = 'plain_text'")->fetchCol()){
+    // Get the minimum, and reduce by one and two for our values
+    $result = db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol();
+    $max_weight = array_pop($result);
+    $query = db_insert('filter')->fields(array(
+      'format',
+      'module',
+      'name',
+      'weight',
+      'status',
+      'settings'
+    ));
+    $values = array(
+      array(
+        'format' => 'plain_text',
+        'module' => 'femail',
+        'name' => 'femail_blockquote_reply',
+        'weight' => $max_weight + 1,
+        'status' => 1,
+        'settings' => ''
+      ),
+      array(
+        'format' => 'plain_text',
+        'module' => 'femail',
+        'name' => 'femail_remove_sig',
+        'weight' => $max_weight + 2,
+        'status' => 1,
+        'settings' => ''
+      )
+    );
+    foreach($values as $record){
+      $query->values($record);
+    }
+    $query->execute();
+  }
+}
+
+/**
+ * Implementation of hook_requirements
+ */
+function femail_requirements($phase){
+  // Check that the function user_roles exists, else we're probably installing
+  // from scratch
+  // FIXME - Is this check still required - has Drupal 7 fixed issues with 6?
+  if(!function_exists('user_roles')){return array();}
+  $t = get_t();
+  $requirements = array(
+    'femail_mailparse' => array(
+      'title' => $t('Femail: Mailparse')
+    ),
+    'femail_mx' => array(
+      'title' => $t('Femail: MX Records')
+    ),
+    'femail_permissions' => array(
+      'title' => $t('Femail: User permissions')
+    ),
+    'femail_drush' => array(
+      'title' => $t('Femail: Drush installed and in the path')
+    ),
+    'femail_file_fields' => array(
+      'title' => $t('Femail: File fields')
+    )
+  );
+  // Check that we have the mailparse functions installed
+  if(!(function_exists('mailparse_msg_create') && function_exists('mailparse_msg_get_part_data') && function_exists('mailparse_msg_parse'))){
+    $requirements['femail_mailparse']['severity'] = REQUIREMENT_ERROR;
+    if($phase == 'runtime'){
+      $requirements['femail_mailparse']['value'] = $t('Not installed');
+    }
+  }else{
+    $requirements['femail_mailparse']['severity'] = REQUIREMENT_OK;
+    if($phase == 'runtime'){
+      $requirements['femail_mailparse']['value'] = $t('Installed');
+    }
+  }
+  // Check that there are no MX records set for the domain, and if there are,
+  // that they're pointing at the right place (this server).
+  global $base_url;
+  $parts = parse_url($base_url);
+  $mx_records = array();
+  if(getmxrr($parts['host'], $mx_records)){
+    if(count($mx_records) > 1){
+      $requirements['femail_mx']['severity'] = REQUIREMENT_WARNING;
+      if($phase == 'runtime'){
+        $requirements['femail_mx']['value'] = $t('You have more than one MX record for this domain.  It is likely that not all mail will be sent to this server.');
+      }
+    }else{
+      // Check to see if the mx record points at this server
+      if(gethostbyname(array_pop($mx_records)) == gethostbyname($parts['host'])){
+        $requirements['femail_mx']['severity'] = REQUIREMENT_OK;
+        if($phase == 'runtime'){
+          $requirements['femail_mx']['value'] = $t('Your MX record points at this server');
+        }
+      }else{
+        $requirements['femail_mx']['severity'] = REQUIREMENT_WARNING;
+        if($phase == 'runtime'){
+          $requirements['femail_mx']['value'] = $t('Your MX record DOES NOT point at this server');
+        }
+      }
+    }
+  }else{
+    // Must be zero (or less!)
+    $requirements['femail_mx']['severity'] = REQUIREMENT_OK;
+    if($phase == 'runtime'){
+      $requirements['femail_mx']['value'] = $t('No MX Records found');
+    }
+  }
+  // Check the permissions, and give a warning if any roles have the post by
+  // femail permission, but don't have sufficient privileges to post files.
+  $requirements['femail_permissions']['severity'] = REQUIREMENT_OK;
+  $roles = user_roles();
+  if($phase == 'runtime'){
+    $requirements['femail_permissions']['value'] = '<p>The following roles, that have the permission "post by femail", do not have all the recommended permissions ("post comments"; "create forum content")<ul>';
+  }
+  $results = db_select('role_permission', 'r')->fields('r', array(
+    'rid'
+  ))->condition('permission', 'post by femail')->execute();
+  foreach($results as $row){
+    // Here we have a role that is able to "post by femail", lets check they
+    // have the correct permissions.
+    $results2 = db_select('role_permission', 'r')->fields('r', array(
+      'permission'
+    ))->condition('rid', $row->rid)->where("permission IN ('post comments', 'create forum content')")->execute();
+    $permissions = array();
+    foreach($results2 as $row2){
+      $permissions[] = $row2->permission;
+    }
+    if(count($permissions) < 2){
+      // We don't have all the permissions, list the ones we have.
+      if($phase == 'runtime'){
+        $requirements['femail_permissions']['value'] .= '<li>' . t('Role "!role" only has:', array(
+          '!role' => $roles[$row->rid]
+        )) . theme('item_list', array(
+          'items' => $permissions
+        )) . '</li>';
+      }
+      $requirements['femail_permissions']['severity'] = REQUIREMENT_WARNING;
+    }
+  }
+  if($phase == 'runtime'){
+    if($requirements['femail_permissions']['severity'] == REQUIREMENT_OK){
+      $requirements['femail_permissions']['value'] = $t('All roles with the permission "post by femail" have the other required permissions "post comments"; "create forum content"');
+    }else{
+      $requirements['femail_permissions']['value'] .= '</ul></p>';
+    }
+  }
+  // Checking for Drush.
+  exec('drush', $output_lines, $return_status);
+  $three_lines = array();
+  for($i = 0; $i < 5 && $i < count($output_lines); $i++){
+    $three_lines[$i] = $output_lines[$i];
+  }
+  if($phase == 'runtime'){
+    if(!$return_status){
+      // Drush looks to be installed OK.
+      $requirements['femail_drush']['severity'] = REQUIREMENT_OK;
+      $requirements['femail_drush']['value'] = $t('Drush looks to be installed correctly.  Output of "drush" is:<br/><span style="font-size:80%">') . implode("<br/>", $three_lines) . '<br/>...</span>';
+    }else{
+      // Drush NOT ok.
+      $requirements['femail_drush']['severity'] = REQUIREMENT_WARNING;
+      $requirements['femail_drush']['value'] = $t('Drush does not look to be installed correctly, please ensure it is in the path for all users (/usr/local/bin/drush is a good start).');
+    }
+  }
+  // Check comments first
+  $node_field_found = FALSE;
+  $comment_field_found = FALSE;
+  module_load_include('info.inc', 'field');
+  $field_instance = field_info_instances('comment', 'comment_node_forum');
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $comment_field_found = TRUE;
+    }
+  }
+  // Next check the forum content type.
+  $field_instance = field_info_instances('node', 'forum');
+  foreach($field_instance as $field){
+    if($field['widget']['module'] == 'file'){
+      $node_field_found = TRUE;
+    }
+  }
+  if($phase == 'runtime'){
+    if($comment_field_found && $node_field_found){
+      $requirements['femail_file_fields']['severity'] = REQUIREMENT_OK;
+      $requirements['femail_file_fields']['value'] = $t('Both Forum node and Forum node comment entities have a file field.');
+    }else{
+      $requirements['femail_file_fields']['severity'] = REQUIREMENT_WARNING;
+      $requirements['femail_file_fields']['value'] = $t('Please ensure that both the "Forum topic" and the comments for "Forum topic" have a file field.');
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Implementation of hook_schema
+ */
+function femail_schema(){
+  return array(
+    'femail_msgs' => array(
+      'description' => 'Holds the e-mail message ID for all outbound messages sent.',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'Node ID of the message (or parent)',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'cid' => array(
+          'description' => 'Comment ID of the message (or 0 if the root post)',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'msgid' => array(
+          'description' => 'The actual e-mail message ID',
+          'type' => 'varchar',
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'nid',
+        'msgid',
+        'cid'
+      )
+    ),
+    'femail_user_emails' => array(
+      'description' => 'Holds additional email addresses that users register',
+      'fields' => array(
+        'uid' => array(
+          'description' => 'User\'s ID',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'email' => array(
+          'description' => 'Additional email address',
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'status' => array(
+          'description' => 'Whether or not the email address has been validated',
+          'type' => 'int',
+          'not null' => true
+        )
+      ),
+      'primary key' => array(
+        'uid',
+        'email'
+      )
+    ),
+    'femail_user_subscriptions' => array(
+      'description' => 'Links a user with a forum, resulting in the user being subscribed to that forum',
+      'fields' => array(
+        'uid' => array(
+          'description' => 'User\'s ID',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'tid' => array(
+          'ID of the Forum that the user is subscribed to, or 0 for all',
+          'type' => 'int',
+          'not null' => true
+        )
+      ),
+      'primary key' => array(
+        'uid',
+        'tid'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_uninstall
+ */
+function femail_uninstall(){
+  // Delete variables
+  variable_del('femail_emails');
+  variable_del('femail_install_time');
+}

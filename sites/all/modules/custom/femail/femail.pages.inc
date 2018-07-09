@@ -15,10 +15,9 @@ function femail_user_settings($account){
   }
   // ---------------- Subscribe to forums --------------------------------------
   // $output = rendered HTML
-  $form = drupal_get_form('femail_user_subscribe', $account);
   $output = theme('femail_box', array(
     'title' => t('Subscriptions'),
-    'content' => drupal_render($form)
+    'content' => drupal_render(drupal_get_form('femail_user_subscribe', $account))
   ));
   // ---------------- Add additional emails ------------------------------------
   // Table for additional emails
@@ -42,13 +41,12 @@ function femail_user_settings($account){
     );
   }
   // Theme the table, along with the form
-  $form = drupal_get_form('femail_user_add', $account);
   $output .= theme('femail_box', array(
     'title' => t('Your additional email addresses'),
     'content' => theme('table', array(
       'header' => $header,
       'rows' => $rows
-    )) . drupal_render($form)
+    )) . drupal_render(drupal_get_form('femail_user_add', $account))
   ));
   // Return both forms
   return $output;
@@ -74,9 +72,7 @@ function femail_email_verify($email, $hash){
   // Check the hash is correct.
   if(md5($email . variable_get('femail_install_time', 'INSTALLTIME')) == $hash){
     // Correct - we should mark this email as verified.
-    db_update('femail_user_emails')->condition('email', $email)->fields(array(
-      'status' => 1
-    ))->execute();
+    db_update('femail_user_emails')->condition('email', $email)->fields(array('status' => 1))->execute();
     drupal_set_message(t('Email verified'));
   }else{
     // Hash failed - we'll add an error message and log it to the watchdog.
@@ -133,7 +129,7 @@ function femail_user_subscribe($form, $form_state){
     if(in_array($branch->tid, $forum_containers)){
       // Container
       $form['femail_subscribe'][$branch->tid] = array(
-        '#markup' => '<tr class="' . $class . '"><td style="padding-left:' . (($branch->depth * 10) + 5) . 'px;">' . check_plain($branch->name) . '</td></tr>'
+        '#markup' => '<tr class="' . $class . '"><td style="padding-left:' . (($branch->depth * 10) + 5) . 'px;">' .check_plain($branch->name) . '</td></tr>'
       );
     }else{
       // Forum
@@ -246,36 +242,5 @@ function femail_user_add_validate($form, &$form_state){
   ))->condition('mail', $form_state['values']['femail_email']))->execute()->fetchField();
   if($mails){
     form_set_error('femail_email', t('Email is already in use on this site.'));
-  }
-}
-
-/**
- * Reset a sites FEMail addresses.
- */
-function femail_reset_emails_form($form, $form_state){
-  $femail_emails = variable_get('femail_emails', array());
-  return array(
-    'current_emails' => array(
-      '#theme' => 'item_list',
-      '#items' => $femail_emails,
-      '#title' => t('Current Forum Email addresses')
-    ),
-    'reset_emails' => array(
-      '#type' => 'submit',
-      '#value' => t('Reset Forum Email addresses')
-    )
-  );
-}
-
-/**
- * Submit function for above.
- */
-function femail_reset_emails_form_submit($form, &$form_state){
-  if($vid = variable_get('forum_nav_vocabulary', FALSE)){
-    variable_set('femail_emails', array());
-    $tree = taxonomy_get_tree($vid);
-    foreach($tree as $term){
-      femail_taxonomy_term_insert($term);
-    }
   }
 }

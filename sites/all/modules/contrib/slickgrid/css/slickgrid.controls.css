@@ -1,0 +1,209 @@
+@CHARSET "UTF-8";
+
+#controls .slickgrid-control {
+  float: right;
+}
+
+#controls .slickgrid-control,#controls .slickgrid-control span.slickgrid-control-button
+  {
+  width: 30px;
+  height: 30px;
+  display: block;
+  text-align: center;
+}
+
+#slickgrid-add,#slickgrid-add span.slickgrid-control-button {
+  width: auto !important;
+  color: #000;
+}
+
+#slickgrid-add span.slickgrid-control-button {
+  background-position: 0 7px !important;
+  padding: 6px 10px 0 20px;
+}
+
+#controls .slickgrid-control span.slickgrid-control-button {
+  opacity: 0.3;
+  background-repeat: no-repeat;
+  background-position: center 7px;
+}
+
+#controls .slickgrid-control span.enabled {
+  cursor: pointer;
+  opacity: 1;
+}
+
+/* Pagination */
+#controls #slickgrid-pager {
+  float: left;
+  width: 420px;
+}
+
+#controls #slickgrid-pager .slick-pager-settings span {
+  display: none;
+}
+
+#controls #slickgrid-pager  .slick-pager {
+  background: none !important;
+  border-style: none !important;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav {
+  padding-top: 7px;
+  width: 120px;
+}
+
+#controls #slickgrid-pager span.slick-pager-settings,#controls #slickgrid-pager span.slick-pager-status
+  {
+  padding-top: 6px;
+}
+
+#controls #slickgrid-pager span.slick-pager-status {
+  margin-left: 10px;
+}
+
+#controls #slickgrid-pager span {
+  float: left;
+  display: block;
+}
+
+#controls #slickgrid-pager .slick-pager-settings span.slick-pager-settings-expanded
+  {
+  display: block !important;
+}
+
+#controls #slickgrid-pager .slick-pager-settings span.slick-pager-settings-expanded a
+  {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+/* Next / prev buttons */
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container {
+  background: none !important;
+  border: none;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container span
+  {
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+/* First */
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-first,#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-first.ui-state-disabled
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-first.png') no-repeat;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-first
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-first-active.png') no-repeat;
+}
+
+/* Prev */
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-prev,#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-prev.ui-state-disabled
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-prev.png') no-repeat;
+  margin-left: 8px;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-prev
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-prev-active.png') no-repeat;
+}
+
+/* Next */
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-next,#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-next.ui-state-disabled
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-next.png') no-repeat;
+  margin-left: 14px;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-next
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-next-active.png') no-repeat;
+}
+
+/* Last */
+#controls #slickgrid-pager span.slick-pager-nav span.ui-icon-container .ui-icon-seek-end,#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-end.ui-state-disabled
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-last.png') no-repeat;
+}
+
+#controls #slickgrid-pager span.slick-pager-nav span.ui-state-hover .ui-icon-seek-end
+  { /* FIXME - Image is missing */
+  background: url('../images/controls-last-active.png') no-repeat;
+}
+
+/* Add control */
+#slickgrid-add span {
+  background-image: url('../images/doc_plus_icon&16.png');
+}
+
+/* Delete control */
+#slickgrid-delete span {
+  background-image: url('../images/doc_delete_icon&16.png');
+}
+
+/* Undo control */
+#slickgrid-undo span {
+  background-image: url('../images/undo_icon&16.png');
+}
+
+/* Export control */
+#slickgrid-export span {
+  background-image: url('../images/download_icon&16.png');
+}
+
+#slickgrid-clone span {
+  background-image: url('../images/clipboard_copy_icon&16.png');
+}
+
+.slickgrid-control span.enabled:hover { /*background: #fff;*/
+  
+}
+
+/* Export links are part of the feed icon links */
+.feed-icon {
+  display: none;
+}
+
+/* Tabs */
+#slickgrid-tabs span {
+  min-width: 100px;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 10px;
+  display: inline-block;
+  -webkit-border-top-left-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  -moz-border-radius-topright: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  margin: 0 1px 0 0;
+  color: #555;
+  border: 1px solid #A5A5A5;
+  border-bottom-style: none;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+}
+
+#slickgrid-tabs span.active-tab {
+  background: #E8E8E8;
+  z-index: 100;
+}
+
+/* Form */
+#controls input {
+  margin-right: 3px;
+}
+
+#controls .ajax-progress {
+  background-color: #fff;
+  border: solid 1px #A5A5A5;
+  position: absolute;
+  left: 50px;
+}

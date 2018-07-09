@@ -41,7 +41,7 @@ function _captcha_available_challenge_types($add_special_options = TRUE) {
 function captcha_admin_settings() {
   module_load_include('inc', 'captcha');
 
-  // Use javascript for some added usability on admin form.
+  // Use JavaScript for some added usability on admin form.
   drupal_add_js(drupal_get_path('module', 'captcha') . '/captcha.js');
 
   // Configuration of which forms to protect, with what challenge.
