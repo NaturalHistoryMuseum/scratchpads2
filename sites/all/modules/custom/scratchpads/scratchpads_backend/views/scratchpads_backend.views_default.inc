@@ -2147,7 +2147,7 @@ function scratchpads_backend_views_get_admin_vbo_view($base_table, $entity_type,
  * @param unknown_type $field An instance of the field.
  * @return boolean
  */
-function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field = FALSE, $tab = null){
+function scratchpads_backend_views_add_field(&$handler, $module, $table, $field_id, $field = FALSE, $tab = null, $field = FALSE){
   // Ignore all GM3 fields
   if($module == 'gm3_field'){return false;}
   $handler->display->display_options['fields'][$field_id]['id'] = $field_id;
