@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function honeypot_test_menu() {
+  return array(
+    'honeypot_test/submit_form' => array(
+      'page callback' => 'honeypot_test_submit_form',
+      'access callback' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Page callback: programmatically submit a form.
+ */
+function honeypot_test_submit_form() {
+  module_load_include('inc', 'user', 'user.pages');
+  $form_state = array();
+  $form_state['values'] = array(
+    'name' => 'robo-user',
+    'mail' => 'robouser@example.com',
+    'op' => t('E-mail new password'),
+  );
+  drupal_form_submit('user_pass', $form_state);
+  $errors = form_get_errors();
+  print drupal_json_encode($errors);
+  exit();
+}
