@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * @file
+*
+*  Spm tests.
+*/
+class SpmTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Spm',
+      'description' => 'Tests the creation of an spm node',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Set up profile
+   */
+  public function setUp(){  
+    parent::setUp();  
+  }
+
+  /**
+   * A wrapper for spm tests
+   */
+  function testSpm(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifySpmNoBiologicalClassification();
+    $this->verifyCreateSpm();
+  }
+  
+  /**
+   *  Attempt to create an spm without a biological classification
+   */
+  public function verifySpmNoBiologicalClassification(){ 
+    $this->drupalGet('node/add/spm');
+    $this->assertRaw('You must <a href="/admin/structure/taxonomy/add">create a biological classification</a> before you can add a taxon description.', "'You must create a biological classification ..' message displayed");
+  }
+
+  /**
+   *  Create spm node.
+   *  We first create a biological classification and a taxonomy term
+   */
+  public function verifyCreateSpm(){
+    // create taxonomy
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Created new vocabulary', 'biological classification successfully created');
+    // create a term for the newly created taxonomy
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit2 = array();
+    // We will use these variables later on
+    $name2 = $this->randomName();
+    $name3 = $this->randomName();
+    $edit2['name'] = $name2;
+    $edit2['field_unit_name1[und][0][value]'] = $name3;
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertText('Created new term', 'New term successfully created');
+    // create an spm node using the form
+    // The spm form takes taxonomy terms in the following format: 'Aves [8]'
+    $taxon_array = taxonomy_get_term_by_name($name3);
+    // The term id is the first key of the array
+    reset($taxon_array);
+    $tid = key($taxon_array);
+    $formatted_term = $name2 . ' [' . $tid . ']';
+    $this->drupalGet('node/add/spm');
+    $edit3 = array();
+    $edit3['field_taxonomic_name[und]'] = $formatted_term;
+    $edit3['field_general_description[und][0][value]'] = $this->randomName();
+    $this->drupalPost(NULL, $edit3, t('Save'));
+    $this->assertText('has been created', 'New taxonomy description successfully created');
+  }
+}
