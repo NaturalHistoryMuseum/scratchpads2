@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @file
+ * Enter file description here
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function apachesolr_file_schema() {
+  $schema['apachesolr_index_entities_file'] = array(
+    'description' => 'Stores a record of when a file property changed to determine if it needs indexing by Solr.',
+    'fields' => array(
+      'entity_type' => array(
+        'description' => t('The type of entity.'),
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'entity_id' => array(
+        'description' => t('The primary identifier for an entity.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'bundle' => array(
+        'description' => t('The bundle to which this entity belongs.'),
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => t('Boolean indicating whether the entity is visible to non-administrators (eg, published for nodes).'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'changed' => array(
+        'description' => t('The Unix timestamp when an entity was changed.'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'changed' => array('bundle', 'changed', 'status'),
+    ),
+    'primary key' => array('entity_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_enable().
+ */
+function apachesolr_file_enable() {
+  // Make sure the default core search page is installed.
+  $search_page = apachesolr_search_page_load('file_search');
+  if (empty($search_page)) {
+    // Add Default search page (core search)
+    // This is a duplication from update_7004 but it is intended
+    // so future changes are possible without breaking the update
+    $settings = array(
+      'fq' => array('entity_type:file'),
+      'apachesolr_search_custom_enable' => TRUE,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_per_page' => 10,
+      'apachesolr_search_browse' => 'browse',
+      'apachesolr_search_spellcheck' => TRUE,
+      'apachesolr_search_search_box' => TRUE,
+    );
+    $settings = serialize($settings);
+
+    $fields = array(
+      'page_id' => 'file_search',
+      'label' => 'File Search',
+      'description' => 'File Search',
+      'search_path' => 'search/file_entity',
+      'env_id' => 'solr',
+      'page_title' => 'File',
+      'settings' => $settings,
+    );
+    db_insert('apachesolr_search_page')->fields($fields)->execute();
+  }
+
+
+  $active = variable_get('search_active_modules', array('node', 'file'));
+  $active[] = 'apachesolr_search';
+  variable_set('search_active_modules', array_unique($active));
+}
+

@@ -1,8 +1,17 @@
-name = Apache Solr Indexer for Files
-description = Indexer for reading file entity types into a solr core.
-dependencies[] = apachesolr
+name = Apache Solr File
+description = Index file enity types into Solr core.
 package = Search Toolkit
 core = 7.x
-l10n server = localize.scratchpads.eu
-l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-project = apachesolr_file
+files[] = apachesolr_file.install
+files[] = apachesolr_file.module
+dependencies[] = "apachesolr_search"
+dependencies[] = "file_entity"
+configure = admin/config/search/apachesolr/settings
+
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "apachesolr_file"
+datestamp = "1380554042"
+
