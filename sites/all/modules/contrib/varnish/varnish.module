@@ -1,14 +1,8 @@
 <?php
 
-/**
- * @file
- * Common functions used for the module.
- */
-
 define('VARNISH_NO_CLEAR', 0);
 define('VARNISH_DEFAULT_CLEAR', 1);
-// Requires Expire.module to be enabled.
-define('VARNISH_SELECTIVE_CLEAR', 2);
+define('VARNISH_SELECTIVE_CLEAR', 2); // Requires Expire.module to be enabled.
 // Timeout in milliseconds.
 define('VARNISH_DEFAULT_TIMEOUT', 100);
 define('VARNISH_SERVER_STATUS_DOWN', 0);
@@ -16,6 +10,13 @@ define('VARNISH_SERVER_STATUS_UP', 1);
 define('VARNISH_BANTYPE_NORMAL', 0);
 define('VARNISH_BANTYPE_BANLURKER', 1);
 define('VARNISH_DEFAULT_BANTYPE', VARNISH_BANTYPE_NORMAL);
+
+/**
+ * @file
+ * varnish.module
+ * Provide drupal hooks for integration with the Varnish control layer.
+ */
+
 
 /**
  * Implements hook_menu().
@@ -59,8 +60,8 @@ function varnish_menu() {
 function varnish_theme() {
   return array(
     'varnish_status' => array(
-      'variables' => array('status' => array(), 'version' => 2.1),
-    ),
+      'arguments' => array('status' => array(), 'version' => 2.1),
+    )
   );
 }
 
@@ -80,9 +81,8 @@ function varnish_permission() {
 }
 
 /**
- * Implements hook_flush_caches().
- *
- * Adds a varnish cache to the list of caches.
+ * Implements hook_flush_caches()
+ * adds a varnish cache to the list of caches
  */
 function varnish_flush_caches() {
   if (variable_get('cache_class_external_varnish_page', FALSE)) {
@@ -91,45 +91,63 @@ function varnish_flush_caches() {
 }
 
 /**
+ * Implements hook_requirements().
+ *
+ * Ensure that varnish's connection is good.
+ */
+function varnish_requirements($phase) {
+  if ($phase == 'runtime') {
+    $requirements = array();
+    $requirements['varnish']['title'] = t('Varnish status');
+    $status = varnish_get_status();
+    foreach ($status as $terminal => $state) {
+      list($server, $port) = explode(':', $terminal);
+      if (!$state) {
+        $requirements['varnish']['value'] = t('Varnish connection broken');
+        $requirements['varnish']['severity'] = REQUIREMENT_ERROR;
+        $requirements['varnish']['description'] = t('The Varnish control terminal is not responding at %server on port %port.', array('%server' => $server, '%port' => $port));
+        return $requirements;
+      }
+      else {
+        $version = floatval(variable_get('varnish_version', 2.1));
+        if ($version <= 2.1) {
+          $requirements['varnish']['value'] = t('Varnish is running. Observe more detailed statistics !link.', array('!link' => l(t('here'), 'admin/reports/varnish')));
+        }
+        else {
+          $requirements['varnish']['value'] = t('Running');
+        }
+      }
+    }
+    return $requirements;
+  }
+}
+
+/**
  * Implements hook_expire_cache().
  *
  * Takes an array from expire.module and issue purges.
- * You may also safely call this function directly with an array of local urls
- * to purge.
- *
- * @param $paths
- *   Associative array of paths to be purged, where both keys and values are
- *   paths.
- * @param $wildcards
- *   (Optional) Array of wildcards to be applied, as an associative array where
- *   paths are keys and booleans indicating if the path should have a wildcard
- *   at the end are values.
+ * You may also safely call this function directly with an array of local urls to purge.
  */
-function varnish_expire_cache($paths, $wildcards = array()) {
-  if (count($wildcards)) {
-    foreach ($wildcards as $path => $wildcard) {
-      if ($wildcard) {
-        $paths[$path] .= '([/?].*)?';
-      }
-    }
-  }
-
+function varnish_expire_cache($paths) {
   if (module_exists('expire') && variable_get('expire_include_base_url', constant('EXPIRE_INCLUDE_BASE_URL'))) {
-    // Sort the URLs by domain and batch by domain.
+    // Sort the URLs by domain and batch by domain
     $host_buckets = array();
     foreach ($paths as $url) {
       $parts = parse_url($url);
-      // Strip base path from the path because it will be added later.
-      $path = substr($parts['path'], strlen(base_path()));
-      $host_buckets[$parts['host']][] = $path . (!empty($parts['query']) ? '?' . $parts['query'] : '');
+      $host_buckets[$parts['host']][] = $parts['path'].(!empty($parts['query']) ? '?'.$parts['query'] : '');
     }
     foreach ($host_buckets as $host => $purges) {
-      varnish_purge_paths($host, $purges);
+      $purge = implode('$|^' , $purges);
+      $purge = '^'. $purge .'$';
+      varnish_purge($host, $purge);
     }
   }
   else {
     $host = _varnish_get_host();
-    varnish_purge_paths($host, $paths);
+    $base = base_path();
+    $purge = implode('$|^' . $base, $paths);
+    $purge = '^'. $base . $purge .'$';
+    varnish_purge($host, $purge);
   }
 }
 
@@ -149,10 +167,8 @@ function varnish_purge_all_pages() {
  * Varnish server, otherwise Varnish will truncate the command. Use
  * varnish_purge_paths() to protect you from this, if applicable.
  *
- * @param string $host
- *   The host to purge.
- * @param string $pattern
- *   The pattern to look for and purge.
+ * @param string $host the host to purge.
+ * @param string $pattern the pattern to look for and purge.
  */
 function varnish_purge($host, $pattern) {
   global $base_path, $base_root;
@@ -165,6 +181,9 @@ function varnish_purge($host, $pattern) {
   // Modify the patterns to remove base url and base path.
   $patterns = explode('|', $pattern);
   foreach ($patterns as $num => $single_pattern) {
+    if (substr($single_pattern, 1, strlen($base_path)) == $base_path) {
+      $single_pattern = substr_replace($single_pattern, '', 1, strlen($base_path));
+    }
     if (substr($single_pattern, 1, strlen($base_root)) == $base_root) {
       $single_pattern = substr_replace($single_pattern, '', 1, strlen($base_root));
     }
@@ -172,51 +191,29 @@ function varnish_purge($host, $pattern) {
   }
   $pattern = implode('|', $patterns);
 
-  // Get list of domains to ban
-  $front_domains = variable_get('varnish_front_domains', '');
-  // Trigger hook_varnish_front_domains_alter().
-  drupal_alter('varnish_front_domains', $front_domains);
-  $fronts = explode(' ', $front_domains);
   switch ($bantype) {
     case VARNISH_BANTYPE_NORMAL:
       _varnish_terminal_run(array("$command req.http.host ~ $host && req.url ~ \"$pattern\""));
-      if ($front_domains) {
-        foreach ($fronts as $value) {
-          _varnish_terminal_run(array("$command req.http.host ~ $value && req.url ~ \"$pattern\""));
-        }
-      }
       break;
-
     case VARNISH_BANTYPE_BANLURKER:
       _varnish_terminal_run(array("$command obj.http.x-host ~ $host && obj.http.x-url  ~ \"$pattern\""));
-      if ($front_domains) {
-        foreach ($fronts as $value) {
-          _varnish_terminal_run(array("$command obj.http.x-host ~ $value && obj.http.x-url ~ \"$pattern\""));
-        }
-      }
       break;
-
     default:
-      // We really should NEVER get here. Log WATCHDOG_ERROR. I can only see
-      // this happening if a user switches between different versions of the
-      // module where we remove a ban type.
+      // We really should NEVER get here. Log WATCHDOG_ERROR. I can only see this happening if a user switches between different versions of the module where we remove a ban type.
       watchdog('varnish', 'Varnish ban type is out of range.', array(), WATCHDOG_ERROR);
   }
 }
 
 /**
- * Helper function that wraps around varnish_purge().
+ * Helper function that wraps around varnish_purge() and compiles a regular
+ * expression of all paths supplied to it. This function takes care to chunk
+ * commands into no more than 7500 bytes each, to avoid hitting
+ * params.cli_buffer.
  *
- * Compiles a regular expression of all paths supplied to it. This function
- * takes care to chunk commands into no more than 7500 bytes each, to avoid
- * hitting params.cli_buffer.
- *
- * @param string $host
- *   The host to purge.
- * @param array $paths
- *   The paths (no leading slash) to purge for this host.
+ * @param string $host The host to purge.
+ * @param array $paths The paths (no leading slash) to purge for this host.
  */
-function varnish_purge_paths($host, array $paths) {
+function varnish_purge_paths($host, $paths) {
   // Subtract the hostname length from the global length limit.
   // Note we use strlen() because we're counting bytes, not characters.
   $length_limit = variable_get('varnish_cmdlength_limit', 7500) - strlen($host);
@@ -229,8 +226,6 @@ function varnish_purge_paths($host, array $paths) {
     }
     // Chop the final "|^" off the string, leaving "$".
     $purge_pattern = substr($purge_pattern, 0, -2);
-    // Remove extra slashes in beginning of URL.
-    $purge_pattern = preg_replace('#/+#', '/', $purge_pattern);
     // Submit this purge chunk.
     varnish_purge($host, $purge_pattern);
   }
@@ -239,14 +234,13 @@ function varnish_purge_paths($host, array $paths) {
 /**
  * Get the status (up/down) of each of the varnish servers.
  *
- * @return array
- *   An array of server statuses, keyed by varnish terminal addresses.
- *   The status will be a numeric constant, either:
- *   - VARNISH_SERVER_STATUS_UP
- *   - VARNISH_SERVER_STATUS_DOWN
+ * @return An array of server statuses, keyed by varnish terminal addresses.
+ * The status will be a numeric constant, either:
+ * - VARNISH_SERVER_STATUS_UP
+ * - VARNISH_SERVER_STATUS_DOWN
  */
 function varnish_get_status() {
-  // Use a static-cache so this can be called repeatedly without incurring
+  // use a static-cache so this can be called repeatedly without incurring
   // socket-connects for each call.
   static $results = NULL;
   if (is_null($results)) {
@@ -264,53 +258,31 @@ function varnish_get_status() {
 /**
  * Theme handler for theme('varnish_status').
  */
-function theme_varnish_status($variables) {
+function theme_varnish_status($status) {
   $items = array();
-  $status = $variables['status'];
   foreach ($status as $terminal => $state) {
     list($server, $port) = explode(':', $terminal);
     if ($state == VARNISH_SERVER_STATUS_UP) {
-      $icon = theme('image', array(
-        'path' => 'misc/watchdog-ok.png',
-        'alt' => t("Server OK: @server:@port", array(
-          '@server' => $server,
-          '@port' => $port,
-        )),
-        'title' => "{$server}:{$port}",
-      ));
-      $version = $variables['version'];
+      $icon = theme('image', array('path' => 'misc/watchdog-ok.png', 'alt' => t("Server OK: @server:@port", array('@server' => $server, '@port' => $port)), 'title' => "{$server}:{$port}"));
+      $version = floatval(variable_get('varnish_version', 2.1));
       if ($version < 3) {
         $items[] = t('!status_icon Varnish running. Observe more detailed statistics !link.',
-          array(
-            '!status_icon' => $icon,
-            '!link' => l(t('here'), 'admin/reports/varnish'),
-          )
-        );
+                array('!status_icon' => $icon, '!link' => l(t('here'), 'admin/reports/varnish')));
       }
       else {
         $items[] = t('!status_icon Varnish running.', array('!status_icon' => $icon));
       }
     }
     else {
-      $icon = theme('image', array(
-        'path' => 'misc/watchdog-error.png',
-        'alt' => t("Server down: @server:@port", array(
-          '@server' => $server,
-          '@port' => $port,
-        )),
-        'title' => "{$server}:{$port}"));
-      $items[] = t('!status_icon The Varnish control terminal is not responding at @server on port @port.', array(
-        '!status_icon' => $icon,
-        '@server' => $server,
-        '@port' => $port,
-      ));
+      $icon = theme('image', array('path' => 'misc/watchdog-error.png', 'alt' => t("Server down: @server:@port", array('@server' => $server, '@port' => $port)), 'title' => "{$server}:{$port}"));
+      $items[] = t('!status_icon The Varnish control terminal is not responding at @server on port @port.', array('!status_icon' => $icon, '@server' => $server, '@port' => $port));
     }
   }
   return theme('item_list', array('items' => $items));
 }
 
 /**
- * Helper function to parse the host from the global $base_url.
+ * Helper function to parse the host from the global $base_url
  */
 function _varnish_get_host() {
   global $base_url;
@@ -321,7 +293,6 @@ function _varnish_get_host() {
 
 /**
  * Helper function that sends commands to Varnish.
- *
  * Utilizes sockets to talk to varnish terminal.
  */
 function _varnish_terminal_run($commands) {
@@ -329,8 +300,7 @@ function _varnish_terminal_run($commands) {
     // Prevent fatal errors if people don't have requirements.
     return FALSE;
   }
-  // Convert single commands to an array so we can handle everything in the same
-  // way.
+  // Convert single commands to an array so we can handle everything in the same way.
   if (!is_array($commands)) {
     $commands = array($commands);
   }
@@ -338,8 +308,8 @@ function _varnish_terminal_run($commands) {
   $terminals = explode(' ', variable_get('varnish_control_terminal', '127.0.0.1:6082'));
   // The variable varnish_socket_timeout defines the timeout in milliseconds.
   $timeout = variable_get('varnish_socket_timeout', VARNISH_DEFAULT_TIMEOUT);
-  $seconds = (int) ($timeout / 1000);
-  $microseconds = (int) ($timeout % 1000 * 1000);
+  $seconds = (int)($timeout / 1000);
+  $microseconds = (int)($timeout % 1000 * 1000);
   foreach ($terminals as $terminal) {
     list($server, $port) = explode(':', $terminal);
     $client = socket_create(AF_INET, SOCK_STREAM, getprotobyname('tcp'));
@@ -349,27 +319,20 @@ function _varnish_terminal_run($commands) {
       watchdog('varnish', 'Unable to connect to server socket @server:@port: %error', array(
         '@server' => $server,
         '@port' => $port,
-        '%error' => socket_strerror(socket_last_error($client)),
+        '%error' => socket_strerror(socket_last_error($client))
         ), WATCHDOG_ERROR);
       $ret[$terminal] = FALSE;
       // If a varnish server is unavailable, move on to the next in the list.
       continue;
     }
-    // If there is a CLI banner message (varnish >= 2.1.x), try to read it and
-    // move on.
-    if (floatval(variable_get('varnish_version', 2.1)) > 2.0) {
+    // If there is a CLI banner message (varnish >= 2.1.x), try to read it and move on.
+    if(floatval(variable_get('varnish_version', 2.1)) > 2.0) {
       $status = _varnish_read_socket($client);
       // Do we need to authenticate?
-      // Require authentication.
-      if ($status['code'] == 107) {
+      if ($status['code'] == 107) { // Require authentication
         $secret = variable_get('varnish_control_key', '');
         $challenge = substr($status['msg'], 0, 32);
-        if (variable_get('varnish_control_key_appendnewline',TRUE)) {
-          $pack = $challenge . "\x0A" . $secret . "\x0A" . $challenge . "\x0A";
-        }
-        else {
-          $pack = $challenge . "\x0A". $secret . $challenge . "\x0A";
-        }
+        $pack = $challenge . "\x0A" . $secret . "\x0A" . $challenge . "\x0A";
         $key = hash('sha256', $pack);
         socket_write($client, "auth $key\n");
         $status = _varnish_read_socket($client);
@@ -387,23 +350,16 @@ function _varnish_terminal_run($commands) {
   return $ret;
 }
 
-/**
- * Send command to varnish.
- */
 function _varnish_execute_command($client, $command) {
   // Send command and get response.
   $result = socket_write($client, "$command\n");
   $status = _varnish_read_socket($client);
   if ($status['code'] != 200) {
-    watchdog('varnish', 'Received status code @code running %command. Full response text: @error', array(
-      '@code' => $status['code'],
-      '%command' => $command,
-      '@error' => $status['msg']),
-    WATCHDOG_ERROR);
+    watchdog('varnish', 'Recieved status code @code running %command. Full response text: @error', array('@code' => $status['code'], '%command' => $command, '@error' => $status['msg']), WATCHDOG_ERROR);
     return FALSE;
   }
   else {
-    // Successful connection.
+    // successful connection
     return $status;
   }
 }
@@ -424,7 +380,7 @@ function _varnish_read_socket($client, $retry = 2) {
     // 35 = socket-unavailable, so it might be blocked from our write.
     // This is an acceptable place to retry.
     if ($error == 35 && $retry > 0) {
-      return _varnish_read_socket($client, $retry - 1);
+      return _varnish_read_socket($client, $retry-1);
     }
     else {
       watchdog('varnish', 'Socket error: @error', array('@error' => socket_strerror($error)), WATCHDOG_ERROR);
@@ -434,10 +390,10 @@ function _varnish_read_socket($client, $retry = 2) {
       );
     }
   }
-  $msg_len = (int) substr($header, 4, 6) + 1;
+  $msg_len = (int)substr($header, 4, 6) + 1;
   $status = array(
     'code' => substr($header, 0, 3),
-    'msg' => socket_read($client, $msg_len, PHP_BINARY_READ),
+    'msg' => socket_read($client, $msg_len, PHP_BINARY_READ)
   );
   return $status;
 }
