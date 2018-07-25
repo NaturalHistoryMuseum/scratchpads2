@@ -2,6 +2,9 @@ name = Taxonomy breadcrumb
 description = "Enables taxonomy based breadcrumbs on term pages."
 dependencies[] = taxonomy
 core = 7.x
-l10n server = localize.scratchpads.eu
-l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-project = taxonomy_breadcrumb_lite
+; Information added by drupal.org packaging script on 2012-02-09
+version = "7.x-1.0"
+core = "7.x"
+project = "taxonomy_breadcrumb_lite"
+datestamp = "1328796041"
+
