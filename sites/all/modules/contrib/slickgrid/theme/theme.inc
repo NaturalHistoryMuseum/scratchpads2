@@ -212,7 +212,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
           '@base_field' => $view->base_field,
           '@id' => $row->{$view->base_field}
         ), WATCHDOG_ERROR);
-        break;
+        continue;
       }else{
         // Add the data fields
         foreach($view->columns as $column){
@@ -247,7 +247,7 @@ function slickgrid_preprocess_views_view_slickgrid(&$variables){
             'key' => $key
           );
         }else{
-          $key = $count;
+          $key = count($view->data);
         }
         // If the key already exists, we need to add the item to the middle of the array
         if(array_key_exists($key, $view->data)){

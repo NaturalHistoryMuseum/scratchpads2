@@ -75,14 +75,14 @@ Pagination
                          INSTALLATION
   ------------------------------------------------------------------------------------
   
-  1. Download the slickgrid javascript plugin release 2.1
-     https://github.com/mleibman/SlickGrid/releases/tag/2.1
+  1. Download the slickgrid plugin from https://github.com/mleibman/SlickGrid
+     This module is tested with the master branch (2011-03-23)
 
   2. Unzip & copy the directory into your sites/all/libraries directory
   
   3. Rename it to "slickgrid".
   
-  4. Enable the module & you will have a new view style "slickgrid".
+  4. Enable the module & you should have a new view style "slickgrid".
   
   
   ------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ The following modules are required:
   * libraries
   * beautytips
   * jquery_update (tested with jquery 1.5.2)
-
+  
 
   ------------------------------------------------------------------------------------
                          RECOMMENDED MODULES
