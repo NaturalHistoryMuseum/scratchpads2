@@ -1,0 +1,15 @@
+.femail-signature{
+ font-size:80%;
+ font-weight:lighter;
+}
+.femail-signature div{
+ display:none;
+}
+.femail-signature > p{
+ color:blue;
+ cursor:pointer;
+}
+blockquote{
+ border-left:solid 3px #ccc;
+ padding-left:5px;
+}

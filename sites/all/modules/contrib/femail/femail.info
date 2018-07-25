@@ -1,0 +1,12 @@
+name = "Forum e-mail (femail)"
+description = "Adds the ability to post messages to the forum via your e-mail."
+core = 7.x
+scripts[] = js/femail.js
+stylesheets[all][] = css/femail.css
+dependencies[] = forum
+dependencies[] = file
+package = Forum
+tool=yes
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = femail
