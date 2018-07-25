@@ -6,7 +6,7 @@
  */
 
 /**
- * Test the functionality of the Honeypot module for an admin user.
+ * Test the functionality of the Honeypot module for forms.
  */
 class HoneypotFormTestCase extends DrupalWebTestCase {
   protected $adminUser;
@@ -23,7 +23,7 @@ class HoneypotFormTestCase extends DrupalWebTestCase {
 
   public function setUp() {
     // Enable modules required for this test.
-    parent::setUp(array('honeypot', 'comment'));
+    parent::setUp(array('honeypot', 'comment', 'honeypot_test'));
 
     // Set up required Honeypot variables.
     variable_set('honeypot_element_name', 'url');
@@ -168,6 +168,203 @@ class HoneypotFormTestCase extends DrupalWebTestCase {
     $edit["title"] = 'Test Page';
     $this->drupalPost('node/add/article', $edit, t('Preview'));
     $this->assertNoText(t('There was a problem with your form submission.'), 'Honeypot not blocking node form previews.');
+  }
+
+  /**
+   * Test programmatic submission.
+   */
+  public function testProgrammaticSubmission() {
+    // Enable time limit protection.
+    variable_set('honeypot_time_limit', 5);
+
+    // Create a user for which we are going to trigger the password reset.
+    $edit = array();
+    $edit['name']   = 'robo-user';
+    $edit['mail']   = $edit['name'] . '@example.com';
+    $edit['status'] = 1;
+    user_save(drupal_anonymous_user(), $edit);
+
+    // Trigger the password reset through a programmatic submission.
+    $this->drupalGet('honeypot_test/submit_form');
+
+    // Verify that the submission did not return any validation errors.
+    $form_errors = drupal_json_decode($this->content);
+    $this->assertNoRaw('There was a problem with your form submission. Please wait 6 seconds and try again.');
+    $this->assertFalse($form_errors, 'The were no validation errors when submitting the form.');
+  }
+}
+
+/**
+ * Test the functionality of the Honeypot module for an admin user.
+ */
+class HoneypotAdminFormTestCase extends DrupalWebTestCase {
+  protected $adminUser;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Honeypot admin form',
+      'description' => 'Ensure the Honeypot admin form functions properly.',
+      'group' => 'Form API',
+    );
+  }
+
+  public function setUp() {
+    // Enable modules required for this test.
+    parent::setUp(array('honeypot'));
+
+    // Set up admin user.
+    $this->adminUser = $this->drupalCreateUser(array(
+      'administer honeypot',
+      'bypass honeypot protection',
+    ));
+  }
+
+  /**
+   * Test a valid element name.
+   */
+  public function testElementNameUpdateSuccess() {
+    // Log in the web user.
+    $this->drupalLogin($this->adminUser);
+
+    // Set up form and submit it.
+    $edit['honeypot_element_name'] = "test";
+    $this->drupalPost('admin/config/content/honeypot', $edit, t('Save configuration'));
+
+    // Form should have been submitted successfully.
+    $this->assertText(t('The configuration options have been saved.'), 'Honeypot element name assertion works for valid names.');
+
+    // Set up form and submit it.
+    $edit['honeypot_element_name'] = "test-1";
+    $this->drupalPost('admin/config/content/honeypot', $edit, t('Save configuration'));
+
+    // Form should have been submitted successfully.
+    $this->assertText(t('The configuration options have been saved.'), 'Honeypot element name assertion works for valid names with dashes and numbers.');
+  }
+
+  /**
+   * Test an invalid element name (invalid first character).
+   */
+  public function testElementNameUpdateFirstCharacterFail() {
+    // Log in the admin user.
+    $this->drupalLogin($this->adminUser);
+
+    // Set up form and submit it.
+    $edit['honeypot_element_name'] = "1test";
+    $this->drupalPost('admin/config/content/honeypot', $edit, t('Save configuration'));
+
+    // Form submission should fail.
+    $this->assertText(t('The element name must start with a letter.'), 'Honeypot element name assertion works for invalid names.');
+  }
+
+  /**
+   * Test an invalid element name (invalid character in name).
+   */
+  public function testElementNameUpdateInvalidCharacterFail() {
+    // Log in the admin user.
+    $this->drupalLogin($this->adminUser);
+
+    // Set up form and submit it.
+    $edit['honeypot_element_name'] = "special-character-&";
+    $this->drupalPost('admin/config/content/honeypot', $edit, t('Save configuration'));
+
+    // Form submission should fail.
+    $this->assertText(t('The element name cannot contain spaces or other special characters.'), 'Honeypot element name assertion works for invalid names with special characters.');
+
+    // Set up form and submit it.
+    $edit['honeypot_element_name'] = "space in name";
+    $this->drupalPost('admin/config/content/honeypot', $edit, t('Save configuration'));
+
+    // Form submission should fail.
+    $this->assertText(t('The element name cannot contain spaces or other special characters.'), 'Honeypot element name assertion works for invalid names with spaces.');
+  }
+}
+
+/**
+ * Test Honeypot's CSS generation routines.
+ */
+class HoneypotCssTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Honeypot CSS tests',
+      'description' => 'Ensure that Honeypot rebuilds its CSS file correctly.',
+      'group' => 'Form API',
+    );
+  }
+
+  public function setUp() {
+    // Enable modules required for this test.
+    parent::setUp(array('honeypot'));
+
+    // Set up required Honeypot variables.
+    variable_set('honeypot_element_name', 'url');
+  }
+
+  /**
+   * Test CSS file regeneration.
+   */
+  public function testHoneypotCssRegeneration() {
+    $honeypot_css = honeypot_get_css_file_path();
+
+    // Delete the Honeypot CSS file (if it exists).
+    file_unmanaged_delete($honeypot_css);
+
+    // Make sure the Honeypot CSS file doesn't exist.
+    $this->assertFalse(file_exists($honeypot_css));
+
+    // Create the CSS file.
+    honeypot_create_css(variable_get('honeypot_element_name', 'url'));
+
+    // Make sure the Honeypot CSS file exists.
+    $this->assertTrue(file_exists($honeypot_css));
+  }
+
+  /**
+   * Test cron-based CSS file regeneration.
+   */
+  public function testHoneypotCssRegenerationOnCron() {
+    $honeypot_css = honeypot_get_css_file_path();
+
+    // Delete the Honeypot CSS file (if it exists).
+    file_unmanaged_delete($honeypot_css);
+
+    // Make sure the Honeypot CSS file doesn't exist.
+    $this->assertFalse(file_exists($honeypot_css));
+
+    // Run cron.
+    honeypot_cron();
+
+    // Make sure the Honeypot CSS file exists.
+    $this->assertTrue(file_exists($honeypot_css));
+  }
+
+  /**
+   * Test cron-based CSS file update.
+   */
+  public function testHoneypotCssUpdateOnCron() {
+    $honeypot_css = honeypot_get_css_file_path();
+    $original_element_name = variable_get('honeypot_element_name', 'url');
+
+    // Update the honeypot element name.
+    variable_set('honeypot_element_name', 'test');
+
+    // Make sure the Honeypot CSS file still exists.
+    $this->assertTrue(file_exists($honeypot_css));
+
+    // Run cron.
+    honeypot_cron();
+
+    // Make sure the Honeypot CSS file was updated with the new element name.
+    $handle = fopen($honeypot_css, 'r');
+    $contents = fread($handle, filesize($honeypot_css));
+    fclose($handle);
+    $updated_element_name_in_css = (strpos($contents, 'test') === 1);
+    $this->assertTrue($updated_element_name_in_css);
+
+    // For debug.
+    $this->verbose($contents);
+
+    // Revert the honeypot element name back to the original.
+    variable_set('honeypot_element_name', $original_element_name);
   }
 }
 
