@@ -65,17 +65,29 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         }
     },
 
-    drawBars: function (peaks, channelIndex) {
+    drawBars: function (peaks, channelIndex, start, end) {
+        var my = this;
         // Split channels
         if (peaks[0] instanceof Array) {
             var channels = peaks;
             if (this.params.splitChannels) {
                 this.setHeight(channels.length * this.params.height * this.params.pixelRatio);
-                channels.forEach(this.drawBars, this);
+                channels.forEach(function(channelPeaks, i) {
+                    my.drawBars(channelPeaks, i, start, end);
+                });
                 return;
             } else {
                 peaks = channels[0];
             }
+        }
+
+        // Bar wave draws the bottom only as a reflection of the top,
+        // so we don't need negative values
+        var hasMinVals = [].some.call(peaks, function (val) { return val < 0; });
+        // Skip every other value if there are negatives.
+        var peakIndexScale = 1;
+        if (hasMinVals) {
+            peakIndexScale = 2;
         }
 
         // A half-pixel offset makes lines crisp
@@ -84,20 +96,16 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         var height = this.params.height * this.params.pixelRatio;
         var offsetY = height * channelIndex || 0;
         var halfH = height / 2;
-        var length = ~~(peaks.length / 2);
+        var length = peaks.length / peakIndexScale;
         var bar = this.params.barWidth * this.params.pixelRatio;
         var gap = Math.max(this.params.pixelRatio, ~~(bar / 2));
         var step = bar + gap;
 
-        var absmax = 1;
+        var absmax = 1 / this.params.barHeight;
         if (this.params.normalize) {
-            var min, max;
-            max = Math.max.apply(Math, peaks);
-            min = Math.min.apply(Math, peaks);
-            absmax = max;
-            if (-min > absmax) {
-                absmax = -min;
-            }
+            var max = WaveSurfer.util.max(peaks);
+            var min = WaveSurfer.util.min(peaks);
+            absmax = -min > max ? -min : max;
         }
 
         var scale = length / width;
@@ -110,36 +118,39 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         [ this.waveCc, this.progressCc ].forEach(function (cc) {
             if (!cc) { return; }
 
-            if (this.params.reflection) {
-                for (var i = 0; i < width; i += step) {
-                    var h = Math.round(peaks[Math.floor(2 * i * scale)] / absmax * halfH);
-                    cc.fillRect(i + $, halfH - h + offsetY, bar + $, h * 2);
-                }
-            } else {
-                for (var i = 0; i < width; i += step) {
-                    var h = Math.round(peaks[Math.floor(2 * i * scale)] / absmax * halfH);
-                    cc.fillRect(i + $, halfH - h + offsetY, bar + $, h);
-                }
-
-                for (var i = 0; i < width; i += step) {
-                    var h = Math.round(peaks[2 * i * scale + 1] / absmax * halfH);
-                    cc.fillRect(i + $, halfH - h + offsetY, bar + $, h);
-                }
+            for (var i = (start / scale); i < (end / scale); i += step) {
+                var peak = peaks[Math.floor(i * scale * peakIndexScale)] || 0;
+                var h = Math.round(peak / absmax * halfH);
+                cc.fillRect(i + $, halfH - h + offsetY, bar + $, h * 2);
             }
         }, this);
     },
 
-    drawWave: function (peaks, channelIndex) {
+    drawWave: function (peaks, channelIndex, start, end) {
+        var my = this;
         // Split channels
         if (peaks[0] instanceof Array) {
             var channels = peaks;
             if (this.params.splitChannels) {
                 this.setHeight(channels.length * this.params.height * this.params.pixelRatio);
-                channels.forEach(this.drawWave, this);
+                channels.forEach(function(channelPeaks, i) {
+                    my.drawWave(channelPeaks, i, start, end);
+                });
                 return;
             } else {
                 peaks = channels[0];
             }
+        }
+
+        // Support arrays without negative peaks
+        var hasMinValues = [].some.call(peaks, function (val) { return val < 0; });
+        if (!hasMinValues) {
+            var reflectedPeaks = [];
+            for (var i = 0, len = peaks.length; i < len; i++) {
+                reflectedPeaks[2 * i] = peaks[i];
+                reflectedPeaks[2 * i + 1] = -peaks[i];
+            }
+            peaks = reflectedPeaks;
         }
 
         // A half-pixel offset makes lines crisp
@@ -154,15 +165,11 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
             scale = this.width / length;
         }
 
-        var absmax = 1;
+        var absmax = 1 / this.params.barHeight;
         if (this.params.normalize) {
-            var min, max;
-            max = Math.max.apply(Math, peaks);
-            min = Math.min.apply(Math, peaks);
-            absmax = max;
-            if (-min > absmax) {
-                absmax = -min;
-            }
+            var max = WaveSurfer.util.max(peaks);
+            var min = WaveSurfer.util.min(peaks);
+            absmax = -min > max ? -min : max;
         }
 
         this.waveCc.fillStyle = this.params.waveColor;
@@ -174,16 +181,16 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
             if (!cc) { return; }
 
             cc.beginPath();
-            cc.moveTo($, halfH + offsetY);
+            cc.moveTo(start * scale + $, halfH + offsetY);
 
-            for (var i = 0; i < length; i++) {
+            for (var i = start; i < end; i++) {
                 var h = Math.round(peaks[2 * i] / absmax * halfH);
                 cc.lineTo(i * scale + $, halfH - h + offsetY);
             }
 
             // Draw the bottom edge going backwards, to make a single
             // closed hull to fill.
-            for (var i = length - 1; i >= 0; i--) {
+            for (var i = end - 1; i >= start; i--) {
                 var h = Math.round(peaks[2 * i + 1] / absmax * halfH);
                 cc.lineTo(i * scale + $, halfH - h + offsetY);
             }
@@ -196,10 +203,11 @@ WaveSurfer.util.extend(WaveSurfer.Drawer.Canvas, {
         }, this);
     },
 
-    updateProgress: function (progress) {
-        var pos = Math.round(
-            this.width * progress
-        ) / this.params.pixelRatio;
+    updateProgress: function (pos) {
         this.style(this.progressWave, { width: pos + 'px' });
+    },
+
+    getImage: function(type, quality) {
+        return this.waveCc.canvas.toDataURL(type, quality);
     }
 });

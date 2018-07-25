@@ -10,6 +10,51 @@ WaveSurfer.util = {
         return dest;
     },
 
+    debounce: function (func, wait, immediate) {
+        var args, context, timeout;
+        var later = function() {
+            timeout = null;
+            if (!immediate) {
+                func.apply(context, args);
+            }
+        };
+        return function() {
+            context = this;
+            args = arguments;
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            if (callNow) {
+                func.apply(context, args);
+            }
+        };
+    },
+
+    min: function (values) {
+        var min = +Infinity;
+        for (var i in values) {
+            if (values[i] < min) {
+                min = values[i];
+            }
+        }
+
+        return min;
+    },
+
+    max: function (values) {
+        var max = -Infinity;
+        for (var i in values) {
+            if (values[i] > max) {
+                max = values[i];
+            }
+        }
+
+        return max;
+    },
+
     getId: function () {
         return 'wavesurfer_' + Math.random().toString(32).substring(2);
     },
@@ -51,7 +96,6 @@ WaveSurfer.util = {
         return ajax;
     }
 };
-
 
 /* Observer */
 WaveSurfer.Observer = {
@@ -126,7 +170,6 @@ WaveSurfer.Observer = {
         });
     }
 };
-
 
 /* Make the main WaveSurfer object an observer */
 WaveSurfer.util.extend(WaveSurfer, WaveSurfer.Observer);
