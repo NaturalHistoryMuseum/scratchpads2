@@ -1,20 +1,12 @@
 name = "Forum e-mail (femail)"
-description = "Adds e-mail messages to the forum"
+description = "Adds the ability to post messages to the forum via your e-mail."
 core = 7.x
-files[] = femail.admin.inc
-files[] = femail.drush.inc
-files[] = femail.install
-files[] = femail.mail.inc
-files[] = femail.module
-files[] = femail.pages.inc
 scripts[] = js/femail.js
 stylesheets[all][] = css/femail.css
 dependencies[] = forum
 dependencies[] = file
-package = Scratchpads
-; Information added by drupal.org packaging script on 2011-07-16
-version = "7.x-1.9"
-core = "7.x"
-project = "femail"
-datestamp = "1310810216"
-
+package = Forum
+tool=yes
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = femail
