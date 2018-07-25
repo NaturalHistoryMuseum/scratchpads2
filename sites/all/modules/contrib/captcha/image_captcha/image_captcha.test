@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Image CAPTCHA module.
+ */
+
+class ImageCaptchaWebTestCase extends CaptchaBaseWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'General Image CAPTCHA functionality',
+      'description' => 'Testing of the basic Image CAPTCHA functions.',
+      'group' => 'CAPTCHA',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('image_captcha');
+  }
+
+  /**
+   * Helper function to get the CAPTCHA image element from the current form.
+   */
+  protected function getCaptchaImageFromForm() {
+    $elements = $this->xpath('//input[@name="captcha_sid"]/../img');
+    return $elements[0];
+  }
+
+  /**
+   * Helper function to get a CAPTCHA form.
+   */
+  protected function getImageCaptchaForm($form_id = 'user_login', $page = 'user') {
+    // Set a CAPTCHA on supplied form.
+    captcha_set_form_id_setting($form_id, 'image_captcha/Image');
+
+    // Fetch the page and make sure that we got a CAPTCHA.
+    $this->drupalGet($page);
+    $this->assertCaptchaPresence(TRUE);
+  }
+
+  /**
+   * Asserts that the image URL actually returns an image.
+   */
+  protected function assertNonEmptyImage() {
+    $img = $this->getCaptchaImageFromForm();
+
+    // Try to fetch the image.
+    $this->drupalGet($this->getAbsoluteUrl($img['src']));
+    $this->assertTrue($this->drupalGetHeader('Content-Length') > 0,
+                      'Image CAPTCHA image is not empty.');
+  }
+
+  /**
+   * Tests if the image URL actually returns an image with clean URLs enabled.
+   */
+  public function testNonEmptyImageCleanURLs() {
+    variable_set('clean_url', 1);
+    $this->getImageCaptchaForm();
+    $this->assertNonEmptyImage();
+  }
+
+  /**
+   * Tests if the image URL actually returns an image with clean URLs disabled.
+   */
+  public function testNonEmptyImageDirtyURLs() {
+    variable_set('clean_url', 0);
+    $this->getImageCaptchaForm();
+    $this->assertNonEmptyImage();
+  }
+
+}
