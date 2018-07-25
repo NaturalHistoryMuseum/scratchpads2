@@ -20,12 +20,9 @@ files[] = includes/slickgrid_views_plugin.inc
 files[] = plugins/editors/handler.class.php
 files[] = plugins/editors/ModalForm.inc
 files[] = plugins/editors/InlineCell.inc
-
-l10n server = localize.scratchpads.eu
-l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-
-; Information added by Drupal.org packaging script on 2015-04-13
-version = "7.x-2.1"
+; Information added by Drupal.org packaging script on 2015-07-10
+version = "7.x-2.2"
 core = "7.x"
 project = "slickgrid"
-datestamp = "1428923795"
+datestamp = "1436537943"
+

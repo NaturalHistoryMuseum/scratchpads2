@@ -205,10 +205,6 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
   }else{
     $path = $referer['path'];
   }
-  if(drupal_multilingual()){
-    $lang_path = language_url_split_prefix($path, language_list());
-    $path = $lang_path[1];
-  }
   $path = explode('/', $path);
   $argumnets = array();
   foreach($view->display['default']->display_options['arguments'] as $argument){
@@ -221,7 +217,7 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
     }
   }
   // This should use the standard views hooks, but there isn't a particularly
-  // nice way of doing so. For now, this function will remain to allow us to
+  // nice way of doing so.  For now, this function will remain to allow us to
   // tweak the arguments.
   drupal_alter('slickgrid_view_arguments', $arguments, $view);
   $view->set_arguments($arguments);
@@ -238,19 +234,18 @@ function slickgrid_get_data($view_name, $offset, $rows, $sortcol = FALSE, $sortd
 }
 
 /**
- * Helper function Returns TRUE if $str is a regular expression, according to
- * the following rules: - Does the string start and end with the same character?
- * (non alphanumeric, excluding whitespaces and backslashes) - Does the string
- * contain "*" or or '?' or '$' or '^' or "[" and "]"?
+ * Helper function
+ * Returns TRUE if $str is a regular expression,
+ * according to the following rules:
+ * - Does the string start and end with the same character? 
+ *   (non alphanumeric, excluding whitespaces and backslashes)
+ * - Does the string contain "*" or or '?' or '$' or '^' or "[" and "]"?
  */
 function _is_regex($str){
   $first_char = substr($str, 0, 1);
   $last_char = substr($str, -1);
-  // You can use any non alphanumeric delimiter (excluding whitespaces and
-  // backslashes)
-  if((strlen($str) < 3) || ($first_char != $last_char) || ctype_alnum($first_char) || ($first_char == " ") || ($first_char == "\\")){
-    return false;
-  }
+  // You can use any non alphanumeric delimiter (excluding whitespaces and backslashes)
+  if((strlen($str) < 3) || ($first_char != $last_char) || ctype_alnum($first_char) || ($first_char == " ") || ($first_char == "\\")){return false;}
   // Look for 'special' characters and return true if found
   $str = substr($str, 1, -1);
   if((strpos($str, '[') !== false) && (strpos($str, ']') !== false)){
