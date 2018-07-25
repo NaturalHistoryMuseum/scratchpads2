@@ -100,3 +100,8 @@ background-position
 		transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%,
 		rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent );
 }
+
+.spectrogram-container {
+	height: 128px;
+        padding-bottom:5px;
+}
