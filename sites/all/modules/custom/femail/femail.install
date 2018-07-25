@@ -45,13 +45,10 @@ function femail_install(){
   variable_set('femail_emails', $emails);
   // Set the install time for use in hashes
   variable_set('femail_install_time', time());
-  // Set a message (if we have access to the permissions page) to tell users to
-  // go and set the permission.
-  if(user_access('administer permissions')){
-    drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
-      '!url' => url('admin/people/permissions')
-    )));
-  }
+  // Set a message to tell users to go and set the permission.
+  drupal_set_message(t('You must now <a href="!url">enable roles</a> to post to this website by email (post by femail)', array(
+    '!url' => url('admin/people/permissions')
+  )));
   // Create a file field that can be used by both the comment and forum entities
   $new_field = field_create_field(array(
     'field_name' => 'femail_files',
@@ -78,8 +75,7 @@ function femail_install(){
   // add out filters at the of the list.
   if(db_query("SELECT COUNT(*) FROM {filter_format} WHERE format = 'plain_text'")->fetchCol()){
     // Get the minimum, and reduce by one and two for our values
-    $result = db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol();
-    $max_weight = array_pop($result);
+    $max_weight = array_pop(db_query("SELECT MAX(weight) FROM {filter} WHERE format = 'plain_text'")->fetchCol());
     $query = db_insert('filter')->fields(array(
       'format',
       'module',
