@@ -85,8 +85,8 @@ function scratchpads_messages_user_delete($account){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- * 
- * The "Edit" user form.  This needs to be able to handle both login and 
+ *
+ * The "Edit" user form.  This needs to be able to handle both login and
  * loginless changes.
  */
 function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
@@ -203,7 +203,7 @@ function scratchpads_messages_get_messages(){
 function scratchpads_messages_theme($existing, $type, $theme, $path){
   return array(
     'scratchpads_messages_list_messages' => array(
-      'variables' => NULL,
+      'render element' => 'scratchpads_messages_list',
       'file' => 'scratchpads_messages.admin.inc'
     ),
     'scratchpads_messages_message' => array(
@@ -216,7 +216,7 @@ function scratchpads_messages_theme($existing, $type, $theme, $path){
 }
 
 /**
- * Theme function for a single message.  This adds the link to hide the message 
+ * Theme function for a single message.  This adds the link to hide the message
  */
 function theme_scratchpads_messages_message($vars){
   $render = array(
@@ -289,7 +289,7 @@ function scratchpads_messages_seen_msg_submit($form, $form_state){
 
 /**
  * Implements hook_page_alter().
- * 
+ *
  * Adds the messages depending on the type of message, and whether or not the
  * user actually wants to see the message.
  */
@@ -428,8 +428,10 @@ function _scratchpads_messages_role_names_to_ids($roles){
 
 /**
  * Implements hook_cron().
- * 
- * Gets the messages from the help.scratchpads.eu wiki.
+ *
+ * Preforms message cron tasks:
+ * - Gets the messages from the help.scratchpads.eu wiki.
+ * - Deletes messages
  */
 function scratchpads_messages_cron(){
   $sources = variable_get('scratchpads_messages_sources', array(
@@ -472,9 +474,11 @@ function scratchpads_messages_cron(){
   }
   // Delete expired messages
   db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->condition('expire', 0, '!=')->execute();
-  // Delete from viewed
+
+  // Delete associated records
   $subquery = db_select('scratchpads_messages_message', 's')->fields('s', array(
     'mid'
   ));
   db_delete('scratchpads_messages_viewed')->condition('mid', $subquery, 'NOT IN')->execute();
+  db_delete('scratchpads_messages_roles')->condition('mid', $subquery, 'NOT IN')->execute();
 }

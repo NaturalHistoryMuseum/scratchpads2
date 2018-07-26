@@ -48,7 +48,7 @@ function scratchpads_messages_list_form($form, $form_state){
 }
 
 /**
- * 
+ *
  * @param unknown_type $form_state
  */
 function scratchpads_messages_list_messages_submit($form, &$form_state){
@@ -82,7 +82,7 @@ function scratchpads_messages_multiple_delete_confirm(&$form_state, $messages){
 }
 
 /**
- * 
+ *
  */
 function scratchpads_messages_multiple_delete_confirm_submit($form, $form_state){
   db_delete('scratchpads_messages_message')->condition('mid', $form_state['values']['messages'])->execute();
@@ -94,7 +94,7 @@ function scratchpads_messages_multiple_delete_confirm_submit($form, $form_state)
  * Theme the form
  */
 function theme_scratchpads_messages_list_messages($vars){
-  $form = array_pop($vars);
+  $form = $vars['scratchpads_messages_list'];
   // If there are rows in this form, then $form['title'] contains a list of
   // the title form elements.
   $has_posts = isset($form['message']) && is_array($form['message']);
