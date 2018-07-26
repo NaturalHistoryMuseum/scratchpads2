@@ -428,49 +428,9 @@ function _scratchpads_messages_role_names_to_ids($roles){
 /**
  * Implements hook_cron().
  *
- * Preforms message cron tasks:
- * - Gets the messages from the help.scratchpads.eu wiki.
- * - Deletes messages
+ * Delete expired messages
  */
 function scratchpads_messages_cron(){
-  $sources = variable_get('scratchpads_messages_sources', array(
-    'http://get.scratchpads.eu/messages/list.json'
-  ));
-  foreach($sources as $source){
-    $request = drupal_http_request($source, array(
-      'timeout' => 5
-    ));
-    if($request->code == 200 && ($messages = json_decode($request->data, TRUE)) != FALSE){
-      foreach($messages as $message){
-        db_merge('scratchpads_messages_message')->key(array(
-          'message' => $message['message'],
-          'type' => $message['type'],
-          'expire' => $message['expire']
-        ))->fields(array(
-          'message' => $message['message'],
-          'type' => $message['type'],
-          'created' => $message['created'],
-          'expire' => $message['expire']
-        ))->execute();
-        $mid = db_select('scratchpads_messages_message', 's')->fields('s', array(
-          'mid'
-        ))->condition('message', $message['message'])->condition('type', $message['type'])->condition('expire', $message['expire'])->execute()->fetchCol();
-        $mid = array_pop($mid);
-        if($mid){
-          // We now insert the roles.  We insert "0" if all roles.
-          foreach(_scratchpads_messages_role_names_to_ids($message['roles']) as $rid){
-            db_merge('scratchpads_messages_roles')->key(array(
-              'mid' => $mid,
-              'rid' => $rid
-            ))->fields(array(
-              'mid' => $mid,
-              'rid' => $rid
-            ))->execute();
-          }
-        }
-      }
-    }
-  }
   // Delete expired messages
   db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->condition('expire', 0, '!=')->execute();
 
