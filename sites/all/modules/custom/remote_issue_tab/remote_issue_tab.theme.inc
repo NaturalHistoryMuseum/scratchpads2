@@ -2,7 +2,7 @@
 
 /**
  * @file
- * 
+ *
  * All the theme functions that this module uses.  These can easily be
  * overridden by a theme/other module if wanted.
  */
@@ -10,16 +10,11 @@
  * Main theme that creates the whole block content.
  */
 function theme_remote_issue_tab_block($variables = array()){
-  // First ensure the user is logged in, else it's pointless continuing (all
-  // links will be broken by uWho).
-  /*if(user_is_anonymous()){
-    return '';
-  }*/
-  // As creating the tab is very processor heavy (due to the number of 
+  // As creating the tab is very processor heavy (due to the number of
   // encryptions were performing), we'll cache the footer, by user, for 15 mins
   // Note, we cache by user due to the fact that the user details are embeded in
   // each of the links.
-  if($variables['feed'] && $variables['uwho_key'] && $variables['uwho_url']){
+  if($variables['feed']){
     // Add the CSS & JS
     drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
     drupal_add_js(drupal_get_path('module', 'remote_issue_tab') . '/js/remote_issue_tab.js');
@@ -33,13 +28,11 @@ function theme_remote_issue_tab_block($variables = array()){
     ));
     return '<div id="remote-issue-tab">
  <div class="new-items">
-  <h2>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['uwho_redirect_path'], t('Search for/Report an issue')) . '</h2>
+  <h2>'. l( t('Search for/Report an issue'), $variables['html_link'] ) . '</h2>
  </div>
  <div class="items">
   ' . theme('remote_issue_tab_feed_items', array(
       'items' => $items,
-      'uwho_key' => $variables['uwho_key'],
-      'uwho_url' => $variables['uwho_url'],
       'feed' => $variables['feed']
     )) . '
  </div>
@@ -105,9 +98,7 @@ function theme_remote_issue_tab_feed_items($variables = array()){
       }
       $content .= theme('remote_issue_tab_feed_item', array(
         'item' => $item,
-        'item_count' => $item_count,
-        'uwho_key' => $variables['uwho_key'],
-        'uwho_url' => $variables['uwho_url']
+        'item_count' => $item_count
       ));
       $item_count++;
     }
@@ -124,14 +115,12 @@ function theme_remote_issue_tab_feed_items($variables = array()){
  * theme function for a single item
  */
 function theme_remote_issue_tab_feed_item($variables = array()){
-  // Note, we remove the "read more" link, as it could prevent users being
-  // logged in by uwho.
   // Note, we capitalise &lti&gt; tags to ensure they don't get converted into
-  // real tags. 
-  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . uwho_client_block_content($variables['uwho_key'], $variables['uwho_url'], $variables['item']->link, $variables['item']->title) . '</h3><div class="remote_issue_item">' . preg_replace('/<a href[^>]*>read more<\/a>/', '', strtr($variables['item']->description, array(
+  // real tags.
+  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . l($variables['item']->title, $variables['item']->link) . '</h3><div class="remote_issue_item">' . strtr($variables['item']->description, array(
     '&lt;i&gt;' => '&LT;I&GT;',
     '&lt;em&gt;' => '&LT;EM&GT',
     '&lt;/i&gt;' => '&lt;/I&GT;',
     '&lt;/em&gt;' => '&lt;/EM&GT;'
-  ))) . '</div></div></li>';
+  )) . '</div></div></li>';
 }

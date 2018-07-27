@@ -15,7 +15,7 @@ function remote_issue_tab_block_info(){
 }
 
 /**
- * Implementation of hook_block_configure() 
+ * Implementation of hook_block_configure()
  */
 function remote_issue_tab_block_configure($delta = ''){
   $feeds = array(
@@ -43,25 +43,11 @@ function remote_issue_tab_block_configure($delta = ''){
         ))
       ))
     ),
-    'remote_issue_tab_uwho_client_key' => array(
-      '#title' => t('UWho Client Key'),
-      '#description' => t('Enter the key from the site you\'d like to enable your users to login to.'),
+    'remote_issue_tab_html_link' => array(
+      '#title' => t('Issues index page'),
+      '#description' => t('Enter the URL of the page where users can create or search for issues'),
       '#type' => 'textfield',
-      '#default_value' => variable_get('remote_issue_tab_uwho_client_key', ''),
-      '#required' => TRUE
-    ),
-    'remote_issue_tab_uwho_url' => array(
-      '#title' => t('UWho Client URL'),
-      '#description' => t('Enter the URL of the site you\'d like to enable your users to login to.  This must be EXACTLY as provided by the other site.'),
-      '#type' => 'textfield',
-      '#default_value' => variable_get('remote_issue_tab_uwho_url', ''),
-      '#required' => TRUE
-    ),
-    'remote_issue_tab_redirect_path' => array(
-      '#title' => t('UWho Redirect Path'),
-      '#description' => t('Enter the path of the page on the remote site that you\'d like users to be redirected to (leave blank to use the default)'),
-      '#type' => 'textfield',
-      '#default_value' => variable_get('remote_issue_tab_redirect_path', '')
+      '#default_value' => variable_get('remote_issue_tab_html_link', '')
     ),
     'remote_issue_tab_footer' => array(
       '#title' => t('Footer'),
@@ -77,9 +63,7 @@ function remote_issue_tab_block_configure($delta = ''){
  */
 function remote_issue_tab_block_save($delta = '', $edit = array()){
   variable_set('remote_issue_tab_feed', $edit['remote_issue_tab_feed']);
-  variable_set('remote_issue_tab_uwho_client_key', $edit['remote_issue_tab_uwho_client_key']);
-  variable_set('remote_issue_tab_uwho_url', $edit['remote_issue_tab_uwho_url']);
-  variable_set('remote_issue_tab_redirect_path', $edit['remote_issue_tab_redirect_path']);
+  variable_set('remote_issue_tab_html_link', $edit['remote_issue_tab_html_link']);
   variable_set('remote_issue_tab_footer', $edit['remote_issue_tab_footer']);
 }
 
@@ -88,23 +72,17 @@ function remote_issue_tab_block_save($delta = '', $edit = array()){
  */
 function remote_issue_tab_block_view($delta = ''){
   global $user;
-  $data = cache_get($user->uid, 'cache_remote_issue_tab');
-  if(!empty($data->data)){
-    $content = $data->data;
-  }else{
-    $content = array(
-      'block' => array(
-        '#theme' => 'remote_issue_tab_block',
-        '#feed' => variable_get('remote_issue_tab_feed', 0),
-        '#uwho_key' => variable_get('remote_issue_tab_uwho_client_key', ''),
-        '#uwho_url' => variable_get('remote_issue_tab_uwho_url', ''),
-        '#uwho_redirect_path' => variable_get('remote_issue_tab_redirect_path', ''),
-        '#footer' => variable_get('remote_issue_tab_footer', '')
-      )
-    );
-    $content = drupal_render($content);
-    cache_set($user->uid, $content, 'cache_remote_issue_tab', time() + 14400); // Cache the item for four hours.
-  }
+
+  $content = array(
+    'block' => array(
+      '#theme' => 'remote_issue_tab_block',
+      '#feed' => variable_get('remote_issue_tab_feed', 0),
+      '#html_link' => variable_get('remote_issue_tab_html_link', ''),
+      '#footer' => variable_get('remote_issue_tab_footer', '')
+    )
+  );
+  $content = drupal_render($content);
+
   return array(
     'subject' => t('Issues...'),
     'content' => $content
@@ -119,9 +97,7 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
     'remote_issue_tab_block' => array(
       'variables' => array(
         'feed' => 0,
-        'uwho_key' => FALSE,
-        'uwho_url' => FALSE,
-        'uwho_redirect_path' => FALSE,
+        'html_link' => FALSE,
         'footer' => ''
       ),
       'file' => 'remote_issue_tab.theme.inc'
@@ -129,8 +105,6 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
     'remote_issue_tab_feed_items' => array(
       'variables' => array(
         'items' => NULL,
-        'uwho_key' => NULL,
-        'uwho_url' => NULL,
         'feed' => 0
       ),
       'file' => 'remote_issue_tab.theme.inc'
@@ -138,11 +112,42 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
     'remote_issue_tab_feed_item' => array(
       'variables' => array(
         'item' => NULL,
-        'item_count' => NULL,
-        'uwho_key' => NULL,
-        'uwho_url' => NULL
+        'item_count' => NULL
       ),
       'file' => 'remote_issue_tab.theme.inc'
     )
+  );
+}
+
+/**
+ * Implementation of hook_aggregator_parse()
+ * Allow the aggregator to consume json feeds (specifically github)
+ */
+function remote_issue_tab_aggregator_parse($feed) {
+  // Might be a good idea to check $feed->http_headers['content-type'] = application/json
+  // or x-github-media-type = v3 json and fall back to the default parser if not present
+xdebug_break();
+  $issues = json_decode($feed->source_string);
+
+  $feed->items = array_map("_remote_issue_tab_map_gh_issue",
+    array_filter($issues, function($issue) {
+      return !property_exists($issue, 'pull_request');
+    })
+  );
+
+  return TRUE;
+}
+
+/**
+ * Map a github issue to format that hook_aggregator_parse should return
+ */
+function _remote_issue_tab_map_gh_issue($issue) {
+  return array(
+    "title"=>$issue->title,
+    "description"=>$issue->body,
+    "timestamp"=>strtotime($issue->created_at),
+    "author"=>$issue->user->login,
+    "guid"=>$issue->id,
+    "link"=>$issue->html_url
   );
 }
