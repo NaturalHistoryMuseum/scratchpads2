@@ -4,12 +4,9 @@
  * Implementation of hook_block_info()
  */
 function remote_issue_tab_block_info(){
-  // Note, we cache by user, as the user details are embeded in the URLs that
-  // are added to the block.
   return array(
     array(
-      'info' => t('Remote issue block'),
-      'cache' => DRUPAL_CACHE_PER_USER
+      'info' => t('Remote issue block')
     )
   );
 }
@@ -43,11 +40,11 @@ function remote_issue_tab_block_configure($delta = ''){
         ))
       ))
     ),
-    'remote_issue_tab_html_link' => array(
-      '#title' => t('Issues index page'),
-      '#description' => t('Enter the URL of the page where users can create or search for issues'),
-      '#type' => 'textfield',
-      '#default_value' => variable_get('remote_issue_tab_html_link', '')
+    'remote_issue_tab_header' => array(
+      '#title' => t('Header'),
+      '#type' => 'textarea',
+      '#default_value' => variable_get('remote_issue_tab_header', ''),
+      '#description' => t('Enter text to be displayed below the Create new issue header.')
     ),
     'remote_issue_tab_footer' => array(
       '#title' => t('Footer'),
@@ -63,7 +60,7 @@ function remote_issue_tab_block_configure($delta = ''){
  */
 function remote_issue_tab_block_save($delta = '', $edit = array()){
   variable_set('remote_issue_tab_feed', $edit['remote_issue_tab_feed']);
-  variable_set('remote_issue_tab_html_link', $edit['remote_issue_tab_html_link']);
+  variable_set('remote_issue_tab_header', $edit['remote_issue_tab_header']);
   variable_set('remote_issue_tab_footer', $edit['remote_issue_tab_footer']);
 }
 
@@ -71,13 +68,11 @@ function remote_issue_tab_block_save($delta = '', $edit = array()){
  * Implementation of hook_block_view()
  */
 function remote_issue_tab_block_view($delta = ''){
-  global $user;
-
   $content = array(
     'block' => array(
       '#theme' => 'remote_issue_tab_block',
       '#feed' => variable_get('remote_issue_tab_feed', 0),
-      '#html_link' => variable_get('remote_issue_tab_html_link', ''),
+      '#header' => variable_get('remote_issue_tab_header', ''),
       '#footer' => variable_get('remote_issue_tab_footer', '')
     )
   );
@@ -97,8 +92,8 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
     'remote_issue_tab_block' => array(
       'variables' => array(
         'feed' => 0,
-        'html_link' => FALSE,
-        'footer' => ''
+        'footer' => '',
+        'header' => ''
       ),
       'file' => 'remote_issue_tab.theme.inc'
     ),
@@ -116,38 +111,5 @@ function remote_issue_tab_theme($existing, $type, $theme, $path){
       ),
       'file' => 'remote_issue_tab.theme.inc'
     )
-  );
-}
-
-/**
- * Implementation of hook_aggregator_parse()
- * Allow the aggregator to consume json feeds (specifically github)
- */
-function remote_issue_tab_aggregator_parse($feed) {
-  // Might be a good idea to check $feed->http_headers['content-type'] = application/json
-  // or x-github-media-type = v3 json and fall back to the default parser if not present
-xdebug_break();
-  $issues = json_decode($feed->source_string);
-
-  $feed->items = array_map("_remote_issue_tab_map_gh_issue",
-    array_filter($issues, function($issue) {
-      return !property_exists($issue, 'pull_request');
-    })
-  );
-
-  return TRUE;
-}
-
-/**
- * Map a github issue to format that hook_aggregator_parse should return
- */
-function _remote_issue_tab_map_gh_issue($issue) {
-  return array(
-    "title"=>$issue->title,
-    "description"=>$issue->body,
-    "timestamp"=>strtotime($issue->created_at),
-    "author"=>$issue->user->login,
-    "guid"=>$issue->id,
-    "link"=>$issue->html_url
   );
 }

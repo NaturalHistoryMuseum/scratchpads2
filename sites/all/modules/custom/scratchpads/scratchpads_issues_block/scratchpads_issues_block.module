@@ -9,3 +9,47 @@ function scratchpads_issues_block_block_info_alter(&$blocks, $theme, $code_block
     $blocks['remote_issue_tab'][0]['status'] = 1;
   }
 }
+
+/**
+ * Implementation of hook_aggregator_parse()
+ * Allow the aggregator to consume json feeds (specifically github issues)
+ */
+function scratchpads_issues_block_aggregator_parse($feed) {
+  // If it's not from the github api it's probably an atom/rss feed
+  // so fall back to the default parser
+  if (! isset($feed->http_headers['x-github-media-type'])) {
+    return aggregator_aggregator_parse($feed);
+  }
+
+  $issues = json_decode($feed->source_string);
+
+  // Set the html link for the feed
+  if(isset($issues[0])) {
+    $feed->link = dirname($issues[0]->html_url);
+  }
+
+  $feed->etag = $feed->http_headers['etag'];
+
+  // Map the keys and filter out pull requests
+  $feed->items = array_map("_scratchpads_issues_block_map_gh_issue",
+    array_filter($issues, function($issue) {
+      return !property_exists($issue, 'pull_request');
+    })
+  );
+
+  return TRUE;
+}
+
+/**
+ * Map a github issue to format that hook_aggregator_parse should return
+ */
+function _scratchpads_issues_block_map_gh_issue($issue) {
+  return array(
+    "title"=>$issue->title,
+    "description"=>$issue->body,
+    "timestamp"=>strtotime($issue->created_at),
+    "author"=>$issue->user->login,
+    "guid"=>$issue->id,
+    "link"=>$issue->html_url
+  );
+}

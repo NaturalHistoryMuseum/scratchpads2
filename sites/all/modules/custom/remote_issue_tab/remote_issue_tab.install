@@ -1,13 +1,6 @@
 <?php
 
 /**
- * Implements hook_install().
- */
-function remote_issue_tab_install(){
-  variable_set('aggregator_parser', 'remote_issue_tab');
-}
-
-/**
  * hook_requirements
  */
 function remote_issue_tab_requirements($phase){
@@ -43,11 +36,4 @@ function remote_issue_tab_schema(){
 function remote_issue_tab_update_7001(){
   $schema = remote_issue_tab_schema();
   db_create_table('cache_remote_issue_tab', $schema['cache_remote_issue_tab']);
-}
-
-/**
- * Set the aggregator parser to handle json
- */
-function remote_issue_tab_update_7002() {
-  variable_set('aggregator_parser', 'remote_issue_tab');
 }

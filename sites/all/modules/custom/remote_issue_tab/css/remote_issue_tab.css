@@ -5,16 +5,10 @@
  font-style:normal;
  letter-spacing:normal;
  word-spacing:0;
- text-align:left;	
+ text-align:left;
 }
 #remote-issue-tab h3{
  margin:0;
-}
-#remote-issue-tab .new-items{
- margin-bottom:10px !important;
-}
-#remote-issue-tab .new-items a{
-	color:white !important;
 }
 #remote-issue-tab .items h2{
  color:white;
@@ -66,4 +60,7 @@ font-weight:400;
 #remote-issue-tab .footer h3 a{
 font-size:13px;
 font-weight:400;
+}
+#remote-issue-tab .header {
+  margin: 0 1em 1em;
 }

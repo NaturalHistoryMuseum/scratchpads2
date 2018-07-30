@@ -10,11 +10,8 @@
  * Main theme that creates the whole block content.
  */
 function theme_remote_issue_tab_block($variables = array()){
-  // As creating the tab is very processor heavy (due to the number of
-  // encryptions were performing), we'll cache the footer, by user, for 15 mins
-  // Note, we cache by user due to the fact that the user details are embeded in
-  // each of the links.
-  if($variables['feed']){
+  $fid = $variables['feed'];
+  if($fid){
     // Add the CSS & JS
     drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
     drupal_add_js(drupal_get_path('module', 'remote_issue_tab') . '/js/remote_issue_tab.js');
@@ -24,20 +21,21 @@ function theme_remote_issue_tab_block($variables = array()){
     // Note, including fid in the SQL should be safe here, as we've ensured that
     // fid is an integer above.
     $items = remote_issue_tab_aggregator_feed_items_load('source', (object)array(
-      'fid' => $variables['feed']
+      'fid' => $fid
     ));
     return '<div id="remote-issue-tab">
- <div class="new-items">
-  <h2>'. l( t('Search for/Report an issue'), $variables['html_link'] ) . '</h2>
+ <div>
+  <h2>'. l( t('Search for/Report an issue'), _remote_issue_tab_feed_link($fid) ) . '</h2>
+  <div class="header">'. $variables['header'] . '</div>
  </div>
  <div class="items">
   ' . theme('remote_issue_tab_feed_items', array(
       'items' => $items,
-      'feed' => $variables['feed']
+      'feed' => $fid
     )) . '
  </div>
  <div class="footer">
-  ' . variable_get('remote_issue_tab_footer', '') . '
+  ' . $variables['footer'] . '
  </div>
 </div>';
   }else{
@@ -49,6 +47,13 @@ function theme_remote_issue_tab_block($variables = array()){
     ));
   }
 }
+
+// Get the html link for the selected feed
+function _remote_issue_tab_feed_link($fid) {
+  $result = db_select('aggregator_feed', 'a')->fields('a')->condition('fid', $fid)->execute()->fetchAssoc();
+  return $result['link'];
+}
+
 // Copy of aggregator_feed_items_load, but without the pager shite!
 function remote_issue_tab_aggregator_feed_items_load($type, $data = NULL){
   $items = array();
