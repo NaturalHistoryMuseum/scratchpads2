@@ -12,9 +12,8 @@
 function theme_remote_issue_tab_block($variables = array()){
   $fid = $variables['feed'];
   if($fid){
-    // Add the CSS & JS
+    // Add the CSS
     drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
-    drupal_add_js(drupal_get_path('module', 'remote_issue_tab') . '/js/remote_issue_tab.js');
     // Load the required file
     module_load_include('pages.inc', 'aggregator');
     // This defaults to 20, which is more than enough for us!
@@ -122,10 +121,18 @@ function theme_remote_issue_tab_feed_items($variables = array()){
 function theme_remote_issue_tab_feed_item($variables = array()){
   // Note, we capitalise &lti&gt; tags to ensure they don't get converted into
   // real tags.
-  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '"><div><h3>' . l($variables['item']->title, $variables['item']->link) . '</h3><div class="remote_issue_item">' . strtr($variables['item']->description, array(
-    '&lt;i&gt;' => '&LT;I&GT;',
-    '&lt;em&gt;' => '&LT;EM&GT',
-    '&lt;/i&gt;' => '&lt;/I&GT;',
-    '&lt;/em&gt;' => '&lt;/EM&GT;'
-  )) . '</div></div></li>';
+  return '<li class="' . ($variables['item_count'] % 2 ? 'odd' : 'even') . ($variables['item_count'] ? '' : ' first') . '">
+    <details>
+      <summary class="item-summary">
+        <h3 class="item-summary-heading">' . l($variables['item']->title, $variables['item']->link) . '</h3>
+      </summary>' .
+      strtr($variables['item']->description, array(
+        '&lt;i&gt;' => '&LT;I&GT;',
+        '&lt;em&gt;' => '&LT;EM&GT',
+        '&lt;/i&gt;' => '&lt;/I&GT;',
+        '&lt;/em&gt;' => '&lt;/EM&GT;'
+      )) .
+      ($variables['item']->description ? '' : '(No details)') .
+    '</details>
+  </li>';
 }

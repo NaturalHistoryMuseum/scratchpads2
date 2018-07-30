@@ -37,11 +37,6 @@
 #remote-issue-tab .items ul li h3 a{
   font-size:13px;
 }
-#remote-issue-tab .items ul li div.remote_issue_item{
- padding:0;
- margin:0;
- display:none;
-}
 #remote-issue-tab .footer{
  background-color:#FFFFAA;
  padding:0px 0 1px 0;
@@ -63,4 +58,17 @@ font-weight:400;
 }
 #remote-issue-tab .header {
   margin: 0 1em 1em;
+}
+#remote-issue-tab .item-summary-heading {
+  display: inline-block;
+}
+
+#remote-issue-tab .item-summary:hover {
+  cursor: pointer;
+}
+
+#remote-issue-tab .item-summary:hover::after {
+  content: 'expand';
+  margin-left: 1em;
+  opacity: 0.4;
 }
