@@ -1,46 +1,10 @@
 <?php
-define('SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL', 'https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues');
-define('SCRATCHPADS_ISSUES_LINK', 'https://github.com/NaturalHistoryMuseum/scratchpads2/issues');
 
 /**
  * Implements hook_install().
  */
 function scratchpads_issues_block_install(){
-  // Lets us handle json
-  variable_set('aggregator_parser', 'scratchpads_issues_block');
-
-  // Create an aggregator feed.
-  $feed = array(
-    'title' => 'Scratchpads issue queue',
-    'url' => SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL,
-    'refresh' => 3600,
-    'block' => 10
-  );
-  try{
-    aggregator_save_feed($feed);
-    _scratchpads_issues_block_set_link();
-  }
-  catch(Exception $e){
-    // We've no doubt already saved this feed before, we can safely ignore this
-    // error.
-  }
-  $fid = db_select('aggregator_feed', 'f')->fields('f', array(
-    'fid'
-  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0);
-  $fid = array_pop($fid);
-  $feed = aggregator_feed_load($fid);
-  // Update the feed.
-  aggregator_refresh($feed);
-  // Save the block settings so that the block is set to use "blockexpose".
-  variable_set('remote_issue_tab_feed', $feed->fid);
-  variable_set(
-    'remote_issue_tab_header',
-    'You will need to sign in with a GitHub user account.
-    If you don\'t have one you will need to '.
-    l('create an account', 'https://github.com/join').'.'
-  );
-  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.');
-  // Finally, set this block to use the blockexpose module.
+  // Set this block to use the blockexpose module.
   variable_set('blockexpose_settings_remote_issue_tab_0', array(
     'side' => 'left',
     'event' => 'click',
@@ -60,84 +24,28 @@ function scratchpads_issues_block_install(){
 }
 
 /**
- * Ensure the issues tab has the feed set.
+ * Util function to delete a feed by url
  */
-function scratchpads_issues_block_update_7001(){
+function _scratchpads_issues_block_remove_feed($oldFeedUrl) {
   $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
     'fid'
-  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0));
-  variable_set('remote_issue_tab_feed', $fid);
-}
-
-/**
- * Set the html url of the feed
- */
-function _scratchpads_issues_block_set_link () {
-  db_update('aggregator_feed')->fields(
-    array('link' => SCRATCHPADS_ISSUES_LINK)
-  )->condition(
-    'url',
-    SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL
-  )->execute();
-}
-
-/**
- * Util function for whenever we decide to change the issue tracker
- */
-function _scratchpads_issues_block_replace_feed($oldFeed, $newFeed) {
-  $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
-    'fid'
-  ))->condition('url', $oldFeed)->execute()->fetchCol(0));
+  ))->condition('url', $oldFeedUrl)->execute()->fetchCol(0));
 
   if(!$fid){return;}
-  $feed = aggregator_feed_load($fid);
-  $feed->url = $newFeed;
 
   try{
-    $feed_array = (array)$feed;
-    aggregator_save_feed($feed_array);
-    _scratchpads_issues_block_set_link();
+    // Delete the feed
+    aggregator_save_feed(array("fid" => $fid));
   }
   catch(Exception $e){
   }
-  aggregator_remove($feed);
-  aggregator_refresh($feed);
 }
 
 /**
- * Switch to Redmine
+ * Switch to JS fetch instead of using aggregator
  */
-function scratchpads_issues_block_update_7002(){
-  _scratchpads_issues_block_replace_feed(
-    'http://dev.scratchpads.eu/project/issues/rss/',
-    SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL
-  );
-}
-
-/**
- * Open the help link in a new tab.
- */
-function scratchpads_issues_block_update_7003(){
-  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/" target="_blank">Scratchpad Help Wiki</a>.');
-}
-
-/**
- * Switch to github issues
- */
-function scratchpads_issues_block_update_7004(){
-  // Lets us handle json
-  variable_set('aggregator_parser', 'scratchpads_issues_block');
-
-  // Replace aggregator feeds w/ github URL
-  _scratchpads_issues_block_replace_feed(
-    'http://support.scratchpads.eu/projects/scratchpads2/issues.atom',
-    SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL
-  );
-
-  variable_set(
-    'remote_issue_tab_header',
-    'You will need to sign in with a GitHub user account.
-    If you don\'t have one you will need to '.
-    l('create an account', 'https://github.com/join').'.'
-  );
+function scratchpads_issues_block_update_7005(){
+  // Remove aggregator feeds that may have been created
+  _scratchpads_issues_block_remove_feed('http://dev.scratchpads.eu/project/issues/rss/');
+  _scratchpads_issues_block_remove_feed('http://support.scratchpads.eu/projects/scratchpads2/issues.atom');
 }

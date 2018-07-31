@@ -18,7 +18,13 @@
  margin:0;
  line-height:20px;
 }
-#remote-issue-tab .items ul{
+#remote-issue-tab .items,
+#remote-issue-tab .items .empty {
+  display: none;
+}
+#remote-issue-tab .items ul,
+#remote-issue-tab .items .loading
+#remote-issue-tab .items .empty{
  margin:0.5em 0 1em;
  padding:0;
 }
@@ -60,7 +66,7 @@ font-weight:400;
   margin: 0 1em 1em;
 }
 #remote-issue-tab .item-summary-heading {
-  display: inline-block;
+  display: inline;
 }
 
 #remote-issue-tab .item-summary:hover {
@@ -71,4 +77,11 @@ font-weight:400;
   content: 'expand';
   margin-left: 1em;
   opacity: 0.4;
+}
+
+#remote-issue-tab .label {
+  border: 2px solid;
+  border-radius: 0.5em;
+  display: inline-block;
+  padding: 0 3px;
 }

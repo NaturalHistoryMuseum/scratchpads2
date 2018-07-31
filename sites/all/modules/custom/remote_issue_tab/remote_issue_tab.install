@@ -5,15 +5,14 @@
  */
 function remote_issue_tab_requirements($phase){
   if($phase == 'runtime'){
-    $all_set = !variable_get('remote_issue_tab_feed', FALSE);
+    $no_provider= count(module_implements('issue_tab_settings')) == 0;
+
     return array(
       'remote_issue_tab' => array(
-        'title' => 'Remote Issues Tab Settings',
-        'value' => $all_set ? t('Requires configuration') : t('Correctly configured'),
-        'description' => $all_set ? t('Please ensure the Remote Issue Tab is properly <a href="!settings_page">configured</a>.', array(
-          '!settings_page' => url('admin/settings/remote-issue-tab')
-        )) : '',
-        'severity' => $all_set ? REQUIREMENT_WARNING : REQUIREMENT_OK
+        'title' => 'Remote Issues Tab',
+        'value' => $no_provider ? t('Requires provider module') : t('Correctly configured'),
+        'description' => $no_provider ? t('Remote Issues Tab needs another module to implement hook_issue_tab_settings, for example Scratchpads Issues Block. Make sure a compatible module is enabled.') : '',
+        'severity' => $no_provider ? REQUIREMENT_WARNING : REQUIREMENT_OK
       )
     );
   }
@@ -21,19 +20,16 @@ function remote_issue_tab_requirements($phase){
 }
 
 /**
- * Implements hook_schema
+ * Move to using hook instead of specific variables
  */
-function remote_issue_tab_schema(){
-  $schema = array();
-  $schema['cache_remote_issue_tab'] = drupal_get_schema_unprocessed('system', 'cache');
-  $schema['cache_remote_issue_tab']['description'] = 'Cache the rendering of the remote issue tab block to improve page load times.';
-  return $schema;
-}
+function remote_issue_tab_update_7002() {
+  // Delete variables no longer used
+  variable_del('remote_issue_tab_feed');
+  variable_del('remote_issue_tab_uwho_client_key');
+  variable_del('remote_issue_tab_uwho_url');
+  variable_del('remote_issue_tab_redirect_path');
+  variable_del('remote_issue_tab_footer');
 
-/**
- * Install the cache table.
- */
-function remote_issue_tab_update_7001(){
-  $schema = remote_issue_tab_schema();
-  db_create_table('cache_remote_issue_tab', $schema['cache_remote_issue_tab']);
+  // We no longer cache the block
+  db_drop_table('cache_remote_issue_tab');
 }

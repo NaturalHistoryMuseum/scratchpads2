@@ -11,45 +11,21 @@ function scratchpads_issues_block_block_info_alter(&$blocks, $theme, $code_block
 }
 
 /**
- * Implementation of hook_aggregator_parse()
- * Allow the aggregator to consume json feeds (specifically github issues)
+ * Implements hook_issue_tab_settings from remote_issue_tab module
  */
-function scratchpads_issues_block_aggregator_parse($feed) {
-  // If it's not from the github api it's probably an atom/rss feed
-  // so fall back to the default parser
-  if (! isset($feed->http_headers['x-github-media-type'])) {
-    return aggregator_aggregator_parse($feed);
-  }
-
-  $issues = json_decode($feed->source_string);
-
-  // Set the html link for the feed
-  if(isset($issues[0])) {
-    $feed->link = dirname($issues[0]->html_url);
-  }
-
-  $feed->etag = $feed->http_headers['etag'];
-
-  // Map the keys and filter out pull requests
-  $feed->items = array_map("_scratchpads_issues_block_map_gh_issue",
-    array_filter($issues, function($issue) {
-      return !property_exists($issue, 'pull_request');
-    })
-  );
-
-  return TRUE;
-}
-
-/**
- * Map a github issue to format that hook_aggregator_parse should return
- */
-function _scratchpads_issues_block_map_gh_issue($issue) {
+function scratchpads_issues_block_issue_tab_settings() {
   return array(
-    "title"=>$issue->title,
-    "description"=>$issue->body,
-    "timestamp"=>strtotime($issue->created_at),
-    "author"=>$issue->user->login,
-    "guid"=>$issue->id,
-    "link"=>$issue->html_url
+    "fetch_url" => "https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues",
+    "html_link" => "https://github.com/NaturalHistoryMuseum/scratchpads2/issues",
+    "header" => 'You will need to sign in with a GitHub user account.
+      If you don\'t have one you will need to '.
+      l('create an account', 'https://github.com/join').'.',
+    "footer" => '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
+    "scripts" => array(
+      drupal_get_path('module', 'scratchpads_issues_block') . "/js/scripts_issues_block.js"
+    ),
+    "external_scripts" => array(
+      "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    )
   );
 }
