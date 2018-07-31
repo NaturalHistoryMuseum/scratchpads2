@@ -2,6 +2,7 @@
 // Define two simple constants for inserting/retrieving data from the database.
 define('SCRATCHPADS_MESSAGES_ALERT', 1);
 define('SCRATCHPADS_MESSAGES_TIP', 2);
+define('SCRATCHPADS_MESSAGES_GLOBAL', 3);
 
 /**
  * Implements hook_user_login().
@@ -296,10 +297,19 @@ function scratchpads_messages_seen_msg_submit($form, $form_state){
 function scratchpads_messages_page_alter(&$page){
   global $user;
   $messages = scratchpads_messages_get_messages();
+  $alerts = array();
 
-  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])){
+  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_ALERT]);
+  }
+
+  if(!empty($messages[SCRATCHPADS_MESSAGES_GLOBAL])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_GLOBAL]);
+  }
+
+  if(!empty($alerts)){
     $msgs = array();
-    foreach($messages[SCRATCHPADS_MESSAGES_ALERT] as $msg){
+    foreach($alerts as $msg){
       $msgs[] = array(
         'data' => theme('scratchpads_messages_message', array(
           'msg' => $msg,
@@ -362,7 +372,12 @@ function scratchpads_messages_types($key = FALSE){
     SCRATCHPADS_MESSAGES_ALERT => t('Status'),
     SCRATCHPADS_MESSAGES_TIP => t('Tip')
   );
-  if($key){return $types[$key];}
+  if($key){
+    // Don't show Global as an available type,
+    // but display its name if specifically asked about it.
+    $types[SCRATCHPADS_MESSAGES_GLOBAL] = t('Global');
+    return $types[$key];
+  }
   return $types;
 }
 

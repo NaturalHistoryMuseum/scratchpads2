@@ -9,7 +9,11 @@ function scratchpads_messages_list_form($form, $form_state){
   $form = array();
   $results = db_select('scratchpads_messages_message', 's')->fields('s')->execute();
   $msgs = array();
+  $form['msgs'] = array();
   foreach($results as $msg){
+    if ($msg->type == 3) {
+      $form['msgs'][$msg->mid] = array("#disabled" => TRUE);
+    }
     $msgs[$msg->mid] = '';
     $form['message'][$msg->mid] = array(
       '#markup' => $msg->message
@@ -32,10 +36,9 @@ function scratchpads_messages_list_form($form, $form_state){
       '#markup' => $msg->expire ? format_date($msg->expire) : t('Never')
     );
   }
-  $form['msgs'] = array(
-    '#type' => 'checkboxes',
-    '#options' => $msgs
-  );
+  $form['msgs']['#type'] = 'checkboxes';
+  $form['msgs']['#options'] = $msgs;
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Delete'),
