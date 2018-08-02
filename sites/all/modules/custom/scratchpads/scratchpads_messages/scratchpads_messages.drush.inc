@@ -23,7 +23,7 @@ function scratchpads_messages_drush_command() {
 
   $commands['clear-messages'] = array(
     'description' => 'Clears global messages.',
-    'aliases' => array('msg-clear'),
+    'aliases' => array('msg-clear', 'msg-clr'),
      'examples' => array(
        'drush msg-clear',
      ),
@@ -36,7 +36,10 @@ function scratchpads_messages_drush_command() {
  * Create a global message
  * drush_[COMMAND_NAME]().
  */
-function drush_set_message($message) {
+function drush_scratchpads_messages_set_message(...$message_parts) {
+  // You should quote the command arg but in case someone forgets...
+  $message = implode(' ', $message_parts);
+
   if(module_exists('scratchpads_messages')){
     module_load_include('admin.inc', 'scratchpads_messages');
 
@@ -45,11 +48,19 @@ function drush_set_message($message) {
     $values = array(
       'message' => $message,
       'expire' => $expires,
-      'created' => 'now'
+      'created' => 'now',
       'type' => 3
     );
 
-    scratchpads_messages_add_form_submit(array(), array("values" => $values));
+    $mid = scratchpads_messages_add_message($values);
+
+    if($mid) {
+      drush_log("Created message with id $mid", "ok");
+    }else {
+      drush_log("Could not create message\n", "error");
+    }
+
+    return (bool)$mid;
   }
 }
 
@@ -57,22 +68,26 @@ function drush_set_message($message) {
  * Clear global messages
  * drush_[COMMAND_NAME]().
  */
-function drush_clear_messages($message) {
+function drush_scratchpads_messages_clear_messages() {
   if(module_exists('scratchpads_messages')){
     // Find all global messages
-    $messages = db_select('scratchpads_messages_message', 's')->fields('s')->condition('type', 3)->execute();
+    $messages = db_select('scratchpads_messages_message', 's')->fields('s')->condition('type', 3)->execute()->fetchAll();
 
-    $get_id = function ($row) {
-      return $row['mid']
+    if (count($messages) == 0) {
+      drush_log("Nothing to delete", "ok");
+      return;
     }
 
     module_load_include('admin.inc', 'scratchpads_messages');
 
-    $values = array(
-      'messages' => array_map($messages, $get_id)
-    );
+    // Function to get the records' ids when we map
+    $get_id = function ($row) {
+      return $row->mid;
+    };
 
     // Clear messages and their related records
-    scratchpads_messages_multiple_delete_confirm_submit(array(), array("values" => $values));
+    $result = scratchpads_messages_delete_messages(array_map($get_id, $messages));
+
+    drush_log("Deleted {$result['messages']} global messages, {$result['viewed']} viewed, {$result['roles']} roles", "ok");
   }
 }
