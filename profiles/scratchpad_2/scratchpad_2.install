@@ -7,13 +7,17 @@
  * not a standard Drupal site.
  */
 function scratchpad_2_install_tasks(&$install_state){
-  return array(
-    'scratchpad_2_standard_scratchpad' => array(
-      'display_name' => 'Standard Scratchpad',
-      'display' => TRUE,
-      'type' => 'form'
-    )
-  );
+  # If this is a dockerised scratchpad, do not show the option
+  # to select if this is a standard scratchpad, we know it's not
+  if(!variable_get('dockerised_scratchpad', FALSE)){
+    return array(
+      'scratchpad_2_standard_scratchpad' => array(
+        'display_name' => 'Standard Scratchpad',
+        'display' => TRUE,
+        'type' => 'form'
+      )
+    );
+  }
 }
 
 /**
