@@ -1,8 +1,7 @@
 # Ignore configuration files that may contain sensitive information and user-generated content
 sites/*/settings*.php
-sites/*/files
-sites/*/private
-sites/monkey.nhm.ac.uk
+sites/*.*/
+sites/sites.php
 
 # Examples/Devel modules
 sites/all/modules/contrib/examples
@@ -13,11 +12,15 @@ sites/all/modules/contrib/devel
 *.sql
 *.dump
 
-# Zend studio files
+# IDE/Editor-generated files
+  # Zend studio files
 .buildpath
 .cache
 .project
 .settings
+
+   # VS Code files
+.vscode
 
 # Development files
 index2.php
