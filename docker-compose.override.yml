@@ -1,0 +1,10 @@
+version: '2'
+
+# This is used by docker-compose, not docker-sync, 
+# so we can safely configure the mounted directory
+
+services:
+  apache: 
+    volumes:     
+      - ./:/var/www/html  
+      
