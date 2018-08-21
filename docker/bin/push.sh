@@ -1,0 +1,3 @@
+docker push naturalhistorymuseum/scratchpad-solr
+docker push naturalhistorymuseum/scratchpad-mysql
+docker push naturalhistorymuseum/scratchpad
