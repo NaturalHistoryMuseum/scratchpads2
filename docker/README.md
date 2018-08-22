@@ -28,7 +28,6 @@ You can do this by running `./build.sh`, which creates three images with the fol
 
 In addition to these tags,  The `scratchpad` image is tagged with the scratchpads source code version and release date:
 
- - `naturalhistorymuseum/scratchpad:2.x.x`
  - `naturalhistorymuseum/scratchpad:2.x.x-YYYY-MM-DD`
 
 The mysql and solr images are also tagged with the release date:
@@ -42,10 +41,18 @@ Usage
 See each image's readme for more information.
 
 
+Push
+-----
+docker push naturalhistorymuseum/scratchpad-solr
+docker push naturalhistorymuseum/scratchpad-mysql
+docker push naturalhistorymuseum/scratchpad
+
 
 Commands
 --------
 
 docker exec -i -t scratchpads.apache /bin/bash
+
+
 
 

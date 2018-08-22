@@ -16,6 +16,7 @@ RUN apt-get -y install wget \
              libfreetype6-dev \
              libjpeg62-turbo-dev \
              libgd-dev cron \
+             msmtp \
              --no-install-recommends
 
 RUN pecl install imagick 
@@ -52,21 +53,11 @@ RUN mv drush.phar /usr/local/bin/drush
 # Test your install.
 RUN drush core-status
 
-# ARG SCRATCHPADS_VERSION='master'
-
-# RUN (\
-#       wget -qO- https://github.com/NaturalHistoryMuseum/scratchpads2/archive/${SCRATCHPADS_VERSION}.tar.gz\
-#       || echo "wget: Release version \"${SCRATCHPADS_VERSION}\" not found" 1>&2\
-# ) | tar xvz -C /var/www/html --strip 1
-
-
-# # Enable error logging
-COPY php.ini /usr/local/etc/php/
-
-# # Configure for drupal install
+# Configure for drupal install
 COPY settings.php /var/www/html/sites/default/settings.php
-# # FIXME: I'm not sure this does anything???
-# # COPY drushrc.php /var/www/html/sites/default/drushrc.php
+
+# Enable error logging & msmtp
+COPY php.ini /usr/local/etc/php/
 
 RUN chown -R www-data /var/www/html
 
