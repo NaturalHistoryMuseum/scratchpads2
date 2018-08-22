@@ -19,12 +19,16 @@ sync-up:
 
 sync-down: sync-stop
 
-sync-stop:
-	@echo "Starting containers and syncing files"
-	@docker-sync-stack stop
+sync-clean:
+	@echo "Stopping containers and removing volumes"
+	@docker-sync-stack clean
 
 drush:
 	@docker exec -i -t scratchpads.apache drush $(filter-out $@,$(MAKECMDGOALS))
+
+
+bash:
+	@docker exec -i -t scratchpads.apache bash
 
 build:
 	@docker build -t naturalhistorymuseum/scratchpad-apache -t naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE) docker/apache
