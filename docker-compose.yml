@@ -13,17 +13,25 @@ services:
       - mysql
       - solr    
     ports:
-      - "${SCRATCHPADS_PORT}:80"
+      - "${APACHE_PORT}:80"
     volumes:     
       - apache-files:/var/www/html/sites/default
     environment:
-      - BASE_URL=http://127.0.0.1:${SCRATCHPADS_PORT}
+      - BASE_URL=http://127.0.0.1:${APACHE_PORT}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_HOST=scratchpads.mysql
       - SOLR_HOSTNAME=scratchpads.solr 
       - SOLR_CORE=scratchpads2    
+      - SMTP_FROM=${APACHE_SMTP_FROM}       
+      - SMTP_HOST=${APACHE_SMTP_HOST}
+      - SMTP_PORT=${APACHE_SMTP_PORT}
+      - SMTP_USER=${APACHE_SMTP_USER}
+      - SMTP_PASSWORD=${APACHE_SMTP_PASSWORD}
+      - SMTP_TLS=${APACHE_SMTP_TLS}
+      - SMTP_AUTH=${APACHE_SMTP_AUTH}
+      - SMTP_START_TLS=${APACHE_SMTP_START_TLS}                 
 
   mysql:
     container_name: scratchpads.mysql
@@ -33,10 +41,10 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql              
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=drupal
-      - MYSQL_USER=drupal
-      - MYSQL_PASSWORD=drupal  
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}  
     mem_limit: 3G       
 
   solr:
