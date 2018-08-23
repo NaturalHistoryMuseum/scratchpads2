@@ -8,3 +8,6 @@ syncs:
   docker-sync:
     src: './'
     sync_excludes: ['.gitignore', '.git/', '.idea/', '.DS_Store', 'docker/']
+    sync_userid: '1000'
+    sync_group: 'www-data'
+    # sync_groupid: '82'    
