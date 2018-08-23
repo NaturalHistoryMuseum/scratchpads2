@@ -9,3 +9,23 @@ function scratchpads_issues_block_block_info_alter(&$blocks, $theme, $code_block
     $blocks['remote_issue_tab'][0]['status'] = 1;
   }
 }
+
+/**
+ * Implements hook_issue_tab_settings from remote_issue_tab module
+ */
+function scratchpads_issues_block_issue_tab_settings() {
+  return array(
+    "fetch_url" => "https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues",
+    "html_link" => "https://github.com/NaturalHistoryMuseum/scratchpads2/issues",
+    "header" => 'You will need to sign in with a GitHub user account.
+      If you don\'t have one you will need to '.
+      l('create an account', 'https://github.com/join').'.',
+    "footer" => '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
+    "scripts" => array(
+      drupal_get_path('module', 'scratchpads_issues_block') . "/js/scripts_issues_block.js"
+    ),
+    "external_scripts" => array(
+      "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+    )
+  );
+}

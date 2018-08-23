@@ -5,16 +5,10 @@
  font-style:normal;
  letter-spacing:normal;
  word-spacing:0;
- text-align:left;	
+ text-align:left;
 }
 #remote-issue-tab h3{
  margin:0;
-}
-#remote-issue-tab .new-items{
- margin-bottom:10px !important;
-}
-#remote-issue-tab .new-items a{
-	color:white !important;
 }
 #remote-issue-tab .items h2{
  color:white;
@@ -24,7 +18,13 @@
  margin:0;
  line-height:20px;
 }
-#remote-issue-tab .items ul{
+#remote-issue-tab .items,
+#remote-issue-tab .items .empty {
+  display: none;
+}
+#remote-issue-tab .items ul,
+#remote-issue-tab .items .loading
+#remote-issue-tab .items .empty{
  margin:0.5em 0 1em;
  padding:0;
 }
@@ -42,11 +42,6 @@
 }
 #remote-issue-tab .items ul li h3 a{
   font-size:13px;
-}
-#remote-issue-tab .items ul li div.remote_issue_item{
- padding:0;
- margin:0;
- display:none;
 }
 #remote-issue-tab .footer{
  background-color:#FFFFAA;
@@ -66,4 +61,27 @@ font-weight:400;
 #remote-issue-tab .footer h3 a{
 font-size:13px;
 font-weight:400;
+}
+#remote-issue-tab .header {
+  margin: 0 1em 1em;
+}
+#remote-issue-tab .item-summary-heading {
+  display: inline;
+}
+
+#remote-issue-tab .item-summary:hover {
+  cursor: pointer;
+}
+
+#remote-issue-tab .item-summary:hover::after {
+  content: 'expand';
+  margin-left: 1em;
+  opacity: 0.4;
+}
+
+#remote-issue-tab .label {
+  border: 2px solid;
+  border-radius: 0.5em;
+  display: inline-block;
+  padding: 0 3px;
 }

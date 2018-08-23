@@ -1,40 +1,10 @@
 <?php
-define('SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL', 'http://support.scratchpads.eu/projects/scratchpads2/issues.atom');
-define('SCRATCHPADS_UWHO_URL', 'http://support.scratchpads.eu/uwho');
 
 /**
  * Implements hook_install().
  */
 function scratchpads_issues_block_install(){
-  // Create an aggregator feed.
-  $feed = array(
-    'title' => 'Scratchpads issue queue',
-    'url' => SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL,
-    'refresh' => 3600,
-    'block' => 10
-  );
-  try{
-    aggregator_save_feed($feed);
-  }
-  catch(Exception $e){
-    // We've no doubt already saved this feed before, we can safely ignore this
-    // error.
-  }
-  $fid = db_select('aggregator_feed', 'f')->fields('f', array(
-    'fid'
-  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0);
-  $fid = array_pop($fid);
-  $feed = aggregator_feed_load($fid);
-  // Update the feed.
-  aggregator_refresh($feed);
-  // Save the block settings so that the uwho stuff is save, and the
-  // block is set to use "blockexpose".
-  variable_set('remote_issue_tab_feed', $feed->fid);
-  // UWho client key (should be private, but this clearly isn't).
-  variable_set('remote_issue_tab_uwho_client_key', '58d972f86f9d963837bebcd8d4b46d39');
-  variable_set('remote_issue_tab_uwho_url', SCRATCHPADS_UWHO_URL);
-  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.');
-  // Finally, set this block to use the blockexpose module.
+  // Set this block to use the blockexpose module.
   variable_set('blockexpose_settings_remote_issue_tab_0', array(
     'side' => 'left',
     'event' => 'click',
@@ -54,39 +24,28 @@ function scratchpads_issues_block_install(){
 }
 
 /**
- * Ensure the issues tab has the feed set.
+ * Util function to delete a feed by url
  */
-function scratchpads_issues_block_update_7001(){
+function _scratchpads_issues_block_remove_feed($oldFeedUrl) {
   $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
     'fid'
-  ))->condition('url', SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL)->execute()->fetchCol(0));
-  variable_set('remote_issue_tab_feed', $fid);
-}
+  ))->condition('url', $oldFeedUrl)->execute()->fetchCol(0));
 
-/**
- * Switch to Redmine
- */
-function scratchpads_issues_block_update_7002(){
-  $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
-    'fid'
-  ))->condition('url', 'http://dev.scratchpads.eu/project/issues/rss/')->execute()->fetchCol(0));
   if(!$fid){return;}
-  $feed = aggregator_feed_load($fid);
-  $feed->url = SCRATCHPADS_ISSUES_BLOCK_ISSUES_URL;
+
   try{
-    $feed_array = (array)$feed;
-    aggregator_save_feed($feed_array);
+    // Delete the feed
+    aggregator_save_feed(array("fid" => $fid));
   }
   catch(Exception $e){
   }
-  aggregator_remove($feed);
-  aggregator_refresh($feed);
-  variable_set('remote_issue_tab_uwho_url', SCRATCHPADS_UWHO_URL);
 }
 
 /**
- * Open the help link in a new tab.
+ * Switch to JS fetch instead of using aggregator
  */
-function scratchpads_issues_block_update_7003(){
-  variable_set('remote_issue_tab_footer', '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/" target="_blank">Scratchpad Help Wiki</a>.');
+function scratchpads_issues_block_update_7005(){
+  // Remove aggregator feeds that may have been created
+  _scratchpads_issues_block_remove_feed('http://dev.scratchpads.eu/project/issues/rss/');
+  _scratchpads_issues_block_remove_feed('http://support.scratchpads.eu/projects/scratchpads2/issues.atom');
 }
