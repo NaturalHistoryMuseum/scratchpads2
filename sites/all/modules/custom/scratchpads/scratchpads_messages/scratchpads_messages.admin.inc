@@ -9,7 +9,11 @@ function scratchpads_messages_list_form($form, $form_state){
   $form = array();
   $results = db_select('scratchpads_messages_message', 's')->fields('s')->execute();
   $msgs = array();
+  $form['msgs'] = array();
   foreach($results as $msg){
+    if ($msg->type == 3) {
+      $form['msgs'][$msg->mid] = array("#disabled" => TRUE);
+    }
     $msgs[$msg->mid] = '';
     $form['message'][$msg->mid] = array(
       '#markup' => $msg->message
@@ -32,10 +36,9 @@ function scratchpads_messages_list_form($form, $form_state){
       '#markup' => $msg->expire ? format_date($msg->expire) : t('Never')
     );
   }
-  $form['msgs'] = array(
-    '#type' => 'checkboxes',
-    '#options' => $msgs
-  );
+  $form['msgs']['#type'] = 'checkboxes';
+  $form['msgs']['#options'] = $msgs;
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Delete'),
@@ -48,7 +51,7 @@ function scratchpads_messages_list_form($form, $form_state){
 }
 
 /**
- * 
+ *
  * @param unknown_type $form_state
  */
 function scratchpads_messages_list_messages_submit($form, &$form_state){
@@ -82,19 +85,28 @@ function scratchpads_messages_multiple_delete_confirm(&$form_state, $messages){
 }
 
 /**
- * 
+ * Submit delete messages form
  */
 function scratchpads_messages_multiple_delete_confirm_submit($form, $form_state){
-  db_delete('scratchpads_messages_message')->condition('mid', $form_state['values']['messages'])->execute();
-  db_delete('scratchpads_messages_viewed')->condition('mid', $form_state['values']['messages'])->execute();
-  db_delete('scratchpads_messages_roles')->condition('mid', $form_state['values']['messages'])->execute();
+  scratchpads_messages_delete_messages($form_state['values']['messages']);
+}
+
+/**
+ * Delete messages by ID, and related records
+ */
+function scratchpads_messages_delete_messages($message_ids) {
+  return array(
+    "messages" => db_delete('scratchpads_"messages"_message')->condition('mid', $message_ids)->execute(),
+    "viewed" => db_delete('scratchpads_messages_viewed')->condition('mid', $message_ids)->execute(),
+    "roles" => db_delete('scratchpads_messages_roles')->condition('mid', $message_ids)->execute()
+  );
 }
 
 /**
  * Theme the form
  */
 function theme_scratchpads_messages_list_messages($vars){
-  $form = array_pop($vars);
+  $form = $vars['scratchpads_messages_list'];
   // If there are rows in this form, then $form['title'] contains a list of
   // the title form elements.
   $has_posts = isset($form['message']) && is_array($form['message']);
@@ -209,27 +221,27 @@ function scratchpads_messages_add_form_validate(&$form, &$form_state){
 /**
  * Save a message
  */
-function scratchpads_messages_add_form_submit(&$form, &$form_state){
-  $created = strtotime($form_state['values']['created']);
-  $expire = strtotime($form_state['values']['expire']);
+function scratchpads_messages_add_message($values) {
+  $created = strtotime($values['created']);
+  $expire = strtotime($values['expire']);
   $mid = db_insert('scratchpads_messages_message')->fields(array(
-    'message' => $form_state['values']['message'],
+    'message' => $values['message'],
     'created' => $created,
     'expire' => $expire ? $expire : 0,
-    'type' => $form_state['values']['type']
+    'type' => $values['type']
   ))->execute();
   if($mid){
     $query = db_insert('scratchpads_messages_roles')->fields(array(
       'mid',
       'rid'
     ));
-    if(!count($form_state['values']['roles'])){
+    if(!count($values['roles'])){
       $query->values(array(
         'mid' => $mid,
         'rid' => 0
       ));
     }else{
-      foreach($form_state['values']['roles'] as $rid){
+      foreach($values['roles'] as $rid){
         $query->values(array(
           'mid' => $mid,
           'rid' => $rid
@@ -237,6 +249,18 @@ function scratchpads_messages_add_form_submit(&$form, &$form_state){
       }
     }
     $query->execute();
+
+    return $mid;
   }
+
+  return false;
+}
+
+/**
+ * Save new message and redirect
+ */
+function scratchpads_messages_add_form_submit(&$form, &$form_state){
+  scratchpads_messages_add_message($form_state['values']);
+
   $form_state['redirect'] = 'admin/config/system/scratchpads-messages';
 }

@@ -2,6 +2,7 @@
 // Define two simple constants for inserting/retrieving data from the database.
 define('SCRATCHPADS_MESSAGES_ALERT', 1);
 define('SCRATCHPADS_MESSAGES_TIP', 2);
+define('SCRATCHPADS_MESSAGES_GLOBAL', 3);
 
 /**
  * Implements hook_user_login().
@@ -85,8 +86,8 @@ function scratchpads_messages_user_delete($account){
 
 /**
  * Implement hook_form_FORM_ID_alter().
- * 
- * The "Edit" user form.  This needs to be able to handle both login and 
+ *
+ * The "Edit" user form.  This needs to be able to handle both login and
  * loginless changes.
  */
 function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
@@ -203,7 +204,7 @@ function scratchpads_messages_get_messages(){
 function scratchpads_messages_theme($existing, $type, $theme, $path){
   return array(
     'scratchpads_messages_list_messages' => array(
-      'variables' => NULL,
+      'render element' => 'scratchpads_messages_list',
       'file' => 'scratchpads_messages.admin.inc'
     ),
     'scratchpads_messages_message' => array(
@@ -216,7 +217,7 @@ function scratchpads_messages_theme($existing, $type, $theme, $path){
 }
 
 /**
- * Theme function for a single message.  This adds the link to hide the message 
+ * Theme function for a single message.  This adds the link to hide the message
  */
 function theme_scratchpads_messages_message($vars){
   $render = array(
@@ -289,47 +290,55 @@ function scratchpads_messages_seen_msg_submit($form, $form_state){
 
 /**
  * Implements hook_page_alter().
- * 
+ *
  * Adds the messages depending on the type of message, and whether or not the
  * user actually wants to see the message.
  */
 function scratchpads_messages_page_alter(&$page){
   global $user;
   $messages = scratchpads_messages_get_messages();
-  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])){
-    if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])){
-      $msgs = array();
-      foreach($messages[SCRATCHPADS_MESSAGES_ALERT] as $msg){
-        $msgs[] = array(
-          'data' => theme('scratchpads_messages_message', array(
-            'msg' => $msg,
-            'user' => $user
-          )),
-          'id' => "msg-{$msg['mid']}"
-        );
-      }
-      $block = array(
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
-          ),
-          'js' => array(
-            drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
-          )
-        ),
-        '#theme' => 'item_list',
-        '#items' => $msgs
+  $alerts = array();
+
+  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_ALERT]);
+  }
+
+  if(!empty($messages[SCRATCHPADS_MESSAGES_GLOBAL])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_GLOBAL]);
+  }
+
+  if(!empty($alerts)){
+    $msgs = array();
+    foreach($alerts as $msg){
+      $msgs[] = array(
+        'data' => theme('scratchpads_messages_message', array(
+          'msg' => $msg,
+          'user' => $user
+        )),
+        'id' => "msg-{$msg['mid']}"
       );
-      if(user_access('access toolbar')){
-        $page['page_top']['toolbar']['extra_messages'] = $block;
-      }else{
-        $block += array(
-          '#prefix' => '<div class="scratchpads_messages notoolbar">',
-          '#suffix' => '</div>',
-          '#weight' => -1000
-        );
-        $page['page_top']['extra_messages'] = $block;
-      }
+    }
+    $block = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+        )
+      ),
+      '#theme' => 'item_list',
+      '#items' => $msgs
+    );
+    if(user_access('access toolbar')){
+      $page['page_top']['toolbar']['extra_messages'] = $block;
+    }else{
+      $block += array(
+        '#prefix' => '<div class="scratchpads_messages notoolbar">',
+        '#suffix' => '</div>',
+        '#weight' => -1000
+      );
+      $page['page_top']['extra_messages'] = $block;
     }
   }
   if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && !empty($_SESSION['scratchpads_messages_tips'])){
@@ -363,7 +372,12 @@ function scratchpads_messages_types($key = FALSE){
     SCRATCHPADS_MESSAGES_ALERT => t('Status'),
     SCRATCHPADS_MESSAGES_TIP => t('Tip')
   );
-  if($key){return $types[$key];}
+  if($key){
+    // Don't show Global as an available type,
+    // but display its name if specifically asked about it.
+    $types[SCRATCHPADS_MESSAGES_GLOBAL] = t('Global');
+    return $types[$key];
+  }
   return $types;
 }
 
@@ -428,53 +442,17 @@ function _scratchpads_messages_role_names_to_ids($roles){
 
 /**
  * Implements hook_cron().
- * 
- * Gets the messages from the help.scratchpads.eu wiki.
+ *
+ * Delete expired messages
  */
 function scratchpads_messages_cron(){
-  $sources = variable_get('scratchpads_messages_sources', array(
-    'http://get.scratchpads.eu/messages/list.json'
-  ));
-  foreach($sources as $source){
-    $request = drupal_http_request($source, array(
-      'timeout' => 5
-    ));
-    if($request->code == 200 && ($messages = json_decode($request->data, TRUE)) != FALSE){
-      foreach($messages as $message){
-        db_merge('scratchpads_messages_message')->key(array(
-          'message' => $message['message'],
-          'type' => $message['type'],
-          'expire' => $message['expire']
-        ))->fields(array(
-          'message' => $message['message'],
-          'type' => $message['type'],
-          'created' => $message['created'],
-          'expire' => $message['expire']
-        ))->execute();
-        $mid = db_select('scratchpads_messages_message', 's')->fields('s', array(
-          'mid'
-        ))->condition('message', $message['message'])->condition('type', $message['type'])->condition('expire', $message['expire'])->execute()->fetchCol();
-        $mid = array_pop($mid);
-        if($mid){
-          // We now insert the roles.  We insert "0" if all roles.
-          foreach(_scratchpads_messages_role_names_to_ids($message['roles']) as $rid){
-            db_merge('scratchpads_messages_roles')->key(array(
-              'mid' => $mid,
-              'rid' => $rid
-            ))->fields(array(
-              'mid' => $mid,
-              'rid' => $rid
-            ))->execute();
-          }
-        }
-      }
-    }
-  }
   // Delete expired messages
   db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->condition('expire', 0, '!=')->execute();
-  // Delete from viewed
+
+  // Delete associated records
   $subquery = db_select('scratchpads_messages_message', 's')->fields('s', array(
     'mid'
   ));
   db_delete('scratchpads_messages_viewed')->condition('mid', $subquery, 'NOT IN')->execute();
+  db_delete('scratchpads_messages_roles')->condition('mid', $subquery, 'NOT IN')->execute();
 }
