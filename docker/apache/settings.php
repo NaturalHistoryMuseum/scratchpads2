@@ -30,10 +30,6 @@ $base_url = getenv('BASE_URL');
 # Enable clean urs by default
 $conf['clean_url'] = 1;
 
-# Set cron key from env
-$conf['cron_key'] = getenv('CRON_KEY');
-
-
 $conf["cron_safe_threshold"] = 0;
 #$conf["preprocess_css"] = 1;
 #$conf["preprocess_js"] = 1;
@@ -41,6 +37,8 @@ $conf["jquery_update_compression_type"] = "min";
 $conf["jquery_update_jquery_cdn"] = "none";
 $conf["error_level"] = 0;
 $conf["syslog_identity"] = $_SERVER["HTTP_HOST"];
+
+$conf['drupal_http_request_fails'] = FALSE;
 
 // Cache
 $conf["block_cache"] = TRUE;
