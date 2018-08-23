@@ -331,6 +331,18 @@ function scratchpads_tweaks_install(){
   // Incase the webform module is installed, we set that it uses the old table
   // views for results.
   variable_set('webform_table', TRUE);
+
+  // Install extra modules only used on standard scratchpads.
+  scratchpads_tweaks_install_standard_scratchpad_modules();
+
+
+}
+
+/**
+ * Helper script to install/update filters.
+ */
+function scratchpads_tweaks_install_standard_scratchpad_modules(){
+
 }
 
 /**

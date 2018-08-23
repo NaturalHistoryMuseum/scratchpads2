@@ -1,0 +1,1 @@
+# Scratchpads MySQL image

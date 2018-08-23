@@ -29,4 +29,5 @@ index2.php
 scratchpads_twitter.ini
 
 
-# Additional files below.
+# Docker
+.env

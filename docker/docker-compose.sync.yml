@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  apache: 
+    volumes:     
+      - docker-sync:/var/www/html
+
+volumes:   
+  docker-sync:
+    external: true
