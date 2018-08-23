@@ -64,8 +64,6 @@ COPY php.ini /usr/local/etc/php/
 
 RUN chown -R www-data /var/www/html
 
-USER root
-
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
