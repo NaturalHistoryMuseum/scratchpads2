@@ -333,16 +333,23 @@ function scratchpads_tweaks_install(){
   variable_set('webform_table', TRUE);
 
   // Install extra modules only used on standard scratchpads.
-  scratchpads_tweaks_install_standard_scratchpad_modules();
-
-
+  if(variable_get('standard_scratchpad', TRUE)){
+    scratchpads_tweaks_install_standard_scratchpad_modules();
+  }
 }
 
 /**
- * Helper script to install/update filters.
+ * Install standard only additional modules
  */
 function scratchpads_tweaks_install_standard_scratchpad_modules(){
 
+  // List of modules that should only be installed if this is a
+  // Standard scratchpad; by default, they won't be installed on 
+  // standalone and dockerised scratchpads
+  $standard_only_scratchpad_modules = array(
+    'scratchpads_twitter'
+  );
+  module_enable($standard_only_scratchpad_modules);
 }
 
 /**
