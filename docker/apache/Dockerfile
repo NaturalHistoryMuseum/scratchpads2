@@ -19,6 +19,9 @@ RUN apt-get -y install wget \
              msmtp \
              --no-install-recommends
 
+RUN pecl install uploadprogress 
+RUN docker-php-ext-enable uploadprogress
+
 RUN pecl install imagick 
 RUN docker-php-ext-enable imagick
 # Fixing "configure: error: Unable to locate gmp.h"
