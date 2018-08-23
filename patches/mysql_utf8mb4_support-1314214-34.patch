@@ -1,7 +1,7 @@
-diff --git a/core/includes/database/mysql/database.inc b/core/includes/database/mysql/database.inc
+diff --git a/includes/database/mysql/database.inc b/includes/database/mysql/database.inc
 index e024a7f..0622b78 100644
---- a/core/includes/database/mysql/database.inc
-+++ b/core/includes/database/mysql/database.inc
+--- a/includes/database/mysql/database.inc
++++ b/includes/database/mysql/database.inc
 @@ -19,6 +19,15 @@ class DatabaseConnection_mysql extends DatabaseConnection {
     */
    protected $shutdownRegistered = FALSE;
@@ -56,10 +56,10 @@ index e024a7f..0622b78 100644
  }
  
  
-diff --git a/core/includes/database/mysql/install.inc b/core/includes/database/mysql/install.inc
+diff --git a/includes/database/mysql/install.inc b/includes/database/mysql/install.inc
 index 75f2ae3..f7f6bdd 100644
---- a/core/includes/database/mysql/install.inc
-+++ b/core/includes/database/mysql/install.inc
+--- a/includes/database/mysql/install.inc
++++ b/includes/database/mysql/install.inc
 @@ -29,5 +29,22 @@ class DatabaseTasks_mysql extends DatabaseTasks {
    public function minimumVersion() {
      return '5.0.15';
@@ -83,10 +83,10 @@ index 75f2ae3..f7f6bdd 100644
 +  }
  }
  
-diff --git a/core/includes/database/mysql/schema.inc b/core/includes/database/mysql/schema.inc
+diff --git a/includes/database/mysql/schema.inc b/includes/database/mysql/schema.inc
 index 4e88fa1..b79d830 100644
---- a/core/includes/database/mysql/schema.inc
-+++ b/core/includes/database/mysql/schema.inc
+--- a/includes/database/mysql/schema.inc
++++ b/includes/database/mysql/schema.inc
 @@ -142,6 +142,12 @@ class DatabaseSchema_mysql extends DatabaseSchema {
        $sql .= ' unsigned';
      }
