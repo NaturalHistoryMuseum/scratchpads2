@@ -31,7 +31,7 @@ services:
       - SMTP_PASSWORD=${APACHE_SMTP_PASSWORD}
       - SMTP_TLS=${APACHE_SMTP_TLS}
       - SMTP_AUTH=${APACHE_SMTP_AUTH}
-      - SMTP_START_TLS=${APACHE_SMTP_START_TLS}                 
+      - SMTP_START_TLS=${APACHE_SMTP_START_TLS}               
 
   mysql:
     container_name: scratchpads.mysql
@@ -44,8 +44,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}  
-    mem_limit: 3G       
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}        
 
   solr:
     container_name: scratchpads.solr
