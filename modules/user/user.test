@@ -466,6 +466,19 @@ class UserPasswordResetTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Retrieves password reset email and extracts the login link.
+   */
+  public function getResetURL() {
+    // Assume the most recent email.
+    $_emails = $this->drupalGetMails();
+    $email = end($_emails);
+    $urls = array();
+    preg_match('#.+user/reset/.+#', $email['body'], $urls);
+
+    return $urls[0];
+  }
+
+  /**
    * Tests password reset functionality.
    */
   function testUserPasswordReset() {
@@ -478,6 +491,77 @@ class UserPasswordResetTestCase extends DrupalWebTestCase {
     $this->drupalPost('user/password', $edit, t('E-mail new password'));
     // Confirm the password reset.
     $this->assertText(t('Further instructions have been sent to your e-mail address.'), 'Password reset instructions mailed message displayed.');
+
+    // Create an image field to enable an Ajax request on the user profile page.
+    $field = array(
+      'field_name' => 'field_avatar',
+      'type' => 'image',
+      'settings' => array(),
+      'cardinality' => 1,
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'field_name' => $field['field_name'],
+      'entity_type' => 'user',
+      'label' => 'Avatar',
+      'bundle' => 'user',
+      'required' => FALSE,
+      'settings' => array(),
+      'widget' => array(
+        'type' => 'image_image',
+        'settings' => array(),
+      ),
+    );
+    field_create_instance($instance);
+
+    $resetURL = $this->getResetURL();
+    $this->drupalGet($resetURL);
+
+    // Check successful login.
+    $this->drupalPost(NULL, NULL, t('Log in'));
+
+    // Make sure the Ajax request from uploading a file does not invalidate the
+    // reset token.
+    $image = current($this->drupalGetTestFiles('image'));
+    $edit = array(
+      'files[field_avatar_und_0]' => drupal_realpath($image->uri),
+    );
+    $this->drupalPostAJAX(NULL, $edit, 'field_avatar_und_0_upload_button');
+
+    // Change the forgotten password.
+    $password = user_password();
+    $edit = array('pass[pass1]' => $password, 'pass[pass2]' => $password);
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText(t('The changes have been saved.'), 'Forgotten password changed.');
+  }
+
+  /**
+   * Test user password reset while logged in.
+   */
+  function testUserPasswordResetLoggedIn() {
+    $account = $this->drupalCreateUser();
+    $this->drupalLogin($account);
+    // Make sure the test account has a valid password.
+    user_save($account, array('pass' => user_password()));
+
+    // Generate one time login link.
+    $reset_url = user_pass_reset_url($account);
+    $this->drupalGet($reset_url);
+
+    $this->assertText('Reset password');
+    $this->drupalPost(NULL, NULL, t('Log in'));
+
+    $this->assertText('You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password.');
+
+    $pass = user_password();
+    $edit = array(
+      'pass[pass1]' => $pass,
+      'pass[pass2]' => $pass,
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+
+    $this->assertText('The changes have been saved.');
   }
 
   /**
@@ -1501,7 +1585,13 @@ class UserTimeZoneFunctionalTest extends DrupalWebTestCase {
     // Setup date/time settings for Los Angeles time.
     variable_set('date_default_timezone', 'America/Los_Angeles');
     variable_set('configurable_timezones', 1);
-    variable_set('date_format_medium', 'Y-m-d H:i T');
+
+    // Override the 'medium' date format, which is the default for node
+    // creation time. Since we are testing time zones with Daylight Saving
+    // Time, and need to future proof against changes to the zoneinfo database,
+    // we choose the 'I' format placeholder instead of a human-readable zone
+    // name. With 'I', a 1 means the date is in DST, and 0 if not.
+    variable_set('date_format_medium', 'Y-m-d H:i I');
 
     // Create a user account and login.
     $web_user = $this->drupalCreateUser();
@@ -1519,11 +1609,11 @@ class UserTimeZoneFunctionalTest extends DrupalWebTestCase {
 
     // Confirm date format and time zone.
     $this->drupalGet("node/$node1->nid");
-    $this->assertText('2007-03-09 21:00 PST', 'Date should be PST.');
+    $this->assertText('2007-03-09 21:00 0', 'Date should be PST.');
     $this->drupalGet("node/$node2->nid");
-    $this->assertText('2007-03-11 01:00 PST', 'Date should be PST.');
+    $this->assertText('2007-03-11 01:00 0', 'Date should be PST.');
     $this->drupalGet("node/$node3->nid");
-    $this->assertText('2007-03-20 21:00 PDT', 'Date should be PDT.');
+    $this->assertText('2007-03-20 21:00 1', 'Date should be PDT.');
 
     // Change user time zone to Santiago time.
     $edit = array();
@@ -1534,11 +1624,11 @@ class UserTimeZoneFunctionalTest extends DrupalWebTestCase {
 
     // Confirm date format and time zone.
     $this->drupalGet("node/$node1->nid");
-    $this->assertText('2007-03-10 02:00 CLST', 'Date should be Chile summer time; five hours ahead of PST.');
+    $this->assertText('2007-03-10 02:00 1', 'Date should be Chile summer time; five hours ahead of PST.');
     $this->drupalGet("node/$node2->nid");
-    $this->assertText('2007-03-11 05:00 CLT', 'Date should be Chile time; four hours ahead of PST');
+    $this->assertText('2007-03-11 05:00 0', 'Date should be Chile time; four hours ahead of PST');
     $this->drupalGet("node/$node3->nid");
-    $this->assertText('2007-03-21 00:00 CLT', 'Date should be Chile time; three hours ahead of PDT.');
+    $this->assertText('2007-03-21 00:00 0', 'Date should be Chile time; three hours ahead of PDT.');
   }
 }
 
@@ -1849,6 +1939,19 @@ class UserCreateTestCase extends DrupalWebTestCase {
       $this->drupalGet('admin/people');
       $this->assertText($edit['name'], 'User found in list of users');
     }
+
+    // Test that the password '0' is considered a password.
+    $name = $this->randomName();
+    $edit = array(
+      'name' => $name,
+      'mail' => $name . '@example.com',
+      'pass[pass1]' => 0,
+      'pass[pass2]' => 0,
+      'notify' => FALSE,
+    );
+    $this->drupalPost('admin/people/create', $edit, t('Create new account'));
+    $this->assertText(t('Created a new user account for @name. No e-mail has been sent.', array('@name' => $edit['name'])), 'User created with password 0');
+    $this->assertNoText('Password field is required');
   }
 }
 
@@ -1925,6 +2028,74 @@ class UserEditTestCase extends DrupalWebTestCase {
     $user1->pass_raw = $new_pass;
     $this->drupalLogin($user1);
     $this->drupalLogout();
+  }
+
+  /**
+   * Tests setting the password to "0".
+   */
+  public function testUserWith0Password() {
+    $admin = $this->drupalCreateUser(array('administer users'));
+    $this->drupalLogin($admin);
+    // Create a regular user.
+    $user1 = $this->drupalCreateUser(array());
+
+    $edit = array('pass[pass1]' => '0', 'pass[pass2]' => '0');
+    $this->drupalPost("user/" . $user1->uid . "/edit", $edit, t('Save'));
+    $this->assertRaw(t("The changes have been saved."));
+
+    $this->drupalLogout();
+    $user1->pass_raw = '0';
+    $this->drupalLogin($user1);
+    $this->drupalLogout();
+  }
+}
+
+/**
+ * Tests editing a user account with and without a form rebuild.
+ */
+class UserEditRebuildTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'User edit with form rebuild',
+      'description' => 'Test user edit page when a form rebuild is triggered.',
+      'group' => 'User',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('user_form_test');
+  }
+
+  /**
+   * Test user edit page when the form is set to rebuild.
+   */
+  function testUserEditFormRebuild() {
+    $user1 = $this->drupalCreateUser(array('change own username'));
+    $this->drupalLogin($user1);
+
+    $roles = array_keys($user1->roles);
+    // Save the user form twice.
+    $edit = array();
+    $edit['current_pass'] = $user1->pass_raw;
+    $this->drupalPost("user/$user1->uid/edit", $edit, t('Save'));
+    $this->assertRaw(t("The changes have been saved."));
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertRaw(t("The changes have been saved."));
+    $saved_user1 = entity_load_unchanged('user', $user1->uid);
+    $this->assertEqual(count($roles), count($saved_user1->roles), 'Count of user roles in database matches original count.');
+    $diff = array_diff(array_keys($saved_user1->roles), $roles);
+    $this->assertTrue(empty($diff), format_string('User roles in database match original: @roles', array('@roles' => implode(', ', $saved_user1->roles))));
+    // Set variable that causes the form to be rebuilt in user_form_test.module.
+    variable_set('user_form_test_user_profile_form_rebuild', TRUE);
+    $this->drupalPost("user/$user1->uid/edit", $edit, t('Save'));
+    $this->assertRaw(t("The changes have been saved."));
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertRaw(t("The changes have been saved."));
+    $saved_user1 = entity_load_unchanged('user', $user1->uid);
+    $this->assertEqual(count($roles), count($saved_user1->roles), 'Count of user roles in database matches original count.');
+    $diff = array_diff(array_keys($saved_user1->roles), $roles);
+    $this->assertTrue(empty($diff), format_string('User roles in database match original: @roles', array('@roles' => implode(', ', $saved_user1->roles))));
   }
 }
 
