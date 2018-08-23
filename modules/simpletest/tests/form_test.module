@@ -37,6 +37,13 @@ function form_test_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items['form-test/validate-no-token'] = array(
+    'title' => 'Form validation without a CSRF token',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('form_test_validate_no_token'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
   $items['form-test/limit-validation-errors'] = array(
     'title' => 'Form validation with some error suppression',
     'page callback' => 'drupal_get_form',
@@ -455,6 +462,27 @@ function form_test_validate_required_form_no_title_submit($form, &$form_state) {
 }
 
 /**
+ * Form builder for testing submission of a form without a CSRF token.
+ */
+function form_test_validate_no_token($form, &$form_state) {
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+  );
+
+  $form['#token'] = FALSE;
+
+  return $form;
+}
+
+/**
+ * Form submission handler for form_test_validate_no_token().
+ */
+function form_test_validate_no_token_submit($form, &$form_state) {
+  drupal_set_message('The form_test_validate_no_token form has been submitted successfully.');
+}
+
+/**
  * Builds a simple form with a button triggering partial validation.
  */
 function form_test_limit_validation_errors_form($form, &$form_state) {
@@ -589,11 +617,17 @@ function _form_test_tableselect_form_builder($form, $form_state, $element_proper
   $form['tableselect'] = $element_properties;
 
   $form['tableselect'] += array(
+    '#prefix' => '<div id="tableselect-wrapper">',
+    '#suffix' => '</div>',
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $options,
     '#multiple' => FALSE,
     '#empty' => t('Empty text.'),
+    '#ajax' => array(
+      'callback' => '_form_test_tableselect_ajax_callback',
+      'wrapper' => 'tableselect-wrapper',
+    ),
   );
 
   $form['submit'] = array(
@@ -695,6 +729,13 @@ function _form_test_vertical_tabs_form($form, &$form_state) {
     '#type' => 'textfield',
   );
   return $form;
+}
+
+/**
+* Ajax callback that returns the form element.
+*/
+function _form_test_tableselect_ajax_callback($form, &$form_state) {
+  return $form['tableselect'];
 }
 
 /**

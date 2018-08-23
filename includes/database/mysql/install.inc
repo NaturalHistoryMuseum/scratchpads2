@@ -29,22 +29,5 @@ class DatabaseTasks_mysql extends DatabaseTasks {
   public function minimumVersion() {
     return '5.0.15';
   }
-
-  /**
-   * Validates settings, specifically the character set.
-   */
-  public function validateDatabaseSettings($database) {
-    // Perform standard validation.
-    $errors = parent::validateDatabaseSettings($database);
-
-    // If we are using utf8mb4 charset, make sure the database supports it.
-    if (isset($database['charset']) && $database['charset'] == 'utf8mb4') {
-      if (!db_query("SHOW CHARACTER SET WHERE Charset = 'utf8mb4'")->rowCount()) {
-        $errors['mysql_charset'] = st('Your database does not support the utf8mb4 character set');
-      }
-    }
-
-    return $errors;
-  }
 }
 

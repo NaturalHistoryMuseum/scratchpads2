@@ -22,7 +22,7 @@ class FileFieldTestCase extends DrupalWebTestCase {
     $modules[] = 'file';
     $modules[] = 'file_module_test';
     parent::setUp($modules);
-    $this->admin_user = $this->drupalCreateUser(array('access content', 'access administration pages', 'administer site configuration', 'administer users', 'administer permissions', 'administer content types', 'administer nodes', 'bypass node access'));
+    $this->admin_user = $this->drupalCreateUser(array('access content', 'access administration pages', 'administer site configuration', 'administer users', 'administer permissions', 'administer content types', 'administer nodes', 'bypass node access', 'administer fields'));
     $this->drupalLogin($this->admin_user);
   }
 
@@ -594,6 +594,56 @@ class FileFieldWidgetTestCase extends FileFieldTestCase {
 
     // Perform tests using the newly set up users.
     $this->doTestTemporaryFileRemovalExploit($victim_uid, $attacker_uid);
+  }
+
+  /**
+   * Tests validation with the Upload button.
+   */
+  function testWidgetValidation() {
+    $type_name = 'article';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $this->updateFileField($field_name, $type_name, array('file_extensions' => 'txt'));
+
+    foreach (array('nojs', 'js') as $type) {
+      // Create node and prepare files for upload.
+      $node = $this->drupalCreateNode(array('type' => 'article'));
+      $nid = $node->nid;
+      $this->drupalGet("node/$nid/edit");
+      $test_file_text = $this->getTestFile('text');
+      $test_file_image = $this->getTestFile('image');
+      $field = field_info_field($field_name);
+      $name = 'files[' . $field_name . '_' . LANGUAGE_NONE . '_0]';
+
+      // Upload file with incorrect extension, check for validation error.
+      $edit[$name] = drupal_realpath($test_file_image->uri);
+      switch ($type) {
+        case 'nojs':
+          $this->drupalPost(NULL, $edit, t('Upload'));
+          break;
+
+        case 'js':
+          $button = $this->xpath('//input[@type="submit" and @value="' . t('Upload') . '"]');
+          $this->drupalPostAJAX(NULL, $edit, array((string) $button[0]['name'] => (string) $button[0]['value']));
+          break;
+      }
+      $error_message = t('Only files with the following extensions are allowed: %files-allowed.', array('%files-allowed' => 'txt'));
+      $this->assertRaw($error_message, t('Validation error when file with wrong extension uploaded (JSMode=%type).', array('%type' => $type)));
+
+      // Upload file with correct extension, check that error message is removed.
+      $edit[$name] = drupal_realpath($test_file_text->uri);
+      switch ($type) {
+        case 'nojs':
+          $this->drupalPost(NULL, $edit, t('Upload'));
+          break;
+
+        case 'js':
+          $button = $this->xpath('//input[@type="submit" and @value="' . t('Upload') . '"]');
+          $this->drupalPostAJAX(NULL, $edit, array((string) $button[0]['name'] => (string) $button[0]['value']));
+          break;
+      }
+      $this->assertNoRaw($error_message, t('Validation error removed when file with correct extension uploaded (JSMode=%type).', array('%type' => $type)));
+    }
   }
 
   /**
@@ -1501,5 +1551,327 @@ class FilePrivateTestCase extends FileFieldTestCase {
     $this->assertNoRaw($node_file->filename, 'File without view field access permission does not appear after attempting to attach it to a new node.');
     $this->drupalGet(file_create_url($node_file->uri));
     $this->assertResponse(403, 'Confirmed that access is denied for the file without view field access permission after attempting to attach it to a new node.');
+
+    // As an anonymous user, create a temporary file with no references and
+    // confirm that only the session that uploaded it may view it.
+    $this->drupalLogout();
+    user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array(
+      "create $type_name content",
+      'access content',
+    ));
+    $test_file = $this->getTestFile('text');
+    $this->drupalGet('node/add/' . $type_name);
+    $edit = array('files[' . $field_name . '_' . LANGUAGE_NONE . '_0]' => drupal_realpath($test_file->uri));
+    $this->drupalPost(NULL, $edit, t('Upload'));
+    $files = file_load_multiple(array(), array('uid' => 0));
+    $this->assertEqual(1, count($files), 'Loaded one anonymous file.');
+    $file = end($files);
+    $this->assertNotEqual($file->status, FILE_STATUS_PERMANENT, 'File is temporary.');
+    $usage = file_usage_list($file);
+    $this->assertFalse($usage, 'No file usage found.');
+    $file_url = file_create_url($file->uri);
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Confirmed that the anonymous uploader has access to the temporary file.');
+    // Close the prior connection and remove the session cookie.
+    $this->curlClose();
+    $this->cookies = array();
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Confirmed that another anonymous user cannot access the temporary file.');
+
+    // As an anonymous user, create a permanent file that is referenced by a
+    // published node and confirm that all anonymous users may view it.
+    $test_file = $this->getTestFile('text');
+    $this->drupalGet('node/add/' . $type_name);
+    $edit = array();
+    $edit['title'] = $this->randomName();
+    $edit['files[' . $field_name . '_' . LANGUAGE_NONE . '_0]'] = drupal_realpath($test_file->uri);
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $new_node = $this->drupalGetNodeByTitle($edit['title']);
+    $file = file_load($new_node->{$field_name}[LANGUAGE_NONE][0]['fid']);
+    $this->assertEqual($file->status, FILE_STATUS_PERMANENT, 'File is permanent.');
+    $usage = file_usage_list($file);
+    $this->assertTrue($usage, 'File usage found.');
+    $file_url = file_create_url($file->uri);
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Confirmed that the anonymous uploader has access to the permanent file that is referenced by a published node.');
+    // Close the prior connection and remove the session cookie.
+    $this->curlClose();
+    $this->cookies = array();
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Confirmed that another anonymous user also has access to the permanent file that is referenced by a published node.');
+
+    // As an anonymous user, create a permanent file that is referenced by an
+    // unpublished node and confirm that no anonymous users may view it (even
+    // the session that uploaded the file) because they cannot view the
+    // unpublished node.
+    $test_file = $this->getTestFile('text');
+    $this->drupalGet('node/add/' . $type_name);
+    $edit = array();
+    $edit['title'] = $this->randomName();
+    $edit['files[' . $field_name . '_' . LANGUAGE_NONE . '_0]'] = drupal_realpath($test_file->uri);
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $new_node = $this->drupalGetNodeByTitle($edit['title']);
+    $new_node->status = NODE_NOT_PUBLISHED;
+    node_save($new_node);
+    $file = file_load($new_node->{$field_name}[LANGUAGE_NONE][0]['fid']);
+    $this->assertEqual($file->status, FILE_STATUS_PERMANENT, 'File is permanent.');
+    $usage = file_usage_list($file);
+    $this->assertTrue($usage, 'File usage found.');
+    $file_url = file_create_url($file->uri);
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Confirmed that the anonymous uploader cannot access the permanent file when it is referenced by an unpublished node.');
+    // Close the prior connection and remove the session cookie.
+    $this->curlClose();
+    $this->cookies = array();
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Confirmed that another anonymous user cannot access the permanent file when it is referenced by an unpublished node.');
   }
+
+  /**
+   * Tests file access for private nodes when file download access is granted.
+   */
+  function testPrivateFileDownloadAccessGranted() {
+    // Tell file_module_test to attempt to grant access to all private files,
+    // and ensure that it is doing so correctly.
+    $test_file = $this->getTestFile('text');
+    $uri = file_unmanaged_move($test_file->uri, 'private://');
+    $file_url = file_create_url($uri);
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Access is not granted to an arbitrary private file by default.');
+    variable_set('file_module_test_grant_download_access', TRUE);
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Access is granted to an arbitrary private file after a module grants access to all private files in hook_file_download().');
+
+    // Create a public node with a file attached.
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name, array('uri_scheme' => 'private'));
+    $test_file = $this->getTestFile('text');
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name, TRUE, array('private' => FALSE));
+    $node = node_load($nid, NULL, TRUE);
+    $file_url = file_create_url($node->{$field_name}[LANGUAGE_NONE][0]['uri']);
+
+    // Unpublish the node and ensure that only administrators (not anonymous
+    // users) can access the node and download the file; the expectation is
+    // that the File module's hook_file_download() implementation will deny
+    // access and thereby override the file_module_test module's access grant.
+    $node->status = NODE_NOT_PUBLISHED;
+    node_save($node);
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(200, 'Administrator can access the unpublished node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Administrator can download the file attached to the unpublished node.');
+    $this->drupalLogOut();
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(403, 'Anonymous user cannot access the unpublished node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Anonymous user cannot download the file attached to the unpublished node.');
+
+    // Re-publish the node and ensure that the node and file can be accessed by
+    // everyone.
+    $node->status = NODE_PUBLISHED;
+    node_save($node);
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(200, 'Administrator can access the published node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Administrator can download the file attached to the published node.');
+    $this->drupalLogOut();
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(200, 'Anonymous user can access the published node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Anonymous user can download the file attached to the published node.');
+
+    // Make the node private via the node access system and test that only
+    // administrators (not anonymous users) can access the node and download
+    // the file.
+    $node->private = TRUE;
+    node_save($node);
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(200, 'Administrator can access the private node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(200, 'Administrator can download the file attached to the private node.');
+    $this->drupalLogOut();
+    $this->drupalGet("node/$nid");
+    $this->assertResponse(403, 'Anonymous user cannot access the private node.');
+    $this->drupalGet($file_url);
+    $this->assertResponse(403, 'Anonymous user cannot download the file attached to the private node.');
+  }
+}
+
+/**
+ * Confirm that file field submissions work correctly for anonymous visitors.
+ */
+class FileFieldAnonymousSubmission extends FileFieldTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'File form anonymous submission',
+      'description' => 'Test anonymous form submission.',
+      'group' => 'File',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+
+    // Allow node submissions by anonymous users.
+    user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array(
+      'create article content',
+      'access content',
+    ));
+  }
+
+  /**
+   * Tests the basic node submission for an anonymous visitor.
+   */
+  function testAnonymousNode() {
+    $bundle_label = 'Article';
+    $node_title = 'Test page';
+
+    // Load the node form.
+    $this->drupalGet('node/add/article');
+    $this->assertResponse(200, 'Loaded the article node form.');
+    $this->assertText(strip_tags(t('Create @name', array('@name' => $bundle_label))));
+
+    $edit = array(
+      'title' => $node_title,
+      'body[und][0][value]' => 'Test article',
+      'body[und][0][format]' => 'filtered_html',
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertResponse(200);
+    $t_args = array('@type' => $bundle_label, '%title' => $node_title);
+    $this->assertText(strip_tags(t('@type %title has been created.', $t_args)), 'The node was created.');
+    $matches = array();
+    if (preg_match('@node/(\d+)$@', $this->getUrl(), $matches)) {
+      $nid = end($matches);
+      $this->assertNotEqual($nid, 0, 'The node ID was extracted from the URL.');
+      $node = node_load($nid);
+      $this->assertNotEqual($node, NULL, 'The node was loaded successfully.');
+    }
+  }
+
+  /**
+   * Tests file submission for an anonymous visitor.
+   */
+  function testAnonymousNodeWithFile() {
+    $bundle_label = 'Article';
+    $node_title = 'Test page';
+
+    // Load the node form.
+    $this->drupalGet('node/add/article');
+    $this->assertResponse(200, 'Loaded the article node form.');
+    $this->assertText(strip_tags(t('Create @name', array('@name' => $bundle_label))));
+
+    // Generate an image file.
+    $image = $this->getTestImage();
+
+    // Submit the form.
+    $edit = array(
+      'title' => $node_title,
+      'body[und][0][value]' => 'Test article',
+      'body[und][0][format]' => 'filtered_html',
+      'files[field_image_und_0]' => drupal_realpath($image->uri),
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertResponse(200);
+    $t_args = array('@type' => $bundle_label, '%title' => $node_title);
+    $this->assertText(strip_tags(t('@type %title has been created.', $t_args)), 'The node was created.');
+    $matches = array();
+    if (preg_match('@node/(\d+)$@', $this->getUrl(), $matches)) {
+      $nid = end($matches);
+      $this->assertNotEqual($nid, 0, 'The node ID was extracted from the URL.');
+      $node = node_load($nid);
+      $this->assertNotEqual($node, NULL, 'The node was loaded successfully.');
+      $this->assertEqual($node->field_image[LANGUAGE_NONE][0]['filename'], $image->filename, 'The image was uploaded successfully.');
+    }
+  }
+
+  /**
+   * Tests file submission for an anonymous visitor with a missing node title.
+   */
+  function testAnonymousNodeWithFileWithoutTitle() {
+    $this->drupalLogout();
+    $this->_testNodeWithFileWithoutTitle();
+  }
+
+  /**
+   * Tests file submission for an authenticated user with a missing node title.
+   */
+  function testAuthenticatedNodeWithFileWithoutTitle() {
+    $admin_user = $this->drupalCreateUser(array(
+      'bypass node access',
+      'access content overview',
+      'administer nodes',
+    ));
+    $this->drupalLogin($admin_user);
+    $this->_testNodeWithFileWithoutTitle();
+  }
+
+  /**
+   * Helper method to test file submissions with missing node titles.
+   */
+  protected function _testNodeWithFileWithoutTitle() {
+    $bundle_label = 'Article';
+    $node_title = 'Test page';
+
+    // Load the node form.
+    $this->drupalGet('node/add/article');
+    $this->assertResponse(200, 'Loaded the article node form.');
+    $this->assertText(strip_tags(t('Create @name', array('@name' => $bundle_label))));
+
+    // Generate an image file.
+    $image = $this->getTestImage();
+
+    // Submit the form but exclude the title field.
+    $edit = array(
+      'body[und][0][value]' => 'Test article',
+      'body[und][0][format]' => 'filtered_html',
+      'files[field_image_und_0]' => drupal_realpath($image->uri),
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertResponse(200);
+    $t_args = array('@type' => $bundle_label, '%title' => $node_title);
+    $this->assertNoText(strip_tags(t('@type %title has been created.', $t_args)), 'The node was created.');
+    $this->assertText(t('!name field is required.', array('!name' => t('Title'))));
+
+    // Submit the form again but this time with the missing title field. This
+    // should still work.
+    $edit = array(
+      'title' => $node_title,
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+
+    // Confirm the final submission actually worked.
+    $t_args = array('@type' => $bundle_label, '%title' => $node_title);
+    $this->assertText(strip_tags(t('@type %title has been created.', $t_args)), 'The node was created.');
+    $matches = array();
+    if (preg_match('@node/(\d+)$@', $this->getUrl(), $matches)) {
+      $nid = end($matches);
+      $this->assertNotEqual($nid, 0, 'The node ID was extracted from the URL.');
+      $node = node_load($nid);
+      $this->assertNotEqual($node, NULL, 'The node was loaded successfully.');
+      $this->assertEqual($node->field_image[LANGUAGE_NONE][0]['filename'], $image->filename, 'The image was uploaded successfully.');
+    }
+  }
+
+  /**
+   * Generates a test image.
+   *
+   * @return stdClass
+   *   A file object.
+   */
+  function getTestImage() {
+    // Get a file to upload.
+    $file = current($this->drupalGetTestFiles('image'));
+
+    // Add a filesize property to files as would be read by file_load().
+    $file->filesize = filesize($file->uri);
+
+    return $file;
+  }
+
 }

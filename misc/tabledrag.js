@@ -106,8 +106,10 @@ Drupal.tableDrag = function (table, tableSettings) {
 
   // Add mouse bindings to the document. The self variable is passed along
   // as event handlers do not have direct access to the tableDrag object.
-  $(document).bind('mousemove', function (event) { return self.dragRow(event, self); });
-  $(document).bind('mouseup', function (event) { return self.dropRow(event, self); });
+  $(document).bind('mousemove pointermove', function (event) { return self.dragRow(event, self); });
+  $(document).bind('mouseup pointerup', function (event) { return self.dropRow(event, self); });
+  $(document).bind('touchmove', function (event) { return self.dragRow(event.originalEvent.touches[0], self); });
+  $(document).bind('touchend', function (event) { return self.dropRow(event.originalEvent.touches[0], self); });
 };
 
 /**
@@ -274,7 +276,10 @@ Drupal.tableDrag.prototype.makeDraggable = function (item) {
   });
 
   // Add the mousedown action for the handle.
-  handle.mousedown(function (event) {
+  handle.bind('mousedown touchstart pointerdown', function (event) {
+    if (event.originalEvent.type == "touchstart") {
+      event = event.originalEvent.touches[0];
+    }
     // Create a new dragObject recording the event information.
     self.dragObject = {};
     self.dragObject.initMouseOffset = self.getMouseOffset(item, event);
@@ -575,12 +580,20 @@ Drupal.tableDrag.prototype.dropRow = function (event, self) {
  * Get the mouse coordinates from the event (allowing for browser differences).
  */
 Drupal.tableDrag.prototype.mouseCoords = function (event) {
+  // Complete support for pointer events was only introduced to jQuery in
+  // version 1.11.1; between versions 1.7 and 1.11.0 pointer events have the
+  // clientX and clientY properties undefined. In those cases, the properties
+  // must be retrieved from the event.originalEvent object instead.
+  var clientX = event.clientX || event.originalEvent.clientX;
+  var clientY = event.clientY || event.originalEvent.clientY;
+
   if (event.pageX || event.pageY) {
     return { x: event.pageX, y: event.pageY };
   }
+
   return {
-    x: event.clientX + document.body.scrollLeft - document.body.clientLeft,
-    y: event.clientY + document.body.scrollTop  - document.body.clientTop
+    x: clientX + document.body.scrollLeft - document.body.clientLeft,
+    y: clientY + document.body.scrollTop  - document.body.clientTop
   };
 };
 

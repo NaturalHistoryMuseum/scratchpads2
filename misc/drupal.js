@@ -28,6 +28,42 @@ $.fn.init = function (selector, context, rootjQuery) {
 $.fn.init.prototype = jquery_init.prototype;
 
 /**
+ * Pre-filter Ajax requests to guard against XSS attacks.
+ *
+ * See https://github.com/jquery/jquery/issues/2432
+ */
+if ($.ajaxPrefilter) {
+  // For newer versions of jQuery, use an Ajax prefilter to prevent
+  // auto-executing script tags from untrusted domains. This is similar to the
+  // fix that is built in to jQuery 3.0 and higher.
+  $.ajaxPrefilter(function (s) {
+    if (s.crossDomain) {
+      s.contents.script = false;
+    }
+  });
+}
+else if ($.httpData) {
+  // For the version of jQuery that ships with Drupal core, override
+  // jQuery.httpData to prevent auto-detecting "script" data types from
+  // untrusted domains.
+  var jquery_httpData = $.httpData;
+  $.httpData = function (xhr, type, s) {
+    // @todo Consider backporting code from newer jQuery versions to check for
+    //   a cross-domain request here, rather than using Drupal.urlIsLocal() to
+    //   block scripts from all URLs that are not on the same site.
+    if (!type && !Drupal.urlIsLocal(s.url)) {
+      var content_type = xhr.getResponseHeader('content-type') || '';
+      if (content_type.indexOf('javascript') >= 0) {
+        // Default to a safe data type.
+        type = 'text';
+      }
+    }
+    return jquery_httpData.call(this, xhr, type, s);
+  };
+  $.httpData.prototype = jquery_httpData.prototype;
+}
+
+/**
  * Attach all registered behaviors to a page element.
  *
  * Behaviors are event-triggered actions that attach to page elements, enhancing
@@ -137,7 +173,7 @@ Drupal.detachBehaviors = function (context, settings, trigger) {
  */
 Drupal.checkPlain = function (str) {
   var character, regex,
-      replace = { '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' };
+      replace = { '&': '&amp;', "'": '&#39;', '"': '&quot;', '<': '&lt;', '>': '&gt;' };
   str = String(str);
   for (character in replace) {
     if (replace.hasOwnProperty(character)) {
@@ -168,23 +204,76 @@ Drupal.checkPlain = function (str) {
 Drupal.formatString = function(str, args) {
   // Transform arguments before inserting them.
   for (var key in args) {
-    switch (key.charAt(0)) {
-      // Escaped only.
-      case '@':
-        args[key] = Drupal.checkPlain(args[key]);
-      break;
-      // Pass-through.
-      case '!':
-        break;
-      // Escaped and placeholder.
-      case '%':
-      default:
-        args[key] = Drupal.theme('placeholder', args[key]);
-        break;
+    if (args.hasOwnProperty(key)) {
+      switch (key.charAt(0)) {
+        // Escaped only.
+        case '@':
+          args[key] = Drupal.checkPlain(args[key]);
+          break;
+        // Pass-through.
+        case '!':
+          break;
+        // Escaped and placeholder.
+        default:
+          args[key] = Drupal.theme('placeholder', args[key]);
+          break;
+      }
     }
-    str = str.replace(key, args[key]);
   }
-  return str;
+
+  return Drupal.stringReplace(str, args, null);
+};
+
+/**
+ * Replace substring.
+ *
+ * The longest keys will be tried first. Once a substring has been replaced,
+ * its new value will not be searched again.
+ *
+ * @param {String} str
+ *   A string with placeholders.
+ * @param {Object} args
+ *   Key-value pairs.
+ * @param {Array|null} keys
+ *   Array of keys from the "args".  Internal use only.
+ *
+ * @return {String}
+ *   Returns the replaced string.
+ */
+Drupal.stringReplace = function (str, args, keys) {
+  if (str.length === 0) {
+    return str;
+  }
+
+  // If the array of keys is not passed then collect the keys from the args.
+  if (!$.isArray(keys)) {
+    keys = [];
+    for (var k in args) {
+      if (args.hasOwnProperty(k)) {
+        keys.push(k);
+      }
+    }
+
+    // Order the keys by the character length. The shortest one is the first.
+    keys.sort(function (a, b) { return a.length - b.length; });
+  }
+
+  if (keys.length === 0) {
+    return str;
+  }
+
+  // Take next longest one from the end.
+  var key = keys.pop();
+  var fragments = str.split(key);
+
+  if (keys.length) {
+    for (var i = 0; i < fragments.length; i++) {
+      // Process each fragment with a copy of remaining keys.
+      fragments[i] = Drupal.stringReplace(fragments[i], args, keys.slice(0));
+    }
+  }
+
+  return fragments.join(args[key]);
 };
 
 /**
@@ -251,7 +340,7 @@ Drupal.t = function (str, args, options) {
  *   A translated string.
  */
 Drupal.formatPlural = function (count, singular, plural, args, options) {
-  var args = args || {};
+  args = args || {};
   args['@count'] = count;
   // Determine the index of the plural form.
   var index = Drupal.locale.pluralFormula ? Drupal.locale.pluralFormula(args['@count']) : ((args['@count'] == 1) ? 0 : 1);
@@ -411,6 +500,29 @@ Drupal.getSelection = function (element) {
     return { 'start': start, 'end': end };
   }
   return { 'start': element.selectionStart, 'end': element.selectionEnd };
+};
+
+/**
+ * Add a global variable which determines if the window is being unloaded.
+ *
+ * This is primarily used by Drupal.displayAjaxError().
+ */
+Drupal.beforeUnloadCalled = false;
+$(window).bind('beforeunload pagehide', function () {
+    Drupal.beforeUnloadCalled = true;
+});
+
+/**
+ * Displays a JavaScript error from an Ajax response when appropriate to do so.
+ */
+Drupal.displayAjaxError = function (message) {
+  // Skip displaying the message if the user deliberately aborted (for example,
+  // by reloading the page or navigating to a different page) while the Ajax
+  // request was still ongoing. See, for example, the discussion at
+  // http://stackoverflow.com/questions/699941/handle-ajax-error-when-a-user-clicks-refresh.
+  if (!Drupal.beforeUnloadCalled) {
+    alert(message);
+  }
 };
 
 /**
