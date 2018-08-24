@@ -62,7 +62,11 @@ COPY settings.php /var/www/html/sites/default/settings.php
 # Enable error logging & msmtp
 COPY php.ini /usr/local/etc/php/
 
-RUN chown -R www-data /var/www/html
+RUN usermod -u 1000 www-data
+RUN groupmod -g 1000 www-data
+RUN chown -R www-data:www-data /var/www/html
+
+USER root
 
 # Clean up
 RUN apt-get clean
