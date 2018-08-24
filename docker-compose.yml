@@ -17,7 +17,7 @@ services:
     volumes:     
       - apache-files:/var/www/html/sites/default
     environment:
-      - BASE_URL=http://127.0.0.1:${APACHE_PORT}
+      - BASE_URL=${APACHE_BASE_URL}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -55,6 +55,19 @@ services:
       - 8983
     volumes:
       - solr-data:/etc/opt/solr/scratchpads2/data
+
+  varnish:
+    container_name: scratchpads.varnish
+    build:
+      context: ./docker/varnish   
+    links:
+        - apache        
+    depends_on:
+      - apache     
+    ports:
+      - "8081:${VARNISH_PORT}"
+    environment:
+      VARNISH_PORT: ${VARNISH_PORT}
 
 volumes:   
   apache-files:
