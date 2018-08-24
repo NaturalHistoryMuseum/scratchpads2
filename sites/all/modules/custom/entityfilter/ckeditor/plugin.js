@@ -130,11 +130,14 @@ CKEDITOR_entityfilter.prototype.timeout_callback = function(args){
     init: function(editor){
       var entityfilter = CKEDITOR_entityfilter.get_instance(editor);
       editor.on('instanceReady', function(e){
-        jQuery('.entityfilter').remove();
-        var editable = editor.editable();
-        editable.attachListener(editable, 'keypress', function(e){
-          entityfilter.get_entityfilterresults(this.editor.getSelection());
-        });
+        // jQuery('.entityfilter').remove();
+        // var editable = editor.editable();
+        // console.log(editor.editable());
+        // console.log(e);
+        // var editable = editor.editable();      
+        // editor.attachListener('keypress', function(e){
+        //   entityfilter.get_entityfilterresults(this.editor.getSelection());
+        // });
       });
     }
   });
