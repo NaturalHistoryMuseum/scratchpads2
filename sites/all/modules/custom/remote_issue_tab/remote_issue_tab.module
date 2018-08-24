@@ -20,7 +20,6 @@ function remote_issue_tab_block_view($delta = ''){
   if (count($modules) == 0) {
     throw new Exception('remote_issue_tab needs a module to implement hook_issue_tab_settings');
   }
-
   $provider_module = variable_get('remote_issue_tab_settings_module', $modules[0]);
   $defaults = array(
     "header" => "",
@@ -44,7 +43,6 @@ function remote_issue_tab_block_view($delta = ''){
       '#external_scripts' => $settings['external_scripts'],
     )
   );
-  $content = drupal_render($content);
 
   return array(
     'subject' => t('Issues...'),
