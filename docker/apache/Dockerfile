@@ -22,6 +22,8 @@ RUN apt-get -y install wget \
 RUN pecl install uploadprogress 
 RUN docker-php-ext-enable uploadprogress
 
+RUN docker-php-ext-install opcache
+
 RUN pecl install imagick 
 RUN docker-php-ext-enable imagick
 # Fixing "configure: error: Unable to locate gmp.h"
@@ -46,7 +48,6 @@ RUN apt-get install -y mysql-client
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
-# COPY scratchpads.conf /etc/apache2/conf-enabled/scratchpads.conf
 
 # Install drush
 RUN wget https://github.com/drush-ops/drush/releases/download/8.1.17/drush.phar
