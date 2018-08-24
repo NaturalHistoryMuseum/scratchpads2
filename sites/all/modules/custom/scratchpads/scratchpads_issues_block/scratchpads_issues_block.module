@@ -22,7 +22,7 @@ function scratchpads_issues_block_issue_tab_settings() {
       l('create an account', 'https://github.com/join').'.',
     "footer" => '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
     "scripts" => array(
-      drupal_get_path('module', 'scratchpads_issues_block') . "/js/scripts_issues_block.js"
+      drupal_get_path('module', 'scratchpads_issues_block') . "/js/scratchpads_issues_block.js"
     ),
     "external_scripts" => array(
       "https://cdn.jsdelivr.net/npm/marked/marked.min.js"
