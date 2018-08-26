@@ -23,6 +23,7 @@ RUN pecl install uploadprogress
 RUN docker-php-ext-enable uploadprogress
 
 RUN docker-php-ext-install opcache
+RUN docker-php-ext-install sockets
 
 RUN pecl install imagick 
 RUN docker-php-ext-enable imagick
