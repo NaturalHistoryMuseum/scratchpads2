@@ -8,13 +8,13 @@ services:
       context: ./docker/apache
     restart: always
     links:
-      - mysql         
+      - mysql
     depends_on:
       - mysql
-      - solr    
+      - solr
     ports:
       - "${APACHE_PORT}:80"
-    volumes:     
+    volumes:
       - apache-files:/var/www/html/sites/default
     environment:
       - BASE_URL=${APACHE_BASE_URL}
@@ -22,16 +22,17 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_HOST=scratchpads.mysql
-      - SOLR_HOSTNAME=scratchpads.solr 
-      - SOLR_CORE=scratchpads2    
-      - SMTP_FROM=${APACHE_SMTP_FROM}       
+      - SOLR_HOSTNAME=scratchpads.solr
+      - SOLR_CORE=scratchpads2
+      - SMTP_FROM=${APACHE_SMTP_FROM}
       - SMTP_HOST=${APACHE_SMTP_HOST}
       - SMTP_PORT=${APACHE_SMTP_PORT}
       - SMTP_USER=${APACHE_SMTP_USER}
       - SMTP_PASSWORD=${APACHE_SMTP_PASSWORD}
       - SMTP_TLS=${APACHE_SMTP_TLS}
       - SMTP_AUTH=${APACHE_SMTP_AUTH}
-      - SMTP_START_TLS=${APACHE_SMTP_START_TLS}               
+      - SMTP_START_TLS=${APACHE_SMTP_START_TLS}
+      - VARNISH_SECRET=${VARNISH_SECRET}
 
   mysql:
     container_name: scratchpads.mysql
@@ -39,18 +40,18 @@ services:
     build:
       context: ./docker/mysql
     volumes:
-      - mysql-data:/var/lib/mysql              
+      - mysql-data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}        
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
 
   solr:
     container_name: scratchpads.solr
     image: naturalhistorymuseum/scratchpads-solr
     build:
-      context: ./docker/solr    
+      context: ./docker/solr
     expose:
       - 8983
     volumes:
@@ -59,17 +60,18 @@ services:
   varnish:
     container_name: scratchpads.varnish
     build:
-      context: ./docker/varnish   
-    links:
-        - apache        
+      context: ./docker/varnish
     depends_on:
-      - apache     
+      - apache
+    expose:
+      - 6082
     ports:
       - "8081:${VARNISH_PORT}"
     environment:
       VARNISH_PORT: ${VARNISH_PORT}
+      VARNISH_SECRET: ${VARNISH_SECRET}
 
-volumes:   
+volumes:
   apache-files:
   mysql-data:
   solr-data:
