@@ -6,14 +6,10 @@ $databases['default']['default'] = array(
   'database' => getenv('MYSQL_DATABASE'),
   'username' => getenv('MYSQL_USER'),
   'password' => getenv('MYSQL_PASSWORD'),
-  'host' => getenv('MYSQL_HOST')
+  'host' => 'scratchpads.mysql'
 );
 
-# Configure Solr
-$solr_hostname = getenv('SOLR_HOSTNAME');
-$solr_core = getenv('SOLR_CORE');
-
-$conf['scratchpads_solr_urls'] = array("http://$solr_hostname:8983/solr/$solr_core");
+$conf['scratchpads_solr_urls'] = array("http://scratchpads.solr:8983/solr/scratchpads2");
 
 # Override "standard scratchpad" install option - denotes
 # locally run scratchpad, with logins etc disabled
@@ -31,8 +27,8 @@ $base_url = getenv('BASE_URL');
 $conf['clean_url'] = 1;
 
 $conf["cron_safe_threshold"] = 0;
-#$conf["preprocess_css"] = 1;
-#$conf["preprocess_js"] = 1;
+$conf["preprocess_css"] = 1;
+$conf["preprocess_js"] = 1;
 $conf["jquery_update_compression_type"] = "min";
 $conf["jquery_update_jquery_cdn"] = "none";
 $conf["error_level"] = 0;
@@ -45,6 +41,19 @@ $conf["block_cache"] = TRUE;
 $conf["cache"] = TRUE;
 $conf["cache_lifetime"] = 3600;
 $conf["page_cache_maximum_age"] = 10800;
+
+// Varnish settings 
+$conf["varnish_flush_cron"] = 0;
+$conf["varnish_version"] = 4;
+$conf["varnish_control_terminal"] = "scratchpads.varnish:6082";
+$conf["varnish_control_key"] = getenv('VARNISH_SECRET');
+$conf["varnish_socket_timeout"] = 200;
+$conf["varnish_cache_clear"] = 0;
+$conf["varnish_bantype"] = 0;
+$conf["cache_backends"][] = "sites/all/modules/contrib/varnish/varnish.cache.inc";
+$conf["cache_class_cache_page"] = "VarnishCache";
+$conf["page_cache_invoke_hooks"] = FALSE;
+$conf["varnish_control_key_appendnewline"] = TRUE;
 
 // Not everybody can run updates.
 $update_free_access = 0;
