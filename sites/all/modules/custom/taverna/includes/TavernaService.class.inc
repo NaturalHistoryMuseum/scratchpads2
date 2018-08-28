@@ -21,9 +21,9 @@ class TavernaService{
   /**
    * Standard constructor for the TavernaService class.  A user should pass either
    * an ID, or an array of run details.
-   * 
+   *
    * @param unknown_type $run_details
-   * 
+   *
    * This should either be an ID of a run that has already been created on the
    * Taverna server, or an array of new run details
    */
@@ -305,12 +305,10 @@ class TavernaService{
    */
   static function get_authentication_string(){
     // We try and read the authtoken from a configuration file.
-    if(function_exists('drupal_get_path')){
-      $user_and_password = file_get_contents(drupal_get_path('module', 'taverna') . '/auth_token.ini');
+    if(function_exists('variable_get')){
       $user_and_password = variable_get('taverna_auth_token', $user_and_password);
     }else{
-      // Errr, this clearly needs fixing if using outside of Drupal.
-      // $user_and_password = file_get_contents(drupal_get_path('module', 'taverna') . '/auth_token.ini');
+      $user_and_password = getenv('TAVERNA_AUTH_TOKEN');
     }
     if(!$user_and_password){throw new TavernaServiceException('Auth token is not set');}
     return 'Basic ' . base64_encode(trim($user_and_password));
