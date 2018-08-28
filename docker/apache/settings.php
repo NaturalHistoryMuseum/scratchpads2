@@ -27,14 +27,16 @@ $base_url = getenv('BASE_URL');
 $conf['clean_url'] = 1;
 
 $conf["cron_safe_threshold"] = 0;
-$conf["preprocess_css"] = 1;
-$conf["preprocess_js"] = 1;
+#$conf["preprocess_css"] = 1;
+#$conf["preprocess_js"] = 1;
 $conf["jquery_update_compression_type"] = "min";
 $conf["jquery_update_jquery_cdn"] = "none";
 $conf["error_level"] = 0;
 $conf["syslog_identity"] = $_SERVER["HTTP_HOST"];
-
 $conf['drupal_http_request_fails'] = FALSE;
+
+// Scratchpad settings
+$conf['taverna_auth_token'] = getenv('TAVERNA_AUTH_TOKEN');
 
 // Cache
 $conf["block_cache"] = TRUE;
@@ -42,7 +44,7 @@ $conf["cache"] = TRUE;
 $conf["cache_lifetime"] = 3600;
 $conf["page_cache_maximum_age"] = 10800;
 
-// Varnish settings 
+// Varnish settings
 $conf["varnish_flush_cron"] = 0;
 $conf["varnish_version"] = 4;
 $conf["varnish_control_terminal"] = "scratchpads.varnish:6082";
@@ -55,6 +57,9 @@ $conf["cache_class_cache_page"] = "VarnishCache";
 $conf["page_cache_invoke_hooks"] = FALSE;
 $conf["varnish_control_key_appendnewline"] = TRUE;
 
+
+
+
 // Not everybody can run updates.
 $update_free_access = 0;
 
@@ -64,6 +69,7 @@ ini_set("pcre.recursion_limit", 10000000);
 ini_set("session.cookie_lifetime", 604800);
 ini_set("session.gc_maxlifetime", 604800);
 ini_set("session.use_cookies", 1);
+
 
 
 /**
