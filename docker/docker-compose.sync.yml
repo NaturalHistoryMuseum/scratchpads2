@@ -3,7 +3,7 @@ version: '2'
 services:
   apache: 
     volumes:     
-      - docker-sync:/var/www/html
+      - docker-sync:/var/www/html:nocopy
 
 volumes:   
   docker-sync:
