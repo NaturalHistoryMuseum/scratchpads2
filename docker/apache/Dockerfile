@@ -19,13 +19,13 @@ RUN apt-get -y install wget \
              msmtp \
              --no-install-recommends
 
-RUN pecl install uploadprogress 
+RUN pecl install uploadprogress
 RUN docker-php-ext-enable uploadprogress
 
 RUN docker-php-ext-install opcache
 RUN docker-php-ext-install sockets
 
-RUN pecl install imagick 
+RUN pecl install imagick
 RUN docker-php-ext-enable imagick
 # Fixing "configure: error: Unable to locate gmp.h"
 RUN ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
@@ -68,12 +68,6 @@ RUN usermod -u 1000 www-data
 RUN groupmod -g 1000 www-data
 RUN chown -R www-data:www-data /var/www/html
 
-USER root
-
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
-
-CMD ["/usr/local/bin/entrypoint.sh"]

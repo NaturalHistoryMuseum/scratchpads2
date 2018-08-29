@@ -33,6 +33,7 @@ services:
       - SMTP_AUTH=${APACHE_SMTP_AUTH}
       - SMTP_START_TLS=${APACHE_SMTP_START_TLS}
       - VARNISH_SECRET=${VARNISH_SECRET}
+      - TAVERNA_AUTH_TOKEN=${APACHE_SCRATCHPADS_TAVERNA_AUTH_TOKEN}
 
   mysql:
     container_name: scratchpads.mysql
