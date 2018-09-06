@@ -598,7 +598,9 @@ function scratchpads_tweaks_mail_alter(&$message){
   if($message['id'] == 'install_welcome-admin'){
     // The scratchpad admin is always id 2
     $sp_admin = user_load(2);
-    $message['to'] = $sp_admin->mail;
+    if ($sp_admin) {
+      $message['to'] = $sp_admin->mail;
+    }
     $message['from'] = 'Scratchpads Team <no-reply@scratchpads.eu>';
     $message['headers']['From'] = $message['from'];
     $message['headers']['Sender'] = $message['from'];
