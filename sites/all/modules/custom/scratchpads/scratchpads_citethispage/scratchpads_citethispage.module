@@ -1,8 +1,11 @@
 <?php
 require_once (str_replace('.module', '.authors.inc', __FILE__));
-DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://cite.scratchpads.eu');
-DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', 'http://cite.scratchpads.eu/generate');
-DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', 'http://cite.scratchpads.eu/preview');
+if(!defined('CITE_URL')) {
+  define('CITE_URL', 'cite.scratchpads.eu');
+}
+DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://' . CITE_URL);
+DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', CITE_SCRATCHPADS_EU_HOST_DEFAULT.'/generate');
+DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', CITE_SCRATCHPADS_EU_HOST_DEFAULT.'/preview');
 DEFINE('CITE_SCRATCHPADS_EU_TIMEOUT', 20);
 
 /**
@@ -81,7 +84,7 @@ function scratchpads_citethispage_citethispage_info(){
         )
       ),
       'archive' => array(
-        'title' => t('cite.scratchpads.eu'),
+        'title' => t(CITE_URL),
         'description' => t('Generate a PDF snapshot on !host', array(
           '!host' => l($host, $host)
         )),
