@@ -1,4 +1,5 @@
 <?php
+define('SCRATCHPADS_WIKI_URL', 'https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/');
 
 /**
  * Implements hook_block_info().
@@ -73,7 +74,7 @@ function scratchpads_help_get_help(){
     }
     if(count($links)){
       $help[] = array(
-        '#markup' => format_plural(count($links), 'Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> page: !links', 'Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a> pages: !links', array(
+        '#markup' => format_plural(count($links), 'Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a> page: !links', 'Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a> pages: !links', array(
           '!links' => implode(", ", $links)
         ))
       );
@@ -89,42 +90,52 @@ function scratchpads_help_cron(){
   // We update the list of wiki pages that are relevant to certain paths once a
   // day (actually a little more than once a day).
   if(variable_get('scratchpads_help_last_update', 0) < (time() - 100000)){
-    $xml = new SimpleXMLElement('http://help.scratchpads.eu/w/Special:Export/Embeded_help', 0, TRUE);
-    $xml = (string)$xml->page->revision->text;
-    $lines = preg_split('/[\n\r]+/', $xml);
+    $fetch_path = SCRATCHPADS_WIKI_URL + 'Embeded-help.md'
+    $md = file_get_contents($fetch_path);
+    $lines = preg_split('/[\n\r]+/', $md);
     $insert = db_insert('scratchpads_help')->fields(array(
       'path',
       'page',
       'title'
     ));
     $do_insert = FALSE;
+    $in_body = FALSE;
     foreach($lines as $line){
-      if(substr($line, 0, 1) == '*'){
-        $parts = explode('|', trim(substr($line, 1)));
-        if(count($parts) >= 2){
-          $path = array_shift($parts);
-          $page = implode('|', $parts);
-          $title = '';
-          if(substr($page, 0, 2) == '[['){
-            $page = substr(trim($page), 2, -2);
-            $page_parts = explode('|', $page);
-            if(count($page_parts) == 2){
-              $page = $page_parts[0];
-              $title = $page_parts[1];
-            }else{
-              $title = str_replace('_', ' ', $page);
-            }
-            $page = 'http://help.scratchpads.eu/w/' . $page;
-          }
-          $do_insert = TRUE;
-          $insert->values(array(
-            'path' => $path,
-            'page' => $page,
-            'title' => $title
-          ));
+      if (!$in_body) {
+        // Don't do anything until we get to the table body,
+        // denoted by the ------|------ line
+        if (preg_match('/^-+\|-+$/', $line) !== FALSE) {
+          $in_body = TRUE;
         }
+        continue;
       }
+
+      # Matches for the table rows, 2 formats:
+      # path/to/page | [Link text](wiki_page_name)
+      # path/to/page | link text and page name
+      if (preg_match('/^\s*([^|]+?)\s*\|\s*(\[([^\]]+)\]\(([^)]+)\)|.*)\s*$/', $line, $matches) === FALSE) {
+        continue;
+      }
+
+      list( , $path, $pagetitle, $title, $page) = $matches;
+
+      if (!$page) {
+        $page = rawurlencode(str_replace(' ', '-', $pagetitle));
+      }
+      $page = SCRATCHPAD_WIKI_URL . $page;
+
+      if (!$title) {
+        $title = $pagetitle;
+      }
+
+      $do_insert = TRUE;
+      $insert->values(array(
+        'path' => $path,
+        'page' => $page,
+        'title' => $title
+      ));
     }
+
     db_delete('scratchpads_help')->execute();
     if($do_insert){
       $insert->execute();
