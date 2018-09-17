@@ -61,6 +61,7 @@ function scratchpads_help_get_help(){
       'page',
       'title'
     ))->execute();
+
     $links = array();
     foreach($results as $row){
       if(!$row->title){
@@ -90,7 +91,7 @@ function scratchpads_help_cron(){
   // We update the list of wiki pages that are relevant to certain paths once a
   // day (actually a little more than once a day).
   if(variable_get('scratchpads_help_last_update', 0) < (time() - 100000)){
-    $fetch_path = SCRATCHPADS_WIKI_URL + 'Embeded-help.md'
+    $fetch_path = SCRATCHPADS_WIKI_URL . 'Embeded-help.md';
     $md = file_get_contents($fetch_path);
     $lines = preg_split('/[\n\r]+/', $md);
     $insert = db_insert('scratchpads_help')->fields(array(
@@ -100,11 +101,12 @@ function scratchpads_help_cron(){
     ));
     $do_insert = FALSE;
     $in_body = FALSE;
+
     foreach($lines as $line){
       if (!$in_body) {
         // Don't do anything until we get to the table body,
         // denoted by the ------|------ line
-        if (preg_match('/^-+\|-+$/', $line) !== FALSE) {
+        if (preg_match('/^-+\\|-+$/', $line) === 1) {
           $in_body = TRUE;
         }
         continue;
@@ -113,7 +115,7 @@ function scratchpads_help_cron(){
       # Matches for the table rows, 2 formats:
       # path/to/page | [Link text](wiki_page_name)
       # path/to/page | link text and page name
-      if (preg_match('/^\s*([^|]+?)\s*\|\s*(\[([^\]]+)\]\(([^)]+)\)|.*)\s*$/', $line, $matches) === FALSE) {
+      if (preg_match('/^\s*([^|]+?)\s*\|\s*(\[([^\]]+)\]\(([^)]+)\)|.*)\s*$/', $line, $matches) !== 1) {
         continue;
       }
 
@@ -122,7 +124,7 @@ function scratchpads_help_cron(){
       if (!$page) {
         $page = rawurlencode(str_replace(' ', '-', $pagetitle));
       }
-      $page = SCRATCHPAD_WIKI_URL . $page;
+      $page = SCRATCHPADS_WIKI_URL . $page;
 
       if (!$title) {
         $title = $pagetitle;
