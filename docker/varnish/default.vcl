@@ -109,22 +109,22 @@ sub vcl_recv {
 	    # the page.
 	    unset req.http.Cookie;
 	    unset req.http.X-OriginalCookie;
-	  } else {		
+	  } else {
 	        # If there is any cookies left (a session or NO_CACHE cookie), do not
 	        # cache the page. Pass it on to Apache directly.
 	        set req.http.Cookie = req.http.X-OriginalCookie;
 	        unset req.http.X-OriginalCookie;
 	        return (pass);
 	   }
-	   
+
 	    ## Unset Authorization header if it has the correct details...
 	    if (req.http.Authorization || req.http.Cookie) {
 	        /* Not cacheable by default */
 	        return (pass);
 	    }
-	 
 
-	}	
+
+	}
 
 }
 
@@ -160,10 +160,6 @@ sub vcl_hit {
 }
 
 sub vcl_backend_response {
-  # Prevent ports from appearing in the response.
-  if (beresp.status == 301 || beresp.status == 302){
-    set beresp.http.Location = regsub(beresp.http.Location,"^(\w+://[^/]+):\d+", "\1");
-  }
   # Do not allow static files to set cookies.
   if (bereq.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm)(\?[a-z0-9]+)?$") {
     unset beresp.http.set-cookie;
