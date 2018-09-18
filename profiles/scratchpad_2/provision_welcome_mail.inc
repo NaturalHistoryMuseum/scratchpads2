@@ -14,6 +14,17 @@ if(function_exists('drush_get_option')){
     $client_institution = drush_get_option('institution', 'Jolly Nice Museum');
   }else{
     $alias = drush_get_context('alias');
+
+    // FIXME: For some reason this data is no longer available in the alias config.
+    // Instead we make a backup of it in hosting_scratchpads_hosting_site_context_options
+    // (hosting_scratchpads repo) so that it can be used here.
+    // This is quite hacky but at least it works.
+    if(!isset($alias['site_data'])) {
+      $aliasname = '@' . $alias['#name'];
+      $alias_extrainfo = drush_sitealias_get_record($aliasname.".site_data");
+      $alias['site_data'] = $alias_extrainfo['site_data'];
+    }
+
     $site_data = $alias['site_data'];
     $site_title = !empty($site_data['site_title']) ? $site_data['site_title'] : FALSE;
     $client_name = !empty($site_data['client_name']) ? $site_data['client_name'] : 'Scratchpads Maintainer';
@@ -25,8 +36,8 @@ if(function_exists('drush_get_option')){
   }
   if($site_title){
     variable_set('site_name', $site_title);
-    // Adjust the UID 1. Not ideal doing this here, but we only actually need to 
-    // do this when being installed via Aegir, and this only gets installed when 
+    // Adjust the UID 1. Not ideal doing this here, but we only actually need to
+    // do this when being installed via Aegir, and this only gets installed when
     // called by Aegir.
     $account = user_load(1);
     $account->name = 'Scratchpad Team';
@@ -117,8 +128,10 @@ scratchpad@nhm.ac.uk", array(
     return;
   }
 }
-$mail['subject'] = st('Your new site !site has been created.');
-$mail['body'] = st("!username,
+
+if (!isset($mail['subject'])) {
+  $mail['subject'] = st('Your new site !site has been created.');
+  $mail['body'] = st("!username,
 
 Your new site !site has been created.
 
@@ -129,3 +142,4 @@ You can now login to !site by clicking on this link or copying it into your brow
 This is a one-time login, so it can be used only once.
 
 Once you have logged in, you will be redirected to !edit_uri so you can change your password.");
+}

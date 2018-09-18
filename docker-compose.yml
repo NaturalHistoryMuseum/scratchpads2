@@ -34,6 +34,12 @@ services:
       - SMTP_START_TLS=${APACHE_SMTP_START_TLS}
       - VARNISH_SECRET=${VARNISH_SECRET}
       - TAVERNA_AUTH_TOKEN=${APACHE_SCRATCHPADS_TAVERNA_AUTH_TOKEN}
+      - APACHE_RUN_DIR=/var/run/apache2
+      - APACHE_PID_FILE=/var/run/apache2/apache2.pid
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+      - APACHE_LOG_DIR=/var/log/apache2
+
 
   mysql:
     container_name: scratchpads.mysql
@@ -70,7 +76,7 @@ services:
     expose:
       - 6082
     ports:
-      - "8081:${VARNISH_PORT}"
+      - "${VARNISH_PORT_EXPOSE}:${VARNISH_PORT}"
     environment:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}

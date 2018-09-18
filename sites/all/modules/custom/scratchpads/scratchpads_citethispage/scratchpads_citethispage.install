@@ -1,8 +1,11 @@
 <?php
+if(!defined('CITE_URL')) {
+  define('CITE_URL', 'cite.scratchpads.eu');
+}
 
 /**
  * Implement hook_enable
- * 
+ *
  * Ensure blocks are rebuild
  */
 function scratchpads_citethispage_enable(){
@@ -27,7 +30,7 @@ function scratchpads_citethispage_disable(){
  * Change the phantomjs script
  */
 function scratchpads_citethispage_update_7001(){
-  variable_set('citethispage_phantomjs_tool', '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtospadmodule]/js/scratchpads_citethispage_snapshot.js [citethispage_phantomjs:url] http://cite.scratchpads.eu /var/www/cite.scratchpads.eu [citethispage_phantomjs:post] [citethispage_phantomjs:destination]');
+  variable_set('citethispage_phantomjs_tool', '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtospadmodule]/js/scratchpads_citethispage_snapshot.js [citethispage_phantomjs:url] http://' . CITE_URL . ' /var/www/' . CITE_URL . ' [citethispage_phantomjs:post] [citethispage_phantomjs:destination]');
   variable_set('citethispage_phantomjs_destination', '');
 }
 
