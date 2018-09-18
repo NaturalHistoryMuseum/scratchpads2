@@ -34,3 +34,4 @@ scratchpads_twitter.ini
 
 # Docker
 .env
+.docker-sync
