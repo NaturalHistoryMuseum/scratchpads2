@@ -1,5 +1,3 @@
-var OSM = 'OSM'; // Open Street Map.
-
 (function($){
   if(typeof google != 'undefined'){
     Drupal.GM3 = function(map){
@@ -33,28 +31,6 @@ var OSM = 'OSM'; // Open Street Map.
         this.default_settings();
         // Create the map
         this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
-
-        // Set the tileset to use OSM tiles
-        // https://wiki.openstreetmap.org/wiki/Google_Maps_Example
-        this.google_map.mapTypes.set(OSM, new google.maps.ImageMapType({
-          getTileUrl: function(coord, zoom) {
-              // "Wrap" x (longitude) at 180th meridian properly
-              // NB: Don't touch coord.x: because coord param is by reference, and changing its x property breaks something in Google's lib
-              var tilesPerGlobe = 1 << zoom;
-              var x = coord.x % tilesPerGlobe;
-              if (x < 0) {
-                  x = tilesPerGlobe + x;
-              }
-
-              var y = coord.y;
-
-              // Wrap y (latitude) in a like manner if you want to enable vertical infinite scrolling
-              return "https://tile.openstreetmap.org/" + zoom + "/" + x + "/" + y + ".png";
-          },
-          tileSize: new google.maps.Size(256, 256),
-          name: "OpenStreetMap",
-          maxZoom: 18
-        }));
         this.initialized = true;
         // Add libraries
         for(id in this.libraries) {

@@ -2,20 +2,20 @@
 
 /**
  * Simple Google Maps v3 API module file.
- *
+ * 
  * Includes code from http://www.mistechko.sumy.ua/jscript/google/map/
- *
+ * 
  */
 /**
  * Implementation of hook_library().
- *
- * Note, the sensor option could be set to true here to allow for maps to have
+ * 
+ * Note, the sensor option could be set to true here to allow for maps to have 
  * the sensor enabled (useful perhaps on mobile devices, or shopping sites).
- *
+ * 
  * Thanks to the authors of the geofield for a considerable amount of
  * inspiration when writing this module.  I hope that at some point this module
  * and the geofield module can be combined.
- *
+ * 
  * Note.
  * FIXME - Adding the Google geometry class currently breaks Polygon & Polyline.
  * Removed the following from dependencies for both gm3.polygon and gm3.polyline
@@ -23,8 +23,8 @@
  * 'gm3',
  * 'gm3.geometry'
  * )
- *
- * FIXME - Select countries.  Click on a region could bring up an option to
+ * 
+ * FIXME - Select countries.  Click on a region could bring up an option to 
  * select the subregions (TDWG 4).
  */
 /**
@@ -47,7 +47,7 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/google/js.js',
+          'data' => 'http://maps.googleapis.com/maps/api/js?sensor=false',
           'options' => 'external',
           'preprocess' => FALSE
         ),
@@ -301,8 +301,8 @@ function gm3_theme(){
 
 /**
  * Implements hook_form_FORM_ID_alter().
- *
- * This function ensures the user can only select the "Fields" type for a
+ * 
+ * This function ensures the user can only select the "Fields" type for a 
  * Google map view.
  */
 function gm3_form_views_ui_add_form_alter(&$form, &$form_state, $form_id){
@@ -323,7 +323,7 @@ function gm3_form_views_ui_add_form_alter(&$form, &$form_state, $form_id){
 /**
  * Load the geoPHP library.  This could be made optional, as not all features
  * require the library.
- *
+ * 
  * This code is adapted from the geofield module.
  */
 function gm3_load_geophp(){
@@ -400,7 +400,7 @@ function gm3_menu(){
  * Get the default settings.  Note, these vary slightly from Google's default
  * settings, as not all of Google's defaults are appropriate for the intended
  * uses of the GM3 module.  The following changes have been made:
- *
+ * 
  * center: Now centered on Europe.
  * backgroundColor: white
  * mapTypeId: google.maps.MapTypeId.TERRAIN
@@ -427,12 +427,15 @@ function gm3_settings(){
     'mapTypeControl' => TRUE,
     'mapTypeControlOptions' => array(
       'mapTypeIds' => array(
-        'OSM' // Custom map type using Open Street Map.
+        'google.maps.MapTypeId.HYBRID',
+        'google.maps.MapTypeId.ROADMAP',
+        'google.maps.MapTypeId.SATELLITE',
+        'google.maps.MapTypeId.TERRAIN'
       ),
       'style' => 'google.maps.MapTypeControlStyle.DEFAULT', // http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeControlStyle
       'position' => 'google.maps.ControlPosition.TOP_RIGHT' // http://code.google.com/apis/maps/documentation/javascript/reference.html#ControlPosition
     ),
-    'mapTypeId' => 'OSM', // SATELLITE, TERRAIN, ROADMAP, HYBRID
+    'mapTypeId' => 'google.maps.MapTypeId.TERRAIN', // SATELLITE, TERRAIN, ROADMAP, HYBRID
     'maxZoom' => null,
     'minZoom' => null,
     'noClear' => FALSE,
