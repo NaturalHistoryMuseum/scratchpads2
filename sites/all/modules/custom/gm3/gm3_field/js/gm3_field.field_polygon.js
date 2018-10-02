@@ -18,9 +18,9 @@
               if(ii > 0) {
                 new_value += ",";
               }
-              new_value += paths.j[ii].lng() + " " + paths.j[ii].lat()
+              new_value += paths.b[ii].lng() + " " + paths.b[ii].lat()
             }
-            new_value += "," + paths.j[0].lng() + " " + paths.j[0].lat()
+            new_value += "," + paths.b[0].lng() + " " + paths.b[0].lat()
             new_value += "))"
           }
         })
