@@ -1,4 +1,4 @@
-2.9.1 (2018-10-03)
+2.9.2 (2018-10-03)
 
 - Upgraded Drupal to 7.59
 - Added Docker & docker compose
