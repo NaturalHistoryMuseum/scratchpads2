@@ -1,3 +1,12 @@
+2.9.1 (2018-10-03)
+
+- Upgraded Drupal to 7.59
+- Added Docker & docker compose
+- Issue tracker uses Github issues
+- Updated help to use Github Wiki
+- Fixed Google Maps
+- Removed duplicated legacy modules
+
 2.8.1 (2016-06-17)
 
 - Ecological interactions.
@@ -120,7 +129,7 @@
 
 2.7.1.2 (2015-07-02)
 
-- Ensure that when rows are skipped in Slickgrid, that the rows are correctly 
+- Ensure that when rows are skipped in Slickgrid, that the rows are correctly
   indexed (#4416)
 
 2.7.1.1 (2015-07-01)
@@ -131,7 +140,7 @@
 
 2.7.1 (2015-06-30)
 
-- Upgrades: Webform (7.x-4.9), Drupal (7.38) 
+- Upgrades: Webform (7.x-4.9), Drupal (7.38)
 - Fixed a long standing bug with the handling of translated fields and imported
   data (#1324, #3401, #3657, #4028, #4162, #4332)
 - Fixed an issue that resulted in skipped rows in Slickgrid views (#4416)
@@ -165,7 +174,7 @@
 2.6.4.8 (2015-05-05)
 
 - Fix a minor typo in the Excel importer that had a major effect on the import.
-  (#4388, 4389, #4393) 
+  (#4388, 4389, #4393)
 
 2.6.4.7 (2015-04-30)
 
@@ -292,9 +301,9 @@
 
 2.6.1 (2015-03-10)
 
-- Altered EOLAPI module so that it does not store full images locally (just 
+- Altered EOLAPI module so that it does not store full images locally (just
   thumbnails and previews)
-- Upgraded memcache module to 7.x-1.5 which will enable us to run memcache 
+- Upgraded memcache module to 7.x-1.5 which will enable us to run memcache
   without the "-I 16M" flag
 - Removed unused contrib modules
 - Upgraded flag (7.x-2.2), token (7.x-1.6), site_map (7.x-1.2),
