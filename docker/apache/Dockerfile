@@ -71,3 +71,7 @@ RUN chown -R www-data:www-data /var/www/html
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+USER root
+
+CMD ["apache2-foreground"]
