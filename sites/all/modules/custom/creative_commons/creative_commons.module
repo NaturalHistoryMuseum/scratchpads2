@@ -1,8 +1,8 @@
 <?php
 /*********************************************************************************************
- * 
+ *
  * CONSTANTS
- * 
+ *
  ********************************************************************************************/
 define('CC_NONE', 1);
 define('CC_BY', 2);
@@ -21,9 +21,9 @@ define('CC_DEFAULT_VERSION', '3.0');
 define('CC_URL', 'cc_url');
 
 /*********************************************************************************************
- * 
+ *
  * FIELD HOOKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_field_info().
@@ -167,9 +167,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       $licence = 'by-nc-nd';
       break;
   }
-  // Default image 
+  // Default image
   if(!isset($image)){
-    $image = variable_get('creative_commons_image_uri', CC_IMAGE_URI) . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
+    $image = CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
   }
   if(!isset($url)){
     $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
@@ -257,9 +257,9 @@ function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_sta
 }
 
 /*********************************************************************************************
- * 
+ *
  * FEEDS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_feeds_processor_targets_alter().
@@ -281,7 +281,7 @@ function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type,
 
 /**
  * Callback to set the value for a CC field.
- * 
+ *
  * FIXME - Should CC be translatable?
  */
 function _creative_commons_feeds_set_target_value($source, $entity, $target, $value){
@@ -306,9 +306,9 @@ function _creative_commons_feeds_set_target_value($source, $entity, $target, $va
 }
 
 /*********************************************************************************************
- * 
+ *
  * APACHESOLR
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_apachesolr_field_mappings().
@@ -344,9 +344,9 @@ function creative_commons_indexing_callback($entity, $field_name, $index_key, $f
 }
 
 /*********************************************************************************************
- * 
+ *
  * BLOCKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_block_info().
@@ -425,9 +425,9 @@ function creative_commons_block_view($delta = ''){
 }
 
 /*********************************************************************************************
- * 
+ *
  * THEME FUNCTIONS
- * 
+ *
  ********************************************************************************************/
 function creative_commons_theme($existing, $type, $theme, $path){
   return array(
@@ -448,9 +448,9 @@ function theme_creative_commons_block($variables){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MODULE FUNCTIONS
- * 
+ *
  ********************************************************************************************/
 /**
  * Allowed values callback for field_license list field.
