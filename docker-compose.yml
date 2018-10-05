@@ -68,6 +68,7 @@ services:
   varnish:
     restart: always
     container_name: scratchpads.varnish
+    image: naturalhistorymuseum/scratchpads-varnish
     build:
       context: ./docker/varnish
     depends_on:
