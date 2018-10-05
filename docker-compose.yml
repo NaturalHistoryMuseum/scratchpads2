@@ -82,11 +82,6 @@ services:
 
 volumes:
   apache-files:
-    driver: local
-    driver_opts:
-      o: uid=1000
-      type: none
-      device: ${APACHE_VOLUME_PATH}
   mysql-data:
   solr-data:
 
