@@ -23,6 +23,15 @@ if(function_exists('drush_get_option')){
       $aliasname = '@' . $alias['#name'];
       $alias_extrainfo = drush_sitealias_get_record($aliasname.".site_data");
       $alias['site_data'] = $alias_extrainfo['site_data'];
+
+      // Delete the extra config file as we no longer need it and it will mess up the alias list
+      $paths = drush_sitealias_alias_path();
+      foreach ($paths as $p) {
+        $path = $p . "/" . $alias['#name'] . ".site_data.alias.drushrc.php";
+        if(file_exists($path)){
+          unlink($path);
+        }
+      }
     }
 
     $site_data = $alias['site_data'];
