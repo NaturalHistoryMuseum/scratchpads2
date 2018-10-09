@@ -798,3 +798,30 @@ function scratchpads_tweaks_file_mimetype_mapping_alter(&$mapping){
   $mapping['mimetypes']['new-hampshire extended'] = 'text/plain';
   $mapping['extensions']['nhx'] = 'new-hampshire extended';
 }
+
+/**
+ * Implements hook_preprocess_HOOK
+ *
+ * Disable the utf8mb4 error/warning so users don't complain before we update the databases
+ * FIXME: This is a stop-gap and can be removed after all database tables are using utf8mb4
+ */
+function scratchpads_tweaks_preprocess_status_report(&$variables) {
+  // Get the result of the charset check
+  $charset_requirements = _system_check_db_utf8mb4_requirements('runtime');
+
+  // Only replace text if the requirement fails; we want to show the default once we've upgraded
+  if (!empty($charset_requirements) && ($charset_requirements['severity'] != REQUIREMENT_OK)) {
+    $charset_requirements['description'] = 'Scratchpads databases will be converted to utf8mb4 in the near future.';
+    $charset_requireents['severity'] == REQUIREMENT_INFO;
+
+    $requirements = &$variables['requirements'];
+
+    // Requirements are an ordered array (numerical index), so search by title value and replace
+    foreach($requirements as $ix => $requirement) {
+      if ($requirement['title'] == $charset_requirements['title']) {
+        $requirements[$ix] = $charset_requirements;
+        break;
+      }
+    }
+  }
+}
