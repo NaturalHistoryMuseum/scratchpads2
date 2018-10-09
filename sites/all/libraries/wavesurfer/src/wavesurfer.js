@@ -3,35 +3,42 @@
  *
  * https://github.com/katspaugh/wavesurfer.js
  *
- * This work is licensed under a Creative Commons Attribution 3.0 Unported License.
+ * This work is licensed under a BSD-3-Clause License.
  */
 
 'use strict';
 
 var WaveSurfer = {
     defaultParams: {
-        height        : 128,
-        waveColor     : '#999',
-        progressColor : '#555',
+        audioContext  : null,
+        audioRate     : 1,
+        autoCenter    : true,
+        backend       : 'WebAudio',
+        barHeight     : 1,
+        closeAudioContext: false,
+        container     : null,
         cursorColor   : '#333',
         cursorWidth   : 1,
-        skipLength    : 2,
-        minPxPerSec   : 20,
-        pixelRatio    : window.devicePixelRatio,
-        fillParent    : true,
-        scrollParent  : false,
-        hideScrollbar : false,
-        normalize     : false,
-        audioContext  : null,
-        container     : null,
         dragSelection : true,
-        loopSelection : true,
-        audioRate     : 1,
+        fillParent    : true,
+        forceDecode   : false,
+        height        : 128,
+        hideScrollbar : false,
         interact      : true,
+        loopSelection : true,
+        mediaContainer: null,
+        mediaControls : false,
+        mediaType     : 'audio',
+        minPxPerSec   : 20,
+        partialRender : false,
+        pixelRatio    : window.devicePixelRatio || screen.deviceXDPI / screen.logicalXDPI,
+        progressColor : '#555',
+        normalize     : false,
+        renderer      : 'MultiCanvas',
+        scrollParent  : false,
+        skipLength    : 2,
         splitChannels : false,
-        renderer      : 'Canvas',
-        backend       : 'WebAudio',
-        mediaType     : 'audio'
+        waveColor     : '#999',
     },
 
     init: function (params) {
@@ -46,7 +53,7 @@ var WaveSurfer = {
             throw new Error('Container element not found');
         }
 
-        if (typeof this.params.mediaContainer == 'undefined') {
+        if (this.params.mediaContainer == null) {
             this.mediaContainer = this.container;
         } else if (typeof this.params.mediaContainer == 'string') {
             this.mediaContainer = document.querySelector(this.params.mediaContainer);
@@ -61,14 +68,22 @@ var WaveSurfer = {
         // Used to save the current volume when muting so we can
         // restore once unmuted
         this.savedVolume = 0;
+
         // The current muted state
         this.isMuted = false;
+
         // Will hold a list of event descriptors that need to be
         // cancelled on subsequent loads of audio
         this.tmpEvents = [];
 
+        // Holds any running audio downloads
+        this.currentAjax = null;
+
         this.createDrawer();
         this.createBackend();
+        this.createPeakCache();
+
+        this.isDestroyed = false;
     },
 
     createDrawer: function () {
@@ -91,6 +106,9 @@ var WaveSurfer = {
 
         // Relay the scroll event from the drawer
         this.drawer.on('scroll', function (e) {
+            if (my.params.partialRender) {
+                my.drawBuffer();
+            }
             my.fireEvent('scroll', e);
         });
     },
@@ -124,6 +142,13 @@ var WaveSurfer = {
         });
     },
 
+    createPeakCache: function() {
+        if (this.params.partialRender) {
+            this.peakCache = Object.create(WaveSurfer.PeakCache);
+            this.peakCache.init();
+        }
+    },
+
     getDuration: function () {
         return this.backend.getDuration();
     },
@@ -133,11 +158,12 @@ var WaveSurfer = {
     },
 
     play: function (start, end) {
+        this.fireEvent('interaction', this.play.bind(this, start, end));
         this.backend.play(start, end);
     },
 
     pause: function () {
-        this.backend.pause();
+        this.backend.isPaused() || this.backend.pause();
     },
 
     playPause: function () {
@@ -169,17 +195,20 @@ var WaveSurfer = {
     },
 
     seekTo: function (progress) {
+        this.fireEvent('interaction', this.seekTo.bind(this, progress));
+
         var paused = this.backend.isPaused();
+        // avoid draw wrong position while playing backward seeking
+        if (!paused) {
+            this.backend.pause();
+        }
         // avoid small scrolls while paused seeking
         var oldScrollParent = this.params.scrollParent;
-        if (paused) {
-            this.params.scrollParent = false;
-        }
+        this.params.scrollParent = false;
         this.backend.seekTo(progress * this.getDuration());
         this.drawer.progress(this.backend.getPlayedPercents());
 
         if (!paused) {
-            this.backend.pause();
             this.backend.play();
         }
         this.params.scrollParent = oldScrollParent;
@@ -203,6 +232,13 @@ var WaveSurfer = {
     },
 
     /**
+     * Get the playback volume.
+     */
+    getVolume: function () {
+        return this.backend.getVolume();
+    },
+
+    /**
      * Set the playback rate.
      *
      * @param {Number} rate A positive number. E.g. 0.5 means half the
@@ -213,24 +249,56 @@ var WaveSurfer = {
     },
 
     /**
+     * Get the playback rate.
+     */
+    getPlaybackRate: function () {
+        return this.backend.getPlaybackRate();
+    },
+
+    /**
      * Toggle the volume on and off. It not currenly muted it will
      * save the current volume value and turn the volume off.
      * If currently muted then it will restore the volume to the saved
      * value, and then rest the saved value.
      */
     toggleMute: function () {
-        if (this.isMuted) {
-            // If currently muted then restore to the saved volume
-            // and update the mute properties
-            this.backend.setVolume(this.savedVolume);
-            this.isMuted = false;
-        } else {
+        this.setMute(!this.isMuted);
+    },
+
+    setMute: function (mute) {
+        // ignore all muting requests if the audio is already in that state
+        if (mute === this.isMuted) {
+            return;
+        }
+
+        if (mute) {
             // If currently not muted then save current volume,
             // turn off the volume and update the mute properties
             this.savedVolume = this.backend.getVolume();
             this.backend.setVolume(0);
             this.isMuted = true;
+        } else {
+            // If currently muted then restore to the saved volume
+            // and update the mute properties
+            this.backend.setVolume(this.savedVolume);
+            this.isMuted = false;
         }
+    },
+
+    /**
+     * Get the current mute status.
+     */
+    getMute: function () {
+        return this.isMuted;
+    },
+
+    /**
+     * Get the list of current set filters as an array.
+     *
+     * Filters must be set with setFilters method first
+     */
+    getFilters: function() {
+        return this.backend.filters || [];
     },
 
     toggleScroll: function () {
@@ -248,14 +316,28 @@ var WaveSurfer = {
         );
         var parentWidth = this.drawer.getWidth();
         var width = nominalWidth;
+        var start = this.drawer.getScrollX();
+        var end = Math.min(start + parentWidth, width);
 
         // Fill container
         if (this.params.fillParent && (!this.params.scrollParent || nominalWidth < parentWidth)) {
             width = parentWidth;
+            start = 0;
+            end = width;
         }
 
-        var peaks = this.backend.getPeaks(width);
-        this.drawer.drawPeaks(peaks, width);
+        if (this.params.partialRender) {
+            var newRanges = this.peakCache.addRangeToPeakCache(width, start, end);
+            for (var i = 0; i < newRanges.length; i++) {
+              var peaks = this.backend.getPeaks(width, newRanges[i][0], newRanges[i][1]);
+              this.drawer.drawPeaks(peaks, width, newRanges[i][0], newRanges[i][1]);
+            }
+        } else {
+            start = 0;
+            end = width;
+            var peaks = this.backend.getPeaks(width, start, end);
+            this.drawer.drawPeaks(peaks, width, start, end);
+        }
         this.fireEvent('redraw', peaks, width);
     },
 
@@ -265,10 +347,12 @@ var WaveSurfer = {
         this.params.scrollParent = true;
 
         this.drawBuffer();
+        this.drawer.progress(this.backend.getPlayedPercents());
 
-        this.seekAndCenter(
+        this.drawer.recenter(
             this.getCurrentTime() / this.getDuration()
         );
+        this.fireEvent('zoom', pxPerSec);
     },
 
     /**
@@ -276,7 +360,9 @@ var WaveSurfer = {
      */
     loadArrayBuffer: function (arraybuffer) {
         this.decodeArrayBuffer(arraybuffer, function (data) {
-            this.loadDecodedBuffer(data);
+            if (!this.isDestroyed) {
+                this.loadDecodedBuffer(data);
+            }
         }.bind(this));
     },
 
@@ -312,27 +398,60 @@ var WaveSurfer = {
     },
 
     /**
-     * Loads audio and rerenders the waveform.
+     * Loads audio and re-renders the waveform.
      */
-    load: function (url, peaks) {
+    load: function (url, peaks, preload) {
+        this.empty();
+        this.isMuted = false;
+
         switch (this.params.backend) {
-            case 'WebAudio': return this.loadBuffer(url);
-            case 'MediaElement': return this.loadMediaElement(url, peaks);
+            case 'WebAudio': return this.loadBuffer(url, peaks);
+            case 'MediaElement': return this.loadMediaElement(url, peaks, preload);
         }
     },
 
     /**
      * Loads audio using Web Audio buffer backend.
      */
-    loadBuffer: function (url) {
-        this.empty();
-        // load via XHR and render all at once
-        return this.getArrayBuffer(url, this.loadArrayBuffer.bind(this));
+    loadBuffer: function (url, peaks) {
+        var load = (function (action) {
+            if (action) {
+                this.tmpEvents.push(this.once('ready', action));
+            }
+            return this.getArrayBuffer(url, this.loadArrayBuffer.bind(this));
+        }).bind(this);
+
+        if (peaks) {
+            this.backend.setPeaks(peaks);
+            this.drawBuffer();
+            this.tmpEvents.push(this.once('interaction', load));
+        } else {
+            return load();
+        }
     },
 
-    loadMediaElement: function (url, peaks) {
-        this.empty();
-        this.backend.load(url, this.mediaContainer, peaks);
+    /**
+     *  Either create a media element, or load
+     *  an existing media element.
+     *  @param  {String|HTMLElement} urlOrElt Either a path to a media file,
+     *                                          or an existing HTML5 Audio/Video
+     *                                          Element
+     *  @param  {Array}            [peaks]     Array of peaks. Required to bypass
+     *                                          web audio dependency
+     */
+    loadMediaElement: function (urlOrElt, peaks, preload) {
+        var url = urlOrElt;
+
+        if (typeof urlOrElt === 'string') {
+            this.backend.load(url, this.mediaContainer, peaks, preload);
+        } else {
+            var elt = urlOrElt;
+            this.backend.loadElt(elt, peaks);
+
+            // If peaks are not provided,
+            // url = element.src so we can get peaks with web audio
+            url = elt.src;
+        }
 
         this.tmpEvents.push(
             this.backend.once('canplay', (function () {
@@ -345,45 +464,63 @@ var WaveSurfer = {
             }).bind(this))
         );
 
-
-        // If no pre-decoded peaks provided, attempt to download the
+        // If no pre-decoded peaks provided or pre-decoded peaks are
+        // provided with forceDecode flag, attempt to download the
         // audio file and decode it with Web Audio.
-        if (!peaks && this.backend.supportsWebAudio()) {
+        if (peaks) { this.backend.setPeaks(peaks); }
+
+        if ((!peaks || this.params.forceDecode) && this.backend.supportsWebAudio()) {
             this.getArrayBuffer(url, (function (arraybuffer) {
                 this.decodeArrayBuffer(arraybuffer, (function (buffer) {
                     this.backend.buffer = buffer;
+                    this.backend.setPeaks(null);
                     this.drawBuffer();
+                    this.fireEvent('waveform-ready');
                 }).bind(this));
             }).bind(this));
         }
     },
 
     decodeArrayBuffer: function (arraybuffer, callback) {
+        this.arraybuffer = arraybuffer;
+
         this.backend.decodeArrayBuffer(
             arraybuffer,
-            this.fireEvent.bind(this, 'decoded'),
+            (function (data) {
+                // Only use the decoded data if we haven't been destroyed or another decode started in the meantime
+                if (!this.isDestroyed && this.arraybuffer == arraybuffer) {
+                    callback(data);
+                    this.arraybuffer = null;
+                }
+            }).bind(this),
             this.fireEvent.bind(this, 'error', 'Error decoding audiobuffer')
-        );
-        this.tmpEvents.push(
-            this.once('decoded', callback)
         );
     },
 
     getArrayBuffer: function (url, callback) {
         var my = this;
+
         var ajax = WaveSurfer.util.ajax({
             url: url,
             responseType: 'arraybuffer'
         });
+
+        this.currentAjax = ajax;
+
         this.tmpEvents.push(
             ajax.on('progress', function (e) {
                 my.onProgress(e);
             }),
-            ajax.on('success', callback),
+            ajax.on('success', function (data, e) {
+                callback(data);
+                my.currentAjax = null;
+            }),
             ajax.on('error', function (e) {
                 my.fireEvent('error', 'XHR error: ' + e.target.statusText);
+                my.currentAjax = null;
             })
         );
+
         return ajax;
     },
 
@@ -417,6 +554,30 @@ var WaveSurfer = {
         return json;
     },
 
+    /**
+     * Save waveform image as data URI.
+     *
+     * The default format is 'image/png'. Other supported types are
+     * 'image/jpeg' and 'image/webp'.
+     */
+    exportImage: function(format, quality) {
+        if (!format) {
+            format = 'image/png';
+        }
+        if (!quality) {
+            quality = 1;
+        }
+
+        return this.drawer.getImage(format, quality);
+    },
+
+    cancelAjax: function () {
+        if (this.currentAjax) {
+            this.currentAjax.xhr.abort();
+            this.currentAjax = null;
+        }
+    },
+
     clearTmpEvents: function () {
         this.tmpEvents.forEach(function (e) { e.un(); });
     },
@@ -429,6 +590,7 @@ var WaveSurfer = {
             this.stop();
             this.backend.disconnectSource();
         }
+        this.cancelAjax();
         this.clearTmpEvents();
         this.drawer.progress(0);
         this.drawer.setWidth(0);
@@ -440,10 +602,12 @@ var WaveSurfer = {
      */
     destroy: function () {
         this.fireEvent('destroy');
+        this.cancelAjax();
         this.clearTmpEvents();
         this.unAll();
         this.backend.destroy();
         this.drawer.destroy();
+        this.isDestroyed = true;
     }
 };
 

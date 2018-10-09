@@ -48,6 +48,7 @@ WaveSurfer.WebAudio = {
 
         this.setState(this.PAUSED_STATE);
         this.setPlaybackRate(this.params.audioRate);
+        this.setLength(0);
     },
 
     disconnectFilters: function () {
@@ -116,8 +117,7 @@ WaveSurfer.WebAudio = {
                 my.setState(my.FINISHED_STATE);
                 my.fireEvent('pause');
             } else if (time >= my.scheduledPause) {
-                my.setState(my.PAUSED_STATE);
-                my.fireEvent('pause');
+                my.pause();
             } else if (my.state === my.states[my.PLAYING_STATE]) {
                 my.fireEvent('audioprocess', time);
             }
@@ -177,28 +177,62 @@ WaveSurfer.WebAudio = {
     },
 
     /**
+     * Set pre-decoded peaks.
+     */
+    setPeaks: function (peaks) {
+        this.peaks = peaks;
+    },
+
+    /**
+     * Set the rendered length (different from the length of the audio).
+     */
+    setLength: function (length) {
+        // No resize, we can preserve the cached peaks.
+        if (this.mergedPeaks && length == ((2 * this.mergedPeaks.length - 1) + 2)) {
+          return;
+        }
+
+        this.splitPeaks = [];
+        this.mergedPeaks = [];
+        // Set the last element of the sparse array so the peak arrays are
+        // appropriately sized for other calculations.
+        var channels = this.buffer ? this.buffer.numberOfChannels : 1;
+        for (var c = 0; c < channels; c++) {
+          this.splitPeaks[c] = [];
+          this.splitPeaks[c][2 * (length - 1)] = 0;
+          this.splitPeaks[c][2 * (length - 1) + 1] = 0;
+        }
+        this.mergedPeaks[2 * (length - 1)] = 0;
+        this.mergedPeaks[2 * (length - 1) + 1] = 0;
+    },
+
+    /**
      * Compute the max and min value of the waveform when broken into
      * <length> subranges.
-     * @param {Number} How many subranges to break the waveform into.
+     * @param {Number} length How many subranges to break the waveform into.
+     * @param {Number} first First sample in the required range.
+     * @param {Number} last Last sample in the required range.
      * @returns {Array} Array of 2*<length> peaks or array of arrays
      * of peaks consisting of (max, min) values for each subrange.
      */
-    getPeaks: function (length) {
+    getPeaks: function (length, first, last) {
+        if (this.peaks) { return this.peaks; }
+
+        this.setLength(length);
+
         var sampleSize = this.buffer.length / length;
         var sampleStep = ~~(sampleSize / 10) || 1;
         var channels = this.buffer.numberOfChannels;
-        var splitPeaks = [];
-        var mergedPeaks = [];
 
         for (var c = 0; c < channels; c++) {
-            var peaks = splitPeaks[c] = [];
+            var peaks = this.splitPeaks[c];
             var chan = this.buffer.getChannelData(c);
 
-            for (var i = 0; i < length; i++) {
+            for (var i = first; i <= last; i++) {
                 var start = ~~(i * sampleSize);
                 var end = ~~(start + sampleSize);
-                var min = chan[0];
-                var max = chan[0];
+                var min = 0;
+                var max = 0;
 
                 for (var j = start; j < end; j += sampleStep) {
                     var value = chan[j];
@@ -215,17 +249,17 @@ WaveSurfer.WebAudio = {
                 peaks[2 * i] = max;
                 peaks[2 * i + 1] = min;
 
-                if (c == 0 || max > mergedPeaks[2 * i]) {
-                    mergedPeaks[2 * i] = max;
+                if (c == 0 || max > this.mergedPeaks[2 * i]) {
+                    this.mergedPeaks[2 * i] = max;
                 }
 
-                if (c == 0 || min < mergedPeaks[2 * i + 1]) {
-                    mergedPeaks[2 * i + 1] = min;
+                if (c == 0 || min < this.mergedPeaks[2 * i + 1]) {
+                    this.mergedPeaks[2 * i + 1] = min;
                 }
             }
         }
 
-        return this.params.splitChannels ? splitPeaks : mergedPeaks;
+        return this.params.splitChannels ? this.splitPeaks : this.mergedPeaks;
     },
 
     getPlayedPercents: function () {
@@ -249,6 +283,24 @@ WaveSurfer.WebAudio = {
         this.gainNode.disconnect();
         this.scriptNode.disconnect();
         this.analyser.disconnect();
+        // close the audioContext if closeAudioContext option is set to true
+        if (this.params.closeAudioContext) {
+            // check if browser supports AudioContext.close()
+            if (typeof this.ac.close === 'function' && this.ac.state != 'closed') {
+                this.ac.close();
+            }
+            // clear the reference to the audiocontext
+            this.ac = null;
+            // clear the actual audiocontext, either passed as param or the
+            // global singleton
+            if (!this.params.audioContext) {
+                WaveSurfer.WebAudio.audioContext = null;
+            } else {
+                this.params.audioContext = null;
+            }
+            // clear the offlineAudioContext
+            WaveSurfer.WebAudio.offlineAudioContext = null;
+        }
     },
 
     load: function (buffer) {
@@ -283,6 +335,8 @@ WaveSurfer.WebAudio = {
     },
 
     seekTo: function (start, end) {
+        if (!this.buffer) { return; }
+
         this.scheduledPause = null;
 
         if (start == null) {
@@ -318,6 +372,8 @@ WaveSurfer.WebAudio = {
      * relative to the beginning of a clip.
      */
     play: function (start, end) {
+        if (!this.buffer) { return; }
+
         // need to re-create source on each playback
         this.createSource();
 
@@ -329,6 +385,10 @@ WaveSurfer.WebAudio = {
         this.scheduledPause = end;
 
         this.source.start(0, start, end - start);
+
+        if (this.ac.state == 'suspended') {
+          this.ac.resume && this.ac.resume();
+        }
 
         this.setState(this.PLAYING_STATE);
 
@@ -354,6 +414,13 @@ WaveSurfer.WebAudio = {
     */
     getCurrentTime: function () {
         return this.state.getCurrentTime.call(this);
+    },
+
+    /**
+    *   Returns the current playback rate.
+    */
+    getPlaybackRate: function () {
+        return this.playbackRate;
     },
 
     /**
