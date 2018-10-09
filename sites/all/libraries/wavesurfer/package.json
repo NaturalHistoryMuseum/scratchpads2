@@ -35,5 +35,8 @@
     "karma-jasmine": "1.0.2",
     "karma-jasmine-matchers": "3.0.1"
   },
-  "homepage": "https://github.com/katspaugh/wavesurfer.js"
+  "homepage": "https://github.com/katspaugh/wavesurfer.js",
+  "dependencies": {
+    "jasmine-core": "^3.2.1"
+  }
 }

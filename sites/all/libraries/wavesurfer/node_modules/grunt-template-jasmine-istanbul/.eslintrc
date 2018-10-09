@@ -1,0 +1,25 @@
+{
+	"extends": "eslint-config-ideal",
+	"env": {
+		"node": true,
+		"jasmine": true
+	},
+	"rules": {
+		"quotes": [2, "single", "avoid-escape"],
+		"strict": 0,
+		"indent": [2, "tab"],
+		"newline-after-var": 0,
+		"vars-on-top": 0,
+		"space-before-function-paren": [2, "always"],
+		"space-before-blocks": [2, "always"],
+		"space-after-keywords": [2, "always"],
+		"valid-jsdoc": [2, {
+			"requireReturn": true,
+			"requireParamDescription": true
+		}],
+		"brace-style": [2, "1tbs", { "allowSingleLine": true }],
+		"id-length": 0,
+		"quote-props": 0,
+		"lines-around-comment": 0
+	}
+}
