@@ -1,0 +1,61 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Views Distinct module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function views_distinct_schema() {
+  $schema['views_distinct'] = array(
+    'description' => 'Store settings per View->Display->Field',
+    'fields' => array(
+      'view_name' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'View name, as found in views_view.name.',
+      ),
+      'display_id' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'Display id, as found in views_display.id.',
+      ),
+      'field_id' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'Machine name for the field on this display, as assigned by Views.',
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'description' => 'A serialized array of settings for this View->Display->Field.',
+        'serialize' => TRUE,
+        'serialized default' => 'a:0:{}',
+      ),
+    ),
+    'indexes' => array(
+      'view' => array('view_name'),
+      'field_setting' => array('view_name', 'display_id', 'field_id'),
+    ),
+    'unique keys' => array(),
+    'foreign keys' => array(
+      'view_name' => array(
+        'table' => 'views_view',
+        'columns' => array('view_name' => 'name'),
+      ),
+      'display_id' => array(
+        'table' => 'views_display',
+        'columns' => array('display_id' => 'id'),
+      ),
+    ),
+    'primary key' => array('view_name', 'display_id', 'field_id'),
+  );
+
+  return $schema;
+}

@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function antibot_menu() {
+  $items = array();
+  $items['antibot'] = array(
+    'title' => 'Submission failed',
+    'page callback' => 'antibot_landing_page',
+    'access callback' => TRUE,
+    'file' => 'antibot.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/system/antibot'] = array(
+    'title' => 'Antibot',
+    'description' => 'Configure Antibot form protection.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('antibot_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'antibot.admin.inc',
+  );
+  return $items; 
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function antibot_form_alter(&$form, &$form_state, $form_id) {
+  // Track if this form is antibot-enabled.
+  $enabled = FALSE;
+
+  // See if this form should have antibot protection
+  if (drupal_match_path($form_id, antibot_active_form_ids())) {
+    // Add a pre-render to activate antibot.
+    $form['#pre_render'][] = 'antibot_form_pre_render';
+    // Mark as enabled.
+    $enabled = TRUE;
+  }
+
+  // Check if we should display the form ID.
+  if (variable_get('antibot_show_form_ids', FALSE)) {
+    // Check if the user has permission to view the form ID.
+    if (user_access('administer site configuration')) {
+      // Display the form ID and status.
+      drupal_set_message("{$form_id}: " . ($enabled ? t('active') : t('inactive')));
+    }
+  }
+}
+
+/**
+ * Determine the form IDs that should contain Antibot protection.
+ * 
+ * @return
+ *   A list of form IDs that can contain wildcard (*) characters. The 
+ *   form IDs are separated by newline characters.
+ */
+function antibot_active_form_ids() {
+  // See if we have IDs set
+  if (!($ids = variable_get('antibot_form_ids', NULL))) {
+    // Provide default IDs
+    $ids = implode("\n", array(
+      'comment_node_*',
+      'user_login',
+      'user_login_block',
+      'user_pass',
+      'user_register_form',
+      'contact_site_form',
+    ));
+  }
+  
+  return $ids;
+}
+
+/**
+ * Pre-render callback on forms that should have Antibot protection.
+ * 
+ * @see antibot_form_alter().
+ */
+function antibot_form_pre_render($form) {
+  // Attach the needed Javascript to re-enable this form
+  $form['antibot'] = array(
+    '#attached' => array(
+      'js' => array(
+        array(
+          'type' => 'setting',
+          'data' => array(
+            'antibot' => array(
+              'actions' => array(
+                $form['#id'] => $form['#action'],
+              ),
+            ),
+          ),
+        ),
+        drupal_get_path('module', 'antibot') . '/js/antibot.js',
+      ),
+    ),
+  );
+   
+  // Change the action so the submission does not go through
+  $form['#action'] = base_path() . 'antibot';
+    
+  // Hide the form in the event that the user does not have Javascript.
+  // If they do, it will be restored.
+  $form['#attributes']['style'] = 'display: none;';
+  $form['#attributes']['class'][] = 'antibot-hidden';
+    
+  // Provide a message in the event that the user does not have Javascript.
+  $form['#prefix'] = '<div class="antibot-no-js messages warning">' . t('You must have Javascript enabled to use this form.') . '</div>';
+
+  return $form;
+}
