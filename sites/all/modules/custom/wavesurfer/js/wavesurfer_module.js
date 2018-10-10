@@ -3,6 +3,7 @@ jQuery(document).ready(function(){
   jQuery('.wavesurfer-container').each(function(){
     var index = jQuery(this).data("fileid");
     window.surfers[index] = Object.create(WaveSurfer);
+    //window.surfers[index].init({container: this, backend: 'MediaElement'});
     window.surfers[index].init({container: this, waveColor: jQuery(this).data("wavecolor"), progressColor: jQuery(this).data("progresscolor"), scrollParent: true, minPxPerSec: jQuery(this).data("pixelrate"), fileid: index});
     window.surfers[index].on('ready', function(){
       for( var index2 in Drupal.settings.wavesurfer.onready) {
@@ -12,6 +13,9 @@ jQuery(document).ready(function(){
       var progressDiv = document.querySelector('#progress-bar-' + index);
       progressDiv.style.display = 'none';
       window.surfers[index].seekTo(0);
+
+      var spectrogram = Object.create(WaveSurfer.Spectrogram);
+      spectrogram.init({wavesurfer: window.surfers[index], container: "#spectrogram-"+index, fftSamples: 256})
     });
 
     window.surfers[index].on('loading', function(percent, xhr){
@@ -30,7 +34,11 @@ jQuery(document).ready(function(){
       progressDiv.style.display = 'block';
     });
 
-    window.surfers[index].loadBuffer(jQuery(this).data("audiofile"));
+    if (Drupal.settings.wildsound.peaks == null) {
+      window.surfers[index].loadBuffer(jQuery(this).data("audiofile"));
+    } else {
+      window.surfers[index].loadBuffer(jQuery(this).data("audiofile"), Drupal.settings.wildsound.peaks);
+    }
   });
 });
 

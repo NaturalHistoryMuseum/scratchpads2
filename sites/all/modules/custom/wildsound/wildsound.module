@@ -1,6 +1,21 @@
 <?php
 
 /**
+ * Implements hook_js_alter().
+ */
+function wildsound_js_alter(&$js) {
+  foreach ($js as $path => &$values) {
+    if (is_string($values['data']) && strpos($values['data'], 'wavesurfer') !== FALSE) {
+      $values['preprocess'] = FALSE;
+    }
+    if (is_string($values['data']) && strpos($values['data'], 'wildsound') !== FALSE) {
+      $values['preprocess'] = FALSE;
+    }
+  }
+}
+
+
+/**
  * Implements hook_menu().
  */
 function wildsound_menu(){
@@ -142,13 +157,13 @@ function wildsound_analysis_fields(){
 function wildsound_comment_view_alter(&$build){
   $comment = $build['#comment'];
   $is_annotation = (isset($build['comment_body']) || $build['comment_body'] == "") ? false : true;
-  if(!$is_annotation){
+  if(!is_annotation){
     //Hide anlaysis section
     drupal_set_message($build['comment_body'], 'status');
     unset($build['#groups']['group_accordion_wrapper']);
   }
   //Add region to wavesurfer
-  if($is_annotation){
+  if(true /*Put back? $is_annotation*/){
     $cnode = node_load($comment->nid);
     $cfid = $cnode->field_recording['und'][0]['fid'];
     $sstart = $comment->field_start_time['und'][0]['value'];
@@ -348,6 +363,16 @@ function wildsound_comment_callback($cid){
 function wildsound_node_view($node, $view_mode, $lang){
   if($node->type != 'recording'){return;}
   $node->content['#attached']['css'][] = drupal_get_path('module', 'wildsound') . '/css/wildsound-recording.css';
+  drupal_add_js(drupal_get_path('module', 'wildsound') . '/js/wildsound.js', 'file');
+  $peaks_file = "https://ams3.digitaloceanspaces.com/bioacoustica-analysis/peaks.json";
+  if (false  === file_get_contents($peaks_file,0,null,0,1)) {
+    drupal_add_js(array("wildsound" => array("peaks" => NULL)), 'setting');
+  } else {
+    $peaks_data = file_get_contents($peaks_file);
+    $peaks_json = json_decode($peaks_data, true);
+    //print_r(json_encode($peaks_json["data"]));exit;
+    drupal_add_js(array("wildsound" => array("peaks" => json_encode($peaks_data["data"]))), 'setting');
+  }
 }
 
 function wildsound_hex2rgb($hex){

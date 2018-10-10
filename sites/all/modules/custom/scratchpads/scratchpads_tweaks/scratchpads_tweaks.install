@@ -609,7 +609,7 @@ function scratchpads_tweaks_update_7014(){
     'skin' => 'kama',
     'uicolor' => 'default',
     'uicolor_textarea' => '<p>
-	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+    Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
 ',
     'uicolor_user' => 'default',
     'toolbar' => '[
@@ -733,7 +733,7 @@ function scratchpads_tweaks_update_7014(){
     'skin' => 'kama',
     'uicolor' => 'default',
     'uicolor_textarea' => '<p>
-	Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+    Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
 ',
     'uicolor_user' => 'default',
     'toolbar' => '[
@@ -1673,3 +1673,17 @@ function scratchpads_tweaks_update_7096(){
 function scratchpads_tweaks_update_7097(){
   variable_del('creative_commons_image_uri');
 }
+
+/**
+ * Disable GBIF registry client module & grant maintainers administer field permissions
+ */
+function scratchpads_tweaks_update_7098(){
+  drupal_flush_all_caches();
+  module_disable(array(
+    'scratchpads_gbif_registry_client'
+  ));
+  $permissions = array('administer fields');
+  $role = user_role_load_by_name('maintainer');
+  user_role_grant_permissions($role->rid, $permissions);
+}
+
