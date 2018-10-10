@@ -2,9 +2,9 @@
 
 /**
  * Implementation of hook_requirements().
- * 
+ *
  * Thanks to the geofield module for a large portion (ALL) of this code.
- * 
+ *
  * FIXME - This should actually be moved to the gm3_region module, although it
  * should probably be used in this module too.
  */
@@ -66,6 +66,17 @@ function gm3_requirements($phase){
 function gm3_update_7001(){
   if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] = 2){
     $gm3_settings['minZoom'] = null;
+    variable_set('gm3_default_settings', $gm3_settings);
+  }
+}
+
+/**
+ * Set the minZoom to 0, as 2 is causing issues.
+ */
+function gm3_update_7002(){
+  if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] = 2){
+    # FIXME: Add paul's change here
+    # $gm3_settings['minZoom'] = null;
     variable_set('gm3_default_settings', $gm3_settings);
   }
 }
