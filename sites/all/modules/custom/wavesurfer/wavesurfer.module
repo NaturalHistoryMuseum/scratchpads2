@@ -18,8 +18,7 @@ function wavesurfer_libraries_info(){
     'files' => array(
       'js' => array(
         'dist/wavesurfer.min.js',
-        'dist/plugin/wavesurfer.regions.min.js',
-        'dist/wavesurfer.min.js.map'
+        'dist/plugin/wavesurfer.regions.min.js'
       )
     )
   );
@@ -190,7 +189,7 @@ function theme_wavesurfer_waveform($variables){
   drupal_add_css(drupal_get_path('module', 'wavesurfer') . '/css/wavesurfer.css', 'file');
   // Container html.
   $output = '<span id="wavesurfer_position"></span>
-  		     <div id="' . $container_id . '" class="wavesurfer-container" ';
+             <div id="' . $container_id . '" class="wavesurfer-container" ';
   foreach($data_array as $key => $value){
     $output .= " data-$key='$value'";
   }
