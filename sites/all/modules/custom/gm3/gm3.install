@@ -64,19 +64,22 @@ function gm3_requirements($phase){
  * Set the minZoom to 0, as 2 is causing issues.
  */
 function gm3_update_7001(){
-  if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] = 2){
+  if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] == 2){
     $gm3_settings['minZoom'] = null;
     variable_set('gm3_default_settings', $gm3_settings);
   }
 }
 
 /**
- * Set the minZoom to 0, as 2 is causing issues.
+ * Use the OpenStreetMap tileset
  */
 function gm3_update_7002(){
-  if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] = 2){
-    # FIXME: Add paul's change here
-    # $gm3_settings['minZoom'] = null;
+  $gm3_settings = variable_get('gm3_default_settings', FALSE);
+
+  if($gm3_settings != FALSE) {
+    $gm3_settings['mapTypeControlOptions']['mapTypeIds'] = array('OSM');
+    $gm3_settings['mapTypeId'] = 'OSM';
+
     variable_set('gm3_default_settings', $gm3_settings);
   }
 }
