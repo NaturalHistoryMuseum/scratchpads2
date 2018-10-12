@@ -1,23 +1,34 @@
 (function($){
+  const tileSize = 256;
+
+  function gbif_tile_url(gbifHost, taxonId, coord, zoom) {
+    // NB: These tiles are actually 512px squares (the smallest size GBIF provides)
+    // but we shrink them to 256px, so zoom param is 1 level higher than you might expect.
+    return `${gbifHost}/v2/map/occurrence/density/${zoom}/${coord.x}/${coord.y}@1x.png?taxonKey=${taxonId}`;
+  }
+
   Drupal.GM3.eol_gbif_maps_overlay = function(map){
     this.GM3 = map;
     function EOLGBIFMapType(){
-      this.tileSize = new google.maps.Size(256, 256);
+      this.tileSize = new google.maps.Size(tileSize, tileSize);
     }
     var self = this;
     EOLGBIFMapType.prototype.getTile = function(coord, zoom, ownerDocument){
       var div = ownerDocument.createElement('DIV');
-      var resolution = 1;
-      if(zoom > 11){
-        resolution = 16;
-      } else if(zoom > 8){
-        resolution = 8;
-      } else if(zoom > 7){
-        resolution = 4;
-      } else if(zoom > 3){
-        resolution = 2;
+      // "Wrap" x (longitude) at 180th meridian properly
+      // NB: Don't touch coord.x: because coord param is by reference, and changing its x property breaks something in Google's lib
+      const tilesPerGlobe = 1 << zoom;
+      var x = coord.x % tilesPerGlobe;
+      if (x < 0) {
+          x = tilesPerGlobe + x;
       }
-      div.innerHTML = '<img class="eol_gbif_map_tile" src="' + Drupal.settings.gm3.settings.eol_gbif_maps.tile_url + self.GM3.libraries.eol_gbif_maps_overlay.taxon_id + '&x=' + coord.x + '&y=' + coord.y + '&z=' + zoom + '&resolution=' + resolution + '"/>';
+
+      const y = coord.y;
+
+      const src = gbif_tile_url(Drupal.settings.gm3.settings.eol_gbif_maps.tile_host, self.GM3.libraries.eol_gbif_maps_overlay.taxon_id, { x, y }, zoom);
+      // Apparently gbif returns 204 for some regions where there's no data (e.g. oceans)
+      // Add onerror handler to hide broken image in these cases
+      div.innerHTML = '<img class="eol_gbif_map_tile" src="' + src + '" onerror="this.style.display=\'none\'"/>';
       div.style.width = this.tileSize.width + 'px';
       div.style.height = this.tileSize.height + 'px';
       return div;
