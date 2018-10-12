@@ -120,3 +120,27 @@ function scratchpads_messages_update_7002(){
     ));
   }
 }
+
+/**
+ * Clear `roles` and `viewed` records that don't have an associated message
+ */
+function scratchpads_messages_update_7003() {
+  $tables = array('roles', 'viewed');
+
+  foreach($tables as $t) {
+    $table_name = 'scratchpads_messages_' . $t;
+
+    $query = db_select($table_name, $t);
+    $query->fields($t, array('mid'));
+    $query->leftJoin('scratchpads_messages_message', 'm', $t.'.mid = m.mid');
+    $query->isNull('m.mid');
+    $result = $query->execute()->fetchAll();
+
+    $mids = array();
+    foreach($result as $row) {
+      $mids[] = $row->mid;
+    }
+
+    db_delete($table_name)->condition('mid', $mids)->execute();
+  }
+}
