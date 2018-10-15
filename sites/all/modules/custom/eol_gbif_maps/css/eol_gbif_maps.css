@@ -1,4 +1,3 @@
 .eol_gbif_map_tile {
-	/* Allow us to shrink tiles to fit their container */
-	width: 100%;
+	opacity: 0.5;
 }

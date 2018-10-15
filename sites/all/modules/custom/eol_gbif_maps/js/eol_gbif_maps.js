@@ -1,9 +1,7 @@
 (function($){
-  const tileSize = 256;
+  const tileSize = 512;
 
   function gbif_tile_url(gbifHost, taxonId, coord, zoom) {
-    // NB: These tiles are actually 512px squares (the smallest size GBIF provides)
-    // but we shrink them to 256px, so zoom param is 1 level higher than you might expect.
     return `${gbifHost}/v2/map/occurrence/density/${zoom}/${coord.x}/${coord.y}@1x.png?taxonKey=${taxonId}`;
   }
 
@@ -14,6 +12,8 @@
     }
     var self = this;
     EOLGBIFMapType.prototype.getTile = function(coord, zoom, ownerDocument){
+      // We want zero-indexed zoom counter, but google uses 1-indexed.
+      zoom = zoom - 1;
       var div = ownerDocument.createElement('DIV');
       // "Wrap" x (longitude) at 180th meridian properly
       // NB: Don't touch coord.x: because coord param is by reference, and changing its x property breaks something in Google's lib
