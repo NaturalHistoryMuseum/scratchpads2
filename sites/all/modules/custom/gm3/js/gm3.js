@@ -12,6 +12,8 @@ var OSM = 'OSM'; // Open Street Map.
       this.max_objects = typeof (map.max_objects) != 'undefined' ? map.max_objects : 1000000;
       this.num_objects = 0;
       this.settings = map.settings;
+      // Ensure minZoom is not a string, or it errors when you zoom out too far
+      this.settings.minZoom = parseInt(this.settings.minZoom, 10);
       this.id = map.id;
       this.initialized = false;
       this.tools = typeof (map.tools) != 'undefined' ? map.tools : new Array();
