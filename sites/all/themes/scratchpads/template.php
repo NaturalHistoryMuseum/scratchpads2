@@ -378,6 +378,15 @@ function scratchpads_preprocess_page(&$vars){
   if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
     $vars['tabs'] = array();
   }
+  if (isset($vars['page']['content']['content']['content']['system_main']['term_heading']['term']['description_field']['#object'])) {
+    $term = $vars['page']['content']['content']['content']['system_main']['term_heading']['term']['description_field']['#object'];
+    if (isset($term->vid)) {
+      $lexicon_vids = variable_get("lexicon_vids");
+      if (isset($lexicon_vids[$term->vid]) && $lexicon_vids[$term->vid] > 0) {
+        $vars['page']['content']['content']['content']['system_main']['no_content']['#markup'] = '';
+      }
+    }
+  }
 }
 
 /**
