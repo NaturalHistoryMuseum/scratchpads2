@@ -1,6 +1,62 @@
 <?php
 
 /**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_taxonomic_name_field_field_formatter_info(){
+  return array(
+    'taxon_name' => array(
+      'label' => t('Formatted taxon name'),
+      'description' => t('Displays a formatted taxon name.'),
+      'field types' => array(
+        'taxonomy_term_reference'
+      )
+    ));
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ */
+function scratchpads_taxonomic_name_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch ($display['type']) {
+    case 'taxon_name':
+      foreach ($items as $delta => $item) {
+        $term = taxonomy_term_load($item['tid']);
+        $italics = FALSE;
+        if (isset($term->field_rank[$langcode][0]['value'])) {
+          if ($term->field_rank[$langcode][0]['value'] == "Species") {
+            $italics = TRUE;
+            if (isset($term->field_unit_name3[$langcode][0]['value'])) {
+              $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+            }
+          }
+          if ($term->field_rank[$langcode][0]['value'] == "Subspecies") {
+            $italics = TRUE;
+            if (isset($term->field_unit_name4[$langcode][0]['value'])) {
+              $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+            }
+          }
+        }
+        $element[$delta] = array(
+        '#markup' => l(
+                       ($italics ? "<em>" : "")
+                       . $term->field_unit_name1[$langcode][0]['value']
+                       . (isset($term->field_unit_name2[$langcode][0]['value']) ? ' '.$term->field_unit_name2[$langcode][0]['value'] : '')
+                       . (isset($term->field_unit_name3[$langcode][0]['value']) ? ' '.$term->field_unit_name3[$langcode][0]['value'] : '')
+                       . (isset($term->field_unit_name4[$langcode][0]['value']) ? ' '.$term->field_unit_name4[$langcode][0]['value'] : '')
+                       . ($italics ? "</em>" : ""),
+                       "taxonomy/term/".$term->tid
+                     )
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
  * Alter the taxonomy/autocomplete function so that we can add the vocabulary
  * name to the end of the term string "term (vocabulary)" when multiple
  * vocabularies are present.
