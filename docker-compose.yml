@@ -39,6 +39,9 @@ services:
       - APACHE_RUN_USER=www-data
       - APACHE_RUN_GROUP=www-data
       - APACHE_LOG_DIR=/var/log/apache2
+      - APACHE_PHP_MEMORY_LIMIT=${APACHE_PHP_MEMORY_LIMIT}
+      - APACHE_PHP_UPLOAD_MAX_FILESIZE=${APACHE_PHP_UPLOAD_MAX_FILESIZE}
+      - APACHE_PHP_POST_MAX_SIZE=${APACHE_PHP_POST_MAX_SIZE}
 
   mysql:
     container_name: scratchpads.mysql
