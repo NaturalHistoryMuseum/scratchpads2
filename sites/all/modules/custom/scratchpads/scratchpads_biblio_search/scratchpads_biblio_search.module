@@ -102,7 +102,7 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
   if(isset($searcher_info['types']['node'])){return array(
       'im_biblio_contributor' => array(
         'name' => 'im_biblio_contributor',
-        'label' => t('Biblio: Author'),
+        'label' => t('Author'),
         'description' => t('Biblio: Author'),
         'query types' => array(
           'term'
@@ -114,7 +114,7 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
       ),
       'im_biblio_keyword' => array(
         'name' => 'im_biblio_keyword',
-        'label' => t('Biblio: Keyword'),
+        'label' => t('Journal keyword'),
         'description' => t('Biblio: Keyword'),
         'query types' => array(
           'term'
@@ -126,7 +126,7 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
       ),
       'tus_biblio_year' => array(
         'name' => 'tus_biblio_year',
-        'label' => t('Biblio: Publication year'),
+        'label' => t('Publication year'),
         'description' => t('Biblio: Publication year'),
         'query types' => array(
           'term'
@@ -134,7 +134,7 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
       ),
       'im_biblio_secondary_title' => array(
         'name' => 'im_biblio_secondary_title',
-        'label' => t('Biblio: Secondary title'),
+        'label' => t('Journal'),
         'description' => t('Biblio: Secondary title'),
         'query types' => array(
           'term'
@@ -146,7 +146,7 @@ function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
       ),
       'tus_biblio_type' => array(
         'name' => 'tus_biblio_type',
-        'label' => t('Biblio: Type'),
+        'label' => t('Publication type'),
         'description' => t('Biblio: Type'),
         'query types' => array(
           'term'
