@@ -96,7 +96,7 @@ function scratchpads_messages_multiple_delete_confirm_submit($form, $form_state)
  */
 function scratchpads_messages_delete_messages($message_ids) {
   return array(
-    "messages" => db_delete('scratchpads_"messages"_message')->condition('mid', $message_ids)->execute(),
+    "messages" => db_delete('scratchpads_messages_message')->condition('mid', $message_ids)->execute(),
     "viewed" => db_delete('scratchpads_messages_viewed')->condition('mid', $message_ids)->execute(),
     "roles" => db_delete('scratchpads_messages_roles')->condition('mid', $message_ids)->execute()
   );

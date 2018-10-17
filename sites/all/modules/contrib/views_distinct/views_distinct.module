@@ -1,0 +1,521 @@
+<?php
+/**
+ * @file
+ * Allow filtering/aggregating Views results based on arbitrary distinct fields.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function views_distinct_help($path, $arg) {
+  if ($path == 'admin/help#views_distinct') {
+    $output = file_get_contents(drupal_get_path('module', 'views_distinct') . '/README.txt');
+    return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>' . check_plain($output) . '</pre>';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter all field config forms to add aggregation/filtering options.
+ */
+function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_state) {
+  // Only apply our logic to field configurations:
+  if ($form_state['type'] != 'field') {
+    return;
+  }
+
+  $view_name = $form_state['view']->name;
+  $display_name = $form_state['display_id'];
+  $field_name = $form_state['id'];
+
+  $views_distinct_settings = _views_distinct_field_settings_get($view_name, $display_name, $field_name);
+
+  $form['options']['views_distinct'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Views Distinct Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $methods = array(
+    '' => t('Do Nothing'),
+    'filter_repeats' => t('Filter Repeats'),
+    'aggregate_repeats' => t('Aggregate Repeats'),
+  );
+  $form['options']['views_distinct_action'] = array(
+    '#type' => 'select',
+    '#title' => t('Filter/Aggregate this field'),
+    '#description' => t('Filter (remove) or aggregate (group) result rows based on repetition of this field value. If a field handler applies special post-query formatting (such as the User Name handler that creates links to profiles), Aggregation may break the View unless rendered field output is used (below).'),
+    '#options' => $methods,
+    '#default_value' => $views_distinct_settings['action'],
+    '#fieldset' => 'views_distinct',
+  );
+  $form['options']['views_distinct_aggregate_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Aggregation Separator'),
+    '#description' => t('This value will be used between each value when aggregated results are combined. HTML is allowed, so be careful.'),
+    '#default_value' => $views_distinct_settings['aggregate_separator'],
+    '#fieldset' => 'views_distinct',
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="views_distinct_action"]' => array('value' => ''),
+      ),
+      'visible' => array(
+        ':input[name="views_distinct_action"]' => array('value' => 'aggregate_repeats'),
+      ),
+    ),
+  );
+  $form['options']['views_distinct_post_render'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use the rendered output of this field'),
+    '#description' => t('Filter/aggregate based on the rendered output of this field, including any Rewrite Results changes. This has performance implications (the queries are not impacted but the View must be built twice.'),
+    '#default_value' => $views_distinct_settings['post_render'],
+    '#fieldset' => 'views_distinct',
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="views_distinct_action"]' => array('value' => ''),
+      ),
+    ),
+  );
+
+  // Add our own submit handler, executed before views_ui_standard_submit()
+  array_unshift($form['buttons']['submit']['#submit'], 'views_distinct_form_views_ui_config_item_form_submit');
+}
+
+/**
+ * Submit handler for the views_ui_config_item form.
+ *
+ * Because we want our views_distinct options available across all handlers, and
+ * aren't a handler ourself, we need to store our field options independently.
+ * All options on the config form that are NOT in
+ * views_handler_field::option_definition() (ours are not) will be filtered out
+ * by views_object::unpack_options() when the Views form callback is fired.
+ *
+ * @see views_ui_config_item_form_submit()
+ * @see views_object::unpack_options()
+ * @see views_handler_field::option_definition()
+ */
+function views_distinct_form_views_ui_config_item_form_submit($form, &$form_state) {
+  $view_name = $form_state['view']->name;
+  $display_name = $form_state['display_id'];
+  $field_name = $form_state['id'];
+  $override_display_name = FALSE;
+  // Only set $override_display_name if such a thing was submitted.
+  if (!empty($form_state['values']['override']) && is_array($form_state['values']['override'])) {
+    $override_display_name = reset($form_state['values']['override']);
+  }
+  // Check if we're configuring this field for *this display only* or for all
+  // displays (really, the "default" display):
+  if (!empty($override_display_name) && $display_name !== $override_display_name) {
+    // In this case we are setting the configuration for a different display,
+    // so we'll actually store the setting on the overridden display name
+    // (probably this is "default"/All Displays). We also need to remove any
+    // setting we've stored for the actual $display_name, since that no longer
+    // applies (the user has chosen to NOT override the default settings,
+    // which would be the only reason to store $display_name-specific settings).
+    // Remove any existing $display_name setting:
+    _views_distinct_field_settings_set($view_name, $display_name, $field_name, NULL);
+
+    // Update $display_name so later code will act on the right setting storage:
+    $display_name = $override_display_name;
+  }
+
+  // Add/update the settings for this field:
+  $settings = array(
+    'post_render' => $form_state['values']['options']['views_distinct_post_render'],
+    'action' => $form_state['values']['options']['views_distinct_action'],
+    'aggregate_separator' => $form_state['values']['options']['views_distinct_aggregate_separator'],
+  ) + _views_distinct_field_settings_defaults();
+
+  // If no action was desired, delete the settings entirely:
+  if (empty($settings['action'])) {
+    $settings = NULL;
+  }
+  _views_distinct_field_settings_set($view_name, $display_name, $field_name, $settings);
+}
+
+/**
+ * Implements hook_views_post_execute().
+ *
+ * Filter through results and remove/aggregate duplicates based on fields.
+ * We use hook_views_post_execute instead of hook_views_pre_render in order to
+ * de-dupe before the pager/etc. is built. Post-execute is the first opportunity
+ * to check the results, so we do it then.
+ * In this post_execute phase, we only have access to the fields as SQL result
+ * rows, so there's not a lot of magic we can do except munge the actual SQL
+ * $view->result array based on the field definitions here.
+ */
+function views_distinct_views_post_execute(&$view) {
+  // Get the query fields that will need filtering/aggregation:
+  $actions = _views_distinct_get_view_actions($view);
+  $filter_sql_fields = $actions['pre_render']['filter_fields'];
+  $aggregated_sql_fields = $actions['pre_render']['aggregated_fields'];
+
+  // Check if we have any action we need to take (there are rows to filter or
+  // aggregate):
+    // Check if we have any action we need to take (there are rows to filter or
+  // aggregate):
+  if (empty($aggregated_sql_fields) && empty($filter_sql_fields)) {
+    return;
+  }
+
+  // Iterate each result, aggregating query field results and removing dupes:
+  $filter_sql_fields_list = array_keys($filter_sql_fields);
+  foreach ($view->result as $result_index => &$result) {
+    foreach ($aggregated_sql_fields as $sql_field => &$aggregated_values) {
+      if (isset($result->{$sql_field})) {
+        // Add this value to the field's list for aggregation later
+        // (we use array keys here to automatically remove dupes; the TRUE
+        // value is a dummy value.)
+        $aggregated_values['values'][$result->{$sql_field}] = TRUE;
+      }
+    }
+    foreach ($filter_sql_fields_list as $sql_field) {
+      if (isset($result->{$sql_field})) {
+        $value = $result->{$sql_field};
+        if (!empty($filter_sql_fields[$sql_field][$value])) {
+          // This is a repeated row!
+          unset($view->result[$result_index]);
+          --$view->total_rows;
+        }
+        $filter_sql_fields[$sql_field][$value] = TRUE;
+      }
+    }
+  }
+
+  // Now, iterate each remaining result one last time to assign the newly
+  // aggregated field values, if any:
+  if (!empty($aggregated_sql_fields)) {
+    foreach ($aggregated_sql_fields as $sql_field => &$aggregated_values) {
+      $aggregated_values['values'] = implode($aggregated_values['separator'], array_keys($aggregated_values['values']));
+    }
+    foreach ($view->result as $result_index => &$result) {
+      foreach ($aggregated_sql_fields as $sql_field => $aggregated_values) {
+        if (isset($result->{$sql_field})) {
+          $result->{$sql_field} = $aggregated_values['values'];
+        }
+      }
+    }
+  }
+
+  // Attempt to update the results cache.
+  $cache = $view->display_handler->get_plugin('cache');
+  if ($cache) {
+    $cache->cache_set('results');
+  }
+
+  // Update the pager, if we're using one.  Note: this only updates the page
+  // count that the pager displays, and even that it does not do fully:
+  // at most we will only be reducing $view->total_rows by (N - 1) where N is
+  // the per-page count of items, which may not affect the "total pages"
+  // sufficiently.  For example, if each pager page is showing 10 items, and
+  // we aggregate rows 1-9 into row 0, we've removed 9 rows.  If the total
+  // results for the query was 100 (even if they all end up being duplicates as
+  // well! We can't know at this point), which is 10 pages, our "fixed" result
+  // count would be "91", which would still show 10 pages.  In reality, once all
+  // dupes are filtered/aggregated, we may only have 2 pages.
+  if ($view->query->pager->use_pager()) {
+    $view->query->pager->total_items = $view->total_rows;
+    $view->query->pager->update_page_info();
+  }
+}
+
+/**
+ * Implements hook_process_views_view().
+ *
+ * We only use this hook when we need to use rendered output to remove dupes.
+ */
+function views_distinct_process_views_view(&$vars) {
+  // This function used to exist as an implementation of
+  // hook_views_post_render(&$view, &$output, &$cache), so pull out pieces of
+  // $vars in order to reproduce the previous variables.
+  $view = &$vars['view'];
+  $output = &$view->display_handler->output;
+  // This $cache logic is based on view::render(), which uses this to determine
+  // $cache before passing it to hook_views_post_render() implementations.
+  $cache = FALSE;
+  if (!empty($view->live_preview)) {
+    $cache = $view->display_handler->get_plugin('cache');
+  }
+
+  // Get the query fields that will need filtering/aggregation:
+  $actions = _views_distinct_get_view_actions($view);
+  $filter_row_fields = $actions['post_render']['filter_fields'];
+  $aggregated_row_fields = $actions['post_render']['aggregated_fields'];
+
+  // Check if we have any action we need to take (there are rows to filter or
+  // aggregate):
+  if (empty($aggregated_row_fields) && empty($filter_row_fields)) {
+    return;
+  }
+
+  // Iterate every rendered row and either filter or aggregate it.
+  $filter_row_fields_list = array_keys($filter_row_fields);
+  // Some style plugins (notably views_plugin_style_summary, which Contextual
+  // Filters uses to "display summary") do not support fields
+  // (style_plugin->uses_fields() returns FALSE due to uses_row_plugin()
+  // returning FALSE, seemingly regardless of the row plugin). In these cases,
+  // $rendered_fields is always NULL and we cannot force these to render. Bail.
+  if (empty($view->style_plugin->rendered_fields)) {
+    return;
+  }
+  foreach ($view->style_plugin->rendered_fields as $row_index => $row) {
+    foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
+      if (isset($row[$field_name])) {
+        // Add this value to the field's list for aggregation later
+        // (we use array keys here to automatically remove dupes; the TRUE
+        // value is a dummy value.)
+        $aggregated_values['values'][$row[$field_name]] = TRUE;
+      }
+    }
+    foreach ($filter_row_fields_list as $field_name) {
+      $value = $row[$field_name];
+      if (!empty($filter_row_fields[$field_name][$value])) {
+        // This is a repeated row!
+        unset($view->style_plugin->row_tokens[$row_index]);
+        unset($view->style_plugin->render_tokens[$row_index]);
+        unset($view->style_plugin->rendered_fields[$row_index]);
+        unset($view->result[$row_index]);
+        --$view->total_rows;
+      }
+      $filter_row_fields[$field_name][$value] = TRUE;
+    }
+  }
+
+  // Now, iterate each remaining result one last time to assign the newly
+  // aggregated field values, if any:
+  if (!empty($aggregated_row_fields)) {
+    foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
+      $aggregated_values['values'] = implode($aggregated_values['separator'], array_keys($aggregated_values['values']));
+    }
+    foreach ($view->style_plugin->rendered_fields as &$row) {
+      foreach ($aggregated_row_fields as $field_name => $aggregated_values) {
+        if (isset($row[$field_name])) {
+          $row[$field_name] = $aggregated_values['values'];
+        }
+      }
+    }
+  }
+
+  // Update the pager, if we're using one.  Note: this only updates the page
+  // count that the pager displays, and even that it does not do fully:
+  // at most we will only be reducing $view->total_rows by (N - 1) where N is
+  // the per-page count of items, which may not affect the "total pages"
+  // sufficiently.  For example, if each pager page is showing 10 items, and
+  // we aggregate rows 1-9 into row 0, we've removed 9 rows.  If the total
+  // results for the query was 100 (even if they all end up being duplicates as
+  // well! We can't know at this point), which is 10 pages, our "fixed" result
+  // count would be "91", which would still show 10 pages.  In reality, once all
+  // dupes are filtered/aggregated, we may only have 2 pages.
+  if ($view->query->pager->use_pager()) {
+    $view->query->pager->total_items = $view->total_rows;
+    $view->query->pager->update_page_info();
+    // This logic borrowed from template_preprocess_views_view().
+    if (!empty($vars['pager'])) {
+      $exposed_input = isset($view->exposed_raw_input) ? $view->exposed_raw_input : NULL;
+      $vars['pager'] = $view->query->render_pager($exposed_input);
+    }
+  }
+
+  // Since we've changed the post-rendered field output, we need to run render()
+  // on $rows again. This will call views_plugin_style::render_grouping(),
+  // which in turn calls views_plugin_style::get_field(), which refers to our
+  // modified views_plugin_style::rendered_fields[] array values.
+  $vars['rows'] = $view->style_plugin->render();
+}
+
+/**
+ * Utility function to centralize default field settings.
+ *
+ * @return array
+ *   An array of default settings (action, post_render, aggregate_separator).
+ */
+function _views_distinct_field_settings_defaults() {
+  return array(
+    'action' => '',
+    'post_render' => 0,
+    'aggregate_separator' => ', ',
+  );
+}
+
+/**
+ * Utility function to get field settings or their defaults.
+ *
+ * @param string $view_name
+ *   Machine name of the View currently being rendered/edited.
+ * @param string $display_name
+ *   Machine name of the Display currently being rendered/edited.
+ * @param string $field_name
+ *   Machine name of the Field currently being rendered/edited.
+ *
+ * @return array
+ *   An array of default settings (action, post_render, aggregate_separator).
+ */
+function _views_distinct_field_settings_get($view_name, $display_name, $field_name) {
+  $static_cache = &drupal_static('views_distinct', array());
+  // Check if this view_name has been loaded and if not, load it from the DB:
+  if (!isset($static_cache[$view_name])) {
+    $static_cache[$view_name] = array();
+    $results = db_select('views_distinct', 'vsd')
+      ->fields('vsd')
+      ->condition('view_name', $view_name, '=')
+      ->execute();
+    if (empty($results)) {
+      $results = array();
+    }
+    foreach ($results as $result) {
+      $settings = unserialize($result->settings) + _views_distinct_field_settings_defaults();
+      // HTML is allowed, but filter for terrible exploits in the aggregation
+      // joiner:
+      $settings['aggregate_separator'] = filter_xss($settings['aggregate_separator']);
+      $static_cache[$view_name] = array_merge_recursive(
+        $static_cache[$view_name],
+        array(
+          $result->display_id => array(
+            $result->field_id => $settings,
+          ),
+        )
+      );
+    }
+  }
+  // Check for a result in static cache:
+  if (!empty($static_cache[$view_name][$display_name][$field_name])) {
+    return $static_cache[$view_name][$display_name][$field_name];
+  }
+  // Check for a "default" result:
+  elseif (!empty($static_cache[$view_name]['default'][$field_name])) {
+    return $static_cache[$view_name]['default'][$field_name];
+  }
+
+  // Nothing found, so return the defaults:
+  return _views_distinct_field_settings_defaults();
+}
+
+/**
+ * Utility function to set/remove field settings.
+ *
+ * @param string $view_name
+ *   Machine name of the View currently being rendered/edited.
+ * @param string $display_name
+ *   Machine name of the Display currently being rendered/edited.
+ * @param string $field_name
+ *   Machine name of the Field currently being rendered/edited.
+ * @param array $settings
+ *   (optional) Array of new settings to store. If absent/empty, the record is
+ *   removed, not updated.
+ */
+function _views_distinct_field_settings_set($view_name, $display_name, $field_name, $settings = NULL) {
+  $static_cache = &drupal_static('views_distinct', array());
+  if (empty($display_name)) {
+    $display_name = 'default';
+  }
+  // Whether updating/inserting or removing, we start with removing the current
+  // setting, if it exists:
+  db_delete('views_distinct')
+    ->condition('view_name', $view_name, '=')
+    ->condition('display_id', $display_name, '=')
+    ->condition('field_id', $field_name, '=')
+    ->execute();
+
+  // Now, optionally insert a new (or updated) value:
+  if (!empty($settings)) {
+    // Updating the stored record.
+    $settings = (array) $settings + _views_distinct_field_settings_defaults();
+    // If !empty($settings), we're inserting/updating this setting; since we've
+    // already removed the setting either way, this is always a simple INSERT:
+    $record = array(
+      'view_name' => $view_name,
+      'display_id' => $display_name,
+      'field_id' => $field_name,
+      'settings' => $settings,
+    );
+    drupal_write_record('views_distinct', $record);
+  }
+  else {
+    // If we're removing settings, revert the static cache to defaults:
+    $settings = _views_distinct_field_settings_defaults();
+  }
+  if (!isset($static_cache[$view_name])) {
+    $static_cache[$view_name] = array();
+  }
+  if (!isset($static_cache[$view_name][$display_name])) {
+    $static_cache[$view_name][$display_name] = array();
+  }
+  if (!isset($static_cache[$view_name][$display_name][$field_name])) {
+    $static_cache[$view_name][$display_name][$field_name] = $settings;
+  }
+}
+
+/**
+ * Utility function to get the actions (if any) applicable to a given field.
+ *
+ * Cycles through the passed $view, building an array of pre_render and
+ * post_render actions.
+ *
+ * @param object $view
+ *   The view being displayed/rendered.
+ *
+ * @return array
+ *   Array of applicable actions for the view, in the format of
+ *   [(pre|post)_render] => [filter_fields] => [field_names...] => array() and
+ *   [(pre|post)_render] => [aggregated_fields] => [field_names...] => array()
+ */
+function _views_distinct_get_view_actions(&$view) {
+  $static = &drupal_static(__FUNCTION__, array());
+
+  $view_name = $view->name;
+  $display_name = $view->current_display;
+
+  if (!empty($static) && !empty($static[$view_name]) && !empty($static[$view_name][$display_name])) {
+    return $static[$view_name][$display_name];
+  }
+
+  if (!isset($static[$view_name])) {
+    $static[$view_name] = array();
+  }
+
+  $static[$view_name][$display_name] = array(
+    'pre_render' => array(
+      'filter_fields' => array(),
+      'aggregated_fields' => array(),
+    ),
+    'post_render' => array(
+      'filter_fields' => array(),
+      'aggregated_fields' => array(),
+    ),
+  );
+
+  $actions = &$static[$view_name][$display_name];
+
+  foreach ($view->field as $field_name => &$field_definition) {
+    // Iterate every defined field (note: this is not every *row*, so this list
+    // is generally small.)
+    // Get any views_distinct settings from the DB:
+    $settings = _views_distinct_field_settings_get($view_name, $display_name, $field_name);
+    // Check if we should be acting on the field (there's an action assigned):
+    if (!empty($settings['action'])) {
+      $filter_row_fields = &$actions['post_render']['filter_fields'];
+      $aggregated_row_fields = &$actions['post_render']['aggregated_fields'];
+      if (!$settings['post_render']) {
+        // The result row key is different from $field_name in the post_execute
+        // (before render) implementation:
+        $field_name = $field_definition->field_alias;
+        $filter_row_fields = &$actions['pre_render']['filter_fields'];
+        $aggregated_row_fields = &$actions['pre_render']['aggregated_fields'];
+      }
+      if ($settings['action'] == 'filter_repeats') {
+        // Add this field to the set of filtered duplicate fields:
+        $filter_row_fields[$field_name] = array();
+      }
+      elseif ($settings['action'] == 'aggregate_repeats') {
+        // Add this field to the set of aggregated fields:
+        $aggregated_row_fields[$field_name] = array(
+          'values' => array(),
+          'separator' => $settings['aggregate_separator'],
+        );
+      }
+    }
+  }
+
+  return $actions;
+}

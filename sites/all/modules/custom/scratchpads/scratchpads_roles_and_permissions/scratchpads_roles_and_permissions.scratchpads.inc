@@ -86,7 +86,9 @@ function scratchpads_roles_and_permissions_scratchpads_default_permissions(){
     'authenticated user' => array(),
     'contributor' => array(),
     'editor' => array(),
-    'maintainer' => array()
+    'maintainer' => array(
+      'administer fields'
+    )
   );
 }
 
@@ -435,7 +437,7 @@ function tui_scratchpads_default_permissions(){
 
 /**
  * Path module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function path_scratchpads_default_permissions(){
@@ -722,7 +724,7 @@ function biblio_scratchpads_default_permissions(){
 
 /**
  * EXIF Custom module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function exif_custom_scratchpads_default_permissions(){
@@ -752,7 +754,7 @@ function block_scratchpads_default_permissions(){
 
 /**
  * taxonomystatistics module
- * 
+ *
  * Implements hook_scratchpads_default_permissions().
  */
 function taxonomystatistics_scratchpads_default_permissions(){

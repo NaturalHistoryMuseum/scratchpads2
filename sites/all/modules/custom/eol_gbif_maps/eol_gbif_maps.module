@@ -67,7 +67,7 @@ function eol_gbif_maps_library(){
             'gm3' => array(
               'settings' => array(
                 'eol_gbif_maps' => array(
-                  'tile_url' => ' http://api.gbif.org/v1/map/density/tile?type=TAXON&key='
+                  'tile_host' => 'http://api.gbif.org'
                 )
               )
             )
