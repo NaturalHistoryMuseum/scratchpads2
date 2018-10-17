@@ -26,6 +26,13 @@ function scratchpads_taxonomic_name_field_field_formatter_view($entity_type, $en
         $term = taxonomy_term_load($item['tid']);
         $italics = FALSE;
         if (isset($term->field_rank[$langcode][0]['value'])) {
+          if ($term->field_rank[$langcode][0]['value'] == "Genus") {
+            $italics =  TRUE;
+          }
+          if ($term->field_rank[$langcode][0]['value'] == "Subgenus") {
+            $italics = TRUE;
+            $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+          }
           if ($term->field_rank[$langcode][0]['value'] == "Species") {
             $italics = TRUE;
             if (isset($term->field_unit_name3[$langcode][0]['value'])) {
