@@ -378,6 +378,7 @@ function scratchpads_preprocess_page(&$vars){
   if(isset($vars['tabs']) && empty($vars['tabs']['#primary'])){
     $vars['tabs'] = array();
   }
+  //Hide no content on lexicon pages
   if (isset($vars['page']['content']['content']['content']['system_main']['term_heading']['term']['description_field']['#object'])) {
     $term = $vars['page']['content']['content']['content']['system_main']['term_heading']['term']['description_field']['#object'];
     if (isset($term->vid)) {
