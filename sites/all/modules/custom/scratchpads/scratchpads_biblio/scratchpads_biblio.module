@@ -44,6 +44,13 @@ function scratchpads_biblio_node_view_alter(&$build){
   if($build['#node']->type == 'biblio' && (biblio_access('download', $build['#node']) == NODE_ACCESS_DENY || !biblio_access('download', $build['#node']))){
     unset($build['field_file']);
   }
+  if($build['#node']->type == 'biblio'){
+    $breadcrumb = array();
+    $breadcrumb[] = l(t('Home'), '');
+    $breadcrumb[] = l(t('Literature'), 'biblio');
+    // Set Breadcrumbs
+    drupal_set_breadcrumb($breadcrumb);
+  }
 }
 
 /**
