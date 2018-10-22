@@ -2311,7 +2311,10 @@ function url($path = NULL, array $options = array()) {
     $language = isset($options['language']) && isset($options['language']->language) ? $options['language']->language : '';
     $alias = drupal_get_path_alias($original_path, $language);
     if ($alias != $original_path) {
-      $path = $alias;
+      // Strip leading slashes from internal path aliases to prevent them
+      // becoming external URLs without protocol. /example.com should not be
+      // turned into //example.com.
+      $path = ltrim($alias, '/');
     }
   }
 
@@ -5530,11 +5533,6 @@ function drupal_cron_cleanup() {
  *   - 'name': Name of file without the extension.
  */
 function drupal_system_listing($mask, $directory, $key = 'name', $min_depth = 1) {
-  $cid = "drupal_system_listing|$mask|$directory|$key|$min_depth";
-  $cache = cache_get($cid);
-  if(!empty($cache->data)){
-    return $cache->data;
-  }
   $config = conf_path();
 
   $searchdir = array($directory);
@@ -5602,7 +5600,7 @@ function drupal_system_listing($mask, $directory, $key = 'name', $min_depth = 1)
     }
     $files = array_merge($files, $files_to_add);
   }
-  cache_set($cid, $files, 'cache', time() + 604800);
+
   return $files;
 }
 
@@ -7478,18 +7476,12 @@ function drupal_parse_info_file($filename) {
   $info = &drupal_static(__FUNCTION__, array());
 
   if (!isset($info[$filename])) {
-    $cache = cache_get(__FUNCTION__);
-    if(empty($cache->data) || empty($cache->data[$filename])){
-      if (!file_exists($filename)) {
-        $info[$filename] = array();
-      }
-      else {
-        $data = file_get_contents($filename);
-        $info[$filename] = drupal_parse_info_format($data);
-      }
-      cache_set(__FUNCTION__, $info, 'cache', time() + 604800);
-    } else {
-      $info = $cache->data;
+    if (!file_exists($filename)) {
+      $info[$filename] = array();
+    }
+    else {
+      $data = file_get_contents($filename);
+      $info[$filename] = drupal_parse_info_format($data);
     }
   }
   return $info[$filename];
@@ -7836,16 +7828,13 @@ function drupal_check_incompatibility($v, $current_version) {
  * @see hook_entity_info()
  * @see hook_entity_info_alter()
  */
-function entity_get_info($entity_type = NULL, $reset = FALSE) {
+function entity_get_info($entity_type = NULL) {
   global $language;
 
   // Use the advanced drupal_static() pattern, since this is called very often.
   static $drupal_static_fast;
   if (!isset($drupal_static_fast)) {
     $drupal_static_fast['entity_info'] = &drupal_static(__FUNCTION__);
-  }
-  if($reset){
-    $drupal_static_fast = NULL;
   }
   $entity_info = &$drupal_static_fast['entity_info'];
 
