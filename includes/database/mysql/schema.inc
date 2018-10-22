@@ -100,8 +100,6 @@ class DatabaseSchema_mysql extends DatabaseSchema {
 
     // Remove the last comma and space.
     $sql = substr($sql, 0, -3) . "\n) ";
-    
-    $sql .= 'ROW_FORMAT=DYNAMIC ';
 
     $sql .= 'ENGINE = ' . $table['mysql_engine'] . ' DEFAULT CHARACTER SET ' . $table['mysql_character_set'];
     // By default, MySQL uses the default collation for new tables, which is

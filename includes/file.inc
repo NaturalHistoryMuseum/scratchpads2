@@ -611,9 +611,7 @@ function file_load($fid) {
  */
 function file_save(stdClass $file) {
   $file->timestamp = REQUEST_TIME;
-  if(empty($file->filesize) || (function_exists('file_entity_file_is_local') && file_entity_file_is_local($file))){
-    $file->filesize = filesize($file->uri);
-  }
+  $file->filesize = filesize($file->uri);
 
   // Load the stored entity, if any.
   if (!empty($file->fid) && !isset($file->original)) {
