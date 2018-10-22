@@ -1,3 +1,11 @@
+2.9.3 (2018-10-22)
+
+- Upgraded Drupal to 7.60
+- Fixed GBIF map tiles
+- Allow configuration of upload file size in Docker
+- Simplify docker filesystem
+- Update bio.acousti.ca modules
+
 2.9.2 (2018-10-03)
 
 - Upgraded Drupal to 7.59
