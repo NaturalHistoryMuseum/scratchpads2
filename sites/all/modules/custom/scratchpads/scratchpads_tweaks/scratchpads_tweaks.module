@@ -601,7 +601,7 @@ function scratchpads_tweaks_mail_alter(&$message){
     if ($sp_admin) {
       $message['to'] = $sp_admin->mail;
     }
-    $message['from'] = 'Scratchpads Team <no-reply@scratchpads.eu>';
+    $message['from'] = '"Scratchpads Team" <no-reply@scratchpads.eu>';
     $message['headers']['From'] = $message['from'];
     $message['headers']['Sender'] = $message['from'];
     $message['headers']['Return-Path'] = $message['from'];
