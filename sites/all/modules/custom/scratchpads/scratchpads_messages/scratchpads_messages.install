@@ -136,11 +136,13 @@ function scratchpads_messages_update_7003() {
     $query->isNull('m.mid');
     $result = $query->execute()->fetchAll();
 
-    $mids = array();
-    foreach($result as $row) {
-      $mids[] = $row->mid;
+    if(count($result)){
+        $mids = array();
+        foreach($result as $row) {
+          $mids[] = $row->mid;
+        }
+        db_delete($table_name)->condition('mid', $mids)->execute();
     }
-
-    db_delete($table_name)->condition('mid', $mids)->execute();
   }
 }
+
