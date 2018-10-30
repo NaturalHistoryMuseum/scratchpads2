@@ -813,7 +813,7 @@ function scratchpads_tweaks_preprocess_status_report(&$variables) {
   // Only replace text if the requirement fails; we want to show the default once we've upgraded
   if (!empty($charset_requirements) && ($charset_requirements['severity'] != REQUIREMENT_OK)) {
     $charset_requirements['description'] = 'Scratchpads databases will be converted to utf8mb4 in the near future.';
-    $charset_requireents['severity'] == REQUIREMENT_INFO;
+    $charset_requirements['severity'] = REQUIREMENT_INFO;
 
     $requirements = &$variables['requirements'];
 
