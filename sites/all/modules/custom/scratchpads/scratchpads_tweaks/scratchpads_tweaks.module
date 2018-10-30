@@ -517,7 +517,8 @@ function scratchpads_tweaks_menu(){
 function scratchpads_tweaks_update_status_alter(&$projects){
   $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
   foreach($projects as $name => $project){
-    if(strpos(drupal_get_path('module', $name), 'sites/all/modules/custom') !== FALSE){
+    $project_path = dirname(drupal_get_filename('module', $name, NULL, FALSE));
+    if(strpos($project_path, 'sites/all/modules/custom') !== FALSE){
       $projects[$name]['info']['version'] = $version;
       $projects[$name]['existing_version'] = $version;
       $projects[$name]['latest_version'] = $version;
