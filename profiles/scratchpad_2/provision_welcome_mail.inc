@@ -3,46 +3,18 @@
 // set here.
 $mail = array();
 if(function_exists('drush_get_option')){
-  // Get the options at the start. This differs based on the version of Aegir
-  // we are using (Aegir 6.x-1.x works with drush_get_option, whilst Aegir
-  // 7.x-3.x works with drush_get_context().
-  if(($site_title = drush_get_option('site_title', FALSE)) != FALSE){
-    $client_name = drush_get_option('fullname', 'Scratchpad Maintainer');
-    $client_email = drush_get_option('client_email', 'scratchpads@nhm.ac.uk');
-    $client_title = drush_get_option('client_title', 'Dr');
-    $client_country = drush_get_option('country', 'United Kingdom');
-    $client_institution = drush_get_option('institution', 'Jolly Nice Museum');
-  }else{
-    $alias = drush_get_context('alias');
+// Get the options at the start.
+  $alias = drush_get_context('alias');
 
-    // FIXME: For some reason this data is no longer available in the alias config.
-    // Instead we make a backup of it in hosting_scratchpads_hosting_site_context_options
-    // (hosting_scratchpads repo) so that it can be used here.
-    // This is quite hacky but at least it works.
-    if(!isset($alias['site_data'])) {
-      $aliasname = '@' . $alias['#name'];
-      $alias_extrainfo = drush_sitealias_get_record($aliasname.".site_data");
-      $alias['site_data'] = $alias_extrainfo['site_data'];
+  $site_data = $alias['site_data'];
+  $site_title = !empty($site_data['site_title']) ? $site_data['site_title'] : FALSE;
+  $client_name = !empty($site_data['client_name']) ? $site_data['client_name'] : 'Scratchpads Maintainer';
+  $client_email = !empty($site_data['client_email']) ? $site_data['client_email'] : 'scratchpads@nhm.ac.uk';
+  $client_title = !empty($site_data['client_title']) ? $site_data['client_title'] : 'Mr';
+  $client_country = !empty($site_data['client_country']) ? $site_data['client_country'] : 'GB';
+  $client_institution = !empty($site_data['client_institution']) ? $site_data['client_institution'] : 'Jolly Nice Museum';
+  $site_taxonomic_scope = !empty($site_data['site_taxonomic_scope']) ? $site_data['site_taxonomic_scope'] : 'Life';
 
-      // Delete the extra config file as we no longer need it and it will mess up the alias list
-      $paths = drush_sitealias_alias_path();
-      foreach ($paths as $p) {
-        $path = $p . "/" . $alias['#name'] . ".site_data.alias.drushrc.php";
-        if(file_exists($path)){
-          unlink($path);
-        }
-      }
-    }
-
-    $site_data = $alias['site_data'];
-    $site_title = !empty($site_data['site_title']) ? $site_data['site_title'] : FALSE;
-    $client_name = !empty($site_data['client_name']) ? $site_data['client_name'] : 'Scratchpads Maintainer';
-    $client_email = !empty($site_data['client_email']) ? $site_data['client_email'] : 'scratchpads@nhm.ac.uk';
-    $client_title = !empty($site_data['client_title']) ? $site_data['client_title'] : 'Mr';
-    $client_country = !empty($site_data['client_country']) ? $site_data['client_country'] : 'GB';
-    $client_institution = !empty($site_data['client_institution']) ? $site_data['client_institution'] : 'Jolly Nice Museum';
-    $site_taxonomic_scope = !empty($site_data['site_taxonomic_scope']) ? $site_data['site_taxonomic_scope'] : 'Life';
-  }
   if($site_title){
     variable_set('site_name', $site_title);
     // Adjust the UID 1. Not ideal doing this here, but we only actually need to
