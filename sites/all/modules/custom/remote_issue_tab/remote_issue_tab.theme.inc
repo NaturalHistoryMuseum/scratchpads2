@@ -29,10 +29,29 @@ function theme_remote_issue_tab_block($variables = array()){
 
   return '<div id="remote-issue-tab">
  <div>
-  <h2>'. l( t('Search for/Report an issue'), $variables['html_link'] ) . '</h2>
+  '. theme_remote_issue_tab_create_issue($variables) .'
   <div class="header">'. $variables['header'] . '</div>
  </div>
- <div class="no-js">
+ '. theme_remote_issue_tab_list_issues($variables) .'
+ <div class="footer">
+  ' . $variables['footer'] . '
+ </div>
+</div>';
+}
+
+/**
+ * Create issue-only theme
+ */
+function theme_remote_issue_tab_create_issue($variables = array()){
+  return '<h2>'. l( t('Report an issue'), $variables['html_link'] ) . '</h2>
+  <div class="header">'. drupal_render(drupal_get_form('remote_issue_tab_create_form')) .'</div>';
+}
+
+/**
+ * List issues-only theme
+ */
+function theme_remote_issue_tab_list_issues($variables = array()){
+  return '<div class="no-js">
   This module is not available in your browser.
   To browse or create issues please use the '. l('issue queue web page', $variables['html_link']) .'.
  </div>
@@ -45,9 +64,5 @@ function theme_remote_issue_tab_block($variables = array()){
     There are no issues to display.
   </div>
    <ul></ul>
- </div>
- <div class="footer">
-  ' . $variables['footer'] . '
- </div>
-</div>';
+ </div>';
 }

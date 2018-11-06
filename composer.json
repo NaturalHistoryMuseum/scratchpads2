@@ -1,0 +1,14 @@
+{
+  "name": "naturalhistorymuseum/scratchpads2",
+  "type": "project",
+  "repositories": {
+    "drupal": {
+      "type": "composer",
+      "url": "https://packages.drupal.org/7"
+    }
+  },
+  "require": {
+    "knplabs/github-api": "^1.7"
+  },
+  "license": "GPL-2.0"
+}

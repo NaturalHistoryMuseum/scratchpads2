@@ -29,3 +29,23 @@ function scratchpads_issues_block_issue_tab_settings() {
     )
   );
 }
+
+function scratchpads_issues_block_form_remote_issue_tab_create_form_alter (&$form) {
+  array_unshift($form['#submit'], 'scratchpads_issues_block_alter_description');
+}
+
+function scratchpads_issues_block_alter_description ($form, &$form_state) {
+  global $user;
+  global $base_url;
+
+  $body = $form_state['values']['issue_body'];
+  $username = $user->name;
+  $scratchpad_name = variable_get('site_name');
+
+  $form_state['values']['issue_body'] = "- Added by *$user->name*
+- Scratchpad: [$scratchpad_name]($base_url)
+
+### Description:
+
+$body";
+}
