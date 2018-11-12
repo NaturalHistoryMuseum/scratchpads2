@@ -1,5 +1,16 @@
 <?php
 
+function scratchpads_issues_block_menu(){
+  return array(
+    'user/%user/inbox' => array(
+      'page callback' => 'scratchpads_issues_block_notify_endpoint',
+      'page arguments' => array(1),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
 /**
  * Implements hook_block_info_alter()
  */
@@ -48,4 +59,58 @@ function scratchpads_issues_block_alter_description ($form, &$form_state) {
 ### Description:
 
 $body";
+}
+
+/**
+ * Endpoint that receives a POST notification from the github bridge service
+ * and forwards it to the appropriate user.
+ */
+function scratchpads_issues_block_notify_endpoint($user){
+  // Validate the request is a post and return proper response code on failure.
+  if ($_SERVER['REQUEST_METHOD'] != 'POST'){
+    header('HTTP/1.1 405 Only POST method allowed');
+    return;
+  }
+
+  // Syntax is a subset of ActivityStreams2 in case we want to expand use of this protocol in future
+  if (!preg_match('/^application\/((activity|ld)\+)?json(;|$)/i', $_SERVER['CONTENT_TYPE'])) {
+    header('HTTP/1.1 415 Only application/json data allowed');
+    return;
+  }
+
+  // TODO: Ensure the request comes from a trusted source
+
+  // Get POST body
+  $received_json = file_get_contents("php://input",  TRUE);
+  $json = drupal_json_decode($received_json, TRUE);
+
+  $summary = $json['summary'];
+  $link = $json['object']['url'];
+
+  // Send the email.
+  drupal_mail(
+    'scratchpads_issues_block',
+    'notification',
+    $user->mail,
+    user_preferred_language($user),
+    array(
+      'summary' => $summary,
+      'link' => $link
+    )
+  );
+}
+
+/**
+ * Set template for github notification email.
+ */
+function scratchpads_issues_block_mail($key, &$message, $params) {
+  $summary = $params['summary'];
+  $link = $params['link'];
+
+  switch ($key) {
+    case 'notification':
+      $message['subject'] = $summary;
+      $message['body'][] = "View this change on GitHub: $link";
+      break;
+  }
 }
