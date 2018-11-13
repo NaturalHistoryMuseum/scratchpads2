@@ -78,7 +78,14 @@ function scratchpads_issues_block_notify_endpoint($user){
     return;
   }
 
-  // TODO: Ensure the request comes from a trusted source
+  // Ensure request comes from a trusted source
+  // TODO: Replace this with something a little more crypto
+  $expected_token = variable_get('github_bridge_token', 'dev-token');
+  $auth = $_SERVER['HTTP_AUTHORIZATION'];
+  if ($auth !== "Bearer $expected_token") {
+    header('HTTP/1.1 401 Invalid auth token');
+    return;
+  }
 
   // Get POST body
   $received_json = file_get_contents("php://input",  TRUE);
@@ -113,4 +120,36 @@ function scratchpads_issues_block_mail($key, &$message, $params) {
       $message['body'][] = "View this change on GitHub: $link";
       break;
   }
+}
+
+/**
+ * Implements hook_github_create_issue
+ */
+function scratchpads_issues_block_github_create_issue($issue) {
+  scratchpads_issues_block_subscribe($issue->number);
+}
+
+/**
+ * Here we send the issue follow request to the bridge service
+ */
+function scratchpads_issues_block_subscribe($issue_id) {
+  global $user;
+  $bridge = variable_get('github_bridge_host', 'http://ap-gh-bridge-webserver');
+  $token = variable_get('github_bridge_token', 'dev-token');
+  $inbox = url("/user/$user->uid/inbox" , array('absolute' => true));
+
+  drupal_http_request(
+    "$bridge/follow",
+    array(
+      'headers' => array(
+        'Content-Type'=> 'application/json',
+        'Authorization' => "Bearer $token"
+      ),
+      'method' => 'POST',
+      'data' => json_encode(array(
+        'user' => $inbox,
+        'issue' => $issue_id
+      ))
+    )
+  );
 }

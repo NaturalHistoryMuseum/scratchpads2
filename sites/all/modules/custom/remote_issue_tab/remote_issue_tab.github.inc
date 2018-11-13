@@ -66,13 +66,15 @@ function remote_issue_tab_github_create_issue($values) {
   list($repo_owner, $repo_name) = explode('/', $repo);
 
   $client = new \Github\Client();
-  $client->authenticate($auth_token, null, Github\Client::AUTH_HTTP_TOKEN);
+  $client->authenticate($auth_token, null, \Github\Client::AUTH_HTTP_TOKEN);
 
   try {
     $issue = $client->api('issue')->create($repo_owner, $repo_name, array(
       'title' => $title,
       'body' => $body
     ));
+
+    module_invoke_all('github_create_issue', $issue);
   } catch(Exception $e) {
     //echo $e->getMessage();
     return false;
