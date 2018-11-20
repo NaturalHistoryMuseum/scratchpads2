@@ -1,19 +1,20 @@
 <?php
 
-function scratchpads_issues_block_menu(){
-  return array(
-    'user/%user/inbox' => array(
-      'page callback' => 'scratchpads_issues_block_notify_endpoint',
-      'page arguments' => array(1),
-      'access arguments' => array('access content'),
-      'type' => MENU_CALLBACK
-    ),
-    'issues/%' => array(
-      'page callback' => 'scratchpads_issues_block_view_issue',
-      'page arguments' => array(1),
-      'access arguments' => array('access content')
-    )
-  );
+function scratchpads_issues_block_menu()
+{
+    return array(
+      'user/%user/inbox' => array(
+        'page callback' => 'scratchpads_issues_block_notify_endpoint',
+        'page arguments' => array(1),
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK
+      ),
+      'issues/%' => array(
+        'page callback' => 'scratchpads_issues_block_view_issue',
+        'page arguments' => array(1),
+        'access arguments' => array('access content')
+      )
+    );
 }
 
 /**
@@ -46,21 +47,23 @@ function scratchpads_issues_block_issue_tab_settings() {
   );
 }
 
-function scratchpads_issues_block_form_remote_issue_tab_create_form_alter (&$form) {
-  array_unshift($form['#submit'], 'scratchpads_issues_block_alter_description');
+function scratchpads_issues_block_form_remote_issue_tab_create_form_alter(&$form)
+{
+      array_unshift($form['#submit'], 'scratchpads_issues_block_alter_description');
 }
 
-function scratchpads_issues_block_alter_description ($form, &$form_state) {
-  global $user;
-  global $base_url;
+function scratchpads_issues_block_alter_description($form, &$form_state)
+{
+    global $user;
+    global $base_url;
 
-  $body = $form_state['values']['issue_body'];
-  $scratchpad_name = variable_get('site_name');
-  $user_page = url("/user/$user->uid", array('absolute' => true));
+    $body = $form_state['values']['issue_body'];
+    $scratchpad_name = variable_get('site_name');
+    $user_page = url("/user/$user->uid", array('absolute' => true));
 
-  $user_link = "[$user->name]($user_page)";
+    $user_link = "[$user->name]($user_page)";
 
-  $form_state['values']['issue_body'] = "- Added by $user_link
+    $form_state['values']['issue_body'] = "- Added by $user_link
 - Scratchpad: [$scratchpad_name]($base_url)
 
 ### Description:
@@ -72,92 +75,96 @@ $body";
  * Endpoint that receives a POST notification from the github bridge service
  * and forwards it to the appropriate user.
  */
-function scratchpads_issues_block_notify_endpoint($user){
-  // Validate the request is a post and return proper response code on failure.
-  if ($_SERVER['REQUEST_METHOD'] != 'POST'){
-    header('HTTP/1.1 405 Only POST method allowed');
-    return;
-  }
+function scratchpads_issues_block_notify_endpoint($user)
+{
+    // Validate the request is a post and return proper response code on failure.
+    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        header('HTTP/1.1 405 Only POST method allowed');
+        return;
+    }
 
-  // Syntax is a subset of ActivityStreams2 in case we want to expand use of this protocol in future
-  if (!preg_match('/^application\/((activity|ld)\+)?json(;|$)/i', $_SERVER['CONTENT_TYPE'])) {
-    header('HTTP/1.1 415 Only application/json data allowed');
-    return;
-  }
+    // Syntax is a subset of ActivityStreams2 in case we want to expand use of this protocol in future
+    if (!preg_match('/^application\/((activity|ld)\+)?json(;|$)/i', $_SERVER['CONTENT_TYPE'])) {
+        header('HTTP/1.1 415 Only application/json data allowed');
+        return;
+    }
 
-  // Ensure request comes from a trusted source
-  $expected_token = variable_get('github_bridge_token', 'dev-token');
-  $auth = $_SERVER['HTTP_AUTHORIZATION'];
-  if ($auth !== "Bearer $expected_token") {
-    header('HTTP/1.1 401 Invalid auth token');
-    return;
-  }
+    // Ensure request comes from a trusted source
+    $expected_token = variable_get('github_bridge_token', 'dev-token');
+    $auth = $_SERVER['HTTP_AUTHORIZATION'];
+    if ($auth !== "Bearer $expected_token") {
+        header('HTTP/1.1 401 Invalid auth token');
+        return;
+    }
 
-  // Get POST body
-  $received_json = file_get_contents("php://input", true);
-  $json = drupal_json_decode($received_json, true);
+    // Get POST body
+    $received_json = file_get_contents("php://input", true);
+    $json = drupal_json_decode($received_json, true);
 
-  $summary = $json['summary'];
-  $link = $json['object']['url'];
+    $summary = $json['summary'];
+    $link = $json['object']['url'];
 
-  // Send the email.
-  drupal_mail(
-    'scratchpads_issues_block',
-    'notification',
-    $user->mail,
-    user_preferred_language($user),
-    array(
-      'summary' => $summary,
-      'link' => $link
-    )
-  );
+    // Send the email.
+    drupal_mail(
+        'scratchpads_issues_block',
+        'notification',
+        $user->mail,
+        user_preferred_language($user),
+        array(
+        'summary' => $summary,
+        'link' => $link
+        )
+    );
 }
 
 /**
  * Set template for github notification email.
  */
-function scratchpads_issues_block_mail($key, &$message, $params) {
-  $summary = $params['summary'];
-  $link = $params['link'];
+function scratchpads_issues_block_mail($key, &$message, $params)
+{
+    $summary = $params['summary'];
+    $link = $params['link'];
 
-  switch ($key) {
-    case 'notification':
-      $message['subject'] = $summary;
-      $message['body'][] = "View this change on GitHub: $link";
-      break;
-  }
+    switch ($key) {
+        case 'notification':
+            $message['subject'] = $summary;
+            $message['body'][] = "View this change on GitHub: $link";
+            break;
+    }
 }
 
 /**
  * Implements hook_github_create_issue
  */
-function scratchpads_issues_block_github_create_issue($issue) {
-  scratchpads_issues_block_subscribe($issue->number);
+function scratchpads_issues_block_github_create_issue($issue)
+{
+    scratchpads_issues_block_subscribe($issue->number);
 }
 
 /**
  * Here we send the issue follow request to the bridge service
  */
-function scratchpads_issues_block_subscribe($issue_id) {
-  global $user;
-  $bridge = variable_get('github_bridge_host', 'http://ap-gh-bridge-webserver');
-  $token = variable_get('github_bridge_token', 'dev-token');
-  $inbox = url("/user/$user->uid/inbox", array('absolute' => true));
+function scratchpads_issues_block_subscribe($issue_id)
+{
+    global $user;
+    $bridge = variable_get('github_bridge_host', 'http://ap-gh-bridge-webserver');
+    $token = variable_get('github_bridge_token', 'dev-token');
+    $inbox = url("/user/$user->uid/inbox", array('absolute' => true));
 
-  drupal_http_request(
-    "$bridge/follow",
-    array(
-      'headers' => array(
-        'Content-Type' => 'application/json',
-        'Authorization' => "Bearer $token"
-      ),
-      'method' => 'POST',
-      'data' => json_encode(array(
-        'user' => $inbox,
-        'issue' => $issue_id
-      ))
-    )
-  );
+    drupal_http_request(
+        "$bridge/follow",
+        array(
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => "Bearer $token"
+        ),
+        'method' => 'POST',
+        'data' => json_encode(array(
+            'user' => $inbox,
+            'issue' => $issue_id
+        ))
+        )
+    );
 }
 
 /**
@@ -187,190 +194,195 @@ function scratchpads_issues_block_theme()
  * Helper function for creating & authenticating the github client
  * Returns array of [ client, organisation name, repo name ]
  */
-function scratchpads_issues_block_get_github_client() {
-  $auth_token = variable_get('remote_issue_tab_github_auth_key');
-  $repo = variable_get('remote_issue_tab_github_repository');
+function scratchpads_issues_block_get_github_client()
+{
+    $auth_token = variable_get('remote_issue_tab_github_auth_key');
+    $repo = variable_get('remote_issue_tab_github_repository');
 
-  list($repo_owner, $repo_name) = explode('/', $repo);
+    list($repo_owner, $repo_name) = explode('/', $repo);
 
-  $client = new \Github\Client();
-  $client->authenticate($auth_token, null, \Github\Client::AUTH_HTTP_TOKEN);
+    $client = new \Github\Client();
+    $client->authenticate($auth_token, null, \Github\Client::AUTH_HTTP_TOKEN);
 
-  return [
-    $client,
-    $repo_owner,
-    $repo_name
-  ];
+    return [
+        $client,
+        $repo_owner,
+        $repo_name
+    ];
 }
 
 /**
  * This is the page that allows us to view a given thread from github
  * and reply to it.
  */
-function scratchpads_issues_block_view_issue($id){
-  // Load the issue from drupal
-  list($client, $repo_owner, $repo_name) = scratchpads_issues_block_get_github_client();
+function scratchpads_issues_block_view_issue($id)
+{
+    // Load the issue from drupal
+    list($client, $repo_owner, $repo_name) = scratchpads_issues_block_get_github_client();
 
-  try {
-    $issue = $client->api('issue')->show($repo_owner, $repo_name, $id);
-  } catch(\Github\Exception\RuntimeException $e) {
-    if ($e->getCode() == 404) {
-      return drupal_not_found();
-    } else {
-      // Mysterious error - could be host failing to resolve?
-      // echo $e->getCode();
-      // echo $e->getMessage();
-      throw $e;
-    }
-  }
-
-  // Don't let users see/reply to duplicates
-  foreach($issue['labels'] as $label) {
-    // Do we have any other `duplicate` (or other) labels to add to this?
-    if ($label['url'] === 'https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/labels/Redmine%20duplicate') {
-      return drupal_not_found();
-    }
-  }
-
-  $title = $issue['title'];
-  $author = $issue['user']['login'];
-  $body = $issue['body'];
-  $date = $issue['created_at'];
-  $url = '';
-
-  // For issues generated by scratchpads we have put the metadata (e.g. author, scratchpad)
-  // in the head of the issue and added the body after a "Description" header
-  // Let's get that data out and display it nicely
-  // This might be worth moving in to the bridge app actually
-  if ($author === 'scratchpads' || $author === 'informatics-dev') {
-    $parts = explode('### Description:', $body);
-    $body = array_pop($parts);
-    $meta = array_pop($parts);
-  }
-
-  // There are a few types and styles of recording meta data because of
-  // the data available at the time the issue was created
-  if ($meta) {
-    $matches = [];
-
-    // Imported from redmine: `- Added by **User Name**`
-    preg_match('/- Added by (\*+)([^*]*)\1/i', $meta, $matches);
-    if($matches[2]) {
-      $author = $matches[2];
+    try {
+        $issue = $client->api('issue')->show($repo_owner, $repo_name, $id);
+    } catch (\Github\Exception\RuntimeException $e) {
+        if ($e->getCode() == 404) {
+            return drupal_not_found();
+        } else {
+            // Mysterious error - could be host failing to resolve?
+            // echo $e->getCode();
+            // echo $e->getMessage();
+            throw $e;
+        }
     }
 
-    // Added through scratchpads: `- Added by [User Name](http://scratchpad.example/user/1)`
-    preg_match('/- Added by \[(.*)\]\((.*)\)/i', $meta, $matches);
-    if($matches[1]) {
-      $author = url($matches[1], $matches[2]);
+    // Don't let users see/reply to duplicates
+    foreach ($issue['labels'] as $label) {
+        // Do we have any other `duplicate` (or other) labels to add to this?
+        if ($label['url'] === 'https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/labels/Redmine%20duplicate') {
+            return drupal_not_found();
+        }
     }
 
-    // Imported from redmine: ` - Scratchpads URL: scratchpad.example`
-    preg_match('/- Scratchpads URL: (.*)$/im', $meta, $matches)[1];
-    if($matches[1]) {
-      $url = ' ( ' . l($matches[1], $matches[1]) . ' )';
-    }
+    $title = $issue['title'];
+    $author = $issue['user']['login'];
+    $body = $issue['body'];
+    $date = $issue['created_at'];
+    $url = '';
 
-    // Added through scratchpads: ` - Scratchpad: [Scratchpad Name](http://scratchpad.example)`
-    preg_match('/- Scratchpad: \[(.*)\]\((.*)\)$/im', $meta, $matches)[1];
-    if($matches[1]) {
-      $url = ' ( ' . l($matches[1], $matches[2]) . ' )';
-    }
-  }
-
-  $issue = [
-    '#theme' => 'scratchpads_issues_block_thread',
-    '#title' => $title,
-    '#author' => $author,
-    '#scratchpad' => $url,
-    '#body' => $body,
-    '#date' => $date,
-    '#github_url' => $issue['html_url']
-  ];
-
-  // Get all comments
-  $comments = $client->api('issue')->comments()->all($repo_owner, $repo_name, $id);
-
-  $replies = [];
-
-  foreach($comments as $comment) {
-    $author = $comment['user']['login'];
-    $body = $comment['body'];
-    $date = $comment['created_at'];
-
-    // The metadata recording style is different for comments.
-    // Also we only have user details, not scratchpad name
+    // For issues generated by scratchpads we have put the metadata (e.g. author, scratchpad)
+    // in the head of the issue and added the body after a "Description" header
+    // Let's get that data out and display it nicely
+    // This might be worth moving in to the bridge app actually
     if ($author === 'scratchpads' || $author === 'informatics-dev') {
-      // Only has an author name
-      $comment_match = '/Comment by \*\*(.*)\*\*/';
-      if(preg_match($comment_match, $body, $matches)) {
-        $author = $matches[1];
-        $body = preg_replace($comment_match, '', $body);
-      }
-
-      // Has an author name and link
-      $comment_match = '/Comment by \[(.*)\]\((.*)\)/';
-      if(preg_match($comment_match, $body, $matches)) {
-        $author = l($matches[1], $matches[2]);
-        $body = preg_replace($comment_match, '', $body);
-      }
+        $parts = explode('### Description:', $body);
+        $body = array_pop($parts);
+        $meta = array_pop($parts);
     }
 
-    $replies[] = [
-      '#theme' => 'scratchpads_issues_block_comment',
-      '#author' => $author,
-      '#body' => $body,
-      '#date' => $date
+    // There are a few types and styles of recording meta data because of
+    // the data available at the time the issue was created
+    if ($meta) {
+        $matches = [];
+
+        // Imported from redmine: `- Added by **User Name**`
+        preg_match('/- Added by (\*+)([^*]*)\1/i', $meta, $matches);
+
+        if ($matches[2]) {
+            $author = $matches[2];
+        }
+
+        // Added through scratchpads: `- Added by [User Name](http://scratchpad.example/user/1)`
+        preg_match('/- Added by \[(.*)\]\((.*)\)/i', $meta, $matches);
+        if ($matches[1]) {
+            $author = url($matches[1], $matches[2]);
+        }
+
+        // Imported from redmine: ` - Scratchpads URL: scratchpad.example`
+        preg_match('/- Scratchpads URL: (.*)$/im', $meta, $matches)[1];
+        if ($matches[1]) {
+            $url = ' ( ' . l($matches[1], $matches[1]) . ' )';
+        }
+
+        // Added through scratchpads: ` - Scratchpad: [Scratchpad Name](http://scratchpad.example)`
+        preg_match('/- Scratchpad: \[(.*)\]\((.*)\)$/im', $meta, $matches)[1];
+        if ($matches[1]) {
+            $url = ' ( ' . l($matches[1], $matches[2]) . ' )';
+        }
+    }
+
+    $issue = [
+        '#theme' => 'scratchpads_issues_block_thread',
+        '#title' => $title,
+        '#author' => $author,
+        '#scratchpad' => $url,
+        '#body' => $body,
+        '#date' => $date,
+        '#github_url' => $issue['html_url']
     ];
-  }
 
-  $issue['replies'] = $replies;
+    // Get all comments
+    $comments = $client->api('issue')->comments()->all($repo_owner, $repo_name, $id);
 
-  return $issue;
+    $replies = [];
+
+    foreach ($comments as $comment) {
+        $author = $comment['user']['login'];
+        $body = $comment['body'];
+        $date = $comment['created_at'];
+
+        // The metadata recording style is different for comments.
+        // Also we only have user details, not scratchpad name
+        if ($author === 'scratchpads' || $author === 'informatics-dev') {
+            // Only has an author name
+            $comment_match = '/Comment by \*\*(.*)\*\*/';
+            if (preg_match($comment_match, $body, $matches)) {
+                $author = $matches[1];
+                $body = preg_replace($comment_match, '', $body);
+            }
+
+            // Has an author name and link
+            $comment_match = '/Comment by \[(.*)\]\((.*)\)/';
+            if (preg_match($comment_match, $body, $matches)) {
+                $author = l($matches[1], $matches[2]);
+                $body = preg_replace($comment_match, '', $body);
+            }
+        }
+
+        $replies[] = [
+        '#theme' => 'scratchpads_issues_block_comment',
+        '#author' => $author,
+        '#body' => $body,
+        '#date' => $date
+        ];
+    }
+
+    $issue['replies'] = $replies;
+
+    return $issue;
 }
 
 /**
  * Implements hook_form
  * The form for replying to an issue thread
  */
-function scratchpads_issues_block_reply_form($form, &$form_state){
-  $form['content'] = array(
-    '#title' => t('Your reply'),
-    '#type' => 'textarea',
-    '#required' => true
-  );
+function scratchpads_issues_block_reply_form($form, &$form_state)
+{
+    $form['content'] = array(
+        '#title' => t('Your reply'),
+        '#type' => 'textarea',
+        '#required' => true
+    );
 
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Add Reply'
-  );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Add Reply'
+    );
 
-  return $form;
+    return $form;
 }
 
 /**
  * Submit handler for issue reply form
  */
-function scratchpads_issues_block_reply_form_submit($form, &$form_state) {
-  global $user;
+function scratchpads_issues_block_reply_form_submit($form, &$form_state)
+{
+    global $user;
 
-  // Add some metadata: Username and profile page
-  $user_page = url("/user/$user->uid", array('absolute' => true));
-  $user_link = "[$user->name]($user_page)";
+    // Add some metadata: Username and profile page
+    $user_page = url("/user/$user->uid", array('absolute' => true));
+    $user_link = "[$user->name]($user_page)";
 
-  $issue = arg(1);
-  $content = $form_state['values']['content'];
+    $issue = arg(1);
+    $content = $form_state['values']['content'];
 
-  list($client, $repo_owner, $repo_name) = scratchpads_issues_block_get_github_client();
+    list($client, $repo_owner, $repo_name) = scratchpads_issues_block_get_github_client();
 
-  $client->api('issue')->comments()->create(
-    $repo_owner,
-    $repo_name,
-    $issue,
-    array(
-      'body' => "Comment by $user_link
+    $client->api('issue')->comments()->create(
+        $repo_owner,
+        $repo_name,
+        $issue,
+        array(
+            'body' => "Comment by $user_link
 
 $content"
-    )
-  );
+        )
+    );
 }

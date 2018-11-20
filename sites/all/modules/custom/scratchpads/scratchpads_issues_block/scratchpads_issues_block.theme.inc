@@ -12,30 +12,30 @@ function theme_scratchpads_issues_block_thread($variables)
     $url = $variables['thread']['#github_url'];
     $date = $variables['thread']['#date'];
 
-    if($url) {
-      $title = l($title, $url);
+    if ($url) {
+        $title = l($title, $url);
     }
 
-  drupal_add_css(
-    drupal_get_path('module', 'scratchpads_issues_block') . '/css/thread.css'
-  );
+    drupal_add_css(
+        drupal_get_path('module', 'scratchpads_issues_block') . '/css/thread.css'
+    );
 
-  $a = [
-    '#theme' => 'scratchpads_issues_block_comment',
-    '#author' => $author,
-    '#scratchpad' => $scratchpad,
-    '#body' => $body,
-    '#date' => $date
-  ];
-  $issueBody = drupal_render($a);
+    $a = [
+      '#theme' => 'scratchpads_issues_block_comment',
+      '#author' => $author,
+      '#scratchpad' => $scratchpad,
+      '#body' => $body,
+      '#date' => $date
+    ];
+    $issueBody = drupal_render($a);
 
-  $comments = drupal_render_children($variables['thread']);
+    $comments = drupal_render_children($variables['thread']);
 
-  // Finally add the form for posting a reply
-  $form = drupal_render(drupal_get_form('scratchpads_issues_block_reply_form'));
+    // Finally add the form for posting a reply
+    $form = drupal_render(drupal_get_form('scratchpads_issues_block_reply_form'));
 
-  // Print issue first comment
-  return <<<EOD
+    // Print issue first comment
+    return <<<EOD
 <article class="sp2-issue">
   <div class="sp2-issue__title">
     <h1>$title</h1>
@@ -52,13 +52,14 @@ EOD;
 /**
  * Theme function for rendering individual comment
  */
-function theme_scratchpads_issues_block_comment($variables) {
-  $author = $variables['author'];
-  $scratchpad = $variables['scratchpad'];
-  $date = format_date(strtotime($variables['date']));
-  $body = \Michelf\Markdown::defaultTransform($variables['body']);
+function theme_scratchpads_issues_block_comment($variables)
+{
+    $author = $variables['author'];
+    $scratchpad = $variables['scratchpad'];
+    $date = format_date(strtotime($variables['date']));
+    $body = \Michelf\Markdown::defaultTransform($variables['body']);
 
-  return <<<EOD
+    return <<<EOD
 <article class="sp2-issue-comment">
   <header class="sp2-issue-comment__author">
     <b>$author</b><i>$scratchpad</i><em class="sp2-issue-comment__date">$date</em>
