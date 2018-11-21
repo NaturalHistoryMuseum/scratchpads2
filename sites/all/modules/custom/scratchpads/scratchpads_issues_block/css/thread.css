@@ -16,3 +16,11 @@
 .sp2-issue-comment__body {
   padding: 1em;
 }
+
+.sp2-issue-comment__body img {
+  max-width: 100%;
+}
+
+.sp2-issue-comment__body img:hover {
+  max-width: auto;
+}

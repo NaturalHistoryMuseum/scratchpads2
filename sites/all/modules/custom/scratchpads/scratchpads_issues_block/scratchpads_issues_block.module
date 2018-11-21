@@ -34,10 +34,7 @@ function scratchpads_issues_block_issue_tab_settings() {
   return array(
     "fetch_url" => "https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues",
     "html_link" => "https://github.com/NaturalHistoryMuseum/scratchpads2/issues",
-    "header" => 'You will need to sign in with a GitHub user account.
-      If you don\'t have one you will need to '.
-      l('create an account', 'https://github.com/join').'.',
-    "footer" => '<h2>Help</h2><p>Not sure what you are doing, try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
+    "footer" => '<h2>Help</h2><p>Not sure what you are doing? Try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
     "scripts" => array(
       drupal_get_path('module', 'scratchpads_issues_block') . "/js/scratchpads_issues_block.js"
     ),
@@ -118,17 +115,36 @@ function scratchpads_issues_block_notify_endpoint($user)
 }
 
 /**
+ * Given a link to a GitHub issue, returns the issue number
+ */
+function scratchpads_issues_block_parse_issue_number($link)
+{
+    if (preg_match("/[0-9]+(?=\/?$)/", $link, $matches)) {
+        return $matches[0];
+    }
+}
+
+/**
  * Set template for github notification email.
  */
 function scratchpads_issues_block_mail($key, &$message, $params)
 {
     $summary = $params['summary'];
     $link = $params['link'];
+    $body = "View this change on GitHub: $link";
+
+    $issue = scratchpads_issues_block_parse_issue_number($link);
+
+    if ($issue) {
+        $link = url("/issues/$issue", array('absolute' => true));
+        $scratchpad_name = variable_get('site_name');
+        $body = "View this change on $scratchpad_name: $link";
+    }
 
     switch ($key) {
         case 'notification':
             $message['subject'] = $summary;
-            $message['body'][] = "View this change on GitHub: $link";
+            $message['body'][] = $body;
             break;
     }
 }
@@ -138,7 +154,11 @@ function scratchpads_issues_block_mail($key, &$message, $params)
  */
 function scratchpads_issues_block_github_create_issue($issue)
 {
-    scratchpads_issues_block_subscribe($issue->number);
+    $number = $issue['number'];
+
+    scratchpads_issues_block_subscribe($number);
+
+    drupal_goto("/issues/$number");
 }
 
 /**
@@ -272,7 +292,7 @@ function scratchpads_issues_block_view_issue($id)
         // Added through scratchpads: `- Added by [User Name](http://scratchpad.example/user/1)`
         preg_match('/- Added by \[(.*)\]\((.*)\)/i', $meta, $matches);
         if ($matches[1]) {
-            $author = url($matches[1], $matches[2]);
+            $author = l($matches[1], $matches[2]);
         }
 
         // Imported from redmine: ` - Scratchpads URL: scratchpad.example`
@@ -375,7 +395,7 @@ function scratchpads_issues_block_reply_form_submit($form, &$form_state)
 
     list($client, $repo_owner, $repo_name) = scratchpads_issues_block_get_github_client();
 
-    $client->api('issue')->comments()->create(
+    $comment = $client->api('issue')->comments()->create(
         $repo_owner,
         $repo_name,
         $issue,
@@ -385,4 +405,8 @@ function scratchpads_issues_block_reply_form_submit($form, &$form_state)
 $content"
         )
     );
+
+    $issue = scratchpads_issues_block_parse_issue_number($comment['issue_url']);
+
+    scratchpads_issues_block_subscribe($issue);
 }

@@ -15,7 +15,7 @@ Drupal.settings.scratchpads_issues_block = {
 
         // Map to format expected by remote_issues_tab
         return acc.concat({
-          link: item.html_url,
+          link: '/issues/' + item.html_url.match(/[0-9]+(?=\/?$)/)[0],
           title: item.title,
           body: labels + marked(item.body || '(No details)')
         });
