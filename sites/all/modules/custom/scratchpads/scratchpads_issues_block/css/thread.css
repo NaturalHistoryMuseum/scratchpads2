@@ -22,5 +22,5 @@
 }
 
 .sp2-issue-comment__body img:hover {
-  max-width: auto;
+  max-width: none;
 }
