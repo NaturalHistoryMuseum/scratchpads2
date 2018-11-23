@@ -1,6 +1,8 @@
 Scratchpads 2.x
 ===============
 
+[![Join the chat at https://gitter.im/scratchpads2/Lobby](https://badges.gitter.im/scratchpads2/Lobby.svg)](https://gitter.im/scratchpads2/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Overview
 
 Scratchpads are an online virtual research environment for biodiversity,
