@@ -1,0 +1,13 @@
+{
+  "name": "naturalhistorymuseum/scratchpads2",
+  "type": "project",
+  "config": {
+    "vendor-dir": "sites/all/libraries/vendor"
+  },
+  "require": {
+    "knplabs/github-api": "^1.7",
+    "michelf/php-markdown": "^1.8",
+    "php-http/guzzle6-adapter": "^1.1"
+  },
+  "license": "GPL-2.0"
+}

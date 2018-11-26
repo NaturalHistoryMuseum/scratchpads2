@@ -22,6 +22,12 @@ visitors such as blogs, forums, newsletters and a commenting system.
 
 For more information about what scratchpads are, see [http://scratchpads.eu](http://scratchpads.eu)
 
+## Install dependencies
+
+There are two types of dependencies to install:
+ - Drupal dependencies: `drush make --no-core scratchpads2.make.yml .`
+ - Composer dependencies: `composer install`
+
 ## Development & Docker
 
 There are a collection of docker images, mostly intended for development. If

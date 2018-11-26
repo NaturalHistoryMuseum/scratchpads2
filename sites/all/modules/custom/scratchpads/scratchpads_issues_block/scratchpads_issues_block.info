@@ -4,6 +4,7 @@ package = "Scratchpads"
 core = 7.x
 dependencies[] = blockexpose
 dependencies[] = remote_issue_tab
+dependencies[] = libraries
 scripts[] = js/scratchpads_issues_block.js
 files[] = tests/scratchpads_issues_block.test
 l10n server = localize.scratchpads.eu
