@@ -6,6 +6,6 @@ stylesheets[all][] = css/remote_issue_tab.css
 l10n server = localize.scratchpads.eu
 l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
 project = remote_issue_tab
-dependencies[] = xautoload
+dependencies[] = libraries
 files[] = remote_issue_tab.github.inc
 configure = admin/config/remote_issue_tab

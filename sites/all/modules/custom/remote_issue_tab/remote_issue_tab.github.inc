@@ -69,6 +69,8 @@ function remote_issue_tab_github_create_issue($values)
 
     list($repo_owner, $repo_name) = explode('/', $repo);
 
+    require_once libraries_get_path('vendor') . '/autoload.php';
+
     $client = new \Github\Client();
     $client->authenticate($auth_token, null, \Github\Client::AUTH_HTTP_TOKEN);
 

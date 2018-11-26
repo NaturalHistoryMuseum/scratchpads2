@@ -4,4 +4,4 @@ defaults:
   projects:
     subdir: "contrib"
 projects:
-  xautoload: "5.7"
+  drupal: "7.60"

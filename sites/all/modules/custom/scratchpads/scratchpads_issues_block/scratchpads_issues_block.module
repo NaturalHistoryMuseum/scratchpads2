@@ -233,6 +233,8 @@ function scratchpads_issues_block_get_github_client()
 
     list($repo_owner, $repo_name) = explode('/', $repo);
 
+    require_once libraries_get_path('vendor') . '/autoload.php';
+
     $client = new \Github\Client();
     $client->authenticate($auth_token, null, \Github\Client::AUTH_HTTP_TOKEN);
 

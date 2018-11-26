@@ -1,14 +1,5 @@
 <?php
 /**
- * Implements hook_xautoload().
- */
-function remote_issue_tab_xautoload($api)
-{
-    // Todo: Make sure this only happens if github handler is enabled
-    $api->absolute()->composerDir('vendor/composer');
-}
-
-/**
  * Implements hook_menu
  * Include the admin/settings route & page
  */

@@ -54,6 +54,8 @@ EOD;
  */
 function theme_scratchpads_issues_block_comment($variables)
 {
+    require_once libraries_get_path('vendor') . '/autoload.php';
+
     $author = $variables['author'];
     $scratchpad = $variables['scratchpad'];
     $date = format_date(strtotime($variables['date']));

@@ -6,12 +6,6 @@ sites/*.*/
 sites/sites.php
 sites/all/drush
 
-# Ignore modules installed with drush-make
-sites/all/modules/contrib
-
-# Libraries managed with composer
-vendor
-
 # Mac shite and SQL files
 *.DS_Store
 *.sql
