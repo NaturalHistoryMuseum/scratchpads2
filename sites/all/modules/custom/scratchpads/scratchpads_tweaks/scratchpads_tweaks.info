@@ -97,6 +97,7 @@ dependencies[] = scratchpads_show_taxa_revisions
 dependencies[] = scratchpads_simple_taxonomy_page
 dependencies[] = scratchpads_solr
 dependencies[] = scratchpads_species
+dependencies[] = scratchpads_statistics
 dependencies[] = scratchpads_taxonomic_name_field
 dependencies[] = scratchpads_user
 dependencies[] = scratchpads_width_and_height
