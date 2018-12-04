@@ -9,7 +9,7 @@ files[] = forum.test
 configure = admin/structure/forum
 stylesheets[all][] = forum.css
 
-; Information added by Drupal.org packaging script on 2018-10-17
-version = "7.60"
+; Information added by Drupal.org packaging script on 2018-11-08
+version = "7.61"
 project = "drupal"
-datestamp = "1539816636"
+datestamp = "1541684322"
