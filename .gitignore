@@ -17,6 +17,7 @@ sites/all/drush
 .cache
 .project
 .settings
+.idea
 
 # VS Code files
 .vscode
