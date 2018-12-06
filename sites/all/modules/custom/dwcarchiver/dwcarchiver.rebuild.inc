@@ -130,16 +130,15 @@ function _dwcarchiver_get_eml(){
   }
   $metadataProvider = $dataset->addChild('metadataProvider');
   $individualName = $metadataProvider->addChild('individualName');
-  $individualName->addChild('givenName', 'Simon');
-  $individualName->addChild('surName', 'Rycroft');
+  $individualName->addChild('givenName', 'Scratchpads');
+  $individualName->addChild('surName', 'Team');
   $address = $metadataProvider->addChild('address');
   $address->addChild('deliveryPoint', 'Natural History Museum, Cromwell Road');
   $address->addChild('city', 'London');
   $address->addChild('administrativeArea', 'London');
   $address->addChild('postalCode', 'SW7 5BD');
   $address->addChild('country', 'UK');
-  $metadataProvider->addChild('phone', '+442079426279');
-  $metadataProvider->addChild('electronicMailAddress', 's.rycroft@nhm.ac.uk');
+  $metadataProvider->addChild('electronicMailAddress', 'scratchpads@nhm.ac.uk');
   $metadataProvider->addChild('onlineUrl', 'http://scratchpads.eu/');
   foreach(_dwcarchiver_get_other_maintainers() as $other_maintainer){
     $associatedParty = $dataset->addChild('associatedParty');
