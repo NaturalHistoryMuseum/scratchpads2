@@ -6,7 +6,7 @@ index bf3ab86..62946aa 100644
  
      // Remove the last comma and space.
      $sql = substr($sql, 0, -3) . "\n) ";
-+    
++
 +    $sql .= 'ROW_FORMAT=DYNAMIC ';
  
      $sql .= 'ENGINE = ' . $table['mysql_engine'] . ' DEFAULT CHARACTER SET ' . $table['mysql_character_set'];
