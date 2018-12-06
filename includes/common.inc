@@ -7845,13 +7845,16 @@ function drupal_check_incompatibility($v, $current_version) {
  * @see hook_entity_info()
  * @see hook_entity_info_alter()
  */
-function entity_get_info($entity_type = NULL) {
+function entity_get_info($entity_type = NULL, $reset = FALSE) {
   global $language;
 
   // Use the advanced drupal_static() pattern, since this is called very often.
   static $drupal_static_fast;
   if (!isset($drupal_static_fast)) {
     $drupal_static_fast['entity_info'] = &drupal_static(__FUNCTION__);
+  }
+  if($reset){
+    $drupal_static_fast = NULL;
   }
   $entity_info = &$drupal_static_fast['entity_info'];
 
