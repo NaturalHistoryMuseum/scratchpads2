@@ -1,7 +1,7 @@
-diff --git a/core/misc/tableheader.js b/core/misc/tableheader.js
+diff --git a/misc/tableheader.js b/misc/tableheader.js
 index 949ef52..5f11c70 100644
---- a/core/misc/tableheader.js
-+++ b/core/misc/tableheader.js
+--- a/misc/tableheader.js
++++ b/misc/tableheader.js
 @@ -30,9 +30,16 @@ Drupal.tableHeader = function (table) {
  
    // Clone the table header so it inherits original jQuery properties. Hide
