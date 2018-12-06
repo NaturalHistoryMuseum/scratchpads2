@@ -3454,7 +3454,15 @@ function _node_query_node_access_alter($query, $type) {
       }
       // Otherwise attach it to the node query itself.
       else {
-        $query->exists($subquery);
+        if (empty($tableinfo['join type'])) {
+          // If we are looking at the main table of the query, apply the
+          // subquery directly.
+          $query->exists($subquery);
+        } else {
+          // If we are looking at a joined table, add the node access check
+          // to the join condition.
+          $tables[$nalias]['condition'] .= ' AND ' . (string)$subquery;
+        }
       }
     }
   }
