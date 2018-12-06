@@ -4,4 +4,4 @@ defaults:
   projects:
     subdir: "contrib"
 projects:
-  drupal: "7.60"
+  drupal: "7.61"

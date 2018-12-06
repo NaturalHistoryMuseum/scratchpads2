@@ -1,7 +1,7 @@
-diff --git a/field_collection.install b/field_collection.install
+diff --git a/sites/all/modules/contrib/field_collection/field_collection.install b/sites/all/modules/contrib/field_collection/field_collection.install
 index 7296346..27d0731 100644
---- a/field_collection.install
-+++ b/field_collection.install
+--- a/sites/all/modules/contrib/field_collection/field_collection.install
++++ b/sites/all/modules/contrib/field_collection/field_collection.install
 @@ -373,11 +373,23 @@ function field_collection_update_7008() {
      }
    }

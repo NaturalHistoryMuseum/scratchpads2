@@ -611,7 +611,9 @@ function file_load($fid) {
  */
 function file_save(stdClass $file) {
   $file->timestamp = REQUEST_TIME;
-  $file->filesize = filesize($file->uri);
+  if(empty($file->filesize) || (function_exists('file_entity_file_is_local') && file_entity_file_is_local($file))){
+    $file->filesize = filesize($file->uri);
+  }
 
   // Load the stored entity, if any.
   if (!empty($file->fid) && !isset($file->original)) {
@@ -1536,7 +1538,7 @@ function file_save_upload($form_field_name, $validators = array(), $destination 
   // evaluates to TRUE.
   if (!variable_get('allow_insecure_uploads', 0) && preg_match('/\.(php|pl|py|cgi|asp|js)(\.|$)/i', $file->filename) && (substr($file->filename, -4) != '.txt')) {
     $file->filemime = 'text/plain';
-    $file->uri .= '.txt';
+    // The destination filename will also later be used to create the URI.
     $file->filename .= '.txt';
     // The .txt extension may not be in the allowed list of extensions. We have
     // to add it here or else the file upload will fail.
