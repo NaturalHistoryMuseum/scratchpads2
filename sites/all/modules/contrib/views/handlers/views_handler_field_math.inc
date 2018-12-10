@@ -15,32 +15,42 @@
  * @ingroup views_field_handlers
  */
 class views_handler_field_math extends views_handler_field_numeric {
-  function option_definition() {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
     $options['expression'] = array('default' => '');
 
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     $form['expression'] = array(
       '#type' => 'textarea',
       '#title' => t('Expression'),
-      '#description' => t('Enter mathematical expressions such as 2 + 2 or sqrt(5). You may assign variables and create mathematical functions and evaluate them. Use the ; to separate these. For example: f(x) = x + 2; f(2).'),
+      '#description' => t("Enter mathematical expressions such as 2 + 2 or sqrt(5). You may assign variables and create mathematical functions and evaluate them. Use the ; to separate these. For example: f(x) = x + 2; f(2). The result of the previous row's mathematical expression can be accessed by using the [expression] token itself."),
       '#default_value' => $this->options['expression'],
     );
 
-    // Create a place for the help
+    // Create a place for the help.
     $form['expression_help'] = array();
     parent::options_form($form, $form_state);
 
-    // Then move the existing help:
+    // Then move the existing help.
     $form['expression_help'] = $form['alter']['help'];
     unset($form['expression_help']['#dependency']);
     unset($form['alter']['help']);
   }
 
-  function render($values) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render($values) {
     ctools_include('math-expr');
     $tokens = array_map('floatval', $this->get_render_tokens(array()));
     $value = strtr($this->options['expression'], $tokens);
@@ -80,5 +90,10 @@ class views_handler_field_math extends views_handler_field_numeric {
     return $this->sanitize_value($this->options['prefix'] . $value . $this->options['suffix']);
   }
 
-  function query() { }
+  /**
+   * {@inheritdoc}
+   */
+  public function query() {
+  }
+
 }

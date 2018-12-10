@@ -43,17 +43,16 @@ class viewsHandlerFieldUserNameTest extends ViewsSqlTest {
     $anon_name = variable_get('anonymous', t('Anonymous'));
     $view->result[0]->users_name = '';
     $render = $view->field['name']->advanced_render($view->result[0]);
-    $this->assertIdentical($render, $anon_name , 'For user0 it should use the default anonymous name by default.');
+    $this->assertIdentical($render, $anon_name, 'For user0 it should use the default anonymous name by default.');
 
     $view->field['name']->options['overwrite_anonymous'] = TRUE;
     $anon_name = $view->field['name']->options['anonymous_text'] = $this->randomName();
     $render = $view->field['name']->advanced_render($view->result[0]);
-    $this->assertIdentical($render, $anon_name , 'For user0 it should use the configured anonymous text if overwrite_anonymous is checked.');
-
+    $this->assertIdentical($render, $anon_name, 'For user0 it should use the configured anonymous text if overwrite_anonymous is checked.');
 
   }
   function view_user_name() {
-    $view = new view;
+    $view = new view();
     $view->name = 'test_views_handler_field_user_name';
     $view->description = '';
     $view->tag = 'default';
@@ -93,4 +92,5 @@ class viewsHandlerFieldUserNameTest extends ViewsSqlTest {
 
     return $view;
   }
+
 }

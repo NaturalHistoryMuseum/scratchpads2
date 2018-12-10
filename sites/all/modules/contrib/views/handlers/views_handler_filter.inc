@@ -2,7 +2,7 @@
 
 /**
  * @file
- * @todo.
+ * Definitions of views_handler_filter and views_handler_filter_broken.
  */
 
 /**
@@ -32,39 +32,49 @@
  * @ingroup views_filter_handlers
  */
 class views_handler_filter extends views_handler {
+
   /**
    * Contains the actual value of the field,either configured in the views ui
    * or entered in the exposed filters.
+   *
+   * @var mixed
    */
-  var $value = NULL;
+  public $value = NULL;
 
   /**
    * Contains the operator which is used on the query.
+   *
+   * @var string
    */
-  var $operator = '=';
+  public $operator = '=';
 
   /**
    * Contains the information of the selected item in a gruped filter.
+   *
+   * @var array|null
    */
-  var $group_info = NULL;
+  public $group_info = NULL;
 
   /**
-   * @var bool
    * Disable the possibility to force a single value.
+   *
+   * @var bool
    */
-  var $always_multiple = FALSE;
+  public $always_multiple = FALSE;
 
   /**
-   * @var bool
    * Disable the possibility to use operators.
+   *
+   * @var bool
    */
-  var $no_operator = FALSE;
+  public $no_operator = FALSE;
 
   /**
-   * @var bool
    * Disable the possibility to allow a exposed input to be optional.
+   *
+   * @var bool
    */
-  var $always_required = FALSE;
+  public $always_required = FALSE;
 
   /**
    * Provide some extra help to get the operator/value easier to use.
@@ -72,7 +82,7 @@ class views_handler_filter extends views_handler {
    * This likely has to be overridden by filters which are more complex
    * than simple operator/value.
    */
-  function init(&$view, &$options) {
+  public function init(&$view, &$options) {
     parent::init($view, $options);
 
     $this->operator = $this->options['operator'];
@@ -107,7 +117,10 @@ class views_handler_filter extends views_handler {
     }
   }
 
-  function option_definition() {
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['operator'] = array('default' => '=');
@@ -160,39 +173,43 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Display the filter on the administrative summary
+   * Display the filter on the administrative summary.
    */
-  function admin_summary() {
+  public function admin_summary() {
     return check_plain((string) $this->operator) . ' ' . check_plain((string) $this->value);
   }
 
   /**
    * Determine if a filter can be exposed.
    */
-  function can_expose() { return TRUE; }
+  public function can_expose() {
+    return TRUE;
+  }
 
   /**
    * Determine if a filter can be converted into a group.
+   *
    * Only exposed filters with operators available can be converted into groups.
    */
-  function can_build_group() {
+  public function can_build_group() {
     return $this->is_exposed() && (count($this->operator_options()) > 0);
   }
 
   /**
    * Returns TRUE if the exposed filter works like a grouped filter.
    */
-  function is_a_group() {
+  public function is_a_group() {
     return $this->is_exposed() && !empty($this->options['is_grouped']);
   }
 
   /**
    * Provide the basic form which calls through to subforms.
+   *
    * If overridden, it is best to call through to the parent,
    * or to at least make sure all of the functions in this form
    * are called.
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     if ($this->can_expose()) {
       $this->show_expose_button($form, $form_state);
@@ -233,7 +250,7 @@ class views_handler_filter extends views_handler {
   /**
    * Simple validate handler
    */
-  function options_validate(&$form, &$form_state) {
+  public function options_validate(&$form, &$form_state) {
     $this->operator_validate($form, $form_state);
     $this->value_validate($form, $form_state);
     if (!empty($this->options['exposed']) && !$this->is_a_group()) {
@@ -245,11 +262,13 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Simple submit handler
+   * Simple submit handler.
    */
-  function options_submit(&$form, &$form_state) {
-    unset($form_state['values']['expose_button']); // don't store this.
-    unset($form_state['values']['group_button']); // don't store this.
+  public function options_submit(&$form, &$form_state) {
+    // Don't store these.
+    unset($form_state['values']['expose_button']);
+    unset($form_state['values']['group_button']);
+
     if (!$this->is_a_group()) {
       $this->operator_submit($form, $form_state);
       $this->value_submit($form, $form_state);
@@ -265,7 +284,7 @@ class views_handler_filter extends views_handler {
   /**
    * Shortcut to display the operator form.
    */
-  function show_operator_form(&$form, &$form_state) {
+  public function show_operator_form(&$form, &$form_state) {
     $this->operator_form($form, $form_state);
     $form['operator']['#prefix'] = '<div class="views-group-box views-left-30">';
     $form['operator']['#suffix'] = '</div>';
@@ -279,7 +298,7 @@ class views_handler_filter extends views_handler {
    *
    * @see options_form()
    */
-  function operator_form(&$form, &$form_state) {
+  public function operator_form(&$form, &$form_state) {
     $options = $this->operator_options();
     if (!empty($options)) {
       $form['operator'] = array(
@@ -293,25 +312,31 @@ class views_handler_filter extends views_handler {
 
   /**
    * Provide a list of options for the default operator form.
+   *
    * Should be overridden by classes that don't override operator_form
    */
-  function operator_options() { return array(); }
+  public function operator_options() {
+    return array();
+  }
 
   /**
    * Validate the operator form.
    */
-  function operator_validate($form, &$form_state) { }
+  public function operator_validate($form, &$form_state) {
+  }
 
   /**
    * Perform any necessary changes to the form values prior to storage.
+   *
    * There is no need for this function to actually store the data.
    */
-  function operator_submit($form, &$form_state) { }
+  public function operator_submit($form, &$form_state) {
+  }
 
   /**
    * Shortcut to display the value form.
    */
-  function show_value_form(&$form, &$form_state) {
+  public function show_value_form(&$form, &$form_state) {
     $this->value_form($form, $form_state);
     if (empty($this->no_operator)) {
       $form['value']['#prefix'] = '<div class="views-group-box views-right-70">' . (isset($form['value']['#prefix']) ? $form['value']['#prefix'] : '');
@@ -322,28 +347,33 @@ class views_handler_filter extends views_handler {
   /**
    * Options form subform for setting options.
    *
-   * This should be overridden by all child classes and it must
-   * define $form['value']
+   * This should be overridden by all child classes and it must define
+   * $form['value'].
    *
    * @see options_form()
    */
-  function value_form(&$form, &$form_state) { $form['value'] = array(); }
+  public function value_form(&$form, &$form_state) {
+    $form['value'] = array();
+  }
 
   /**
    * Validate the options form.
    */
-  function value_validate($form, &$form_state) { }
+  public function value_validate($form, &$form_state) {
+  }
 
   /**
    * Perform any necessary changes to the form values prior to storage.
+   *
    * There is no need for this function to actually store the data.
    */
-  function value_submit($form, &$form_state) { }
+  public function value_submit($form, &$form_state) {
+  }
 
   /**
    * Shortcut to display the exposed options form.
    */
-  function show_build_group_form(&$form, &$form_state) {
+  public function show_build_group_form(&$form, &$form_state) {
     if (empty($this->options['is_grouped'])) {
       return;
     }
@@ -366,8 +396,7 @@ class views_handler_filter extends views_handler {
   /**
    * Shortcut to display the build_group/hide button.
    */
-  function show_build_group_button(&$form, &$form_state) {
-
+  public function show_build_group_button(&$form, &$form_state) {
     $form['group_button'] = array(
       '#prefix' => '<div class="views-grouped clearfix">',
       '#suffix' => '</div>',
@@ -412,10 +441,11 @@ class views_handler_filter extends views_handler {
       $form['group_button']['radios']['radios']['#default_value'] = 1;
     }
   }
+
   /**
    * Shortcut to display the expose/hide button.
    */
-  function show_expose_button(&$form, &$form_state) {
+  public function show_expose_button(&$form, &$form_state) {
     $form['expose_button'] = array(
       '#prefix' => '<div class="views-expose clearfix">',
       '#suffix' => '</div>',
@@ -423,8 +453,8 @@ class views_handler_filter extends views_handler {
       '#weight' => -200,
     );
 
-    // Add a checkbox for JS users, which will have behavior attached to it
-    // so it can replace the button.
+    // Add a checkbox for JS users, which will have behavior attached to it so
+    // it can replace the button.
     $form['expose_button']['checkbox'] = array(
       '#theme_wrappers' => array('container'),
       '#attributes' => array('class' => array('js-only')),
@@ -466,7 +496,7 @@ class views_handler_filter extends views_handler {
    *
    * @see options_form()
    */
-  function expose_form(&$form, &$form_state) {
+  public function expose_form(&$form, &$form_state) {
     $form['#theme'] = 'views_ui_expose_filter_form';
     // #flatten will move everything from $form['expose'][$key] to $form[$key]
     // prior to rendering. That's why the pre_render for it needs to run first,
@@ -566,7 +596,7 @@ class views_handler_filter extends views_handler {
       '#description' => t('Remember exposed selection only for the selected user role(s). If you select no roles, the exposed data will never be stored.'),
       '#default_value' => $this->options['expose']['remember_roles'],
       '#options' => $role_options,
-      '#dependency' =>  array(
+      '#dependency' => array(
         'edit-options-expose-remember' => array(1),
       ),
     );
@@ -584,13 +614,16 @@ class views_handler_filter extends views_handler {
   /**
    * Validate the options form.
    */
-  function expose_validate($form, &$form_state) {
+  public function expose_validate($form, &$form_state) {
     if (empty($form_state['values']['options']['expose']['identifier'])) {
       form_error($form['expose']['identifier'], t('The identifier is required if the filter is exposed.'));
     }
 
-    if (!empty($form_state['values']['options']['expose']['identifier']) && $form_state['values']['options']['expose']['identifier'] == 'value') {
-      form_error($form['expose']['identifier'], t('This identifier is not allowed.'));
+    if (!empty($form_state['values']['options']['expose']['identifier'])) {
+      $illegal_identifiers = array('value', 'q');
+      if (in_array($form_state['values']['options']['expose']['identifier'], $illegal_identifiers)) {
+        form_error($form['expose']['identifier'], t('This identifier is not allowed.'));
+      }
     }
 
     if (!$this->view->display_handler->is_identifier_unique($form_state['id'], $form_state['values']['options']['expose']['identifier'])) {
@@ -598,17 +631,20 @@ class views_handler_filter extends views_handler {
     }
   }
 
-   /**
+  /**
    * Validate the build group options form.
    */
-  function build_group_validate($form, &$form_state) {
+  public function build_group_validate($form, &$form_state) {
     if (!empty($form_state['values']['options']['group_info'])) {
       if (empty($form_state['values']['options']['group_info']['identifier'])) {
         form_error($form['group_info']['identifier'], t('The identifier is required if the filter is exposed.'));
       }
 
-      if (!empty($form_state['values']['options']['group_info']['identifier']) && $form_state['values']['options']['group_info']['identifier'] == 'value') {
-        form_error($form['group_info']['identifier'], t('This identifier is not allowed.'));
+      if (!empty($form_state['values']['options']['group_info']['identifier'])) {
+        $illegal_identifiers = array('value', 'q');
+        if (in_array($form_state['values']['options']['group_info']['identifier'], $illegal_identifiers)) {
+          form_error($form['group_info']['identifier'], t('This identifier is not allowed.'));
+        }
       }
 
       if (!$this->view->display_handler->is_identifier_unique($form_state['id'], $form_state['values']['options']['group_info']['identifier'])) {
@@ -619,13 +655,12 @@ class views_handler_filter extends views_handler {
     if (!empty($form_state['values']['options']['group_info']['group_items'])) {
       foreach ($form_state['values']['options']['group_info']['group_items'] as $id => $group) {
         if (empty($group['remove'])) {
-
           // Check if the title is defined but value wasn't defined.
           if (!empty($group['title'])) {
             if ((!is_array($group['value']) && trim($group['value']) == "") ||
                 (is_array($group['value']) && count(array_filter($group['value'], '_views_array_filter_zero')) == 0)) {
               form_error($form['group_info']['group_items'][$id]['value'],
-                         t('The value is required if title for this item is defined.'));
+                t('The value is required if title for this item is defined.'));
             }
           }
 
@@ -634,7 +669,7 @@ class views_handler_filter extends views_handler {
               (is_array($group['value']) && count(array_filter($group['value'], '_views_array_filter_zero')) > 0)) {
             if (empty($group['title'])) {
               form_error($form['group_info']['group_items'][$id]['title'],
-                         t('The title is required if value for this item is defined.'));
+                t('The title is required if value for this item is defined.'));
             }
           }
         }
@@ -645,11 +680,11 @@ class views_handler_filter extends views_handler {
   /**
    * Save new group items, re-enumerates and remove groups marked to delete.
    */
-  function build_group_submit($form, &$form_state) {
+  public function build_group_submit($form, &$form_state) {
     $groups = array();
     uasort($form_state['values']['options']['group_info']['group_items'], 'drupal_sort_weight');
-    // Filter out removed items.
 
+    // Filter out removed items.
     // Start from 1 to avoid problems with #default_value in the widget.
     $new_id = 1;
     $new_default = 'All';
@@ -678,7 +713,7 @@ class views_handler_filter extends views_handler {
   /**
    * Provide default options for exposed filters.
    */
-  function expose_options() {
+  public function expose_options() {
     $this->options['expose'] = array(
       'use_operator' => FALSE,
       'operator' => $this->options['id'] . '_op',
@@ -691,10 +726,10 @@ class views_handler_filter extends views_handler {
     );
   }
 
-   /**
+  /**
    * Provide default options for exposed filters.
    */
-  function build_group_options() {
+  public function build_group_options() {
     $this->options['group_info'] = array(
       'label' => $this->definition['title'],
       'description' => NULL,
@@ -710,12 +745,10 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Build a form containing a group of operator | values to apply as a
-   * single filter.
+   * Build a form with a group of operator | values to apply as a single filter.
    */
-  function group_form(&$form, &$form_state) {
+  public function group_form(&$form, &$form_state) {
     if (!empty($this->options['group_info']['optional']) && !$this->multiple_exposed_input()) {
-
       $old_any = $this->options['group_info']['widget'] == 'select' ? '<Any>' : '&lt;Any&gt;';
       $any_label = variable_get('views_exposed_filter_any_label', 'new_any') == 'old_any' ? $old_any : t('- Any -');
       $groups = array('All' => $any_label);
@@ -744,7 +777,7 @@ class views_handler_filter extends views_handler {
           $form[$value]['#multiple'] = TRUE;
         }
         unset($form[$value]['#default_value']);
-        if (empty($form_state['input'])) {
+        if (empty($form_state['input'][$value])) {
           $form_state['input'][$value] = $this->group_info;
         }
       }
@@ -759,7 +792,7 @@ class views_handler_filter extends views_handler {
    *
    * You can override this if it doesn't do what you expect.
    */
-  function exposed_form(&$form, &$form_state) {
+  public function exposed_form(&$form, &$form_state) {
     if (empty($this->options['exposed'])) {
       return;
     }
@@ -805,18 +838,19 @@ class views_handler_filter extends views_handler {
 
   /**
    * Build the form to let users create the group of exposed filters.
+   *
    * This form is displayed when users click on button 'Build group'
    */
-  function build_group_form(&$form, &$form_state) {
+  public function build_group_form(&$form, &$form_state) {
     if (empty($this->options['exposed']) || empty($this->options['is_grouped'])) {
       return;
     }
     $form['#theme'] = 'views_ui_build_group_filter_form';
 
-    // #flatten will move everything from $form['group_info'][$key] to $form[$key]
-    // prior to rendering. That's why the pre_render for it needs to run first,
-    // so that when the next pre_render (the one for fieldsets) runs, it gets
-    // the flattened data.
+    // #flatten will move everything from $form['group_info'][$key] to
+    // $form[$key] prior to rendering. That's why the pre_render for it needs
+    // to run first, so that when the next pre_render (the one for fieldsets)
+    // runs, it gets the flattened data.
     array_unshift($form['#pre_render'], 'views_ui_pre_render_flatten_data');
     $form['group_info']['#flatten'] = TRUE;
 
@@ -919,7 +953,9 @@ class views_handler_filter extends views_handler {
       '#default_value' => $this->options['group_info']['remember'],
     );
 
-    $groups = array('All' => '- Any -'); // The string '- Any -' will not be rendered see @theme_views_ui_build_group_filter_form
+    // The string '- Any -' will not be rendered.
+    // @see theme_views_ui_build_group_filter_form()
+    $groups = array('All' => '- Any -'); 
 
     // Provide 3 options to start when we are in a new group.
     if (count($this->options['group_info']['group_items']) == 0) {
@@ -933,10 +969,11 @@ class views_handler_filter extends views_handler {
         continue;
       }
       // Each rows contains three widgets:
-      // a) The title, where users define how they identify a pair of operator | value
-      // b) The operator
-      // c) The value (or values) to use in the filter with the selected operator
-
+      // a) The title, where users define how they identify a pair of operator
+      //    | value.
+      // b) The operator.
+      // c) The value (or values) to use in the filter with the selected
+      //    operator.
       // In each row, we have to display the operator form and the value from
       // $row acts as a fake form to render each widget in a row.
       $row = array();
@@ -948,11 +985,10 @@ class views_handler_filter extends views_handler {
       $row['operator']['#title'] = '';
       $this->value_form($row, $form_state);
 
-      // Fix the dependencies to update value forms when operators
-      // changes. This is needed because forms are inside a new form and
-      // their ids changes. Dependencies are used when operator changes
-      // from to 'Between', 'Not Between', etc, and two or more widgets
-      // are displayed.
+      // Fix the dependencies to update value forms when operators changes.
+      // This is needed because forms are inside a new form and their ids
+      // changes. Dependencies are used when operator changes from to
+      // 'Between', 'Not Between', etc, and two or more widgets are displayed.
       $without_children = TRUE;
       foreach (element_children($row['value']) as $children) {
         if (isset($row['value'][$children]['#dependency']['edit-options-operator'])) {
@@ -999,7 +1035,7 @@ class views_handler_filter extends views_handler {
         ),
         'weight' => array(
           '#type' => 'weight',
-          '#delta' => 10,
+          '#delta' => count($this->options['group_info']['group_items']),
           '#default_value' => $default_weight++,
           '#attributes' => array('class' => array('weight')),
         ),
@@ -1052,10 +1088,9 @@ class views_handler_filter extends views_handler {
 
 
   /**
-   * Make some translations to a form item to make it more suitable to
-   * exposing.
+   * Make some translations to a form item to make it more suitable to exposing.
    */
-  function exposed_translate(&$form, $type) {
+  public function exposed_translate(&$form, $type) {
     if (!isset($form['#type'])) {
       return;
     }
@@ -1077,7 +1112,8 @@ class views_handler_filter extends views_handler {
       $form['#size'] = NULL;
     }
 
-    // Cleanup in case the translated element's (radios or checkboxes) display value contains html.
+    // Cleanup in case the translated element's (radios or checkboxes) display
+    // value contains html.
     if ($form['#type'] == 'select') {
       $this->prepare_filter_select_options($form['#options']);
     }
@@ -1093,21 +1129,19 @@ class views_handler_filter extends views_handler {
     }
   }
 
-
-
   /**
    * Sanitizes the HTML select element's options.
    *
    * The function is recursive to support optgroups.
    */
-  function prepare_filter_select_options(&$options) {
+  public function prepare_filter_select_options(&$options) {
     foreach ($options as $value => $label) {
       // Recurse for optgroups.
       if (is_array($label)) {
         $this->prepare_filter_select_options($options[$value]);
       }
       // FAPI has some special value to allow hierarchy.
-      // @see _form_options_flatten
+      // @see _form_options_flatten()
       elseif (is_object($label)) {
         $this->prepare_filter_select_options($options[$value]->option);
       }
@@ -1118,8 +1152,10 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Tell the renderer about our exposed form. This only needs to be
-   * overridden for particularly complex forms. And maybe not even then.
+   * Tell the renderer about our exposed form.
+   *
+   * This only needs to be overridden for particularly complex forms. And maybe
+   * not even then.
    *
    * @return array|null
    *   For standard exposed filters. An array with the following keys:
@@ -1130,7 +1166,7 @@ class views_handler_filter extends views_handler {
    *   - value: The $form key of the value. Set to NULL if no value.
    *   - label: The label to use for this piece.
    */
-  function exposed_info() {
+  public function exposed_info() {
     if (empty($this->options['exposed'])) {
       return;
     }
@@ -1151,7 +1187,7 @@ class views_handler_filter extends views_handler {
     );
   }
 
-  /*
+  /**
    * Transform the input from a grouped filter into a standard filter.
    *
    * When a filter is a group, find the set of operator and values
@@ -1162,10 +1198,10 @@ class views_handler_filter extends views_handler {
    * checkboxes widget, and this function will be called for each item
    * choosed in the checkboxes.
    */
-  function convert_exposed_input(&$input, $selected_group_id = NULL) {
+  public function convert_exposed_input(&$input, $selected_group_id = NULL) {
     if ($this->is_a_group()) {
-      // If it is already defined the selected group, use it. Only valid
-      // when the filter uses checkboxes for widget.
+      // If it is already defined the selected group, use it. Only valid when
+      // the filter uses checkboxes for widget.
       if (!empty($selected_group_id)) {
         $selected_group = $selected_group_id;
       }
@@ -1181,7 +1217,8 @@ class views_handler_filter extends views_handler {
       if (isset($selected_group) && isset($this->options['group_info']['group_items'][$selected_group])) {
         $input[$this->options['expose']['operator']] = $this->options['group_info']['group_items'][$selected_group]['operator'];
 
-        // Value can be optional, For example for 'empty' and 'not empty' filters.
+        // Value can be optional, For example for 'empty' and 'not empty'
+        // filters.
         if (!empty($this->options['group_info']['group_items'][$selected_group]['value'])) {
           $input[$this->options['expose']['identifier']] = $this->options['group_info']['group_items'][$selected_group]['value'];
         }
@@ -1201,7 +1238,7 @@ class views_handler_filter extends views_handler {
    * as widget, and therefore has to be applied several times, one per
    * item selected.
    */
-  function group_multiple_exposed_input(&$input) {
+  public function group_multiple_exposed_input(&$input) {
     if (!empty($input[$this->options['group_info']['identifier']])) {
       return array_filter($input[$this->options['group_info']['identifier']]);
     }
@@ -1209,10 +1246,13 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Returns TRUE if users can select multiple groups items of a
-   * grouped exposed filter.
+   *
+   *
+   * @return bool
+   *   TRUE if users can select multiple groups items of a grouped exposed
+   *   filter.
    */
-  function multiple_exposed_input() {
+  public function multiple_exposed_input() {
     return $this->is_a_group() && !empty($this->options['group_info']['multiple']);
   }
 
@@ -1221,7 +1261,7 @@ class views_handler_filter extends views_handler {
    * This function is similar to store_exposed_input but modified to
    * work properly when the filter is a group.
    */
-  function store_group_input($input, $status) {
+  public function store_group_input($input, $status) {
     if (!$this->is_a_group() || empty($this->options['group_info']['identifier'])) {
       return TRUE;
     }
@@ -1230,12 +1270,12 @@ class views_handler_filter extends views_handler {
       return;
     }
 
-    // Figure out which display id is responsible for the filters, so we
-    // know where to look for session stored values.
+    // Figure out which display id is responsible for the filters, so we know
+    // where to look for session stored values.
     $display_id = ($this->view->display_handler->is_defaulted('filters')) ? 'default' : $this->view->current_display;
 
-    // false means that we got a setting that means to recuse ourselves,
-    // so we should erase whatever happened to be there.
+    // False means that we got a setting that means to recuse ourselves, so we
+    // should erase whatever happened to be there.
     if ($status === FALSE && isset($_SESSION['views'][$this->view->name][$display_id])) {
       $session = &$_SESSION['views'][$this->view->name][$display_id];
 
@@ -1256,14 +1296,12 @@ class views_handler_filter extends views_handler {
   }
 
   /**
-   * Check to see if input from the exposed filters should change
-   * the behavior of this filter.
+   * Check to see if input from the exposed filters should change the behavior.
    */
-  function accept_exposed_input($input) {
+  public function accept_exposed_input($input) {
     if (empty($this->options['exposed'])) {
       return TRUE;
     }
-
 
     if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator_id']) && isset($input[$this->options['expose']['operator_id']])) {
       $this->operator = $input[$this->options['expose']['operator_id']];
@@ -1289,7 +1327,6 @@ class views_handler_filter extends views_handler {
         }
       }
 
-
       if (isset($value)) {
         $this->value = $value;
         if (empty($this->always_multiple) && empty($this->options['expose']['multiple'])) {
@@ -1304,7 +1341,10 @@ class views_handler_filter extends views_handler {
     return TRUE;
   }
 
-  function store_exposed_input($input, $status) {
+  /**
+   *
+   */
+  public function store_exposed_input($input, $status) {
     if (empty($this->options['exposed']) || empty($this->options['expose']['identifier'])) {
       return TRUE;
     }
@@ -1321,15 +1361,15 @@ class views_handler_filter extends views_handler {
       return;
     }
 
-    // Figure out which display id is responsible for the filters, so we
-    // know where to look for session stored values.
+    // Figure out which display id is responsible for the filters, so we know
+    // where to look for session stored values.
     $display_id = ($this->view->display_handler->is_defaulted('filters')) ? 'default' : $this->view->current_display;
 
-    // shortcut test.
+    // Shortcut test.
     $operator = !empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator_id']);
 
-    // false means that we got a setting that means to recuse ourselves,
-    // so we should erase whatever happened to be there.
+    // False means that we got a setting that means to recuse ourselves, so we
+    // should erase whatever happened to be there.
     if (!$status && isset($_SESSION['views'][$this->view->name][$display_id])) {
       $session = &$_SESSION['views'][$this->view->name][$display_id];
       if ($operator && isset($session[$this->options['expose']['operator_id']])) {
@@ -1360,10 +1400,10 @@ class views_handler_filter extends views_handler {
    * Add this filter to the query.
    *
    * Due to the nature of fapi, the value and the operator have an unintended
-   * level of indirection. You will find them in $this->operator
-   * and $this->value respectively.
+   * level of indirection. You will find them in $this->operator and
+   * $this->value respectively.
    */
-  function query() {
+  public function query() {
     $this->ensure_my_table();
     $this->query->add_where($this->options['group'], "$this->table_alias.$this->real_field", $this->value, $this->operator);
   }
@@ -1371,16 +1411,18 @@ class views_handler_filter extends views_handler {
   /**
    * Can this filter be used in OR groups?
    *
-   * Some filters have complicated where clauses that cannot be easily used
-   * with OR groups. Some filters must also use HAVING which also makes
-   * them not groupable. These filters will end up in a special group
-   * if OR grouping is in use.
+   * Some filters have complicated where clauses that cannot be easily used with
+   * OR groups. Some filters must also use HAVING which also makes them not
+   * groupable. These filters will end up in a special group if OR grouping is
+   * in use.
    *
    * @return bool
+   *   Whether the filter can be used in OR groups.
    */
-   function can_group() {
+   public function can_group() {
      return TRUE;
    }
+
 }
 
 
@@ -1390,27 +1432,51 @@ class views_handler_filter extends views_handler {
  * @ingroup views_filter_handlers
  */
 class views_handler_filter_broken extends views_handler_filter {
-  function ui_name($short = FALSE) {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function ui_name($short = FALSE) {
     return t('Broken/missing handler');
   }
 
-  function ensure_my_table() { /* No table to ensure! */ }
-  function query($group_by = FALSE) { /* No query to run */ }
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function ensure_my_table() {
+    // No table to ensure!
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function query($group_by = FALSE) {
+    // No query to run.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     $form['markup'] = array(
       '#markup' => '<div class="form-item description">' . t('The handler for this item is broken or missing and cannot be used. If a module provided the handler and was disabled, re-enabling the module may restore it. Otherwise, you should probably delete this item.') . '</div>',
     );
   }
 
   /**
-   * Determine if the handler is considered 'broken'
+   * {@inheritdoc}
    */
-  function broken() { return TRUE; }
+  public function broken() {
+    return TRUE;
+  }
+
 }
 
 /**
  * Filter by no empty values, though allow to use "0".
- * @param $var
+ *
+ * @param string $var
+ *
  * @return bool
  */
 function _views_array_filter_zero($var) {
