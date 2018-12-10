@@ -1,12 +1,14 @@
 name = Automatic Entity Labels
 description = Allows hiding of entity label fields and automatic label creation.
 core = 7.x
+package = Entity
+configure = admin/structure/auto-label
 
 dependencies[] = entity
 
-; Information added by Drupal.org packaging script on 2014-12-28
-version = "7.x-1.3"
+; Information added by Drupal.org packaging script on 2017-04-26
+version = "7.x-1.4"
 core = "7.x"
 project = "auto_entitylabel"
-datestamp = "1419756181"
+datestamp = "1493219646"
 
