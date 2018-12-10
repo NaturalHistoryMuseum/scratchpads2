@@ -247,7 +247,8 @@ class EndNoteXMLParser {
   }
 
   function endnote8_characterData($parser, $data) {
-    //    global $this->node, $this->element, $this->contributors_type, $this->contrib_count, $this->dates, $this->urls, $this->keyword_count;
+    // first replace any carriage returns with html line breaks
+    $data = str_ireplace("\r", "<br/>", $data);
     if (trim(htmlspecialchars_decode($data))) {
       switch ($this->element) {
         //Author information

@@ -18,6 +18,9 @@ class HumanNameParser_Parser {
   private $middle;
   private $last;
   private $suffix;
+  private $category;
+  private $type;
+  private $literal;
 
   private $suffixes;
   private $prefixes;
@@ -30,15 +33,24 @@ class HumanNameParser_Parser {
   public function __construct($name = NULL)
   {
     $this->suffixes = array('esq','esquire','jr','sr','2','ii','iii','iv');
-    $this->prefixes = array('bar','ben','bin','da','dal','de la', 'de', 'del','der','di',
+    $this->prefixes = array('bar','ben','bin','da','dal','de la', 'de la Rue du', 'de', 'del','der','di',
         'ibn','la','le','san','st','ste','van', 'van der', 'van den', 'vel','von');
     $this->setName($name);
   }
 
   public function parseName($name = NULL, $category = NULL) {
+    $this->literal = 0;
+    $this->category = 1;
+    $this->type = 1;
     if (is_array($name) && isset($name['name'])) {
       if (isset($name['auth_category']) && !empty($name['auth_category']) && empty($category)) {
-        $category = $name['auth_category'];
+        $this->category = $name['auth_category'];
+      }
+      elseif (!empty($category)) {
+        $this->category = $category;
+      }
+      if (isset($name['auth_type']) && !empty($name['auth_type'])) {
+        $this->type = $name['auth_type'];
       }
       $this->nameParts = $name;
       $this->setName($name['name'], $category);
@@ -59,6 +71,7 @@ class HumanNameParser_Parser {
    */
   public function setName($name = NULL, $category = NULL){
     if ($name) {
+      $this->category == $category;
 
       if (is_object($name) && get_class($name) == "HumanNameParser_Name") { // this is mostly for testing
         $this->name = $name;
@@ -78,8 +91,9 @@ class HumanNameParser_Parser {
       $this->last = "";
       $this->suffix = "";
 
-      if ($category == 5) {
+      if ($this->category == 5 || $this->type == 5) {
         $this->last = $name;
+        $this->literal = TRUE;
       }
       else {
         $this->parse();
@@ -128,6 +142,7 @@ class HumanNameParser_Parser {
     $arr['lastname']  = $this->last;
     $arr['suffix']    = $this->suffix;
     $arr['md5']       = md5(json_encode($arr));
+    $arr['literal']   = $this->literal;
 
     if ($arrType == 'assoc') {
       return array_merge($this->nameParts, $arr);
@@ -150,17 +165,24 @@ class HumanNameParser_Parser {
   */
   private function parse()
   {
-    $suffixes = implode("\.*|", $this->suffixes) . "\.*"; // each suffix gets a "\.*" behind it.
+    $suffixes = implode("\.*|\s", $this->suffixes) . "\.*"; // each suffix gets a "\.*" behind it.
     $prefixes = implode(" |", $this->prefixes) . " "; // each prefix gets a " " behind it.
 
     // The regex use is a bit tricky.  *Everything* matched by the regex will be replaced,
     //	but you can select a particular parenthesized submatch to be returned.
     //	Also, note that each regex requres that the preceding ones have been run, and matches chopped out.
-    $nicknamesRegex =		"/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /"; // names that starts or end w/ an apostrophe break this
-    $suffixRegex =			"/,* *($suffixes)$/";
-    $lastRegex =				"/(?!^)\b([^ ]+ y |$prefixes)*[^ ]+$/";
+    $nicknamesRegex		= "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /"; // names that starts or end w/ an apostrophe break this
+    $suffixRegex			= "/,* *($suffixes)$/";
+    $lastRegex 				= "/(?!^)\b([^ ]+ y |$prefixes)*[^ ]+$/u";
     $leadingInitRegex =	"/^(.\.*)(?= \p{L}{2})/"; // note the lookahead, which isn't returned or replaced
-    $firstRegex =			"/^[^ ]+/"; //
+    $firstRegex				= "/^[^ ]+/"; //
+
+    // short circuit for a simple single string that would otherwise cause an Exception;
+    // we take this as the last name and everything else will be empty (the default)
+    if (preg_match('@^\s*(\p{L}+)\s*$@u', $this->name->getStr(), $matches)) {
+      $this->last = $matches[1];
+      return true;
+    }
 
     // get nickname, if there is one
     $this->nicknames = $this->name->chopWithRegex($nicknamesRegex, 2);
@@ -182,7 +204,7 @@ class HumanNameParser_Parser {
 
     // get the first name
     $this->first = $this->name->chopWithRegex($firstRegex, 0);
-    if (!$this->first){
+    if (!$this->first && $this->category != 5){
       throw new Exception("Couldn't find a first name in '{$this->name->getStr()}'");
     }
 

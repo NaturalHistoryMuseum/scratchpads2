@@ -44,10 +44,10 @@ function _biblio_get_auth_type($auth_category, $biblio_type) {
  * the i18nstrings module is enabled.
  */
 function _biblio_localize_fields(&$fields) {
-  if (module_exists('i18nstrings')) {
+  if (function_exists('i18n_string')) {
     foreach ($fields as $key => $row) {
-      $fields[$key]['title'] = tt("biblio:field:{$row['ftdid']}:title", $fields[$key]['title']);
-      $fields[$key]['hint'] = tt("biblio:field:{$row['ftdid']}:hint", $fields[$key]['hint']);
+      $fields[$key]['title'] = i18n_string("biblio:field:{$row['ftdid']}:title", $fields[$key]['title']);
+      $fields[$key]['hint'] = i18n_string("biblio:field:{$row['ftdid']}:hint", $fields[$key]['hint']);
     }
   }
 }
@@ -69,8 +69,8 @@ function _biblio_localize_fields(&$fields) {
  *   Translated value.
  */
 function _biblio_localize_type($tid, $value, $field = 'name') {
-  if (module_exists('i18nstrings')) {
-    return tt("biblio:type:$tid:$field", $value);
+  if (function_exists('i18n_string')) {
+    return i18n_string("biblio:type:$tid:$field", $value);
   }
   return $value;
 }
@@ -100,16 +100,17 @@ function biblio_locale($op = 'groups', $group = NULL) {
  *   specified, strings for all fields will be refreshed.
  */
 function biblio_locale_refresh_fields($tid = NULL) {
-  if (module_exists('i18nstrings')) {
+  if (function_exists('i18n_string')) {
     if (isset($tid)) {
       $result = db_query('SELECT d.* FROM {biblio_field_type} b INNER JOIN {biblio_field_type_data} d ON b.ftdid = d.ftdid WHERE tid = :tid', array(':tid' => $tid));
     }
     else {
       $result = db_query('SELECT * FROM {biblio_field_type_data}');
     }
+    $options = array('translate' => FALSE, 'update' => TRUE);
     foreach ($result as $row) {
-      tt("biblio:field:{$row->ftdid}:title", $row->title, NULL, TRUE);
-      tt("biblio:field:{$row->ftdid}:hint", $row->hint, NULL, TRUE);
+      i18n_string("biblio:field:{$row->ftdid}:title", $row->title, $options);
+      i18n_string("biblio:field:{$row->ftdid}:hint", $row->hint, $options);
     }
   }
 }
@@ -122,28 +123,35 @@ function biblio_locale_refresh_fields($tid = NULL) {
  *   specified, strings for all fields will be refreshed.
  */
 function biblio_locale_refresh_types($tid = NULL) {
-  if (module_exists('i18nstrings')) {
+  if (function_exists('i18n_string')) {
     if (isset($tid)) {
-      $result = db_query('SELECT * FROM {biblio_types} WHERE tid = :tid', array(':tid', $tid));
+      $result = db_query('SELECT * FROM {biblio_types} WHERE tid = :tid', array(':tid' => $tid));
     }
     else {
       $result = db_query('SELECT * FROM {biblio_types} WHERE tid > 0');
     }
+    $options = array('translate' => FALSE, 'update' => TRUE);
     foreach ($result as $row ) {
-      tt("biblio:type:{$row->tid}:name", $row->name, NULL, TRUE);
-      tt("biblio:type:{$row->tid}:description", $row->description, NULL, TRUE);
+      i18n_string("biblio:type:{$row->tid}:name", $row->name, $options);
+      i18n_string("biblio:type:{$row->tid}:description", $row->description, $options);
     }
   }
 }
 
+/**
+ * Implements hook_init().
+ */
 function biblio_init() {
   global $user, $conf;
   drupal_add_css(drupal_get_path('module', 'biblio') . '/biblio.css');
 
-  if ($user->uid === 0) { // Prevent caching of biblio pages for anonymous users so session variables work and thus filering works
+  // Prevent caching of biblio pages for anonymous users so session
+  // variables work and thus filering works.
+  if ($user->uid === 0 && variable_get('biblio_prevent_anon_cache', TRUE)) {
     $base = variable_get('biblio_base', 'biblio');
-    if (drupal_match_path($_GET['q'], "$base\n$base/*"))
+    if (drupal_match_path($_GET['q'], "$base\n$base/*")) {
       $conf['cache'] = FALSE;
+    }
   }
 }
 
@@ -1158,6 +1166,10 @@ function biblio_user_presave(&$edit, $account, $catagory) {
  */
 function biblio_form($node, &$form_state) {
   global $user;
+  $path = drupal_get_path('module', 'biblio');
+  if (variable_get('biblio_button_hide', 1) == 1) {
+    drupal_add_js($path . '/misc/biblio.nodeformbuttonhide.js', 'file');
+  }
   $fields = array();
   $form['biblio_tabs'] = $tabs = array();
 
@@ -1193,7 +1205,6 @@ function biblio_form($node, &$form_state) {
         '#type'   => 'submit',
         '#value'  => $step_two ? t('Change Publication Type') : t('Next'),
         '#limit_validation_errors' => array(),
-        '#attributes' =>  array('style' => array('display: none;')),
         '#weight' => -10,
         '#submit' => array(),
     );
@@ -1614,8 +1625,6 @@ function biblio_update($node) {
   _biblio_prepare_submit($node);
   biblio_update_contributors($node);
   biblio_update_keywords($node);
-  $contributors = biblio_load_contributors($node->vid);
-  $node->biblio_contributors = $contributors[$node->vid];
   $node->biblio_coins = biblio_coins($node);
 
   // Update the node in the database:
@@ -1703,7 +1712,7 @@ function biblio_citekey_generate($node) {
   }
   else {
     ob_start();
-    //$return = eval($php);
+    $return = eval($php);
     ob_end_clean();
     return check_plain(strip_tags((string)$return));
   }
@@ -1722,6 +1731,7 @@ function biblio_view($node, $buildmode = 'full') {
 
   switch ($buildmode) {
     case 'full':
+    case 'print':
       if (variable_get('biblio_hide_bibtex_braces', 0) && !isset($node->view )) {
         $node->title = biblio_remove_brace($node->title);
         drupal_set_title(filter_xss($node->title, biblio_get_allowed_tags()));
@@ -1889,11 +1899,11 @@ function biblio_get_db_fields() {
  *******************************************/
 function _biblio_citekey_print($citekey) {
 
-  $nid = db_query("SELECT nid FROM {biblio} WHERE biblio_citekey = :key", array(':key' => $citekey))->fetchObject();
-  if ($nid->nid > 0) {
+  $nid = db_query("SELECT nid FROM {biblio} WHERE biblio_citekey = :key", array(':key' => $citekey))->fetchField();
+  if ($nid) {
     $style = biblio_get_style();
     $base = variable_get('biblio_base', 'biblio');
-    $node = node_load($nid->nid);
+    $node = node_load($nid);
     return theme('biblio_style', array('node' => $node, 'base' => $base, 'style_name' => $style));
   }
   else {
@@ -2033,7 +2043,8 @@ function _biblio_filter_replace_callback($matches, $op = '') {
     $text .= '<span id="reference' . $ref . '" class="hovertip">' . _biblio_citekey_print($title) . '</span>';
   }
   else {
-    $text = '<a href="#ref' . $ref . '" title="'. strip_tags(_biblio_citekey_print($title)).'">[' . $ref . ']</a>';
+    $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . '">[' . $ref . ']</a>';
+
   }
   return $text;
 }
@@ -2183,14 +2194,18 @@ function biblio_get_map($type, $format) {
     ->condition('format', $format)
     ->execute()
     ->fetchField();
+
   $map = unserialize($result);
+
   if ($type == 'export_map' && empty($map)) {
     $schema = drupal_get_schema('biblio');
     $fieldnames = array_keys($schema['fields']);
     asort($fieldnames);
     $map = array_fill_keys($fieldnames, 1);
   }
- return $map;
+
+  drupal_alter('biblio_map', $map, $type, $format);
+  return $map;
 }
 
 function biblio_save_map($maps) {

@@ -1,49 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="sort-only" page-range-format="minimal">
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="sort-only" default-locale="en-US">
   <info>
-    <title>Vancouver</title>
-    <id>http://www.zotero.org/styles/vancouver</id>
-    <link href="http://www.zotero.org/styles/vancouver" rel="self"/>
-    <link href="http://www.nlm.nih.gov/bsd/uniform_requirements.html" rel="documentation"/>
+    <title>National Library of Medicine (NLM) - Grant with PMID</title>
+    <id>http://www.zotero.org/styles/national-library-of-medicine-grant</id>
+    <link href="http://www.zotero.org/styles/national-library-of-medicine-grant" rel="self"/>
+    <link href="http://www.nlm.nih.gov/pubs/formats/recommendedformats1991-full.pdf" rel="documentation"/>
     <author>
       <name>Michael Berkowitz</name>
       <email>mberkowi@gmu.edu</email>
     </author>
     <contributor>
-      <name>Sean Takats</name>
-      <email>stakats@gmu.edu</email>
+      <name>Sebastian Karcher</name>
     </contributor>
     <contributor>
-      <name>Sebastian Karcher</name>
+      <name>Matt Tracy</name>
     </contributor>
     <category citation-format="numeric"/>
     <category field="medicine"/>
-    <summary>
-      Vancouver style as outlined by International Committee of Medical Journal Editors Uniform Requirements for Manuscripts Submitted to Biomedical Journals: Sample References
-    </summary>
+    <summary>Edited this to add PMID from extra field in bibliography </summary>
     <updated>2012-09-27T22:06:38+00:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
   <locale xml:lang="en">
-    <date form="text" delimiter=" ">
-      <date-part name="year"/>
-      <date-part name="month" form="short" strip-periods="true"/>
-      <date-part name="day"/>
-    </date>
     <terms>
       <term name="retrieved">available</term>
       <term name="section" form="short">sect.</term>
-    </terms>
-  </locale>
-  <locale xml:lang="fr">
-    <date form="text" delimiter=" ">
-      <date-part name="day"/>
-      <date-part name="month" form="short" strip-periods="true"/>
-      <date-part name="year"/>
-    </date>
-    <terms>
-      <term name="retrieved">disponible</term>
-      <term name="from">sur</term>
     </terms>
   </locale>
   <locale xml:lang="de">
@@ -105,7 +86,11 @@
       <if variable="URL">
         <group prefix="[" suffix="]" delimiter=" ">
           <text term="cited" text-case="lowercase"/>
-          <date variable="accessed" form="text"/>
+          <date variable="accessed" suffix="">
+            <date-part name="year"/>
+            <date-part name="month" prefix=" " form="short" strip-periods="true"/>
+            <date-part name="day" prefix=" "/>
+          </date>
         </group>
       </if>
     </choose>
@@ -176,7 +161,11 @@
     <choose>
       <if type="article-journal article-magazine article-newspaper" match="any">
         <group suffix=";" delimiter=" ">
-          <date variable="issued" form="text"/>
+          <date variable="issued" delimiter=" ">
+            <date-part name="year"/>
+            <date-part name="month" form="short" strip-periods="true"/>
+            <date-part name="day"/>
+          </date>
           <text macro="accessed-date"/>
         </group>
       </if>
@@ -213,10 +202,7 @@
         <text variable="page" prefix=":"/>
       </if>
       <else>
-        <group prefix=" " delimiter=" ">
-          <label variable="page" form="short" plural="never"/>
-          <text variable="page"/>
-        </group>
+        <text variable="page" prefix=" p. "/>
       </else>
     </choose>
   </macro>
@@ -239,7 +225,7 @@
     <sort>
       <key variable="citation-number"/>
     </sort>
-    <layout prefix="(" suffix=")" delimiter=",">
+    <layout prefix="[" suffix="]" delimiter=",">
       <text variable="citation-number"/>
     </layout>
   </citation>
@@ -262,6 +248,7 @@
       </group>
       <text macro="report-details" suffix=". "/>
       <text macro="access"/>
+      <text prefix=" " variable="note"/>
     </layout>
   </bibliography>
 </style>

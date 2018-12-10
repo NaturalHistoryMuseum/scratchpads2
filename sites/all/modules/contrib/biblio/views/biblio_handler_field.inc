@@ -50,7 +50,7 @@ class biblio_handler_field extends views_handler_field {
     );
   }
   function set_label(&$values) {
-    if (!$this->options['biblio_label']) return;
+    if (!$this->options['biblio_label'] || !isset($values->biblio_tid)) return;
     $tid = $values->biblio_tid;
     $this->options['label'] = isset($this->labels[$tid]) ? $this->labels[$tid] : $this->labels[0];
   }

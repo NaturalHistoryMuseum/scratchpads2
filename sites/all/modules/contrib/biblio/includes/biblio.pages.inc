@@ -40,6 +40,7 @@ function biblio_profile_page($user) {
     $arg_list = array(
       'f' => array(
         'author' => $user->data['biblio_contributor_id'],
+        'profile' => TRUE,
       ),
     );
   }
@@ -47,19 +48,22 @@ function biblio_profile_page($user) {
     $arg_list = array(
       'f' => array(
         'author' => $user->data['biblio_lastname'],
+        'profile' => TRUE,
       ),
     );
   }
   else {
     $arg_list = array(
       'f' => array(
-        'uid' => $user->uid
+        'uid' => $user->uid,
+        'profile' => TRUE,
       ),
     );
   }
   $arg_list['page_limit'] = variable_get('biblio_rowsperpage', 25);
 
   list($nids, $extras, $rss_info) = biblio_build_query($arg_list);
+  $render['biblio_page']['header']  = biblio_page_header($arg_list);
 
   $render['biblio_page']['profile'] = biblio_page_content($nids, $extras);
 
@@ -329,14 +333,30 @@ function biblio_build_query($arg_list) {
     $limit .= " AND n.uid = $user->uid ";
   }
 
-  if (!isset($arg_list['s'])) {
-    $arg_list['s'] = variable_get('biblio_sort', 'year');
+  if (isset($arg_list['s']) || isset($arg_list['sort'])) {
+    $sort = isset($arg_list['s']) ? $arg_list['s'] : $arg_list['sort'];
+    unset($arg_list['s']);
+    unset($arg_list['sort']);
   }
-  if (!isset($arg_list['o'])) {
-    $arg_list['o'] = strtolower(variable_get('biblio_order', 'desc'));
+  else {
+    $sort = variable_get('biblio_sort', 'year');
   }
 
-  if (!isset($_SESSION['biblio_filter']) || !is_array($_SESSION['biblio_filter'])) {
+  if (isset($arg_list['o']) || isset($arg_list['order'])) {
+    if (isset($arg_list['o'])) {
+      $order = (strcasecmp($arg_list['o'], 'ASC')) ? 'DESC' : 'ASC';
+      unset($arg_list['o']);
+    }
+    if (isset($arg_list['order'])) {
+      $order = (strcasecmp($arg_list['order'], 'ASC')) ? 'DESC' : 'ASC';
+      unset($arg_list['order']);
+    }
+  }
+  else {
+      $order = strtolower(variable_get('biblio_order', 'DESC'));
+  }
+
+/*  if (!isset($_SESSION['biblio_filter']) || !is_array($_SESSION['biblio_filter'])) {
     $_SESSION['biblio_filter'] = array();
   }
 
@@ -347,17 +367,19 @@ function biblio_build_query($arg_list) {
       $arg_list = array_merge($arg_list, $filter);
     }
   }
-  switch ($arg_list['s']) {
+*/
+
+
+  switch ($sort) {
     case 'type':
       //$sortby = "ORDER BY bt.name %s, b.biblio_year DESC ";
       $query->addField('n', 'title');
-      $query->orderBy($type_name, $arg_list['o']);
-      $query->orderBy('biblio_sort_title', $arg_list['o']);
-            break;
+      $query->orderBy($type_name, $order);
+      $query->orderBy('biblio_sort_title', $order);
+      break;
     case 'title':
       $query->addField('n', 'title');
-      $query->orderBy('biblio_sort_title', $arg_list['o']);
-
+      $query->orderBy('biblio_sort_title', $order);
       break;
     case 'author':
       //$last_name = $query->addField('bcd', 'lastname');
@@ -365,12 +387,12 @@ function biblio_build_query($arg_list) {
       $query->join('biblio_contributor_data', 'bcd', 'bc.cid = bcd.cid');
       $query->condition('bc.rank', 0);
       $query->addField('bcd', 'lastname');
-      $query->orderBy('bcd.lastname', $arg_list['o']);
+      $query->orderBy('bcd.lastname', $order);
       // $query->condition('bc.auth_category', 1);
       break;
     case 'keyword': // added msh 070808
       $word = $query->addField('bkd', 'word', 'biblio_keyword');
-      $query->orderBy($word, $arg_list['o']);
+      $query->orderBy($word, $order);
       $query->innerJoin('biblio_keyword', 'bk', 'b.vid = bk.vid');
       $query->innerJoin('biblio_keyword_data', 'bkd', 'bk.kid = bkd.kid');
       break;
@@ -378,7 +400,7 @@ function biblio_build_query($arg_list) {
     default:
       $query->addField('b', 'biblio_year');
       $query->addField('b', 'biblio_date');
-      $query->orderBy('biblio_year', $arg_list['o']);
+      $query->orderBy('biblio_year', $order);
       $query->orderBy('biblio_sort_title');
   } //end switch
 
@@ -389,12 +411,6 @@ function biblio_build_query($arg_list) {
       $tables = array_keys($query->getTables());
       switch ($type) {
         case 'no_filters':
-          break;
-        case 'and':
-          $operator = " AND ";
-          break;
-        case 'or':
-          $operator = " OR ";
           break;
         case 'rss.xml':
           $rss_info['feed'] = TRUE;
@@ -418,8 +434,10 @@ function biblio_build_query($arg_list) {
         case 'ag': //selects entries whoose authors firstname starts with the letter provided
           $query->where(" UPPER(substring(bcd.lastname,1,1)) = :letter ", array(':letter' => $value));
           //$where['bc-rank'] = "bc.rank=0";
-          if ($arg_list['s'] != 'author') {
-            $query->innerJoin('biblio_contributor', 'bc', 'b.vid = bc.vid');
+          if ($sort != 'author') {
+            if (array_search('bc', $tables) === FALSE) {
+              $query->innerJoin('biblio_contributor', 'bc', 'n.vid = bc.vid');
+            }
             $query->innerJoin('biblio_contributor_data', 'bcd', 'bc.cid = bcd.cid');
           }
           break;
@@ -543,9 +561,10 @@ function biblio_build_query($arg_list) {
 function _biblio_filter_info_line($args = array()) {
   $content = '';
   $filtercontent = '';
-  $search_content = '';
+  $search_content = FALSE;
+  $profile_content = FALSE;
   $base =  variable_get('biblio_base', 'biblio');
-  $session = &$_SESSION['biblio_filter'];
+  $session = !empty($_SESSION['biblio_filter']) ? $_SESSION['biblio_filter'] : array();
   // if there are any filters in place, print them at the top of the list
   $uri = drupal_parse_url(request_uri());
   $uri['path'] = variable_get('biblio_base', 'biblio');
@@ -555,6 +574,10 @@ function _biblio_filter_info_line($args = array()) {
     foreach ($filters as $type => $value) {
       if ($type == 'search') {
         $search_content = $value;
+        continue;
+      }
+      if ($type == 'profile') {
+        $profile_content = $value;
         continue;
       }
       if ($type == 'term_id') {
@@ -626,7 +649,7 @@ function _biblio_filter_info_line($args = array()) {
     if ($search_content) {
       $content .= '&nbsp;&nbsp;' . l('[' . t('Reset Search') . ']', "$base/filter/clear", $link_options);
     }
-    else {
+    elseif (!$search_content && !$profile_content) {
       $content .= '&nbsp;&nbsp;' . l('[' . t('Clear All Filters') . ']', "$base/filter/clear", $uri);
     }
     $content .= '</div>';
@@ -820,8 +843,10 @@ function biblio_search_form($form, &$form_state) {
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
         'searchform' => $searchform,
-        'filterform' => biblio_form_filter(),
       );
+  if (variable_get('biblio_search_form_filter', TRUE)) {
+    $form['search_form']['filterform'] = biblio_form_filter();
+  }
 
   return $form;
 }
@@ -1140,7 +1165,6 @@ function _biblio_get_authors($filter = NULL) {
               ->fields('bcd', array('lastname', 'firstname', 'initials', 'alt_form'))
               ->groupBy('lastname')
               ->groupBy('firstname')
-              ->groupBy('initials')
               ->groupBy('alt_form')
               ->having('COUNT(*) > 1');
 
@@ -1187,7 +1211,7 @@ function _biblio_format_author_page($path, $filter, $authors) {
       $header_ext = ' ' . t('whose last name begins with the letter') . ': ' . $filter;
     }
     $checkbox = array(
-      '#title' => t('Hightlight possible duplicates'),
+      '#title' => t('Highlight possible duplicates'),
       '#type'  => 'checkbox',
       '#id'    => 'biblio-highlight',
     );

@@ -147,6 +147,7 @@ class BiblioEntrezPubmedArticle
 
     if (isset($this->article->Article->AuthorList->Author)) {
       foreach ($this->article->Article->AuthorList->Author as $author) {
+        $name = '';
         if (isset($author->CollectiveName)) {
           $category = 5; // corporate author
           $name = (string)$author->CollectiveName;
@@ -161,7 +162,9 @@ class BiblioEntrezPubmedArticle
             $name = $lastname . ', ' . (string)$author->Initials;
           }
         }
-        $contributors[] = array('name' => $name, 'auth_category' => $category);
+        if (!empty($name)) {
+          $contributors[] = array('name' => $name, 'auth_category' => $category);
+        }
       }
     }
 

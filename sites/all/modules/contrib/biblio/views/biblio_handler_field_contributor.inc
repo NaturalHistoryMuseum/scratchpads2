@@ -64,7 +64,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
       '#type' => 'checkbox',
       '#title' => t('Show only "family" names'),
       '#default_value' => $this->options['short_form'],
-      '#description' => t('Shorten given names to single initial each.'),
+      '#description' => t('Show only family name, no first name or initials.'),
       '#fieldset' => 'formatting',
     );
     $form['separators'] = array(
@@ -145,7 +145,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
         $authors[] = $author->name;
       }
       else {
-        if (!empty($author->firstname) && isset($this->options['initialize'])) {
+        if (!empty($author->firstname) && $this->options['initialize'] == 1) {
           $author->firstname = preg_replace("/([$this->upper])[$this->lower]+/$this->patternModifiers", '\\1', $author->firstname);
           $author->firstname = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->firstname);
           $author->initials = $author->firstname . $author->initials;
@@ -169,7 +169,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
           //      $shortenInitials = (isset($options['numberOfInitialsToKeep)) ? $options['numberOfInitialsToKeep : FALSE;
           //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
 
-          if (isset($this->options['initialize'])) {
+          if ($this->options['initialize'] == 1) {
             $author->firstname = $author->initials;
             // if ($shortenInitials) $author->firstname = drupal_substr($author->firstname, 0, $shortenInitials);
           }

@@ -40,7 +40,7 @@ Robots.txt
 In order to limit recursive searches by web bots, it is recommended that you add the following
 to your robots.txt file.  Note: if you change the base url for biblio you will have to make the 
 corresponding change here.  i.e. if you base url for biblio is "publications" then replace "biblio"
-"publications" in the directives below.
+with "publications" in the directives below.
 
 # Biblio
 Disallow: /biblio/export/

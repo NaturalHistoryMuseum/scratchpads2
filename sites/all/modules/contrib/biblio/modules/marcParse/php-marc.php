@@ -471,12 +471,12 @@ Class Record {
    * @return array Array ( $fields, $directory, $total, $baseaddress )
    */
   function _build_dir() {
-        // Vars
+    // Vars
     $fields = array();
-        $directory = array();
+    $directory = array();
 
-        $dataend = 0;
-        foreach ($this->fields as $field_group ) {
+    $dataend = 0;
+    foreach ($this->fields as $field_group ) {
       foreach ($field_group as $field) {
         // Get data in raw format
         $str = $field->raw();
@@ -488,26 +488,24 @@ Class Record {
         $directory[] = $direntry;
         $dataend += $len;
       }
-        }
+    }
 
     /**
      * Rules from MARC::Record::USMARC
      */
-        $baseaddress =
-                LEADER_LEN +    // better be 24
-                ( count($directory) * DIRECTORY_ENTRY_LEN ) +
-                                // all the directory entries
-                1;              // end-of-field marker
+    $baseaddress =
+      LEADER_LEN +    // better be 24
+      ( count($directory) * DIRECTORY_ENTRY_LEN ) +
+      // all the directory entries
+      1;              // end-of-field marker
 
 
-        $total =
-                $baseaddress +  // stuff before first field
-                $dataend +      // Length of the fields
-                1;              // End-of-record marker
+    $total =
+      $baseaddress +  // stuff before first field
+      $dataend +      // Length of the fields
+      1;              // End-of-record marker
 
-
-
-        return array($fields, $directory, $total, $baseaddress);
+    return array($fields, $directory, $total, $baseaddress);
   }
 
   /**
