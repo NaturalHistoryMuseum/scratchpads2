@@ -887,6 +887,7 @@ function migrate_migration_info($form, $form_state, $group_name, $migration_name
       if (isset($source_key[$machine_name])) {
         // Identify primary key
         $machine_name .= ' ' . t('(PK)');
+        $classes = '';
       }
       else {
         // Add class for mapped/unmapped. Used in summary.
