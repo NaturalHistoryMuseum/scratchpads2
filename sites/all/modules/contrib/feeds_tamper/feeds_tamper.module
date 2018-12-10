@@ -27,7 +27,7 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
   }
 
   $parser = $source->importer->parser;
-  $is_csv = get_class($parser) == 'FeedsCSVParser';
+  $is_csv = $parser instanceof FeedsCSVParser;
 
   $sources = array_fill_keys(feeds_tamper_get_unique_source_list($source->importer), '');
 
@@ -35,42 +35,46 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
   foreach (array_keys($result->items) as $item_key) {
 
     // Initialize every source value.
-    // $result->items[$item_key] += $sources;
+    $result->items[$item_key] += $sources;
 
     foreach ($importer_instances as $element_key => $instances) {
+      // Break if the previous element's plugins removed the item, otherwise the
+      // value will be re-populated.
+      if (!isset($result->items[$item_key])) {
+        break;
+      }
+
       if ($is_csv) {
         $element_key = drupal_strtolower($element_key);
       }
 
-      if (isset($result->items[$item_key][$element_key])){
-        // Manually advance the current_item key since we can't use shiftItem().
-        // Plugins can change it, so re-set.
-        $result->current_item = $result->items[$item_key];
-  
-        // Plugins assume that everything lives in the item array.
-        $result->items[$item_key][$element_key] = $parser->getSourceElement($source, $result, $element_key);
-  
-        foreach ($instances as $instance) {
-          // If the item was unset by previous plugin, jump ahead.
-          if (!isset($result->items[$item_key])) {
-            break 2;
+      // Manually advance the current_item key since we can't use shiftItem().
+      // Plugins can change it, so re-set.
+      $result->current_item = $result->items[$item_key];
+
+      // Plugins assume that everything lives in the item array.
+      $result->items[$item_key][$element_key] = $parser->getSourceElement($source, $result, $element_key);
+
+      foreach ($instances as $instance) {
+        // If the item was unset by previous plugin, jump ahead.
+        if (!isset($result->items[$item_key])) {
+          break 2;
+        }
+
+        // Array-ness can change depending on what the plugin is doing.
+        $is_array = is_array($result->items[$item_key][$element_key]);
+        $plugin = $plugins[$instance->plugin_id];
+
+        if ($is_array && $plugin['multi'] === 'loop') {
+          foreach ($result->items[$item_key][$element_key] as &$i) {
+            $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings, $source);
           }
-  
-          // Array-ness can change depending on what the plugin is doing.
-          $is_array = is_array($result->items[$item_key][$element_key]);
-          $plugin = $plugins[$instance->plugin_id];
-  
-          if ($is_array && $plugin['multi'] === 'loop') {
-            foreach ($result->items[$item_key][$element_key] as &$i) {
-              $plugin['callback']($result, $item_key, $element_key, $i, $instance->settings, $source);
-            }
-          }
-          elseif ($is_array && $plugin['multi'] === 'direct') {
-            $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
-          }
-          elseif (!$is_array && $plugin['single'] !== 'skip') {
-            $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
-          }
+        }
+        elseif ($is_array && $plugin['multi'] === 'direct') {
+          $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
+        }
+        elseif (!$is_array && $plugin['single'] !== 'skip') {
+          $plugin['callback']($result, $item_key, $element_key, $result->items[$item_key][$element_key], $instance->settings, $source);
         }
       }
     }
@@ -111,12 +115,17 @@ function feeds_tamper_permission() {
       'description' => t('Create, edit and delete plugins for any importer.'),
     ),
   );
-  foreach (feeds_importer_load_all() as $importer) {
-    $name = array('%name' => $importer->config['name']);
-    $perms['tamper ' . $importer->id] = array(
-      'title' => t('Tamper %name feeds', $name),
-      'description' => t('Create, edit and delete plugins for %name feeds.', $name),
-    );
+
+  // For whatever reason, this gets called withtout the Feeds module being
+  // loaded in certain odd circumstances.
+  if (function_exists('feeds_importer_load_all')) {
+    foreach (feeds_importer_load_all() as $importer) {
+      $name = array('%name' => $importer->config['name']);
+      $perms['tamper ' . $importer->id] = array(
+        'title' => t('Tamper %name feeds', $name),
+        'description' => t('Create, edit and delete plugins for %name feeds.', $name),
+      );
+    }
   }
   return $perms;
 }
@@ -165,5 +174,27 @@ function feeds_tamper_export($importer_id, $indent = '') {
     }
 
     return trim(implode("\n", $output));
+  }
+}
+
+/**
+ * Implements hook_features_pipe_COMPONENT_alter().
+ */
+function feeds_tamper_features_pipe_feeds_importer_alter(&$pipe, $data, $export) {
+  // Automatically add tamper plugins when a Feed importer is selected in
+  // Features.
+  foreach ($data as $importer_id) {
+    // Find tamper plugins for this importer.
+    $tamper_plugins = feeds_tamper_load_by_importer($importer_id, TRUE);
+
+    if (!$tamper_plugins) {
+      continue;
+    }
+
+    foreach ($tamper_plugins as $source_plugins) {
+      foreach ($source_plugins as $plugin) {
+        $pipe['feeds_tamper'][] = $plugin->id;
+      }
+    }
   }
 }
