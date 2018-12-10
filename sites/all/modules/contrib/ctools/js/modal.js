@@ -48,7 +48,8 @@
       modalOptions: {
         opacity: .55,
         background: '#fff'
-      }
+      },
+      modalClass: 'default'
     };
 
     var settings = {};
@@ -97,8 +98,8 @@
     resize();
 
     $('span.modal-title', Drupal.CTools.Modal.modal).html(Drupal.CTools.Modal.currentSettings.loadingText);
-    Drupal.CTools.Modal.modalContent(Drupal.CTools.Modal.modal, settings.modalOptions, settings.animation, settings.animationSpeed);
-    $('#modalContent .modal-content').html(Drupal.theme(settings.throbberTheme));
+    Drupal.CTools.Modal.modalContent(Drupal.CTools.Modal.modal, settings.modalOptions, settings.animation, settings.animationSpeed, settings.modalClass);
+    $('#modalContent .modal-content').html(Drupal.theme(settings.throbberTheme)).addClass('ctools-modal-loading');
 
     // Position autocomplete results based on the scroll position of the modal.
     $('#modalContent .modal-content').delegate('input.form-autocomplete', 'keyup', function() {
@@ -120,18 +121,18 @@
    */
   Drupal.theme.prototype.CToolsModalDialog = function () {
     var html = ''
-    html += '  <div id="ctools-modal">'
-    html += '    <div class="ctools-modal-content">' // panels-modal-content
-    html += '      <div class="modal-header">';
-    html += '        <a class="close" href="#">';
-    html +=            Drupal.CTools.Modal.currentSettings.closeText + Drupal.CTools.Modal.currentSettings.closeImage;
-    html += '        </a>';
-    html += '        <span id="modal-title" class="modal-title">&nbsp;</span>';
-    html += '      </div>';
-    html += '      <div id="modal-content" class="modal-content">';
-    html += '      </div>';
+    html += '<div id="ctools-modal">'
+    html += '  <div class="ctools-modal-content">' // panels-modal-content
+    html += '    <div class="modal-header">';
+    html += '      <a class="close" href="#">';
+    html +=          Drupal.CTools.Modal.currentSettings.closeText + Drupal.CTools.Modal.currentSettings.closeImage;
+    html += '      </a>';
+    html += '      <span id="modal-title" class="modal-title">&nbsp;</span>';
+    html += '    </div>';
+    html += '    <div id="modal-content" class="modal-content">';
     html += '    </div>';
     html += '  </div>';
+    html += '</div>';
 
     return html;
   }
@@ -141,11 +142,11 @@
    */
   Drupal.theme.prototype.CToolsModalThrobber = function () {
     var html = '';
-    html += '  <div id="modal-throbber">';
-    html += '    <div class="modal-throbber-wrapper">';
-    html +=        Drupal.CTools.Modal.currentSettings.throbber;
-    html += '    </div>';
+    html += '<div id="modal-throbber">';
+    html += '  <div class="modal-throbber-wrapper">';
+    html +=      Drupal.CTools.Modal.currentSettings.throbber;
     html += '  </div>';
+    html += '</div>';
 
     return html;
   };
@@ -264,7 +265,10 @@
           }
           // An empty event means we were triggered via .click() and
           // in jquery 1.4 this won't trigger a submit.
-          if (event.bubbles == undefined) {
+          // We also have to check jQuery version to prevent
+          // IE8 + jQuery 1.4.4 to break on other events
+          // bound to the submit button.
+          if (jQuery.fn.jquery.substr(0, 3) === '1.4' && typeof event.bubbles === "undefined") {
             $(this.form).trigger('submit');
             return false;
           }
@@ -298,7 +302,18 @@
 
     // Attach behaviors within a modal dialog.
     var settings = response.settings || ajax.settings || Drupal.settings;
-    Drupal.attachBehaviors('#modalContent', settings);
+    Drupal.attachBehaviors($('#modalContent'), settings);
+
+    if ($('#modal-content').hasClass('ctools-modal-loading')) {
+      $('#modal-content').removeClass('ctools-modal-loading');
+    }
+    else {
+      // If the modal was already shown, and we are simply replacing its
+      // content, then focus on the first focusable element in the modal.
+      // (When first showing the modal, focus will be placed on the close
+      // button by the show() function called above.)
+      $('#modal-content :focusable:first').focus();
+    }
   }
 
   /**
@@ -349,8 +364,9 @@
    * @param css obj of css attributes
    * @param animation (fadeIn, slideDown, show)
    * @param speed (valid animation speeds slow, medium, fast or # in ms)
+   * @param modalClass class added to div#modalContent
    */
-  Drupal.CTools.Modal.modalContent = function(content, css, animation, speed) {
+  Drupal.CTools.Modal.modalContent = function(content, css, animation, speed, modalClass) {
     // If our animation isn't set, make it just show/pop
     if (!animation) {
       animation = 'show';
@@ -402,9 +418,56 @@
     if( docHeight < winHeight ) docHeight = winHeight;
 
     // Create our divs
-    $('body').append('<div id="modalBackdrop" style="z-index: 1000; display: none;"></div><div id="modalContent" style="z-index: 1001; position: absolute;">' + $(content).html() + '</div>');
+    $('body').append('<div id="modalBackdrop" class="backdrop-' + modalClass + '" style="z-index: 1000; display: none;"></div><div id="modalContent" class="modal-' + modalClass + '" style="z-index: 1001; position: absolute;">' + $(content).html() + '</div>');
 
-    // Keyboard and focus event handler ensures focus stays on modal elements only
+    // Get a list of the tabbable elements in the modal content.
+    var getTabbableElements = function () {
+      var tabbableElements = $('#modalContent :tabbable'),
+          radioButtons = tabbableElements.filter('input[type="radio"]');
+
+      // The list of tabbable elements from jQuery is *almost* right. The
+      // exception is with groups of radio buttons. The list from jQuery will
+      // include all radio buttons, when in fact, only the selected radio button
+      // is tabbable, and if no radio buttons in a group are selected, then only
+      // the first is tabbable.
+      if (radioButtons.length > 0) {
+        // First, build up an index of which groups have an item selected or not.
+        var anySelected = {};
+        radioButtons.each(function () {
+          var name = this.name;
+
+          if (typeof anySelected[name] === 'undefined') {
+            anySelected[name] = radioButtons.filter('input[name="' + name + '"]:checked').length !== 0;
+          }
+        });
+
+        // Next filter out the radio buttons that aren't really tabbable.
+        var found = {};
+        tabbableElements = tabbableElements.filter(function () {
+          var keep = true;
+
+          if (this.type == 'radio') {
+            if (anySelected[this.name]) {
+              // Only keep the selected one.
+              keep = this.checked;
+            }
+            else {
+              // Only keep the first one.
+              if (found[this.name]) {
+                keep = false;
+              }
+              found[this.name] = true;
+            }
+          }
+
+          return keep;
+        });
+      }
+
+      return tabbableElements.get();
+    };
+
+    // Keyboard and focus event handler ensures only modal elements gain focus.
     modalEventHandler = function( event ) {
       target = null;
       if ( event ) { //Mozilla
@@ -428,7 +491,7 @@
         return true;
       }
       else {
-        $('#modalContent').focus();
+        getTabbableElements()[0].focus();
       }
 
       event.preventDefault();
@@ -436,8 +499,62 @@
     $('body').bind( 'focus', modalEventHandler );
     $('body').bind( 'keypress', modalEventHandler );
 
+    // Keypress handler Ensures you can only TAB to elements within the modal.
+    // Based on the psuedo-code from WAI-ARIA 1.0 Authoring Practices section
+    // 3.3.1 "Trapping Focus".
+    modalTabTrapHandler = function (evt) {
+      // We only care about the TAB key.
+      if (evt.which != 9) {
+        return true;
+      }
+
+      var tabbableElements = getTabbableElements(),
+          firstTabbableElement = tabbableElements[0],
+          lastTabbableElement = tabbableElements[tabbableElements.length - 1],
+          singleTabbableElement = firstTabbableElement == lastTabbableElement,
+          node = evt.target;
+
+      // If this is the first element and the user wants to go backwards, then
+      // jump to the last element.
+      if (node == firstTabbableElement && evt.shiftKey) {
+        if (!singleTabbableElement) {
+          lastTabbableElement.focus();
+        }
+        return false;
+      }
+      // If this is the last element and the user wants to go forwards, then
+      // jump to the first element.
+      else if (node == lastTabbableElement && !evt.shiftKey) {
+        if (!singleTabbableElement) {
+          firstTabbableElement.focus();
+        }
+        return false;
+      }
+      // If this element isn't in the dialog at all, then jump to the first
+      // or last element to get the user into the game.
+      else if ($.inArray(node, tabbableElements) == -1) {
+        // Make sure the node isn't in another modal (ie. WYSIWYG modal).
+        var parents = $(node).parents().get();
+        for (var i = 0; i < parents.length; ++i) {
+          var position = $(parents[i]).css('position');
+          if (position == 'absolute' || position == 'fixed') {
+            return true;
+          }
+        }
+
+        if (evt.shiftKey) {
+          lastTabbableElement.focus();
+        }
+        else {
+          firstTabbableElement.focus();
+        }
+      }
+    };
+    $('body').bind('keydown', modalTabTrapHandler);
+
     // Create our content div, get the dimensions, and hide it
     var modalContent = $('#modalContent').css('top','-1000px');
+    var $modalHeader = modalContent.find('.modal-header');
     var mdcTop = wt + ( winHeight / 2 ) - (  modalContent.outerHeight() / 2);
     var mdcLeft = ( winWidth / 2 ) - ( modalContent.outerWidth() / 2);
     $('#modalBackdrop').css(css).css('top', 0).css('height', docHeight + 'px').css('width', docWidth + 'px').show();
@@ -445,7 +562,7 @@
 
     // Bind a click for closing the modalContent
     modalContentClose = function(){close(); return false;};
-    $('.close').bind('click', modalContentClose);
+    $('.close', $modalHeader).bind('click', modalContentClose);
 
     // Bind a keypress on escape for closing the modalContent
     modalEventEscapeCloseHandler = function(event) {
@@ -457,13 +574,20 @@
 
     $(document).bind('keydown', modalEventEscapeCloseHandler);
 
+    // Per WAI-ARIA 1.0 Authoring Practices, initial focus should be on the
+    // close button, but we should save the original focus to restore it after
+    // the dialog is closed.
+    var oldFocus = document.activeElement;
+    $('.close', $modalHeader).focus();
+
     // Close the open modal content and backdrop
     function close() {
       // Unbind the events
       $(window).unbind('resize',  modalContentResize);
       $('body').unbind( 'focus', modalEventHandler);
       $('body').unbind( 'keypress', modalEventHandler );
-      $('.close').unbind('click', modalContentClose);
+      $('body').unbind( 'keydown', modalTabTrapHandler );
+      $('.close', $modalHeader).unbind('click', modalContentClose);
       $('body').unbind('keypress', modalEventEscapeCloseHandler);
       $(document).trigger('CToolsDetachBehaviors', $('#modalContent'));
 
@@ -478,12 +602,19 @@
       // Remove the content
       $('#modalContent').remove();
       $('#modalBackdrop').remove();
+
+      // Restore focus to where it was before opening the dialog
+      $(oldFocus).focus();
     };
 
-    // Move and resize the modalBackdrop and modalContent on resize of the window
-     modalContentResize = function(){
+    // Move and resize the modalBackdrop and modalContent on window resize.
+    modalContentResize = function(){
 
-      // position code lifted from http://www.quirksmode.org/viewport/compatibility.html
+      // Reset the backdrop height/width to get accurate document size.
+      $('#modalBackdrop').css('height', '').css('width', '');
+
+      // Position code lifted from:
+      // http://www.quirksmode.org/viewport/compatibility.html
       if (self.pageYOffset) { // all except Explorer
       var wt = self.pageYOffset;
       } else if (document.documentElement && document.documentElement.scrollTop) { // Explorer 6 Strict
@@ -509,8 +640,6 @@
       modalContent.css('top', mdcTop + 'px').css('left', mdcLeft + 'px').show();
     };
     $(window).bind('resize', modalContentResize);
-
-    $('#modalContent').focus();
   };
 
   /**
@@ -533,8 +662,12 @@
     $(window).unbind('resize', modalContentResize);
     $('body').unbind('focus', modalEventHandler);
     $('body').unbind('keypress', modalEventHandler);
-    $('.close').unbind('click', modalContentClose);
-    $(document).trigger('CToolsDetachBehaviors', $('#modalContent'));
+    $('body').unbind( 'keydown', modalTabTrapHandler );
+    var $modalContent = $('#modalContent');
+    var $modalHeader = $modalContent.find('.modal-header');
+    $('.close', $modalHeader).unbind('click', modalContentClose);
+    $('body').unbind('keypress', modalEventEscapeCloseHandler);
+    $(document).trigger('CToolsDetachBehaviors', $modalContent);
 
     // jQuery magic loop through the instances and run the animations or removal.
     content.each(function(){

@@ -140,7 +140,7 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
 
     $plugin_entities = array(
       'to' => array($to_entity => $to_entity_info),
-      'from' => array($from_entity => $from_entity_info)
+      'from' => array($from_entity => $from_entity_info),
     );
     drupal_alter('ctools_entity_context', $plugins[$key], $plugin_entities, $key);
   }
@@ -185,7 +185,7 @@ function ctools_entity_from_field_context($context, $conf) {
         $loaded_to_entity = array_shift($loaded_to_entity);
 
         // Pass current user account and entity type to access callback.
-        if (function_exists($to_entity_info['access callback']) && !call_user_func($to_entity_info['access callback'], 'view', $loaded_to_entity, $account, $to_entity)) {
+        if (isset($to_entity_info['access callback']) && function_exists($to_entity_info['access callback']) && !call_user_func($to_entity_info['access callback'], 'view', $loaded_to_entity, $account, $to_entity)) {
           return ctools_context_create_empty('entity:' . $to_entity, NULL);
         }
         else {

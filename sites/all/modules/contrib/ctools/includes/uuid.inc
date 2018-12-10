@@ -9,7 +9,9 @@
 /**
  * Pattern for detecting a valid UUID.
  */
-define('UUID_PATTERN', '[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}');
+if (!defined('UUID_PATTERN')) {
+  define('UUID_PATTERN', '[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}');
+}
 
 /**
  * Generates a UUID using the Windows internal GUID generator.
@@ -25,7 +27,8 @@ function _ctools_uuid_generate_com() {
  * Generates an universally unique identifier using the PECL extension.
  */
 function _ctools_uuid_generate_pecl() {
-  return uuid_create(UUID_TYPE_DEFAULT);
+  $uuid_type = UUID_TYPE_DEFAULT;
+  return uuid_create($uuid_type);
 }
 
 /**
@@ -64,4 +67,5 @@ if (!function_exists('uuid_is_valid')) {
   function uuid_is_valid($uuid) {
     return preg_match('/^' . UUID_PATTERN . '$/', $uuid);
   }
+
 }

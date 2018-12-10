@@ -179,21 +179,21 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
         $args[] = (isset($conf['arguments'][$id])  && $conf['arguments'][$id] !== '') ? ctools_context_keyword_substitute($conf['arguments'][$id], array(), $contexts) : NULL;
         break;
 
-     case 'wildcard':
+      case 'wildcard':
         // Put in the wildcard.
-       $args[] = isset($arguments[$id]['wildcard']) ? $arguments[$id]['wildcard'] : '*';
-       break;
+        $args[] = isset($arguments[$id]['wildcard']) ? $arguments[$id]['wildcard'] : '*';
+        break;
 
-     case 'none':
-     default:
-       // Put in NULL.
-       // views.module knows what to do with NULL (or missing) arguments
-       $args[] = NULL;
-       break;
+      case 'none':
+      default:
+        // Put in NULL.
+        // views.module knows what to do with NULL (or missing) arguments.
+        $args[] = NULL;
+        break;
     }
   }
 
-  // remove any trailing NULL arguments as these are non-args:
+  // Remove any trailing NULL arguments as these are non-args:
   while (count($args) && end($args) === NULL) {
     array_pop($args);
   }
@@ -208,27 +208,32 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   if ($allow['path_override'] && !empty($conf['path'])) {
     $view->override_path = $conf['path'];
   }
-  else if ($path = $view->display_handler->get_option('inherit_panels_path')) {
-    $view->override_path = $_GET['q'];
+  elseif ($path = $view->display_handler->get_option('inherit_panels_path')) {
+    if (drupal_is_front_page()) {
+      $view->override_path = '';
+    }
+    else {
+      $view->override_path = $_GET['q'];
+    }
   }
 
   $block = new stdClass();
   $block->module = 'views';
-  $block->delta  = $view->name . '-' . $display;
+  $block->delta = $view->name . '-' . $display;
 
   if (($allow['link_to_view'] && !empty($conf['link_to_view'])) ||
       (!$allow['link_to_view'] && $view->display_handler->get_option('link_to_view'))) {
     $block->title_link = $view->get_url();
   }
 
-  // more link
+  // More link.
   if ($allow['more_link']) {
     if (empty($conf['more_link'])) {
       $view->display_handler->set_option('use_more', FALSE);
     }
     else {
       $view->display_handler->set_option('use_more', TRUE);
-      // make sure the view runs the count query so we know whether or not the
+      // Make sure the view runs the count query so we know whether or not the
       // more link applies.
       $view->get_total_rows = TRUE;
     }
@@ -321,6 +326,10 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
 function views_content_views_panes_add_defaults(&$conf, $view) {
   $pager = $view->display_handler->get_option('pager');
 
+  if (empty($conf)) {
+    $conf = array();
+  }
+
   $conf += array(
     'link_to_view' => $view->display_handler->get_option('link_to_view'),
     'more_link' => $view->display_handler->get_option('use_more'),
@@ -377,7 +386,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       );
     }
   }
-  if ($allow['link_to_view'] ) {
+  if ($allow['link_to_view']) {
     $form['link_to_view'] = array(
       '#type' => 'checkbox',
       '#default_value' => isset($conf['link_to_view']) ? $conf['link_to_view'] : $view->display_handler->get_option('link_to_view'),
@@ -428,7 +437,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     $form['use_pager'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use pager'),
-        '#default_value' => $conf['use_pager'],
+      '#default_value' => $conf['use_pager'],
       '#id' => 'use-pager-checkbox',
       '#prefix' => '<div class="container-inline">',
     );
@@ -549,7 +558,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
     $form['exposed']['sort_order'] = $exposed_form['sort_order'];
   }
 
-  // Add the view object to the form to allow additional customization
+  // Add the view object to the form to allow additional customization.
   $form_state['view'] = $view;
 
   return $form;
@@ -561,7 +570,8 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
 function views_content_views_panes_content_type_edit_form_submit(&$form, &$form_state) {
   // Copy everything from our defaults.
   $keys = array('link_to_view', 'more_link', 'feed_icons', 'use_pager',
-    'pager_id', 'items_per_page', 'offset', 'path_override', 'path', 'arguments', 'fields_override', 'exposed');
+    'pager_id', 'items_per_page', 'offset', 'path_override', 'path', 'arguments', 'fields_override', 'exposed',
+  );
 
   foreach ($keys as $key) {
     if (isset($form_state['values'][$key])) {
@@ -569,7 +579,6 @@ function views_content_views_panes_content_type_edit_form_submit(&$form, &$form_
     }
   }
 }
-
 
 /**
  * Returns the administrative title for a type.
@@ -605,21 +614,21 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
   $view->set_display($display_name);
   views_content_views_panes_add_defaults($conf, $view);
 
-  // Add arguments first
+  // Add arguments first.
   if (!empty($conf['arguments'])) {
     $keys = array_keys($conf['arguments']);
     $values = array_values($conf['arguments']);
     $argument_input = $view->display_handler->get_option('argument_input');
 
     foreach ($conf['arguments'] as $key => $value) {
-      if (!empty($value)){
+      if (!empty($value)) {
         $label = $argument_input[$key]['label'];
         $info[] = $label . ': ' . $value;
       }
     }
   }
 
-  $block = new stdClass;
+  $block = new stdClass();
   if ($info) {
     $block->title = array_shift($info);
 
