@@ -3,9 +3,9 @@
 /**
  * @file
  * Sample file for handling redirection from old to new URIs. Use an Apache
- * rewrite rule (or equivalent) to map legacy requests to this file. To use, copy
- * or symlink this file to the root of your drupal site. Customize
- * this file to your needs.
+ * rewrite rule (or equivalent) to map legacy requests to this file. To use,
+ *   copy or symlink this file to the root of your drupal site. Customize this
+ *   file to your needs.
  *
  * CREATE TABLE `migrate_source_uri_map` (
  * `source_uri` varchar(255) NOT NULL DEFAULT '',
@@ -41,7 +41,7 @@ function migrate_build_url($destid1, $migration_name) {
   }
 
   // Build absolute url for 301 redirect.
-  return  $base_url . '/' . $destination_uri;
+  return $base_url . '/' . $destination_uri;
 }
 
 define('DRUPAL_ROOT', getcwd());

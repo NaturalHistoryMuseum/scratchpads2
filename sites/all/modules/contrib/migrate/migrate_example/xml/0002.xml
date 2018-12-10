@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pr:producer xmlns:pr="http://www.wine.org/wine-producers">
+  <pr:name>Château Latour</pr:name>
+  <pr:description>Makers of grand vin Chateau Latour, Les Forts de Latour and Pauillac</pr:description>
+  <pr:authorid>3</pr:authorid>
+  <pr:region>Bordeaux</pr:region>
+</pr:producer>

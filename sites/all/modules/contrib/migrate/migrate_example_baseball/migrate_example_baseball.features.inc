@@ -6,7 +6,7 @@
 function migrate_example_baseball_node_info() {
   $items = array(
     'migrate_example_baseball' => array(
-      'name' => t('migrate_example_baseball'),
+      'name' => t('Migrate example - Baseball'),
       'base' => 'node_content',
       'description' => t('A baseball box score'),
       'has_title' => '1',

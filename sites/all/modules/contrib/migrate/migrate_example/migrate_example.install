@@ -34,6 +34,7 @@ function migrate_example_install() {
   );
   $example_format = (object) $example_format;
   filter_format_save($example_format);
+  migrate_static_registration();
 }
 
 function migrate_example_uninstall() {
@@ -62,8 +63,8 @@ function migrate_example_update_7001() {
   );
 
   $result = db_select('migrate_example_beer_legacy_urls', 'ms')
-            ->fields('ms', array('machine_name', 'modificationdate'))
-            ->execute();
+    ->fields('ms', array('machine_name', 'modificationdate'))
+    ->execute();
   foreach ($result as $row) {
     $modificationdatetime = strtotime($row->modificationdate);
     db_update('migrate_example_beer_legacy_urls')
@@ -84,24 +85,24 @@ function migrate_example_update_7001() {
 function migrate_example_update_7002() {
   $ret = array();
   db_add_field('migrate_example_beer_node', 'image_alt', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-        'description' => 'Image ALT',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'Image ALT',
     )
   );
   db_add_field('migrate_example_beer_node', 'image_title', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-        'description' => 'Image title',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'Image title',
     )
   );
   db_add_field('migrate_example_beer_node', 'image_description', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-        'description' => 'Image description',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'Image description',
     )
   );
   db_update('migrate_example_beer_node')
@@ -206,10 +207,10 @@ function migrate_example_update_7006() {
 function migrate_example_update_7007() {
   $ret = array();
   db_add_field('migrate_example_wine_account', 'positions', array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => FALSE,
-        'description' => 'Positions held',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'Positions held',
     )
   );
   $query = db_update('migrate_example_wine_account')

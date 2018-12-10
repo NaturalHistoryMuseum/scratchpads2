@@ -12,6 +12,7 @@
  * when that is fixed.
  */
 class MigrateOracleUnitTest extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array(
       'name' => 'Oracle migration',
@@ -23,12 +24,15 @@ class MigrateOracleUnitTest extends DrupalWebTestCase {
   function setUp() {
     global $conf;
     if (empty($conf['oracle_db']) || empty($conf['oracle_db']['username']) ||
-        empty($conf['oracle_db']['password']) || empty($conf['oracle_db']['connection_string'])) {
+      empty($conf['oracle_db']['password']) || empty($conf['oracle_db']['connection_string'])) {
       parent::setUp();
     }
     else {
       parent::setUp('features', 'migrate', 'migrate_example_oracle');
     }
+
+    // Make sure the migrations are registered.
+    migrate_static_registration();
   }
 
   function testOracleImport() {
@@ -84,16 +88,16 @@ class MigrateOracleUnitTest extends DrupalWebTestCase {
     $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_oracle'), TRUE);
     $this->assertEqual(count($rawnodes), 0, t('All nodes deleted'));
     $count = db_select('migrate_map_migrateexampleoracle', 'map')
-              ->fields('map', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('map', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Map cleared'));
     $count = db_select('migrate_message_migrateexampleoracle', 'msg')
-              ->fields('msg', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('msg', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Messages cleared'));
   }
 }

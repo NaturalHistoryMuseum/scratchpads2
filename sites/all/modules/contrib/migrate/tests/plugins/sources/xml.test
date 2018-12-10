@@ -9,6 +9,7 @@
  * Test node migration.
  */
 class MigrateXMLUnitTest extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array(
       'name' => 'XML migration',
@@ -19,6 +20,9 @@ class MigrateXMLUnitTest extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('taxonomy', 'migrate', 'migrate_example');
+
+    // Make sure the migrations are registered.
+    migrate_static_registration();
   }
 
   function testNodeImport() {
@@ -26,22 +30,51 @@ class MigrateXMLUnitTest extends DrupalWebTestCase {
     $result = $migration->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Region term import returned RESULT_COMPLETED'));
+
     $migration = Migration::getInstance('WineFileCopy');
     $result = $migration->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('File import returned RESULT_COMPLETED'));
+
     $migration = Migration::getInstance('WineRole');
     $result = $migration->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('Role import returned RESULT_COMPLETED'));
+
     $migration = Migration::getInstance('WineUser');
     $result = $migration->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
       t('User import returned RESULT_COMPLETED'));
-    $migration = Migration::getInstance('WineProducerXML');
-    $result = $migration->processImport();
+
+    $migration1 = Migration::getInstance('WineProducerXML');
+    $result = $migration1->processImport();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
-      t('Producer node import returned RESULT_COMPLETED'));
+      t('Producer node import 1 returned RESULT_COMPLETED'));
+
+    $migration2 = Migration::getInstance('WineProducerNamespaceXML');
+    $result = $migration2->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import 2 returned RESULT_COMPLETED'));
+
+    $migration3 = Migration::getInstance('WineProducerMultiXML');
+    $result = $migration3->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import 3 returned RESULT_COMPLETED'));
+
+    $migration4 = Migration::getInstance('WineProducerMultiNamespaceXML');
+    $result = $migration4->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import 4 returned RESULT_COMPLETED'));
+
+    $migration5 = Migration::getInstance('WineProducerXMLPull');
+    $result = $migration5->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import 5 returned RESULT_COMPLETED'));
+
+    $migration6 = Migration::getInstance('WineProducerNamespaceXMLPull');
+    $result = $migration6->processImport();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node import 6 returned RESULT_COMPLETED'));
 
     // Gather producer nodes, and their corresponding input data
     $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_producer'), TRUE);
@@ -51,7 +84,7 @@ class MigrateXMLUnitTest extends DrupalWebTestCase {
       $producer_nodes[$node->title] = $node;
     }
 
-    $this->assertEqual(count($producer_nodes), 1,
+    $this->assertEqual(count($producer_nodes), 10,
       t('Counts of producer nodes and input rows match'));
 
     // Test each base node field
@@ -78,23 +111,45 @@ class MigrateXMLUnitTest extends DrupalWebTestCase {
     $this->assertEqual($region[0]['tid'], $term->tid,
       t('region properly migrated'));
 
-    // Test rollback
-    $result = $migration->processRollback();
+    // Rollback producer migrations
+    $result = $migration1->processRollback();
     $this->assertEqual($result, Migration::RESULT_COMPLETED,
-      t('Producer node rollback returned RESULT_COMPLETED'));
+      t('Producer node rollback 1 returned RESULT_COMPLETED'));
+
+    $result = $migration2->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback 2 returned RESULT_COMPLETED'));
+
+    $result = $migration3->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback 3 returned RESULT_COMPLETED'));
+
+    $result = $migration4->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback 4 returned RESULT_COMPLETED'));
+
+    $result = $migration5->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback 5 returned RESULT_COMPLETED'));
+
+    $result = $migration6->processRollback();
+    $this->assertEqual($result, Migration::RESULT_COMPLETED,
+      t('Producer node rollback 6 returned RESULT_COMPLETED'));
+
+    // Test rollback
     $rawnodes = node_load_multiple(FALSE, array('type' => 'migrate_example_producer'), TRUE);
     $this->assertEqual(count($rawnodes), 0, t('All nodes deleted'));
     $count = db_select('migrate_map_wineproducerxml', 'map')
-              ->fields('map', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('map', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Map cleared'));
     $count = db_select('migrate_message_wineproducerxml', 'msg')
-              ->fields('msg', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('msg', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Messages cleared'));
   }
 }

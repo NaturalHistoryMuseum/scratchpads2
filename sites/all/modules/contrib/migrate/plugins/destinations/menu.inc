@@ -9,6 +9,7 @@
  * Destination class implementing migration into {menu_custom}.
  */
 class MigrateDestinationMenu extends MigrateDestination {
+
   static public function getKeySchema() {
     return array(
       'menu_name' => array(
@@ -35,6 +36,7 @@ class MigrateDestinationMenu extends MigrateDestination {
    *
    * @param Migration $migration
    *  Optionally, the migration containing this destination.
+   *
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
@@ -55,6 +57,7 @@ class MigrateDestinationMenu extends MigrateDestination {
    *  Menu object to build. Prefilled with any fields mapped in the Migration.
    * @param $row
    *  Raw source data object - passed through to prepare/complete handlers.
+   *
    * @return array
    *  Array of key fields of the object that was saved if
    *  successful. FALSE on failure.

@@ -1,18 +1,15 @@
 
 table.migrate-dashboard tr.migrate-running {
-  background-color: #CFC;
+  background-color: #cfc;
 }
-
 .migrate-running {
-  background-color: #CFC;
+  background-color: #cfc;
 }
-
 .migrate-option-separator {
-  margin-bottom:0.2em;
+  margin-bottom: 0.2em;
   padding-bottom: 0.2em;
   border-bottom: 1px solid #aaa;
 }
-
 #migrate-migration-info td.migrate-error {
   background: #ffc9c9;
 }

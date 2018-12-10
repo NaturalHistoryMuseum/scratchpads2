@@ -21,7 +21,8 @@
  * public function prepareRow($row);
  *   $choices =  Database::getConnection('default', 'legacy')
  *               ->select('src_poll_choice', 'c')
- *               ->fields('c', array('choice_label', 'choice_order', 'choice_total))
+ *               ->fields('c', array('choice_label', 'choice_order',
+ *   'choice_total'))
  *               ->condition('c.choiceid', $row->src_contentid);
  *               ->execute();
  *   $row->src_choices = array();
@@ -36,9 +37,10 @@
  *   // choice, so it's best to tie the votes to choices by text.
  *   $query =  Database::getConnection('default', 'legacy')
  *             ->select('src_poll_vote', 'v')
- *             ->fields('v', array('choice_uid', 'hostname', 'timestamp))
+ *             ->fields('v', array('choice_uid', 'hostname', 'timestamp'))
  *             ->condition('v.choiceid', $row->src_contentid);
- *   $votes = $query->innerJoin('src_poll_choice', 'c', 'v.choice_id=c.choice_id')
+ *   $votes = $query->innerJoin('src_poll_choice', 'c',
+ *   'v.choice_id=c.choice_id')
  *            ->fields('c', array('choice_label'))
  *            ->execute();
  *   $row->src_votes = array();
@@ -56,17 +58,21 @@
  */
 
 class MigratePollEntityHandler extends MigrateDestinationHandler {
+
   public function __construct() {
     $this->registerTypes(array('node'));
   }
 
-  public function fields($entity_type, $bundle) {
+  /**
+   * Implementation of MigrateDestinationHandler::fields().
+   */
+  public function fields($entity_type, $bundle, $migration = NULL) {
     if ($bundle == 'poll') {
       $fields = array(
-        'active' => t('Poll: Active status'),
-        'runtime' => t('Poll: How long the poll runs for in seconds'),
-        'choice' => t('Poll: Choices. Each choice is an array with chtext, chvotes, and weight keys.'),
-        'votes' => t('Poll: Votes. Each vote is an array with chid (or chtext), uid, hostname, and timestamp keys'),
+        'active' => t('Active status'),
+        'runtime' => t('How long the poll runs for in seconds'),
+        'choice' => t('Choices. Each choice is an array with chtext, chvotes, and weight keys.'),
+        'votes' => t('Votes. Each vote is an array with chid (or chtext), uid, hostname, and timestamp keys'),
       );
     }
     else {
@@ -89,7 +95,10 @@ class MigratePollEntityHandler extends MigrateDestinationHandler {
       foreach ($row->choice as $choice) {
         // Have no mapping tracking for chid, so assume choice text is unique.
         db_update('poll_choice')
-          ->fields(array('chvotes' => $choice['chvotes'], 'weight' => $choice['weight']))
+          ->fields(array(
+            'chvotes' => $choice['chvotes'],
+            'weight' => $choice['weight'],
+          ))
           ->condition('nid', $entity->nid)
           ->condition('chtext', $choice['chtext'])
           ->execute();
@@ -97,14 +106,16 @@ class MigratePollEntityHandler extends MigrateDestinationHandler {
 
       // Insert actual votes.
       foreach ($row->votes as $vote) {
-        $chid = $vote['chid'];
-        if (!isset($chid)) {
+        if (!isset($vote['chid'])) {
           $result = db_select('poll_choice', 'pc')
-                  ->fields('pc', array('chid'))
-                  ->condition('pc.nid', $entity->nid)
-                  ->condition('pc.chtext', $vote['chtext'])
-                  ->execute();
+            ->fields('pc', array('chid'))
+            ->condition('pc.nid', $entity->nid)
+            ->condition('pc.chtext', $vote['chtext'])
+            ->execute();
           $chid = $result->fetchField();
+        }
+        else {
+          $chid = $vote['chid'];
         }
         db_insert('poll_vote')
           ->fields(array(

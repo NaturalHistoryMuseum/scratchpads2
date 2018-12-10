@@ -10,12 +10,15 @@
  * to implement appropriate methods (e.g., prepare, complete, or fields).
  */
 abstract class MigrateHandler {
+
   /**
-   * List of other handler classes which should be invoked before the current one.
+   * List of other handler classes which should be invoked before the current
+   * one.
    *
    * @var array
    */
   protected $dependencies = array();
+
   public function getDependencies() {
     return $this->dependencies;
   }
@@ -27,6 +30,7 @@ abstract class MigrateHandler {
    * @var array
    */
   protected $typesHandled = array();
+
   public function getTypesHandled() {
     return $this->typesHandled;
   }

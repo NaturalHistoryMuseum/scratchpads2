@@ -10,13 +10,25 @@
  * for the purpose of rollback.
  */
 abstract class MigrateMap implements Iterator {
+
   /**
    * Codes reflecting the current status of a map row.
    */
   const STATUS_IMPORTED = 0;
+
   const STATUS_NEEDS_UPDATE = 1;
+
   const STATUS_IGNORED = 2;
+
   const STATUS_FAILED = 3;
+
+  /**
+   * Codes reflecting how to handle the destination item on rollback.
+   *
+   */
+  const ROLLBACK_DELETE = 0;
+
+  const ROLLBACK_PRESERVE = 1;
 
   /**
    * Arrays of key fields for the source and destination. Array keys are the
@@ -25,7 +37,9 @@ abstract class MigrateMap implements Iterator {
    * @var array
    */
   protected $sourceKey, $destinationKey;
+
   abstract public function getSourceKey();
+
   abstract public function getDestinationKey();
 
   /**
@@ -37,11 +51,28 @@ abstract class MigrateMap implements Iterator {
   protected $sourceKeyMap, $destinationKeyMap;
 
   /**
+   * Get the source key map.
+   */
+  public function getSourceKeyMap() {
+    return $this->sourceKeyMap;
+  }
+
+  /**
    * Boolean determining whether to track last_imported times in map tables
    *
    * @var boolean
    */
   protected $trackLastImported = FALSE;
+
+  public function getTrackLastImported() {
+    return $this->trackLastImported;
+  }
+
+  public function setTrackLastImported($trackLastImported) {
+    if (is_bool($trackLastImported)) {
+      $this->trackLastImported = $trackLastImported;
+    }
+  }
 
   /**
    * Save a mapping from the key values in the source row to the destination
@@ -50,9 +81,12 @@ abstract class MigrateMap implements Iterator {
    * @param $source_row
    * @param $dest_ids
    * @param $status
+   * @param $rollback_action
+   * @param $hash
    */
   abstract public function saveIDMapping(stdClass $source_row, array $dest_ids,
-    $status = MigrateMap::STATUS_IMPORTED);
+                                         $status = MigrateMap::STATUS_IMPORTED,
+                                         $rollback_action = MigrateMap::ROLLBACK_DELETE, $hash = NULL);
 
   /**
    * Record a message related to a source record
@@ -122,6 +156,7 @@ abstract class MigrateMap implements Iterator {
    * Retrieve map data for a given source or destination item
    */
   abstract public function getRowBySource(array $source_id);
+
   abstract public function getRowByDestination(array $destination_id);
 
   /**
@@ -130,29 +165,32 @@ abstract class MigrateMap implements Iterator {
   abstract public function getRowsNeedingUpdate($count);
 
   /**
-   * Given a (possibly multi-field) destination key, return the (possibly multi-field)
-   * source key mapped to it.
+   * Given a (possibly multi-field) destination key, return the (possibly
+   * multi-field) source key mapped to it.
    *
    * @param array $destination_id
    *  Array of destination key values.
+   *
    * @return array
    *  Array of source key values, or NULL on failure.
    */
   abstract public function lookupSourceID(array $destination_id);
 
   /**
-   * Given a (possibly multi-field) source key, return the (possibly multi-field)
-   * destination key it is mapped to.
+   * Given a (possibly multi-field) source key, return the (possibly
+   * multi-field) destination key it is mapped to.
    *
    * @param array $source_id
    *  Array of source key values.
+   *
    * @return array
    *  Array of destination key values, or NULL on failure.
    */
   abstract public function lookupDestinationID(array $source_id);
 
   /**
-   * Remove any persistent storage used by this map (e.g., map and message tables)
+   * Remove any persistent storage used by this map (e.g., map and message
+   * tables)
    */
   abstract public function destroy();
 }
