@@ -26,13 +26,13 @@ http://bibliophile.sourceforge.net
 class PARSEMONTH
 {
 // Constructor
-  function PARSEMONTH()
+  function __construct()
   {
   }
   function init($monthField)
   {
     $startMonth = $this->startDay = $endMonth = $this->endDay = FALSE;
-    $date = split("#", $monthField);
+    $date = preg_split("#", $monthField);
     foreach ($date as $field)
     {
       $field = ucfirst(strtolower(trim($field)));

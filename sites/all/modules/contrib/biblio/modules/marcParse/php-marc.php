@@ -192,7 +192,7 @@ Class File {
    * @param string Name of the file
    * @return string Returns warning if issued during read
    */
-  function file($in) {
+  function __construct($in) {
     if (file_exists($in)) {
       $input = file($in);
       $recs = explode(END_OF_RECORD, join("", $input));
@@ -352,7 +352,7 @@ Class USMARC Extends File {
    * Read raw MARC string for decoding
    * @param string Raw MARC
   */
-  function usmarc($string) {
+  function __construct($string) {
     $this->raw[] = $string;
     $this->pointer = 0;
   }
@@ -428,7 +428,7 @@ Class Record {
    *
    * Set all variables to defaults to create new Record object
    */
-  function record() {
+  function __construct() {
     $this->fields = array();
     $this->ldr = str_repeat(' ', 24);
   }
@@ -751,7 +751,7 @@ Class Field {
    * @param array Array ( tagno, ind1, ind2, subfield_data )
    * @return string Returns warnings if any issued during parse
    */
-  function field() {
+  function __construct() {
     $args = func_get_args();
 
     $tagno = array_shift($args);

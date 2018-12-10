@@ -241,16 +241,16 @@ function theme_biblio_tabular($variables) {
     if ($row['type'] == 'contrib_widget' && ($authors = biblio_get_contributor_category($node->biblio_contributors, $row['fid']))) {
       $data = biblio_format_authors($authors);
     }
-    elseif (empty ($node->$row['name']) || $row['name'] == 'biblio_coins') {
+    elseif (empty ($node->{$row['name']}) || $row['name'] == 'biblio_coins') {
       continue;
     }
     else {
       switch ($row['name']) {
         case 'biblio_keywords' :
-         $data = _biblio_keyword_links($node->$row['name'], $base);
+         $data = _biblio_keyword_links($node->{$row['name']}, $base);
           break;
         case 'biblio_url' :
-          $data = l($node->$row['name'], $node->$row['name'], $attrib);
+          $data = l($node->{$row['name']}, $node->{$row['name']}, $attrib);
           break;
         case 'biblio_doi' :
            $data = $doi;
@@ -262,10 +262,10 @@ function theme_biblio_tabular($variables) {
               $formats = $node->biblio_formats;
               $format  = isset($formats[$row['name']]) ? $formats[$row['name']] : $format;
             }
-            $data = check_markup($node->$row['name'], $format);
+            $data = check_markup($node->{$row['name']}, $format);
           }
           else {
-            $data = check_plain($node->$row['name']);
+            $data = check_plain($node->{$row['name']});
           }
       }
     }

@@ -136,7 +136,7 @@ class PARSEENTRIES
   /**
    * @return unknown_type
    */
-  function PARSEENTRIES()
+  function __construct()
   {
     require_once(drupal_get_path('module', 'biblio_bibtex') . '/transtab_latex_unicode.inc.php');
     $this->transtab_latex_unicode = get_transtab_latex_unicode();

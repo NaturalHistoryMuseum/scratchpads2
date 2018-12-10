@@ -6,7 +6,7 @@ class Creators extends PARSECREATORS
     protected    $typeMap            = array();
     private   $md5                = array();
 
-  function Creators($init = NULL)
+  function __construct($init = NULL)
   {
     $this->buildTypeMap();
     if (is_array($init))
@@ -177,10 +177,6 @@ http://bibliophile.sourceforge.net
 
 class PARSECREATORS
 {
-  function PARSECREATORS()
-  {
-  }
-
   function parse($input, $type = 'author')
   {
     $input = trim($input);
@@ -219,12 +215,12 @@ class PARSECREATORS
             if (preg_match("/(.*) {([^\\\].*)}/", $value, $matches) &&
          !(preg_match("/(.*) {\\\.{.*}.*}/", $value, $matches2)))
       {
-        $author = split(" ", $matches[1]);
+        $author = preg_split(" ", $matches[1]);
         $surname = $matches[2];
       }
       else
       {
-        $author = split(" ", $value);
+        $author = preg_split(" ", $value);
 // last of array is surname (no prefix if entered correctly)
         $surname = array_pop($author);
       }
@@ -269,7 +265,7 @@ class PARSECREATORS
   function grabFirstnameInitials($remainder)
   {
     $firstname = $initials = '';
-    $array = split(" ", $remainder);
+    $array = preg_split(" ", $remainder);
     foreach ($array as $value)
     {
       $firstChar = substr($value, 0, 1);
@@ -293,7 +289,7 @@ class PARSECREATORS
 // uppercased part means lowercased parts following are part of the surname (e.g. Van den Bussche)
   function grabSurname($input)
   {
-    $surnameArray = split(" ", $input);
+    $surnameArray = preg_split(" ", $input);
     $noPrefix = $surname = FALSE;
     foreach ($surnameArray as $value)
     {
