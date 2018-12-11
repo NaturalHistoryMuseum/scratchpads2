@@ -656,7 +656,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
             ))->execute();
             $target_parts = explode(':', $header['target']);
             foreach($results as $row){
-              $allowed_values[] = $row->$target_parts[1];
+              $allowed_values[] = $row->{$target_parts[1]};
             }
           }
         }else if($field['type'] == 'user_reference'){
@@ -670,7 +670,7 @@ function feeds_xls_set_headers($feeds_importer, $objPHPExcel, $output = 'php://o
           $results = $query->execute();
           $target_parts = explode(':', $header['target']);
           foreach($results as $row){
-            $allowed_values[] = $row->$target_parts[1];
+            $allowed_values[] = $row->{$target_parts[1]};
           }
         }
         if(count($allowed_values)){
