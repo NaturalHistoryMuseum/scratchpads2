@@ -641,11 +641,11 @@ function dwca_export_views_wizard_next_submit($form, &$form_state) {
 		
 		// lorna save the values for the first step
 		if ($current_step == 1) {
-			_dwca_export_views_step1_submit($form, &$form_state);
+			_dwca_export_views_step1_submit($form, $form_state);
 		}
 		//save the values for the second submit
 		if ($current_step == 2) {
-			_dwca_export_views_step2_submit($form, &$form_state);
+			_dwca_export_views_step2_submit($form, $form_state);
 		}
 		$current_step++;
 		if (!empty($form_state['step_information'][$current_step]['stored_values'])) {
