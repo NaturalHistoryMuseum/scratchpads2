@@ -3,12 +3,54 @@ define('SCRATCHPADS_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
 define('SCRATCHPADS_NHM_INSTALLATION', '69818b49-38c9-41ad-b504-e5cd53dff238');
 
 /**
+ * Admin settings.
+ */
+function scratchpads_gbif_registry_client_admin_settings() {
+    $form = array(
+        'scratchpads_gbif_registry_client_registration_enabled' => array(
+            '#type' => 'checkbox',
+            '#title' => t('Enable GBIF registration'),
+            '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_enabled', FALSE),
+            '#description' => t("Whether to register this scratchpad with GBIF"),
+        )
+    );
+    // use the system_settings_form function so that we don't have to implement our own submit function
+    return system_settings_form($form);
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_gbif_registry_client_menu() {
+    return array(
+        'admin/config/content/scratchpads_gbif_registry_client' => array(
+            'title' => 'GBIF registration settings',
+            'description' => 'Configure the GBIF registration client',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array(
+                'scratchpads_gbif_registry_client_admin_settings'
+            ),
+            'access arguments' => array(
+                'administer scratchpads_gbif_registry_client'
+            ),
+        ),
+        'admin/config/content/scratchpads_gbif_registry_client/settings' => array(
+            'title' => 'Settings',
+            'type' => MENU_DEFAULT_LOCAL_TASK,
+            'weight' => -10
+        )
+    );
+}
+
+/**
  * Implements hook_cron().
  */
-function scratchpads_gbif_registry_client_cron(){
-  // Go no further if we're not the right profile or we updated less than a week
-  // ago.
-  if(in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles()) && variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 < time()){
+function scratchpads_gbif_registry_client_cron() {
+  // Go no further if registration is disabled, we're not the right profile or
+  //we updated less than a week ago.
+  if(variable_get('scratchpads_gbif_registry_client_registration_enabled', FALSE) &&
+      in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles()) &&
+      variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 < time()){
     // Once a week we update the information that GBIF holds about us.
     $registry = GBIFRegistry::singleton();
     if(($uuid = variable_get('scratchpads_gbif_registry_client_uuid', FALSE)) != FALSE){
