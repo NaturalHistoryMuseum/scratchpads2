@@ -1,0 +1,47 @@
+diff --git a/sites/all/themes/omega/alpha/includes/alpha.inc b/sites/all/themes/omega/alpha/includes/alpha.inc
+index bf04b4eb9..342ff14eb 100644
+--- a/sites/all/themes/omega/alpha/includes/alpha.inc
++++ b/sites/all/themes/omega/alpha/includes/alpha.inc
+@@ -892,11 +892,11 @@ function alpha_retrieve_libraries($theme) {
+  */
+ function alpha_calculate_primary(&$items, $primary, $container) {
+   if (!empty($items)) {
+-    $items[$primary]['#grid']['columns'] = $container - $items[$primary]['#grid']['prefix'] - $items[$primary]['#grid']['suffix'];
++    $items[$primary]['#grid']['columns'] = $container - (int)$items[$primary]['#grid']['prefix'] - (int)$items[$primary]['#grid']['suffix'];
+ 
+     foreach (element_children($items) as $item) {
+       if ($item != $primary) {
+-        $items[$primary]['#grid']['columns'] -= $items[$item]['#grid']['columns'] + $items[$item]['#grid']['prefix'] + $items[$item]['#grid']['suffix'];
++        $items[$primary]['#grid']['columns'] -= $items[$item]['#grid']['columns'] + (int)$items[$item]['#grid']['prefix'] + (int)$items[$item]['#grid']['suffix'];
+       }
+     }
+   }
+diff --git a/sites/all/themes/omega/alpha/includes/base.inc b/sites/all/themes/omega/alpha/includes/base.inc
+index 57878b555..961268c06 100644
+--- a/sites/all/themes/omega/alpha/includes/base.inc
++++ b/sites/all/themes/omega/alpha/includes/base.inc
+@@ -212,19 +212,19 @@ class alpha_theme_container {
+     if (!isset($this->regions)) {
+       $this->zones();
+       $this->sections();
+-      $this->regions = array();      
++      $this->regions = array();
+       $exclude = alpha_regions_exclude();
+ 
+       foreach (system_region_list($this->theme) as $region => $title) {
+         if (!in_array($region, $exclude)) {
+           $zone = alpha_region_get_setting('zone', $region, NULL, $this->theme);
+-          $prefix = alpha_region_get_setting('prefix', $region, 0, $this->theme);
++          $prefix = (int) alpha_region_get_setting('prefix', $region, 0, $this->theme);
+           $columns = alpha_region_get_setting('columns', $region, 1, $this->theme);
+-          $suffix = alpha_region_get_setting('suffix', $region, 0, $this->theme);
+-          
++          $suffix = (int) alpha_region_get_setting('suffix', $region, 0, $this->theme);
++
+           $zone = isset($zone) && isset($this->zones[$zone]) ? $zone : NULL;
+           $section = isset($zone) && isset($this->zones[$zone]['section']) ? $this->zones[$zone]['section'] : NULL;
+-          
++
+           $this->regions[$region] = array(
+             'region' => $region,
+             'name' => $title,
