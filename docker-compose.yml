@@ -42,6 +42,11 @@ services:
       - APACHE_PHP_MEMORY_LIMIT=${APACHE_PHP_MEMORY_LIMIT}
       - APACHE_PHP_UPLOAD_MAX_FILESIZE=${APACHE_PHP_UPLOAD_MAX_FILESIZE}
       - APACHE_PHP_POST_MAX_SIZE=${APACHE_PHP_POST_MAX_SIZE}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   mysql:
     container_name: scratchpads.mysql
@@ -56,6 +61,11 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   solr:
     container_name: scratchpads.solr
@@ -67,6 +77,11 @@ services:
       - 8983
     volumes:
       - solr-data:/etc/opt/solr/scratchpads2/data
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   varnish:
     restart: always
@@ -83,10 +98,13 @@ services:
     environment:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
 volumes:
   apache-files:
   mysql-data:
   solr-data:
-
-
