@@ -38,10 +38,10 @@ dl.bibliomultiselect .form-item {
   margin: 0;
 }
 #biblio-authors table, #biblio-tertiary-authors  table  {
-  width: 100%;  
+  width: 100%;
 }
 #biblio-authors  .form-text {
-  width: 95%;  
+  width: 95%;
 }
 #biblio-authors  td.biblio-contributor,
 #biblio-secondary-authors td.biblio-contributor,
@@ -123,7 +123,7 @@ dl.bibliomultiselect .form-item {
 }
 
 a:active {
-  
+
 }
 
 .biblio-authors a {
@@ -335,4 +335,12 @@ ul.biblio-export-buttons,ul.biblio-export-buttons li {
 .biblio-highlight {
     background-color: #FFF4F4;
     border: 2px solid #494949;
+}
+
+#biblio-node {
+  table-layout: fixed;
+}
+
+#biblio-node td{
+  word-wrap: break-word;
 }

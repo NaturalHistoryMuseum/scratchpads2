@@ -1,0 +1,16 @@
+diff --git a/sites/all/modules/contrib/biblio/biblio.css b/sites/all/modules/contrib/biblio/biblio.css
+index 224380172..84091f724 100644
+--- a/sites/all/modules/contrib/biblio/biblio.css
++++ b/sites/all/modules/contrib/biblio/biblio.css
+@@ -336,3 +336,11 @@ ul.biblio-export-buttons,ul.biblio-export-buttons li {
+     background-color: #FFF4F4;
+     border: 2px solid #494949;
+ }
++
++#biblio-node {
++  table-layout: fixed;
++}
++
++#biblio-node td{
++  word-wrap: break-word;
++}
