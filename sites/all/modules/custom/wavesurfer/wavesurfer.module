@@ -164,8 +164,6 @@ function theme_wavesurfer_waveform($variables){
   $parts = explode("/", current_path());
   if ($parts[0] == "node") {
     $cloud_url = "https://ams3.digitaloceanspaces.com/bioacoustica-analysis/flac/".$parts[1].".flac";
-  } else {
-    print_r($parts);
   }
   if (false  === file_get_contents($cloud_url,0,null,0,1)) {
     $cloud_url = NULL;
