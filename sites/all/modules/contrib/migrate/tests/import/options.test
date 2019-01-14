@@ -9,6 +9,7 @@
  * Test node migration.
  */
 class MigrateImportOptionsTest extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array(
       'name' => 'Import options',
@@ -19,6 +20,9 @@ class MigrateImportOptionsTest extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('migrate_example');
+
+    // Make sure the migrations are registered.
+    migrate_static_registration();
   }
 
   function testItemLimitOption() {
@@ -37,17 +41,13 @@ class MigrateImportOptionsTest extends DrupalWebTestCase {
 
     $result = $migration->processImport($options);
 
-    $this->verbose(print_r($timers, 1));
     $successes = $migration->importedCount();
-    $this->verbose("Total successes: {$successes}");
     $assertion = format_plural($limit, 'The migration successfully processed 1 item.',
       'The migration successfully processed @count items.');
     $this->assertEqual($limit, $successes, $assertion);
 
     $prepare_row_count = $timers['BeerTermMigration prepareRow']['count'];
-    $this->verbose("prepareRow() count: {$prepare_row_count}");
     $processed = $migration->processedCount();
-    $this->verbose("Total processed count: {$processed}");
     $assertion = format_plural($processed, 'The migration executed processRow() on 1 item.',
       'The migration executed processRow() on @count items.');
     $this->assertEqual($prepare_row_count, $processed, $assertion);

@@ -631,7 +631,7 @@ function page_manager_get_operations($page, $operations = NULL) {
       if (isset($plugin['add features'][$id])) {
         $result['actions']['children']['configure']['form']['order'][$id] = $plugin['add features'][$id];
       }
-      else if (isset($plugin['required forms'][$id])) {
+      elseif (isset($plugin['required forms'][$id])) {
         $result['actions']['children']['configure']['form']['order'][$id] = $plugin['required forms'][$id];
       }
     }
@@ -732,7 +732,7 @@ function page_manager_get_handler_operations(&$page) {
         ),
       );
     }
-    else if ($handler->export_type != EXPORT_IN_CODE) {
+    elseif ($handler->export_type != EXPORT_IN_CODE) {
       $actions['delete'] = array(
         'title' => t('Delete'),
         'description' => t('Remove this variant from the page completely.'),
@@ -1144,7 +1144,7 @@ function page_manager_render_operations(&$page, $operations, $active_trail, $att
       if ($id == $first) {
         $class[] = 'operation-first';
       }
-      else if ($id == $last) {
+      elseif ($id == $last) {
         $class[] = 'operation-last';
       }
 
@@ -1542,9 +1542,15 @@ function page_manager_handler_import_submit(&$form, &$form_state) {
  * Rearrange the order of variants.
  */
 function page_manager_handler_rearrange($form, &$form_state) {
+  ctools_include('context-task-handler');
   $page = $form_state['page'];
 
   $form['handlers'] = array('#tree' => TRUE);
+
+  // Get the number of variants to be displayed in order to set the delta
+  // to the proper value.  This fixes problems in previous versions with sorting
+  // large numbers of variants.
+  $delta = count($page->handler_info)/2 + 1;
 
   foreach ($page->handler_info as $id => $info) {
     if ($info['changed'] & PAGE_MANAGER_CHANGED_DELETED) {
@@ -1552,15 +1558,26 @@ function page_manager_handler_rearrange($form, &$form_state) {
     }
     $handler = $page->handlers[$id];
     $plugin = page_manager_get_task_handler($handler->handler);
-
+    $object = ctools_context_handler_get_task_object($page->task, $page->subtask, $handler);
+    $display = new stdClass();
+    $display->context = ctools_context_load_contexts($object, TRUE);
+    $content = page_manager_get_handler_title($plugin, $handler, $page->task, $page->subtask_id);
+    $access = ctools_access_group_summary(!empty($handler->conf['access']) ? $handler->conf['access'] : array(), $display->context);
+    if ($access) {
+      $access = t('This panel will be selected if @conditions.', array('@conditions' => $access));
+    }
+    else {
+      $access = t('This panel will always be selected.');
+    }
+    $content .= '<div>' . $access . '</div>';
     $form['handlers'][$id]['title'] = array(
-      '#markup' => page_manager_get_handler_title($plugin, $handler, $page->task, $page->subtask_id),
+      '#markup' => $content,
     );
 
     $form['handlers'][$id]['weight'] = array(
       '#type' => 'weight',
       '#default_value' => $info['weight'],
-      '#delta' => 30,
+      '#delta' => $delta,
     );
   }
 
@@ -1670,6 +1687,12 @@ function page_manager_handler_clone_submit(&$form, &$form_state) {
   ob_end_clean();
 
   page_manager_handler_add_to_page($form_state['page'], $handler, $form_state['values']['title']);
+
+  // Variant is cloned and added to the Page. Ensure the uuids are re-generated.
+  panels_panel_context_get_display($handler);
+  if (isset($handler->conf['display']) && method_exists($handler->conf['display'], 'clone_display')) {
+    $handler->conf['display'] = $handler->conf['display']->clone_display();
+  }
 
   $plugin = page_manager_get_task_handler($handler->handler);
   // It has no forms at all. Add the variant and go to its first operation.

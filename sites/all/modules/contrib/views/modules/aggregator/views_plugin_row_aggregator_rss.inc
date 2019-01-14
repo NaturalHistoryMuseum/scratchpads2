@@ -2,17 +2,28 @@
 
 /**
  * @file
- * Contains the Aggregator Item RSS row style plugin.
+ * Definition of views_plugin_row_aggregator_rss.
  */
 
 /**
  * Plugin which loads an aggregator item and formats it as an RSS item.
  */
 class views_plugin_row_aggregator_rss extends views_plugin_row {
-  var $base_table = 'aggregator_item';
-  var $base_field = 'iid';
 
-  function option_definition() {
+  /**
+   *
+   */
+  public $base_table = 'aggregator_item';
+
+  /**
+   *
+   */
+  public $base_field = 'iid';
+
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['item_length'] = array('default' => 'default');
@@ -20,7 +31,10 @@ class views_plugin_row_aggregator_rss extends views_plugin_row {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     $form['item_length'] = array(
       '#type' => 'select',
       '#title' => t('Display type'),
@@ -34,7 +48,10 @@ class views_plugin_row_aggregator_rss extends views_plugin_row {
     );
   }
 
-  function render($row) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render($row) {
     $iid =  $row->{$this->field_alias};
     $sql =  "SELECT ai.iid, ai.fid, ai.title, ai.link, ai.author, ai.description, ";
     $sql .= "ai.timestamp, ai.guid, af.title AS feed_title, ai.link AS feed_LINK ";
@@ -71,4 +88,5 @@ class views_plugin_row_aggregator_rss extends views_plugin_row {
       'row' => $item
     ));
   }
+
 }

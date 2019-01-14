@@ -6,9 +6,11 @@
  */
 
 /**
- * Implementation of MigrateSource, to handle imports from remote MS SQL Server db servers.
+ * Implementation of MigrateSource, to handle imports from remote MS SQL Server
+ * db servers.
  */
 class MigrateSourceMSSQL extends MigrateSource {
+
   /**
    * Array containing information for connecting to SQL Server:
    *  servername - Hostname of the SQL Server
@@ -62,7 +64,7 @@ class MigrateSourceMSSQL extends MigrateSource {
    * Simple initialization.
    */
   public function __construct(array $configuration, $query, $count_query,
-      array $fields, array $options = array()) {
+                              array $fields, array $options = array()) {
     parent::__construct($options);
     $this->query = $query;
     $this->countQuery = $count_query;
@@ -125,7 +127,8 @@ class MigrateSourceMSSQL extends MigrateSource {
     migrate_instrument_start('MigrateSourceMSSQL count');
     if ($this->connect()) {
       $result = mssql_query($this->countQuery);
-      $count = reset(mssql_fetch_object($result));
+      $result_array = mssql_fetch_array($result);
+      $count = reset($result_array);
     }
     else {
       // Do something else?

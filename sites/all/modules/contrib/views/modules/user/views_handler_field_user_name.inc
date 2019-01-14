@@ -6,22 +6,26 @@
  */
 
 /**
- * Field handler to provide simple renderer that allows using a themed user link.
+ * Field handler for a simple renderer that allows using a themed user link.
  *
  * @ingroup views_field_handlers
  */
 class views_handler_field_user_name extends views_handler_field_user {
+
   /**
    * Add uid in the query so we can test for anonymous if needed.
    */
-  function init(&$view, &$data) {
+  public function init(&$view, &$data) {
     parent::init($view, $data);
     if (!empty($this->options['overwrite_anonymous']) || !empty($this->options['format_username'])) {
       $this->additional_fields['uid'] = 'uid';
     }
   }
 
-  function option_definition() {
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['overwrite_anonymous'] = array('default' => FALSE, 'bool' => TRUE);
@@ -31,7 +35,10 @@ class views_handler_field_user_name extends views_handler_field_user {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     $form['format_username'] = array(
       '#title' => t('Use formatted username'),
       '#type' => 'checkbox',
@@ -59,7 +66,10 @@ class views_handler_field_user_name extends views_handler_field_user {
     parent::options_form($form, $form_state);
   }
 
-  function render_link($data, $values) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render_link($data, $values) {
     $account = new stdClass();
     $account->uid = $this->get_value($values, 'uid');
     $account->name = $this->get_value($values);
@@ -74,10 +84,11 @@ class views_handler_field_user_name extends views_handler_field_user {
       }
     }
     // If we want a formatted username, do that.
-    if (!empty($this->options['format_username'])) {
+    if (!empty($this->options['format_username']) && !is_null($account->uid)) {
       return format_username($account);
     }
     // Otherwise, there's no special handling, so return the data directly.
     return $data;
   }
+
 }

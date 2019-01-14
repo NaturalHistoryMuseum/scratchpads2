@@ -7,6 +7,7 @@
  */
 
 class RoleTableMigration extends Migration {
+
   public function __construct() {
     parent::__construct();
     $this->dependencies = array();
@@ -23,14 +24,15 @@ class RoleTableMigration extends Migration {
     $this->destination = new MigrateDestinationTableCopy('role_copy', $destination_key);
 
     $this->map = new MigrateSQLMap($this->machineName,
-    array('rid' => array(
+      array(
+        'rid' => array(
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
           'alias' => 'r',
-      )
-    ),
-    $destination_key
+        ),
+      ),
+      $destination_key
     );
   }
 }

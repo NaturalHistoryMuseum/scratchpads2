@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains the table style plugin.
+ * Definition of views_plugin_style_table.
  */
 
 /**
@@ -24,7 +24,10 @@ class views_plugin_style_table extends views_plugin_style {
    */
   public $order;
 
-  function option_definition() {
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['columns'] = array('default' => array());
@@ -45,7 +48,7 @@ class views_plugin_style_table extends views_plugin_style {
    *
    * @return bool
    */
-  function build_sort() {
+  public function build_sort() {
     if (!isset($_GET['order']) && ($this->options['default'] == -1 || empty($this->view->field[$this->options['default']]))) {
       return TRUE;
     }
@@ -62,7 +65,7 @@ class views_plugin_style_table extends views_plugin_style {
   /**
    * Add our actual sort criteria
    */
-  function build_sort_post() {
+  public function build_sort_post() {
     if (!isset($_GET['order'])) {
       // check for a 'default' clicksort. If there isn't one, exit gracefully.
       if (empty($this->options['default'])) {
@@ -111,10 +114,10 @@ class views_plugin_style_table extends views_plugin_style {
    * - Any fields not currently represented must be added.
    * - Columns must be re-ordered to match the fields.
    *
-   * @param $columns
+   * @param array $columns
    *   An array of all fields; the key is the id of the field and the
    *   value is the id of the column the field should be in.
-   * @param $fields
+   * @param array $fields
    *   The fields to use for the columns. If not provided, they will
    *   be requested from the current display. The running render should
    *   send the fields through, as they may be different than what the
@@ -123,7 +126,7 @@ class views_plugin_style_table extends views_plugin_style {
    * @return array
    *    An array of all the sanitized columns.
    */
-  function sanitize_columns($columns, $fields = NULL) {
+  public function sanitize_columns($columns, $fields = NULL) {
     $sanitized = array();
     if ($fields === NULL) {
       $fields = $this->display->handler->get_option('fields');
@@ -157,7 +160,7 @@ class views_plugin_style_table extends views_plugin_style {
   /**
    * Render the given style.
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $handlers = $this->display->handler->get_handlers('field');
     if (empty($handlers)) {
@@ -202,7 +205,7 @@ class views_plugin_style_table extends views_plugin_style {
 
     $columns = $this->sanitize_columns($this->options['columns']);
 
-    // Create an array of allowed columns from the data we know:
+    // Create an array of allowed columns from the data we know.
     $field_names = $this->display->handler->get_field_labels();
 
     if (isset($this->options['default'])) {
@@ -301,7 +304,10 @@ class views_plugin_style_table extends views_plugin_style {
     );
   }
 
-  function even_empty() {
+  /**
+   *
+   */
+  public function even_empty() {
     return parent::even_empty() || !empty($this->options['empty_table']);
   }
 }

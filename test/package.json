@@ -1,0 +1,19 @@
+{
+  "name": "scratchpads2-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "postinstall": "curl -L https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-linux64.tar.gz | tar xvz"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "mysql": "^2.16.0",
+    "proxymise": "^1.0.2",
+    "source-map-support": "^0.5.9",
+    "webdriver": "^5.0.0-beta.0"
+  }
+}

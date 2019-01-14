@@ -1,6 +1,6 @@
 name = "Migrate"
 description = "Import content from external sources"
-package = "Development"
+package = "Migration"
 core = 7.x
 
 files[] = includes/base.inc
@@ -14,6 +14,7 @@ files[] = includes/map.inc
 files[] = includes/source.inc
 files[] = includes/team.inc
 files[] = migrate.mail.inc
+files[] = plugins/destinations/block_custom.inc
 files[] = plugins/destinations/entity.inc
 files[] = plugins/destinations/term.inc
 files[] = plugins/destinations/user.inc
@@ -28,15 +29,19 @@ files[] = plugins/destinations/table_copy.inc
 files[] = plugins/destinations/menu.inc
 files[] = plugins/destinations/menu_links.inc
 files[] = plugins/destinations/statistics.inc
+files[] = plugins/destinations/variable.inc
 files[] = plugins/sources/csv.inc
+files[] = plugins/sources/db2.inc
 files[] = plugins/sources/files.inc
 files[] = plugins/sources/json.inc
 files[] = plugins/sources/list.inc
+files[] = plugins/sources/mongodb.inc
 files[] = plugins/sources/multiitems.inc
 files[] = plugins/sources/sql.inc
 files[] = plugins/sources/sqlmap.inc
 files[] = plugins/sources/mssql.inc
 files[] = plugins/sources/oracle.inc
+files[] = plugins/sources/spreadsheet.inc
 files[] = plugins/sources/xml.inc
 files[] = tests/import/options.test
 files[] = tests/plugins/destinations/comment.test
@@ -46,9 +51,8 @@ files[] = tests/plugins/destinations/term.test
 files[] = tests/plugins/destinations/user.test
 files[] = tests/plugins/sources/xml.test
 
-; Information added by drupal.org packaging script on 2012-06-02
-version = "7.x-2.4"
+; Information added by Drupal.org packaging script on 2018-06-10
+version = "7.x-2.11"
 core = "7.x"
 project = "migrate"
-datestamp = "1338661580"
-
+datestamp = "1528674486"

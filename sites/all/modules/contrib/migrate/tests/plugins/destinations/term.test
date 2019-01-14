@@ -9,6 +9,7 @@
  * Test taxonomy migration.
  */
 class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array(
       'name' => 'Taxonomy migration',
@@ -19,6 +20,9 @@ class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('taxonomy', 'migrate', 'migrate_example');
+
+    // Make sure the migrations are registered.
+    migrate_static_registration();
   }
 
   function testTermImport() {
@@ -33,10 +37,16 @@ class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
       $terms[$term->name] = $term;
     }
     $query = db_select('migrate_example_wine_categories', 'wc')
-             ->fields('wc', array('categoryid', 'name', 'details', 'category_parent', 'ordering'))
-             ->condition('wc.type', 'variety');
+      ->fields('wc', array(
+        'categoryid',
+        'name',
+        'details',
+        'category_parent',
+        'ordering',
+      ))
+      ->condition('wc.type', 'variety');
     $query->leftJoin('migrate_example_wine_categories', 'wcpar',
-                'wc.category_parent=wcpar.categoryid');
+      'wc.category_parent=wcpar.categoryid');
     $query->addField('wcpar', 'name', 'parent_name');
     $result = $query->execute();
 
@@ -76,16 +86,19 @@ class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
     foreach ($original_terms as $tid => $original_term) {
       foreach ($original_term as $field => $value) {
         if ($field == 'description') {
-          if ($value == $final_terms[$tid]->$field) {
+          if ($value == $final_terms[$tid]->{$field}) {
             $this->error(t('Field !field should have changed but did not, value=!value',
               array('!field' => $field, '!value' => print_r($value, TRUE))));
           }
         }
         else {
-          if ($value != $final_terms[$tid]->$field) {
+          if ($value != $final_terms[$tid]->{$field}) {
             $this->error(t('Field !field mismatch: original !value1, result !value2',
-              array('!field' => $field, '!value1' => print_r($value, TRUE),
-                '!value2' => print_r($final_terms[$tid]->$field, TRUE))));
+              array(
+                '!field' => $field,
+                '!value1' => print_r($value, TRUE),
+                '!value2' => print_r($final_terms[$tid]->{$field}, TRUE),
+              )));
           }
         }
       }
@@ -98,16 +111,16 @@ class MigrateTaxonomyUnitTest extends DrupalWebTestCase {
     $rawterms = taxonomy_term_load_multiple(array(), array('vid' => $vocab->vid));
     $this->assertEqual(count($rawterms), 0, t('All terms deleted'));
     $count = db_select('migrate_map_winevariety', 'map')
-              ->fields('map', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('map', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Map cleared'));
     $count = db_select('migrate_message_winevariety', 'msg')
-              ->fields('msg', array('sourceid1'))
-              ->countQuery()
-              ->execute()
-              ->fetchField();
+      ->fields('msg', array('sourceid1'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     $this->assertEqual($count, 0, t('Messages cleared'));
   }
 }

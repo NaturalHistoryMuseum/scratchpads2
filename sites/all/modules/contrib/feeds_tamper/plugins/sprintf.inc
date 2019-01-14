@@ -18,7 +18,7 @@ function feeds_tamper_sprintf_form($importer, $element_key, $settings) {
   $form['format'] = array(
     '#type' => 'textfield',
     '#title' => t('Format'),
-    '#default_value' => '%s',
+    '#default_value' => isset($settings['format']) ? $settings['format'] : '%s',
     '#size' => 60,
     '#maxlength' => 128,
     '#required' => FALSE,

@@ -1,9 +1,11 @@
 <?php
 
 /**
+ * @file
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
  */
+
 $plugin = array(
   'single' => TRUE,
   'title' => t('Term description'),
@@ -14,12 +16,12 @@ $plugin = array(
 );
 
 function ctools_term_description_content_type_render($subtype, $conf, $panel_args, $context) {
-  $term = isset($context->data) ? clone($context->data) : NULL;
+  $term = isset($context->data) ? clone $context->data : NULL;
   $block = new stdClass();
   $block->module = 'node_type';
 
-  $block->title = $term->name;
-  if ($term) {
+  if (!empty($term)) {
+    $block->title = $term->name;
     $block->content = check_markup($term->description, $term->format, '', TRUE);
     $block->delta = $term->tid;
 
@@ -33,6 +35,7 @@ function ctools_term_description_content_type_render($subtype, $conf, $panel_arg
     }
   }
   else {
+    $block->title = '';
     $block->content = t('Term description goes here.');
     $block->delta = 'unknown';
   }
@@ -45,6 +48,6 @@ function ctools_term_description_content_type_admin_title($subtype, $conf, $cont
 }
 
 function ctools_term_description_content_type_edit_form($form, &$form_state) {
-  // provide a blank form so we have a place to have context setting.
+  // Provide a blank form so we have a place to have context setting.
   return $form;
 }

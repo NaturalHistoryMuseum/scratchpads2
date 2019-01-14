@@ -15,83 +15,94 @@
 
 define('MIGRATE_API_VERSION', 2);
 
+define('MIGRATE_ACCESS_BASIC', 'migration information');
+define('MIGRATE_ACCESS_ADVANCED', 'advanced migration information');
+
+/**
+ * Implements hook_help().
+ */
+function migrate_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#migrate':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Migrate module provides a flexible framework for migrating content into Drupal from other sources (e.g., when converting a web site from another CMS to Drupal). Out-of-the-box, support for creating Drupal nodes, taxonomy terms, comments, and users are included. Plugins permit migration of other types of content. For more information, see the online documentation for the <a href="@handbook">Migrate module</a>.', array('@handbook' => 'http://drupal.org/migrate')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Getting Started') . '</dt>';
+      $output .= '<dd>' . t('To get started, enable the migrate_example module and browse to admin/content/migrate to see its dashboard. The code for this migration is in migrate_example/beer.inc (advanced examples are in wine.inc). Mimic that file in order to specify your own migrations.') . '</dd>';
+      $output .= '<dt>' . t('Migrate Support') . '</dt>';
+      $output .= '<dd>' . t('The Migrate module itself has support for migration into core objects. Some built-in support for migration involving contrib modules is in the migrate_extras module.') . '</dd>';
+      $output .= '<dt>' . t('Migrate Extended Support') . '</dt>';
+      $output .= '<dd>' . t('The best place to implement migration support for a contributed module is in that module, not in the Migrate or Migrate Extras modules. That way, the migration support is always self-consistent with the current module implementation - it is not practical for the migrate modules to keep up with changes to all other contrib modules.') . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
 /**
  * Retrieve a list of all active migrations, ordered by dependencies. To be
  * recognized, a class must be non-abstract, and derived from MigrationBase.
  *
+ * @param $reset
+ *  If TRUE, the static cache of migrations will be flushed before attempting to
+ *  reinstantiate all active migrations. This can be important for script runs
+ *  where migration classes may be dynamically registered.
+ *
  * @return
  *  Array of migration objects, keyed by the machine name.
  */
-function migrate_migrations() {
+function migrate_migrations($reset = NULL) {
   static $migrations = array();
-  if (!empty($migrations)) {
+  if (!empty($migrations) && empty($reset)) {
     return $migrations;
   }
 
+  // Get list of modules implementing Migrate API - mainly, we're looking to
+  // make sure any dynamic migrations defined in hook_migrate_api() get registered.
+  migrate_get_module_apis(TRUE);
+
+  $dependencies_list = array();
   $dependent_migrations = array();
   $required_migrations = array();
 
   $result = db_select('migrate_status', 'ms')
-            ->fields('ms', array('machine_name', 'class_name', 'arguments'))
-            ->execute();
+    ->fields('ms', array('machine_name', 'class_name'))
+    ->execute();
   foreach ($result as $row) {
     if (class_exists($row->class_name)) {
       $reflect = new ReflectionClass($row->class_name);
       if (!$reflect->isAbstract() && $reflect->isSubclassOf('MigrationBase')) {
-        $arguments = unserialize($row->arguments);
-        if (!$arguments || !is_array($arguments)) {
-          $arguments = array();
-        }
-        $migration = MigrationBase::getInstance($row->machine_name,
-          $row->class_name, $arguments);
-        $dependencies = $migration->getDependencies();
-        if (count($dependencies) > 0) {
-          // Set classes with dependencies aside for reordering
-          $dependent_migrations[$row->machine_name] = $migration;
-          $required_migrations += $dependencies;
-        }
-        else {
-          // No dependencies, just add
-          $migrations[$row->machine_name] = $migration;
+        $migration = MigrationBase::getInstance($row->machine_name);
+        if ($migration) {
+          $dependencies = $migration->getDependencies();
+          $dependencies_list[$row->machine_name] = $dependencies;
+          if (count($dependencies) > 0) {
+            // Set classes with dependencies aside for reordering
+            $dependent_migrations[$row->machine_name] = $migration;
+            $required_migrations += $dependencies;
+          }
+          else {
+            // No dependencies, just add
+            $migrations[$row->machine_name] = $migration;
+          }
         }
       }
       else {
         MigrationBase::displayMessage(t('Class !class is no longer a valid concrete migration class',
-                                      array('!class' => $row->class_name)));
+          array('!class' => $row->class_name)));
       }
     }
     else {
-      MigrationBase::displayMessage(t('Class !class no longer exists',
-                                    array('!class' => $row->class_name)));
+      MigrationBase::displayMessage(t('Class !class could not be found',
+        array('!class' => $row->class_name)));
     }
   }
 
-  // Scan modules with dependencies - we'll take 20 passes at it before
-  // giving up
-  // TODO: Can we share code with _migrate_class_list()?
-  $iterations = 0;
-  while (count($dependent_migrations) > 0) {
-    if ($iterations++ > 20) {
-      $migration_names = implode(',', array_keys($dependent_migrations));
-      throw new MigrateException(t('Failure to sort migration list - most likely due ' .
-            'to circular dependencies involving !migration_names',
-      array('!migration_names' => $migration_names)));
-    }
-    foreach ($dependent_migrations as $name => $migration) {
-      $ready = TRUE;
-      // Scan all the dependencies for this class and make sure they're all
-      // in the final list
-      foreach ($migration->getDependencies() as $dependency) {
-        if (!isset($migrations[$dependency])) {
-          $ready = FALSE;
-          break;
-        }
-      }
-      if ($ready) {
-        // Yes they are! Move this class to the final list
-        $migrations[$name] = $migration;
-        unset($dependent_migrations[$name]);
-      }
+  $ordered_migrations = migrate_order_dependencies($dependencies_list);
+  foreach ($ordered_migrations as $name) {
+    if (!isset($migrations[$name])) {
+      $migrations[$name] = $dependent_migrations[$name];
     }
   }
 
@@ -104,11 +115,19 @@ function migrate_migrations() {
     $final_migrations[$name] = array();
   }
 
-  // Fill in the grouped list
+  // Fill in the grouped list.
   foreach ($migrations as $machine_name => $migration) {
-    $final_migrations[$migration->getGroup()->getName()][$machine_name] = $migration;
+    if (!method_exists($migration, 'getGroup')) {
+      MigrationBase::displayMessage(t('Migration !machine_name is not a valid Migration dependency.', array(
+        '!machine_name' => $machine_name,
+      )));
+    }
+    else {
+      $final_migrations[$migration->getGroup()
+        ->getName()][$machine_name] = $migration;
+    }
   }
-  // Then flatten the list
+  // Flatten the grouped list.
   $migrations = array();
   foreach ($final_migrations as $group_name => $group_migrations) {
     foreach ($group_migrations as $machine_name => $migration) {
@@ -120,55 +139,6 @@ function migrate_migrations() {
 }
 
 /**
- * On cache clear, scan the Drupal code registry for any new migration classes
- * for us to register in migrate_status.
- */
-function migrate_flush_caches() {
-  // Get list of modules implementing Migrate API
-  $modules = array_keys(migrate_get_module_apis(TRUE));
-
-  // Get list of classes we already know about
-  $existing_classes = db_select('migrate_status', 'ms')
-                      ->fields('ms', array('class_name'))
-                      ->execute()
-                      ->fetchCol();
-
-  // Discover class names registered with Drupal by modules implementing our API
-  $result = db_select('registry', 'r')
-            ->fields('r', array('name'))
-            ->condition('type', 'class')
-            ->condition('module', $modules, 'IN')
-            ->condition('filename', '%.test', 'NOT LIKE')
-            ->execute();
-
-  foreach ($result as $record) {
-    $class_name = $record->name;
-    // If we already know about this class, skip it
-    if (isset($existing_classes[$class_name])) {
-      continue;
-    }
-
-    // Validate it's an implemented subclass of the parent class
-    // Ignore errors
-    try {
-      $class = new ReflectionClass($class_name);
-    }
-    catch (Exception $e) {
-      continue;
-    }
-    if (!$class->isAbstract() && $class->isSubclassOf('MigrationBase')) {
-      // Verify that it's not a dynamic class (the implementor will be responsible
-      // for registering those).
-      $dynamic = call_user_func(array($class_name, 'isDynamic'));
-      if (!$dynamic) {
-        // OK, this is a new non-dynamic migration class, register it
-        MigrationBase::registerMigration($class_name);
-      }
-    }
-  }
-}
-
-/**
  * Invoke any available handlers attached to a given destination type.
  * If any handlers have dependencies defined, they will be invoked after
  * the specified handlers.
@@ -177,8 +147,8 @@ function migrate_flush_caches() {
  *  Destination type ('Node', 'User', etc.) - generally the same string as
  *  the destination class name without the MigrateDestination prefix.
  * @param $method
- *  Method name such as 'prepare' (called at the beginning of an import operation)
- *  or 'complete' (called at the end of an import operation).
+ *  Method name such as 'prepare' (called at the beginning of an import
+ *   operation) or 'complete' (called at the end of an import operation).
  * @param ...
  *  Parameters to be passed to the handler.
  */
@@ -191,7 +161,7 @@ function migrate_handler_invoke_all($destination, $method) {
   $disabled = unserialize(variable_get('migrate_disabled_handlers', serialize(array())));
   foreach ($class_list as $class_name => $handler) {
     if (!in_array($class_name, $disabled) && $handler->handlesType($destination)
-        && method_exists($handler, $method)) {
+      && method_exists($handler, $method)) {
       migrate_instrument_start($class_name . '->' . $method);
       $result = call_user_func_array(array($handler, $method), $args);
       migrate_instrument_stop($class_name . '->' . $method);
@@ -208,8 +178,6 @@ function migrate_handler_invoke_all($destination, $method) {
 
 /**
  * Invoke any available handlers attached to a given field type.
- * If any handlers have dependencies defined, they will be invoked after
- * the specified handlers.
  *
  * @param $entity
  *  The object we are building up before calling example_save().
@@ -223,18 +191,21 @@ function migrate_handler_invoke_all($destination, $method) {
  * @param $method
  *  Handler method to call (defaults to prepare()).
  */
-function migrate_field_handler_invoke_all($entity, array $field_info, array $instance,
-    array $values, $method = 'prepare') {
+function migrate_field_handler_invoke_all($entity, array $field_info,
+                                          array $instance, array $values, $method = 'prepare') {
   $return = array();
   $type = $field_info['type'];
   $class_list = _migrate_class_list('MigrateFieldHandler');
-  $disabled = unserialize(variable_get('migrate_disabled_handlers', serialize(array())));
+  $disabled = unserialize(variable_get('migrate_disabled_handlers',
+    serialize(array())));
+  $handler_called = FALSE;
   foreach ($class_list as $class_name => $handler) {
     if (!in_array($class_name, $disabled) && $handler->handlesType($type)
-        && method_exists($handler, $method)) {
+      && method_exists($handler, $method)) {
       migrate_instrument_start($class_name . '->' . $method);
       $result = call_user_func_array(array($handler, $method),
         array($entity, $field_info, $instance, $values));
+      $handler_called = TRUE;
       migrate_instrument_stop($class_name . '->' . $method);
       if (isset($result) && is_array($result)) {
         $return = array_merge_recursive($return, $result);
@@ -244,109 +215,57 @@ function migrate_field_handler_invoke_all($entity, array $field_info, array $ins
       }
     }
   }
+
+  if (!$handler_called && $method == 'prepare') {
+    $handler = new MigrateDefaultFieldHandler();
+    migrate_instrument_start('MigrateDefaultFieldHandler->prepare');
+    $result = call_user_func_array(array($handler, 'prepare'),
+      array($entity, $field_info, $instance, $values));
+    migrate_instrument_stop('MigrateDefaultFieldHandler->prepare');
+    if (isset($result) && is_array($result)) {
+      $return = array_merge_recursive($return, $result);
+    }
+    elseif (isset($result)) {
+      $return[] = $result;
+    }
+  }
   return $return;
 }
 
 /**
- * For a given parent class, identify and instantiate objects for any non-abstract
- * classes derived from the parent, returning an array of the objects indexed by
- * class name. The array will be ordered such that any classes with dependencies
- * are listed after the classes they are dependent on.
+ * For a given parent class, identify and instantiate objects for any
+ * non-abstract classes derived from the parent, returning an array of the
+ * objects indexed by class name. The array will be ordered such that any
+ * classes with dependencies are listed after the classes they are dependent
+ * on.
  *
  * @param $parent_class
  *  Name of a class from which results will be derived.
- * @param $existing
- *  Instances already known, which don't need to be instantiated.
+ *
  * @return
  *  Array of objects, keyed by the class name.
  */
-function _migrate_class_list($parent_class, array $existing = array()) {
-  // Get list of modules implementing Migrate API
-  static $modules;
-  if (!isset($modules)) {
-    $modules = array_keys(migrate_get_module_apis());
+function _migrate_class_list($parent_class) {
+  // Get info on modules implementing Migrate API
+  static $module_info;
+  if (!isset($module_info)) {
+    $module_info = migrate_get_module_apis();
   }
 
   static $class_lists = array();
   if (!isset($class_lists[$parent_class])) {
     $class_lists[$parent_class] = array();
-    $dependent_classes = array();
-    $required_classes = array();
-    // Discover class names registered with Drupal by modules implementing our API
-    $result = db_select('registry', 'r')
-              ->fields('r', array('name'))
-              ->condition('type', 'class')
-              ->condition('module', $modules, 'IN')
-              ->condition('filename', '%.test', 'NOT LIKE')
-              ->execute();
-
-    foreach ($result as $record) {
-      // Validate it's an implemented subclass of the parent class
-      // We can get funky errors here, ignore them (and the class that caused them)
-      try {
-        $class = new ReflectionClass($record->name);
-      }
-      catch (Exception $e) {
-        continue;
-      }
-      if (!$class->isAbstract() && $class->isSubclassOf($parent_class)) {
-        // If the constructor has required parameters, this may fail. We will
-        // silently ignore - it is up to the implementor of such a class to
-        // instantiate it in hook_migrations_alter().
-        try {
-          $object = new $record->name;
-        }
-        catch (Exception $e) {
-          unset($object);
-        }
-        if (isset($object)) {
-          $dependencies = $object->getDependencies();
-          if (count($dependencies) > 0) {
-            // Set classes with dependencies aside for reordering
-            $dependent_classes[$record->name] = $object;
-            $required_classes += $dependencies;
-          }
-          else {
-            // No dependencies, just add
-            $class_lists[$parent_class][$record->name] = $object;
-          }
-        }
-      }
+    if ($parent_class == 'MigrateDestinationHandler') {
+      $handler_key = 'destination handlers';
     }
-
-    // Validate that each depended-on class at least exists
-    foreach ($required_classes as $class_name) {
-      if ((!isset($dependent_classes[$class_name])) && !isset($class_lists[$parent_class][$class_name])) {
-        throw new MigrateException(t('Dependency on non-existent class !class - make sure ' .
-            'you have added the file defining !class to the .info file.',
-          array('!class' => $class_name)));
-      }
+    else {
+      $handler_key = 'field handlers';
     }
-
-    // Scan modules with dependencies - we'll take 20 passes at it before
-    // giving up
-    $iterations = 0;
-    while (count($dependent_classes) > 0) {
-      if ($iterations++ > 20) {
-        $class_names = implode(',', array_keys($dependent_classes));
-        throw new MigrateException(t('Failure to sort class list - most likely due ' .
-            'to circular dependencies involving !class_names.',
-          array('!class_names' => $class_names)));
-      }
-      foreach ($dependent_classes as $name => $object) {
-        $ready = TRUE;
-        // Scan all the dependencies for this class and make sure they're all
-        // in the final list
-        foreach ($object->getDependencies() as $dependency) {
-          if (!isset($class_lists[$parent_class][$dependency])) {
-            $ready = FALSE;
-            break;
-          }
-        }
-        if ($ready) {
-          // Yes they are! Move this class to the final list
-          $class_lists[$parent_class][$name] = $object;
-          unset($dependent_classes[$name]);
+    // Add explicitly-registered handler classes
+    foreach ($module_info as $info) {
+      if (isset($info[$handler_key]) && is_array($info[$handler_key])) {
+        foreach ($info[$handler_key] as $handler_class) {
+          $class_lists[$parent_class][$handler_class] = new $handler_class();
         }
       }
     }
@@ -358,20 +277,28 @@ function _migrate_class_list($parent_class, array $existing = array()) {
  * Implements hook_hook_info().
  */
 function migrate_hook_info() {
+  // Look for hook_migrate_api() in example.migrate.inc.
   $hooks['migrate_api'] = array(
+    'group' => 'migrate',
+  );
+  $hooks['migrate_api_alter'] = array(
     'group' => 'migrate',
   );
   return $hooks;
 }
 
-/*
- * Implements hook_migrate_api().
+/**
+ * Implementation of hook_permission().
  */
-function migrate_migrate_api() {
-  $api = array(
-    'api' => MIGRATE_API_VERSION,
+function migrate_permission() {
+  return array(
+    MIGRATE_ACCESS_BASIC => array(
+      'title' => t('Access to basic migration information'),
+    ),
+    MIGRATE_ACCESS_ADVANCED => array(
+      'title' => t('Access to advanced migration information'),
+    ),
   );
-  return $api;
 }
 
 /**
@@ -393,13 +320,102 @@ function migrate_get_module_apis($reset = FALSE) {
       else {
         drupal_set_message(t('%function supports Migrate API version %modversion,
           Migrate module API version is %version - migration support not loaded.',
-          array('%function' => $function, '%modversion' => $info['api'],
-                '%version' => MIGRATE_API_VERSION)));
+          array(
+            '%function' => $function,
+            '%modversion' => $info['api'],
+            '%version' => MIGRATE_API_VERSION,
+          )));
       }
     }
+
+    // Allow modules to alter the migration information.
+    drupal_alter('migrate_api', $cache);
   }
 
   return $cache;
+}
+
+/**
+ * Register any migrations defined in hook_migrate_api().
+ *
+ * @param array $machine_names
+ *  If populated, only (re)register the specified migrations.
+ */
+function migrate_static_registration($machine_names = array()) {
+  $module_info = migrate_get_module_apis(TRUE);
+  foreach ($module_info as $module => $info) {
+    // Register any groups defined via the hook.
+    if (isset($info['groups']) && is_array($info['groups'])) {
+      foreach ($info['groups'] as $name => $arguments) {
+        $title = $arguments['title'];
+        unset($arguments['title']);
+        MigrateGroup::register($name, $title, $arguments);
+      }
+    }
+    // Register any migrations defined via the hook.
+    if (isset($info['migrations']) && is_array($info['migrations'])) {
+      foreach ($info['migrations'] as $machine_name => $arguments) {
+        // If we have an explicit list to register, skip any not in the list.
+        if (!empty($machine_names) && !in_array($machine_name, $machine_names)) {
+          continue;
+        }
+        $class_name = $arguments['class_name'];
+        unset($arguments['class_name']);
+        // Call the right registerMigration implementation. Note that this means
+        // that classes that override registerMigration() must always call it
+        // directly, they cannot register those classes by defining them in
+        // hook_migrate_api() and expect their extension to be called.
+        if (is_subclass_of($class_name, 'Migration')) {
+          Migration::registerMigration($class_name, $machine_name, $arguments);
+        }
+        else {
+          MigrationBase::registerMigration($class_name, $machine_name, $arguments);
+        }
+      }
+    }
+
+  }
+}
+
+/**
+ * Do a topological sort on our dependencies graph.
+ */
+function migrate_order_dependencies($dependencies) {
+  $visited = array();
+  $list = array();
+
+  foreach (array_keys($dependencies) as $name) {
+    $visited[$name] = FALSE;
+  }
+
+  foreach (array_keys($dependencies) as $name) {
+    migrate_visit_dependent($dependencies, $name, $list, $visited);
+  }
+
+  return $list;
+}
+
+/**
+ * Depth-first search for independent migrations.
+ */
+function migrate_visit_dependent($dependencies, $name, &$list, &$visited) {
+  if ($visited[$name]) {
+    if ($list[$name]) {
+      return;
+    }
+    else {
+      throw new MigrateException(t('Failure to sort migration list due to circular dependencies involving %name.', array('%name' => $name)));
+    }
+  }
+
+  $visited[$name] = TRUE;
+  if (isset($dependencies[$name])) {
+    foreach ($dependencies[$name] as $dependent) {
+      migrate_visit_dependent($dependencies, $dependent, $list, $visited);
+    }
+  }
+
+  $list[$name] = $name;
 }
 
 /**
@@ -460,6 +476,7 @@ function migrate_memory_start($name) {
  *
  * @param name
  *   The name of the memory measurement.
+ *
  * @return
  *   The change in bytes since the last start.
  */
@@ -483,9 +500,11 @@ function migrate_memory_read($name) {
  *
  * @param name
  *   The name of the memory measurement.
+ *
  * @return
  *   A memory array. The array contains the number of times the memory has been
- *   started and stopped (count) and the accumulated memory difference value in bytes.
+ *   started and stopped (count) and the accumulated memory difference value in
+ *   bytes.
  */
 function migrate_memory_stop($name) {
   global $_migrate_memory;
@@ -508,9 +527,9 @@ function migrate_memory_stop($name) {
 }
 
 /**
- * Start measuring time and (optionally) memory consumption over a section of code.
- * Note that the memory consumption measurement is generally not useful in
- * lower areas of the code, where data is being generated that will be freed
+ * Start measuring time and (optionally) memory consumption over a section of
+ * code. Note that the memory consumption measurement is generally not useful
+ * in lower areas of the code, where data is being generated that will be freed
  * by the next call to the same area. For example, measuring the memory
  * consumption of db_query is not going to be helpful.
  *
@@ -546,7 +565,8 @@ function migrate_instrument_stop($name) {
 }
 
 /**
- * Call hook_migrate_overview for overall documentation on implemented migrations.
+ * Call hook_migrate_overview for overall documentation on implemented
+ * migrations.
  */
 function migrate_overview() {
   $overview = '';
@@ -555,4 +575,29 @@ function migrate_overview() {
     $overview .= $result . ' ';
   }
   return $overview;
+}
+
+/**
+ * Implements hook_modules_enabled.
+ */
+function migrate_modules_enabled($modules) {
+  if (array_intersect($modules, module_implements('migrate_api'))) {
+    migrate_static_registration();
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function migrate_module_implements_alter(&$implementation, $hook) {
+  // Ensure that the Migration class exists, as different bootstrap phases may
+  // not have included migration.inc yet.
+  if (class_exists('Migration') && $migration = Migration::currentMigration()) {
+    $disable_hooks = $migration->getDisableHooks();
+    if (isset($disable_hooks[$hook])) {
+      foreach ($disable_hooks[$hook] as $module) {
+        unset($implementation[$module]);
+      }
+    }
+  }
 }

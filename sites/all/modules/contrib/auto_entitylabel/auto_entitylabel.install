@@ -2,15 +2,21 @@
 
 /**
  * @file
- * Installation file for the automatic entity labels module
+ * Installation file for the automatic entity labels module.
  */
 
 /**
  * Implements hook_install().
  */
 function auto_entitylabel_install() {
+
   // Make sure hooks are invoked after cck main hooks.
-  db_query("UPDATE {system} SET weight = 5 WHERE name = 'auto_entitylabel'");
+  db_update('system')
+    ->fields(array(
+      'weight' => 5,
+    ))
+    ->condition('name', 'auto_entitylabel', '=')
+    ->execute();
 
   // Migrate settings (permission+variable) from the auto_nodetitle module.
   _auto_entitylabel_ant_migrate();
@@ -18,7 +24,27 @@ function auto_entitylabel_install() {
   // Notify the user they may want to install token.
   if (!module_exists('token')) {
     $t = get_t();
-    drupal_set_message($t('If you install the <a href="!url">Token module</a>, Automatic Entity Label will be able to use token patterns.', array('!url' => 'http://drupal.org/project/token')));
+    drupal_set_message($t('If you install the <a href="!url" target="blank">Token module</a>, Automatic Entity Label will be able to use token patterns.', array('!url' => 'http://drupal.org/project/token')));
+  }
+  
+  drupal_set_message(t('Thank you for installing the <a href="@url_automatic_entity_label" target="blank">Automatic Entity Label</a>.', array(
+    '@url_automatic_entity_label' => 'https://www.drupal.org/project/auto_entitylabel',
+  )));
+  drupal_set_message(t('Watch the <a href="@url_daily_dose_of_drupal" target="blank">Daily Dose of Drupal</a> screencast by <a href="@url_shane_thomas" target="blank">Shane Thomas</a> for a short introduction and demonstration of the module and some of its features.', array(
+    '@url_daily_dose_of_drupal' => 'http://codekarate.com/daily-dose-of-drupal/drupal-7-automatic-entity-label-module',
+    '@url_shane_thomas' => 'https://www.drupal.org/user/506260',
+  )));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function auto_entitylabel_enable() {
+
+  // Notify the user they may want to install token.
+  if (!module_exists('token')) {
+    $t = get_t();
+    drupal_set_message($t('If you install the <a href="!url" target="blank">Token module</a>, Automatic Entity Label will be able to use token patterns.', array('!url' => 'http://drupal.org/project/token')));
   }
 }
 

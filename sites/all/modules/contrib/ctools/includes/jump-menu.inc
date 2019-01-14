@@ -8,7 +8,6 @@
  * if javascript is in use. Each item is keyed to the href that the button
  * should go to. With javascript, the page is immediately redirected. Without
  * javascript, the form is submitted and a drupal_goto() is given.
- *
  */
 
 /**
@@ -51,7 +50,7 @@ function ctools_jump_menu($form, &$form_state, $select, $options = array()) {
     'hide' => TRUE,
   );
 
-  ctools_add_js('jump-menu');
+  $form['#attached']['js'][] = ctools_attach_js('jump-menu');
 
   if (!empty($options['choose'])) {
     $select = array('' => $options['choose']) + $select;
@@ -127,7 +126,7 @@ function ctools_jump_menu_submit($form, &$form_state) {
   // This allows duplicate paths to be used in jump menus for multiple options.
   $redirect_array = explode("::", $form_state['values']['jump']);
 
-  if(isset($redirect_array[1]) && !empty($redirect_array[1])){
+  if (isset($redirect_array[1]) && !empty($redirect_array[1])) {
     $redirect = $redirect_array[1];
   }
   else {

@@ -6,7 +6,7 @@
  */
 
 /**
- * Implements hook_views_plugins
+ * Implements hook_views_plugins().
  */
 function views_content_views_plugins() {
   return array(
@@ -25,7 +25,7 @@ function views_content_views_plugins() {
         'use more' => TRUE,
         'accept attachments' => TRUE,
         'help topic' => 'display-pane',
-        'contextual links locations' => array('panel_pane'),
+        'contextual links locations' => array('panel_pane', 'view'),
       ),
       'ctools_context' => array(
         'title' => t('Context'),

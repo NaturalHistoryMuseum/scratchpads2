@@ -1,5 +1,0 @@
-Conventions to make porting changes between Drupal 6 and Drupal 7 easier:
-
-Try to always use specific DBTNG functions such as db_select() instead of the 
-more general db_query(), which needs to be renamed to dbtng_query() under 
-Drupal 6.

@@ -1,0 +1,71 @@
+<?php
+/**
+ * @file
+ * Install/update function for migrate_ui.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function migrate_ui_install() {
+  migrate_ui_set_weight();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function migrate_ui_uninstall() {
+  variable_del('migrate_import_method');
+  variable_del('migrate_drush_path');
+  variable_del('migrate_drush_mail');
+  variable_del('migrate_drush_mail_subject');
+  variable_del('migrate_drush_mail_body');
+}
+
+/**
+ * Make sure we have a higher weight than node.
+ */
+function migrate_ui_update_7201() {
+  migrate_ui_set_weight();
+}
+
+/**
+ * Sets the weight of migrate_ui higher than node, so Import links come after
+ * "Add content" at admin/content.
+ */
+function migrate_ui_set_weight() {
+  $node_weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'node')
+    ->execute()
+    ->fetchField();
+  db_update('system')
+    ->fields(array('weight' => $node_weight + 1))
+    ->condition('name', 'migrate_ui')
+    ->execute();
+}
+
+/**
+ * If WordPress Migrate has background imports via drush enabled, copy the
+ * configuration to the new general Migrate support.
+ */
+function migrate_ui_update_7202() {
+  $drush_command = variable_get('wordpress_migrate_drush', '');
+  if ($drush_command) {
+    variable_set('migrate_drush_path', $drush_command);
+    // Consolidate these two variables into import method - 0 means immediate
+    // only, 1 means drush only, 2 means offer both options.
+    $import_method = variable_get('wordpress_migrate_import_method', 0);
+    $force_drush = variable_get('wordpress_migrate_force_drush', FALSE);
+    if (!$force_drush) {
+      $import_method = 2;
+    }
+    variable_set('migrate_import_method', $import_method);
+    variable_set('migrate_drush_mail',
+      variable_get('wordpress_migrate_notification', 0));
+    variable_set('migrate_drush_mail_subject',
+      variable_get('wordpress_migrate_notification_subject', ''));
+    variable_set('migrate_drush_mail_body',
+      variable_get('wordpress_migrate_notification_body', ''));
+  }
+}

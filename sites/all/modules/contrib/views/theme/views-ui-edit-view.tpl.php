@@ -8,10 +8,11 @@
 <div class="views-edit-view">
   <?php if ($locked): ?>
     <div class="view-locked">
-       <?php print t('This view is being edited by user !user, and is therefore locked from editing by others. This lock is !age old. Click here to <a href="!break">break this lock</a>.', array('!user' => $locked, '!age' => $lock_age, '!break' => $break)); ?>
+      <?php print t('This view is being edited by user !user, and is therefore locked from editing by others. This lock is !age old. Click here to <a href="!break">break this lock</a>.',
+        array('!user' => $locked, '!age' => $lock_age, '!break' => $break)); ?>
     </div>
   <?php endif; ?>
-  <div class="views-basic-info clearfix<?php if (!empty($view->changed)) { print " changed"; }?>">
+  <div class="views-basic-info clearfix<?php if (!empty($view->changed)): ?> changed<?php endif; ?>">
     <?php if (!is_numeric($view->vid)): ?>
       <div class="view-changed view-new"><?php print t('New view'); ?></div>
     <?php else: ?>
@@ -28,7 +29,8 @@
 
   <div id="views-ajax-form">
     <div id="views-ajax-title">
-      <?php // This is initially empty ?>
+      <?php
+// This is initially empty. ?>
     </div>
     <div id="views-ajax-pad">
       <?php /* This is sent in because it is also sent out through settings and

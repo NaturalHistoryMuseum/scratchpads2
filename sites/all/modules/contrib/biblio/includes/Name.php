@@ -20,7 +20,7 @@ class HumanNameParser_Name {
    */
   public function setStr($str)
   {
-    if (!mb_check_encoding($str)){
+    if (!drupal_validate_utf8($str)){
       throw new Exception("Name is not encoded in UTF-8");
     }
     $this->str = $str;

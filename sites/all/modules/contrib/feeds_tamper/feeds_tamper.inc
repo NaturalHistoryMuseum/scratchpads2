@@ -166,7 +166,7 @@ function feeds_tamper_load_by_importer($importer, $disabled = FALSE) {
     }
     // Filter disabled and only pull plugins that actually have a corresponding
     // source since we don't delete them with a mapping.
-    if (($disabled || empty($i->disabled)) && in_array($i->source, $sources) && function_exists($plugins[$i->plugin_id]['callback'])) {
+    if (($disabled || empty($i->disabled)) && in_array($i->source, $sources) && isset($plugins[$i->plugin_id]) && function_exists($plugins[$i->plugin_id]['callback'])) {
       $instances[$i->source][] = $i;
     }
   }
@@ -196,7 +196,7 @@ function feeds_tamper_load_by_importer($importer, $disabled = FALSE) {
  */
 function feeds_tamper_get_unique_source_list($importer, $lower = TRUE) {
   $sources = array();
-  $is_csv = $lower && get_class($importer->parser) == 'FeedsCSVParser';
+  $is_csv = $lower && ($importer->parser instanceof FeedsCSVParser);
 
   foreach ($importer->processor->getMappings() as $mapping) {
     if ($is_csv) {
@@ -318,14 +318,13 @@ function feeds_tamper_access($importer, $instance = NULL) {
 function feeds_tamper_form_feeds_ui_mapping_form_alter(array &$form, array &$form_state) {
   $form['#submit'][] = 'feeds_tamper_form_feeds_ui_mapping_form_submit';
 
-  // Don't alter the form for parsers that use manual input.
-  if ($form['source']['#type'] == 'textfield') {
-    return;
-  }
+  // Don't alter the sources on the form for parsers that use manual input.
+  $manual_source_input = ($form['source']['#type'] == 'textfield');
+
   $max_source = 0;
   $max_target = 0;
   foreach ($form['#mappings'] as $mapping) {
-    if (strpos($mapping['source'], 'Blank source ') === 0) {
+    if (!$manual_source_input && strpos($mapping['source'], 'Blank source ') === 0) {
       list(, , $source_value) = explode(' ', $mapping['source']);
       if ($source_value > $max_source) {
         $max_source = $source_value;
@@ -338,16 +337,30 @@ function feeds_tamper_form_feeds_ui_mapping_form_alter(array &$form, array &$for
       }
     }
   }
-  if ($max_source) {
-    unset($form['source']['#options']['Blank source 1']);
-    $form['source']['#options']['Blank source ' . ++$max_source] = 'Blank source';
+
+  if (!$manual_source_input) {
+    if ($max_source) {
+      unset($form['source']['#options']['Blank source 1']);
+      $form['source']['#options']['Blank source ' . ++$max_source] = 'Blank source';
+
+      // Declare extra mapping sources.
+      for ($i = 2; $i <= $max_source; $i++) {
+        $form['#feeds_sources']['Blank source ' . $i] = $form['#feeds_sources']['Blank source 1'];
+      }
+    }
+    else {
+      $form['source']['#options']['Blank source 1'] = 'Blank source';
+    }
   }
-  else {
-    $form['source']['#options']['Blank source 1'] = 'Blank source';
-  }
+
   if ($max_target) {
     unset($form['target']['#options']['Temporary target 1']);
     $form['target']['#options']['Temporary target ' . ++$max_target] = 'Temporary target';
+
+    // Declare extra mapping targets.
+    for ($i = 2; $i <= $max_target; $i++) {
+      $form['#feeds_targets']['Temporary target ' . $i] = $form['#feeds_targets']['Temporary target 1'];
+    }
   }
   else {
     $form['target']['#options']['Temporary target 1'] = 'Temporary target';

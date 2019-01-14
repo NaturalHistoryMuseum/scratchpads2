@@ -10,6 +10,7 @@
  * the Schema API.
  */
 class MigrateDestinationTable extends MigrateDestination {
+
   /**
    * The schema of the current table.
    *
@@ -57,19 +58,20 @@ class MigrateDestinationTable extends MigrateDestination {
   /**
    * Delete a single row.
    *
-   * @param $id
-   *  Primary key values.
+   * @param array $ids
+   *   The primary key values of the row to be deleted.
    */
-  public function rollback(array $id) {
+  public function rollback(array $ids) {
     migrate_instrument_start('table rollback');
-    $delete = db_delete($this->tableName);
     $keys = array_keys(self::getKeySchema($this->tableName));
-    $i = 0;
-    foreach ($id as $value) {
-      $key = $keys[$i++];
+    $values = array_combine($keys, $ids);
+    $this->prepareRollback($values);
+    $delete = db_delete($this->tableName);
+    foreach ($values as $key => $value) {
       $delete->condition($key, $value);
     }
     $delete->execute();
+    $this->completeRollback($values);
     migrate_instrument_stop('table rollback');
   }
 
@@ -80,6 +82,7 @@ class MigrateDestinationTable extends MigrateDestination {
    *  Object object to build. Prefilled with any fields mapped in the Migration.
    * @param $row
    *  Raw source data object - passed through to prepare/complete handlers.
+   *
    * @return array
    *  Array of key fields of the object that was saved if
    *  successful. FALSE on failure.
@@ -121,7 +124,7 @@ class MigrateDestinationTable extends MigrateDestination {
       }
 
       $select = db_select($this->tableName)
-                ->fields($this->tableName);
+        ->fields($this->tableName);
       foreach ($this->schema['primary key'] as $key) {
         $select->condition($key, $entity->{$key});
       }
@@ -130,7 +133,7 @@ class MigrateDestinationTable extends MigrateDestination {
         throw new MigrateException(t('System-of-record is DESTINATION, but the destination entity does not exist'));
       }
       foreach ($entity as $field => $value) {
-        $old_entity->$field = $entity->$field;
+        $old_entity->{$field} = $entity->{$field};
       }
       $entity = $old_entity;
     }
@@ -158,6 +161,7 @@ class MigrateDestinationTable extends MigrateDestination {
    *
    * @param Migration $migration
    *  Optionally, the migration containing this destination.
+   *
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
@@ -165,7 +169,7 @@ class MigrateDestinationTable extends MigrateDestination {
   public function fields($migration = NULL) {
     $fields = array();
     foreach ($this->schema['fields'] as $column => $schema) {
-      $fields[$column] = t('Type: !type', array('!type' => $schema['type']));
+      $fields[$column] = t('!type', array('!type' => $schema['type']));
     }
     return $fields;
   }
@@ -205,6 +209,46 @@ class MigrateDestinationTable extends MigrateDestination {
     // Call any complete handler for this specific Migration.
     if (method_exists($migration, 'complete')) {
       $migration->complete($entity, $source_row);
+    }
+  }
+
+  /**
+   * Give handlers a shot at cleaning up before the row has been rolled back.
+   *
+   * @param array $ids
+   *   The primary key values of the row about to be deleted, keyed by field
+   *    name.
+   */
+  public function prepareRollback(array $ids) {
+    // We do nothing here but allow child classes to act.
+    $migration = Migration::currentMigration();
+
+    // Call any general handlers.
+    migrate_handler_invoke_all('table', 'prepareRollback', $ids);
+
+    // Then call any complete handler for this specific Migration.
+    if (method_exists($migration, 'prepareRollback')) {
+      $migration->prepareRollback($ids);
+    }
+  }
+
+  /**
+   * Give handlers a shot at cleaning up after a row has been rolled back.
+   *
+   * @param array $ids
+   *   The primary key values of the row which has been deleted, keyed by field
+   *   name.
+   */
+  public function completeRollback(array $ids) {
+    // We do nothing here but allow child classes to act.
+    $migration = Migration::currentMigration();
+
+    // Call any general handlers.
+    migrate_handler_invoke_all('table', 'completeRollback', $ids);
+
+    // Then call any complete handler for this specific Migration.
+    if (method_exists($migration, 'completeRollback')) {
+      $migration->completeRollback($ids);
     }
   }
 }

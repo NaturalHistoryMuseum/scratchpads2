@@ -123,7 +123,7 @@ function migrate_example_oracle_requirements($phase) {
       }
 
       $sample_setting =
-'<pre>
+        '<pre>
 $conf[\'oracle_db\'] = array(
   \'username\' => \'Oracle_username\',
   \'password\' => \'Oracle_password\',
@@ -134,7 +134,7 @@ $conf[\'oracle_db\'] = array(
       $requirements['oracle_db'] = array('title' => $t('Oracle configuration'));
       global $conf;
       if (empty($conf['oracle_db']) || empty($conf['oracle_db']['username']) ||
-          empty($conf['oracle_db']['password']) || empty($conf['oracle_db']['connection_string'])) {
+        empty($conf['oracle_db']['password']) || empty($conf['oracle_db']['connection_string'])) {
         $requirements['oracle_db']['description'] = $t('You must define $conf[\'oracle_db\']
           (in your site\'s settings.php file) to point to the Oracle database where
           you want test data to be stored: ' . $sample_setting);
@@ -150,8 +150,10 @@ $conf[\'oracle_db\'] = array(
         $e = oci_error();
         $requirements['oracle_connect']['description'] = $t('Could not connect to configured
           Oracle database at !conn_string. Oracle error message: !message',
-          array('!conn_string' => $conf['oracle_db']['connection_string'],
-                '!message' => $e['message']));
+          array(
+            '!conn_string' => $conf['oracle_db']['connection_string'],
+            '!message' => $e['message'],
+          ));
         $requirements['oracle_connect']['severity'] = REQUIREMENT_ERROR;
         break;
       }
@@ -159,35 +161,35 @@ $conf[\'oracle_db\'] = array(
       // Check for necessary privileges
       $requirements['oracle_privs'] = array('title' => $t('Necessary Oracle privileges are assigned'));
       $statement = oci_parse($connection, 'SELECT * FROM SESSION_PRIVS');
-        if (!$statement) {
-          $e = oci_error($connection);
-          $requirements['oracle_connect']['description'] = $e['message'];
-          $requirements['oracle_connect']['severity'] = REQUIREMENT_ERROR;
+      if (!$statement) {
+        $e = oci_error($connection);
+        $requirements['oracle_connect']['description'] = $e['message'];
+        $requirements['oracle_connect']['severity'] = REQUIREMENT_ERROR;
+        break;
+      }
+      $result = oci_execute($statement);
+      if (!$result) {
+        $e = oci_error($statement);
+        $requirements['oracle_connect']['description'] = $e['message'];
+        $requirements['oracle_connect']['severity'] = REQUIREMENT_ERROR;
+        break;
+      }
+      $ok = FALSE;
+      while ($row = oci_fetch_object($statement)) {
+        if ($row->PRIVILEGE == 'CREATE TABLE') {
+          $ok = TRUE;
           break;
         }
-        $result = oci_execute($statement);
-        if (!$result) {
-          $e = oci_error($statement);
-          $requirements['oracle_connect']['description'] = $e['message'];
-          $requirements['oracle_connect']['severity'] = REQUIREMENT_ERROR;
-          break;
-        }
-        $ok = FALSE;
-        while ($row = oci_fetch_object($statement)) {
-          if ($row->PRIVILEGE == 'CREATE TABLE') {
-            $ok = TRUE;
-            break;
-          }
-        }
+      }
 
-        if (!$ok) {
-          $requirements['oracle_privs']['description'] = $t('The specified
+      if (!$ok) {
+        $requirements['oracle_privs']['description'] = $t('The specified
             username !username does not have the CREATE TABLE privilege. This privilege
             is necessary to create test tables in the Oracle database.',
-            array('!username' => $conf['oracle_db']['username']));
-          $requirements['oracle_privs']['severity'] = REQUIREMENT_ERROR;
-          break;
-        }
+          array('!username' => $conf['oracle_db']['username']));
+        $requirements['oracle_privs']['severity'] = REQUIREMENT_ERROR;
+        break;
+      }
       break;
     case 'update':
       break;

@@ -6,14 +6,17 @@
  */
 
 /**
- * Implementation of MigrateSource, to handle imports from remote Oracle servers.
+ * Implementation of MigrateSource, to handle imports from remote Oracle
+ * servers.
  */
 class MigrateSourceOracle extends MigrateSource {
+
   /**
    * Array containing information for connecting to Oracle:
    *  username - Username to connect as
    *  password - Password for logging in
-   *  connection_string - See http://us.php.net/manual/en/function.oci-connect.php.
+   *  connection_string - See
+   * http://us.php.net/manual/en/function.oci-connect.php.
    *
    * @var array
    */
@@ -25,6 +28,7 @@ class MigrateSourceOracle extends MigrateSource {
    * @var resource
    */
   protected $connection;
+
   public function getConnection() {
     return $this->connection;
   }
@@ -63,7 +67,7 @@ class MigrateSourceOracle extends MigrateSource {
    * Simple initialization.
    */
   public function __construct(array $configuration, $query, $count_query,
-      array $fields, array $options = array()) {
+                              array $fields, array $options = array()) {
     parent::__construct($options);
     $this->query = $query;
     $this->countQuery = $count_query;
@@ -206,13 +210,13 @@ class MigrateSourceOracle extends MigrateSource {
    * Implementation of MigrateSource::getNextRow().
    *
    * Returns the next row of the result set as an object, making sure NULLs are
-   * represented as PHP NULLs and that LOBs are returned directly without special
-   * handling.
+   * represented as PHP NULLs and that LOBs are returned directly without
+   * special handling.
    */
   public function getNextRow() {
     $row = oci_fetch_array($this->result, OCI_ASSOC | OCI_RETURN_NULLS | OCI_RETURN_LOBS);
     if (!empty($row)) {
-      return (object)$row;
+      return (object) $row;
     }
     else {
       return FALSE;

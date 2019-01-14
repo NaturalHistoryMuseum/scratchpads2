@@ -7,17 +7,21 @@
  */
 
 class MigrateTeamMember {
+
   protected $name;
+
   public function getName() {
     return $this->name;
   }
 
   protected $emailAddress;
+
   public function getEmailAddress() {
     return $this->emailAddress;
   }
 
   protected $group;
+
   public function getGroup() {
     return $this->group;
   }

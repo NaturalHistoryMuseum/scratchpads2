@@ -10,7 +10,7 @@ $plugin = array(
   'callback' => 'feeds_tamper_keyword_filter_callback',
   'validate' => 'feeds_tamper_keyword_filter_validate',
   'name' => 'Keyword filter',
-  'multi' => 'loop',
+  'multi' => 'direct',
   'category' => 'Filter',
 );
 
@@ -20,7 +20,7 @@ function feeds_tamper_keyword_filter_form($importer, $element_key, $settings) {
     '#type' => 'textarea',
     '#title' => t('Words or phrases to filter on'),
     '#default_value' => isset($settings['words']) ? $settings['words'] : '',
-    '#description' => t('A list of words/phrases that need to appear in the text.'),
+    '#description' => t('A list of words/phrases that need to appear in the text. Enter one value per line.'),
   );
   $form['word_boundaries'] = array(
     '#type' => 'checkbox',
@@ -86,29 +86,48 @@ function feeds_tamper_keyword_filter_validate(&$settings) {
 }
 
 function feeds_tamper_keyword_filter_callback($result, $item_key, $element_key, &$field, array $settings) {
-  if ($settings['regex']) {
-    foreach ($settings['word_list'] as $word) {
-      if (preg_match($word, $field) > 0) {
-        if (!$settings['invert']) {
-          return;
-        }
-        unset($result->items[$item_key]);
-        return;
+  $match_func = '_feeds_tamper_keyword_filter_match_regex';
+
+  if (empty($settings['regex'])) {
+    $match_func = $settings['func'];
+  }
+
+  $match = FALSE;
+
+  if (is_array($field)) {
+    foreach ($field as $value) {
+      if (_feeds_tamper_keyword_filter_match($match_func, $value, $settings['word_list'])) {
+        $match = TRUE;
+        break;
       }
     }
+    reset($field);
   }
   else {
-    foreach ($settings['word_list'] as $word) {
-      if ($settings['func']($field, $word) !== FALSE) {
-        if (!$settings['invert']) {
-          return;
-        }
-        unset($result->items[$item_key]);
-        return;
-      }
+    $match = _feeds_tamper_keyword_filter_match($match_func, $field, $settings['word_list']);
+  }
+
+  if (!$match && empty($settings['invert'])) {
+    unset($result->items[$item_key]);
+    return;
+  }
+
+  if ($match && !empty($settings['invert'])) {
+    unset($result->items[$item_key]);
+    return;
+  }
+}
+
+function _feeds_tamper_keyword_filter_match($match_func, $field, array $word_list) {
+  foreach ($word_list as $word) {
+    if ($match_func($field, $word) !== FALSE) {
+      return TRUE;
     }
   }
-  if (!$settings['invert']) {
-    unset($result->items[$item_key]);
-  }
+
+  return FALSE;
+}
+
+function _feeds_tamper_keyword_filter_match_regex($field, $word) {
+  return preg_match($word, $field) > 0;
 }

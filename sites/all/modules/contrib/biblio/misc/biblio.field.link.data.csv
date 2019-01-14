@@ -22,7 +22,7 @@ fid,title,hint, common, autocomplete, required, weight, visible,field name,type,
 21,Publication Language,,0,0,0,23,0,biblio_lang,textfield,24,24,2
 22,Abstract,,1,0,0,155,1,biblio_abst_e,text_format,60,65535,1
 23,French Abstract,,0,0,0,156,0,biblio_abst_f,text_format,60,65535,9
-24,Keywords,,1,1,0,154,0,biblio_keywords,textfield,60,1000,6
+24,Keywords,,1,1,0,154,0,biblio_keywords,textfield,60,65535,6
 25,Type of Work,Masters Thesis,0,0,0,22,0,biblio_type_of_work,textfield,60,255,2
 26,URL,,1,0,0,158,1,biblio_url,textfield,60,255,5
 27,Notes,,0,0,0,157,0,biblio_notes,text_format,60,65535,7

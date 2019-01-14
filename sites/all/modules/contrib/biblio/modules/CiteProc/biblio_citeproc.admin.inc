@@ -2,16 +2,23 @@
 function biblio_citeproc_style_manager_form($form, &$form_state) {
   $form = array();
   $options = array();
-  $tree = array();
 
-  $cache = cache_get('github_csl_repo');
+  $cache = cache_get('biblio_citeproc_styles');
+
   if (!$cache || $cache->expire < time()) {
-    $options = _get_github_repo_tree();
+    if (!($style_zip_file = variable_get('biblio_citeproc_styles_zip_file', FALSE))) {
+      $style_zip_file = _get_zip_from_github();
+    }
 
+    if ($style_zip_file) {
+      $file = drupal_realpath($style_zip_file->uri);
+      $options = _get_csl_list_from_zip($file);
+    }
 
     if (!empty($options)) {
-      $expire = time()+86400; //one day from now
-      cache_set('github_csl_repo', $options, 'cache', $expire);
+      //expire 30 days from now
+      $expire = time() + 2592000;
+      cache_set('biblio_citeproc_styles', $options, 'cache', $expire);
     }
   }
   else {
@@ -19,12 +26,6 @@ function biblio_citeproc_style_manager_form($form, &$form_state) {
   }
 
 
-  $form['remote_names'] = array(
-    '#type' => 'value',
-    '#value' => $options,
-  );
-
-  asort($options);
   $form['available_styles'] = array(
     '#type' => 'select',
     '#title' => t('Available styles'),
@@ -45,16 +46,28 @@ function biblio_citeproc_style_manager_form($form, &$form_state) {
   );
   $form['default'] = array(
     '#type'  => 'submit',
-    '#value' => t('Set as site default')
+    '#value' => t('Set as site default'),
+    '#submit' => array('biblio_citeproc_set_site_default'),
+  );
+  $form['update_installed'] = array(
+    '#type'  => 'submit',
+    '#value' => t('Update installed styles'),
+    '#submit' => array('biblio_citeproc_update_installed'),
+  );
+  $form['update_available'] = array(
+    '#type'  => 'submit',
+    '#value' => t('Update available styles'),
+    '#submit' => array('biblio_citeproc_update_available'),
   );
   $form['edit'] = array(
     '#type'  => 'submit',
-    '#value' => t('Edit selected')
+    '#value' => t('Edit selected'),
+    '#submit' => array('biblio_citeproc_edit_selected'),
   );
-  $form['install_all'] = array(
-    '#type'     => 'submit',
-    '#value'    => t('Install all')
-  );
+//   $form['install_all'] = array(
+//     '#type'     => 'submit',
+//     '#value'    => t('Install all')
+//   );
 
   $form['#attributes']['enctype'] = 'multipart/form-data';
 
@@ -71,20 +84,19 @@ function biblio_citeproc_style_manager_form($form, &$form_state) {
   );
 
   $result = db_select('biblio_citeproc_styles', 'csl')
-    ->fields('csl', array('filename', 'id', 'sha1', 'title'))
+    ->fields('csl', array('filename', 'title', 'id', 'sha1', 'title', 'summary', 'changed', 'updated'))
     ->orderBy('filename', 'ASC')
     ->execute();
 
+  $details = array();
   $titles = array();
-  $installed = array();
   foreach ($result as $style) {
-    $installed[$style->id] = $style->filename;
-    $titles[$style->filename] = $style->title;
-
-    if (($sha = array_search($style->filename, $options))) {
-      unset($options[$sha]);
-    }
+    $details[$style->filename] = $style;
+    $titles[] = $style->title;
   }
+
+  // now remove the installed titles from the available titles list
+  $options = array_diff($options, $titles);
   $form['available_styles']['#options'] = $options;
 
   $form['installed_styles'] = array(
@@ -97,28 +109,48 @@ function biblio_citeproc_style_manager_form($form, &$form_state) {
   );
 
   $form['current_default'] = array(
-    '#markup' => empty($titles) ? '' : $titles[variable_get('biblio_citeproc_style', 'ieee.csl')],
+    '#markup' => empty($details) ? '' : $details[variable_get('biblio_citeproc_style', 'ieee.csl')]->title,
+  );
+
+  $form['current_summary'] = array(
+    '#markup' => empty($details) ? '' : $details[variable_get('biblio_citeproc_style', 'ieee.csl')]->summary,
+  );
+
+  $timestamp = $details[variable_get('biblio_citeproc_style', 'ieee.csl')]->updated;
+  $updated = $timestamp ? ' ('. t('Last updated:') . ' ' . format_date($timestamp, 'medium') . ')' : '';
+
+  $form['current_update'] = array(
+    '#markup' => $updated,
   );
 
   return $form;
 }
+
 function theme_biblio_citeproc_style_manager_form($variables) {
   $form = $variables['form'];
   $rows = array();
+  $updated = drupal_render($form['current_update']);
+  $updated = empty($updated) ? $updated : '</br>' . $updated;
   $rows[] = array(
-            array('data' => t('Current default style')),
-            array('data' => '<b>' . drupal_render($form['current_default']) . '</b>'),
-            );
+            array('data' => t('Current default style:')),
+            array('data' => '<b>' . drupal_render($form['current_default']) . '</b>'  .
+                '</br><i>' . drupal_render($form['current_summary']) . '</i>' . $updated
+                ),
+  );
   $rows[] = array(
             array('data' => t('Example citation:')),
             array('data' => biblio_citeproc_example_citation()));
   $output = theme('table', array('rows' => $rows));
   $rows = array();
   $rows[] = array(
-              array('data' => drupal_render($form['installed_styles']) . '<br>' . drupal_render($form['default']) . drupal_render($form['edit'])),
+              array('data' => drupal_render($form['installed_styles']) ),
               array('data' => drupal_render($form['install']) . '<br>' . drupal_render($form['remove'])),
-              array('data' => drupal_render($form['available_styles']) . '<br>' . drupal_render($form['install_all'])
-              ),
+              array('data' => drupal_render($form['available_styles'])),
+            );
+  $rows[] = array(
+              array('data' =>  drupal_render($form['default'])  . drupal_render($form['edit']) .drupal_render($form['update_installed'])),
+              array('data' => ''),
+              array('data' => drupal_render($form['update_available'])),
             );
   $rows[] = array(array('data' => drupal_render($form['import_csl_file']) . drupal_render($form['import']), 'colspan' => 3) );
   $output .= theme('table', array('rows' => $rows));
@@ -140,53 +172,61 @@ function biblio_citeproc_style_manager_form_validate($form, &$form_state) {
 }
 function biblio_citeproc_style_manager_form_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == '<--' && count( $form_state['values']['available_styles'])) {
-    foreach ( $form_state['values']['available_styles'] as $path) {
-      _install_csl_from_github($path);
+    if (!($style_zip_file = variable_get('biblio_citeproc_styles_zip_file', FALSE))) {
+      $style_zip_file = _get_zip_from_github();
     }
+
+    if (!$style_zip_file) {
+      form_set_error('<--', t('Could not get the style files from GitHub'));
+    }
+
+    $file = drupal_realpath($style_zip_file->uri);
+    $selected = $form_state['values']['available_styles'];
+    _install_selected_from_zip($file, $selected);
   }
 
   if ($form_state['clicked_button']['#value'] == '-->' && count( $form_state['values']['installed_styles'])) {
-    foreach ($form_state['values']['installed_styles'] as $id) {
-      db_delete('biblio_citeproc_styles')->condition('filename', $id)->execute();
-      if (variable_get('biblio_citeproc_style', 'ieee.csl') == $id) {
-        variable_del('biblio_citeproc_style');
-      }
-    }
+    $selected = $form_state['values']['installed_styles'];
+    _uninstall_selected($selected);
   }
+}
 
-  if ($form_state['clicked_button']['#value'] == t('Set as site default') &&
-      count( $form_state['values']['installed_styles'])) {
-    $def = array_shift($form_state['values']['installed_styles']);
-    variable_set('biblio_citeproc_style', $def);
-  }
-
-  if ($form_state['clicked_button']['#value'] == t('Edit selected') &&
-      count( $form_state['values']['installed_styles'])) {
+function biblio_citeproc_edit_selected($form, &$form_state) {
+  if (count( $form_state['values']['installed_styles'])) {
     $style = array_shift($form_state['values']['installed_styles']);
     $dest = drupal_get_destination();
     drupal_goto('admin/config/content/biblio/citeproc/styles/' . $style . '/edit');
   }
+}
 
-  if ($form_state['clicked_button']['#value'] == t('Install all')) {
-    $batch_op = array(
-      'title' => t('Importing all styles from GitHub repository'),
+function biblio_citeproc_set_site_default($form, &$form_state) {
+  if (count( $form_state['values']['installed_styles']) == 1) {
+    $def = array_shift($form_state['values']['installed_styles']);
+    variable_set('biblio_citeproc_style', $def);
+  }
+  else {
+    form_set_error('installed_styles', t('You may only select one style when setting the default'));
+  }
+}
+
+function biblio_citeproc_update_installed($form, &$form_state) {
+  $batch_op = array(
+      'title' => t('Updating all installed styles from the main GitHub repository'),
       'operations' => array(
-        array('_get_zip_from_github', array()),
-        array('_install_from_zip', array()),
+          array('_get_zip_from_github', array()),
+          array('biblio_citeproc_update_installed_batch', array()),
       ),
       'progressive' => TRUE,
-      'finished' => '_csl_import_batch_finished',
+      'finished' => 'biblio_citeproc_update_installed_finished',
       'init_message' => t('Downloading file...'),
-      'progress_message' => t('Saving styles...'),
+      'progress_message' => t('Updating styles...'),
       'file' => './' . drupal_get_path('module', 'biblio_citeproc') . '/biblio_citeproc.admin.inc'
-    );
-    batch_set($batch_op);
-    batch_process('admin/config/content/biblio/citeproc');
+  );
+  batch_set($batch_op);
+}
 
-  }
-
-  if ($form_state['clicked_button']['#value'] == t('Import')) {
-  }
+function biblio_citeproc_update_available($form, &$form_state) {
+  _get_zip_from_github();
 }
 
 function biblio_citeproc_csl_file_import_submit($form, &$form_state) {
@@ -205,7 +245,9 @@ function biblio_citeproc_csl_file_import_submit($form, &$form_state) {
 }
 function _get_github_repo_tree($path = '') {
   $options = array();
-    $tree_url = 'https://api.github.com/repos/citation-style-language/styles/contents';
+  $tree = array();
+
+  $tree_url = 'https://api.github.com/repos/citation-style-language/styles-distribution/contents';
     if (!empty($path)) {
       $tree_url .= '/' . $path;
     }
@@ -217,7 +259,7 @@ function _get_github_repo_tree($path = '') {
     else {
       $message = t('Attempt to get list of styles from GitHub resulted in an HTTP error: !code.', array('!code' => $result->code));
 
-      $cache = cache_get('github_csl_repo');
+      $cache = cache_get('biblio_citeproc_styles');
 
       if ($cache) {
         $message .= ' ' . t('I will use cached data instead.');
@@ -243,7 +285,7 @@ function _get_github_repo_tree($path = '') {
   return $options;
 }
 
-function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
+function _install_csl($name = NULL, $csl = NULL, $sha = NULL, $all = FALSE, $update = FALSE) {
   static  $installed = array();
 
   if (empty($installed)) {
@@ -268,7 +310,7 @@ function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
         $parent = (string)$attrs['href'];
       }
     }
-    if (!$all && !empty($parent)) {
+    if (!$all && !$update && !empty($parent)) {
       $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :parent", array(':parent' => $parent))->fetchField();
       if (!$csl_file_contents) {
         _install_csl_from_github(basename($parent) . '.csl');
@@ -285,38 +327,53 @@ function _install_csl($name, $csl, $sha = NULL, $all = FALSE) {
         'csl'      => $csl,
         'sha1'     => $sha1,
         'id'       => (string)$xml->info->id,
+        'updated'  => time(),
+        'changed'  => 0,
     );
 
     if (!array_key_exists($record['id'], $installed)) {
       db_insert('biblio_citeproc_styles')->fields($record)->execute();
       $installed[$record['id']] = TRUE;
+      return 1;
     }
     elseif ($record['sha1'] != $installed[$record['id']]->sha1) {
       db_update('biblio_citeproc_styles')->condition('id', $record['id'])->fields($record)->execute();
+      return 2;
     }
-    elseif (($record['sha1'] == $installed[$record['id']]->sha1)) {
+    elseif (($record['sha1'] == $installed[$record['id']]->sha1 && $update == FALSE)) {
       $message = t('The CSL file you supplied: !name, is already installed', array('!name' => $name));
       drupal_set_message(check_plain($message), 'warning');
     }
   }
   else {
-    drupal_set_message(t('I could not parse the CSL provided as valid XML', 'error'));
+    drupal_set_message(t('I could not parse the CSL provided as valid XML'), 'error');
   }
 }
 
-function _get_zip_from_github(&$context = NULL) {
-  $zip_url = 'https://github.com/citation-style-language/styles/zipball/master';
-  $zip_file = system_retrieve_file($zip_url);
+function _get_zip_from_github() {
+  $zip_file = false;
 
-  $filename = drupal_realpath($zip_file);
-  if (!empty($filename)) {
-    variable_set('github_zip', $filename);
+  $zip_url = 'https://github.com/citation-style-language/styles-distribution/archive/master.zip';
+  $destination = file_build_uri('Biblio-CiteProc-Styles.zip');
+  $zip_file = system_retrieve_file($zip_url, $destination, TRUE, FILE_EXISTS_REPLACE);
+  if ($zip_file) {
+    $usage = file_usage_list($zip_file);
   }
+  else {
+    drupal_set_message("Error downloading styles", 'error');
+    return $zip_file;
+  }
+  if (empty($usage)) {
+    file_usage_add($zip_file, 'biblio_citeproc', 'csl', 0);
+  }
+  variable_set('biblio_citeproc_styles_zip_file', $zip_file);
+  cache_clear_all('biblio_citeproc_styles', 'cache');
+  return $zip_file;
 }
 
-function _install_csl_from_github($path) {
+function _install_csl_from_github($path, $update = FALSE) {
   $csl = '';
-  $github_url = 'https://api.github.com/repos/citation-style-language/styles/contents/';
+  $github_url = 'https://api.github.com/repos/citation-style-language/styles-distribution/contents/';
   $URL = $github_url . $path;
   $result = drupal_http_request($URL);
   if ($result->code == 200) {
@@ -326,7 +383,7 @@ function _install_csl_from_github($path) {
         $csl = base64_decode($file->content);
         break;
     }
-    _install_csl($file->name, $csl, $file->sha);
+    _install_csl($file->name, $csl, $file->sha, FALSE, $update);
   }
   else {
     $message = t('Attempt to get style: %name from GitHub resulted in an HTTP error: !code.', array('%name' => $path, '!code' => $result->code));
@@ -336,17 +393,94 @@ function _install_csl_from_github($path) {
   return;
 }
 
-function _install_from_zip(&$context = NULL) {
+function _get_csl_list_from_zip($filename) {
+  $options = array();
+  $za      = new ZipArchive();
 
-  $destination = variable_get('github_zip', '');
+  if ($za->open($filename) !== TRUE) {
+    $message = t('Could not open zip file containing styles: @file', array('@file' => realpath($filename)));
+    $message = check_plain($message);
+    drupal_set_message($message, 'error');
+    return $options;
+  }
 
-  if (!empty($destination)) {
+  $num_files = $za->numFiles;
+
+  for ($i = 0; $i < $num_files; $i++) {
+    $name = $za->getNameIndex($i);
+    $name = basename($name);
+    if (strstr($name, '.csl')) {
+      $csl = $za->getFromIndex($i);
+      $xml = simplexml_load_string($csl);
+      if ($xml) {
+        $options[$i] = trim((string)$xml->info->title);
+      }
+    }
+  }
+
+  $za->close();
+  asort($options);
+  return $options;
+}
+
+function _install_selected_from_zip($filename = '', $ids = array()) {
+  $za = new ZipArchive();
+  if ($za->open($filename) == TRUE) {
+    foreach ($ids as $id) {
+      $name = $za->getNameIndex($id);
+      $name = basename($name);
+      if (strstr($name, '.csl')) {
+        $csl = $za->getFromIndex($id);
+        _install_csl($name, $csl);
+      }
+    }
+    $za->close();
+  }
+}
+
+function _uninstall_selected($ids = array()) {
+  $result = db_select('biblio_citeproc_styles', 'csl')
+    ->fields('csl', array('id', 'filename', 'parent'))
+    ->orderBy('filename', 'ASC')
+    ->execute();
+
+  foreach ($result as $csl) {
+    $fp[$csl->filename] = $csl->parent;
+    $fi[$csl->filename] = $csl->id;
+  }
+
+  foreach ($ids as $id) {
+      db_delete('biblio_citeproc_styles')->condition('filename', $id)->execute();
+      //if this is a dependent style, delete the parent style if no others are using it
+      if (!empty($fp[$id])) {
+        $parent = array_keys($fp, $fp[$id]);
+        if ( count($parent) == 1) {
+          db_delete('biblio_citeproc_styles')->condition('id', $fp[$id])->execute();
+        }
+      }
+      //delete all the dependents
+      $children = array_keys($fp, $fi[$id]);
+      if (!empty($children)) {
+         db_delete('biblio_citeproc_styles')->condition('filename', $children, 'IN')->execute();
+      }
+      if (variable_get('biblio_citeproc_style', 'ieee.csl') == $id) {
+        variable_del('biblio_citeproc_style');
+      }
+    }
+
+}
+
+function _install_all_from_zip(&$context = NULL) {
+
+   $zipname = $context['results']['zipname'];
+
+  if (!empty($zipname)) {
     //variable_del('github_zip');
-    $zip = zip_open($destination);
+    $zip = zip_open($zipname);
     $za = new ZipArchive();
 
-    if ($za->open($destination) !== TRUE) {
-      $message = t('Could not open zip file containing styles: @file', array('@file' => realpath($destination)));
+    if ($za->open($zipname) !== TRUE) {
+      $message = t('Could not open zip file containing styles: @file', array('@file' => realpath($zipname)));
       $message = check_plain($message);
       drupal_set_message($message, 'error');
       return;
@@ -379,10 +513,11 @@ function _install_from_zip(&$context = NULL) {
 }
 
 function _csl_import_batch_finished($success, $results, $operations) {
-  $destination = variable_get('github_zip', '');
-  file_unmanaged_delete($destination);
+  $zipname = variable_get('github_zip', '');
+  file_unmanaged_delete($zipname);
   variable_del('github_zip');
 }
+
 function biblio_citeproc_example_citation() {
   global $language;
   $contributors = array(
@@ -396,20 +531,26 @@ function biblio_citeproc_example_citation() {
       'lastname' => 'Twoauth',
       'firstname' => 'John',
       'initials' => 'B',
-      'auth_category' => 1,
+      'auth_category' => 2,
       'cid' => -2),
   );
   $node = new stdClass();
   $node->nid = -1;
   $node->title                  = 'This is a fantastic title.';
   $node->biblio_contributors    = $contributors;
-  $node->biblio_type            = 102;
+  $node->biblio_type            = 100;
   $node->biblio_year            = 2010;
   $node->biblio_volume          = 1;
   $node->biblio_issue           = 2;
   $node->biblio_secondary_title = 'Journal of Fantastic Articles';
   $node->biblio_pages           = '424-31';
   $node->biblio_coins           = '';
+  $now = time();
+  $node->biblio_access_date = array(
+    format_date($now, 'custom', 'Y'),
+    format_date($now, 'custom', 'n'),
+    format_date($now, 'custom', 'j'),
+  );
   return theme_biblio_citeproc_style(array('node' => $node));
 
 }
@@ -471,9 +612,15 @@ function biblio_citeproc_csl_editor_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/content/biblio/citeproc/styles';
 
   if ($form_state['triggering_element']['#value'] == t('Save')) {
+    $csl = $form_state['values']['editor']['value'];
+    $id  = $form_state['values']['id'];
+
     $record = array(
-        'id'  => $form_state['values']['id'],
-        'csl' => $form_state['values']['editor']['value'],
+        'id'      => $id,
+        'csl'     => $csl,
+        'sha1'    => sha1($csl),
+        'changed' => time(),
+        'updated' => time(),
     );
     drupal_write_record('biblio_citeproc_styles', $record, 'id');
   }
@@ -497,4 +644,83 @@ function biblio_citeproc_validate_csl($csl) {
   $csl = $doc->saveXML();
   return ($valid) ? array() : array(t('The supplied CSL file did not pass CSL 1.0 validation'));
 
+}
+
+function biblio_citeproc_update_installed_batch(&$context = NULL) {
+  $style_zip_file = variable_get('biblio_citeproc_styles_zip_file', FALSE);
+  $zipname = $style_zip_file ? drupal_realpath($style_zip_file->uri) : FALSE;
+
+  if (empty($context['sandbox']['installed'])) {
+    $context['sandbox']['installed'] = array();
+
+    $result = db_select('biblio_citeproc_styles', 'csl')
+    ->fields('csl', array('filename', 'id', 'sha1', 'title', 'parent', 'changed', 'updated'))
+    ->orderBy('filename', 'ASC')
+    ->execute();
+
+    foreach ($result as $style) {
+      $context['sandbox']['installed'][] = $style;
+    }
+
+    $context['sandbox']['progress'] = 0;
+    $context['results']['update_count'] = 0;
+    $context['results']['updated'] = array();
+  }
+
+  if (!empty($zipname)) {
+    //variable_del('github_zip');
+    $zip = zip_open($zipname);
+    $za = new ZipArchive();
+
+    if ($za->open($zipname) !== TRUE) {
+      $message = t('Could not open zip file containing styles: @file', array('@file' => realpath($zipname)));
+      $message = check_plain($message);
+      drupal_set_message($message, 'error');
+      $context['finished'] = 1;
+      return;
+    }
+
+    $num_files = count($context['sandbox']['installed']);
+    $start = $context['sandbox']['progress'];
+    $end = min(($start+10), $num_files);
+
+    for ($i = $start; $i < $end; $i++) {
+      $name = $context['sandbox']['installed'][$i]->filename;
+      $changed = $context['sandbox']['installed'][$i]->changed;
+      if (($index = $za->locateName($name, ZIPARCHIVE::FL_NOCASE|ZIPARCHIVE::FL_NODIR))  !== FALSE) {
+        if (($csl = $za->getFromIndex($index)) && !$changed) {
+          $ret = _install_csl($name, $csl, NULL, NULL, TRUE);
+          if ($ret == 2) {
+            $context['results']['updated'][] = $name;
+            $context['message'] = t('Updated') . ': ' . $name;
+          }
+        }
+      }
+      $context['sandbox']['progress']++;
+    }
+    $za->close();
+
+    if ($context['sandbox']['progress'] != $num_files) {
+      $context['finished'] = $context['sandbox']['progress'] / $num_files;
+    }
+  }
+}
+
+function biblio_citeproc_update_installed_finished($success, $results, $operations) {
+  if ($success) {
+    if (count($results['updated'])) {
+      $message = format_plural(count($results['updated']), 'The following style was updated.', 'The following @count styles were updated.');
+      drupal_set_message($message);
+      foreach ($results['updated'] as $style) {
+        drupal_set_message($style);
+      }
+    }
+    else {
+      $message = t('No updates were found, all styles are current.');
+      drupal_set_message($message);
+    }
+  }
+  else {
+    drupal_set_message(t('Finished with an error.'));
+  }
 }

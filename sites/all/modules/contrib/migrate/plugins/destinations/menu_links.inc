@@ -9,6 +9,7 @@
  * Destination class implementing migration into {menu_links}.
  */
 class MigrateDestinationMenuLinks extends MigrateDestination {
+
   static public function getKeySchema() {
     return array(
       'mlid' => array(
@@ -19,6 +20,7 @@ class MigrateDestinationMenuLinks extends MigrateDestination {
       ),
     );
   }
+
   public function __construct() {
     parent::__construct();
   }
@@ -33,6 +35,7 @@ class MigrateDestinationMenuLinks extends MigrateDestination {
    *
    * @param Migration $migration
    *  Optionally, the migration containing this destination.
+   *
    * @return array
    *  Keys: machine names of the fields (to be passed to addFieldMapping)
    *  Values: Human-friendly descriptions of the fields.
@@ -72,9 +75,11 @@ class MigrateDestinationMenuLinks extends MigrateDestination {
    * Import a single row.
    *
    * @param $menu_link
-   *  Menu link object to build. Prefilled with any fields mapped in the Migration.
+   *  Menu link object to build. Prefilled with any fields mapped in the
+   *   Migration.
    * @param $row
    *  Raw source data object - passed through to prepare/complete handlers.
+   *
    * @return array
    *  Array of key fields of the object that was saved if
    *  successful. FALSE on failure.
@@ -83,6 +88,23 @@ class MigrateDestinationMenuLinks extends MigrateDestination {
     // Updating previously-migrated content
     if (isset($row->migrate_map_destid1)) {
       $menu_link->mlid = $row->migrate_map_destid1;
+    }
+
+    // Load old values if necessary.
+    $migration = Migration::currentMigration();
+    if ($migration->getSystemOfRecord() == Migration::DESTINATION) {
+      if (!isset($menu_link->mlid)) {
+        throw new MigrateException(t('System-of-record is DESTINATION, but no destination mlid provided'));
+      }
+      if (!$old_menu_link = menu_link_load($menu_link->mlid)) {
+        throw new MigrateException(t('System-of-record is DESTINATION, and the provided mlid could not be found'));
+      }
+      $menu_link_to_update = (object) $old_menu_link;
+      foreach ($old_menu_link as $key => $value) {
+        if (!isset($menu_link->{$key})) {
+          $menu_link->{$key} = $old_menu_link[$key];
+        }
+      }
     }
 
     // Invoke migration prepare handlers

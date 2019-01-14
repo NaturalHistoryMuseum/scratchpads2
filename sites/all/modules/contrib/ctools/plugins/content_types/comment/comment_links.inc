@@ -1,9 +1,11 @@
 <?php
 
 /**
+ * @file
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
  */
+
 $plugin = array(
   'single' => TRUE,
   'title' => t('Comment links'),
@@ -26,10 +28,10 @@ function ctools_comment_links_content_type_render($subtype, $conf, $panel_args, 
     return;
   }
 
-  $comment = isset($context->data) ? clone($context->data) : NULL;
+  $comment = isset($context->data) ? clone $context->data : NULL;
   $block = new stdClass();
   $block->module = 'comment';
-  $block->delta  = $comment->cid;
+  $block->delta = $comment->cid;
 
   if (empty($comment)) {
     $block->delta   = 'placeholder';

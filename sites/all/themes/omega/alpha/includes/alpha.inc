@@ -892,11 +892,11 @@ function alpha_retrieve_libraries($theme) {
  */
 function alpha_calculate_primary(&$items, $primary, $container) {
   if (!empty($items)) {
-    $items[$primary]['#grid']['columns'] = $container - $items[$primary]['#grid']['prefix'] - $items[$primary]['#grid']['suffix'];
+    $items[$primary]['#grid']['columns'] = $container - (int)$items[$primary]['#grid']['prefix'] - (int)$items[$primary]['#grid']['suffix'];
 
     foreach (element_children($items) as $item) {
       if ($item != $primary) {
-        $items[$primary]['#grid']['columns'] -= $items[$item]['#grid']['columns'] + $items[$item]['#grid']['prefix'] + $items[$item]['#grid']['suffix'];
+        $items[$primary]['#grid']['columns'] -= $items[$item]['#grid']['columns'] + (int)$items[$item]['#grid']['prefix'] + (int)$items[$item]['#grid']['suffix'];
       }
     }
   }

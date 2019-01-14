@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file
+ */
+
 if (module_exists('taxonomy')) {
   /**
    * Plugins are described by creating a $plugin array which will be used
@@ -21,8 +25,8 @@ if (module_exists('taxonomy')) {
  * list of terms for the input vocabulary.
  */
 function ctools_vocabulary_terms_content_type_render($subtype, $conf, $panel_args, $context) {
-  $vocab = isset($context->data) ? clone($context->data) : NULL;
-  $max_depth = (!empty($conf['max_depth']) ? (int)$conf['max_depth'] : NULL);
+  $vocab = isset($context->data) ? clone $context->data : NULL;
+  $max_depth = (!empty($conf['max_depth']) ? (int) $conf['max_depth'] : NULL);
   if ($conf['tree'] == FALSE) {
     $terms = taxonomy_get_tree($vocab->vid, 0, $max_depth);
     $items = array();
@@ -35,9 +39,9 @@ function ctools_vocabulary_terms_content_type_render($subtype, $conf, $panel_arg
     $output = theme('item_list', array('items' => _ctools_content_vocabulary_terms($vocab->vid, $max_depth)));
   }
 
-  $block = new stdClass();
+  $block          = new stdClass();
   $block->module  = 'node_type';
-  $block->title = check_plain($vocab->name);
+  $block->title   = check_plain($vocab->name);
   $block->content = $output;
   $block->delta   = $vocab->vid;
 
@@ -97,4 +101,3 @@ function ctools_vocabulary_terms_content_type_edit_form_submit($form, &$form_sta
     $form_state['conf'][$key] = $form_state['values'][$key];
   }
 }
-

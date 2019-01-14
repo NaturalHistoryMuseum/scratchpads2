@@ -13,7 +13,7 @@
 function views_views_data() {
   $data['views']['table']['group'] = t('Global');
   $data['views']['table']['join'] = array(
-    // #global is a special flag which let's a table appear all the time.
+    // '#global' is a special flag which let's a table appear all the time.
     '#global' => array(),
   );
 
@@ -99,9 +99,17 @@ function views_views_data() {
     );
   }
 
+  $data['views']['ctools_dropdown'] = array(
+    'title' => t('Dropdown links'),
+    'help' => t('Displays fields in a dropdown list, like on the views listing page.'),
+    'field' => array(
+      'handler' => 'views_handler_field_ctools_dropdown',
+    ),
+  );
+
   $data['views']['combine'] = array(
-   'title' => t('Combine fields filter'),
-    'help' => t('Combine two fields together and search by them.'),
+    'title' => t('Combine fields filter'),
+    'help' => t('Combine multiple fields together and search by them.'),
     'filter' => array(
       'handler' => 'views_handler_filter_combine',
     ),
@@ -124,7 +132,7 @@ function views_views_data() {
     'filter' => array(
       'help' => t('Use fields comparison to filter the result of the view.'),
       'handler' => 'views_handler_filter_fields_compare',
-    )
+    ),
   );
 
   return $data;
