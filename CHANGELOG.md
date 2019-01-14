@@ -1,3 +1,19 @@
+2.9.4 (2019-01-14)
+
+- Upgrade to PHP 7 (#5671) (@PaulKiddle)
+- Upgrade to Drupal 7.61 (#5707) (@jrdh)
+- Replace Simon with Scratchpads Team in DwC-A metadata (#5712) (@jrdh)
+- Update FontinSans to render μ correctly (#5721) (@jrdh)
+- Strip HTML tags from page titles (#5734) (@jrdh)
+- Allow TIF files to be uploaded (#5758) (@jrdh)
+- Rotate docker logs (#5761) (@jrdh)
+- Fix AJAX responses when using the wavesurfer module (#5764) (@jrdh)
+- Wrap biblio URLs to improve presentation (#5765) (@PaulKiddle)
+- More comprehensive .gitignore for sites directory (#5643) (@edwbaker)
+- Major site performance issues over Christmas period investigated and resolved
+- All archived sites returned to functionality  
+- A few pull requests from the last release (2.9.3) were made live after the tag was created, including the 7.60 upgrade (for example)
+
 2.9.3 (2018-10-22)
 
 - Upgraded Drupal to 7.60
