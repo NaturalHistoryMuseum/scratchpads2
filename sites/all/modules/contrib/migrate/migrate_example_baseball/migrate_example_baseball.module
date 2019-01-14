@@ -1,3 +1,0 @@
-<?php
-
-include_once('migrate_example_baseball.features.inc');
