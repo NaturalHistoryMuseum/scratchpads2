@@ -10,9 +10,6 @@
 - Fix AJAX responses when using the wavesurfer module (#5764) (@jrdh)
 - Wrap biblio URLs to improve presentation (#5765) (@PaulKiddle)
 - More comprehensive .gitignore for sites directory (#5643) (@edwbaker)
-- Major site performance issues over Christmas period investigated and resolved
-- All archived sites returned to functionality  
-- A few pull requests from the last release (2.9.3) were made live after the tag was created, including the 7.60 upgrade (for example)
 
 2.9.3 (2018-10-22)
 
