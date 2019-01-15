@@ -32,14 +32,14 @@ blockquote em,blockquote i {
 /* Typography */
 @font-face {
   font-family: 'FontinSansBoldItalic';
-  src: url('../fonts/FontinSans/fontin_sans_cyrillic_bi_46b-webfont.eot');
-  src: url('../fonts/FontinSans/fontin_sans_cyrillic_bi_46b-webfont.eot?#iefix')
+  src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot');
+  src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot?#iefix')
     format('embedded-opentype'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_bi_46b-webfont.woff')
+    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.woff')
     format('woff'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_bi_46b-webfont.ttf')
+    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.ttf')
     format('truetype'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_bi_46b-webfont.svg#FontinSansBoldItalic')
+    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.svg#FontinSansBoldItalic')
     format('svg');
   font-weight: normal;
   font-style: normal;
@@ -47,14 +47,14 @@ blockquote em,blockquote i {
 
 @font-face {
   font-family: 'FontinSansRegular';
-  src: url('../fonts/FontinSans/fontin_sans_cyrillic_r_46b-webfont.eot');
-  src: url('../fonts/FontinSans/fontin_sans_cyrillic_r_46b-webfont.eot?#iefix')
+  src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot');
+  src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot?#iefix')
     format('embedded-opentype'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_r_46b-webfont.woff')
+    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.woff')
     format('woff'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_r_46b-webfont.ttf')
+    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.ttf')
     format('truetype'),
-    url('../fonts/FontinSans/fontin_sans_cyrillic_r_46b-webfont.svg#FontinSansRegular')
+    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.svg#FontinSansRegular')
     format('svg');
   font-weight: normal;
   font-style: normal;
