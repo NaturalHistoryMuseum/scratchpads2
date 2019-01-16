@@ -3,7 +3,6 @@
 - Upgrade to PHP 7 (#5671) (@PaulKiddle)
 - Upgrade to Drupal 7.61 (#5707) (@jrdh)
 - Replace Simon with Scratchpads Team in DwC-A metadata (#5712) (@jrdh)
-- Update FontinSans to render μ correctly (#5721) (@jrdh)
 - Strip HTML tags from page titles (#5734) (@jrdh)
 - Allow TIF files to be uploaded (#5758) (@jrdh)
 - Rotate docker logs (#5761) (@jrdh)
