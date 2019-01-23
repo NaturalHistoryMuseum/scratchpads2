@@ -33,8 +33,7 @@ Client.run(config, async (window) => {
 
     // Open media browser
     await frame.click(css('#edit-field-media-und-add-more'));
-    await frame.find(css('#mediaBrowser'));
-    await frame.withFrame(2, async mediaBrowser => {
+    await frame.withFrame('#mediaBrowser', async mediaBrowser => {
       // Select file to upload
       await mediaBrowser.find(css('input[type=file]')).sendKeys(require.resolve('./150.png'));
 
