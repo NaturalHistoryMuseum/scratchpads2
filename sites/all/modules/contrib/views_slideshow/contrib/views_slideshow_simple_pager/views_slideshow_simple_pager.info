@@ -1,7 +1,6 @@
-name = Views Slideshow: Cycle
-description = Adds a Rotating slideshow mode to Views Slideshow.
+name = Views Slideshow Simple Pager
+description = Provides a simple pager for Views Slideshow.
 dependencies[] = views_slideshow
-dependencies[] = libraries
 package = Views
 core = 7.x
 

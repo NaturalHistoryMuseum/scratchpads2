@@ -1,0 +1,15 @@
+/**
+ * @file
+ * Example rules to enhance responsiveness of Views Slideshow.
+ *
+ * Due to various site styles and markup, this won't work on all sites.
+ * Which is why it was removed from views_slideshow_cycle.css as that caused
+ * bugs on some sites, especially those using floats on the parent elements but
+ * without any width declarations.
+ */
+ 
+.views-slideshow-cycle-main-frame,
+.views-slideshow-cycle-main-frame div,
+.views-slideshow-cycle-main-frame img {
+  max-width: 100%;
+}

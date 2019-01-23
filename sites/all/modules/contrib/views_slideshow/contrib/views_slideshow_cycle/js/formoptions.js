@@ -1,7 +1,7 @@
 
 /**
  *  @file
- *  Javascript to enhance the views slideshow cycle form options.
+ *  JavaScript to enhance the views slideshow cycle form options.
  */
 
 /**
@@ -10,7 +10,7 @@
 (function ($) {
   
   // Since Drupal 7 doesn't support having a field based on one of 3 values of
-  // a select box we need to add our own javascript handling.
+  // a select box we need to add our own JavaScript handling.
   Drupal.behaviors.viewsSlideshowCycleAmountAllowedVisible = {
     attach: function (context) {
       
