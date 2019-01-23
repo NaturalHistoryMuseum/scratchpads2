@@ -9,26 +9,37 @@ class Client {
     const client = Object.create(wdClient);
     console.dir(Client.prototype);
     return Object.assign(client, {
-      find(strategy, selector, Constructor) {
-        return Element.find(this, strategy, selector, Constructor);
+      frameStack: [],
+      find(selector, Constructor) {
+        console.log(selector);
+        return Element.find(this, selector, Constructor);
       },
       async withFrame(id, fn) {
-        await this.find(xpath(`//iframe[${id + 1}]`));
+        //await this.find(xpath(`//iframe[${id + 1}]`));
         await this.switchToFrame(id);
+        this.frameStack.push(id);
 
         try {
-          return await fn(this);
+          return await fn(proxyPromise(this));
         } finally {
-          await this.switchToParentFrame();
+          // This is kind of broken in geckodriver (2019-01-23);
+          // If the actual frame closes itself before we call this,
+          // everything just hangs
+          // await this.switchToParentFrame();
+
+          // Here is the workaround:
+          // Switch to topmost frame
+          await this.switchToFrame(null);
+          // Frames are tracked in frameStack; remove the last item
+          this.frameStack.pop();
+          // Descend down into the desired frame by iterating the frame stack and switching to each
+          for(const id of this.frameStack) {
+            await this.switchToFrame(id);
+          }
         }
       },
-      async click(strategy, selector = null) {
-        if (selector === null) {
-          selector = strategy;
-          strategy = 'css selector';
-        }
-
-        return (await this.find(strategy, selector)).click();
+      async click(selector) {
+        return (await this.find(selector)).click();
       }
     });
   }
