@@ -1,6 +1,6 @@
 (function($){
   if(typeof google != 'undefined') {
-    Drupal.GM3.rectangle = function(map){
+    Drupal.GM3.rectangle = function(map, settings){
       this.GM3 = map;
       // Rectangle object.
       // We don't currently support geodesic shapes, mainly due to the library
@@ -9,22 +9,22 @@
       // please avoid loading the geometry library.
       this.geodesic = false;
       // Editing lines
-      this.followlineN = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
-      this.followlineE = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
-      this.followlineS = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
-      this.followlineW = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+      this.followlineN = new L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+      this.followlineE = new L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+      this.followlineS = new L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
+      this.followlineW = new L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 0.7, strokeWeight: 2});
       this.firstclick = false;
       // Rectanlges
       this.rectangles = new Array();
       // Add Rectangles sent from server.
-      if(this.GM3.libraries.rectangle.rectangles) {
-        for( var i in this.GM3.libraries.rectangle.rectangles) {
-          if(typeof (this.GM3.libraries.rectangle.rectangles[i]['rectangle']) == 'undefined') {
-            this.rectangles[this.rectangles.length] = this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i], false);
+      if(settings.rectangles) {
+        for(const rectangle of settings.rectangles) {
+          if(!rectangle.rectangle) {
+            this.rectangles.push(this.GM3.children.polygon.add_polygon(rectangle, false));
           } else {
-            var content = typeof (this.GM3.libraries.rectangle.rectangles[i]['content']) != 'undefined' ? this.GM3.libraries.rectangle.rectangles[i]['content'] : '';
-            var title = typeof (this.GM3.libraries.rectangle.rectangles[i]['title']) != 'undefined' ? this.GM3.libraries.rectangle.rectangles[i]['title'] : '';
-            this.GM3.children.polygon.add_polygon(this.GM3.libraries.rectangle.rectangles[i]['rectangle'], this.GM3.libraries.rectangle.rectangles[i]['editable'], content, title)
+            const content = rectangle.content || '';
+            const title = rectangle.title || '';
+            this.GM3.children.polygon.add_polygon(rectangle.rectangle, rectangle.editable, content, title);
           }
         }
       }
@@ -43,7 +43,7 @@
       this.followlineW.setMap(this.GM3.google_map);
     }
     Drupal.GM3.rectangle.prototype.event = function(event_type, event, event_object){
-      switch(this.GM3.active_class){
+      switch(this.GM3.activeClass){
         case 'rectangle':
           switch(event_type){
             case 'click':

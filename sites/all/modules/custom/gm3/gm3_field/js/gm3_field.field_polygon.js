@@ -3,14 +3,15 @@
     // KNOWN BUG - If removing a polygon, it doesn't get removed until the map
     // is
     // clicked/rightclicked on.
-    Drupal.GM3.polygon.prototype.update_field = function(){
+    Drupal.GM3.polygon.prototype.updateField = function(){
       // Update the field.
       var new_value = '';
       for( var i = 0; i < this.polygons.length; i++) {
         if(new_value.length) {
           new_value += "\n";
         }
-        this.polygons[i].getPaths().forEach(function(paths){
+        this.polygons[i].getLatLngs().forEach(function(paths){
+          console.log(paths);
           // Only continue if the path has three or more points.
           if(paths.length > 2) {
             new_value += "POLYGON (("
@@ -18,13 +19,14 @@
               if(ii > 0) {
                 new_value += ",";
               }
-              new_value += paths.b[ii].lng() + " " + paths.b[ii].lat()
+              new_value += paths[ii].lng + " " + paths[ii].lat
             }
-            new_value += "," + paths.b[0].lng() + " " + paths.b[0].lat()
+            new_value += "," + paths[0].lng + " " + paths[0].lat
             new_value += "))"
           }
         })
       }
+      console.log(new_value);
       $('.' + this.GM3.id + '-polygon').val(new_value);
     }
   }

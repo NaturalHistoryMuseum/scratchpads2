@@ -1,180 +1,200 @@
-(function($){
-  if(typeof google != 'undefined') {
-    Drupal.GM3.polygon = function(map){
+// Tests:
+// Create polygon
+
+// Todo:
+//  Make polygon editable
+//  Register points being draggable
+//  Check handlers for dblclick, contextmenu etc work
+
+(function(){
+  "use strict";
+
+  Drupal.GM3.polygon = class {
+    constructor(map, settings) {
       this.GM3 = map;
       // Polygon object.
       // We don't currently support geodesic shapes, mainly due to the library
       // we're using being a little buggy in its support for it. For this
       // reason,
       // please avoid loading the geometry library.
+      // Todo: can we get rid of this?
       this.geodesic = false;
       // Editing lines
-      this.followline1 = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-      this.followline2 = new google.maps.Polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
+      // Todo: Check whether these settings apply
+      this.followline1 = L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
+      this.followline2 = L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
       // Polygons.
-      this.polygons = new Array();
+      this.polygons = [];
       // Add Polygons sent from server.
-      if(this.GM3.libraries.polygon.polygons) {
-        for( var i in this.GM3.libraries.polygon.polygons) {
-          if(typeof (this.GM3.libraries.polygon.polygons[i]['polygon']) == 'undefined') {
-            this.add_polygon(this.GM3.libraries.polygon.polygons[i]);
+      if(settings.polygons) {
+        for(const polygon of settings.polygons) {
+          if(!polygon.polygon) {
+            this.addPolygon(polygon);
           } else {
-            var content = typeof (this.GM3.libraries.polygon.polygons[i]['content']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['content'] : '';
-            var title = typeof (this.GM3.libraries.polygon.polygons[i]['title']) != 'undefined' ? this.GM3.libraries.polygon.polygons[i]['title'] : '';
-            this.add_polygon(this.GM3.libraries.polygon.polygons[i]['polygon'], this.GM3.libraries.polygon.polygons[i]['editable'], content);
+            this.addPolygon(
+              polygon.polygon,
+              polygon.editable,
+              polygon.content || ''
+            );
           }
         }
       }
-      this.add_transfer_listeners();
+      this.addTransferListeners();
     }
-    Drupal.GM3.polygon.prototype.active = function(){
-      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
-      this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
-      this.followline1.setPath([]);
-      this.followline2.setPath([]);
-      this.followline1.setMap(this.GM3.google_map);
-      this.followline2.setMap(this.GM3.google_map);
+    active(){
+      // Todo: Set cursor to pointer
+      // Todo: Construct options:
+      // {geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []}
+      const polygon = L.polygon([]);
+      polygon.on('editable:vertex:dragend', e => {
+        console.log('editpoly1', e);
+      });
+      polygon.addTo(this.GM3.leafletMap);
+      this.polygons.push(polygon);
+      this.followline1.setLatLngs([]);
+      this.followline2.setLatLngs([]);
+      this.followline1.addTo(this.GM3.leafletMap);
+      this.followline2.addTo(this.GM3.leafletMap);
     }
-    Drupal.GM3.polygon.prototype.add_polygon = function(points, editable, content, title){
-      editable = typeof (editable) != 'undefined' ? editable : true;
-      var path_points = new Array();
-      for( var i = 0; i < points.length; i++) {
-        if(points[i]['lat'] == undefined) {
-          // We have a string rather than an array, split it
-          if(typeof points[i] == 'object') {
-            points[i] = String(points[i]);
-          }
-          points[i] = points[i].split(",");
-          path_points[i] = new google.maps.LatLng(points[i][1], points[i][0]);
-        } else {
-          path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long']);
-        }
-        this.GM3.add_latlng(path_points[i]);
+    addPolygon(points, editable = true, content, title){
+      const pathPoints = new Array(points.length);
+      for(let i = 0; i < points.length; i++) {
+        pathPoints[i] = Array.isArray(points[i]) ? L.latLng([points[i][1], points[i][0]]) : L.latLng(points[i]);
+        this.GM3.addLatLng(pathPoints[i]);
       }
+
       if(editable) {
         // We don't add a popup to an editable polygon.
-        this.polygons[this.polygons.length] = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
+        // Todo: Set options: {geodesic: this.geodesic, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3,}
+        const p = L.polygon(pathPoints);
+        p.addTo(this.GM3.leafletMap);
+        this.polygons.push(p);
+        p.on('editable:vertex:dragend', e => {
+          console.log('editpoly2', e);
+        });
       } else {
-        // Add the popup also if we have content!
-        content = typeof (content) != 'undefined' ? content : '';
-        title = typeof (title) != 'undefined' ? title : '';
-        var polygon = new google.maps.Polygon({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
-        this.GM3.add_listeners_helper(polygon);
+        // Todo: add options {geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: pathPoints}
+        const polygon = L.polygon(pathPoints);
+        polygon.on('editable:vertex:dragend', e => {
+          console.log('editpoly3', e);
+        });
+        polygon.addTo(this.GM3.leafletMap);
+        // Todo: Why are we calling this?
+        this.GM3.addListenersHelper(polygon);
         if(content) {
-          this.GM3.add_popup(polygon, content, title);
+          // Add the popup also if we have content!
+          this.GM3.addPopup(polygon, content, title || '');
         }
         // Return the polygon so that it can be saved elsewhere.
         return polygon;
       }
     }
-    Drupal.GM3.polygon.prototype.event = function(event_type, event, event_object){
-      switch(this.GM3.active_class){
+    event(eventType, event, eventObject){
+      // Todo: Refactor this pls
+      switch(this.GM3.activeClass){
         case 'polygon':
-          switch(event_type){
+          switch(eventType){
             case 'click':
-              if(this.polygons[this.polygons.length - 1].getPath().length == 0) {
-                if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
-                  this.GM3.num_objects++;
+              if(this.polygons[this.polygons.length - 1].getLatLngs().length == 0) {
+                // Todo: This really ought to call a function on the parent class
+                if(this.GM3.maxObjects === -1 || this.GM3.num_objects < this.GM3.maxObjects) {
+                  this.GM3.numObjects++;
                 } else {
                   this.GM3.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
                   break;
                 }
               }
-              this.polygons[this.polygons.length - 1].stopEdit();
-              this.polygons[this.polygons.length - 1].getPath().push(event.latLng);
-              this.polygons[this.polygons.length - 1].runEdit(true);
-              if(this.update_field) {
-                this.update_field();
+              this.polygons[this.polygons.length - 1].disableEdit();
+              this.polygons[this.polygons.length - 1].addLatLng(event.latlng);
+              this.polygons[this.polygons.length - 1].enableEdit();
+              if(this.updateField) {
+                this.updateField();
               }
               break;
             case 'mousemove':
-              var pathLength = this.polygons[this.polygons.length - 1].getPath().getLength();
+              const lastPolygon = this.polygons[this.polygons.length - 1];
+              const polygonPath = lastPolygon.getLatLngs();
+              const pathLength = polygonPath.length;
               if(pathLength >= 1) {
-                var startingPoint1 = this.polygons[this.polygons.length - 1].getPath().getAt(pathLength - 1);
-                var followCoordinates1 = [startingPoint1, event.latLng];
-                this.followline1.setPath(followCoordinates1);
-                var startingPoint2 = this.polygons[this.polygons.length - 1].getPath().getAt(0);
-                var followCoordinates2 = [startingPoint2, event.latLng];
-                this.followline2.setPath(followCoordinates2);
+                const startingPoint1 = polygonPath[pathLength - 1];
+                const { latlng } = event;
+                const followCoordinates1 = [startingPoint1, latlng];
+                this.followline1.setLatLngs(followCoordinates1);
+                const startingPoint2 = polygonPath[0];
+                const followCoordinates2 = [startingPoint2, latlng];
+                this.followline2.setLatLngs(followCoordinates2);
               }
               break;
             case 'rightclick':
-              this.GM3.set_active_class('default');
+              this.GM3.setActiveClass('default');
               this.followline1.setMap(null);
               this.followline2.setMap(null);
-              if(this.update_field) {
-                this.update_field();
+              if(this.updateField) {
+                this.updateField();
               }
               break;
           }
           break;
         case 'default':
-          switch(event_type){
+          switch(eventType){
             case 'click':
-              if(event_object.getClass && event_object.getClass() == 'Polygon') {
+              if(eventObject.getClass && eventObject.getClass() == 'Polygon') {
                 // Once clicked, stop editing other polygons
-                for( var j = 0; j < this.polygons.length; j++) {
+                for( const j = 0; j < this.polygons.length; j++) {
                   this.polygons[j].stopEdit();
                 }
                 // We need to check this object is one of ours. Else we simply
                 // ignore it
-                for( var i = 0; i < this.polygons.length; i++) {
-                  if(event_object == this.polygons[i]) {
+                for( const i = 0; i < this.polygons.length; i++) {
+                  if(eventObject == this.polygons[i]) {
                     this.polygons[i].runEdit();
                   }
                 }
               } else {
                 // Clicked elsewhere, stop editing.
-                for( var j = 0; j < this.polygons.length; j++) {
+                for( const j = 0; j < this.polygons.length; j++) {
                   this.polygons[j].stopEdit();
                 }
               }
-              if(this.update_field) {
-                this.update_field();
+              if(this.updateField) {
+                this.updateField();
               }
               break;
             case 'rightclick':
-              if(event_object.getClass && event_object.getClass() != 'Polygon') {
+              if(eventObject.getClass && eventObject.getClass() != 'Polygon') {
                 // Once clicked, stop editing other polygons
-                for( var j = 0; j < this.polygons.length; j++) {
+                for( const j = 0; j < this.polygons.length; j++) {
                   this.polygons[j].stopEdit();
                 }
               }
-              if(this.update_field) {
-                this.update_field();
+              if(this.updateField) {
+                this.updateField();
               }
               break;
           }
           break;
       }
     }
-    Drupal.GM3.polygon.prototype.add_transfer_listeners = function(){
-      for( var i = 0; i < this.polygons.length; i++) {
-        if(this.polygons[i]) {
-          this.GM3.add_listeners_helper(this.polygons[i]);
-        }
+    addTransferListeners(){
+      // What does this actually mean?
+      for(const polygon of this.polygons) {
+        // Todo: Why are we doing this both here and in the parent?
+        this.GM3.addListenersHelper(polygon);
       }
     }
-    Drupal.GM3.polygon.prototype.get_line_colour = function(){
-      switch(this.polygons.length % 8){
-        default:
-        case 0:
-          return '#ff0000';
-        case 1:
-          return '#00ff00';
-        case 2:
-          return '#0000ff';
-        case 3:
-          return '#ffff00';
-        case 4:
-          return '#ff00ff';
-        case 5:
-          return '#00ffff';
-        case 6:
-          return '#000000';
-        case 7:
-          return '#ffffff';
-      }
+    getLineColour(){
+      const colours = [
+        '#ff0000',
+        '#00ff00',
+        '#0000ff',
+        '#ffff00',
+        '#ff00ff',
+        '#00ffff',
+        '#000000',
+        '#ffffff'
+      ];
+
+      return colours[this.polygons.length % 8];
     }
   }
-})(jQuery);
+})();

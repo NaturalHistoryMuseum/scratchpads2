@@ -29,6 +29,7 @@
  */
 /**
  * Implementation of hook_views_api().
+ * magic function that loads module.views.inc
  */
 function gm3_views_api(){
   return array(
@@ -46,6 +47,15 @@ function gm3_library(){
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/',
       'version' => '3',
       'js' => array(
+        array(
+          'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.js',
+          'options' => 'external'
+        ),
+        array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/libs/Leaflet.Editable.js',
+          'options' => 'external',
+          'preprocess' => FALSE
+        ),
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/google/js.js',
           'options' => 'external',
@@ -72,7 +82,7 @@ function gm3_library(){
       ),
       'css' => array(
         array(
-          'data' => 'http://code.google.com/apis/maps/documentation/javascript/examples/default.css'
+          'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.css'
         )
       )
     ),
@@ -416,58 +426,7 @@ function gm3_settings(){
       'latitude' => 52,
       'longitude' => 0
     ),
-    //'backgroundColor' => 'white',
-    'disableDefaultUI' => FALSE,
-    'disableDoubleClickZoom' => FALSE,
-    'draggable' => TRUE,
-    'draggableCursor' => 'move',
-    'draggingCursor' => 'move',
-    'heading' => 0,
-    'keyboardShortcuts' => TRUE,
-    'mapTypeControl' => TRUE,
-    'mapTypeControlOptions' => array(
-      'mapTypeIds' => array(
-        'OSM' // Custom map type using Open Street Map.
-      ),
-      'style' => 'google.maps.MapTypeControlStyle.DEFAULT', // http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeControlStyle
-      'position' => 'google.maps.ControlPosition.TOP_RIGHT' // http://code.google.com/apis/maps/documentation/javascript/reference.html#ControlPosition
-    ),
-    'mapTypeId' => 'OSM', // SATELLITE, TERRAIN, ROADMAP, HYBRID
-    'maxZoom' => null,
-    'minZoom' => null,
-    'noClear' => FALSE,
-    'overviewMapControl' => FALSE,
-    'overviewMapControlOptions' => array(
-      'opened' => TRUE
-    ),
-    'panControl' => FALSE,
-    'panControlOptions' => array(
-      'position' => 'google.maps.ControlPosition.TOP_LEFT'
-    ),
-    'rotateControl' => TRUE,
-    'rotateControlOptions' => array(
-      'position' => 'google.maps.ControlPosition.TOP_LEFT'
-    ),
-    'scaleControl' => TRUE,
-    'scaleControlOptions' => array(
-      'position' => 'google.maps.ControlPosition.BOTTOM_LEFT',
-      'style' => 'google.maps.ScaleControlStyle.DEFAULT'
-    ),
-    'scrollwheel' => TRUE,
-    // 'streeView' => '', // This appears to be more complicated than we require
-    // if users would like this, then they can add it!
-    'streetViewControl' => FALSE,
-    'streetViewControlOptions' => array(
-      'position' => ''
-    ),
-    // 'styles' => '', // Deliberately left blank.  This may be tweaked in the
-    // future.
-    'tilt' => 0,
     'zoom' => 4,
-    'zoomControl' => TRUE,
-    'zoomControlOptions' => array(
-      'position' => 'google.maps.ControlPosition.TOP_LEFT',
-      'style' => 'google.maps.ZoomControlStyle.DEFAULT'
-    )
+    'minZoom' => 4
   ));
 }

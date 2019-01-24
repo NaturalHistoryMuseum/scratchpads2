@@ -23,6 +23,7 @@
             var position = new google.maps.LatLng(position_parts[0], position_parts[1]);
             if(position) {
               self.points[0].setPosition(position);
+              // Todo: Why do we need the "reset" param here?
               self.GM3.add_latlng(position, true);
               self.GM3.autozoom();
             }

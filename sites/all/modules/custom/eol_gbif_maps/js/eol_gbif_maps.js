@@ -5,7 +5,7 @@
     return `${gbifHost}/v2/map/occurrence/density/${zoom}/${coord.x}/${coord.y}@1x.png?taxonKey=${taxonId}`;
   }
 
-  Drupal.GM3.eol_gbif_maps_overlay = function(map){
+  Drupal.GM3.eol_gbif_maps_overlay = function(map, settings){
     this.GM3 = map;
     function EOLGBIFMapType(){
       this.tileSize = new google.maps.Size(tileSize, tileSize);
@@ -25,7 +25,7 @@
 
       const y = coord.y;
 
-      const src = gbif_tile_url(Drupal.settings.gm3.settings.eol_gbif_maps.tile_host, self.GM3.libraries.eol_gbif_maps_overlay.taxon_id, { x, y }, zoom);
+      const src = gbif_tile_url(Drupal.settings.gm3.settings.eol_gbif_maps.tile_host, settings.taxon_id, { x, y }, zoom);
       // Apparently gbif returns 204 for some regions where there's no data (e.g. oceans)
       // Add onerror handler to hide broken image in these cases
       div.innerHTML = '<img class="eol_gbif_map_tile" src="' + src + '" onerror="this.style.display=\'none\'"/>';

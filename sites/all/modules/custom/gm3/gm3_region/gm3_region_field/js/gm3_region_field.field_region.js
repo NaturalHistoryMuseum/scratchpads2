@@ -22,7 +22,7 @@
         this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
       }
       map.children.region.event = function(event_type, event, event_object){
-        switch(this.GM3.active_class){
+        switch(this.GM3.activeClass){
           case 'region':
             switch(event_type){
               case 'click':

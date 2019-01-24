@@ -1,8 +1,8 @@
 if(typeof google != 'undefined') {
   // Poygon getBounds extension - google-maps-extensions
-  // http://code.google.com/p/google-maps-extensions/source/browse/google.maps.Polygon.getBounds.js
-  if(!google.maps.Polygon.prototype.getBounds) {
-    google.maps.Polygon.prototype.getBounds = function(latLng){
+  // http://code.google.com/p/google-maps-extensions/source/browse/L.polygon.getBounds.js
+  if(!L.polygon.prototype.getBounds) {
+    L.polygon.prototype.getBounds = function(latLng){
       var bounds = new google.maps.LatLngBounds();
       var paths = this.getPaths();
       var path;
@@ -17,7 +17,7 @@ if(typeof google != 'undefined') {
   }
   // Polygon containsLatLng - method to determine if a latLng is within a
   // polygon
-  google.maps.Polygon.prototype.containsLatLng = function(latLng){
+  L.polygon.prototype.containsLatLng = function(latLng){
     // Exclude points outside of bounds as there is no way they are in the poly
     var bounds = this.getBounds();
     if(bounds != null && !bounds.contains(latLng)) {

@@ -1,16 +1,16 @@
 (function($){
   if(typeof Drupal.GM3 != 'undefined') {
-    Drupal.GM3.region = function(map){
+    Drupal.GM3.region = function(map, settings){
       // Point object.
       this.GM3 = map;
-      this.geo = new google.maps.Geocoder();
       this.countries = new Object();
       // Add Regions sent from server.
-      if(this.GM3.libraries.region.regions) {
-        this.add_polygons_by_ids(this.GM3.libraries.region.regions, false, false, true);
+      if(settings.regions) {
+        this.add_polygons_by_ids(settings.regions, false, false, true);
       }
     }
     // FIXME - Add content from the server and on the server.
+    // Refactor function args
     Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content, autofit){
       if(typeof region_ids != 'object') {
         if(typeof region_ids == 'string') {
@@ -101,11 +101,12 @@
       this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
     }
     Drupal.GM3.region.prototype.event = function(event_type, event, event_object){
-      switch(this.GM3.active_class){
+      switch(this.GM3.activeClass){
         case 'region':
           switch(event_type){
             case 'click':
               var self = this;
+              // Fetch https://nominatim.openstreetmap.org/reverse?format=json&lat=52.5487429714954&lon=-1.81602098644987
               this.geo.geocode({location: event.latLng}, function(result, status){
                 if(status === 'OK') {
                   for(i in result) {
