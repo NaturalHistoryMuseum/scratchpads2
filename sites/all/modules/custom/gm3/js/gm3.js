@@ -4,11 +4,6 @@
   // Todo: Remove or move some of these helpers into another script
   // Then move the class out of the strict mode wrapper.
 
-  // Generate a listener callback for use in addListenersHelper
-  const makeEventDispatcher = (target, eventName) => function(event){
-    target.dispatchEvent(eventName, event, this);
-  }
-
   // Helper for adding units to a unitless number
   const sizeUnit = n => isFinite(n) ? `${n}px` : n;
 
@@ -41,24 +36,6 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       subdomains: ['a','b','c']
   });
-
-  // These are the Map class event types we forward to child libraries
-  const mapForwardEvents = [
-    'click' ,
-    'dblclick',
-    'mousemove',
-    'contextmenu',
-    'zoom', //zoomend
-    'move' //moveend
-  ];
-
-  // These are other class event types we forward to child libraries
-  const miscForwardEvents = [
-    'click',
-    'dblclick',
-    'contextmenu',
-    // Todo: add move/mousemove
-  ];
 
   Drupal.GM3 = class {
     constructor (map) {
@@ -229,7 +206,7 @@
       this.popups.push({ object: target, content });
 
       // When the target is clicked, open the popup
-      target.addListener("click", event => {
+      target.addEventListener("click", event => {
         // Todo: Remove this from the prototype
         if(this.infoWindow) {
           this.infoWindow.close();
@@ -310,16 +287,12 @@
 
       // Disable the old active child
       const lastActive = this.children[this.activeClass];
-      console.log(lastActive && lastActive.deactivate);
+
       if (lastActive && lastActive.deactivate) {
         lastActive.deactivate();
       }
 
       this.activeClass = activeClass;
-
-      // Let all the children add their listeners, forward events to them
-      // Todo: Why are we calling this on all children?
-      this.addListeners();
 
       if(activeClass == 'default') {
         // Set the default settings
@@ -333,106 +306,6 @@
           // Todo: Remove this
           activeChild.active();
         }
-      }
-    }
-
-    subscribeTo(eventName) {
-      miscForwardEvents.push(eventName);
-    }
-
-    // Go through all the children and call addListeners and addTransferListeners
-    // For some reason
-    addListeners(){
-      for(const id in this.children) {
-        // Add transfer listeners for each library
-        if(this.children[id].addTransferListeners) {
-          this.children[id].addTransferListeners();
-        }
-        // Add listeners for each library (if they define one).
-        if(this.children[id].addListeners) {
-          this.children[id].addListeners();
-        }
-      }
-      // Add listeners to the map. These will in turn execute the callbacks for
-      // the currently active class (or default).
-      this.addListenersHelper();
-    }
-
-    // Dispatches the event to the active library if it's not "default",
-    // otherwise delegates to the first library who wants it
-    dispatchEvent(eventName, event, thisValue) {
-      if(this.activeClass == "default"){
-        this.dispatchEventToLibraries(eventName, event, thisValue);
-      } else {
-        this.dispatchEventToActiveLibrary(eventName, event, thisValue);
-      }
-    };
-
-    // Dispatches the given event to the currently active library
-    dispatchEventToActiveLibrary(eventName, event, thisValue) {
-      const activeLibrary = this.children[this.activeClass];
-      if (activeLibrary.event) {
-        activeLibrary.event(eventName, event, thisValue);
-      }
-    }
-
-    // Dispatches the event to child libraries' event functions; stops at the first to return true
-    // if none return true, the event function on this own class will handle it
-    dispatchEventToLibraries(eventName, event, thisValue) {
-      // Get a list of the libraries, add the main gm3 module to the end
-      const libraries = Object.values(this.children).concat(this);
-
-      // Call event handler on all of the libraries until one returns true
-      libraries.some(l => (l.event && l.event(eventName, event, thisValue)));
-    }
-
-    // Sets up events on the map and forwards them to the active library
-    addListenersHelper(mapObject){
-      // Goes through the mapEvents or otherEvents arrays
-      // if the event is not zoom
-      // maps.event.clearListeners(mapObject, event);
-
-      const map = mapObject || this.leafletMap;
-      // Add additional listeners to the Map
-      const eventsArray = map instanceof L.Map ? mapForwardEvents : miscForwardEvents;
-
-      for(const eventName of eventsArray) {
-        const delegateEvent = makeEventDispatcher(this, eventName);
-        // Todo: Check - is there a better way?
-        //map.removeEventListener(eventName);
-        map.addEventListener(eventName, delegateEvent);
-      }
-    }
-
-    // Clears listeners and transfer listeners on children, removes handlers for event forwarding
-    clearListeners(){
-      // Clear listeners from the map.
-      //this.leafletMap.removeEventListener("click");
-      //this.leafletMap.removeEventListener("mousemove");
-      //this.leafletMap.removeEventListener("rightclick");
-
-      for(const lib of this.children) {
-        // Clear transfer listeners for each library (mostly not needed).
-        if(lib.clearTransferListeners) {
-          lib.clearTransferListeners();
-        }
-        // Clear listeners for each library (if they define one).
-        if(lib.clearListeners) {
-          lib.clearListeners();
-        }
-      }
-      // Add listeners to the map. These will in turn execute the callbacks for
-      // the currently active class (or default).
-      //this.clearListenersHelper();
-    }
-
-    // Removes handlers for forwarding events to children
-    clearListenersHelper(mapObject){
-      mapObject = mapObject || this.leafletMap;
-      const eventsArray = map instanceof L.Map ? mapForwardEvents : miscForwardEvents;
-
-      for(const eventName of eventsArray) {
-        mapObject.removeEventListener(eventName);
       }
     }
 

@@ -5,7 +5,7 @@
       this.GM3 = map;
       // We add "dragend" to the other_events array so that we can update the
       // field when a point is moved.
-      map.subscribeTo('dragend');
+      //map.subscribeTo('dragend');
       this.points = new Array();
       this.markers = new Array();
       // FIXME - Add a way of setting this image.
