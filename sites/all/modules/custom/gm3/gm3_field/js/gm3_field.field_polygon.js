@@ -11,7 +11,6 @@
           new_value += "\n";
         }
         this.polygons[i].getLatLngs().forEach(function(paths){
-          console.log(paths);
           // Only continue if the path has three or more points.
           if(paths.length > 2) {
             new_value += "POLYGON (("
@@ -26,8 +25,7 @@
           }
         })
       }
-      console.log(new_value);
-      $('.' + this.GM3.id + '-polygon').val(new_value);
+      this.fire('update', { cls: id => `.${id}-polygon`, value: new_value });
     }
   }
 })(jQuery);

@@ -122,11 +122,6 @@
         editable: true
       });
 
-      leafletMap.on('editable:vertex:dragend', e => {
-        this.dispatchEvent('')
-        console.log(en, e);
-      });
-
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.
       observeVisibility(mapNode, visible => {
@@ -141,15 +136,30 @@
       this.leafletMap = leafletMap;
       this.mapNode = mapNode;
 
+      // Any time something gets added to the map, add that item to the zoom area
+      leafletMap.on('layeradd', e => {
+        this.addLatLng(e.layer);
+      });
+
       // Add libraries
       // Todo: refactor
       for(const id in map.libraries) {
         if(Drupal.GM3[id]) {
-          this.children[id] = new Drupal.GM3[id](this, map.libraries[id]);
+          const isNewClass = Drupal.GM3[id].prototype instanceof L.Evented;
+          const child = this.children[id] = new Drupal.GM3[id](isNewClass ? this.leafletMap : this, map.libraries[id]);
+          if(isNewClass) {
+            child.on({
+              addobject: e => e.cancelled = !this.addObject(),
+              deactivate: e => this.setActiveClass('default'),
+              popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
+              update: ({ cls, value }) => document.querySelector(cls(this.id)).value = value
+            });
+          }
         }
       }
 
       const toolbar = document.getElementById(`toolbar-${mapId}`);
+      this.toolbar = toolbar;
 
       // Add listeners
       // Todo: Refactor
@@ -159,10 +169,24 @@
 
       // Set the active class to default
       // This is the active tool/setting in the toolbar
-      this.setActiveClass('default', toolbar);
+      this.setActiveClass('default');
 
       // Automatically zoom to fit all points in map
       this.autozoom(leafletMap);
+    }
+
+    /**
+     * Try to increase the number of objects on the map
+     * If the limit has been hit, return false
+     */
+    addObject() {
+      if(this.maxObjects === -1 || this.numObjects < this.maxObjects) {
+        this.numObjects++;
+        return true;
+      } else {
+        this.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
+        return false;
+      }
     }
 
     // Automatically zoom to fit all points in on the map
@@ -176,6 +200,11 @@
 
     // Add a new coörd point to the coverage area
     addLatLng(latLng){
+      latLng = Array.isArray(latLng) ? L.latLngBounds(latLng) :
+               latLng.getLatLng ? latLng.getLatLng() :
+               latLng.getLatLngs ? latLng.getLatLngs() :
+               latLng;
+
       // Todo: Make sure the coord is within bounds/wraps correctly?
       this.coverageArea.extend(latLng);
     }
@@ -250,7 +279,7 @@
 
         // Make sure the clicked element has the attribute
         if(gm3Class) {
-          this.setActiveClass(gm3Class, toolbar);
+          this.setActiveClass(gm3Class);
         }
       });
     }
@@ -268,14 +297,22 @@
     }
 
     // Sets the css class on an active toolbar button
-    setActiveClass(activeClass, toolbar){
+    setActiveClass(activeClass){
       // Todo: Can this toolbar stuff be split off into a toolbar module?
+      const toolbar = this.toolbar;
       if (toolbar) {
         // Remove the gm3-clicked class from the existing clicked element and add it to the clicked one
         toolbar.querySelector(`.gm3-clicked`).classList.remove('gm3-clicked');
 
         // Todo: Get the target from the actual event
         toolbar.querySelector(`[data-gm3-class="${activeClass}"]`).parentNode.classList.add('gm3-clicked');
+      }
+
+      // Disable the old active child
+      const lastActive = this.children[this.activeClass];
+      console.log(lastActive && lastActive.deactivate);
+      if (lastActive && lastActive.deactivate) {
+        lastActive.deactivate();
       }
 
       this.activeClass = activeClass;
@@ -288,9 +325,13 @@
         // Set the default settings
         this.active();
       } else {
+        const activeChild = this.children[activeClass];
         // Find the active child and call its "active" function
-        if(this.children[activeClass] && this.children[activeClass].active) {
-          this.children[activeClass].active();
+        if(activeChild.activate) {
+          activeChild.activate(this.leafletMap);
+        } else {
+          // Todo: Remove this
+          activeChild.active();
         }
       }
     }
@@ -358,7 +399,7 @@
       for(const eventName of eventsArray) {
         const delegateEvent = makeEventDispatcher(this, eventName);
         // Todo: Check - is there a better way?
-        map.removeEventListener(eventName);
+        //map.removeEventListener(eventName);
         map.addEventListener(eventName, delegateEvent);
       }
     }
@@ -366,9 +407,9 @@
     // Clears listeners and transfer listeners on children, removes handlers for event forwarding
     clearListeners(){
       // Clear listeners from the map.
-      this.leafletMap.removeEventListener("click");
-      this.leafletMap.removeEventListener("mousemove");
-      this.leafletMap.removeEventListener("rightclick");
+      //this.leafletMap.removeEventListener("click");
+      //this.leafletMap.removeEventListener("mousemove");
+      //this.leafletMap.removeEventListener("rightclick");
 
       for(const lib of this.children) {
         // Clear transfer listeners for each library (mostly not needed).
@@ -382,7 +423,7 @@
       }
       // Add listeners to the map. These will in turn execute the callbacks for
       // the currently active class (or default).
-      this.clearListenersHelper();
+      //this.clearListenersHelper();
     }
 
     // Removes handlers for forwarding events to children

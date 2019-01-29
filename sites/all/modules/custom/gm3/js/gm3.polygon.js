@@ -1,186 +1,182 @@
 // Tests:
 // Create polygon
 
-// Todo:
-//  Make polygon editable
-//  Register points being draggable
-//  Check handlers for dblclick, contextmenu etc work
-
 (function(){
   "use strict";
 
-  Drupal.GM3.polygon = class {
+  /**
+   * Creates two lines that connect the open ends of the polygon to the mouse position to show how the completed polygon will look
+   */
+  const createFollowLine = () => L.polyline([], {
+    color: '#787878',
+    opacity: 1,
+    weight: 2,
+    interactive: false
+  });
+
+  Drupal.GM3.polygon = class extends L.Evented {
     constructor(map, settings) {
-      this.GM3 = map;
-      // Polygon object.
-      // We don't currently support geodesic shapes, mainly due to the library
-      // we're using being a little buggy in its support for it. For this
-      // reason,
-      // please avoid loading the geometry library.
-      // Todo: can we get rid of this?
-      this.geodesic = false;
-      // Editing lines
-      // Todo: Check whether these settings apply
-      this.followline1 = L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-      this.followline2 = L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
-      // Polygons.
+      super();
+
+      // Create 2 editing lines that follow the user's mouse when editing a polygon
+      this.followLines = [
+        createFollowLine(),
+        createFollowLine()
+      ];
+
+      // Array of functions to call when we deactivate
+      this.teardowns = [];
+
+      // Add the followlines
+      for (const line of this.followLines) {
+        line.setLatLngs([]);
+        line.addTo(map);
+      }
+
+      // The collection of polygons.
       this.polygons = [];
+
       // Add Polygons sent from server.
       if(settings.polygons) {
         for(const polygon of settings.polygons) {
-          if(!polygon.polygon) {
-            this.addPolygon(polygon);
-          } else {
-            this.addPolygon(
-              polygon.polygon,
-              polygon.editable,
-              polygon.content || ''
-            );
-          }
+          const args = polygon.polygon ? [polygon.polygon, polygon.editable, polygon.content, polygon.title] : [polygon];
+          this.addPolygon(...args).addTo(map);
         }
       }
-      this.addTransferListeners();
     }
-    active(){
-      // Todo: Set cursor to pointer
-      // Todo: Construct options:
-      // {geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []}
-      const polygon = L.polygon([]);
-      polygon.on('editable:vertex:dragend', e => {
-        console.log('editpoly1', e);
-      });
-      polygon.addTo(this.GM3.leafletMap);
-      this.polygons.push(polygon);
-      this.followline1.setLatLngs([]);
-      this.followline2.setLatLngs([]);
-      this.followline1.addTo(this.GM3.leafletMap);
-      this.followline2.addTo(this.GM3.leafletMap);
-    }
-    addPolygon(points, editable = true, content, title){
-      const pathPoints = new Array(points.length);
-      for(let i = 0; i < points.length; i++) {
-        pathPoints[i] = Array.isArray(points[i]) ? L.latLng([points[i][1], points[i][0]]) : L.latLng(points[i]);
-        this.GM3.addLatLng(pathPoints[i]);
+    activate(map){
+      this.active = true;
+
+      // Create a new polygon and add it to the map
+      this.addPolygon().addTo(map);
+
+      // Add tool functionality
+      this.listeners = {
+        click: e => this.addPolyPoint(e.latlng),
+        mousemove: e => this.setFollowLines(e.latlng || e),
+        contextmenu: e => this.selfDisable()
       }
 
-      if(editable) {
+      map.on(this.listeners);
+
+      // Register a function to remove the listeners
+      this.teardowns.push(() => map.off(this.listeners))
+    }
+    deactivate(){
+      this.active = false;
+
+      // Remove the polygon if it wasn't actually used
+      if(this.getPolygonPath().length === 0) {
+        this.polygons.pop().remove();
+      }
+
+      // Remove event listeners
+      this.teardowns.forEach(t => t());
+      this.teardowns = [];
+
+      // Remove polylines
+      this.followLines[0].remove();
+      this.followLines[1].remove();
+
+      // Disable the editor
+      this.getLastPolygon().disableEdit();
+    }
+    /**
+     * Adds a polygon to the map
+     * @param {Array} points Latlng points to add to the polygon
+     * @param {bool} editable true if the user can edit this shape
+     * @param {string} content Content for the popup to add
+     * @param {string} title Title for the popup to add
+     */
+    addPolygon(points = [], editable = true, content, title = ''){
+      // Make sure we map these points correctly if they're array pairs,
+      // as the notation we use is inverse from the shorthand that leaflet uses
+      const pathPoints = points.map(point => Array.isArray(points) ? L.latLng([point[1], point[0]]) : L.latLng(points));
+
+      const polyOptions = {
+        color: editable ? this.getLineColour() : '#000000',
+        opacity: 0.4,
+        weight: editable ? 4 : 1
+      };
+
+      const polygon = L.polygon(pathPoints, polyOptions);
+      this.polygons.push(polygon);
+
+      // Add some listeners so users can edit polygons
+      if (editable) {
+        polygon.on('click', e => {
+          if(!this.active) {
+            e.target.enableEdit();
+          }
+        });
+
+        polygon.on('editable:editing', e => {
+          this.updateField && this.updateField();
+        });
+      }
+
+      if(content && !editable) {
         // We don't add a popup to an editable polygon.
-        // Todo: Set options: {geodesic: this.geodesic, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3,}
-        const p = L.polygon(pathPoints);
-        p.addTo(this.GM3.leafletMap);
-        this.polygons.push(p);
-        p.on('editable:vertex:dragend', e => {
-          console.log('editpoly2', e);
-        });
+        this.fire('popup', { layer: polygon, content, title })
+      }
+
+      return polygon;
+    }
+    getLastPolygon() {
+      return this.polygons[this.polygons.length - 1];
+    }
+    getPolygonPath(){
+      const polygonPath = this.getLastPolygon().getLatLngs();
+      // If the first child of the lastLngs collection is an array,
+      // we have a "multipolygon" object, and have to dive one layer down
+      if (Array.isArray(polygonPath[0])) {
+        return polygonPath[0];
       } else {
-        // Todo: add options {geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: pathPoints}
-        const polygon = L.polygon(pathPoints);
-        polygon.on('editable:vertex:dragend', e => {
-          console.log('editpoly3', e);
-        });
-        polygon.addTo(this.GM3.leafletMap);
-        // Todo: Why are we calling this?
-        this.GM3.addListenersHelper(polygon);
-        if(content) {
-          // Add the popup also if we have content!
-          this.GM3.addPopup(polygon, content, title || '');
+        return polygonPath;
+      }
+    }
+    addPolyPoint(latlng){
+      const polygon = this.getLastPolygon();
+      const polyLine = this.getPolygonPath();
+      // If this is the first point on the shape, try to fire addObject and see if it gets cancelled
+      if (polyLine.length == 0) {
+        const options = {
+          cancelled: false
+        };
+        this.fire('addobject', options);
+
+        if (options.cancelled) {
+          return
         }
-        // Return the polygon so that it can be saved elsewhere.
-        return polygon;
+      }
+      polygon.disableEdit();
+      polygon.addLatLng(latlng);
+      polygon.enableEdit();
+
+      // Disable the follow lines
+      this.followLines[0].setLatLngs([]);
+      this.followLines[1].setLatLngs([]);
+
+      // Save the change
+      if(this.updateField) {
+        this.updateField();
       }
     }
-    event(eventType, event, eventObject){
-      // Todo: Refactor this pls
-      switch(this.GM3.activeClass){
-        case 'polygon':
-          switch(eventType){
-            case 'click':
-              if(this.polygons[this.polygons.length - 1].getLatLngs().length == 0) {
-                // Todo: This really ought to call a function on the parent class
-                if(this.GM3.maxObjects === -1 || this.GM3.num_objects < this.GM3.maxObjects) {
-                  this.GM3.numObjects++;
-                } else {
-                  this.GM3.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
-                  break;
-                }
-              }
-              this.polygons[this.polygons.length - 1].disableEdit();
-              this.polygons[this.polygons.length - 1].addLatLng(event.latlng);
-              this.polygons[this.polygons.length - 1].enableEdit();
-              if(this.updateField) {
-                this.updateField();
-              }
-              break;
-            case 'mousemove':
-              const lastPolygon = this.polygons[this.polygons.length - 1];
-              const polygonPath = lastPolygon.getLatLngs();
-              const pathLength = polygonPath.length;
-              if(pathLength >= 1) {
-                const startingPoint1 = polygonPath[pathLength - 1];
-                const { latlng } = event;
-                const followCoordinates1 = [startingPoint1, latlng];
-                this.followline1.setLatLngs(followCoordinates1);
-                const startingPoint2 = polygonPath[0];
-                const followCoordinates2 = [startingPoint2, latlng];
-                this.followline2.setLatLngs(followCoordinates2);
-              }
-              break;
-            case 'rightclick':
-              this.GM3.setActiveClass('default');
-              this.followline1.setMap(null);
-              this.followline2.setMap(null);
-              if(this.updateField) {
-                this.updateField();
-              }
-              break;
-          }
-          break;
-        case 'default':
-          switch(eventType){
-            case 'click':
-              if(eventObject.getClass && eventObject.getClass() == 'Polygon') {
-                // Once clicked, stop editing other polygons
-                for( const j = 0; j < this.polygons.length; j++) {
-                  this.polygons[j].stopEdit();
-                }
-                // We need to check this object is one of ours. Else we simply
-                // ignore it
-                for( const i = 0; i < this.polygons.length; i++) {
-                  if(eventObject == this.polygons[i]) {
-                    this.polygons[i].runEdit();
-                  }
-                }
-              } else {
-                // Clicked elsewhere, stop editing.
-                for( const j = 0; j < this.polygons.length; j++) {
-                  this.polygons[j].stopEdit();
-                }
-              }
-              if(this.updateField) {
-                this.updateField();
-              }
-              break;
-            case 'rightclick':
-              if(eventObject.getClass && eventObject.getClass() != 'Polygon') {
-                // Once clicked, stop editing other polygons
-                for( const j = 0; j < this.polygons.length; j++) {
-                  this.polygons[j].stopEdit();
-                }
-              }
-              if(this.updateField) {
-                this.updateField();
-              }
-              break;
-          }
-          break;
+    setFollowLines(mousePosition) {
+      const polygonPath = this.getPolygonPath();
+      const pathLength = polygonPath.length;
+
+      if(pathLength >= 1) {
+        const polygonStart = polygonPath[0];
+        const polygonEnd = polygonPath[pathLength - 1];
+
+        this.followLines[0].setLatLngs([polygonEnd, mousePosition]);
+        this.followLines[1].setLatLngs([mousePosition, polygonStart]);
       }
     }
-    addTransferListeners(){
-      // What does this actually mean?
-      for(const polygon of this.polygons) {
-        // Todo: Why are we doing this both here and in the parent?
-        this.GM3.addListenersHelper(polygon);
-      }
+    selfDisable(){
+      // Todo: Fire this as an event
+      this.fire('deactivate');
     }
     getLineColour(){
       const colours = [
