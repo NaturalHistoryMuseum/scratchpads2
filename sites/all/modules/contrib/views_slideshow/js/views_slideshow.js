@@ -63,7 +63,7 @@
    * Views Slideshow Text Controls
    */
 
-  // Add views slieshow api calls for views slideshow text controls.
+  // Add views slideshow api calls for views slideshow text controls.
   Drupal.behaviors.viewsSlideshowControlsText = {
     attach: function (context) {
 
@@ -148,6 +148,15 @@
     try {
       if (typeof Drupal.settings.viewsSlideshowPager != "undefined" && typeof Drupal.settings.viewsSlideshowPager[options.slideshowID].top.type != "undefined" && typeof Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].top.type].transitionBegin == 'function') {
         Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].top.type].transitionBegin(options);
+        if (Drupal.settings.viewsSlideshowPager[options.slideshowID].top.master_pager === 1) {
+          $.each(Drupal.settings.viewsSlideshow, function(i, obj) {
+            if (i != options.slideshowID) {
+              options.slideshowID = i;
+              options.action = 'goToSlide';
+              Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].top.type].goToSlide(options);
+            }
+          });
+        }
       }
     }
     catch(err) {
@@ -157,6 +166,15 @@
     try {
       if (typeof Drupal.settings.viewsSlideshowPager != "undefined" && typeof Drupal.settings.viewsSlideshowPager[options.slideshowID].bottom.type != "undefined" && typeof Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].bottom.type].transitionBegin == 'function') {
         Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].bottom.type].transitionBegin(options);
+        if (Drupal.settings.viewsSlideshowPager[options.slideshowID].bottom.master_pager === 1) {
+          $.each(Drupal.settings.viewsSlideshow, function(i, obj) {
+            if (i != options.slideshowID) {
+              options.slideshowID = i;
+              options.action = 'goToSlide';
+              Drupal[Drupal.settings.viewsSlideshowPager[options.slideshowID].bottom.type].goToSlide(options);
+            }
+          });
+        }
       }
     }
     catch(err) {
@@ -247,7 +265,7 @@
    * Views Slideshow Pager Fields
    */
 
-  // Add views slieshow api calls for views slideshow pager fields.
+  // Add views slideshow api calls for views slideshow pager fields.
   Drupal.behaviors.viewsSlideshowPagerFields = {
     attach: function (context) {
       // Process pause on hover.

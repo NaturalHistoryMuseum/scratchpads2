@@ -1,4 +1,3 @@
-
 /**
  *  @file
  *  A simple jQuery Cycle Div Slideshow Rotator.
@@ -24,10 +23,21 @@
             settings.processedAfter = 1;
             slideNum = (typeof settings.opts.startingSlide == 'undefined') ? 0 : settings.opts.startingSlide;
           }
+          if (settings.pause_after_slideshow) {
+            opts.counter += 1;
+            if (opts.counter == settings.num_divs + 1) {
+              opts.counter = 1;
+              Drupal.viewsSlideshow.action({ "action": 'pause', "slideshowID": settings.slideshowId, "force": true });
+            }
+          }
           Drupal.viewsSlideshow.action({ "action": 'transitionEnd', "slideshowID": settings.slideshowId, "slideNum": slideNum });
         }
         // Pager before function.
         var pager_before_fn = function(curr, next, opts) {
+          $(document).trigger('drupal:views_slideshow_cycle:before', {
+            curr: curr, next: next, opts: opts, settings: settings
+          });
+
           var slideNum = opts.nextSlide;
 
           // Remember last slide.
@@ -60,6 +70,8 @@
           sync:settings.sync,
           random:settings.random,
           nowrap:settings.nowrap,
+          pause_after_slideshow:settings.pause_after_slideshow,
+          counter:0,
           after:pager_after_fn,
           before:pager_before_fn,
           cleartype:(settings.cleartype)? true : false,
@@ -121,6 +133,24 @@
           }
         }
 
+        // Play on hover.
+        if (settings.play_on_hover) {
+          var mouseIn = function() {
+            Drupal.viewsSlideshow.action({ "action": 'play', "slideshowID": settings.slideshowId, "force": true });
+          }
+
+          var mouseOut = function() {
+            Drupal.viewsSlideshow.action({ "action": 'pause', "slideshowID": settings.slideshowId });
+          }
+
+          if (jQuery.fn.hoverIntent) {
+            $('#views_slideshow_cycle_teaser_section_' + settings.vss_id).hoverIntent(mouseIn, mouseOut);
+          }
+          else {
+            $('#views_slideshow_cycle_teaser_section_' + settings.vss_id).hover(mouseIn, mouseOut);
+          }
+        }
+
         // Pause on clicking of the slide.
         if (settings.pause_on_click) {
           $('#views_slideshow_cycle_teaser_section_' + settings.vss_id).click(function() {
@@ -151,7 +181,6 @@
               case "fastOnEvent":
               case "fit":
               case "fx":
-              case "height":
               case "manualTrump":
               case "metaAttr":
               case "next":
@@ -175,15 +204,32 @@
               case "startingSlide":
               case "sync":
               case "timeout":
-              case "width":
                 var optionValue = advancedOptions[option];
                 optionValue = Drupal.viewsSlideshowCycle.advancedOptionCleanup(optionValue);
                 settings.opts[option] = optionValue;
                 break;
 
+              // If width is set we need to disable resizing.
+              case "width":
+                var optionValue = advancedOptions["width"];
+                optionValue = Drupal.viewsSlideshowCycle.advancedOptionCleanup(optionValue);
+                settings.opts["width"] = optionValue;
+                settings.opts["containerResize"] = 0;
+                break;
+
+              // If height is set we need to set fixed_height to true.
+              case "height":
+                var optionValue = advancedOptions["height"];
+                optionValue = Drupal.viewsSlideshowCycle.advancedOptionCleanup(optionValue);
+                settings.opts["height"] = optionValue;
+                settings.fixed_height = 1;
+                break;
+
               // These process options that look like {top:50, bottom:20}
               case "animIn":
+              case "animInDelay":
               case "animOut":
+              case "animOutDelay":
               case "cssBefore":
               case "cssAfter":
               case "shuffle":
@@ -289,7 +335,10 @@
                 var timeoutFnValue = advancedOptions[option];
                 timeoutFnValue = Drupal.viewsSlideshowCycle.advancedOptionCleanup(timeoutFnValue);
                 settings.opts[option] = function(currSlideElement, nextSlideElement, options, forwardFlag) {
+                  // Set a sane return value unless function overrides it.
+                  var returnVal = settings.timeout;
                   eval(timeoutFnValue);
+                  return returnVal;
                 }
                 break;
 
@@ -342,13 +391,85 @@
     }
   };
 
+  /**
+   * Views Slideshow swipe support.
+   */
+  Drupal.behaviors.viewsSlideshowSwipe = {
+    attach: function (context) {
+      var isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
+      if (isTouch === true && $('.views-slideshow-cycle-main-frame').length) {
+        var $slider = $('.views-slideshow-cycle-main-frame'),
+          opts = {
+            start: {x: 0, y: 0},
+            end: {x: 0, y: 0},
+            hdiff: 0,
+            vdiff: 0,
+            length: 0,
+            angle: null,
+            direction: null,
+          },
+          optsReset = $.extend(true, {}, opts),
+         H_THRESHOLD =  110, // roughly one inch effective resolution on ipad
+         V_THRESHOLD = 50;
+        $slider.data('bw', opts)
+        .bind('touchstart.cycle', function (e) {
+          var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+          if (e.originalEvent.touches.length == 1) {
+            var data = $(this).data('bw');
+            data.start.x = touch.pageX;
+            data.start.y = touch.pageY;
+            $(this).data('bw', data);
+          }
+        })
+        .bind('touchend.cycle', function (e) {
+          var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+          var data = $(this).data('bw');
+          data.end.x = touch.pageX;
+          data.end.y = touch.pageY;
+          $(this).data('bw', data);
+          if (data.start.x != 0 && data.start.y != 0) {
+            data.vdiff = data.start.x - data.end.x;
+            data.hdiff = data.end.y - data.start.y;
+            if (Math.abs(data.vdiff) == data.start.x && Math.abs(data.hdiff) == data.start.y) {
+              data.vdiff = 0;
+              data.hdiff = 0;
+            }
+            var length = Math.round(Math.sqrt(Math.pow(data.vdiff,2) + Math.pow(data.hdiff,2)));
+            var rads = Math.atan2(data.hdiff, data.vdiff);
+            var angle = Math.round(rads*180/Math.PI);
+            if (angle < 0) { angle = 360 - Math.abs(angle); }
+            if (length > H_THRESHOLD && V_THRESHOLD > data.hdiff) {
+              e.preventDefault();
+              if (angle > 135 && angle < 225) {
+                var cyopt = $slider.data('cycle.opts');
+                if (cyopt.currSlide > 0) {
+                  $slider.cycle((cyopt.currSlide - 1), 'scrollRight');
+                }
+                else {
+                   $slider.cycle((cyopt.slideCount - 1), 'scrollRight');
+                }
+              }
+              else if (angle > 315 || angle < 45) {
+                $slider.cycle('next');
+              }
+            }
+          }
+          data = $.extend(true, {}, optsReset);
+        });
+      }
+    }
+  };
+
   Drupal.viewsSlideshowCycle = Drupal.viewsSlideshowCycle || {};
 
   // Cleanup the values of advanced options.
   Drupal.viewsSlideshowCycle.advancedOptionCleanup = function(value) {
     value = $.trim(value);
     value = value.replace(/\n/g, '');
-    if (!isNaN(parseInt(value))) {
+    if (value.match(/^[\d.]+%$/)) {
+      // noop
+    }
+    else if (!isNaN(parseInt(value))) {
       value = parseInt(value);
     }
     else if (value.toLowerCase() == 'true') {
@@ -376,6 +497,7 @@
     // Make sure the slideshow isn't already loaded.
     if (!settings.loaded) {
       $(settings.targetId).cycle(settings.opts);
+      $(settings.targetId).parent().parent().addClass('views-slideshow-cycle-processed');
       settings.loaded = true;
 
       // Start Paused
@@ -563,7 +685,7 @@
       // is larger than the allowed percent.
       // Otherwise check to see if the amount of px shown is larger than the
       // allotted amount.
-      if (amountVisible.indexOf('%')) {
+      if (typeof amountVisible === 'string' && amountVisible.indexOf('%')) {
         return (((verticalShowing/elemHeight)*100) >= parseInt(amountVisible));
       }
       else {
@@ -577,7 +699,7 @@
       // is larger than the allowed percent.
       // Otherwise check to see if the amount of px shown is larger than the
       // allotted amount.
-      if (amountVisible.indexOf('%')) {
+      if (typeof amountVisible === 'string' && amountVisible.indexOf('%')) {
         return (((horizontalShowing/elemWidth)*100) >= parseInt(amountVisible));
       }
       else {
@@ -591,7 +713,7 @@
       // is larger than the allowed percent.
       // Otherwise check to see if the amount of px shown is larger than the
       // allotted amount.
-      if (amountVisible.indexOf('%')) {
+      if (typeof amountVisible === 'string' && amountVisible.indexOf('%')) {
         return (((areaShowing/elemArea)*100) >= parseInt(amountVisible));
       }
       else {

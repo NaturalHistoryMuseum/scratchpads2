@@ -1,32 +1,6 @@
-const Client = require('./client');
-const Checkbox = require('./checkbox');
-const { css, link } = require('./selectors');
-
-const argv = require('minimist')(process.argv.slice(2));
-
-function getArg(name) {
-  if(argv[name]) {
-    return argv[name];
-  }
-  const e = new Error(`--${name} cli arg required`);
-  Error.captureStackTrace(e, getArg);
-  throw e;
-}
-
-const SCRATCHPAD_URL = getArg('url');
-const USERNAME = getArg('username');
-const PASSWORD = getArg('password');
-
-const config = {
-  path: '/',
-  capabilities: {
-    browserName: 'firefox',
-    timeouts: {
-      implicit: 5000
-    }
-  },
-  logLevel: 'debug'
-}
+const Client = require('../client');
+const Checkbox = require('../checkbox');
+const { css } = require('../selectors');
 
 const withEditor = (window, id, fn) =>
   window.withFrame(id, async () => {
@@ -43,22 +17,24 @@ const completeStep = (window, fn) =>
     return rtn;
   });
 
+const config = {
+  path: '/',
+  capabilities: {
+    browserName: 'firefox',
+    timeouts: {
+      implicit: 5000
+    }
+  },
+  logLevel: 'debug'
+}
+
+const login = require('./login');
 
 Client.run(config, async (window) => {
-  await window.navigateTo(SCRATCHPAD_URL);
-
-  await window.find(link('Log in')).click();
-
-  // FIll login form
-  await window.find(css('#edit-name')).sendKeys(USERNAME);
-  await window.find(css('#edit-pass')).sendKeys(PASSWORD);
-  await window.find(css('#edit-submit')).click();
-
-  // Wait for hello
-  await window.find(link('Hello ' + USERNAME));
+  await login(window);
 
   // Go to setup
-  await window.navigateTo(SCRATCHPAD_URL + '/#overlay=setup/0');
+  await window.navigateTo(login.SCRATCHPAD_URL + '/#overlay=setup/0');
 
   // Page 1
   await completeStep(window);
@@ -104,3 +80,4 @@ Client.run(config, async (window) => {
   // Wait for success messages
   await window.find(css('.messages.status'));
 });
+

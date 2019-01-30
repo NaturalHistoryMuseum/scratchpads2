@@ -1,4 +1,5 @@
 const { waitFor } = require('./utils');
+const { cast } = require('./selectors');
 
 class Element {
   constructor(client, id) {
@@ -11,13 +12,9 @@ class Element {
     this.id = id;
   }
 
-  static async find(client, selType, selector, Constructor = Element) {
-    if(typeof selType === 'object') {
-      Constructor = selector || Constructor;
-      selector = selType.selector;
-      selType = selType.strategy;
-    }
-    const id = await waitFor(() => client.findElement(selType, selector));
+  static async find(client, selectorObject, Constructor = Element) {
+    const { selector, strategy } = cast(selectorObject);
+    const id = await waitFor(() => client.findElement(strategy, selector));
 
     return new Constructor(client, id);
   }
@@ -26,9 +23,18 @@ class Element {
     return this.client.elementSendKeys(this.id, keys);
   }
 
-  async click() {
-    await this.client.elementClick(this.id);
-    return this;
+  async find(selectorObject, Constructor = Element) {
+    const { selector, strategy } = cast(selectorObject);
+
+    const id = await waitFor(() => this.client.findElementFromElement(this.id, strategy, selector))
+    return new Constructor(this.client, id);
+  }
+
+  async click(finder) {
+    const element = finder ? await this.find(finder) : this;
+
+    await this.client.elementClick(element.id);
+    return element;
   }
 
   getAttribute(attribute) {

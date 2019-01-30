@@ -1,0 +1,89 @@
+<?php
+
+/**
+ * @file
+ * Provides a simple numeric counter pager for views_slideshow.
+ */
+
+/**
+ * Implements hook_views_slideshow_widget_pager_info().
+ */
+function views_slideshow_simple_pager_views_slideshow_widget_pager_info($view) {
+  return array(
+    'views_slideshow_simple_pager' => array(
+      'name' => t('Simple counter'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function views_slideshow_simple_pager_theme($existing, $type, $theme, $path) {
+  return array(
+    'views_slideshow_simple_pager' => array(
+      'variables' => array(
+        'vss_id' => NULL,
+        'view' => NULL,
+        'settings' => array(),
+        'location' => NULL,
+        'attributes' => array(),
+      ),
+      'template' => 'theme/views-slideshow-pager-fields',
+      'path' => drupal_get_path('module', 'views_slideshow'),
+    ),
+  );
+}
+
+/**
+ * Template preprocess function for Views Slideshow simple pager.
+ *
+ * @ingroup vss_theme
+ */
+function template_preprocess_views_slideshow_simple_pager(&$vars) {
+  // Call the fields pager preprocess function.
+  _views_slideshow_preprocess_views_slideshow_pager_fields($vars);
+
+  // Override the (empty) rendered field items with our simple pager.
+  $vars['rendered_field_items'] = '';
+  if (empty($vars['settings']['hide_on_single_slide']) || count($vars['view']->result) > 1) {
+    // Each slide can contain more than one item.
+    $items_per_slide = $vars['view']->style_options['views_slideshow_cycle']['items_per_slide'];
+    // The remainder will be put on an additional slide.
+    $count_remainder = count($vars['view']->result) % $items_per_slide;
+    // Figure out the number of slides based on result count
+    // and items per slide, plus one if there is a remainder.
+    $slide_count = ($count_remainder) ? floor(count($vars['view']->result) / $items_per_slide) + 1 : floor(count($vars['view']->result) / $items_per_slide);
+    for ($count = 0; $count < $slide_count; ++$count) {
+      $counted = $count + 1;
+      $vars['rendered_field_items'] .= theme('views_slideshow_pager_field_item', array(
+        'vss_id' => $vars['vss_id'],
+        'item' => l($counted, 'javascript:void(0)', array(
+          'fragment' => '',
+          'external' => TRUE,
+        )),
+        'count' => $count,
+        'location' => $vars['location'],
+      ));
+    }
+  }
+
+  // Clone the pager fields JavaScript object and methods.
+  drupal_add_js('Drupal.viewsSlideshowSimplePager = Drupal.viewsSlideshowPagerFields || {};', 'inline');
+
+  // Add anchor tags in the pager.
+  drupal_add_js('var uniquePagerID =
+    jQuery(".views-slideshow-pager-field-item").click(function() {
+      var eID = jQuery(this).attr("id").replace("views_slideshow_pager_field_item_bottom_","");
+      var ssID = eID.substring(0,eID.lastIndex("_"));
+      var sN = eID.substring(eID.lastIndex("_") + 1);
+      Drupal.viewsSlideshow.action({ "action": "goToSlide", "slideshowID": ssID, "slideNum": sN });
+    });
+  ', 'inline');
+
+  // Add minimal styling.
+  drupal_add_css(drupal_get_path('module', 'views_slideshow_simple_pager') . '/pager.css', array(
+    'group' => CSS_DEFAULT,
+    'type' => 'file',
+  ));
+}
