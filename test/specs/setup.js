@@ -10,12 +10,12 @@ const withEditor = (window, id, fn) =>
   });
 
 const completeStep = (window, fn) =>
-  window.withFrame(1, async frame => {
+  window.withFrame('.overlay-element.overlay-active', async frame => {
     const rtn = fn && await fn(frame);
     const el = await frame.click('#edit-next');
-    await el.waitUntilStale(30000)
+    await el.waitUntilStale(30000);
     return rtn;
-  });
+  })
 
 const config = {
   path: '/',
@@ -41,7 +41,7 @@ Client.run(config, async (window) => {
 
   // Page 2 - welcome message
   await completeStep(window, frame =>
-    withEditor(frame, 0,
+    withEditor(frame, '.cke_contents iframe',
       body => body.sendKeys('Welcome message')
     )
   );
