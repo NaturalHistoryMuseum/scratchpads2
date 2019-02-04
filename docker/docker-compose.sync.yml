@@ -1,10 +1,10 @@
 version: '2'
 
 services:
-  apache: 
-    volumes:     
+  apache:
+    volumes:
       - docker-sync:/var/www/html:nocopy
 
-volumes:   
+volumes:
   docker-sync:
     external: true

@@ -4,23 +4,26 @@ WORKDIR /var/www/html
 
 RUN apt-get update
 RUN apt-get -y install wget \
-             libxml2-dev \
-             git \
-             nano \
-             libpng-dev \
-             libmagickwand-dev \
-             imagemagick \
-             libgmp-dev \
-             zlib1g-dev \
-             ssmtp \
-             libfreetype6-dev \
-             libjpeg62-turbo-dev \
-             libgd-dev cron \
-             msmtp \
-             --no-install-recommends
+    libxml2-dev \
+    git \
+    nano \
+    libpng-dev \
+    libmagickwand-dev \
+    imagemagick \
+    libgmp-dev \
+    zlib1g-dev \
+    ssmtp \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libgd-dev cron \
+    msmtp \
+    --no-install-recommends
 
 RUN pecl install uploadprogress
 RUN docker-php-ext-enable uploadprogress
+
+RUN pecl install xdebug-2.5.5
+RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-install opcache
 RUN docker-php-ext-install sockets
@@ -37,13 +40,13 @@ RUN docker-php-ext-configure gd \
 RUN docker-php-ext-install pdo_mysql gd mbstring gmp zip
 
 RUN apt-get install -y \
-        libmcrypt-dev \
+    libmcrypt-dev \
     && docker-php-ext-install mcrypt \
     && apt-get remove -y \
-        libmcrypt-dev \
+    libmcrypt-dev \
     && apt-get install -y \
-        libmcrypt4 \
-&& apt-get autoremove -y
+    libmcrypt4 \
+    && apt-get autoremove -y
 
 RUN apt-get install -y mysql-client
 
@@ -59,10 +62,10 @@ RUN mv drush.phar /usr/local/bin/drush
 RUN drush core-status
 
 # Configure for drupal install
-COPY settings.php /var/www/html/sites/default/settings.php
+COPY files/settings.php /var/www/html/sites/default/settings.php
 
 # Enable error logging & msmtp
-COPY php.ini /usr/local/etc/php/
+COPY files/php.ini /usr/local/etc/php/
 
 RUN usermod -u 1000 www-data
 RUN groupmod -g 1000 www-data
