@@ -41,7 +41,7 @@ and also fixes a bug we missed in the PHP 7 work.
 
 2.8.0.11 (2016-06-01)
 
-- Upgrades to some of the easier ocntrib modules to check.
+- Upgrades to some of the easier contrib modules to check.
 
 2.8.0.10 (2016-06-01)
 
