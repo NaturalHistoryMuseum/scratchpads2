@@ -537,3 +537,17 @@ function scratchpads_media_gallery_update_7020(){
     }
   }
 }
+
+/**
+ * Update the extensions allowed to include tif.
+ */
+function scratchpads_media_gallery_update_7021(){
+  $media = field_info_field('field_media');
+  foreach($media['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle_name){
+      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
+      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
+      field_update_instance($instance);
+    }
+  }
+}

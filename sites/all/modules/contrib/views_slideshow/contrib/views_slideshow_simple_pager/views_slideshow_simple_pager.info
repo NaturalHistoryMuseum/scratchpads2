@@ -1,0 +1,12 @@
+name = Views Slideshow Simple Pager
+description = Provides a simple pager for Views Slideshow.
+dependencies[] = views_slideshow
+package = Views
+core = 7.x
+
+; Information added by Drupal.org packaging script on 2017-06-08
+version = "7.x-3.9"
+core = "7.x"
+project = "views_slideshow"
+datestamp = "1496893153"
+

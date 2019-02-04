@@ -1,4 +1,0 @@
-; $Id$
-name = Messages Alter
-description = This module adds a custom hook_message_alter().
-core = 7.x

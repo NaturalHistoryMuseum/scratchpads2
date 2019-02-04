@@ -385,11 +385,18 @@ function _save_contributors(&$contributors, $nid, $vid, $update = FALSE) {
           //if the name has changed, NULL the cid so a new entry is created
           $author['cid'] = NULL;
         }
+        else {
+          $contributors[$key] = array_merge($author, (array)$auth);
+        }
       }
       // if we don't have a cid, lets see if we can find and exact match
       // to the name and use that cid
       if (!isset($author['cid']) || empty($author['cid'])) {
-        $author['cid'] = biblio_get_cid_by_name($author['name']);
+        $auth = biblio_get_contributor_by_name($author['name']);
+        if (!empty($auth) && isset($auth->cid)) {
+          $author['cid'] = $auth->cid;
+          $contributors[$key] = array_merge($author, (array)$auth);
+        }
       }
 
       // if we still don't have a cid, then create a new entry in the biblio_contirbutor_data table

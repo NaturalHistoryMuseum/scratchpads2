@@ -24,9 +24,13 @@ For more information about what scratchpads are, see [http://scratchpads.eu](htt
 
 ## Install dependencies
 
+You can use [drush](https://docs.drush.org/en/8.x/) and [composer](https://getcomposer.org/) to install dependencies.
+
 There are two types of dependencies to install:
  - Drupal dependencies: `drush make --no-core scratchpads2.make.yml .`
  - Composer dependencies: `composer install`
+
+You can also install contrib modules using `drush dl {module_name}`.
 
 ## Development & Docker
 

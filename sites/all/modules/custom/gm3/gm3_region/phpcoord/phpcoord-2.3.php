@@ -29,7 +29,7 @@ class LatLng{
      * @param lat latitude
      * @param lng longitude
      */
-  function LatLng($lat, $lng){
+  function __construct($lat, $lng){
     $this->lat = $lat;
     $this->lng = $lng;
   }
@@ -260,7 +260,7 @@ class OSRef{
      * @param easting the easting of the reference (with 1m accuracy)
      * @param northing the northing of the reference (with 1m accuracy)
      */
-  function OSRef($easting, $northing){
+  function __construct($easting, $northing){
     $this->easting = $easting;
     $this->northing = $northing;
   }
@@ -373,7 +373,7 @@ class UTMRef{
      * @param latZone
      * @param lngZone
      */
-  function UTMRef($easting, $northing, $latZone, $lngZone){
+  function __construct($easting, $northing, $latZone, $lngZone){
     $this->easting = $easting;
     $this->northing = $northing;
     $this->latZone = $latZone;
@@ -438,7 +438,7 @@ class RefEll{
      * @param maj the major axis
      * @param min the minor axis
      */
-  function RefEll($maj, $min){
+  function __construct($maj, $min){
     $this->maj = $maj;
     $this->min = $min;
     $this->ecc = (($maj * $maj) - ($min * $min)) / ($maj * $maj);

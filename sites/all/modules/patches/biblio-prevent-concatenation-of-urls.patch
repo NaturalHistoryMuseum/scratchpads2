@@ -17,7 +17,3 @@ index 6c4d1ac..fb4272b 100644
 +              }
            }
            break;
- 
-diff --git a/sites/all/modules/patches/biblio-prevent-concatenation-of-urls.patch b/sites/all/modules/patches/biblio-prevent-concatenation-of-urls.patch
-new file mode 100644
-index 0000000..e69de29

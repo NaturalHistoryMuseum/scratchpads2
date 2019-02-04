@@ -1,27 +1,42 @@
+/**
+ * @file
+ * Basic styling for Views Slideshow Cycle.
+ */
 
 .views_slideshow_cycle_no_display,
 .views_slideshow_cycle_hidden,
 .views_slideshow_cycle_controls,
+.views-slideshow-controls-bottom,
+.views-slideshow-controls-top,
 .views_slideshow_cycle_image_count {
   display: none;
 }
 
-/* Pager Settings */
-
-.views_slideshow_cycle_pager div a img {
-  width: 75px;
-  height: 75px;
+/* Only show control blocks if the JavaScript successfully initialized. */
+.views-slideshow-cycle-processed .views-slideshow-controls-bottom,
+.views-slideshow-cycle-processed .views-slideshow-controls-top {
+  display: block;
 }
 
-.views_slideshow_pager_numbered div, .views_slideshow_pager_thumbnails div {
+/* Pager Settings */
+
+.views-slideshow-pager-fields img {
+  max-width: 75px;
+  max-height: 75px;
+}
+
+.views-slideshow-pager-fields div {
   display: inline;
+}
+
+.views-slideshow-pager-fields > div{
   padding-left: 10px;
 }
 
-.views_slideshow_cycle_pager.thumbnails a.activeSlide img {
+.views-slideshow-pager-fields .active img {
   border: 3px solid #000;
 }
 
-.views_slideshow_cycle_pager.numbered a.activeSlide {
+.views-slideshow-pager-fields .active {
   text-decoration: underline;
 }

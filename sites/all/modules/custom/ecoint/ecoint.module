@@ -276,7 +276,9 @@ function ecoint_field_formatter_view($entity_type, $entity, $field, $instance, $
 function ecoint_cron(){
   if(variable_get('ecoint_export', FALSE)){
     module_load_include('cron.inc', 'ecoint');
-    _ecoint_export_cron();
+    // This export is disabled until issue #5777 is solved
+    // https://github.com/NaturalHistoryMuseum/scratchpads2/issues/5777
+    // _ecoint_export_cron();
   }
 }
 

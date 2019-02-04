@@ -216,6 +216,9 @@ function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session
         case '%Z' :
           $node->biblio_notes .= $value;
           break;
+        case '%K' :
+          $node->biblio_keywords[] = $value;
+          break;
 
         default :
           $field = _biblio_tagged_field_map($tag);

@@ -118,7 +118,7 @@ function feeds_tamper_efq_finder_form($importer, $element_key, array $settings, 
     $columns[$column] = $column;
   }
 
-  $column = _feeds_tamper_efq_finder_get_value('columns', $form_state, $settings);
+  $column = _feeds_tamper_efq_finder_get_value('column', $form_state, $settings);
   $column = isset($columns[$column]) ? $column : key($columns);
 
   $form['column'] = array(

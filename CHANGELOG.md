@@ -1,3 +1,23 @@
+2.9.5 (2019-01-30)
+
+This is a small update that includes a security fix for Drupal core
+and also fixes a bug we missed in the PHP 7 work.
+
+- Upgrade to Drupal 7.63 (#5773) (@PaulKiddle)
+- Update views_slideshow module (#5792) (@PaulKiddle)
+
+
+2.9.4 (2019-01-14)
+
+- Upgrade to PHP 7 (#5671) (@PaulKiddle)
+- Upgrade to Drupal 7.61 (#5707) (@jrdh)
+- Replace Simon with Scratchpads Team in DwC-A metadata (#5712) (@jrdh)
+- Strip HTML tags from page titles (#5734) (@jrdh)
+- Allow TIF files to be uploaded (#5758) (@jrdh)
+- Rotate docker logs (#5761) (@jrdh)
+- Fix AJAX responses when using the wavesurfer module (#5764) (@jrdh)
+- Wrap biblio URLs to improve presentation (#5765) (@PaulKiddle)
+
 2.9.3 (2018-10-22)
 
 - Upgraded Drupal to 7.60

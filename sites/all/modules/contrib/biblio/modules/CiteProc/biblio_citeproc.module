@@ -43,21 +43,68 @@ function biblio_citeproc_menu() {
 function biblio_citeproc_theme() {
   return array(
     'biblio_citeproc_style' => array(
-        'function' => 'theme_biblio_citeproc_style',
-        'file' => 'biblio_citeproc.module',
-        'variables' => array(
-          'node' => '',
-          'style_name' => 'cse',
-          ),
+      'file' => 'biblio_citeproc.module',
+      'variables' => array(
+        'node' => '',
+        'style_name' => 'cse',
+      ),
     ),
     'biblio_citeproc_style_manager_form' => array(
-        'render element' => 'form',
+      'render element' => 'form',
     ),
   );
 }
 
+/**
+ * Implements hook_biblio_map_alter().
+ */
+function biblio_citeproc_biblio_map_alter(&$map, $type, $format) {
+  if ($type == 'field_map' && $format == 'csl') {
+    $map = array_merge($map, array(
+      'author'                      => 'biblio_contributors:1',
+      'editor'                      => 'biblio_contributors:2',
+      'translator'                  => 'biblio_contributors:3',
+      'recipient'                   => ':',
+      'interviewer'                 => ':',
+      'composer'                    => ':',
+    ));
+  }
+}
+
 function biblio_citeproc_theme_registry_alter(&$theme_registry) {
   $theme_registry['biblio_style'] = $theme_registry['biblio_citeproc_style'];
+}
+
+function biblio_citeproc_load_csl($csl_id) {
+  $csl_file_contents = '';
+  if (strpos($csl_id, '.csl') === FALSE) {// try to convert old style names to csl...
+    if (in_array($csl_id, array('ama', 'apa', 'cse', 'ieee', 'mla', 'vancouver'))) {
+      $csl_id .= '.csl';
+    }
+    elseif ($csl_id == 'chicago') {
+      $csl_id = 'chicago-fullnote-bibliography.csl';
+    }
+    else {
+      $csl_id = '';
+      $message = t('An invalid style "@style" was selected, please check your "CiteProc" style settings.', array('@style' => $csl_id));
+      drupal_set_message($message, 'error');
+    }
+  }
+  if (!empty($csl_id)) {
+    $csl = db_query('SELECT parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $csl_id))->fetchObject();
+    if (!isset($csl->csl)) {
+      drupal_set_message(t('Biblio-CiteProc could not fetch the style file: @csl_id from the database. Check your CiteProc settings.', array('@csl_id' => $csl_id)), 'error');
+      return;
+    }
+    if (!empty($csl->parent)) {
+      $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :id", array(':id' => $csl->parent))->fetchField();
+
+    }
+    else {
+      $csl_file_contents = $csl->csl;
+    }
+  }
+  return $csl_file_contents;
 }
 
 function theme_biblio_citeproc_style($variables) {
@@ -71,33 +118,7 @@ function theme_biblio_citeproc_style($variables) {
 
   if (!$citeproc) {
     $csl_id = ($style) ? $style : biblio_get_style();
-
-    if (strpos($csl_id, '.csl') === FALSE) {// try to convert old style names to csl...
-      if (in_array($csl_id, array('ama', 'apa', 'cse', 'ieee', 'mla', 'vancouver'))) {
-        $csl_id .= '.csl';
-      }
-      elseif ($csl_id == 'chicago') {
-        $csl_id = 'chicago-fullnote-bibliography.csl';
-      }
-      else {
-        $csl_id = '';
-        $message = t('An invalid style "@style" was selected, please check your "CiteProc" style settings.', array('@style' => $csl_id));
-        drupal_set_message($message, 'error');
-      }
-    }
-    if (!empty($csl_id)) {
-      $csl = db_query('SELECT parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $csl_id))->fetchObject();
-      if (!isset($csl->csl)) {
-        drupal_set_message(t('Biblio-CiteProc could not fetch the style file: @csl_id from the database. Check your CiteProc settings.', array('@csl_id' => $csl_id)), 'error');
-        return;
-      }
-      if (!empty($csl->parent)) {
-        $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :id", array(':id' => $csl->parent))->fetchField();
-
-      }
-      else {
-        $csl_file_contents = $csl->csl;
-      }
+    if ($csl_file_contents = biblio_citeproc_load_csl($csl_id)) {
       //    $cslid = $csl_file_name . '-' . $language->language;
       //    $cached = cache_get($cslid, 'cache_biblio_csl_object');
       if (!$cached) {
@@ -109,9 +130,15 @@ function theme_biblio_citeproc_style($variables) {
       }
     }
   }
-  $styled_node = $citeproc->render($node);
-  $coins_data = isset($node->biblio_coins) ? filter_xss($node->biblio_coins, array('span')) : '';
-  return ($styled_node . $coins_data);
+
+  $output = '';
+  if ($citeproc) {
+    $styled_node = $citeproc->render($node);
+    $coins_data = isset($node->biblio_coins) ? filter_xss($node->biblio_coins, array('span')) : '';
+    $output = $styled_node . $coins_data;
+  }
+
+  return $output;
 }
 
 function biblio_citeproc_csl_map_reset($type = NULL) {

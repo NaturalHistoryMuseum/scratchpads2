@@ -318,6 +318,8 @@ function _biblio_pm_create_node_from_xml($xml, $terms, $batch, $session_id) {
       }
       if ($dup < 0 && $action == 'replace') { //entry has be imported before, but may have changed
         $node->nid = -$dup;
+        $existing_node = db_query("SELECT * FROM {node} WHERE nid=:nid", array(':nid' => $node->nid))->fetchObject();
+        $node = (object) array_merge((array)$existing_node, (array)$node);
         $dup = NULL;
       }
       if (!$dup) {
@@ -410,8 +412,13 @@ function biblio_pm_node_insert($node) {
 
 function biblio_pm_node_update($node) {
   if (isset($node->biblio_pubmed_id) && !empty($node->biblio_pubmed_id)) {
+    // make sure stale entries are deleted
+    db_delete('biblio_pubmed')
+      ->condition('nid', $node->nid)
+      ->execute();
+    // write the new data
     $node->biblio_pm_changed = time();
-    drupal_write_record('biblio_pubmed', $node, 'nid');
+    drupal_write_record('biblio_pubmed', $node);
   }
   if (isset($node->biblio_pubmed_grants) && is_array($node->biblio_pubmed_grants) && !empty($node->biblio_pubmed_grants)) {
     db_delete('biblio_pubmed_grant_info')

@@ -1,35 +1,32 @@
 <?php
 
 /**
- * @file
- * Contains the list style plugin.
- */
-
-/**
- * Style plugin to render each item in a slideshow of an ordered or unordered list.
- *
- * @ingroup views_style_plugins
+ * Style plugin to render each item in a slideshow.
  */
 class views_slideshow_plugin_style_slideshow extends views_plugin_style {
 
-  // Set default options
-  function option_definition() {
+  /**
+   * Set default options.
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     // Load all include files from views slideshow addons.
     module_load_all_includes('views_slideshow.inc');
 
-    // call every module using hook_views_slideshow_option_definition and merge
+    // Call every module using hook_views_slideshow_option_definition and merge
     // it's return value with the other default options.
     return array_merge($options, module_invoke_all('views_slideshow_option_definition'));
   }
 
-  // Build the settings form for the view.
-  function options_form(&$form, &$form_state) {
-    // Include ctools dependent support
+  /**
+   * Build the settings form for the view.
+   */
+  public function options_form(&$form, &$form_state) {
+    // Include ctools dependent support.
     ctools_include('dependent');
 
-    // load up all views slideshow modules functions.
+    // Load up all views slideshow modules functions.
     module_load_all_includes('views_slideshow.inc');
     parent::options_form($form, $form_state);
 
@@ -38,7 +35,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
       '#markup' => '<div id="views-slideshow-form-wrapper">',
     );
 
-    // Style
+    // Style.
     $form['slideshow_skin_header'] = array(
       '#markup' => '<h2>' . t('Style') . '</h2>',
     );
@@ -59,9 +56,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
       '#description' => t('Select the skin to use for this display.  Skins allow for easily swappable layouts of things like next/prev links and thumbnails.  Note that not all skins support all widgets, so a combination of skins and widgets may lead to unpredictable results in layout.'),
     );
 
-    /**
-     * Slides
-     */
+    // Slides.
     $form['slides_header'] = array(
       '#markup' => '<h2>' . t('Slides') . '</h2>',
     );
@@ -109,13 +104,11 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
     }
     else {
       $form['enable_module'] = array(
-        '#markup' => t('There is no Views Slideshow plugin enabled. Go to the !modules and enable a Views Slideshow plugin module. For example Views Slideshow Singleframe.', array('!modules' => l('Modules Page', 'admin/modules'))),
+        '#markup' => t('There is no Views Slideshow plugin enabled. Go to the !modules and enable a Views Slideshow plugin module. For example Views Slideshow: Cycle.', array('!modules' => l(t('Modules Page'), 'admin/modules'))),
       );
     }
 
-    /**
-     * Widgets
-     */
+    // Widgets.
     $form['widgets_header'] = array(
       '#markup' => '<h2>' . t('Widgets') . '</h2>',
     );
@@ -123,7 +116,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
     // Loop through all locations so we can add header for each location.
     $location = array('top' => t('Top'), 'bottom' => t('Bottom'));
     foreach ($location as $location_id => $location_name) {
-      // Widget Header
+      // Widget Header.
       $form['widgets'][$location_id]['header'] = array(
         '#markup' => '<h3>' . t('!location Widgets', array('!location' => $location_name)) . '</h3>',
       );
@@ -134,7 +127,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
     $widgets = module_invoke_all('views_slideshow_widget_info');
     if (!empty($widgets)) {
 
-      // Build our weight values by number of widgets
+      // Build our weight values by number of widgets.
       $weights = array();
       for ($i = 1; $i <= count($widgets); $i++) {
         $weights[$i] = $i;
@@ -152,7 +145,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
             $is_compatible = 1;
             // Check if every required accept value in the widget has a
             // corresponding calls value in the slideshow.
-            foreach($widget_info['accepts'] as $accept_key => $accept_value) {
+            foreach ($widget_info['accepts'] as $accept_key => $accept_value) {
               if (is_array($accept_value) && !empty($accept_value['required']) && !in_array($accept_key, $slideshow_info['calls'])) {
                 $is_compatible = 0;
                 break;
@@ -163,7 +156,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
             if ($is_compatible) {
               // Check if every required calls value in the widget has a
               // corresponding accepts call.
-              foreach($widget_info['calls'] as $calls_key => $calls_value) {
+              foreach ($widget_info['calls'] as $calls_key => $calls_value) {
                 if (is_array($calls_value) && !empty($calls_value['required']) && !in_array($calls_key, $slideshow_info['accepts'])) {
                   $is_compatible = 0;
                   break;
@@ -177,10 +170,10 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
             }
           }
 
-          // Use Widget Checkbox
+          // Use Widget Checkbox.
           $form['widgets'][$location_id][$widget_id]['enable'] = array(
             '#type' => 'checkbox',
-            '#title' => t($widget_info['name']),
+            '#title' => $widget_info['name'],
             '#default_value' => $this->options['widgets'][$location_id][$widget_id]['enable'],
             '#description' => t('Should !name be rendered at the !location of the slides.', array('!name' => $widget_info['name'], '!location' => $location_name)),
           );
@@ -235,8 +228,10 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
     );
   }
 
-  // Run any validation on the form settings.
-  function options_validate(&$form, &$form_state) {
+  /**
+   * Run any validation on the form settings.
+   */
+  public function options_validate(&$form, &$form_state) {
     module_load_all_includes('views_slideshow.inc');
 
     $arguments = array(
@@ -245,15 +240,17 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
       &$this,
     );
 
-    // Call all modules that use hook_views_slideshow_options_form_validate
+    // Call all modules that use hook_views_slideshow_options_form_validate.
     foreach (module_implements('views_slideshow_options_form_validate') as $module) {
       $function = $module . '_views_slideshow_options_form_validate';
       call_user_func_array($function, $arguments);
     }
   }
 
-  // Run any necessary actions on submit.
-  function options_submit(&$form, &$form_state) {
+  /**
+   * Run any necessary actions on submit.
+   */
+  public function options_submit(&$form, &$form_state) {
     module_load_all_includes('views_slideshow.inc');
 
     $arguments = array(
@@ -261,7 +258,7 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
       &$form_state,
     );
 
-    // Call all modules that use hook_views_slideshow_options_form_submit
+    // Call all modules that use hook_views_slideshow_options_form_submit.
     foreach (module_implements('views_slideshow_options_form_submit') as $module) {
       $function = $module . '_views_slideshow_options_form_submit';
       call_user_func_array($function, $arguments);
@@ -276,13 +273,13 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
   /**
    * Retrieve a list of all available skins in the system.
    */
-  function views_slideshow_get_skins() {
+  public function views_slideshow_get_skins() {
     static $skins;
 
     if (empty($skins)) {
       $skins = array();
 
-      // Call all modules that use hook_views_slideshow_skin_info
+      // Call all modules that use hook_views_slideshow_skin_info.
       foreach (module_implements('views_slideshow_skin_info') as $module) {
         $skin_items = call_user_func($module . '_views_slideshow_skin_info');
         if (isset($skin_items) && is_array($skin_items)) {
@@ -304,4 +301,5 @@ class views_slideshow_plugin_style_slideshow extends views_plugin_style {
 
     return $skins;
   }
+
 }

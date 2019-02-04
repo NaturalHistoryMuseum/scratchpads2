@@ -123,16 +123,16 @@ class FeedsTamperWebTestHelper extends FeedsWebTestCase {
 
   protected function assertHashedDevseedFeedContent() {
     $this->drupalGet('node');
-    $this->asserttext('7e6719e920a73954fe94c931b2715efe');
-    $this->asserttext('8ea53182dfa501e4aa997a6030931125');
-    $this->asserttext('ad560610949586a1d477585ce48777e8');
-    $this->asserttext('e84c1cf48e264224d7a6e20d6def66de');
-    $this->asserttext('14aa7188d867973831e4232f67c070c3');
-    $this->asserttext('bb5a525f6e89da7ecbafa09a10b01529');
-    $this->asserttext('50c2feb66fbd6144334a14684b3cf547');
-    $this->asserttext('072f06df55a62bd694c4544d2397bf82');
-    $this->asserttext('b02c3e6bdcfdaac72b17a14f4f0eae27');
-    $this->asserttext('a628fc19e8fcb2b9c987412a7fcd995c');
+    $this->asserttext('b802e0e74831d506bcafd3e0d8339c0c');
+    $this->asserttext('40dd7b1ae61ad8b1fb55d662b8ca77c4');
+    $this->asserttext('40bcfee6c3ddb980236f2f1f2a519fb3');
+    $this->asserttext('5e0c93b1474072e82f4c53db02fc2c7f');
+    $this->asserttext('8611ee43370358cb8a12a9e87894cdca');
+    $this->asserttext('69691b749f4f8a512c9d4a74e50d2e0b');
+    $this->asserttext('520cd4cd49ae68c99cf5ed82d1dd6e02');
+    $this->asserttext('429b46ca20f2c36739ca4ec88459f826');
+    $this->asserttext('a6b22dae5037ba2d1d57d648fc220f04');
+    $this->asserttext('643f31f2955072c52390fd5828b2745a');
   }
 
 }

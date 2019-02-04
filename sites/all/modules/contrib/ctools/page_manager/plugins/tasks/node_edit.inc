@@ -1,12 +1,16 @@
 <?php
 
 /**
+ * @file
+ */
+
+/**
  * Specialized implementation of hook_page_manager_task_tasks(). See api-task.html for
  * more information.
  */
 function page_manager_node_edit_page_manager_tasks() {
   return array(
-    // This is a 'page' task and will fall under the page admin UI
+    // This is a 'page' task and will fall under the page admin UI.
     'task type' => 'page',
 
     'title' => t('Node add/edit form'),
@@ -83,7 +87,7 @@ function page_manager_node_edit_menu_alter(&$items, $task) {
  * node edit, which is node_page_edit().
  */
 function page_manager_node_edit($node) {
-  // Load my task plugin
+  // Load my task plugin.
   $task = page_manager_get_task('node_edit');
 
   // Load the node into a context.
@@ -108,7 +112,7 @@ function page_manager_node_edit($node) {
  * Callback to handle the process of adding a node.
  *
  * This creates a basic $node and passes that off to page_manager_node_edit().
- * It is modeled after Drupal's node_add() function.
+ * It is modelled after Drupal's node_add() function.
  *
  * Unlike node_add() we do not need to check node_access because that was
  * already checked by the menu system.
@@ -176,6 +180,7 @@ function page_manager_node_edit_enable($cache, $status) {
  *   The subtask id
  * @param $contexts
  *   The contexts loaded for the task.
+ *
  * @return
  *   TRUE if the current user can access the page.
  */

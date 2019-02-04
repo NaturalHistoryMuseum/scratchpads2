@@ -1,7 +1,0 @@
-name = "Drupal-to-Drupal migration"
-description = "Migration from one Drupal site to another"
-package = "Development"
-core = 7.x
-
-dependencies[] = migrate_d2d
-

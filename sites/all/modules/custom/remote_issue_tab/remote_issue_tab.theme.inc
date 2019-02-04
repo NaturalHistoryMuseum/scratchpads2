@@ -44,8 +44,10 @@ function theme_remote_issue_tab_block($variables = array()){
  */
 function theme_remote_issue_tab_create_issue($variables = array())
 {
+  $form = drupal_get_form('remote_issue_tab_create_form');
+
     return '<h2>' . l(t('Report an issue'), $variables['html_link']) . '</h2>
-  <div class="header">' . drupal_render(drupal_get_form('remote_issue_tab_create_form')) . '</div>';
+  <div class="header">' . drupal_render($form) . '</div>';
 }
 
 /**

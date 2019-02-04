@@ -1,0 +1,8 @@
+.views-slideshow-pager-field-item {
+  display: inline;
+}
+
+.views-slideshow-pager-field-item.active {
+  text-decoration: underline;
+  font-weight: bold;
+}

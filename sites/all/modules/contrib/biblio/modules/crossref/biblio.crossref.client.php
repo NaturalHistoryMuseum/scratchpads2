@@ -256,24 +256,24 @@ class BiblioCrossRefClient
     if (trim($data) && !$this->citation_list) {
       switch ($this->element) {
         case 'surname' :
-          $this->contributors[$this->contrib_count]['lastname'] = isset($this->contributors[$this->contrib_count]['lastname']) ? $this->contributors[$this->contrib_count]['lastname'] . $data : $data;
+        	$this->_set_contrib_data('lastname', $data);
           break;
         case 'given_name' :
-          $this->contributors[$this->contrib_count]['firstname'] = isset($this->contributors[$this->contrib_count]['firstname']) ? $this->contributors[$this->contrib_count]['firstname'] . $data : $data;
+          $this->_set_contrib_data('firstname', $data);
           break;
         case 'suffix':
-          $this->contributors[$this->contrib_count]['suffix'] = isset($this->contributors[$this->contrib_count]['suffix']) ? $this->contributors[$this->contrib_count]['suffix'] . $data : $data;
+        	$this->_set_contrib_data('suffix', $data);
           break;
         case 'affiliation' :
-          $this->contributors[$this->contrib_count]['affiliation'] = isset($this->contributors[$this->contrib_count]['affiliation']) ? $this->contributors[$this->contrib_count]['affiliation'] . $data : $data;
+        	$this->_set_contrib_data('affiliation', $data);
           break;
         case 'organization':
-          $this->contributors[$this->contrib_count]['name'] = isset($this->contributors[$this->contrib_count]['name']) ? $this->contributors[$this->contrib_count]['name'] . $data : $data;
+        	$this->_set_contrib_data('name', $data);
           break;
         case 'year':
         case 'month':
         case 'day':
-          $this->_set_data($this->element, $data);
+         $this->node[$this->element] = $data;
           break;
         case 'issn':
         case 'isbn':
@@ -309,8 +309,17 @@ class BiblioCrossRefClient
       }
     }
   }
+
+  function _set_contrib_data($field, $data) {
+    $this->contributors[$this->contrib_count][$field] = (isset($this->contributors[$this->contrib_count][$field]) ?
+                                                        $this->contributors[$this->contrib_count][$field] . $data :
+                                                        $data);
+  }
+
   function _set_data($field, $data) {
-    $this->node[$field] = (isset($this->node[$field]) ? $this->node[$field] . $data : $data);
+    $this->node[$field] = (isset($this->node[$field]) ?
+                          $this->node[$field] . $data :
+                          $data);
   }
   /*
    * map a unixref XML field to a biblio field

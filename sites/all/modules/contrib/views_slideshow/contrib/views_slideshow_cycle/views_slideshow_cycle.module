@@ -11,25 +11,49 @@
 function views_slideshow_cycle_theme($existing, $type, $theme, $path) {
   return array(
     'views_slideshow_cycle' => array(
-      'variables' => array('view' => NULL, 'settings' => array(), 'rows' => array(), 'title' => ''),
+      'variables' => array(
+        'view' => NULL,
+        'settings' => array(),
+        'rows' => array(),
+        'title' => '',
+      ),
       'template' => 'theme/views-slideshow-cycle',
       'file' => 'theme/views_slideshow_cycle.theme.inc',
       'pattern' => 'views_slideshow_cycle__',
     ),
     'views_slideshow_cycle_main_frame' => array(
-      'variables' => array('vss_id' => NULL, 'view' => NULL, 'settings' => NULL, 'rows' => NULL),
+      'variables' => array(
+        'vss_id' => NULL,
+        'view' => NULL,
+        'settings' => NULL,
+        'rows' => NULL,
+      ),
       'template' => 'theme/views-slideshow-cycle-main-frame',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
       'pattern' => 'views_slideshow_cycle_main_frame__',
     ),
     'views_slideshow_cycle_main_frame_row' => array(
-      'variables' => array('vss_id' => NULL, 'items' => NULL, 'count' => NULL, 'view' => NULL),
+      'variables' => array(
+        'vss_id' => NULL,
+        'items' => NULL,
+        'count' => NULL,
+        'view' => NULL,
+      ),
       'template' => 'theme/views-slideshow-cycle-main-frame-row',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
       'pattern' => 'views_slideshow_cycle_main_frame_row__',
     ),
     'views_slideshow_cycle_main_frame_row_item' => array(
-      'variables' => array('item' => NULL, 'item_count' => NULL, 'count' => NULL, 'view' => NULL, 'length' => NULL),
+      'variables' => array(
+        'item' => NULL,
+        'item_count' => NULL,
+        'count' => NULL,
+        'view' => NULL,
+        'length' => NULL,
+      ),
       'template' => 'theme/views-slideshow-cycle-main-frame-row-item',
-      'views_slideshow_cycle_main_frame_row_item__',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle_main_frame_row_item__',
     ),
   );
 }
@@ -41,10 +65,12 @@ function views_slideshow_cycle_help($path, $arg) {
   switch ($path) {
     case 'admin/help#views_slideshow_cycle':
       if (module_exists('advanced_help')) {
-        $output = '<p>' . l('Click here to view the documentation for Views Slideshow Cycle.',  'admin/advanced_help/views_slideshow_cycle') . '</p>';
+        $output = '<p>' . l(t('Click here to view the documentation for Views Slideshow Cycle.'), 'admin/help/ah/views_slideshow_cycle') . '</p>';
       }
       else {
-        $output = '<p>' . t('Views Slideshow Cycle help can be found by installing and enabling the !advanced_help',  array('!advanced_help' => l('Advanced Help module', 'http://drupal.org/project/advanced_help'))) . '</p>';
+        $output = '<p>' . t('Views Slideshow Cycle help can be found by installing and enabling the !advanced_help', array(
+          '!advanced_help' => l(t('Advanced Help module'), 'http://drupal.org/project/advanced_help'))
+        ) . '</p>';
       }
       return $output;
   }
@@ -53,7 +79,7 @@ function views_slideshow_cycle_help($path, $arg) {
 /**
  * Gets the path to the jQuery cycle library.
  *
- * @return
+ * @return string
  *   The path to the cycle library js file, or FALSE if not found.
  */
 function _views_slideshow_cycle_library_path() {
@@ -82,7 +108,7 @@ function _views_slideshow_cycle_library_path() {
 /**
  * Gets the path to the jQuery pause library.
  *
- * @return
+ * @return string
  *   The path to the pause library js file, or FALSE if not found.
  */
 function _views_slideshow_cycle_pause_library_path() {
@@ -106,28 +132,4 @@ function _views_slideshow_cycle_pause_library_path() {
   }
 
   return $pause_path;
-}
-
-
-/**
- * Need to have preprocess functions here because drupal doesn't cache them
- * correctly in the theme.inc file.
- *
- * If you would like to override the preprocess functions make sure to look at
- * the associated function in theme.inc.
- */
-
-// Trying to make sure the theme.inc get's loaded.
-include_once('theme/views_slideshow_cycle.theme.inc');
-
-function template_preprocess_views_slideshow_cycle_main_frame(&$vars) {
-  _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame($vars);
-}
-
-function template_preprocess_views_slideshow_cycle_main_frame_row(&$vars) {
-  _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame_row($vars);
-}
-
-function template_preprocess_views_slideshow_cycle_main_frame_row_item(&$vars) {
-  _views_slideshow_cycle_preprocess_views_slideshow_cycle_main_frame_row_item($vars);
 }

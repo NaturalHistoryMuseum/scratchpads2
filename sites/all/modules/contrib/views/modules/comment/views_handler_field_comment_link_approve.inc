@@ -11,12 +11,19 @@
  * @ingroup views_field_handlers
  */
 class views_handler_field_comment_link_approve extends views_handler_field_comment_link {
-  function access() {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function access() {
     //needs permission to administer comments in general
     return user_access('administer comments');
   }
 
-  function render_link($data, $values) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render_link($data, $values) {
     $status = $this->get_value($values, 'status');
 
     // Don't show an approve link on published nodes.
@@ -33,4 +40,5 @@ class views_handler_field_comment_link_approve extends views_handler_field_comme
 
     return $text;
   }
+
 }

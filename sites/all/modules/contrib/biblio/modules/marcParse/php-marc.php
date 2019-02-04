@@ -192,7 +192,7 @@ Class File {
    * @param string Name of the file
    * @return string Returns warning if issued during read
    */
-  function file($in) {
+  function __construct($in) {
     if (file_exists($in)) {
       $input = file($in);
       $recs = explode(END_OF_RECORD, join("", $input));
@@ -352,7 +352,7 @@ Class USMARC Extends File {
    * Read raw MARC string for decoding
    * @param string Raw MARC
   */
-  function usmarc($string) {
+  function __construct($string) {
     $this->raw[] = $string;
     $this->pointer = 0;
   }
@@ -428,7 +428,7 @@ Class Record {
    *
    * Set all variables to defaults to create new Record object
    */
-  function record() {
+  function __construct() {
     $this->fields = array();
     $this->ldr = str_repeat(' ', 24);
   }
@@ -471,12 +471,12 @@ Class Record {
    * @return array Array ( $fields, $directory, $total, $baseaddress )
    */
   function _build_dir() {
-        // Vars
+    // Vars
     $fields = array();
-        $directory = array();
+    $directory = array();
 
-        $dataend = 0;
-        foreach ($this->fields as $field_group ) {
+    $dataend = 0;
+    foreach ($this->fields as $field_group ) {
       foreach ($field_group as $field) {
         // Get data in raw format
         $str = $field->raw();
@@ -488,26 +488,24 @@ Class Record {
         $directory[] = $direntry;
         $dataend += $len;
       }
-        }
+    }
 
     /**
      * Rules from MARC::Record::USMARC
      */
-        $baseaddress =
-                LEADER_LEN +    // better be 24
-                ( count($directory) * DIRECTORY_ENTRY_LEN ) +
-                                // all the directory entries
-                1;              // end-of-field marker
+    $baseaddress =
+      LEADER_LEN +    // better be 24
+      ( count($directory) * DIRECTORY_ENTRY_LEN ) +
+      // all the directory entries
+      1;              // end-of-field marker
 
 
-        $total =
-                $baseaddress +  // stuff before first field
-                $dataend +      // Length of the fields
-                1;              // End-of-record marker
+    $total =
+      $baseaddress +  // stuff before first field
+      $dataend +      // Length of the fields
+      1;              // End-of-record marker
 
-
-
-        return array($fields, $directory, $total, $baseaddress);
+    return array($fields, $directory, $total, $baseaddress);
   }
 
   /**
@@ -753,7 +751,7 @@ Class Field {
    * @param array Array ( tagno, ind1, ind2, subfield_data )
    * @return string Returns warnings if any issued during parse
    */
-  function field() {
+  function __construct() {
     $args = func_get_args();
 
     $tagno = array_shift($args);

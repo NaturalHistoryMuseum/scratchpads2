@@ -336,9 +336,9 @@ class csl_format extends csl_rendering_element {
     }
 
     if (!empty($this->format) || !empty($this->span_class)) {
-      $style = (!empty($this->format)) ? 'style="' . $this->format . '" ' : '';
+      $style = (!empty($this->format)) ? 'style="' . $this->format . '"' : '';
       $class = (!empty($this->span_class)) ? 'class="' . $this->span_class . '"' : '';
-      $text = '<span ' . $class . $style . '>' . $text . '</span>';
+      $text = '<span ' . implode(' ', array($class, $style)) . '>' . $text . '</span>';
     }
     $div_class = $div_style = '';
     if (!empty($this->div_class)) {
@@ -562,6 +562,7 @@ class csl_name extends csl_format {
     if (!$this->attr_init || $this->attr_init != $mode) $this->init_attrs($mode);
 
     $initialize_with = $this->{'initialize-with'};
+    $options = array('html' => FALSE);
 
     foreach ($names as $rank => $name) {
       if (empty($name['literal'])) {
@@ -617,7 +618,7 @@ class csl_name extends csl_format {
           }
           else {
             switch ($this->{'name-as-sort-order'}) {
-              case 'first':
+              case 'first' && $rank == 0:
               case 'all':
                 $text = $name['lastname'] . $this->sort_separator . $given;
                 break;
@@ -876,6 +877,8 @@ class csl_names extends csl_format {
       if (!empty($contributor) && $authors = $this->_get_category($data->{$contributor}, $category)) {
         foreach ($this->elements as $element) {
           if (is_a($element, 'csl_label')) {
+            $element->in_names = TRUE;
+            $element->plural   = (count($authors) > 1) ? 'multiple' : 'single';
             $element->variable = $this->_get_csl_name_variable($category);
             $text .= $element->render($authors, $mode);
           }
@@ -990,15 +993,19 @@ class csl_date extends csl_format {
 
   function render($data, $mode = NULL) {
     $date_parts = array();
-    $date = '';
     $text = '';
 
     if (($var = $this->variable) && isset($data->{$var})) {
-      $date[] = $data->{$var};
+      if (is_array($data->{$var})) {
+        $date = $data->{$var};
+      }
+      else {
+        $date = array($data->{$var});
+      }
       foreach ($this->elements as $element) {
         $date_parts[] = $element->render($date, $mode);
       }
-      $text = implode('', $date_parts);
+      $text = implode($this->delimiter, $date_parts);
     }
 //    else {
 //      $text = $this->citeproc->get_locale('term', 'no date');
@@ -1165,7 +1172,7 @@ class csl_text extends csl_format {
 
     switch ($this->source) {
       case 'variable':
-        if (!isset($data->{$this->variable}) || empty($data->{$this->variable})) return;
+        if (!isset($data->{$this->variable}) || empty($data->{$this->variable}) || trim($data->{$this->variable}) == FALSE) return;
         if ($this->variable == 'biblio_url') {
           $text = l($data->{$this->variable},  $data->{$this->variable});
         }
@@ -1205,49 +1212,64 @@ class csl_et_al extends csl_text {
 
     }
 }
+
 class csl_label extends csl_format {
-  private $plural;
+  private $pluralization;
 
   function render($data, $mode = NULL) {
     $text = '';
-
-    $variables = explode(' ', $this->variable);
+    $pluralization = NULL;
     $form = (($form = $this->form)) ? $form : 'long';
-    switch ($this->plural) {
-      case 'never':
-        $plural = 'single';
-        break;
-      case 'always':
-        $plural = 'multiple';
-        break;
-      case 'contextual':
-      default:
+
+    // There are two possible locations for a label the first is within a names element which is a bit simpler than the general label case
+    if (isset ( $this->in_names )) {  // within csl_names element case
+      if (($term = $this->citeproc->get_locale ( 'term', $this->variable, $form, $this->plural ))) {
+        $text = $term;
+      }
     }
-    foreach ($variables as $variable) {
-      $field = $this->citeproc->map_field($variable);
-      if (isset($data->{$field})  && !empty($data->{$field})) {
-        if (!isset($this->plural) && empty($plural) && is_array($data->{$field})) {
-          $count = count($data->{$field});
-          if ($count == 1) {
-            $plural = 'single';
-          }
-          elseif ($count > 1) {
-            $plural = 'multiple';
-          }
-        }
-        else {
-          $plural = $this->evaluateStringPluralism($data, $variable);
-        }
-        if (($term = $this->citeproc->get_locale('term', $variable, $form, $plural))) {
-          $text = $term;
+    else { // this is the general label case where we may need to determine if the variable is plural
+      $variables = explode ( ' ', $this->variable );
+      switch ($this->plural) {
+        case 'never' :
+          $pluralization = 'single';
           break;
+        case 'always' :
+          $pluralization = 'multiple';
+          break;
+        case 'contextual' :
+        default :
+      }
+      foreach ( $variables as $variable ) {
+        $field = $this->citeproc->map_field ( $variable );
+        if (isset ( $data->{$field} ) && ! empty ( $data->{$field} )) {
+          if (! isset ( $this->plural ) && empty ( $pluralization ) && is_array ( $data->{$field} )) {
+            $count = count ( $data->{$field} );
+            if ($count == 1) {
+              $pluralization = 'single';
+            }
+            elseif ($count > 1) {
+              $pluralization = 'multiple';
+            }
+          }
+          else {
+            $pluralization = $this->evaluateStringPluralism ( $data, $variable );
+          }
+          if (($term = $this->citeproc->get_locale ( 'term', $variable, $form, $pluralization ))) {
+            $text = $term;
+            break;
+          }
         }
       }
     }
 
-    if (empty($text)) return;
-    if ($this->{'strip-periods'}) $text = str_replace('.', '', $text);
-    return $this->format($text);
+    if (empty ( $text ))
+      return;
+
+    if ($this->{'strip-periods'}) {
+      $text = str_replace ( '.', '', $text );
+    }
+
+    return $this->format ( $text );
   }
 
   function evaluateStringPluralism($data, $variable) {
@@ -1713,14 +1735,6 @@ class csl_mapper {
   function map_field($field) {
     if (!isset($this->field_map)) {
       $this->field_map = biblio_get_map('field_map', 'csl');
-      $this->field_map = array_merge($this->field_map, array(
-          'author'                      => 'biblio_contributors:1',
-          'editor'                      => 'biblio_contributors:2',
-          'translator'                  => 'biblio_contributors:3',
-          'recipient'                   => ':',
-          'interviewer'                 => ':',
-          'composer'                    => ':',
-      ));
     }
 
     $vars = explode(' ', $field);

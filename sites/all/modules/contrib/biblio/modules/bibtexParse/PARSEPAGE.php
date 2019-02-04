@@ -15,10 +15,6 @@ http://bibliophile.sourceforge.net*/
 *****/
 class PARSEPAGE
 {
-// Constructor
-  function PARSEPAGE()
-  {
-  }
 // Create page arrays from bibtex input.
 // 'pages' field can be:
 //  "77--99"

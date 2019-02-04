@@ -16,7 +16,7 @@
 $plugin = array(
   'title' => t('Custom content'),
   'no title override' => TRUE,
-  'defaults' => array('admin_title' => '', 'title' => '', 'body' => '', 'format' => filter_default_format(), 'substitute' => TRUE),
+  'defaults' => array('admin_title' => '', 'title' => '', 'title_heading' => 'h2', 'body' => '', 'format' => filter_default_format(), 'substitute' => TRUE),
   'js' => array('misc/autocomplete.js', 'misc/textarea.js', 'misc/collapse.js'),
   // Make sure the edit form is only used for some subtypes.
   'edit form' => '',
@@ -135,6 +135,7 @@ function ctools_custom_content_type_get_conf($subtype, $conf) {
         $settings = array(
           'admin_title' => t('Missing/deleted content'),
           'title' => '',
+          'title_heading' => '',
           'body' => '',
           'format' => filter_default_format(),
           'substitute' => TRUE,
@@ -177,9 +178,10 @@ function ctools_custom_content_type_render($subtype, $conf, $args, $contexts) {
 
   static $delta = 0;
 
-  $block          = new stdClass();
-  $block->subtype = ++$delta;
-  $block->title   = filter_xss_admin($settings['title']);
+  $block                = new stdClass();
+  $block->subtype       = ++$delta;
+  $block->title         = filter_xss_admin($settings['title']);
+  $block->title_heading = isset($settings['title_heading']) ? $settings['title_heading'] : 'h2';
 
   // Add keyword substitutions if we were configured to do so.
   $content = $settings['body'];
@@ -267,7 +269,8 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
   $form_state['settings'] = $settings;
 
   if ($settings['custom_type'] == 'fixed') {
-    return $form; // no form for this case.
+    // No form for this case.
+    return $form;
   }
 
   $form['admin_title'] = array(
@@ -277,10 +280,36 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#description' => t('This title will be used administratively to identify this pane. If blank, the regular title will be used.'),
   );
 
+  // Copy over the title override settings for a title heading.
+  $form['aligner_start'] = array(
+    '#markup' => '<div class="option-text-aligner clearfix">',
+  );
+
   $form['title'] = array(
     '#type' => 'textfield',
     '#default_value' => $settings['title'],
     '#title' => t('Title'),
+    '#id' => 'override-title-textfield',
+  );
+
+  $form['title_heading'] = array(
+    '#type' => 'select',
+    '#default_value' => isset($settings['title_heading']) ? $settings['title_heading'] : 'h2',
+    '#options' => array(
+      'h1' => t('h1'),
+      'h2' => t('h2'),
+      'h3' => t('h3'),
+      'h4' => t('h4'),
+      'h5' => t('h5'),
+      'h6' => t('h6'),
+      'div' => t('div'),
+      'span' => t('span'),
+    ),
+    '#id' => 'override-title-heading',
+  );
+
+  $form['aligner_stop'] = array(
+    '#markup' => '</div>',
   );
 
   $form['body'] = array(
@@ -291,7 +320,7 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
   );
 
   if (!empty($form_state['contexts'])) {
-    // Set extended description if both CCK and Token modules are enabled, notifying of unlisted keywords
+    // Set extended description if both CCK and Token modules are enabled, notifying of unlisted keywords.
     if (module_exists('content') && module_exists('token')) {
       $description = t('If checked, context keywords will be substituted in this content. Note that CCK fields may be used as keywords using patterns like <em>%node:field_name-formatted</em>.');
     }
@@ -388,7 +417,7 @@ function ctools_custom_content_type_edit_form_validate(&$form, &$form_state) {
       form_error($form['name'], t('Name is required.'));
     }
 
-    // Check for string identifier sanity
+    // Check for string identifier sanity.
     if (!preg_match('!^[a-z0-9_]+$!', $form_state['values']['name'])) {
       form_error($form['name'], t('The name can only consist of lowercase letters, underscores, and numbers.'));
       return;
@@ -398,7 +427,7 @@ function ctools_custom_content_type_edit_form_validate(&$form, &$form_state) {
       return;
     }
 
-    // Check for name collision
+    // Check for name collision.
     if ($form_state['values']['name'] == 'custom' || (ctools_export_crud_load('ctools_custom_content', $form_state['values']['name']))) {
       form_error($form['name'], t('Content with this name already exists. Please choose another name or delete the existing item before creating a new one.'));
     }
@@ -418,7 +447,7 @@ function ctools_custom_content_type_edit_form_submit($form, &$form_state) {
   }
   // If the 'reusable' checkbox was checked, we will create a new
   // custom content and give it the proper values.
-  else if (!empty($form_state['values']['reusable'])) {
+  elseif (!empty($form_state['values']['reusable'])) {
     $content = ctools_export_crud_new('ctools_custom_content');
     $content->name = $form_state['values']['name'];
     _ctools_custom_content_type_edit_save($content, $form_state);
@@ -426,7 +455,6 @@ function ctools_custom_content_type_edit_form_submit($form, &$form_state) {
   }
   else {
     // Otherwise, just save values into $conf normally.
-
     foreach (array_keys($form_state['plugin']['defaults']) as $key) {
       $form_state['conf'][$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state['plugin']['defaults'][$key];
     }

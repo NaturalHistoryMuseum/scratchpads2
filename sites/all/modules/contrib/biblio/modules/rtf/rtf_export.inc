@@ -25,7 +25,7 @@ class rtf {
   var $cm;
   var $mm;
 
-  function rtf() {
+  function __construct() {
     $this->inch = 1440;
     $this->cm   = 567;
     $this->mm   = 56.7;

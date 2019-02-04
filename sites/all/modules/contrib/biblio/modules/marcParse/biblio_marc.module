@@ -177,3 +177,200 @@ function _biblio_marc_type_map($type, $reverse = FALSE) {
   return (isset($map[$type]))?$map[$type]:129; //return the biblio type or 129 (Misc) if type not found
 }
 
+function biblio_marc_biblio_export_options() {
+  return array('marc' => t('MARC'));
+}
+
+function biblio_marc_node_view($node, $view_mode) {
+  if ($node->type == 'biblio') {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $links = biblio_marc_biblio_export_link($node->nid);
+        $node->content['links']['biblio_marc'] = array(
+          '#links' => $links,
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+/**
+ * Creates a link to export a node (or view) in MARC format
+ *
+ * @param $nid  the node id, if NULL then the current view is exported
+ * @return  a link (<a href=...>marc</a>)
+ */
+function biblio_marc_biblio_export_link($nid = NULL, $filter = array()) {
+  $show_link = variable_get('biblio_export_links', array('marc' => TRUE));
+  if (!isset($show_link['marc']) || empty($show_link['marc']) || !biblio_access('export')) {
+    return array();
+  }
+  $base = variable_get('biblio_base', 'biblio');
+
+  if (module_exists('popups') && !empty($nid)) {
+    $link = array(
+        'attributes' => array(
+          'class' => 'popups',
+          'title' => t("Click to get the MARC formatted output")));
+  }
+  else {
+    $link = array(
+        'attributes' => array(
+          'title' => t("Click to download the MARC formatted file")));
+  }
+
+  $link['attributes'] += array('rel' => 'nofollow');
+
+  $link['href']  = "$base/export/marc";
+  if (!empty($nid)) {
+    $link['href'] .= '/' . $nid;
+  }
+  $link['title'] = t('MARC');
+
+  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+    $link['query'] = $filter;
+  }
+
+  return array('biblio_marc' => $link);
+}
+
+function biblio_marc_biblio_export($nids) {
+  if (module_exists('popups') && count($nids)) {
+    $popup = TRUE;
+  }
+  else {
+    $popup = FALSE;
+    drupal_add_http_header('Content-type', 'application/text; charset=utf-8');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="Biblio.mrc"');
+  }
+
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
+    if (!$popup) {
+      print _biblio_marc_export($node);
+    }
+    else{
+      $popup_data .=  _biblio_marc_export($node);
+    }
+  }
+  if ($popup && !empty($popup_data)) return '<pre>' . $popup_data . '</pre>';
+}
+
+function  _biblio_marc_export($node) {
+  module_load_include('php', 'biblio_marc', 'php-marc');
+  $record = new Record();
+  //           case '008':
+  //             $data = $field->data();
+  //             $node->biblio_year = substr($data, 7, 4);
+  //             $node->biblio_lang = substr($data, 35, 3);
+  //             break;
+  $leader = $record->leader();
+  if ($node->biblio_type == 100) {
+    $type = 'nam a';
+  }
+  else {
+    $type = 'nas a';
+  }
+  $record->leader(substr_replace($leader, $type, 5, 5));
+
+  $rec_eight = str_repeat(' ', 40);
+  $rec_eight = substr_replace($rec_eight, $node->biblio_year, 7, 4);
+  $rec_eight = substr_replace($rec_eight, $node->biblio_lang, 35, 3);
+  $rec_eight = substr_replace($rec_eight, 'd', 39, 1);
+  $field = new Field("008", $rec_eight);
+  $record->append_fields($field);
+
+  if (!empty($node->biblio_isbn)) {
+    $field = new Field("020", "", "", array("a" => $node->biblio_isbn));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_issn)) {
+    $field = new Field("022", "", "", array("a" => $node->biblio_issn));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_other_number)) {
+    $field = new Field("024", "", "", array("a" => $node->biblio_other_number));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_call_number)) {
+    $field = new Field("050", "", "", array("a" => $node->biblio_call_number));
+    $record->append_fields($field);
+  }
+  if (!empty($node->title)) {
+    $field = new Field("245", "0", "0", array("a" => $node->title));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_sort_title)) {
+    $field = new Field("210", "0", "#", array("a" => $node->biblio_sort_title));
+    $record->append_fields($field);
+  }
+  //           case '245':
+  //             $node->title = str_replace(' /', '', $field->subfield('a')) . ' ' . $field->subfield('b');
+  //             break;
+  if (!empty($node->biblio_edition)) {
+    $field = new Field("250", "", "", array("a" => $node->biblio_edition));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_place_published)) {
+    $subfields['a'] = $node->biblio_place_published;
+  }
+  if (!empty($node->biblio_publisher)) {
+    $subfields['b'] = $node->biblio_publisher;
+  }
+  if (!empty($node->biblio_date)) {
+    $subfields['c'] = $node->biblio_date;
+  }
+  if (!empty($subfields)) {
+    $field = new Field("260", "", "", $subfields);
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_pages)) {
+    $field = new Field("300", "", "", array("a" => $node->biblio_pages));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_volume)) {
+    $field = new Field("490", "0", "", array("v" => $node->biblio_volume));
+    $record->append_fields($field);
+  }
+  if (!empty($node->biblio_abst_e)) {
+    $field = new Field("520", "3", "#", array("a" => $node->biblio_abst_e));
+    $record->append_fields($field);
+  }
+  //           case ($tagnum >= 500 && $tagnum <= 599):
+  //             $value = $field->subfield('a');
+  //             if (!empty($value)) {
+  //               $node->biblio_notes .= $value;
+  //             }
+  if (!empty($node->biblio_keywords)) {
+    foreach($node->biblio_keywords as $keyword) {
+      $field = new Field("653", "1", "0", array("a" => $keyword));
+      $record->append_fields($field);
+    }
+  }
+  if (!empty($node->biblio_contributors)) {
+    foreach ($node->biblio_contributors as $i => $author) {
+      $first = $author['firstname'];
+      $last  = $author['lastname'];
+      $init  = $author['initials'];
+      $cat   = $author['auth_category'];
+      $name = $last . ($first ? ', ' . $first : '') . ($init ? ', ' . $init : '');
+      $tag = ($i == 0 ? ($cat == 5 ? 110 :100) : ($cat == 5 ? 710 :700));
+      $field = new Field($tag, "1", "#", array("a" => $name));
+      $record->append_fields($field);
+    }
+  }
+  if (!empty($node->biblio_url)) {
+    $url = $node->biblio_url;
+  }
+  else {
+    $options['absolute'] = TRUE;
+    $url = url("node/$node->nid", $options);
+  }
+  if (!empty($url)) {
+    $field = new Field("856", "", "", array("u" => $url));
+    $record->append_fields($field);
+  }
+  return $record->raw();
+
+}

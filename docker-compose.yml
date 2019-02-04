@@ -45,6 +45,11 @@ services:
       - APACHE_PHP_XDEBUG_REMOTE_ENABLE=${APACHE_PHP_XDEBUG_REMOTE_ENABLE}
       - APACHE_PHP_XDEBUG_REMOTE_HOST=${APACHE_PHP_XDEBUG_REMOTE_HOST}
       - APACHE_PHP_XDEBUG_REMOTE_AUTOSTART=${APACHE_PHP_XDEBUG_REMOTE_AUTOSTART}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   mysql:
     container_name: scratchpads.mysql
@@ -59,6 +64,11 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   solr:
     container_name: scratchpads.solr
@@ -71,9 +81,14 @@ services:
     expose:
       - 8983
     volumes:
-      - ./docker/solr/core:/var/solr/scratchpads2:rw
+      - solr-data:/var/lib/solr-undertow/scratchpads2/data:rw
     environment:
       - SOLR_JVM_MEMORY=${SOLR_JVM_MEMORY}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   varnish:
     restart: always
@@ -90,10 +105,13 @@ services:
     environment:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
 volumes:
   apache-files:
   mysql-data:
   solr-data:
-
-

@@ -34,6 +34,13 @@ function biblio_citeproc_uninstall() {
       ->condition('format', 'csl')
       ->execute();
   }
+  if ($file = variable_get('biblio_citeproc_styles_zip_file', NULL)) {
+    file_usage_delete($file, 'biblio_citeproc');
+    file_delete($file);
+  }
+  cache_clear_all('biblio_citeproc_styles', 'cache');
+  variable_del('biblio_citeproc_styles_zip_file');
+  variable_del('biblio_citeproc_style');
 }
 
 function biblio_citeproc_schema() {
@@ -76,8 +83,18 @@ function biblio_citeproc_schema() {
         'length' => 40,
         'not null' => TRUE,
         'default' => ''
-       )
        ),
+       'changed' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+       ),
+       'updated' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+       ),
+    ),
     'primary key' => array('id')
   );
 
@@ -89,13 +106,15 @@ function biblio_citeproc_install_default_styles() {
   $dir = drupal_get_path('module', 'biblio_citeproc') . '/style';
   $files = file_scan_directory($dir, '/..*.csl$/');
 
-  $query = db_insert('biblio_citeproc_styles')->fields(array('id', 'title', 'filename', 'summary', 'csl', 'sha1'));
-
   foreach ($files as $file) {
     $csl = file_get_contents($file->uri);
     $name = basename($file->filename);
     biblio_citeproc_install_style($name, $csl);
   }
+}
+
+function biblio_citeproc_update_default_styles() {
+  biblio_citeproc_install_default_styles();
 }
 
 function _get_csl_type_map() {
@@ -235,7 +254,7 @@ function _get_csl_field_map() {
 
           'issued'                      => 'biblio_year',
           'event'                       => 'biblio_date',
-          'accessed'                    => 'biblio_accessed',
+          'accessed'                    => 'biblio_access_date',
           'container'                   => 'biblio_date',
           'original-date'               => 'biblio_date',
 
@@ -290,4 +309,35 @@ function _reset_csl_map($type = NULL) {
  */
 function biblio_citeproc_update_7001() {
   _reset_csl_map();
+}
+/**
+ *
+ * Updates the default CSL styles
+ */
+function biblio_citeproc_update_7002() {
+  biblio_citeproc_update_default_styles();
+}
+/**
+ * Adds "changed" and "updated" columns
+ *
+ */
+function biblio_citeproc_update_7003() {
+  $spec = array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+       );
+   db_add_field('biblio_citeproc_styles', 'changed', $spec);
+   db_add_field('biblio_citeproc_styles', 'updated', $spec);
+}
+/**
+ * Corrects an error in the field_map
+ *
+ */
+function biblio_citeproc_update_7004() {
+  $map = biblio_get_map('field_map', 'csl');
+  if ($map['accessed'] == 'biblio_accessed') {
+    $map['accessed'] = 'biblio_access_date';
+    biblio_set_map('field_map', 'csl', $map);
+  }
 }

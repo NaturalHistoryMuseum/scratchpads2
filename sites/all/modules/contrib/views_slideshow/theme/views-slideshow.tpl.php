@@ -9,7 +9,7 @@
  * - $rows: The rows output from the View.
  * - $title: The title of this group of rows. May be empty.
  *
- * @ingroup views_templates
+ * @ingroup vss_templates
  */
 ?>
 

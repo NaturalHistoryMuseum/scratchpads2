@@ -1,0 +1,40 @@
+diff --git a/sites/all/modules/custom/gm3/gm3_region/phpcoord/phpcoord-2.3.php b/sites/all/modules/custom/gm3/gm3_region/phpcoord/phpcoord-2.3.php
+index 23eb4dd8f..c8bf903f6 100644
+--- a/sites/all/modules/custom/gm3/gm3_region/phpcoord/phpcoord-2.3.php
++++ b/sites/all/modules/custom/gm3/gm3_region/phpcoord/phpcoord-2.3.php
+@@ -29,7 +38,7 @@ class LatLng{
+      * @param lat latitude
+      * @param lng longitude
+      */
+-  function LatLng($lat, $lng){
++  function __construct($lat, $lng){
+     $this->lat = $lat;
+     $this->lng = $lng;
+   }
+@@ -260,7 +271,7 @@ class OSRef{
+      * @param easting the easting of the reference (with 1m accuracy)
+      * @param northing the northing of the reference (with 1m accuracy)
+      */
+-  function OSRef($easting, $northing){
++  function __construct($easting, $northing){
+     $this->easting = $easting;
+     $this->northing = $northing;
+   }
+@@ -373,7 +384,7 @@ class UTMRef{
+      * @param latZone
+      * @param lngZone
+      */
+-  function UTMRef($easting, $northing, $latZone, $lngZone){
++  function __construct($easting, $northing, $latZone, $lngZone){
+     $this->easting = $easting;
+     $this->northing = $northing;
+     $this->latZone = $latZone;
+@@ -438,7 +450,7 @@ class RefEll{
+      * @param maj the major axis
+      * @param min the minor axis
+      */
+-  function RefEll($maj, $min){
++  function __construct($maj, $min){
+     $this->maj = $maj;
+     $this->min = $min;
+     $this->ecc = (($maj * $maj) - ($min * $min)) / ($maj * $maj);

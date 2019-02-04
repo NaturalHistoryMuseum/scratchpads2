@@ -212,19 +212,19 @@ class alpha_theme_container {
     if (!isset($this->regions)) {
       $this->zones();
       $this->sections();
-      $this->regions = array();      
+      $this->regions = array();
       $exclude = alpha_regions_exclude();
 
       foreach (system_region_list($this->theme) as $region => $title) {
         if (!in_array($region, $exclude)) {
           $zone = alpha_region_get_setting('zone', $region, NULL, $this->theme);
-          $prefix = alpha_region_get_setting('prefix', $region, 0, $this->theme);
+          $prefix = (int) alpha_region_get_setting('prefix', $region, 0, $this->theme);
           $columns = alpha_region_get_setting('columns', $region, 1, $this->theme);
-          $suffix = alpha_region_get_setting('suffix', $region, 0, $this->theme);
-          
+          $suffix = (int) alpha_region_get_setting('suffix', $region, 0, $this->theme);
+
           $zone = isset($zone) && isset($this->zones[$zone]) ? $zone : NULL;
           $section = isset($zone) && isset($this->zones[$zone]['section']) ? $this->zones[$zone]['section'] : NULL;
-          
+
           $this->regions[$region] = array(
             'region' => $region,
             'name' => $title,

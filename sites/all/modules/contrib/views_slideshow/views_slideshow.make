@@ -23,7 +23,7 @@ api = 2
 ; ---------
 libraries[jquery.cycle][type] = "libraries"
 libraries[jquery.cycle][download][type] = "file"
-libraries[jquery.cycle][download][url] = "https://raw.github.com/malsup/cycle/master/jquery.cycle.all.js"
+libraries[jquery.cycle][download][url] = "https://raw.githubusercontent.com/malsup/cycle/3.0.3-a/jquery.cycle.all.js"
 libraries[json2][type] = "libraries"
 libraries[json2][download][type] = "file"
-libraries[json2][download][url] = "https://raw.github.com/douglascrockford/JSON-js/master/json2.js"
+libraries[json2][download][url] = "https://raw.githubusercontent.com/douglascrockford/JSON-js/107fc93c94aa3a9c7b48548631593ecf3aac60d2/json2.js"
