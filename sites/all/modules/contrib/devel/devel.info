@@ -1,0 +1,14 @@
+name = Devel
+description = Various blocks, pages, and functions for developers.
+package = Development
+core = 7.x
+configure = admin/config/development/devel
+tags[] = developer
+files[] = devel.test
+files[] = devel.mail.inc
+
+; Information added by Drupal.org packaging script on 2018-04-18
+version = "7.x-1.6"
+core = "7.x"
+project = "devel"
+datestamp = "1524009787"
