@@ -42,6 +42,9 @@ services:
       - APACHE_PHP_MEMORY_LIMIT=${APACHE_PHP_MEMORY_LIMIT}
       - APACHE_PHP_UPLOAD_MAX_FILESIZE=${APACHE_PHP_UPLOAD_MAX_FILESIZE}
       - APACHE_PHP_POST_MAX_SIZE=${APACHE_PHP_POST_MAX_SIZE}
+      - APACHE_PHP_XDEBUG_REMOTE_ENABLE=${APACHE_PHP_XDEBUG_REMOTE_ENABLE}
+      - APACHE_PHP_XDEBUG_REMOTE_HOST=${APACHE_PHP_XDEBUG_REMOTE_HOST}
+      - APACHE_PHP_XDEBUG_REMOTE_AUTOSTART=${APACHE_PHP_XDEBUG_REMOTE_AUTOSTART}
 
   mysql:
     container_name: scratchpads.mysql
@@ -63,10 +66,14 @@ services:
     image: naturalhistorymuseum/scratchpads-solr
     build:
       context: ./docker/solr
+    ports:
+      - "8983:8983"
     expose:
       - 8983
     volumes:
-      - solr-data:/etc/opt/solr/scratchpads2/data
+      - ./docker/solr/core:/var/solr/scratchpads2:rw
+    environment:
+      - SOLR_JVM_MEMORY=${SOLR_JVM_MEMORY}
 
   varnish:
     restart: always
