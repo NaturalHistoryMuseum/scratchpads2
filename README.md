@@ -51,3 +51,7 @@ If you want to help develop Scratchpads please don't hesitate to get in touch!
 We offer extensive support to users of the Scratchpads, whether using an NHM
 maintained Scratchpad, or a local one. Support should be requested using the
 "Issues..." tab which is visible when logged in to a Scratchpad.
+
+## Docker
+
+cat ../wallace.sql | docker exec -i scratchpads.apache drush sql-cli
