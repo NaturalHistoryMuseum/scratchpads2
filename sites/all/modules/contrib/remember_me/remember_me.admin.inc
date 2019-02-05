@@ -11,7 +11,7 @@
 function remember_me_admin_settings($form, &$form_state) {
   global $user;
   $options = drupal_map_assoc(
-    array(3600, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2592000, 5184000, 7776000),
+    array(3600, 10800, 21600, 43200, 86400, 172800, 259200, 604800, 1209600, 2592000, 5184000, 7776000, 15552000, 31104000),
     'format_interval'
   );
 

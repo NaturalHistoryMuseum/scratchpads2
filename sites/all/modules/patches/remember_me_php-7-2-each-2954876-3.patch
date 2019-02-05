@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/remember_me/remember_me.module b/sites/all/modules/contrib/remember_me/remember_me.module
+index 579185c11..3b4be7aa7 100644
+--- a/sites/all/modules/contrib/remember_me/remember_me.module
++++ b/sites/all/modules/contrib/remember_me/remember_me.module
+@@ -75,7 +75,7 @@ function remember_me_form_alter(&$form, $form_state, $form_id) {
+
+     // Now lets try and insert it right after the password field in the document
+     // and set the tabindex to 1 for each field so that we can jump in sequence.
+-    while (list($key, $val) = each($form)) {
++    foreach ($form as $key => $val) {
+       switch ($key) {
+         case 'name':
+         case 'pass' :
