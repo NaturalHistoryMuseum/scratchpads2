@@ -7,7 +7,9 @@ up:
 	@echo "Starting containers"
 	@docker-compose up
 
-down: stop
+down:
+	@echo "Stopping & removing containers"
+	@docker-compose down
 
 stop:
 	@echo "Stopping containers"
