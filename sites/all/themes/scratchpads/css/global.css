@@ -29,35 +29,20 @@ blockquote em,blockquote i {
   width: 100%;
 }
 
-/* Typography */
 @font-face {
-  font-family: 'FontinSansBoldItalic';
-  src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot');
-  src: url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.eot?#iefix')
-    format('embedded-opentype'),
-    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.woff')
-    format('woff'),
-    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.ttf')
-    format('truetype'),
-    url('../fonts/FontinSans_49/fontin_sans_bi_45b-webfont.svg#FontinSansBoldItalic')
-    format('svg');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'Inter';
+  src:  url('../fonts/Inter/Inter-Medium.woff2') format('woff2'),
+        url('../fonts/Inter/Inter-Medium.woff') format('woff'),
+        url('../fonts/Inter/Inter-Medium.ttf') format('truetype');
+  font-display: fallback;
 }
 
 @font-face {
-  font-family: 'FontinSansRegular';
-  src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot');
-  src: url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.eot?#iefix')
-    format('embedded-opentype'),
-    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.woff')
-    format('woff'),
-    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.ttf')
-    format('truetype'),
-    url('../fonts/FontinSans_49/fontin_sans_r_45b-webfont.svg#FontinSansRegular')
-    format('svg');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'InterItalic';
+  src:  url('../fonts/Inter/Inter-Italic.woff2') format('woff2'),
+        url('../fonts/Inter/Inter-Italic.woff') format('woff'),
+        url('../fonts/Inter/Inter-Italic.ttf') format('truetype');
+  font-style: italic, oblique;
 }
 
 body,h2,#region-sidebar h3 {
@@ -96,11 +81,11 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 h1,h1.site-name,h2.site-name,h3 {
-  font-family: 'FontinSansRegular', Georgia, serif !important;
+  font-family: 'Inter', Arial, sans-serif !important;
 }
 
 h1,h1.site-name,h2.site-name {
-  font-size: 2.8em !important;
+  font-size: 2.6em !important;
   line-height: 1.2em !important;
   text-transform: none !important;
 }
@@ -1115,17 +1100,17 @@ table,tbody,tfoot,thead,tr,th,td {
   zoom: 1;
   *display: inline;
 }
-/* put a border on the bottom of a views table 
+/* put a border on the bottom of a views table
  it gets to be made missing by biblio table global.css line 675 */
 table.views-table {
   border-bottom: 1px solid #CCCCCC;
 }
 /* put bullets on the correct side of the div and properly indent long text.
-Either the padding or the margin needs to be set to zero, with the other one set to 1em. 
+Either the padding or the margin needs to be set to zero, with the other one set to 1em.
 A hair out in IE*/
 table.views-table ul {
   list-style-position: inside;
-  margin-left: 0; 
+  margin-left: 0;
   padding-left: 1em;
   text-indent: -1em;
 }
