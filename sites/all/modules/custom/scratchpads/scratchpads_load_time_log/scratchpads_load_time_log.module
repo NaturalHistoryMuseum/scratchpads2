@@ -7,7 +7,7 @@
  * Implements hook_boot().
  */
 function scratchpads_load_time_log_boot(){
-  register_shutdown_function('scratchpads_load_time_log_shutdown');
+  drupal_register_shutdown_function('scratchpads_load_time_log_shutdown');
 }
 
 /**
