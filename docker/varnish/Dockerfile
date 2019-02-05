@@ -1,5 +1,3 @@
-# FROM dockerimages/docker-varnish
-
 FROM alpine:3.7
 
 RUN apk update && \
