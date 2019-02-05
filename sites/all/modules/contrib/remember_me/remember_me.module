@@ -75,7 +75,7 @@ function remember_me_form_alter(&$form, $form_state, $form_id) {
 
     // Now lets try and insert it right after the password field in the document
     // and set the tabindex to 1 for each field so that we can jump in sequence.
-    while (list($key, $val) = each($form)) {
+    foreach ($form as $key => $val) {
       switch ($key) {
         case 'name':
         case 'pass' :
