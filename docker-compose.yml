@@ -73,7 +73,7 @@ services:
   solr:
     container_name: scratchpads.solr
     restart: always
-    image: naturalhistorymuseum/scratchpads-solr
+    # image: naturalhistorymuseum/scratchpads-solr
     build:
       context: ./docker/solr
     ports:
@@ -81,7 +81,7 @@ services:
     expose:
       - 8983
     volumes:
-      - solr-data:/var/lib/solr-undertow/scratchpads2/data:rw
+      - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
     environment:
       - SOLR_JVM_MEMORY=${SOLR_JVM_MEMORY}
     logging:
