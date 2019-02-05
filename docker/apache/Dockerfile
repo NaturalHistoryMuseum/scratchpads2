@@ -1,7 +1,5 @@
 FROM php:7.1-apache
 
-WORKDIR /var/www/html
-
 RUN apt-get update
 RUN apt-get -y install wget \
     libxml2-dev \
@@ -17,12 +15,19 @@ RUN apt-get -y install wget \
     libjpeg62-turbo-dev \
     libgd-dev cron \
     msmtp \
+    unzip \
     --no-install-recommends
 
-RUN pecl install uploadprogress
-RUN docker-php-ext-enable uploadprogress
+WORKDIR /tmp/
+ADD https://github.com/Jan-E/uploadprogress/archive/master.zip /tmp/
+RUN unzip master.zip && cd /tmp/uploadprogress-master
+WORKDIR /tmp/uploadprogress-master
+RUN phpize
+RUN ./configure
+RUN make
+RUN make install
 
-RUN pecl install xdebug-2.5.5
+RUN pecl install xdebug
 RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-install opcache
@@ -74,3 +79,5 @@ RUN chown -R www-data:www-data /var/www/html
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /var/www/html
