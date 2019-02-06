@@ -4,6 +4,7 @@
  * Get the region_id from the lat,lng and zoom
  */
 function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
+  $iso_codes = strtoupper($iso_codes);
   gm3_region_switch_to_gm3_database();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // Because the TDWG data and Google data don't quite match, here we convert
@@ -30,7 +31,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
   $latlng = preg_replace("/[)(]/", "", $latlng);
   $latlng = explode(", ", $latlng);
   $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
-  $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code,':', level_5_code) as code, level_5_code 
+  $results = db_query("SELECT CONCAT(level_1_code, ':', level_2_code, ':', level_3_code, ':', level_3_code, '-', level_4_code,':', level_5_code) as code, level_5_code
                        FROM {gm3_region_data} WHERE WITHIN(POINTFROMTEXT('$point_wkt'), mysql_polygons) AND level_5_code != ''", array(
     ':point_wkt' => $point_wkt
   ));
@@ -87,6 +88,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level){
       }
     }
   }
+
   // Load the Library.
   gm3_load_geophp();
   $wkt_reader = new WKT();
@@ -207,8 +209,12 @@ function gm3_region_get_points($region_ids){
         }
         $row->polygons = str_replace($matches, $replaces, $row->polygons);
         $polygons = $wkt_reader->read($row->polygons, TRUE);
-        $polygons = $polygons->out('json');
-        $polygons = '{"' . $region_id . '":{"name":"' . $row->name . '","shape":' . $polygons . '}}';
+        $polygons = json_decode($polygons->out('json'));
+        $polygons = json_encode(array(
+          "regionId" => $region_id,
+          "name" => $row->name,
+          "shape" => $polygons
+        ));
       }
       cache_set($region_id, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{

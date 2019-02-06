@@ -175,7 +175,6 @@
       }
     }
     selfDisable(){
-      // Todo: Fire this as an event
       this.fire('deactivate');
     }
     getLineColour(){
