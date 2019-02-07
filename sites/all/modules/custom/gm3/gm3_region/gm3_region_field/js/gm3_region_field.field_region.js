@@ -170,15 +170,5 @@
       }
       return 5;
     }
-    Drupal.GM3.region.prototype.update_field = function(){
-      // Loop through each country.
-      var new_values = new Array();
-      for( var i in this.countries) {
-        if(this.countries[i] != undefined) {
-          new_values[new_values.length] = i;
-        }
-      }
-      $('.' + this.GM3.id + '-region').val(new_values);
-    }
   }
 })(jQuery);

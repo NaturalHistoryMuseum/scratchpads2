@@ -129,7 +129,7 @@
               addobject: e => e.cancelled = !this.addObject(),
               deactivate: e => this.setActiveClass('default'),
               popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
-              update: ({ cls, value }) => document.querySelector(cls(this.id)).value = value
+              update: ({ cls, value }) => this.updateField(cls, value)
             });
           }
         }
@@ -150,6 +150,18 @@
 
       // Automatically zoom to fit all points in map
       this.autozoom(leafletMap);
+    }
+
+    /**
+     * Update a class's field, if it exists
+     * @param {function} cls Generates the field's query selector given the map ID
+     * @param {string} value The value to set the field to
+     */
+    updateField(cls, value) {
+      const field = document.querySelector(cls(this.id));
+      if (field){
+        field.value = value;
+      }
     }
 
     /**
