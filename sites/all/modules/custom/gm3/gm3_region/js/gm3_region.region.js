@@ -74,7 +74,7 @@
                 this.countries[regionId].push(
                   // Todo - handle this as an event?
                   // Or extend from polygon class?
-                  this.GM3.children.polygon.addPolygon(coordinate, false).addTo(this.GM3.leafletMap)
+                  this.addPolygon(coordinate, map)
                 );
               }
             }
@@ -142,15 +142,14 @@
       }
 
       async selectRegion (latLng, map) {
-        console.log(latLng);
         const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
         // Todo: Handle errors here
         const res = await fetch(geocodeUrl(latLng));
         const result = await res.json();
         const regionCode = result.address.country_code
-        const level = 5;
-        const res2 = await fetch(Drupal.settings.gm3_region.callback2 + "/" + latLng.lat + ', ' + latLng.lng + "/" + regionCode + '/' + level);
+        const res2 = await fetch(Drupal.settings.gm3_region.callback2 + "/" + latLng.lat + ', ' + latLng.lng + "/" + regionCode);
         const polygonIds = await res2.json();
+
         if(polygonIds) {
           this.addPolygonsByIds(polygonIds, map);
           //this.updateField();

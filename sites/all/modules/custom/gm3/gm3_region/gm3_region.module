@@ -35,6 +35,19 @@ function gm3_region_menu(){
         'access content'
       ),
       'type' => MENU_CALLBACK
+    ),
+    'gm3_region/callback2/%/%' => array(
+      'title' => 'GM3 Region callback2',
+      'page callback' => 'gm3_region_get_region_id_from_latlng',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'file' => 'gm3_region.callback.inc',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
     )
   );
 }
