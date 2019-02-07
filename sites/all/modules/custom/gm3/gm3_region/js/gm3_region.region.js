@@ -203,6 +203,7 @@
        * Calculates the new field value and fires the update event
        */
       updateField() {
+        // Todo: Factor out codes
         const regions = Object.keys(this.countries).filter(k => this.countries[k]);
 
         this.fire('update', { cls: id => `.${id}-region`, value: regions });

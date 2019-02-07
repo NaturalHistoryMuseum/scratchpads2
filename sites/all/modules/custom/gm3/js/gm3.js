@@ -159,8 +159,19 @@
      */
     updateField(cls, value) {
       const field = document.querySelector(cls(this.id));
+
       if (field){
-        field.value = value;
+        if (field.multiple && Array.isArray(value)) {
+          field.value = null;
+          for (const item of value) {
+            (
+              field.querySelector(`option[value="${item}"]`) ||
+              field.querySelector(`option[value="${item}:"]`) // Fixme: Hack to make region selection work properly
+            ).selected = true;
+          }
+        } else {
+          field.value = value;
+        }
       }
     }
 
