@@ -247,12 +247,11 @@ function _scratchpads_lucid_applet_embed_html($fid, $width, $height){
     }
   }
   if(!$key_file){
+    // For safety we delete the extracted archive.
+    $archive->deleteExtractedFiles();
     throw new Exception(t('Could not find key file %key_file', array(
       '%key_file' => implode(' ', $files) //$key_file
     )));
-    // For safety we delete the extracted archive.
-    $archive->deleteExtractedFiles();
-    continue;
   }
   $key_file = file_create_url($key_file);
   return '<applet code="' . $code . '" archive="' . $jar_file . '" width="' . $width . '" height="' . $height . '">' . '<param name="code" value="' . $code . '" />' . '<param name="archive" value="' . $jar_file . '" />' . '<param name="key" value="' . $key_file . '" />' . '</applet>';
