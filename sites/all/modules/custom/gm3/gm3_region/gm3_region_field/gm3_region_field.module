@@ -2,7 +2,7 @@
 
 /**
  * Provides the following fields:
- * 
+ *
  * - Google maps regions (click on a country to select)
  */
 /**
@@ -21,7 +21,7 @@ function gm3_region_field_field_info(){
 
 /**
  * Callback to validate an item
- * 
+ *
  * NOTE, this function is NOT gm3_region_field_items_validate to enable users
  * to enter REGION: REGION-ID rather than REGION_FIELD: REGION-ID
  */
@@ -228,7 +228,6 @@ function gm3_region_field_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3_region_field') . "/js/gm3_region_field.field_region.js"
         )
       ),
       'dependencies' => array(

@@ -126,10 +126,13 @@
           const child = this.children[id] = new Drupal.GM3[id](isNewClass ? this.leafletMap : this, map.libraries[id]);
           if(isNewClass) {
             child.on({
+              // Todo: Use L.DomObject.preventDefault(e) instead?
               addobject: e => e.cancelled = !this.addObject(),
+              removeobject: e => this.removeObject(),
               deactivate: e => this.setActiveClass('default'),
               popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
-              update: ({ cls, value }) => this.updateField(cls, value)
+              update: ({ cls, value }) => this.updateField(cls, value),
+              message: ({ message }) => this.message(message)
             });
           }
         }
@@ -164,10 +167,12 @@
         if (field.multiple && Array.isArray(value)) {
           field.value = null;
           for (const item of value) {
-            (
-              field.querySelector(`option[value="${item}"]`) ||
-              field.querySelector(`option[value="${item}:"]`) // Fixme: Hack to make region selection work properly
-            ).selected = true;
+            const option = field.querySelector(`option[value="${item}"]`) ||
+                           field.querySelector(`option[value="${item}:"]`) // Fixme: Hack to make region selection work properly;
+            if(option) {
+              option.selected = true;
+            }
+            // Todo: Error if there's no option?
           }
         } else {
           field.value = value;
@@ -187,6 +192,10 @@
         this.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
         return false;
       }
+    }
+
+    removeObject() {
+      this.numObjects--;
     }
 
     // Automatically zoom to fit all points in on the map
@@ -332,20 +341,19 @@
       }
     }
 
-    message(message, type, delay){
+    message(message, type = 'status', delay = 4000){
+      // Todo: clean this up
       // Display an alert message which disappears after a short time. This is
       // intended as an alternative to the JavaScript alert function.
       // type can be one of: "status", "warning", "error" as supported by Drupal.
-      if(typeof type == 'undefined') {
-        type = 'status';
-      }
-      if(typeof delay == 'undefined') {
-        delay = 4000;
-      }
-      $('#' + this.id).parent().prepend('<div class="gm3_message messages ' + type + '">' + message + '</div>');
-      $('.gm3_message').delay(delay).slideUp(1000, function(){
-        $('.gm3_message').remove();
-      });
+      const status = document.createElement('div');
+      status.classList.add('gm3_message');
+      status.classList.add('messages');
+      status.classList.add(type);
+      status.innerHTML = message;
+      this.mapNode.parentNode.prepend(status);
+      // Todo: Add slideup animation 1s on remove
+      setTimeout(() => status.remove(), delay);
     }
   }
 

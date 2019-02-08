@@ -1,4 +1,22 @@
 (function($){
+  "use strict";
+
+  const getLevelFromZoom = zoom => zoom < 3 ? 1 :
+                                   zoom < 5 ? 2 :
+                                   zoom < 6 ? 3 :
+                                   zoom < 7 ? 4 :
+                                              5 ;
+
+  const getMessageFromLevel = level => (
+    {
+      1: Drupal.t("Selecting by continent (Level 1)"),
+      2: Drupal.t("Selecting by sub-continent (Level 2)"),
+      3: Drupal.t("Selecting by country/subcountry (Level 3)"),
+      5: Drupal.t("Selecting by vice county (Level 5) - UK Only")
+    }[level]||
+      Drupal.t("Selecting by country/subcountry (Level 4)")
+  );
+
   if(typeof Drupal.GM3 != 'undefined') {
     /**
      * Map module for selecting and displaying geographical regions
@@ -8,13 +26,15 @@
         super();
         this.countries = {};
 
+        // The TDWG level to use for region selection
+        this.selectingLevel = 4;
 
         // Array of functions to call when we deactivate
         this.teardowns = [];
 
         // Add Regions sent from server.
         if(settings.regions) {
-          this.addPolygonsByIds(settings.regions, map);
+          this.addPolygonsByIds(settings.regions, map, settings.editable);
         }
       }
 
@@ -24,7 +44,7 @@
        * @param {gm3.map} map The leaflet map to add the polygons to
        * @param {bool} autofit True to auto zoom the map
        */
-      async addPolygonsByIds(regionIds, map, autofit = true){
+      async addPolygonsByIds(regionIds, map, editable = false, autofit = true){
         if (typeof regionIds === 'string') {
           regionIds = [regionIds];
         }
@@ -68,23 +88,23 @@
           for (const region of data) {
             const regionId = region.regionId || Object.keys(region)[0];
             const shape = region.shape || region[regionId].shape;
+            const polygons = shape.type === 'MultiPolygon' ? shape.coordinates :
+                             shape.type === 'Polygon' ? [shape.coordinates] : [];
 
-            for (const coordinate of shape.coordinates) {
-              if(shape.type === 'MultiPolygon') {
-                for(const points of coordinate) {
-                  // We have a region with multiple shapes.
-                  this.countries[regionId].push(
-                    // Todo - handle this as an event?
-                    // Or extend from polygon class?
-                    this.addPolygon(points, map)
-                  );
+            for (const polygon of polygons) {
+              for(const points of polygon) {
+                // Todo - handle this as an event?
+                // Or extend from polygon class?
+                const poly = this.addPolygon(points, map);
+
+                this.countries[regionId].push(poly);
+
+                if (editable) {
+                  poly.on('contextmenu', e => {
+                    this.removePolygonsById(regionId);
+                    L.DomEvent.stopPropagation(e);
+                  });
                 }
-              } else if(shape.type === 'Polygon') {
-                this.countries[regionId].push(
-                  // Todo - handle this as an event?
-                  // Or extend from polygon class?
-                  this.addPolygon(coordinate, map)
-                );
               }
             }
           }
@@ -136,6 +156,8 @@
           region.remove();
         }
         this.countries[regionId] = null;
+        this.fire('removeobject');
+        this.updateField();
       }
 
       /**
@@ -143,6 +165,27 @@
        * @param {LeafletMap} map Activating map
        */
       activate(map) {
+        // We add a little text to the top left of the map to say what level
+        // we will be selecting.
+        this.selectingLevel = getLevelFromZoom(map.getZoom());
+
+        const levelMessage = document.createElement('div');
+        levelMessage.setAttribute('class', 'gm3_information');
+        levelMessage.style.cursor = 'pointer';
+        // Todo: Use something else for this to stop the tooltip from moving around
+        map.getPane('tooltipPane').appendChild(levelMessage);
+        const setLevelMessage = () => levelMessage.innerHTML = `<p>${getMessageFromLevel(this.selectingLevel)}</p>`;
+        setLevelMessage();
+
+        levelMessage.addEventListener('click', () => {
+          // We reduce the level by one, unless we're on one, then we set it as
+          // 5
+          this.selectingLevel = (this.selectingLevel - 1) % 5 || 5;
+          setLevelMessage();
+        });
+
+        this.teardowns.push(() => levelMessage.remove());
+
         // Todo: Fire event for this
         // map.setOptions({ draggableCursor: 'pointer' });
 
@@ -150,7 +193,11 @@
         // Add tool functionality
         this.listeners = {
           click: e => this.selectRegion(e.latlng, map),
-          contextmenu: e => this.selfDisable()
+          contextmenu: e => this.selfDisable(),
+          zoom: e => {
+            this.selectingLevel = getLevelFromZoom(map.getZoom());
+            setLevelMessage();
+          }
         }
 
         map.on(this.listeners);
@@ -173,17 +220,32 @@
        * @param {LeafletMap} map The map that was selected
        */
       async selectRegion (latLng, map) {
+        // Todo: Factor out this addobject code
+        const options = {
+          cancelled: false
+        };
+        // Todo: This shouldn't actually add the object until after we complete
+        this.fire('addobject', options);
+
+        if (options.cancelled) {
+          return;
+        }
+
         const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
         // Todo: Handle errors here
         const res = await fetch(geocodeUrl(latLng));
         const result = await res.json();
-        const regionCode = result.address.country_code
-        const res2 = await fetch(Drupal.settings.gm3_region.callback2 + "/" + latLng.lat + ', ' + latLng.lng + "/" + regionCode);
-        const polygonIds = await res2.json();
+        const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
+        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
+        const polygonId = await res2.json();
 
-        if(polygonIds) {
-          this.addPolygonsByIds(polygonIds, map);
-          this.updateField();
+        if(polygonId) {
+          if (this.countries[polygonId]) {
+            this.fire('message', { message: 'Region already selected' });
+          } else {
+            this.addPolygonsByIds(polygonId, map, true);
+            this.updateField();
+          }
         }
       }
 

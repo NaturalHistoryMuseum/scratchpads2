@@ -65,6 +65,9 @@
     deactivate(){
       this.active = false;
 
+      // Disable the editor
+      this.getLastPolygon().disableEdit();
+
       // Remove the polygon if it wasn't actually used
       if(this.getPolygonPath().length === 0) {
         this.polygons.pop().remove();
@@ -77,9 +80,6 @@
       // Remove polylines
       this.followLines[0].remove();
       this.followLines[1].remove();
-
-      // Disable the editor
-      this.getLastPolygon().disableEdit();
     }
     /**
      * Adds a polygon to the map
