@@ -58,52 +58,45 @@ function eolapi_page($id, $tid, $age = 604800)
 function eolapi_data_objects($id, $tid, $age = 604800)
 {
 
-  if (is_object($id)) {
-    // We have been passed an object rather than an ID.  This has most likely
-    // come from an EOL page, and therefore needs saving.
-    // We tweak this object to look IDENTICAL to the object that we would
-    // obtain if using the eolapi_get() function.
-    $row = db_select('eolapi', 'e')->condition('label', $id->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
-    if ($row) {
-      $eolapi = entity_load_single('eolapi', $row->eid);
-    } else {
-      // New eolapi data object
-      $eolapi = new stdClass();
-    }
-    $eolapi->type = strtolower($id->dataType);
-    if (substr($eolapi->type, 0, 4) == 'http') {
-      $eolapi->type = array_pop(explode("/", $eolapi->type));
-    }
-    // We do something a little special for the text type.  This may throw up
-    // issues with odd ordering in the future, so if it does, remove the
-    // following.
-    if ($eolapi->type == 'text') {
-      if (!isset($id->subject) && isset($id->dataRating)) {
-        // Add 10 to the rating
-        $id->dataRating += 10;
-      }
-    }
-    $eolapi->trusted = $id->vettedStatus == 'Trusted' ? 1 : 0;
-    $eolapi->license = isset($id->license) ? $id->license : '';
-    $eolapi->rating = $id->dataRating;
-    $eolapi->label = $id->identifier;
-    $eolapi->data = serialize($id);
-    $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
-    $eolapi->eolapi_taxonomy = array(
-      $lang => array(
-        array(
-          'tid' => $tid
-        )
-      )
-    );
-    $eolapi->source = 'EOL';
-    entity_save('eolapi', $eolapi);
+
+  // Convert dataobject into the eolapi entity
+  $row = db_select('eolapi', 'e')->condition('label', $id->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+  if ($row) {
+    $eolapi = entity_load_single('eolapi', $row->eid);
   } else {
-    $eolapi = eolapi_get('data_objects', $id, $tid);
+    // New eolapi data object
+    $eolapi = new stdClass();
   }
+  $eolapi->type = strtolower($id->dataType);
+  if (substr($eolapi->type, 0, 4) == 'http') {
+    $eolapi->type = array_pop(explode("/", $eolapi->type));
+  }
+  // We do something a little special for the text type.  This may throw up
+  // issues with odd ordering in the future, so if it does, remove the
+  // following.
+  if ($eolapi->type == 'text') {
+    if (!isset($id->subject) && isset($id->dataRating)) {
+      // Add 10 to the rating
+      $id->dataRating += 10;
+    }
+  }
+  $eolapi->trusted = $id->vettedStatus == 'Trusted' ? 1 : 0;
+  $eolapi->license = isset($id->license) ? $id->license : '';
+  $eolapi->rating = $id->dataRating;
+  $eolapi->label = $id->identifier;
+  $eolapi->data = serialize($id);
+  $lang = field_language('eolapi', $eolapi, 'eolapi_taxonomy');
+  $eolapi->eolapi_taxonomy = array(
+    $lang => array(
+      array(
+        'tid' => $tid
+      )
+    )
+  );
+  $eolapi->source = 'EOL';
+
   // Check to see if this is an stillimage type, and if so, download the image
   // for it.
-
   if ($eolapi->type == 'stillimage' && (!isset($eolapi->eolapi_image) || !count($eolapi->eolapi_image))) {
     // Download the original image so that we can perform image_styles magic on
     // it.
@@ -112,19 +105,12 @@ function eolapi_data_objects($id, $tid, $age = 604800)
     // the file and replace the URI with the original URI. Note, we do this so
     // that we can get the width and height of the image (not sure if they're
     // actually required).
-
-    // if (substr($data->mediaURL, 0, 8) == "https://") {
-    //   return;
-    // }
-
     $request = drupal_http_request($data->mediaURL, array(
       'timeout' => EOLAPI_TIMEOUT
     ));
 
     if ($request->code == 200) {
-
       $file = file_save_data($request->data);
-      var_dump($data->mediaURL);
       $toolkit = image_get_toolkit();
       $image = new stdClass();
       $image->source = $file->uri;
@@ -138,8 +124,8 @@ function eolapi_data_objects($id, $tid, $age = 604800)
         $file->filemime = $filemime;
         finfo_close($finfo);
       }
-      file_unmanaged_delete($file->uri);
-      $file->uri = $data->mediaURL;
+      // file_unmanaged_delete($file->uri);
+      // $file->uri = $data->mediaURL;
       $file->alt = '';
       $file->width = $details['width'];
       $file->height = $details['height'];
@@ -152,8 +138,11 @@ function eolapi_data_objects($id, $tid, $age = 604800)
         file_delete($file, $force = true);
         echo ($e->getMessage());
         watchdog(WATCHDOG_ERROR, $e->getMessage());
-        return;
+        return false;
       }
+
+      entity_save('eolapi', $eolapi);
+
       $lang = field_language('eolapi', $eolapi, 'eolapi_image');
       $eolapi->eolapi_image = array(
         $lang => array(
@@ -213,7 +202,7 @@ function eolapi_get($type, $id, $tid, $additional_query = '', $age = 604800)
       // Note, we do a seperate load to ensure other modules can alter this eolapi
       // if they so wish.
       if (REQUEST_TIME - $age < $row->changed) {
-        //   return entity_load_single('eolapi', $row->eid);
+        return entity_load_single('eolapi', $row->eid);
       }
     }
 

@@ -3,7 +3,8 @@
 /**
  * Still image full
  */
-function theme_eolapi_stillimage_full($variables){
+function theme_eolapi_stillimage_full($variables)
+{
   $data = unserialize($variables['entity']->data);
   $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
   return theme('image_style', array(
@@ -20,7 +21,8 @@ function theme_eolapi_stillimage_full($variables){
 /**
  * Still image teaser
  */
-function theme_eolapi_stillimage_teaser($variables){
+function theme_eolapi_stillimage_teaser($variables)
+{
   $data = unserialize($variables['entity']->data);
   drupal_add_js(drupal_get_path('module', 'eolapi') . '/js/eolapi.js');
   $lang = field_language('eolapi', $variables['entity'], 'eolapi_image');
@@ -33,14 +35,15 @@ function theme_eolapi_stillimage_teaser($variables){
     'title' => (isset($data->title) ? $data->title : ''),
     'attributes' => array()
   )), 'eol/' . $variables['entity']->eid . '/nojs', array(
-    'html' => TRUE
+    'html' => true
   ));
 }
 
 /**
  * Text full
  */
-function theme_eolapi_text_full($variables){
+function theme_eolapi_text_full($variables)
+{
   $data = unserialize($variables['entity']->data);
   return $data->description;
 }
@@ -48,17 +51,18 @@ function theme_eolapi_text_full($variables){
 /**
  * Text teaser
  */
-function theme_eolapi_text_teaser($variables){
+function theme_eolapi_text_teaser($variables)
+{
   $data = unserialize($variables['entity']->data);
   $agents = array();
-  if(isset($data->agents)){
-    foreach($data->agents as $agent){
-      if(isset($agent->homepage)){
+  if (isset($data->agents)) {
+    foreach ($data->agents as $agent) {
+      if (isset($agent->homepage)) {
         $agents[] = l($agent->full_name, $agent->homepage);
-      }else{
-        if(substr($agent->full_name, 0, 4) == 'http'){
+      } else {
+        if (substr($agent->full_name, 0, 4) == 'http') {
           $agents[] = l($agent->full_name, $agent->full_name);
-        }else{
+        } else {
           $agents[] = $agent->full_name;
         }
       }
@@ -94,9 +98,10 @@ function theme_eolapi_text_teaser($variables){
 /**
  * YouTube full
  */
-function theme_eolapi_movingimage_full($variables){
+function theme_eolapi_movingimage_full($variables)
+{
   $data = unserialize($variables['entity']->data);
-  switch($data->mimeType){
+  switch ($data->mimeType) {
     case 'video/x-flv':
       return '<object data="' . $data->mediaURL . '" height="420" type="application/x-shockwave-flash" width="540"></object>';
       break;
@@ -106,9 +111,10 @@ function theme_eolapi_movingimage_full($variables){
 /**
  * YouTube teaser
  */
-function theme_eolapi_movingimage_teaser($variables){
+function theme_eolapi_movingimage_teaser($variables)
+{
   $data = unserialize($variables['entity']->data);
-  switch($data->mimeType){
+  switch ($data->mimeType) {
     case 'video/x-flv':
       return '<object data="' . $data->mediaURL . '" height="100" type="application/x-shockwave-flash" width="100"></object>';
       break;

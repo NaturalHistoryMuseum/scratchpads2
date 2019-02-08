@@ -1,9 +1,10 @@
 (function ($) {
     // EOLAPI object.
     Drupal.eolapi = Drupal.eolapi || {};
-    // Attach behaviors
 
+    // Attach behaviors
     Drupal.eolapi.do_the_do = function () {
+
         if ($('.eolapi-empty').length) {
             var original_this = $('.eolapi-empty').first();
             $.ajax({
@@ -25,7 +26,12 @@
     }
     Drupal.behaviors.eolapi = {
         attach: function (context, settings) {
-            Drupal.eolapi.do_the_do();
+
+            // Attache callback only once
+            $(context).once('eolapi', function () {
+                Drupal.eolapi.do_the_do();
+            });
+
             try {
                 $('a[href^="' + Drupal.settings.basePath + 'eol/"]', context).each(function () {
                     if ($(this).colorbox) {

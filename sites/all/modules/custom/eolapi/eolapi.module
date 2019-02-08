@@ -245,16 +245,16 @@ function eolapi_load($entity_id)
 function eolapi_eolapi_delete($entity)
 {
 
-  var_dump($entity->eolapi_image);
+  // var_dump($entity->eolapi_image);
   $lang = field_language('eolapi', $entity, 'eolapi_image');
-  if (is_array($entity->eolapi_image[$lang])) {
-    foreach ($entity->eolapi_image[$lang] as $f) {
-      $file = file_load($f['fid']);
-      if ($file) {
-        file_delete($file, $force = true);
-      }
-    }
-  }
+  // if (is_array($entity->eolapi_image[$lang])) {
+  //   foreach ($entity->eolapi_image[$lang] as $f) {
+  //     $file = file_load($f['fid']);
+  //     if ($file) {
+  //       file_delete($file, $force = true);
+  //     }
+  //   }
+  // }
 }
 
 /**
@@ -262,13 +262,11 @@ function eolapi_eolapi_delete($entity)
  */
 function eolapi_page_view($eolapi)
 {
-  // var_dump($eolapi);
   $rows = array();
   if (count($eolapi->eolapi_image)) {
     $lang = field_language('eolapi', $eolapi, 'eolapi_image');
     if (@isset($eolapi->eolapi_image[$lang][0]['fid'])) {
       $file = file_load($eolapi->eolapi_image[$lang][0]['fid']);
-
       $file_view = entity_view('file', array(
         $file
       ), 'file_styles_colorbox');

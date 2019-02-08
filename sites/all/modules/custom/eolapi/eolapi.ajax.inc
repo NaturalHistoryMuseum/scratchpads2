@@ -12,11 +12,8 @@ function eolapi_callback()
 
   $callbacks = module_invoke_all('eolapi_callbacks');
 
-  $view_name = $_POST['view-name'];
+  $view_name = $_POST['viewName'];
   $tid = $_POST['tid'];
-
-  $view_name = 'eol_images';
-  $tid = 9;
 
   if (!empty($callbacks[$view_name])) {
     call_user_func($callbacks[$view_name], $tid);
@@ -24,10 +21,10 @@ function eolapi_callback()
     module_load_include('functions.inc', 'eolapi');
     eolapi_search($tid);
   }
+
   if (!empty($tid)) {
     $view = views_get_view($view_name);
     $view->args[] = $tid;
-
     if (method_exists($view, 'render')) {
       $output = $view->render('block');
       if (count($view->result)) {
