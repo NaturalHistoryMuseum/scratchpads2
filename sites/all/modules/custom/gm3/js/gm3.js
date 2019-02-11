@@ -127,9 +127,10 @@
           if(isNewClass) {
             child.on({
               // Todo: Use L.DomObject.preventDefault(e) instead?
-              addobject: e => e.cancelled = !this.addObject(),
+              beforeaddobject: e => e.cancelled = !this.beforeAddObject(),
+              addobject: e => this.addObject(),
               removeobject: e => this.removeObject(),
-              deactivate: e => this.setActiveClass('default'),
+              deactivate: e => this.deactivateActiveLibrary(),
               popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
               update: ({ cls, value }) => this.updateField(cls, value),
               message: ({ message }) => this.message(message)
@@ -142,7 +143,6 @@
       this.toolbar = toolbar;
 
       // Add listeners
-      // Todo: Refactor
       this.addToolbarListeners(
         toolbar
       );
@@ -181,12 +181,11 @@
     }
 
     /**
-     * Try to increase the number of objects on the map
-     * If the limit has been hit, return false
+     * Return true if it's possible to add another object to the map
+     * Else put up a a message
      */
-    addObject() {
+    beforeAddObject() {
       if(this.maxObjects === -1 || this.numObjects < this.maxObjects) {
-        this.numObjects++;
         return true;
       } else {
         this.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
@@ -194,6 +193,16 @@
       }
     }
 
+    /**
+     * Increase the count of objects on the map by 1
+     */
+    addObject() {
+      this.numObjects++;
+    }
+
+    /**
+     * Decrease the count of objects on the map by 1
+     */
     removeObject() {
       this.numObjects--;
     }
@@ -288,14 +297,13 @@
 
         // Make sure the clicked element has the attribute
         if(gm3Class) {
-          this.setActiveClass(gm3Class);
+          this.switchToLibrary(gm3Class);
         }
       });
     }
 
     // Called when the default toolbar button is selected
     // Sets the draggableCursor to pointer and removes the gm3_information block
-    // Todo: Refactor references to this
     active(){
       // Todo: Set the cursor to "pointer"
       // Remove the information block (currently only used by the region module).
@@ -305,8 +313,42 @@
       }
     }
 
+    /**
+     * Deactivate the currently active library and activate a new one
+     * @param {string} library The name of the child gm3 library to activate
+     */
+    switchToLibrary(library) {
+      if (this.activeClass === library) {
+        return;
+      }
+
+      const activeLibrary = this.children[this.activeClass];
+
+      if (activeLibrary && activeLibrary.deactivate) {
+        // Set active class to null so we ignore the next 'deactivate' event
+        this.activeClass = null;
+        activeLibrary.deactivate();
+      }
+
+      this.setActiveClass(library);
+    }
+
+    /**
+     * Deactivate the currently active library and activate the default behaviours
+     */
+    deactivateActiveLibrary() {
+      // If active class is null we're already in the middle of switching libraries
+      if (this.activeClass !== null) {
+        this.setActiveClass('default');
+      }
+    }
+
     // Sets the css class on an active toolbar button
     setActiveClass(activeClass){
+      if (this.activeClass === activeClass) {
+        return;
+      }
+
       // Todo: Can this toolbar stuff be split off into a toolbar module?
       const toolbar = this.toolbar;
       if (toolbar) {
@@ -317,12 +359,7 @@
         toolbar.querySelector(`[data-gm3-class="${activeClass}"]`).parentNode.classList.add('gm3-clicked');
       }
 
-      // Disable the old active child
-      const lastActive = this.children[this.activeClass];
-
-      if (lastActive && lastActive.deactivate) {
-        lastActive.deactivate();
-      }
+      this.deactivateActiveLibrary();
 
       this.activeClass = activeClass;
 
@@ -367,10 +404,14 @@
           Drupal.behaviors[i].attach(context, settings);
         }
       }
+
+      // Handy in case we want to debug an individual map
+      Drupal.settings.gm3.mapInstances = {};
+
       for(const mapId in Drupal.settings.gm3.maps) {
         if(context.getElementById(mapId)) {
           // Create the new GM3 map object.
-          Drupal.settings.gm3.maps[mapId] = new Drupal.GM3(Drupal.settings.gm3.maps[mapId]);
+          Drupal.settings.gm3.mapInstances[mapId] = new Drupal.GM3(Drupal.settings.gm3.maps[mapId]);
         }
       }
     }

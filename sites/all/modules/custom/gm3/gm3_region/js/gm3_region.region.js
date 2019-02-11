@@ -21,16 +21,13 @@
     /**
      * Map module for selecting and displaying geographical regions
      */
-    Drupal.GM3.region = class extends L.Evented {
+    Drupal.GM3.region = class extends Drupal.GM3.Library {
       constructor(map, settings) {
         super();
         this.countries = {};
 
         // The TDWG level to use for region selection
         this.selectingLevel = 4;
-
-        // Array of functions to call when we deactivate
-        this.teardowns = [];
 
         // Add Regions sent from server.
         if(settings.regions) {
@@ -133,7 +130,7 @@
        * @param {Leaflet} map The map to add the polygon to
        */
       addPolygon(points, map) {
-        // Todo: Refactor redundant code
+        // Todo: Refactor redundant code with polygon module
         const pathPoints = points.map(point => Array.isArray(points) ? L.latLng([point[1], point[0]]) : L.latLng(points));
 
         const polyOptions = {
@@ -156,8 +153,7 @@
           region.remove();
         }
         this.countries[regionId] = null;
-        this.fire('removeobject');
-        this.updateField();
+        this.removeObject();
       }
 
       /**
@@ -184,34 +180,19 @@
           setLevelMessage();
         });
 
-        this.teardowns.push(() => levelMessage.remove());
+        this.addTeardown(() => levelMessage.remove());
 
         // Todo: Fire event for this
         // map.setOptions({ draggableCursor: 'pointer' });
 
-        // Todo: Factor this out into subclass
         // Add tool functionality
-        this.listeners = {
+        super.activate(map, {
           click: e => this.selectRegion(e.latlng, map),
-          contextmenu: e => this.selfDisable(),
           zoom: e => {
             this.selectingLevel = getLevelFromZoom(map.getZoom());
             setLevelMessage();
           }
-        }
-
-        map.on(this.listeners);
-
-        // Register a function to remove the listeners
-        this.teardowns.push(() => map.off(this.listeners))
-      }
-
-      /**
-       * Disable this tool
-       */
-      selfDisable(){
-        // Todo: Factor out redundant code
-        this.fire('deactivate');
+        });
       }
 
       /**
@@ -219,56 +200,37 @@
        * @param {LatLng} latLng The point on the map selected by the user
        * @param {LeafletMap} map The map that was selected
        */
-      async selectRegion (latLng, map) {
-        // Todo: Factor out this addobject code
-        const options = {
-          cancelled: false
-        };
+      selectRegion (latLng, map) {
         // Todo: This shouldn't actually add the object until after we complete
-        this.fire('addobject', options);
+        this.addObject(async () => {
+          const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+          // Todo: Handle errors here
+          const res = await fetch(geocodeUrl(latLng));
+          const result = await res.json();
+          const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
+          const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
+          const polygonId = await res2.json();
 
-        if (options.cancelled) {
-          return;
-        }
-
-        const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-        // Todo: Handle errors here
-        const res = await fetch(geocodeUrl(latLng));
-        const result = await res.json();
-        const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
-        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
-        const polygonId = await res2.json();
-
-        if(polygonId) {
-          if (this.countries[polygonId]) {
-            this.fire('message', { message: 'Region already selected' });
-          } else {
-            this.addPolygonsByIds(polygonId, map, true);
-            this.updateField();
+          if(polygonId) {
+            if (this.countries[polygonId]) {
+              this.setMessage('Region already selected');
+            } else {
+              this.addPolygonsByIds(polygonId, map, true);
+              return true;
+            }
           }
-        }
-      }
 
-      /**
-       * Hook called by the parent gm3 object when deactivating this tool
-       */
-      deactivate(){
-        // Todo: Factor this stuff out
-        this.active = false;
-
-        // Remove event listeners
-        this.teardowns.forEach(t => t());
-        this.teardowns = [];
+          return false;
+        });
       }
 
       /**
        * Calculates the new field value and fires the update event
        */
       updateField() {
-        // Todo: Factor out codes
         const regions = Object.keys(this.countries).filter(k => this.countries[k]);
 
-        this.fire('update', { cls: id => `.${id}-region`, value: regions });
+        super.updateField(id => `.${id}-region`, regions);
       }
     }
   }

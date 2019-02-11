@@ -2,7 +2,7 @@
 
 /**
  * Provides the following fields:
- * 
+ *
  * - Google maps point
  * - Google maps polygon
  * - Google maps polyline
@@ -12,13 +12,13 @@
 /**
  * Does not implement the following (amongst others) hook_field_* hooks.
  * This is for my benefit only, and will be removed.
- * 
+ *
  * hook_field_load().
  * hook_field_delete().
  * hook_field_access().
  * hook_field_presave().
  * hook_field_settings_form().
- * 
+ *
  * FIXME - Drag'n'dropped points are not updated.
  */
 /**
@@ -243,7 +243,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
                 _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
                 break;
               default:
-                // Here we have a field that was not defined by this module, we use the 
+                // Here we have a field that was not defined by this module, we use the
                 // name of the module, plus the name of the type plus view to get the name
                 // of the function to call
                 // "{$field['module']}_{$field['type']}_view()"
@@ -486,22 +486,6 @@ function gm3_field_library(){
         )
       )
     ),
-    'field_polygon' => array(
-      'title' => t('Google Maps Javascript API V3: Polygon field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polygon.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.polygon'
-        )
-      )
-    ),
     'field_rectangle' => array(
       'title' => t('Google Maps Javascript API V3: Rectangle field'),
       'website' => 'http://code.google.com/apis/maps/',
@@ -738,7 +722,7 @@ function gm3_field_field_is_empty($item, $field){
 
 /**
  * Implements hook_field_formatter_info().
- * 
+ *
  * FIXME - We need to add settings to these formatter types to allow the display
  * of the map to be altered.
  */
@@ -887,7 +871,7 @@ function theme_gm3_polyline_text($variables){
 
 /**
  * Themes for field types.
- * 
+ *
  * Note, this is A LOT simpler than renaming every instance of "polygon" to
  * "gm3_polygon", although I may do that in the future.
  */
@@ -915,7 +899,7 @@ function theme_rectangle_text($variables){
 
 /**
  * Implements hook_field_formatter_view().
- * 
+ *
  * FIXME - Still need to do the field/entity formats properly (so that an entity
  * map will show all the fields set as "entity_map" on that entity.
  */
@@ -1104,7 +1088,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       }
       break;
     default:
-      // Here we have a field that was not defined by this module, we use the 
+      // Here we have a field that was not defined by this module, we use the
       // name of the module, plus the name of the type plus view to get the name
       // of the function to call
       // "{$field['module']}_{$field['type']}_view()"

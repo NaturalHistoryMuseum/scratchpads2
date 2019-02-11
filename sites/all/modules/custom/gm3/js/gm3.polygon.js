@@ -14,7 +14,7 @@
     interactive: false
   });
 
-  Drupal.GM3.polygon = class extends L.Evented {
+  Drupal.GM3.polygon = class extends Drupal.GM3.Library {
     constructor(map, settings) {
       super();
 
@@ -23,9 +23,6 @@
         createFollowLine(),
         createFollowLine()
       ];
-
-      // Array of functions to call when we deactivate
-      this.teardowns = [];
 
       // Add the followlines
       for (const line of this.followLines) {
@@ -45,22 +42,14 @@
       }
     }
     activate(map){
-      this.active = true;
+      // Add tool functionality
+      super.activate(map, {
+        click: e => this.addPolyPoint(e.latlng),
+        mousemove: e => this.setFollowLines(e.latlng || e)
+      });
 
       // Create a new polygon and add it to the map
       this.addPolygon().addTo(map);
-
-      // Add tool functionality
-      this.listeners = {
-        click: e => this.addPolyPoint(e.latlng),
-        mousemove: e => this.setFollowLines(e.latlng || e),
-        contextmenu: e => this.selfDisable()
-      }
-
-      map.on(this.listeners);
-
-      // Register a function to remove the listeners
-      this.teardowns.push(() => map.off(this.listeners))
     }
     deactivate(){
       this.active = false;
@@ -117,7 +106,7 @@
 
       if(content && !editable) {
         // We don't add a popup to an editable polygon.
-        this.fire('popup', { layer: polygon, content, title })
+        this.setPopup(polygon, content, title);
       }
 
       return polygon;
@@ -140,13 +129,8 @@
       const polyLine = this.getPolygonPath();
       // If this is the first point on the shape, try to fire addObject and see if it gets cancelled
       if (polyLine.length == 0) {
-        const options = {
-          cancelled: false
-        };
-        this.fire('addobject', options);
-
-        if (options.cancelled) {
-          return
+        if (!this.addObject()) {
+          return;
         }
       }
       polygon.disableEdit();
@@ -174,9 +158,6 @@
         this.followLines[1].setLatLngs([mousePosition, polygonStart]);
       }
     }
-    selfDisable(){
-      this.fire('deactivate');
-    }
     getLineColour(){
       const colours = [
         '#ff0000',
@@ -190,6 +171,24 @@
       ];
 
       return colours[this.polygons.length % 8];
+    }
+    updateField(){
+      // Update the field.
+      const newValue = this.polygons.map(
+        polygon => polygon.getLatLngs().map((path) => {
+          // Only continue if the path has three or more points.
+          if(path.length <= 2) {
+            return null;
+          }
+
+          const closedPath = [...path, path[0]];
+
+          return `POLYGON ((${
+            closedPath.map(({ lat, lng }) => `${lng} ${lat}`).join(',')
+          }))`;
+        }).filter(x=>x).join(' ')
+      ).join('\n');
+      super.updateField(id => `.${id}-polygon`, newValue );
     }
   }
 })();

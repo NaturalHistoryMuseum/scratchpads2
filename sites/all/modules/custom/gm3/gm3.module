@@ -68,6 +68,9 @@ function gm3_library(){
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.js"
         ),
         array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.library.js"
+        ),
+        array(
           'data' => array(
             'gm3' => array(
               'settings' => array(

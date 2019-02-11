@@ -2,11 +2,11 @@
 
 /**
  * Enables a user to embed a google map within filtered text simply by adding
- * 
+ *
  * [google_map]
- * 
+ *
  * {gm3_json_specification}
- * 
+ *
  * [/google_map]
  */
 /**
@@ -82,10 +82,6 @@ function gm3_filter_library(){
         array(
           'gm3_field',
           'field_point'
-        ),
-        array(
-          'gm3_field',
-          'field_polygon'
         ),
         array(
           'gm3_field',
