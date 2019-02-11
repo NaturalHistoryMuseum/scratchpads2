@@ -121,13 +121,16 @@
       // Add libraries
       // Todo: refactor
       for(const id in map.libraries) {
-        if(Drupal.GM3[id]) {
-          const isNewClass = Drupal.GM3[id].prototype instanceof L.Evented;
-          const child = this.children[id] = new Drupal.GM3[id](isNewClass ? this.leafletMap : this, map.libraries[id]);
+        const LibClass = Drupal.GM3[id];
+        if(LibClass) {
+          const isNewClass = LibClass.prototype instanceof L.Evented;
+          const child = this.children[id] = new LibClass(isNewClass ? this.leafletMap : this, map.libraries[id]);
           if(isNewClass) {
             child.on({
               // Todo: Use L.DomObject.preventDefault(e) instead?
-              beforeaddobject: e => e.cancelled = !this.beforeAddObject(),
+              beforeaddobject: e => {
+                if(!this.beforeAddObject()) { e.cancel(); }
+              },
               addobject: e => this.addObject(),
               removeobject: e => this.removeObject(),
               deactivate: e => this.deactivateActiveLibrary(),
@@ -135,6 +138,18 @@
               update: ({ cls, value }) => this.updateField(cls, value),
               message: ({ message }) => this.message(message)
             });
+
+            const fieldSelector = LibClass.getFieldSelector && LibClass.getFieldSelector(this.id);
+            const field = fieldSelector && document.querySelector(fieldSelector);
+            if(field) {
+              field.addEventListener('keyup', (e) => {
+                const position = child.setValue && child.setValue(e.target.value);
+                if (position) {
+                  this.addLatLng(L.latLng(position));
+                  this.autozoom();
+                }
+              });
+            }
           }
         }
       }
@@ -358,8 +373,6 @@
         // Todo: Get the target from the actual event
         toolbar.querySelector(`[data-gm3-class="${activeClass}"]`).parentNode.classList.add('gm3-clicked');
       }
-
-      this.deactivateActiveLibrary();
 
       this.activeClass = activeClass;
 

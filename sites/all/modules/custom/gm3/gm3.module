@@ -52,10 +52,18 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js',
+          'options' => 'external'
+        ),
+        // Todo: Include css
+        // MarkerCluster.css
+        // MarkerCluster.Default.css
+        array(
           'data' => drupal_get_path('module', 'gm3') . '/js/libs/Leaflet.Editable.js',
           'options' => 'external',
           'preprocess' => FALSE
         ),
+
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/google/js.js',
           'options' => 'external',

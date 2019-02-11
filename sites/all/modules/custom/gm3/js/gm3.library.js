@@ -9,10 +9,23 @@
       this.teardowns = [];
       this.active = false;
     }
+    /**
+     * Return an object of the listeners to add when this tool is activated
+     */
+    getActiveListeners() {
+      return {};
+    }
+    /**
+     * Called when the tool is activated
+     * @param {L.Map} map The leaflet map this tool is added to
+     * @param {Object} listeners Dict of listeners to add on activation
+     */
     activate(map, listeners){
       if (this.active) {
         throw new Error('This map library is already active');
       }
+
+      // Todo:      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
 
       this.active = true;
 
@@ -21,6 +34,7 @@
         {
           contextmenu: e => this.deactivate()
         },
+        this.getActiveListeners(),
         listeners
       );
 
@@ -30,39 +44,58 @@
       // Register a function to remove the listeners
       this.addTeardown(() => map.off(listeners))
     }
+
+    /**
+     * Deactivate the tool
+     */
     deactivate(){
       if (!this.active) {
         return;
       }
 
-      this.fire('deactivate');
-
       this.active = false;
+
+      this.fire('deactivate');
 
       // Remove event listeners
       this.teardowns.forEach(t => t());
       this.teardowns = [];
     }
+
+    /**
+     * Add a function that gets called when the tool is deactivated
+     * @param {function} fn The function to add
+     */
     addTeardown(fn){
       this.teardowns.push(fn);
     }
+
+    /**
+     * Check whether we can add an object to the map, and then add that object if so
+     * @param {function} fn The function that adds the object to the map
+     */
     addObject(fn) {
       const addSuccess = () => {
         this.fire('addobject');
         this.updateField();
       }
 
-      const options = {
-        cancelled: false
-      };
+      let cancelled = false;
+      const cancel = () => cancelled = true;
 
-      this.fire('beforeaddobject', options);
+      this.fire('beforeaddobject', { cancel });
 
-      if (options.cancelled) {
+      if (cancelled) {
         return false;
       }
 
       if(fn) {
+        const rtn = fn();
+        if(!rtn || !rtn.then) {
+          addSuccess();
+          return rtn;
+        }
+
         return fn().then(success => {
           if (success !== false) {
             addSuccess();
@@ -74,16 +107,34 @@
 
       return true;
     }
+
+    /**
+     * Remove an object from the map
+     */
     removeObject() {
       this.fire('removeobject');
       this.updateField();
     }
+
+    /**
+     * Set a popup message
+     */
     setPopup(layer, content, title){
       this.fire('popup', { layer, content, title })
     }
+
+    /**
+     * Set a user error/info message
+     */
     setMessage(message){
       this.fire('message', { message });
     }
+
+    /**
+     * Update the underlying data field for this tool
+     * @param {function} cls Return the selector for the field, given the map id
+     * @param {*} value
+     */
     updateField(cls, value){
       this.fire('update', { cls, value });
     }

@@ -470,22 +470,6 @@ function gm3_field_field_update($entity_type, $entity, $field, $instance, $langc
  */
 function gm3_field_library(){
   return array(
-    'field_point' => array(
-      'title' => t('Google Maps Javascript API V3: Point field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_point.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.point'
-        )
-      )
-    ),
     'field_rectangle' => array(
       'title' => t('Google Maps Javascript API V3: Rectangle field'),
       'website' => 'http://code.google.com/apis/maps/',
@@ -1151,10 +1135,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'id' => $element['#field_name'],
             'libraries' => array(
               'point' => array(
-                'points' => $items
-              ),
-              'field_point' => array(
-                'module' => 'gm3_field'
+                'points' => $items,
+                'module' => 'gm3'
               )
             ),
             'tools' => array(
@@ -1289,7 +1271,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         switch($field_type){
           case 'gm3_point':
             $map['libraries']['point']['points'] = $default_values['point'];
-            $map['libraries']['field_point']['module'] = 'gm3_field';
+            $map['libraries']['point']['module'] = 'gm3';
             $map['tools'][] = theme('gm3_point_button', array(
               'id' => $element['#field_name']
             ));
