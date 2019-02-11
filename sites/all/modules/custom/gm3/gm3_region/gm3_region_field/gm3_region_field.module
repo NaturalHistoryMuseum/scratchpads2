@@ -172,7 +172,9 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
  * View for the combo field.
  */
 function gm3_region_region_map_alter(&$map, $item){
+  // This function gets called when we view the map (read-only)
   $map['libraries']['region']['module'] = 'gm3_region';
+  $map['libraries']['region']['editable'] = false;
   if(!isset($map['libraries']['polygon'])){
     $map['libaries']['polygon'] = array();
   }
@@ -190,7 +192,9 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
  * Function to update the map on the combination form element.
  */
 function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
+  // This function gets called when we use the map form (editable)
   $map['libraries']['region']['regions'] = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
+  $map['libraries']['region']['editable'] = true;
   $map['libraries']['field_region']['module'] = 'gm3_region_field';
   $map['tools'][] = theme('gm3_region_button', array(
     'id' => $element['#field_name']
