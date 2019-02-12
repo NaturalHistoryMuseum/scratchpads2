@@ -191,9 +191,6 @@ function gm3_library(){
       'version' => '3',
       'js' => array(
         array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.lib.js"
-        ),
-        array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.js"
         )
       ),
@@ -231,9 +228,6 @@ function gm3_library(){
       'website' => 'http://code.google.com/apis/maps/documentation/javascript/geometry.html',
       'version' => '3',
       'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.lib.js"
-        ),
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.js"
         )
