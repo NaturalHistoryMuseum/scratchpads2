@@ -94,14 +94,14 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip)
     }
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
-  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/eml.xml', _dwcarchiver_get_eml());
+  $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/eml.xml', _dwcarchiver_get_eml($dwcarchiver));
 }
 
 /**
  *
  * @return XML string
  */
-function _dwcarchiver_get_eml()
+function _dwcarchiver_get_eml($dwcarchiver)
 {
   $eml = new SimpleXMLElement('<eml:eml
     xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
@@ -188,7 +188,8 @@ function _dwcarchiver_get_eml()
     $citation->addAttribute('identifier', $identifier);
   }
   $intrights = $dataset->addChild('intellectualRights');
-  $cc_markup = creative_commons_display(variable_get('creative_commons_block_licence_type', CC_BY), variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
+  $licence = _dwcarchiver_get_licence($dwcarchiver);
+  $cc_markup = creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
   $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
   $ulink = $para->addChild('ulink');
   $ulink->addAttribute('url', 'https:' . $cc_markup['#markup']);
@@ -231,6 +232,24 @@ function _dwcarchiver_get_maintainers()
   $query->range(0, 10);
   $uids = $query->execute()->fetchCol();
   return user_load_multiple($uids);
+}
+
+/**
+ * Get the licence for this DwC-A
+ * If GBIF needs to use scratchpads_gbif_registry_client_registration_licence
+ */
+function _dwcarchiver_get_licence($dwcarchiver)
+
+{
+  switch ($dwcarchiver->machine_name) {
+    case 'gbif-dwca':
+      $licence = variable_get('scratchpads_gbif_registry_client_registration_licence', CC_0);
+      break;
+    default:
+      $licence = variable_get('creative_commons_block_licence_type', CC_BY);
+      break;
+  }
+  return $licence;
 }
 
 /**
