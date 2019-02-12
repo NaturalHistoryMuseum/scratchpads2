@@ -6,3 +6,4 @@ configure = admin/config/system/dwcaexport
 tool = true
 dependencies[] = uuid
 dependencies[] = field
+dependencies[] = creative_commons
