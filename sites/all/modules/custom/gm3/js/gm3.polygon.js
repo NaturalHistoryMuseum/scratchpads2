@@ -1,34 +1,15 @@
-// Tests:
-// Create polygon
-
 (function(){
   "use strict";
-
-  /**
-   * Creates two lines that connect the open ends of the polygon to the mouse position to show how the completed polygon will look
-   */
-  const createFollowLine = () => L.polyline([], {
-    color: '#787878',
-    opacity: 1,
-    weight: 2,
-    interactive: false
-  });
-
+  // Todo: This shares a lot of code with the polyline module.
+  // Make them inherit the reusable code
   Drupal.GM3.polygon = class extends Drupal.GM3.Library {
     constructor(map, settings) {
       super();
 
       // Create 2 editing lines that follow the user's mouse when editing a polygon
-      this.followLines = [
-        createFollowLine(),
-        createFollowLine()
-      ];
-
-      // Add the followlines
-      for (const line of this.followLines) {
-        line.setLatLngs([]);
-        line.addTo(map);
-      }
+      this.polygonStart = this.polygonEnd = null;
+      this.createFollowLine(() => this.polygonStart)
+      this.createFollowLine(() => this.polygonEnd)
 
       // The collection of polygons.
       this.polygons = [];
@@ -41,18 +22,24 @@
         }
       }
     }
+    /**
+     * Called when the tool is activated
+     * @param {L.map} map The map this tool is attached to
+     */
     activate(map){
       // Add tool functionality
       super.activate(map, {
-        click: e => this.addPolyPoint(e.latlng),
-        mousemove: e => this.setFollowLines(e.latlng || e)
+        click: e => this.addPolyPoint(e.latlng)
       });
 
       // Create a new polygon and add it to the map
       this.addPolygon().addTo(map);
     }
+    /**
+     * Called when the tool is deactivated
+     */
     deactivate(){
-      this.active = false;
+      super.deactivate();
 
       // Disable the editor
       this.getLastPolygon().disableEdit();
@@ -61,14 +48,6 @@
       if(this.getPolygonPath().length === 0) {
         this.polygons.pop().remove();
       }
-
-      // Remove event listeners
-      this.teardowns.forEach(t => t());
-      this.teardowns = [];
-
-      // Remove polylines
-      this.followLines[0].remove();
-      this.followLines[1].remove();
     }
     /**
      * Adds a polygon to the map
@@ -124,6 +103,10 @@
         return polygonPath;
       }
     }
+    /**
+     * Add a new point to the polyline
+     * @param {L.latLng} latlng The point to add
+     */
     addPolyPoint(latlng){
       const polygon = this.getLastPolygon();
       const polyLine = this.getPolygonPath();
@@ -137,27 +120,14 @@
       polygon.addLatLng(latlng);
       polygon.enableEdit();
 
-      // Disable the follow lines
-      this.followLines[0].setLatLngs([]);
-      this.followLines[1].setLatLngs([]);
-
       // Save the change
       if(this.updateField) {
         this.updateField();
       }
     }
-    setFollowLines(mousePosition) {
-      const polygonPath = this.getPolygonPath();
-      const pathLength = polygonPath.length;
-
-      if(pathLength >= 1) {
-        const polygonStart = polygonPath[0];
-        const polygonEnd = polygonPath[pathLength - 1];
-
-        this.followLines[0].setLatLngs([polygonEnd, mousePosition]);
-        this.followLines[1].setLatLngs([mousePosition, polygonStart]);
-      }
-    }
+    /**
+     * Get the colour for the next polygon
+     */
     getLineColour(){
       const colours = [
         '#ff0000',
@@ -172,7 +142,21 @@
 
       return colours[this.polygons.length % 8];
     }
+    /**
+     * Update the form field with the new value
+     */
     updateField(){
+      const polygonPath = this.getPolygonPath();
+      const pathLength = polygonPath.length;
+
+      if(pathLength >= 1) {
+        this.polygonStart = polygonPath[0];
+        this.polygonEnd = polygonPath[pathLength - 1];
+      } else {
+        this.polygonStart = null;
+        this.polygonEnd = null;
+      }
+
       // Update the field.
       const newValue = this.polygons.map(
         polygon => polygon.getLatLngs().map((path) => {

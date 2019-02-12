@@ -81,10 +81,6 @@ function gm3_filter_library(){
         ),
         array(
           'gm3_field',
-          'field_polyline'
-        ),
-        array(
-          'gm3_field',
           'field_rectangle'
         ),
         array(

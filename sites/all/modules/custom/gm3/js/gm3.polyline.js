@@ -1,153 +1,156 @@
-(function($){
-  if(typeof google != 'undefined') {
-    Drupal.GM3.polyline = function(map, settings){
-      this.GM3 = map;
+(function(){
+  "use strict";
+  // Todo: This shares a lot of code with the polygon module.
+  // Make them inherit the reusable code
+  Drupal.GM3.polyline = class extends Drupal.GM3.Library {
+    constructor(map, settings) {
+      super();
       // Polyline object.
-      // We don't currently support geodesic shapes, mainly due to the library
-      // we're using being a little buggy in its support for it. For this
-      // reason,
-      // please avoid loading the geometry library.
-      this.geodesic = false;
       // Editing lines
-      this.followline = new L.polyline({geodesic: this.geodesic, clickable: false, path: [], strokeColor: '#787878', strokeOpacity: 1, strokeWeight: 2});
+      this.polylineEnd = null;
+      this.createFollowLine(() => this.polylineEnd);
+
       // Polylines.
-      this.polylines = new Array();
+      this.polylines = [];
       // Add Polylines sent from server.
       if(settings.polylines) {
         for(const polyline of settings.polylines) {
-          if(!polyline.polyline) {
-            this.add_polyline(polyline);
-          } else {
-            var content = polyline.content || '';
-            this.add_polyline(polyline.polyline, polyline.editable, content);
-          }
+          const cfg = polyline.polyline ? [polyline.polyline, polyline.editable, polyline.content || ''] : [polyline];
+          this.addPolyline(...cfg).addTo(map);
         }
       }
     }
-    Drupal.GM3.polyline.prototype.active = function(){
-      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
-      this.polylines[this.polylines.length] = new L.polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: []});
-      this.followline.setPath([]);
-      this.followline.setMap(this.GM3.google_map);
+    /**
+     * Called when the tool is activated
+     * @param {L.map} map The map this tool is attached to
+     */
+    activate(map){
+      super.activate(map, {
+        click: e => this.addPolyPoint(e.latlng)
+      });
+
+      const polyline = L.polyline([], {
+        color: this.getLineColour(),
+        opacity: 0.4,
+        weight: 3
+      });
+      polyline.addTo(map);
+
+      this.polylines.push(polyline);
     }
-    Drupal.GM3.polyline.prototype.add_polyline = function(points, editable, content, title){
-      var path_points = new Array();
-      for( var i = 0; i < points.length; i++) {
-        if(points[i]['lat'] == undefined) {
-          // We have a string rather than an array, split it
-          if(typeof points[i] == 'object') {
-            points[i] = String(points[i]);
-          }
-          points[i] = points[i].split(",");
-          path_points[i] = new google.maps.LatLng(points[i][1], points[i][0]);
-        } else {
-          path_points[i] = new google.maps.LatLng(points[i]['lat'], points[i]['long']);
+    /**
+     * Called when the tool is deactivated
+     */
+    deactivate(){
+      super.deactivate();
+
+      // Disable the editor
+      const activePolyline = this.polylines[this.polylines.length - 1];
+      activePolyline.disableEdit();
+
+      // Remove the polygon if it wasn't actually used
+      if(activePolyline.getLatLngs().length === 0) {
+        this.polylines.pop().remove();
+      }
+    }
+    /**
+     * Add a new polyline object to the map
+     * @param {L.latLng[]} points Points on the line to add
+     * @param {Bool} editable Can the user edit this line?
+     * @param {string} content Content for the popup tooltip
+     * @param {string} title Title from the popup tooltip
+     */
+    addPolyline(points, editable=true, content = '', title = ''){
+      // Todo: Refactor this class to share common code with polygon
+      const pathPoints = [];
+      for(const point of points) {
+        const pointArray = point.lat ? [point.lat, point.lng] : String(point).split(",").reverse();
+
+        pathPoints.push(L.latLng(...pointArray));
+      }
+
+      const polyline = L.polyline(
+        pathPoints,
+        {
+          color: editable ? this.getLineColour() : '#000000',
+          opacity: 0.4,
+          weight: editable ? 3 : 1,
         }
-        this.GM3.add_latlng(path_points[i]);
-      }
-      if(editable) {
-        // We don't add a popup to an editable polyline.
-        this.polylines[this.polylines.length] = new L.polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: this.get_line_colour(), strokeOpacity: 0.4, strokeWeight: 3, path: path_points});
-      } else {
-        // Add the popup also if we have content!
-        content = typeof (content) != 'undefined' ? content : '';
-        title = typeof (title) != 'undefined' ? title : '';
-        var polyline = new L.polyline({geodesic: this.geodesic, map: this.GM3.google_map, strokeColor: '#000000', strokeOpacity: 0.4, strokeWeight: 1, path: path_points});
-        this.GM3.add_listeners_helper(polyline);
-        if(content) {
-          this.GM3.add_popup(polyline, content, title);
-        }
-        // Return the polyline so that it can be saved elsewhere.
-        return polyline;
-      }
-    }
-    Drupal.GM3.polyline.prototype.event = function(event_type, event, event_object){
-      switch(this.GM3.activeClass){
-        case 'polyline':
-          switch(event_type){
-            case 'click':
-              if(this.polylines[this.polylines.length - 1].getPath().length == 0) {
-                if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
-                  this.GM3.num_objects++;
-                } else {
-                  this.GM3.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
-                  break;
-                }
-              }
-              this.polylines[this.polylines.length - 1].stopEdit();
-              this.polylines[this.polylines.length - 1].getPath().push(event.latLng);
-              this.polylines[this.polylines.length - 1].runEdit(true);
-              if(this.update_field) {
-                this.update_field();
-              }
-              break;
-            case 'mousemove':
-              var pathLength = this.polylines[this.polylines.length - 1].getPath().getLength();
-              if(pathLength >= 1) {
-                var startingPoint = this.polylines[this.polylines.length - 1].getPath().getAt(pathLength - 1);
-                var followCoordinates = [startingPoint, event.latLng];
-                this.followline.setPath(followCoordinates);
-              }
-              break;
-            case 'rightclick':
-              this.GM3.set_active_class('default');
-              this.followline.setMap(null);
-              if(this.update_field) {
-                this.update_field();
-              }
-              break;
+      );
+      this.polylines.push(polyline);
+
+      // Add some listeners so users can edit polylines
+      if (editable) {
+        polyline.on('click', e => {
+          if(!this.active) {
+            e.target.enableEdit();
           }
-          break;
-        case 'default':
-          switch(event_type){
-            case 'click':
-              if(event_object.getClass && event_object.getClass() == 'Polyline') {
-                // Once clicked, stop editing other polylines
-                for( var j = 0; j < this.polylines.length; j++) {
-                  this.polylines[j].stopEdit();
-                }
-                event_object.runEdit();
-              } else {
-                // Clicked elsewhere, stop editing.
-                for( var j = 0; j < this.polylines.length; j++) {
-                  this.polylines[j].stopEdit();
-                }
-              }
-              if(this.update_field) {
-                this.update_field();
-              }
-              break;
-          }
-          break;
+        });
+
+        polyline.on('editable:editing', e => {
+          this.updateField();
+        });
       }
+
+      // We don't add a popup to an editable polyline.
+      if(!editable && content) {
+        this.setPopup(polyline, content, title);
+      }
+      // Return the polyline so that it can be saved elsewhere.
+      return polyline;
     }
-    Drupal.GM3.polyline.prototype.add_transfer_listeners = function(){
-      for( var i = 0; i < this.polylines.length; i++) {
-        if(this.polylines[i]) {
-          this.GM3.add_listeners_helper(this.polylines[i]);
+    /**
+     * Add a new point to the polyline
+     * @param {L.latLng} latlng The point to add
+     */
+    addPolyPoint(latlng){
+      const line = this.polylines[this.polylines.length - 1];
+      if(line.getLatLngs().length < 1) {
+        if(!this.addObject()){
+          return;
         }
       }
+
+      line.disableEdit();
+      line.addLatLng(latlng);
+      line.enableEdit();
+
+      this.updateField();
     }
-    Drupal.GM3.polyline.prototype.get_line_colour = function(){
-      switch(this.polylines.length % 8){
-        default:
-        case 0:
-          return '#ff0000';
-        case 1:
-          return '#00ff00';
-        case 2:
-          return '#0000ff';
-        case 3:
-          return '#ffff00';
-        case 4:
-          return '#ff00ff';
-        case 5:
-          return '#00ffff';
-        case 6:
-          return '#000000';
-        case 7:
-          return '#ffffff';
+    /**
+     * Get the colour for the next polygon
+     */
+    getLineColour(){
+      return [
+        '#ff0000',
+        '#00ff00',
+        '#0000ff',
+        '#ffff00',
+        '#ff00ff',
+        '#00ffff',
+        '#000000',
+        '#ffffff'
+      ][this.polylines.length % 8];
+    }
+    /**
+     * Update the form field with the new value
+     */
+    updateField() {
+      const line = this.polylines[this.polylines.length - 1].getLatLngs();
+
+      this.polylineEnd = line.length >= 1 ? line[line.length - 1] : null;
+
+      // Update the field.
+      const polygons = [];
+      for(const line of this.polylines) {
+        const path = line.getLatLngs();
+        if(path.length > 1) {
+          polygons.push(`POLYGON ((${
+            path.map(({ lng, lat }) => `${lng} ${lat}`).join(',')
+          }))`);
+        }
       }
+      super.updateField(id => `.${id}-polyline`, polygons.join('\n'));
     }
   }
-})(jQuery);
+})();

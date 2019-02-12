@@ -485,22 +485,6 @@ function gm3_field_library(){
           'gm3.rectangle'
         )
       )
-    ),
-    'field_polyline' => array(
-      'title' => t('Google Maps Javascript API V3: Polyline field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polyline.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.polyline'
-        )
-      )
     )
   );
 }

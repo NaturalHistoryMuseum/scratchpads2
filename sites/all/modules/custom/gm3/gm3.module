@@ -55,9 +55,6 @@ function gm3_library(){
           'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js',
           'options' => 'external'
         ),
-        // Todo: Include css
-        // MarkerCluster.css
-        // MarkerCluster.Default.css
         array(
           'data' => drupal_get_path('module', 'gm3') . '/js/libs/Leaflet.Editable.js',
           'options' => 'external',
@@ -68,9 +65,6 @@ function gm3_library(){
           'data' => drupal_get_path('module', 'gm3') . '/js/google/js.js',
           'options' => 'external',
           'preprocess' => FALSE
-        ),
-        array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.getClass.js"
         ),
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.js"
@@ -94,6 +88,14 @@ function gm3_library(){
       'css' => array(
         array(
           'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.css'
+        ),
+        array(
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css',
+          'options' => 'external'
+        ),
+        array(
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css',
+          'options' => 'external'
         )
       )
     ),

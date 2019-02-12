@@ -8,6 +8,41 @@
       // Array of functions to call when we deactivate
       this.teardowns = [];
       this.active = false;
+      this.followLines = [];
+      this.followLineGetters = [];
+    }
+
+  /**
+   * Creates a line that connects one point of a polygon or polyline to the mouse position
+   * to show how the next click will affect the shape
+   * @param {function} getCoordinate Return the coordinate to connect the followline to
+   */
+    createFollowLine(getCoordinate) {
+      const line = L.polyline([], {
+        color: '#787878',
+        opacity: 1,
+        weight: 2,
+        interactive: false
+      });
+
+      this.followLines.push({
+        line,
+        getCoordinate
+      });
+
+      return line;
+    }
+    /**
+     * Set the coordinates for the follow lines
+     * @param {L.latLng} mousePosition The coordinate the mouse is at
+     */
+    setFollowLines(mousePosition) {
+      for(const { line, getCoordinate } of this.followLines) {
+        // Todo: Do we have to call set coordinate all the time?
+        // Can't we rely on polyline events to know when this changes?
+        const coord = getCoordinate();
+        line.setLatLngs(coord ? [coord, mousePosition] : []);
+      }
     }
     /**
      * Return an object of the listeners to add when this tool is activated
@@ -32,7 +67,8 @@
       // Merge listeners with default listeners
       listeners = Object.assign(
         {
-          contextmenu: e => this.deactivate()
+          contextmenu: e => this.deactivate(),
+          mousemove: this.followLines.length > 0 ? e => this.setFollowLines(e.latlng) : null
         },
         this.getActiveListeners(),
         listeners
@@ -40,6 +76,11 @@
 
       // Add tool functionality
       map.on(listeners);
+
+      for (const { line } of this.followLines) {
+        line.setLatLngs([]);
+        line.addTo(map);
+      }
 
       // Register a function to remove the listeners
       this.addTeardown(() => map.off(listeners))
@@ -56,6 +97,11 @@
       this.active = false;
 
       this.fire('deactivate');
+
+      // Remove polylines
+      for(const { line } of this.followLines) {
+        line.remove();
+      }
 
       // Remove event listeners
       this.teardowns.forEach(t => t());
