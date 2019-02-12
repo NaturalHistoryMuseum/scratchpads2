@@ -38,7 +38,7 @@ function facetapi_map_author(array $values) {
   $map = array();
   $users = user_load_multiple($values);
   foreach ($users as $user) {
-    $map[$user->uid] = $user->name;
+    $map[$user->uid] = format_username($user);
   }
   if (isset($map[0])) {
     $map[0] = variable_get('anonymous', t('Anonymous'));
@@ -132,7 +132,7 @@ function facetapi_map_taxonomy_terms(array $values) {
   $map = array();
   $terms = taxonomy_term_load_multiple($values);
   foreach ($terms as $term) {
-    $map[$term->tid] = $term->name;
+    $map[$term->tid] = entity_label('taxonomy_term', $term);
   }
   return $map;
 }

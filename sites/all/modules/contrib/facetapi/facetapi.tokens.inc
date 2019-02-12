@@ -71,6 +71,11 @@ function facetapi_token_info() {
     'description' => t('The total number of results matched by the search query.'),
   );
 
+  $results['search-path'] = array(
+    'name' => t('Search path'),
+    'description' => t('Path to the current page without any filter'),
+  );
+
   // Tokens related to active facet items.
   $active['active-value'] = array(
     'name' => t('Mapped value'),
@@ -124,9 +129,9 @@ function facetapi_token_info() {
 function facetapi_tokens($type, $tokens, array $data = array(), array $options = array()) {
   $replacements = array();
 
-  if ('facetapi_results' == $type && !empty($data['facetapi_adapter'])) {
+  if ('facetapi_results' == $type && !empty($data['facetapi_results']['facetapi_adapter'])) {
 
-    $adapter = $data['facetapi_adapter'];
+    $adapter = $data['facetapi_results']['facetapi_adapter'];
     foreach ($tokens as $name => $original) {
       switch ($name) {
 
@@ -151,18 +156,24 @@ function facetapi_tokens($type, $tokens, array $data = array(), array $options =
           break;
 
         case 'offset':
-          $offset = ($adapter->getPageNumber() - 1) * $adapter->getPageLimit;
+          $offset = ($adapter->getPageNumber() - 1) * $adapter->getPageLimit();
           $replacements[$original] = $offset;
           break;
 
         case 'start-count':
-          $offset = (($adapter->getPageNumber() - 1) * $adapter->getPageLimit) + 1;
-          $replacements[$original] = $offset;
+          $offset = (($adapter->getPageNumber() - 1) * $adapter->getPageLimit()) + 1;
+          $total_max = (int) $adapter->getResultCount();
+          $replacements[$original] = min($offset, $total_max);
           break;
 
         case 'end-count':
-          $offset = ($adapter->getPageNumber()) * $adapter->getPageLimit;
-          $replacements[$original] = $offset;
+          $page_max = $adapter->getPageNumber() * $adapter->getPageLimit();
+          $total_max = (int) $adapter->getResultCount();
+          $replacements[$original] = min($page_max, $total_max);
+          break;
+
+        case 'search-path':
+          $replacements[$original] = $adapter->getSearchPath();
           break;
       }
     }

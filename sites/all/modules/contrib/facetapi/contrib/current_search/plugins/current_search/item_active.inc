@@ -2,11 +2,17 @@
 
 /**
  * @file
- * Displays all active items.
+ * The active current search item plugin class.
  */
 
 /**
- * Extension of CurrentSearchItem that displays all active items.
+ * Current search item plugin that displays the active facet items.
+ *
+ * It is a common use case that active items be displayed in the Current Search
+ * block as opposed to inline with the facets. This plugin displays the active
+ * items in the Current Search block. Administrators can optionally use Token
+ * replacements to prefix values with the human readalbe label of the facet that
+ * the item belongs to.
  */
 class CurrentSearchItemActive extends CurrentSearchItem {
 
@@ -20,8 +26,9 @@ class CurrentSearchItemActive extends CurrentSearchItem {
     $adapter->processFacets();
 
     // Adds the keywords if any were passed.
-    if ($this->settings['keys'] && $adapter->getSearchKeys()) {
-      $items[] = check_plain($adapter->getSearchKeys());
+    $keys = $adapter->getSearchKeys();
+    if ($this->settings['keys'] && $keys) {
+      $items[] = theme('current_search_keys', array('keys' => $keys, 'adapter' => $adapter));
     }
 
     // Initializes links attributes, adds rel="nofollow" if configured.
@@ -40,7 +47,7 @@ class CurrentSearchItemActive extends CurrentSearchItem {
       $data = array('facetapi_active_item' => $item);
       $variables = array(
         'text' => token_replace($pattern, $data),
-        'path' => current_path(),
+        'path' => $this->getFacetPath($item, $adapter),
         'options' => array(
           'attributes' => $attributes,
           'html' => TRUE,

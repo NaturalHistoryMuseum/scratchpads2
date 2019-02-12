@@ -2,16 +2,21 @@
 
 /**
  * @file
- * Performs a dependency check against the passed content type.
+ * The role dependency class.
  */
 
 /**
- * Adds a dependency on content type.
+ * Dependency plugin adding the user role conditions.
+ *
+ * The role dependency plugin adds conditions based on the current user's role.
+ * Although the backend should handle access control, this plugin can help
+ * personalize the search interface based on the user's role by exposing facets
+ * to certain users while hiding them from others.
  */
 class FacetapiDependencyRole extends FacetapiDependency {
 
   /**
-   * Executes the dependency check.
+   * Implements FacetapiDependency::execute().
    */
   public function execute() {
     global $user;
@@ -24,7 +29,7 @@ class FacetapiDependencyRole extends FacetapiDependency {
   }
 
   /**
-   * Adds dependency settings to the form.
+   * Overrides FacetapiDependency::settingsForm().
    */
   public function settingsForm(&$form, &$form_state) {
     $form[$this->id]['roles'] = array(
@@ -37,7 +42,7 @@ class FacetapiDependencyRole extends FacetapiDependency {
   }
 
   /**
-   * Returns defaults for settings.
+   * Overrides FacetapiDependency::getDefaultSettings().
    */
   public function getDefaultSettings() {
     return array(

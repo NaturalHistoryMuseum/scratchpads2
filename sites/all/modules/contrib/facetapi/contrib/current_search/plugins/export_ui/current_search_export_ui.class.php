@@ -11,7 +11,7 @@
 class current_search_export_ui extends ctools_export_ui {
 
   /**
-   * Implements ctools_export_ui::list_form().
+   * Overrides ctools_export_ui::list_form().
    *
    * Simplifies the form similar to how the Context module does it.
    */
@@ -24,14 +24,14 @@ class current_search_export_ui extends ctools_export_ui {
   }
 
   /**
-   * Implements ctools_export_ui::list_build_row().
+   * Overrides ctools_export_ui::list_build_row().
    */
   function list_build_row($item, &$form_state, $operations) {
     parent::list_build_row($item, $form_state, $operations);
   }
 
   /**
-   * Implements ctools_export_ui::edit_execute_form().
+   * Overrides ctools_export_ui::edit_execute_form().
    *
    * This is hacky, but since CTools Export UI uses drupal_goto() we have to
    * effectively change the plugin to modify the redirect path dynamically.
@@ -61,7 +61,7 @@ class current_search_export_ui extends ctools_export_ui {
   }
 
   /**
-   * Implements ctools_export_ui::edit_page().
+   * Overrides ctools_export_ui::edit_page().
    *
    * Allows passing of options to drupal_goto() as opposed to just a path.
    *
@@ -94,7 +94,7 @@ class current_search_export_ui extends ctools_export_ui {
 
     $output = $this->edit_execute_form($form_state);
     if (!empty($form_state['executed'])) {
-      // @see @see http://drupal.org/node/1373048
+      // @see http://drupal.org/node/1373048
       $export_key = $this->plugin['export']['key'];
       $args = (array) $this->plugin['redirect']['edit'];
       $args[0] = str_replace('%ctools_export_ui', $form_state['item']->{$export_key}, $args[0]);
@@ -105,7 +105,7 @@ class current_search_export_ui extends ctools_export_ui {
   }
 
    /**
-   * Implements ctools_export_ui::add_page().
+   * Overrides ctools_export_ui::add_page().
    *
    * Allows passing of options to drupal_goto() as opposed to just a path.
    *
@@ -185,7 +185,7 @@ function current_search_settings_form(&$form, &$form_state) {
       'exists' => 'current_search_config_exists',
       'source' => array('info', 'label'),
     ),
-    '#disabled' => !empty($item->name),
+    '#disabled' => ('clone' != $form_state['form type'] && !empty($item->name)),
     '#description' => t('The machine readable name of the current search block configuration. This value can only contain letters, numbers, and underscores.'),
   );
 
@@ -330,6 +330,13 @@ function current_search_settings_form(&$form, &$form_state) {
   ////
   ////
 
+  // Ensure the theme function is available after upgrading to 7.x-1.3. A cache
+  // clear is all that is needed to fix the broken sort table, however this hack
+  // ensures that the theme function is available without having to do so.
+  // @todo Remove this in later versions of the module.
+  // @see http://drupal.org/node/1795556
+  module_load_include('inc', 'current_search', 'current_search.theme');
+
   $form['plugin_sort'] = array(
     '#type' => 'item',
     '#access' => !empty($item->settings['items']),
@@ -426,49 +433,28 @@ function current_search_settings_form(&$form, &$form_state) {
     '#tree' => TRUE,
   );
 
+  // This setting was originally intended as a way for site builders to enable
+  // the current search block on pages where no keywords were submitted by the
+  // end user, which is known as an "empty search". The display settings were
+  // expanded beyond empty searches at http://drupal.org/node/1779670 leaving
+  // us with the unfortunate "empty_searches" key which no longer reflects what
+  // this setting does.
   $form['advanced_settings']['empty_searches'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display current search block on empty search pages.'),
-    '#default_value' => !empty($item->settings['advanced']['empty_searches']),
+    '#type' => 'radios',
+    '#title' => t('Display settings'),
+    '#options' => array(
+      CURRENT_SEARCH_DISPLAY_KEYS => t('Display only when keywords are entered.'),
+      CURRENT_SEARCH_DISPLAY_ALWAYS => t('Display on empty searches where no keywords are entered.'),
+      CURRENT_SEARCH_DISPLAY_FILTERS => t('Display only when one or more facet items are active.'),
+      CURRENT_SEARCH_DISPLAY_KEYS_FILTERS => t('Display when either keywords are entered one or more facet items are active.'),
+    ),
+    '#default_value' => $item->settings['advanced']['empty_searches'],
+    '#description' => t('This setting determines when the current search block will be displayed.'),
   );
 
 }
 
-/**
- * Returns the sort table.
- *
- * @param $variables
- *   An associative array containing:
- *   - element: A render element representing the form.
- *
- * @ingroup themeable
- */
-function theme_current_search_sort_settings_table($variables) {
-  $output = '';
 
-  // Builds table rows.
-  $rows = array();
-  foreach ($variables['element']['#current_search']['items'] as $name => $settings) {
-    $rows[$name] = array(
-      'class' => array('draggable'),
-      'data' => array(
-        drupal_render($variables['element'][$name]['item']),
-        drupal_render($variables['element'][$name]['weight']),
-        array(
-          'data' => drupal_render($variables['element'][$name]['remove']),
-          'class' => 'current-search-remove-link',
-        ),
-      ),
-    );
-  }
-
-  // Builds table with drabble rows, returns output.
-  $table_id = 'current-search-sort-settings';
-  drupal_add_tabledrag($table_id, 'order', 'sibling', 'current-search-sort-weight');
-  $output .= drupal_render_children($variables['element']);
-  $output .= theme('table', array('rows' => $rows, 'attributes' => array('id' => $table_id)));
-  return $output;
-}
 
 /**
  * Form validation handler for current_search_settings_form().

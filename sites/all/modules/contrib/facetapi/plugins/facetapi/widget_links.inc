@@ -2,16 +2,24 @@
 
 /**
  * @file
- * Widgets for facets rendered as links.
+ * The facetapi_links and facetapi_checkbox_links widget plugin classes.
  */
 
 /**
  * Widget that renders facets as a list of clickable links.
+ *
+ * Links make it easy for users to narrow down their search results by clicking
+ * on them. The render arrays use theme_item_list() to generate the HTML markup.
  */
 class FacetapiWidgetLinks extends FacetapiWidget {
 
   /**
-   * Overrides constructor to reset the key.
+   * Overrides FacetapiWidget::__construct().
+   *
+   * For links, it is better to use the machine name of the facet as opposed to
+   * the alias for the key. Alias are usually, but not necessarily, unique. It
+   * doesn't make sense to group links in the same element as they are usually
+   * rendered in blocks with are separate from one another.
    */
   public function __construct($id, array $realm, FacetapiFacet $facet, stdClass $settings) {
     parent::__construct($id, $realm, $facet, $settings);
@@ -20,7 +28,13 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   }
 
   /**
-   * Renders the links.
+   * Implements FacetapiWidget::execute().
+   *
+   * Transforms the render array into something that can be themed by
+   * theme_item_list().
+   *
+   * @see FacetapiWidgetLinks::setThemeHooks()
+   * @see FacetapiWidgetLinks::buildListItems()
    */
   public function execute() {
     $element = &$this->build[$this->facet['field alias']];
@@ -37,8 +51,17 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   /**
    * Recursive function that sets each item's theme hook.
    *
+   * The indivual items will be rendered by different theme hooks depending on
+   * whether or not they are active.
+   *
    * @param array &$build
    *   A render array containing the facet items.
+   *
+   * @return FacetapiWidget
+   *   An instance of this class.
+   *
+   * @see theme_facetapi_link_active()
+   * @see theme_facetapi_link_inactive()
    */
   protected function setThemeHooks(array &$build) {
     foreach ($build as $value => &$item) {
@@ -51,21 +74,13 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   }
 
   /**
-   * Gets the base class array for a facet item.
+   * Transforms the render array for use with theme_item_list().
    *
-   * @return array
-   *   An array of classes.
-   */
-  function getItemClasses() {
-    return array();
-  }
-
-  /**
-   * Recursive function that converts the render array into an array that can be
-   * passed to theme_item_list().
+   * The recursion allows this function to act on the various levels of a
+   * hierarchical data set.
    *
    * @param array $build
-   *   The facet's render array.
+   *   The items in the facet's render array being transformed.
    *
    * @return array
    *   The "items" parameter for theme_item_list().
@@ -82,6 +97,10 @@ class FacetapiWidgetLinks extends FacetapiWidget {
     foreach ($build as $value => $item) {
       $row = array('class' => array());
 
+      // Allow adding classes via altering.
+      if (isset($item['#class'])) {
+        $attributes['class'] = array_merge($attributes['class'], $item['#class']);
+      }
       // Initializes variables passed to theme hook.
       $variables = array(
         'text' => $item['#markup'],
@@ -98,6 +117,9 @@ class FacetapiWidgetLinks extends FacetapiWidget {
       if (!$item['#count']) {
         $variables['options']['attributes']['class'][] = 'facetapi-zero-results';
       }
+
+      // Add an ID to identify this link.
+      $variables['options']['attributes']['id'] = drupal_html_id('facetapi-link');
 
       // If the item has no children, it is a leaf.
       if (empty($item['#item_children'])) {
@@ -128,7 +150,20 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   }
 
   /**
-   * Adds the soft limit setting.
+   * Gets the base class array for a facet item.
+   *
+   * Classes that extend FacetapiWidgetLinks will often overide this method to
+   * alter the link displays via CSS without having to touch the render array.
+   *
+   * @return array
+   *   An array of classes.
+   */
+  function getItemClasses() {
+    return array();
+  }
+
+  /**
+   * Overrides FacetapiWidget::settingsForm().
    */
   function settingsForm(&$form, &$form_state) {
     // @see http://drupal.org/node/735528 for supporting multiple values in the
@@ -188,7 +223,7 @@ class FacetapiWidgetLinks extends FacetapiWidget {
   }
 
   /**
-   * Returns defaults for the settings this widget provides.
+   * Overrides FacetapiWidget::getDefaultSettings().
    */
   function getDefaultSettings() {
     return array(
@@ -201,11 +236,16 @@ class FacetapiWidgetLinks extends FacetapiWidget {
 
 /**
  * Widget that renders facets as a list of clickable checkboxes.
+ *
+ * This widget renders facets in the same way as FacetapiWidgetLinks but uses
+ * JavaScript to transform the links into checkboxes followed by the facet.
  */
 class FacetapiWidgetCheckboxLinks extends FacetapiWidgetLinks {
 
   /**
-   * Adds JavaScript settings.
+   * Overrides FacetapiWidgetLinks::init().
+   *
+   * Adds additional JavaScript settings and CSS.
    */
   public function init() {
     parent::init();
@@ -214,10 +254,9 @@ class FacetapiWidgetCheckboxLinks extends FacetapiWidgetLinks {
   }
 
   /**
-   * Sets the base class for checkbox facet items.
+   * Overrides FacetapiWidgetLinks::getItemClasses().
    *
-   * @return array
-   *   An array of classes.
+   * Sets the base class for checkbox facet items.
    */
   public function getItemClasses() {
     return array('facetapi-checkbox');

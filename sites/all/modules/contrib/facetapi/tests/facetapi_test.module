@@ -42,30 +42,12 @@ function facetapi_test_menu() {
 }
 
 /**
- * Implements hook_facetapi_adapters().
+ * Implements hook_ctools_plugin_api().
  */
-function facetapi_test_facetapi_adapters() {
-  return array(
-    'facetapi_test' => array(
-      'handler' => array(
-        'class' => 'FacetapiTestAdapter',
-      ),
-    ),
-  );
-}
-
-/**
- * Implements hook_facetapi_query_types().
- */
-function facetapi_test_facetapi_query_types() {
-  return array(
-    'facetapi_test_term' => array(
-      'handler' => array(
-        'class' => 'FacetapiTestTerm',
-        'adapter' => 'facetapi_test',
-      ),
-    ),
-  );
+function facetapi_test_ctools_plugin_api($owner, $api) {
+  if ($owner == 'current_search' && $api == 'current_search') {
+    return array('version' => 1);
+  }
 }
 
 /**
@@ -77,12 +59,33 @@ function facetapi_test_facetapi_searcher_info() {
   $info['facetapi_test'] = array(
     'label' => t('Facet API Test'),
     'adapter' => 'facetapi_test',
-    'type' => 'test',
+    'types' => array('test'),
     'path' => 'admin/config/search/facetapi_test',
     'supports facet missing' => FALSE,
   );
 
+  $info['facetapi_test2'] = array(
+    'label' => t('Facet API Seond Searcher'),
+    'adapter' => 'facetapi_test',
+    'types' => array('test'),
+    'supports facet missing' => FALSE,
+  );
+
   return $info;
+}
+
+/**
+ * Implements hook_facetapi_translate_string().
+ *
+ * Returns a serialized array for testing.
+ */
+function facetapi_test_facetapi_translate_string($name, $string, $langcode = NULL) {
+  return serialize(array(
+    'name' => $name,
+    'string' => $string,
+    'langcode' => (string) $langcode,
+    'return' => 'translated',
+  ));
 }
 
 /**
@@ -114,11 +117,43 @@ function facetapi_test_facetapi_facet_info($searcher_info) {
 
     $facets['colon:test'] = array(
       'label' => t('Colon test'),
-      'description' => t('Test facets names with colonss.'),
+      'description' => t('Test facets names with colons.'),
       'dependency plugins' => array('role'),
+    );
+
+    $facets['defaults'] = array(
+      'label' => t('Default test'),
+      'description' => t('Tests query type and operator defaults stored in settings.'),
+      'dependency plugins' => array('role'),
+      'query types' => array('nonterm'),
+      'default widget' => 'nonterm',
+      'allowed operators' => array(
+        FACETAPI_OPERATOR_AND => FALSE,
+        FACETAPI_OPERATOR_OR => TRUE
+      ),
+    );
+
+    $facets['hierarchical'] = array(
+      'label' => t('Hierarchical test'),
+      'description' => t('Test hierarchical facets.'),
+      'dependency plugins' => array('role'),
+      'hierarchy callback' => 'facetapi_test_process_hierarchy',
     );
   }
   return $facets;
+}
+
+/**
+ * Hierarchy processing callback.
+ *
+ * @param array $values
+ *   An array containing the term ids.
+ *
+ * @return
+ *   An associative array keyed by term ID to parent ID.
+ */
+function facetapi_test_process_hierarchy(array $values) {
+
 }
 
 /**
@@ -127,13 +162,21 @@ function facetapi_test_facetapi_facet_info($searcher_info) {
 function facetapi_test_search_callback() {
   $build = array();
 
+  // Load adapter, throw exception on error.
   if (!$adapter = facetapi_adapter_load('facetapi_test')) {
     throw new Exception(t('Error loading adapter.'));
   }
 
+  // Set result count if passed through query string.
+  if (isset($_GET['count'])) {
+    $adapter->setResultCount((int) $_GET['count']);
+  }
+
+  // Instantiate a dummy query class, initialize facets.
   $query = new stdClass();
   $adapter->addActiveFilters($query);
 
+  // Set keywords if passed through query string.
   $keys = isset($_GET['keys']) ? $_GET['keys'] : arg(2);
   $adapter->setSearchKeys($keys);
 

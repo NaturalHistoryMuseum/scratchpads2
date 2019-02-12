@@ -108,6 +108,8 @@ td.facetapi-operations {
   float: right;
   margin-top: -2em;
   padding: 0 1em 1em .5em;
+  position: relative;
+  z-index: 1000;
 }
 
 .form-item-widget select {

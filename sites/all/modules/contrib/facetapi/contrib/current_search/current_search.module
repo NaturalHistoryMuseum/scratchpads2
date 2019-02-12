@@ -6,6 +6,27 @@
  * current search.
  */
 
+/**
+ * Display current search block only when keywords are entered.
+ */
+define('CURRENT_SEARCH_DISPLAY_KEYS', 0);
+
+/**
+ * Display current search block on empty searches where no keywords are entered.
+ */
+define('CURRENT_SEARCH_DISPLAY_ALWAYS', 1);
+
+/**
+ * Display current search block only when one or more facet items are active.
+ */
+define('CURRENT_SEARCH_DISPLAY_FILTERS', 2);
+
+/**
+ * Display current search block when either keywords are entered one or more
+ * facet items are active.
+ */
+define('CURRENT_SEARCH_DISPLAY_KEYS_FILTERS', 3);
+
 // Includes the Block hooks and form alterations.
 require_once dirname(__FILE__) . '/current_search.block.inc';
 
@@ -31,6 +52,16 @@ function current_search_menu() {
  * Implements hook_menu_alter().
  */
 function current_search_menu_alter(&$items) {
+  // Use same access callback as Facet API. We can't define access callbacks in
+  // CTools plugins, so we have to alter the menu and define them here.
+  $base_path = 'admin/config/search/current_search';
+  foreach ($items as $path => $item) {
+    if ($base_path == $path || 0 === strpos($path, "$base_path/")) {
+      $items[$path]['access callback'] = 'facetapi_access_callback';
+      $items[$path]['access arguments'] = array();
+    }
+  }
+
   // Ensures that the edit link shows up in contextual links.
   $item = &$items['admin/config/search/current_search/list/%ctools_export_ui/edit'];
   $item['title'] = 'Configure current search items';
@@ -55,6 +86,10 @@ function current_search_theme() {
       'arguments' => array('text' => NULL, 'path' => NULL, 'options' => array()),
       'file' => 'current_search.theme.inc',
     ),
+    'current_search_keys' => array(
+      'arguments' => array('keys' => NULL, 'adapter' => NULL),
+      'file' => 'current_search.theme.inc',
+    ),
     'current_search_deactivate_widget' => array(
       'file' => 'current_search.theme.inc',
     ),
@@ -68,7 +103,7 @@ function current_search_theme() {
     ),
     'current_search_sort_settings_table' => array(
       'render element' => 'element',
-      'file' => 'plugins/export_ui/current_search_export_ui.class.php',
+      'file' => 'current_search.theme.inc',
     ),
   );
 }

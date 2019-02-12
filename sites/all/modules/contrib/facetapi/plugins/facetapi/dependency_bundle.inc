@@ -2,16 +2,24 @@
 
 /**
  * @file
- * Performs a dependency check against the passed bundle.
+ * The bundle dependency class.
  */
 
 /**
- * Adds a dependency on bundle.
+ * Dependency plugin adding bundle conditions.
+ *
+ * The bundle dependency plugin adds conditions based on active bundle facets.
+ * For example, the administrator can configure whether a facet is displayed
+ * based on wheter certain bundles are active. If a facet stores field data,
+ * then an option is exposed to only show the facet if a bundle the field is
+ * attached to is active. This is most commonly used with taxonomy facets.
+ *
+ * @see http://drupal.org/node/551620
  */
 class FacetapiDependencyBundle extends FacetapiDependency {
 
   /**
-   * Executes the dependency check.
+   * Implements FacetapiDependency::execute().
    */
   public function execute() {
     switch ($this->settings['bundle']) {
@@ -57,6 +65,8 @@ class FacetapiDependencyBundle extends FacetapiDependency {
    *
    * @return array
    *   An array of enabled bundle facets.
+   *
+   * @see FacetapiDependencyBundle::filterBundleFacets()
    */
   public function getEnabledBundleFacets() {
     $enabled = array_filter($this->adapter->getEnabledFacets(), array($this, 'filterBundleFacets'));
@@ -68,17 +78,19 @@ class FacetapiDependencyBundle extends FacetapiDependency {
    * Returns TRUE if the facet contains bundle information.
    *
    * @param array $facet
-   *   The facet definition beinf filtered.
+   *   The facet definition as returned by facetapi_facet_load().
    *
    * @return
    *   A boolean flagging whether the item should remain in the array.
+   *
+   * @see array_filter()
    */
   public function filterBundleFacets($facet) {
     return !empty($facet['field api bundles']);
   }
 
   /**
-   * Adds dependency settings to the form.
+   * Overrides FacetapiDependency::settingsForm().
    */
   public function settingsForm(&$form, &$form_state) {
 
@@ -112,13 +124,14 @@ class FacetapiDependencyBundle extends FacetapiDependency {
   }
 
   /**
-   * Gets bundles.
+   * Returns an array of bundles suitable for use as options in FAPI elements.
    *
    * @param array $entity_types
-   *   An array containing the machine readable name of the entities.
+   *   An array containing the machine names of entities to gather bundles for.
    *
-   * @return
-   *   An array of bundles associates with the entities.
+   * @return array
+   *   An associative array keyed by machine name of the bundles to escaped
+   *   bundle labels.
    */
   public function getBundleOptions(array $entity_types) {
     $options = array();
@@ -133,7 +146,7 @@ class FacetapiDependencyBundle extends FacetapiDependency {
   }
 
   /**
-   * Returns defaults for settings.
+   * Overrides FacetapiDependency::getDefaultSettings().
    */
   public function getDefaultSettings() {
     return array(

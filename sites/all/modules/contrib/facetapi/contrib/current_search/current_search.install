@@ -2,7 +2,8 @@
 
 /**
  * @file
- * Installation functions for the Current Search Blocks module.
+ * Install, update, and uninstall functions for the Current Search Blocks
+ * module.
  */
 
 /**
@@ -72,6 +73,17 @@ function current_search_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function current_search_uninstall() {
+  // Remove Current Search blocks.
+  // @see http://drupal.org/node/1567928
+  if (db_table_exists('block')) {
+    db_delete('block')->condition('module', 'current_search')->execute();
+  }
 }
 
 /**

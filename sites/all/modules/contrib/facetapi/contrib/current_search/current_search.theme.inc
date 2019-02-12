@@ -24,7 +24,7 @@
  */
 function theme_current_search_text(array $variables) {
   // Initializes output, sanitizes text if necessary.
-  $sanitize = $variables['options']['html'];
+  $sanitize = empty($variables['options']['html']);
   $output = ($sanitize) ? check_plain($variables['text']) : $variables['text'];
 
   // Adds wrapper markup and CSS classes.
@@ -65,6 +65,7 @@ function theme_current_search_item_wrapper(array $variables) {
     'class' => array(
       'current-search-item',
       drupal_html_class('current-search-item-' . $element['#current_search_id']),
+      drupal_html_class('current-search-item-' . $element['#current_search_name']),
     ),
   );
   return '<div' . drupal_attributes($attributes) . '>' . $element['#children'] . '</div>';
@@ -81,7 +82,7 @@ function theme_current_search_item_wrapper(array $variables) {
  */
 function theme_current_search_group_wrapper(array $variables) {
   $element = $variables['element'];
-  $attributes = array('class' => array('current-search-group'));
+  $attributes = array('class' => array('current-search-group current-search-group-' . drupal_html_class($element['#facet_name'])), 'id' => $element['#id']);
   return '<div' . drupal_attributes($attributes) . '>' . $element['#children'] . '</div>';
 }
 
@@ -118,6 +119,18 @@ function theme_current_search_link_active($variables) {
 }
 
 /**
+ * Returns HTML for a search keys facet item.
+ *
+ * @param $variables
+ *   An associative array containing the keys 'keys' and 'adapter'.
+ *
+ * @ingroup themeable
+ */
+function theme_current_search_keys($variables) {
+  return check_plain($variables['keys']);
+}
+
+/**
  * Returns HTML for the deactivation widget.
  *
  * @param $variables
@@ -128,4 +141,40 @@ function theme_current_search_link_active($variables) {
  */
 function theme_current_search_deactivate_widget($variables) {
   return ' [X]';
+}
+
+/**
+ * Returns the sort table.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: A render element representing the form.
+ *
+ * @ingroup themeable
+ */
+function theme_current_search_sort_settings_table($variables) {
+  $output = '';
+
+  // Builds table rows.
+  $rows = array();
+  foreach ($variables['element']['#current_search']['items'] as $name => $settings) {
+    $rows[$name] = array(
+      'class' => array('draggable'),
+      'data' => array(
+        drupal_render($variables['element'][$name]['item']),
+        drupal_render($variables['element'][$name]['weight']),
+        array(
+          'data' => drupal_render($variables['element'][$name]['remove']),
+          'class' => 'current-search-remove-link',
+        ),
+      ),
+    );
+  }
+
+  // Builds table with drabble rows, returns output.
+  $table_id = 'current-search-sort-settings';
+  drupal_add_tabledrag($table_id, 'order', 'sibling', 'current-search-sort-weight');
+  $output .= drupal_render_children($variables['element']);
+  $output .= theme('table', array('rows' => $rows, 'attributes' => array('id' => $table_id)));
+  return $output;
 }

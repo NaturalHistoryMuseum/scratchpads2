@@ -311,7 +311,7 @@ function facetapi_get_settings_path($searcher, $realm_name, $facet_name, $op) {
  * Returns the widget plugin definitions available to the facet.
  *
  * All widget plugins are checked against their requirmenets. Only widgets that
- * pall all requirements are returned by this function.
+ * pass all requirements are returned by this function.
  *
  * @param array $realm
  *   The realm definition.
@@ -330,10 +330,11 @@ function facetapi_get_widgets(array $realm, array $facet) {
       'requirements' => array(
         'facetapi_requirement_realm_property' => array('element type' => 'links')
       ),
+      'requirements operator' => 'AND',
     );
 
     // Checks requirements, only saves widgets that pass all requirements.
-    if (facetapi_check_requirements($plugin['handler']['requirements'], $realm, $facet)) {
+    if (facetapi_check_requirements($plugin['handler']['requirements'], $realm, $facet, $plugin['handler']['requirements operator'])) {
       $plugins[$id] = $plugin;
     }
   }
@@ -384,7 +385,7 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
 
   // We have to set the title due to contextual link magic.
   // @see http://drupal.org/node/1147588#comment-4428940
-  drupal_set_title(t('Configure facet display'));
+  drupal_set_title(t('Configure facet display for @label', array('@label' => $facet['label'])));
 
   // Captures variables and settings for code readability.
   $searcher = $adapter->getSearcher();
@@ -398,7 +399,7 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
     'sort_info' => array(),
     'excluded_values' => array(
       'form_build_id', 'form_token', 'form_id', 'op', 'submit', 'submit_list',
-      'settings__active_tab',
+      'submit_realm', 'settings__active_tab',
     ),
   );
 
@@ -521,6 +522,22 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
     '#description' => t('The action to take when a facet has no items.'),
   );
 
+  $form['widget']['facet_more_text'] = array(
+    '#type' => 'textfield',
+    '#prefix' => '<div class="facetapi-more-text-setting">',
+    '#suffix' => '</div>',
+    '#title' => t('Facet "more" link text'),
+    '#default_value' => $facet_settings->settings['facet_more_text'],
+  );
+
+  $form['widget']['facet_fewer_text'] = array(
+    '#type' => 'textfield',
+    '#prefix' => '<div class="facetapi-fewer-text-setting">',
+    '#suffix' => '</div>',
+    '#title' => t('Facet "fewer" link text'),
+    '#default_value' => $facet_settings->settings['facet_fewer_text'],
+  );
+
   ////
   ////
   //// Global settings
@@ -585,6 +602,22 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
     '#default_value' => $global_settings->settings['flatten'],
     '#options' => array(0 => t('No'), 1 => t('Yes')),
     '#description' => t('Do not process hierarchical relationships and display facet items as a flat list.'),
+  );
+
+  $form['global']['individual_parent'] = array(
+    '#type' => 'radios',
+    '#access' => $facet['hierarchy callback'],
+    '#title' => t('Treat parent items as individual facet items'),
+    '#prefix' => '<div class="facetapi-global-setting">',
+    '#suffix' => '</div>',
+    '#default_value' => $global_settings->settings['individual_parent'],
+    '#options' => array(0 => t('No'), 1 => t('Yes')),
+    '#description' => t('Parent items will not be active when selecting a children and if active, they will not clear their children facet selection.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="global[flatten]"]' => array('value' => 0),
+      ),
+    ),
   );
 
   $form['global']['facet_mincount'] = array(
@@ -659,11 +692,12 @@ function facetapi_facet_display_form($form, &$form_state, FacetapiAdapter $adapt
   $form['#submit'][] = 'facetapi_facet_display_form_submit';
   $form['#validate'][] = 'facetapi_facet_display_form_validate';
 
-  // Allow the realm and adapter to alter the form.
+  // Allow the realm, adapter, and URL  to alter the form.
   if ($realm['settings callback']) {
     $realm['settings callback']($form, $form_state);
   }
   $adapter->settingsForm($form, $form_state);
+  $adapter->getUrlProcessor()->settingsForm($form, $form_state);
 
   return $form;
 }
@@ -728,6 +762,7 @@ function theme_facetapi_sort_settings_table($variables) {
  * Form validation handler for facetapi_facet_display_form().
  */
 function facetapi_facet_display_form_validate($form, &$form_state) {
+  ctools_include('plugins');
   // Gets the selected query type and widget.
   $query_type = $form_state['values']['global']['query_type'];
   $widget_name = $form_state['values']['widget'];
@@ -807,13 +842,13 @@ function facetapi_facet_display_form_submit($form, &$form_state) {
  */
 function facetapi_facet_filters_form($form, &$form_state, FacetapiAdapter $adapter, array $realm, array $filters) {
 
-  // We have to set the title due to contextual link magic.
-  // @see http://drupal.org/node/1147588#comment-4428940
-  drupal_set_title(t('Configure facet filters'));
-
   // Loads variables for code readability.
   $facet = $filters['facet'];
   $settings = $adapter->getFacet($facet)->getSettings($realm);
+
+  // We have to set the title due to contextual link magic.
+  // @see http://drupal.org/node/1147588#comment-4428940
+  drupal_set_title(t('Configure facet filters for @label', array('@label' => $facet['label'])));
 
   // Adds Facet API settings, excluded values aren't saved.
   $form['#facetapi'] = array(
@@ -1051,9 +1086,14 @@ function facetapi_facet_filters_form_submit($form, &$form_state) {
  */
 function facetapi_facet_dependencies_form($form, &$form_state, FacetapiAdapter $adapter, array $realm, array $dependencies) {
 
+  // Ensure that the CTools plugin component is loaded.
+  // @see https://www.drupal.org/node/2122119
+  module_load_include('inc', 'ctools','includes/plugins');
+
   // We have to set the title due to contextual link magic.
   // @see http://drupal.org/node/1147588#comment-4428940
-  drupal_set_title(t('Configure facet dependencies'));
+  $facet = facetapi_facet_load(arg(6), $adapter->getSearcher());
+  drupal_set_title(t('Configure facet dependencies for @label', array('@label' => $facet['label'])));
 
   // Adds Facet API settings, excluded values aren't saved.
   $form['#facetapi'] = array(
