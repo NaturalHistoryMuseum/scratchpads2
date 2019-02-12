@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Implements hook_ckeditor_plugin
+ * Implement hook_ckeditor_plugin
  */
-function entityfilter_ckeditor_plugin(){
+function entityfilter_ckeditor_plugin()
+{
   return array(
     'entityfilter' => array(
       'name' => 'entityfilter',
@@ -15,11 +16,12 @@ function entityfilter_ckeditor_plugin(){
 
 /**
  * Implements hook_preprocess_html()
- * 
+ *
  * FIXME - This needs altering so that we only include the drupal.ajax when we
  * actually need it (when there's a CKEDITOR on the page)
  */
-function entityfilter_preprocess_html(){
+function entityfilter_preprocess_html()
+{
   // We need to include our misc/ajax.js, else we can't be sure if it's included when we need it.
   drupal_add_library('system', 'drupal.ajax');
 }
@@ -27,7 +29,8 @@ function entityfilter_preprocess_html(){
 /**
  * Implements hook_menu().
  */
-function entityfilter_menu(){
+function entityfilter_menu()
+{
   $items['ckeditor/entityfilter'] = array(
     'title' => 'entityfilter',
     'page callback' => 'entityfilter_get_suggesions',
@@ -44,7 +47,8 @@ function entityfilter_menu(){
 /**
  * Implements hook_filter_info()
  */
-function entityfilter_filter_info(){
+function entityfilter_filter_info()
+{
   return array(
     'entityfilter' => array(
       'title' => t('Entity property input filter'),
@@ -58,7 +62,8 @@ function entityfilter_filter_info(){
 /**
  * Tips callback for the above filter.
  */
-function entityfilter_filter_tips(){
+function entityfilter_filter_tips()
+{
   return 'Dynamically generate entity property text using <strong>[entity:<em>{entity type}</em>:<em>{entity ID}</em>(:<em>{property name - defaults to label}</em>)]</strong> e.g:' . theme('item_list', array(
     'items' => array(
       '[entity:taxonomy_term:3:name] would be converted to the name of term 3 e.g. "Banana"',
@@ -71,13 +76,14 @@ function entityfilter_filter_tips(){
  * Return an array defining the aliases for entity names.  This is mainly used
  * to tweak the taxonomy_term and taxonomy_vocabulary entity names.
  */
-function entityfilter_get_entity_aliases($reset = FALSE){
-  $aliases = drupal_static(__FUNCTION__, FALSE, $reset);
-  if(!$aliases){
+function entityfilter_get_entity_aliases($reset = false)
+{
+  $aliases = drupal_static(__FUNCTION__, false, $reset);
+  if (!$aliases) {
     $data = cache_get('entityfilter_aliases');
-    if($data){
+    if ($data) {
       $aliases = $data->data;
-    }else{
+    } else {
       $aliases = array(
         'term' => 'taxonomy_term',
         'vocabulary' => 'taxonomy_vocabulary'
@@ -92,64 +98,63 @@ function entityfilter_get_entity_aliases($reset = FALSE){
 /**
  * Look for our special code, and replace the shizzle!
  */
-function entityfilter_filter($text, $filter){
-  if(preg_match_all('/\[entity[^\]]*]/i', $text, $matches)){
-    if(count($matches[0])){
+function entityfilter_filter($text, $filter)
+{
+  if (preg_match_all('/\[entity[^\]]*]/i', $text, $matches)) {
+    if (count($matches[0])) {
       $aliases = entityfilter_get_entity_aliases();
-      foreach($matches[0] as $match){
-        $replaced = FALSE;
-        // Wrap everything in a try/catch block to ensure that users can not 
-        // WSOD a site just be entering a property that doesn't exist (or 
+      foreach ($matches[0] as $match) {
+        $replaced = false;
+        // Wrap everything in a try/catch block to ensure that users can not
+        // WSOD a site just be entering a property that doesn't exist (or
         // something similar).
-        try{
+        try {
           // Get the bits and bobs we're looking for.
           $match_parts = explode(':', substr($match, 1, -1));
           // Default to label.
-          if(count($match_parts) == 3){
+          if (count($match_parts) == 3) {
             $match_parts[] = 'label';
           }
           // If we have the right number of parts, we try to load the entity.
-          if(count($match_parts) == 4){
+          if (count($match_parts) == 4) {
             $entity_type = isset($aliases[$match_parts[1]]) ? $aliases[$match_parts[1]] : $match_parts[1];
             // check the entity_type is a valid entity name
-            if(entity_get_info($entity_type)){
+            if (entity_get_info($entity_type)) {
               // We try to load the entity.
               $entity = entity_load($entity_type, array(
                 $match_parts[2]
               ));
-              if($entity){
+              if ($entity) {
                 // We have an entity, the user did something right.
                 $entity = array_pop($entity);
                 // Load an entity wrapper
                 $wrapper = entity_metadata_wrapper($entity_type, $entity);
                 // Find the property we want if we have "label".
-                if($match_parts[3] == 'label'){
+                if ($match_parts[3] == 'label') {
                   $entity_info = entity_get_info($entity_type);
                   $match_parts[3] = isset($entity_info['entity keys']['label']) ? $entity_info['entity keys']['label'] : 'name';
                 }
                 $value = $wrapper->{$match_parts[3]}->value();
-                if($value && is_string($value)){
-                  $replaced = TRUE;
+                if ($value && is_string($value)) {
+                  $replaced = true;
                   $text = str_replace($match, $value, $text);
-                } else if(is_array($value) && isset($value['value']) && is_string($value['value'])){
-                  $replaced = TRUE;
+                } else if (is_array($value) && isset($value['value']) && is_string($value['value'])) {
+                  $replaced = true;
                   $text = str_replace($match, $value['value'], $text);
                 }
               }
             }
           }
+        } catch (Exception $e) {;
         }
-        catch(Exception $e){
-          ;
-        }
-        if(!$replaced){
+        if (!$replaced) {
           // Note, we only show the error message if the user is logged in.  We
           // do this to ensure that the page can still be cached, as pages with
           // errors on are not cached (I think).
-          if(user_is_logged_in()){
+          if (user_is_logged_in()) {
             drupal_set_message(t('Error processing entity filter "@match"', array(
               '@match' => $match
-            )), 'error', FALSE);
+            )), 'error', false);
           }
           // Show the match wrapped in an error class so that it's obvious to
           // the user where they have fucked up.
