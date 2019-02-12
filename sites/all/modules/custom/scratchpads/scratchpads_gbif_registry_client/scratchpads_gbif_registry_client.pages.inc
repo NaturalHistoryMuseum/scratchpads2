@@ -1,5 +1,7 @@
 <?php
 
+module_load_include('inc', 'dwcarchiver', 'dwcarchiver.rebuild');
+
 /**
  * Admin settings.
  */
@@ -30,6 +32,20 @@ function scratchpads_gbif_registry_client_admin_settings()
       '#description' => t("Whether to register this scratchpad with GBIF"),
     )
   );
+
+  $form['#submit'][] = 'scratchpads_gbif_registry_client_admin_settings_form_submit';
+
     // use the system_settings_form function so that we don't have to implement our own submit function
   return system_settings_form($form);
 }
+
+/**
+ * Submit handler for the scratchpads_gbif_registry_client_admin_settings form.
+ */
+function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$form_state)
+{
+  variable_del('scratchpads_gbif_registry_client_last_update');
+  dwcarchiver_rebuild('gbif-dwca');
+}
+
+
