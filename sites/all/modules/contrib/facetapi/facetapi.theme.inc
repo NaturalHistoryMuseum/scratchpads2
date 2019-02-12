@@ -33,7 +33,7 @@ function theme_facetapi_title($variables) {
 }
 
 /**
- * Returns HTML for an active facet item.
+ * Returns HTML for an inactive facet item.
  *
  * @param $variables
  *   An associative array containing the keys 'text', 'path', 'options', and
@@ -68,7 +68,7 @@ function theme_facetapi_link_inactive($variables) {
 }
 
 /**
- * Returns HTML for the inactive facet item's count.
+ * Returns HTML for the active facet item's count.
  *
  * @param $variables
  *   An associative array containing:
@@ -81,11 +81,13 @@ function theme_facetapi_count($variables) {
 }
 
 /**
- * Returns HTML for an inactive facet item.
+ * Returns HTML for an active facet item.
  *
  * @param $variables
  *   An associative array containing the keys 'text', 'path', and 'options'. See
  *   the l() function for information about these variables.
+ *
+ * @see l()
  *
  * @ingroup themeable
  */
@@ -105,7 +107,7 @@ function theme_facetapi_link_active($variables) {
   // Builds link, passes through t() which gives us the ability to change the
   // position of the widget on a per-language basis.
   $replacements = array(
-    '!facetapi_deactivate_widget' => theme('facetapi_deactivate_widget'),
+    '!facetapi_deactivate_widget' => theme('facetapi_deactivate_widget', $variables),
     '!facetapi_accessible_markup' => theme('facetapi_accessible_markup', $accessible_vars),
   );
   $variables['text'] = t('!facetapi_deactivate_widget !facetapi_accessible_markup', $replacements);
@@ -117,8 +119,11 @@ function theme_facetapi_link_active($variables) {
  * Returns HTML for the deactivation widget.
  *
  * @param $variables
- *   An associative array containing:
- *   - text: The text of the facet link.
+ *   An associative array containing the keys 'text', 'path', and 'options'. See
+ *   the l() function for information about these variables.
+ *
+ * @see l()
+ * @see theme_facetapi_link_active()
  *
  * @ingroup themable
  */
@@ -141,5 +146,9 @@ function theme_facetapi_deactivate_widget($variables) {
 function theme_facetapi_accessible_markup($variables) {
   $vars = array('@text' => $variables['text']);
   $text = ($variables['active']) ? t('Remove @text filter', $vars) : t('Apply @text filter', $vars);
-  return '<span class="element-invisible">' . $text . '</span>';
+  // Add spaces before and after the text, since other content may be displayed
+  // inline with this and we don't want the words to run together. However, the
+  // spaces must be inside the <span> so as not to disrupt the layout for
+  // sighted users.
+  return '<span class="element-invisible"> ' . $text . ' </span>';
 }

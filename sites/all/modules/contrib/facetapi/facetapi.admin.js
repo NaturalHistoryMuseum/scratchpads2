@@ -7,7 +7,7 @@ Drupal.behaviors.facetapi = {
     $('select[name="soft_limit"]').change(function() {
       $('select[name="soft_limit"]').val($(this).val());
     });
-    
+
     // Ensures ALL nofollow checkboxes are updated.
     // @see http://drupal.org/node/735528
     $('input[name="nofollow"]').change(function() {

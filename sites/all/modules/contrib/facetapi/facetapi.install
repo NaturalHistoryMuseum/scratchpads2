@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Installation functions for the Facet API module.
+ * Install, update, and uninstall functions for the Facet API module.
  */
 
 /**
@@ -60,7 +60,7 @@ function facetapi_schema() {
       ),
       'settings' => array(
         'description' => 'Serialized storage of general settings.',
-        'type' => 'text',
+        'type' => 'blob',
         'serialize' => TRUE,
       ),
     ),
@@ -86,6 +86,10 @@ function facetapi_uninstall() {
   $result = db_query('SELECT name FROM {variable} WHERE name LIKE :module', $args);
   foreach ($result as $record) {
     variable_del($record->name);
+  }
+  // Remove blocks.
+  if (db_table_exists('block')) {
+    db_delete('block')->condition('module', 'facetapi')->execute();
   }
 }
 
@@ -199,4 +203,22 @@ function facetapi_update_7101() {
     'not null' => TRUE,
     'default' => '',
   ));
+}
+
+/**
+ * Fix Postgres compatibility issue.
+ */
+function facetapi_update_7102() {
+  db_change_field('facetapi', 'settings', 'settings', array(
+    'type' => 'blob',
+    'description' => 'Serialized storage of general settings.',
+    'serialize' => TRUE,
+  ));
+}
+
+/**
+ * Clears facetapi:delta_map cache item to ensure that new realms are mapped.
+ */
+function facetapi_update_7103() {
+  cache_clear_all('facetapi:delta_map', 'cache');
 }

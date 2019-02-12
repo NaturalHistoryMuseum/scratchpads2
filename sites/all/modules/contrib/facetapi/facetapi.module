@@ -66,7 +66,7 @@ define('FACETAPI_REGEX_DATE', '/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})
 define('FACETAPI_REGEX_DATE_RANGE', '/^\[(' . trim(FACETAPI_REGEX_DATE, '/^$') . ') TO (' . trim(FACETAPI_REGEX_DATE, '/^$') . ')\]$/');
 
 // Calls block specific hooks and overrides.
-require_once dirname(__FILE__) . '/facetapi.block.inc';
+module_load_include('inc', 'facetapi', 'facetapi.block');
 
 /**
  * Implements hook_facetapi_hook_info().
@@ -80,6 +80,9 @@ function facetapi_hook_info() {
       'group' => 'facetapi',
     ),
     'facetapi_empty_behaviors' => array(
+      'group' => 'facetapi',
+    ),
+    'facetapi_facet_info' => array(
       'group' => 'facetapi',
     ),
     'facetapi_filters' => array(
@@ -248,31 +251,31 @@ function facetapi_ctools_plugin_type() {
 function facetapi_theme() {
   return array(
     'facetapi_title' => array(
-      'arguments' => array('title' => NULL, 'facet' => array()),
+      'variables' => array('title' => NULL, 'facet' => array()),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_facet_missing' => array(
-      'arguments' => array('field_name' => NULL),
+      'variables' => array('field_name' => NULL),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_count' => array(
-      'arguments' => array('count' => NULL),
+      'variables' => array('count' => NULL),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_link_inactive' => array(
-      'arguments' => array('text' => NULL, 'path' => NULL, 'options' => array(), 'count' => 0),
+      'variables' => array('text' => NULL, 'path' => NULL, 'options' => array(), 'count' => 0),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_link_active' => array(
-      'arguments' => array('text' => NULL, 'path' => NULL, 'options' => array()),
+      'variables' => array('text' => NULL, 'path' => NULL, 'options' => array()),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_deactivate_widget' => array(
-      'arguments' => array('text' => NULL),
+      'variables' => array('text' => NULL),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_accessible_markup' => array(
-      'arguments' => array('text' => NULL, 'active' => NULL),
+      'variables' => array('text' => NULL, 'active' => NULL),
       'file' => 'facetapi.theme.inc',
     ),
     'facetapi_realm_settings_table' => array(
@@ -294,11 +297,18 @@ function facetapi_theme() {
  * Custom access callback. Checks if the user has either the "administer search"
  * OR "administer facets" permissions.
  *
+ * @param stdClass|NULL $account
+ *   (optional) The account to check, if not given use currently logged in user.
+ *
  * @return boolean
  *   TRUE if the user has access to the resource, FALSE otherwise.
  */
-function facetapi_access_callback() {
-  return user_access('administer search') || user_access('administer facets');
+function facetapi_access_callback($account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+  return user_access('administer search', $account) || user_access('administer facets', $account);
 }
 
 /**
@@ -625,7 +635,7 @@ function facetapi_get_facet_info($searcher) {
         }
 
         // Iterates over facet definitions, merges defaults.
-        foreach($facets as $facet_name => $info) {
+        foreach ($facets as $facet_name => $info) {
 
           // @see http://drupal.org/node/1161434
           // Converts "query type" to an array and stores in "query types".
@@ -845,85 +855,10 @@ function facetapi_get_enabled_facets($searcher, $realm_name = NULL) {
     // Gets facet definitions for all enabled facets.
     $facet_info = facetapi_get_facet_info($searcher);
     $enabled_facets[$cid] = array_intersect_key($facet_info, $facets);
+    // Alter enabled facets on the fly.
+    drupal_alter('facetapi_enabled_facets', $enabled_facets[$cid], $searcher, $realm_name);
   }
   return $enabled_facets[$cid];
-}
-
-////
-////
-//// Facet API hook implementations
-////
-////
-
-/**
- * Implements hook_facetapi_facet_info().
- */
-function facetapi_facetapi_facet_info($searcher_info) {
-  $facets = array();
-  if (isset($searcher_info['types']['node']) && $searcher_info['include default facets']) {
-
-    $facets['bundle'] = array(
-      'label' => t('Content type'),
-      'description' => t('Filter by content type.'),
-      'field api bundles' => array('node'),
-      'map callback' => 'facetapi_map_bundle',
-      'values callback' => 'facetapi_callback_type_values',
-      'facet mincount allowed' => TRUE,
-      'dependency plugins' => array('role'),
-    );
-
-    $facets['author'] = array(
-      'label' => t('Author'),
-      'description' => t('Filter by author.'),
-      'field' => 'uid',
-      'map callback' => 'facetapi_map_author',
-      'values callback' => 'facetapi_callback_user_values',
-      'facet mincount allowed' => TRUE,
-      'dependency plugins' => array('bundle', 'role'),
-    );
-
-    $facets['language'] = array(
-      'label' => t('Language'),
-      'description' => t('Filter by language.'),
-      'field' => 'language',
-      'map callback' => 'facetapi_map_language',
-      'values callback' => 'facetapi_callback_language_values',
-      'facet mincount allowed' => TRUE,
-      'dependency plugins' => array('bundle', 'role'),
-    );
-
-    $facets['created'] = array(
-      'label' => t('Post date'),
-      'description' => t('Filter by the date the node was posted.'),
-      'query types' => array('date'),
-      'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE),
-      'map callback' => 'facetapi_map_date',
-      'min callback' => 'facetapi_get_min_date',
-      'max callback' => 'facetapi_get_max_date',
-      'dependency plugins' => array('bundle', 'role'),
-      'default sorts' => array(
-        array('active', SORT_DESC),
-        array('indexed', SORT_ASC),
-      ),
-    );
-
-    $facets['changed'] = array(
-      'label' => t('Updated date'),
-      'description' => t('Filter by the date the node was last modified.'),
-      'query types' => array('date'),
-      'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE),
-      'map callback' => 'facetapi_map_date',
-      'min callback' => 'facetapi_get_min_date',
-      'max callback' => 'facetapi_get_max_date',
-      'dependency plugins' => array('bundle', 'role'),
-      'default sorts' => array(
-        array('active', SORT_DESC),
-        array('indexed', SORT_ASC),
-      ),
-    );
-  }
-
-  return $facets;
 }
 
 ////
@@ -1038,11 +973,11 @@ function facetapi_build_realm($searcher, $realm_name) {
  * @return
  *   A boolean flagging whether all requirements were passed.
  */
-function facetapi_check_requirements(array $requirements, array $realm, array $facet) {
+function facetapi_check_requirements(array $requirements, array $realm, array $facet, $operator = 'AND') {
   $return = TRUE;
   module_load_include('inc', 'facetapi', 'facetapi.requirements');
   foreach ($requirements as $callback => $options) {
-    if (!call_user_func($callback, $realm, $facet, $options)) {
+    if (!call_user_func($callback, $realm, $facet, $options, $operator)) {
       $return = FALSE;
       break;
     }
@@ -1190,6 +1125,7 @@ function facetapi_save_facet_status(FacetapiAdapter $adapter, array $realm, arra
 
   // Clears caches and statics if we are not batch processing.
   if ($success && !$batch_process) {
+    drupal_static('facetapi_get_searcher_settings', array(), TRUE);
     drupal_static('facetapi_get_enabled_facets', array(), TRUE);
     if ('block' == $realm['name']) {
       cache_clear_all(NULL, 'cache_block');

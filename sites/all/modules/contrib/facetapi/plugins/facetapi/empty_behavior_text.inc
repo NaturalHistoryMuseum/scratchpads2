@@ -2,21 +2,28 @@
 
 /**
  * @file
- * Empty behavior that returns text.
+ * The empty_text empty behavior class.
  */
 
 /**
- * Returns text.
+ * Empty behavior plugin that displays markup, usually just some text.
+ *
+ * This plugin allows administrators to display markup filtered through text
+ * formats as the contents of a facet when it has no items.
  */
 class FacetapiEmptyBehaviorText extends FacetapiEmptyBehavior {
 
   /**
    * A boolean flagging whether the input format is set, FALSE means it is
    * being pulled from FacetapiEmptyBehavior::getDefaultSettings().
+   *
+   * @var bool
    */
   protected $formatSet = FALSE;
 
   /**
+   * Overrides FacetapiEmptyBehavior::__construct().
+   *
    * Checks if a format was selected, calls parent's constructor.
    */
   public function __construct(stdClass $settings) {
@@ -27,7 +34,7 @@ class FacetapiEmptyBehaviorText extends FacetapiEmptyBehavior {
   }
 
   /**
-   * Returns an empty array.
+   * Implements FacetapiEmptyBehavior::execute().
    */
   public function execute() {
     $format_id = $this->settings['empty_text']['format'];
@@ -36,7 +43,7 @@ class FacetapiEmptyBehaviorText extends FacetapiEmptyBehavior {
   }
 
   /**
-   * Adds setting for the empty behavior.
+   * Overrides FacetapiEmptyBehavior::settingsForm().
    */
   public function settingsForm(&$form, &$form_state) {
     global $user;
@@ -60,7 +67,7 @@ class FacetapiEmptyBehaviorText extends FacetapiEmptyBehavior {
   }
 
   /**
-   * Returns an array of default settings.
+   * Overrides FacetapiEmptyBehavior::getDefaultSettings().
    */
   public function getDefaultSettings() {
     return array(

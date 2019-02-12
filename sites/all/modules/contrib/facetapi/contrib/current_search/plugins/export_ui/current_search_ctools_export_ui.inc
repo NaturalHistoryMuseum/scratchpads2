@@ -1,8 +1,10 @@
 <?php
 
 /**
+ * @file
  * CTools Export UI plugin for current search block configurations.
  */
+
 $plugin = array(
   'schema' => 'current_search',
   'access' => 'administer search',

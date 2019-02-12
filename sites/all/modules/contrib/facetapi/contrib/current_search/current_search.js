@@ -1,5 +1,5 @@
 (function ($) {
-  
+
 /**
  * Provide the summary information for the block settings vertical tabs.
  */

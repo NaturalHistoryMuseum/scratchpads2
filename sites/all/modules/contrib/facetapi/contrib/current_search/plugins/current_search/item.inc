@@ -2,42 +2,58 @@
 
 /**
  * @file
- * Current search plugin base class.
+ * Base current search item plugin class.
  */
 
 /**
- * Base class for current search item plugins.
+ * Abstract class extended by current search item plugins.
+ *
+ * Current search items are plugins that  contextual information about the
+ * search being executed, for example a list of active items or a message
+ * containing information about the number of results returned by the query.
  */
 abstract class CurrentSearchItem {
 
   /**
-   * The machine readable name of the current search block configuration.
+   * The machine readable name of current search block configuration.
    *
    * @var string
    */
   protected $configName;
 
   /**
-   * The machine readable name of the item this instance is associated with.
+   * The machine readable name of the current search item plugin.
    *
    * @var string
    */
   protected $name;
 
   /**
-   * An array of facet settings.
+   * An array of the current search item's settings.
+   *
+   * This is the item's settings under the "items" key of the settings property
+   * in the object returned by current_search_item_load().
    *
    * @var array
    */
   protected $settings;
 
   /**
+   * An array keyed by item position to its value and all its children.
+   *
+   * @var array
+   */
+  protected $itemValues = array();
+
+  /**
    * Constructs a CurrentSearchItem object.
    *
    * @param string $name
-   *   The machine readable name of the item this instance is associated with.
+   *   The machine readable name of the current search item plugin as defined in
+   *   hook_current_search_items() implementations.
    * @param stdClass $config
-   *   The full current search block configuration.
+   *   The current search block configurations as returned by
+   *   current_search_item_load().
    */
   public function __construct($name, $config = NULL) {
     $this->name = $name;
@@ -51,25 +67,38 @@ abstract class CurrentSearchItem {
   }
 
   /**
-   * Executes the abstract class behavior.
+   * Executes the plugin that returns the current search item's render array.
+   *
+   * See the documentation at http://drupal.org/node/930760 for more information
+   * on how to work with render arrays.
    *
    * @param FacetapiAdapter $adapter
    *   The adapter object of the current search.
    *
    * @return array
-   *   The element's render array.
+   *   The current search item's render array.
+   *
+   * @see http://drupal.org/node/930760
    */
   abstract public function execute(FacetapiAdapter $adapter);
 
   /**
-   * Allows for backend specific overrides to the settings form.
+   * Allows the plugin to add settings to the current search item form.
+   *
+   * @see current_search_settings_form()
    */
   public function settingsForm(&$form, &$form_state) {
     // Nothing to do...
   }
 
   /**
-   * Returns an array of default settings.
+   * Provides default values for the plugin settings.
+   *
+   * All settings added via CurrentSearchItem::settingsForm() should have
+   * corresponding defaults in this method.
+   *
+   * @return array
+   *   The defaults keyed by setting name to value.
    */
   public function getDefaultSettings() {
     return array();
@@ -79,7 +108,8 @@ abstract class CurrentSearchItem {
    * Helper function for translating strings.
    *
    * @param string $key
-   *   The array key of the element being translated.
+   *   The array key of the item being translated as defined in the plugin's
+   *   CurrentSearchItem::settingsForm() function.
    * @param string $string
    *   The string being translated.
    *
@@ -94,7 +124,17 @@ abstract class CurrentSearchItem {
   }
 
   /**
-   * Returns "wrapper HTML" form elements.
+   * Returns form elements that allow users to add wrapper HTML around items.
+   *
+   * Inspired by Semantic Views which was integrated into Views 3, these form
+   * elements allow the user to add wrapper HTML and CSS classes around the
+   * current search items for easier theming and better semantic markup. This
+   * method is usually called in CurrentSearchItem::settingsForm() overrides.
+   *
+   * @return array
+   *   The wrapper HTML form elements.
+   *
+   * @see CurrentSearchItem::settingsForm()
    */
   public function wrapperForm(&$form, &$form_state) {
 
@@ -157,10 +197,16 @@ abstract class CurrentSearchItem {
   }
 
   /**
-   * Returns defaults for "wrapper HTML" elements.
+   * Returns defaults for the wrapper HTML elements.
+   *
+   * This method is usually called in CurrentSearchItem::getDefaultSettings()
+   * overrides.
    *
    * @return array
    *   An array of default values.
+   *
+   * @see CurrentSearchItem::wrapperForm()
+   * @see CurrentSearchItem::getDefaultSettings()
    */
   public function wrapperDefaults() {
     return array(
@@ -173,6 +219,9 @@ abstract class CurrentSearchItem {
 
   /**
    * Returns the token tree element.
+   *
+   * if the Token module is not installed, alerts the administrator that using
+   * Token module will allow them to view the replacement patterns.
    *
    * @return array
    *   The token FAPI element.
@@ -192,7 +241,41 @@ abstract class CurrentSearchItem {
   }
 
   /**
-   * Helper function that returns a facet's query string.
+   * Helper function that returns the item's value and its children.
+   *
+   * @param array $item
+   *   The item as returned by FacetapiAdapter::getAllActiveItems().
+   * @param FacetapiAdapter $adapter
+   *   The adapter object associated with the searcher executing the search.
+   *
+   * @return array
+   *   An array of the item's value and all its children.
+   */
+  public function getItemValues(array $item, FacetapiAdapter $adapter) {
+    if (!isset($this->itemValues[$item['pos']])) {
+
+      // Initializes items, sets $values as a reference for code readability.
+      $this->itemValues[$item['pos']] = array();
+      $values = &$this->itemValues[$item['pos']];
+
+      // Gets all children so they are deactivated as well.
+      foreach ($item['facets'] as $facet_name) {
+        $active_children = $adapter->getProcessor($facet_name)->getActiveChildren($item['value']);
+        $values = array_merge($values, $active_children);
+      }
+
+      // Handle the case of a URL value that matches no actual facet values.
+      // Otherwise, it can't be unclicked.
+      if (!in_array($item['value'], $values)) {
+        $values[] = $item['value'];
+      }
+    }
+
+    return $this->itemValues[$item['pos']];
+  }
+
+  /**
+   * Helper function that returns a facet's path.
    *
    * Ensures that all active child values are deactivated along with the parent.
    *
@@ -201,33 +284,41 @@ abstract class CurrentSearchItem {
    * @param FacetapiAdapter $adapter
    *   The adapter object of the current search.
    *
+   * @return string
+   *   The facet path.
+   */
+  public function getFacetPath(array $item, FacetapiAdapter $adapter) {
+    return $adapter
+      ->getProcessor($item['facets'][0])
+      ->getFacetPath($this->getItemValues($item, $adapter), 1);
+  }
+
+  /**
+   * Helper function that returns a facet's query string.
+   *
+   * Ensures that all active child values are deactivated along with the parent.
+   *
+   * @param array $item
+   *   The item as returned by FacetapiAdapter::getAllActiveItems().
+   * @param FacetapiAdapter $adapter
+   *   The adapter object associated with the searcher executing the search.
+   *
    * @return array
-   *   An array of the facet value plus all children.
+   *   An array containing the query string variables.
+   *
+   * @see UrlProcessor::getQueryString()
    */
   public function getQueryString(array $item, FacetapiAdapter $adapter) {
-    $values = array();
-
-    // Gets all children so they are deactivated as well.
-    foreach ($item['facets'] as $facet_name) {
-      $active_children = $adapter->getProcessor($facet_name)->getActiveChildren($item['value']);
-      $values = array_merge($values, $active_children);
-    }
-
-    // Handle the case of a URL value that matches no actual facet values.
-    // Otherwise, it can't be unclicked.
-    if (!in_array($item['value'], $values)) {
-      $values[] = $item['value'];
-    }
-
-    // Returns the query string for the active facet item.
-    return $adapter->getProcessor($item['facets'][0])->getQueryString($values, 1);
+    return $adapter
+      ->getProcessor($item['facets'][0])
+      ->getQueryString($this->getItemValues($item, $adapter), 1);
   }
 }
 
 /**
  * Parses the classes setting into an array of sanitized classes.
  *
- * @param $setting
+ * @param string $setting
  *   The classes setting passed by the user.
  * @param array $data
  *   An optional array of data to pass to token_replace().

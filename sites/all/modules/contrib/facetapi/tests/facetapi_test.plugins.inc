@@ -1,35 +1,56 @@
 <?php
 
 /**
- * Test plugins for Facet API.
+ * @file
+ * Test adapter and plugins.
  */
 
 /**
- * Facet API adapter for the Apache Solr Search Integration module.
+ * Adapter for our test searcher.
+ *
+ * The test searcher does not connect to a backend, it just renders dummy data
+ * every tom a search is executed. Facet API is not responsible for calculating
+ * the facets, so for testing purposes this works just fine.
  */
 class FacetapiTestAdapter extends FacetapiAdapter {
 
   /**
    * The total number of results in the query.
    */
-  protected $resultCount;
+  protected $resultCount = 10;
 
   /**
-   * Returns a boolean flagging whether $this->searcher executed a search.
+   * Implements FacetapiAdapter::searchExecuted().
    */
   public function searchExecuted() {
     return !empty($this->keys);
   }
 
   /**
-   * Returns a boolean flagging whether facets in a realm shoud be displayed.
+   * Implements FacetapiAdapter::suppressOutput().
    */
   public function suppressOutput($realm_name) {
+    return FALSE;
+  }
 
+  /**
+   * Overrides FacetapiAdapter::getSearchPath().
+   */
+  public function getSearchPath() {
+    return 'facetapi_test/search';
   }
 
   /**
    * Sets the result count.
+   *
+   * The test searcher does not use the core pager APIs, so we use this method
+   * to set a dummy value.
+   *
+   * @param int $count
+   *   The result count.
+   *
+   * @return FacetapiAdapter
+   *   An instance of this class.
    */
   public function setResultCount($count) {
     $this->resultCount = $count;
@@ -37,7 +58,7 @@ class FacetapiTestAdapter extends FacetapiAdapter {
   }
 
   /**
-   * Returns the nmber of total results found for the current search.
+   * Overrides FacetapiAdapter::getResultCount().
    */
   public function getResultCount() {
     return $this->resultCount;
@@ -45,26 +66,76 @@ class FacetapiTestAdapter extends FacetapiAdapter {
 }
 
 /**
- * Plugin for "term" query types.
+ * Plugin for "term" query type.
  */
 class FacetapiTestTerm extends FacetapiQueryType implements FacetapiQueryTypeInterface {
 
+  /**
+   * Implements FacetapiQueryTypeInterface::getType().
+   */
   static public function getType() {
     return 'term';
   }
 
+  /**
+   * Implements FacetapiQueryTypeInterface::execute().
+   */
   public function execute($query) {
     // Nothing to do...
   }
 
+  /**
+   * Implements FacetapiQueryTypeInterface::build().
+   */
   public function build() {
     $build = array();
 
+    $build['testthree'] = array('#count' => 3);
     $build['testone'] = array('#count' => 1);
     $build['testtwo'] = array('#count' => 2);
-    $build['testthree'] = array('#count' => 3);
 
     // Returns initialized build.
     return $build;
   }
+}
+
+/**
+ * Plugin for "nonterm" query type.
+ */
+class FacetapiTestNonterm extends FacetapiQueryType implements FacetapiQueryTypeInterface {
+
+  /**
+   * Implements FacetapiQueryTypeInterface::getType().
+   */
+  static public function getType() {
+    return 'nonterm';
+  }
+
+  /**
+   * Implements FacetapiQueryTypeInterface::execute().
+   */
+  public function execute($query) {
+    // Nothing to do...
+  }
+
+  /**
+   * Implements FacetapiQueryTypeInterface::build().
+   */
+  public function build() {
+    $build = array();
+
+    $build['testfour'] = array('#count' => 4);
+    $build['testsix'] = array('#count' => 6);
+    $build['testfive'] = array('#count' => 5);
+
+    // Returns initialized build.
+    return $build;
+  }
+}
+
+/**
+ * Plugin for dummy widget that only supports the "nonterm" query type.
+ */
+class FacetapiTestWidgetNonterm extends FacetapiWidgetLinks {
+
 }

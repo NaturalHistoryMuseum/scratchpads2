@@ -13,12 +13,11 @@
 /**
  * Define all searchers provided by the module.
  *
- * Searchers are synonymous with search pages, or environments. Each searcher is
- * associated with an adapter instance. Multiple searchers can share the same
- * adapter class, but each searcher will spawn a separate instance of the
- * adapter. Each searcher must be unique, so it is common practice to prefix the
- * name with the module implementing the hook, such as "apachesolr@searcher-1",
- * "apachesolr@searcher-2", "search_api@searcher-1", etc.
+ * Searchers are synonymous with search pages, or environments. Multiple
+ * searchers can share the same adapter class, but each searcher will spawn a
+ * separate instance of the adapter. Each searcher must be unique, so it is
+ * common practice to prefix the name with the module implementing the hook,
+ * such as "apachesolr@searcher-x", "search_api@searcher-y", etc.
  *
  * @return array
  *   An associative array keyed by unique name of the searcher. Each searcher is
@@ -41,6 +40,8 @@
  *   - include default facets: (optional) TRUE if the searcher should include
  *     the facets defined in facetapi_facetapi_facet_info() when indexing node
  *     content, FALSE if they should be skipped.
+ *
+ * @see FacetapiAdapter
  */
 function hook_facetapi_searcher_info() {
   return array(
@@ -123,6 +124,12 @@ function hook_facetapi_realm_info_alter(array &$realm_info) {
 
 /**
  * Define all facets provided by the module.
+ *
+ * Facets correspond with fields in the search index and are usually related to
+ * entity properties and fields. However, it is not a requirement that the
+ * source data be stored in Drupal. For example, if you are indexing external
+ * RSS feeds, facets can be defined that filter by the field in the index that
+ * stores the publication dates.
  *
  * @param array $searcher_info
  *   The definition of the searcher that facets are being collected for.
@@ -239,7 +246,31 @@ function hook_facetapi_facet_info_alter(array &$facet_info, array $searcher_info
 }
 
 /**
+ * Allows for alterations of the facets on the fly, without caching.
+ *
+ * @param array &$enabled_facets
+ *   The return facets, which enabled for current search.
+ * @param $searcher
+ *   The machine readable name of the searcher.
+ * @param $realm_name
+ *   The machine readable name of the realm.
+ */
+function hook_facetapi_enabled_facets_alter(array &$enabled_facets, $searcher, $realm_name) {
+  if ($searcher == 'something') {
+    // Put facet1 to the end.
+    if (!empty($enabled_facets['facet1'])) {
+      $facet1 = $enabled_facets['facet1'];
+      unset($enabled_facets['facet1']);
+      $enabled_facets['facet1'] = $facet1;
+    }
+  }
+}
+
+/**
  * Define all facets sorting algorithms provided by the module.
+ *
+ * Sorts are applied in the FacetapiWidget::sortFacet() method which is called
+ * by FacetapiWidget::init().
  *
  * @return array
  *   An associative array keyed by unique name of the sort. Each sort is an
@@ -249,6 +280,9 @@ function hook_facetapi_facet_info_alter(array &$facet_info, array $searcher_info
  *   - description: The description of the sort displayed in the admin UI.
  *   - weight: (optional) The default weight of the sort specifying its
  *     default processing order. Defaults to 0.
+ *
+ * @see FacetapiWidget::init()
+ * @see FacetapiWidget::sortFacet()
  */
 function hook_facetapi_sort_info() {
   $sorts = array();
@@ -278,15 +312,15 @@ function hook_facetapi_sort_info_alter(array &$sort_info) {
 /**
  * Define all adapter plugins provided by the module.
  *
- * Adapters are the abstraction layer through which searchers integrate with
- * Facet API and various backend functionality.
+ * See the FacetapiAdapter docblock for more information on what an adapter does
+ * and how it interacts with the implementing search module.
  *
  * @return array
  *   An associative array keyed by unique name of the adapter. Each adapter is
  *   an associative array keyed by "handler" containing:
  *   - class: The name of the plugin class.
  *
- * @see FacetapiApachesolr
+ * @see FacetapiAdapter
  */
 function hook_facetapi_adapters() {
   return array(
@@ -301,10 +335,8 @@ function hook_facetapi_adapters() {
 /**
  * Define all dependency plugins provided by the module.
  *
- * Dependency plugins control what criteria must be met for the backend to
- * process the facet. It is designed to implement the "progressive disclosure"
- * pattern where more facets are displayed to users the deeper they get into
- * the refinement of their search.
+ * See the FacetapiDependency docblock for more information on what dependency
+ * plugins do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the dependency. Each
@@ -328,8 +360,8 @@ function hook_facetapi_dependencies() {
 /**
  * Define all empty behavior plugins provided by the module.
  *
- * Empty behavior plugins determine what to display when a facet has no
- * available items.
+ * See the FacetapiEmptyBehavior docblock for more information on what empty
+ * behavior plugins do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the empty behavior. Each empty
@@ -353,10 +385,8 @@ function hook_facetapi_empty_behaviors() {
 /**
  * Define all filter plugins provided by the module.
  *
- * Filter plugins provide last minute modifications to the facet's render array
- * prior to being acted on by the widget plugin. Filters are also an alter
- * mechanism for the facet that developers can use to make any customizations
- * prior to the widget being rendered.
+ * See the FacetapiFilter docblock for more information on what filter plugins
+ * do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the filter. Each filter is an
@@ -380,10 +410,8 @@ function hook_facetapi_filters() {
 /**
  * Define all query type plugins provided by the module.
  *
- * Query type plugins are responsible for converting the active facet items into
- * facet queries that are processed by the backend. They are also responsible
- * for extracting extra information about the active item, such as the start and
- * end values of a range query.
+ * See the FacetapiQueryTypeInterface docblock for more information on what
+ * query type plugins do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the query type. Each query
@@ -392,7 +420,6 @@ function hook_facetapi_filters() {
  *   - adapter: The adapter that the query type plugin is associated with.
  *
  * @see FacetapiQueryTypeInterface
- * @see FacetapiQueryType
  */
 function hook_facetapi_query_types() {
   return array(
@@ -408,9 +435,8 @@ function hook_facetapi_query_types() {
 /**
  * Define all URL processor plugins provided by the module.
  *
- * URL processors are responsible for building and formatting facet URLs. The
- * standard processor passes all facet filters through the "f" query string
- * variable.
+ * See the FacetapiUrlProcessor docblock for more information on what url
+ * processor plugins do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the URL processor. Each URL
@@ -418,7 +444,7 @@ function hook_facetapi_query_types() {
  *   - label: The human readable name of the plugin displayed in the admin UI.
  *   - class: The name of the plugin class.
  *
- * @see FacetapiFilter
+ * @see FacetapiUrlProcessor
  */
 function hook_facetapi_url_processors() {
   return array(
@@ -434,17 +460,22 @@ function hook_facetapi_url_processors() {
 /**
  * Define all widget plugins provided by the module.
  *
- * Widget plugins process the facet render arrays to the structure that wille be
- * passed to drupal_render(), which in turn converts the facet to HTML.
+ * See the FacetapiWidget docblock for more information on what widget plugins
+ * do and what their responsibilities are.
  *
  * @return array
  *   An associative array keyed by unique name of the widget. Each widget is an
  *   associative array keyed by "handler" containing:
  *   - label: The human readable name of the plugin displayed in the admin UI.
  *   - class: The name of the plugin class.
- *   - query types: An array of query-types that this widget is compatible with
+ *   - query types: An array of query-types that this widget is compatible with.
+ *   - requirements: An array of requirements that must pass in order for this
+ *     widget to be displayed. Requirements are associative arrays keyed by
+ *     function to requirement options. The value defaults to a requirement that
+ *     the "element type" realm property is equal to "links".
  *
- * @see FacetapiFilter
+ * @see FacetapiWidget
+ * @see facetapi_get_widgets()
  */
 function hook_facetapi_widgets() {
   return array(
@@ -453,6 +484,9 @@ function hook_facetapi_widgets() {
         'label' => t('Links'),
         'class' => 'FacetapiWidgetLinks',
         'query types' => array('term', 'date'),
+        'requirements' => array(
+          'facetapi_requirement_realm_property' => array('element type' => 'links')
+        ),
       ),
     ),
   );
@@ -486,6 +520,20 @@ function hook_facetapi_force_delta_mapping() {
       ),
     ),
   );
+}
+
+/**
+ * Alters the hash that is generated for block deltas.
+ *
+ * @param type &$hash
+ *   The delta hash.
+ * @param type $delta
+ *   The block's delta.
+ *
+ * @see https://www.drupal.org/node/1828396
+ */
+function hook_facetapi_hash_alter(&$hash, $delta) {
+  $hash = drupal_html_class($hash);
 }
 
 /**

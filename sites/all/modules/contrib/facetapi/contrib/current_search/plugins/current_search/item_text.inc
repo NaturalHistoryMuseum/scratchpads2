@@ -2,11 +2,16 @@
 
 /**
  * @file
- * Plugin that adds custom text to the current search block.
+ * The text current search item plugin class.
  */
 
 /**
- * Extension of CurrentSearchItem that displays all active items.
+ * Current search item plugin that displays text configured by the user.
+ *
+ * It is a common use case to display the number of results returned by the
+ * query or addition to pagination information to end users. This plugin allows
+ * administrators to set arbitrary strings with replacement patterns to build
+ * the messages they want to display to users in the Current Search block.
  */
 class CurrentSearchItemText extends CurrentSearchItem {
 
@@ -14,22 +19,30 @@ class CurrentSearchItemText extends CurrentSearchItem {
    * Implements CurrentSearchItem::execute().
    */
   public function execute(FacetapiAdapter $adapter) {
-    $data = array('facetapi_adapter' => $adapter);
+    $data = array('facetapi_results' => array('facetapi_adapter' => $adapter));
 
     // Determines plurality of string.
     if ($this->settings['plural']) {
       $condition = '[' . $this->settings['plural_condition'] . ']';
       $count = (int) token_replace($condition, $data);
-      $raw_text = ($count != 1) ? $this->settings['text_plural'] : $this->settings['text'];
+      if ($count != 1) {
+        $raw_text = $this->settings['text_plural'];
+        $translation_key = 'text_plural';
+      }
+      else {
+        $raw_text = $this->settings['text'];
+        $translation_key = 'text';
+      }
     }
     else {
       $raw_text = $this->settings['text'];
+      $translation_key = 'text';
     }
 
     // Translates text, returns themed output.
-    $translated_text = $this->translate('text', $raw_text);
+    $translated_text = $this->translate($translation_key, $raw_text);
     $variables = array(
-      'text' => filter_xss(token_replace($translated_text, $data)),
+      'text' => filter_xss_admin(token_replace($translated_text, $data)),
       'wrapper' => $this->settings['wrapper'],
       'element' => $this->settings['element'],
       'css' => $this->settings['css'],

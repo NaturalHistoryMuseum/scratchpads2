@@ -1,10 +1,31 @@
 <?php
 
+module_load_include('inc', 'dwcarchiver', 'dwcarchiver.rebuild');
+
+
 /**
  * Basic callback to alter metadata for an archive.
  */
-function dwcarchiver_settings_page(){
+function dwcarchiver_settings_page()
+{
+
+  $maintainers = _dwcarchiver_get_maintainers();
+  $first_author = _dwcarchiver_get_primary_author();
+  foreach ($maintainers as $maintainer) {
+    $authors_options[$maintainer->uid] = sprintf(
+      '%s %s',
+      $maintainer->field_user_given_names[LANGUAGE_NONE][0]['value'],
+      $maintainer->field_user_family_name[LANGUAGE_NONE][0]['value']
+    );
+  }
+
   return system_settings_form(array(
+    'dwcarchiver_author' => array(
+      '#type' => 'select',
+      '#options' => $authors_options,
+      '#default_value' => $first_author->uid,
+      '#title' => t('Primary author')
+    ),
     'dwcarchiver_alternative_identifier' => array(
       '#type' => 'textfield',
       '#default_value' => variable_get('dwcarchiver_alternative_identifier', ''),
@@ -14,20 +35,21 @@ function dwcarchiver_settings_page(){
       '#type' => 'textfield',
       '#default_value' => variable_get('dwcarchiver_alternative_citation', ''),
       '#title' => t('Alternative citation')
-    )
+    ),
   ));
 }
 
 /**
  * Callback for listing archives.
  */
-function dwcarchiver_overview_page(){
+function dwcarchiver_overview_page()
+{
   $archives = dwcarchiver_load_all();
   $rows = array();
-  foreach($archives as $archive){
+  foreach ($archives as $archive) {
     $entity_info = entity_get_info($archive->entity);
     $bundle_info = array();
-    foreach($archive->bundles as $bundle){
+    foreach ($archive->bundles as $bundle) {
       $bundle_info[] = (isset($entity_info['label']) ? $entity_info['label'] : $archive->entity) . '/' . (isset($entity_info['bundles'][$bundle]['label']) ? $entity_info['bundles'][$bundle]['label'] : $bundle);
     }
     $row = array(
@@ -35,14 +57,14 @@ function dwcarchiver_overview_page(){
       $archive->machine_name,
       implode(', ', $bundle_info)
     );
-    if(!empty($archive->did)){
+    if (!empty($archive->did)) {
       $row[] = l('Edit', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/edit');
-      if(!empty($archive->overridden)){
+      if (!empty($archive->overridden)) {
         $row[] = l('Revert', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/revert');
-      }else{
+      } else {
         $row[] = l('Delete', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/delete');
       }
-    }else{
+    } else {
       $row[] = array(
         'data' => l('Override', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/override'),
         'colspan' => 2
@@ -71,8 +93,9 @@ function dwcarchiver_overview_page(){
 /**
  * Preview the archive
  */
-function dwcarchiver_preview($dwcarchiver){
-  try{
+function dwcarchiver_preview($dwcarchiver)
+{
+  try {
     // Load the SqlFormatter class
     require_once drupal_get_path('module', 'dwcarchiver') . '/lib/SqlFormatter.php';
     // Firstly, we start with the XML file.
@@ -84,8 +107,8 @@ function dwcarchiver_preview($dwcarchiver){
     $core->addAttribute('rowType', $dwcarchiver->rowtype);
     $files = $core->addChild('files');
     $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
-    _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
-    foreach($dwcarchiver->extensions as $extension){
+    _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], true);
+    foreach ($dwcarchiver->extensions as $extension) {
       $extension_element = $archive->addChild('extension');
       $files = $extension_element->addChild('files');
       $files->addChild('location', $extension->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
@@ -96,7 +119,7 @@ function dwcarchiver_preview($dwcarchiver){
     $dom = dom_import_simplexml($archive)->ownerDocument;
     $dom->formatOutput = true;
     $extensions = array();
-    $rows_and_query = _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, FALSE, 10);
+    $rows_and_query = _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, false, 10);
     $rows_and_query['rows'][] = array(
       array(
         'data' => '...',
@@ -104,7 +127,7 @@ function dwcarchiver_preview($dwcarchiver){
       )
     );
     $header = array();
-    foreach($dwcarchiver->maps[0] as $map){
+    foreach ($dwcarchiver->maps[0] as $map) {
       $header[] = $map->uri;
     }
     $extensions[] = array(
@@ -125,8 +148,8 @@ function dwcarchiver_preview($dwcarchiver){
         )
       )
     );
-    foreach($dwcarchiver->extensions as $extension){
-      $rows_and_query = _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, FALSE, 10);
+    foreach ($dwcarchiver->extensions as $extension) {
+      $rows_and_query = _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, false, 10);
       $rows_and_query['rows'][] = array(
         array(
           'data' => '...',
@@ -134,7 +157,7 @@ function dwcarchiver_preview($dwcarchiver){
         )
       );
       $header = array();
-      foreach($extension->maps[0] as $map){
+      foreach ($extension->maps[0] as $map) {
         $header[] = $map->uri;
       }
       $extensions[] = array(
@@ -166,12 +189,12 @@ function dwcarchiver_preview($dwcarchiver){
         'xml' => array(
           '#prefix' => '<div class="wrapper"><h2>meta.xml</h2><pre>',
           '#suffix' => '</pre></div>',
-          '#markup' => xml_highlight($dom->saveXML(), TRUE)
+          '#markup' => xml_highlight($dom->saveXML(), true)
         ),
         'extensions' => $extensions
       )
     );
-  }catch(Exception $e){
+  } catch (Exception $e) {
     drupal_set_message(t('<strong>Unable to preview the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', array(
       '@errormessage' => $e->getMessage(),
       '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString()
@@ -180,7 +203,8 @@ function dwcarchiver_preview($dwcarchiver){
   }
 }
 
-function xml_highlight($s, $breaks = FALSE){
+function xml_highlight($s, $breaks = false)
+{
   $s = htmlspecialchars($s);
   $s = preg_replace("#&lt;([/]*?)(.*)([\s]*?)&gt;#sU", "<font color=\"#0000FF\">&lt;\\1\\2\\3&gt;</font>", $s);
   $s = preg_replace("#&lt;([\?])(.*)([\?])&gt;#sU", "<font color=\"#800000\">&lt;\\1\\2\\3&gt;</font>", $s);
@@ -194,7 +218,8 @@ function xml_highlight($s, $breaks = FALSE){
 /**
  * Settings for the DwC-Archiver
  */
-function dwcarchiver_settings($form, &$form_state){
+function dwcarchiver_settings($form, &$form_state)
+{
   $form = system_settings_form(array(
     'dwcarchiver_rebuild_frequency' => array(
       '#type' => 'select',
@@ -225,7 +250,7 @@ function dwcarchiver_settings($form, &$form_state){
       '#description' => t('Select a path under which all data files will reside. Leaving this as the default "dwca" should be fine for most users. Only the letters A-Z are allowed.'),
       '#size' => 60,
       '#maxlength' => 64,
-      '#required' => TRUE,
+      '#required' => true,
       '#element_validate' => array(
         'dwcarchiver_settings_validate_folder_name'
       )
@@ -240,10 +265,11 @@ function dwcarchiver_settings($form, &$form_state){
 /**
  * Validate the folder name.
  */
-function dwcarchiver_settings_validate_folder_name($element, &$form_state, $form){
+function dwcarchiver_settings_validate_folder_name($element, &$form_state, $form)
+{
   $lower_of_value = strtolower($element['#value']);
   preg_match('/[a-z]*/', $lower_of_value, $matches);
-  if($matches[0] != $lower_of_value){
+  if ($matches[0] != $lower_of_value) {
     form_error($element, t('Only use letters a-z for the archive folder.'));
   }
 }
@@ -251,22 +277,24 @@ function dwcarchiver_settings_validate_folder_name($element, &$form_state, $form
 /**
  * Submit for the above simply to redirect.
  */
-function dwcarchiver_settings_submit($form, &$form_state){
+function dwcarchiver_settings_submit($form, &$form_state)
+{
   $form_state['redirect'] = 'admin/config/content/dwcarchiver';
 }
 
 /**
  * Deliver the DwC-A
  */
-function dwcarchiver_deliver_archive($machine_name){
+function dwcarchiver_deliver_archive($machine_name)
+{
   $dwcarchiver = dwcarchiver_machine_name_load($machine_name);
   $filename = 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip';
-  if(file_exists($filename)){
+  if (file_exists($filename)) {
     // Set headers.
     header('Content-type: application/zip');
     header('Content-Disposition: attachment; filename="' . $dwcarchiver->machine_name . '.zip"');
     readfile($filename);
-  }else{
+  } else {
     drupal_set_message(t('The archive "@archive_name" has not yet been created.', array(
       '@archive_name' => $dwcarchiver->name
     )), 'error');
@@ -277,17 +305,19 @@ function dwcarchiver_deliver_archive($machine_name){
 /**
  * Ajax callback.
  */
-function dwcarchiver_archive_form_ajax_callback($form, $form_state){
+function dwcarchiver_archive_form_ajax_callback($form, $form_state)
+{
   return $form['core']['entity_bundles'];
 }
 
 /**
  * Form for adding a new archive
  */
-function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
-  if(!isset($form_state['dwcarchiver'])){
+function dwcarchiver_archive_form($form, &$form_state, $edit = array())
+{
+  if (!isset($form_state['dwcarchiver'])) {
     $dwcarchiver = is_object($edit) ? $edit : (object)$edit;
-    if(isset($dwcarchiver->machine_name) && !isset($dwcarchiver->did)){
+    if (isset($dwcarchiver->machine_name) && !isset($dwcarchiver->did)) {
       drupal_goto('admin/config/content/dwcarchiver');
     }
     $defaults = array(
@@ -298,39 +328,39 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
       'rowtype' => '',
       'extensions' => array()
     );
-    foreach($defaults as $key => $value){
-      if(!isset($dwcarchiver->$key)){
+    foreach ($defaults as $key => $value) {
+      if (!isset($dwcarchiver->$key)) {
         $dwcarchiver->$key = $value;
       }
     }
     $form_state['dwcarchiver'] = $dwcarchiver;
-  }else{
+  } else {
     $dwcarchiver = $form_state['dwcarchiver'];
   }
   $core_types = dwcarchiver_get_core_types();
   $bundle_options = array();
   $entity_options = array();
   $entity_info = entity_get_info();
-  foreach($core_types as $index => $core_type){
+  foreach ($core_types as $index => $core_type) {
     $index = explode("/", $index);
     $bundle_options[$index[0]][$index[1]] = $core_type['label'];
     $entity_options[$index[0]] = $entity_info[$index[0]]['label'];
   }
-  if(!empty($form_state['values']['core']['entity'])){
+  if (!empty($form_state['values']['core']['entity'])) {
     $bundle_options = $bundle_options[$form_state['values']['core']['entity']];
-  }else if(!empty($dwcarchiver->entity)){
+  } else if (!empty($dwcarchiver->entity)) {
     $bundle_options = $bundle_options[$dwcarchiver->entity];
-  }else if(count($entity_options) == 1){
+  } else if (count($entity_options) == 1) {
     $bundle_options = array_pop($bundle_options);
-  }else{
+  } else {
     $bundle_options = array();
   }
   $form = array(
     'core' => array(
-      '#tree' => TRUE,
+      '#tree' => true,
       '#type' => 'fieldset',
-      '#collapsed' => FALSE,
-      '#collapsible' => FALSE,
+      '#collapsed' => false,
+      '#collapsible' => false,
       '#title' => t('Core'),
       '#description' => t('Options for the core object in the archive.'),
       'name' => array(
@@ -338,7 +368,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#title' => t('Name'),
         '#default_value' => $dwcarchiver->name,
         '#maxlength' => 255,
-        '#required' => TRUE
+        '#required' => true
       ),
       'machine_name' => array(
         '#type' => 'machine_name',
@@ -359,20 +389,20 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#options' => $entity_options,
         '#title' => 'Entity',
         '#default_value' => $dwcarchiver->entity,
-        '#required' => TRUE,
+        '#required' => true,
         '#ajax' => array(
           'callback' => 'dwcarchiver_archive_form_ajax_callback',
           'wrapper' => 'entity-bundles-replace'
         ),
-        '#empty_option' => count($entity_options) > 1 ? '- ' . t('Select') . ' -' : NULL
+        '#empty_option' => count($entity_options) > 1 ? '- ' . t('Select') . ' -' : null
       ),
       'entity_bundles' => array(
         '#type' => 'select',
         '#options' => $bundle_options,
         '#title' => 'Bundles',
         '#default_value' => $dwcarchiver->bundles,
-        '#required' => TRUE,
-        '#multiple' => TRUE,
+        '#required' => true,
+        '#multiple' => true,
         '#prefix' => '<div id="entity-bundles-replace">',
         '#suffix' => '</div>'
       ),
@@ -381,19 +411,19 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#title' => t('Row Type/URI'),
         '#default_value' => $dwcarchiver->rowtype,
         '#maxlength' => 255,
-        '#required' => TRUE
+        '#required' => true
       )
     )
   );
-  if($dwcarchiver->name){
+  if ($dwcarchiver->name) {
     $form['extensions'] = array(
-      '#tree' => TRUE
+      '#tree' => true
     );
     // Prevent editing of certain fields once the archive has been created.
-    $form['core']['entity_bundle']['#disabled'] = TRUE;
-    $form['core']['machine_name']['#disabled'] = TRUE;
+    $form['core']['entity_bundle']['#disabled'] = true;
+    $form['core']['machine_name']['#disabled'] = true;
     $form['core']['fields'] = _dwcarchiver_archive_form_fields($dwcarchiver->entity, $dwcarchiver->bundles, $dwcarchiver->maps);
-    foreach($dwcarchiver->extensions as $extension){
+    foreach ($dwcarchiver->extensions as $extension) {
       $form['extensions'][$extension->machine_name] = array(
         '#type' => 'fieldset',
         '#title' => $extension->name,
@@ -423,7 +453,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
               'float:right;'
             )
           ),
-          'html' => FALSE
+          'html' => false
         ),
         '#text' => t('Delete extension')
       );
@@ -443,7 +473,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#title_display' => 'invisible',
         '#size' => 15,
         '#description' => t('Extension name'),
-        '#required' => FALSE
+        '#required' => false
       ),
       'machine_name' => array(
         '#type' => 'machine_name',
@@ -457,7 +487,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
             'name'
           )
         ),
-        '#required' => FALSE
+        '#required' => false
       ),
       'rowtype' => array(
         '#type' => 'textfield',
@@ -472,7 +502,7 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
         '#options' => $core_types[$dwcarchiver->entity . '/' . $dwcarchiver->bundles[0]]['links'],
         '#title' => 'Entity/Bundle',
         '#default_value' => $dwcarchiver->entity . '/' . $dwcarchiver->bundles[0],
-        '#required' => TRUE
+        '#required' => true
       )
     );
   }
@@ -489,7 +519,8 @@ function dwcarchiver_archive_form($form, &$form_state, $edit = array()){
 /**
  * JS bit (return just the bit we're interested in)
  */
-function dwcarchiver_archive_form_add_another_mapping_js($form, $form_state){
+function dwcarchiver_archive_form_add_another_mapping_js($form, $form_state)
+{
   $extension_machine_name = substr($form_state['triggering_element']['#name'], 0, -9);
   $element = $form['extensions'][$extension_machine_name]['fields'][count(element_children($form['extensions'][$extension_machine_name]['fields'])) - 1];
   $element['#suffix'] = '<div id="' . $extension_machine_name . '-add-more-wrapper"></div>';
@@ -499,12 +530,13 @@ function dwcarchiver_archive_form_add_another_mapping_js($form, $form_state){
 /**
  * Submit function to add another mapping.
  */
-function dwcarchiver_archive_form_add_another_mapping($form, &$form_state){
+function dwcarchiver_archive_form_add_another_mapping($form, &$form_state)
+{
   // The triggering element has the machine name of the extension, so we look at
   // that, so that we can get the extension ID from the dwcarchiver object.
   $extension_machine_name = substr($form_state['triggering_element']['#name'], 0, -9);
-  foreach($form_state['dwcarchiver']->extensions as $eid => $extension){
-    if($extension->machine_name == $extension_machine_name){
+  foreach ($form_state['dwcarchiver']->extensions as $eid => $extension) {
+    if ($extension->machine_name == $extension_machine_name) {
       $extension->maps[] = array(
         (object)array(
           'eid' => $eid,
@@ -518,26 +550,27 @@ function dwcarchiver_archive_form_add_another_mapping($form, &$form_state){
       $form['extensions'][$extension_machine_name]['fields'] = _dwcarchiver_archive_form_fields($extension->entity, $extension->bundles, $extension->maps);
     }
   }
-  $form_state['rebuild'] = TRUE;
+  $form_state['rebuild'] = true;
 }
 
 /**
  * Helper function to return a form array for selecting fields for a specific
  * entity/bundle.
  */
-function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(), $prefix = ''){
-  if(!is_array($bundles)){
+function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(), $prefix = '')
+{
+  if (!is_array($bundles)) {
     $bundles = array(
       $bundles
     );
   }
   $form = array();
-  foreach(array_keys($maps) as $delta){
+  foreach (array_keys($maps) as $delta) {
     $form[$delta] = array(
       '#type' => 'fieldset',
       '#title' => t('Field maps'),
-      '#collapsed' => TRUE,
-      '#collapsible' => TRUE,
+      '#collapsed' => true,
+      '#collapsible' => true,
       '#table' => array(
         'header' => array(
           t('Label'),
@@ -552,21 +585,21 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
     // disabled (it shouldn't).
     $info = entity_get_info($entity_type);
     $actual_prefix = '';
-    if($prefix == 'parent'){
+    if ($prefix == 'parent') {
       $break = 'here';
     }
-    if($prefix){
+    if ($prefix) {
       $actual_prefix = $prefix . ':';
     }
     // We run through the maps first to ensure they're at the top, and that any
     // none field maps (such as id) are included.
     $index = 0;
     $dwcarchiver_text_entry_maps = 0;
-    foreach($maps[$delta] as $map){
+    foreach ($maps[$delta] as $map) {
       $index++;
       $index_str = str_pad($index, 4, '0', STR_PAD_LEFT);
-      if((!$prefix && !strpos($map->field, ':')) || substr($map->field, 0, strlen($prefix) + 1) == $prefix . ':'){
-        if(substr($map->field, 0, 23) == 'dwcarchiver_text_entry_'){
+      if ((!$prefix && !strpos($map->field, ':')) || substr($map->field, 0, strlen($prefix) + 1) == $prefix . ':') {
+        if (substr($map->field, 0, 23) == 'dwcarchiver_text_entry_') {
           $dwcarchiver_text_entry_maps++;
           $value = db_select('dwcarchiver_value', 'v')->fields('v', array(
             'value'
@@ -574,32 +607,32 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
           $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row(t('Value: %value', array(
             '%value' => $value
           )), 'value', $map->uri, $map->processor, $map->required);
-        }else{
+        } else {
           $field_instance = field_info_instance($entity_type, ($actual_prefix ? substr($map->field, strlen($actual_prefix)) : $map->field), $bundles[0]);
           $label = ucfirst($map->field);
-          $disabled = TRUE;
+          $disabled = true;
           $type = 'text';
-          if($field_instance){
+          if ($field_instance) {
             $label = $field_instance['label'];
-            $disabled = FALSE;
+            $disabled = false;
             $field_info = field_info_field($field_instance['field_name']);
             $type = $field_info['type'];
-          }elseif(substr($map->field, 0, 7) == 'biblio_'){
+          } elseif (substr($map->field, 0, 7) == 'biblio_') {
             // $label = $field_instance['label'];
-            $disabled = FALSE;
+            $disabled = false;
             $type = 'biblio';
-          }elseif($map->uri != 'coreid'){
+          } elseif ($map->uri != 'coreid') {
             // If we have a processor, get the type that it will be associated
             // with.
-            if($map->processor){
+            if ($map->processor) {
               $processors = dwcarchiver_get_processors();
-              if(!empty($processors[$map->processor])){
+              if (!empty($processors[$map->processor])) {
                 $type = $processors[$map->processor]['field types'][0];
               }
             }
-            $disabled = FALSE;
+            $disabled = false;
           }
-          if(!isset($map->required)){
+          if (!isset($map->required)) {
             $break = 'here';
           }
           $form[$delta]["mapped-$index_str:" . $map->field] = _dwcarchiver_archive_form_fields_row($label, $type, $map->uri, $map->processor, (isset($map->required) ? $map->required : 0), $disabled);
@@ -610,9 +643,9 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
     // label, so we add that first.
     $form[$delta][$actual_prefix . (empty($info['entity keys']['label']) ? 'name' : $info['entity keys']['label'])] = _dwcarchiver_archive_form_fields_row(!empty($info['entity keys']['label']) ? t(ucfirst($info['entity keys']['label'])) : ucfirst($entity_type), 'text');
     $form[$delta][$actual_prefix . 'uuid'] = _dwcarchiver_archive_form_fields_row('UUID', 'text');
-    switch($entity_type){
+    switch ($entity_type) {
       case 'node':
-        if(!$prefix){
+        if (!$prefix) {
           $form[$delta]['user'] = array(
             '#type' => 'fieldset',
             '#title' => t('Contributor'),
@@ -627,7 +660,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
         $form[$delta][$actual_prefix . 'content_language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
       case 'file':
-        if(!$prefix){
+        if (!$prefix) {
           $form[$delta]['user'] = array(
             '#type' => 'fieldset',
             '#title' => t('Contributor'),
@@ -645,7 +678,7 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
         // We create a fieldset, and add all of the fields from the
         // linked/bundle
         // entity to that fieldset.
-        if(!$prefix){
+        if (!$prefix) {
           $form[$delta]['parent'] = array(
             '#type' => 'fieldset',
             '#title' => t('Parent'),
@@ -658,30 +691,30 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
         $form[$delta][$actual_prefix . 'language'] = _dwcarchiver_archive_form_fields_row('Language', 'content_language');
         break;
     }
-    foreach($bundles as $bundle){
+    foreach ($bundles as $bundle) {
       // Add the fields that are relevant for the bundle.
       $fields = field_read_instances(array(
         'entity_type' => $entity_type,
         'bundle' => $bundle
       ));
-      foreach($fields as $field_instance){
+      foreach ($fields as $field_instance) {
         // If we have some form of reference field (e.g. node reference, user
         // reference, or term reference), then we check for the number of values
         // that can be referenced. If it's only one, we add ALL fields from the
         // linked item to a field set. We do this only once to avoid loops.
         $field_info = field_info_field($field_instance['field_name']);
-        switch($field_info['type']){
+        switch ($field_info['type']) {
           case 'user_reference':
             break;
           case 'node_reference':
             // We create a fieldset, and add all of the fields from the
             // linked/bundle
             // entity to that fieldset.
-            if(!$prefix){
+            if (!$prefix) {
               $node_reference_bundle = array_filter($field_info['settings']['referenceable_types']);
               // We only attempt to add the fields if there is only one
               // referenceable type.
-              if(count($node_reference_bundle == 1)){
+              if (count($node_reference_bundle == 1)) {
                 $node_reference_bundle = array_pop($node_reference_bundle);
                 $form[$delta][$field_instance['field_name']] = array(
                   '#type' => 'fieldset',
@@ -697,14 +730,14 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
             // We create a fieldset, and add all of the fields from the
             // linked/bundle
             // entity to that fieldset.
-            if(!$prefix){
+            if (!$prefix) {
               $taxonomy_term_bundle = array();
-              foreach($field_info['settings']['allowed_values'] as $key => $values){
+              foreach ($field_info['settings']['allowed_values'] as $key => $values) {
                 $taxonomy_term_bundle[] = $values['vocabulary'];
               }
               // We only attempt to add the fields if there is only one
               // referenceable type.
-              if(count($taxonomy_term_bundle == 1)){
+              if (count($taxonomy_term_bundle == 1)) {
                 $taxonomy_term_bundle = array_pop($taxonomy_term_bundle);
                 $form[$delta][$field_instance['field_name']] = array(
                   '#type' => 'fieldset',
@@ -721,11 +754,11 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
             break;
         }
       }
-      if($entity_type == 'node' && $bundle == 'biblio' && function_exists('biblio_field_extra_fields')){
+      if ($entity_type == 'node' && $bundle == 'biblio' && function_exists('biblio_field_extra_fields')) {
         // Biblio is a specieal case, so we need to add its special fields.
         // GRRR!
         $biblio_fields = biblio_field_extra_fields();
-        foreach($biblio_fields['node']['biblio']['form'] as $biblio_field_name => $biblio_field_values){
+        foreach ($biblio_fields['node']['biblio']['form'] as $biblio_field_name => $biblio_field_values) {
           $form[$delta][$actual_prefix . $biblio_field_name] = _dwcarchiver_archive_form_fields_row($biblio_field_values['label'], 'biblio');
         }
       }
@@ -764,10 +797,11 @@ function _dwcarchiver_archive_form_fields($entity_type, $bundles, $maps = array(
 /**
  * Helper function to create a row for a field form.
  */
-function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $default_value_term = '', $default_value_processor = '', $default_value_required = 0, $disabled = FALSE){
+function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $default_value_term = '', $default_value_processor = '', $default_value_required = 0, $disabled = false)
+{
   $processors = dwcarchiver_get_processors($field_type);
-  if(count($processors)){
-    foreach($processors as $key => $value){
+  if (count($processors)) {
+    foreach ($processors as $key => $value) {
       $processors[$key] = $value['label'];
     }
     return array(
@@ -796,7 +830,7 @@ function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $defa
         '#default_value' => $default_value_required
       )
     );
-  }else{
+  } else {
     return array(
       'label' => array(
         '#markup' => $label
@@ -816,10 +850,11 @@ function _dwcarchiver_archive_form_fields_row($label, $field_type = 'ALL', $defa
 /**
  * Save the archive.
  */
-function dwcarchiver_archive_form_validate(&$form, &$form_state){
+function dwcarchiver_archive_form_validate(&$form, &$form_state)
+{
   // If we are creating a new extension, we ensure that a URI has also been
   // submitted.
-  if(!empty($form_state['values']['extensions']['add']['name']) && empty($form_state['values']['extensions']['add']['rowtype'])){
+  if (!empty($form_state['values']['extensions']['add']['name']) && empty($form_state['values']['extensions']['add']['rowtype'])) {
     form_set_error('extensions][add][rowtype', t('Row Type is required when creating a new extension'));
   }
 }
@@ -827,7 +862,8 @@ function dwcarchiver_archive_form_validate(&$form, &$form_state){
 /**
  * Save the archive.
  */
-function dwcarchiver_archive_form_submit(&$form, &$form_state){
+function dwcarchiver_archive_form_submit(&$form, &$form_state)
+{
   // Update the archive object.
   $fields = $form_state['values']['core'];
   unset($fields['entity_bundles']);
@@ -842,7 +878,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     'did',
     'bundle'
   ));
-  foreach($form_state['values']['core']['entity_bundles'] as $bundle){
+  foreach ($form_state['values']['core']['entity_bundles'] as $bundle) {
     $query->values(array(
       'did' => $dwcarchiver->did,
       'bundle' => $bundle
@@ -850,7 +886,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   }
   $query->execute();
   // Create an insert which we'll use for the core and extension mappings.
-  $insert_into_mappings = FALSE;
+  $insert_into_mappings = false;
   $insert = db_insert('dwcarchiver_map')->fields(array(
     'eid',
     'did',
@@ -861,13 +897,13 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     'required'
   ));
   // If we have mappings for the core item, we also work with them!
-  if(!empty($form_state['values']['core']['fields'][0])){
-    foreach($form_state['values']['core']['fields'][0] as $field => $values){
-      if(!empty($values['term']) && !in_array($field, array(
+  if (!empty($form_state['values']['core']['fields'][0])) {
+    foreach ($form_state['values']['core']['fields'][0] as $field => $values) {
+      if (!empty($values['term']) && !in_array($field, array(
         'id',
         'coreid'
-      ))){
-        $insert_into_mappings = TRUE;
+      ))) {
+        $insert_into_mappings = true;
         $insert->values(array(
           'eid' => 0,
           'did' => $dwcarchiver->did,
@@ -877,10 +913,10 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
           'processor' => $values['processor'],
           'required' => $values['required']
         ));
-      }elseif(!empty($values['fields']) && count($values['fields'])){
-        foreach($values['fields'][0] as $sub_field => $sub_values){
-          if($sub_values['term']){
-            $insert_into_mappings = TRUE;
+      } elseif (!empty($values['fields']) && count($values['fields'])) {
+        foreach ($values['fields'][0] as $sub_field => $sub_values) {
+          if ($sub_values['term']) {
+            $insert_into_mappings = true;
             $insert->values(array(
               'eid' => 0,
               'did' => $dwcarchiver->did,
@@ -896,11 +932,11 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     }
   }
   // If we have extensions, we work with them.
-  if(!empty($form_state['values']['extensions'])){
-    foreach($form_state['values']['extensions'] as $key => $values){
-      switch($key){
+  if (!empty($form_state['values']['extensions'])) {
+    foreach ($form_state['values']['extensions'] as $key => $values) {
+      switch ($key) {
         case 'add':
-          if(!empty($form_state['values']['extensions']['add']['name'])){
+          if (!empty($form_state['values']['extensions']['add']['name'])) {
             $fields = $form_state['values']['extensions']['add'];
             $fields['did'] = $dwcarchiver->did;
             $core = explode('/', $fields['entity_bundle']);
@@ -915,15 +951,15 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
           // Add maps.
           // We need to get the eid for the extension based on the machine name
           // and the did of the archiver.
-          $extension = dwcarchiver_extension_machine_name_load($key, FALSE, $form_state);
-          if(!empty($form_state['values']['extensions'][$key]['fields'])){
-            foreach(array_keys($form_state['values']['extensions'][$key]['fields']) as $delta){
-              foreach($form_state['values']['extensions'][$key]['fields'][$delta] as $field => $values){
-                if(!empty($values['term']) && !in_array($field, array(
+          $extension = dwcarchiver_extension_machine_name_load($key, false, $form_state);
+          if (!empty($form_state['values']['extensions'][$key]['fields'])) {
+            foreach (array_keys($form_state['values']['extensions'][$key]['fields']) as $delta) {
+              foreach ($form_state['values']['extensions'][$key]['fields'][$delta] as $field => $values) {
+                if (!empty($values['term']) && !in_array($field, array(
                   'id',
                   'coreid'
-                ))){
-                  if(isset($values['label'])){
+                ))) {
+                  if (isset($values['label'])) {
                     db_merge('dwcarchiver_value')->key(array(
                       'eid' => $extension->eid,
                       'did' => $extension->did,
@@ -938,7 +974,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                     ))->execute();
                     $values['required'] = 0;
                   }
-                  $insert_into_mappings = TRUE;
+                  $insert_into_mappings = true;
                   $insert->values(array(
                     'eid' => $extension->eid,
                     'did' => $dwcarchiver->did,
@@ -948,10 +984,10 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
                     'processor' => $values['processor'],
                     'required' => $values['required']
                   ));
-                }elseif(!empty($values['fields']) && count($values['fields'])){
-                  foreach($values['fields'][0] as $sub_field => $sub_values){
-                    if($sub_values['term']){
-                      $insert_into_mappings = TRUE;
+                } elseif (!empty($values['fields']) && count($values['fields'])) {
+                  foreach ($values['fields'][0] as $sub_field => $sub_values) {
+                    if ($sub_values['term']) {
+                      $insert_into_mappings = true;
                       $insert->values(array(
                         'eid' => $extension->eid,
                         'did' => $dwcarchiver->did,
@@ -972,7 +1008,7 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
     }
   }
   // Insert the mappings if required
-  if($insert_into_mappings){
+  if ($insert_into_mappings) {
     db_delete('dwcarchiver_map')->condition('did', $dwcarchiver->did)->execute();
     $insert->execute();
   }
@@ -981,13 +1017,14 @@ function dwcarchiver_archive_form_submit(&$form, &$form_state){
   // Rebuild the menu so that the link to the archive works
   menu_rebuild();
   // Clear the cache_dwcarchiver cache
-  cache_clear_all('*', 'cache_dwcarchiver', TRUE);
+  cache_clear_all('*', 'cache_dwcarchiver', true);
 }
 
 /**
  * Delete a mapping form.
  */
-function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, $revert = FALSE){
+function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, $revert = false)
+{
   $form['machine_name'] = array(
     '#type' => 'value',
     '#value' => arg(4)
@@ -1002,14 +1039,16 @@ function dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, $reve
  * Revert a mapping form. Note, this is identical to the delete form, but has
  * the words changed to revert.
  */
-function dwcarchiver_archive_revert_form($form, $form_state, $dwcarchiver){
-  return dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, TRUE);
+function dwcarchiver_archive_revert_form($form, $form_state, $dwcarchiver)
+{
+  return dwcarchiver_archive_delete_form($form, $form_state, $dwcarchiver, true);
 }
 
 /**
  * Submit the form to the delete shizzle.
  */
-function dwcarchiver_archive_revert_form_submit($form, &$form_state){
+function dwcarchiver_archive_revert_form_submit($form, &$form_state)
+{
   dwcarchiver_archive_delete_form_submit($form, $form_state);
 }
 
@@ -1017,13 +1056,14 @@ function dwcarchiver_archive_revert_form_submit($form, &$form_state){
  *
  * @see node_delete_confirm()
  */
-function dwcarchiver_archive_delete_form_submit($form, &$form_state){
+function dwcarchiver_archive_delete_form_submit($form, &$form_state)
+{
   // Delete the zip file if we need to
   $dwcarchiver = dwcarchiver_machine_name_load($form_state['values']['machine_name']);
-  if(file_exists('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip')){
+  if (file_exists('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip')) {
     drupal_unlink('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip');
   }
-  if($form_state['values']['confirm']){
+  if ($form_state['values']['confirm']) {
     db_delete('dwcarchiver_archive')->condition('did', $dwcarchiver->did)->execute();
     db_delete('dwcarchiver_extension')->condition('did', $dwcarchiver->did)->execute();
     db_delete('dwcarchiver_map')->condition('did', $dwcarchiver->did)->execute();
@@ -1032,21 +1072,22 @@ function dwcarchiver_archive_delete_form_submit($form, &$form_state){
   // Rebuild the menu so that the link to the archive works
   menu_rebuild();
   // Clear the cache_dwcarchiver cache
-  cache_clear_all('*', 'cache_dwcarchiver', TRUE);
+  cache_clear_all('*', 'cache_dwcarchiver', true);
 }
 
 /**
  * Override an archive defined in code.
  */
-function dwcarchiver_override($machine_name){
-  $archive = FALSE;
-  foreach(module_invoke_all('dwcarchiver_archives') as $code){
-    if($code['machine_name'] == $machine_name){
+function dwcarchiver_override($machine_name)
+{
+  $archive = false;
+  foreach (module_invoke_all('dwcarchiver_archives') as $code) {
+    if ($code['machine_name'] == $machine_name) {
       $archive = _dwcarchiver_objectify_archive($code);
       break;
     }
   }
-  if(!$archive){
+  if (!$archive) {
     drupal_set_message(t('The archive you are trying to override does not exist'), 'error');
     drupal_goto('admin/config/content/dwcarchiver');
   }
@@ -1064,23 +1105,23 @@ function dwcarchiver_override($machine_name){
     'did',
     'bundle'
   ));
-  foreach($bundles as $bundle){
+  foreach ($bundles as $bundle) {
     $query->values(array(
       'did' => $dwcarchiver->did,
       'bundle' => $bundle
     ));
   }
   $query->execute();
-  foreach($archive->maps[0] as $map){
-    $value = FALSE;
-    if(isset($map->value)){
+  foreach ($archive->maps[0] as $map) {
+    $value = false;
+    if (isset($map->value)) {
       $value = $map->value;
       unset($map->value);
     }
     $map->eid = 0;
     $map->did = $dwcarchiver->did;
     db_insert('dwcarchiver_map')->fields((array)$map)->execute();
-    if($value !== FALSE){
+    if ($value !== false) {
       db_insert('dwcarchiver_value')->fields(array(
         'eid' => $map->eid,
         'did' => $map->did,
@@ -1090,7 +1131,7 @@ function dwcarchiver_override($machine_name){
       ))->execute();
     }
   }
-  foreach($archive->extensions as $code_extension){
+  foreach ($archive->extensions as $code_extension) {
     $fields = (array)$code_extension;
     $fields['bundle'] = array_pop($fields['bundles']);
     unset($fields['maps']);
@@ -1102,11 +1143,11 @@ function dwcarchiver_override($machine_name){
     $form_state = array(
       'dwcarchiver' => $dwcarchiver
     );
-    $extension = dwcarchiver_extension_machine_name_load($code_extension->machine_name, FALSE, $form_state);
-    foreach($code_extension->maps as $delta => $maps){
-      foreach($maps as $map){
-        $value = FALSE;
-        if(isset($map->value)){
+    $extension = dwcarchiver_extension_machine_name_load($code_extension->machine_name, false, $form_state);
+    foreach ($code_extension->maps as $delta => $maps) {
+      foreach ($maps as $map) {
+        $value = false;
+        if (isset($map->value)) {
           $value = $map->value;
           unset($map->value);
         }
@@ -1114,7 +1155,7 @@ function dwcarchiver_override($machine_name){
         $map->did = $dwcarchiver->did;
         $map->delta = $delta;
         db_insert('dwcarchiver_map')->fields((array)$map)->execute();
-        if($value !== FALSE){
+        if ($value !== false) {
           db_insert('dwcarchiver_value')->fields(array(
             'eid' => $map->eid,
             'did' => $map->did,
@@ -1127,7 +1168,7 @@ function dwcarchiver_override($machine_name){
     }
   }
   // Clear the cache_dwcarchiver cache
-  cache_clear_all('*', 'cache_dwcarchiver', TRUE);
+  cache_clear_all('*', 'cache_dwcarchiver', true);
   // Redirect to the edit page for this archive.
   drupal_goto('admin/config/content/dwcarchiver/' . $dwcarchiver->machine_name . '/edit');
 }
@@ -1135,7 +1176,8 @@ function dwcarchiver_override($machine_name){
 /**
  * Delete an extension form.
  */
-function dwcarchiver_archive_extension_delete_form($form, $form_state, $dwcarchiver_extension){
+function dwcarchiver_archive_extension_delete_form($form, $form_state, $dwcarchiver_extension)
+{
   $form['eid'] = array(
     '#type' => 'value',
     '#value' => arg(5)
@@ -1150,9 +1192,10 @@ function dwcarchiver_archive_extension_delete_form($form, $form_state, $dwcarchi
  *
  * @see node_delete_confirm()
  */
-function dwcarchiver_archive_extension_delete_form_submit($form, &$form_state){
+function dwcarchiver_archive_extension_delete_form_submit($form, &$form_state)
+{
   $dwcarchiver_extension = dwcarchiver_extension_load($form_state['values']['eid']);
-  if($form_state['values']['confirm']){
+  if ($form_state['values']['confirm']) {
     db_delete('dwcarchiver_extension')->condition('eid', $form_state['values']['eid'])->execute();
     db_delete('dwcarchiver_map')->condition('eid', $form_state['values']['eid'])->execute();
   }

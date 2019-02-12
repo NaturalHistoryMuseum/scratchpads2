@@ -27,6 +27,77 @@ function facetapi_facetapi_realm_info() {
 }
 
 /**
+ * Implements hook_facetapi_facet_info().
+ */
+function facetapi_facetapi_facet_info($searcher_info) {
+  $facets = array();
+  if (isset($searcher_info['types']['node']) && $searcher_info['include default facets']) {
+
+    $facets['bundle'] = array(
+      'label' => t('Content type'),
+      'description' => t('Filter by content type.'),
+      'field api bundles' => array('node'),
+      'map callback' => 'facetapi_map_bundle',
+      'values callback' => 'facetapi_callback_type_values',
+      'facet mincount allowed' => TRUE,
+      'dependency plugins' => array('role'),
+    );
+
+    $facets['author'] = array(
+      'label' => t('Author'),
+      'description' => t('Filter by author.'),
+      'field' => 'uid',
+      'map callback' => 'facetapi_map_author',
+      'values callback' => 'facetapi_callback_user_values',
+      'facet mincount allowed' => TRUE,
+      'dependency plugins' => array('bundle', 'role'),
+    );
+
+    $facets['language'] = array(
+      'label' => t('Language'),
+      'description' => t('Filter by language.'),
+      'field' => 'language',
+      'map callback' => 'facetapi_map_language',
+      'values callback' => 'facetapi_callback_language_values',
+      'facet mincount allowed' => TRUE,
+      'dependency plugins' => array('bundle', 'role'),
+    );
+
+    $facets['created'] = array(
+      'label' => t('Post date'),
+      'description' => t('Filter by the date the node was posted.'),
+      'query types' => array('date'),
+      'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE),
+      'map callback' => 'facetapi_map_date',
+      'min callback' => 'facetapi_get_min_date',
+      'max callback' => 'facetapi_get_max_date',
+      'dependency plugins' => array('bundle', 'role'),
+      'default sorts' => array(
+        array('active', SORT_DESC),
+        array('indexed', SORT_ASC),
+      ),
+    );
+
+    $facets['changed'] = array(
+      'label' => t('Updated date'),
+      'description' => t('Filter by the date the node was last modified.'),
+      'query types' => array('date'),
+      'allowed operators' => array(FACETAPI_OPERATOR_AND => TRUE),
+      'map callback' => 'facetapi_map_date',
+      'min callback' => 'facetapi_get_min_date',
+      'max callback' => 'facetapi_get_max_date',
+      'dependency plugins' => array('bundle', 'role'),
+      'default sorts' => array(
+        array('active', SORT_DESC),
+        array('indexed', SORT_ASC),
+      ),
+    );
+  }
+
+  return $facets;
+}
+
+/**
  * Implements hook_facetapi_sort_info().
  */
 function facetapi_facetapi_sort_info() {
