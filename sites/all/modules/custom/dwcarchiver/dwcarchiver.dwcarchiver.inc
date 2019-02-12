@@ -18,10 +18,7 @@ function dwcarchiver_dwcarchiver_archives()
   } else {
     $version = CC_DEFAULT_VERSION;
   }
-
-  $licence = variable_get('scratchpads_gbif_registry_client_registration_licence', null) || variable_get('creative_commons_block_licence_type', CC_BY);
-
-  switch ($licence) {
+  switch (variable_get('creative_commons_block_licence_type', CC_BY)) {
     // These licence types are text only
     case CC_NONE:
       $url = '';
