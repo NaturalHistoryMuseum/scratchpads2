@@ -1771,11 +1771,12 @@ function scratchpads_tweaks_update_7098()
 function scratchpads_tweaks_update_7099()
 {
   drupal_flush_all_caches();
-  module_enable(array(
-    'scratchpads_gbif_registry_client'
-  ));
-  $permissions = array('configure scratchpads gbif registry client');
-  $role = user_role_load_by_name('maintainer');
-  user_role_grant_permissions($role->rid, $permissions);
+  // If module is enabled, allow mainters config rights
+  if (module_exists('scratchpads_gbif_registry_client')) {
+    $permissions = array('configure scratchpads gbif registry client');
+    $role = user_role_load_by_name('maintainer');
+    user_role_grant_permissions($role->rid, $permissions);
+  }
+
 }
 
