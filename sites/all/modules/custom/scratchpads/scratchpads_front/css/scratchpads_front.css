@@ -156,6 +156,25 @@ body #region-content .caption span {
   height: 93px !important;
 }
 
+/* Remove styles restricting the size of the slider thumbnails*/
+.view-front-page-slideshow .views-slideshow-pager-fields img {
+  max-width: none;
+  max-height: none;
+}
+
+/* Remove styles affecting the position of the slider thumbnails*/
+.view-front-page-slideshow .views-slideshow-pager-fields div {
+  display: initial;
+  padding-left: initial;
+}
+
+/* Use an outline instead of border for the active thumbnail, as outline doesn't affect layout */
+.view-front-page-slideshow .views-slideshow-pager-fields .active img {
+  outline: 3px solid black;
+  outline-offset: -3px;
+  border: none;
+}
+
 /* Item list fix */
 .page-scratchpads-front .block-system ul {
   margin-left: 30px;
