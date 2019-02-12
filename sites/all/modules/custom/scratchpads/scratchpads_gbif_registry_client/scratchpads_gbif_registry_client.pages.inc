@@ -45,7 +45,7 @@ function scratchpads_gbif_registry_client_admin_settings()
 function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$form_state)
 {
   variable_del('scratchpads_gbif_registry_client_last_update');
-  dwcarchiver_rebuild('gbif-dwca');
+  dwcarchiver_rebuild('gbif-dwca', false);
 }
 
 
