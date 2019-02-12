@@ -3,27 +3,59 @@ define('SCRATCHPADS_ORGANIZATION', '315b3c03-4a0a-424e-83a5-d25aa748e666');
 define('SCRATCHPADS_NHM_INSTALLATION', '69818b49-38c9-41ad-b504-e5cd53dff238');
 
 /**
+ * Implements hook_menu().
+ */
+function scratchpads_gbif_registry_client_menu()
+{
+  return array(
+    'admin/config/content/scratchpads_gbif_registry_client' => array(
+      'title' => 'GBIF registration settings',
+      'description' => 'Configure the GBIF registration client',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_gbif_registry_client_admin_settings'
+      ),
+      'access arguments' => array(
+        'configure scratchpads gbif registry client'
+      ),
+      'file' => 'scratchpads_gbif_registry_client.pages.inc'
+    ),
+    'admin/config/content/scratchpads_gbif_registry_client/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+      'access arguments' => array(
+        'configure scratchpads gbif registry client'
+      ),
+    )
+  );
+}
+
+/**
  * Implements hook_cron().
  */
-function scratchpads_gbif_registry_client_cron(){
-  // Go no further if we're not the right profile or we updated less than a week
-  // ago.
-  if(in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles()) && variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 < time()){
+function scratchpads_gbif_registry_client_cron()
+{
+  // Go no further if GBIF registration is disabled,
+  // or we're not the right profile
+  // or we updated less than a week ago.
+  if (variable_get('scratchpads_gbif_registry_client_registration_enabled', false) &&
+    in_array(variable_get('install_profile', ''), scratchpads_gbif_registry_client_profiles()) && variable_get('scratchpads_gbif_registry_client_last_update', 0) + 604800 < time()) {
     // Once a week we update the information that GBIF holds about us.
     $registry = GBIFRegistry::singleton();
-    if(($uuid = variable_get('scratchpads_gbif_registry_client_uuid', FALSE)) != FALSE){
+    if (($uuid = variable_get('scratchpads_gbif_registry_client_uuid', false)) != false) {
       $dataset = new GBIF\Dataset($uuid);
-    }else{
+    } else {
       // We need to create a new Dataset for the Scratchpad
       // organization.
       $homepage = url('', array(
-        'absolute' => TRUE
+        'absolute' => true
       ));
-      $site_name = variable_get('site_name', FALSE);
+      $site_name = variable_get('site_name', false);
       $dataset = new GBIF\Dataset(array(
         'installationKey' => variable_get('scratchpads_gbif_registry_client_scratchpads_nhm_installation', SCRATCHPADS_NHM_INSTALLATION),
         'publishingOrganizationKey' => variable_get('scratchpads_gbif_registry_client_scratchpads_organization', SCRATCHPADS_ORGANIZATION),
-        'external' => FALSE,
+        'external' => false,
         'numConstituents' => 0,
         'type' => 'CHECKLIST',
         'title' => 'Checklist ' . (module_exists('darwincore') ? 'and specimen ' : '') . 'records from the Scratchpad "' . ($site_name ? $site_name : $homepage) . '"',
@@ -31,9 +63,9 @@ function scratchpads_gbif_registry_client_cron(){
         'language' => 'eng',
         'homepage' => $homepage,
         'citation' => array(
-          'text' => ($site_name ? $site_name : 'Scratchpad: "'.$homepage.'"')
+          'text' => ($site_name ? $site_name : 'Scratchpad: "' . $homepage . '"')
         ),
-        'lockedForAutoUpdate' => FALSE,
+        'lockedForAutoUpdate' => false,
         'tags' => array()
       ));
       $dataset->save();
@@ -72,19 +104,19 @@ function scratchpads_gbif_registry_client_cron(){
     $query->condition('r.name', 'maintainer');
     $uids = $query->execute()->fetchCol();
     $users = user_load_multiple($uids);
-    foreach($dataset->getContacts() as $contact){
+    foreach ($dataset->getContacts() as $contact) {
       $contact = $contact->getAsArray();
-      foreach($users as $key => $user){
-        if($contact['email'][0] == $user->mail){
+      foreach ($users as $key => $user) {
+        if ($contact['email'][0] == $user->mail) {
           unset($users[$key]);
           break;
         }
       }
     }
-    foreach($users as $user){
+    foreach ($users as $user) {
       $dataset->addContact(array(
         'type' => 'POINT_OF_CONTACT',
-        'primary' => FALSE,
+        'primary' => false,
         'firstName' => isset($user->field_user_given_names[LANGUAGE_NONE][0]['value']) ? $user->field_user_given_names[LANGUAGE_NONE][0]['value'] : '',
         'lastName' => isset($user->field_user_family_name[LANGUAGE_NONE][0]['value']) ? $user->field_user_family_name[LANGUAGE_NONE][0]['value'] : '',
         'email' => array(
@@ -97,23 +129,48 @@ function scratchpads_gbif_registry_client_cron(){
     }
     // Get a list of endpoints that we need to register for this installation.
     $endpoints = module_invoke_all('gbif_registry_endpoints');
-    foreach($dataset->getEndpoints() as $endpoint){
+    foreach ($dataset->getEndpoints() as $endpoint) {
       unset($endpoints[$endpoint->getURL()]);
     }
-    foreach($endpoints as $endpoint){
+    foreach ($endpoints as $endpoint) {
       $dataset->addEndpoint($endpoint);
     }
-    if(variable_get('scratchpads_gbif_registry_client_uuid', FALSE)){
+    if (variable_get('scratchpads_gbif_registry_client_uuid', false)) {
       variable_set('scratchpads_gbif_registry_client_last_update', time());
     }
   }
 }
 
 /**
+ * Implements hook_permission()
+ */
+function scratchpads_gbif_registry_client_permission()
+{
+  return array(
+    'configure scratchpads gbif registry client' => array(
+      'title' => t('Configure scratchpads gbif registry client')
+    ),
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_gbif_registry_client_scratchpads_default_permissions()
+{
+  return array(
+    'maintainer' => array(
+      'configure scratchpads gbif registry client'
+    )
+  );
+}
+
+/**
  * Helper function to return an array of profiles that should report back to
  * GBIF.
  */
-function scratchpads_gbif_registry_client_profiles(){
+function scratchpads_gbif_registry_client_profiles()
+{
   return array(
     'scratchpad_2',
     'emonocot_2',
