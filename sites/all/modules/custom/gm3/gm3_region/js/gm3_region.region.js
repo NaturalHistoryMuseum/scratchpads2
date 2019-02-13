@@ -1,4 +1,4 @@
-(function($){
+(function(){
   "use strict";
 
   const getLevelFromZoom = zoom => zoom < 3 ? 1 :
@@ -22,8 +22,9 @@
      * Map module for selecting and displaying geographical regions
      */
     Drupal.GM3.region = class extends Drupal.GM3.Library {
-      constructor(map, settings) {
-        super();
+      static get name() { return 'region'; }
+      constructor(settings, listeners) {
+        super(settings, listeners);
         this.countries = {};
 
         // The TDWG level to use for region selection
@@ -31,7 +32,7 @@
 
         // Add Regions sent from server.
         if(settings.regions) {
-          this.addPolygonsByIds(settings.regions, map, settings.editable);
+          this.addPolygonsByIds(settings.regions, settings.editable);
         }
       }
 
@@ -41,7 +42,7 @@
        * @param {gm3.map} map The leaflet map to add the polygons to
        * @param {bool} autofit True to auto zoom the map
        */
-      async addPolygonsByIds(regionIds, map, editable = false, autofit = true){
+      async addPolygonsByIds(regionIds, editable = false, autofit = true){
         if (typeof regionIds === 'string') {
           regionIds = [regionIds];
         }
@@ -92,7 +93,7 @@
               for(const points of polygon) {
                 // Todo - handle this as an event?
                 // Or extend from polygon class?
-                const poly = this.addPolygon(points, map);
+                const poly = this.addPolygon(points);
 
                 this.countries[regionId].push(poly);
 
@@ -104,6 +105,7 @@
                 }
               }
             }
+            this.addObject(this.countries[regionId]);
           }
         }
 
@@ -127,9 +129,8 @@
       /**
        * Add a polygon to the map
        * @param {LatLng} points The points to use to construct the polygon
-       * @param {Leaflet} map The map to add the polygon to
        */
-      addPolygon(points, map) {
+      addPolygon(points) {
         // Todo: Refactor redundant code with polygon module
         const pathPoints = points.map(point => Array.isArray(points) ? L.latLng([point[1], point[0]]) : L.latLng(points));
 
@@ -139,9 +140,7 @@
           weight: 1
         };
 
-        const poly = L.polygon(pathPoints, polyOptions);
-        poly.addTo(map);
-        return poly;
+        return L.polygon(pathPoints, polyOptions);
       }
 
       /**
@@ -149,11 +148,8 @@
        * @param {string} regionId Region ID to remove
        */
       removePolygonsById(regionId) {
-        for(const region of this.countries[regionId]) {
-          region.remove();
-        }
+        this.removeObject(this.countries[regionId]);
         this.countries[regionId] = null;
-        this.removeObject();
       }
 
       /**
@@ -187,7 +183,7 @@
 
         // Add tool functionality
         super.activate(map, {
-          click: e => this.selectRegion(e.latlng, map),
+          click: e => this.selectRegion(e.latlng),
           zoom: e => {
             this.selectingLevel = getLevelFromZoom(map.getZoom());
             setLevelMessage();
@@ -198,39 +194,34 @@
       /**
        * Given a point, highlight the region on the map
        * @param {LatLng} latLng The point on the map selected by the user
-       * @param {LeafletMap} map The map that was selected
        */
-      selectRegion (latLng, map) {
-        // Todo: This shouldn't actually add the object until after we complete
-        this.addObject(async () => {
-          const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-          // Todo: Handle errors here
-          const res = await fetch(geocodeUrl(latLng));
-          const result = await res.json();
-          const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
-          const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
-          const polygonId = await res2.json();
+      async selectRegion (latLng) {
+        if(!this.canAddObject()) {
+          return;
+        }
 
-          if(polygonId) {
-            if (this.countries[polygonId]) {
-              this.setMessage('Region already selected');
-            } else {
-              this.addPolygonsByIds(polygonId, map, true);
-              return true;
-            }
+        const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        // Todo: Handle errors here
+        const res = await fetch(geocodeUrl(latLng));
+        const result = await res.json();
+        const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
+        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
+        const polygonId = await res2.json();
+
+        if(polygonId) {
+          if (this.countries[polygonId]) {
+            this.setMessage('Region already selected');
+          } else {
+            this.addPolygonsByIds(polygonId, true);
           }
-
-          return false;
-        });
+        }
       }
 
       /**
        * Calculates the new field value and fires the update event
        */
-      updateField() {
-        const regions = Object.keys(this.countries).filter(k => this.countries[k]);
-
-        super.updateField(id => `.${id}-region`, regions);
+      getValue() {
+        return Object.keys(this.countries).filter(k => this.countries[k]);
       }
     }
   }

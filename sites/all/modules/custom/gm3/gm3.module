@@ -73,6 +73,9 @@ function gm3_library(){
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.library.js"
         ),
         array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
+        ),
+        array(
           'data' => array(
             'gm3' => array(
               'settings' => array(
@@ -113,18 +116,6 @@ function gm3_library(){
         */
         array(
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.infobubble.js"
-        )
-      )
-    ),
-    // Marker clusterer
-    'gm3.clusterer' => array(
-      'title' => t('Google Marker Cluster'),
-      'website' => 'http://google-maps-utility-library-v3.googlecode.com/',
-      'version' => '2.0.7',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3') . '/js/markerclusterer.min.js',
-          'preprocess' => FALSE
         )
       )
     ),
@@ -173,10 +164,6 @@ function gm3_library(){
         array(
           'gm3',
           'gm3'
-        ),
-        array(
-          'gm3',
-          'gm3.clusterer'
         ),
         array(
           'gm3',

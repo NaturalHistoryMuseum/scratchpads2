@@ -320,10 +320,6 @@ function gm3_field_form_alter(&$form, &$form_state, $form_id){
                 ),
                 array(
                   'gm3',
-                  'gm3.clusterer'
-                ),
-                array(
-                  'gm3',
                   'gm3.polygon'
                 ),
                 array(

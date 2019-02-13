@@ -2,16 +2,16 @@
   "use strict";
 
   Drupal.GM3.point = class extends Drupal.GM3.Library {
-    constructor(map, settings) {
-      super();
+    static get name() { return 'point'; }
+
+    constructor(settings, listeners) {
+      super(settings, listeners);
 
       // Todo: Is this neede?
       //map.on('viewreset', e => this.clusterer.repaint());
 
-      this.points = new Array();
-      this.markers = new Array();
       // FIXME - Add a way of setting this image.
-      this.markerImages = []
+      // this.markerImages = []
       /*
       for(let i = 0; i < 8; i++) {
         this.markerImages[i] = L.icon({
@@ -22,11 +22,6 @@
           iconAnchor: [9, 25]
         });
       }*/
-
-      this.clusterer = L.markerClusterGroup({
-        disableClusteringAtZoom: 12
-      });
-      map.addLayer(this.clusterer);
 
       // Add points sent from server.
       if(settings.points) {
@@ -45,14 +40,12 @@
     }
 
     /**
-     * Remove a marker from the map
-     * @param {L.Marker} point The marker to remove
+     * Generate the marker cluster group layer to keep our markers on
      */
-    removeMarker(point) {
-      this.points = this.points.filter(p => p !== point);
-      this.clusterer.removeLayer(point);
-      point.remove();
-      this.removeObject();
+    getLayerGroup(){
+      return L.markerClusterGroup({
+        disableClusteringAtZoom: 12
+      });
     }
 
     /**
@@ -64,41 +57,37 @@
      * @param {string} content The content text for the marker's popup
      */
     addMarker(latLng, editable, colour, title = '', content = ''){
-      this.addObject(() => {
-        title = title ? `${title} : ${latLng.toString()}` : '';
+      if(!this.canAddObject()) {
+        return;
+      }
 
-        if(!colour) {
-          colour = this.points.length % 8;
+      title = title ? `${title} : ${latLng.toString()}` : '';
+
+      const point = L.marker(
+        latLng,
+        {
+          draggable: editable,
+          title
+          /*, icon: this.marker_images[colour] */
         }
+      );
+      this.addObject(point);
 
-        const point = L.marker(
-          latLng,
-          {
-            draggable: editable,
-            title
-            /*, icon: this.marker_images[colour] */
-          }
-        );
-        this.points.push(point);
-
-        point.on('dragend', () => this.updateField());
-        point.on('click', e => {
-          if (this.active) {
-            this.message(e.position.toString(), 'status', 10000);
-          }
-        });
-        point.on('contextmenu', e => {
-          if (this.active) {
-            this.removeMarker(e.target);
-          }
-        });
-
-        if(content) {
-          this.setPopup(point, content, title);
+      point.on('dragend', () => this.updateField());
+      point.on('click', e => {
+        if (this.active) {
+          this.setMessage(e.latlng.toString(), 'status', 10000);
         }
-
-        this.clusterer.addLayer(point);
       });
+      point.on('contextmenu', e => {
+        if (this.active) {
+          this.removeObject(point);
+        }
+      });
+
+      if(content) {
+        this.setPopup(point, content, title);
+      }
     }
 
     /**
@@ -118,34 +107,24 @@
      */
     setValue(value) {
       // Bit of a hack... we only do this for single-point fields at the moment
-      if (this.points.length === 1) {
+      if (this.objects.length === 1) {
         const [lat, lng] = value.replace(/[()]/g, "").split(", ").map(parseFloat);
         if(isNaN(lat) || isNaN(lng)) {
           return;
         }
-        this.points[0].setLatLng([lat, lng]);
+        this.objects[0].setLatLng([lat, lng]);
         return [lat, lng];
       }
     }
 
     /**
-     * Get the css selector for the field associated with this library, for a given map
-     * @param {string} mapId The ID of the map
-     */
-    static getFieldSelector(mapId) {
-      return `.${mapId}-point`;
-    }
-
-    /**
      * Set the value of the underlying field
      */
-    updateField() {
-      const newValue = this.points.map(point => {
+    getValue() {
+      return this.objects.map(point => {
         const { lat, lng } = point.getLatLng();
         return `(${lat}, ${lng})`
       }).join('|');
-
-      super.updateField(this.constructor.getFieldSelector, newValue);
     }
   }
 })();

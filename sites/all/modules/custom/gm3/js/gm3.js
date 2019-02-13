@@ -123,10 +123,10 @@
       for(const id in map.libraries) {
         const LibClass = Drupal.GM3[id];
         if(LibClass) {
-          const isNewClass = LibClass.prototype instanceof L.Evented;
-          const child = this.children[id] = new LibClass(isNewClass ? this.leafletMap : this, map.libraries[id]);
-          if(isNewClass) {
-            child.on({
+          const child = this.children[id] = new LibClass(
+             map.libraries[id],
+            {
+              addlayer: e => this.addLayer(e.layer),
               // Todo: Use L.DomObject.preventDefault(e) instead?
               beforeaddobject: e => {
                 if(!this.beforeAddObject()) { e.cancel(); }
@@ -137,19 +137,18 @@
               popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
               update: ({ cls, value }) => this.updateField(cls, value),
               message: ({ message }) => this.message(message)
-            });
-
-            const fieldSelector = LibClass.getFieldSelector && LibClass.getFieldSelector(this.id);
-            const field = fieldSelector && document.querySelector(fieldSelector);
-            if(field) {
-              field.addEventListener('keyup', (e) => {
-                const position = child.setValue && child.setValue(e.target.value);
-                if (position) {
-                  this.addLatLng(L.latLng(position));
-                  this.autozoom();
-                }
-              });
             }
+          );
+
+          const field = fieldSelector && document.querySelector(`.${id}-${LibClass.name}`);
+          if(field) {
+            field.addEventListener('keyup', (e) => {
+              const position = child.setValue && child.setValue(e.target.value);
+              if (position) {
+                this.addLatLng(L.latLng(position));
+                this.autozoom();
+              }
+            });
           }
         }
       }
@@ -193,6 +192,14 @@
           field.value = value;
         }
       }
+    }
+
+    /**
+     * Adds a new Leaflet UI layer to the map
+     * @param {L.Layer} object Leaflet layer to add to the leaflet map
+     */
+    addLayer(object) {
+      object && object.addTo(this.leafletMap);
     }
 
     /**
