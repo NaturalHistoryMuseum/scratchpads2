@@ -265,16 +265,14 @@
         content = `<div class="gm3_infobubble">${content}</div>`;
       }
 
+      target.bindPopup(content);
+
       // Todo: Remove this from the prototype
       this.popups.push({ object: target, content });
 
-      // When the target is clicked, open the popup
-      target.addEventListener("click", event => {
-        // Todo: Remove this from the prototype
-        if(this.infoWindow) {
-          this.infoWindow.close();
-        }
-
+      // Todo: Match the infobubble styles
+      // Todo: Add tabbed infobubble
+      /*
         // Todo: Make this work with leaflet
         const infoWindow = new InfoBubble({
           map: this.leafletMap,
@@ -302,6 +300,7 @@
         // Todo: Remove from prototype
         this.infoWindow = infoWindow;
       });
+      */
     }
 
     // Add click handlers for the toolbar
@@ -322,17 +321,6 @@
           this.switchToLibrary(gm3Class);
         }
       });
-    }
-
-    // Called when the default toolbar button is selected
-    // Sets the draggableCursor to pointer and removes the gm3_information block
-    active(){
-      // Todo: Set the cursor to "pointer"
-      // Remove the information block (currently only used by the region module).
-      const gm3Info = this.mapNode.querySelector('.gm3_information');
-      if(gm3Info) {
-        gm3Info.remove();
-      }
     }
 
     /**
@@ -385,15 +373,12 @@
 
       if(activeClass == 'default') {
         // Set the default settings
-        this.active();
+        // Todo: Set the cursor to "pointer"
       } else {
         const activeChild = this.children[activeClass];
         // Find the active child and call its "active" function
         if(activeChild.activate) {
           activeChild.activate(this.leafletMap);
-        } else {
-          // Todo: Remove this
-          activeChild.active();
         }
       }
     }

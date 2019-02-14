@@ -1127,11 +1127,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         )),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        ),
         '#attributes' => array(
           'class' => array(
             $element['#field_name'] . '-point'
@@ -1181,11 +1176,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         )),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        ),
         '#attributes' => array(
           'class' => array(
             $element['#field_name'] . '-' . $poly_type
@@ -1202,13 +1192,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         'libraries' => array(),
         'tools' => array(),
         'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-      );
-      $widget += array(
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        )
       );
       foreach($field['settings']['field_types'] as $field_type => $value){
         $default_values = array(

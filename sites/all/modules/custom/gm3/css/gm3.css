@@ -1,21 +1,3 @@
-.gm3_information{
- position:absolute;
- top:5px;
- left:50px;
- margin:0;
- padding:2px 4px;
- color: black;
- font-family: Arial,sans-serif;
- -moz-user-select: none;
- -webkit-user-select: none;
- font-size: 10px;
- background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(243, 243, 243)), to(rgb(254, 254, 254)));
- background: -moz-linear-gradient(center top , rgb(243, 243, 243), rgb(254, 254, 254)) repeat scroll 0% 0% transparent;
- border-width: 1px;
- border-style:solid;
- border-color:rgb(103, 138, 199);
- vertical-align:middle;	
-}
 .gm3_fieldset{
  padding:0 !important;
 }
@@ -37,7 +19,7 @@
  z-index:1000;
  padding:10px;
 }
-.gm3_infobubble p, .gm3_information p{
+.gm3_infobubble p{
  padding:0;
  margin:0;
 }
@@ -49,8 +31,11 @@
   margin-left: 100px;
 }
 .gm3-container{
- padding:0;
- margin:0;
+  /* Create a new stacking context so the controls with high
+     z-indexes don't show through the admin overlay panel */
+  transform: translate(0,0);
+  padding:0;
+  margin:0;
 }
 .gm3-tools{
  margin-top:30px;
@@ -67,7 +52,7 @@
 .gm3-tools>ul>li{
  padding:0 0 0 3px !important;
  margin:0 !important;
- list-style:none; 
+ list-style:none;
  position: relative;
  color: black;
  font-family: Arial,sans-serif;
@@ -88,21 +73,21 @@
 }
 .gm3-tools>ul>li.gm3-clicked{
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
- background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent; 
+ background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;
 }
-.gm3-tools>ul>li.gm3-clicked:hover{ 
+.gm3-tools>ul>li.gm3-clicked:hover{
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(123, 152, 217)), to(rgb(109, 138, 204)));
- background: -moz-linear-gradient(center top , rgb(123, 152, 217), rgb(109, 138, 204)) repeat scroll 0% 0% transparent; 
+ background: -moz-linear-gradient(center top , rgb(123, 152, 217), rgb(109, 138, 204)) repeat scroll 0% 0% transparent;
 }
 .gm3-tools>ul>li:hover{
  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(254, 254, 254)), to(rgb(243, 243, 243)));
- background: -moz-linear-gradient(center top , rgb(254, 254, 254), rgb(243, 243, 243)) repeat scroll 0% 0% transparent;	
+ background: -moz-linear-gradient(center top , rgb(254, 254, 254), rgb(243, 243, 243)) repeat scroll 0% 0% transparent;
 }
 .gm3-tools>ul>li:last-child{
  border-bottom-width:1px;
- border-bottom-left-radius: 5px;  
+ border-bottom-left-radius: 5px;
 }
-.gm3-tools>ul>li:first-child{ 
+.gm3-tools>ul>li:first-child{
  border-top-left-radius: 5px;
 }
 .gm3-tools>ul>li div p{
@@ -118,6 +103,6 @@
  position:relative;
 }
 .gm3-map-wrapper, .gm3-tools{
- box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);	
+ box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 3px;
 }

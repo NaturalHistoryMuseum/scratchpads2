@@ -7,15 +7,52 @@
                                    zoom < 7 ? 4 :
                                               5 ;
 
-  const getMessageFromLevel = level => (
-    {
-      1: Drupal.t("Selecting by continent (Level 1)"),
-      2: Drupal.t("Selecting by sub-continent (Level 2)"),
-      3: Drupal.t("Selecting by country/subcountry (Level 3)"),
-      5: Drupal.t("Selecting by vice county (Level 5) - UK Only")
-    }[level]||
-      Drupal.t("Selecting by country/subcountry (Level 4)")
-  );
+  // We add a little text to the top left of the map to say what level
+  // we will be selecting.
+  const LevelControl = class extends L.Control {
+    constructor(...args){
+      super(...args);
+
+      // The TDWG level to use for region selection
+      this.selectingLevel = 4;
+    }
+    onAdd(map) {
+      const levelMessage = document.createElement('button');
+
+      this.selectingLevel = getLevelFromZoom(map.getZoom());
+
+      map.on('zoom', e => {
+        this.selectingLevel = getLevelFromZoom(map.getZoom());
+        this.updateMessage(levelMessage);
+      });
+
+      levelMessage.addEventListener('click', e => {
+        e.stopPropagation();
+        this.changeSelectingLevel()
+      });
+      levelMessage.setAttribute('class', 'leaflet-control gm3-region-level-control');
+      levelMessage.setAttribute('type', 'button');
+      this.updateMessage(levelMessage);
+
+      return levelMessage;
+    }
+    updateMessage(element) {
+      const level = this.selectingLevel;
+      const message = {
+        1: Drupal.t("Selecting by continent (Level 1)"),
+        2: Drupal.t("Selecting by sub-continent (Level 2)"),
+        3: Drupal.t("Selecting by country/subcountry (Level 3)"),
+        5: Drupal.t("Selecting by vice county (Level 5) - UK Only")
+      }[level]|| Drupal.t("Selecting by country/subcountry (Level 4)")
+
+      element.innerHTML = `<p>${message}</p>`;
+    }
+    changeSelectingLevel() {
+      this.selectingLevel = (this.selectingLevel - 1) % 5 || 5;
+      this.updateMessage(this.getContainer());
+    }
+    onRemove(map){}
+  }
 
   if(typeof Drupal.GM3 != 'undefined') {
     /**
@@ -27,8 +64,7 @@
         super(settings, listeners);
         this.countries = {};
 
-        // The TDWG level to use for region selection
-        this.selectingLevel = 4;
+        this.levelControl = new LevelControl({ position: 'topleft' })
 
         // Add Regions sent from server.
         if(settings.regions) {
@@ -157,37 +193,12 @@
        * @param {LeafletMap} map Activating map
        */
       activate(map) {
-        // We add a little text to the top left of the map to say what level
-        // we will be selecting.
-        this.selectingLevel = getLevelFromZoom(map.getZoom());
-
-        const levelMessage = document.createElement('div');
-        levelMessage.setAttribute('class', 'gm3_information');
-        levelMessage.style.cursor = 'pointer';
-        // Todo: Use something else for this to stop the tooltip from moving around
-        map.getPane('tooltipPane').appendChild(levelMessage);
-        const setLevelMessage = () => levelMessage.innerHTML = `<p>${getMessageFromLevel(this.selectingLevel)}</p>`;
-        setLevelMessage();
-
-        levelMessage.addEventListener('click', () => {
-          // We reduce the level by one, unless we're on one, then we set it as
-          // 5
-          this.selectingLevel = (this.selectingLevel - 1) % 5 || 5;
-          setLevelMessage();
-        });
-
-        this.addTeardown(() => levelMessage.remove());
-
-        // Todo: Fire event for this
-        // map.setOptions({ draggableCursor: 'pointer' });
+        map.addControl(this.levelControl);
+        this.addTeardown(() => this.levelControl.remove());
 
         // Add tool functionality
         super.activate(map, {
-          click: e => this.selectRegion(e.latlng),
-          zoom: e => {
-            this.selectingLevel = getLevelFromZoom(map.getZoom());
-            setLevelMessage();
-          }
+          click: e => this.selectRegion(e.latlng)
         });
       }
 
@@ -205,7 +216,7 @@
         const res = await fetch(geocodeUrl(latLng));
         const result = await res.json();
         const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
-        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.selectingLevel}`);
+        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.levelControl.selectingLevel}`);
         const polygonId = await res2.json();
 
         if(polygonId) {

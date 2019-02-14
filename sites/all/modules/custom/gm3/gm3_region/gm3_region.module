@@ -89,6 +89,11 @@ function gm3_region_library(){
           'type' => 'setting'
         )
       ),
+      'css' => array(
+        array (
+          'data' => drupal_get_path('module', 'gm3_region') . "/css/gm3_region.css"
+        )
+      ),
       'dependencies' => array(
         array(
           'gm3',
