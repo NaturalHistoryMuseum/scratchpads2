@@ -1,5 +1,11 @@
 (function(){
   "use strict";
+
+  /**
+   * Class Drupal.GM3.Shape is a base class for any map tool
+   * that generates multi-point shapes, requiring multiple
+   * clicks before a shape is complete.
+   */
   Drupal.GM3.Shape = class extends Drupal.GM3.Library {
     constructor(settings, listeners) {
       super(settings, listeners);
@@ -35,9 +41,12 @@
      * @param {L.latlng} mousePosition Where the cursor is
      */
     getFollowLineCoords(mousePosition){
-      return [];
+      throw new Error('Please implement getFollowLineCoords in the child class');
     }
 
+    /**
+     * Gets the default event listeners on tool activate
+     */
     getDefaultListeners(){
       const defaultListeners = super.getDefaultListeners();
       defaultListeners.mousemove = e => this.setFollowLine(e.latlng);
@@ -90,6 +99,11 @@
       this.currentShape.disableEdit();
       this.currentShape = null;
     }
+    /**
+     * Returns a new L.Polygon object to add to the map
+     * @param {L.latlng[]} latlngs The points on the shape
+     * @param {*} options The options for the shape
+     */
     constructShape(latlngs, options) {
       // E.g. return L.polygon(latlngs, options);
       throw new Error('Please implement constructShape');
@@ -158,6 +172,9 @@
       return colours[this.objects.length % 8];
     }
 
+    /**
+     * Turn the shape into a string representation for use in form fields
+     */
     getValue() {
       // Update the field.
       const polygons = [];
