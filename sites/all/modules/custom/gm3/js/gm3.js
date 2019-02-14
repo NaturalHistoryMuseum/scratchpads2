@@ -140,6 +140,7 @@
             }
           );
 
+          // Todo: can we just use `id` instead of requiring `LibClass` to have `name` set?
           const field = document.querySelector(`.${id}-${LibClass.name}`);
           if(field) {
             field.addEventListener('keyup', (e) => {

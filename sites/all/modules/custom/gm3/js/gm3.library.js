@@ -1,6 +1,8 @@
 (function(){
   "use strict";
 
+  // Todo: Maybe this can actually extend L.Layer,
+  // then we can just add it to the map directly
   Drupal.GM3.Library = class extends L.Evented {
     constructor(settings, listeners) {
       super();

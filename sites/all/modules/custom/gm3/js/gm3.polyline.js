@@ -5,7 +5,6 @@
   Drupal.GM3.polyline = class extends Drupal.GM3.Shape {
     static get name () { return 'polyline'; }
     constructor(settings, listeners) {
-      console.log(settings);
       // Add Polylines sent from server.
       const shapes = settings.polylines;
 

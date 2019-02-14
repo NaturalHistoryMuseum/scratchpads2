@@ -16,7 +16,6 @@
 
       const shapes = settings.shapes || [];
       const libName = this.constructor.name;
-      console.log(shapes);
       for(const shape of shapes) {
         const args = shape[libName] ? [shape[libName], shape.editable, shape.content || '', shape.title || ''] : [shape];
         this.addShape(...args);
@@ -116,6 +115,8 @@
      * @param {string} title Title for the popup to add
      */
     addShape(pathPoints = [], editable = true, content, title = ''){
+      // To do: This breaks activation if the map is full.
+      // This check should be done on first click after addShape
       if (!this.canAddObject()) {
         return false;
       }
