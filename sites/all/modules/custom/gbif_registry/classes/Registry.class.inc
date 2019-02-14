@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Standard PHP class for interacting with the GBIF registry.
  *
@@ -33,214 +34,251 @@ namespace GBIF;
  *
  * @author simor
  */
-class Registry{
+class Registry
+{
   // Note, the registryURL MUST HAVE A TRAILING SLASH.
-  private $registryURL = 'http://api.gbif.org/v1/';
+    private $registryURL = 'http://api.gbif.org/v1/';
 
-  private $organisationKey;
+    private $organisationKey;
 
-  private $organisationPassword;
+    private $organisationPassword;
 
-  private $user;
+    private $user;
 
-  private $password;
+    private $password;
 
-  private $count = 0;
+    private $count = 0;
 
-  protected static $instance;
+    protected static $instance;
 
-  protected function __construct(){}
-
-  protected $registryCache = FALSE;
-
-  /**
-   * Basic singleton code copied straight from php.net
-   */
-  public static function singleton(){
-    if(!function_exists('curl_init')){throw new Exception('CURL functions not found');}
-    if(!isset(self::$instance)){
-      $className = __CLASS__;
-      self::$instance = new $className();
+    protected function __construct()
+    {
     }
-    return self::$instance;
-  }
 
-  public function increment(){
-    return $this->count++;
-  }
+    protected $registryCache = false;
 
-  public function __clone(){
-    trigger_error('Clone is not allowed.', E_USER_ERROR);
-  }
-
-  public function __wakeup(){
-    trigger_error('Unserializing is not allowed.', E_USER_ERROR);
-  }
-
-  /**
-   * Return an instance of the RegistryCache class.
-   * This allows us to override
-   * this function, and return a different class which actually does caching
-   */
-  public function getRegistryCache(){
-    if(!$this->registryCache){
-      $this->registryCache = new RegistryCache();
+    /**
+     * Basic singleton code copied straight from php.net
+     */
+    public static function singleton()
+    {
+        if (!function_exists('curl_init')) {
+            throw new Exception('CURL functions not found');
+        }
+        if (!isset(self::$instance)) {
+            $className = __class__;
+            self::$instance = new $className();
+        }
+        return self::$instance;
     }
-    return $this->registryCache;
-  }
 
-  /**
-   * Return the current set Registry URL.
-   *
-   * @return the $registryURL
-   */
-  public function getRegistryURL(){
-    return $this->registryURL;
-  }
+    public function increment()
+    {
+        return $this->count++;
+    }
 
-  /**
-   *
-   * @param field_type $registryURL        
-   */
-  public function setRegistryURL($registryURL){
+    public function __clone()
+    {
+        trigger_error('Clone is not allowed.', E_USER_ERROR);
+    }
+
+    public function __wakeup()
+    {
+        trigger_error('Unserializing is not allowed.', E_USER_ERROR);
+    }
+
+    /**
+     * Return an instance of the RegistryCache class.
+     * This allows us to override
+     * this function, and return a different class which actually does caching
+     */
+    public function getRegistryCache()
+    {
+        if (!$this->registryCache) {
+            $this->registryCache = new RegistryCache();
+        }
+        return $this->registryCache;
+    }
+
+    /**
+     * Return the current set Registry URL.
+     *
+     * @return the $registryURL
+     */
+    public function getRegistryURL()
+    {
+        return $this->registryURL;
+    }
+
+    /**
+     *
+     * @param field_type $registryURL
+     */
+    public function setRegistryURL($registryURL)
+    {
     // Ensure that the URL we're setting has a trailing slash, else we throw an
     // error.
-    if(substr($registryURL, -1) != '/'){throw new Exception('Registry URL must have a trailing slash');}
-    $this->registryURL = $registryURL;
-  }
+        if (substr($registryURL, -1) != '/') {
+            throw new Exception('Registry URL must have a trailing slash');
+        }
+        $this->registryURL = $registryURL;
+    }
 
-  /**
-   * Simple function that returns a GBIF\Nodes object that can then be itterated
-   * over to potentially return a list of all nodes.
-   */
-  public function getNodes($tag = FALSE, $name = FALSE){
-    return new Nodes($tag, $name);
-  }
+    /**
+     * Simple function that returns a GBIF\Nodes object that can then be itterated
+     * over to potentially return a list of all nodes.
+     */
+    public function getNodes($tag = false, $name = false)
+    {
+        return new Nodes($tag, $name);
+    }
 
-  /**
-   * Similar to the getNodes function, but this returns organizations.
-   */
-  public function getOrganizations(){
-    return new Organizations(FALSE, FALSE, FALSE, FALSE);
-  }
+    /**
+     * Similar to the getNodes function, but this returns organizations.
+     */
+    public function getOrganizations()
+    {
+        return new Organizations(false, false, false, false);
+    }
 
-  /**
-   * Same again, but returning all datasets.
-   */
-  public function getDatasets($type = FALSE){
-    return new Datasets();
-  }
+    /**
+     * Same again, but returning all datasets.
+     */
+    public function getDatasets($type = false)
+    {
+        return new Datasets();
+    }
 
-  /**
-   * Same again, but returning installations
-   */
-  public function getInstallations($tag = FALSE, $name = FALSE, $isoCountryCode = FALSE){
-    return new Installations(FALSE, $tag, $name, $isoCountryCode);
-  }
+    /**
+     * Same again, but returning installations
+     */
+    public function getInstallations($tag = false, $name = false, $isoCountryCode = false)
+    {
+        return new Installations(false, $tag, $name, $isoCountryCode);
+    }
 
-  /**
-   * Same again, but networks
-   */
-  public function getNetworks(){
-    return new Networks();
-  }
+    /**
+     * Same again, but networks
+     */
+    public function getNetworks()
+    {
+        return new Networks();
+    }
 
-  public function getUser(){
-    return $this->user;
-  }
+    public function getUser()
+    {
+        return $this->user;
+    }
 
-  public function getPassword(){
-    return $this->password;
-  }
+    public function getPassword()
+    {
+        return $this->password;
+    }
 
-  public function setUser($user){
-    $this->user = $user;
-  }
+    public function setUser($user)
+    {
+        $this->user = $user;
+    }
 
-  public function setPassword($password){
-    $this->password = $password;
-  }
+    public function setPassword($password)
+    {
+        $this->password = $password;
+    }
 
-  /**
-   * http put
-   *
-   * FIXME - Need to add authentication to this.
-   * FIXME - Should this be data, or a filename?
-   */
-  public function put($path, $file_handle){
-    $ch = curl_init($this->registryURL . $path);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_PUT, TRUE);
-    curl_setopt($ch, CURLOPT_INFILE, $file_handle);
+    /**
+     * http put
+     *
+     * FIXME - Need to add authentication to this.
+     * FIXME - Should this be data, or a filename?
+     */
+    public function put($path, $file_handle)
+    {
+        $ch = curl_init($this->registryURL . $path);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_PUT, true);
+        curl_setopt($ch, CURLOPT_INFILE, $file_handle);
     //curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
-    $response = curl_exec($ch);
-  }
+        $response = curl_exec($ch);
 
-  /**
-   * http get
-   *
-   * We use file_get_contents here purely for its simplicity.
-   */
-  public function get($path, Array $parameters = array()){
-    if($html = @file_get_contents($this->registryURL . $path . '?' . http_build_query($parameters))){
-      return $html;
-    }else{
+    }
+
+    /**
+     * http get
+     *
+     * We use file_get_contents here purely for its simplicity.
+     */
+    public function get($path, array $parameters = array())
+    {
+        if ($html = @file_get_contents($this->registryURL . $path . '?' . http_build_query($parameters))) {
+            return $html;
+        } else {
       // FIXME: Perhaps should throw an error here rather than silently
       // failing.
-      return '[]';
+            return '[]';
+        }
     }
-  }
 
-  /**
-   * http post.
-   */
-  function post($path, $data){
-    $ch = curl_init($this->registryURL . $path);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_USERPWD, "{$this->user}:{$this->password}");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-      "Content-Type: application/json",
-      "Accept: application/json"
-    ));
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    $response = curl_exec($ch);
-    $error = curl_error($ch);
-    if(!curl_errno($ch)){
-      return $response;
-    }else{
-      return FALSE;
+    /**
+     * http post.
+     */
+    function post($path, $data)
+    {
+        $ch = curl_init($this->registryURL . $path);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_USERPWD, "{$this->user}:{$this->password}");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            "Content-Type: application/json",
+            "Accept: application/json"
+        ));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $http_is_successful = $httpcode >= 200 && $httpCode < 400;
+        $error = curl_error($ch);
+        if ($error || !$http_is_successful) {
+            watchdog(
+                'GBIF',
+                'Could not save GBIF registry object - Error: %error HTTP status: %httpcode',
+                array('%error' => $error, '%httpcode' => $httpcode),
+                WATCHDOG_ERROR
+            );
+            return false;
+        } else {
+            return $response;
+        }
     }
-  }
 
-  /**
-   * http delete.
-   *
-   * FIXME - Need to add authentication to this.
-   */
-  function delete($path){
-    $ch = curl_init($this->registryURL . $path);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-    $response = curl_exec($ch);
-    print_r(curl_getinfo($ch));
-    print_r(curl_errno($ch));
-    print_r($response);
-  }
+    /**
+     * http delete.
+     *
+     * FIXME - Need to add authentication to this.
+     */
+    function delete($path)
+    {
+        $ch = curl_init($this->registryURL . $path);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        $response = curl_exec($ch);
+        print_r(curl_getinfo($ch));
+        print_r(curl_errno($ch));
+        print_r($response);
+    }
 
-  /**
-   * Simple wrapper to the get function that returns a json_decoded'd array.
-   */
-  public function get_json($path, Array $parameters = array()){
+    /**
+     * Simple wrapper to the get function that returns a json_decoded'd array.
+     */
+    public function get_json($path, array $parameters = array())
+    {
     // FIXME - Need to tweak the path or parameters here to ensure that we are
     // returned JSON.
-    return json_decode($this->get($path, $parameters), TRUE);
-  }
+        return json_decode($this->get($path, $parameters), true);
+    }
 }
