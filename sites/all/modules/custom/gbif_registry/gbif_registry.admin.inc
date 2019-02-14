@@ -13,7 +13,7 @@ function gbif_registry_admin_form()
         'gbif_registry_web_service_url' => array(
             '#type' => 'textfield',
             '#title' => t('GBIF Registry web service URL'),
-            '#default_value' => variable_get('gbif_registry_web_service_url', 'http://api.gbif-uat.org/v1/')
+            '#default_value' => variable_get('gbif_registry_web_service_url', 'http://api.gbif.org/v1/')
         )
     ));
 }
