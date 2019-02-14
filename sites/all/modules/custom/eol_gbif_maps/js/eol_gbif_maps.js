@@ -11,7 +11,12 @@
           r: L.Browser.retina ? '@2x' : '@1x'
         }
         );
+
+      const overlayControl = L.control.layers({}, {
+        [Drupal.t("GBIF data")]: gbifTileLayer
+      });
       this.fire('addlayer', { layer: gbifTileLayer });
+      this.fire('addlayer', { layer: overlayControl });
     }
   }
 })();
