@@ -151,6 +151,13 @@ function theme_gm3_beautytip($variables){
 }
 
 /**
+ * Add extra layers to a map component
+ */
+function hook_gm3_map_alter(&$map) {
+  // $map['libraries'] => The javascript classes to add to the map
+}
+
+/**
  * Callback to add a Google map to a specific element ID on the page.
  */
 function gm3_add(&$map = array()){

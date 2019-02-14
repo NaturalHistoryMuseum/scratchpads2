@@ -140,7 +140,7 @@
             }
           );
 
-          const field = fieldSelector && document.querySelector(`.${id}-${LibClass.name}`);
+          const field = document.querySelector(`.${id}-${LibClass.name}`);
           if(field) {
             field.addEventListener('keyup', (e) => {
               const position = child.setValue && child.setValue(e.target.value);
@@ -428,8 +428,13 @@
       // Handy in case we want to debug an individual map
       Drupal.settings.gm3.mapInstances = {};
 
+      // Jquery object
+      if(context[0]) {
+        context = context[0];
+      }
+
       for(const mapId in Drupal.settings.gm3.maps) {
-        if(context.getElementById(mapId)) {
+        if(context.querySelector('#' + mapId)) {
           // Create the new GM3 map object.
           Drupal.settings.gm3.mapInstances[mapId] = new Drupal.GM3(Drupal.settings.gm3.maps[mapId]);
         }
