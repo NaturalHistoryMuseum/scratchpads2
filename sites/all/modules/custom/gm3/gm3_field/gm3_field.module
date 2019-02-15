@@ -456,29 +456,6 @@ function gm3_field_field_update($entity_type, $entity, $field, $instance, $langc
 }
 
 /**
- * Implementation of hook_library().
- */
-function gm3_field_library(){
-  return array(
-    'field_rectangle' => array(
-      'title' => t('Javascript Map: Rectangle field'),
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_rectangle.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.rectangle'
-        )
-      )
-    )
-  );
-}
-
-/**
  * Implementation of hook_field_widget_info().
  */
 function gm3_field_field_widget_info(){

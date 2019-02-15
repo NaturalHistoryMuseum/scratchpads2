@@ -79,14 +79,6 @@ function gm3_filter_library(){
           'gm3_region',
           'region'
         ),
-        array(
-          'gm3_field',
-          'field_rectangle'
-        ),
-        array(
-          'gm3_region',
-          'region'
-        )
       )
     )
   );
