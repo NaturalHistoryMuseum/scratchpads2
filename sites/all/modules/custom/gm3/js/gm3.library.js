@@ -3,41 +3,66 @@
 
   // Todo: Maybe this can actually extend L.Layer,
   // then we can just add it to the map directly
-  Drupal.GM3.Library = class extends L.Evented {
-    constructor(settings, listeners) {
-      super();
-
-      this.on(listeners);
-
-      this.layerGroup = this.getLayerGroup();
-      this.fire('addlayer', { layer: this.layerGroup });
+  Drupal.GM3.Library = class extends L.LayerGroup {
+    constructor(options = {}) {
+      super(Object.assign({ interactive: true }, options));
 
       // Array of functions to call when we deactivate
       this.teardowns = [];
       this.active = false;
-    }
-    /**
-     * Creates the layer to keep all of the library's shapes on
-     */
-    getLayerGroup(){
-      return L.layerGroup([]);
+      this.updatesDisabled = false;
     }
     /**
      * Returns the items added to the tool's layer group
      */
     get objects() {
-      return this.layerGroup.getLayers();
+      return this.objectLayer.getLayers();
+    }
+    /**
+     * Get the layer that should contain all of the data objects
+     */
+    get objectLayer(){
+      return this;
+    }
+    /**
+     * Returns a latLngBounds object that contains all of
+     * the objects on the layer
+     */
+    getBounds() {
+      const bounds = L.latLngBounds([]);
+
+      for (const object of this.objects) {
+        const b = object instanceof L.Marker ? object.getLatLng() :
+                  object instanceof L.Polyline ? object.getBounds() : null;
+
+        if (b) {
+          bounds.extend(b);
+        }
+      }
+
+      return bounds;
+    }
+    /**
+     * Called when this tool is added to a map.
+     * Make sure we can propagate events to the map
+     * @param {L.Map} map The map this tool is added to
+     */
+    onAdd(map){
+      super.onAdd(map);
+      this.addEventParent(map);
+    }
+    /**
+     * Called when this tool is removed from a map.
+     * @param {L.Map} map The map this tool is removed from
+     */
+    onRemove(map){
+      super.onRemove(map);
+      this.removeEventParent(map);
     }
     /**
      * Return an object of the listeners to add when this tool is activated
      */
     getActiveListeners() {
-      return {};
-    }
-    /**
-     * Todo: Combine with above
-     */
-    getDefaultListeners(){
       return {
         contextmenu: e => this.deactivate()
       };
@@ -56,11 +81,8 @@
 
       this.active = true;
 
-      const defaultListeners = this.getDefaultListeners();
-
       // Merge listeners with default listeners
       listeners = Object.assign(
-        defaultListeners,
         this.getActiveListeners(),
         listeners
       );
@@ -82,7 +104,7 @@
 
       this.active = false;
 
-      this.fire('deactivate');
+      this.fire('deactivate', {}, true);
 
       // Remove event listeners
       this.teardowns.forEach(t => t());
@@ -104,7 +126,7 @@
       let cancelled = false;
       const cancel = () => cancelled = true;
 
-      this.fire('beforeaddobject', { cancel });
+      this.fire('beforeaddobject', { cancel }, true);
 
       return !cancelled;
     }
@@ -116,10 +138,10 @@
     addObject(layers) {
       layers = Array.isArray(layers) ? layers : [layers];
 
-      this.fire('addobject');
+      this.fire('addobject', {}, true);
 
       for(const layer of layers) {
-        this.layerGroup.addLayer(layer);
+        this.objectLayer.addLayer(layer);
       }
 
       this.updateField();
@@ -130,10 +152,11 @@
      * @param {L.Layer[]} layers
      */
     removeObject(layers) {
+      layers = Array.isArray(layers) ? layers : [layers];
       for(const object of layers){
-        object.remove();
+        this.objectLayer.removeLayer(object);
       }
-      this.fire('removeobject');
+      this.fire('removeobject', {}, true);
       this.updateField();
     }
 
@@ -141,23 +164,37 @@
      * Set a popup message
      */
     setPopup(layer, content, title){
-      this.fire('popup', { layer, content, title })
+      this.fire('popup', { layer, content, title }, true)
     }
 
     /**
      * Set a user error/info message
      */
     setMessage(message){
-      this.fire('message', { message });
+      this.fire('message', { message }, true);
     }
 
     /**
      * Update the underlying data field for this tool
      */
     updateField(){
-      const cls = id => `.${id}-${this.constructor.name}`;
+      if(this.updatesDisabled) return;
+
       const value = this.getValue();
-      this.fire('update', { cls, value });
+      this.fire('update', { value }, true);
+    }
+
+    /**
+     * Stop firing the update events
+     */
+    disableUpdates(){
+      this.updatesDisabled = true;
+    }
+    /**
+     * Start firing the update events
+     */
+    enableUpdates(){
+      this.updatesDisabled = false;
     }
   }
 })();

@@ -1,11 +1,9 @@
 (function(){
   Drupal.GM3.rectangle = class extends Drupal.GM3.Shape {
-    static get name() { return 'rectangle'; }
-    constructor(settings, listeners) {
+    constructor(settings) {
       // Add Rectangles sent from server.
-      const shapes = settings.rectangles;
 
-      super({ shapes }, listeners);
+      super(settings.rectangles);
       this.firstClick = null;
     }
     /**
@@ -60,8 +58,15 @@
       }
 
       this.currentShape.setBounds([this.firstClick, latlng]);
+    }
 
-      this.updateField();
+    /**
+     * Override base setShapeLatLngs so the rectangle continues to be rectangular
+     * @param {Number} index The index of the object to set the latlngs for
+     * @param {L.LatLng[]} latLngs The points to set
+     */
+    setShapeLatLngs(index, latLngs){
+      this.objects[index].setBounds(L.latLngBounds(latLngs));
     }
   }
 })();

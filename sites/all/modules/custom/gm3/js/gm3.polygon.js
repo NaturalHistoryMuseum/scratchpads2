@@ -3,12 +3,9 @@
   // Todo: This shares a lot of code with the polyline module.
   // Make them inherit the reusable code
   Drupal.GM3.polygon = class extends Drupal.GM3.Shape {
-    static get name() { return 'polygon'; }
-    constructor(settings, listeners) {
+    constructor(settings) {
       // Add Polygons sent from server.
-      const shapes = settings.polygons;
-
-      super({ shapes }, listeners);
+      super(settings.polygons);
 
       // Create 2 editing lines that follow the user's mouse when editing a polygon
       this.polygonStart = this.polygonEnd = null;
@@ -58,24 +55,18 @@
     }
 
     /**
-     * Update the form field with the new value
+     * Update the shape with the new latlng
      */
-    updateField(){
-      // Todo: This should really be on an event listener
-      // that fires when the currentShape changes
-      if(this.currentShape) {
-        const polygonPath = this.getPolygonPath();
-        const pathLength = polygonPath.length;
+    updateShape(latlng){
+      super.updateShape(latlng);
 
-        if(pathLength >= 1) {
-          this.polygonStart = polygonPath[0];
-          this.polygonEnd = polygonPath[pathLength - 1];
-        } else {
-          this.polygonStart = null;
-          this.polygonEnd = null;
-        }
+      const polygonPath = this.getPolygonPath();
+      const pathLength = polygonPath.length;
+
+      if(!this.polygonStart) {
+        this.polygonStart = latlng;
       }
-      super.updateField();
+      this.polygonEnd = polygonPath[pathLength - 1];
     }
   }
 })();

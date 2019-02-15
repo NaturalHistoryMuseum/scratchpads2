@@ -2,10 +2,8 @@
   "use strict";
 
   Drupal.GM3.point = class extends Drupal.GM3.Library {
-    static get name() { return 'point'; }
-
-    constructor(settings, listeners) {
-      super(settings, listeners);
+    constructor(settings) {
+      super();
 
       // Todo: Is this neede?
       //map.on('viewreset', e => this.clusterer.repaint());
@@ -23,14 +21,17 @@
         });
       }*/
 
+      this.cluster = L.markerClusterGroup({
+        disableClusteringAtZoom: 12
+      });
+      this.addLayer(this.cluster)
+
       // Add points sent from server.
       if(settings.points) {
         for(const point of settings.points) {
-          // Default editable to false
-          const editable = !!point.editable;
           this.addMarker(
             L.latLng(point.latitude, point.longitude),
-            editable,
+            point.editable,
             point.colour,
             point.title,
             point.content
@@ -40,12 +41,10 @@
     }
 
     /**
-     * Generate the marker cluster group layer to keep our markers on
+     * Make sure objects get added to the cluster, not the layergroup
      */
-    getLayerGroup(){
-      return L.markerClusterGroup({
-        disableClusteringAtZoom: 12
-      });
+    get objectLayer() {
+      return this.cluster;
     }
 
     /**
@@ -56,7 +55,7 @@
      * @param {string} title The title for the marker
      * @param {string} content The content text for the marker's popup
      */
-    addMarker(latLng, editable, colour, title = '', content = ''){
+    addMarker(latLng, editable = true, colour, title = '', content = ''){
       if(!this.canAddObject()) {
         return;
       }
@@ -106,15 +105,31 @@
      * @param {string} value The field's value
      */
     setValue(value) {
-      // Bit of a hack... we only do this for single-point fields at the moment
-      if (this.objects.length === 1) {
-        const [lat, lng] = value.replace(/[()]/g, "").split(", ").map(parseFloat);
-        if(isNaN(lat) || isNaN(lng)) {
-          return;
-        }
-        this.objects[0].setLatLng([lat, lng]);
-        return [lat, lng];
+      this.disableUpdates();
+      const coords = value.match(/\([^)]+\)/g) || [];
+      const latLngs = coords.map(
+        coord => coord.match(/[+-]?[0-9]*\.?[0-9]+/g).map(parseFloat)
+      );
+
+      // Update the existing latLngs
+      const len = Math.min(latLngs.length, this.objects.length);
+      for(let i = 0; i < len; i++) {
+        this.objects[i].setLatLng(latLngs[i]);
       }
+
+      // Add new latLngs
+      const addList = latLngs.slice(this.objects.length);
+      for(const latlng of addList) {
+        this.addMarker(latlng, true);
+      }
+
+      // Remove old latlngs
+      const removeList = this.objects.slice(latLngs.length);
+      for(const object of removeList) {
+        this.removeObject(object);
+      }
+
+      this.enableUpdates();
     }
 
     /**

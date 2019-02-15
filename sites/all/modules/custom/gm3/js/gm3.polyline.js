@@ -3,13 +3,10 @@
   // Todo: This shares a lot of code with the polygon module.
   // Make them inherit the reusable code
   Drupal.GM3.polyline = class extends Drupal.GM3.Shape {
-    static get name () { return 'polyline'; }
-    constructor(settings, listeners) {
+    constructor(settings) {
       // Add Polylines sent from server.
-      const shapes = settings.polylines;
+      super(settings.polylines);
 
-      super({ shapes }, listeners);
-      // Polyline object.
       // Editing lines
       this.polylineEnd = null;
     }
@@ -52,15 +49,12 @@
       );
     }
     /**
-     * Update the form field with the new value
+     * Update the shape with the new latlng
      */
-    updateField() {
-      // Todo: Move this into a change event listener on currentShape
-      const line = this.currentShape && this.currentShape.getLatLngs();
+    updateShape(latlng) {
+      this.polylineEnd = latlng;
 
-      this.polylineEnd = line && line.length >= 1 ? line[line.length - 1] : null;
-
-      super.updateField();
+      super.updateShape(latlng);
     }
     /**
      * Gets the text field value representation of the shapes

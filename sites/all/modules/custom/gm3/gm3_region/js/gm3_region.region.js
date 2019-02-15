@@ -59,9 +59,8 @@
      * Map module for selecting and displaying geographical regions
      */
     Drupal.GM3.region = class extends Drupal.GM3.Library {
-      static get name() { return 'region'; }
-      constructor(settings, listeners) {
-        super(settings, listeners);
+      constructor(settings) {
+        super();
         this.countries = {};
 
         this.levelControl = new LevelControl({ position: 'topleft' })

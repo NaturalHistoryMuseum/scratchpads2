@@ -107,15 +107,19 @@
         }
       });
 
-      // A rectangle containing all markers that we can add to and reference later
-      this.coverageArea = L.latLngBounds();
-
       this.leafletMap = leafletMap;
       this.mapNode = mapNode;
 
-      // Any time something gets added to the map, add that item to the zoom area
-      leafletMap.on('layeradd', e => {
-        this.addLatLng(e.layer);
+      leafletMap.on({
+        beforeaddobject: e => {
+          if(!this.beforeAddObject()) { e.cancel(); }
+        },
+        addobject: e => this.addObject(),
+        removeobject: e => this.removeObject(),
+        deactivate: e => this.deactivateActiveLibrary(),
+        popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
+        update: ({ value, layer }) => this.updateField(layer, value),
+        message: ({ message }) => this.message(message)
       });
 
       // Add libraries
@@ -124,31 +128,21 @@
         const LibClass = Drupal.GM3[id];
         if(LibClass) {
           const child = this.children[id] = new LibClass(
-             map.libraries[id],
-            {
-              addlayer: e => this.addLayer(e.layer),
-              // Todo: Use L.DomObject.preventDefault(e) instead?
-              beforeaddobject: e => {
-                if(!this.beforeAddObject()) { e.cancel(); }
-              },
-              addobject: e => this.addObject(),
-              removeobject: e => this.removeObject(),
-              deactivate: e => this.deactivateActiveLibrary(),
-              popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
-              update: ({ cls, value }) => this.updateField(cls, value),
-              message: ({ message }) => this.message(message)
-            }
+             map.libraries[id]
           );
 
-          // Todo: can we just use `id` instead of requiring `LibClass` to have `name` set?
-          const field = document.querySelector(`.${id}-${LibClass.name}`);
+          child.addTo(this.leafletMap);
+          if(child.objects) {
+            this.numObjects += child.objects.length
+          }
+
+          const field = this.getFieldSelector(id);
           if(field) {
+            let timeout;
             field.addEventListener('keyup', (e) => {
-              const position = child.setValue && child.setValue(e.target.value);
-              if (position) {
-                this.addLatLng(L.latLng(position));
-                this.autozoom();
-              }
+              clearTimeout(timeout);
+              child.setValue && child.setValue(e.target.value);
+              timeout = setTimeout(() => field.value = child.getValue(), 2000);
             });
           }
         }
@@ -171,12 +165,21 @@
     }
 
     /**
+     * Get the input field for the given map layer's key
+     * @param {String} layerId The ID of the layer to get the field for
+     */
+    getFieldForLayer(layerId) {
+      return document.querySelector(`.${this.id}-${layerId}`);
+    }
+
+    /**
      * Update a class's field, if it exists
      * @param {function} cls Generates the field's query selector given the map ID
      * @param {string} value The value to set the field to
      */
-    updateField(cls, value) {
-      const field = document.querySelector(cls(this.id));
+    updateField(layer, value) {
+      const layerId = Object.keys(this.children).find(id => this.children[id] === layer);
+      const field = this.getFieldSelector(layerId);
 
       if (field){
         if (field.multiple && Array.isArray(value)) {
@@ -232,22 +235,20 @@
 
     // Automatically zoom to fit all points in on the map
     autozoom(){
-      if(this.coverageArea.isValid()) {
+      // A rectangle containing all markers on the map
+      const bounds = L.latLngBounds();
+
+      // Find layers we know how to get the bounds of
+      this.leafletMap.eachLayer(l => {
+        if(l instanceof Drupal.GM3.Library) {
+          bounds.extend(l.getBounds());
+        }
+      });
+
+      if(bounds.isValid()) {
         // Pad extends the area slightly to make sure all points fit comfortably
-        const bounds = this.coverageArea.pad(0.5);
-        this.leafletMap.fitBounds(bounds);
+        this.leafletMap.fitBounds(bounds.pad(0.5));
       }
-    }
-
-    // Add a new coörd point to the coverage area
-    addLatLng(latLng){
-      latLng = Array.isArray(latLng) ? L.latLngBounds(latLng) :
-               latLng.getLatLng ? latLng.getLatLng() :
-               latLng.getLatLngs ? latLng.getLatLngs() :
-               latLng;
-
-      // Todo: Make sure the coord is within bounds/wraps correctly?
-      this.coverageArea.extend(latLng);
     }
 
     // Add a tooltip/popup

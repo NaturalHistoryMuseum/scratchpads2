@@ -7,18 +7,15 @@
    * clicks before a shape is complete.
    */
   Drupal.GM3.Shape = class extends Drupal.GM3.Library {
-    constructor(settings, listeners) {
-      super(settings, listeners);
+    constructor(shapes = []) {
+      super();
 
-      // The collection of polygons.
+      // The shape that is currently being edited
       this.currentShape = null;
       this.followLine = this.createFollowLine();
 
-      const shapes = settings.shapes || [];
-      const libName = this.constructor.name;
       for(const shape of shapes) {
-        const args = shape[libName] ? [shape[libName], shape.editable, shape.content || '', shape.title || ''] : [shape];
-        this.addShape(...args);
+        this.addShape(shape);
       }
     }
 
@@ -46,8 +43,8 @@
     /**
      * Gets the default event listeners on tool activate
      */
-    getDefaultListeners(){
-      const defaultListeners = super.getDefaultListeners();
+    getActiveListeners(){
+      const defaultListeners = super.getActiveListeners();
       defaultListeners.mousemove = e => this.setFollowLine(e.latlng);
       return defaultListeners;
     }
@@ -71,15 +68,12 @@
     activate(map){
       // Add tool functionality
       super.activate(map, {
-        click: e => this.updateShape(e.latlng, map)
+        click: e => this.addLatLng(e.latlng)
       });
 
       const line = this.followLine;
       line.setLatLngs([]);
       line.addTo(map);
-
-      // Create a new polygon and add it to the map
-      this.currentShape = this.addShape();
 
       this.addTeardown(() => this.followLine.remove());
     }
@@ -90,13 +84,15 @@
     deactivate(){
       super.deactivate();
 
-      if(this.currentShape && !this.isShapeValid()) {
-        this.removeObject(this.currentShape);
-      }
+      if(this.currentShape) {
+        if(!this.isShapeValid()) {
+          this.removeObject(this.currentShape);
+        }
 
-      // Disable the editor
-      this.currentShape.disableEdit();
-      this.currentShape = null;
+        // Disable the editor
+        this.currentShape.disableEdit();
+        this.currentShape = null;
+      }
     }
     /**
      * Returns a new L.Polygon object to add to the map
@@ -114,12 +110,14 @@
      * @param {string} content Content for the popup to add
      * @param {string} title Title for the popup to add
      */
-    addShape(pathPoints = [], editable = true, content, title = ''){
-      // To do: This breaks activation if the map is full.
-      // This check should be done on first click after addShape
-      if (!this.canAddObject()) {
-        return false;
-      }
+    addShape(options = {}, canEdit = true){
+      const defaults = { editable: canEdit, content: '', title: '' };
+      const { editable, content, title, ...shape } = Object.assign(defaults, options);
+
+      // Options might be an array of points, or a settings object
+      // We don't know what the key is that contains the path points as it varies
+      // for each library - but we can be fairly sure it's the only array property of the options
+      const pathPoints = Array.isArray(options) ? options : Object.values(shape).filter(Array.isArray).flat();
 
       const polyOptions = {
         color: editable ? this.getLineColour() : '#000000',
@@ -146,15 +144,41 @@
       return polygon;
     }
     /**
+     * Add anew latlng to the current shape
+     * @param {L.LatLng} latlng The coordinate to add
+     */
+    addLatLng(latlng){
+      if(!this.currentShape) {
+        if(!this.canAddObject()) {
+          return false;
+        }
+
+        // Create a new polygon and add it to the map
+        this.currentShape = this.addShape();
+      }
+
+      this.updateShape(latlng);
+      this.updateField();
+    }
+
+    /**
      * Add a new point to the polyline
      * @param {L.latLng} latlng The point to add
      */
     updateShape(latlng){
       this.currentShape.addLatLng(latlng);
-
-      // Save the change
-      this.updateField();
+      return true;
     }
+
+    /**
+     * Set the latlngs on a given shape
+     * @param {Number} index The index of the object to set the latlngs for
+     * @param {L.LatLng[]} latLngs The points to set
+     */
+    setShapeLatLngs(index, latLngs){
+      this.objects[index].setLatLngs(latLngs);
+    }
+
     /**
      * Get the colour for the next polygon
      */
@@ -171,6 +195,36 @@
       ];
 
       return colours[this.objects.length % 8];
+    }
+
+    /**
+     * Called when the underlying field's value changes
+     * @param {String} value The field value
+     */
+    setValue(value){
+      const polygons = value.match(/\(\([^)]+\)\)/g).map(
+        line => line.substring(2, line.length - 2).split(',').map(
+          coord => coord.trim().split(' ').reduce((lng, lat) => ({ lat, lng }))
+        )
+      );
+
+      // Update the existing latLngs
+      const len = Math.min(polygons.length, this.objects.length);
+      for(let i = 0; i < len; i++) {
+        this.setShapeLatLngs(i, polygons[i]);
+      }
+
+      // Add new polygons
+      const addList = polygons.slice(this.objects.length);
+      for(const polygon of addList) {
+        this.addShape(polygon, true);
+      }
+
+      // Remove old latlngs
+      const removeList = this.objects.slice(polygons.length);
+      for(const object of removeList) {
+        this.removeObject(object);
+      }
     }
 
     /**
