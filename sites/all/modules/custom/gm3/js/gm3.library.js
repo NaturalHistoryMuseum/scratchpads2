@@ -1,8 +1,9 @@
 (function(){
   "use strict";
 
-  // Todo: Maybe this can actually extend L.Layer,
-  // then we can just add it to the map directly
+  /**
+   * Any map tool that can hold data objects (points, polygons, etc)
+   */
   Drupal.GM3.Library = class extends L.LayerGroup {
     constructor(options = {}) {
       super(Object.assign({ interactive: true }, options));
@@ -77,8 +78,6 @@
         throw new Error('This map library is already active');
       }
 
-      // Todo:      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
-
       this.active = true;
 
       // Merge listeners with default listeners
@@ -138,8 +137,6 @@
     addObject(layers) {
       layers = Array.isArray(layers) ? layers : [layers];
 
-      this.fire('addobject', {}, true);
-
       for(const layer of layers) {
         this.objectLayer.addLayer(layer);
       }
@@ -156,15 +153,7 @@
       for(const object of layers){
         this.objectLayer.removeLayer(object);
       }
-      this.fire('removeobject', {}, true);
       this.updateField();
-    }
-
-    /**
-     * Set a popup message
-     */
-    setPopup(layer, content, title){
-      this.fire('popup', { layer, content, title }, true)
     }
 
     /**

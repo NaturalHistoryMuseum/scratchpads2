@@ -54,8 +54,6 @@
      * @param {L.latLng} mousePosition The coordinate the mouse is at
      */
     setFollowLine(mousePosition) {
-      // Todo: Do we have to call getCoordinate all the time?
-      // Can't we rely on polyline events to know when this changes?
       this.followLine.setLatLngs(
         this.getFollowLineCoords(mousePosition) || []
       );
@@ -136,7 +134,8 @@
         });
       } else if(content) {
         // We don't add a popup to an editable polygon.
-        this.setPopup(polygon, content, title);
+        // Todo: Include title?
+        polygon.bindPopup(content, { className: 'gm3_infobubble' });
       }
 
       this.addObject(polygon);

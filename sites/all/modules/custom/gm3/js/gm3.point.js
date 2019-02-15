@@ -5,22 +5,6 @@
     constructor(settings) {
       super();
 
-      // Todo: Is this neede?
-      //map.on('viewreset', e => this.clusterer.repaint());
-
-      // FIXME - Add a way of setting this image.
-      // this.markerImages = []
-      /*
-      for(let i = 0; i < 8; i++) {
-        this.markerImages[i] = L.icon({
-          iconUrl: Drupal.settings.gm3.settings.images.sprite,
-          iconSize: [18, 25],
-          // Use class name/css with background-position set.
-          //origin:  new google.maps.Point(11 + (i * 18), 0),
-          iconAnchor: [9, 25]
-        });
-      }*/
-
       this.cluster = L.markerClusterGroup({
         disableClusteringAtZoom: 12
       });
@@ -67,25 +51,27 @@
         {
           draggable: editable,
           title
-          /*, icon: this.marker_images[colour] */
         }
       );
       this.addObject(point);
 
-      point.on('dragend', () => this.updateField());
-      point.on('click', e => {
-        if (this.active) {
-          this.setMessage(e.latlng.toString(), 'status', 10000);
-        }
-      });
-      point.on('contextmenu', e => {
-        if (this.active) {
-          this.removeObject(point);
+      point.on({
+        dragend: () => this.updateField(),
+        click: e => {
+          if (this.active) {
+            this.setMessage(e.latlng.toString(), 'status', 10000);
+          }
+        },
+        contextmenu: e => {
+          if (this.active) {
+            this.removeObject(point);
+          }
         }
       });
 
       if(content) {
-        this.setPopup(point, content, title);
+        // Todo: Include title?
+        point.bindPopup(content, { className: 'gm3_infobubble' });
       }
     }
 

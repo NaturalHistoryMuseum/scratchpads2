@@ -77,7 +77,7 @@
        * @param {gm3.map} map The leaflet map to add the polygons to
        * @param {bool} autofit True to auto zoom the map
        */
-      async addPolygonsByIds(regionIds, editable = false, autofit = true){
+      async addPolygonsByIds(regionIds, editable = false){
         if (typeof regionIds === 'string') {
           regionIds = [regionIds];
         }
@@ -126,8 +126,6 @@
 
             for (const polygon of polygons) {
               for(const points of polygon) {
-                // Todo - handle this as an event?
-                // Or extend from polygon class?
                 const poly = this.addPolygon(points);
 
                 this.countries[regionId].push(poly);
@@ -143,22 +141,6 @@
             this.addObject(this.countries[regionId]);
           }
         }
-
-        if(typeof autofit !== 'undefined' && autofit && this.GM3) {
-          // Todo: Fire this as event to parent
-          if(this.GM3.max_lat) {
-            this.GM3.google_map.fitBounds(
-              new google.maps.LatLngBounds(
-                new google.maps.LatLng(
-                  this.GM3.min_lat, this.GM3.min_lng
-                ),
-                new google.maps.LatLng(
-                  self.GM3.max_lat, self.GM3.max_lng
-                )
-              )
-            );
-          }
-        }
       }
 
       /**
@@ -166,7 +148,6 @@
        * @param {LatLng} points The points to use to construct the polygon
        */
       addPolygon(points) {
-        // Todo: Refactor redundant code with polygon module
         const pathPoints = points.map(point => Array.isArray(points) ? L.latLng([point[1], point[0]]) : L.latLng(points));
 
         const polyOptions = {

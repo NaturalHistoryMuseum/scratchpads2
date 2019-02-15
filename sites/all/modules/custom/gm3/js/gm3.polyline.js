@@ -1,7 +1,5 @@
 (function(){
   "use strict";
-  // Todo: This shares a lot of code with the polygon module.
-  // Make them inherit the reusable code
   Drupal.GM3.polyline = class extends Drupal.GM3.Shape {
     constructor(settings) {
       // Add Polylines sent from server.
@@ -60,7 +58,6 @@
      * Gets the text field value representation of the shapes
      */
     getValue() {
-      // Update the field.
       const polygons = [];
       for(const line of this.objects) {
         const path = line.getLatLngs();

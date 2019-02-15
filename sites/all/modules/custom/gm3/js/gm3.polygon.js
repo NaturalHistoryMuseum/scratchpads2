@@ -1,7 +1,5 @@
 (function(){
   "use strict";
-  // Todo: This shares a lot of code with the polyline module.
-  // Make them inherit the reusable code
   Drupal.GM3.polygon = class extends Drupal.GM3.Shape {
     constructor(settings) {
       // Add Polygons sent from server.

@@ -1,9 +1,6 @@
 (function(){
   "use strict";
 
-  // Todo: Remove or move some of these helpers into another script
-  // Then move the class out of the strict mode wrapper.
-
   // Helper for adding units to a unitless number
   const sizeUnit = n => isFinite(n) ? `${n}px` : n;
 
@@ -57,9 +54,6 @@
       const maxObjects = parseInt(map.max_objects, 10);
       this.maxObjects = isNaN(maxObjects) ? Infinity : maxObjects;
 
-      // The current number of objects on the map
-      this.numObjects = 0;
-
       // How far out user is allowed to zoom
       this.minZoom = parseInt(minZoom, 10);
 
@@ -67,12 +61,6 @@
       this.activeClass = 'default';
       // Todo: rename this to something better
       this.children = {};
-
-      // Collection of popups currently on the map
-      this.popups = [];
-
-      // The instance of the bubble class
-      this.infoBubble = null;
 
       const mapNode = document.getElementById(mapId);
 
@@ -114,10 +102,7 @@
         beforeaddobject: e => {
           if(!this.beforeAddObject()) { e.cancel(); }
         },
-        addobject: e => this.addObject(),
-        removeobject: e => this.removeObject(),
         deactivate: e => this.deactivateActiveLibrary(),
-        popup: ({ layer, content, title }) => this.addPopup(layer, content, title || ''),
         update: ({ value, layer }) => this.updateField(layer, value),
         message: ({ message }) => this.message(message)
       });
@@ -132,11 +117,8 @@
           );
 
           child.addTo(this.leafletMap);
-          if(child.objects) {
-            this.numObjects += child.objects.length
-          }
 
-          const field = this.getFieldSelector(id);
+          const field = this.getFieldForLayer(id);
           if(field) {
             let timeout;
             field.addEventListener('keyup', (e) => {
@@ -165,6 +147,40 @@
     }
 
     /**
+     * If there's a form field for the given library, listen for
+     * changes to the field and update the map to reflect the changes
+     * @param {string} id The id of the library to set up
+     */
+    observeFieldChanges(id){
+      const child = this.children[id];
+      const field = this.getFieldForLayer(id);
+
+      // Don't bother doing this if the layer can't handle `setValue` calls
+      if(child.setValue && field) {
+        let timeout;
+        field.addEventListener('keyup', (e) => {
+          const field = e.target;
+          clearTimeout(timeout);
+          child.setValue(field.value);
+          // After a couple of seconds, update the field value to make sure
+          // the format is correct
+          timeout = setTimeout(() => field.value = child.getValue(), 2000);
+        });
+      }
+    }
+
+    /**
+     * The number of data objects on the map
+     */
+    get numObjects() {
+      let num = 0;
+      this.leafletMap.eachLayer(layer => {
+        num += layer.objects ? layer.objects.length : 0;
+      })
+      return num;
+    }
+
+    /**
      * Get the input field for the given map layer's key
      * @param {String} layerId The ID of the layer to get the field for
      */
@@ -179,7 +195,7 @@
      */
     updateField(layer, value) {
       const layerId = Object.keys(this.children).find(id => this.children[id] === layer);
-      const field = this.getFieldSelector(layerId);
+      const field = this.getFieldForLayer(layerId);
 
       if (field){
         if (field.multiple && Array.isArray(value)) {
@@ -219,20 +235,6 @@
       }
     }
 
-    /**
-     * Increase the count of objects on the map by 1
-     */
-    addObject() {
-      this.numObjects++;
-    }
-
-    /**
-     * Decrease the count of objects on the map by 1
-     */
-    removeObject() {
-      this.numObjects--;
-    }
-
     // Automatically zoom to fit all points in on the map
     autozoom(){
       // A rectangle containing all markers on the map
@@ -261,13 +263,6 @@
       // There appears to be a small bug with the infobubble code that calculates
       // the height/width of the content before it is added as a child of the
       // "backgroundClassName" resulting in incorrect results.
-      if(Array.isArray(content)) {
-        content = content.map(content => `<div class="gm3_infobubble">${content}</div>`);
-      } else {
-        content = `<div class="gm3_infobubble">${content}</div>`;
-      }
-
-      target.bindPopup(content);
 
       // Todo: Remove this from the prototype
       this.popups.push({ object: target, content });
@@ -372,15 +367,19 @@
       }
 
       this.activeClass = activeClass;
+      const mapNode = document.getElementById(this.id);
 
       if(activeClass == 'default') {
         // Set the default settings
+        mapNode.classList.remove('gm3-tool-active');
         // Todo: Set the cursor to "pointer"
+
       } else {
         const activeChild = this.children[activeClass];
         // Find the active child and call its "active" function
         if(activeChild.activate) {
           activeChild.activate(this.leafletMap);
+          mapNode.classList.add('gm3-tool-active');
         }
       }
     }

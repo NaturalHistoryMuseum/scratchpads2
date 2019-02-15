@@ -8,8 +8,7 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
   gm3_region_switch_to_gm3_database();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // Because the TDWG data and Google data don't quite match, here we convert
-  // some of the codes sent to us by Google.
-  // TODO: Is this still the case now we use OSM?
+  // some of the codes sent to us by OSM
   $convert_codes = array(
     'GB' => 'UK',
     'RS' => 'YU',
@@ -58,7 +57,6 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
   }
 
   // Form the tdwg region ID
-  // Todo: This is messy, can it be made neater?
   switch($level){
     case 5:
       $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}" . ($result->level_5_code != '00' ? ":{$result->level_5_code}" : '');
