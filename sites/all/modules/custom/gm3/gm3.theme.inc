@@ -158,7 +158,7 @@ function hook_gm3_map_alter(&$map) {
 }
 
 /**
- * Callback to add a Google map to a specific element ID on the page.
+ * Callback to add a map to a specific element ID on the page.
  */
 function gm3_add(&$map = array()){
   $map['settings'] = array_merge(gm3_settings(), isset($map['settings']) ? $map['settings'] : array());

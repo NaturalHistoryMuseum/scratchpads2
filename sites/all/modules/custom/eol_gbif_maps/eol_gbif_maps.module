@@ -4,7 +4,7 @@
  * Implementation of hook_gm3_alter().
  */
 function eol_gbif_maps_gm3_map_alter(&$map){
-  // We add special data to a google map on taxonomy term pages only.
+  // We add special data to map on taxonomy term pages only.
   if(($term = menu_get_object('taxonomy_term', 2)) != FALSE){
     // Now we need to calculate the GBIF taxon id for this term name, and then
     // add the gbif library to the map.

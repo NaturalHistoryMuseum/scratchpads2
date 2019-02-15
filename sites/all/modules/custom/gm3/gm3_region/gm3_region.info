@@ -1,7 +1,7 @@
-name = Google Maps Javascript API V3 :: Continents, Countries, and Regions
+name = Maps Javascript API V3 :: Continents, Countries, and Regions
 description = Allows the selection of Countries, Continents and other Regions as defined by TDWG http://www.kew.org/gis/tdwg/
 core = 7.x
-package = Google maps
+package = Maps
 dependencies[] = gm3
 files[] = phpcoord/phpcoord-2.3.php
 l10n server = localize.scratchpads.eu

@@ -3,7 +3,7 @@
 /**
  * Provides the following fields:
  *
- * - Google maps regions (click on a country to select)
+ * - Maps regions (click on a country to select)
  */
 /**
  * Implementation of hook_field_info().

@@ -72,9 +72,7 @@ function gm3_region_library(){
   return array(
     // Enable the clicking of countries.
     'region' => array(
-      'title' => t('Google Maps Javascript API V3: Region selection'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
+      'title' => t('Javascript Maps: Region selection'),
       'js' => array(
         array(
           'data' => drupal_get_path('module', 'gm3_region') . "/js/gm3_region.region.js"

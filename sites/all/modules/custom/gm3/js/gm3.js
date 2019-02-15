@@ -253,53 +253,6 @@
       }
     }
 
-    // Add a tooltip/popup
-    // Target is the object that, when clicked on, launches the popup
-    // Content is a string containing content to display OR
-    // an array of { title, content }, each of which gets added as a separate tab
-    // Todo: Can this be refactored to make it better?
-    //       maybe into a child library?
-    addPopup(target, content){
-      // There appears to be a small bug with the infobubble code that calculates
-      // the height/width of the content before it is added as a child of the
-      // "backgroundClassName" resulting in incorrect results.
-
-      // Todo: Remove this from the prototype
-      this.popups.push({ object: target, content });
-
-      // Todo: Match the infobubble styles
-      // Todo: Add tabbed infobubble
-      /*
-        // Todo: Make this work with leaflet
-        const infoWindow = new InfoBubble({
-          map: this.leafletMap,
-          position: event.latlng,
-          disableAutoPan: true,
-          borderRadius: 4,
-          borderWidth: 2,
-          backgroundColor: '#f5f5f5',
-          borderColor: '#6261d8',
-          arrowStyle: 0
-        });
-
-        const infoBubbleClass = "gm3_infobubble"
-
-        if(Array.isArray(content)) {
-          for(const page of content) {
-            infoWindow.addTab(page.title, `<div class="${infoBubbleClass}">${page.content}</div>`);
-          }
-        } else {
-          infoWindow.setContent(`<div class="${infoBubbleClass}">${content}</div>`);
-        }
-
-        infoWindow.open();
-
-        // Todo: Remove from prototype
-        this.infoWindow = infoWindow;
-      });
-      */
-    }
-
     // Add click handlers for the toolbar
     // The toolbar is the bar to the left of the left of the maps, with move/+polygon/+region etc
     addToolbarListeners(toolbar){

@@ -3,11 +3,11 @@
 /**
  * Provides the following fields:
  *
- * - Google maps point
- * - Google maps polygon
- * - Google maps polyline
- * - Google maps countries (click on a country to select)
- * - Google maps combination (combination of the above).
+ * - Maps point
+ * - Maps polygon
+ * - Maps polyline
+ * - Maps countries (click on a country to select)
+ * - Maps combination (combination of the above).
  */
 /**
  * Does not implement the following (amongst others) hook_field_* hooks.
@@ -18,8 +18,6 @@
  * hook_field_access().
  * hook_field_presave().
  * hook_field_settings_form().
- *
- * FIXME - Drag'n'dropped points are not updated.
  */
 /**
  * Implementation of hook_theme().
@@ -316,10 +314,6 @@ function gm3_field_form_alter(&$form, &$form_state, $form_id){
                 ),
                 array(
                   'gm3',
-                  'gm3.infobubble'
-                ),
-                array(
-                  'gm3',
                   'gm3.polygon'
                 ),
                 array(
@@ -467,8 +461,7 @@ function gm3_field_field_update($entity_type, $entity, $field, $instance, $langc
 function gm3_field_library(){
   return array(
     'field_rectangle' => array(
-      'title' => t('Google Maps Javascript API V3: Rectangle field'),
-      'website' => 'http://code.google.com/apis/maps/',
+      'title' => t('Javascript Map: Rectangle field'),
       'version' => '3',
       'js' => array(
         array(
@@ -491,7 +484,7 @@ function gm3_field_library(){
 function gm3_field_field_widget_info(){
   return array(
     'gm3_point_gm3' => array(
-      'label' => t('Geo: Point Google Map'),
+      'label' => t('Geo: Point Map'),
       'description' => t('Latitude/Longitude pairs entered by clicking on a map.'),
       'field types' => array(
         'gm3_point'
@@ -509,8 +502,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_polygon_gm3' => array(
-      'label' => t('Geo: Polygon Google Map'),
-      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered on a Google map.'),
+      'label' => t('Geo: Polygon Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered on a map.'),
       'field types' => array(
         'gm3_polygon'
       ),
@@ -527,8 +520,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_rectangle_gm3' => array(
-      'label' => t('Geo: Rectangle Google Map'),
-      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a Google map.'),
+      'label' => t('Geo: Rectangle Map'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a map.'),
       'field types' => array(
         'gm3_rectangle'
       ),
@@ -545,8 +538,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_polyline_gm3' => array(
-      'label' => t('Geo: Polyline Google Map'),
-      'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a Google map.'),
+      'label' => t('Geo: Polyline Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a map.'),
       'field types' => array(
         'gm3_polyline'
       ),
@@ -563,8 +556,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_combination_gm3' => array(
-      'label' => t('Geo: Combination Google Map'),
-      'description' => t('Whatever you would like, on a Google map.'),
+      'label' => t('Geo: Combination Map'),
+      'description' => t('Whatever you would like, on a map.'),
       'field types' => array(
         'gm3_combination'
       ),
