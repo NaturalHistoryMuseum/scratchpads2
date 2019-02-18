@@ -365,6 +365,17 @@
       // Todo: Add slideup animation 1s on remove
       setTimeout(() => status.remove(), delay);
     }
+
+    /**
+     * These functions are used by scratchpads_citethispage to make sure the generated pdf
+     * is viewing the same map area as the user who clicks Create Citation
+     */
+    getBounds() {
+      return this.leafletMap.getBounds();
+    }
+    setBounds(bounds) {
+      return this.leafletMap.setBounds(bounds);
+    }
   }
 
   // Entry point. Add a map to a page. This should hopefully work via AJAX.
