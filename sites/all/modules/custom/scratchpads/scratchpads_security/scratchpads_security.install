@@ -3,10 +3,11 @@
 /**
  * Implements hook_install().
  */
-function scratchpads_security_install(){
+function scratchpads_security_install()
+{
   // Set the Image CAPTCHA options.
   variable_set('image_captcha_code_length', 7);
-  variable_set('image_captcha_bilinear_interpolation', TRUE);
+  variable_set('image_captcha_bilinear_interpolation', true);
   variable_set('image_captcha_distortion_amplitude', 3);
   variable_set('image_captcha_line_noise', 1);
   variable_set('image_captcha_noise_level', 1);
@@ -30,7 +31,8 @@ function scratchpads_security_install(){
 /**
  * Implements hook_disable()
  */
-function scratchpads_security_disable(){
+function scratchpads_security_disable()
+{
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array(
@@ -41,7 +43,8 @@ function scratchpads_security_disable(){
 /**
  * Implements hook_uninstall()
  */
-function scratchpads_security_uninstall(){
+function scratchpads_security_uninstall()
+{
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('drupal_uninstall_modules', array(
@@ -52,7 +55,8 @@ function scratchpads_security_uninstall(){
 /**
  * Enable the spambot module
  */
-function scratchpads_security_update_7001(){
+function scratchpads_security_update_7001()
+{
   module_enable(array(
     'spambot'
   ));
@@ -68,7 +72,8 @@ function scratchpads_security_update_7001(){
  * Disable the captcha_after module, and also prevent captcha from being added
  * to the login block form.  This is to enable caching to work.
  */
-function scratchpads_security_update_7002(){
+function scratchpads_security_update_7002()
+{
   module_disable(array(
     'captcha_after'
   ));
@@ -81,8 +86,9 @@ function scratchpads_security_update_7002(){
 /**
  * Enable honeypot and make spambot a little more sensitive.
  */
-function scratchpads_security_update_7003(){
-  if(!module_exists('honeypot')){
+function scratchpads_security_update_7003()
+{
+  if (!module_exists('honeypot')) {
     module_enable(array(
       'honeypot'
     ));
@@ -92,4 +98,16 @@ function scratchpads_security_update_7003(){
   variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
   variable_set('spambot_cron_user_limit', 10);
+}
+
+/**
+ * Enable spamicide module
+ */
+function scratchpads_security_update_7004()
+{
+  if (!module_exists('spamicide')) {
+    module_enable(array(
+      'spamicide'
+    ));
+  }
 }
