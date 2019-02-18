@@ -39,12 +39,25 @@
 }
 .gm3-tools{
  margin-top:30px;
- width:60px;
+ width:100px;
  padding:0;
  float:left;
  /*overflow:hidden;*/
  border-radius: 4px 0 0 4px;
 }
+
+.gm3-tools-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.gm3-tools-button:hover {
+  text-decoration: underline;
+}
+
 .gm3-tools ul{
  padding:0 !important;
  margin:0 !important;

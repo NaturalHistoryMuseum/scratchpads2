@@ -67,19 +67,6 @@ function gm3_library(){
         )
       )
     ),
-    // Convex hull
-    // Todo: If we're not using this, get rid of it?
-    // NOTE - This is not currently working, DO NOT USE!
-    'gm3.convexhull' => array(
-      'title' => t('Google Convex Hull'),
-      'website' => 'http://www.geocodezip.com/map-markers_ConvexHull_Polygon.asp',
-      'version' => '1',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.convexhull.js"
-        )
-      )
-    ),
     // Enable the clicking of points.
     'gm3.point' => array(
       'title' => t('Javascript Maps: Point drawing'),

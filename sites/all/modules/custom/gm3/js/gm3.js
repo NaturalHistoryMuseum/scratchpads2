@@ -40,14 +40,8 @@
         return map;
       }
 
-      // Todo: Rename these in php code
-      const {
-        id: mapId,
-        settings
-      } = map;
-
-      // Todo: Remove this
-      this.id = mapId;
+      const mapId = this.id = map.id;
+      const settings = map.settings;
 
       // The maximum number of objects (points, etc) allowed on the map
       const maxObjects = parseInt(map.max_objects, 10);
@@ -75,9 +69,11 @@
         leafletOptions.minZoom = minZoom;
       }
 
-      // Todo: rename this to something better
+      // The currently selected tool (left sidebar)
       this.activeClass = 'default';
-      // Todo: rename this to something better
+
+      // The list of gm3 plugins to add to the map
+      // (Polygons, points, overlays, etc)
       this.children = {};
 
       const mapNode = document.getElementById(mapId);
@@ -110,26 +106,26 @@
       this.leafletMap = leafletMap;
       this.mapNode = mapNode;
 
+      // Add some event listeners to the map for the libraries we're about to add
       leafletMap.on({
         beforeaddobject: e => {
           if(!this.beforeAddObject()) { e.cancel(); }
         },
         deactivate: e => this.deactivateActiveLibrary(),
         update: ({ value, layer }) => this.updateField(layer, value),
-        message: ({ message }) => this.message(message)
+        message: ({ message, type, delay }) => this.message(message, type, delay)
       });
 
       // Add libraries
-      // Todo: refactor
       for(const id in map.libraries) {
         const LibClass = Drupal.GM3[id];
         if(LibClass) {
-          const child = this.children[id] = new LibClass(
-             map.libraries[id]
-          );
+          const child = this.children[id] = new LibClass(map.libraries[id]);
 
+          // Classes will extend L.Layer or L.Control, which both have addTo()
           child.addTo(this.leafletMap);
 
+          // If there is a field for this library, watch for changes on keypress
           const field = this.getFieldForLayer(id);
           if(field) {
             let timeout;
@@ -212,15 +208,17 @@
       const field = this.getFieldForLayer(layerId);
 
       if (field){
+        // If this is a combo box (e.g. region select), we have to select the individual options
         if (field.multiple && Array.isArray(value)) {
           field.value = null;
           for (const item of value) {
             const option = field.querySelector(`option[value="${item}"]`) ||
-                           field.querySelector(`option[value="${item}:"]`) // Fixme: Hack to make region selection work properly;
+                           field.querySelector(`option[value="${item}:"]`)
             if(option) {
               option.selected = true;
+            } else {
+              this.message(`Could not set the field value ${item}`, 'error');
             }
-            // Todo: Error if there's no option?
           }
         } else {
           field.value = value;
@@ -275,7 +273,7 @@
       }
 
       // Put the listener on the toolbar element so it can catch all of the child events bubbling up
-      // Todo: Add the button role to the menu items (or make the element a button)
+      // Add the button role to the menu items (or make the element a button)
       toolbar.addEventListener('click', ({ target }) => {
         // The data-gm3-class attribute value is in target.parentNode.dataset.gm3Class
         const gm3Class = target.dataset.gm3Class || target.parentNode.dataset.gm3Class;
@@ -323,13 +321,12 @@
         return;
       }
 
-      // Todo: Can this toolbar stuff be split off into a toolbar module?
+      // All this toolbar stuff is not pretty, might be better as a child library
+      // that extends L.Control
       const toolbar = this.toolbar;
       if (toolbar) {
         // Remove the gm3-clicked class from the existing clicked element and add it to the clicked one
         toolbar.querySelector(`.gm3-clicked`).classList.remove('gm3-clicked');
-
-        // Todo: Get the target from the actual event
         toolbar.querySelector(`[data-gm3-class="${activeClass}"]`).parentNode.classList.add('gm3-clicked');
       }
 
@@ -339,7 +336,6 @@
       if(activeClass == 'default') {
         // Set the default settings
         mapNode.classList.remove('gm3-tool-active');
-        // Todo: Set the cursor to "pointer"
 
       } else {
         const activeChild = this.children[activeClass];
@@ -352,7 +348,6 @@
     }
 
     message(message, type = 'status', delay = 4000){
-      // Todo: clean this up
       // Display an alert message which disappears after a short time. This is
       // intended as an alternative to the JavaScript alert function.
       // type can be one of: "status", "warning", "error" as supported by Drupal.
@@ -362,7 +357,7 @@
       status.classList.add(type);
       status.innerHTML = message;
       this.mapNode.parentNode.prepend(status);
-      // Todo: Add slideup animation 1s on remove
+
       setTimeout(() => status.remove(), delay);
     }
 

@@ -70,7 +70,10 @@
       });
 
       if(content) {
-        // Todo: Include title?
+        if(title) {
+          content = `<h3>${title}</h3>\n${content}`;
+        }
+
         point.bindPopup(content, { className: 'gm3_infobubble' });
       }
     }

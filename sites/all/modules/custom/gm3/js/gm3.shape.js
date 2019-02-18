@@ -134,7 +134,11 @@
         });
       } else if(content) {
         // We don't add a popup to an editable polygon.
-        // Todo: Include title?
+
+        if(title) {
+          content = `<h3>${title}</h3>\n${content}`;
+        }
+
         polygon.bindPopup(content, { className: 'gm3_infobubble' });
       }
 

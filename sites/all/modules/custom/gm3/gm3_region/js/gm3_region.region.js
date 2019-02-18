@@ -123,22 +123,22 @@
             const shape = region.shape || region[regionId].shape;
             const polygons = shape.type === 'MultiPolygon' ? shape.coordinates :
                              shape.type === 'Polygon' ? [shape.coordinates] : [];
+            const regionParts = [];
 
             for (const polygon of polygons) {
               for(const points of polygon) {
-                const poly = this.addPolygon(points);
-
-                this.countries[regionId].push(poly);
-
-                if (editable) {
-                  poly.on('contextmenu', e => {
-                    this.removePolygonsById(regionId);
-                    L.DomEvent.stopPropagation(e);
-                  });
-                }
+                regionParts.push(this.addPolygon(points));
               }
             }
-            this.addObject(this.countries[regionId]);
+
+            this.countries[regionId] = this.addObject(regionParts);
+
+            if (editable) {
+              this.countries[regionId].on('contextmenu', e => {
+                this.removePolygonsById(regionId);
+                L.DomEvent.stopPropagation(e);
+              });
+            }
           }
         }
       }
@@ -191,21 +191,38 @@
           return;
         }
 
+        try {
+          const polygonId = await this.getPolygonId(latLng);
+
+          if(polygonId) {
+            if (this.countries[polygonId]) {
+              this.setMessage('Region already selected');
+            } else {
+              this.addPolygonsByIds(polygonId, true);
+            }
+          }
+        } catch(e) {
+          this.setMessage(`An error occurred while selecting the region; ${e}`, 'error');
+        }
+      }
+
+      /**
+       * Get the polygon coordinates for the given region, using the osm & scratchpads apis
+       * @param {L.LatLng} latLng The point in the region to select
+       */
+      async getPolygonId(latLng) {
         const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-        // Todo: Handle errors here
         const res = await fetch(geocodeUrl(latLng));
+        if(!res.ok) {
+          throw new Error(`Geocoder returned status ${res.status} (${res.statusText})`);
+        }
         const result = await res.json();
         const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
         const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.levelControl.selectingLevel}`);
-        const polygonId = await res2.json();
-
-        if(polygonId) {
-          if (this.countries[polygonId]) {
-            this.setMessage('Region already selected');
-          } else {
-            this.addPolygonsByIds(polygonId, true);
-          }
+        if(!res2.ok) {
+          throw new Error(`Scratchpads polygon callback returned status ${res.status} (${res.statusText})`);
         }
+        return await res2.json();
       }
 
       /**

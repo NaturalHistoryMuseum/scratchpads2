@@ -135,13 +135,14 @@
      * @param {L.Layer[]} layers Array of items to add to this tool's layer group
      */
     addObject(layers) {
-      layers = Array.isArray(layers) ? layers : [layers];
+      // If it's a single layer, add it as one. If it's multiple layers,
+      // combine into a featuregroup so it only counts as one item
+      const layer = Array.isArray(layers) ? L.featureGroup(layers) : layers;
 
-      for(const layer of layers) {
-        this.objectLayer.addLayer(layer);
-      }
+      this.objectLayer.addLayer(layer);
 
       this.updateField();
+      return layer;
     }
 
     /**
@@ -159,8 +160,8 @@
     /**
      * Set a user error/info message
      */
-    setMessage(message){
-      this.fire('message', { message }, true);
+    setMessage(message, status, duration){
+      this.fire('message', { message, status, duration }, true);
     }
 
     /**
