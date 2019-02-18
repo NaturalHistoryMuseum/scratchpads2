@@ -257,13 +257,16 @@ function scratchpads_issues_block_view_issue($id)
     try {
         $issue = $client->api('issue')->show($repo_owner, $repo_name, $id);
     } catch (\Github\Exception\RuntimeException $e) {
-        if ($e->getCode() == 404) {
-            return drupal_not_found();
-        } else {
-            // Mysterious error - could be host failing to resolve?
-            // echo $e->getCode();
-            // echo $e->getMessage();
-            throw $e;
+        switch($e->getCode()) {
+            case 404:
+                return drupal_not_found();
+            case 401:
+                return "There is a configuration problem with scratchpads_issues_block";
+            default:
+                // Mysterious error - could be host failing to resolve?
+                // echo $e->getCode();
+                // echo $e->getMessage();
+                throw $e;
         }
     }
 

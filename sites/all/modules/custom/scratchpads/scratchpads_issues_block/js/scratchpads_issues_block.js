@@ -13,11 +13,17 @@ Drupal.settings.scratchpads_issues_block = {
           label => `<span class="label" style="border-color:#${label.color};">${ label.name }</span>`
         ).join('');
 
+        const bodyMaxLength = 500;
+        const body = !item.body ? '(No details)' :
+                     // Truncate the message if it's too long, to stop firefox crashing
+                     item.body.length > bodyMaxLength ? item.body.substring(0, bodyMaxLength) + '…' :
+                     item.body;
+
         // Map to format expected by remote_issues_tab
         return acc.concat({
           link: '/issues/' + item.html_url.match(/[0-9]+(?=\/?$)/)[0],
           title: item.title,
-          body: labels + marked(item.body || '(No details)')
+          body: labels + marked(body)
         });
       },
       []
