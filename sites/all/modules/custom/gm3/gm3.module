@@ -303,6 +303,7 @@ function gm3_settings(){
       'longitude' => 0
     ),
     'zoom' => 4,
-    'minZoom' => 4
+    'maxZoom' => null,
+    'minZoom' => null
   ));
 }

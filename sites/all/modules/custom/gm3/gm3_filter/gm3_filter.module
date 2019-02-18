@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Enables a user to embed a google map within filtered text simply by adding
+ * Enables a user to embed a Leaflet map within filtered text simply by adding
  *
- * [google_map]
+ * [map]
  *
  * {gm3_json_specification}
  *
- * [/google_map]
+ * [/map]
  */
 /**
  * Implementation of hook_menu().
@@ -15,8 +15,8 @@
 function gm3_filter_menu(){
   return array(
     'gm3_filter' => array(
-      'title' => 'Google Map filter helper',
-      'description' => 'Generate the code required to embed a Google Map within a webpage.',
+      'title' => 'Interactive Map filter helper',
+      'description' => 'Generate the code required to embed an interactive map within a webpage.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array(
         'gm3_filter_helper_form'
@@ -90,11 +90,10 @@ function gm3_filter_library(){
 function gm3_filter_filter_info(){
   return array(
     'gm3_filter_google_map' => array(
-      'title' => 'Google Map',
-      'description' => 'Embed a Google Map into any formatted text on your site',
-      'process callback' => 'gm3_filter_google_map_process',
+      'title' => 'Interactive Map',
+      'description' => 'Embed a map into any formatted text on your site',
+      'process callback' => 'gm3_filter_map_process',
       'cache' => FALSE,
-      'tips callback' => 'gm3_filter_google_map_tips',
       'weight' => 0
     )
   );
@@ -103,9 +102,9 @@ function gm3_filter_filter_info(){
 /**
  * Callbacks as defined in hook_filter_info.
  */
-function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
-  // Search for [google_map]...[/google_map]
-  preg_match_all('|\[google_map\](.*)\[/google_map\]|i', $text, $matches);
+function gm3_filter_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  // Search for [map]...[/map] (optional google_ prefix for backwards compat)
+  preg_match_all('|\[(?:google_)?map\](.*)\[/(?:google_)?map\]|i', $text, $matches);
   foreach($matches[0] as $key => $match_text){
     // Decode middle!
     if($map = json_decode(trim($matches[1][$key]), TRUE)){
@@ -114,7 +113,7 @@ function gm3_filter_google_map_process($text, $filter, $format, $langcode, $cach
       )), $text);
     }else{
       // Failed to decode the JSON, give an error message instead.
-      $text = str_replace($match_text, '<p class="error">' . t('The google map you have provided is invalid.') . '</p>', $text);
+      $text = str_replace($match_text, '<p class="error">' . t('The map configuration you have provided is invalid.') . '</p>', $text);
     }
   }
   return $text;

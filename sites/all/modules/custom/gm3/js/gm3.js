@@ -43,8 +43,7 @@
       // Todo: Rename these in php code
       const {
         id: mapId,
-        settings,
-        minZoom
+        settings
       } = map;
 
       // Todo: Remove this
@@ -54,8 +53,27 @@
       const maxObjects = parseInt(map.max_objects, 10);
       this.maxObjects = isNaN(maxObjects) ? Infinity : maxObjects;
 
-      // How far out user is allowed to zoom
-      this.minZoom = parseInt(minZoom, 10);
+      const leafletOptions = {
+        center: [settings.center.latitude, settings.center.longitude],
+        layers: [osmTileLayer],
+        editable: true,
+      };
+
+      if(settings.zoom) {
+        leafletOptions.zoom = settings.zoom;
+      }
+
+      // How far in/out user is allowed to zoom
+      const maxZoom = parseInt(settings.maxZoom, 10);
+      const minZoom = parseInt(settings.minZoom, 10);
+
+      if(maxZoom) {
+        leafletOptions.maxZoom = maxZoom;
+      }
+
+      if(minZoom) {
+        leafletOptions.minZoom = minZoom;
+      }
 
       // Todo: rename this to something better
       this.activeClass = 'default';
@@ -76,16 +94,10 @@
       // Prevent users from panning up or down too far
       const southWest = L.latLng(-89.98155760646617, -Infinity);
       const northEast = L.latLng(89.99346179538875, Infinity);
-      const maxBounds = L.latLngBounds(southWest, northEast);
+      leafletOptions.maxBounds = L.latLngBounds(southWest, northEast);
 
       // Create the actual map
-      const leafletMap = L.map(mapNode, {
-        center: [settings.center.latitude, settings.center.longitude],
-        zoom: settings.zoom,
-        layers: [osmTileLayer],
-        maxBounds,
-        editable: true
-      });
+      const leafletMap = L.map(mapNode, leafletOptions);
 
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.
@@ -142,8 +154,10 @@
       // This is the active tool/setting in the toolbar
       this.setActiveClass('default');
 
-      // Automatically zoom to fit all points in map
-      this.autozoom(leafletMap);
+      // Automatically zoom to fit all points in map, but don't zoom in further than the default zoom level
+      this.autozoom({
+        maxZoom: settings.zoom
+      });
     }
 
     /**
@@ -236,7 +250,7 @@
     }
 
     // Automatically zoom to fit all points in on the map
-    autozoom(){
+    autozoom(options){
       // A rectangle containing all markers on the map
       const bounds = L.latLngBounds();
 
@@ -249,7 +263,7 @@
 
       if(bounds.isValid()) {
         // Pad extends the area slightly to make sure all points fit comfortably
-        this.leafletMap.fitBounds(bounds.pad(0.5));
+        this.leafletMap.fitBounds(bounds.pad(0.5), options);
       }
     }
 

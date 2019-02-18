@@ -18,7 +18,7 @@ function gm3_requirements($phase){
     catch(Exception $e){
       $geophp_version = 0;
     }
-    if($geophp_version >= 0.4){
+    if($geophp_version >= 1.2){
       return array(
         'gm3_geophp' => array(
           'title' => t('GeoPHP Library'),
@@ -71,6 +71,7 @@ function gm3_update_7004(){
     'height',
     'center',
     'zoom',
+    'maxZoom',
     'minZoom'
   );
 

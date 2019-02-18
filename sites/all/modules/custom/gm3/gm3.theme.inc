@@ -12,16 +12,6 @@ function theme_gm3_map($variables){
  * Function to return a renderable array for a map.
  */
 function gm3_get_map($variables){
-  // FIXME - This should be changed to dynamically calcuate what GM3 JS
-  // libraries are dependent on others.
-  $dependencies = array(
-    'region' => 'polygon'
-  );
-  foreach($dependencies as $library => $dependent){
-    if(isset($variables['map']['libraries'][$library]) && !isset($variables['map']['libraries'][$dependent])){
-      $variables['map']['libraries'][$dependent] = array();
-    }
-  }
   // No need to use drupal_static here!
   static $info = array();
   if(!isset($variables['map']['id'])){
