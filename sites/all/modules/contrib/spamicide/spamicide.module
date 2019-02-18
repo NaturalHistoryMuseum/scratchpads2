@@ -1,0 +1,480 @@
+<?php
+
+/**
+ * @defgroup spamicide Spamicide: another tool to eliminate spam.
+ *
+ * The spamicide module provides the ability to prevent spam being submitted to your site on various drupal forms.
+ *
+ * Author:  Wes Roepken aka lipcpro < wes at lipcpro dot com >
+ * Date:    05/01/2011
+ */
+
+/**
+ * @file
+ * This module provides yet another tool to eliminate spam.
+ *
+ * @ingroup spamicide
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function spamicide_menu() {
+  $items['admin/config/people/spamicide'] = array(
+    'title' => 'Spamicide',
+    'description' => 'Administer how and where Spamicide is used.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('spamicide_admin_form'),
+    'access arguments' => array('administer spamicide'),
+    //'access callback' => TRUE,
+  );
+  $items['admin/config/people/spamicide/form'] = array(
+    'title' => 'Forms',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'access callback' => TRUE,
+  );
+
+  // form for adding spamicide form protection
+  $items['admin/config/people/spamicide/spamicide_form/add/%'] = array(
+    'title' => 'Set Spamicide form',
+    'description' => "Add or edit form_id's to protect with Spamicide.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('spamicide_admin_adform_form', 6, TRUE),
+    'access arguments' => array('administer spamicide'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/people/spamicide/spamicide_form/delete/%'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('spamicide_delete_confirm', 6, TRUE),
+    'access arguments' => array('administer spamicide'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function spamicide_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/people/spamicide':
+      return t('The spamicide module provides the ability to prevent spam being submitted to your site on various drupal forms');
+
+    case 'admin/help#spamicide':
+      $output = 'Spamicide';
+      $output .= '<p>' . t("Spamicide is intended to prevent spam without user interaction. Select the forms you'd like to attach spamicide to and a form field will be added but hidden by css. If the field is filled by anything (including humans that think they know better) it will prevent submission into you site.") . '</p>';
+      $output .= '<p>' . t('To add Spamicide to a form once you\'ve enabled adding admin links, navigate to that form, and click the link "Add Spamicide protection to this form"') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function spamicide_permission() {
+  return array(
+    'administer spamicide' => array(
+      'title' => t("Administer Spamicide protection of Drupal's forms"),
+      'description' => t('Select the known forms to protect with spamicide, and make administration links available on other forms not yet known to spamicide')
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function spamicide_theme() {
+  return array(
+    'spamicide_admin_settings' => array(
+      'render element' => 'form',
+    ),
+/*    'spamicide' => array(
+      'render element' => 'form',
+    ),//*/
+  );
+}
+
+/**
+ * Form for spamicide administration
+ * @param $spamicide_form_id
+ * @return unknown_type
+ */
+function spamicide_admin_form() {
+  $form['spamicide_administration_mode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add Spamicide administration links to forms'),
+    '#default_value' => variable_get('spamicide_administration_mode', TRUE),
+    '#description' => t("This option will allow enabling/disabling Spamicide on forms. When enabled, users with the '%adminspamicide' permission will see Spamicide administration links on all forms (except on administrative pages, which shouldn't be accessible to untrusted users in the first place). These links make it possible to enable or disable it for the desired type.", array('%adminspamicide' => t('administer spamicide'))),
+  );
+  $form['spamicide_log_attempts'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Log attempts'),
+    '#description' => t('Report information about attempts to the !dblog.', array('!dblog' => l(t('log'), 'admin/reports/dblog'))),
+    '#default_value' => variable_get('spamicide_log_attempts', TRUE),
+  );
+  $form['spamicide_dir'] = array(
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#title' => t('Spamicide Directory'),
+    '#description' => t("Set the spamicide directory name to further hide it's signature."),
+    '#default_value' => variable_get('spamicide_dir', "spamicide"),
+  );
+  $form['spamicide_description'] = array(
+      '#type' => 'textfield',
+      '#size' => 90,
+      '#title' => t('Spamicide Description Message'),
+      '#description' => t("Set the spamicide description message to further hide it's signature."),
+      '#default_value' => variable_get('spamicide_description', "To prevent automated spam submissions leave this field empty."),
+  );
+  $form['spamicide_forms'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Add Spamicide to a form or remove an added form'),
+    '#description' => t("Select from the listed forms (identified by their <strong>form_id</strong>'s). You can easily add arbitrary forms with the help of the <strong>'Add Spamicide administration links to forms'</strong> option above then navigating to any form."),
+  );
+  $form['spamicide_forms']['spamicide_form'] = array(
+    '#tree' => TRUE,
+    '#theme' => 'spamicide_admin_settings',
+  );
+  // list all possible form_id's
+  $result = db_query("SELECT * FROM {spamicide} ORDER BY form_id");
+  while ($spamicide = $result->fetchObject()) {
+    $form['spamicide_forms']['spamicide_form'][$spamicide->form_id]['enabled'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $spamicide->enabled,
+    );
+    $form['spamicide_forms']['spamicide_form'][$spamicide->form_id]['form_id'] = array(
+      '#markup' => check_plain($spamicide->form_id),
+    );
+    $form['spamicide_forms']['spamicide_form'][$spamicide->form_id]['form_field'] = array(
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#default_value' => $spamicide->form_field,
+    );
+    // additional operations
+    if ($spamicide->removable) {
+      $form['spamicide_forms']['spamicide_form'][$spamicide->form_id]['operations'] = array(
+        '#markup' => implode(", ", array(
+          l(t('delete'), "admin/config/people/spamicide/spamicide_form/delete/{$spamicide->form_id}"),
+        ))
+      );
+    }
+    else {
+      $form['spamicide_forms']['spamicide_form'][$spamicide->form_id]['operations'] = array(
+        '#markup' => "N/A",
+      );
+    }
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Custom theme function
+ * @param $form
+ * @return unknown_type
+ */
+function theme_spamicide_admin_settings($variables) {
+  $form = $variables['form'];
+  $header = array(t('Enabled'), t('Form_id'), t('Form field name'), t('Delete'));
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $row = array();
+    $row[] = drupal_render($form[$key]['enabled']);
+    $row[] = drupal_render($form[$key]['form_id']);
+    $row[] = drupal_render($form[$key]['form_field']);
+    $row[] = drupal_render($form[$key]['operations']);
+    $rows[] = $row;
+  }
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  return $output;
+}
+
+/**
+ * Implements hook_form_validate().
+ * Enter description here ...
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function spamicide_admin_form_validate($form, &$form_state) {
+  foreach ($form_state['values']['spamicide_form'] as $spamicide_form_id => $data) {
+    if (!$data['form_field']) {
+      form_set_error('spamicide_form][' . $spamicide_form_id . '][form_field', t("%field field name cannot be empty", array('%field' => $spamicide_form_id)));
+    }
+    if (preg_match_all('[\W]', $data['form_field'], $str)) {
+      form_set_error('spamicide_form][' . $spamicide_form_id . '][form_field', t("Only AlphaNumeric characters or the underscore please"));
+    }
+  }
+  if (!$form_state['values']['spamicide_dir']) {
+    form_set_error('spamicide_dir', t("Spamicide directory name cannot be empty"));
+  }
+  if (preg_match_all('[\W]', $form_state['values']['spamicide_dir'], $str)) {
+    form_set_error('spamicide_dir', t("Only AlphaNumeric characters or the underscore please"));
+  }else if ($form_state['values']['spamicide_dir'] != variable_get('spamicide_dir')) {
+    $path = 'public://' . $form_state['values']['spamicide_dir'];
+    if (is_dir($path)) {
+      form_set_error('spamicide_dir', t("Unable to create new directory, it already exists, please choose another name"));
+    }
+    elseif (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
+      form_set_error('spamicide_dir', t("Unable to create new directory, please double check file system permissions and try again"));
+    }
+  }
+  if (!$form_state['values']['spamicide_description']) {
+    form_set_error('spamicide_description', t("The description should not be emtpy for accessibility purposes"));
+  }
+}
+
+/**
+ * Implements hook_form_submit().
+ * @param $form
+ * @param $form_values
+ */
+function spamicide_admin_form_submit($form, &$form_state) {
+  module_load_include('inc', 'spamicide');
+    variable_set('spamicide_administration_mode', $form_state['values']['spamicide_administration_mode']);
+    variable_set('spamicide_log_attempts', $form_state['values']['spamicide_log_attempts']);
+    if ($form_state['values']['spamicide_dir'] != variable_get('spamicide_dir')) {
+      file_unmanaged_delete_recursive('public://' . variable_get('spamicide_dir'));
+      variable_set('spamicide_dir', $form_state['values']['spamicide_dir']);
+    }
+    if ($form_state['values']['spamicide_description'] != variable_get('spamicide_description')) {
+      variable_set('spamicide_description', $form_state['values']['spamicide_description']);
+    }
+    foreach ($form_state['values']['spamicide_form'] as $spamicide_form_id => $data) {
+      // create an array of the files in the spamdir and check it
+        _spamicide_set_css_file($data['form_field'], 'create');
+        db_merge('spamicide')
+          ->key(array('form_id' => $spamicide_form_id))
+          ->fields(array('enabled' => $data['enabled'], 'form_field' => $data['form_field']))
+          ->execute();
+    }
+    drupal_set_message(t('The Spamicide settings were saved.'), 'status');
+}
+
+/**
+ * Form for adding spamicide functionality to an existing form
+ * @param $spamicide_form_id
+ * @return $form
+ */
+function spamicide_admin_adform_form($form, &$form_state, $spamicide_form_id) {
+  // use given spamicide form_id
+  $form['spamicide_form_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Form ID'),
+    '#description' => t('The Drupal form_id of the form to add the Spamicide to.'),
+    '#value' => $spamicide_form_id,
+    '#disabled' => TRUE,
+  );
+  // will have to set default for this is a form/variable
+  $form['spamicide_form_field'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Form field'),
+    '#default_value' => 'feed_me',
+    '#description' => t('The name you want for the field. Use only letters, numbers, and the underscore character(_).'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_validate().
+ * Enter description here ...
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function spamicide_admin_adform_form_validate($form, &$form_state) {
+  if (preg_match_all('[\W]', $form_state['values']['spamicide_form_field'], $str)) {
+    form_set_error('spamicide_form][spamicide_form_field', t("Only AlphaNumeric characters or the underscore please"));
+  }
+}
+
+/**
+ * Implements hook_form_submit().
+ * @param $form
+ * @param $form_values
+ */
+function spamicide_admin_adform_form_submit($form, &$form_state) {
+  module_load_include('inc', 'spamicide');
+  // remove old settings
+  db_delete('spamicide')->condition('form_id', $form_state['values']['spamicide_form_id'])->execute();
+  // save new settings
+  db_insert('spamicide')
+    ->fields(array(
+      'form_id' => $form_state['values']['spamicide_form_id'],
+      'form_field' => $form_state['values']['spamicide_form_field'],
+      'enabled' => 1,
+    ))
+    ->execute();
+  _spamicide_set_css_file($form_state['values']['spamicide_form_field'], 'create');
+  drupal_set_message(t('Saved Spamicide settings.'), 'status');
+  // redirect to general Spamicide settings page after submission
+  drupal_goto('admin/config/people/spamicide');
+}
+
+/**
+ * Confirm dialog for deleting a Spamicide form
+ *
+ * @param $spamicide_form_id the form_id of the form to delete the Spamicide
+ *   protection from
+ * @param $delete boolean for also deleting the Spamicide
+ */
+function spamicide_delete_confirm($form, &$form_state, $spamicide_form_id, $delete) {
+  $form['spamicide_form_id'] = array(
+    '#type' => 'value',
+    '#value' => $spamicide_form_id,
+  );
+  $form['spamicide_delete'] = array(
+    '#type' => 'value',
+    '#value' => $delete,
+  );
+    $message = t('Are you sure you want to remove Spamicide protection for form_id %form_id?', array('%form_id' => $spamicide_form_id));
+    $yes = t('Delete');
+  return confirm_form($form, $message, isset($_GET['destination']) ? check_plain($_GET['destination']) : 'admin/config/people/spamicide/spamicide_form', '', $yes);
+}
+
+/**
+ * submission handler of Spamicide delete confirm_form
+ */
+function spamicide_delete_confirm_submit($form, &$form_state) {
+  $spamicide_form_id = $form_state['values']['spamicide_form_id'];
+  $spamicide_form_field = db_query('SELECT form_field FROM {spamicide} WHERE form_id = :form_id', array(':form_id' => $spamicide_form_id))->fetchField();
+  db_delete('spamicide')->condition('form_id', $form_state['values']['spamicide_form_id'])->execute();
+  _spamicide_set_css_file($spamicide_form_field, 'delete');
+  drupal_set_message(t('Spamicide protection for form %form_id has been removed.', array('%form_id' => $spamicide_form_id)));
+  // redirect to general Spamicide settings page after deletion
+  drupal_goto('admin/config/people/spamicide');
+}
+
+/**
+ * Implements hook_form_alter().
+ * @param $form_id
+ * @param $form_state
+ * @param $form
+ */
+function spamicide_form_alter(&$form, &$form_state, $form_id) {
+  if (strpos($form_id, 'search') !== FALSE || strpos($form_id, 'update_script') !== FALSE) {//ignore the search & update forms
+    return;
+  }
+  module_load_include('inc', 'spamicide');
+    $spamicide_field = _spamicide_get_field($form_id);
+    if ($spamicide_field) {
+        //$sfile = 'public://' . variable_get('spamicide_dir', 'spamicide') . '/' . $spamicide_field . '.css';
+        $spamicide_description = _spamicide_get_description();
+        $spamicide_destination = drupal_get_destination();
+        $form[$spamicide_field] = array(
+          '#title' => _spamicide_set_title($spamicide_field),
+          '#type' => 'textfield',
+          '#size' => 20,
+          '#description' => check_plain($spamicide_description),
+          //'#pre_render' => array('spamicide_pre_render'),
+          '#pre_render' => array('spamicide_pre_render_place_spamicide'),
+          '#name' => $spamicide_field,
+          '#post_render' => array('_spamicide_field_post_render'),
+        );
+        $form['#attached']['css'][] = 'public://' . variable_get('spamicide_dir', 'spamicide') . '/' . $spamicide_field . '.css';
+        $form['destination'] = array(
+          '#type' => 'value',
+          '#value' => $spamicide_destination['destination'],
+        );
+        $form['spamicide']['#element_validate'] = array('spamicide_validate');
+    }
+    elseif (user_access('administer spamicide') && variable_get('spamicide_administration_mode', TRUE) && arg(0) != 'admin') {
+      $form['spamicide'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Spamicide'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form['spamicide']['add_spamicide'] = array(
+        '#markup' => l(t('Add Spamicide protection to this form.'), "admin/config/people/spamicide/spamicide_form/add/$form_id"),
+      );
+    }
+    else {
+      return;
+    }
+}
+
+function spamicide_pre_render($element) {
+  // Todo 
+  return ($element);
+}
+
+/**
+ * Implements hook_validate().
+ * @param $form_values
+ * @return none
+ */
+function spamicide_validate($form, &$form_state) {
+  module_load_include('inc', 'spamicide');
+  $form_id = $form_state['values']['form_id'];
+  $spamicide_field = _spamicide_get_field($form_id);
+  if (!$spamicide_field) {
+    return;
+  }
+  elseif (empty($form_state['values'][$spamicide_field])) {
+    return;
+  }
+  else {
+    // update attempt counter
+    variable_set('spamicide_attempt_counter', variable_get('spamicide_attempt_counter', 0) + 1);
+    // log to watchdog if needed
+    if (variable_get('spamicide_log_attempts', TRUE)) {
+      watchdog('Spamicide',
+        '%form_id post blocked by Spamicide module: their IP address is "%ipaddress".',
+          array('%form_id' => $form_id, '%ipaddress' => ip_address()),
+        WATCHDOG_NOTICE);
+    }
+    // If Spamicide was on a login form: stop validating, quit the current request
+    // and forward to the current page (like a reload) to prevent logging in.
+    // We do that because the log in procedure, which happens after
+    // spamicide_validate(), does not check error conditions of extra form
+    // elements like the Spamicide.
+    if ($form_id == 'user_login' || $form_id == 'user_login_block') {
+      drupal_goto($_GET['q']);
+    }
+    else {
+      drupal_goto($form_state['values']['destination']);
+    }
+  }
+}
+
+/**
+ * Place the spamicide field just before the submit button
+ * @param $form_id
+ * @param $form
+ * @todo figure out how to make this work
+ */
+function spamicide_pre_render_place_spamicide(&$form) {
+  module_load_include('inc', 'spamicide');
+  // search the weights of the buttons in the form
+  $button_weights = array();
+  foreach (element_children($form) as $key) {
+    if ($key == 'buttons' || isset($form[$key]['#type']) && ($form[$key]['#type'] == 'submit')) {
+      $button_weights[] = $form[$key]['#weight'];
+    }
+  }
+  if ($button_weights) {
+    // set the weight of the Spamicide element a tiny bit smaller than the lightest button weight
+    // (note that the default resolution of #weight values is 1/1000 (see drupal/includes/form.inc))
+    $first_button_weight = min($button_weights);
+    $spamicide_field = _spamicide_get_field($form_id);
+    if ($spamicide_field) {
+      $form[$spamicide_field]['#weight'] = $first_button_weight - 0.5/1000.0;
+    }
+    else {
+      $form['spamicide']['#weight'] = $first_button_weight - 0.5/1000.0;
+    }
+    // make sure the form gets sorted before rendering
+    unset($form['#sorted']);
+  }
+  return $form;
+}

@@ -1,0 +1,9 @@
+UPGRADE.txt
+
+Upgrade instructions from 6.x-1.3
+================================
+1) do not uninstall it if you want to keep the forms you already have protected in the database
+2) delete the spamicide module directory but not the spamicide directory in files unless you don't
+   mind rebuilding the form list or you are running a multisite
+3) copy the new version to your sites/*/modules directory
+4) enjoy
