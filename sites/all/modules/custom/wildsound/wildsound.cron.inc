@@ -7,12 +7,6 @@ function _wildsound_export_cron($break = TRUE){
   if(!function_exists('drush_get_context')){
     return;
   }
-
-   //Correct filesizes (these are sometimes nto written).
-   $fids = db_query('SELECT fid FROM {file_managed}')->fetchCol();
-   foreach (file_load_multiple($fids) as $file) {
-    file_save($file);
-   }
   
   global $base_url;
   $output_filename = drupal_realpath('public://R') . '/' . 'bioacoustic_traits.txt';
