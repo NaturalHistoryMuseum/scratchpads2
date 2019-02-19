@@ -369,7 +369,7 @@
       return this.leafletMap.getBounds();
     }
     setBounds(bounds) {
-      return this.leafletMap.setBounds(bounds);
+      return this.leafletMap.fitBounds(bounds);
     }
   }
 
