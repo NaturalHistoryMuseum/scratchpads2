@@ -410,7 +410,18 @@ function biblio_format_authors($authors) {
     static $auth_proc;
     if (!isset($auth_proc)) {
       module_load_include('inc', 'biblio_citeproc', 'CSL');
-      $csl = '<name form="long" name-as-sort-order="all" sort-separator=", " initialize-with="" delimiter=", " />';
+      // Default CSL
+      $csl = '<name form="short" name-as-sort-order="all" sort-separator=", " initialize-with="" delimiter=", " />';
+      // Try and load the CSL file, and extract the author name style
+      $csl_id = biblio_get_style();
+      if ($csl_file_contents = biblio_citeproc_load_csl($csl_id)) {
+        $xml = simplexml_load_string($csl_file_contents);
+        $xml->registerXPathNamespace('csl', 'http://purl.org/net/xbiblio/csl');
+        $result = $xml->xpath("//csl:macro[@name='author']/csl:names/csl:name");
+        if ($result) {
+          $csl = $result[0]->asXML();
+        }
+      }
       $csl_doc = new DOMDocument();
       $csl_doc->loadXML($csl);
       $auth_proc = new csl_rendering_element($csl_doc);
