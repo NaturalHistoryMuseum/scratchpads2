@@ -1,0 +1,4 @@
+core = "7.x"
+name = "Scratchpads legacy"
+description = "Scratchpads tweaks for legacy systems"
+package = "Scratchpads"
