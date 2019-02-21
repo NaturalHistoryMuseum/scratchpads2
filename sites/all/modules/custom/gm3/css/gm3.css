@@ -120,6 +120,15 @@
  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 3px;
 }
 
+/* Set cursor to pointer any time one of the plotting tools is active */
 .gm3-tool-active {
   cursor: pointer;
+}
+
+/* Annoying that leaflet uses links instead of buttons for zoom controls,
+   because they get styled by the Omega and Scratchpads_colour modules.
+   Override that here. */
+.gm3-container .leaflet-control a{
+  text-decoration: none;
+  color: currentColor;
 }
