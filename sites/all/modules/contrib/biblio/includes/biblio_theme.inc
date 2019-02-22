@@ -419,11 +419,15 @@ function biblio_format_authors($authors) {
         $xml->registerXPathNamespace('csl', 'http://purl.org/net/xbiblio/csl');
         $result = $xml->xpath("//csl:macro[@name='author']/csl:names/csl:name");
         if ($result) {
+          //BUGFIX: Ensure and is null
+          $result[0]->attributes()->and='';
           $csl = $result[0]->asXML();
         }
+
       }
       $csl_doc = new DOMDocument();
       $csl_doc->loadXML($csl);
+
       $auth_proc = new csl_rendering_element($csl_doc);
     }
     $data = $auth_proc->render($authors);
