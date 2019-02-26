@@ -1,3 +1,20 @@
+2.9.6 (2019-02-26)
+
+Replaces Google-based map interfaces and fixes many bugs, including:
+
+- Replace Google-based maps (gm3 module) (@PaulKiddle)
+- Character handling in Literature (#5831, #5803) (@benscott)
+- Greek letters (#5769) (@benscott)
+- Large file uploads (#5763) (@benscott)
+- Performance issues (#5743) (@benscott)
+- Private groups context indexing (#5699) (@benscott)
+- Spam user registration (#5687) (@benscott)
+- Scratchpads classification service (#5674) (@benscott)
+- Taxonomy tree widget (#5657) (@benscott)
+- Docker SOLR replace image (@benscott)
+- Scratchpad sandbox offline (@benscott)
+- Scratchpad sandbox offline (#5824) (@benscott)
+
 2.9.5 (2019-01-30)
 
 This is a small update that includes a security fix for Drupal core
