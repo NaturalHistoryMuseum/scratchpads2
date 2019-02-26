@@ -169,14 +169,25 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
 }
 
 /**
+ * Generates the JS settings that will be passed to the map as the region library.
+ * Should be set as `$map['libraries']['region']`, which becomes
+ * `Drupal.settings.gm3.maps[mapId].libraries.region` in the browser.
+ */
+function gm3_region_field_js_settings($regions = [], $editable = false){
+  return [
+    'module' => 'gm3_region',
+    'editable' => $editable,
+    'regions' => $regions
+  ];
+}
+
+/**
  * View for the combo field.
  */
 function gm3_region_region_map_alter(&$map, $item){
   // This function gets called when we view the map (read-only)
-  $map['libraries']['region']['module'] = 'gm3_region';
-  $map['libraries']['region']['editable'] = false;
-  if(!isset($map['libraries']['polygon'])){
-    $map['libaries']['polygon'] = array();
+  if(!isset($map['libraries']['region']['module'])) {
+    $map['libraries']['region'] = gm3_region_field_js_settings();
   }
   $map['libraries']['region']['regions'][] = $item['region_id'];
 }
@@ -193,9 +204,8 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
  */
 function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
   // This function gets called when we use the map form (editable)
-  $map['libraries']['region']['regions'] = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
-  $map['libraries']['region']['editable'] = true;
-  $map['libraries']['region']['module'] = 'gm3_region';
+  $regions = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
+  $map['libraries']['region'] = gm3_region_field_js_settings($regions, true);
   $map['tools'][] = theme('gm3_region_button', array(
     'id' => $element['#field_name']
   ));
@@ -263,11 +273,7 @@ function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instan
           'map' => array(
             'id' => $id,
             'libraries' => array(
-              'region' => array(
-                'module' => 'gm3_region',
-                'regions' => $regions
-              ),
-              'polygon'
+              'region' => gm3_region_field_js_settings($regions)
             )
           )
         ))
@@ -388,11 +394,7 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
           'map' => array(
             'id' => $element['#field_name'],
             'libraries' => array(
-              'region' => array(
-                'module' => 'gm3_region',
-                'regions' => $regions
-              ),
-              'polygon' => array()
+              'region' => gm3_region_field_js_settings($regions, true)
             ),
             'tools' => array(
               theme('gm3_region_button', array(
