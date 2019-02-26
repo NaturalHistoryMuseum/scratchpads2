@@ -1,29 +1,30 @@
 <?php
-include_once ('scratchpads_file_colorboxed.features.inc');
+include_once('scratchpads_file_colorboxed.features.inc');
 
 /**
  * Implements hook_file_displays_alter().
- * 
+ *
  * Ensure that an image is displayed on the file/[fid] page.
  */
-function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $view_mode){
-  if($view_mode == 'full' && arg(0) == 'file'){
-    $displays['file_field_styles_file_large'] = array(
-      'status' => 1,
-      'settings' => NULL,
-      'weight' => -1000
-    );
-  }
+function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $view_mode)
+{
+    if ($view_mode == 'full' && arg(0) == 'file') {
+        $displays['file_field_styles_file_large'] = array(
+            'status' => 1,
+            'settings' => null,
+            'weight' => -1000
+        );
+    }
   // Possibly not the correct place for this tweak, but given how much of a mess
   // file displays/file entities are, I don't particularly care.
-  if($view_mode == 'file_styles_square_thumbnail' && in_array($file->type, array('text', 'application'))){
-    unset($displays['file_field_styles_file_square_thumbnail']);
-  }
+    if ($view_mode == 'file_styles_square_thumbnail' && in_array($file->type, array('text', 'application'))) {
+        unset($displays['file_field_styles_file_square_thumbnail']);
+    }
 }
 
 /**
  * Implements hook_module_implements_alter().
- * 
+ *
  * This function is only required if the hook_entity_info_alter is being used.
  */
 // function scratchpads_file_colorboxed_module_implements_alter(&$imps, $hook){
@@ -35,7 +36,7 @@ function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $vie
 // }
 /**
  * Implements hook_entity_info_alter().
- * 
+ *
  * This function has been removed as it may not be required.  It's currently not
  * possible to alter the "Full" and "Token" view modes.
  */
@@ -49,91 +50,132 @@ function scratchpads_file_colorboxed_file_displays_alter(&$displays, $file, $vie
 /**
  * Implementation of hook_menu()
  */
-function scratchpads_file_colorboxed_menu(){
-  return array(
-    'file-colorboxed/%' => array(
-      'title' => 'Scratchpads colorbox',
-      'page callback' => 'scratchpads_file_colorboxed_entity_simple_view',
-      'page arguments' => array(
-        1
-      ),
-      'access callback' => 'file_entity_access',
-      'access arguments' => array(
-        'view'
-      )
-    )
-  );
+function scratchpads_file_colorboxed_menu()
+{
+
+    if (module_exists('og')) {
+        $access_callabck = 'scratchpads_file_colorboxed_file_entity_access';
+    } else {
+        $access_callabck = 'file_entity_access';
+    }
+
+    return array(
+        'file-colorboxed/%' => array(
+            'title' => 'Scratchpads colorbox',
+            'page callback' => 'scratchpads_file_colorboxed_entity_simple_view',
+            'page arguments' => array(
+                1
+            ),
+            'access callback' => $access_callabck,
+            'access arguments' => array(
+                'view',
+                1
+            )
+        )
+    );
+
+}
+
+function scratchpads_file_colorboxed_file_entity_access($op, $fid)
+{
+    $file = file_load($fid);
+    if ($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1) {
+        if (isset($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid'])) {
+            $group = og_load($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']);
+            $group = $group->getEntity();
+            switch ($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']) {
+                case 0:
+            // We're defaulting to the group access.  Check if it is public, or
+            // simply if we have access to the group.
+                    if ($group->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] == 0) {
+                        return file_entity_access($op);
+                    }
+                case 2:
+            // The file is private, simply do we have access to the group.
+                    global $user;
+                    $groups = og_get_entity_groups('user', $user);
+                    if (isset($groups[$file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']])) {
+                        return file_entity_access($op);
+                    }
+                    break;
+            }
+            return false;
+        }
+    }
+    return file_entity_access($op);
 }
 
 /**
  * Implements hook_contextual_links_view_alter().
  */
-function scratchpads_file_colorboxed_contextual_links_view_alter(&$element, $items){
-  if(arg(0) == 'file-colorboxed'){
-    $redirect_to = 'gallery';
-    if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']){
+function scratchpads_file_colorboxed_contextual_links_view_alter(&$element, $items)
+{
+    if (arg(0) == 'file-colorboxed') {
+        $redirect_to = 'gallery';
+        if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) {
       // We edit the links so that the edit form does not point back to the popup.
       // NOTE, this will NOT work with servers that do not have clean urls enabled
       // FUCK 'EM!
-      $redirect_to = substr($_SERVER['HTTP_REFERER'], strpos($_SERVER['HTTP_REFERER'], '/', 10) + 1);
+            $redirect_to = substr($_SERVER['HTTP_REFERER'], strpos($_SERVER['HTTP_REFERER'], '/', 10) + 1);
+        }
+        foreach (array_keys($element['#links']) as $key) {
+            $element['#links'][$key]['query'] = array(
+                'destination' => $redirect_to
+            );
+            $element['#links'][$key]['attributes']['class'] = array(
+                'overlay-exclude'
+            );
+        }
     }
-    foreach(array_keys($element['#links']) as $key){
-      $element['#links'][$key]['query'] = array(
-        'destination' => $redirect_to
-      );
-      $element['#links'][$key]['attributes']['class'] = array(
-        'overlay-exclude'
-      );
-    }
-  }
 }
 
 /**
  * Callback for the above menu entry.
  */
-function scratchpads_file_colorboxed_entity_simple_view($fid){
+function scratchpads_file_colorboxed_entity_simple_view($fid)
+{
   // Check first to see if this file is associated with an eolapi entity.  If it
   // is, we display that instead.
-  if(module_exists('eolapi') && db_table_exists('field_data_eolapi_image')){
-    $results = db_select('field_data_eolapi_image', 'f')->fields('f', array(
-      'entity_id'
-    ))->condition('eolapi_image_fid', $fid)->execute();
-    foreach($results as $row){
-      $eolapi = eolapi_load($row->entity_id);
-      $markup = eolapi_page_view($eolapi);
-      echo drupal_render($markup);
-      exit();
+    if (module_exists('eolapi') && db_table_exists('field_data_eolapi_image')) {
+        $results = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+            'entity_id'
+        ))->condition('eolapi_image_fid', $fid)->execute();
+        foreach ($results as $row) {
+            $eolapi = eolapi_load($row->entity_id);
+            $markup = eolapi_page_view($eolapi);
+            echo drupal_render($markup);
+            exit();
+        }
     }
-  }
-  $entity = entity_load_single('file', $fid);
-  $view_type = 'file_styles_colorbox';
+    $entity = entity_load_single('file', $fid);
+    $view_type = 'file_styles_colorbox';
   // Wrap the audio file specially.
-  if($entity->type == 'audio'){
-    $width = 'width:400px;';
-  }else{
-    $width = '';
-  }
+    if ($entity->type == 'audio') {
+        $width = 'width:400px;';
+    } else {
+        $width = '';
+    }
   // Only use the colorbox display type if we're viewing certain files.
-  if(!in_array($entity->type, array(
-    'image',
-    'video',
-    'audio'
-  ))){
-    $view_type = 'default';
-  }
-  $content = entity_view('file', array(
-    $entity
-  ), $view_type);
-  $image_links = '';
+    if (!in_array($entity->type, array(
+        'image',
+        'video',
+        'audio'
+    ))) {
+        $view_type = 'default';
+    }
+    $content = entity_view('file', array(
+        $entity
+    ), $view_type);
+    $image_links = '';
   //unset($content[1]['#contextual_links']);
-  if($entity->type == 'image'){
-    $image_user = user_load($entity->uid);
-    $image_links = '<p>' . l(t('Download the original'), file_create_url($entity->uri), array(
-      'attributes' => array(
-        'target' => '_blank'
-      )
-    )) . ' ' . t('uploaded by:') . ' ' . l($image_user->name, 'user/' . $image_user->uid) . '</p>';
-  }
-  echo scratchpads_tweaks_translate_after_check_plain('<div style="' . $width . 'padding:10px">' . drupal_render($content) . $image_links . '</div>');
-  drupal_exit();
+    if ($entity->type == 'image') {
+        $image_user = user_load($entity->uid);
+        $image_links = '<p>' . l(t('Download the original'), file_create_url($entity->uri), array(
+            'attributes' => array(
+                'target' => '_blank'
+            )
+        )) . ' ' . t('uploaded by:') . ' ' . l($image_user->name, 'user/' . $image_user->uid) . '</p>';
+    }
+    echo scratchpads_tweaks_translate_after_check_plain('<div style="' . $width . 'padding:10px">' . drupal_render($content) . $image_links . '</div>');
+    drupal_exit();
 }
