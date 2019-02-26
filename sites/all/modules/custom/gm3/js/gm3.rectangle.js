@@ -25,8 +25,8 @@
     /**
      * Called when the tool is deactivated
      */
-    deactivate(){
-      super.deactivate();
+    completeShape(){
+      super.completeShape();
       this.firstClick = null;
     }
     /**
@@ -55,9 +55,11 @@
     updateShape(latlng){
       if(!this.firstClick) {
         this.firstClick = latlng;
+        return;
       }
 
       this.currentShape.setBounds([this.firstClick, latlng]);
+      this.completeShape();
     }
 
     /**

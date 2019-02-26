@@ -89,8 +89,33 @@
       // Add tool functionality
       map.on(listeners);
 
+
+      const ESC_KEY = 27;
+
+      // Keyup is not available in leaflet 1.4.0 (will be in future),
+      // so we have to listen to the dom to detect non-character keypresses
+      const domListeners = {
+        keyup: e => {
+          if(e.keyCode === ESC_KEY) {
+            this.onEscape();
+          }
+        }
+      }
+
+      L.DomEvent.on(document, domListeners);
+
       // Register a function to remove the listeners
-      this.addTeardown(() => map.off(listeners))
+      this.addTeardown(() => {
+        map.off(listeners)
+        L.DomEvent.off(document, domListeners);
+      });
+    }
+
+    /**
+     * Fired when the escape key is pressed
+     */
+    onEscape() {
+      this.deactivate();
     }
 
     /**

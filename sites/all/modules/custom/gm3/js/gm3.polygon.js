@@ -18,9 +18,9 @@
     /**
      * Called when the tool is deactivated
      */
-    deactivate(){
+    completeShape(){
       this.polygonEnd = this.polygonStart = null;
-      super.deactivate();
+      return super.completeShape();
     }
     /**
      * Return true if the shape is valid

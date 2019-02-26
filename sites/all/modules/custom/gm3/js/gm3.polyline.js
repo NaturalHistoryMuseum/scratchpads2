@@ -24,8 +24,8 @@
     /**
      * Called when the tool is deactivated
      */
-    deactivate(){
-      super.deactivate();
+    completeShape(){
+      super.completeShape();
 
       this.polylineEnd = null;
     }
