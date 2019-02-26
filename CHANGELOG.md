@@ -12,8 +12,10 @@ Replaces Google-based map interfaces and fixes many bugs, including:
 - Scratchpads classification service (#5674) (@benscott)
 - Taxonomy tree widget (#5657) (@benscott)
 - Docker SOLR replace image (@benscott)
-- Scratchpad sandbox offline (@benscott)
+- EOL services access #5688 (@benscott)
 - Scratchpad sandbox offline (#5824) (@benscott)
+- Scratchpads.eu stats (#5689) (@benscott)
+- PHP 7.1 Docker (#5808) (@benscott)
 
 2.9.5 (2019-01-30)
 
