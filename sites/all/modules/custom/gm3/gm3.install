@@ -18,7 +18,7 @@ function gm3_requirements($phase){
     catch(Exception $e){
       $geophp_version = 0;
     }
-    if($geophp_version >= 0.4){
+    if($geophp_version >= 1.2){
       return array(
         'gm3_geophp' => array(
           'title' => t('GeoPHP Library'),
@@ -61,25 +61,27 @@ function gm3_requirements($phase){
 }
 
 /**
- * Set the minZoom to 0, as 2 is causing issues.
+ * Clear unused settings
  */
-function gm3_update_7001(){
-  if(($gm3_settings = variable_get('gm3_default_settings', FALSE)) != FALSE && $gm3_settings['minZoom'] == 2){
-    $gm3_settings['minZoom'] = null;
-    variable_set('gm3_default_settings', $gm3_settings);
-  }
-}
-
-/**
- * Use the OpenStreetMap tileset
- */
-function gm3_update_7002(){
+function gm3_update_7004(){
   $gm3_settings = variable_get('gm3_default_settings', FALSE);
 
-  if($gm3_settings != FALSE) {
-    $gm3_settings['mapTypeControlOptions']['mapTypeIds'] = array('OSM');
-    $gm3_settings['mapTypeId'] = 'OSM';
+  $allowed_fields = array(
+    'width',
+    'height',
+    'center',
+    'zoom',
+    'maxZoom',
+    'minZoom'
+  );
 
-    variable_set('gm3_default_settings', $gm3_settings);
+  if($gm3_settings != FALSE) {
+    $new_settings = array();
+
+    foreach($allowed_fields as $field){
+      $new_settings[$field] = $gm3_settings[$field];
+    }
+
+    variable_set('gm3_default_settings', $new_settings);
   }
 }

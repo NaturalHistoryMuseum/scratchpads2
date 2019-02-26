@@ -1,119 +1,134 @@
-(function($){
-  if(typeof google != 'undefined') {
-    Drupal.GM3.point = function(map){
-      // Point object.
-      this.GM3 = map;
-      // We add "dragend" to the other_events array so that we can update the
-      // field when a point is moved.
-      this.GM3.other_events[this.GM3.other_events.length] = "dragend";
-      this.points = new Array();
-      this.markers = new Array();
-      // FIXME - Add a way of setting this image.
-      this.marker_images = new Array();
-      for( var i = 0; i < 8; i++) {
-        this.marker_images[i] = new google.maps.MarkerImage(Drupal.settings.gm3.settings.images.sprite, new google.maps.Size(18, 25), new google.maps.Point(11 + (i * 18), 0), new google.maps.Point(9, 25));
-      }
+(function(){
+  "use strict";
+
+  Drupal.GM3.point = class extends Drupal.GM3.Library {
+    constructor(settings) {
+      super();
+
+      this.cluster = L.markerClusterGroup({
+        disableClusteringAtZoom: 12
+      });
+      this.addLayer(this.cluster)
+
       // Add points sent from server.
-      if(this.GM3.libraries.point.points) {
-        for( var i in this.GM3.libraries.point.points) {
-          // Default editable to false
-          var editable = typeof (this.GM3.libraries.point.points[i]['editable']) != 'undefined' ? this.GM3.libraries.point.points[i]['editable'] : false;
-          this.add_marker(new google.maps.LatLng(this.GM3.libraries.point.points[i]['latitude'], this.GM3.libraries.point.points[i]['longitude']), editable, false, this.GM3.libraries.point.points[i]['colour'], this.GM3.libraries.point.points[i]['title'], this.GM3.libraries.point.points[i]['content']);
+      if(settings.points) {
+        for(const point of settings.points) {
+          this.addMarker(
+            L.latLng(point.latitude, point.longitude),
+            point.editable,
+            point.colour,
+            point.title,
+            point.content
+          );
         }
       }
-      // Clusterer
-      this.clusterer = new MarkerClusterer(this.GM3.google_map, this.points, {averageCenter: true, maxZoom: 12, minimumClusterSize: 5});
     }
-    Drupal.GM3.point.prototype.active = function(){
-      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
+
+    /**
+     * Make sure objects get added to the cluster, not the layergroup
+     */
+    get objectLayer() {
+      return this.cluster;
     }
-    Drupal.GM3.point.prototype.add_marker = function(latLng, editable, redraw, colour, title, content){
-      if(this.GM3.max_objects == "-1" || this.GM3.num_objects < this.GM3.max_objects) {
-        this.GM3.add_latlng(latLng);
-        redraw = typeof (redraw) != 'undefined' ? redraw : false;
-        title = typeof (title) != 'undefined' ? title + " : " : '';
-        content = typeof (content) != 'undefined' ? content : '';
-        var current_point = this.points.length;
-        if(typeof (colour) == 'undefined') {
-          colour = this.points.length % 8;
+
+    /**
+     * Create a a new marker and add it to the map
+     * @param {L.LatLng} latLng The coordinate to put the marker
+     * @param {bool} editable Can the user edit this?
+     * @param {string} colour The colour for the marker
+     * @param {string} title The title for the marker
+     * @param {string} content The content text for the marker's popup
+     */
+    addMarker(latLng, editable = true, colour, title = '', content = ''){
+      if(!this.canAddObject()) {
+        return;
+      }
+
+      title = title ? `${title} : ${latLng.toString()}` : '';
+
+      const point = L.marker(
+        latLng,
+        {
+          draggable: editable,
+          title
         }
-        this.points[current_point] = new google.maps.Marker({position: latLng, draggable: editable, title: title + latLng.toString(), icon: this.marker_images[colour]});
-        // Add transfer listeners so the added points can be rightclicked.
-        this.GM3.add_listeners_helper(this.points[current_point]);
-        if(content) {
-          this.GM3.add_popup(this.points[current_point], content, title);
+      );
+      this.addObject(point);
+
+      point.on({
+        dragend: () => this.updateField(),
+        click: e => {
+          if (this.active) {
+            this.setMessage(e.latlng.toString(), 'status', 10000);
+          }
+        },
+        contextmenu: e => {
+          if (this.active) {
+            this.removeObject(point);
+          }
         }
-        if(redraw) {
-          this.clusterer.addMarker(this.points[current_point], true);
-          this.clusterer.repaint();
+      });
+
+      if(content) {
+        if(title) {
+          content = `<h3>${title}</h3>\n${content}`;
         }
-        this.GM3.num_objects++;
-      } else {
-        this.GM3.message(Drupal.t('Please delete an object from the map before adding another.'), 'warning');
+
+        point.bindPopup(content, { className: 'gm3_infobubble' });
       }
     }
-    Drupal.GM3.point.prototype.event = function(event_type, event, event_object){
-      switch(event_type){
-        case 'dragend':
-          if(this.update_field) {
-            this.update_field();
-          }
-          break;
-        case 'zoom_changed':
-        case 'bounds_changed':
-          this.clusterer.repaint();
-          break;
-        case 'click':
-          if(this.GM3.active_class == 'point') {
-            switch(event_object.getClass()){
-              case 'Map':
-                this.add_marker(event.latLng, true, true);
-                if(this.update_field) {
-                  this.update_field();
-                }
-                break;
-              case 'Marker':
-                this.GM3.message(event_object.position.toString(), 'status', 10000);
-                break;
-            }
-          }
-          break;
-        case 'rightclick':
-          if(this.GM3.active_class == 'point') {
-            switch(event_object.getClass()){
-              case 'Map':
-                this.GM3.set_active_class('default');
-                break;
-              case 'Marker':
-                // Loop through this objects points, and unset the one(s) that
-                // equal this object.
-                for( var i = 0; i < this.points.length; i++) {
-                  if(this.points[i].position.equals(event_object.position)) {
-                    this.clusterer.removeMarker(this.points[i], true);
-                    this.points[i].setMap(null);
-                    this.points[i] = undefined;
-                    this.GM3.num_objects--;
-                  }
-                }
-                // Finally, close up the array, which seems pretty clunky, but
-                // perhaps the only way of doing this.
-                var new_points = new Array();
-                var j = 0;
-                for( var i = 0; i < this.points.length; i++) {
-                  if(this.points[i] != undefined) {
-                    new_points[j] = this.points[i];
-                    j++;
-                  }
-                }
-                this.points = new_points;
-                if(this.update_field) {
-                  this.update_field();
-                }
-                break;
-            }
-          }
-          break;
+
+    /**
+     * Return the object of listeners to add when the map is active
+     */
+    getActiveListeners(){
+      return {
+        click: e => {
+          this.addMarker(e.latlng, true)
+        }
       }
+    }
+
+    /**
+     * Called when the underlying field updates (if there is one)
+     * @param {string} value The field's value
+     */
+    setValue(value) {
+      this.disableUpdates();
+      const coords = value.match(/\([^)]+\)/g) || [];
+      const latLngs = coords.map(
+        coord => coord.match(/[+-]?[0-9]*\.?[0-9]+/g).map(parseFloat)
+      );
+
+      // Update the existing latLngs
+      const len = Math.min(latLngs.length, this.objects.length);
+      for(let i = 0; i < len; i++) {
+        this.objects[i].setLatLng(latLngs[i]);
+      }
+
+      // Add new latLngs
+      const addList = latLngs.slice(this.objects.length);
+      for(const latlng of addList) {
+        this.addMarker(latlng, true);
+      }
+
+      // Remove old latlngs
+      const removeList = this.objects.slice(latLngs.length);
+      for(const object of removeList) {
+        this.removeObject(object);
+      }
+
+      this.enableUpdates();
+    }
+
+    /**
+     * Set the value of the underlying field
+     */
+    getValue() {
+      return this.objects.map(point => {
+        const { lat, lng } = point.getLatLng();
+        return `(${lat}, ${lng})`
+      }).join('|');
     }
   }
-})(jQuery);
+})();

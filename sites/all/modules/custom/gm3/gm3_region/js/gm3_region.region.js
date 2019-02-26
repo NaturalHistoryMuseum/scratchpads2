@@ -1,132 +1,235 @@
-(function($){
-  if(typeof Drupal.GM3 != 'undefined') {
-    Drupal.GM3.region = function(map){
-      // Point object.
-      this.GM3 = map;
-      this.geo = new google.maps.Geocoder();
-      this.countries = new Object();
-      // Add Regions sent from server.
-      if(this.GM3.libraries.region.regions) {
-        this.add_polygons_by_ids(this.GM3.libraries.region.regions, false, false, true);
-      }
+(function(){
+  "use strict";
+
+  const getLevelFromZoom = zoom => zoom < 3 ? 1 :
+                                   zoom < 5 ? 2 :
+                                   zoom < 6 ? 3 :
+                                   zoom < 7 ? 4 :
+                                              5 ;
+
+  // We add a little text to the top left of the map to say what level
+  // we will be selecting.
+  const LevelControl = class extends L.Control {
+    constructor(...args){
+      super(...args);
+
+      // The TDWG level to use for region selection
+      this.selectingLevel = 4;
     }
-    // FIXME - Add content from the server and on the server.
-    Drupal.GM3.region.prototype.add_polygons_by_ids = function(region_ids, title, content, autofit){
-      if(typeof region_ids != 'object') {
-        if(typeof region_ids == 'string') {
-          region_ids = new Array(region_ids);
-        } else {
-          // Error, we can't handle this data type.
-          return;
+    onAdd(map) {
+      const levelMessage = document.createElement('button');
+
+      this.selectingLevel = getLevelFromZoom(map.getZoom());
+
+      map.on('zoom', e => {
+        this.selectingLevel = getLevelFromZoom(map.getZoom());
+        this.updateMessage(levelMessage);
+      });
+
+      levelMessage.addEventListener('click', e => {
+        e.stopPropagation();
+        this.changeSelectingLevel()
+      });
+      levelMessage.setAttribute('class', 'leaflet-control gm3-region-level-control');
+      levelMessage.setAttribute('type', 'button');
+      this.updateMessage(levelMessage);
+
+      return levelMessage;
+    }
+    updateMessage(element) {
+      const level = this.selectingLevel;
+      const message = {
+        1: Drupal.t("Selecting by continent (Level 1)"),
+        2: Drupal.t("Selecting by sub-continent (Level 2)"),
+        3: Drupal.t("Selecting by country/subcountry (Level 3)"),
+        5: Drupal.t("Selecting by vice county (Level 5) - UK Only")
+      }[level]|| Drupal.t("Selecting by country/subcountry (Level 4)")
+
+      element.innerHTML = `<p>${message}</p>`;
+    }
+    changeSelectingLevel() {
+      this.selectingLevel = (this.selectingLevel - 1) % 5 || 5;
+      this.updateMessage(this.getContainer());
+    }
+    onRemove(map){}
+  }
+
+  if(typeof Drupal.GM3 != 'undefined') {
+    /**
+     * Map module for selecting and displaying geographical regions
+     */
+    Drupal.GM3.region = class extends Drupal.GM3.Library {
+      constructor(settings) {
+        super();
+        this.countries = {};
+
+        this.levelControl = new LevelControl({ position: 'topleft' })
+
+        // Add Regions sent from server.
+        if(settings.regions) {
+          this.addPolygonsByIds(settings.regions, settings.editable);
         }
       }
-      // Execute the callback to get the Polygon. This Polygon should then
-      // be added to the map, but without it being editable.
-      var region_ids_to_add = new Array();
-      for( var i in region_ids) {
-        if(this.countries[region_ids[i]] == undefined) {
-          this.countries[region_ids[i]] = new Array();
-          region_ids_to_add[region_ids_to_add.length] = region_ids[i];
-        } else if($.inArray(region_ids[i], region_ids_to_add) == -1) {
-          this.remove_polygons_by_id(region_ids[i]);
+
+      /**
+       * Add a polygon by its region ID
+       * @param {string|string[]} regionIds Region ids to add or list thereof
+       * @param {gm3.map} map The leaflet map to add the polygons to
+       * @param {bool} autofit True to auto zoom the map
+       */
+      async addPolygonsByIds(regionIds, editable = false){
+        if (typeof regionIds === 'string') {
+          regionIds = [regionIds];
         }
-      }
-      // Add the ones we need to add.
-      if(region_ids_to_add.length) {
+        if (!Array.isArray(regionIds)) {
+          throw new TypeError(`Expected regionIds to be array or string; got ${ typeof regionIds } (${regionIds})`);
+        }
+
+        // Execute the callback to get the Polygon. This Polygon should then
+        // be added to the map, but without it being editable.
+        const regionIdsToAdd = [];
+        for (const regionId of regionIds) {
+          if(!this.countries[regionId]) {
+            // If this is a new region, add it to the countries array and mark to be added
+            this.countries[regionId] = [];
+            regionIdsToAdd.push(regionId);
+          } else if(!regionIdsToAdd.includes(regionId)) {
+            // If this region is not in the list of regions to add, remove it from the map (???)
+            this.removePolygonsById(regionId);
+          }
+        }
+
         // We need to do this x regions at a time, else the server will complain
         // that the URL is too long
-        if(region_ids_to_add.length > 10) {
-          var region_ids_copy = region_ids_to_add;
-          var region_ids = new Array();
-          var region_ids_index = -1;
-          for( var i in region_ids_copy) {
-            // FIXME - Remove reset this once the "valid data" GM3 issue is
-            // fixed.
-            // if(i % 10 == 0) {
-            if(i % 1 == 0) {
-              region_ids_index++;
-              region_ids[region_ids_index] = new Array();
-            }
-            region_ids[region_ids_index][region_ids[region_ids_index].length] = region_ids_copy[i];
-          }
-        } else {
-          var region_ids = new Array(region_ids);
+        const batchSize = 10;
+        const regionBatches = [];
+        let sliceStart = 0;
+
+        while(sliceStart < regionIdsToAdd.length) {
+          const sliceEnd = sliceStart + batchSize;
+          regionBatches.push(
+            regionIdsToAdd.slice(sliceStart, sliceEnd)
+          );
+          sliceStart = sliceEnd;
         }
-        var self = this;
-        for( var i in region_ids) {
-          $.getJSON(Drupal.settings.gm3_region.callback + '/' + region_ids[i].join(','), function(data, textStatus, jqXHR){
-            for( var i in data) {
-              // "i" is the index of the region returned (0 if we asked for only
-              // one).
-              for( var j in data[i]) {
-                // "j" becomes the ID of the region
-                for( var k in data[i][j]['shape']['coordinates']) {
-                  if(data[i][j]['shape']['type'] == 'MultiPolygon') {
-                    for( var l in data[i][j]['shape']['coordinates'][k]) {
-                      // We have a region with multiple shapes.
-                      self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k][l], false);
-                    }
-                  } else if(data[i][j]['shape']['type'] == 'Polygon') {
-                    self.countries[j][self.countries[j].length] = self.GM3.children.polygon.add_polygon(data[i][j]['shape']['coordinates'][k], false);
-                  }
-                }
+
+        for(const batch of regionBatches) {
+          const regionDataUrl = Drupal.settings.gm3_region.callback;
+          const res = await fetch(`${regionDataUrl}/${batch.join(',')}`);
+          const data = await res.json();
+
+          for (const region of data) {
+            const regionId = region.regionId || Object.keys(region)[0];
+            const shape = region.shape || region[regionId].shape;
+            const polygons = shape.type === 'MultiPolygon' ? shape.coordinates :
+                             shape.type === 'Polygon' ? [shape.coordinates] : [];
+            const regionParts = [];
+
+            for (const polygon of polygons) {
+              for(const points of polygon) {
+                regionParts.push(this.addPolygon(points));
               }
             }
-            if(typeof autofit != 'undefined' && autofit) {// Change this to be
-                                                          // an
-              // autozoom option
-              if(self.GM3.max_lat) {
-                self.GM3.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(self.GM3.min_lat, self.GM3.min_lng), new google.maps.LatLng(self.GM3.max_lat, self.GM3.max_lng)));
-              }
-            }
-          })
-        }
-      }
-    }
-    Drupal.GM3.region.prototype.remove_polygons_by_id = function(region_id){
-      for( var i in this.countries[region_id]) {
-        this.countries[region_id][i].setMap(null);
-      }
-      this.countries[region_id] = undefined;
-      // Clean up this.countries
-      var new_countries = new Object();
-      for(i in this.countries) {
-        if(typeof this.countries[i] != 'undefined') {
-          new_countries[i] = this.countries[i];
-        }
-      }
-      this.countries = new_countries;
-    }
-    Drupal.GM3.region.prototype.active = function(){
-      this.GM3.google_map.setOptions({draggableCursor: 'pointer'});
-    }
-    Drupal.GM3.region.prototype.event = function(event_type, event, event_object){
-      switch(this.GM3.active_class){
-        case 'region':
-          switch(event_type){
-            case 'click':
-              var self = this;
-              this.geo.geocode({location: event.latLng}, function(result, status){
-                if(status === 'OK') {
-                  for(i in result) {
-                    if(result[i].types[0] && result[i].types[0] == 'country' && result[i].types[1] && result[i].types[1] == 'political') {
-                      var region_code = result[i].address_components[0]['short_name'];
-                      $.getJSON(Drupal.settings.gm3_region.callback2 + "/" + event.latLng.toString() + "/" + region_code, function(data){
-                        if(data) {
-                          self.add_polygons_by_ids(data);
-                          this.update_field();
-                        }
-                      });
-                    }
-                  }
-                }
+
+            this.countries[regionId] = this.addObject(regionParts);
+
+            if (editable) {
+              this.countries[regionId].on('contextmenu', e => {
+                this.removePolygonsById(regionId);
+                L.DomEvent.stopPropagation(e);
               });
-              break;
-            case 'rightclick':
-              this.GM3.set_active_class('default');
-              break;
+            }
           }
-          break;
+        }
+      }
+
+      /**
+       * Add a polygon to the map
+       * @param {LatLng} points The points to use to construct the polygon
+       */
+      addPolygon(points) {
+        const pathPoints = points.map(point => Array.isArray(points) ? L.latLng([point[1], point[0]]) : L.latLng(points));
+
+        const polyOptions = {
+          color: '#000000',
+          opacity: 0.4,
+          weight: 1
+        };
+
+        return L.polygon(pathPoints, polyOptions);
+      }
+
+      /**
+       * Remove a region by its region ID
+       * @param {string} regionId Region ID to remove
+       */
+      removePolygonsById(regionId) {
+        this.removeObject(this.countries[regionId]);
+        this.countries[regionId] = null;
+      }
+
+      /**
+       * Hook called by the parent gm3 object when this tool is being enabled
+       * @param {LeafletMap} map Activating map
+       */
+      activate(map) {
+        map.addControl(this.levelControl);
+        this.addTeardown(() => this.levelControl.remove());
+
+        // Add tool functionality
+        super.activate(map, {
+          click: e => this.selectRegion(e.latlng)
+        });
+      }
+
+      /**
+       * Given a point, highlight the region on the map
+       * @param {LatLng} latLng The point on the map selected by the user
+       */
+      async selectRegion (latLng) {
+        if(!this.canAddObject()) {
+          return;
+        }
+
+        try {
+          const polygonId = await this.getPolygonId(latLng);
+
+          if(polygonId) {
+            if (this.countries[polygonId]) {
+              this.setMessage('Region already selected');
+            } else {
+              this.addPolygonsByIds(polygonId, true);
+            }
+          }
+        } catch(e) {
+          this.setMessage(`An error occurred while selecting the region; ${e}`, 'error');
+        }
+      }
+
+      /**
+       * Get the polygon coordinates for the given region, using the osm & scratchpads apis
+       * @param {L.LatLng} latLng The point in the region to select
+       */
+      async getPolygonId(latLng) {
+        const geocodeUrl = ({ lat, lng }) => `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        const res = await fetch(geocodeUrl(latLng));
+        if(!res.ok) {
+          throw new Error(`Geocoder returned status ${res.status} (${res.statusText})`);
+        }
+        const result = await res.json();
+        const regionCode = result.address ? result.address.country_code : 'UNKNOWN';
+        const res2 = await fetch(`${Drupal.settings.gm3_region.callback2}/${latLng.lat}, ${latLng.lng}/${regionCode}/${this.levelControl.selectingLevel}`);
+        if(!res2.ok) {
+          throw new Error(`Scratchpads polygon callback returned status ${res.status} (${res.statusText})`);
+        }
+        return await res2.json();
+      }
+
+      /**
+       * Calculates the new field value and fires the update event
+       */
+      getValue() {
+        return Object.keys(this.countries).filter(k => this.countries[k]);
       }
     }
   }

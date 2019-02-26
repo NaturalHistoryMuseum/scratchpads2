@@ -1,331 +1,403 @@
-var OSM = 'OSM'; // Open Street Map.
+(function(){
+  "use strict";
 
-(function($){
-  if(typeof google != 'undefined'){
-    Drupal.GM3 = function(map){
-      // Autofit max and min lat/longs
-      this.max_lat = false;
-      this.max_lng = false;
-      this.min_lat = false;
-      this.min_lng = false;
-      // Max objects (for when editing a field)
-      this.max_objects = typeof (map.max_objects) != 'undefined' ? map.max_objects : 1000000;
-      this.num_objects = 0;
-      this.settings = map.settings;
-      // Ensure minZoom is not a string, or it errors when you zoom out too far
-      this.settings.minZoom = parseInt(this.settings.minZoom, 10);
-      this.id = map.id;
-      this.initialized = false;
-      this.tools = typeof (map.tools) != 'undefined' ? map.tools : new Array();
-      this.libraries = typeof (map.libraries) != 'undefined' ? map.libraries : new Object();
-      this.active_class = 'default';
-      this.children = new Object();
-      this.added_zoom_changed_listener = false;
-      this.map_events = ["click", "dblclick", "mousemove", "rightclick", "zoom_changed", "bounds_changed", "center_changed"];
-      this.other_events = ["click", "dblclick", "mousemove", "rightclick"];
-      this.popups = new Array();
-      this.info_window = false;
-      try {
-        $('#' + this.id).height(this.settings['height']);
-        $('#' + this.id).width(this.settings['width']);
-        if($('#' + this.id).parent().width() > $('#' + this.id).width()) {
-          // Set the width of the parent wrapper class.
-          $('#' + this.id).parent().width($('#' + this.id).width());
+  // Helper for adding units to a unitless number
+  const sizeUnit = n => isFinite(n) ? `${n}px` : n;
+
+  // Helper for observing when an element's visibility changes
+  const observeVisibility = (element, callback) => {
+    const options = {
+      root: document.documentElement
+    }
+
+    // Track visibility so we don't fire too many callbacks
+    let visible = null;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const newVisibility = entry.intersectionRatio > 0;
+
+        // Ensure visibility has actually changed
+        if (visible !== newVisibility) {
+          visible = newVisibility;
+          callback(visible);
         }
-        this.default_settings();
-        // Create the map
-        this.google_map = new google.maps.Map(document.getElementById(this.id), this.settings);
+      });
+    }, options);
 
-        // Set the tileset to use OSM tiles
-        // https://wiki.openstreetmap.org/wiki/Google_Maps_Example
-        this.google_map.mapTypes.set(OSM, new google.maps.ImageMapType({
-          getTileUrl: function(coord, zoom) {
-              // "Wrap" x (longitude) at 180th meridian properly
-              // NB: Don't touch coord.x: because coord param is by reference, and changing its x property breaks something in Google's lib
-              var tilesPerGlobe = 1 << zoom;
-              var x = coord.x % tilesPerGlobe;
-              if (x < 0) {
-                  x = tilesPerGlobe + x;
-              }
+    observer.observe(element);
+  };
 
-              var y = coord.y;
+  // Create the OSM tileset
+  const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      subdomains: ['a','b','c']
+  });
 
-              // Wrap y (latitude) in a like manner if you want to enable vertical infinite scrolling
-              return "https://tile.openstreetmap.org/" + zoom + "/" + x + "/" + y + ".png";
-          },
-          tileSize: new google.maps.Size(256, 256),
-          name: "OpenStreetMap",
-          maxZoom: 18
-        }));
-        this.initialized = true;
-        // Add libraries
-        for(id in this.libraries) {
-          if(Drupal.GM3[id]) {
-            this.children[id] = new Drupal.GM3[id](this);
+  Drupal.GM3 = class {
+    constructor (map) {
+      if (map instanceof Drupal.GM3) {
+        return map;
+      }
+
+      const mapId = this.id = map.id;
+      const settings = map.settings;
+
+      // The maximum number of objects (points, etc) allowed on the map
+      const maxObjects = parseInt(map.max_objects, 10);
+      this.maxObjects = isNaN(maxObjects) ? Infinity : maxObjects;
+
+      const leafletOptions = {
+        center: [settings.center.latitude, settings.center.longitude],
+        layers: [osmTileLayer],
+        editable: true,
+      };
+
+      if(settings.zoom) {
+        leafletOptions.zoom = settings.zoom;
+      }
+
+      // How far in/out user is allowed to zoom
+      const maxZoom = parseInt(settings.maxZoom, 10);
+      const minZoom = parseInt(settings.minZoom, 10);
+
+      if(maxZoom) {
+        leafletOptions.maxZoom = maxZoom;
+      }
+
+      if(minZoom) {
+        leafletOptions.minZoom = minZoom;
+      }
+
+      // The currently selected tool (left sidebar)
+      this.activeClass = 'default';
+
+      // The list of gm3 plugins to add to the map
+      // (Polygons, points, overlays, etc)
+      this.children = {};
+
+      const mapNode = document.getElementById(mapId);
+
+      // Set element size:
+      mapNode.style.height = sizeUnit(settings.height);
+      mapNode.style.width = sizeUnit(settings.width);
+
+      // Make sure the parent wrapper is large enough
+      if (mapNode.parentNode.offsetWidth > mapNode.offsetWidth) {
+        mapNode.parent.style.height = mapNode.style.height;
+      }
+
+      // Prevent users from panning up or down too far
+      const southWest = L.latLng(-89.98155760646617, -Infinity);
+      const northEast = L.latLng(89.99346179538875, Infinity);
+      leafletOptions.maxBounds = L.latLngBounds(southWest, northEast);
+
+      // Create the actual map
+      const leafletMap = L.map(mapNode, leafletOptions);
+
+      // If the map starts as hidden it will not render properly.
+      // Once it becomes visible we must re-render it.
+      observeVisibility(mapNode, visible => {
+        if(visible) {
+          leafletMap.invalidateSize();
+        }
+      });
+
+      this.leafletMap = leafletMap;
+      this.mapNode = mapNode;
+
+      // Add some event listeners to the map for the libraries we're about to add
+      leafletMap.on({
+        beforeaddobject: e => {
+          if(!this.beforeAddObject()) { e.cancel(); }
+        },
+        deactivate: e => this.deactivateActiveLibrary(),
+        update: ({ value, layer }) => this.updateField(layer, value),
+        message: ({ message, type, delay }) => this.message(message, type, delay)
+      });
+
+      // Add libraries
+      for(const id in map.libraries) {
+        const LibClass = Drupal.GM3[id];
+        if(LibClass) {
+          const child = this.children[id] = new LibClass(map.libraries[id]);
+
+          // Classes will extend L.Layer or L.Control, which both have addTo()
+          child.addTo(this.leafletMap);
+
+          // If there is a field for this library, watch for changes on keypress
+          const field = this.getFieldForLayer(id);
+          if(field) {
+            let timeout;
+            field.addEventListener('keyup', (e) => {
+              clearTimeout(timeout);
+              child.setValue && child.setValue(e.target.value);
+              timeout = setTimeout(() => field.value = child.getValue(), 2000);
+            });
           }
         }
-        // Add listeners
-        this.add_toolbar_listeners();
-        this.add_map_moved_listener();
-      } catch(err) {
-        $('#' + this.id).html(Drupal.t('There has been an error generating your map. Please contact an administrator.'));
       }
+
+      const toolbar = document.getElementById(`toolbar-${mapId}`);
+      this.toolbar = toolbar;
+
+      // Add listeners
+      this.addToolbarListeners(
+        toolbar
+      );
+
       // Set the active class to default
-      this.set_active_class('default');
-      // Add a listener to vertical tab and horizontal tab buttons to allow
-      // repainting of the map if required.
-      var self = this;
-      $('a').click(function(event){
-        google.maps.event.trigger(self.google_map, 'resize');
+      // This is the active tool/setting in the toolbar
+      this.setActiveClass('default');
+
+      // Automatically zoom to fit all points in map, but don't zoom in further than the default zoom level
+      this.autozoom({
+        maxZoom: settings.zoom
+      });
+    }
+
+    /**
+     * If there's a form field for the given library, listen for
+     * changes to the field and update the map to reflect the changes
+     * @param {string} id The id of the library to set up
+     */
+    observeFieldChanges(id){
+      const child = this.children[id];
+      const field = this.getFieldForLayer(id);
+
+      // Don't bother doing this if the layer can't handle `setValue` calls
+      if(child.setValue && field) {
+        let timeout;
+        field.addEventListener('keyup', (e) => {
+          const field = e.target;
+          clearTimeout(timeout);
+          child.setValue(field.value);
+          // After a couple of seconds, update the field value to make sure
+          // the format is correct
+          timeout = setTimeout(() => field.value = child.getValue(), 2000);
+        });
+      }
+    }
+
+    /**
+     * The number of data objects on the map
+     */
+    get numObjects() {
+      let num = 0;
+      this.leafletMap.eachLayer(layer => {
+        num += layer.objects ? layer.objects.length : 0;
       })
-      if(true) {// Change this to be an autozoom option
-        this.autozoom();
-      }
-      return this;
+      return num;
     }
-    Drupal.GM3.prototype.autozoom = function(){
-      if(this.max_lat) {
-        this.google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(this.min_lat, this.min_lng), new google.maps.LatLng(this.max_lat, this.max_lng)));
-      }
+
+    /**
+     * Get the input field for the given map layer's key
+     * @param {String} layerId The ID of the layer to get the field for
+     */
+    getFieldForLayer(layerId) {
+      return document.querySelector(`.${this.id}-${layerId}`);
     }
-    Drupal.GM3.prototype.add_latlng = function(latLng, reset){
-      if(reset || !this.max_lat || this.max_lat < latLng.lat()) {
-        this.max_lat = latLng.lat();
-        if(this.max_lat >= 84) {
-          this.max_lat = 84;
-        }
-      }
-      if(reset || !this.max_lng || this.max_lng < latLng.lng()) {
-        this.max_lng = latLng.lng();
-        if(this.max_lng >= 180) {
-          this.max_lng = 179.999999;
-        }
-      }
-      if(reset || !this.min_lat || this.min_lat > latLng.lat()) {
-        this.min_lat = latLng.lat();
-        if(this.min_lat <= -84) {
-          this.min_lat = -84;
-        }
-      }
-      if(reset || !this.min_lng || this.min_lng > latLng.lng()) {
-        this.min_lng = latLng.lng();
-        if(this.min_lng <= -180) {
-          this.min_lng = -179.999999;
-        }
-      }
-    }
-    Drupal.GM3.prototype.add_popup = function(object, content, title){
-      // There appears to be a small bug with the infobubble code that calculates
-      // the height/width of the content before it is added as a child of the
-      // "backgroundClassName" resulting in incorrect results.
-      if(typeof content == 'string') {
-        content = '<div class="gm3_infobubble">' + content + '</div>';
-      } else {
-        for( var i in content) {
-          content[i]['content'] = '<div class="gm3_infobubble">' + content[i]['content'] + '</div>';
-        }
-      }
-      this.popups[this.popups.length] = {'object': object, 'content': content};
-      self = this;
-      // FIXME - May have the type of event an option.
-      google.maps.event.addListener(object, "click", function(event){
-        if(self.info_window) {
-          self.info_window.close();
-          self.info_window = false;
-        }
-        self.info_window = new InfoBubble({map: self.google_map, position: event.latLng, disableAutoPan: true, borderRadius: 4, borderWidth: 2, backgroundColor: '#f5f5f5', borderColor: '#6261d8', arrowStyle: 0});
-        if(typeof content == 'string') {
-          self.info_window.setContent(content);
-        } else {
-          for( var i in content) {
-            self.info_window.addTab(content[i]['title'], content[i]['content']);
+
+    /**
+     * Update a class's field, if it exists
+     * @param {function} cls Generates the field's query selector given the map ID
+     * @param {string} value The value to set the field to
+     */
+    updateField(layer, value) {
+      const layerId = Object.keys(this.children).find(id => this.children[id] === layer);
+      const field = this.getFieldForLayer(layerId);
+
+      if (field){
+        // If this is a combo box (e.g. region select), we have to select the individual options
+        if (field.multiple && Array.isArray(value)) {
+          field.value = null;
+          for (const item of value) {
+            const option = field.querySelector(`option[value="${item}"]`) ||
+                           field.querySelector(`option[value="${item}:"]`)
+            if(option) {
+              option.selected = true;
+            } else {
+              this.message(`Could not set the field value ${item}`, 'error');
+            }
           }
-        }
-        self.info_window.open();
-      });
-    }
-    Drupal.GM3.prototype.add_toolbar_listeners = function(){
-      // Click the stuff!
-      var self = this;
-      $('#toolbar-' + this.id + ' li div').click(function(){
-        self.set_active_class($(this).data('gm3-class'));
-      });
-    }
-    Drupal.GM3.prototype.add_map_moved_listener = function(){
-      // Ensure the user can not pan the map constantly. This is due to the
-      // overlays we are using.
-      this.allowedBounds = new google.maps.LatLngBounds(new google.maps.LatLng(-89.99999, -179.99999), new google.maps.LatLng(89.99999, 179.99999));
-      this.lastValidCenter = this.google_map.getCenter();
-      var self = this;
-      google.maps.event.addListener(this.google_map, 'center_changed', function(event){
-        if(self.allowedBounds.contains(self.google_map.getCenter())) {
-          self.lastValidCenter = self.google_map.getCenter();
         } else {
-          self.google_map.panTo(self.lastValidCenter);
+          field.value = value;
+        }
+      }
+    }
+
+    /**
+     * Adds a new Leaflet UI layer to the map
+     * @param {L.Layer} object Leaflet layer to add to the leaflet map
+     */
+    addLayer(object) {
+      object && object.addTo(this.leafletMap);
+    }
+
+    /**
+     * Return true if it's possible to add another object to the map
+     * Else put up a a message
+     */
+    beforeAddObject() {
+      if(this.maxObjects === -1 || this.numObjects < this.maxObjects) {
+        return true;
+      } else {
+        this.message(Drupal.t('Please delete an object from the map before adding another'), 'warning');
+        return false;
+      }
+    }
+
+    // Automatically zoom to fit all points in on the map
+    autozoom(options){
+      // A rectangle containing all markers on the map
+      const bounds = L.latLngBounds();
+
+      // Find layers we know how to get the bounds of
+      this.leafletMap.eachLayer(l => {
+        if(l instanceof Drupal.GM3.Library) {
+          bounds.extend(l.getBounds());
+        }
+      });
+
+      if(bounds.isValid()) {
+        // Pad extends the area slightly to make sure all points fit comfortably
+        this.leafletMap.fitBounds(bounds.pad(0.5), options);
+      }
+    }
+
+    // Add click handlers for the toolbar
+    // The toolbar is the bar to the left of the left of the maps, with move/+polygon/+region etc
+    addToolbarListeners(toolbar){
+      if (!toolbar) {
+        return;
+      }
+
+      // Put the listener on the toolbar element so it can catch all of the child events bubbling up
+      // Add the button role to the menu items (or make the element a button)
+      toolbar.addEventListener('click', ({ target }) => {
+        // The data-gm3-class attribute value is in target.parentNode.dataset.gm3Class
+        const gm3Class = target.dataset.gm3Class || target.parentNode.dataset.gm3Class;
+
+        // Make sure the clicked element has the attribute
+        if(gm3Class) {
+          this.switchToLibrary(gm3Class);
         }
       });
     }
-    Drupal.GM3.prototype.active = function(){
-      this.google_map.setOptions({draggableCursor: 'pointer'});
-      // Remove the information block (currently only used by the region module).
-      $('#' + this.id + ' .gm3_information').remove();
+
+    /**
+     * Deactivate the currently active library and activate a new one
+     * @param {string} library The name of the child gm3 library to activate
+     */
+    switchToLibrary(library) {
+      if (this.activeClass === library) {
+        return;
+      }
+
+      const activeLibrary = this.children[this.activeClass];
+
+      if (activeLibrary && activeLibrary.deactivate) {
+        // Set active class to null so we ignore the next 'deactivate' event
+        this.activeClass = null;
+        activeLibrary.deactivate();
+      }
+
+      this.setActiveClass(library);
     }
-    Drupal.GM3.prototype.set_active_class = function(active_class){
-      $('.gm3-clicked', '#toolbar-' + this.id).removeClass('gm3-clicked');
-      $('div[data-gm3-class="' + active_class + '"]', '#toolbar-' + this.id).parent().addClass('gm3-clicked');
-      this.active_class = active_class;
-      this.add_listeners();
-      if(this.active_class == 'default') {
-        this.active();
+
+    /**
+     * Deactivate the currently active library and activate the default behaviours
+     */
+    deactivateActiveLibrary() {
+      // If active class is null we're already in the middle of switching libraries
+      if (this.activeClass !== null) {
+        this.setActiveClass('default');
+      }
+    }
+
+    // Sets the css class on an active toolbar button
+    setActiveClass(activeClass){
+      if (this.activeClass === activeClass) {
+        return;
+      }
+
+      // All this toolbar stuff is not pretty, might be better as a child library
+      // that extends L.Control
+      const toolbar = this.toolbar;
+      if (toolbar) {
+        // Remove the gm3-clicked class from the existing clicked element and add it to the clicked one
+        toolbar.querySelector(`.gm3-clicked`).classList.remove('gm3-clicked');
+        toolbar.querySelector(`[data-gm3-class="${activeClass}"]`).parentNode.classList.add('gm3-clicked');
+      }
+
+      this.activeClass = activeClass;
+      const mapNode = document.getElementById(this.id);
+
+      if(activeClass == 'default') {
+        // Set the default settings
+        mapNode.classList.remove('gm3-tool-active');
+
       } else {
-        if(this.children[this.active_class] && this.children[this.active_class].active) {
-          this.children[this.active_class].active();
+        const activeChild = this.children[activeClass];
+        // Find the active child and call its "active" function
+        if(activeChild.activate) {
+          activeChild.activate(this.leafletMap);
+          mapNode.classList.add('gm3-tool-active');
         }
       }
     }
-    Drupal.GM3.prototype.add_listeners = function(){
-      for(id in this.children) {
-        // Add transfer listeners for each library
-        if(this.children[id].add_transfer_listeners) {
-          this.children[id].add_transfer_listeners();
-        }
-        // Add listeners for each library (if they define one).
-        if(this.children[id].add_listeners) {
-          this.children[id].add_listeners();
-        }
-      }
-      // Add listeners to the map. These will in turn execute the callbacks for
-      // the currently active class (or default).
-      this.add_listeners_helper();
-    }
-    Drupal.GM3.prototype.event = function(event_type, event){}
-    Drupal.GM3.prototype.add_listeners_helper = function(map_object){
-      var self = this;
-      map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
-      // Add additional listeners to the Map
-      if(map_object.getClass() == 'Map') {
-        var events_array = this.map_events;
-      } else {
-        var events_array = this.other_events;
-      }
-      for(i in events_array) {
-        // Gah, this is ugly, but sadly necessary due to the way we're calling
-        // child listeners.
-        if(events_array[i] != 'zoom_changed') {
-          eval('google.maps.event.clearListeners(map_object, "' + events_array[i] + '");' + 'google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
-        } else if(!this.added_zoom_changed_listener) {
-          eval('google.maps.event.addListener(map_object, "' + events_array[i] + '", function(event){' + 'if(self.active_class == "default"){' + 'var child_overrode = false;' + 'for(i in self.children){' + 'if(self.children[i].event){' + 'child_overrode = self.children[i].event("' + events_array[i] + '", event, this);}' + 'if(child_overrode) {return;}}' + 'self.event("' + events_array[i] + '", event, this);}' + 'else {' + 'if(self.children[self.active_class].event) {' + 'self.children[self.active_class].event("' + events_array[i] + '", event, this);}}})');
-          this.added_zoom_changed_listener = true;
-        }
-      }
-    }
-    Drupal.GM3.prototype.clear_listeners = function(){
-      for(id in this.children) {
-        // Clear transfer listeners for each library (mostly not needed).
-        if(this.children[id].clear_transfer_listeners) {
-          this.children[id].clear_transfer_listeners();
-        }
-        // Clear listeners for each library (if they define one).
-        if(this.children[id].clear_listeners) {
-          this.children[id].clear_listeners();
-        }
-      }
-      // Add listeners to the map. These will in turn execute the callbacks for
-      // the currently active class (or default).
-      this.clear_listeners_helper();
-    }
-    Drupal.GM3.prototype.clear_listeners_helper = function(map_object){
-      map_object = typeof (map_object) != 'undefined' ? map_object : this.google_map;
-      if(map_object.getClass() == 'Map') {
-        var events_array = this.map_events;
-      } else {
-        var events_array = this.other_events;
-      }
-      for(i in events_array) {
-        google.maps.event.clearListeners(map_object, events_array[i]);
-      }
-    }
-    Drupal.GM3.prototype.event = function(event_type, event){}
-    Drupal.GM3.prototype.clear_listeners = function(){
-      // Clear listeners from the map.
-      google.maps.event.clearListeners(this.google_map, "click");
-      google.maps.event.clearListeners(this.google_map, "mousemove");
-      google.maps.event.clearListeners(this.google_map, "rightclick");
-      // Clear all listeners from the children.
-      for(i in this.children) {
-        if(this.children[i]['clear_listeners']) {
-          this.children[i]['clear_listeners']();
-        }
-      }
-    }
-    Drupal.GM3.prototype.message = function(message, type, delay){
+
+    message(message, type = 'status', delay = 4000){
       // Display an alert message which disappears after a short time. This is
       // intended as an alternative to the JavaScript alert function.
       // type can be one of: "status", "warning", "error" as supported by Drupal.
-      if(typeof type == 'undefined') {
-        type = 'status';
-      }
-      if(typeof delay == 'undefined') {
-        delay = 4000;
-      }
-      $('#' + this.id).parent().prepend('<div class="gm3_message messages ' + type + '">' + message + '</div>');
-      $('.gm3_message').delay(delay).slideUp(1000, function(){
-        $('.gm3_message').remove();
-      });
+      const status = document.createElement('div');
+      status.classList.add('gm3_message');
+      status.classList.add('messages');
+      status.classList.add(type);
+      status.innerHTML = message;
+      this.mapNode.parentNode.prepend(status);
+
+      setTimeout(() => status.remove(), delay);
     }
-    Drupal.GM3.prototype.default_settings = function(){
-      // MapTypeID
-      this.settings['mapTypeId'] = eval(this.settings['mapTypeId']);
-      // Center
-      this.settings['center'] = new google.maps.LatLng(this.settings['center']['latitude'], this.settings['center']['longitude']);
-      // Map control
-      if(this.settings['mapTypeControlOptions'] && this.settings['mapTypeControlOptions']['mapTypeIds']) {
-        for(map_type in this.settings['mapTypeControlOptions']['mapTypeIds']) {
-          this.settings['mapTypeControlOptions']['mapTypeIds'][map_type] = eval(this.settings['mapTypeControlOptions']['mapTypeIds'][map_type]);
-        }
-      }
-      if(this.settings['mapTypeControlOptions'] && this.settings['mapTypeControlOptions']['position'] && this.settings['mapTypeControlOptions']['style']) {
-        this.settings['mapTypeControlOptions']['position'] = eval(this.settings['mapTypeControlOptions']['position']);
-        this.settings['mapTypeControlOptions']['style'] = eval(this.settings['mapTypeControlOptions']['style']);
-      }
-      // PanControlOptions
-      if(this.settings['panControlOptions'] && this.settings['panControlOptions']['position']) {
-        this.settings['panControlOptions']['position'] = eval(this.settings['panControlOptions']['position']);
-      }
-      // rotateControlOptions
-      if(this.settings['rotateControlOptions'] && this.settings['rotateControlOptions']['position']) {
-        this.settings['rotateControlOptions']['position'] = eval(this.settings['rotateControlOptions']['position']);
-      }
-      // scaleControlOptions
-      if(this.settings['scaleControlOptions'] && this.settings['scaleControlOptions']['position'] && this.settings['scaleControlOptions']['style']) {
-        this.settings['scaleControlOptions']['position'] = eval(this.settings['scaleControlOptions']['position']);
-        this.settings['scaleControlOptions']['style'] = eval(this.settings['scaleControlOptions']['style']);
-      }
-      // streetViewControlOptions
-      if(this.settings['streetViewControlOptions'] && this.settings['streetViewControlOptions']['position']) {
-        this.settings['streetViewControlOptions']['position'] = eval(this.settings['streetViewControlOptions']['position']);
-      }
-      // zoomControlOptions
-      if(this.settings['zoomControlOptions'] && this.settings['zoomControlOptions']['position'] && this.settings['zoomControlOptions']['style']) {
-        this.settings['zoomControlOptions']['position'] = eval(this.settings['zoomControlOptions']['position']);
-        this.settings['zoomControlOptions']['style'] = eval(this.settings['zoomControlOptions']['style']);
-      }
+
+    /**
+     * These functions are used by scratchpads_citethispage to make sure the generated pdf
+     * is viewing the same map area as the user who clicks Create Citation
+     */
+    getBounds() {
+      return this.leafletMap.getBounds();
     }
-    // Entry point. Add a map to a page. This should hopefully work via AJAX.
-    Drupal.behaviors.gm3 = {attach: function(context, settings){
+    setBounds(bounds) {
+      return this.leafletMap.fitBounds(bounds);
+    }
+  }
+
+  // Entry point. Add a map to a page. This should hopefully work via AJAX.
+  Drupal.behaviors.gm3 = {
+    attach(context, settings){
       // We run all the other behaviors before this one so that we've got the
       // shizzle (vertical tabs).
-      for(i in Drupal.behaviors) {
-        if($.isFunction(Drupal.behaviors[i].attach) && i != 'gm3') {
+      for(const i in Drupal.behaviors) {
+        if(i !== 'gm3' && typeof Drupal.behaviors[i].attach === 'function') {
           Drupal.behaviors[i].attach(context, settings);
         }
       }
-      for(map_id in Drupal.settings.gm3.maps) {
-        if($('#' + map_id, context).length && typeof (Drupal.settings.gm3.maps[map_id]['google_map']) == 'undefined') {
+
+      // Handy in case we want to debug an individual map
+      Drupal.settings.gm3.mapInstances = {};
+
+      // Jquery object
+      if(context[0]) {
+        context = context[0];
+      }
+
+      for(const mapId in Drupal.settings.gm3.maps) {
+        if(context.querySelector('#' + mapId)) {
           // Create the new GM3 map object.
-          Drupal.settings.gm3.maps[map_id] = new Drupal.GM3(Drupal.settings.gm3.maps[map_id]);
+          Drupal.settings.gm3.mapInstances[mapId] = new Drupal.GM3(Drupal.settings.gm3.maps[mapId]);
         }
       }
-    }};
-  }
-})(jQuery);
+    }
+  };
+})();

@@ -2,24 +2,22 @@
 
 /**
  * Provides the following fields:
- * 
- * - Google maps point
- * - Google maps polygon
- * - Google maps polyline
- * - Google maps countries (click on a country to select)
- * - Google maps combination (combination of the above).
+ *
+ * - Maps point
+ * - Maps polygon
+ * - Maps polyline
+ * - Maps countries (click on a country to select)
+ * - Maps combination (combination of the above).
  */
 /**
  * Does not implement the following (amongst others) hook_field_* hooks.
  * This is for my benefit only, and will be removed.
- * 
+ *
  * hook_field_load().
  * hook_field_delete().
  * hook_field_access().
  * hook_field_presave().
  * hook_field_settings_form().
- * 
- * FIXME - Drag'n'dropped points are not updated.
  */
 /**
  * Implementation of hook_theme().
@@ -243,7 +241,7 @@ function gm3_field_field_insert($entity_type, $entity, $field, $instance, $langc
                 _gm3_field_get_array_from_poly_string($value, $new_items, substr($type, 4), TRUE);
                 break;
               default:
-                // Here we have a field that was not defined by this module, we use the 
+                // Here we have a field that was not defined by this module, we use the
                 // name of the module, plus the name of the type plus view to get the name
                 // of the function to call
                 // "{$field['module']}_{$field['type']}_view()"
@@ -313,14 +311,6 @@ function gm3_field_form_alter(&$form, &$form_state, $form_id){
                 array(
                   'gm3',
                   'gm3.point'
-                ),
-                array(
-                  'gm3',
-                  'gm3.infobubble'
-                ),
-                array(
-                  'gm3',
-                  'gm3.clusterer'
                 ),
                 array(
                   'gm3',
@@ -466,84 +456,12 @@ function gm3_field_field_update($entity_type, $entity, $field, $instance, $langc
 }
 
 /**
- * Implementation of hook_library().
- */
-function gm3_field_library(){
-  return array(
-    'field_point' => array(
-      'title' => t('Google Maps Javascript API V3: Point field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_point.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.point'
-        )
-      )
-    ),
-    'field_polygon' => array(
-      'title' => t('Google Maps Javascript API V3: Polygon field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polygon.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.polygon'
-        )
-      )
-    ),
-    'field_rectangle' => array(
-      'title' => t('Google Maps Javascript API V3: Rectangle field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_rectangle.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.rectangle'
-        )
-      )
-    ),
-    'field_polyline' => array(
-      'title' => t('Google Maps Javascript API V3: Polyline field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_field') . "/js/gm3_field.field_polyline.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3',
-          'gm3.polyline'
-        )
-      )
-    )
-  );
-}
-
-/**
  * Implementation of hook_field_widget_info().
  */
 function gm3_field_field_widget_info(){
   return array(
     'gm3_point_gm3' => array(
-      'label' => t('Geo: Point Google Map'),
+      'label' => t('Geo: Point Map'),
       'description' => t('Latitude/Longitude pairs entered by clicking on a map.'),
       'field types' => array(
         'gm3_point'
@@ -561,8 +479,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_polygon_gm3' => array(
-      'label' => t('Geo: Polygon Google Map'),
-      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered on a Google map.'),
+      'label' => t('Geo: Polygon Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a shape, entered on a map.'),
       'field types' => array(
         'gm3_polygon'
       ),
@@ -579,8 +497,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_rectangle_gm3' => array(
-      'label' => t('Geo: Rectangle Google Map'),
-      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a Google map.'),
+      'label' => t('Geo: Rectangle Map'),
+      'description' => t('Two Latitude/Longitude pairs that combine to form a rectangle, entered on a map.'),
       'field types' => array(
         'gm3_rectangle'
       ),
@@ -597,8 +515,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_polyline_gm3' => array(
-      'label' => t('Geo: Polyline Google Map'),
-      'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a Google map.'),
+      'label' => t('Geo: Polyline Map'),
+      'description' => t('Many Latitude/Longitude pairs which combine to form a line, entered on a map.'),
       'field types' => array(
         'gm3_polyline'
       ),
@@ -615,8 +533,8 @@ function gm3_field_field_widget_info(){
       )
     ),
     'gm3_combination_gm3' => array(
-      'label' => t('Geo: Combination Google Map'),
-      'description' => t('Whatever you would like, on a Google map.'),
+      'label' => t('Geo: Combination Map'),
+      'description' => t('Whatever you would like, on a map.'),
       'field types' => array(
         'gm3_combination'
       ),
@@ -738,7 +656,7 @@ function gm3_field_field_is_empty($item, $field){
 
 /**
  * Implements hook_field_formatter_info().
- * 
+ *
  * FIXME - We need to add settings to these formatter types to allow the display
  * of the map to be altered.
  */
@@ -887,7 +805,7 @@ function theme_gm3_polyline_text($variables){
 
 /**
  * Themes for field types.
- * 
+ *
  * Note, this is A LOT simpler than renaming every instance of "polygon" to
  * "gm3_polygon", although I may do that in the future.
  */
@@ -915,7 +833,7 @@ function theme_rectangle_text($variables){
 
 /**
  * Implements hook_field_formatter_view().
- * 
+ *
  * FIXME - Still need to do the field/entity formats properly (so that an entity
  * map will show all the fields set as "entity_map" on that entity.
  */
@@ -1104,7 +1022,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       }
       break;
     default:
-      // Here we have a field that was not defined by this module, we use the 
+      // Here we have a field that was not defined by this module, we use the
       // name of the module, plus the name of the type plus view to get the name
       // of the function to call
       // "{$field['module']}_{$field['type']}_view()"
@@ -1167,10 +1085,8 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'id' => $element['#field_name'],
             'libraries' => array(
               'point' => array(
-                'points' => $items
-              ),
-              'field_point' => array(
-                'module' => 'gm3_field'
+                'points' => $items,
+                'module' => 'gm3'
               )
             ),
             'tools' => array(
@@ -1181,11 +1097,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         )),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        ),
         '#attributes' => array(
           'class' => array(
             $element['#field_name'] . '-point'
@@ -1235,11 +1146,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
             'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
           )
         )),
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        ),
         '#attributes' => array(
           'class' => array(
             $element['#field_name'] . '-' . $poly_type
@@ -1256,13 +1162,6 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         'libraries' => array(),
         'tools' => array(),
         'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-      );
-      $widget += array(
-        '#attached' => array(
-          'css' => array(
-            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
-          )
-        )
       );
       foreach($field['settings']['field_types'] as $field_type => $value){
         $default_values = array(
@@ -1305,7 +1204,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
         switch($field_type){
           case 'gm3_point':
             $map['libraries']['point']['points'] = $default_values['point'];
-            $map['libraries']['field_point']['module'] = 'gm3_field';
+            $map['libraries']['point']['module'] = 'gm3';
             $map['tools'][] = theme('gm3_point_button', array(
               'id' => $element['#field_name']
             ));

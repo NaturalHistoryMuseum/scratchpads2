@@ -12,10 +12,9 @@
  */
 class GeoRSS extends GeoAdapter
 {
-  private $default_namespace = 'georss';
   private $namespace = FALSE;
   private $nss = ''; // Name-space string. eg 'georss:'
-
+  
   /**
    * Read GeoRSS string into geometry objects
    *
@@ -46,11 +45,10 @@ class GeoRSS extends GeoAdapter
     // Change to lower-case, strip all CDATA, and de-namespace
     $text = strtolower($text);
     $text = preg_replace('/<!\[cdata\[(.*?)\]\]>/s','',$text);
-    $text = str_replace('georss:','',$text);
-    
+        
     // Load into DOMDOcument
     $xmlobj = new DOMDocument();
-    $xmlobj->loadXML($text);
+    @$xmlobj->loadXML($text);
     if ($xmlobj === false) {
       throw new Exception("Invalid GeoRSS: ". $text);
     }
@@ -84,6 +82,11 @@ class GeoRSS extends GeoAdapter
   
   protected function getPointsFromCoords($string) {
     $coords = array();
+
+    if (empty($string)) {
+      return $coords;
+    }
+
     $latlon = explode(' ',$string);
     foreach ($latlon as $key => $item) {
       if (!($key % 2)) {
@@ -103,8 +106,15 @@ class GeoRSS extends GeoAdapter
     $points = array();
     $pt_elements = $this->xmlobj->getElementsByTagName('point');
     foreach ($pt_elements as $pt) {
-      $point_array = $this->getPointsFromCoords(trim($pt->firstChild->nodeValue));
-      $points[] = $point_array[0];
+      if ($pt->hasChildNodes()) {
+        $point_array = $this->getPointsFromCoords(trim($pt->firstChild->nodeValue));
+      }
+      if (!empty($point_array)) {
+        $points[] = $point_array[0];
+      }
+      else {
+        $points[] = new Point();
+      }
     }
     return $points;
   }
@@ -123,9 +133,15 @@ class GeoRSS extends GeoAdapter
     $polygons = array();
     $poly_elements = $this->xmlobj->getElementsByTagName('polygon');
     foreach ($poly_elements as $poly) {
-      $points = $this->getPointsFromCoords(trim($poly->firstChild->nodeValue));
-      $exterior_ring = new LineString($points);
-      $polygons[] = new Polygon(array($exterior_ring));
+      if ($poly->hasChildNodes()) {
+        $points = $this->getPointsFromCoords(trim($poly->firstChild->nodeValue));
+        $exterior_ring = new LineString($points);
+        $polygons[] = new Polygon(array($exterior_ring));
+      }
+      else {
+        // It's an EMPTY polygon
+        $polygons[] = new Polygon(); 
+      }
     }
     return $polygons;
   }
@@ -184,9 +200,13 @@ class GeoRSS extends GeoAdapter
   }
   
   private function pointToGeoRSS($geom) {
-    return '<'.$this->nss.'point>'.$geom->getY().' '.$geom->getX().'</'.$this->nss.'point>';
+    $out = '<'.$this->nss.'point>';
+    if (!$geom->isEmpty()) {
+      $out .= $geom->getY().' '.$geom->getX();
+    }
+    $out .= '</'.$this->nss.'point>';
+    return $out;
   }
-  
 
   private function linestringToGeoRSS($geom) {
     $output = '<'.$this->nss.'line>';

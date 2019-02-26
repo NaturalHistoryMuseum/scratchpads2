@@ -12,11 +12,13 @@
  */
 class GPX extends GeoAdapter
 {
+  private $namespace = FALSE;
+  private $nss = ''; // Name-space string. eg 'georss:'
 
   /**
-   * Read KML string into geometry objects
+   * Read GPX string into geometry objects
    *
-   * @param string $kml A KML string
+   * @param string $gpx A GPX string
    *
    * @return Geometry|GeometryCollection
    */
@@ -25,14 +27,19 @@ class GPX extends GeoAdapter
   }
 
   /**
-   * Serialize geometries into a KML string.
+   * Serialize geometries into a GPX string.
    *
    * @param Geometry $geometry
    *
-   * @return string The KML string representation of the input geometries
+   * @return string The GPX string representation of the input geometries
    */
-  public function write(Geometry $geometry) {
-    return '<gpx creator="geoPHP" version="1.0">'.$this->geometryToGPX($geometry).'</gpx>';
+  public function write(Geometry $geometry, $namespace = FALSE) {
+    if ($geometry->isEmpty()) return NULL;
+    if ($namespace) {
+      $this->namespace = $namespace;
+      $this->nss = $namespace.':';    
+    }
+    return '<'.$this->nss.'gpx creator="geoPHP" version="1.0">'.$this->geometryToGPX($geometry).'</'.$this->nss.'gpx>';
   }
   
   public function geomFromText($text) {
@@ -40,9 +47,9 @@ class GPX extends GeoAdapter
     $text = strtolower($text);
     $text = preg_replace('/<!\[cdata\[(.*?)\]\]>/s','',$text);
     
-    // Load into DOMDOcument
+    // Load into DOMDocument
     $xmlobj = new DOMDocument();
-    $xmlobj->loadXML($text);
+    @$xmlobj->loadXML($text);
     if ($xmlobj === false) {
       throw new Exception("Invalid GPX: ". $text);
     }
@@ -145,17 +152,17 @@ class GPX extends GeoAdapter
   }
   
   private function pointToGPX($geom) {
-    return '<wpt lat="'.$geom->getY().'" lon="'.$geom->getX().'"></wpt>';
+    return '<'.$this->nss.'wpt lat="'.$geom->getY().'" lon="'.$geom->getX().'" />';
   }
   
   private function linestringToGPX($geom) {
-    $gpx = '<trk><trkseg>';
+    $gpx = '<'.$this->nss.'trk><'.$this->nss.'trkseg>';
     
     foreach ($geom->getComponents() as $comp) {
-      $gpx .= '<trkpt lat="'.$comp->getY().'" lon="'.$comp->getX().'"></trkpt>';
+      $gpx .= '<'.$this->nss.'trkpt lat="'.$comp->getY().'" lon="'.$comp->getX().'" />';
     }
     
-    $gpx .= '</trkseg></trk>';
+    $gpx .= '</'.$this->nss.'trkseg></'.$this->nss.'trk>';
     
     return $gpx;
   }

@@ -1,0 +1,33 @@
+<?php
+/**
+ * Implements hook_enable
+ */
+function gm3_filter_enable(){
+  // Make sure that the map filter is actually enabled when this module is enabled
+  gm3_filter_enable_format();
+}
+
+/**
+ * Implements hook_update_700N
+ */
+function gm3_filter_update_7001(){
+  gm3_filter_enable_format();
+}
+
+/**
+ * Enable the gm3 map filter for body content
+ */
+function gm3_filter_enable_format() {
+  echo "<pre>";
+  $html_format = filter_format_load('filtered_html');
+  $html_format_filters = filter_list_format('filtered_html');
+  $html_format_filters['gm3_filter_google_map']->status = 1;
+
+  // Cast objects to arrays
+  foreach($html_format_filters as $name => $filter) {
+    $html_format_filters[$name] = (array) $filter;
+  }
+
+  $html_format->filters = $html_format_filters;
+  filter_format_save($html_format);
+}

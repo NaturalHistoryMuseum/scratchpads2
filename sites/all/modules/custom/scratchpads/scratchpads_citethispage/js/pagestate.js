@@ -30,8 +30,8 @@
     if (typeof Drupal.settings.gm3 !== 'undefined') {
       var gmapstate = {};
       var json = '';
-      for (var key in Drupal.settings.gm3.maps) {
-        gmapstate[key] = Drupal.settings.gm3.maps[key].get_bounds();
+      for (var key in Drupal.settings.gm3.mapInstances) {
+        gmapstate[key] = Drupal.settings.gm3.mapInstances[key].getBounds();
       }
       if (typeof $.toJSON === 'function') {
         json = $.toJSON(gmapstate);
@@ -53,43 +53,13 @@
       slickgrid.setGridState(Drupal.settings.scratchpads_citethispage.slick_state);
     }
     // Restore gmap
-    if (typeof Drupal.settings.gm3.maps !== 'undefined' && typeof Drupal.settings.scratchpads_citethispage.gmap_state !== 'undefined') {
-      for (var key in Drupal.settings.gm3.maps) {
+    if (typeof Drupal.settings.gm3.mapInstances !== 'undefined' && typeof Drupal.settings.scratchpads_citethispage.gmap_state !== 'undefined') {
+      for (var key in Drupal.settings.gm3.mapInstances) {
         if (typeof Drupal.settings.scratchpads_citethispage.gmap_state[key] !== 'undefined') {
-          Drupal.settings.gm3.maps[key].set_bounds(Drupal.settings.scratchpads_citethispage.gmap_state[key]);
+          Drupal.settings.gm3.maps[key].setBounds(Drupal.settings.scratchpads_citethispage.gmap_state[key]);
         }
       }
     }
-    // Redraw clusters
-    setTimeout(function() {
-      redrawClusters(context);
-    }, 500);
-  }
-  /**
-   * redrawClusters
-   *
-   * This function changes Google map clusters to use a gradient rather than a background image, as those
-   * seem to confuse phatomJS PDF rendering
-   */
-  function redrawClusters(context){
-    var cluster_re = /markerclustererplus/;
-    $('div.gm3-map-wrapper div', context).filter(function() {
-      return cluster_re.test($(this).css('background-image'));
-    }).each(function() {
-      var height = $(this).height();
-      var width = $(this).width();
-      $(this).css('border-radius', height > width ? height : width);
-      if (/m1/.test($(this).css('background-image'))) {
-        // Blue
-        $(this).css('background', '-webkit-radial-gradient(center, ellipse cover, rgba(75,160,229,1) 17%,rgba(75,160,229,0.59) 42%,rgba(167,216,244,0) 78%,rgba(170,218,244,0) 79%)');            
-      } else if (/m2/.test($(this).css('background-image'))) {
-        // Orange
-        $(this).css('background', '-webkit-radial-gradient(center, ellipse cover, rgba(229,209,75,1) 17%,rgba(229,209,75,0.59) 42%,rgba(244,227,167,0) 78%,rgba(244,227,170,0) 79%)');
-      } else {
-        // Red
-        $(this).css('background', '-webkit-radial-gradient(center, ellipse cover, rgba(255,57,43,1) 17%,rgba(255,57,43,0.59) 42%,rgba(255,154,157,0) 78%,rgba(255,157,160,0) 79%)');
-      }
-    });
   }
   Drupal.behaviors.scrachpads_citethispage = {
     attach: function(context, settings) {

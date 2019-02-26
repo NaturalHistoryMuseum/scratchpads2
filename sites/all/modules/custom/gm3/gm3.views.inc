@@ -7,7 +7,7 @@ function gm3_views_plugins(){
   return array(
     'style' => array(
       'gmap' => array(
-        'title' => t('Google Map'),
+        'title' => t('Map'),
         'help' => t('Displays rows as a map.'),
         'handler' => 'gm3_plugin_style_gm3',
         'theme' => 'gm3_view_gm3',

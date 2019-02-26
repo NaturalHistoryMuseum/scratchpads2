@@ -1,7 +1,7 @@
-name = Google Maps Javascript API V3 :: Fields
-description = Provides a number of different fields for entering Geographical data via a Google map.
+name = Javascript Map Fields :: Fields
+description = Provides a number of different fields for entering Geographical data via a map.
 core = 7.x
-package = Google maps
+package = Maps
 dependencies[] = gm3
 dependencies[] = field
 l10n server = localize.scratchpads.eu

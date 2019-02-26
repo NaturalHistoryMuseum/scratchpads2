@@ -40,21 +40,6 @@ function gm3_admin_settings_form(){
       '#default_value' => $settings['minZoom'],
       '#options' => drupal_map_assoc(range(2, 10))
     ),
-    'advanced' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Advanced'),
-      '#collapsed' => TRUE,
-      '#collapsible' => TRUE,
-      'gm3_settings' => array(
-        '#title' => t('GM3 Settings'),
-        '#type' => 'textarea',
-        '#default_value' => serialize(gm3_settings()),
-        '#rows' => 10
-      ),
-      'warning' => array(
-        '#markup' => '<p style="color:red">' . t('Only change this if you know what you are doing.') . '</p>'
-      )
-    ),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Save')
@@ -65,22 +50,16 @@ function gm3_admin_settings_form(){
 /**
  * Submit function for the admin settings.
  */
-function gm3_admin_settings_form_validate(&$form, &$form_state){
-  if(!unserialize($form_state['values']['gm3_settings'])){
-    form_set_error('gm3_settings', t('Failed to unserialize your GM3 settings'));
-  }
-}
-
-/**
- * Submit function for the admin settings.
- */
 function gm3_admin_settings_form_submit(&$form, &$form_state){
-  $settings = unserialize($form_state['values']['gm3_settings']);
+  $settings = array();
   $settings['width'] = $form_state['values']['width'];
   $settings['height'] = $form_state['values']['height'];
   $settings['minZoom'] = $form_state['values']['minZoom'];
-  $settings['center']['latitude'] = $form_state['values']['latitude'];
-  $settings['center']['longitude'] = $form_state['values']['longitude'];
+  $settings['zoom'] = $form_state['values']['minZoom'];
+  $settings['center'] = array(
+    'latitude' => $form_state['values']['latitude'],
+    'longitude' => $form_state['values']['longitude']
+  );
   variable_set('gm3_default_settings', $settings);
 }
 

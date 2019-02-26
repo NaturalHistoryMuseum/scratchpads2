@@ -12,16 +12,6 @@ function theme_gm3_map($variables){
  * Function to return a renderable array for a map.
  */
 function gm3_get_map($variables){
-  // FIXME - This should be changed to dynamically calcuate what GM3 JS
-  // libraries are dependent on others.
-  $dependencies = array(
-    'region' => 'polygon'
-  );
-  foreach($dependencies as $library => $dependent){
-    if(isset($variables['map']['libraries'][$library]) && !isset($variables['map']['libraries'][$dependent])){
-      $variables['map']['libraries'][$dependent] = array();
-    }
-  }
   // No need to use drupal_static here!
   static $info = array();
   if(!isset($variables['map']['id'])){
@@ -71,7 +61,7 @@ function gm3_get_map($variables){
     gm3_add($variables['map']);
     $tools = '';
     if(isset($variables['map']['tools'])){
-      $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><div data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></div></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
+      $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><button type="button" data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></button></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
     }
     return array(
       '#attached' => array(
@@ -92,7 +82,7 @@ function theme_gm3_polygon_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="polygon"]',
     'text' => t('Click to enable adding/removing polygons.  Many sided polygons are simply added by clicking on the extreme points of the polygon.')
   ));
-  return '<div data-gm3-class="polygon" class="gm3-tools-button"><p>+ ' . t('Polygon') . '</p></div>';
+  return '<button type="button" data-gm3-class="polygon" class="gm3-tools-button"><p>+ ' . t('Polygon') . '</p></button>';
 }
 
 /**
@@ -103,7 +93,7 @@ function theme_gm3_polyline_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="polyline"]',
     'text' => t('Click to enable adding/removing lines.  Lines are added by clicking on the map once to start a line, and then on every point where there is an angle in the line.')
   ));
-  return '<div data-gm3-class="polyline" class="gm3-tools-button"><p>+ ' . t('Line') . ' +</p></div>';
+  return '<button type="button" data-gm3-class="polyline" class="gm3-tools-button"><p>+ ' . t('Line') . ' +</p></button>';
 }
 
 /**
@@ -114,7 +104,7 @@ function theme_gm3_rectangle_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="rectangle"]',
     'text' => t('Click to enable adding/removing rectangles.<br/>Add a rectangle by clicking on the map at the top left of a rectangle, and then at the bottom right.')
   ));
-  return '<div data-gm3-class="rectangle" class="gm3-tools-button"><p>+ ' . t('Rectangle') . '</p></div>';
+  return '<button type="button" data-gm3-class="rectangle" class="gm3-tools-button"><p>+ ' . t('Rectangle') . '</p></button>';
 }
 
 /**
@@ -125,7 +115,7 @@ function theme_gm3_point_button($variables){
     'selector' => '.gm3-tools-button[data-gm3-class="point"]',
     'text' => t('Click to enable adding/removing points.<br/>Add points by left clicking the map.<br/>Remove a point by right clicking it.')
   ));
-  return '<div data-gm3-class="point" class="gm3-tools-button"><p>+ ' . t('Point') . '</p></div>';
+  return '<button type="button" data-gm3-class="point" class="gm3-tools-button"><p>+ ' . t('Point') . '</p></button>';
 }
 
 /**
@@ -151,7 +141,14 @@ function theme_gm3_beautytip($variables){
 }
 
 /**
- * Callback to add a Google map to a specific element ID on the page.
+ * Add extra layers to a map component
+ */
+function hook_gm3_map_alter(&$map) {
+  // $map['libraries'] => The javascript classes to add to the map
+}
+
+/**
+ * Callback to add a map to a specific element ID on the page.
  */
 function gm3_add(&$map = array()){
   $map['settings'] = array_merge(gm3_settings(), isset($map['settings']) ? $map['settings'] : array());

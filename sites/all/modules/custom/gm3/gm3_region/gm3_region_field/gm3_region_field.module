@@ -2,8 +2,8 @@
 
 /**
  * Provides the following fields:
- * 
- * - Google maps regions (click on a country to select)
+ *
+ * - Maps regions (click on a country to select)
  */
 /**
  * Implementation of hook_field_info().
@@ -21,7 +21,7 @@ function gm3_region_field_field_info(){
 
 /**
  * Callback to validate an item
- * 
+ *
  * NOTE, this function is NOT gm3_region_field_items_validate to enable users
  * to enter REGION: REGION-ID rather than REGION_FIELD: REGION-ID
  */
@@ -172,7 +172,9 @@ function gm3_region_gm3_combination_insert(&$new_items, $value){
  * View for the combo field.
  */
 function gm3_region_region_map_alter(&$map, $item){
+  // This function gets called when we view the map (read-only)
   $map['libraries']['region']['module'] = 'gm3_region';
+  $map['libraries']['region']['editable'] = false;
   if(!isset($map['libraries']['polygon'])){
     $map['libaries']['polygon'] = array();
   }
@@ -190,8 +192,10 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
  * Function to update the map on the combination form element.
  */
 function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
+  // This function gets called when we use the map form (editable)
   $map['libraries']['region']['regions'] = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
-  $map['libraries']['field_region']['module'] = 'gm3_region_field';
+  $map['libraries']['region']['editable'] = true;
+  $map['libraries']['region']['module'] = 'gm3_region';
   $map['tools'][] = theme('gm3_region_button', array(
     'id' => $element['#field_name']
   ));
@@ -215,30 +219,6 @@ function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $in
  */
 function gm3_region_field_field_update($entity_type, $entity, $field, $instance, $langcode, &$items){
   gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
-}
-
-/**
- * Implementation of hook_library().
- */
-function gm3_region_field_library(){
-  return array(
-    'field_region' => array(
-      'title' => t('Google Maps Javascript API V3: Region field'),
-      'website' => 'http://code.google.com/apis/maps/',
-      'version' => '3',
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3_region_field') . "/js/gm3_region_field.field_region.js"
-        )
-      ),
-      'dependencies' => array(
-        array(
-          'gm3_region',
-          'region'
-        )
-      )
-    )
-  );
 }
 
 /**
@@ -412,10 +392,7 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
                 'module' => 'gm3_region',
                 'regions' => $regions
               ),
-              'polygon' => array(),
-              'field_region' => array(
-                'module' => 'gm3_region_field'
-              )
+              'polygon' => array()
             ),
             'tools' => array(
               theme('gm3_region_button', array(

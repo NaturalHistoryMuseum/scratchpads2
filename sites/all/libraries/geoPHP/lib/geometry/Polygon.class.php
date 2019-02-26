@@ -1,40 +1,21 @@
 <?php
-/*
- * (c) Camptocamp <info@camptocamp.com>
- * (c) Patrick Hayes
- *
- * This code is open-source and licenced under the Modified BSD License.
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
 
 /**
- * Polygon : a Polygon geometry.
- *
+ * Polygon: A polygon is a plane figure that is bounded by a closed path, 
+ * composed of a finite sequence of straight line segments
  */
-class Polygon extends Collection 
+class Polygon extends Collection
 {
   protected $geom_type = 'Polygon';
-  
-  /**
-   * Constructor
-   *
-   * The first linestring is the outer ring
-   * The subsequent ones are holes
-   * All linestrings should be a closed LineString
-   *
-   * @param array $linestrings The LineString array
-   */
-  public function __construct(array $linestrings) {
-    if (count($linestrings) > 0) {
-      parent::__construct($linestrings);
-    }
-    else {
-      throw new Exception("Polygon without an exterior ring");
-    }
+
+  // The boundary of a polygin is it's outer ring
+  public function boundary() {
+    return $this->exteriorRing();
   }
-  
+
   public function area($exterior_only = FALSE, $signed = FALSE) {
+    if ($this->isEmpty()) return 0;
+    
     if ($this->geos() && $exterior_only == FALSE) {
       return $this->geos()->area();
     }
@@ -66,6 +47,8 @@ class Polygon extends Collection
   }
   
   public function centroid() {
+    if ($this->isEmpty()) return NULL;
+    
     if ($this->geos()) {
       return geoPHP::geosToGeometry($this->geos()->centroid());
     }
@@ -97,21 +80,132 @@ class Polygon extends Collection
     return $centroid;
   }
 
+	/**
+	 * Find the outermost point from the centroid
+	 *
+	 * @returns Point The outermost point
+	 */
+  public function outermostPoint() {
+		$centroid = $this->getCentroid();
+
+		$max = array('length' => 0, 'point' => null);
+
+		foreach($this->getPoints() as $point) {
+			$lineString = new LineString(array($centroid, $point));
+
+			if($lineString->length() > $max['length']) {
+				$max['length'] = $lineString->length();
+				$max['point'] = $point;
+			}
+		}
+
+		return $max['point'];
+  }
+
   public function exteriorRing() {
+    if ($this->isEmpty()) return new LineString();
     return $this->components[0];
   }
   
   public function numInteriorRings() {
+    if ($this->isEmpty()) return 0;
     return $this->numGeometries()-1;
   }
   
   public function interiorRingN($n) {
     return $this->geometryN($n+1);
   }
-
+  
   public function dimension() {
+    if ($this->isEmpty()) return 0;
     return 2;
   }
+
+  public function isSimple() {
+    if ($this->geos()) {
+      return $this->geos()->isSimple();
+    }
+    
+    $segments = $this->explode();
+    
+    foreach ($segments as $i => $segment) {
+      foreach ($segments as $j => $check_segment) {
+        if ($i != $j) {
+          if ($segment->lineSegmentIntersect($check_segment)) {
+            return FALSE;
+          }
+        }
+      }
+    }
+    return TRUE;
+  }
+
+  /**
+   * For a given point, determine whether it's bounded by the given polygon.
+   * Adapted from http://www.assemblysys.com/dataServices/php_pointinpolygon.php
+   * @see http://en.wikipedia.org/wiki/Point%5Fin%5Fpolygon
+   *
+   * @param Point $point 
+   * @param boolean $pointOnBoundary - whether a boundary should be considered "in" or not
+   * @param boolean $pointOnVertex - whether a vertex should be considered "in" or not
+   * @return boolean
+   */
+  public function pointInPolygon($point, $pointOnBoundary = true, $pointOnVertex = true) {
+    $vertices = $this->getPoints();
+
+    // Check if the point sits exactly on a vertex
+    if ($this->pointOnVertex($point, $vertices)) {
+      return $pointOnVertex ? TRUE : FALSE;
+    }
+  
+    // Check if the point is inside the polygon or on the boundary
+    $intersections = 0; 
+    $vertices_count = count($vertices);
+
+    for ($i=1; $i < $vertices_count; $i++) {
+      $vertex1 = $vertices[$i-1]; 
+      $vertex2 = $vertices[$i];
+      if ($vertex1->y() == $vertex2->y() 
+      && $vertex1->y() == $point->y() 
+      && $point->x() > min($vertex1->x(), $vertex2->x()) 
+      && $point->x() < max($vertex1->x(), $vertex2->x())) {
+        // Check if point is on an horizontal polygon boundary
+        return $pointOnBoundary ? TRUE : FALSE;
+      }
+      if ($point->y() > min($vertex1->y(), $vertex2->y())
+      && $point->y() <= max($vertex1->y(), $vertex2->y())
+      && $point->x() <= max($vertex1->x(), $vertex2->x())
+      && $vertex1->y() != $vertex2->y()) {
+        $xinters = 
+          ($point->y() - $vertex1->y()) * ($vertex2->x() - $vertex1->x())
+          / ($vertex2->y() - $vertex1->y()) 
+          + $vertex1->x();
+        if ($xinters == $point->x()) {
+          // Check if point is on the polygon boundary (other than horizontal)
+          return $pointOnBoundary ? TRUE : FALSE;
+        }
+        if ($vertex1->x() == $vertex2->x() || $point->x() <= $xinters) {
+          $intersections++;
+        }
+      } 
+    } 
+    // If the number of edges we passed through is even, then it's in the polygon.
+    if ($intersections % 2 != 0) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+  
+  public function pointOnVertex($point) {
+    foreach($this->getPoints() as $vertex) {
+      if ($point->equals($vertex)) {
+        return true;
+      }
+    }
+  }
+
 
   // Not valid for this geometry type
   // --------------------------------
