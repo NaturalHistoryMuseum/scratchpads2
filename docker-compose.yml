@@ -83,7 +83,7 @@ services:
     volumes:
       - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
     environment:
-      - SOLR_JVM_MEMORY=${SOLR_JVM_MEMORY}
+      - SOLR_UNDERTOW_OPTS=-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m
     logging:
       driver: json-file
       options:
