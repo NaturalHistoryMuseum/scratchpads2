@@ -45,8 +45,30 @@
      */
     getActiveListeners(){
       const defaultListeners = super.getActiveListeners();
-      defaultListeners.mousemove = e => this.setFollowLine(e.latlng);
-      return defaultListeners;
+      let dblClick = false;
+      return Object.assign({}, defaultListeners, {
+        mousemove: e => this.setFollowLine(e.latlng),
+        click: e => {
+          // Wait until the next tick to make sure this isn't a double click
+          setTimeout(
+            () => {
+              if(dblClick) {
+                dblClick = false;
+                return;
+              }
+
+              this.addLatLng(e.latlng);
+            },
+            0
+          )
+        },
+        dblclick: e => {
+          dblClick = true;
+          if(this.currentShape && this.isShapeValid()) {
+            this.completeShape();
+          }
+        }
+      });
     }
 
     /**
@@ -54,6 +76,10 @@
      * @param {L.latLng} mousePosition The coordinate the mouse is at
      */
     setFollowLine(mousePosition) {
+      if(!this.currentShape) {
+        return;
+      }
+
       this.followLine.setLatLngs(
         this.getFollowLineCoords(mousePosition) || []
       );
@@ -65,15 +91,31 @@
      */
     activate(map){
       // Add tool functionality
-      super.activate(map, {
-        click: e => this.addLatLng(e.latlng)
-      });
+      // We want to make use of the dblclick event, so disable zoom on dblclick
+      map.doubleClickZoom.disable();
+
+      super.activate(map);
+
 
       const line = this.followLine;
       line.setLatLngs([]);
       line.addTo(map);
 
-      this.addTeardown(() => this.followLine.remove());
+      this.addTeardown(() => {
+        this.followLine.remove();
+        map.doubleClickZoom.enable();
+      });
+    }
+
+    /**
+     * Called when the escape key is pressed
+     */
+    onEscape(){
+      if (this.currentShape) {
+        this.completeShape();
+      } else {
+        super.onEscape();
+      }
     }
 
     /**
@@ -81,17 +123,27 @@
      */
     deactivate(){
       super.deactivate();
+      this.completeShape();
+    }
 
+    /**
+     * Removes the shape if it's invalid, otherwise marks it as
+     * no longer the current shape & removes follow lines
+     */
+    completeShape() {
       if(this.currentShape) {
         if(!this.isShapeValid()) {
           this.removeObject(this.currentShape);
         }
+
+        this.followLine.setLatLngs([]);
 
         // Disable the editor
         this.currentShape.disableEdit();
         this.currentShape = null;
       }
     }
+
     /**
      * Returns a new L.Polygon object to add to the map
      * @param {L.latlng[]} latlngs The points on the shape
