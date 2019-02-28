@@ -41,11 +41,11 @@ some very specific requirements.
 
 To get a development scratchpad up and running:
 
-- [Install docker-sync](https://github.com/EugenMayer/docker-sync/wiki/1.-Installation)
+- [Install docker-sync](https://docker-sync.readthedocs.io/en/latest/getting-started/installation.html) (`gem install docker-sync`)
 - Copy .env.template to .env and set some environment values
 - Run `docker-sync start`
 - Run `docker-compose up`
-- Go to `localhost:8081/install.php` to start the installation process (make sure you choose the "Scratchpad 2" profile)
+- Go to [`localhost:8081/install.php`](http://localhost:8081/install.php) to start the installation process (make sure you choose the "Scratchpad 2" profile)
 - This repo will be mounted inside the docker, so you will be able to see any changes in real time (-ish)
 
 If you want to help develop Scratchpads please don't hesitate to get in touch!
