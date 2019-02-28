@@ -1,17 +1,20 @@
 <?php
 
 /**
+ * @file
+ */
+
+/**
  * Implements hook_install().
  */
-function scratchpads_security_install()
-{
+function scratchpads_security_install() {
   // Set the Image CAPTCHA options.
   variable_set('image_captcha_code_length', 7);
-  variable_set('image_captcha_bilinear_interpolation', true);
+  variable_set('image_captcha_bilinear_interpolation', TRUE);
   variable_set('image_captcha_distortion_amplitude', 3);
   variable_set('image_captcha_line_noise', 1);
   variable_set('image_captcha_noise_level', 1);
-  // Set the CAPTCHA options
+  // Set the CAPTCHA options.
   variable_set('captcha_default_challenge', 'image_captcha/Image');
   // Set the forms that require a CAPTCHA.
   scratchpads_security_flush_caches();
@@ -24,41 +27,38 @@ function scratchpads_security_install()
   variable_set('spambot_criteria_ip', 5);
   variable_set('spambot_criteria_username', 0);
   variable_set('spambot_blacklisted_delay', 5);
-  // Set the Honeypot settings
+  // Set the Honeypot settings.
   variable_set('honeypot_form_user_register_form', 1);
 }
 
 /**
  * Implements hook_disable()
  */
-function scratchpads_security_disable()
-{
+function scratchpads_security_disable() {
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('module_disable', array(
-    'captcha'
+    'captcha',
   ));
 }
 
 /**
  * Implements hook_uninstall()
  */
-function scratchpads_security_uninstall()
-{
+function scratchpads_security_uninstall() {
   // We need to disable the modules once everything else has done. So we register
   // a shutdown function with arguments.
   drupal_register_shutdown_function('drupal_uninstall_modules', array(
-    'captcha'
+    'captcha',
   ));
 }
 
 /**
- * Enable the spambot module
+ * Enable the spambot module.
  */
-function scratchpads_security_update_7001()
-{
+function scratchpads_security_update_7001() {
   module_enable(array(
-    'spambot'
+    'spambot',
   ));
   // Set the Spambot settings.
   variable_set('spambot_blocked_message_email', 'Your email address is blacklisted.');
@@ -72,25 +72,23 @@ function scratchpads_security_update_7001()
  * Disable the captcha_after module, and also prevent captcha from being added
  * to the login block form.  This is to enable caching to work.
  */
-function scratchpads_security_update_7002()
-{
+function scratchpads_security_update_7002() {
   module_disable(array(
-    'captcha_after'
+    'captcha_after',
   ));
   db_delete('captcha_points')->condition('form_id', array(
     'user_login',
-    'user_login_block'
+    'user_login_block',
   ))->execute();
 }
 
 /**
  * Enable honeypot and make spambot a little more sensitive.
  */
-function scratchpads_security_update_7003()
-{
+function scratchpads_security_update_7003() {
   if (!module_exists('honeypot')) {
     module_enable(array(
-      'honeypot'
+      'honeypot',
     ));
   }
   variable_set('honeypot_form_user_register_form', 1);
@@ -101,13 +99,14 @@ function scratchpads_security_update_7003()
 }
 
 /**
- * Enable spamicide module
+ * Enable spamicide module.
  */
-function scratchpads_security_update_7004()
-{
+function scratchpads_security_update_7004() {
   if (!module_exists('spamicide')) {
+    $path = 'public://' . variable_get('spamicide_dir', 'spamicide');
+    file_prepare_directory($path, FILE_CREATE_DIRECTORY);
     module_enable(array(
-      'spamicide'
+      'spamicide',
     ));
   }
 }
