@@ -76,31 +76,57 @@ function gm3_region_items_validate($items, $field_name, &$errors){
 }
 
 /**
+ * We need to modify the default_value when the field settings are changed, so that they have the
+ * same format as actual field values. Basically do the same thing as gm3_region_field_field_insert
+ */
+function gm3_region_field_field_update_instance($instance) {
+  if($instance['widget']['type'] !== 'gm3_region_gm3') {
+    return;
+  }
+
+  $instance['default_value'] = _gm3_region_field_parse_field_value($instance['default_value']);
+
+  // This hook is actually called after $instance is saved, so we have to save again.
+  _field_write_instance($instance, TRUE);
+
+  // Clear caches.
+  field_cache_clear();
+}
+
+/**
  * Implementation of hook_field_insert().
  */
 function gm3_region_field_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items){
   switch($field['type']){
     case 'gm3_region':
-      $new_items = array();
-      if(is_string($items[0])){
-        $items = preg_split('/[\r\n|]+/', str_replace('REGION:', '', strtoupper($items[0])));
-        foreach($items as $key => $item){
-          $new_items[$key] = array(
-            'region_id' => _gm3_region_convert_short_code_to_full_code($item)
-          );
-        }
-      }else if(isset($items[0]['map'])){
-        foreach(array_keys($items[0]['map']) as $region_id){
-          $new_items[] = array(
-            'region_id' => $region_id
-          );
-        }
-      }else{
-        $new_items = $items;
-      }
-      $items = $new_items;
+      $items = _gm3_region_field_parse_field_value($items);
       break;
   }
+}
+
+/**
+ * Parse the value submitted by the map input element, convert it
+ * into a format that can be saved in the database
+ */
+function _gm3_region_field_parse_field_value($items) {
+  $new_items = array();
+  if(is_string($items[0])){
+    $items = preg_split('/[\r\n|]+/', str_replace('REGION:', '', strtoupper($items[0])));
+    foreach($items as $key => $item){
+      $new_items[$key] = array(
+        'region_id' => _gm3_region_convert_short_code_to_full_code($item)
+      );
+    }
+  }else if(isset($items[0]['map'])){
+    foreach($items[0]['map'] as $region_id){
+      $new_items[] = array(
+        'region_id' => $region_id
+      );
+    }
+  }else{
+    $new_items = $items;
+  }
+  return $new_items;
 }
 
 /**
@@ -182,6 +208,17 @@ function gm3_region_field_js_settings($regions = [], $editable = false){
 }
 
 /**
+ * Implements hook_gm3_field_map_alter
+ * This is where we set the js values for the map before rendering it,
+ * given the field values for the associated input elements.
+ */
+function gm3_region_field_gm3_field_map_alter(&$map, $values){
+  if(isset($values['gm3_region'])) {
+    $map['libraries']['region'] = gm3_region_field_js_settings($values['gm3_region'], true);
+  }
+}
+
+/**
  * View for the combo field.
  */
 function gm3_region_region_map_alter(&$map, $item){
@@ -200,28 +237,33 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
 }
 
 /**
- * Function to update the map on the combination form element.
+ * Generate the select element that the region map will be synced with
  */
-function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
-  // This function gets called when we use the map form (editable)
-  $regions = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
-  $map['libraries']['region'] = gm3_region_field_js_settings($regions, true);
-  $map['tools'][] = theme('gm3_region_button', array(
-    'id' => $element['#field_name']
-  ));
-  $widget['children']['gm3_region'] = array(
-    '#default_value' => isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array(),
+function gm3_region_field_map_field($id, $default_value = []){
+  return array(
+    '#default_value' => $default_value,
+    '#map_type' => 'gm3_region',
     '#options' => _gm3_region_field_get_options(),
     '#multiple' => TRUE,
     '#size' => 10,
     '#type' => 'select',
     '#attributes' => array(
       'class' => array(
-        $element['#field_name'] . '-region'
+        $id . '-region'
       ),
       'style' => 'display:none'
     )
   );
+}
+
+/**
+ * Function to update the map on the combination form element.
+ */
+function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, $default_values){
+  // This function gets called when we use the map form (editable)
+  $regions = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
+  $map['libraries']['region'] = gm3_region_field_js_settings($regions, true);
+  $widget['children']['gm3_region'] = gm3_region_field_map_field($element['#field_name'], $regions);
 }
 
 /**
@@ -378,6 +420,7 @@ function gm3_region_field_field_settings_form($field, $instance, $has_data){
  */
 function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
   $widget = $element;
+
   switch($instance['widget']['type']){
     case 'gm3_region_gm3':
       // We need to add a GM3 map to the page.
@@ -390,51 +433,36 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
         }
       }
       $widget += array(
-        '#prefix' => theme('gm3_map', array(
-          'map' => array(
-            'id' => $element['#field_name'],
-            'libraries' => array(
-              'region' => gm3_region_field_js_settings($regions, true)
-            ),
-            'tools' => array(
-              theme('gm3_region_button', array(
-                'id' => $element['#field_name']
-              ))
-            ),
-            'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
-          )
-        )),
+        '#type' => 'gm3_field',
+        '#map' => array(
+          'id' => $element['#field_name'],
+          'libraries' => array(
+            'region' => gm3_region_field_js_settings($regions, true)
+          ),
+          'max_objects' => ($field['cardinality'] ? $field['cardinality'] : 1000000)
+        ),
         '#suffix' => '<p style="text-align:right"><a href="#" onclick="jQuery(this).parent().siblings().children(\'select\').toggle(); return false">' . t('Toggle manual selection') . '</a></p>',
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
           )
         ),
-        '#attributes' => array(
-          'class' => array(
-            $element['#field_name'] . '-region'
-          ),
-          'style' => 'display:none'
-        ),
-        '#default_value' => $regions,
-        '#options' => _gm3_region_field_get_options(),
-        '#multiple' => TRUE,
-        '#size' => 10,
-        '#type' => 'select'
+        'map' => gm3_region_field_map_field($element['#field_name'], $regions)
       );
       break;
   }
   $title = $widget['#title'];
   unset($widget['#title']);
-  $element['map'] = array(
+  $element += array(
     '#type' => 'fieldset',
     '#title' => $title,
     '#attributes' => array(
       'class' => array(
         'gm3_fieldset'
       )
-    ),
-    'map' => $widget
+    )
   );
+  $element['map'] = $widget;
+
   return $element;
 }
