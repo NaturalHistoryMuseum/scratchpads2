@@ -14,10 +14,8 @@
       this.currentShape = null;
       this.followLine = this.createFollowLine();
 
-      if(Array.isArray(shapes)) {
-        for(const shape of shapes) {
-          this.addShape(shape);
-        }
+      for(const shape of shapes) {
+        this.addShape(shape);
       }
     }
 
@@ -259,9 +257,7 @@
      * @param {String} value The field value
      */
     setValue(value){
-      const matches = value.match(/\(\([^)]+\)\)/g) || [];
-
-      const polygons = matches.map(
+      const polygons = value.match(/\(\([^)]+\)\)/g).map(
         line => line.substring(2, line.length - 2).split(',').map(
           coord => coord.trim().split(' ').reduce((lng, lat) => ({ lat, lng }))
         )

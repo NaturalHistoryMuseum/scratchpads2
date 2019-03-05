@@ -28,14 +28,14 @@
     observer.observe(element);
   };
 
+  // Create the OSM tileset
+  const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      subdomains: ['a','b','c']
+  });
+
   Drupal.GM3 = class {
     constructor (map) {
-      // Create the OSM tileset
-      const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: ['a','b','c']
-      });
-
       if (map instanceof Drupal.GM3) {
         return map;
       }
