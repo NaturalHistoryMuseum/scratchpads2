@@ -170,11 +170,18 @@ Drupal.jsAC.prototype.hidePopup = function (keycode) {
   if (this.selected && ((keycode && keycode != 46 && keycode != 8 && keycode != 27) || !keycode)) {
     this.select(this.selected);
   }
-  // Hide popup.
+  // Hide popup & submit.
   var popup = this.popup;
+  var isSelected = this.selected !== false;
+  var form = $(this.input.form);
   if (popup) {
     this.popup = null;
-    $(popup).fadeOut('fast', function () { $(popup).remove(); });
+    $(popup).fadeOut('fast', function () {
+      $(popup).remove();
+      if (isSelected) {
+        form.submit();
+      }
+    });
   }
   this.selected = false;
   $(this.ariaLive).empty();
