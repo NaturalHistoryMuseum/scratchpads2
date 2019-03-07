@@ -182,7 +182,7 @@ function scratchpads_hands_off_form_field_ui_field_overview_form_alter(&$form, &
 }
 
 /**
- * 
+ *
  */
 function scratchpads_hands_off_field_ui_overview_submit($form, &$form_state){
   // We get the error messages, and clear any thrown by the field_ui module
@@ -241,7 +241,6 @@ function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
   $forbidden_regions = array(
     'slide_bottom',
     'slide_top',
-    'content',
     'menu',
     'branding',
     'header'
@@ -376,7 +375,7 @@ function scratchpads_hands_off_menu_alter(&$items){
 /**
  * Copy of field_ui_field_delete_form(), adding the check to see if the user
  * added the locked field instance themselves.
- * 
+ *
  * Form constructor for removing a field instance from a bundle.
  *
  * @see field_ui_field_delete_form_submit()
@@ -656,7 +655,7 @@ function scratchpads_hands_off_module_implements_alter(&$implementations, $hook)
 
 /**
  * Implements hook_contextual_links_view_alter().
- * 
+ *
  * Prevent editing of blocks from contextual links
  */
 function scratchpads_hands_off_contextual_links_view_alter(&$element, $items){
