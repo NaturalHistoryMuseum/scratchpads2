@@ -646,7 +646,8 @@ function scratchpads_biography_field_default_fields(){
       'settings' => array(
         'allowed_values' => array(
           'male' => 'Male',
-          'female' => 'Female'
+          'female' => 'Female',
+          'other' => 'Other'
         ),
         'allowed_values_function' => ''
       ),
