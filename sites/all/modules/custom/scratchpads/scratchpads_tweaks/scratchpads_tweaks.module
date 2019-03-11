@@ -540,6 +540,10 @@ function scratchpads_tweaks_menu_alter(&$items){
     $items['node/%node/clone']['title'] = t('Clone');
     $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
   }
+
+  if(isset($items['admin/structure/auto-label'])){
+      unset($items['admin/structure/auto-label']);
+  }
 }
 
 /**
