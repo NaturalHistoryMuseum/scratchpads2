@@ -15,6 +15,7 @@ function scratchpads_roles_and_permissions_module_implements_alter(&$implementat
       'comment',
       'comment_notify',
       'contact',
+      'context',
       'contextual',
       'dashboard',
       'entityconnect',
@@ -145,7 +146,7 @@ function scratchpads_roles_and_permissions_shutdown(){
     // Load the role
     $role = user_role_load_by_name($role);
     if($role && count($permissions)){
-      // Due to issues during install, we need to check that the module a 
+      // Due to issues during install, we need to check that the module a
       // permission is associated with is set.  If it isn't, then we remove it
       // from the list.
       $modules = user_permission_get_modules();
