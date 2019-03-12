@@ -682,6 +682,11 @@ function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
       $info['name'] = 'Webforms';
       $info['description'] = 'Enables the creation of simple online forms. Useful for questionnaires, conference signup, polls, and much more.';
       break;
+    case 'context_ui':
+      $info['tool'] = true;
+      $info['name'] = 'Context layouts';
+      $info['description'] = 'Advanced layout tools.';
+      break;
     case 'views_ui':
       $info['tool'] = TRUE;
       $info['name'] = 'Views';
