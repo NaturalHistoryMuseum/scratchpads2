@@ -10,9 +10,8 @@
  * Main theme that creates the whole block content.
  */
 function theme_remote_issue_tab_block($variables = array()){
-  // Add the CSS & js
-  drupal_add_css(drupal_get_path('module', 'remote_issue_tab') . '/css/remote_issue_tab.css');
-  drupal_add_js(drupal_get_path('module', 'remote_issue_tab') . '/js/remote_issue_tab.js');
+  // Add the CSS & js - defined in remote_issue_tab_library() so we can add the ui.tabs dependency
+  drupal_add_library('remote_issue_tab', 'remote_issue_tab');
 
   foreach ($variables['external_scripts'] as $script) {
     drupal_add_js($script, "external");
@@ -59,14 +58,30 @@ function theme_remote_issue_tab_list_issues($variables = array())
   This module is not available in your browser.
   To browse or create issues please use the '. l('issue queue web page', $variables['html_link']) .'.
  </div>
- <div class="items">
- <h2>Recent Issues:</h2>
-  <div class="loading">
-    Loading issues...
-  </div>
-  <div class="empty">
-    There are no issues to display.
-  </div>
-   <ul></ul>
- </div>';
+ <div id="issuesTabs">
+    <ul>
+        <li><a href="#issuesTabOpen">Open</a></li>
+        <li><a href="#issuesTabClosed">Closed</a></li>
+    </ul>
+    <div class="items" id="issuesTabOpen">
+        <h2>Recently Opened Issues:</h2>
+        <div class="loading">
+        Loading issues...
+        </div>
+        <div class="empty">
+        There are no issues to display.
+        </div>
+        <ul class="issues"></ul>
+    </div>
+    <div class="items" id="issuesTabClosed">
+        <h2>Recently Closed Issues:</h2>
+        <div class="loading">
+        Loading issues...
+        </div>
+        <div class="empty">
+        There are no issues to display.
+        </div>
+        <ul class="issues"></ul>    
+    </div>
+</div>';
 }

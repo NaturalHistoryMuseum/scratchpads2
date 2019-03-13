@@ -1,53 +1,73 @@
 (function ($) {
   Drupal.behaviors.remote_issues_block = {
-    attach: function(context, settings) {
-      const loading = document.querySelector('#remote-issue-tab .loading');
-      const noJs = document.querySelector('#remote-issue-tab .no-js');
-      const items = document.querySelector('#remote-issue-tab .items');
-      const empty = document.querySelector('#remote-issue-tab .empty');
+    attach: function (context, settings) {
 
-      function handleError() {
-        noJs.style.display = 'block';
-        items.style.display = 'none';
-      }
+      // setup jquery ui tabs
+      $('#issuesTabs').tabs({});
 
-      noJs.style.display = 'none';
-      items.style.display = 'block';
-
+      // define the provider
       const providerModule = settings[settings.remote_issue_tab.provider_module];
 
-      $.get(settings.remote_issue_tab.fetch_url, null, function (issues) {
-        try {
-          const list = items.querySelector('ul');
-          issues = providerModule.parse_response(issues);
+      // no-js block (outside of tabs)
+      const noJs = $('#remote-issue-tab .no-js');
 
-          if (issues.length === 0) {
-            empty.style.display = 'block';
-          }
-
-          for(item of issues) {
-            const li = document.createElement('li');
-            li.innerHTML = (providerModule.render_item || render_item)(item);
-            list.appendChild(li);
-          }
-
-          loading.style.display = 'none';
-        } catch(e) {
-          handleError();
-          throw e;
+      // tabs
+      const issuesTabs = {
+        'open': {
+          'query': {'state': 'open'},
+          'ref': $('#issuesTabOpen')
+        },
+        'closed': {
+          'query': {'state': 'closed', 'sort': 'updated'},
+          'ref': $('#issuesTabClosed')
         }
-      }).fail(handleError);
+      };
+
+      function handleError() {
+        noJs.css('display', 'block');
+        $.each(issuesTabs, (tabName, o) => {
+          o.ref.css('display', 'none');
+        });
+      }
+
+      noJs.css('display', 'none');
+
+
+      $.each(issuesTabs, (tabName, o) => {
+        $.get(settings.remote_issue_tab.fetch_url, o.query, function (issues) {
+          try {
+            issues = providerModule.parse_response(issues);
+            const list = o.ref.find('ul.issues');
+            if (issues.length === 0) {
+              o.ref.find('.empty').css('display', 'block');
+            }
+
+            for (item of issues) {
+              const li = document.createElement('li');
+              li.innerHTML = (providerModule.render_item || render_item)(item);
+              list.append(li);
+            }
+
+            o.ref.find('.loading').css('display', 'none');
+
+          } catch (e) {
+            handleError();
+            throw e;
+          }
+        }).fail(handleError);
+      });
     }
-  }
+  };
 })(jQuery);
 
 function render_item(item) {
   return `<details>
     <summary class="item-summary">
       <h3 class="item-summary-heading">
-        <a href="${ item.link }">${ item.title }</a>
+        <a href="${item.link}">${item.title}</a>
+        <span class="item-time-ago">${item.timeAgo}</span>
       </h3>
     </summary>
-    ${ item.body }
+    ${item.body}
   </details>`;
 }

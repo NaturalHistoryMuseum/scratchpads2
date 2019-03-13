@@ -210,3 +210,24 @@ function remote_issue_tab_create_form_submit($form, &$form_state)
         drupal_set_message(t('The issue could not be created, try again later.'), 'error');
     }
 }
+
+
+function remote_issue_tab_library()
+{
+    $path = drupal_get_path('module', 'remote_issue_tab');
+
+    $libraries['remote_issue_tab'] = array(
+        'title' => 'Remote issue tab',
+        'js' => array(
+            $path . '/js/remote_issue_tab.js' => array('group' => JS_THEME),
+        ),
+        'css' => array(
+            $path . '/css/remote_issue_tab.css',
+        ),
+        'dependencies' => array(
+            array('system', 'ui.tabs'),
+        ),
+    );
+
+    return $libraries;
+}

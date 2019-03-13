@@ -89,3 +89,11 @@ font-weight:400;
 #remote-issue-tab .form-text {
   max-width: 100%;
 }
+
+#remote-issue-tab .item-time-ago {
+    position: absolute;
+    right: 20px;
+    font-size: 0.6em;
+    opacity: 0.7;
+    padding-top: 2px;
+}
