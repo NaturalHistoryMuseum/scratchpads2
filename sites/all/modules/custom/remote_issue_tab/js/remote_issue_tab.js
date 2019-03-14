@@ -38,6 +38,7 @@
           try {
             issues = providerModule.parse_response(issues);
             const list = o.ref.find('ul.issues');
+            list.empty();
             if (issues.length === 0) {
               o.ref.find('.empty').css('display', 'block');
             }
