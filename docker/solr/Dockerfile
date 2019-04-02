@@ -19,6 +19,5 @@ COPY files/solr.xml $SOLR_DATA_DIRECTORY/solr-home/solr.xml
 COPY files/scratchpads2 $SOLR_DATA_DIRECTORY/solr-home/scratchpads2
 # RUN mkdir $SOLR_DATA_DIRECTORY/solr-home/scratchpads2/data
 
-ENV SOLR_UNDERTOW_OPTS="-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m"
 WORKDIR "$SOLR_DATA_DIRECTORY"
 CMD ["/usr/local/share/solr-undertow/bin/solr-undertow", "/var/lib/solr-undertow/solr-undertow.conf"]
