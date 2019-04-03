@@ -52,10 +52,10 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
     }
   }
   // Get a list of fields that this data can be saved to
-  $field_options = array();
   $search_fields = _tagtag_fields_list($form['#node_type']->type);
+  $populate_fields = _tagtag_fields_list($form['#node_type']->type, 'populate');
   // Set the default value to the search fields to be ALL text fields.
-  $search_fields_default = array(); // variable_get('tagtag_search_fields_' . $form['#node_type']->type, array());
+  $search_fields_default = array();
   if(!count($search_fields_default)){
     $search_fields_default = array_keys($search_fields);
   }
@@ -98,7 +98,7 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
       '#type' => 'select',
       '#options' => array_merge(array(
         0 => '-- Select --'
-      ), $field_options),
+      ), $populate_fields),
       '#description' => t('Please select the field you would like tags saving to.  Note, all content in the field will be replaced by tag data.')
     ),
     'tagtag_append' => array(
@@ -207,30 +207,38 @@ function tagtag_node_type_delete($info){
 /**
  * Helper function to get a list of fields that can be used!
  */
-function _tagtag_fields_list($node_type){
+function _tagtag_fields_list($node_type, $list_type=null){
   $instances = field_info_instances('node', $node_type);
-  $search_fields = array();
-  $field_types = array(
-    'taxonomy',
-    'text',
-    'options',
-    'tree_widget'
-  );
-  drupal_alter('tag_field_types', $field_types);
+  $field_types = array();
+  switch ($list_type) {
+    case 'populate':
+      drupal_alter('tag_populate_field_types', $field_types);
+      break;
+    default:
+      $field_types = array(
+        'taxonomy',
+        'text',
+        'options',
+        'tree_widget'
+      );
+      drupal_alter('tag_field_types', $field_types);
+  }
+
+  $field_list = array();
   foreach($instances as $key => $instance){
     if(in_array($instance['widget']['module'], $field_types)){
       $field_options[$key] = $instance['label'];
       if(substr($instance['widget']['type'], 0, 5) == 'text_'){
-        $search_fields[$key] = $instance['label'];
+        $field_list[$key] = $instance['label'];
       }else{
         $field_info = field_info_field($instance['field_name']);
         if(substr($field_info['type'], 0, 9) == 'taxonomy_'){
-          $search_fields[$key] = $instance['label'];
+          $field_list[$key] = $instance['label'];
         }
       }
     }
   }
-  return $search_fields;
+  return $field_list;
 }
 
 /**

@@ -220,6 +220,13 @@ function scratchpads_taxonomic_name_field_tag_field_types_alter(&$field_types){
 }
 
 /**
+ * Implements hook_tag_populate_field_types_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_populate_field_types_alter(&$field_types){
+  $field_types[] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
  * Implements hook_tag_widget_map_alter()
  */
 function scratchpads_taxonomic_name_field_tag_widget_map_alter(&$maps){
