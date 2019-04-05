@@ -44,7 +44,10 @@
       for (var id in Drupal.settings.antibot.forms) {
         // Switch the action to the original value.
         $('form#' + id).attr('action', Drupal.settings.antibot.forms[id].action);
-        
+
+        if (Drupal.ajax.hasOwnProperty(id) && Drupal.ajax[id].hasOwnProperty('options')) {
+          Drupal.ajax[id].options.url = Drupal.settings.antibot.forms[id].action;
+        }
         // Check if a key is required.
         if (Drupal.settings.antibot.forms[id].key) {
           // Inject the key value.
