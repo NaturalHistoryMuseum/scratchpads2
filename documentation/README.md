@@ -4,7 +4,7 @@ Not included:
 https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Adding-rss-feeds
 
 ARE THESE STILL WORKING/USEFUL?
-https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Download-a-taxonomic-dictionary??
+
 https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Lucid-keys
 https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Publication-module
 https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/Translating-scratchpad

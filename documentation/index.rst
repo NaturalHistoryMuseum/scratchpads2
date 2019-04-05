@@ -120,6 +120,14 @@ Contents
    advanced-features/nomenclatural-status
    advanced-features/pretty-urls
    advanced-features/sitemap
+   advanced-features/lucid-keys
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Development
+
+   development/install-scratchpads-with-docker
+   development/install-docker
 
 
 .. toctree::
@@ -141,15 +149,15 @@ Useful links
 
 **Scratchpads platform**
     Find information about Scratchpads, browse through sites and apply for a new Scratchpad site
-    http://scratchpads.eu 
+    http://scratchpads.eu
 
 **Issues queue**
-    Report an issue, ask your questions or find answers or to request a new feature 
+    Report an issue, ask your questions or find answers or to request a new feature
     https://github.com/NaturalHistoryMuseum/scratchpads2/issues
 
 **Sandbox**
-    Experiment with all Scratchpads features through this fully functional test site that resets every 6 hours. 
-    http://sandbox.scratchpads.eu    
+    Experiment with all Scratchpads features through this fully functional test site that resets every 6 hours.
+    http://sandbox.scratchpads.eu
 
 
 For any other questions or queries, please contact as at scratchpads@nhm.ac.uk.
