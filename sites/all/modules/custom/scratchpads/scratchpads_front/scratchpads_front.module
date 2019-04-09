@@ -516,6 +516,8 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
   $form_state['redirect'] = '<front>';
   // Clear the views cache, as the slideshow view is dynamic
   views_invalidate_cache();
+  // clear the other caches so the blocks update
+  drupal_flush_all_caches();
 }
 
 /*********************************************************************************************
