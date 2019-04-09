@@ -185,6 +185,9 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
         );
         $view->display_handler->set_option('empty', $empty_area_options);
       }
+      if (isset($custom_block->title) && $custom_block->title != ''){
+        $view->title = $custom_block->title;
+      }
       $view->args[] = scratchpads_front_variable_get($var);
       break;
     case 'front_page_slideshow':
