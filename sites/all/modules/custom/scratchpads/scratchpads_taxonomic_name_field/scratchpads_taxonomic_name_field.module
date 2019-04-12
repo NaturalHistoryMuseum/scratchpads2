@@ -24,35 +24,36 @@ function scratchpads_taxonomic_name_field_field_formatter_view($entity_type, $en
     case 'taxon_name':
       foreach ($items as $delta => $item) {
         $term = taxonomy_term_load($item['tid']);
+        $displaylang = isset($term->field_rank[$langcode]) ? $langcode : isset($term->field_rank) ? array_keys($term->field_rank)[0] : 'und';
         $italics = FALSE;
-        if (isset($term->field_rank[$langcode][0]['value'])) {
-          if ($term->field_rank[$langcode][0]['value'] == "Genus") {
+        if (isset($term->field_rank[$displaylang][0]['value'])) {
+          if ($term->field_rank[$displaylang][0]['value'] == "Genus") {
             $italics =  TRUE;
           }
-          if ($term->field_rank[$langcode][0]['value'] == "Subgenus") {
+          if ($term->field_rank[$displaylang][0]['value'] == "Subgenus") {
             $italics = TRUE;
-            $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+            $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
           }
-          if ($term->field_rank[$langcode][0]['value'] == "Species") {
+          if ($term->field_rank[$displaylang][0]['value'] == "Species") {
             $italics = TRUE;
-            if (isset($term->field_unit_name3[$langcode][0]['value'])) {
-              $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+            if (isset($term->field_unit_name3[$displaylang][0]['value'])) {
+              $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
             }
           }
-          if ($term->field_rank[$langcode][0]['value'] == "Subspecies") {
+          if ($term->field_rank[$displaylang][0]['value'] == "Subspecies") {
             $italics = TRUE;
-            if (isset($term->field_unit_name4[$langcode][0]['value'])) {
-              $term->field_unit_name2[$langcode][0]['value'] = '('.$term->field_unit_name2[$langcode][0]['value'].')';
+            if (isset($term->field_unit_name4[$displaylang][0]['value'])) {
+              $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
             }
           }
         }
         $element[$delta] = array(
         '#markup' => l(
                        ($italics ? "<em>" : "")
-                       . $term->field_unit_name1[$langcode][0]['value']
-                       . (isset($term->field_unit_name2[$langcode][0]['value']) ? ' '.$term->field_unit_name2[$langcode][0]['value'] : '')
-                       . (isset($term->field_unit_name3[$langcode][0]['value']) ? ' '.$term->field_unit_name3[$langcode][0]['value'] : '')
-                       . (isset($term->field_unit_name4[$langcode][0]['value']) ? ' '.$term->field_unit_name4[$langcode][0]['value'] : '')
+                       . $term->field_unit_name1[$displaylang][0]['value']
+                       . (isset($term->field_unit_name2[$displaylang][0]['value']) ? ' '.$term->field_unit_name2[$displaylang][0]['value'] : '')
+                       . (isset($term->field_unit_name3[$displaylang][0]['value']) ? ' '.$term->field_unit_name3[$displaylang][0]['value'] : '')
+                       . (isset($term->field_unit_name4[$displaylang][0]['value']) ? ' '.$term->field_unit_name4[$displaylang][0]['value'] : '')
                        . ($italics ? "</em>" : ""),
                        "taxonomy/term/".$term->tid
                      )
