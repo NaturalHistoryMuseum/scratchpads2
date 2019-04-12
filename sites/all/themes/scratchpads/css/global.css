@@ -573,6 +573,12 @@ h1.site-name,h2.site-name {
   margin-bottom: 25px;
 }
 
+/* For content blocks without grid-[0-9] */
+#region-content .block.gridless {
+  float: left;
+  width: 100%;
+}
+
 /************************ MEDIA GALLERY *********************/
 .view-species-media .view-content ul {
   list-style: none;
