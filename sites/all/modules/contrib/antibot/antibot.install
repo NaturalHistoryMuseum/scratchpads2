@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Install/uninstall/update hooks and functions.
+ */
+
+/**
  * Implements hook_uninstall().
  */
 function antibot_uninstall() {
