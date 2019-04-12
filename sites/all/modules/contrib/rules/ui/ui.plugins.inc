@@ -173,7 +173,7 @@ class RulesRuleSetUI extends RulesActionContainerUI {
  */
 class RulesLoopUI extends RulesActionContainerUI {
 
-  public function form(&$form, &$form_state, $options = array(), $iterator = null) {
+  public function form(&$form, &$form_state, $options = array(), $iterator = NULL) {
     parent::form($form, $form_state, $options);
     $settings = $this->element->settings;
 
