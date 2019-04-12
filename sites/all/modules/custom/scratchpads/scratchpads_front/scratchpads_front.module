@@ -185,6 +185,9 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
         );
         $view->display_handler->set_option('empty', $empty_area_options);
       }
+      if (isset($custom_block->subject) && $custom_block->subject != ''){
+        $view->title = $custom_block->subject;
+      }
       $view->args[] = scratchpads_front_variable_get($var);
       break;
     case 'front_page_slideshow':
@@ -513,6 +516,8 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
   $form_state['redirect'] = '<front>';
   // Clear the views cache, as the slideshow view is dynamic
   views_invalidate_cache();
+  // clear the other caches so the blocks update
+  drupal_flush_all_caches();
 }
 
 /*********************************************************************************************

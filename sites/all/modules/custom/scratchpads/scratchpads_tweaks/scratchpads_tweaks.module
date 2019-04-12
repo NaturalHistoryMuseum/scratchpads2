@@ -831,3 +831,14 @@ function scratchpads_tweaks_preprocess_status_report(&$variables) {
     }
   }
 }
+
+/**
+ * Implements hook_views_post_build()
+ */
+function scratchpads_tweaks_views_post_build(&$view) {
+  // if a view has an override title set, use that instead of the build title (e.g. 'Recent %s')
+  // Useful for custom blocks
+  if (isset($view->title)){
+    $view->build_info['title'] = $view->title;
+  }
+}
