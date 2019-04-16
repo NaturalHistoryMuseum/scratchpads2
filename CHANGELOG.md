@@ -1,3 +1,21 @@
+2.9.7 (2019-04-16)
+
+- Fixed overlapping borders in tables (#5863 - @alycejenni)
+- Search submits after clicking an autocomplete suggestion (#5869 - @alycejenni)
+- Stopped the upload button jumping around (#5871 - @alycejenni)
+- Fixed image display issues on species pages slideshows (#5873 - @alycejenni)
+- Allow blocks to be added to main content (#5876 - @benscott)
+- "Other" added to gender options in biographies (#5879 - @alycejenni)
+- Hide Auto label from Admin>Structure (#5880 - @alycejenni)
+- View recently opened/closed issues from sidebar (#5887 - @alycejenni)
+- Italics tags allowed in biblio titles again (#5898 - @alycejenni)
+- Display terms in a fallback language if not defined in current language (#5905 - @alycejenni)
+- Autotag's "fields to populate" drop-down items (#5906 - @alycejenni)
+- Fixed AJAX error in contact form when Antibot enabled (#5907 - @alycejenni)
+- Fixed CSS issues with custom non-view blocks (#5909 - @alycejenni)
+- Titles for custom blocks now display (#5910 - @alycejenni)
+- Crossbrowser maps fix (#5904 - @benscott)
+
 2.9.6 (2019-02-26)
 
 Replaces Google-based map interfaces and fixes many bugs, including:
