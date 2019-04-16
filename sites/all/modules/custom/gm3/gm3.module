@@ -27,6 +27,11 @@ function gm3_library(){
           'options' => 'external'
         ),
         array(
+          'data' => drupal_get_path('module', 'gm3') . '/js/libs/intersection-observer.js',
+          'options' => 'external',
+          'preprocess' => FALSE
+        ),
+        array(
           'data' => drupal_get_path('module', 'gm3') . '/js/libs/Leaflet.Editable.js',
           'options' => 'external',
           'preprocess' => FALSE
