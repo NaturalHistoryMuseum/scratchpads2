@@ -280,7 +280,6 @@ html.js .no-js { display:none; }
   }
 
 .progress .percentage { float:right; }
-.progress-disabled { float:left; }
 .ahah-progress { float:left; }
 
 .ahah-progress .throbber {

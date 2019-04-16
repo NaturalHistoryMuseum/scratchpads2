@@ -573,6 +573,12 @@ h1.site-name,h2.site-name {
   margin-bottom: 25px;
 }
 
+/* For content blocks without grid-[0-9] */
+#region-content .block.gridless {
+  float: left;
+  width: 100%;
+}
+
 /************************ MEDIA GALLERY *********************/
 .view-species-media .view-content ul {
   list-style: none;
@@ -622,6 +628,8 @@ h1.site-name,h2.site-name {
 .stripy-div-group {
   margin: 20px 0;
   border-top: 1px solid #D9DADD;
+  display: table;
+  border-collapse: collapse;
 }
 
 .stripy-div-group:empty{
@@ -633,6 +641,16 @@ h1.site-name,h2.site-name {
   border-color: #D9DADD;
   border-style: none solid solid solid;
   clear: left;
+  display: table-row;
+}
+
+.stripy-div-group .field > div {
+  display: table-cell;
+  padding: 5px 5px 10px;
+}
+
+.stripy-div-group .field > div p {
+  margin-bottom: 0;
 }
 
 .stripy-div-group .odd {
@@ -640,15 +658,9 @@ h1.site-name,h2.site-name {
 }
 
 .stripy-div-group .field-label {
-  float: left;
   width: 200px;
   text-align: right;
-  padding-right: 5px;
   font-weight: bold;
-}
-
-.stripy-div-group .field-label,.stripy-div-group .field-items {
-  padding: 6px 0;
 }
 
 .stripy-div-group .field-items {
@@ -657,7 +669,6 @@ h1.site-name,h2.site-name {
 
 .stripy-div-group .field-items {
   border-left: 1px solid #D9DADD;
-  padding-left: 5px;
 }
 
 .node div.item-list ul li {

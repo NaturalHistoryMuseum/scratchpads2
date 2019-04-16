@@ -8,7 +8,7 @@
  * @param array $data
  */
 function scratchpads_block_view_alter(&$data, $block){
-  if(isset($data['content']) && $block->module == 'views'){
+  if(isset($data['content']) && ($block->module == 'views' || $block->region == 'content')){
     // Move the view classes to the block classes
     if(preg_match('/(grid-[0-9])/', $data['content']['#markup'], $matches)){
       if(count($matches)){
@@ -26,6 +26,9 @@ function scratchpads_block_view_alter(&$data, $block){
         }
         $data['class'] = $classes;
       }
+    }
+    else {
+      $data['class'] = array('gridless');
     }
   }
 }
