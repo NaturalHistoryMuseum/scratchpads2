@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Create webform &mdash; Scratchpads 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Administer webforms" href="administer.html" />
+    <link rel="prev" title="Enabling blocks" href="../views-and-blocks/enabling-blocks.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Scratchpads
+          
+
+          
+            
+            <img src="../_static/logo_white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../training/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/logging-in.html">Logging in</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/admin-menu.html">Admin menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/site-setup.html">Site setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/theming.html">Theming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/pages.html">Pages</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adding and managing classifications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../classification/biological-classification.html">Adding a biological classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-classification.html">Importing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/viewing-classification.html">Viewing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/editing-classification.html">Editing classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/itis-standard-fields.html">Itis standard fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-excel-classification.html">Importing classification from Excel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/deleting-classification.html">Deleting classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/integrating-external-data.html">Integrating external data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/filtering-names.html">Filtering taxonomic terms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating &amp; editing content</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../content/locations-and-specimens.html">Locations and specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/media-gallery.html">Media gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/images-and-media.html">Images &amp; media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/taxon-descriptions.html">Taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/literature.html">Literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/blog.html">Blog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/forums.html">Forums</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/newsletter.html">Newsletter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/publishing.html">Publishing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/finding-content.html">Finding content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/recent-content.html">Recent content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/custom-content.html">Custom content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/phylogenetic-tree.html">Phylogenetic tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/editing-content.html">Edit content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/revisions.html">Revisions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/ordering.html">Ordering content</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Import data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../import/content.html">Import content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/specimens.html">Import specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/literature.html">Import literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/taxon-description.html">Import taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/locations.html">Import locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/users.html">Import users</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Export data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../export/exporting-data.html">Exporting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/create-backup.html">Create backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/word-dictionary.html">Download a taxonomic dictionary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/geocat.html">Exporting to geocat</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Users &amp; permissions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../users/adding-and-editing.html">Adding &amp; editing users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/permissions.html">Permissions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/biographies.html">User biographies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/groups.html">Groups</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Blocks and views</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views.html">Adding and editing views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views-block.html">View blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/enabling-blocks.html">Enabling blocks</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Webforms</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Create webform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="administer.html">Administer webforms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Social</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social/comments.html">Managing comments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/google-analytics.html">Google analytics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/share-this.html">Share this</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced features &amp; customisation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/citing-scratchpads.html">Citing Scratchpads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-front-page.html">Customise front page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-dashboard.html">Customise dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-menus.html">Customise menus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-shortcut-menu.html">Customise shortcut menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/custom-content-taxon-pages.html">Custom content type on taxon page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/formatting-thumbnails.html">Formatting thumbnails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/nomenclatural-status.html">Nomenclatural status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/pretty-urls.html">Enable pretty URLs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/sitemap.html">Sitemap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Glossary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../meta/glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Scratchpads</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Create webform</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/webforms/create.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="create-webform">
+<h1>Create webform<a class="headerlink" href="#create-webform" title="Permalink to this headline">¶</a></h1>
+<p><em>Webform is the module for making forms and surveys in Drupal. After a submission customizable e-mails can be sent to administrators and/or submitters. Results can be exported into Excel or other spreadsheet applications.</em></p>
+<p>In this example, we will create a webform for a conference registration.
+People can fill in the form without having to register or log in to the
+Scratchpad site.</p>
+<div class="figure">
+<img alt="../_images/Webform2.jpg" src="../_images/Webform2.jpg" />
+</div>
+<div class="section" id="enable-the-webform-module">
+<h2>Enable the webform module<a class="headerlink" href="#enable-the-webform-module" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>In the <a class="reference internal" href="../meta/glossary.html#term-admin-menu"><span class="xref std std-term">Admin menu</span></a> go to <em>Structure &gt; Tools</em></li>
+<li>In the ‘Webform’ section turn Webforms on and save.</li>
+</ol>
+</div>
+<div class="section" id="create-a-webform">
+<h2>Create a webform<a class="headerlink" href="#create-a-webform" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">In the <a class="reference internal" href="../meta/glossary.html#term-admin-menu"><span class="xref std std-term">Admin menu</span></a> go to <em>Content</em></p>
+</li>
+<li><p class="first">Next to <em>Webform</em>, click <em>Add</em></p>
+<div class="figure">
+<img alt="../_images/AddWebform.jpg" src="../_images/AddWebform.jpg" />
+</div>
+<p>Create a webform</p>
+</li>
+<li><p class="first">Enter a TITLE and some BODY text. The body text will appear at the top of the form and can be used for an introduction.</p>
+</li>
+<li><p class="first"><em>Save</em>. Now we can enter fields to your form.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="add-webform-components">
+<h2>Add webform components<a class="headerlink" href="#add-webform-components" title="Permalink to this headline">¶</a></h2>
+<p><em>Components</em> is the webform terminology for fields. To start adding components start editing a webform, and select the <em>Webform</em> tab.</p>
+<p>This opens the webform components interface:</p>
+<div class="figure">
+<img alt="../_images/WebformComponents.png" src="../_images/WebformComponents.png" />
+</div>
+<p>Select the type of field you want (<a class="reference internal" href="#text-field">Text field</a>, <a class="reference internal" href="#date-field">Date field</a>, <a class="reference internal" href="#number-field">Number field</a>, <a class="reference internal" href="#select-option-field">Select option field</a>, <a class="reference internal" href="#file-field">File field</a>, <a class="reference internal" href="#grid-field">Grid field</a>, <a class="reference internal" href="#text-area-field">Text area field</a>, <a class="reference internal" href="#private-field">Private field</a>) and click <em>Add</em></p>
+<div class="section" id="text-field">
+<h3>Text field<a class="headerlink" href="#text-field" title="Permalink to this headline">¶</a></h3>
+<p>Components of the type “Textfield” are for entering short text that is
+up to 255 characters long. Add a component for entering the full name.</p>
+<ul>
+<li><p class="first">Add “Full name” as the new component name and select the “Textfield”
+type. Check “Mandatory”. Mandatory means that the user has to fill in
+this field before he can submit the form. Click the button.</p>
+<blockquote>
+<div><div class="figure">
+<img alt="../_images/AddWebformComponent2.jpg" src="../_images/AddWebformComponent2.jpg" />
+</div>
+<p>Webform component settings</p>
+</div></blockquote>
+</li>
+<li><p class="first">Under ‘DESCRIPTION’ add a short instructions that help users in
+filling in this field.</p>
+</li>
+<li><p class="first">In the ‘Display’ section you have several options for changing the
+display. For example if you add a field asking for the size of a
+poster, you could add “cm” in the ‘LABEL PLACED TO THE RIGHT OF THE
+TEXTFIELD’ field, so that users know to give the size in centimetres.
+By default the label is placed above the field. To save space select
+“Inline” as ‘LABEL DISPLAY’. For our “Full name” example component
+just select “Inline” display and none of the other display options.
+Save component.</p>
+<blockquote>
+<div><div class="figure">
+<img alt="../_images/Webform1.jpg" src="../_images/Webform1.jpg" />
+</div>
+<p>Webform with introduction and one component</p>
+</div></blockquote>
+</li>
+<li><p class="first">Click on the tab to check how your webform looks so far. Then click
+on the tab to add more components.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="email-field">
+<h3>Email field<a class="headerlink" href="#email-field" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Add “Email” as the new component name and select the “E-mail” type.
+Check “Mandatory”. Click the button. Save.</li>
+</ul>
+</div>
+<div class="section" id="date-field">
+<h3>Date field<a class="headerlink" href="#date-field" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Add “Arrival date” as the new component name and select the “Date”
+type. Enter “2000-05-29” as ‘START DATE’. Enable the pop-up calendar
+and choose “inline” for the label display. Save.</li>
+</ul>
+</div>
+<div class="section" id="number-field">
+<h3>Number field<a class="headerlink" href="#number-field" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Add “Number of accompanying persons” as the new component name and
+select the “Number” type. Add. Check “Integer” in the ‘Validation’
+section. Choose “inline” for the label display. Save.</li>
+</ul>
+</div>
+<div class="section" id="select-option-field">
+<h3>Select option field<a class="headerlink" href="#select-option-field" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Add “Are you giving a talk?” as the new component name and select the
+“Select options” type. Check “Mandatory”. Add. Enter “1|No” and
+“2|Yes” in the ‘OPTIONS’ field in two lines. The ‘OPTIONS’ field uses
+safe keys. Safe keys ensure that each options is saved individually.
+For example if you publish a webform and at a later stage decide to
+change the wording of one of the options, you would only change the
+readable option, not the save key. That way the system recognises
+that this is still the same option and this will help you later when
+you evaluate the results. The safe key is always on the left side and
+separated from the readable option by a pipe character. Save.</li>
+</ul>
+</div>
+<div class="section" id="file-field">
+<h3>File field<a class="headerlink" href="#file-field" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Add “Abstract” as the new component name and select the “File” type.
+Click the button. Add some instructions on what the abstract should
+contain in the ‘DESCRIPTION’ field. In the ‘UPLOAD DESTINATION’
+section check “Private files” so that only user that have the right
+to view submissions can view the abstracts. Under ‘ALLOWED FILE
+EXTENTIONS’ unselect the web images extensions and choose several
+documents extensions instead. Save.</li>
+</ul>
+</div>
+<div class="section" id="grid-field">
+<h3>Grid field<a class="headerlink" href="#grid-field" title="Permalink to this headline">¶</a></h3>
+<p>Grid fields allow the user to select different choices for a set of
+questions. Grids are often used in questionnaires to for example state
+how good something is on a scale from 1 to 5. For our conference
+registration webform we will assume that participants numbers for
+symposia are restricted add a grid in which users can state how
+important the attendance at specific symposia is for them.</p>
+<ul>
+<li><p class="first">Add “Symposium choices” as the new component name and select the
+“Grid” type. Check “Mandatory”. Click the button.</p>
+<blockquote>
+<div><div class="figure">
+<img alt="../_images/AddWebformComponent3.jpg" src="../_images/AddWebformComponent3.jpg" />
+</div>
+<p>Webform component settings for Grid fields</p>
+</div></blockquote>
+</li>
+<li><p class="first">Add some options as well as the questions (both with safe keys) and a
+description. Save.</p>
+<blockquote>
+<div><div class="figure">
+<img alt="../_images/AddWebform2.jpg" src="../_images/AddWebform2.jpg" />
+</div>
+<p>Webform administration page with various form components</p>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="text-area-field">
+<h3>Text area field<a class="headerlink" href="#text-area-field" title="Permalink to this headline">¶</a></h3>
+<p>Text area fields are for longer text.</p>
+<ul class="simple">
+<li>Add “Remarks” as the new component name and select the “Textarea”
+type. Click the button.</li>
+</ul>
+</div>
+<div class="section" id="private-field">
+<h3>Private field<a class="headerlink" href="#private-field" title="Permalink to this headline">¶</a></h3>
+<p>If you want to annotate the forms that users have submitted without
+having the annotation field showing up in the webform, check “Private”
+at the bottom of the component settings page.</p>
+<ul class="simple">
+<li>Add “Private annotations” as the new component name and select the
+“Textfield” type. Click the button. Check “Private”. Save.</li>
+<li>Click on the tab to have a look at your webform. For long forms you
+can add page breaks if needed. Log out of your Scratchpad and go to
+the webform page. You will notice that the “Private annotations”
+field is now hidden.</li>
+</ul>
+<p>The webform is ready to to be used so lets setup a way to monitor responses and analyse the results - see <a class="reference internal" href="administer.html"><span class="doc">Administer webforms</span></a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="administer.html" class="btn btn-neutral float-right" title="Administer webforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../views-and-blocks/enabling-blocks.html" class="btn btn-neutral float-left" title="Enabling blocks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ben Scott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

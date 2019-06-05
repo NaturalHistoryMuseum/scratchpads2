@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Adding a biological classification &mdash; Scratchpads 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Importing a classification" href="importing-classification.html" />
+    <link rel="prev" title="Pages" href="../intro/pages.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Scratchpads
+          
+
+          
+            
+            <img src="../_static/logo_white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../training/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/logging-in.html">Logging in</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/admin-menu.html">Admin menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/site-setup.html">Site setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/theming.html">Theming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/pages.html">Pages</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adding and managing classifications</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adding a biological classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importing-classification.html">Importing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="viewing-classification.html">Viewing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editing-classification.html">Editing classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itis-standard-fields.html">Itis standard fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importing-excel-classification.html">Importing classification from Excel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deleting-classification.html">Deleting classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrating-external-data.html">Integrating external data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filtering-names.html">Filtering taxonomic terms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating &amp; editing content</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../content/locations-and-specimens.html">Locations and specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/media-gallery.html">Media gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/images-and-media.html">Images &amp; media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/taxon-descriptions.html">Taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/literature.html">Literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/blog.html">Blog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/forums.html">Forums</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/newsletter.html">Newsletter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/publishing.html">Publishing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/finding-content.html">Finding content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/recent-content.html">Recent content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/custom-content.html">Custom content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/phylogenetic-tree.html">Phylogenetic tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/editing-content.html">Edit content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/revisions.html">Revisions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/ordering.html">Ordering content</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Import data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../import/content.html">Import content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/specimens.html">Import specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/literature.html">Import literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/taxon-description.html">Import taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/locations.html">Import locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/users.html">Import users</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Export data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../export/exporting-data.html">Exporting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/create-backup.html">Create backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/word-dictionary.html">Download a taxonomic dictionary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/geocat.html">Exporting to geocat</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Users &amp; permissions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../users/adding-and-editing.html">Adding &amp; editing users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/permissions.html">Permissions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/biographies.html">User biographies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/groups.html">Groups</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Blocks and views</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views.html">Adding and editing views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views-block.html">View blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/enabling-blocks.html">Enabling blocks</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Webforms</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/create.html">Create webform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/administer.html">Administer webforms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Social</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social/comments.html">Managing comments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/google-analytics.html">Google analytics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/share-this.html">Share this</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced features &amp; customisation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/citing-scratchpads.html">Citing Scratchpads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-front-page.html">Customise front page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-dashboard.html">Customise dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-menus.html">Customise menus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-shortcut-menu.html">Customise shortcut menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/custom-content-taxon-pages.html">Custom content type on taxon page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/formatting-thumbnails.html">Formatting thumbnails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/nomenclatural-status.html">Nomenclatural status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/pretty-urls.html">Enable pretty URLs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/sitemap.html">Sitemap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Glossary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../meta/glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Scratchpads</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Adding a biological classification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/classification/biological-classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="adding-a-biological-classification">
+<h1>Adding a biological classification<a class="headerlink" href="#adding-a-biological-classification" title="Permalink to this headline">¶</a></h1>
+<p><em>Introduction</em></p>
+<p>Before adding data other than static pages to a Scratchpad, we need to add the taxonomic names. This is done via the <a class="reference internal" href="../meta/glossary.html#term-taxonomy"><span class="xref std std-term">Taxonomy</span></a> module, which contains controlled vocabularies.</p>
+<p>A vocabulary is a list of terms. These do not have to be biological classifications. Country lists, keywords etc. can all be treated as “taxonomies” in the context of your site. Taxonomies are the backbone of a Scratchpad and link together the content. They are used to generate taxon pages. Before you add a set of taxonomic names to your Scratchpad you need to add the vocabulary for it.</p>
+<ol class="arabic">
+<li><p class="first">Click on <em>Structure</em> in the <a class="reference internal" href="../meta/glossary.html#term-admin-menu"><span class="xref std std-term">Admin menu</span></a> and click on <em>Taxonomy</em> near the bottom</p>
+<div class="figure" id="id1">
+<img alt="../_images/AdminStructure.jpg" src="../_images/AdminStructure.jpg" />
+<p class="caption"><span class="caption-text">“Structure” admin page, listing the menu options: Blocks; Contact form; Content types; Menus; Taxonomy; and Tools</span></p>
+</div>
+</li>
+<li><p class="first">Click on the <em>Add vocabulary</em> link</p>
+<div class="figure" id="id2">
+<img alt="../_images/AdminTaxonomy.jpg" src="../_images/AdminTaxonomy.jpg" />
+<p class="caption"><span class="caption-text">Taxonomy page showing “Add vocabulary” button near the page title</span></p>
+</div>
+</li>
+<li><p class="first">Enter the vocabulary <em>Name</em>.</p>
+<p>If you are using the Botanical <a class="reference internal" href="../training/getting-started.html#training-material"><span class="std std-ref">Training material</span></a>, you might want to name your vocabulary “Lily”.
+If using the Zoological training material, “Lice”</p>
+</li>
+<li><p class="first">Add a vocabulary <em>Description</em>.</p>
+</li>
+<li><p class="first">Select which kind of biological classification you are creating (“Animal” in our example)</p>
+<div class="figure" id="id3">
+<img alt="../_images/AddVocabulary.jpg" src="../_images/AddVocabulary.jpg" />
+<p class="caption"><span class="caption-text">Add vocabulary form showing name, description and biological classification fields</span></p>
+</div>
+</li>
+<li><p class="first">Click <em>Save</em></p>
+</li>
+</ol>
+<div class="section" id="adding-terms">
+<h2>Adding terms<a class="headerlink" href="#adding-terms" title="Permalink to this headline">¶</a></h2>
+<p>Having created a vocabulary you now need to add the list of terms (names).</p>
+<p>This can be done by either importing a classification through the Scratchpads Classification Service (see <a class="reference internal" href="importing-classification.html"><span class="doc">Importing a classification</span></a>), or by creating and importing your own
+classification from Excel (see <a class="reference internal" href="importing-excel-classification.html"><span class="doc">Importing classification from Excel</span></a>). Alternatively
+you can add terms one by one by clicking on <em>Add terms</em> when you are on the <em>Taxonomy</em> admin page or by using the taxonomic editor (see <a class="reference internal" href="editing-classification.html"><span class="doc">Editing classification</span></a>).</p>
+<p>On this training course, we will first look at <a class="reference internal" href="importing-classification.html"><span class="doc">Importing a classification</span></a>.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="missing-tab-after-creating-classification">
+<h3>Missing tab after creating classification<a class="headerlink" href="#missing-tab-after-creating-classification" title="Permalink to this headline">¶</a></h3>
+<p>If after creating a classification and adding terms to it a tab does not appear for it in the main tab bar try clearing the caches:</p>
+<ol class="arabic simple">
+<li>Go to <em>Admin &gt; config &gt; development &gt; clearcache</em></li>
+</ol>
+<ol class="arabic simple" start="3">
+<li>Click <em>Clear all caches</em> - this will take a number of seconds to complete (likely more than 30 seconds)</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="importing-classification.html" class="btn btn-neutral float-right" title="Importing a classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../intro/pages.html" class="btn btn-neutral float-left" title="Pages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ben Scott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

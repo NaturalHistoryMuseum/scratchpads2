@@ -1,0 +1,43 @@
+View blocks
+===========
+
+As we learnt in :doc:`/views-and-blocks/views` the views module allows you to create, manage, and display lists of content.*
+
+These views of content can be a :term:`Block` - a small snippet of information that can be embedded on other pages.
+
+We will create a block to display the synonyms of a classification term, and display it on species page.
+
+
+Enable views interface
+----------------------
+
+If you havem't already, enable the views interface:
+
+1. Go to *Structure* in the :term:`Admin menu`, click on *Tools*, enable ‘Views’ and save.
+
+
+Create block view
+-----------------
+
+1. Within the :term:`Admin menu`, go to *Structure > Views*
+
+2. Select *+ Add new view*
+
+3. Enter the view name - for example "Species synonyms block"
+
+4. In the *Show* section, select *Taxonomy terms*, and under *Of type* select the vocabulary you want to use.
+
+5. Deselect *Create a page*
+
+6. Select *Create a block*
+
+7. Enter a block title - for example "Synonyms"
+
+8. Under display format, select *Table*
+
+9. Select *Continue & edit*
+
+10. Click *Save* to make changes permanent
+
+
+

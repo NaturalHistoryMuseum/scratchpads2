@@ -1,0 +1,14 @@
+Look and feel
+=============
+
+Changing theme color
+--------------------
+
+To differentiate the look of your site from other Scratchpads you can change the color of the theme.
+
+To change the theme color:
+
+1. Click on the Colors icon in the lower right corner of your Scratchpad, select one of the colors
+2. Click Save
+
+.. image:: _static/ThemeColor.jpg

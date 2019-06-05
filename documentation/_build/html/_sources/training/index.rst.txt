@@ -1,0 +1,12 @@
+Scratchpads Training
+====================
+
+.. toctree::
+   :maxdepth: 1
+   :titlesonly:
+
+   before-you-start
+   getting-started
+   ../logging-in
+
+

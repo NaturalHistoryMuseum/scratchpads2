@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Adding and editing views &mdash; Scratchpads 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="View blocks" href="views-block.html" />
+    <link rel="prev" title="Enabling blocks" href="enabling-blocks.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Scratchpads
+          
+
+          
+            
+            <img src="../_static/logo_white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../training/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/logging-in.html">Logging in</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/admin-menu.html">Admin menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/site-setup.html">Site setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/theming.html">Theming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/pages.html">Pages</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adding and managing classifications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../classification/biological-classification.html">Adding a biological classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-classification.html">Importing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/viewing-classification.html">Viewing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/editing-classification.html">Editing classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/itis-standard-fields.html">Itis standard fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-excel-classification.html">Importing classification from Excel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/deleting-classification.html">Deleting classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/integrating-external-data.html">Integrating external data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/filtering-names.html">Filtering taxonomic terms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating &amp; editing content</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../content/locations-and-specimens.html">Locations and specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/media-gallery.html">Media gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/images-and-media.html">Images &amp; media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/taxon-descriptions.html">Taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/literature.html">Literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/blog.html">Blog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/forums.html">Forums</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/newsletter.html">Newsletter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/finding-content.html">Finding content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/recent-content.html">Recent content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/custom-content.html">Custom content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/phylogenetic-tree.html">Phylogenetic tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/editing-content.html">Edit content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/revisions.html">Revisions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/ordering.html">Ordering content</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Import data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../import/content.html">Import content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/specimens.html">Import specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/literature.html">Import literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/taxon-description.html">Import taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/locations.html">Import locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../import/users.html">Import users</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Export data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../export/exporting-data.html">Exporting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/create-backup.html">Create backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/word-dictionary.html">Download a taxonomic dictionary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/geocat.html">Exporting to geocat</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Users &amp; permissions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../users/adding-and-editing.html">Adding &amp; editing users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/permissions.html">Permissions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/biographies.html">User biographies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/groups.html">Groups</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Blocks and views</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="enabling-blocks.html">Enabling blocks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adding and editing views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views-block.html">View blocks</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Webforms</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/create.html">Create webform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/administer.html">Administer webforms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced customisation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/create.html">Create webform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/administer.html">Administer webforms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Glossary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../meta/glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Scratchpads</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Adding and editing views</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/blocks-and-views/views.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="adding-and-editing-views">
+<h1>Adding and editing views<a class="headerlink" href="#adding-and-editing-views" title="Permalink to this headline">¶</a></h1>
+<p><em>The views module allows you to create, manage, and display lists of content.</em></p>
+<p><em>Each list managed by the views module is known as a “view”, and the output of a view is known as a “display”.</em></p>
+<p><em>Displays are provided in either block or page form, and a single view may have multiple displays.</em></p>
+<div class="section" id="enable-views-interface">
+<h2>Enable views interface<a class="headerlink" href="#enable-views-interface" title="Permalink to this headline">¶</a></h2>
+<p>To enable views go to <em>Structure</em> in the <a class="reference internal" href="../meta/glossary.html#term-admin-menu"><span class="xref std std-term">Admin menu</span></a>, click on <em>Tools</em>, enable ‘Views’ and save.</p>
+</div>
+<div class="section" id="table-view">
+<h2>Table view<a class="headerlink" href="#table-view" title="Permalink to this headline">¶</a></h2>
+<p>We will create a table view for the custom <em>literature mining</em> content type we created in <a class="reference internal" href="../content/custom-content.html"><span class="doc">Custom content</span></a>.</p>
+<dl class="docutils">
+<dt>Before starting you will need:</dt>
+<dd><ul class="first last simple">
+<li>The Literature mining content type (see <a class="reference internal" href="../content/custom-content.html"><span class="doc">Custom content</span></a>)</li>
+<li>Several Literature mining nodes</li>
+</ul>
+</dd>
+</dl>
+<p>Views can modify how lists of content are displayed on your site. The default
+display format for a new content type is an HTML list, but this can be changed to
+a table, grid or for example a map to display your data in an optimal way.</p>
+<p>For the Literature mining content type a table would be best, so that is what we are going to do:</p>
+<ol class="arabic">
+<li><p class="first">Click on the <em>LITERATURE MININGS</em> tab in the <a class="reference internal" href="../meta/glossary.html#term-main-menu"><span class="xref std std-term">Main menu</span></a> and then on
+the cog icon to the right of the node title. Click on <em>Edit view</em>.</p>
+<div class="figure" id="id1">
+<img alt="../_images/LiteratureMining4.jpg" src="../_images/LiteratureMining4.jpg" />
+<p class="caption"><span class="caption-text">Literature mining page with default HTML list display, showing edit link (top right)</span></p>
+</div>
+</li>
+</ol>
+<p>Tip: Can’t see the cog icon?  Have you <a class="reference internal" href="#enable-views-interface">Enable views interface</a>?</p>
+<ol class="arabic" start="2">
+<li><p class="first">This will open the edit view administration interface.</p>
+<blockquote>
+<div><div class="figure">
+<img alt="../_images/TableView1.jpg" src="../_images/TableView1.jpg" />
+</div>
+<p>Edit view administration page</p>
+</div></blockquote>
+</li>
+</ol>
+<div class="section" id="change-title">
+<h3>Change Title<a class="headerlink" href="#change-title" title="Permalink to this headline">¶</a></h3>
+<p><em>The system automatically added an “s” to the view title as well as the menu item. We will start by correcting this.</em></p>
+<ol class="arabic simple">
+<li>In the edit view interface, click <em>Literature minings</em> link in the ‘Title’ section.</li>
+<li>Delete the “s” from the title.</li>
+<li>Usually, when you edit any part of the view, you can decide whether
+you want to edit all displays and thereby change the default, or just
+the current page and thereby override the default settings only for
+this case. In our case we want to change the title for all displays,
+so click on the Apply (all displays) button.</li>
+<li>A yellow message (“All changes are stored temporarily…”) appears at the top of
+the page to make you aware that your changes are not permanent yet.</li>
+<li>Click on the Save button in the upper right corner to make your
+changes permanent. This will automatically bring you back to the page
+view where you can check the changes.</li>
+</ol>
+<p>You will notice that the menu item in the Main menu is still with an extra “s”, so we need to change this, too.</p>
+</div>
+<div class="section" id="page-settings-menu">
+<h3>Page settings: Menu<a class="headerlink" href="#page-settings-menu" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>In the ‘Page settings’ section click on the link next to “Menu”.</li>
+<li>Remove the “s” from the TITLE. If needed you can add a description or change the parent menu item.</li>
+<li>Click <em>Apply</em>.</li>
+<li>Click <em>Save</em> to make your changes permanent.</li>
+</ol>
+</div>
+<div class="section" id="display-format">
+<h3>Display Format<a class="headerlink" href="#display-format" title="Permalink to this headline">¶</a></h3>
+<p>We want to change the default <em>HTML list</em> view to a table.</p>
+<ol class="arabic simple">
+<li>click on “HTML list” in the ‘Format’ section.</li>
+</ol>
+<div class="figure" id="id2">
+<img alt="Edit view: Change format" src="../_images/ViewFormat.jpg" />
+<p class="caption"><span class="caption-text">Edit view: Change format</span></p>
+</div>
+<ol class="arabic simple" start="2">
+<li>Select <em>Table</em>.</li>
+<li><em>Apply</em>.</li>
+</ol>
+<p>At the bottom of the ‘Edit view’ page you can now see an example of what
+our new view is going to look like. As you can see, only the title field
+is showing, so we need to add more fields. Before we do this however,
+save the view and edit again.</p>
+</div>
+<div class="section" id="fields">
+<h3>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h3>
+<p>The table view display requires you to chose which fields to include - you can see a new section called <em>Fields</em> has appeared below the <em>Format</em> section.</p>
+<ol class="arabic">
+<li><p class="first">Click on the <em>Add</em> link to add more fields.</p>
+</li>
+<li><p class="first">Select <em>Content: Literature mining category</em>, and then select the fields:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Content: Page</li>
+<li>Content: Text</li>
+<li>Field: Reference</li>
+<li>Field: Taxonomic name</li>
+</ul>
+</div></blockquote>
+<p>Note that below each field name is a list of the content types in which it appears, so you can find fields by searching for the literature mining content type.</p>
+</li>
+<li><p class="first">Click <em>Apply</em></p>
+</li>
+<li><p class="first">Now you can configure the fields you selected one by one. The default
+is usually fine, so you don’t need to change anything. However, you
+could for example make the column header (label) bold by clicking on
+Style settings , selecting ‘Customize label HTML’ and choosing
+“STRONG” from the ‘Label HTML element’ dropdown menu.</p>
+<div class="figure" id="id3">
+<img alt="../_images/TableView2.jpg" src="../_images/TableView2.jpg" />
+<p class="caption"><span class="caption-text">Table view</span></p>
+</div>
+</li>
+<li><p class="first">Change the field order by clicking on the arrow down icon next to the
+add link in the ‘Fields’ section. Click on the rearrange link. Drag
+and drop the fields into a better order. Apply.</p>
+</li>
+<li><p class="first">Slect <em>Save</em> to make the changes permanent.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="filter-criteria">
+<h3>Filter criteria<a class="headerlink" href="#filter-criteria" title="Permalink to this headline">¶</a></h3>
+<p><em>Filters restrict a view to a certain set of data. Filters can be hidden
+or exposed. Exposed filters can be used by the users to search for
+certain data.</em></p>
+<p>Two filters are already present for this view. The “Published (Yes)”
+filter that ensures that only published content will
+be shown in this view and the “Type (= Literature mining)” filter that
+ensures that only literature mining content is shown.</p>
+<p>To help users in finding certain literature mining content we are now
+going to add a few filters that are exposed to the users.</p>
+<ol class="arabic simple">
+<li>Click on the <em>Add</em> link in the ‘Filter criteria’ section.</li>
+<li>Select the fields:<ul>
+<li>Content: Literature mining category (field_literature_mining_category)</li>
+<li>Field: Taxonomic name (field_taxonomic_name)</li>
+<li>Field: Reference (field_reference)</li>
+</ul>
+</li>
+<li>Select <em>Apply</em></li>
+<li>Next configure each of the fields in turn. Adapt the labels
+and select “Expose this filter to visitors…” for all of them. For the
+taxonomic name filter also select “Expose operator” and “Allow
+multiple selections”.</li>
+<li>Save the view.</li>
+</ol>
+<div class="section" id="header">
+<h4>Header<a class="headerlink" href="#header" title="Permalink to this headline">¶</a></h4>
+<p>It would be nice to add some introductory text above the table. The area
+above the table is called “Header” and the one below is the “Footer”. So
+we’ll need to add a header:</p>
+<ol class="arabic simple">
+<li>Edit the view again and click on add for the ‘Header’.</li>
+<li>Select “Global: Result summary” to get a summary of the number of
+items on the page and select “Global: Text area” for our introductory
+text. Next you can configure both fields. Add some introductory field
+in the text area field.</li>
+</ol>
+</div>
+<div class="section" id="table-settings">
+<h4>Table settings<a class="headerlink" href="#table-settings" title="Permalink to this headline">¶</a></h4>
+<p>With the right settings, the table rows (items) can be sorted by
+clicking on the header of the respective column.</p>
+<div class="figure">
+<img alt="../_images/ViewStyleOptions.jpg" src="../_images/ViewStyleOptions.jpg" />
+</div>
+<ol class="arabic simple">
+<li>Edit view</li>
+<li>Click on the <em>Settings</em> link next to <em>Table</em> in the <em>Format</em> section.</li>
+<li>Check <em>Sortable</em> for the title, reference and category fields.</li>
+<li>Click <em>Apply</em></li>
+<li><em>Save</em> changes</li>
+</ol>
+</div>
+<div class="section" id="pager">
+<h4>Pager<a class="headerlink" href="#pager" title="Permalink to this headline">¶</a></h4>
+<p>The default for tables is to use a pager that shows 10 items per page.
+To view more items the user has to click to the next page(s).</p>
+<p>Views with pagination are quicker to load because only the first page needs to be
+uploaded. However, one problem with using pagers is that the sorting
+only works within a page not across all items. If we want to be able
+sort all items, we need to disable the pager.</p>
+<ol class="arabic simple">
+<li>Click on the Full link next to <em>Use pager</em> in the <em>Pager</em> section.</li>
+<li>Select <em>Display all terms</em>.</li>
+<li>Click <em>Apply</em>.</li>
+<li>Leave the offset as 0. Click <em>Apply</em> again.</li>
+<li>Click <em>Save</em> to make changes permanent.</li>
+</ol>
+</div>
+</div>
+<div class="section" id="sort-criteria">
+<h3>Sort criteria<a class="headerlink" href="#sort-criteria" title="Permalink to this headline">¶</a></h3>
+<p>The default sort criterium is the creation date of the items, with the most
+recent nodes at the top. You can change the sort criteria or add
+criteria in the ‘Sort criteria’ section.</p>
+</div>
+<div class="section" id="additional-displays">
+<h3>Additional displays<a class="headerlink" href="#additional-displays" title="Permalink to this headline">¶</a></h3>
+<p>In addition to changing the existing display, you can add new displays.</p>
+<div class="figure">
+<img alt="../_images/ViewAddDisplay.jpg" src="../_images/ViewAddDisplay.jpg" />
+</div>
+<ol class="arabic simple">
+<li>Click on the Add button in the ‘Displays’ section near the top of the
+views administration page.</li>
+<li>Select one of the display options:<ul>
+<li>Attachment: With this display, you can attach one display of a
+view to another display. This allows you to group different views
+together.</li>
+<li>Block: Creates a block display.</li>
+<li>Data export: Creates a file.</li>
+<li>Feed: Creates a feed.</li>
+<li>Page: Creates a page display.</li>
+<li>References: Creates a references view that can be added for
+example as a field (e.g. node references view) to custom content
+types.</li>
+</ul>
+</li>
+</ol>
+<p>TIP: Take care when changing the settings of your new display that you only
+change the current display (override) and not all displays.</p>
+<p>We will learn more about adding one of these displays in the next section - <span class="xref std std-doc">/views-and-blocks/views-block</span></p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="views-block.html" class="btn btn-neutral float-right" title="View blocks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="enabling-blocks.html" class="btn btn-neutral float-left" title="Enabling blocks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ben Scott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
