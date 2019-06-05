@@ -12,10 +12,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+TRAINING = os.environ.get('TRAINING', 0)
 
 # -- Project information -----------------------------------------------------
 
@@ -51,7 +52,7 @@ source_suffix = ".rst"
 
 # The master toctree document.
 
-if tags.has('training'):
+if TRAINING:
     master_doc = "training"
 else:
     master_doc = "index"
