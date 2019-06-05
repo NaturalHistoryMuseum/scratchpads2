@@ -54,6 +54,7 @@ source_suffix = ".rst"
 
 if TRAINING:
     master_doc = "training"
+    tags.add("training")
 else:
     master_doc = "index"
 

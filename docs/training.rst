@@ -1,7 +1,7 @@
 :orphan:
 
-Scratchpads
-===========
+Scratchpads training course
+===========================
 
 Scratchpads are an easy and effective way to present your data online.
 
