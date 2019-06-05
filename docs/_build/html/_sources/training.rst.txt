@@ -14,8 +14,10 @@ Contents
    :maxdepth: 1
    :caption: First Steps
 
-   intro/site-setup
+   training/getting-started
+   training/logging-in
    intro/admin-menu
+   intro/site-setup
    intro/theming
    intro/pages
 
