@@ -1,9 +1,0 @@
-.. _glossary:
-
-Glossary
-========
-
-.. glossary::
-
-    Admin menu
-        Menu line at top of Scratchpad that gives access to administrative pages. The Admin menu is only visible to authenticated users who have logged in.

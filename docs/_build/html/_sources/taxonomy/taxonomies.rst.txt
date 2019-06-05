@@ -1,5 +1,0 @@
-Taxonomies
-==========
-
-What is a Drupal taxonomy
-

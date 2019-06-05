@@ -1,9 +1,0 @@
-Other content
-=============
-
-Go to admin/content - see other content types.
-
-Create custom content types.
-
-Add fields.
-
