@@ -1,3 +1,7 @@
+2.9.8 (2019-06-02)
+
+- Upgrade to Drupal 7.67
+
 2.9.7 (2019-04-16)
 
 - Fixed overlapping borders in tables (#5863 - @alycejenni)

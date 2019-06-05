@@ -38,16 +38,9 @@ Drupal.tableHeader = function (table) {
 
   // Clone the table header so it inherits original jQuery properties. Hide
   // the table to avoid a flash of the header clone upon page load.
-  this.stickyTable = $(document.createElement('table'))
+  this.stickyTable = $('<table class="sticky-header"/>')
     .insertBefore(this.originalTable)
     .css({ position: 'fixed', top: '0px' });
-
-  // Copy classes from originalTable, remove undesired classes, and add sticky-header.
-  // Any other classes added to originalTable by modules will exists in stickyTable to ensure consistent styling.
-  this.stickyTable.attr('class', this.originalTable.attr('class'));
-  this.stickyTable.removeClass('sticky-enabled tableheader-processed sticky-table');
-  this.stickyTable.addClass('sticky-header');
-
   this.stickyHeader = this.originalHeader.clone(true)
     .hide()
     .appendTo(this.stickyTable);
