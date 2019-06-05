@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Importing a worms classification &mdash; Scratchpads 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Scratchpads
+          
+
+          
+            
+            <img src="../_static/logo_white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">First Steps</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../training/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/logging-in.html">Logging in</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/admin-menu.html">Admin menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../training/site-setup.html">Site setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/theming.html">Theming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro/pages.html">Pages</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adding and managing classifications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../classification/biological-classification.html">Adding a biological classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-classification.html">Importing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/viewing-classification.html">Viewing a classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/editing-classification.html">Editing classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/itis-standard-fields.html">Itis standard fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/importing-excel-classification.html">Importing classification from Excel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/deleting-classification.html">Deleting classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/integrating-external-data.html">Integrating external data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classification/filtering-names.html">Filtering taxonomic terms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Creating &amp; editing content</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../content/locations-and-specimens.html">Locations and specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/media-gallery.html">Media gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/images-and-media.html">Images &amp; media</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/taxon-descriptions.html">Taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/literature.html">Literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/blog.html">Blog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/forums.html">Forums</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/newsletter.html">Newsletter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/publishing.html">Publishing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/finding-content.html">Finding content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/recent-content.html">Recent content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/custom-content.html">Custom content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/phylogenetic-tree.html">Phylogenetic tree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/editing-content.html">Edit content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/revisions.html">Revisions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../content/ordering.html">Ordering content</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Import data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="content.html">Import content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specimens.html">Import specimens</a></li>
+<li class="toctree-l1"><a class="reference internal" href="literature.html">Import literature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="taxon-description.html">Import taxon descriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="locations.html">Import locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="users.html">Import users</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Export data</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../export/exporting-data.html">Exporting data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/create-backup.html">Create backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/word-dictionary.html">Download a taxonomic dictionary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export/geocat.html">Exporting to geocat</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Users &amp; permissions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../users/adding-and-editing.html">Adding &amp; editing users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/permissions.html">Permissions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/biographies.html">User biographies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/groups.html">Groups</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Blocks and views</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views.html">Adding and editing views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/views-block.html">View blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views-and-blocks/enabling-blocks.html">Enabling blocks</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Webforms</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/create.html">Create webform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../webforms/administer.html">Administer webforms</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Social</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../social/comments.html">Managing comments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/google-analytics.html">Google analytics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../social/share-this.html">Share this</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Advanced features &amp; customisation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/citing-scratchpads.html">Citing Scratchpads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-front-page.html">Customise front page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-dashboard.html">Customise dashboard</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-menus.html">Customise menus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/customise-shortcut-menu.html">Customise shortcut menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/custom-content-taxon-pages.html">Custom content type on taxon page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/formatting-thumbnails.html">Formatting thumbnails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/nomenclatural-status.html">Nomenclatural status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/pretty-urls.html">Enable pretty URLs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced-features/sitemap.html">Sitemap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../support/help-and-support.html">Help and support</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Glossary</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../meta/glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Scratchpads</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Importing a worms classification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/import/worms-classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="importing-a-worms-classification">
+<h1>Importing a worms classification<a class="headerlink" href="#importing-a-worms-classification" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="instructions">
+<h2>Instructions<a class="headerlink" href="#instructions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-a-new-classification">
+<h3>Creating a new classification<a class="headerlink" href="#creating-a-new-classification" title="Permalink to this headline">¶</a></h3>
+<p>In order to import data from the WoRMS service you will need first to
+have set up a new biological classification that will be used to hold
+imported the taxonomic terms. You can find detailed documentation on how
+to do so in the <a class="reference internal" href="../classification/biological-classification.html"><span class="doc">Adding a biological classification</span></a> page.</p>
+</div>
+<div class="section" id="enabling-the-worms-importer">
+<h3>Enabling the WoRMS importer<a class="headerlink" href="#enabling-the-worms-importer" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">From the administration menu go to <em>Structure &gt; Tools</em></p>
+</li>
+<li><p class="first">Under the <em>Data provider</em> section find the <em>WoRMS - Importer</em></p>
+</li>
+<li><p class="first">Click on the slider next to it to enable it. If the importer is
+already enabled go to <a class="reference internal" href="#importing-the-data">Importing the data</a> section.</p>
+<div class="figure">
+<img alt="../_images/Worms_importer_enabled.png" src="../_images/Worms_importer_enabled.png" />
+</div>
+</li>
+</ol>
+<ol class="arabic simple">
+<li>Click <em>Save</em></li>
+</ol>
+</div>
+<div class="section" id="importing-the-data">
+<h3>Importing the data<a class="headerlink" href="#importing-the-data" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">From the administration menu bar go to Import &gt;</p>
+</li>
+<li><p class="first">From the first drop-down menu select <em>Taxonomy &gt; WoRMS web service</em></p>
+</li>
+<li><p class="first">Select the taxonomy you created in step 1: <a class="reference internal" href="#creating-a-new-classification">Creating a new classification</a></p>
+</li>
+<li><p class="first">Check whether the message <em>’The WoRMS service appears to be running</em>
+appears. If not do not proceed and check again later</p>
+</li>
+<li><p class="first">Enter the root term of your classification. All taxa below this term
+will be imported with the highest level taxon included. (e.g. By
+entering the genus <em>Carcharhinus</em> the importer will create a
+classification with the Genus <em>Carcharhinus</em> as the top level taxon
+and all the infra-generic taxa.)</p>
+</li>
+<li><p class="first">Click <em>Search WoRMS</em></p>
+</li>
+<li><p class="first">If more than one results select the desired highest level taxon</p>
+<div class="figure">
+<img alt="../_images/Worms_importer_select_taxon.png" src="../_images/Worms_importer_select_taxon.png" />
+</div>
+</li>
+</ol>
+<ol class="arabic simple">
+<li>Click <em>Import from WoRMS</em></li>
+</ol>
+</div>
+</div>
+<div class="section" id="important-notes">
+<h2>Important notes<a class="headerlink" href="#important-notes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Disregard the progress bar while importing, as the service does not return a
+total taxa to be imported value we are unable to keep track of the
+progress. The number of imported taxa will show beneath this bar</li>
+<li><strong>Currently you can not update an existing classification through the
+WoRMS service</strong>. This means that if you want to import an updated
+version of a classification held by WoRMS you will have to delete and
+rebuild the taxonomy, losing all associations with other content
+types.</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ben Scott
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
