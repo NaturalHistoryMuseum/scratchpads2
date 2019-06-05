@@ -191,8 +191,4 @@ html_theme_options = {
     "titles_only": False,
 }
 
-
-# tags.add("training")
-
-
 # -- Extension configuration -------------------------------------------------
