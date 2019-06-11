@@ -51,7 +51,7 @@ function refindit_block_view($delta = ''){
       }else{
         $items = array();
         $request = drupal_http_request('http://refinder.org/find?search=simple&text=' . urlencode($term->name), array(
-          'timeout' => 5
+          'timeout' => 20
         ));
         if($request->code == 200){
           if(($results = json_decode(str_replace('][', ',', $request->data))) != FALSE){
