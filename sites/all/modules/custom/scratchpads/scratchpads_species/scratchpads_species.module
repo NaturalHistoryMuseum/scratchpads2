@@ -201,9 +201,11 @@ function scratchpads_species_contextual_links_view_alter(&$element, $items){
 }
 
 /**
- * Implements hook_taxonomy_vocabulary_insert().
+ * Creates/updates the variables associated with the given vocabulary.
+ *
+ * @param $vocabulary the vocabulary object
  */
-function scratchpads_species_taxonomy_vocabulary_insert($vocabulary){
+function upsert_vocabulary_variables($vocabulary) {
   $show_syns = variable_get('scratchpads_species_display_synonyms', array());
   if(!empty($vocabulary->show_synonym_data)){
     $show_syns[$vocabulary->vid] = $vocabulary->vid;
@@ -225,10 +227,17 @@ function scratchpads_species_taxonomy_vocabulary_insert($vocabulary){
 }
 
 /**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_species_taxonomy_vocabulary_insert($vocabulary){
+  upsert_vocabulary_variables($vocabulary);
+}
+
+/**
  * Implements hook_taxonomy_vocabulary_update().
  */
 function scratchpads_species_taxonomy_vocabulary_update($vocabulary){
-  return scratchpads_species_taxonomy_vocabulary_insert($vocabulary);
+  upsert_vocabulary_variables($vocabulary);
 }
 
 /**
@@ -260,7 +269,7 @@ function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
  */
 function scratchpads_species_taxonomy_vocabulary_delete($vocabulary){
   $vocabulary->show_synonym_data = FALSE;
-  scratchpads_species_taxonomy_vocabulary_insert($vocabulary);
+  upsert_vocabulary_variables($vocabulary);
 
   // clear out the data from our "scratchpads_species_enabled_tabs" variable (if needed)
   $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
