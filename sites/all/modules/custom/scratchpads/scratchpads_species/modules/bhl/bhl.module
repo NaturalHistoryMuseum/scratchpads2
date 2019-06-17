@@ -185,12 +185,10 @@ function bhl_contextual_links_view_alter(&$element, $items){
 
 function _bhl_get_namebank_titles($term_name, $limit = 20){
   $titles = array();
-  //$request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name);
   $request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name;
   $namebank_ids = new SimpleXMLElement($request, NULL, TRUE);
   foreach($namebank_ids->Result->Name as $data){
     if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
-      //$detail_request = 'http://fencedine.myspecies.info/?url=' . urlencode('http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID);
       $detail_request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
       try{
         $namebank_details = new SimpleXMLElement($detail_request, NULL, TRUE);
