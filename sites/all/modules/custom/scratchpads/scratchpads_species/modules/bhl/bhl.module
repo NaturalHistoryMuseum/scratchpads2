@@ -91,73 +91,83 @@ function bhl_block_view($delta = ''){
           drupal_get_path('module', 'bhl') . '/js/bhl.js'
         )
       ),
-      '#markup' => '<p>' . t('Unable to fetch references from @name.', array(
-        '@name' => 'BHL'
-      )) . '</p>'
     )
   );
+
+  // default the markup we return to an error message
+  $markup = '<p>' . t('Unable to fetch references from @name.', array('@name' => 'BHL')) . '</p>';
+
   if($term){
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
       $cache = cache_get($term->tid, 'cache_bhl');
-      if($cache->data){
-        $content['content']['#markup'] = $cache->data;
-      }else{
-        $titles = _bhl_get_namebank_titles($term->name);
-        $items = array();
-        //print_r($titles);exit;
-        foreach($titles as $title){
-          $publication_title = $title['title'];
-          $pages = array();
-          foreach($title['items'][0]->Item->Pages->Page as $page){
-            $viewer_url = '/bhl_viewer/' . $page->PageID;
-            $link_text = trim("{$page->Prefix} $page->Number");
-            if(!$link_text){
-              $link_text = t('Page');
+      if ($cache->data) {
+        // use the markup in the cache
+        $markup = $cache->data;
+      } else {
+        list($success, $titles) = _bhl_get_namebank_titles($term->name);
+
+        if ($success) {
+          $items = array();
+          foreach ($titles as $title) {
+            $publication_title = $title['title'];
+            $pages = array();
+            foreach ($title['items'][0]->Item->Pages->Page as $page) {
+              $viewer_url = '/bhl_viewer/' . $page->PageID;
+              $link_text = trim("{$page->Prefix} $page->Number");
+              if (!$link_text) {
+                $link_text = t('Page');
+              }
+              $pages[intval($page->Number)] = "<a href=\"$viewer_url\" title=\"{$page->Prefix} {$page->Number} of $publication_title\">$link_text</a>";
             }
-            $pages[intval($page->Number)] = "<a href=\"$viewer_url\" title=\"{$page->Prefix} {$page->Number} of $publication_title\">$link_text</a>";
+            ksort($pages);
+            $page_counter = count($pages);
+            $number_of_pages = format_plural($page_counter, '@count page', '@count pages');
+            if ($number_of_pages) {
+              $link_title = t('Click once to expand, and twice to open a new tab/window with the BHL page for @title', array(
+                '@title' => $publication_title
+              ));
+              $items[] = array(
+                'data' => '<a href="' . $title['title_url'] . '" title="' . $link_title . '" target="_blank">' . $publication_title . ' (' . $number_of_pages . ')</a>',
+                'children' => $pages,
+                'style' => 'list-style:disc;padding-bottom:3px;'
+              );
+            }
           }
-          ksort($pages);
-          $page_counter = count($pages);
-          $number_of_pages = format_plural($page_counter, '@count page', '@count pages');
-          if($number_of_pages){
-            $link_title = t('Click once to expand, and twice to open a new tab/window with the BHL page for @title', array(
-              '@title' => $publication_title
-            ));
-            $items[] = array(
-              'data' => '<a href="' . $title['title_url'] . '" title="' . $link_title . '" target="_blank">' . $publication_title . ' (' . $number_of_pages . ')</a>',
-              'children' => $pages,
-              'style' => 'list-style:disc;padding-bottom:3px;'
-            );
-          }
-        }
-        if(count($items)){
-          $block_content = array(
-            'list' => array(
-              '#attached' => array(
-                'js' => array(
-                  drupal_get_path('module', 'bhl') . '/js/bhl.js'
+          if (count($items)) {
+            $block_content = array(
+              'list' => array(
+                '#attached' => array(
+                  'js' => array(
+                    drupal_get_path('module', 'bhl') . '/js/bhl.js'
+                  )
+                ),
+                '#theme' => 'item_list',
+                '#items' => $items,
+                '#attributes' => array(
+                  'class' => 'bhl'
                 )
               ),
-              '#theme' => 'item_list',
-              '#items' => $items,
-              '#attributes' => array(
-                'class' => 'bhl'
+              'link_to_bhl' => array(
+                '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name)), array(
+                    'attributes' => array(
+                      'target' => '_blank'
+                    )
+                  )) . '</strong></p>'
               )
-            ),
-            'link_to_bhl' => array(
-              '#markup' => '<p><strong>' . l(t('View all results on the BHL website.'), 'http://www.biodiversitylibrary.org/name/' . urlencode(str_replace(' ', '_', $term->name)), array(
-                'attributes' => array(
-                  'target' => '_blank'
-                )
-              )) . '</strong></p>'
-            )
-          );
-          $content['content']['#markup'] = drupal_render($block_content);
-          cache_set($term->tid, $content['content']['#markup'], 'cache_bhl');
+            );
+            // set the markup using the block we've built with the items
+            $markup = drupal_render($block_content);
+            cache_set($term->tid, $markup, 'cache_bhl');
+          } else {
+            // no items were resolved, give the user that information
+            $markup = '<p>' . t('No references found from @name.', array('@name' => 'BHL')) . '</p>';
+          }
         }
       }
     }
   }
+
+  $content['content']['#markup'] = $markup;
   return $content;
 }
 
@@ -183,31 +193,60 @@ function bhl_contextual_links_view_alter(&$element, $items){
   }
 }
 
-function _bhl_get_namebank_titles($term_name, $limit = 20){
+/**
+ * Fetches XML from the given URL with the given options. Uses the drupal_http_request function to
+ * get the data from the URL. If there are any problems with the request (!200, xml error etc) then
+ * this will return false, otherwise returns the SimpleXMLElement object.
+ *
+ * @param string $url the url to request
+ * @param array $options options for the request, default is just timeout: 30.
+ * @return bool|SimpleXMLElement false if there was a problem with getting the data from the URL, or
+ *                               the SimpleXMLElement object if everything was fine
+ */
+function fetch_xml($url, $options = array('timeout' => 30)) {
+  try {
+    $response = drupal_http_request($url, $options);
+    if ($response->code == 200) {
+      return new SimpleXMLElement($response->data);
+    }
+  } catch (Exception $e) {
+    // swallow and fall through to the return false below
+  }
+  return false;
+}
+
+
+function _bhl_get_namebank_titles($term_name, $limit = 20) {
   $titles = array();
-  $request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . $term_name;
-  $namebank_ids = new SimpleXMLElement($request, NULL, TRUE);
-  foreach($namebank_ids->Result->Name as $data){
-    if(strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))){
-      $detail_request = 'http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
-      try{
-        $namebank_details = new SimpleXMLElement($detail_request, NULL, TRUE);
+
+  $name_search_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . urlencode($term_name);
+  $namebank_ids = fetch_xml($name_search_url);
+  if (!$namebank_ids) {
+    // total failure, bin out
+    return array(false, array());
+  }
+
+  $errors = 0;
+  foreach ($namebank_ids->Result->Name as $data) {
+    if (strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))) {
+      $name_detail_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
+      $namebank_details = fetch_xml($name_detail_url);
+      if (!$namebank_details) {
+        $errors++;
+        continue;
       }
-      catch(Exception $e){
-        // Not valid XML
-        return array();
-      }
-      foreach($namebank_details->Result->Titles->Title as $title){
+
+      foreach ($namebank_details->Result->Titles->Title as $title) {
         // no content so don't add
-        if(!$title->Items->Item){
+        if (!$title->Items->Item) {
           continue;
         }
         //convert the titleID to numeric
         $title_id = intval($title->TitleID);
         // if the publication has already been added, just add the items
-        if(!empty($titles[$title_id])){
+        if (!empty($titles[$title_id])) {
           $titles[$title_id]['items'][] = $title->Items;
-        }else{ //else add some publication details - expand here for more publication data if nec.
+        } else { //else add some publication details - expand here for more publication data if nec.
           // convert to an array - numerical key causing error
           $title_array = (array)$title->ShortTitle;
           $title_url = (array)$title->TitleUrl;
@@ -219,13 +258,20 @@ function _bhl_get_namebank_titles($term_name, $limit = 20){
             'title_url' => $title_url[0]
           );
         }
-        if(count($titles) == $limit){
+        if (count($titles) == $limit) {
           break 2;
         }
       }
     }
   }
-  return $titles;
+
+  // if there are errors and no titles were collected, return a false success as we couldn't get any
+  // data from the bhl api due to errors
+  if ($errors > 0 && count($titles) == 0) {
+    return array(false, $titles);
+  }
+  // otherwise, there may have been errors but we got some titles so return success
+  return array(true, $titles);
 }
 
 function bhl_init(){
