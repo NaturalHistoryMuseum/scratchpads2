@@ -203,7 +203,7 @@ function bhl_contextual_links_view_alter(&$element, $items){
  * @return bool|SimpleXMLElement false if there was a problem with getting the data from the URL, or
  *                               the SimpleXMLElement object if everything was fine
  */
-function fetch_xml($url, $options = array('timeout' => 30)) {
+function _bhl_fetch_xml($url, $options = array('timeout' => 30)) {
   try {
     $response = drupal_http_request($url, $options);
     if ($response->code == 200) {
@@ -220,7 +220,7 @@ function _bhl_get_namebank_titles($term_name, $limit = 20) {
   $titles = array();
 
   $name_search_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . urlencode($term_name);
-  $namebank_ids = fetch_xml($name_search_url);
+  $namebank_ids = _bhl_fetch_xml($name_search_url);
   if (!$namebank_ids) {
     // total failure, bin out
     return array(false, array());
@@ -230,7 +230,7 @@ function _bhl_get_namebank_titles($term_name, $limit = 20) {
   foreach ($namebank_ids->Result->Name as $data) {
     if (strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))) {
       $name_detail_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
-      $namebank_details = fetch_xml($name_detail_url);
+      $namebank_details = _bhl_fetch_xml($name_detail_url);
       if (!$namebank_details) {
         $errors++;
         continue;

@@ -39,7 +39,7 @@ function refindit_flush_caches(){
  * @return bool|array false if there was a problem with getting the data from the URL, or the
  *                    decoded JSON objects in an array if everything was fine
  */
-function fetch_json($url, $options = array('timeout' => 60)) {
+function _refindit_fetch_json($url, $options = array('timeout' => 60)) {
   try {
     $response = drupal_http_request($url, $options);
     if ($response->code == 200) {
@@ -75,7 +75,7 @@ function refindit_block_view($delta = ''){
         $markup = $cache->data;
       } else {
         $items = array();
-        $results = fetch_json('https://refinder.org/find?search=simple&text=' . urlencode($term->name));
+        $results = _refindit_fetch_json('https://refinder.org/find?search=simple&text=' . urlencode($term->name));
 
         // if we get back an array (even if it's empty)
         if (is_array($results)) {
