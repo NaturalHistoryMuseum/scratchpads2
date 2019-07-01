@@ -110,7 +110,7 @@ function scratchpads_species_module_implements_alter(&$implementations, $hook){
  *             the user on the page.
  * @return string
  */
-function get_species_tab_form_name($tab) {
+function _scratchpads_species_get_species_tab_form_name($tab) {
   return "show_{$tab}_tab";
 }
 
@@ -160,7 +160,7 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
 
     // loop through each of the default tabs, creating a checkbox for each
     foreach (scratchpads_species_get_default_tabs() as $tab => $tab_name) {
-      $tab_field_name = get_species_tab_form_name($tab);
+      $tab_field_name = _scratchpads_species_get_species_tab_form_name($tab);
       // extract the current enabled value for the tab, if there is one
       if (isset($form['#vocabulary']->$tab_field_name)) {
         $current_value = $form['#vocabulary']->$tab_field_name;
@@ -205,7 +205,7 @@ function scratchpads_species_contextual_links_view_alter(&$element, $items){
  *
  * @param $vocabulary the vocabulary object
  */
-function upsert_vocabulary_variables($vocabulary) {
+function _scratchpads_species_upsert_vocabulary_variables($vocabulary) {
   $show_syns = variable_get('scratchpads_species_display_synonyms', array());
   if(!empty($vocabulary->show_synonym_data)){
     $show_syns[$vocabulary->vid] = $vocabulary->vid;
@@ -220,7 +220,7 @@ function upsert_vocabulary_variables($vocabulary) {
   $enabled_species_tabs[$vocabulary->vid] = array();
   // loop through the default tabs and set their enabled state in the array
   foreach (array_keys(scratchpads_species_get_default_tabs()) as $tab) {
-    $enabled_species_tabs[$vocabulary->vid][$tab] = $vocabulary->{get_species_tab_form_name($tab)};
+    $enabled_species_tabs[$vocabulary->vid][$tab] = $vocabulary->{_scratchpads_species_get_species_tab_form_name($tab)};
   }
   // save the data
   variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
@@ -230,14 +230,14 @@ function upsert_vocabulary_variables($vocabulary) {
  * Implements hook_taxonomy_vocabulary_insert().
  */
 function scratchpads_species_taxonomy_vocabulary_insert($vocabulary){
-  upsert_vocabulary_variables($vocabulary);
+  _scratchpads_species_upsert_vocabulary_variables($vocabulary);
 }
 
 /**
  * Implements hook_taxonomy_vocabulary_update().
  */
 function scratchpads_species_taxonomy_vocabulary_update($vocabulary){
-  upsert_vocabulary_variables($vocabulary);
+  _scratchpads_species_upsert_vocabulary_variables($vocabulary);
 }
 
 /**
@@ -259,7 +259,7 @@ function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
   foreach ($enabled_species_tabs as $vid => $tabs) {
     foreach ($tabs as $tab => $enabled) {
       // set the enabled states for each tab on the vocabulary
-      $vocabularies[$vid]->{get_species_tab_form_name($tab)} = $enabled;
+      $vocabularies[$vid]->{_scratchpads_species_get_species_tab_form_name($tab)} = $enabled;
     }
   }
 }
@@ -269,7 +269,7 @@ function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
  */
 function scratchpads_species_taxonomy_vocabulary_delete($vocabulary){
   $vocabulary->show_synonym_data = FALSE;
-  upsert_vocabulary_variables($vocabulary);
+  _scratchpads_species_upsert_vocabulary_variables($vocabulary);
 
   // clear out the data from our "scratchpads_species_enabled_tabs" variable (if needed)
   $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
