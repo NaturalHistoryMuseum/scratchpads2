@@ -1,3 +1,9 @@
+2.9.9 (2019-07-01)
+
+- Make BHL and ReFindIt API uses more reliable (#5944 - @jrdh)
+- Allow configuration of species tabs (#5947 - @jrdh)
+- Apply toggle setting on page load (#5888 - @jrdh)
+
 2.9.8 (2019-06-02)
 
 - Upgrade to Drupal 7.67
