@@ -2,6 +2,16 @@
   Drupal.behaviors.tinytax = {attach: function(context, settings){
     if($.cookie('tinytax_toggled') > 0) {
       $('.tinytax-toggle-checkbox').attr('checked', 'checked');
+      // this code ensures the toggle's state has an effect on the tree on page load. First, find
+      // the tinytax direct child of this context (if there is one). This is needed as at least
+      // sometimes, but probably all the time, this attach function gets called twice, firstly with
+      // the whole document as the context and then secondly (after the ajax has completed) with the
+      // actual block as the context. This code looks for an element with the tinytax class as a
+      // child of the context and hence only matches on the second run through. We then apply the
+      // hiding to all "toggleable" elements in this tinytax element.
+      $(context).children('.tinytax').each(function() {
+        $('.toggleable', $(this)).hide();
+      });
     }
     $('.tinytax-toggle-checkbox').change(function(){
       if($(this).attr('checked')) {
