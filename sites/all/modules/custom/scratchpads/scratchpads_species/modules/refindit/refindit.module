@@ -30,62 +30,107 @@ function refindit_flush_caches(){
 }
 
 /**
+ * Fetches JSON from the given URL with the given options. Uses the drupal_http_request function to
+ * get the data from the URL. If there are any problems with the request (!200, json error etc) then
+ * this will return false, otherwise returns an object.
+ *
+ * @param string $url the url to request
+ * @param array $options options for the request, default is just timeout: 60.
+ * @return bool|array false if there was a problem with getting the data from the URL, or the
+ *                    decoded JSON objects in an array if everything was fine
+ */
+function _refindit_fetch_json($url, $options = array('timeout' => 60)) {
+  try {
+    $response = drupal_http_request($url, $options);
+    if ($response->code == 200) {
+      // the return from refindit is bizarre: [...][...] rather than [[...], [...]], so we have to
+      // do some work before decoding it
+      return json_decode(str_replace('][', ',', $response->data));
+    }
+  } catch (Exception $e) {
+    // swallow and fall through to the return false below
+  }
+  return false;
+}
+
+/**
  * Implements hook_block_view().
  */
 function refindit_block_view($delta = ''){
   // We load the term from the menu
   $term = menu_get_object('taxonomy_term', 2);
   $content = array(
-    'subject' => t('ReFindit'),
-    'content' => array(
-      '#markup' => '<p>' . t('Unable to fetch references from @name.', array(
-        '@name' => 'ReFindit'
-      )) . '</p>'
-    )
+    'subject' => t('ReFindIt'),
+    'content' => array()
   );
+
+  // default the markup we return to an error message
+  $markup = '<p>' . t('Unable to fetch references from @name.', array('@name' => 'ReFindIt')) . '</p>';
+
   if($term){
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
       $cache = cache_get($term->tid, 'cache_refindit');
-      if($cache->data){
-        $content['content']['#markup'] = $cache->data;
-      }else{
+      if ($cache->data) {
+        // use the markup in the cache
+        $markup = $cache->data;
+      } else {
         $items = array();
-        $request = drupal_http_request('http://refinder.org/find?search=simple&text=' . urlencode($term->name), array(
-          'timeout' => 5
-        ));
-        if($request->code == 200){
-          if(($results = json_decode(str_replace('][', ',', $request->data))) != FALSE){
-            for($i = 0; $i < 20; $i++){
-              if(empty($results[$i])){
-                break;
+        $results = _refindit_fetch_json('https://refinder.org/find?search=simple&text=' . urlencode($term->name));
+
+        // if we get back an array (even if it's empty)
+        if (is_array($results)) {
+          for($i = 0; $i < 20; $i++){
+            if(empty($results[$i])){
+              break;
+            }
+            $href = (isset($results[$i]->href)) ? $results[$i]->href : $results[$i]->infoUrl;
+            $text = (isset($results[$i]->fullCitation)) ? $results[$i]->fullCitation : $results[$i]->title;
+
+            // sometimes, the refinder api returns to us a title which is actually an object. If
+            // this happens we need to handle it without erroring. An example (at time of writing)
+            // is the doi 10.3389/fphys.2019.00434 which on PubMed gives us back an object as the
+            // title
+            if (is_object($text)) {
+              // if it is an object, often there is a "_" key which contains the title
+              if (isset($text->_)) {
+                $text = $text->_;
+              } else {
+                // otherwise, we just have this catch all to json encode it and avoid erroring out
+                $text = json_encode($text);
               }
-              $items[] = array(
-                'data' => '<a target="_blank" href="' . (isset($results[$i]->href) ? $results[$i]->href : $results[$i]->infoUrl) . '">' . (isset($results[$i]->fullCitation) ? $results[$i]->fullCitation : $results[$i]->title) . '</a>',
-                'style' => 'list-style:disc;padding-bottom:3px;'
-              );
             }
-            if(count($items)){
-              $block_content = array(
-                'list' => array(
-                  '#theme' => 'item_list',
-                  '#items' => $items
-                ),
-                'link_to_gscholar' => array(
-                  '#markup' => '<p><strong>' . l(t('View results on ReFindit'), 'http://refindit.org/?search=simple&text=' . urlencode($term->name), array(
-                    'attributes' => array(
-                      'target' => '_blank'
-                    )
-                  )) . '</strong></p>'
-                )
-              );
-              $content['content']['#markup'] = drupal_render($block_content);
-              cache_set($term->tid, $content['content']['#markup'], 'cache_refindit');
-            }
+            $items[] = array(
+              'data' => '<a target="_blank" href="' . $href . '">' . $text . '</a>',
+              'style' => 'list-style:disc;padding-bottom:3px;'
+            );
+          }
+          if (count($items)) {
+            $block_content = array(
+              'list' => array(
+                '#theme' => 'item_list',
+                '#items' => $items
+              ),
+              'link_to_gscholar' => array(
+                '#markup' => '<p><strong>' . l(t('View results on ReFindIt'), 'http://refindit.org/?search=simple&text=' . urlencode($term->name), array(
+                  'attributes' => array(
+                    'target' => '_blank'
+                  )
+                )) . '</strong></p>'
+              )
+            );
+            // set the markup using the block we've built with the items
+            $markup = drupal_render($block_content);
+            cache_set($term->tid, $markup, 'cache_refindit');
+          } else {
+            // no items were resolved, give the user that information
+            $markup = '<p>' . t('No references found from @name.', array('@name' => 'ReFindIt')) . '</p>';
           }
         }
       }
     }
   }
+
+  $content['content']['#markup'] = $markup;
   return $content;
 }
 
