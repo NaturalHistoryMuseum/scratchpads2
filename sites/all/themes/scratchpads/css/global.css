@@ -544,10 +544,6 @@ h1.site-name,h2.site-name {
   float:none!important;
 }
 
-.block-species-biblio-block,.block-species-spm-block {
-  float: none !important;
-}
-
 /* Embeded images */
 #zone-content div.content div.field-type-text-with-summary img,
 #zone-content div.content div.field-type-text img {
