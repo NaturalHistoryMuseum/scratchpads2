@@ -37,7 +37,8 @@
      * @param {bool} editable Can the user edit this?
      * @param {string} colour The colour for the marker
      * @param {string} title The title for the marker
-     * @param {string} content The content text for the marker's popup
+     * @param {string} content The content text for the marker's popup;
+                               might be an array of { title, content } objects
      */
     addMarker(latLng, editable = true, colour, title = '', content = ''){
       if(!this.canAddObject()) {
@@ -70,7 +71,33 @@
       });
 
       if(content) {
-        if(title) {
+         // Use tab pages if there's an array of items:
+        if(Array.isArray(content)) {
+          const pagedContent = document.createElement('div');
+          const contentArea = document.createElement('div');
+          const tabList = document.createElement('div');
+
+          pagedContent.appendChild(tabList);
+          pagedContent.appendChild(contentArea);
+
+          for(const page of content) {
+            const tabButton = document.createElement('button');
+            tabButton.classList.add('gm3-info-tab');
+            tabButton.innerText = page.title;
+            tabButton.addEventListener('click', () => {
+              contentArea.innerHTML = page.content;
+              if(tabList.activeTab){
+                tabList.activeTab.classList.remove('gm3-info-tab-active');
+              }
+              tabButton.classList.add('gm3-info-tab-active');
+              tabList.activeTab = tabButton;
+            });
+            tabList.appendChild(tabButton);
+          }
+          tabList.childNodes[0].click;
+
+          content = pagedContent;
+        } else if(title) {
           content = `<h3>${title}</h3>\n${content}`;
         }
 
