@@ -1,0 +1,15 @@
+diff --git a/includes/batch.inc b/includes/batch.inc
+index e89ab8dec..e9e68188e 100644
+--- a/includes/batch.inc
++++ b/includes/batch.inc
+@@ -292,6 +292,10 @@ function _batch_process() {
+         $current_set['sandbox'] = array();
+       }
+     }
++    // Scratchpads patch: Temp fix for this bug: https://github.com/NaturalHistoryMuseum/scratchpads2/issues/5973
++    else {
++      $current_set['count']--;
++    }
+ 
+     // When all operations in the current batch set are completed, browse
+     // through the remaining sets, marking them 'successfully processed'

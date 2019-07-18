@@ -1,4 +1,4 @@
-FROM php:7.1-apache
+FROM php:7.2-apache-stretch
 
 RUN apt-get update
 RUN apt-get -y install wget \
@@ -44,10 +44,14 @@ RUN docker-php-ext-configure gd \
 
 RUN docker-php-ext-install pdo_mysql gd mbstring gmp zip
 
-RUN apt-get install -y \
-    libmcrypt-dev \
-    && docker-php-ext-install mcrypt \
-    && apt-get remove -y \
+RUN apt-get install -y libmcrypt-dev
+
+# Mcrypt is not provided with php since 7.2,
+# Have to install it from PECL
+RUN pecl install mcrypt-1.0.2
+RUN docker-php-ext-enable mcrypt
+
+RUN apt-get remove -y \
     libmcrypt-dev \
     && apt-get install -y \
     libmcrypt4 \
