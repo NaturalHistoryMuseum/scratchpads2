@@ -132,3 +132,17 @@
   text-decoration: none;
   color: currentColor;
 }
+
+/* Styles for the tabs on the Point popups if the Point's content is an array */
+.gm3-info-tab {
+  border: 1px solid grey;
+  background: none;
+  border-radius: 5px 5px 0px 0px;
+  color: grey;
+}
+
+.gm3-info-tab-active {
+  border-bottom: none;
+  font-weight: bold;
+  color: black;
+}
