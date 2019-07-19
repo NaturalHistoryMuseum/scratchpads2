@@ -1,6 +1,49 @@
 (function(){
   "use strict";
 
+  /**
+   * Create a tabs element given an array of { content, title } objects
+   * @param {Array} content Array of page objects of the form { content, title }
+   * @returns {HTMLElement} Tabset element with given pages
+   */
+  function makePagedContent(content){
+    // Element is a div containing 1. list of tabs, 2. current page
+    const pagedContent = document.createElement('div');
+    const contentArea = document.createElement('div');
+    const tabList = document.createElement('div');
+
+    pagedContent.appendChild(tabList);
+    pagedContent.appendChild(contentArea);
+
+    // Add all of the tabs
+    for(const page of content) {
+      const tabButton = document.createElement('button');
+      tabButton.classList.add('gm3-info-tab');
+      tabButton.innerText = page.title;
+
+      // On tab click, replace the contents of the `content` div
+      tabButton.addEventListener('click', () => {
+        contentArea.innerHTML = page.content;
+
+        // Remove the active class from the active tab and set it on the selected tab
+        if(tabList.activeTab){
+          tabList.activeTab.classList.remove('gm3-info-tab-active');
+        }
+        tabButton.classList.add('gm3-info-tab-active');
+
+        // Save active tab reference for next click
+        tabList.activeTab = tabButton;
+      });
+
+      tabList.appendChild(tabButton);
+    }
+
+    // Activate the first page
+    tabList.childNodes[0].click();
+
+    return pagedContent;
+  }
+
   Drupal.GM3.point = class extends Drupal.GM3.Library {
     constructor(settings) {
       super();
@@ -57,12 +100,17 @@
       this.addObject(point);
 
       point.on({
+        // If the point is moved, save the new location
         dragend: () => this.updateField(),
+
+        // If the point is clicked during edit mode, show the location
         click: e => {
           if (this.active) {
             this.setMessage(e.latlng.toString(), 'status', 10000);
           }
         },
+
+        // Right-click on the point during edit mode deletes the point
         contextmenu: e => {
           if (this.active) {
             this.removeObject(point);
@@ -73,30 +121,7 @@
       if(content) {
          // Use tab pages if there's an array of items:
         if(Array.isArray(content)) {
-          const pagedContent = document.createElement('div');
-          const contentArea = document.createElement('div');
-          const tabList = document.createElement('div');
-
-          pagedContent.appendChild(tabList);
-          pagedContent.appendChild(contentArea);
-
-          for(const page of content) {
-            const tabButton = document.createElement('button');
-            tabButton.classList.add('gm3-info-tab');
-            tabButton.innerText = page.title;
-            tabButton.addEventListener('click', () => {
-              contentArea.innerHTML = page.content;
-              if(tabList.activeTab){
-                tabList.activeTab.classList.remove('gm3-info-tab-active');
-              }
-              tabButton.classList.add('gm3-info-tab-active');
-              tabList.activeTab = tabButton;
-            });
-            tabList.appendChild(tabButton);
-          }
-          tabList.childNodes[0].click;
-
-          content = pagedContent;
+          content = makePagedContent(content);
         } else if(title) {
           content = `<h3>${title}</h3>\n${content}`;
         }
