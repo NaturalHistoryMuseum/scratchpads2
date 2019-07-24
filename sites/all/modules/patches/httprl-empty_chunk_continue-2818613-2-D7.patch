@@ -1,0 +1,37 @@
+diff --git a/sites/all/modules/contrib/httprl/httprl.module b/sites/all/modules/contrib/httprl/httprl.module
+index 78bd90a01..ff68cff87 100644
+--- a/sites/all/modules/contrib/httprl/httprl.module
++++ b/sites/all/modules/contrib/httprl/httprl.module
+@@ -450,6 +450,7 @@ function httprl_set_default_options(&$options) {
+     'chunk_size_write' => 1024,
+     'async_connect' => TRUE,
+     'ping_db' => 20,
++    'ignore_empty_chunk' => FALSE,
+   );
+ 
+   // Adjust Time To First Byte Timeout if timeout is large and ttfb is default.
+@@ -1032,6 +1033,10 @@ function httprl_establish_stream_connection(&$result) {
+  *   - ping_db: After X amount of time, ping the DB with a simple query in order
+  *     to keep the connection alive. Default is every 20 seconds. Set to 0 to
+  *     disable.
++ *   - ignore_empty_chunk: an empty chunk returned from a stream will:
++ *     default FALSE - make the connection not 'alive' and stop reading;
++ *     TRUE - not stop a stream from being 'alive' and will continue to read
++ *     until EOF or timeout.
+  *
+  * @return array
+  *   Array where key is the URL and the value is the return value from
+@@ -1502,7 +1507,12 @@ function httprl_send_request($results = NULL) {
+ 
+           // Get stream data.
+           $info = stream_get_meta_data($r);
+-          $alive = !$info['eof'] && !feof($r) && !$info['timed_out'] && strlen($chunk);
++          $alive = !$info['eof'] && !feof($r) && !$info['timed_out'];
++          // Determine if an empty chunk of data means the connection should
++          // stop reading even though EOF or timeout has not occurred.
++          if ($alive && !$responses[$id]->options['ignore_empty_chunk'] && !strlen($chunk)) {
++            $alive = FALSE;
++          }
+           if (!$alive) {
+             if ($responses[$id]->status == 'Connecting.') {
+               $responses[$id]->error = $t('Connection refused by destination. TCP.');

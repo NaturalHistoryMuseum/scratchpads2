@@ -194,18 +194,23 @@ function bhl_contextual_links_view_alter(&$element, $items){
 }
 
 /**
- * Fetches XML from the given URL with the given options. Uses the SimpleXMLElement constructor
- * function's ability to take a url and fetch the xml from it to get the data from the URL. If there
- * are any problems with the request (xml error etc) then this will return false, otherwise returns
- * the SimpleXMLElement object.
+ * Fetches XML from the given URL with the given options. Uses the drupal_http_request function to
+ * get the data from the URL. If there are any problems with the request (!200, xml error etc) then
+ * this will return false, otherwise returns the SimpleXMLElement object.
  *
  * @param string $url the url to request
  * @return bool|SimpleXMLElement false if there was a problem with getting the data from the URL, or
  *                               the SimpleXMLElement object if everything was fine
+ * @param array $options options for the request, default contains timeout: 30 and
+ *                       ignore_empty_chunk: true, the latter of which seems to be required for the
+ *                       httprl library to function with the BHL API.
  */
-function _bhl_fetch_xml($url) {
+function _bhl_fetch_xml($url, $options = array('timeout' => 30, 'ignore_empty_chunk' => true)) {
   try {
-    return new SimpleXMLElement($url, 0, true);
+    $response = drupal_http_request($url, $options);
+    if ($response->code == 200) {
+      return new SimpleXMLElement($response->data);
+    }
   } catch (Exception $e) {
     // swallow and fall through to the return false below
   }
