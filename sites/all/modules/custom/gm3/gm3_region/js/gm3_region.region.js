@@ -77,18 +77,22 @@
        * @param {gm3.map} map The leaflet map to add the polygons to
        * @param {bool} autofit True to auto zoom the map
        */
-      async addPolygonsByIds(regionIds, editable = false){
-        if (typeof regionIds === 'string') {
-          regionIds = [regionIds];
+      async addPolygonsByIds(regions, editable = false){
+        if (typeof regions === 'string') {
+          regions = [regions];
         }
-        if (!Array.isArray(regionIds)) {
+        if (!Array.isArray(regions)) {
           throw new TypeError(`Expected regionIds to be array or string; got ${ typeof regionIds } (${regionIds})`);
         }
 
         // Execute the callback to get the Polygon. This Polygon should then
         // be added to the map, but without it being editable.
         const regionIdsToAdd = [];
-        for (const regionId of regionIds) {
+        for (const region of regions) {
+          // Region might be an object with a region_id (if data is from database)
+          // or just a string (if data is from drupal form)
+          const regionId = region.region_id || region;
+
           if(!this.countries[regionId]) {
             // If this is a new region, add it to the countries array and mark to be added
             this.countries[regionId] = [];
@@ -164,8 +168,12 @@
        * @param {string} regionId Region ID to remove
        */
       removePolygonsById(regionId) {
-        this.removeObject(this.countries[regionId]);
-        this.countries[regionId] = null;
+        // Important to remove countries[regionId] before calling removeObject,
+        // as removeObject will trigger an update event, which uses the countries
+        // object as its list of current selected values.
+        const object = this.countries[regionId];
+        delete this.countries[regionId];
+        this.removeObject(object);
       }
 
       /**

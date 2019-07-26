@@ -59,6 +59,12 @@ function gm3_field_field_schema($field){
         )
       );
     case 'gm3_combination':
+      // This field is fucking stupid; the field structure contains
+      // space for each different possible type of field, but because
+      // each field can only contain one value only one section of the
+      // field can be used at a time! So we have to use the gm3_type field
+      // to tell the code which part of the field to look in.
+
       // If the region module is installed, we'll start with that schema!
       $schema = array();
       if(module_exists('gm3_region_field')){

@@ -97,9 +97,7 @@ function gm3_filter_helper_form($form, $form_state){
   }
   $form['map'] = array(
     '#weight' => -10,
-    '#markup' => drupal_render(theme('gm3_map', array(
-      'map' => $map
-    )))
+    '#markup' => drupal_render(theme('gm3_map', $map))
   );
   return $form;
 }
