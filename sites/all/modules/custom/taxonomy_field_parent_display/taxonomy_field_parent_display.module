@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * adds a formatter for taxonomy terms with options to specify element type, wrapper type, and separators
+ *
+ */
+/**
+ * Implements hook_field_formatter_info().
+ */
+function taxonomy_field_parent_display_field_formatter_info()
+{
+    return array(
+        'taxonomy_term_reference_parent' => array(
+            'label' => t('Term with parents'),
+            'field types' => array('taxonomy_term_reference'),
+            'settings'  => array(
+                'parent_depth' => 0,
+                'parent_separator' => ' > ',
+            ),
+        ),
+    );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function taxonomy_field_parent_display_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state)
+{
+    $display = $instance['display'][$view_mode];
+    $settings = $display['settings'];
+    $element = array();
+    $element['parent_depth'] = array(
+        '#type'           => 'select',
+        '#title'          => t('Depth'),
+        '#description'    => t('Number of parents to show'),
+        '#default_value'  => $settings['parent_depth'],
+        '#options'        => array_merge(
+            array(
+                0  => '- All -',
+            ),
+            range(1, 10)
+        )
+    );
+    $element['parent_separator'] = array(
+        '#type'           => 'textfield',
+        '#title'          => t('Separator'),
+        '#description'    => t('The separator to use, including leading and trailing spaces'),
+        '#default_value'  => $settings['parent_separator'],
+    );
+    return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function taxonomy_field_parent_display_field_formatter_settings_summary($field, $instance, $view_mode)
+{
+    $display = $instance['display'][$view_mode];
+    $settings = $display['settings'];
+    $summary = t(
+        'Term will be displayed with @parent_depth parents, separated by "@parent_separator"',
+        array(
+            '@parent_depth' => $settings['parent_depth'] > 0 ? $settings['parent_depth'] : 'all',
+            '@parent_separator' => $settings['parent_separator']
+        )
+    );
+
+    return $summary;
+}
+
+
+function taxonomy_field_parent_display_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display)
+{
+
+    $settings = $display['settings'];
+    $element = array();
+    $formatted = array();
+
+    foreach ($items as $delta => $item) {
+        $parents = taxonomy_get_parents_all($item['tid']);
+
+        foreach ($parents as $i => $parent) {
+
+            if ($settings['parent_depth'] > 0 && $i > $settings['parent_depth']) {
+                break;
+            }
+            $path = taxonomy_term_uri($parent);
+            $formatted[] = l(
+                $parent->name,
+                $path
+            );
+        }
+    }
+
+    $formatted = array_reverse($formatted);
+
+    $element[0]['#markup'] = join($settings['parent_separator'], $formatted);
+
+    return $element;
+}

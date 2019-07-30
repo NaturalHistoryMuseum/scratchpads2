@@ -1,0 +1,7 @@
+name = Taxonomy Field Parent Display
+description = "Add field to display parent terms on a taxonomy field view."
+package = Fields
+core = 7.x
+files[] = taxonomy_field_parent_display.module
+dependencies[] = taxonomy
+
