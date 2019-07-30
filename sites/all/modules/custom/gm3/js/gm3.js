@@ -95,6 +95,9 @@
       // Create the actual map
       const leafletMap = L.map(mapNode, leafletOptions);
 
+      // Add a scale bar to the map
+      L.control.scale().addTo(leafletMap);
+
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.
       observeVisibility(mapNode, visible => {
