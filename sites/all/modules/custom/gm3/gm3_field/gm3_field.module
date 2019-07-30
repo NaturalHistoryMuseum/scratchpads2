@@ -1,25 +1,12 @@
 <?php
-
 /**
  * Provides the following fields:
  *
  * - Maps point
  * - Maps polygon
  * - Maps polyline
- * - Maps countries (click on a country to select)
  * - Maps combination (combination of the above).
  */
-/**
- * Does not implement the following (amongst others) hook_field_* hooks.
- * This is for my benefit only, and will be removed.
- *
- * hook_field_load().
- * hook_field_delete().
- * hook_field_access().
- * hook_field_presave().
- * hook_field_settings_form().
- */
-
 
 /**
  * Implementation of hook_theme().
@@ -84,14 +71,14 @@ function gm3_field_theme(){
  * return an array of polygons, each of which being an array of coordinates.
  * Used to generate settings for the js map.
  */
-function _gm3_field_get_latlngs_from_polygon_string($value) {
+function gm3_field_js_poly_settings($items, $key) {
   module_load_include('functions.inc', 'gm3');
-  $polygons = [];
-  $split_value = $value ? preg_split("/\r\n|\n|\r/", $value) : [];
-  foreach($split_value as $string) {
-    $polygons = array_merge($polygons, gm3_convert_polygon_string($string));
+
+  foreach($items as $ix => $item) {
+    $items[$ix] = gm3_convert_polygon_string($item[$key])[0];
   }
-  return $polygons;
+
+  return $items;
 }
 
 /**
@@ -323,10 +310,8 @@ function _gm3_field_get_array_from_polygon_string($value, $poly_type){
 /**
  * Helper function to get values from a points string
  */
-function _gm3_field_get_array_from_points_string($value, &$items = Null, $type = FALSE){
-  if(!isset($items)) {
-    $items = [];
-  }
+function _gm3_field_get_array_from_points_string($value){
+  $items = [];
 
   if(is_array($value) || strlen(trim($value))){
     if(is_string($value)){
@@ -363,25 +348,54 @@ function _gm3_field_get_array_from_points_string($value, &$items = Null, $type =
         'latitude' => $lat_lng[0],
         'longitude' => $lat_lng[1]
       );
-      if($type){
-        $lat_lng['gm3_type'] = $type;
-      }
       $items[] = $lat_lng;
     }
   }
   return $items;
 }
 
+/**
+ * Given a field type (e.g. gm3_region), returns combination info registered by
+ * modules using hook_gm3_field_combination_info
+ */
 function _gm3_field_combination_hook($field_type) {
   return module_invoke_all("gm3_field_combination_info")[$field_type];
 }
 
+/**
+ * Invoke a function registered for a given field by modules using
+ * hook_gm3_field_combination_info
+ */
 function _gm3_field_combination_invoke($field_type, $hook_name, $args) {
   return call_user_func_array(_gm3_field_combination_hook($field_type)[$hook_name], $args);
 }
 
+/**
+ * Register a field type to be used with the combination field.
+ * Return an associative array with your field name as the key.
+ */
+function hook_gm3_field_combination_info() {
+  return [
+    "gm3_custom_field" => [
+      "name" => "custom", // A short name for the field, used as a key in the js libraries dict
+      'form_to_storage' => 'gm3_custom_field_form_to_storage', // A function that takes an input element and returns the database item for that element's value
+      'map_settings' => 'gm3_custom_field_js_settings', // A function that takes the field's database value and returns the map library's javascript settings
+      'field_element' => 'gm3_custom_field_field_element' // A function that takes the field id and database value and returns the form element
+    ]
+  ];
+}
+
+/**
+ * Validation function called when the combination widget is submitted.
+ * Also the only place we can convert the submitted form value to
+ * the structure it should be in the database.
+ * It sounds dodgy but this is in fact how Drupal core does it too;
+ * see options_field_widget_validate.
+ */
 function gm3_field_combination_widget_validate(&$element, &$form_state) {
   $field = field_widget_field($element, $form_state);
+
+  // This is the list of field types supported by this combination field
   $types = $field['settings']['field_types'];
   $items = [];
 
@@ -390,42 +404,67 @@ function gm3_field_combination_widget_validate(&$element, &$form_state) {
     // it's the shape name with with gm3_ on the beginning
     $type = substr($gm3_type, 4);
 
+    // Convert points and polygons to database structure
     $storage = _gm3_field_form_to_storage($element[$type], $gm3_type);
 
+    // If that didn't work, see if there's a hook we can invoke
+    // Probably gm3_region_field
     if(!isset($storage)) {
       $storage = _gm3_field_combination_invoke($gm3_type, 'form_to_storage', [$element[$type]]);
     }
 
+    // Have to add the gm3_type value to combo fields so we know where to
+    // look for data when reading back
     $storage = array_map(
-      // Have to add the gm3_type value to combo fields so we know where to
-      // look for data when reading back
       function($item) use ($type) { $item['gm3_type'] = $type; return $item; },
       $storage
     );
 
+    // Update the settings for the javascript map
     _gm3_field_set_map_items($element['map'], $type, $storage);
 
     $items = array_merge($items, $storage);
   }
 
+  // Save the field value
   form_set_value($element, $items, $form_state);
 }
 
+/**
+ * Validation function called when the map widgets are submitted.
+ * Also the only place we can convert the submitted form value to
+ * the structure it should be in the database.
+ * It sounds dodgy but this is in fact how Drupal core does it too;
+ * see options_field_widget_validate.
+ */
 function gm3_field_widget_validate(&$element, &$form_state){
   $field = field_widget_field($element, $form_state);
   $type = $field['type'];
 
-  // The input element name should be hardcoded as 'field' in the widget definition
+  // The input element should be hardcoded as 'field' in the widget definition
   $input_element = $element['field'];
 
+  // Convert the form values to correct database structure
   $items = _gm3_field_form_to_storage($input_element, $type);
 
+  // Set the field value
   form_set_value($element, $items, $form_state);
 
+  // Update the settings for the js map
+  // The map element should be hardcoded as 'map' in the widget definition
   _gm3_field_set_map_items($element['map'], $type, $items);
 }
 
+/**
+ * Set the items on the javascript map
+ * @param $map The render array for the gm3 map
+ * @param $type the field type or library name
+ * @param $items The items to add as map objects
+ */
 function _gm3_field_set_map_items(&$map, $type, $items) {
+  // The gm3 render array keeps JS settings under the #gm3 key,
+  // which it uses import libraries and set settings when the
+  // map is rendered.
   switch($type) {
     case 'gm3_point':
     case 'point':
@@ -450,7 +489,8 @@ function _gm3_field_set_map_items(&$map, $type, $items) {
       ];
       break;
     default:
-      // Todo: Should this call the actual specific function?
+      // Otherwise, if any modules have registered a field with hook_gm3_field_combination_info,
+      // get that info and use it
       $hooks = _gm3_field_combination_hook("gm3_$type") ?? _gm3_field_combination_hook("$type");
 
       $library = $hooks['name'];
@@ -461,6 +501,9 @@ function _gm3_field_set_map_items(&$map, $type, $items) {
   }
 }
 
+/**
+ * Given a field element, get the database structure for that field's data
+ */
 function _gm3_field_form_to_storage($element, $type) {
   $value = $element['#value'];
 
@@ -1056,6 +1099,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
 }
 
 /**
+ * Add custom combination field types to the javascript map
+ * Todo: Should this be part of the hook_gm3_field_combination_info remit?
+ */
+function hook_TYPE_map_alter(&$map, &$values) {
+  $map['libraries']['TYPE'] = gm3_custom_field_js_settings($values['TYPE']);
+}
+
+/**
  * Implementation of hook_field_display_alter().
  */
 function gm3_field_field_display_alter(&$display, $context){
@@ -1090,16 +1141,6 @@ function gm3_field_js_point_settings($items, $editable = false){
   ];
 }
 
-function gm3_field_js_poly_settings($items, $key) {
-  module_load_include('functions.inc', 'gm3');
-
-  foreach($items as $ix => $item) {
-    $items[$ix] = gm3_convert_polygon_string($item[$key])[0];
-  }
-
-  return $items;
-}
-
 /**
  * Generate the field element for the point input textbox
  */
@@ -1118,6 +1159,13 @@ function gm3_field_point_field($id, $items, $allow_text_entry){
   );
 }
 
+/**
+ * Returns an input element for the basic form widgets
+ * @param id The field ID
+ * @param items The field values
+ * @param allow_text_entry Whether to show the text entry field
+ * @param type The widget type
+ */
 function gm3_field_input_element($id, $items, $allow_text_entry, $type) {
   switch($type){
     case 'gm3_point_gm3':
@@ -1154,7 +1202,7 @@ function gm3_field_input_element($id, $items, $allow_text_entry, $type) {
 function gm3_field_poly_field($id, $items, $allow_text_entry, $poly_type){
   // Polygon field structure is [ 'polygon_type' => 'WKT String' ]
   $items = array_map(
-    function($item) use ($poly_type) { return $item[$poly_type]; },
+    function($item) use ($poly_type) { return trim($item[$poly_type]); },
     $items
   );
 
@@ -1167,7 +1215,7 @@ function gm3_field_poly_field($id, $items, $allow_text_entry, $poly_type){
         $id . '-' . $poly_type
       )
     ),
-    '#default_value' => implode('\n', $items)
+    '#default_value' => implode("\n", $items)
   ];
 }
 
@@ -1185,6 +1233,14 @@ function gm3_field_map_js_settings($id, $max_objects = -1, $libraries = []) {
   ];
 }
 
+/**
+ * Create the widget for one of the simple widget fields (i.e. not combo widget)
+ * @param element The basic widget element to start from
+ * @param items The field values
+ * @param input_field The input field element to use in this widget
+ * @param type The field type
+ * @param cardinality How many items allowed in this field
+ */
 function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardinality) {
   // We need to add a GM3 map to the page.
   // We'll also need some additional JS to record the points and save them
@@ -1201,12 +1257,9 @@ function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardin
     '#element_validate' => array(
       'gm3_field_widget_validate',
     ),
-    'map' => gm3_get_map(
-      // Todo: Is this really needed?
-      gm3_field_map_js_settings(
+    'map' => gm3_field_get_map(
         $element['#field_name'],
         $cardinality
-      )
     ),
     'field' => $input_field
   );
@@ -1214,6 +1267,104 @@ function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardin
   _gm3_field_set_map_items($element['map'], $type, $items);
 
   return $element;
+}
+
+/**
+ * Get a render array for a map
+ * Params are the same as gm3_field_map_js_settings
+ */
+function gm3_field_get_map($id, $max_objects = -1, $libraries = []) {
+  // Load gm3_get_map
+  // Todo: can we somehow have it load automatically?
+  module_load_include('theme.inc', 'gm3');
+
+  return gm3_get_map(
+    gm3_field_map_js_settings(
+      $id,
+      $max_objects,
+      $libraries
+    )
+  );
+}
+
+/**
+ * Create the widget for the combination field
+ * @param element The basic widget element to start from
+ * @param items The field values
+ * @param field The underlying field item
+ */
+function gm3_field_create_combination_widget($element, $items, $field) {
+  // Group the items by the type of map data each represents
+  $values = array_reduce(
+    $items,
+    function($carry, $item){
+      $type = $item['gm3_type'];
+
+      if (!isset($carry[$type])) {
+        $carry[$type] = [$item];
+      } else {
+        $carry[$type][] = $item;
+      }
+
+      return $carry;
+    },
+    []
+  );
+
+  // Generate the map render array
+  $map = gm3_field_get_map(
+    $element['#field_name'],
+    $field['cardinality']
+  );
+
+  // These will be the input elements for each different map object type
+  $field_elements = [];
+
+  // The user will have configured which field types are allowed in this combo map.
+  // We have to do a little work for each one.
+  foreach($field['settings']['field_types'] as $gm3_type) {
+    $type = substr($gm3_type, 4);
+
+    // Set the javascript maps data for this type's library
+    _gm3_field_set_map_items($map, $type, $values[$type] ?? []);
+
+    // Generate the input eement
+    $field_element = gm3_field_input_element(
+      $element['#field_name'],
+      $values[$type] ?? [],
+      $allow_text_entry,
+      $gm3_type . "_gm3"
+    );
+
+    if(!isset($field_element)) {
+      // If we couldn't generate a field for this item, it might be provided by a hook (e.g. gm3_region)
+      // so try and invoke any field_element hooks registered by hook_gm3_field_combination_info
+      $field_element = _gm3_field_combination_invoke(
+        $gm3_type,
+        'field_element',
+        [$element["#field_name"], $values[$type] ?? [], $allow_text_entry]
+      );
+    }
+
+    $field_elements[$type] = $field_element;
+  };
+
+  // Wrap it all up in a fieldset
+  return $element + [
+    '#type' => 'fieldset',
+    '#attributes' => array(
+      'class' => array(
+        'gm3_fieldset'
+      )
+    ),
+    // Use the element_validate function to convert the field value
+    // to the structure used in the database
+    '#element_validate' => array(
+      // Use a different validator for the combination widget
+      'gm3_field_combination_widget_validate',
+    ),
+    'map' => $map
+  ] + $field_elements;
 }
 
 /**
@@ -1232,14 +1383,35 @@ function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardin
  * @param Array $element A form element array containing basic properties for the widget - see https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_widget_form/7.x
  */
 function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  // Data field type
+  switch($instance['widget']['type']){
+    case 'gm3_combination_gm3':
+      // Combination widget is a special case, treat it differently
+      return gm3_field_create_combination_widget($element, $items, $field);
+
+    // Provide custom forms for the _gm3 widgets only, not the _text widgets
+    case 'gm3_point_gm3':
+      $field_type = 'point';
+      break;
+    case 'gm3_polyline_gm3':
+      $field_type = 'polyline';
+      break;
+    case 'gm3_polygon_gm3':
+      $field_type = 'polygon';
+      break;
+    case 'gm3_rectangle_gm3':
+      $field_type = 'rectangle';
+      break;
+  }
+
+  if(!isset($field_type)){
+    // Didn't match anything so just return the basic passed in element
+    return $element;
+  }
+
+  // Whether or not to show the field
   $allow_text_entry = !empty($field['settings']['allow_text_entry']) || ($field['type'] == 'gm3_point' && $field['cardinality'] == 1);
 
-  // Load gm3_get_map
-  // Todo: can we somehow have it load automatically?
-  // Todo: Don't do this stuff if we haven't matched the widget
-  module_load_include('theme.inc', 'gm3');
-
+  // Generate the field
   $input_field = gm3_field_input_element(
     $element['#field_name'],
     $items,
@@ -1247,83 +1419,5 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
     $instance['widget']['type']
   );
 
-  switch($instance['widget']['type']){
-    case 'gm3_point_gm3':
-      return gm3_field_create_widget($element, $items, $input_field, 'point', $field['cardinality']);
-      break;
-    case 'gm3_polyline_gm3':
-      return gm3_field_create_widget($element, $items, $input_field, 'polyline', $field['cardinality']);
-      break;
-    case 'gm3_polygon_gm3':
-      return gm3_field_create_widget($element, $items, $input_field, 'polygon', $field['cardinality']);
-      break;
-    case 'gm3_rectangle_gm3':
-      return gm3_field_create_widget($element, $items, $input_field, 'rectangle', $field['cardinality']);
-      break;
-    case 'gm3_combination_gm3':
-      $values = array_reduce(
-        $items,
-        function($carry, $item){
-          $type = $item['gm3_type'];
-
-          if (!isset($carry[$type])) {
-            $carry[$type] = [$item];
-          } else {
-            $carry[$type][] = $item;
-          }
-
-          return $carry;
-        },
-        []
-      );
-
-      $map = gm3_get_map(
-        // Todo: Can't this just be one function?
-        gm3_field_map_js_settings(
-          $element['#field_name'],
-          $field['cardinality']
-        )
-      );
-
-      $field_elements = [];
-
-      foreach($field['settings']['field_types'] as $gm3_type) {
-        $type = substr($gm3_type, 4);
-        _gm3_field_set_map_items($map, $type, $values[$type] ?? []);
-
-        $field_element = gm3_field_input_element(
-          $element['#field_name'],
-          $values[$type] ?? [],
-          $allow_text_entry,
-          $gm3_type . "_gm3"
-        );
-
-        if(!isset($field_element)) {
-          $field_element = _gm3_field_combination_invoke(
-            $gm3_type,
-            'field_element',
-            [$element["#field_name"], $values[$type] ?? [], $allow_text_entry]
-          );
-        }
-
-        $field_elements[$type] = $field_element;
-      };
-
-      return $element + [
-        '#type' => 'fieldset',
-        '#attributes' => array(
-          'class' => array(
-            'gm3_fieldset'
-          )
-        ),
-        // Use the element_validate function to convert the field value
-        // to the structure used in the database
-        '#element_validate' => array(
-          // Use a different validator for the combination widget
-          'gm3_field_combination_widget_validate',
-        ),
-        'map' => $map
-      ] + $field_elements;
-      break;
-  }
+  return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality']);
 }

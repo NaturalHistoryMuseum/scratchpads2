@@ -76,7 +76,11 @@ function gm3_region_items_validate($items, $field_name, &$errors){
 }
 
 /**
- * Implementation of hook_field_insert().
+ * Validation function called when the region_field widget is submitted.
+ * Also the only place we can convert the submitted form value to
+ * the structure it should be in the database.
+ * It sounds dodgy but this is in fact how Drupal core does it too;
+ * see options_field_widget_validate.
  */
 function gm3_region_field_widget_validate(&$element, &$form_state) {
   $field = field_widget_field($element, $form_state);
@@ -84,14 +88,21 @@ function gm3_region_field_widget_validate(&$element, &$form_state) {
   // The input element name should be hardcoded as 'field' in the widget definition
   $input_element = $element['field'];
 
-  $items = gm3_region_gm3_field_form_to_storage($input_element);
+  // Convert the submitted values to the database structure
+  $items = gm3_region_field_form_to_storage($input_element);
 
+  // Save the value
   form_set_value($element, $items, $form_state);
 
+  // Set the javascript data
   $element['map']['#gm3']['libraries']['region'] = gm3_region_field_js_settings($items, true);
 }
 
-function gm3_region_gm3_field_form_to_storage(&$input_element) {
+/**
+ * Converts submitted form element data to the structured it's needed
+ * in the database.
+ */
+function gm3_region_field_form_to_storage(&$input_element) {
   $items = _gm3_region_field_parse_field_value($input_element['#value']);
 
   // For some reason the <select> element's value needs to be keyed numerically
@@ -102,12 +113,18 @@ function gm3_region_gm3_field_form_to_storage(&$input_element) {
   return $items;
 }
 
+/**
+ * Given the submitted form, return the js settings for the map
+ * Used to ingegrate into the combo field
+ */
 function gm3_region_field_combo_js_settings($items) {
-  $regions = _gm3_region_field_storage_to_form($items);
-  return gm3_region_field_js_settings($regions, true);
+  return gm3_region_field_js_settings(array_values($items), true);
 }
 
-function gm3_region_gm3_field_element($id, $items, $allow_text_entry) {
+/**
+ * Given database data, generate the select field to add to the combo widget
+ */
+function gm3_region_field_input_element($id, $items, $allow_text_entry) {
   $regions = _gm3_region_field_storage_to_form($items);
 
   return gm3_region_field_map_field($id, $regions, $allow_text_entry);
@@ -121,6 +138,14 @@ function _gm3_region_field_parse_field_value($items) {
   $new_items = [];
 
   foreach($items as $region_id){
+    // Convert short code to long code
+    // The options in the select list should all be the long code,
+    // so i don't know if we really need this stil
+    // But I'll keep it in just in case
+    if(!strpos($region_id, ':')){
+       $region_id = _gm3_region_convert_short_code_to_full_code($region_id);
+    }
+
     $new_items[] = array(
       'region_id' => $region_id
     );
@@ -183,27 +208,6 @@ function _gm3_region_convert_short_code_to_full_code($val){
 }
 
 /**
- * Insert function for the combination field
- */
-// function gm3_region_gm3_combination_insert(&$new_items, $value){
-//   if(!is_array($value)){
-//     $value = array(
-//       $value
-//     );
-//   }
-//   foreach($value as $val){
-//     $val = trim($val);
-//     if(!strpos($val, ':')){
-//       $val = _gm3_region_convert_short_code_to_full_code($val);
-//     }
-//     $new_items[] = array(
-//       'region_id' => $val,
-//       'gm3_type' => 'gm3_region_region'
-//     );
-//   }
-// }
-
-/**
  * Generates the JS settings that will be passed to the map as the region library.
  * Should be set as `$map['libraries']['region']`, which becomes
  * `Drupal.settings.gm3.maps[mapId].libraries.region` in the browser.
@@ -217,7 +221,7 @@ function gm3_region_field_js_settings($items = [], $editable = false){
 }
 
 /**
- * Implements hook_gm3_field_map_alter
+ * Implements hook_TYPE_map_alter
  * This is where we set the js values for the map before rendering it,
  * given the field values for the associated input elements.
  */
@@ -227,19 +231,24 @@ function gm3_region_field_gm3_field_map_alter(&$map, $values){
   }
 }
 
+/**
+ * Advertise that we know how to handle gm3_region fields in the combo widget
+ * Implements hook_gm3_field_combination_info
+ */
 function gm3_region_field_gm3_field_combination_info() {
   return [
     'gm3_region' => [
       'name' => 'region',
-      'form_to_storage' => 'gm3_region_gm3_field_form_to_storage',
+      'form_to_storage' => 'gm3_region_field_form_to_storage',
       'map_settings' => 'gm3_region_field_combo_js_settings',
-      'field_element' => 'gm3_region_gm3_field_element'
+      'field_element' => 'gm3_region_field_input_element'
     ]
   ];
 }
 
 /**
- * View for the combo field.
+ * Add a single item to the read-only map view
+ * Implments hook_TYPE_map_alter
  */
 function gm3_region_field_region_map_alter(&$map, $item){
   // This function gets called when we view the map (read-only)
@@ -277,16 +286,6 @@ function gm3_region_field_map_field($id, $default_value = [], $visible = false){
 }
 
 /**
- * Function to update the map on the combination form element.
- */
-function gm3_region_gm3_combination_form_alter(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, &$map, &$widget, &$map_children, $default_values){
-  // This function gets called when we use the map form (editable)
-  $regions = isset($default_values['gm3_region_region']) ? $default_values['gm3_region_region'] : array();
-  $map['libraries']['region'] = gm3_region_field_js_settings($regions, true);
-  $map_children['regions'] = $widget['children']['gm3_region'] = gm3_region_field_map_field($element['#field_name'], $regions);
-}
-
-/**
  * Implementation of hook_field_widget_info().
  */
 function gm3_region_field_field_widget_info(){
@@ -314,6 +313,7 @@ function gm3_region_field_field_widget_info(){
 
 /**
  * View function that is called by the gm3_field module.
+ * Used in gm3_field_field_formatter_view
  */
 function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $id){
   $element = array();
@@ -423,23 +423,17 @@ function gm3_region_field_field_settings_form($field, $instance, $has_data){
 }
 
 /**
+ * Generate the form for the gm3_region_gm3 widget
  * Implements hook_field_widget_form().
  */
 function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  switch($instance['widget']['type']){
-    case 'gm3_region_gm3':
+  if($instance['widget']['type'] === 'gm3_region_gm3') {
       // Data field type
       $allow_text_entry = !empty($field['settings']['allow_text_entry']);
-
-      // Load gm3_get_map
-      // Todo: can we somehow have it load automatically?
-      // Todo: Don't do this stuff if we haven't matched the widget
-      module_load_include('theme.inc', 'gm3');
 
       // We need to add a GM3 map to the page.
       // We'll also need some additional JS to record the points and save them
       // actually into a form element.
-
       $regions = _gm3_region_field_storage_to_form($items);
 
       $input_field = gm3_region_field_map_field(
@@ -460,15 +454,12 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
         '#element_validate' => array(
           'gm3_region_field_widget_validate',
         ),
-        'map' => gm3_get_map(
-          // Todo: Is this really needed?
-          gm3_field_map_js_settings(
+        'map' => gm3_field_get_map(
             $element['#field_name'],
             $field['cardinality'],
             [
               'region' => gm3_region_field_js_settings($regions, true)
             ]
-          )
         ),
         'field' => $input_field,
         '#attached' => array(
@@ -477,7 +468,6 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
           )
         )
       );
-      break;
   }
 
   return $element;

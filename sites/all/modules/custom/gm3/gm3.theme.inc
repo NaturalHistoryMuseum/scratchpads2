@@ -2,12 +2,7 @@
 
 /**
  * Theme function for generating a basic map.
- * @param $variables = [
- *   'id' => the html ID for the map
- *   'libraries' => javascript libraries to include and their settings - see hook_gm3_libraries_alter
- *   'settings' => General javascript settings for map; see gm3_settings
- *   'tools' => Array of markup to add to the toolbar on the left of the map
- * ]
+ * @param $variables - see the arguments for gm3_get_map
  */
 function theme_gm3_map($variables){
   $map = gm3_get_map($variables);
@@ -17,7 +12,7 @@ function theme_gm3_map($variables){
 /**
  * If the points collection is flagged as a convex hull, convert the points
  * into a polygon.
- * 
+ *
  * Todo: Investigate whether this might be better done with Javascript
  * @param $libraries The gm3 libraries argument
  */
@@ -49,23 +44,23 @@ function _gm3_convex_hull_to_polygon(&$libraries) {
 
 /**
  * Generate the markup for the tools section of the map (the buttons on the left)
- * 
- * Todo: The markup for each tool should probably be auto-generated in here,
- * or maybe in the javasript.
- * 
+ *
  * @param $id string The map ID
- * @param $tools string[] An array of strings to concatenate as toolbar buttons
+ * @param $libraries string[] The dictionary of libraries to be included in the map
  */
 function _gm3_generate_tools($id, $libraries) {
+  // Generate the HTML for each button
   $tools = array_map(
     function($tool) use ($id) {
       return theme(
-        "gm3_${tool}_button", 
+        "gm3_${tool}_button",
         [ 'id' => $id ]
       );
     },
     array_keys($libraries)
   );
+
+  // Generate the wrapper
   return '<div class="gm3-tools">' .
     '<ul id="toolbar-' . $id . '">' .
       '<li class="gm3-clicked">' .
@@ -82,6 +77,12 @@ function _gm3_generate_tools($id, $libraries) {
 
 /**
  * Function to return a renderable array for a map.
+ * @param $variables = [
+ *   'id' => the html ID for the map
+ *   'libraries' => javascript libraries to include and their settings - see hook_gm3_libraries_alter
+ *   'settings' => General javascript settings for map; see gm3_settings
+ *   'tools' => Boolean - whether to render the edit tools for the given libraries
+ * ]
  */
 function gm3_get_map($variables){
   // Could we get this dynamically from hook_theme?
@@ -101,6 +102,7 @@ function gm3_get_map($variables){
       'tools' => $tools
     ],
     // Once rendered we want to load the javascript libraries
+    // and build the toolbar
     '#post_render' => [
       '_gm3_map_post_render'
     ],
@@ -113,22 +115,24 @@ function gm3_get_map($variables){
       ]
     ),
     '#markup' =>
-        // Why does it have a wrapper? Can this be removed?
-        // NB: We add tools and another wrapper in _gm3_map_post_render
+        // NB: We add tools and another outer wrapper in _gm3_map_post_render
         '<div class="gm3-map-wrapper">' .
           '<div id="' . $id . '"></div>' .
         '</div>'
   );
 }
 
+/**
+ * When it's time to render the map, include the necesary tool buttons and load the js
+ */
 function _gm3_map_post_render(&$children, &$element) {
   $gm3 = $element['#gm3'];
   $id = $gm3['id'];
   // Add the javascript libs and settings
   gm3_add_js($id, $gm3['settings'], $gm3['libraries']);
-  
+
   $tools = $gm3['tools'] ? _gm3_generate_tools($id, $gm3['libraries']) : '';
-  
+
   return '<div class="gm3-container">' . $tools . $children . '</div>';
 }
 
@@ -199,7 +203,7 @@ function theme_gm3_beautytip($variables){
 }
 
 /**
- * Add extra layers to a map component
+ * Hook to add extra layers to a map component
  */
 function hook_gm3_libraries_alter(&$libraries) {
   // Assumes your library file is at exmaple_module_name/js/example_lib.js
@@ -221,6 +225,7 @@ function gm3_add_js($id, $settings = [], $libraries = []){
   _gm3_convex_hull_to_polygon($libraries);
 
   // Allow other modules to add their own libraries
+  // See hook_gm3_libraries_alter for an example
   drupal_alter('gm3_libraries', $libraries);
 
   // Iterate through and requrie the library files
