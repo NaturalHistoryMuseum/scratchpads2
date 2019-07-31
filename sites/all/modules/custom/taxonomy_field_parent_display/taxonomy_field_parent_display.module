@@ -88,7 +88,7 @@ function taxonomy_field_parent_display_field_formatter_view($entity_type, $entit
             $path = taxonomy_term_uri($parent);
             $formatted[] = l(
                 $parent->name,
-                $path
+                $path['path']
             );
         }
     }
