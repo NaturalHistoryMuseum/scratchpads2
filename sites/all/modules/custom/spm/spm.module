@@ -135,6 +135,11 @@ function spm_taxonomy_term_update($term){
   $query->propertyCondition('type', 'spm');
   $query->fieldCondition('field_taxonomic_name', 'tid', $term->tid, '=');
   $result = $query->execute();
+
+  if(!isset($result['node'])) {
+    return;
+  }
+
   $nodes = node_load_multiple(array_keys($result['node']));
   foreach($nodes as $node){
     $node->title = $term->name;
