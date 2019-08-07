@@ -142,9 +142,10 @@ function gm3_theme(){
   return array(
     'gm3_map' => array(
       'variables' => array(
-        'map' => array(
-          'id' => 'gm3-map'
-        )
+        'id' => 'gm3-map',
+        'libraries' => [],
+        'tools' => false,
+        'settings' => []
       ),
       'file' => 'gm3.theme.inc'
     ),
