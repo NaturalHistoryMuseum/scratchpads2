@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/languagefield/languagefield.feeds.inc b/sites/all/modules/contrib/languagefield/languagefield.feeds.inc
+index 62a725fc2..0a9c596e9 100644
+--- a/sites/all/modules/contrib/languagefield/languagefield.feeds.inc
++++ b/sites/all/modules/contrib/languagefield/languagefield.feeds.inc
+@@ -54,6 +54,8 @@ function languagefield_feeds_set_target($source, $entity, $target, $value) {
+   $i = 0;
+   $field = isset($entity->$target) ? $entity->$target : array();
+   foreach ($value as $v) {
++    $v = trim($v);
++
+     if (empty($v)) {
+       // No value;
+     }
