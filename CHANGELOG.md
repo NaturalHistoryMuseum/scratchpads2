@@ -1,3 +1,16 @@
+2.9.10 (2019-08-12)
+
+This release fixes a number of regressions and bugs, including significant work refactoring map fields to be more reliable.
+
+ - Retain inputted map data when trying to submit an incomplete or invalid form (#5852 - @PaulKiddle)
+ - Fix for BHL results not showing in taxonomy pages (#5944 - @jrdh)
+ - Prevent block headers covering other blocks in species overview pages (#5967 - @PaulKiddle)
+ - Prevent footer covering page content when too large (#5965 - @PaulKiddle)
+ - Allow popups on taxon maps for points with multiple sets of data (#5912 - @PaulKiddle)
+ - Allow file uploads that contain UTF8 characters in the filenames (#5972 - @PaulKiddle)
+ - Add scale bar to maps (#5986 - @PaulKiddle)
+ - Fix problems with taxonomy spreadsheet import (#5981 - @PaulKiddle)
+
 2.9.9 (2019-07-01)
 
 - Make BHL and ReFindIt API uses more reliable (#5944 - @jrdh)
