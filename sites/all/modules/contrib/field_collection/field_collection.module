@@ -1932,14 +1932,34 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
   $value = is_array($value) ? $value : array($value);
   $info = field_info_field($target);
   // Delete existing fieldcollection value in case of update.
+  //
+  // Presumably we do this because we can't tell the difference between an
+  // import *changing* a field and *replacing* it, so assume the latter.
+  //
+  // This seems dangerous to do here as this function call is executed
+  // for each collection subfield; if we're not careful we risk deleting
+  // and re-creating the entire collection each time.
+  //
+  // However, it seems that if the 'value' field is not present then the
+  // collection has been created during this import & we want to keep it;
+  // otherwise it's an old field and we're safe to delete it.
+  //
+  // I'm aware this seems clunky and I'm sorry if you have to fix this.
   $fielddelete = isset($entity->$target) ? $entity->$target : array();
   $field_collection_item_values = array();
   foreach ($fielddelete['und'] as $k => $v) {
-    $field_collection_item_values[] = $v['value'];
+    if (isset($v['value'])) {
+      $field_collection_item_values[] = $v['value'];
+    }
     unset($fielddelete['und'][$k]);
   }
+
   if (count($field_collection_item_values) > 0 ) {
+    // Prevent entity_delete_multiple from saving the host entity by pretending
+    // we're deleting it. Cheeky yet relatively clean hack.
+    $entity->field_collection_deleting = true;
     entity_delete_multiple('field_collection_item', $field_collection_item_values);
+    $entity->field_collection_deleting = null;
   }
   // end of delete of existing fieldcollection
   // Iterate over all values.
@@ -1957,6 +1977,7 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
       elseif (isset($field['und'][$delta]['value'])) {
         $field_collection_item = field_collection_item_load($field['und'][$delta]['value']);
       }
+
       if (empty($field_collection_item)) {
         $field_collection_item = entity_create('field_collection_item', array('field_name' => $target));
         $field_collection_item->setHostEntity($entity->feeds_item->entity_type, $entity);
@@ -1974,7 +1995,7 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
         }
       }
 
-	   $sub_field_info = field_info_field($sub_target[0]);
+	   $sub_field_info = field_info_field($sub_target);
       if (isset($_sub_targets[$sub_target]['callback']) && function_exists($_sub_targets[$sub_target]['callback'])) {
         $callback = $_sub_targets[$sub_target]['callback'];
         unset($field_collection_item->{$sub_target});

@@ -380,14 +380,12 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
         }catch(Exception $e){
           ;
         }
-        if($field['translatable']){
-          $language = field_language($entity_type, $entity, $field['field_name']);
-          $set_to_language_none = FALSE;
-          if($language == LANGUAGE_NONE){
-            $set_to_language_none = TRUE;
-          }
-          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']}, $set_to_language_none);
+        $language = field_language($entity_type, $entity, $field['field_name']);
+        $set_to_language_none = FALSE;
+        if($language == LANGUAGE_NONE){
+          $set_to_language_none = TRUE;
         }
+        $entity->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($entity->{$instance['field_name']}, $set_to_language_none);
       }
     }
   }
@@ -403,9 +401,11 @@ function _scratchpads_multilingual_merge_language_none_values($values, $set_to_l
   $languages = language_list('enabled');
   if($set_to_language_none){
     $hashes = array();
-    foreach($values[LANGUAGE_NONE] as $id => $value){
-      $hash = md5(serialize($value));
-      $hashes[$hash] = $hash;
+    if(isset($values[LANGUAGE_NONE])) {
+      foreach($values[LANGUAGE_NONE] as $id => $value){
+        $hash = md5(serialize($value));
+        $hashes[$hash] = $hash;
+      }
     }
     // First we loop through the language we are merging into, and create
     // hashes

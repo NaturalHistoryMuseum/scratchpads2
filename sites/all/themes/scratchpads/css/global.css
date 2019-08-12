@@ -17,16 +17,12 @@ blockquote em,blockquote i {
 #page {
   min-height: 100%;
   position: relative;
-}
-
-#section-content {
-  padding-bottom: 20em;
+  display: flex;
+  flex-direction: column;
 }
 
 #section-footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
+  margin-top: auto;
 }
 
 @font-face {
@@ -542,10 +538,6 @@ h1.site-name,h2.site-name {
 
 .block-species-page-block{
   float:none!important;
-}
-
-.block-species-biblio-block,.block-species-spm-block {
-  float: none !important;
 }
 
 /* Embeded images */

@@ -54,6 +54,8 @@ function languagefield_feeds_set_target($source, $entity, $target, $value) {
   $i = 0;
   $field = isset($entity->$target) ? $entity->$target : array();
   foreach ($value as $v) {
+    $v = trim($v);
+
     if (empty($v)) {
       // No value;
     }

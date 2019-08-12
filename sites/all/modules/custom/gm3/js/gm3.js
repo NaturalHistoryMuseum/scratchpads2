@@ -28,14 +28,14 @@
     observer.observe(element);
   };
 
-  // Create the OSM tileset
-  const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      subdomains: ['a','b','c']
-  });
-
   Drupal.GM3 = class {
     constructor (map) {
+      // Create the OSM tileset
+      const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: ['a','b','c']
+      });
+
       if (map instanceof Drupal.GM3) {
         return map;
       }
@@ -44,7 +44,7 @@
       const settings = map.settings;
 
       // The maximum number of objects (points, etc) allowed on the map
-      const maxObjects = parseInt(map.max_objects, 10);
+      const maxObjects = parseInt(settings.max_objects || map.max_objects, 10);
       this.maxObjects = isNaN(maxObjects) ? Infinity : maxObjects;
 
       const leafletOptions = {
@@ -95,6 +95,9 @@
       // Create the actual map
       const leafletMap = L.map(mapNode, leafletOptions);
 
+      // Add a scale bar to the map
+      L.control.scale().addTo(leafletMap);
+
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.
       observeVisibility(mapNode, visible => {
@@ -126,15 +129,7 @@
           child.addTo(this.leafletMap);
 
           // If there is a field for this library, watch for changes on keypress
-          const field = this.getFieldForLayer(id);
-          if(field) {
-            let timeout;
-            field.addEventListener('keyup', (e) => {
-              clearTimeout(timeout);
-              child.setValue && child.setValue(e.target.value);
-              timeout = setTimeout(() => field.value = child.getValue(), 2000);
-            });
-          }
+          this.observeFieldChanges(id);
         }
       }
 
@@ -339,6 +334,11 @@
 
       } else {
         const activeChild = this.children[activeClass];
+
+        if(!activeChild) {
+          throw new Error(`There are no tools called ${activeClass} for this map.`);
+        }
+
         // Find the active child and call its "active" function
         if(activeChild.activate) {
           activeChild.activate(this.leafletMap);

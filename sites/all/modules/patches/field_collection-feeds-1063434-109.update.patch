@@ -1,0 +1,163 @@
+diff --git a/sites/all/modules/contrib/field_collection/field_collection.module b/sites/all/modules/contrib/field_collection/field_collection.module
+index 902b133a7..fb61b3b77 100644
+--- a/sites/all/modules/contrib/field_collection/field_collection.module
++++ b/sites/all/modules/contrib/field_collection/field_collection.module
+@@ -1869,3 +1869,157 @@ function field_collection_entity_translation_insert($entity_type, $entity, $tran
+     }
+   }
+ }
++
++/**
++ * Implements hook_feeds_processor_targets_alter().
++ */
++function field_collection_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
++  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
++    $info = field_info_field($name);
++    if ($info['type'] == 'field_collection') {
++
++      static $loaded = FALSE;
++      if (!$loaded) {
++        $path = drupal_get_path('module', 'feeds') . '/mappers';
++        $files = drupal_system_listing('/.*\.inc$/', $path, 'name', 0);
++        foreach ($files as $file) {
++          if (strstr($file->uri, '/mappers/')) {
++            require_once(DRUPAL_ROOT . '/' . $file->uri);
++          }
++        }
++      }
++      $loaded = TRUE;
++
++      $sub_type = 'field_collection_item';
++      $new_targets = module_invoke_all('feeds_processor_targets', $sub_type, $info['field_name']);
++      drupal_alter('feeds_processor_targets', $new_targets, $sub_type, $info['field_name']);
++
++      foreach ($new_targets as $sub_name => $target) {
++        $new_name = t($info['field_name']) . ':' . t($sub_name);
++        $targets[$new_name] = $target;
++        if (isset($target['name'])) {
++          $targets[$new_name]['name'] = $instance['label'] . ':' . $target['name'];
++        }
++
++        // We override callback for now and retrieve original later.
++        $targets[$new_name]['callback'] = 'field_collection_feeds_set_target';
++      }
++    }
++  }
++}
++
++/**
++ * Process Field Collection items.
++ */
++function field_collection_feeds_set_target($source, $entity, $target, $value, $main_mapping) {
++  static $sub_targets = array();
++
++  $args = explode(':', $target);
++  $target = array_shift($args);
++  $sub_target = implode(':', $args);
++
++  $sub_type = 'field_collection_item';
++  $new_targets = module_invoke_all('feeds_processor_targets', $sub_type, $target);
++  drupal_alter('feeds_processor_targets', $new_targets, $sub_type, $target);
++
++  // Now we retrieve old callbacks and keep then on a static cache.
++  if (!isset($sub_targets[$target])) {
++    $sub_targets[$target] = array();
++    drupal_alter('feeds_processor_targets', $sub_targets[$target], $sub_type, $target);
++  }
++  $_sub_targets = $new_targets;
++
++  $value = is_array($value) ? $value : array($value);
++  $info = field_info_field($target);
++  // Delete existing fieldcollection value in case of update.
++  //
++  // Presumably we do this because we can't tell the difference between an
++  // import *changing* a field and *replacing* it, so assume the latter.
++  //
++  // This seems dangerous to do here as this function call is executed
++  // for each collection subfield; if we're not careful we risk deleting
++  // and re-creating the entire collection each time.
++  //
++  // However, it seems that if the 'value' field is not present then the
++  // collection has been created during this import & we want to keep it;
++  // otherwise it's an old field and we're safe to delete it.
++  //
++  // I'm aware this seems clunky and I'm sorry if you have to fix this.
++  $fielddelete = isset($entity->$target) ? $entity->$target : array();
++  $field_collection_item_values = array();
++  foreach ($fielddelete['und'] as $k => $v) {
++    if (isset($v['value'])) {
++      $field_collection_item_values[] = $v['value'];
++    }
++    unset($fielddelete['und'][$k]);
++  }
++
++  if (count($field_collection_item_values) > 0 ) {
++    // Prevent entity_delete_multiple from saving the host entity by pretending
++    // we're deleting it. Cheeky yet relatively clean hack.
++    $entity->field_collection_deleting = true;
++    entity_delete_multiple('field_collection_item', $field_collection_item_values);
++    $entity->field_collection_deleting = null;
++  }
++  // end of delete of existing fieldcollection
++  // Iterate over all values.
++  $delta = 0;
++  $field = isset($entity->$target) ? $entity->$target : array();
++  try {
++    foreach ($value as $v) {
++      if (empty($v)) {
++        // Avoid creation of empty field collections.
++        continue;
++      }
++      if (isset($field['und'][$delta]['entity'])) {
++        $field_collection_item = $field['und'][$delta]['entity'];
++      }
++      elseif (isset($field['und'][$delta]['value'])) {
++        $field_collection_item = field_collection_item_load($field['und'][$delta]['value']);
++      }
++
++      if (empty($field_collection_item)) {
++        $field_collection_item = entity_create('field_collection_item', array('field_name' => $target));
++        $field_collection_item->setHostEntity($entity->feeds_item->entity_type, $entity);
++      }
++
++      $sub_mapping = array();
++      $config = $source->importer()->getConfig();
++      if (!empty($config['processor']['config']['mappings'])) {
++        foreach ($config['processor']['config']['mappings'] as $mapping) {
++          if ($mapping['target'] == $target . ':' . $sub_target) {
++            $sub_mapping = $mapping;
++            $sub_mapping['target'] = $sub_target;
++            break;
++          }
++        }
++      }
++
++	   $sub_field_info = field_info_field($sub_target);
++      if (isset($_sub_targets[$sub_target]['callback']) && function_exists($_sub_targets[$sub_target]['callback'])) {
++        $callback = $_sub_targets[$sub_target]['callback'];
++        unset($field_collection_item->{$sub_target});
++		 if($sub_field_info['cardinality'] == 1) {
++		   $callback($source, $field_collection_item, $sub_target, array($v), $sub_mapping);
++	     }
++	     else {
++	       $callback($source, $field_collection_item, $sub_target, $value, $sub_mapping);
++	     }
++      }
++
++      // TRUE to skip host entity save - don't need to save the node here.
++      $field_collection_item->save(TRUE);
++
++      $field['und'][$delta]['entity'] = $field_collection_item;
++
++      unset($field_collection_item);
++
++      if ($info['cardinality'] == 1) {
++        break;
++      }
++      $delta++;
++    }
++  } catch (Exception $e) {
++    drupal_set_message($e->getMessage(), 'error');
++  }
++}
+\ No newline at end of file

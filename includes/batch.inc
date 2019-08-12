@@ -292,6 +292,10 @@ function _batch_process() {
         $current_set['sandbox'] = array();
       }
     }
+    // Scratchpads patch: Temp fix for this bug: https://github.com/NaturalHistoryMuseum/scratchpads2/issues/5973
+    else {
+      $current_set['count']--;
+    }
 
     // When all operations in the current batch set are completed, browse
     // through the remaining sets, marking them 'successfully processed'

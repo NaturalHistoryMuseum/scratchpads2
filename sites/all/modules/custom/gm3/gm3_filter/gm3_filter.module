@@ -108,9 +108,7 @@ function gm3_filter_map_process($text, $filter, $format, $langcode, $cache, $cac
   foreach($matches[0] as $key => $match_text){
     // Decode middle!
     if($map = json_decode(trim($matches[1][$key]), TRUE)){
-      $text = str_replace($match_text, theme('gm3_map', array(
-        'map' => $map
-      )), $text);
+      $text = str_replace($match_text, theme('gm3_map', $map), $text);
     }else{
       // Failed to decode the JSON, give an error message instead.
       $text = str_replace($match_text, '<p class="error">' . t('The map configuration you have provided is invalid.') . '</p>', $text);

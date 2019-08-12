@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Implementation of hook_gm3_alter().
+ * Adds the gbif overlay to the gm3 maps.
+ *
+ * Implements hook_gm3_libraries_alter().
  */
-function eol_gbif_maps_gm3_map_alter(&$map){
+function eol_gbif_maps_gm3_libraries_alter(&$libraries){
   // We add special data to map on taxonomy term pages only.
   if(($term = menu_get_object('taxonomy_term', 2)) != FALSE){
     // Now we need to calculate the GBIF taxon id for this term name, and then
@@ -37,7 +39,7 @@ function eol_gbif_maps_gm3_map_alter(&$map){
       }
     }
 
-    $map['libraries']['eol_gbif_maps_overlay'] = array(
+    $libraries['eol_gbif_maps_overlay'] = array(
       'module' => 'eol_gbif_maps',
       'taxon_id' => $gbifId
     );

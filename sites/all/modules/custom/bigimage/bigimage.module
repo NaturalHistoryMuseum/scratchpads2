@@ -325,7 +325,6 @@ function theme_bigimage($variables){
     $latitude = rad2deg(atan(sinh(pi() * (1 - ($image->info['height'] / $max_dimension)))));
     $image = null;
     return theme('gm3_map', array(
-      'map' => array(
         'id' => 'bigimage-' . $variables['item']['fid'],
         'settings' => array(
           'backgroundColor' => 'white', // Could set this as an option if we include other blank tiles.
@@ -367,7 +366,6 @@ function theme_bigimage($variables){
               )
             )
           )*/
-        )
       )
     ));
   }

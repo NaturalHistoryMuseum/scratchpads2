@@ -79,7 +79,6 @@ function oboe_job_form($form, &$form_state, $oboe){
           if($parameter['name'] == 'Coordinates'){
             module_load_include('theme.inc', 'gm3');
             $form['map'] = gm3_get_map(array(
-              'map' => array(
                 'id' => $key,
                 'libraries' => array(
                   'polygon' => array(),
@@ -95,7 +94,6 @@ function oboe_job_form($form, &$form_state, $oboe){
                     'id' => $key
                   ))
                 )
-              )
             ));
             $form[$key] = array(
               '#type' => 'textfield',

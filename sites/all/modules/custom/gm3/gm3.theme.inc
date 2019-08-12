@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Simple theme function
+ * Theme function for generating a basic map.
+ * @param $variables - see the arguments for gm3_get_map
  */
 function theme_gm3_map($variables){
   $map = gm3_get_map($variables);
@@ -9,20 +10,18 @@ function theme_gm3_map($variables){
 }
 
 /**
- * Function to return a renderable array for a map.
+ * If the points collection is flagged as a convex hull, convert the points
+ * into a polygon.
+ *
+ * Todo: Investigate whether this might be better done with Javascript
+ * @param $libraries The gm3 libraries argument
  */
-function gm3_get_map($variables){
-  // No need to use drupal_static here!
-  static $info = array();
-  if(!isset($variables['map']['id'])){
-    // Could we get this dynamically from hook_theme?
-    $variables['map']['id'] = 'gm3-map';
-  }
-  if(isset($variables['map']['libraries']['point']['convexhull']) && $variables['map']['libraries']['point']['convexhull']){
+function _gm3_convex_hull_to_polygon(&$libraries) {
+  if(isset($libraries['point']['convexhull']) && $libraries['point']['convexhull']){
     // We need to add a convex hull polygon. Lets do so.
     if(gm3_load_geophp()){
       $points = array();
-      foreach($variables['map']['libraries']['point']['points'] as $point){
+      foreach($libraries['point']['points'] as $point){
         $points[] = new Point($point['latitude'], $point['longitude']);
       }
       $multipoint = new MultiPoint($points);
@@ -34,44 +33,107 @@ function gm3_get_map($variables){
           $latlng[0]
         );
       }
-      $variables['map']['libraries']['polygon']['polygons'][] = array(
+      $libraries['polygon']['polygons'][] = array(
         'polygon' => $poly,
         'editable' => FALSE,
         'content' => t('Convex hull for the points within it.')
       );
     }
   }
-  if(isset($info[$variables['map']['id']])){
-    // this map has already been initialized.
-    // We can alter settings for the map, but won't be able to add any tools
-    // to the map. This won't be a problem for viewing a map, but may be an
-    // issue for editing.
-    drupal_add_js(array(
-      'gm3' => array(
-        'maps' => array(
-          $variables['map']['id'] => array(
-            'libraries' => $variables['map']['libraries']
-          )
-        )
-      )
-    ), 'setting');
-    return FALSE;
-  }else{
-    $info[$variables['map']['id']] = TRUE;
-    gm3_add($variables['map']);
-    $tools = '';
-    if(isset($variables['map']['tools'])){
-      $tools = '<div class="gm3-tools"><ul id="toolbar-' . $variables['map']['id'] . '"><li class="gm3-clicked"><button type="button" data-gm3-class="default" class="gm3-tools-button"><p>' . t('Move') . '</p></button></li><li>' . implode("</li><li>", $variables['map']['tools']) . '</li></ul></div>';
-    }
-    return array(
-      '#attached' => array(
-        'css' => array(
-          drupal_get_path('module', 'gm3') . '/css/gm3.css'
-        )
+}
+
+/**
+ * Generate the markup for the tools section of the map (the buttons on the left)
+ *
+ * @param $id string The map ID
+ * @param $libraries string[] The dictionary of libraries to be included in the map
+ */
+function _gm3_generate_tools($id, $libraries) {
+  // Generate the HTML for each button
+  $tools = array_map(
+    function($tool) use ($id) {
+      return theme(
+        "gm3_${tool}_button",
+        [ 'id' => $id ]
+      );
+    },
+    array_keys($libraries)
+  );
+
+  // Generate the wrapper
+  return '<div class="gm3-tools">' .
+    '<ul id="toolbar-' . $id . '">' .
+      '<li class="gm3-clicked">' .
+        '<button type="button" data-gm3-class="default" class="gm3-tools-button">' .
+          '<p>' . t('Move') . '</p>' .
+        '</button>' .
+      '</li>' .
+      '<li>' .
+        implode("</li><li>", $tools) .
+      '</li>' .
+    '</ul>' .
+  '</div>';
+}
+
+/**
+ * Function to return a renderable array for a map.
+ * @param $variables = [
+ *   'id' => the html ID for the map
+ *   'libraries' => javascript libraries to include and their settings - see hook_gm3_libraries_alter
+ *   'settings' => General javascript settings for map; see gm3_settings
+ *   'tools' => Boolean - whether to render the edit tools for the given libraries
+ * ]
+ */
+function gm3_get_map($variables){
+  // Could we get this dynamically from hook_theme?
+  $id = $variables['id'] ?? 'gm3-map';
+  $settings = $variables['settings'] ?? [];
+  $libraries = $variables['libraries'];
+  $tools = $variables['tools'] ?? false;
+
+  // Return the markup and the CSS files
+  return array(
+    // Keep some gm3 settings in the render array in case we want to modify them
+    // before render
+    '#gm3' => [
+      'id' => $id,
+      'libraries' => $libraries,
+      'settings' => $settings,
+      'tools' => $tools
+    ],
+    // Once rendered we want to load the javascript libraries
+    // and build the toolbar
+    '#post_render' => [
+      '_gm3_map_post_render'
+    ],
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'gm3') . '/css/gm3.css'
       ),
-      '#markup' => '<div class="gm3-container">' . $tools . '<div class="gm3-map-wrapper"><div id="' . $variables['map']['id'] . '"></div></div></div>'
-    );
-  }
+      'library' => [
+        ['gm3', 'gm3']
+      ]
+    ),
+    '#markup' =>
+        // NB: We add tools and another outer wrapper in _gm3_map_post_render
+        '<div class="gm3-map-wrapper">' .
+          '<div id="' . $id . '"></div>' .
+        '</div>'
+  );
+}
+
+/**
+ * When it's time to render the map, include the necesary tool buttons and load the js
+ */
+function _gm3_map_post_render(&$children, &$element) {
+  $gm3 = $element['#gm3'];
+  $id = $gm3['id'];
+  // Add the javascript libs and settings
+  gm3_add_js($id, $gm3['settings'], $gm3['libraries']);
+
+  $tools = $gm3['tools'] ? _gm3_generate_tools($id, $gm3['libraries']) : '';
+
+  return '<div class="gm3-container">' . $tools . $children . '</div>';
 }
 
 /**
@@ -141,37 +203,61 @@ function theme_gm3_beautytip($variables){
 }
 
 /**
- * Add extra layers to a map component
+ * Hook to add extra layers to a map component
  */
-function hook_gm3_map_alter(&$map) {
-  // $map['libraries'] => The javascript classes to add to the map
+function hook_gm3_libraries_alter(&$libraries) {
+  // Assumes your library file is at exmaple_module_name/js/example_lib.js
+  $libraries['example_lib'] = [
+    'module' => 'example_module_name', // Todo: We should be able to autodetect this
+    'other_settings' => [
+      'custom_settings' => 'for your module'
+    ]
+  ];
 }
 
 /**
- * Callback to add a map to a specific element ID on the page.
+ * Adds the required libraries for the given map
  */
-function gm3_add(&$map = array()){
-  $map['settings'] = array_merge(gm3_settings(), isset($map['settings']) ? $map['settings'] : array());
-  drupal_alter('gm3_map', $map);
-  if(isset($map['libraries']) && is_array($map['libraries'])){
-    foreach($map['libraries'] as $library => $settings){
-      $module = 'gm3';
-      if(is_array($settings)){
-        $module = isset($settings['module']) ? $settings['module'] : $module;
-      }else{
-        $map['libraries'][$settings] = $settings;
-        unset($map['libraries'][$library]);
-        $library = $settings;
+function gm3_add_js($id, $settings = [], $libraries = []){
+  $settings = array_merge(gm3_settings(), $settings ?? []);
+
+  // Make sure we can render convex hulls
+  _gm3_convex_hull_to_polygon($libraries);
+
+  // Allow other modules to add their own libraries
+  // See hook_gm3_libraries_alter for an example
+  drupal_alter('gm3_libraries', $libraries);
+
+  // Iterate through and requrie the library files
+  if(is_array($libraries)){
+    foreach($libraries as $library => $lib_settings){
+      // If not module specified, assume gm3
+      $module = $lib_settings['module'] ?? 'gm3';
+
+      // The GM3 module sometimes use the shortcut of passing
+      // an array of library names. If the item is not an array,
+      // presumably it's a library name.
+      if(!is_array($lib_settings)){
+        unset($libraries[$library]);
+        $library = $lib_settings;
+        $libraries[$library] = $library;
       }
+
+      // gm3 libs need gm3 prepended to their filename
       $library = ($module == 'gm3') ? "gm3.$library" : $library;
       drupal_add_library($module, $library);
     }
   }
-  drupal_add_library('gm3', 'gm3');
+
+  // Add the core library and the settings
   drupal_add_js(array(
     'gm3' => array(
       'maps' => array(
-        $map['id'] => $map
+        $id => [
+          'id' => $id,
+          'settings' => $settings,
+          'libraries' => $libraries
+        ]
       )
     )
   ), 'setting');
@@ -330,7 +416,5 @@ function theme_gm3_view_gm3($variables){
       }
     }
   }
-  return theme('gm3_map', array(
-    'map' => $map
-  ));
+  return theme('gm3_map', $map);
 }
