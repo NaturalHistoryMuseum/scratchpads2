@@ -4,7 +4,7 @@
   /**
    * Any map tool that can hold data objects (points, polygons, etc)
    */
-  Drupal.GM3.Library = class extends L.LayerGroup {
+  Drupal.GM3.Library = class extends L.FeatureGroup {
     constructor(options = {}) {
       super(Object.assign({ interactive: true }, options));
 
@@ -24,24 +24,6 @@
      */
     get objectLayer(){
       return this;
-    }
-    /**
-     * Returns a latLngBounds object that contains all of
-     * the objects on the layer
-     */
-    getBounds() {
-      const bounds = L.latLngBounds([]);
-
-      for (const object of this.objects) {
-        const b = object instanceof L.Marker ? object.getLatLng() :
-                  object instanceof L.Polyline ? object.getBounds() : null;
-
-        if (b) {
-          bounds.extend(b);
-        }
-      }
-
-      return bounds;
     }
     /**
      * Called when this tool is added to a map.
