@@ -13,4 +13,4 @@ jobs:
         with:
           project: 16th August - 26th September
           column: Triage
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GH_PAT }}
