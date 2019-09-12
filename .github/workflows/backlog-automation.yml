@@ -2,7 +2,9 @@ name: Automate project columns
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened]
+  issue_comment:
+    types: [created]
 
 jobs:
   automate-project-columns:
