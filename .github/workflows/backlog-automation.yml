@@ -12,5 +12,5 @@ jobs:
         uses: alex-page/github-project-automation-plus@master
         with:
           project: 16th August - 26th September
-          column: Triage
+          column: To do
           repo-token: ${{ secrets.GH_PAT }}
