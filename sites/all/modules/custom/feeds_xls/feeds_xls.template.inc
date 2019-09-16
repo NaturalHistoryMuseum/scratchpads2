@@ -456,7 +456,7 @@ function _feeds_xls_create_csv_of_data_helper($field, $mapping, $value, &$cell_v
             // Only enter the data once!
             if($subkey == 'latitude'){
               $implosion = "\n";
-              $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
+              $cell_values[] = "({$value['latitude']},{$value['longitude']})";
             }
             break 2;
           case 'gm3_combination':
@@ -469,6 +469,8 @@ function _feeds_xls_create_csv_of_data_helper($field, $mapping, $value, &$cell_v
                 if(isset($value['region_id']) && $value['region_id']){
                   $cell_values[] = 'REGION:' . $value['region_id'];
                 }
+              } else if($type == 'point'){
+                $cell_values[] = "POINT:({$value['latitude']},{$value['longitude']})";
               }else{
                 if(isset($value[$type]) && $value[$type]){
                   $cell_values[] = strtoupper($type) . ':' . $value[$type];

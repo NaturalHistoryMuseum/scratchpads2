@@ -89,7 +89,7 @@ function gm3_region_field_widget_validate(&$element, &$form_state) {
   $input_element = $element['field'];
 
   // Convert the submitted values to the database structure
-  $items = gm3_region_field_form_to_storage($input_element);
+  $items = gm3_region_field_form_to_storage(null, $input_element);
 
   // Save the value
   form_set_value($element, $items, $form_state);
@@ -102,13 +102,19 @@ function gm3_region_field_widget_validate(&$element, &$form_state) {
  * Converts submitted form element data to the structured it's needed
  * in the database.
  */
-function gm3_region_field_form_to_storage(&$input_element) {
-  $items = _gm3_region_field_parse_field_value($input_element['#value']);
+function gm3_region_field_form_to_storage($value, &$input_element = null) {
+  if($value == null) {
+    $value = $input_element['#value'];
+  }
 
-  // For some reason the <select> element's value needs to be keyed numerically
-  // whereas its keys are the same as its values.
-  // This matters to keep the inputed state if the form is invalid.
-  $input_element['#value'] = array_values($input_element['#value']);
+  $items = _gm3_region_field_parse_field_value($value);
+
+  if(isset($input_element)) {
+    // For some reason the <select> element's value needs to be keyed numerically
+    // whereas its keys are the same as its values.
+    // This matters to keep the inputed state if the form is invalid.
+    $input_element['#value'] = array_values($input_element['#value']);
+  }
 
   return $items;
 }
@@ -471,4 +477,49 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
   }
 
   return $element;
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ * Hooks into the node importer to process imported regions
+ * Mostly copied from gm3_field
+ */
+function gm3_region_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  $map_type = 'gm3_region';
+
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if($info['type'] == $map_type){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'gm3_region_field_feeds_set_target_text',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback to set the value for a GM3 region field when using the importer.
+ * More or less the same as gm3_field
+ */
+function gm3_region_field_feeds_set_target_text($source, $entity, $target, $value){
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
+
+  $field = isset($entity->$target) ? $entity->$target : array();
+  $lang = field_language($entity_type, $entity, $target);
+
+  $field[$lang] = _gm3_region_field_parse_field_value($value);
+  $entity->{$target} = $field;
 }

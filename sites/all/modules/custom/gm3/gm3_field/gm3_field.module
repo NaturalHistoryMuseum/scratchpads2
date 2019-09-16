@@ -240,22 +240,31 @@ function gm3_field_form_alter(&$form, &$form_state, $form_id){
 
 /**
  * Implements hook_feeds_processor_targets_alter().
+ * Hooks into the node importer to process imported values
  */
 function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
   $map_types = array(
     'gm3_point',
     'gm3_polygon',
     'gm3_polyline',
-    'gm3_rectangle',
-    'gm3_combination',
-    'gm3_region' // Should be in the gm3_region_field module, but it's easy here!
+    'gm3_rectangle'
   );
   foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
     $info = field_info_field($name);
     if(in_array($info['type'], $map_types)){
+      // Callback for regular fields is similar to processing form field values
       $targets[$name] = array(
         'name' => check_plain($instance['label']),
         'callback' => 'gm3_field_feeds_set_target_text',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    } else if($info['type'] == 'gm3_combination') {
+      // Use a different callback for combo as it's a little more complicated
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'gm3_field_feeds_set_combo_target_text',
         'description' => t('The @label field of the node.', array(
           '@label' => $instance['label']
         ))
@@ -265,9 +274,9 @@ function gm3_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundl
 }
 
 /**
- * Callback to set the value for a GM3 field.
+ * Helper function to set the value of a field when using the importer
  */
-function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+function _gm3_field_set_import_field($source, $entity, $target, $value){
   $entity_type = strtolower(get_class($source->importer->processor));
   if(($processor_location = strpos($entity_type, 'processor')) > 0){
     $entity_type = substr($entity_type, 0, $processor_location);
@@ -278,30 +287,56 @@ function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
   if(!entity_get_info($entity_type)){
     $entity_type = 'node';
   }
-  if(is_array($value)){
-    $value = $value[0];
-  }
-  $field = isset($entity->$target) ? $entity->$target : array();
+
+  $field = $entity->$target ?? [];
   $lang = field_language($entity_type, $entity, $target);
-  $field[$lang][] = $value;
+
+  $field[$lang] = $value;
+
   $entity->{$target} = $field;
+}
+
+/**
+ * Callback to parse an imported GM3 field value.
+ */
+function gm3_field_feeds_set_target_text($source, $entity, $target, $value){
+  $field_info = field_info_field($target);
+  $type = $field_info['type'];
+
+  $field_value = _gm3_field_form_to_storage($value, $type);
+
+  _gm3_field_set_import_field($source, $entity, $target, $field_value);
+}
+
+/**
+ * Callback to parse an imported GM3 combo field value.
+ */
+function gm3_field_feeds_set_combo_target_text($source, $entity, $target, $value){
+  $items = [];
+
+  foreach($value as $item) {
+    list($gm3_type, $string) = explode(':', $item, 2);
+    $gm3_type = strtolower($gm3_type);
+
+    $items = array_merge(
+      $items,
+      _gm3_field_combo_item_form_to_storage([$string], $gm3_type)
+    );
+  }
+
+  _gm3_field_set_import_field($source, $entity, $target, $items);
 }
 
 /**
  * Helper function to get values from a polygon/polyline/rectangle string
  */
-function _gm3_field_get_array_from_polygon_string($value, $poly_type){
+function _gm3_field_get_arrays_from_polygon_strings($value, $poly_type){
   $items = [];
 
-  if(is_array($value) || strlen(trim($value))){
-    if(is_string($value)){
-      $value = preg_split("/\n/", $value);
-    }
-    foreach($value as $poly){
-      $items[] = [
-        $poly_type => $poly
-      ];
-    }
+  foreach($value as $poly){
+    $items[] = [
+      $poly_type => $poly
+    ];
   }
 
   return $items;
@@ -310,46 +345,46 @@ function _gm3_field_get_array_from_polygon_string($value, $poly_type){
 /**
  * Helper function to get values from a points string
  */
-function _gm3_field_get_array_from_points_string($value){
+function _gm3_field_get_arrays_from_points_strings($value){
   $items = [];
 
-  if(is_array($value) || strlen(trim($value))){
-    if(is_string($value)){
-      $value = preg_split("/[\n\r|]+/", $value);
-    }
-    foreach($value as $lat_lng){
-      if(preg_match('/[a-zA-Z][a-zA-Z][0-9]/', $lat_lng)){
-        try{
-          if(($path = libraries_get_path('gridrefutils')) != FALSE && file_exists("$path/gridrefutils.php")){
-            include_once "$path/gridrefutils.php";
-          }
-          $grutoolbox = Grid_Ref_Utils::toolbox();
-          // convert to a numeric reference
-          $uk_grid_numbers = $grutoolbox->get_UK_grid_nums($lat_lng);
-          // convert to global latitude/longitude
-          $grid_ref = $grutoolbox->grid_to_lat_long($uk_grid_numbers, $grutoolbox->COORDS_GPS_UK, $grutoolbox->HTML);
-          // Remove deg symbol.
-          $lat_lng = str_replace('&deg;', '', $grid_ref);
-        }
-        catch(Exception $e){
-          // We've experienced an error. Give an error message, and do nothing
-          // more.
-          drupal_set_message(t('Unable to convert grid reference %grid_ref', array('%grid_ref'=> $lat_lng)), 'error', FALSE);
-          break;
-        }
-      }
+  foreach($value as $lat_lng){
+    // The import template spreadsheet used to be generated with "POINT:" before
+    // each gm3_point value. This is no longer the case but strip it anyway in case
+    // people are using an old template.
+    $lat_lng = str_replace("POINT:", "", $lat_lng);
 
-      $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
-      $lat_lng = explode(", ", $lat_lng);
-      if(count($lat_lng) == 1){
-        $lat_lng = explode(",", $lat_lng[0]);
+    if(preg_match('/[a-zA-Z][a-zA-Z][0-9]/', $lat_lng)){
+      try{
+        if(($path = libraries_get_path('gridrefutils')) != FALSE && file_exists("$path/gridrefutils.php")){
+          include_once "$path/gridrefutils.php";
+        }
+        $grutoolbox = Grid_Ref_Utils::toolbox();
+        // convert to a numeric reference
+        $uk_grid_numbers = $grutoolbox->get_UK_grid_nums($lat_lng);
+        // convert to global latitude/longitude
+        $grid_ref = $grutoolbox->grid_to_lat_long($uk_grid_numbers, $grutoolbox->COORDS_GPS_UK, $grutoolbox->HTML);
+        // Remove deg symbol.
+        $lat_lng = str_replace('&deg;', '', $grid_ref);
       }
-      $lat_lng = array(
-        'latitude' => $lat_lng[0],
-        'longitude' => $lat_lng[1]
-      );
-      $items[] = $lat_lng;
+      catch(Exception $e){
+        // We've experienced an error. Give an error message, and do nothing
+        // more.
+        drupal_set_message(t('Unable to convert grid reference %grid_ref', array('%grid_ref'=> $lat_lng)), 'error', FALSE);
+        break;
+      }
     }
+
+    $lat_lng = preg_replace('/[)(]/', '', $lat_lng);
+    $lat_lng = explode(", ", $lat_lng);
+    if(count($lat_lng) == 1){
+      $lat_lng = explode(",", $lat_lng[0]);
+    }
+    $lat_lng = array(
+      'latitude' => $lat_lng[0],
+      'longitude' => $lat_lng[1]
+    );
+    $items[] = $lat_lng;
   }
   return $items;
 }
@@ -386,6 +421,40 @@ function hook_gm3_field_combination_info() {
 }
 
 /**
+ * Convert a combo field string value into a value that can be stored in the database
+ * @param $value The field value
+ * @param $type The combo field type (point, rectangle, etc)
+ * @param $element The optional field element the value came from
+ */
+function _gm3_field_combo_item_form_to_storage($value, $type, &$element = null) {
+  $gm3_type = "gm3_$type";
+
+  $storage = _gm3_field_form_to_storage($value, $gm3_type);
+
+  // If that didn't work, see if there's a hook we can invoke
+  // Probably gm3_region_field
+  if(!isset($storage)) {
+    // Allow passing an optional field element as the source in case
+    // the hook wants to edit the field
+    if(isset($element)) {
+      $args = [$value, $element];
+    } else {
+      $args = [$value];
+    }
+    $storage = _gm3_field_combination_invoke($gm3_type, 'form_to_storage', $args);
+  }
+
+  // Have to add the gm3_type value to combo fields so we know where to
+  // look for data when reading back
+  $storage = array_map(
+    function($item) use ($type) { $item['gm3_type'] = $type; return $item; },
+    $storage
+  );
+
+  return $storage;
+}
+
+/**
  * Validation function called when the combination widget is submitted.
  * Also the only place we can convert the submitted form value to
  * the structure it should be in the database.
@@ -405,20 +474,8 @@ function gm3_field_combination_widget_validate(&$element, &$form_state) {
     $type = substr($gm3_type, 4);
 
     // Convert points and polygons to database structure
-    $storage = _gm3_field_form_to_storage($element[$type], $gm3_type);
-
-    // If that didn't work, see if there's a hook we can invoke
-    // Probably gm3_region_field
-    if(!isset($storage)) {
-      $storage = _gm3_field_combination_invoke($gm3_type, 'form_to_storage', [$element[$type]]);
-    }
-
-    // Have to add the gm3_type value to combo fields so we know where to
-    // look for data when reading back
-    $storage = array_map(
-      function($item) use ($type) { $item['gm3_type'] = $type; return $item; },
-      $storage
-    );
+    $field_element = $element[$type];
+    $storage = _gm3_field_combo_item_form_to_storage($field_element['#value'], $type, $field_element);
 
     // Update the settings for the javascript map
     _gm3_field_set_map_items($element['map'], $type, $storage);
@@ -505,17 +562,27 @@ function _gm3_field_set_map_items(&$map, $type, $items) {
  * Given a field element, get the database structure for that field's data
  */
 function _gm3_field_form_to_storage($element, $type) {
-  $value = $element['#value'];
+  if(isset($element['#value'])) {
+    $values = $element['#value'];
+  } else {
+    $values = $element;
+  }
+
+  if(is_string($values)) {
+    $values = preg_split("/[\n\r|]+/", $values);
+  } elseif(!is_array($values)) {
+    throw new TypeError('First argument to _gm3_field_form_to_storage must be array, string, or drupal element');
+  }
 
   switch($type){
     case 'gm3_point':
-      return _gm3_field_get_array_from_points_string($value);
+      return _gm3_field_get_arrays_from_points_strings($values);
     case 'gm3_polyline':
-      return _gm3_field_get_array_from_polygon_string($value, 'polyline');
+      return _gm3_field_get_arrays_from_polygon_strings($values, 'polyline');
     case 'gm3_polygon':
-      return _gm3_field_get_array_from_polygon_string($value, 'polygon');
+      return _gm3_field_get_arrays_from_polygon_strings($values, 'polygon');
     case 'gm3_rectangle':
-      return _gm3_field_get_array_from_polygon_string($value, 'rectangle');
+      return _gm3_field_get_arrays_from_polygon_strings($values, 'rectangle');
   }
 
   return null;
