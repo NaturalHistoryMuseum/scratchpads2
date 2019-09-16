@@ -243,20 +243,45 @@
     }
 
     // Automatically zoom to fit all points in on the map
-    autozoom(options){
+    async autozoom(options){
       // A rectangle containing all markers on the map
       const bounds = L.latLngBounds();
+      const pendingLoads = [];
 
       // Find layers we know how to get the bounds of
       this.leafletMap.eachLayer(l => {
         if(l instanceof Drupal.GM3.Library) {
           bounds.extend(l.getBounds());
+
+          // Region map actually loads async, and hasn't finished
+          // looking up its polygons by the time we get here.
+          // Maybe in future we can get the polgons server side so
+          // we don't have to do this.
+          if(l.initialLoad) {
+            pendingLoads.push(l.initialLoad);
+          }
         }
       });
 
       if(bounds.isValid()) {
         // Pad extends the area slightly to make sure all points fit comfortably
         this.leafletMap.fitBounds(bounds.pad(0.5), options);
+      }
+
+      // Wait for any loads to finish
+      if (pendingLoads.length) {
+        const layers = await Promise.all(pendingLoads)
+
+        for(const layer of layers) {
+          delete layer.initialLoad;
+
+          bounds.extend(layer.getBounds());
+        }
+
+        // Yeah we do it a second time.
+        if(bounds.isValid()) {
+          this.leafletMap.fitBounds(bounds.pad(0.5), options);
+        }
       }
     }
 

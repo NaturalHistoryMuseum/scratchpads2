@@ -158,6 +158,8 @@ function gm3_region_get_points($region_ids){
     }else{
       $polygons = $polygons->data;
     }
+    $polygons = str_replace('LBRACE', '{', $polygons);
+    $polygons = str_replace('RBRACE', '}', $polygons);
     print $polygons;
   }
   print "]";
