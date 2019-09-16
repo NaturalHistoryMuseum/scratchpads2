@@ -67,7 +67,10 @@
 
         // Add Regions sent from server.
         if(settings.regions) {
-          this.addPolygonsByIds(settings.regions, settings.editable);
+          // Store the promise for the initial load
+          // This lets the map autozoom after the polygons have been downloaded
+          // Though ideally we'd get the polygons on the server side
+          this.initialLoad = this.addPolygonsByIds(settings.regions, settings.editable);
         }
       }
 
@@ -145,6 +148,8 @@
             }
           }
         }
+
+        return this;
       }
 
       /**
