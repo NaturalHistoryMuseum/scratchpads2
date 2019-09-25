@@ -105,6 +105,7 @@ services:
     environment:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}
+      VARNISH_MEMORY: ${VARNISH_MEMORY}
     logging:
       driver: json-file
       options:
