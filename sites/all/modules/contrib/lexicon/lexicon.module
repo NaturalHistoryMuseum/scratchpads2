@@ -1087,6 +1087,9 @@ function _lexicon_get_terms(&$vids, $langcode = LANGUAGE_NONE) {
 
       // Add extra information to each term in the tree.
       foreach ($tree as $term) {
+        if (!$term->processing){
+          continue;
+        }
         _lexicon_term_add_info($term, TRUE);
         $terms[$langcode][] = $term;
       }
@@ -1108,6 +1111,7 @@ function _lexicon_term_add_info(&$term, $filter = FALSE) {
   // Check if the info has already been set.
   if (!isset($term->info_added)) {
     global $base_url;
+    $term->processing = true;
 
     $destination = drupal_get_destination();
 
@@ -1222,6 +1226,7 @@ function _lexicon_term_add_info(&$term, $filter = FALSE) {
     }
 
     $term->info_added = TRUE;
+    $term->processing = false;
   }
 
   return $term;
