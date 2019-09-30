@@ -3,8 +3,6 @@ name: Automate project columns
 on:
   issues:
     types: [opened]
-  issue_comment:
-    types: [created]
 
 jobs:
   automate-project-columns:
@@ -13,6 +11,6 @@ jobs:
       - name: Move new issues into project
         uses: alex-page/github-project-automation-plus@master
         with:
-          project: 16th August - 26th September
+          project: 27th September - 7th November
           column: To do
           repo-token: ${{ secrets.GH_PAT }}
