@@ -21,6 +21,10 @@ $conf['dockerised_scratchpad'] = TRUE;
 # Disable posting stats
 $conf['scratchpad_central_servers'] = array();
 
+# Remote issue block (disabled by default)
+$conf['remote_issue_tab_github_auth_key'] = getenv('GITHUB_AUTH_KEY');
+$conf['remote_issue_tab_github_repository'] = getenv('GITHUB_REPOSITORY');
+
 $base_url = getenv('BASE_URL');
 
 # Enable clean urs by default
