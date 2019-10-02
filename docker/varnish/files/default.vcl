@@ -81,6 +81,12 @@ sub vcl_recv {
 	  unset req.http.Cookie;
 	}
 
+  # Do not cache large media files
+	if (req.url ~ "^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$")            {
+		unset req.http.Cookie;
+		return (hash);
+	}
+
 	# Remove all cookies that Drupal/Redmine/Mediawiki does not need to know about.
 	# ANY remaining cookie will cause the request to pass-through to a backend.
 	# For the most part we always set the NO_CACHE cookie after any POST request,
@@ -164,6 +170,11 @@ sub vcl_backend_response {
   if (bereq.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm)(\?[a-z0-9]+)?$") {
     unset beresp.http.set-cookie;
   }
+	# Stream large media files
+	if (bereq.url ~ "^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$") {
+		unset beresp.http.set-cookie;
+		set beresp.do_stream = true;
+	}
   # Allow items to be stale if needed.
   set beresp.ttl = 1h;
   set beresp.grace = 6h;
