@@ -345,7 +345,8 @@ function scratchpads_tweaks_install_standard_scratchpad_modules(){
   // Standard scratchpad; by default, they won't be installed on
   // standalone and dockerised scratchpads
   $standard_only_scratchpad_modules = array(
-    'scratchpads_twitter'
+    'scratchpads_twitter',
+    'scratchpads_issues_block'
   );
   module_enable($standard_only_scratchpad_modules);
 }
