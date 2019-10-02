@@ -3,7 +3,7 @@ version: '2'
 services:
   apache:
     container_name: scratchpads.apache
-    image: naturalhistorymuseum/scratchpads.apache
+    # image: naturalhistorymuseum/scratchpads.apache
     build:
       context: ./docker/apache
     restart: always
@@ -45,6 +45,8 @@ services:
       - APACHE_PHP_XDEBUG_REMOTE_ENABLE=${APACHE_PHP_XDEBUG_REMOTE_ENABLE}
       - APACHE_PHP_XDEBUG_REMOTE_HOST=${APACHE_PHP_XDEBUG_REMOTE_HOST}
       - APACHE_PHP_XDEBUG_REMOTE_AUTOSTART=${APACHE_PHP_XDEBUG_REMOTE_AUTOSTART}
+      - GITHUB_AUTH_KEY=${APACHE_GITHUB_AUTH_KEY}
+      - GITHUB_REPOSITORY=${APACHE_GITHUB_REPOSITORY}
     logging:
       driver: json-file
       options:

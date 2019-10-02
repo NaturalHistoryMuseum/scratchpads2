@@ -1,7 +1,7 @@
 :orphan:
 
-Scratchpads training course
-===========================
+Scratchpads
+===========
 
 Scratchpads are an easy and effective way to present your data online.
 
@@ -14,10 +14,8 @@ Contents
    :maxdepth: 1
    :caption: First Steps
 
-   training/getting-started
-   training/logging-in
-   intro/admin-menu
    intro/site-setup
+   intro/admin-menu
    intro/theming
    intro/pages
 
