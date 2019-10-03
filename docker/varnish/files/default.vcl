@@ -82,7 +82,7 @@ sub vcl_recv {
 	}
 
   # Do not cache large media files
-	if (req.url ~ "^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$")            {
+	if (req.url ~ "(?i)^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$")            {
 		unset req.http.Cookie;
 		return (pass);
 	}
