@@ -158,3 +158,60 @@ function scratchpads_biblio_field_formatter_view($entity_type, $entity, $field, 
   }
   return $element;
 }
+
+/**
+ * Hoook form alter
+ * Add another submit handler to biblio_admin_author_edit_form
+ */
+function scratchpads_biblio_form_biblio_admin_author_edit_form_alter(&$form, &$form_state, $form_id)
+{
+  $form['#submit'][] = 'scratchpads_biblio_biblio_admin_author_edit_form_submit';
+}
+
+/**
+ * Custom submit handler for biblio_admin_author_edit_form
+ * When an author is merged/linked, reset the search index
+ * for all contributed biblio nodes
+ * Fixes bug: https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6024
+ */
+function scratchpads_biblio_biblio_admin_author_edit_form_submit(&$form, &$form_state){
+  $cids = array($form_state['values']['cid']);
+  foreach ($form_state['values']['candidates'] as $ccid => $options) {
+    if ($options['link'] || $options['merge']) {
+      $cids[] = $ccid;
+    }
+  }
+  $query = db_select('biblio_contributor', 'b')
+    ->fields('b', array('nid'))
+    ->condition('cid', $cids, 'IN')
+    ->execute();
+
+  $nids = $query->fetchCol();
+  foreach ($nids as &$nid) {
+    // Clear field cache for the node.
+    cache_clear_all('field:node:' . $nid, 'cache_field');
+    scratchpads_biblio_queue_node_for_reindexing($nid);
+  }
+}
+
+/**
+ * Reindex biblio node, so merge/link actions are reflected in the solr index
+ */
+function scratchpads_biblio_queue_node_for_reindexing($nid){
+  $indexer_table = apachesolr_get_indexer_table('node');
+
+  // If we haven't seen this entity before it may not be there, so merge
+  // instead of update.
+  db_merge($indexer_table)
+    ->key(array(
+      'entity_type' => 'node',
+      'entity_id' => $nid,
+    ))
+    ->fields(array(
+      'bundle' => 'biblio',
+      'status' => 1,
+      'changed' => REQUEST_TIME,
+    ))
+    ->execute();
+
+}
