@@ -1365,7 +1365,9 @@ function gm3_field_create_combination_widget($element, $items, $field) {
   $values = array_reduce(
     $items,
     function($carry, $item){
-      $type = $item['gm3_type'];
+      # The gm3_type should just be e.g. "polygon", "region",
+      # but some existing records might be under "gm3_region_region"
+      $type = array_pop(explode("_", $item['gm3_type']));
 
       if (!isset($carry[$type])) {
         $carry[$type] = [$item];
