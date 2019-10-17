@@ -133,11 +133,11 @@ function ecoint_block_info(){
  * Implementation of hook_block_view().
  */
 function ecoint_block_view($delta = ''){
-  $block = array();
+  $block = [];
   switch($delta){
     case 'species-interactions':
-      $block['subject'] = 'Ecological Interactions';
-      $block['content'] = ecoint_species_block_content();
+      $block = ecoint_species_block_content();
+      break;
   }
   return $block;
 }
@@ -158,9 +158,16 @@ function ecoint_species_block_content(){
   $solr_page = apachesolr_search_page_load('ecological_interactions');
   $results = apachesolr_search_search_results(NULL, $conditions, $solr_page);
   include ('ecoint.theme.inc');
-  return theme_ecoint_search(array(
-    'results' => $results
-  ));
+  if (empty($results)) {
+    return [];
+  }
+
+  return [
+    'subject' => 'Ecological Interactions',
+    'content' => theme_ecoint_search([
+      'results' => $results
+    ])
+  ];
 }
 
 /**
