@@ -7,18 +7,24 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
   $iso_codes = strtoupper($iso_codes);
   gm3_region_switch_to_gm3_database();
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+
   // Because the TDWG data and OSM data don't quite match, here we convert
   // some of the codes sent to us by OSM
-  $convert_codes = array(
+  $convert_codes = [
     'GB' => 'UK',
     'RS' => 'YU',
     'ME' => 'MK',
     'SS' => 'SD',
-    'UNKNOWN' => array(
+    'FR' => [
+      'FR',
+      'GF' // French Guiana
+    ],
+    'UNKNOWN' => [
       'YU',
       'IN'
-    )
-  );
+    ]
+  ];
+
   if(isset($convert_codes[$iso_codes])){
     $iso_codes = $convert_codes[$iso_codes];
   }
