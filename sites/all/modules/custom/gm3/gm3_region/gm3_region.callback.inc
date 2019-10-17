@@ -28,10 +28,11 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
   if(isset($convert_codes[$iso_codes])){
     $iso_codes = $convert_codes[$iso_codes];
   }
+
   if(!is_array($iso_codes)){
-    $iso_codes = array(
+    $iso_codes = [
       $iso_codes
-    );
+    ];
   }
 
   $latlng = preg_replace("/[)(]/", "", $latlng);
@@ -39,10 +40,10 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
   $point_wkt = "POINT({$latlng[1]} {$latlng[0]})";
   // Find regions that contain the point (filter out continents with level_5_code != '')
   $sql = "SELECT * FROM {gm3_region_data} WHERE iso_code IN (:iso_codes) AND WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_5_code != ''";
-  $results = db_query($sql, array(
+  $results = db_query($sql, [
     ':point_wkt' => $point_wkt,
     ':iso_codes' => $iso_codes
-  ));
+  ]);
 
   // Apparently mysql is not always so accurate for geo so we use geophp to do further filtering
   // Load the Library.
@@ -53,35 +54,44 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
 
   $region_id = null;
 
+  $found = false;
+
   // Find the first polygon that contains the selected point
   foreach($results as $result){
     $polygon = $wkt_reader->read($result->polygons, TRUE);
 
     if ($polygon->contains($point)) {
+      $found = true;
       break;
     }
   }
 
-  // Form the tdwg region ID
-  switch($level){
-    case 5:
-      $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}" . ($result->level_5_code != '00' ? ":{$result->level_5_code}" : '');
-      break;
-    case 4:
-      $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}";
-      break;
-    case 3:
-      $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}";
-      break;
-    case 2:
-      $region_id = "{$result->level_1_code}:{$result->level_2_code}";
-      break;
-    case 1:
-      $region_id = "{$result->level_1_code}";
-      break;
+  if($found) {
+    // Form the tdwg region ID
+    switch($level){
+      case 5:
+        $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}" . ($result->level_5_code != '00' ? ":{$result->level_5_code}" : '');
+        break;
+      case 4:
+        $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}:{$result->level_3_code}-{$result->level_4_code}";
+        break;
+      case 3:
+        $region_id = "{$result->level_1_code}:{$result->level_2_code}:{$result->level_3_code}";
+        break;
+      case 2:
+        $region_id = "{$result->level_1_code}:{$result->level_2_code}";
+        break;
+      case 1:
+        $region_id = "{$result->level_1_code}";
+        break;
+    }
+
+    print json_encode($region_id);
+  } else {
+    http_response_code(404);
+    print '{ "error": "TDWG ID for region not found" }';
   }
 
-  print json_encode($region_id);
   // Set back to the default database, in case some exit functions require the
   // original database.
   db_set_active();
@@ -143,22 +153,15 @@ function gm3_region_get_points($region_ids){
           break;
       }
       if($row){
-        $matches = array();
-        preg_match_all('/\.[0-9]{1,20}/', $row->polygons, $matches);
-        $matches = $matches[0];
-        usort($matches, 'gm3_region_sort_by_length');
-        $replaces = array();
-        foreach($matches as $match){
-          $replaces[] = substr($match, 0, 5); // Accurate to 4 decimal places, or 11 metres.
-        }
-        $row->polygons = str_replace($matches, $replaces, $row->polygons);
-        $polygons = $wkt_reader->read($row->polygons, TRUE);
+        // Truncate points to 4 decimal places, or 11 metres.
+        $polygons = preg_replace('/(\.[0-9]{4})[0-9]+/', '$1', $row->polygons);
+        $polygons = $wkt_reader->read($polygons, TRUE);
         $polygons = json_decode($polygons->out('json'));
-        $polygons = json_encode(array(
+        $polygons = json_encode([
           "regionId" => $region_id,
           "name" => $row->name,
           "shape" => $polygons
-        ));
+        ]);
       }
       cache_set($region_id, $polygons, 'cache_gm3_polygon', CACHE_PERMANENT);
     }else{
