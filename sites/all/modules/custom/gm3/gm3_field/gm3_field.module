@@ -1027,7 +1027,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text', array(
+            $elements[] = theme("gm3_{$item['gm3_type']}_text", array(
               'data' => $item
             ));
           }
@@ -1136,8 +1136,9 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             $display_map = TRUE;
             break;
           default:
+            $type = array_pop(explode("_", $item['gm3_type']));
             // Call hook_TYPE_map_alter functions
-            $alter_hook = "{$item['gm3_type']}_map";
+            $alter_hook = "${type}_map";
             drupal_alter($alter_hook, $map, $item);
             $display_map = isset($map['libraries'][$item['gm3_type']]);
             break;

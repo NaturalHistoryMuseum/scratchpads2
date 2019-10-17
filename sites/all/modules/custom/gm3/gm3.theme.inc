@@ -393,10 +393,11 @@ function theme_gm3_view_gm3($variables){
                   // module,
                   // we therefore append call the map_alter function for this
                   // field
-                  $function = "{$item['gm3_type']}_map_alter";
-                  if(function_exists($function)){
-                    $function($map, $item);
-                  }
+                  $type = array_pop(explode("_", $item['gm3_type']));
+                  // Call hook_TYPE_map_alter functions
+                  $alter_hook = "${type}_map";
+                  drupal_alter($alter_hook, $map, $item);
+
                   break;
               }
             }

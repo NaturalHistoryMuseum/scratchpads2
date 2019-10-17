@@ -113,7 +113,13 @@ function gm3_region_theme(){
       ),
       'file' => 'gm3_region.theme.inc'
     ),
-    'gm3_region_region_text' => array(
+    'gm3_region_text' => array(
+      'variables' => array(
+        'data' => array()
+      ),
+      'file' => 'gm3_region.theme.inc'
+    ),
+    'gm3_gm3_region_region_text' => array(
       'variables' => array(
         'data' => array()
       ),
