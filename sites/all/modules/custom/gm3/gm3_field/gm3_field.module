@@ -1453,10 +1453,23 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
   return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality']);
 }
 
+/**
+ * Hook to get the theme for a given field type.
+ * This is needed because in different places certain field types have different names
+ * due to historical and current bad code. This is mainly the _text fields, which may
+ * or may not have gm3_ prefix. Also the region field, hence why this is a hook.
+ * 
+ * @param string $name Theme name to normalize
+ * @param mixed $vars Theme variables
+ * @return mixed Result of theme function or null to use default theme function
+ */
 function hook_gm3_field_theme($name, $vars) {
 }
 
-
+/**
+ * Get the theme for a certain gm3 component, first normalizing the theme name.
+ * See hook_gm3_field_theme for description of why we use this.
+ */
 function gm3_field_get_theme($name, $vars) {
   switch($name) {
     case 'point_text':
