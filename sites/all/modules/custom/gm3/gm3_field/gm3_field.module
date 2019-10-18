@@ -42,26 +42,6 @@ function gm3_field_theme(){
       'variables' => array(
         'data' => array()
       )
-    ),
-    'point_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'polygon_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'polyline_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'rectangle_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
     )
   );
 }
@@ -938,30 +918,11 @@ function theme_gm3_polyline_text($variables){
 
 /**
  * Themes for field types.
- *
- * Note, this is A LOT simpler than renaming every instance of "polygon" to
- * "gm3_polygon", although I may do that in the future.
  */
 function theme_gm3_rectangle_text($variables){
   return array(
     '#markup' => $variables['data']['rectangle']
   );
-}
-
-function theme_point_text($variables){
-  return theme('gm3_point_text', $variables);
-}
-
-function theme_polygon_text($variables){
-  return theme('gm3_polygon_text', $variables);
-}
-
-function theme_polyline_text($variables){
-  return theme('gm3_polyline_text', $variables);
-}
-
-function theme_rectangle_text($variables){
-  return theme('gm3_rectangle_text', $variables);
 }
 
 /**
@@ -986,14 +947,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text_lat', array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . '_text_lat', array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text_lat', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text_lat', array(
               'data' => $item
             ));
           }
@@ -1006,14 +967,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text_lon', array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . '_text_lon', array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text_lon', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text_lon', array(
               'data' => $item
             ));
           }
@@ -1027,14 +988,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme("gm3_{$item['gm3_type']}_text", array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . "_text", array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text', array(
               'data' => $item
             ));
           }
@@ -1490,4 +1451,28 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
   );
 
   return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality']);
+}
+
+function hook_gm3_field_theme($name, $vars) {
+}
+
+
+function gm3_field_get_theme($name, $vars) {
+  switch($name) {
+    case 'point_text':
+    case 'polygon_text':
+    case 'polyline_text':
+    case 'rectangle_text':
+      $name = 'gm3_' . $name;
+      break;
+    default:
+      foreach (module_implements('gm3_field_theme') as $module) {
+        $result = module_invoke($module, 'gm3_field_theme', $name, $vars);
+        if ($result) {
+          return $result;
+        }
+      }
+  }
+
+  return theme($name, $vars);
 }

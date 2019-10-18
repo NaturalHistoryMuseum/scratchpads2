@@ -274,7 +274,10 @@ function gm3_region_field_gm3_combination_field_options_alter(&$options){
 /**
  * Generate the select element that the region map will be synced with
  */
-function gm3_region_field_map_field($id, $default_value = [], $visible = false){
+function gm3_region_field_map_field($id, $default_value = [], $visible = false, $text_only = false){
+  // Field has to be visible if it's text only, ya dingus
+  $visible = $text_only || $visible;
+
   return array(
     '#default_value' => $default_value,
     '#options' => _gm3_region_field_get_options(),
@@ -287,7 +290,7 @@ function gm3_region_field_map_field($id, $default_value = [], $visible = false){
       ),
       'style' => $visible ? '' : 'display:none'
     ),
-    '#suffix' => '<p style="text-align:right"><a href="#" onclick="const select = this.parentElement.previousElementSibling.querySelector(\'select\'); select.style.display = select.style.display ? \'\' : \'none\'; return false">' . t('Toggle manual selection') . '</a></p>',
+    '#suffix' => $text_only ? null : '<p style="text-align:right"><a href="#" onclick="const select = this.parentElement.previousElementSibling.querySelector(\'select\'); select.style.display = select.style.display ? \'\' : \'none\'; return false">' . t('Toggle manual selection') . '</a></p>',
   );
 }
 
@@ -312,6 +315,10 @@ function gm3_region_field_field_widget_info(){
       'description' => t('Regions entered by selecting.'),
       'field types' => array(
         'gm3_region'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
       )
     )
   );
@@ -433,19 +440,22 @@ function gm3_region_field_field_settings_form($field, $instance, $has_data){
  * Implements hook_field_widget_form().
  */
 function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
-  if($instance['widget']['type'] === 'gm3_region_gm3') {
-      // Data field type
-      $allow_text_entry = !empty($field['settings']['allow_text_entry']);
+  switch($instance['widget']['type']) {
+    case 'gm3_region_select':
+    case 'gm3_region_gm3':
 
-      // We need to add a GM3 map to the page.
-      // We'll also need some additional JS to record the points and save them
-      // actually into a form element.
+      $text_only = $instance['widget']['type'] === 'gm3_region_select';
+
+      // Data field type
+      $allow_text_entry = $text_only || !empty($field['settings']['allow_text_entry']);
+
       $regions = _gm3_region_field_storage_to_form($items);
 
       $input_field = gm3_region_field_map_field(
         $element['#field_name'],
         $regions,
-        $allow_text_entry
+        $allow_text_entry,
+        $text_only
       );
 
       $element += array(
@@ -460,6 +470,17 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
         '#element_validate' => array(
           'gm3_region_field_widget_validate',
         ),
+        'field' => $input_field
+      );
+
+      if($text_only) {
+        break;
+      }
+
+      // We need to add a GM3 map to the page.
+      // We'll also need some additional JS to record the points and save them
+      // actually into a form element.
+      $element += [
         'map' => gm3_field_get_map(
             $element['#field_name'],
             $field['cardinality'],
@@ -467,13 +488,12 @@ function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $insta
               'region' => gm3_region_field_js_settings($regions, true)
             ]
         ),
-        'field' => $input_field,
         '#attached' => array(
           'css' => array(
             drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
           )
         )
-      );
+      ];
   }
 
   return $element;

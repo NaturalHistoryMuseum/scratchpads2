@@ -23,6 +23,13 @@ function theme_gm3_region_text($variables){
   );
 }
 
-function theme_gm3_gm3_region_region_text($variables){
-  return theme_gm3_region_text($variables);
+/**
+ * Implements hook_gm3_field_theme
+ */
+function gm3_region_gm3_field_theme($name, $vars){
+  switch ($name) {
+    case 'region_text':
+    case 'gm3_region_region_text':
+      return theme('gm3_region_text', $vars);
+  }
 }
