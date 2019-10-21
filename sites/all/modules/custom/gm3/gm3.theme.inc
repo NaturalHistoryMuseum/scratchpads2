@@ -264,7 +264,8 @@ function gm3_add_js($id, $settings = [], $libraries = []){
 }
 
 /**
- * Theme a GM3 view.
+ * Theme a GM3 view. Called by anything using the gmap style plugin,
+ * e.g. spm module.
  */
 function theme_gm3_view_gm3($variables){
   static $colours = 0;
@@ -393,10 +394,7 @@ function theme_gm3_view_gm3($variables){
                   // module,
                   // we therefore append call the map_alter function for this
                   // field
-                  $function = "{$item['gm3_type']}_map_alter";
-                  if(function_exists($function)){
-                    $function($map, $item);
-                  }
+                  gm3_invoke_map_alter($map, $item);
                   break;
               }
             }
@@ -407,14 +405,24 @@ function theme_gm3_view_gm3($variables){
           // we therefore append call the map_alter function for this
           // field
           foreach($row->{"field_$key"} as $item){
-            $function = "{$item['gm3_type']}_map_alter";
-            if(function_exists($function)){
-              $function($map, $item);
-            }
+            gm3_invoke_map_alter($map, $item);
           }
           break;
       }
     }
   }
   return theme('gm3_map', $map);
+}
+
+/**
+ * Invokes hook_TYPE_map_alter functions to add an item to the map
+ * If item has no gm3_type property describing the field/data type,
+ * you must supply it as the third argument.
+ */
+function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
+  $gm3_type = $gm3_type ?? $item['gm3_type'];
+  $type = array_pop(explode("_", $gm3_type));
+  // Call hook_TYPE_map_alter functions
+  $alter_hook = "${type}_map";
+  drupal_alter($alter_hook, $map, $item);
 }

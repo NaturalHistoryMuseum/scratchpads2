@@ -42,26 +42,6 @@ function gm3_field_theme(){
       'variables' => array(
         'data' => array()
       )
-    ),
-    'point_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'polygon_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'polyline_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
-    ),
-    'rectangle_text' => array(
-      'variables' => array(
-        'data' => array()
-      )
     )
   );
 }
@@ -938,30 +918,11 @@ function theme_gm3_polyline_text($variables){
 
 /**
  * Themes for field types.
- *
- * Note, this is A LOT simpler than renaming every instance of "polygon" to
- * "gm3_polygon", although I may do that in the future.
  */
 function theme_gm3_rectangle_text($variables){
   return array(
     '#markup' => $variables['data']['rectangle']
   );
-}
-
-function theme_point_text($variables){
-  return theme('gm3_point_text', $variables);
-}
-
-function theme_polygon_text($variables){
-  return theme('gm3_polygon_text', $variables);
-}
-
-function theme_polyline_text($variables){
-  return theme('gm3_polyline_text', $variables);
-}
-
-function theme_rectangle_text($variables){
-  return theme('gm3_rectangle_text', $variables);
 }
 
 /**
@@ -986,14 +947,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text_lat', array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . '_text_lat', array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text_lat', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text_lat', array(
               'data' => $item
             ));
           }
@@ -1006,14 +967,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text_lon', array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . '_text_lon', array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text_lon', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text_lon', array(
               'data' => $item
             ));
           }
@@ -1027,14 +988,14 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       switch($field['type']){
         case 'gm3_combination':
           foreach($items as $item){
-            $elements[] = theme($item['gm3_type'] . '_text', array(
+            $elements[] = gm3_field_get_theme($item['gm3_type'] . "_text", array(
               'data' => $item
             ));
           }
           break;
         default:
           foreach($items as $item){
-            $elements[] = theme($field['type'] . '_text', array(
+            $elements[] = gm3_field_get_theme($field['type'] . '_text', array(
               'data' => $item
             ));
           }
@@ -1136,9 +1097,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             $display_map = TRUE;
             break;
           default:
-            // Call hook_TYPE_map_alter functions
-            $alter_hook = "{$item['gm3_type']}_map";
-            drupal_alter($alter_hook, $map, $item);
+            gm3_invoke_map_alter($map, $item);
             $display_map = isset($map['libraries'][$item['gm3_type']]);
             break;
         }
@@ -1169,8 +1128,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
  * Add custom combination field types to the javascript map
  * Todo: Should this be part of the hook_gm3_field_combination_info remit?
  */
-function hook_TYPE_map_alter(&$map, &$values) {
-  $map['libraries']['TYPE'] = gm3_custom_field_js_settings($values['TYPE']);
+function hook_TYPE_map_alter(&$map, &$value) {
+  $map['libraries']['TYPE'] = gm3_custom_field_js_settings($value['TYPE']);
 }
 
 /**
@@ -1489,4 +1448,41 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
   );
 
   return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality']);
+}
+
+/**
+ * Hook to get the theme for a given field type.
+ * This is needed because in different places certain field types have different names
+ * due to historical and current bad code. This is mainly the _text fields, which may
+ * or may not have gm3_ prefix. Also the region field, hence why this is a hook.
+ * 
+ * @param string $name Theme name to normalize
+ * @param mixed $vars Theme variables
+ * @return mixed Result of theme function or null to use default theme function
+ */
+function hook_gm3_field_theme($name, $vars) {
+}
+
+/**
+ * Get the theme for a certain gm3 component, first normalizing the theme name.
+ * See hook_gm3_field_theme for description of why we use this.
+ */
+function gm3_field_get_theme($name, $vars) {
+  switch($name) {
+    case 'point_text':
+    case 'polygon_text':
+    case 'polyline_text':
+    case 'rectangle_text':
+      $name = 'gm3_' . $name;
+      break;
+    default:
+      foreach (module_implements('gm3_field_theme') as $module) {
+        $result = module_invoke($module, 'gm3_field_theme', $name, $vars);
+        if ($result) {
+          return $result;
+        }
+      }
+  }
+
+  return theme($name, $vars);
 }

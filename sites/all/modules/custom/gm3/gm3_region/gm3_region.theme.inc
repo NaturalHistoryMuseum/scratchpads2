@@ -14,11 +14,22 @@ function theme_gm3_region_button($variables){
 /**
  * Themes for field types.
  */
-function theme_gm3_region_region_text($variables){
+function theme_gm3_region_text($variables){
   $parts = explode(':', $variables['data']['region_id']);
   return array(
     '#markup' => t('TDWG:@region_id', array(
       '@region_id' => end($parts)
     ))
   );
+}
+
+/**
+ * Implements hook_gm3_field_theme
+ */
+function gm3_region_gm3_field_theme($name, $vars){
+  switch ($name) {
+    case 'region_text':
+    case 'gm3_region_region_text':
+      return theme('gm3_region_text', $vars);
+  }
 }
