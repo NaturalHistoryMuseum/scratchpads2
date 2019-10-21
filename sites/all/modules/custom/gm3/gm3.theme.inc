@@ -413,16 +413,3 @@ function theme_gm3_view_gm3($variables){
   }
   return theme('gm3_map', $map);
 }
-
-/**
- * Invokes hook_TYPE_map_alter functions to add an item to the map
- * If item has no gm3_type property describing the field/data type,
- * you must supply it as the third argument.
- */
-function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
-  $gm3_type = $gm3_type ?? $item['gm3_type'];
-  $type = array_pop(explode("_", $gm3_type));
-  // Call hook_TYPE_map_alter functions
-  $alter_hook = "${type}_map";
-  drupal_alter($alter_hook, $map, $item);
-}
