@@ -227,17 +227,6 @@ function gm3_region_field_js_settings($items = [], $editable = false){
 }
 
 /**
- * Implements hook_TYPE_map_alter
- * This is where we set the js values for the map before rendering it,
- * given the field values for the associated input elements.
- */
-function gm3_region_field_gm3_field_map_alter(&$map, $values){
-  if(isset($values['gm3_region'])) {
-    $map['libraries']['region'] = gm3_region_field_js_settings($values['gm3_region'], true);
-  }
-}
-
-/**
  * Advertise that we know how to handle gm3_region fields in the combo widget
  * Implements hook_gm3_field_combination_info
  */

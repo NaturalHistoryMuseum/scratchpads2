@@ -1097,10 +1097,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             $display_map = TRUE;
             break;
           default:
-            $type = array_pop(explode("_", $item['gm3_type']));
-            // Call hook_TYPE_map_alter functions
-            $alter_hook = "${type}_map";
-            drupal_alter($alter_hook, $map, $item);
+            gm3_invoke_map_alter($map, $item);
             $display_map = isset($map['libraries'][$item['gm3_type']]);
             break;
         }
@@ -1131,8 +1128,8 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
  * Add custom combination field types to the javascript map
  * Todo: Should this be part of the hook_gm3_field_combination_info remit?
  */
-function hook_TYPE_map_alter(&$map, &$values) {
-  $map['libraries']['TYPE'] = gm3_custom_field_js_settings($values['TYPE']);
+function hook_TYPE_map_alter(&$map, &$value) {
+  $map['libraries']['TYPE'] = gm3_custom_field_js_settings($value['TYPE']);
 }
 
 /**
