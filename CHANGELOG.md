@@ -1,3 +1,25 @@
+2.9.11 (2019-10-22)
+
+Among other issues, this release makes further improvements to the maps module
+including fixes for previous regressions, and imrpoves docker support.
+
+- Maps:
+    - Pan/zoom map to include regions on load (#5992 - @PaulKiddle)
+    - Fix error with region lookup (b74f709 - @alycejenni)
+    - Importer failing on geo fields (#5995 - @PaulKiddle)
+    - Fix regions not displaying (#6003 - @paulkiddle)
+    - Enable region selection of French Guiana (#5954 - @paulkiddle)
+- Docker:
+    - Add variable to set varnish memory usage (5ad67b6, 88263ae - @benscott)
+    - Disable issues block by default (1c122a1 - @benscott)
+    - Add variables to configure issues block (#6010 - @benscott)
+    - Varnish: Stream media files (#6030 - @benscott)
+- Hide `[bib]` tags on glossary page (#5997 - @alycejenni)
+- Trigger Solr to reindex authors on merge (#6024 - @benscott)
+- Fix batch user deletion (#5973 - @benscott)
+- Allow use of ampersands and HTML in node titles (#5982 - @paulkiddle)
+
+
 2.9.10 (2019-08-12)
 
 This release fixes a number of regressions and bugs, including significant work refactoring map fields to be more reliable.
