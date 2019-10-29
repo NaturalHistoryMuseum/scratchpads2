@@ -305,6 +305,7 @@ function gm3_settings(){
  * Invokes hook_TYPE_map_alter functions to add an item to the map
  * If item has no gm3_type property describing the field/data type,
  * you must supply it as the third argument.
+ * @return True if a hook modified the map, else false
  */
 function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
   $gm3_type = $gm3_type ?? $item['gm3_type'];
@@ -312,4 +313,5 @@ function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
   // Call hook_TYPE_map_alter functions
   $alter_hook = "${type}_map";
   drupal_alter($alter_hook, $map, $item);
+  return isset($map['libraries'][$type]);
 }

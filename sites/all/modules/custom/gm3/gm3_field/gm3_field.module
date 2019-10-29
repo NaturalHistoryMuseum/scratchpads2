@@ -1097,8 +1097,9 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
             $display_map = TRUE;
             break;
           default:
-            gm3_invoke_map_alter($map, $item);
-            $display_map = isset($map['libraries'][$item['gm3_type']]);
+            if(gm3_invoke_map_alter($map, $item)) {
+              $display_map = TRUE;
+            }
             break;
         }
       }
