@@ -26,6 +26,7 @@ function scratchpads_stats_get_stats() {
     $errors = [];
     $entities = entity_get_info();
     $since = strtotime('-1 month');
+    $startTime = microtime(true);
 
     foreach($entities as $entity => $entity_config) {
         try {
@@ -49,6 +50,7 @@ function scratchpads_stats_get_stats() {
         'bundles' => $bundles,
         //'entities' => $entities,
         'errors' => $errors,
+        'execution_time' => microtime(true) - $startTime
     ];
 }
 
