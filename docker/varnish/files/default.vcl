@@ -82,9 +82,9 @@ sub vcl_recv {
 	}
 
   # Do not cache large media files
-	if (req.url ~ "(?i)^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$")            {
+	if (req.url ~ "(?i)^[^?]*\.(mp3|mp4|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$")
 		unset req.http.Cookie;
-		return (pass);
+		return (hash);
 	}
 
 	# Remove all cookies that Drupal/Redmine/Mediawiki does not need to know about.
@@ -171,8 +171,8 @@ sub vcl_backend_response {
     unset beresp.http.set-cookie;
   }
 	# Stream large media files
-	if (bereq.url ~ "^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$") {
-		unset beresp.http.set-cookie;
+  if (bereq.url ~ "(?i)^[^?]*\.(mp[34]|rar|rpm|tar|tgz|gz|wav|zip|bz2|xz|7z|avi|mov|ogm|mpe?g|mk[av]|webm)(\?.*)?$") {
+			unset beresp.http.set-cookie;
 		set beresp.do_stream = true;
 	}
   # Allow items to be stale if needed.
