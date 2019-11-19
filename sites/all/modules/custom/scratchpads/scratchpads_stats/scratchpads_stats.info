@@ -1,0 +1,5 @@
+core = "7.x"
+name = "Scratchpads Stats"
+description = "Endpoint for collecting stats about a scratchpad"
+package = "Scratchpads"
+project = scratchpads_statistics

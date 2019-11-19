@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * Expose endpoint for serving stats
+ * Implements hook_menu
+ */
+function scratchpads_stats_menu(){
+	return [
+		'statistics' => [
+            'page callback' => 'scratchpads_stats_get_stats',
+            'delivery callback' => 'drupal_json_output',
+            'title' => 'Node info',
+            'access callback' => TRUE,
+            'type' => MENU_CALLBACK, 
+		]
+	];
+}
+
+/**
+ * Return the stats collection
+ *
+ * @return Array
+ */
+function scratchpads_stats_get_stats() {
+    $bundles = [];
+    $errors = [];
+    $entities = entity_get_info();
+    $since = strtotime('-1 month');
+
+    foreach($entities as $entity => $entity_config) {
+        try {
+            $bundles[$entity] = scratchpads_stats_handle_entity($entity, $entity_config, $since);
+            if(isset($bundles[$entity])) {
+                if($bundles[$entity] == false) {
+                    unset($bundles[$entity]);
+                }
+                continue;
+            }
+        } catch(Throwable $e) {
+            $errors[] = [
+                'entity' => $entity,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+    
+    return [
+        'since' => $since,
+        'bundles' => $bundles,
+        //'entities' => $entities,
+        'errors' => $errors,
+    ];
+}
+
+function scratchpads_stats_entity_stats_info($entity){
+    switch($entity) {
+        // Nodes have a publish status and created time, and there are multiple bundles
+        case 'node':
+            return [
+                'status',
+                'created',
+            ];
+        // Comments have status and created time, but we don't want to count their bundles
+        case 'comment':
+            return [
+                'status',
+                'created',
+                'bundles' => false
+            ];
+        // Users have a status and created time, and an "access" field which tells us when they were active.
+        // No bundles for user entity.
+        case 'user':
+            return [
+                'status',
+                'created',
+                'active' => 'access',
+                'bundles' => false
+            ];
+        // File entity has a status, and its created column is called "timestamp". Has bundles.
+        case 'file':
+            return [
+                'status',
+                'created' => 'timestamp',
+            ];
+        // Taxonomy_vocabulary is not special, and has no bundles
+        case 'taxonomy_vocabulary':
+            return [
+                'bundles' => false
+            ];
+        // We literally don't care about these entities
+        case 'country':
+        case 'field_collection_item':
+            return false;
+        // For everything else, assume no status or created date, but yes bundles
+        default:
+            return [];
+    }
+}
+
+/**
+ * Find an array element by either key or value
+ * If the array has an element with the index $index, return the value for that index.
+ * If the array has an element with a numerical index and value $index, return $index.
+ *
+ * @param array $array The array to search
+ * @param string $index The element to find
+ * @return string
+ */
+function _array_find($array, $index) {
+    foreach($array as $key => $value) {
+        if (($key === $index) || (is_int($key) && $value === $index)) {
+            return $value;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Get the statistics for a given entity
+ *
+ * @param string $name The name of the entity to search
+ * @param array $entity The entity object, as returned from entity_get_info
+ * @param int $since The timestamp to query from
+ * @return array
+ */
+function scratchpads_stats_handle_entity($name, $entity, $since) {
+    $info = scratchpads_stats_entity_stats_info($name);
+    if(!$info) {
+        return false;
+    }
+
+    $statusField = _array_find($info, 'status');
+    $createdField = _array_find($info, 'created');
+    $activeField = _array_find($info, 'active');
+
+    require_once (__DIR__.'/EntityCounter.php');
+    $ec = new \Scratchpads\Stats\EntityCounter($name, $statusField);
+
+    if($createdField) {
+        $ec->addCount('recent', $createdField);
+    }
+
+    if($activeField) {
+        $ec->addCount('active', $activeField);
+    }
+
+    $out = [
+        'label' => $entity['label']
+    ];
+
+    if($info['bundles'] === false) {
+        $out += $ec->execute($since);
+    } else {
+        $bundles = [];
+
+        foreach($entity['bundles'] as $name => $bundle) {
+            $bundles[$name] = [
+                'label' => $bundle['label']
+            ] + $ec->execute($since, $name);
+        }
+
+        $out += [
+            'bundles' => $bundles
+        ];
+    }
+    return $out;
+}
