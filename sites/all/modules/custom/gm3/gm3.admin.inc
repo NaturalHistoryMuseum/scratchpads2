@@ -5,61 +5,72 @@
  */
 function gm3_admin_settings_form(){
   $settings = gm3_settings();
-  return array(
-    'dimensions' => array(
+
+  return [
+    'dimensions' => [
       '#type' => 'fieldset',
       '#title' => t('Dimensions'),
-      'width' => array(
+      'width' => [
+        '#title' => t('Width'),
         '#type' => 'textfield',
         '#default_value' => $settings['width'],
         '#description' => t('CSS width, e.g. 100%, 250px')
-      ),
-      'height' => array(
+      ],
+      'height' => [
+        '#title' => t('Height'),
         '#type' => 'textfield',
         '#default_value' => $settings['height'],
         '#description' => t('CSS height, e.g. 500px')
-      )
-    ),
-    'centre' => array(
+      ]
+    ],
+    'centre' => [
       '#type' => 'fieldset',
       '#title' => t('Centre point'),
-      'latitude' => array(
+      'latitude' => [
         '#title' => t('Latitude'),
         '#type' => 'textfield',
         '#default_value' => $settings['center']['latitude']
-      ),
-      'longitude' => array(
+      ],
+      'longitude' => [
         '#title' => t('Longitude'),
         '#type' => 'textfield',
         '#default_value' => $settings['center']['longitude']
-      )
-    ),
-    'minZoom' => array(
+      ]
+    ],
+    'minZoom' => [
       '#type' => 'select',
-      '#title' => t('Zoom'),
+      '#title' => t('Minimum zoom level'),
       '#default_value' => $settings['minZoom'],
       '#options' => drupal_map_assoc(range(2, 10))
-    ),
-    'submit' => array(
+    ],
+    'enableClustering' => [
+      '#type' => 'checkbox',
+      '#title' => t('Enable clustering'),
+      '#default_value' => $settings['enableClustering'],
+      '#description' => t('For points that are close together at lower zoom levels, shows the number of points in that area instead of the individual points themselves.')
+    ],
+    'submit' => [
       '#type' => 'submit',
       '#value' => t('Save')
-    )
-  );
+    ]
+  ];
 }
 
 /**
  * Submit function for the admin settings.
  */
 function gm3_admin_settings_form_submit(&$form, &$form_state){
-  $settings = array();
-  $settings['width'] = $form_state['values']['width'];
-  $settings['height'] = $form_state['values']['height'];
-  $settings['minZoom'] = $form_state['values']['minZoom'];
-  $settings['zoom'] = $form_state['values']['minZoom'];
-  $settings['center'] = array(
-    'latitude' => $form_state['values']['latitude'],
-    'longitude' => $form_state['values']['longitude']
-  );
+  $settings = [
+    'width' => $form_state['values']['width'],
+    'height' => $form_state['values']['height'],
+    'minZoom' => $form_state['values']['minZoom'],
+    'zoom' => $form_state['values']['minZoom'],
+    'center' => [
+      'latitude' => $form_state['values']['latitude'],
+      'longitude' => $form_state['values']['longitude']
+    ],
+    'enableClustering' => $form_state['values']['enableClustering']
+  ];
   variable_set('gm3_default_settings', $settings);
 }
 

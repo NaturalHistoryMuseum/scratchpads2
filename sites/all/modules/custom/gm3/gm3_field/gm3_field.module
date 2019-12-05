@@ -111,29 +111,49 @@ function gm3_field_field_info(){
  * Implementation of hook_field_settings_form().
  */
 function gm3_field_field_settings_form($field, $instance, $has_data){
-  $form = array(
-    'allow_text_entry' => array(
+  $form = [
+    'allow_text_entry' => [
       '#type' => 'radios',
       '#title' => t('Allow text entry'),
-      '#options' => array(
+      '#options' => [
         'No',
         'Yes'
-      ),
+      ],
       '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0,
       '#required' => TRUE,
       '#description' => t('Select whether a user can also enter data using a text field')
-    )
-  );
+    ]
+  ];
+
+  $gm3_settings = gm3_settings();
+  $cluster_default = $gm3_settings['enableClustering'] ? t('enabled') : t('disabled');
+
+  $enable_clustering = [
+    '#type' => 'radios',
+    '#title' => t('Enable Clustering'),
+    '#options' => [
+      '' => t('Site default') . " ($cluster_default)",
+      'yes' => t('Yes'),
+      'no' => t('No')
+    ],
+    '#default_value' => $field['settings']['enable_clustering'] ?? '',
+    '#description' => t('For points that are close together at lower zoom levels, shows the number of points in that area instead of the individual points themselves.')
+  ];
+
   switch($field['type']){
+    case 'gm3_point':
+      $form['enable_clustering'] = $enable_clustering;
+      break;
     case 'gm3_combination':
-      $options = array(
+      $form['enable_clustering'] = $enable_clustering;
+      $options = [
         'gm3_point' => 'Point',
         'gm3_polygon' => 'Polygon',
         'gm3_polyline' => 'Polyline',
         'gm3_rectangle' => 'Rectangle'
-      );
+      ];
       drupal_alter('gm3_combination_field_options', $options);
-      $form['field_types'] = array(
+      $form['field_types'] = [
         '#type' => 'select',
         '#title' => t('Field types'),
         '#options' => $options,
@@ -141,7 +161,7 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
         '#default_value' => isset($field['settings']['field_types']) ? $field['settings']['field_types'] : $options, // Default to all
         '#required' => TRUE,
         '#description' => t('Select the types of Widget you would like to use')
-      );
+      ];
   }
   return $form;
 }
@@ -498,14 +518,14 @@ function gm3_field_widget_validate(&$element, &$form_state){
  * @param $type the field type or library name
  * @param $items The items to add as map objects
  */
-function _gm3_field_set_map_items(&$map, $type, $items) {
+function _gm3_field_set_map_items(&$map, $type, $items, $settings = []) {
   // The gm3 render array keeps JS settings under the #gm3 key,
   // which it uses import libraries and set settings when the
   // map is rendered.
   switch($type) {
     case 'gm3_point':
     case 'point':
-      $map['#gm3']['libraries']['point'] = gm3_field_js_point_settings($items, true);
+      $map['#gm3']['libraries']['point'] = gm3_field_js_point_settings($items, true, $settings);
       break;
     case 'gm3_polyline':
     case 'polyline':
@@ -1016,15 +1036,12 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
         }
 
         module_load_include('theme.inc', 'gm3');
-        $element = gm3_get_map(array(
+        $element = gm3_get_map([
             'id' => $id,
-            'libraries' => array(
-              'point' => array(
-                'points' => $items,
-                'convexhull' => $display['settings']['display_convex_hull']
-              )
-            )
-        ));
+            'libraries' => [
+              'point' => gm3_field_js_point_settings($items, $display['settings'] + $field['settings'])
+            ]
+        ]);
       }
       break;
     case 'gm3_rectangle':
@@ -1056,10 +1073,7 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
       $map = array(
         'id' => $id,
         'libraries' => array(
-          'point' => array(
-            'points' => array(),
-            'convexhull' => $display['settings']['display_convex_hull']
-          ),
+          'point' => gm3_field_js_point_settings([], $display['settings'] + $field['settings']),
           'polygon' => array(
             'polygons' => array()
           ),
@@ -1156,16 +1170,31 @@ function _gm3_field_get_points_string_from_array($items){
 /**
  * Generate the js settings for the point library
  */
-function gm3_field_js_point_settings($items, $editable = false){
+function gm3_field_js_point_settings($items, $editable = false, $settings = []){
+  if(is_array($editable)) {
+    $settings = $editable;
+    $editable = false;
+  }
+
   // Todo: Must we mark each individual item editable? Can't we just do it on the module settings?
   foreach($items as $key => $item){
     $items[$key]['editable'] = $editable;
   }
 
-  return [
+  $library = [
     'points' => $items,
-    'module' => 'gm3'
+    'module' => 'gm3',
+    'convexhull' => $settings['display_convex_hull'] ?? false
   ];
+
+  // This will be "yes", "no" or empty string.
+  $cluster = $settings['enable_clustering'] ?? '';
+
+  if($cluster) {
+    $library['enableClustering'] = $cluster == 'yes';
+  }
+
+  return $library;
 }
 
 /**
@@ -1267,8 +1296,9 @@ function gm3_field_map_js_settings($id, $max_objects = -1, $libraries = []) {
  * @param input_field The input field element to use in this widget
  * @param type The field type
  * @param cardinality How many items allowed in this field
+ * @param settings The javascript settings to pass to the map library
  */
-function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardinality) {
+function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardinality, $settings = []) {
   // We need to add a GM3 map to the page.
   // We'll also need some additional JS to record the points and save them
   // actually into a form element.
@@ -1291,7 +1321,7 @@ function gm3_field_create_widget(&$element, $items, $input_field, $type, $cardin
     'field' => $input_field
   );
 
-  _gm3_field_set_map_items($element['map'], $type, $items);
+  _gm3_field_set_map_items($element['map'], $type, $items, $settings);
 
   return $element;
 }
@@ -1355,7 +1385,7 @@ function gm3_field_create_combination_widget($element, $items, $field) {
     $type = substr($gm3_type, 4);
 
     // Set the javascript maps data for this type's library
-    _gm3_field_set_map_items($map, $type, $values[$type] ?? []);
+    _gm3_field_set_map_items($map, $type, $values[$type] ?? [], $field['settings']);
 
     // Generate the input eement
     $field_element = gm3_field_input_element(
@@ -1448,7 +1478,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
     $instance['widget']['type']
   );
 
-  return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality']);
+  return gm3_field_create_widget($element, $items, $input_field, $field_type, $field['cardinality'], $field['settings']);
 }
 
 /**

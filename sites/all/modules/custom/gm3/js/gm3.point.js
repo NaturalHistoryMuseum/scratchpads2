@@ -48,9 +48,12 @@
     constructor(settings) {
       super();
 
-      this.cluster = L.markerClusterGroup({
-        disableClusteringAtZoom: 12
-      });
+      const options = {
+        disableClusteringAtZoom: 12,
+        maxClusterRadius: settings.enableClustering ? 35 : 0
+      };
+
+      this.cluster = L.markerClusterGroup(options);
       this.addLayer(this.cluster)
 
       // Add points sent from server.
