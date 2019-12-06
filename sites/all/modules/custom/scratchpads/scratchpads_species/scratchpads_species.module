@@ -67,7 +67,12 @@ function scratchpads_species_theme(){
       'variables' => array(
         'term' => NULL
       )
-    )
+    ),
+    'scratchpads_species_tab_display_element' => array(
+      'render element' => 'element',
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/theme',
+      'file' => 'theme.inc',
+    ),
   );
 }
 
@@ -145,7 +150,7 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
       '#type' => 'fieldset',
       '#title' => t('Species page tab display options'),
       '#description' => t('Modify which species tabs by default are shown for this vocabulary.'),
-      // weight it at 3 so that it shows below the 2 weight the simple_taxonomy_display section has
+       // weight it at 3 so that it shows below the 2 weight the simple_taxonomy_display section has
       '#weight' => 3,
       '#states' => array(
         // this fieldset should be invisible if the vocabulary is not a biological classification or
@@ -155,7 +160,8 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
           'OR',
           array(':input[name="use_scratchpads_species_pages"]' => array('checked' => false))
         )
-      )
+        ),
+      '#theme' => 'scratchpads_species_tab_display_element'
     );
 
     // loop through each of the default tabs, creating a checkbox for each
@@ -205,7 +211,7 @@ function scratchpads_species_contextual_links_view_alter(&$element, $items){
  *
  * @param $vocabulary the vocabulary object
  */
-function _scratchpads_species_upsert_vocabulary_variables($vocabulary) {
+function _scratchpads_species_upsert_vocabulary_variables($vocabulary){
   $show_syns = variable_get('scratchpads_species_display_synonyms', array());
   if(!empty($vocabulary->show_synonym_data)){
     $show_syns[$vocabulary->vid] = $vocabulary->vid;
