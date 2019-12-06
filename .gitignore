@@ -32,3 +32,6 @@ scratchpads_twitter.ini
 .env
 .docker-sync
 nohup.out
+
+# Sass
+.sass-cache/
