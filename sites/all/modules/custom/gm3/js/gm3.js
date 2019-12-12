@@ -30,10 +30,11 @@
 
   Drupal.GM3 = class {
     constructor (map) {
-      // Create the OSM tileset
-      const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: ['a','b','c']
+      // Create the map tileset
+      const gl = L.mapboxGL({
+        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+        accessToken: 'not-needed',
+        style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey
       });
 
       if (map instanceof Drupal.GM3) {
@@ -49,7 +50,7 @@
 
       const leafletOptions = {
         center: [settings.center.latitude, settings.center.longitude],
-        layers: [osmTileLayer],
+        layers: [gl],
         editable: true,
       };
 
@@ -58,7 +59,7 @@
       }
 
       // How far in/out user is allowed to zoom
-      const maxZoom = parseInt(settings.maxZoom, 10);
+      const maxZoom = parseInt(settings.maxZoom, 10) || 10;
       const minZoom = parseInt(settings.minZoom, 10);
 
       if(maxZoom) {
@@ -94,6 +95,9 @@
 
       // Create the actual map
       const leafletMap = L.map(mapNode, leafletOptions);
+
+      // Set the language to the user's language
+      gl._glMap.autodetectLanguage();
 
       // Add a scale bar to the map
       L.control.scale().addTo(leafletMap);
