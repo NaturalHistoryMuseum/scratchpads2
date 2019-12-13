@@ -146,3 +146,7 @@
   font-weight: bold;
   color: black;
 }
+
+.gm3-gbif-tile {
+  opacity: .45 !important;
+}
