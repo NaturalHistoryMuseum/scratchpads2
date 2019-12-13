@@ -25,11 +25,11 @@ html, body {
 // base typography rules (can be overridden elsewhere)
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: normal !important;
+  font-family: $title-font;
+  font-weight: 500 !important;
 }
 
 h1 {
-  font-family: $title-font;
   font-size: $font-size-head-lg !important;
   line-height: 1.2em !important;
   text-transform: none !important;
@@ -150,7 +150,7 @@ sub, sup {
 #region-content {
   & h2 {
     color: $grey11;
-    line-height: 14px;
+    line-height: 1.1em;
     padding: 7px 10px 9px 10px;
     margin-bottom: 15px;
   }

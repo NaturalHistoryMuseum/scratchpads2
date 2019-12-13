@@ -1,9 +1,103 @@
 @font-face {
   font-family: 'Inter';
-  src: url('../fonts/Inter/Inter-Medium.woff2') format('woff2'),
-  url('../fonts/Inter/Inter-Medium.woff') format('woff'),
-  url('../fonts/Inter/Inter-Medium.ttf') format('truetype');
-  font-display: fallback;
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-Regular.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-Regular.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-Italic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-Italic.woff?v=3.11') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style:  normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-Medium.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-Medium.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-MediumItalic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-MediumItalic.woff?v=3.11') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style:  normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-SemiBold.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-SemiBold.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-SemiBoldItalic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-SemiBoldItalic.woff?v=3.11') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-Bold.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-Bold.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-BoldItalic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-BoldItalic.woff?v=3.11') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-ExtraBold.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-ExtraBold.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-ExtraBoldItalic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-ExtraBoldItalic.woff?v=3.11') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style:  normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-Black.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-Black.woff?v=3.11') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style:  italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url('../fonts/Inter/Inter-BlackItalic.woff2?v=3.11') format('woff2'),
+  url('../fonts/Inter/Inter-BlackItalic.woff?v=3.11') format('woff');
 }
 
 $body-font: Verdana, Helvetica, Arial, sans-serif;
