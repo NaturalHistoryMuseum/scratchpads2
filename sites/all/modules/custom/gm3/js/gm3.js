@@ -34,8 +34,18 @@
       const gl = L.mapboxGL({
         attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
         accessToken: 'not-needed',
-        style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey
+        style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey,
+        pane: 'tilePane'
       });
+
+      const satellite = L.mapboxGL({
+        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+        accessToken: 'not-needed',
+        style: 'https://api.maptiler.com/maps/hybrid/style.json?key=' + map.settings.mapTilerKey,
+        pane: 'tilePane'
+      });
+
+      const layersControl = L.control.layers({ "Basic": gl, "Satellite": satellite });
 
       if (map instanceof Drupal.GM3) {
         return map;
@@ -59,8 +69,8 @@
       }
 
       // How far in/out user is allowed to zoom
-      const maxZoom = parseInt(settings.maxZoom, 10) || 10;
-      const minZoom = parseInt(settings.minZoom, 10);
+      const maxZoom = parseInt(settings.maxZoom, 10) || 24;
+      const minZoom = parseInt(settings.minZoom, 10) || 0;
 
       if(maxZoom) {
         leafletOptions.maxZoom = maxZoom;
@@ -101,6 +111,9 @@
 
       // Add a scale bar to the map
       L.control.scale().addTo(leafletMap);
+
+      // Add option to switch layers
+      layersControl.addTo(leafletMap);
 
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.

@@ -81,17 +81,21 @@ function gm3_library(){
         )
       ),
       'css' => array(
-        array(
+        [
           'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.css'
-        ),
-        array(
+        ],
+        [
           'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css',
           'options' => 'external'
-        ),
-        array(
+        ],
+        [
           'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css',
           'options' => 'external'
-        )
+        ],
+        [
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.css',
+          'options' => 'external'
+        ]
       )
     ),
     // Enable the clicking of points.
