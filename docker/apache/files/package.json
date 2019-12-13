@@ -1,0 +1,15 @@
+{
+  "name": "scratchpads2-preprocess",
+  "version": "1.0.0",
+  "description": "Processing steps for scratchpads themes.",
+  "main": "notapplicable.js",
+  "scripts": {
+    "css": "node-sass /var/www/html/sites/all/themes/scratchpads/scss/global.scss | postcss -o /var/www/html/sites/all/themes/scratchpads/css/global.css --no-map --config ./"
+  },
+  "devDependencies": {
+    "node-sass": "^4.13.0",
+    "postcss": "^7.0.24",
+    "postcss-cli": "^6.1.3",
+    "postcss-preset-env": "^6.7.0"
+  }
+}

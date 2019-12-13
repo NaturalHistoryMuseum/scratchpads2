@@ -4,6 +4,7 @@
   font-family: 'Inter';
   src: url("../fonts/Inter/Inter-Medium.woff2") format("woff2"), url("../fonts/Inter/Inter-Medium.woff") format("woff"), url("../fonts/Inter/Inter-Medium.ttf") format("truetype");
   font-display: fallback; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -88,8 +89,11 @@ sub, sup {
 #page {
   min-height: 100%;
   position: relative;
+  display: -webkit-box;
   display: flex;
-  flex-direction: column; }
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+          flex-direction: column; }
 
 #page-title {
   line-height: 1.1em;
@@ -102,26 +106,34 @@ sub, sup {
   line-height: 14px;
   padding: 7px 10px 9px 10px;
   margin-bottom: 15px; }
+
 #region-content article header h2 {
   margin-top: 35px; }
+
 #region-content .block {
   margin-top: 10px;
   margin-bottom: 25px; }
   #region-content .block.gridless {
     float: left;
     width: 100%; }
+
 #region-content .embeded_image_float_left {
   float: left; }
+
 #region-content .embeded_image_float_right {
   float: right; }
 
 #zone-content .region {
   margin-bottom: 30px; }
-#zone-content .content.field-type-text-with-summary img, #zone-content .content .field-type-text img {
+
+#zone-content .content.field-type-text-with-summary img,
+#zone-content .content .field-type-text img {
   margin: 0; }
-  #zone-content .content.field-type-text-with-summary img[align^=left], #zone-content .content .field-type-text img[align^=left] {
+  #zone-content .content.field-type-text-with-summary img[align^=left],
+  #zone-content .content .field-type-text img[align^=left] {
     margin: 0 20px 5px 5px; }
-  #zone-content .content.field-type-text-with-summary img[align^=right], #zone-content .content .field-type-text img[align^=right] {
+  #zone-content .content.field-type-text-with-summary img[align^=right],
+  #zone-content .content .field-type-text img[align^=right] {
     margin: 0 5px 5px 5px; }
 
 .site-name {
@@ -170,6 +182,7 @@ h2.site-name {
 
 .section-header .site-name a {
   color: #FFFFFF; }
+
 .section-header .site-slogan {
   color: #FFFFFF;
   font-style: italic;
@@ -281,13 +294,16 @@ h2.site-name {
 .table-compact-to-top tr td {
   vertical-align: top !important;
   padding-bottom: 0; }
+
 .table-compact-to-top table p {
   margin-bottom: 10px; }
+
 .table-compact-to-top .row-compact-to-top td {
   vertical-align: top !important;
   padding-bottom: 0; }
   .table-compact-to-top .row-compact-to-top td p {
     margin-bottom: 10px; }
+
 .table-compact-to-top .table-cell-compact-to-top {
   vertical-align: top !important;
   padding-bottom: 0; }
@@ -296,34 +312,43 @@ h2.site-name {
 
 .table-no-zebra tr:nth-child(odd), .table-no-zebra tr.odd, .table-no-zebra tr:nth-child(even), .table-no-zebra tr.even {
   background: transparent !important; }
+
 .odd .table-no-zebra .table-cell-no-zebra, .even .table-no-zebra .table-cell-no-zebra {
   background: transparent !important; }
 
 .table-valign-top tr td {
   vertical-align: top !important; }
+
 .table-valign-top .row-valign-top td {
   vertical-align: top !important; }
+
 .table-valign-top .table-cell-valign-top {
   vertical-align: top !important; }
 
 .table-valign-bottom tr td {
   vertical-align: bottom !important; }
+
 .table-valign-bottom .row-valign-bottom td {
   vertical-align: bottom !important; }
+
 .table-valign-bottom .table-cell-valign-bottom {
   vertical-align: bottom !important; }
 
 .table-p-sm-bottom-margin table p {
   margin-bottom: 10px; }
+
 .table-p-sm-bottom-margin .row-p-sm-bottom-margin p {
   margin-bottom: 10px; }
+
 .table-p-sm-bottom-margin .table-cell-p-sm-bottom-margin p {
   margin-bottom: 10px; }
 
 .table-no-bottom-padding tr td {
   padding-bottom: 0; }
+
 .table-no-bottom-padding .row-no-bottom-padding td {
   padding-bottom: 0; }
+
 .table-no-bottom-padding .table-cell-no-bottom-padding {
   padding-bottom: 0; }
 
@@ -370,6 +395,7 @@ table, tbody, tfoot, thead, tr, th, td {
 
 #zone-slide-top-wrapper a, #zone-slide-top-wrapper label {
   color: #FFFFFF; }
+
 #zone-slide-top-wrapper .form-item-remember-me {
   clear: both;
   float: right !important; }
@@ -377,12 +403,15 @@ table, tbody, tfoot, thead, tr, th, td {
     margin-bottom: 2px; }
   #zone-slide-top-wrapper .form-item-remember-me label {
     margin-left: 5px !important; }
+
 #zone-slide-top-wrapper .form-actions, #zone-slide-top-wrapper .form-item {
   float: left; }
+
 #zone-slide-top-wrapper .scratchpads-slide-toggle {
   bottom: -20px;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px; }
+
 #zone-slide-top-wrapper #user-login-form {
   padding: 20px 0 30px 0; }
   #zone-slide-top-wrapper #user-login-form .item-list {
@@ -403,14 +432,17 @@ table, tbody, tfoot, thead, tr, th, td {
     padding: 5px 0; }
     #zone-slide-top-wrapper #user-login-form .form-item-openid-identifier div.description a {
       color: #ACACAC; }
+
 #zone-slide-top-wrapper #block-scratchpads-multilingual-language-switcher ul {
   list-style: none;
   float: right;
   margin-top: 8px; }
+
 #zone-slide-top-wrapper #block-scratchpads-multilingual-language-switcher li {
   list-style: none;
   float: left;
   margin-right: 12px; }
+
 #zone-slide-top-wrapper #block-scratchpads-multilingual-language-switcher .session-active {
   text-decoration: none;
   font-weight: bold; }
@@ -444,13 +476,16 @@ table, tbody, tfoot, thead, tr, th, td {
   font-family: "Inter", Arial, sans-serif !important;
   font-weight: normal;
   letter-spacing: -0.05em; }
+
 .page-event .view-event-calendar .item-list .views-field-field-event-date {
   font-weight: bold;
   margin-bottom: 8px; }
+
 .page-event .view-event-calendar .item-list .views-field-created, .page-event .view-event-calendar .item-list .views-field-name {
   float: right;
   color: #888888;
   font-size: 0.9em; }
+
 .page-event .view-event-calendar .item-list .views-field-created:after {
   content: "-- "; }
 
@@ -487,6 +522,7 @@ table, tbody, tfoot, thead, tr, th, td {
   #cboxContent .file .content .file-styles {
     display: block;
     text-align: center; }
+
 .file .field-name-field-description .field-items {
   max-width: 500px !important; }
 
@@ -504,6 +540,7 @@ td.views-field-contextual-links {
   list-style: none;
   margin-top: 20px;
   clear: left; }
+
 .view-species-media .attachment li.views-row {
   float: none;
   border: 0;
@@ -561,19 +598,24 @@ td.views-field-contextual-links {
 
 .contact-form .form-item {
   margin: 15px 0; }
+
 .contact-form label {
   float: left !important;
   width: 210px !important;
   clear: left;
   font-weight: bold; }
+
 .contact-form input {
   width: 200px; }
   .contact-form input.form-checkbox, .contact-form input.form-submit {
     width: auto; }
+
 .contact-form textarea, .contact-form .grippie, .contact-form select {
   width: 300px; }
+
 .contact-form .grippie {
   margin-left: 210px !important; }
+
 .contact-form .form-actions {
   margin-left: 210px; }
 
@@ -608,10 +650,13 @@ td.views-field-contextual-links {
   text-align: right; }
   .node .submitted .user-picture {
     display: inline; }
+
 .node .item-list ul li {
   list-style: disc; }
+
 .node th, .node td {
   border: 1px solid #ACACAC; }
+
 .node ol, .node ul {
   padding-left: 2em !important; }
 
@@ -622,13 +667,16 @@ td.views-field-contextual-links {
   background-color: #EDEDED; }
 
 .site-map-box > .content {
-  column-count: 3; }
+  -webkit-column-count: 3;
+     -moz-column-count: 3;
+          column-count: 3; }
 
 #front-page-title {
   font-size: 2.4em !important; }
 
 .front h1 {
   font-size: 2em; }
+
 .front #section-content {
   margin-top: 30px; }
 
@@ -649,12 +697,14 @@ td.views-field-contextual-links {
   font-weight: bold;
   vertical-align: middle;
   border-bottom: 1px solid #E5E5E5; }
+
 .biblio td {
   min-width: 100px; }
   .biblio td.active {
     background: none; }
   .biblio td.views-field-biblio-authors {
     width: 200px; }
+
 .biblio td, .biblio th {
   border-right: 1px solid #E5E5E5;
   padding: 8px 6px; }
@@ -671,8 +721,10 @@ td.views-field-contextual-links {
 
 .view-blog-page .views-row-odd, .view-blog-page .views-row-even {
   padding: 2px 10px; }
+
 .view-blog-page .views-row-odd {
   background-color: #EDEDED; }
+
 .view-blog-page h3 {
   margin-top: 4px !important; }
 
@@ -693,6 +745,7 @@ td.views-field-contextual-links {
 
 #forum table {
   width: 100%; }
+
 #forum td {
   vertical-align: top; }
   #forum td.icon {

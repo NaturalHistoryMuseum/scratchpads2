@@ -3,7 +3,7 @@
 /* this file is generated from SCSS and any edits you make here will be overwritten */
 
 // to regenerate CSS:
-// sass --sourcemap=none sites/all/themes/scratchpads/scss/global.scss sites/all/themes/scratchpads/css/global.css
+// npm run css --prefix $ROOT/docker/apache/files
 
 @import "responsive";
 @import "fonts";

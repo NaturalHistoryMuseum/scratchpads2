@@ -35,3 +35,5 @@ nohup.out
 
 # Sass
 .sass-cache/
+
+docker/apache/files/node_modules/
