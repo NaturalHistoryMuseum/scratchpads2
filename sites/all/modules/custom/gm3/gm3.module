@@ -323,7 +323,7 @@ function gm3_settings(){
       'latitude' => 52,
       'longitude' => 0
     ],
-    'zoom' => 4,
+    'zoom' => 5,
     'maxZoom' => null,
     'minZoom' => null,
     'enableClustering' => true,

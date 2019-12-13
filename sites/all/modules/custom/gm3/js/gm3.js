@@ -64,21 +64,11 @@
         editable: true,
       };
 
-      if(settings.zoom) {
-        leafletOptions.zoom = settings.zoom;
-      }
+      leafletOptions.zoom = settings.zoom = parseInt(settings.zoom, 10) || 5;
 
       // How far in/out user is allowed to zoom
-      const maxZoom = parseInt(settings.maxZoom, 10) || 24;
-      const minZoom = parseInt(settings.minZoom, 10) || 0;
-
-      if(maxZoom) {
-        leafletOptions.maxZoom = maxZoom;
-      }
-
-      if(minZoom) {
-        leafletOptions.minZoom = minZoom;
-      }
+      leafletOptions.maxZoom = parseInt(settings.maxZoom, 10) || 24;
+      leafletOptions.minZoom = parseInt(settings.minZoom, 10) || 0;
 
       // The currently selected tool (left sidebar)
       this.activeClass = 'default';
@@ -427,7 +417,7 @@
       }
 
       // Handy in case we want to debug an individual map
-      Drupal.settings.gm3.mapInstances = {};
+      Drupal.settings.gm3.mapInstances = Drupal.settings.gm3.mapInstances || {};
 
       // Jquery object
       if(context[0]) {
