@@ -1,0 +1,95 @@
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-reverse {
+  &.flex-row {
+    flex-direction: row-reverse;
+  }
+
+  &.flex-column {
+    flex-direction: column-reverse;
+  }
+}
+
+.flex-boxes-center {
+  &.flex-row > * {
+    align-self: center;
+  }
+
+  &.flex-column > * {
+    vertical-align: center;
+  }
+}
+
+.flex-boxes-top {
+  align-items: flex-start;
+
+  & > * {
+    align-self: flex-start;
+  }
+
+}
+
+.flex-boxes-end {
+  align-items: flex-end;
+
+  & > * {
+    align-self: flex-end;
+  }
+}
+
+.flex-between {
+  justify-content: space-between;
+}
+
+.flex-around {
+  justify-content: space-around;
+}
+
+.flex-center {
+  justify-content: center;
+}
+
+.flex-right {
+  justify-content: flex-end;
+
+  & > * {
+    align-self: flex-end;
+  }
+}
+
+.flex-left {
+  justify-content: flex-start;
+
+  & > * {
+    align-self: flex-start;
+  }
+}
+
+
+.flex-stretch-first {
+  &:not(.flex-reverse) > *:first-child {
+    flex-grow: 1;
+  }
+
+  &.flex-reverse > *:last-child {
+    flex-grow: 1;
+  }
+}
+
+.flex-stretch-last {
+  &:not(.flex-reverse) > *:last-child {
+    flex-grow: 1;
+  }
+
+  &.flex-reverse > *:first-child {
+    flex-grow: 1;
+  }
+}

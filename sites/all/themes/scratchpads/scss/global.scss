@@ -8,6 +8,7 @@
 @import "responsive";
 @import "fonts";
 @import "variables";
+@import "layout";
 
 // BASICS ==============================================================================================================
 
@@ -30,7 +31,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: $font-size-head-lg !important;
+  font-size: $font-size-head-lg;
   line-height: 1.2em !important;
   text-transform: none !important;
 
@@ -199,19 +200,6 @@ sub, sup {
   }
 }
 
-.site-name {
-  font-size: $font-size-head-xl;
-  margin: 14px 0 8px 0;
-}
-
-h2.site-name {
-  font-family: $title-font;
-  font-size: $font-size-head-lg !important;
-  line-height: 1.2em !important;
-  text-transform: none !important;
-  margin: 14px 0 8px 0;
-}
-
 
 // HEADERS -------------------------------------------------------------------------------------------------------------
 
@@ -265,13 +253,34 @@ h2.site-name {
   }
 }
 
+#toolbar {
+  box-shadow: 0 5px 10px $grey0 !important;
+}
+
+#zone-header {
+  padding-top: 25px;
+  position: relative;
+}
+
 .section-header {
-  & .site-name a {
-    color: $grey11;
+  & .site-name {
+    & a {
+      color: $grey11;
+    }
+    font-size: $font-size-head-xl !important;
+    margin: 0;
+  }
+
+  h2.site-name {
+    font-family: $title-font;
+    font-size: $font-size-head-lg !important;
+    line-height: 1.2em !important;
+    text-transform: none !important;
+    margin: 0;
   }
 
   & .site-slogan {
-    color: $grey11;
+    color: $grey10;
     font-style: italic;
     letter-spacing: normal;
     font-size: 1.2em;
@@ -282,11 +291,6 @@ h2.site-name {
 
 .site-name-slogan {
   float: none !important;
-}
-
-#zone-header {
-  padding-top: 25px;
-  position: relative;
 }
 
 
