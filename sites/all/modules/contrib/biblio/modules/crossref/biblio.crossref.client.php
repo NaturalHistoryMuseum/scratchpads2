@@ -94,6 +94,9 @@ class BiblioCrossRefClient
       xml_get_current_line_number($this->parser)),'error');
     }
 
+    // only allow certain tags in the title field
+    $this->node['title'] = strip_tags($this->node['title'], '<i><em>');
+
     xml_parser_free($this->parser);
 
     return $this->node;

@@ -1,0 +1,14 @@
+diff --git a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php b/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
+index a3e8b2282..642de8e14 100644
+--- a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
++++ b/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
+@@ -94,6 +94,9 @@ class BiblioCrossRefClient
+       xml_get_current_line_number($this->parser)),'error');
+     }
+ 
++    // only allow certain tags in the title field
++    $this->node['title'] = strip_tags($this->node['title'], '<i><em>');
++
+     xml_parser_free($this->parser);
+ 
+     return $this->node;
