@@ -445,6 +445,7 @@ function scratchpads_species_term_page($term, $op = 'default'){
     drupal_goto('simpletaxonomy/term/' . arg(2));
   }
   if(scratchpads_species_term_is_biological_classification($term)){
+
     $path = drupal_get_path('module', 'scratchpads_species');
     drupal_add_css($path . '/css/scratchpads_species.css');
     // Copied from context_entity_prepare_view()
@@ -468,6 +469,9 @@ function scratchpads_species_term_page($term, $op = 'default'){
     if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
       $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
     }
+
+    drupal_set_title($term->name . ' - ' . $subtitle);
+
     // Return a blank page contextual links
     $build = array(
       '#theme' => 'page',
@@ -499,6 +503,7 @@ function scratchpads_species_term_page($term, $op = 'default'){
     module_load_include('pages.inc', 'taxonomy');
     $build = taxonomy_term_page($term);
   }
+
   return $build;
 }
 
@@ -969,7 +974,7 @@ function scratchpads_species_get_core_tabs(){
     'media' => t('Media'),
     'literature' => t('Literature'),
     'maps' => t('Maps'),
-    
+
     'specimens' => t('Specimens')
   );
   drupal_alter('scratchpads_species_tabs', $tabs);
