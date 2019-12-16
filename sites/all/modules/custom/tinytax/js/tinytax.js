@@ -1,5 +1,12 @@
 (function($){
   Drupal.behaviors.tinytax = {attach: function(context, settings){
+
+    var self = this;
+
+    if (Drupal.settings.tinytax.active_tab){
+      self.appendActiveTab($('.tinytax a', context));
+    }
+
     if($.cookie('tinytax_toggled') > 0) {
       $('.tinytax-toggle-checkbox').attr('checked', 'checked');
       // this code ensures the toggle's state has an effect on the tree on page load. First, find
@@ -33,7 +40,11 @@
           // Check if we already have the children data, if so, we just show it
           img_clicked.attr('src', Drupal.settings.tinytax.load);
           $.getJSON(Drupal.settings.tinytax.callback + "/" + $(this).attr('id'), function(data){
-            img_clicked.parent('li').append(data[1]['data']);
+            var $data = $(data[1]['data'])
+            if (Drupal.settings.tinytax.active_tab) {
+              self.appendActiveTab($data.find('a'));
+            }
+            img_clicked.parent('li').append($data);
             Drupal.attachBehaviors(img_clicked.parent('li').children('ul'));
             img_clicked.attr('src', Drupal.settings.tinytax.minus);
             $('.tinytax-toggle-checkbox').each(function(){
@@ -73,5 +84,17 @@
       }
     });
     return {open_tids: tids};
-  }}
+  },
+  appendActiveTab: function ($links) {
+    $links.each(function () {
+      var href = $(this).attr('href');
+      if (href.indexOf('taxonomy/term') !== -1) {
+        $(this).attr('href', href += '/' + Drupal.settings.tinytax.active_tab);
+      }
+    });
+  }
+  }
+
+
+
 })(jQuery);

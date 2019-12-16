@@ -3,7 +3,7 @@ define('TINYTAX_MAX_TERMS_ANCESTORS_NUM', 500);
 
 /**
  * @file
- * 
+ *
  * Description of the tinytax.module file.
  */
 /**
@@ -202,11 +202,14 @@ function tinytax_block_view($delta = ''){
     }
   }
   if($vocabulary){
+    $path_parts = explode('/', current_path());
+    $active_tab = $path_parts[3];
+
     $block_array = array(
       '#theme' => 'tinytax_block',
       '#vid' => $delta,
       '#open_tids' => array_unique(array_merge($open_tids, variable_get('tinytax_always_open_tids_' . $delta, array()))),
-      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0)
+      '#ancestors' => variable_get('tinytax_ancestors_' . $vocabulary->vid, 0),
     );
     $block['subject'] = check_plain($vocabulary->name);
     // As we are now loading blocks dynamically, we can no longer rely on the
@@ -224,6 +227,7 @@ function tinytax_block_view($delta = ''){
         cache_set($cid, $content, 'cache_tinytax');
       }
     }
+
     $block['content'] = array(
       '#attached' => array(
         'css' => array(
@@ -237,7 +241,8 @@ function tinytax_block_view($delta = ''){
                 'callback' => url('tinytax/get'),
                 'minus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/minus.gif'),
                 'load' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/load.gif'),
-                'plus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/plus.gif')
+                'plus' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/plus.gif'),
+                'active_tab' => $active_tab,
               )
             ),
             'type' => 'setting'
