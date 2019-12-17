@@ -735,6 +735,7 @@ function gm3_point_items_validate($items, $field_name, &$errors){}
  * Implements hook_field_is_empty().
  */
 function gm3_field_field_is_empty($item, $field){
+
   switch($field['type']){
     case 'gm3_point':
       return !isset($item['latitude']);
@@ -755,10 +756,8 @@ function gm3_field_field_is_empty($item, $field){
             }
           }
         }else{
-          $non_empty = array_filter($item, function ($i){
-            return $i !== NULL;
-          });
-          return !count($non_empty);
+          $gm3_type = $item['gm3_type'];
+          return empty($item[$gm3_type]);
         }
         return TRUE;
       }else{
@@ -1465,7 +1464,7 @@ function gm3_field_field_widget_form(&$form, &$form_state, $field, $instance, $l
  * This is needed because in different places certain field types have different names
  * due to historical and current bad code. This is mainly the _text fields, which may
  * or may not have gm3_ prefix. Also the region field, hence why this is a hook.
- * 
+ *
  * @param string $name Theme name to normalize
  * @param mixed $vars Theme variables
  * @return mixed Result of theme function or null to use default theme function
