@@ -367,6 +367,20 @@ function scratchpads_species_taxonomy_term_insert($term){
   }
 }
 
+/**
+ * Implementation of hook_preprocess_html().
+ */
+function scratchpads_species_preprocess_html(&$vars)
+{
+  if($vars['page']['#tag'] == 'species-page'){
+    $vars['head_title'] = $vars['page']['title'];
+
+    if (!empty($vars['page']['subtitle'])) {
+      $vars['head_title']  .= ' [' . $vars['page']['subtitle'] . ']';
+    }
+  }
+}
+
 /*********************************************************************************************
  *
  * MENU CALLBACKS
@@ -466,6 +480,7 @@ function scratchpads_species_term_page($term, $op = 'default'){
       $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
     }
     $lang = field_language('taxonomy_term', $term, 'field_usage');
+
     if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
       $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
     }
@@ -476,6 +491,7 @@ function scratchpads_species_term_page($term, $op = 'default'){
     $build = array(
       '#theme' => 'page',
       '#type' => 'page',
+      '#tag' => 'species-page',
       'content' => array(
         ''
       ),
