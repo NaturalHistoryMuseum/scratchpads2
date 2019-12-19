@@ -1,14 +1,40 @@
 diff --git a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php b/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
-index a3e8b2282..642de8e14 100644
+index 642de8e14..5b9b40e3e 100644
 --- a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
 +++ b/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
-@@ -94,6 +94,9 @@ class BiblioCrossRefClient
+@@ -94,8 +94,8 @@ class BiblioCrossRefClient
        xml_get_current_line_number($this->parser)),'error');
      }
  
-+    // only allow certain tags in the title field
-+    $this->node['title'] = strip_tags($this->node['title'], '<i><em>');
-+
+-    // only allow certain tags in the title field
+-    $this->node['title'] = strip_tags($this->node['title'], '<i><em>');
++    // clean the title up
++    $this->node['title'] = $this->cleanTitle($this->node['title']);
+ 
      xml_parser_free($this->parser);
  
-     return $this->node;
+@@ -103,6 +103,24 @@ class BiblioCrossRefClient
+   }
+ 
+ 
++  /**
++   * Given a title, cleans it by removing any non <i> or <em> tags and ensuring that all remaining
++   * tags are lowercase.
++   *
++   * @param $title string the title
++   * @return string
++   */
++  function cleanTitle($title) {
++    // remove any tags that aren't <i> or <em> (this is a case-insensitive strip)
++    $title = strip_tags($title, '<i><em>');
++    // then ensure any uppsercase <i> or <em> tags are lowercased
++    $search = array('<I>', '</I>', '<EM>', '</EM>', '<eM>', '</eM>', '<Em>', '</Em>');
++    // the replacements of each are just the lowercase versions
++    $replace = array_map('strtolower', $search);
++    // replace and return
++    return str_replace($search, $replace, $title);
++  }
++
+   function unixref_startElement($parser, $name, $attrs) {
+     switch ($name) {
+       case 'doi_record' :
