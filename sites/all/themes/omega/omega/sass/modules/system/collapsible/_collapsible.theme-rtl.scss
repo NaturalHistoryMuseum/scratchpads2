@@ -1,0 +1,16 @@
+/**
+ * @file
+ * Right to left theme for collapsible fieldsets.
+ *
+ * @see collapse.js
+ */
+
+html.js fieldset.collapsible .fieldset-legend {
+  padding-left: 0;
+  padding-right: 15px;
+  background-position: 98% 75%;
+}
+html.js fieldset.collapsed .fieldset-legend {
+  background-image: image-url('misc/menu-collapsed-rtl.png');
+  background-position: 98% 50%;
+}

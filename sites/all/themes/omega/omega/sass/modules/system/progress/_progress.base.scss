@@ -1,0 +1,45 @@
+/**
+ * @file
+ * Base styles for the progress behavior.
+ *
+ * @see progress.js
+ */
+
+/* Bar */
+.progress {
+  .bar {
+    background-color: #fff;
+    border: 1px solid;
+  }
+  .filled {
+    height: 1.5em;
+    width: 5px;
+    background-color: #000;
+  }
+  .percentage {
+    float: right; /* LTR */
+  }
+}
+
+/* Throbber */
+.ajax-progress {
+  display: inline-block;
+  
+  .throbber {
+    float: left; /* LTR */
+    height: 15px;
+    width: 15px;
+    margin: 2px;
+    background: transparent image-url('misc/throbber.gif') no-repeat 0px -18px;
+  }
+  .message {
+    padding-left: 20px;
+  }
+}
+
+tr .ajax-progress .throbber {
+  margin: 0 2px;
+}
+.ajax-progress-bar {
+  width: 16em;
+}

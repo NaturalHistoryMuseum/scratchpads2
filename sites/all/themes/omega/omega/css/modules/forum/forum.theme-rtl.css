@@ -1,0 +1,9 @@
+/**
+ * @file
+ * Right-to-left styling for the Forum module.
+ */
+.forum-icon {
+  float: right;
+  margin-left: 0;
+  margin-right: 0.4em;
+}

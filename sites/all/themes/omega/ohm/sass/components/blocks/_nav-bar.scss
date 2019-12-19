@@ -1,0 +1,33 @@
+/**
+ * $NAV-BAR
+ */
+.block--nav-bar {
+  .menu {
+    @extend %hlist;
+  }
+
+  a {
+    display: block;
+    padding: 1.2em 1em;
+
+    @include font-size(16px);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      color: $dark-blue;
+    }
+  }
+
+  @include breakpoint(600px, true) {
+    a {
+      @include font-size(18px);
+      border-left: 1px solid #fff;
+    }
+    li:last-child a {
+      border-right: 1px solid #fff;
+    }
+  }
+}

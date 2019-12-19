@@ -1,0 +1,26 @@
+/**
+ * @file
+ * Basic styling for common HTML elements.
+ */
+
+/* Fieldsets */
+fieldset {
+  margin-bottom: 1em;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+}
+th {
+  padding-right: 1em; /* LTR */
+  background-color: #bbb;
+  text-align: left; /* LTR */
+}
+tr.even,
+tr.odd {
+  background-color: #eee;
+}
+tr.odd {
+  background-color: #ddd;
+}

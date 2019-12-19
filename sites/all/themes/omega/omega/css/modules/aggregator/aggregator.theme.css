@@ -1,0 +1,9 @@
+/**
+ * @file
+ * Aggregator theme CSS.
+ */
+.feed-source .feed-icon {
+  float: right;
+  /* LTR */
+  display: block;
+}

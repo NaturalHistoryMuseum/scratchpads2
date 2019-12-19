@@ -1,0 +1,82 @@
+/*******************************************************************************
+ * Off canvas portion of styling for the Off Canvas layout.
+ ******************************************************************************/
+
+.l-off-canvas-show,
+.l-off-canvas-hide {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background: transparent url("../../../layouts/off-canvas/assets/close.png") center center no-repeat;
+  @include hide-text;
+}
+.l-off-canvas-show {
+  background: transparent url("../../../layouts/off-canvas/assets/menu.png") center center no-repeat;
+}
+
+@include breakpoint(0 $tab) {
+  // No JS Fallbacks
+  .no-js .l-off-canvas {
+    position: relative;
+    min-height: 24px;
+    padding-right: 24px;
+
+    .l-region {
+      position: relative;
+      overflow: hidden;
+    }
+    .l-off-canvas-hide {
+      display: block;
+    }
+    &:not(:target) {
+      .l-region {
+        min-height: 0;
+        height: 0;
+      }
+      .l-off-canvas-show {
+        display: block;
+      }
+      .l-off-canvas-hide {
+        display: none;
+      }
+    }
+  }
+
+  // JS Enabled Styles
+  .js .l-page {
+    position: relative;
+    height: 100%;
+    padding-left: 12%;
+  }
+  .js .l-off-canvas {
+    position: absolute;
+    z-index: 99;
+    width: 80%;
+    top: 0;
+    bottom: 0;
+    left: -70%;
+    padding-top: 24px;
+
+    @include transition(left 0.2s ease-in);
+    cursor: pointer;
+
+    &.is-visible {
+      left: 0;
+      cursor: auto;
+
+      .l-off-canvas-show {
+        display: none;
+      }
+      .l-off-canvas-hide {
+        display: block;
+      }
+    }
+    .l-off-canvas-show {
+      display: block;
+    }
+  }
+}
+

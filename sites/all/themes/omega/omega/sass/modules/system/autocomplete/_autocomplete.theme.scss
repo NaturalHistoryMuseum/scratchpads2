@@ -1,0 +1,17 @@
+/**
+ * @file
+ * Theme for autocomplete.
+ *
+ * @see autocomplete.js
+ */
+
+#autocomplete {
+  background: #fff;
+  border: 1px solid;
+  color: #000;
+  
+  .selected {
+    background: #0072b9;
+    color: #fff;
+  }
+}

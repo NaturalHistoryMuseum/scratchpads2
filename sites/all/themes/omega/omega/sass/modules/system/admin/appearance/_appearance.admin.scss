@@ -1,0 +1,101 @@
+/**
+ * @file
+ * Administration styles for the appearance page.
+ */
+
+/**
+ * Disabled/Enabled Theme Lists
+ */
+.system-themes-list {
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+  }
+}
+.system-themes-list--disabled {
+  padding-top: 20px;
+  border-top: 1px solid #cdcdcd;
+}
+
+/**
+ * Theme Selector
+ */
+.theme-selector {
+  padding-top: 20px;
+
+  h3 {
+    font-weight: normal;
+  }
+}
+/* Theme Selector Screenshot */
+.theme-selector__screenshot {
+  padding: 2px;
+  width: 294px;
+  height: 219px;
+  border: 1px solid #e0e0d8;
+  line-height: 219px;
+  text-align: center;
+}
+/* Theme Selector Incompatible Message */
+.theme-selector__incompatible {
+  margin-top: 10px;
+  font-weight: bold;
+}
+/* Theme Selector Links */
+.theme-selector__operations {
+  margin: 10px 0 0 0;
+  padding: 0;
+
+  li {
+    float: left; /* LTR */
+    margin: 0 1em 0 0;
+    list-style-type: none;
+  }
+}
+/* Theme Selector Default State */
+.theme-selector--default {
+  h3 {
+    font-weight: bold;
+  }
+  .theme-selector__screenshot {
+    border: 1px solid #aaa;
+  }
+}
+/* Theme Selector Enabled State */
+.theme-selector--enabled {
+  width: 820px;
+
+  .theme-selector__info {
+    float: right; /* LTR */
+    width: 500px;
+  }
+  h3 {
+    margin-top: 0;
+  }
+  .theme-selector__screenshot {
+    float: left; /* LTR */
+  }
+}
+/* Theme Selector Disabled State */
+.theme-selector--disabled  {
+  float: left; /* LTR */
+  width: 300px;
+  padding: 20px 20px 20px 0; /* LTR */
+
+  .theme-selector__info {
+    min-height: 170px;
+  }
+  .theme-selector__screenshot {
+    width: 194px;
+    height: 144px;
+    line-height: 144px;
+  }
+}
+
+/**
+ * Admin Theme Selector Form
+ */
+.system-themes-admin-form {
+  clear: left;
+}

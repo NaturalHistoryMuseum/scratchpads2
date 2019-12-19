@@ -1,0 +1,73 @@
+@import "compass";
+
+
+.fieldset-description {
+  margin-bottom: 15px;
+}
+
+/* Extension Settings */
+.omega-extension-settings {
+  border: 1px solid #ccc;
+  padding: 2.5em 0 0 0;
+  margin: 1em 0;
+
+  legend {
+    display: block;
+  }
+}
+
+/* Layouts */
+.omega-layout-selection-wrapper {
+  margin-bottom: 20px;
+  min-height: 75px;
+  position: relative;
+
+  .form-item {
+    .option,
+    .description {
+      padding-left: 80px;
+    }
+  }
+
+  img {
+    height: 75px;
+    width: 64px;
+    position: absolute;
+    top: 8px;
+    margin-left: 1.5em;
+  }
+}
+
+/* Assets - Namespace Tokens Helptext */
+.omega-assets-namespace-tokens {
+  .description {
+    margin-top: 0;
+  }
+
+  .item-list & {
+    @include no-bullets;
+    @include reset-box-model;
+
+    li {
+      margin-bottom: 14px;
+    }
+  }
+}
+
+/* Assets - Missing Requirements */
+.omega-assets-missing-files {
+  color: #8c2e0b;
+  margin: 1em 0 1em 1.5em;
+}
+
+/* Assets - Options */
+.omega-asset-options {
+  margin: 1em 0;
+  padding: 2.5em 0 0 0;
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+
+  legend {
+    display: block;
+  }
+}

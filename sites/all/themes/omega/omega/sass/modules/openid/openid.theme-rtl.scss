@@ -1,0 +1,15 @@
+/**
+ * @file
+ * Right to left theme styles for the openid module.
+ */
+
+.form-item-openid-identifier input {
+  padding-left: 0;
+  padding-right: 20px;
+  background-position: right 50%;
+}
+
+.openid-links a {
+  padding: 0 1.5em 0 0;
+  background-position: right top;
+}

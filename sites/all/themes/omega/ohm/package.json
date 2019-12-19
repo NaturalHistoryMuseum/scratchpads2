@@ -1,0 +1,16 @@
+{
+  "name": "ohm",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-watch": "~0.4.3",
+    "grunt-contrib-compass": "~0.2.0",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-shell": "~0.3.1"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  }
+}

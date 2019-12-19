@@ -1,0 +1,14 @@
+/**
+ * @file
+ * Base styles for the Open ID module.
+ */
+
+html.js .user-login-form .openid-link,
+html.js .user-login .openid-link {
+  display: block;
+  margin-left: 0; /* LTR */
+}
+html.js .user-login-form .form-item-openid-identifier,
+html.js .user-login .form-item-openid-identifier {
+  display: none;
+}

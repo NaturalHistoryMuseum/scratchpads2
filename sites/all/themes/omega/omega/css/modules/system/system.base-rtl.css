@@ -1,0 +1,65 @@
+/**
+ * @file
+ * Right to left system wide base styles.
+ */
+/**
+ * @file
+ * Right to left base styles for autocomplete functionality.
+ *
+ * @see autocomplete.js
+ */
+/* Animated throbber */
+html.js .form-autocomplete {
+  background-position: 0% 2px;
+}
+
+html.js .throbbing {
+  background-position: 0% -18px;
+}
+
+/**
+ * @file
+ * Right to left base styling for the tabledrag behavior.
+ *
+ * @see tabledrag.js
+ */
+.draggable .tabledrag-handle {
+  float: right;
+  margin-left: 0;
+}
+
+.indentation {
+  float: right;
+}
+
+.tree-child,
+.tree-child-last {
+  background-position: -65px center;
+}
+
+.tabledrag-toggle-weight-wrapper {
+  text-align: left;
+}
+
+/**
+ * @file
+ * Right to left base styles for the progress behavior.
+ *
+ * @see progress.js
+ */
+/* Bar */
+.progress .percentage {
+  float: left;
+}
+
+.progress-disabled {
+  float: right;
+}
+
+.ajax-progress {
+  float: right;
+}
+
+.ajax-progress .throbber {
+  float: right;
+}

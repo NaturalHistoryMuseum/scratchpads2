@@ -1,0 +1,20 @@
+/*******************************************************************************
+ * grid-2.scss
+ *
+ * Styling for the Omega 2 column grid panels layout.
+ ******************************************************************************/
+.panel-display--grid-2 {
+  overflow: hidden;
+}
+.panel-display--grid-2 .grid-item {
+  float: left;
+  width: 47%;
+  margin: 1em 1.5%;
+}
+.panel-display--grid-2 .grid-item:nth-child(odd) {
+  clear: both;
+}
+.panel-display--grid-2 .grid-item:nth-child(even) {
+  float: right;
+  clear: right;
+}

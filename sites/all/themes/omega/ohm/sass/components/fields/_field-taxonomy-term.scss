@@ -1,0 +1,12 @@
+/**
+ * $FIELD-TAXONOMY-TERM
+ */
+.field--type-taxonomy-term-reference {
+  .field__items {
+    @include clearfix(true);
+  }
+  .field__item {
+    float: left;
+    margin-right: 0.5em;
+  }
+}

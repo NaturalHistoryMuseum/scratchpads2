@@ -1,0 +1,22 @@
+select,
+input,
+textarea {
+  &:focus {
+    @include box-shadow(0 0 4px 1px rgba(lighten($orange, 15%), 0.3));
+    outline: 1px solid lighten($orange, 15%);
+  }
+}
+
+fieldset {
+  margin-left: 0;
+  margin-right: 0;
+  padding: ($vert-spacing-unit / 2) $horz-spacing-unit $vert-spacing-unit $horz-spacing-unit;
+
+  border-color: $light-grey;
+}
+
+legend {
+  @include font-size(18px);
+  padding: 0 0.8em;
+  color: $mid-grey;
+}

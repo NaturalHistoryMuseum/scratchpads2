@@ -1,0 +1,92 @@
+/**
+ * @file
+ * Right to left system wide administration styles.
+ */
+/**
+ * @file
+ * Right to left administration style for administration blocks.
+ */
+/* Admin Panels */
+.admin-panel .admin-panel__body {
+  padding-right: 1em;
+}
+
+/* Admin Panel Page Layout */
+.admin .left {
+  float: right;
+}
+.admin .right {
+  float: left;
+}
+.admin .expert-link {
+  margin-left: 0;
+  margin-right: 1em;
+  padding-left: 0;
+  padding-right: 4px;
+  text-align: left;
+}
+
+/**
+ * @file
+ * Right to left administration styles for the appearance page.
+ */
+/**
+ * Disabled/Enabled Theme Lists
+ */
+/* Theme Selector Links */
+.theme-selector__operations li {
+  float: right;
+}
+
+/* Theme Selector Enabled State */
+.theme-selector--enabled .theme-selector__info {
+  float: left;
+}
+.theme-selector--enabled .theme-selector__screenshot {
+  float: right;
+}
+
+/* Theme Selector Disabled State */
+.theme-selector--disabled {
+  float: right;
+  padding: 20px 20px 20px;
+}
+
+/**
+ * @file
+ * Right to left administration styles for the modules table.
+ */
+/* Module Operation Links */
+.module-link {
+  padding: 1px 20px 1px 0;
+}
+
+.module-link-help {
+  background: url('../../../images/misc/help.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+.module-link-permissions {
+  background: url('../../../images/misc/permissions.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+.module-link-configure {
+  background: url('../../../images/misc/configure.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+/* Module Help */
+.module-help {
+  float: left;
+  margin-left: 0;
+  margin-right: 1em;
+}
+
+/**
+ * @file
+ * Right to left administration styles for the system status report.
+ */
+.merge-up td {
+  padding: 0 28px 8px 6px;
+}

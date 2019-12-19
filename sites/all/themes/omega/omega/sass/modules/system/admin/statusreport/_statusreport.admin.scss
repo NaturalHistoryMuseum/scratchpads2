@@ -1,0 +1,33 @@
+/**
+ * @file
+ * Administration styles for the system status report.
+ */
+
+/* Status Icons */
+.system-status-report {
+  .status-icon {
+    height: 16px;
+    width: 16px;
+    background-repeat: no-repeat;
+  }
+  .error .status-icon {
+    background-image: image-url('misc/message-16-error.png');
+  }
+  .warning .status-icon {
+    background-image: image-url('misc/message-16-warning.png');
+  }
+}
+
+/* Merge Cells */
+.merge-down,
+.merge-down td {
+  border-bottom-width: 0 !important;
+}
+
+.merge-up,
+.merge-up td {
+  border-top-width: 0 !important;
+}
+.merge-up td {
+  padding: 0 6px 8px 28px; /* LTR */
+}

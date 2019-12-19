@@ -1,0 +1,37 @@
+@import "rgbapng";
+@import "compass";
+
+.omega-browser-width {
+  @include border-radius(5px);
+  @include rgba-background(rgba(0, 0, 0, 0.75));
+  z-index: 1000;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  font-family: 'Lucida Grande', 'Lucida Sans Unicode', sans-serif;
+  font-size: 13px;
+  color: #fff;
+  max-width: 100%;
+  margin: 5px;
+  padding: 5px 10px;
+}
+
+.region--debug {
+  @include rgba-background(rgba(0, 0, 0, 0.1));
+  position: relative;
+  min-height: 29px;
+  outline: 1px dashed #ccc;
+
+  &:before {
+    @include border-radius(3px);
+    @include rgba-background(rgba(#077dc3, 0.75));
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', sans-serif;
+    font-size: 11px;
+    z-index: 50;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    padding: 3px 6px;
+    color: #fff;
+  }
+}

@@ -1,0 +1,25 @@
+/**
+ * $MESSAGES
+ */
+.messages {
+  padding-left: 10px;
+  margin-bottom: $vert-spacing-unit;
+}
+
+.messages--status {
+  color: $mid-blue;
+  background: lighten($mid-blue, 50%);
+  border-color: lighten($mid-blue, 20%);
+}
+
+.messages--warning {
+  color: $yellow;
+  background: lighten($yellow, 50%);
+  border-color: lighten($yellow, 20%);
+}
+
+.messages--error {
+  color: $red;
+  background: lighten($red, 50%);
+  border-color: lighten($red, 20%);
+}

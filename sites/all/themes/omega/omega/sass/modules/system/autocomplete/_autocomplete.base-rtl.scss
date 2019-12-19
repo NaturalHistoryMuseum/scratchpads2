@@ -1,0 +1,14 @@
+/**
+ * @file
+ * Right to left base styles for autocomplete functionality.
+ *
+ * @see autocomplete.js
+ */
+
+/* Animated throbber */
+html.js .form-autocomplete {
+  background-position: 0% 2px;
+}
+html.js .throbbing {
+  background-position: 0% -18px;
+}

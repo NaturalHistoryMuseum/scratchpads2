@@ -1,0 +1,96 @@
+/**
+ * @file
+ * Styling for contextual links look and feel.
+ *
+ * We are proactivly making use of !important to ensure the contextual links
+ * styling isn't broken by unspecific selectors such as ".block a". In order to
+ * change the styling of the contextual links you should overwrite this file in
+ * your subtheme.
+ */
+
+@import "compass";
+
+/**
+ * Contextual link wrappers
+ */
+.contextual-links-region-active {
+  outline: #999 dashed 1px;
+}
+.contextual-links-wrapper {
+  font-size: 12px !important;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+/**
+ * Contextual trigger.
+*/
+.contextual-links-trigger {
+  /* Positioning */
+  height: 18px;
+  /* Box Model */
+  margin: 0 !important;
+  padding: 0 2px !important;
+  width: 28px;
+  /* Other Declarations */
+  background: transparent image-url('modules/contextual/gear-select.png') no-repeat 2px 0 !important;
+  border: 1px solid transparent !important;
+  @include border-radius(4px);
+  outline: none;
+  text-indent: 9999px; /* LTR */
+}
+.contextual-links-trigger:hover,
+.contextual-links-active .contextual-links-trigger {
+  background-position: 2px -18px !important;
+}
+.contextual-links-active .contextual-links-trigger {
+  /* Positioning */
+  position: relative;
+  z-index: 1;
+  /* Other Declarations */
+  background-color: #fff !important;
+  border-color: #ccc !important;
+  border-bottom: none !important;
+  @include border-bottom-radius(0);
+}
+
+/**
+ * Contextual links.
+ */
+.contextual-links {
+  /* Position */
+  position: absolute;
+  right: 0; /* LTR */
+  top: 18px;
+  /* Box Model */
+  margin: 0 !important;
+  padding: 0 !important;
+  /* Other Declarations */
+  background-color: #fff !important;
+  border: 1px solid #ccc !important;
+  @include border-radius(4px 0 4px 4px); /* LTR */
+  text-align: left;
+  white-space: nowrap;
+
+  li {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 100%;
+    list-style: none;
+    list-style-image: none;
+  }
+
+  a {
+    display: block;
+    margin: 0 !important;
+    padding: 5px 10px !important;
+    color: #333 !important;
+    font-size: 12px !important;
+
+    &:hover {
+      background-color: #bfdcee !important;
+    }
+  }
+}

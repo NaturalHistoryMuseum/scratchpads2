@@ -1,0 +1,31 @@
+/**
+ * @file
+ * Search module theme.
+ */
+/**
+ * Search Results
+ */
+.search-result__snippet {
+  padding-left: 1em;
+  /* LTR */
+}
+
+.search-result__info {
+  font-size: 0.85em;
+}
+
+/**
+ * Advanced Search Form
+ */
+.search-advanced .criterion {
+  float: left;
+  /* LTR */
+  margin-right: 2em;
+  /* LTR */
+}
+.search-advanced .action {
+  float: left;
+  /* LTR */
+  clear: left;
+  /* LTR */
+}

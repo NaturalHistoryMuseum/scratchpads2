@@ -1,0 +1,120 @@
+/**
+ * $FONT-FACE
+ */
+@import url(http://fonts.googleapis.com/css?family=Maven+Pro:400,700);
+@import url(http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic);
+@include establish-baseline($base-font-size);
+
+/**
+ * $BASE-TYPOGRAPHY
+ */
+html {
+  font-family: $pt-sans;
+  color: $dark-grey;
+}
+
+/**
+ * $LINKS
+ */
+a {
+  @include link-colors($orange, #000, $pale-orange, $orange, #000);
+}
+
+/**
+ * $HEADINGS
+ */
+h1, .alpha,
+h2, .beta,
+h3, .gamma,
+h4, .delta,
+h5, .epsilon,
+h6, .zeta {
+  @include rhythm(0, 0, 0, 0.2);;
+  color: darken($mid-grey, 15%);
+  font-family: $maven-pro;
+  text-transform: uppercase;
+
+  a,
+  a:visited {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover {
+    color: $dark-blue;
+  }
+}
+
+h1, .alpha {
+  @include font-size(55px);
+  font-weight: 700;
+}
+h2, .beta {
+  @include font-size(34px);
+  font-weight: 700;
+  color: $mid-blue;
+}
+h3, .gamma {
+  @include font-size(21px);
+}
+h4, .delta {
+  @include font-size(18px);
+}
+h5, .epsilon{
+  @include font-size(16px);
+  font-weight: 700;
+}
+h6, .zeta {
+  @include font-size(16px);
+  color: $mid-blue;
+}
+
+/**
+ * $PARAGRAPHS
+ */
+p,
+%p {
+  margin: 0;
+  @include rhythm(0, 0, 0, 1);
+}
+p + img {
+  float: left;
+  margin-right: $horz-spacing-unit;
+}
+
+/**
+ * $QUOTES
+ */
+blockquote {
+  @extend %p;
+  @include rhythm(0, 1, 1, 1);
+  padding: 0 1.5em;
+
+  @include rhythm-borders(1px);
+  @include apply-side-rhythm-border(left, 10px);
+  font-style: italic;
+  color: $dark-blue;
+
+  p {
+    margin: 0;
+  }
+}
+
+q {
+  font-style: italic;
+}
+
+/**
+ * $MARKS
+ */
+mark,
+.marker {
+  padding: 0.1em 0.5em;
+
+  background: $light-blue;
+
+  color: #fff;
+  @include font-size(12px);
+  text-transform: capitalize;
+
+  @include border-radius(10px);
+}

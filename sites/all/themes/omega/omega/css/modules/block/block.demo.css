@@ -1,0 +1,36 @@
+/**
+ * @file
+ * Styles for the block demo page.
+ */
+.block-region {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding: 3px;
+  background-color: #ff6;
+}
+
+.block-demo-backlink,
+.block-demo-backlink:link,
+.block-demo-backlink:visited {
+  /* Position */
+  position: fixed;
+  z-index: 499;
+  left: 20px;
+  /* LTR */
+  /* Box Model */
+  padding: 5px 10px;
+  /* Font */
+  color: #000;
+  font-family: "Lucida Grande", Verdana, sans-serif;
+  font-size: small;
+  line-height: 20px;
+  /* Other Declarations */
+  background-color: #b4d7f0;
+  -moz-border-radius: 0 0 10px 10px;
+  -webkit-border-radius: 0;
+  border-radius: 0 0 10px 10px;
+}
+
+.block-demo-backlink:hover {
+  text-decoration: underline;
+}

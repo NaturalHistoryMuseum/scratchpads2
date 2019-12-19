@@ -1,0 +1,30 @@
+/**
+ * @file
+ * Theme styles for the openid module.
+ */
+.form-item-openid-identifier {
+  display: block;
+}
+.form-item-openid-identifier input {
+  padding-left: 20px;
+  /* LTR */
+  background-image: url('../../../images/modules/openid/login-bg.png?1382488163');
+  background-position: left 50%;
+  /* LTR */
+  background-repeat: no-repeat;
+}
+
+.openid-links li {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.openid-links a {
+  padding: 0 0 0 1.5em;
+  /* LTR */
+  background-image: url('../../../images/modules/openid/login-bg.png?1382488163');
+  background-position: left top;
+  /* LTR */
+  background-repeat: no-repeat;
+}

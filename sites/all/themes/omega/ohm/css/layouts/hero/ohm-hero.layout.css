@@ -1,0 +1,29 @@
+/*******************************************************************************
+ * ohm-hero.layout.scss
+ *
+ * Additional, theme specific styles for the Hero layout.
+ ******************************************************************************/
+body {
+  background: transparent url('../../../images/diagonal.png?1378983654') left top repeat;
+}
+
+/* Header */
+.l-header {
+  background-color: #52b1ea;
+}
+
+/* Content Area */
+.l-highlighted-wrapper {
+  background: #fff;
+}
+
+/* Sidebars */
+.l-region--sidebar-first,
+.l-region--sidebar-second {
+  background-color: #fff;
+}
+
+/* Footer */
+.l-footer-wrapper {
+  background: #fff;
+}

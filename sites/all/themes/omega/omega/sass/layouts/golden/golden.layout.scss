@@ -1,0 +1,56 @@
+/*******************************************************************************
+ * golden.layout.scss
+ *
+ * Styling of the "Golden" layout demonstrating the golden rule and asymmetric
+ * grids with Singularity.
+ ******************************************************************************/
+@import "compass";
+@import "breakpoint";
+@import "singularitygs";
+
+// Set consistent vertical and horizontal spacing units.
+$vert-spacing-unit: 20px;
+$horz-spacing-unit: 1em;
+
+// Set breakpoint values.
+$tab  : 700px;
+$desk : 1250px;
+
+// Set Singularity grid variables.
+$grids: 1;
+$grids: add-grid(25 15 at $tab);
+$grids: add-grid(25 15 9 at $desk);
+
+$gutters: 1/3;
+
+.panel-display--golden {
+  @include pie-clearfix;
+}
+
+.golden-region {
+  margin-bottom: $vert-spacing-unit;
+}
+
+@include breakpoint($tab) {
+  .golden-region--first {
+    @include grid-span(2, 1);
+  }
+  .golden-region--second {
+    @include isolation-span(1, 1, 'both');
+  }
+  .golden-region--third {
+    @include grid-span(1, 2);
+  }
+}
+
+@include breakpoint($desk, true) {
+  .golden-region--first {
+    @include grid-span(1, 1);
+  }
+  .golden-region--second {
+    @include grid-span(1, 2);
+  }
+  .golden-region--third {
+    @include grid-span(1, 3);
+  }
+}

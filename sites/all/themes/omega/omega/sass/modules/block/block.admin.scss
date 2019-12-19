@@ -1,0 +1,16 @@
+/**
+ * @file
+ * Styles for the block admin page.
+ */
+.blocks-admin {
+  .region-title {
+    font-weight: bold;
+  }
+  .region-message {
+    font-weight: normal;
+    color: #999;
+  }
+  .region-populated {
+    display: none;
+  }
+}

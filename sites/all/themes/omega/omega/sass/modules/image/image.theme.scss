@@ -1,0 +1,19 @@
+/**
+ * @file
+ * Styles for the image module.
+ */
+
+/**
+ * Image upload widget.
+ */
+.image-preview {
+  float: left; /* LTR */
+  padding: 0 10px 10px 0; /* LTR */
+}
+.image-widget-data {
+  float: left; /* LTR */
+
+  .text-field {
+    width: auto;
+  }
+}

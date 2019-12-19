@@ -1,0 +1,32 @@
+/**
+ * $FORM-ITEM
+ */
+.form-item {
+  color: $mid-grey;
+
+  label {
+    margin-bottom: 0.4em;
+  }
+  .form-select,
+  .form-text,
+  .form-textarea {
+    width: 100%;
+    padding: 0.6em;
+    background-color: #fff;
+    border: 1px solid $light-grey;
+    color: $mid-grey;
+    vertical-align: middle;
+  }
+  .description {
+    margin-top: 0.2em;
+    font-style: italic;
+  }
+}
+
+.container-inline {
+  .form-select,
+  .form-text,
+  .form-textarea {
+    width: auto;
+  }
+}

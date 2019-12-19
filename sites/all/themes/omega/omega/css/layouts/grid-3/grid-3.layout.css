@@ -1,0 +1,46 @@
+/*******************************************************************************
+ * grid-3.layout.scss
+ *
+ * Styling of the "Grid 3" 3 column layout..
+ ******************************************************************************/
+.panel-display--grid-3 {
+  *zoom: 1;
+}
+.panel-display--grid-3:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.grid-3-region {
+  margin-bottom: 20px;
+}
+
+@media (min-width: 1250px) {
+  .grid-3-region--first,
+  .grid-3-region--fourth {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: left;
+  }
+
+  .grid-3-region--second,
+  .grid-3-region--fifth {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 8.47458%;
+    clear: none;
+  }
+
+  .grid-3-region--third,
+  .grid-3-region--sixth {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 16.94915%;
+    clear: right;
+  }
+}

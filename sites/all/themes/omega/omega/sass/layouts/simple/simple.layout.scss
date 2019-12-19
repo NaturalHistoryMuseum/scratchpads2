@@ -1,0 +1,134 @@
+/*******************************************************************************
+ * simple.layout.scss
+ *
+ * Styling of the "simple" layout demonstrating the Compass grid extension Susy
+ * and building mobile first layouts.
+ ******************************************************************************/
+@import "compass";
+@import "breakpoint";
+@import "susy";
+
+// Susy Variables
+
+// Set consistent vertical and horizontal spacing units.
+$vert-spacing-unit: 20px;
+$horz-spacing-unit: 1em;
+
+// Define Susy grid variables mobile first.
+$susy: (
+  flow: ltr,
+  math: fluid,
+  output: float,
+  gutter-position: after,
+  container: 1200px,
+  container-position: center,
+  columns: 4,
+  gutters: 1/4,
+  column-width: 4em,
+  global-box-sizing: content-box,
+  last-flow: to,
+);
+
+// Susy Media Layouts @see http://susy.oddbird.net/guides/reference/#ref-media-layouts
+$tab: 44em; // At 44em,
+$tab-columns: 12; // use 12 columns.
+$desk: 70em; // At 70em,
+$desk-columns: 16; // use 16 columns.
+
+.l-header,
+.l-main,
+.l-footer {
+  @include container; // Define these elements as the grid containers.
+  margin-bottom: $vert-spacing-unit;
+}
+
+.l-region--highlighted,
+.l-region--help,
+.l-region--sidebar-first,
+.l-region--sidebar-second {
+  margin-bottom: $vert-spacing-unit;
+}
+
+@include susy-breakpoint($tab, $tab-columns) { // At a given Susy Media Layout, use a given amount of columns.
+  .l-header,
+  .l-main,
+  .l-footer {
+    max-width: container($tab-columns); // Set the max-width to the given column count.
+  }
+
+  .l-branding {
+    @include span(4 of $tab-columns); // Span 4 out of 12 columns.
+  }
+  .l-region--header{
+    @include span(last 8 of $tab-columns); // Span the last (omega) 8 columns of 12.
+  }
+  .l-region--navigation {
+    clear: both;
+  }
+
+  .has-sidebar-first,
+  .has-sidebar-second,
+  .has-two-sidebars {
+    .l-content {
+      @include span(8 of $tab-columns); // Span 8 out of 12 columns.
+    }
+    .l-region--sidebar-first,
+    .l-region--sidebar-second {
+      @include span(last 4 of $tab-columns); // Span the last (omega) 4 columns of 12.
+    }
+    .l-region--sidebar-second {
+      clear: right;
+    }
+  }
+}
+
+@include susy-breakpoint($desk, $desk-columns) {
+  .l-header,
+  .l-main,
+  .l-footer {
+    max-width: container($desk-columns); // Set the max-width to the given column count.
+  }
+
+  .l-branding {
+    @include span(6 of $desk-columns); // Span 6 out of 16 columns.
+  }
+  .l-region--header{
+    @include span(last 10 of $desk-columns); // Span the last (omega) 10 columns of 16.
+  }
+
+  .has-sidebar-first {
+    .l-content {
+      @include span(last 12 of $desk-columns); // Span the last (omega) 12 columns of 16.
+    }
+    .l-region--sidebar-first {
+      @include span(4 of $desk-columns); // Span 4 out of 16 columns.
+    }
+  }
+  .has-sidebar-second {
+    .l-content {
+      @include span(12 of $desk-columns); // Span 12 out of 16 columns.
+    }
+    .l-region--sidebar-second {
+      @include span(last 4 of $desk-columns); // Span the last (omega) 4 columns of 16.
+      clear: none;
+    }
+  }
+
+  .has-two-sidebars {
+    .l-content {
+      @include span(8 of $desk-columns); // Span 8 out of 16 columns.
+      @include push(4 of $desk-columns);  // Push element by adding 4 out of 16 columns of left margin.
+    }
+    .l-region--sidebar-first,
+    .l-region--sidebar-second {
+      @include span(4 of $desk-columns); // Span 4 out of 16 columns.
+    }
+    .l-region--sidebar-first {
+      @include pull(12 of $desk-columns); // Pull element by adding 12 out of 16 columns of negative left margin.
+    }
+    .l-region--sidebar-second {
+      @include last; // This element spans the last (omega) column.
+      clear: none;
+    }
+  }
+}

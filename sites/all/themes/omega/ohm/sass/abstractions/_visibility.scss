@@ -1,0 +1,63 @@
+%text-invisible {
+  @include squish-text;
+}
+
+// Hide elements from all users.//
+// Used for elements which should not be immediately displayed to any user. An
+// example would be a collapsible fieldset that will be expanded with a click
+// from a user. The effect of this class can be toggled with the jQuery show()
+// and hide() functions.
+@mixin element-hidden {
+  display: none;
+}
+
+%element-hidden {
+  @include element-hidden;
+}
+
+// Hide elements visually, but keep them available for screen-readers.
+//
+// Used for information required for screen-reader users to understand and use
+// the site where visual display is undesirable. Information provided in this
+// manner should be kept concise, to avoid unnecessary burden on the user.
+// "!important" is used to prevent unintentional overrides.
+@mixin element-invisible {
+  position: absolute !important;
+  clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+  clip: rect(1px, 1px, 1px, 1px);
+  overflow: hidden;
+  height: 1px;
+}
+
+%element-invisible {
+  @include element-invisible;
+}
+
+// Reverts 'element-invisible'.
+@mixin element-visible {
+  position: inherit !important;
+  clip: inherit;
+  overflow: inherit;
+  height: inherit;
+}
+
+%element-visible {
+  @include element-visible;
+}
+
+// The .element-focusable class extends the .element-invisible class to allow
+// the element to be focusable when navigated to via the keyboard.
+@mixin element-focusable {
+  &:active,
+  &:focus {
+    position: static !important;
+    clip: auto;
+    overflow: visible;
+    height: auto;
+  }
+}
+
+%element-focusable {
+  @include element-focusable;
+}
+

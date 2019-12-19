@@ -1,0 +1,30 @@
+/**
+ * @file
+ * Admin stylesheet for file module.
+ */
+
+/**
+ * Managed file element.
+ */
+.form-managed-file {
+  .progress-disabled {
+    float: none;
+    display: inline;
+  }
+
+  .ajax-progress,
+  .throbber {
+    float: none;
+  }
+
+  .ajax-progress-bar {
+    display: none;
+    width: 28em;
+    margin-top: 4px;
+    padding: 0;
+
+    .bar {
+      margin: 0;
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# This .gitignore file is only relevant for maintainers and contributors. As we
+# are not allowed to host any external libraries on d.o we had to integrate
+# Bower into our workflow. This means that we pull in the external libraries
+# only on demand. This is actually a nice feature, however, in order to not
+# disrupt the git workflow of our users (by adding an actual .gitignore entry
+# for the 'components' folder) we should instead add a .gitignore entry to our
+# global, personal .gitignore files (~/.gitingore) instead.
+ohm/components

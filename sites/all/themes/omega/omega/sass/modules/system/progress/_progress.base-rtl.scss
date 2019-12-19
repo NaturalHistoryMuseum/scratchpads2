@@ -1,0 +1,20 @@
+/**
+ * @file
+ * Right to left base styles for the progress behavior.
+ *
+ * @see progress.js
+ */
+
+/* Bar */
+.progress .percentage {
+  float: left;
+}
+.progress-disabled {
+  float: right;
+}
+.ajax-progress {
+  float: right;
+}
+.ajax-progress .throbber {
+  float: right;
+}

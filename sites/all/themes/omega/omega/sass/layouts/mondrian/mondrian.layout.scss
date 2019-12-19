@@ -1,0 +1,68 @@
+/*******************************************************************************
+ * mondrian.layout.scss
+ *
+ * Styling of the "mondrian" panels content layout.
+ ******************************************************************************/
+@import "compass";
+@import "breakpoint";
+@import "singularitygs";
+
+// Set consistent vertical and horizontal spacing units.
+$vert-spacing-unit: 20px;
+$horz-spacing-unit: 1em;
+
+// Set breakpoint values.
+$tab  : 700px;
+$desk : 1250px;
+
+// Set Singularity grid variables.
+$grids: 2;
+$grids: add-grid(1 2 1 at $desk);
+
+$gutters: 1/5;
+
+.panel-display--mondrian {
+  @include pie-clearfix;
+}
+
+.mondrian-region {
+  margin-bottom: $vert-spacing-unit;
+}
+
+.mondrian-region--tertiary-second {
+  @include grid-span(1, 1);
+}
+.mondrian-region--tertiary-third {
+  @include grid-span(1, 2);
+}
+
+@include breakpoint($tab) {
+  .mondrian-region--secondary,
+  .mondrian-region--tertiary-second {
+    @include grid-span(1, 1);
+    clear: left;
+  }
+  .mondrian-region--tertiary-first,
+  .mondrian-region--tertiary-third {
+    @include grid-span(1, 2);
+    clear: right;
+  }
+}
+
+@include breakpoint($desk, true) {
+  .mondrian-region--main {
+    @include grid-span(2, 1);
+  }
+  .mondrian-region--secondary {
+    @include grid-span(1, 3);
+  }
+  .mondrian-region--tertiary-first {
+    @include isolation-span(1, 2, left);
+  }
+  .mondrian-region--tertiary-second {
+    @include grid-span(1, 1);
+  }
+  .mondrian-region--tertiary-third {
+    @include isolation-span(1, 3, right);
+  }
+}

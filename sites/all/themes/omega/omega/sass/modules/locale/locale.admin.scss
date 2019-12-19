@@ -1,0 +1,29 @@
+/**
+ * @file
+ * Admin styles for the locale module.
+ */
+
+/* Untranslated locales. */
+.locale-untranslated {
+  font-style: normal;
+  text-decoration: line-through;
+}
+
+/* Translations 'exposed' filter form. */
+.locale-translation-filter-form {
+  .form-item-language,
+  .form-item-translation,
+  .form-item-group {
+    float: left; /* LTR */
+    padding-right: .8em; /* LTR */
+    margin: 0.1em;
+    width: 15em; /* Opera 9 Fix. */
+  }
+  .form-type-select select {
+    width: 100%;
+  }
+  .form-actions {
+    float: left; /* LTR */
+    padding: 3ex 0 0 1em; /* LTR */
+  }
+}

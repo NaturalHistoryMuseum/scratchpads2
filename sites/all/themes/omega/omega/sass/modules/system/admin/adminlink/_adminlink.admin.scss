@@ -1,0 +1,11 @@
+/**
+ * @file
+ * Administration styles for quick inline admin links.
+ */
+
+small .admin-link:before {
+  content: '[';
+}
+small .admin-link:after {
+  content: ']';
+}

@@ -1,0 +1,5 @@
+$breakpoint-no-queries: true;
+$breakpoint-no-query-fallbacks: true;
+
+// Re-import everything from divine.layout.scss but without media queries.
+@import "divine.layout";

@@ -1,0 +1,12 @@
+/**
+ * @file
+ * Right to left theme for for system messages.
+ */
+/* Message */
+.messages {
+  padding: 10px 50px 10px 10px;
+  background-position: 99% 8px;
+}
+.messages ul {
+  margin: 0 1em 0 0;
+}

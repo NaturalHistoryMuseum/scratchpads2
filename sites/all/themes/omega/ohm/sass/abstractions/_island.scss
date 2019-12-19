@@ -1,0 +1,23 @@
+/**
+ * $ISLAND
+ */
+%island,
+%islet {
+  display: block;
+  @include margin-trailer(1);
+  @include clearfix(true);
+
+  & > :last-child,
+  & > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+%island {
+  padding: $vert-spacing-unit $horz-spacing-unit;
+}
+
+%islet {
+  margin-bottom: $vert-spacing-unit / 2;
+  padding: ($vert-spacing-unit / 2) ($horz-spacing-unit / 2);
+}

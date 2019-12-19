@@ -1,0 +1,48 @@
+/**
+ * @file
+ * Stylesheet for the Field UI module.
+ */
+
+/**
+ *'Manage fields' and 'Manage display' overviews.
+ */
+.field-ui-overview {
+  /* Add New Row */
+  .add-new {
+    td {
+      vertical-align: top;
+    }
+    .label-input {
+      float: left; /* LTR */
+    }
+    .tabledrag-changed {
+      display: none;
+    }
+    .form-type-machine-name .description {
+      white-space: normal;
+    }
+  }
+
+  /* Hidden Messages */
+  .region-add-new-title {
+    display: none;
+  }
+  .region-populated {
+    display: none;
+  }
+}
+
+/**
+ * 'Manage display' overview
+ */
+.field-display-overview {
+  .field-formatter-settings-editing td {
+    vertical-align: top;
+  }
+  .field-formatter-settings-editing .field-formatter-type {
+    display: none;
+  }
+}
+.field-ui-display-overview-form #edit-refresh {
+  display:none;
+}

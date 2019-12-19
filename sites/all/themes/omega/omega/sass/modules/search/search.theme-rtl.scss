@@ -1,0 +1,27 @@
+/**
+ * @file
+ * Right to left search module theme.
+ */
+
+/**
+ * Search Results
+ */
+.search-result__snippet {
+  padding-left: 0;
+  padding-right: 1em;
+}
+
+/**
+ * Advanced Search Form
+ */
+.search-advanced {
+  .criterion {
+    float: right;
+    margin-right: 0;
+    margin-left: 2em;
+  }
+  .action {
+    float: right;
+    clear: right;
+  }
+}

@@ -1,0 +1,306 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-Regular.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-Regular.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-Italic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-Italic.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-Medium.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-Medium.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-MediumItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-MediumItalic.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-SemiBold.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-SemiBold.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-SemiBoldItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-SemiBoldItalic.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-Bold.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-Bold.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-BoldItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-BoldItalic.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-ExtraBold.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-ExtraBold.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-ExtraBoldItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-ExtraBoldItalic.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-Black.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-Black.woff?v=3.11") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../fonts/Inter/Inter-BlackItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-BlackItalic.woff?v=3.11") format("woff"); }
+
+.flex-row {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+          flex-direction: row; }
+
+.flex-column {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+          flex-direction: column; }
+
+.flex-reverse.flex-row {
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: reverse;
+          flex-direction: row-reverse; }
+
+.flex-reverse.flex-column {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: reverse;
+          flex-direction: column-reverse; }
+
+.flex-boxes-center.flex-row > * {
+  align-self: center; }
+
+.flex-boxes-center.flex-column > * {
+  vertical-align: center; }
+
+.flex-boxes-top {
+  -webkit-box-align: start;
+          align-items: flex-start; }
+  .flex-boxes-top > * {
+    align-self: flex-start; }
+
+.flex-boxes-end {
+  -webkit-box-align: end;
+          align-items: flex-end; }
+  .flex-boxes-end > * {
+    align-self: flex-end; }
+
+.flex-between {
+  -webkit-box-pack: justify;
+          justify-content: space-between; }
+
+.flex-around {
+  justify-content: space-around; }
+
+.flex-center {
+  -webkit-box-pack: center;
+          justify-content: center; }
+
+.flex-right {
+  -webkit-box-pack: end;
+          justify-content: flex-end; }
+  .flex-right > * {
+    align-self: flex-end; }
+
+.flex-left {
+  -webkit-box-pack: start;
+          justify-content: flex-start; }
+  .flex-left > * {
+    align-self: flex-start; }
+
+.flex-stretch-first:not(.flex-reverse) > *:first-child {
+  -webkit-box-flex: 1;
+          flex-grow: 1; }
+
+.flex-stretch-first.flex-reverse > *:last-child {
+  -webkit-box-flex: 1;
+          flex-grow: 1; }
+
+.flex-stretch-last:not(.flex-reverse) > *:last-child {
+  -webkit-box-flex: 1;
+          flex-grow: 1; }
+
+.flex-stretch-last.flex-reverse > *:first-child {
+  -webkit-box-flex: 1;
+          flex-grow: 1; }
+
+html, body {
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: #3E3E3E; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Inter", Arial, sans-serif !important;
+  font-weight: 500 !important; }
+
+h1 {
+  font-size: 2.6em;
+  line-height: 1.2em !important;
+  text-transform: none !important; }
+  h1 span {
+    font-size: 0.5em;
+    padding-left: 6px;
+    letter-spacing: normal; }
+
+h2 {
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 1.2em;
+  text-transform: uppercase; }
+
+h3 {
+  font-size: 1.6em;
+  margin: 10px 0 5px 0; }
+
+blockquote {
+  padding-left: 10px;
+  font-style: italic; }
+  blockquote em, blockquote i {
+    font-style: normal; }
+
+sub {
+  top: .5ex; }
+
+sup {
+  bottom: 1ex; }
+
+sub, sup {
+  height: 0;
+  vertical-align: baseline;
+  position: relative;
+  font-size: 0.9em; }
+
+.no-borders, .no-borders * {
+  border: none !important; }
+
+.pad-children-h > * {
+  padding-left: 10px;
+  padding-right: 10px; }
+
+.pad-children-v > * {
+  padding-top: 10px;
+  padding-bottom: 10px; }
+
+.l-page {
+  min-height: 100%;
+  position: relative;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+          flex-direction: column; }
+
+.l-branding {
+  padding: 10px 40px;
+  min-height: 150px; }
+
+h1.site-name {
+  font-size: 3.3em !important;
+  margin: 0; }
+  h1.site-name a {
+    color: #FFFFFF;
+    text-decoration: none; }
+
+h2.site-name {
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 2.6em !important;
+  line-height: 1.2em !important;
+  text-transform: none !important;
+  margin: 0; }
+
+.site-slogan {
+  color: #F1F4FB;
+  font-style: italic;
+  letter-spacing: normal;
+  font-size: 1.2em;
+  word-spacing: 0.1em;
+  margin: 8px 0 5px 0;
+  text-transform: none; }
+
+.scratchpads-search-block-input {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  grid-template-areas: 'searchbox button' 'options options';
+  grid-gap: 10px 20px; }
+  .scratchpads-search-block-input > * {
+    margin: 0;
+    padding: 0;
+    align-self: center; }
+  .scratchpads-search-block-input > .form-actions {
+    grid-area: button; }
+    .scratchpads-search-block-input > .form-actions input {
+      background: rgba(0, 0, 0, 0.3);
+      color: #FFFFFF;
+      border: none;
+      text-shadow: none;
+      padding: 7px 12px;
+      text-transform: uppercase;
+      font-weight: normal;
+      border-radius: 5px; }
+  .scratchpads-search-block-input > .form-type-textfield {
+    grid-area: searchbox; }
+    .scratchpads-search-block-input > .form-type-textfield > input {
+      max-width: 200px; }
+  .scratchpads-search-block-input > .form-type-radios {
+    grid-area: options;
+    padding-top: 0; }
+
+.l-content h2 {
+  color: #FFFFFF;
+  line-height: 1.1em;
+  padding: 7px 10px 9px 10px;
+  margin-bottom: 15px; }
+
+.l-content article header h2 {
+  margin-top: 35px; }
+
+.l-content .block {
+  margin-top: 10px;
+  margin-bottom: 25px; }
+
+.l-content .embeded_image_float_left {
+  float: left; }
+
+.l-content .embeded_image_float_right {
+  float: right; }
+
+/*# sourceMappingURL=scratchpads.styles.css.map */

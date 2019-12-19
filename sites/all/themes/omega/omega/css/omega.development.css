@@ -1,0 +1,40 @@
+.omega-browser-width {
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: url('../images/rgbapng/000000bf-5.png?1382488163');
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  font-family: 'Lucida Grande', 'Lucida Sans Unicode', sans-serif;
+  font-size: 13px;
+  color: #fff;
+  max-width: 100%;
+  margin: 5px;
+  padding: 5px 10px;
+}
+
+.region--debug {
+  background: url('../images/rgbapng/0000001a-5.png?1382488163');
+  background: rgba(0, 0, 0, 0.1);
+  position: relative;
+  min-height: 29px;
+  outline: 1px dashed #ccc;
+}
+.region--debug:before {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  background: url('../images/rgbapng/077dc3bf-5.png?1382488163');
+  background: rgba(7, 125, 195, 0.75);
+  font-family: 'Lucida Grande', 'Lucida Sans Unicode', sans-serif;
+  font-size: 11px;
+  z-index: 50;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  padding: 3px 6px;
+  color: #fff;
+}

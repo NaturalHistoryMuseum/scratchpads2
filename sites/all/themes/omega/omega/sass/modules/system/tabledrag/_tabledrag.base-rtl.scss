@@ -1,0 +1,21 @@
+/**
+ * @file
+ * Right to left base styling for the tabledrag behavior.
+ *
+ * @see tabledrag.js
+ */
+
+.draggable .tabledrag-handle {
+  float: right;
+  margin-left: 0;
+}
+.indentation {
+  float: right;
+}
+.tree-child,
+.tree-child-last {
+  background-position: -65px center;
+}
+.tabledrag-toggle-weight-wrapper {
+  text-align: left;
+}

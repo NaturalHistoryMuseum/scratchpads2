@@ -1,0 +1,30 @@
+/**
+ * @file
+ * Right to left administration styles for the appearance page.
+ */
+
+/**
+ * Disabled/Enabled Theme Lists
+ */
+
+/* Theme Selector Links */
+.theme-selector__operations {
+  li {
+    float: right;
+  }
+}
+
+/* Theme Selector Enabled State */
+.theme-selector--enabled {
+  .theme-selector__info {
+    float: left;
+  }
+  .theme-selector__screenshot {
+    float: right;
+  }
+}
+/* Theme Selector Disabled State */
+.theme-selector--disabled  {
+  float: right;
+  padding: 20px 20px 20px;
+}

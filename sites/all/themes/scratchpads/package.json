@@ -1,0 +1,16 @@
+{
+  "name": "scratchpads",
+  "version": "1.0.0",
+  "scripts": {
+    "sass:dev": "./node_modules/.bin/gulp",
+    "sass:prod": "./node_modules/.bin/gulp sass:prod"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^7.0.1",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-watch": "^4.3.3",
+    "node-sass": "^4.13.0"
+  }
+}

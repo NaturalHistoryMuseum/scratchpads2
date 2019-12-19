@@ -1,0 +1,18 @@
+/**
+ * @file
+ * Right to left admin styles for the locale module.
+ */
+
+.locale-translation-filter-form {
+  .form-item-language,
+  .form-item-translation,
+  .form-item-group {
+    float: right;
+    padding-left: .8em;
+    padding-right: 0;
+  }
+  .form-actions {
+    float: right;
+    padding: 3ex 1em 0 0;
+  }
+}

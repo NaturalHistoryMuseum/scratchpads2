@@ -1,0 +1,205 @@
+@import "variables/fonts";
+@import "variables/colours";
+@import "components/flex";
+
+// BASICS ==============================================================================================================
+
+html, body {
+  font-family: $body-font;
+  font-size: $font-size-body-md;
+  color: $grey2;
+}
+
+// TYPOGRAPHY ----------------------------------------------------------------------------------------------------------
+// base typography rules (can be overridden elsewhere)
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $title-font;
+  font-weight: 500 !important;
+}
+
+h1 {
+  font-size: $font-size-head-lg;
+  line-height: 1.2em !important;
+  text-transform: none !important;
+
+  // subtitle
+  & span {
+    font-size: 0.5em;
+    padding-left: 6px;
+    letter-spacing: normal;
+  }
+}
+
+h2 {
+  font-family: $body-font;
+  font-size: $font-size-body-lg;
+  text-transform: uppercase;
+}
+
+h3 {
+  font-size: $font-size-head-sm;
+  margin: 10px 0 5px 0;
+}
+
+blockquote {
+  padding-left: 10px;
+  font-style: italic;
+
+  & em, & i {
+    font-style: normal;
+  }
+}
+
+sub {
+  top: .5ex;
+}
+
+sup {
+  bottom: 1ex;
+}
+
+sub, sup {
+  height: 0;
+  vertical-align: baseline;
+  position: relative;
+  font-size: $font-size-body-sm;
+}
+
+// UTIL ----------------------------------------------------------------------------------------------------------------
+// basic classes that can be used on a wide variety of pages
+
+.no-borders, .no-borders * {
+  border: none !important;
+}
+
+.pad-children-h > * {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.pad-children-v > * {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+// LAYOUT ==============================================================================================================
+// PAGE ----------------------------------------------------------------------------------------------------------------
+
+.l-page {
+  min-height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+// BRANDING ------------------------------------------------------------------------------------------------------------
+
+.l-branding {
+  padding: 10px 40px;
+  min-height: 150px;
+}
+
+h1.site-name {
+  & a {
+    color: $grey11;
+    text-decoration: none;
+  }
+  font-size: $font-size-head-xl !important;
+  margin: 0;
+}
+
+h2.site-name {
+  font-family: $title-font;
+  font-size: $font-size-head-lg !important;
+  line-height: 1.2em !important;
+  text-transform: none !important;
+  margin: 0;
+}
+
+.site-slogan {
+  color: $grey10;
+  font-style: italic;
+  letter-spacing: normal;
+  font-size: 1.2em;
+  word-spacing: 0.1em;
+  margin: 8px 0 5px 0;
+  text-transform: none;
+}
+
+
+// HEADER --------------------------------------------------------------------------------------------------------------
+
+.scratchpads-search-block-input {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+          'searchbox button'
+          'options options';
+  grid-gap: 10px 20px;
+
+  & > * {
+    margin: 0;
+    padding: 0;
+    align-self: center;
+  }
+
+  & > .form-actions {
+    grid-area: button;
+
+    & input {
+      background: $grey0-alpha;
+      color: $grey11;
+      border: none;
+      text-shadow: none;
+      padding: 7px 12px;
+      text-transform: uppercase;
+      font-weight: normal;
+      border-radius: 5px;
+    }
+  }
+
+  & > .form-type-textfield {
+    grid-area: searchbox;
+    & > input {
+      max-width: 200px;
+    }
+  }
+
+  & > .form-type-radios {
+    grid-area: options;
+    padding-top: 0;
+  }
+}
+
+
+// CONTENT -------------------------------------------------------------------------------------------------------------
+
+.l-content {
+  & h2 {
+    color: $grey11;
+    line-height: 1.1em;
+    padding: 7px 10px 9px 10px;
+    margin-bottom: 15px;
+  }
+
+  // TODO
+  & article header h2 {
+    margin-top: 35px;
+  }
+
+  & .block {
+    margin-top: 10px;
+    margin-bottom: 25px;
+  }
+
+  // TODO
+  & .embeded_image_float_left {
+    float: left;
+  }
+
+  & .embeded_image_float_right {
+    float: right;
+  }
+}

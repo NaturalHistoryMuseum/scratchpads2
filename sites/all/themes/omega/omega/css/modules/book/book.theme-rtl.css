@@ -1,0 +1,17 @@
+/**
+ * @file
+ * Basic default book structural CSS for right to left languages.
+ */
+.book-navigation__previous {
+  float: right;
+  text-align: right;
+}
+
+.book-navigation__up {
+  float: right;
+}
+
+.book-navigation__next {
+  float: left;
+  text-align: left;
+}

@@ -1,0 +1,7 @@
+/**
+ * @file
+ * Aggregator theme CSS for right to left languages.
+ */
+.feed-source .feed-icon {
+  float: left;
+}

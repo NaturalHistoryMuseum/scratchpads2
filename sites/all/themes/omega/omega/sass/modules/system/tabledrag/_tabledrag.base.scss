@@ -1,0 +1,53 @@
+/**
+ * @file
+ * Base styling for the tabledrag behavior.
+ *
+ * @see tabledrag.js
+ */
+
+body.drag {
+  cursor: move;
+}
+/* Tabledrag Handle */
+.tabledrag-handle {
+  float: left; /* LTR */
+  overflow: hidden;
+  text-decoration: none;
+  cursor: move;
+  
+  .handle {
+    height: 15px;
+    width: 15px;
+    margin: -0.4em 0;
+    padding: 0.4em;
+    background: image-url('misc/draggable.png') no-repeat 6px 9px;
+  }
+  &:hover {
+    text-decoration: none;
+  }
+}
+.tabledrag-handle-hover .handle {
+  background-position: 6px -11px;
+}
+
+/* Indentation */
+.indentation {
+  float: left; /* LTR */
+  width: 20px;
+}
+
+/* Tree Images */
+.tree-child {
+  background: image-url('misc/tree.png') no-repeat 12px center; /* LTR */
+}
+.tree-child-last {
+  background: image-url('misc/tree-bottom.png') no-repeat 12px center; /* LTR */
+}
+.tree-child-horizontal {
+  background: image-url('misc/tree.png') no-repeat -12px center;
+}
+
+/* Toggle Weight Link */
+.tabledrag-toggle-weight-wrapper {
+  text-align: right; /* LTR */
+}

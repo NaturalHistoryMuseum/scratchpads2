@@ -1,0 +1,89 @@
+name = Ohm
+description = Omega based demonstration theme. Serves as a best-practice reference for the Omega documentation. Ohm will be constantly updated as best practice evolves so shouldn't be used in production.
+base theme = omega
+screenshot = screenshot.png
+engine = phptemplate
+core = 7.x
+
+; Stylesheets
+stylesheets[all][] = css/ohm.normalize.css
+stylesheets[all][] = css/ohm.hacks.css
+stylesheets[all][] = css/ohm.styles.css
+stylesheets[all][] = css/ohm.no-query.css
+
+; Regions
+regions[branding]       = Branding
+regions[navigation]     = Navigation bar
+regions[header]         = Header
+regions[hero]           = Hero
+regions[highlighted]    = Highlighted
+regions[help]           = Help
+regions[content]        = Content
+regions[sidebar_first]  = First sidebar
+regions[sidebar_second] = Second sidebar
+regions[footer]         = Footer
+
+; Layout Settings
+layout[hero][stylesheets][all][] = css/layouts/hero/ohm-hero.layout.css
+
+; Settings
+settings[toggle_logo] = 1
+settings[toggle_name] = 1
+settings[toggle_slogan] = 1
+settings[toggle_node_user_picture] = 1
+settings[toggle_comment_user_picture] = 1
+settings[toggle_comment_user_verification] = 1
+settings[toggle_favicon] = 1
+settings[toggle_main_menu] = 1
+settings[toggle_secondary_menu] = 1
+settings[omega_toggle_front_page_content] = 1
+settings[default_logo] = 1
+settings[logo_path] = ''
+settings[logo_upload] = ''
+settings[default_favicon] = 1
+settings[favicon_path] = ''
+settings[favicon_upload] = ''
+settings[omega_toggle_extension_assets] = 1
+settings[omega_libraries][selectivizr][status] = 0
+settings[omega_libraries][respond][status] = 0
+settings[omega_libraries][pie][status] = 0
+settings[omega_libraries][html5shiv][status] = 1
+settings[omega_libraries][messages][status] = 1
+settings[omega_toggle_extension_compatibility] = 1
+settings[omega_conditional_classes_html] = 1
+settings[omega_apple_touch] = 1
+settings[omega_cleartype] = 1
+settings[omega_handheld_friendly] = 1
+settings[omega_mobile_optimized] = 1
+settings[omega_viewport] = 1
+settings[omega_viewport_user_scaleable] = 1
+settings[omega_chrome_edge] = 1
+settings[omega_chrome_popup] = 0
+settings[omega_chrome_notice] = 0
+settings[omega_toggle_extension_layouts] = 1
+settings[omega_layout] = ohm-hero
+settings[omega_toggle_extension_development] = 1
+settings[omega_rebuild_theme_registry] = 0
+settings[omega_rebuild_aggregates] = 0
+settings[omega_browser_width_indicator] = 0
+settings[omega_livereload] = 1
+settings[omega_livereload_script] = http://localhost:35729/livereload.js
+settings[omega_livereload_host] = localhost
+settings[omega_livereload_port] = 35729
+settings[omega_demo_regions] = 1
+settings[omega_demo_regions_list][navigation] = navigation
+settings[omega_demo_regions_list][header] = header
+settings[omega_demo_regions_list][hero] = hero
+settings[omega_demo_regions_list][highlighted] = highlighted
+settings[omega_demo_regions_list][help] = help
+settings[omega_demo_regions_list][content] = content
+settings[omega_demo_regions_list][sidebar_first] = sidebar_first
+settings[omega_demo_regions_list][sidebar_second] = sidebar_second
+settings[omega_demo_regions_list][footer] = footer
+
+; Information added by Drupal.org packaging script on 2015-07-21
+version = "7.x-4.4"
+core = "7.x"
+project = "omega"
+datestamp = "1437473042"
+

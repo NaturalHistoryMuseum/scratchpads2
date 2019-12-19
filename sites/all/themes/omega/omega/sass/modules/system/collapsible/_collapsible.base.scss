@@ -1,0 +1,19 @@
+/**
+ * @file
+ * Base styles for collapsible fieldset functionality.
+ *
+ * @see collapse.js
+ */
+
+html.js fieldset.collapsed {
+  height: 1em;
+}
+html.js fieldset.collapsed .fieldset-wrapper {
+  display: none;
+}
+fieldset.collapsible {
+  position: relative;
+}
+fieldset.collapsible .fieldset-legend {
+  display: block;
+}

@@ -1,0 +1,23 @@
+/**
+ * $BREADCRUMB
+ */
+.breadcrumb {
+  @extend %hlist;
+
+  li {
+    padding-right: 0.4em;
+
+    &:after {
+      content: "»";
+      padding-left: 0.4em;
+      vertical-align: baseline;
+    }
+    &:last-child:after {
+      content: "";
+    }
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

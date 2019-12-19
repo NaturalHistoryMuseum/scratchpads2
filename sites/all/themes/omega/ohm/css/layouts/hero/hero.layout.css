@@ -1,0 +1,146 @@
+/*******************************************************************************
+ * hero.layout.scss
+ *
+ * Styles for the Hero layout.
+ ******************************************************************************/
+.l-constrained, .l-region--highlighted, .l-region--footer {
+  width: 95%;
+  margin: 0 auto;
+  *zoom: 1;
+}
+.l-constrained:after, .l-region--highlighted:after, .l-region--footer:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Header */
+.l-region--header {
+  padding: 18px 0;
+}
+.l-region--header .block {
+  float: right;
+}
+
+/* Content Area */
+.l-highlighted-wrapper {
+  padding: 18px 0;
+}
+
+.l-region--help {
+  margin-bottom: 18px;
+}
+
+.l-main {
+  margin-top: 36px;
+  margin-bottom: 36px;
+}
+
+/* Sidebars */
+.l-region--sidebar-first,
+.l-region--sidebar-second {
+  padding: 18px 1em;
+}
+
+/* Footer */
+.l-footer-wrapper {
+  padding: 18px 0;
+}
+
+@media (min-width: 44em) {
+  .l-constrained, .l-region--highlighted, .l-region--footer {
+    width: 90%;
+  }
+
+  /* Header */
+  .l-branding {
+    width: 23.40426%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0%;
+    clear: none;
+  }
+
+  .l-region--navigation {
+    width: 48.93617%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 25.53191%;
+    clear: none;
+  }
+
+  .l-region--header {
+    width: 23.40426%;
+    float: right;
+    margin-left: 0;
+    margin-right: 0;
+    clear: none;
+  }
+
+  /* Sidebars */
+  .has-two-sidebars .l-content,
+  .has-one-sidebar .l-content {
+    width: 65.95745%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0%;
+    clear: none;
+  }
+  .has-two-sidebars .l-region--sidebar-first,
+  .has-two-sidebars .l-region--sidebar-second,
+  .has-one-sidebar .l-region--sidebar-first,
+  .has-one-sidebar .l-region--sidebar-second {
+    width: 31.91489%;
+    float: right;
+    margin-left: 0;
+    margin-right: 0;
+    clear: none;
+    clear: right;
+  }
+}
+@media (min-width: 70em) {
+  .l-constrained, .l-region--highlighted, .l-region--footer {
+    width: 80%;
+  }
+
+  /* Sidebars */
+  .has-one-sidebar .l-content {
+    width: 65.95745%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0%;
+    clear: none;
+  }
+  .has-one-sidebar .l-region--sidebar-first {
+    width: 31.91489%;
+    float: right;
+    margin-left: 0;
+    margin-right: 0;
+    clear: none;
+    clear: none;
+  }
+
+  .has-two-sidebars .l-content {
+    width: 48.93617%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0%;
+    clear: none;
+  }
+  .has-two-sidebars .l-region--sidebar-first,
+  .has-two-sidebars .l-region--sidebar-second {
+    width: 23.40426%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 51.06383%;
+    clear: none;
+    clear: none;
+  }
+  .has-two-sidebars .l-region--sidebar-second {
+    width: 23.40426%;
+    float: right;
+    margin-left: 0;
+    margin-right: 0;
+    clear: none;
+  }
+}

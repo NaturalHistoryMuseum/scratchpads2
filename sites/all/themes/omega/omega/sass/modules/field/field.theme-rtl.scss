@@ -1,0 +1,14 @@
+/**
+ * @file
+ * Styling for contextual links behaviour and structure.
+ */
+
+/**
+ * Field display.
+ */
+.field--label-inline {
+  .field__label,
+  .field__items {
+    float: right;
+  }
+}

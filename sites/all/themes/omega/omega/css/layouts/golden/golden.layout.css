@@ -1,0 +1,69 @@
+/*******************************************************************************
+ * golden.layout.scss
+ *
+ * Styling of the "Golden" layout demonstrating the golden rule and asymmetric
+ * grids with Singularity.
+ ******************************************************************************/
+.panel-display--golden {
+  *zoom: 1;
+}
+.panel-display--golden:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.golden-region {
+  margin-bottom: 20px;
+}
+
+@media (min-width: 700px) {
+  .golden-region--first {
+    width: 15.25424%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: none;
+  }
+
+  .golden-region--second {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: both;
+  }
+
+  .golden-region--third {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 8.47458%;
+    clear: none;
+  }
+}
+@media (min-width: 1250px) {
+  .golden-region--first {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: none;
+  }
+
+  .golden-region--second {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 8.47458%;
+    clear: none;
+  }
+
+  .golden-region--third {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 16.94915%;
+    clear: none;
+  }
+}

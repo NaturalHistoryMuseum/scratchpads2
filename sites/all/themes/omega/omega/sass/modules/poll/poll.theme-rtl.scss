@@ -1,0 +1,15 @@
+/**
+ * @file
+ * Right to left theme for the poll voting form and results display.
+ */
+
+/* Poll Bars */
+.poll-bars__bar .foreground {
+  float: right;
+}
+.poll-bars__text {
+  text-align: right;
+}
+.poll-bars__percent {
+  text-align: left;
+}

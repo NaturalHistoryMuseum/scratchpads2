@@ -1,0 +1,8 @@
+/**
+ * @file
+ * Right-to-left comment module look and feel styling.
+ */
+.indented {
+  margin-left: 0;
+  margin-right: 25px;
+}

@@ -1,0 +1,138 @@
+/*******************************************************************************
+ * simple.layout.scss
+ *
+ * Styling of the "simple" layout demonstrating the Compass grid extension Susy
+ * and building mobile first layouts.
+ ******************************************************************************/
+.l-header,
+.l-main,
+.l-footer {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
+.l-header:after,
+.l-main:after,
+.l-footer:after {
+  content: " ";
+  display: block;
+  clear: both;
+}
+
+.l-region--highlighted,
+.l-region--help,
+.l-region--sidebar-first,
+.l-region--sidebar-second {
+  margin-bottom: 20px;
+}
+
+@media (min-width: 44em) {
+  .l-header,
+  .l-main,
+  .l-footer {
+    max-width: 1200px;
+  }
+
+  .l-branding {
+    width: 32.20339%;
+    float: left;
+    margin-right: 1.69492%;
+  }
+
+  .l-region--header {
+    width: 66.10169%;
+    float: right;
+    margin-right: 0;
+  }
+
+  .l-region--navigation {
+    clear: both;
+  }
+
+  .has-sidebar-first .l-content,
+  .has-sidebar-second .l-content,
+  .has-two-sidebars .l-content {
+    width: 66.10169%;
+    float: left;
+    margin-right: 1.69492%;
+  }
+  .has-sidebar-first .l-region--sidebar-first,
+  .has-sidebar-first .l-region--sidebar-second,
+  .has-sidebar-second .l-region--sidebar-first,
+  .has-sidebar-second .l-region--sidebar-second,
+  .has-two-sidebars .l-region--sidebar-first,
+  .has-two-sidebars .l-region--sidebar-second {
+    width: 32.20339%;
+    float: right;
+    margin-right: 0;
+  }
+  .has-sidebar-first .l-region--sidebar-second,
+  .has-sidebar-second .l-region--sidebar-second,
+  .has-two-sidebars .l-region--sidebar-second {
+    clear: right;
+  }
+}
+@media (min-width: 70em) {
+  .l-header,
+  .l-main,
+  .l-footer {
+    max-width: 1200px;
+  }
+
+  .l-branding {
+    width: 36.70886%;
+    float: left;
+    margin-right: 1.26582%;
+  }
+
+  .l-region--header {
+    width: 62.02532%;
+    float: right;
+    margin-right: 0;
+  }
+
+  .has-sidebar-first .l-content {
+    width: 74.68354%;
+    float: right;
+    margin-right: 0;
+  }
+  .has-sidebar-first .l-region--sidebar-first {
+    width: 24.05063%;
+    float: left;
+    margin-right: 1.26582%;
+  }
+
+  .has-sidebar-second .l-content {
+    width: 74.68354%;
+    float: left;
+    margin-right: 1.26582%;
+  }
+  .has-sidebar-second .l-region--sidebar-second {
+    width: 24.05063%;
+    float: right;
+    margin-right: 0;
+    clear: none;
+  }
+
+  .has-two-sidebars .l-content {
+    width: 49.36709%;
+    float: left;
+    margin-right: 1.26582%;
+    margin-left: 25.31646%;
+  }
+  .has-two-sidebars .l-region--sidebar-first,
+  .has-two-sidebars .l-region--sidebar-second {
+    width: 24.05063%;
+    float: left;
+    margin-right: 1.26582%;
+  }
+  .has-two-sidebars .l-region--sidebar-first {
+    margin-left: -75.94937%;
+  }
+  .has-two-sidebars .l-region--sidebar-second {
+    float: right;
+    margin-right: 0;
+    clear: none;
+  }
+}

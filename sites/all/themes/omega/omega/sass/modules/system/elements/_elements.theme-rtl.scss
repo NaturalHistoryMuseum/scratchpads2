@@ -1,0 +1,11 @@
+/**
+ * @file
+ * Basic right to left styling for common HTML elements.
+ */
+
+/* Tables */
+th {
+  padding-left: 1em;
+  padding-right: 0;
+  text-align: right;
+}

@@ -1,0 +1,29 @@
+/**
+ * @file
+ * Basic theming for the book navigation component.
+ */
+.book-navigation__previous {
+  float: left;
+  /* LTR */
+  display: block;
+  width: 45%;
+  text-align: left;
+  /* LTR */
+}
+
+.book-navigation__up {
+  float: left;
+  /* LTR */
+  display: block;
+  width: 10%;
+  text-align: center;
+}
+
+.book-navigation__next {
+  float: right;
+  /* LTR */
+  display: block;
+  width: 45%;
+  text-align: right;
+  /* LTR */
+}

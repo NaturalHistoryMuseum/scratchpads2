@@ -1,0 +1,30 @@
+/**
+ * @file
+ * Administration styles for the administration panels.
+ */
+
+/* Admin Panels */
+.admin-panel {
+  .admin-panel__body {
+    padding-left: 1em; /* LTR */
+  }
+}
+
+/* Admin Panel Page Layout */
+.admin {
+  padding-top: 15px;
+
+  .left {
+    float: left; /* LTR */
+    width: 47%;
+  }
+  .right {
+    float: right; /* LTR */
+    width: 47%;
+  }
+  .expert-link {
+    margin-right: 1em; /* LTR */
+    padding-right: 4px; /* LTR */
+    text-align: right; /* LTR */
+  }
+}

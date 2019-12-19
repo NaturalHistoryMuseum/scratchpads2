@@ -1,0 +1,49 @@
+/**
+ * @file
+ * Styling for the filter module.
+ */
+/**
+ * Top Level Wrapper
+ * Contains the form item being filtered, the filter format form item and
+ * formatting guidelines.
+ */
+.text-format-wrapper .form-item {
+  margin-bottom: 0;
+}
+.text-format-wrapper .description {
+  margin-top: 0.5em;
+}
+
+/* Filter Format Wrapper. */
+.filter-wrapper {
+  border-top: 0;
+  margin: 0;
+}
+.filter-wrapper .form-item {
+  float: left;
+  padding: 0 0 0.5em 1.5em;
+}
+.filter-wrapper .form-item label {
+  display: inline;
+}
+
+/* More Information Link. */
+.filter-help {
+  float: right;
+  padding: 0 1.5em 0.5em;
+}
+.filter-help a {
+  background: transparent url('../../../images/misc/help.png?1382488163') right center no-repeat;
+  padding: 0 20px;
+}
+
+/* Filter Guidelines */
+.filter-guidelines {
+  clear: left;
+  padding: 0 1.5em;
+}
+
+/* Filter formatting tips. */
+.tips {
+  font-size: 0.9em;
+}

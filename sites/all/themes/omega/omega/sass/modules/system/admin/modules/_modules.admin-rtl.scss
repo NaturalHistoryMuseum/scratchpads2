@@ -1,0 +1,25 @@
+/**
+ * @file
+ * Right to left administration styles for the modules table.
+ */
+
+/* Module Operation Links */
+.module-link {
+  padding: 1px 20px 1px 0;
+}
+.module-link-help {
+  background: image-url('misc/help.png') 0 50% no-repeat; /* LTR */
+}
+.module-link-permissions {
+  background: image-url('misc/permissions.png') 0 50% no-repeat; /* LTR */
+}
+.module-link-configure {
+  background: image-url('misc/configure.png') 0 50% no-repeat; /* LTR */
+}
+
+/* Module Help */
+.module-help {
+  float: left;
+  margin-left: 0;
+  margin-right: 1em;
+}

@@ -1,0 +1,273 @@
+/**
+ * @file
+ * System wide administration styles.
+ */
+/**
+ * @file
+ * Administration styles for quick inline admin links.
+ */
+small .admin-link:before {
+  content: '[';
+}
+
+small .admin-link:after {
+  content: ']';
+}
+
+/**
+ * @file
+ * Administration styles for the administration panels.
+ */
+/* Admin Panels */
+.admin-panel .admin-panel__body {
+  padding-left: 1em;
+  /* LTR */
+}
+
+/* Admin Panel Page Layout */
+.admin {
+  padding-top: 15px;
+}
+.admin .left {
+  float: left;
+  /* LTR */
+  width: 47%;
+}
+.admin .right {
+  float: right;
+  /* LTR */
+  width: 47%;
+}
+.admin .expert-link {
+  margin-right: 1em;
+  /* LTR */
+  padding-right: 4px;
+  /* LTR */
+  text-align: right;
+  /* LTR */
+}
+
+/**
+ * @file
+ * Administration styles for the appearance page.
+ */
+/**
+ * Disabled/Enabled Theme Lists
+ */
+.system-themes-list {
+  margin-bottom: 20px;
+}
+.system-themes-list h2 {
+  margin: 0;
+}
+
+.system-themes-list--disabled {
+  padding-top: 20px;
+  border-top: 1px solid #cdcdcd;
+}
+
+/**
+ * Theme Selector
+ */
+.theme-selector {
+  padding-top: 20px;
+}
+.theme-selector h3 {
+  font-weight: normal;
+}
+
+/* Theme Selector Screenshot */
+.theme-selector__screenshot {
+  padding: 2px;
+  width: 294px;
+  height: 219px;
+  border: 1px solid #e0e0d8;
+  line-height: 219px;
+  text-align: center;
+}
+
+/* Theme Selector Incompatible Message */
+.theme-selector__incompatible {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Theme Selector Links */
+.theme-selector__operations {
+  margin: 10px 0 0 0;
+  padding: 0;
+}
+.theme-selector__operations li {
+  float: left;
+  /* LTR */
+  margin: 0 1em 0 0;
+  list-style-type: none;
+}
+
+/* Theme Selector Default State */
+.theme-selector--default h3 {
+  font-weight: bold;
+}
+.theme-selector--default .theme-selector__screenshot {
+  border: 1px solid #aaa;
+}
+
+/* Theme Selector Enabled State */
+.theme-selector--enabled {
+  width: 820px;
+}
+.theme-selector--enabled .theme-selector__info {
+  float: right;
+  /* LTR */
+  width: 500px;
+}
+.theme-selector--enabled h3 {
+  margin-top: 0;
+}
+.theme-selector--enabled .theme-selector__screenshot {
+  float: left;
+  /* LTR */
+}
+
+/* Theme Selector Disabled State */
+.theme-selector--disabled {
+  float: left;
+  /* LTR */
+  width: 300px;
+  padding: 20px 20px 20px 0;
+  /* LTR */
+}
+.theme-selector--disabled .theme-selector__info {
+  min-height: 170px;
+}
+.theme-selector--disabled .theme-selector__screenshot {
+  width: 194px;
+  height: 144px;
+  line-height: 144px;
+}
+
+/**
+ * Admin Theme Selector Form
+ */
+.system-themes-admin-form {
+  clear: left;
+}
+
+/**
+ * @file
+ * Administration styles for compact links.
+ */
+.compact-link {
+  margin: 0 0 0.5em 0;
+}
+
+/**
+ * @file
+ * Administration styles for the modules table and help.
+ */
+/* Module State Flags */
+.admin-disabled {
+  color: #800;
+}
+
+.admin-enabled {
+  color: #080;
+}
+
+.admin-missing {
+  color: #f00;
+}
+
+/* Incompatible Modules */
+.incompatible {
+  font-weight: bold;
+}
+
+/* Module Requirements */
+.admin-requirements,
+.admin-required {
+  font-size: 0.9em;
+  color: #444;
+}
+
+/* Module Operation Links */
+.module-link {
+  display: block;
+  padding: 1px 0 1px 20px;
+  /* LTR */
+  white-space: nowrap;
+}
+
+.module-link-help {
+  background: url('../../../images/misc/help.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+.module-link-permissions {
+  background: url('../../../images/misc/permissions.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+.module-link-configure {
+  background: url('../../../images/misc/configure.png?1382488163') 0 50% no-repeat;
+  /* LTR */
+}
+
+/* Module Help */
+.module-help {
+  float: right;
+  /* LTR */
+  margin-left: 1em;
+  /* LTR */
+}
+
+/**
+ * @file
+ * Administration styles for the system status report.
+ */
+/* Status Icons */
+.system-status-report .status-icon {
+  height: 16px;
+  width: 16px;
+  background-repeat: no-repeat;
+}
+.system-status-report .error .status-icon {
+  background-image: url('../../../images/misc/message-16-error.png?1382488163');
+}
+.system-status-report .warning .status-icon {
+  background-image: url('../../../images/misc/message-16-warning.png?1382488163');
+}
+
+/* Merge Cells */
+.merge-down,
+.merge-down td {
+  border-bottom-width: 0 !important;
+}
+
+.merge-up,
+.merge-up td {
+  border-top-width: 0 !important;
+}
+
+.merge-up td {
+  padding: 0 6px 8px 28px;
+  /* LTR */
+}
+
+/**
+ * @file
+ * Administration styles for the theme settings.
+ */
+.theme-settings-left {
+  float: left;
+  width: 49%;
+}
+
+.theme-settings-right {
+  float: right;
+  width: 49%;
+}
+
+.theme-settings-bottom {
+  clear: both;
+}

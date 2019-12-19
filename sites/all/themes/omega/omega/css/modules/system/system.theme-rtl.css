@@ -1,0 +1,39 @@
+/**
+ * @file
+ * Right to left system wide theme styles.
+ */
+/**
+ * @file
+ * Basic right to left styling for common HTML elements.
+ */
+/* Tables */
+th {
+  padding-left: 1em;
+  padding-right: 0;
+  text-align: right;
+}
+
+/**
+ * @file
+ * Right to left theme for collapsible fieldsets.
+ *
+ * @see collapse.js
+ */
+html.js fieldset.collapsible .fieldset-legend {
+  padding-left: 0;
+  padding-right: 15px;
+  background-position: 98% 75%;
+}
+
+html.js fieldset.collapsed .fieldset-legend {
+  background-image: url('../../../images/misc/menu-collapsed-rtl.png?1382488163');
+  background-position: 98% 50%;
+}
+
+/**
+ * @file
+ * Right to left theme for the more link.
+ */
+.more-link {
+  text-align: left;
+}

@@ -1,0 +1,43 @@
+/**
+ * @file
+ * Theme for the poll voting form and results display.
+ */
+/**
+ * Poll Results
+ */
+/* Poll Bars */
+.poll-bars__bar {
+  height: 1em;
+  margin: 1px 0;
+  background-color: #ddd;
+}
+.poll-bars__bar .foreground {
+  height: 1em;
+  float: left;
+  /* LTR */
+  background-color: #000;
+}
+
+.poll-bars__percent {
+  text-align: right;
+  /* LTR */
+}
+
+/* Poll Total */
+.poll-results__total {
+  text-align: center;
+}
+
+/**
+ * Poll Voting Form
+ */
+.poll-vote-form {
+  text-align: center;
+}
+
+.poll-vote-form__choices {
+  display: table;
+  margin: 0 auto;
+  text-align: left;
+  /* LTR */
+}

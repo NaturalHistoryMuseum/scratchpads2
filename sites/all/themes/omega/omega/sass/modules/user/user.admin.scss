@@ -1,0 +1,34 @@
+/**
+ * @file
+ * Administrative styling for the user module.
+ */
+/**
+ * User Permissions Page
+ */
+.user-admin-permissions {
+  .module {
+    font-weight: bold;
+  }
+  .permission {
+    padding-left: 1.5em; /* LTR */
+  }
+  .form-item {
+    white-space: normal;
+  }
+}
+
+/**
+ * User Roles Page
+ *
+ * Override default textfield float to put the "Add role" button next to
+ * the input textfield.
+ */
+.user-admin-roles {
+  .edit-name {
+    clear: both;
+  }
+  .form-item-name {
+    float: left; /* LTR */
+    margin-right: 1em; /* LTR */
+  }
+}

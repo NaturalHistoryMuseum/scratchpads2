@@ -1,232 +1,41 @@
-name = 'Scratchpads'
+name = Scratchpads
 description = ''
-core = '7.x'
-engine = 'phptemplate'
-screenshot = 'screenshot.png'
-base theme = 'omega'
-regions[page_top] = 'Page Top'
-regions[page_bottom] = 'Page Bottom'
-regions[slide_top] = 'Slide Top'
-regions[content] = 'Main content'
-regions[sidebar] = 'Sidebar'
-regions[footer] = 'Footer'
-regions[slide_bottom] = 'Slide Bottom'
+base theme = omega
+screenshot = screenshot.png
+engine = phptemplate
+core = 7.x
 
-zones[slide_top] = 'Slide top'
-zones[header] = 'Header'
-zones[content] = 'Content'
-zones[footer] = 'Footer'
-zones[slide_bottom] = 'Slide bottom'
+; ========================================
+; Stylesheets
+; ========================================
+stylesheets[all][] = css/scratchpads.reset.css
+stylesheets[all][] = css/scratchpads.styles.css
 
-; Header zone regions
-regions[branding] = 'Branding'
-regions[menu] = 'Menu'
-regions[secondary_menu] = 'Menu'
-regions[header] = 'Header'
+; ========================================
+; Scripts
+; ========================================
+scripts[] = js/scratchpads.behaviors.js
 
-; CSS
-css[global.css][name] = 'Scratchpad styles'
-css[global.css][options][weight] = '10'
-css[omega-visuals.css][name] = 'Scratchpad overide of omega visual styles'
-css[omega-visuals.css][options][weight] = '10'
+; ========================================
+; Regions
+; ========================================
+regions[page_top] = Page Top
+regions[page_bottom] = Page Bottom
+regions[slide_top] = Slide Top
+regions[content] = Main Content
+regions[sidebar] = Sidebar
+regions[footer] = Footer
+regions[slide_bottom] = Slide Bottom
+regions[branding] = Branding
+regions[menu] = Menu
+regions[secondary_menu] = Menu
+regions[header] = Header
 
-
-stylesheets[all][] = css/tabs.css
-stylesheets[all][] = css/sites.css
-
-
-
-; JS
-scripts[] = js/scratchpads.js
-
-; Views
-api[views][views_template][version] = '3'
-api[views][views_template][path] = 'templates'
-
-; Global settings
-settings[default_logo] = 0
-;settings[toggle_logo] = 0
-; Omega settings
-
-settings[alpha_grid] = 'alpha_default'
-settings[alpha_primary_alpha_default] = 'normal'
-settings[alpha_responsive] = '1'
-settings[alpha_layouts_alpha_fluid_primary] = 'normal'
-settings[alpha_layouts_alpha_fluid_normal_responsive] = '0'
-settings[alpha_layouts_alpha_fluid_normal_media] = 'all and (min-width: 740px) and (min-device-width: 740px), (max-device-width: 800px) and (min-width: 740px) and (orientation:landscape)'
-settings[alpha_layouts_alpha_default_primary] = 'normal'
-settings[alpha_layouts_alpha_default_fluid_responsive] = '0'
-settings[alpha_layouts_alpha_default_fluid_media] = 'all and (min-width: 740px) and (min-device-width: 740px), (max-device-width: 800px) and (min-width: 740px) and (orientation:landscape)'
-settings[alpha_layouts_alpha_default_fluid_weight] = '0'
-settings[alpha_layouts_alpha_default_narrow_responsive] = '1'
-settings[alpha_layouts_alpha_default_narrow_media] = 'all and (min-width: 740px) and (min-device-width: 740px), (max-device-width: 800px) and (min-width: 740px) and (orientation:landscape)'
-settings[alpha_layouts_alpha_default_narrow_weight] = '1'
-settings[alpha_layouts_alpha_default_normal_responsive] = '1'
-settings[alpha_layouts_alpha_default_normal_media] = 'all and (min-width: 980px) and (min-device-width: 980px), all and (max-device-width: 1024px) and (min-width: 1024px) and (orientation:landscape)'
-settings[alpha_layouts_alpha_default_normal_weight] = '2'
-settings[alpha_layouts_alpha_default_wide_responsive] = '1'
-settings[alpha_layouts_alpha_default_wide_media] = 'all and (min-width: 1220px)'
-settings[alpha_layouts_alpha_default_wide_weight] = '3'
-settings[alpha_viewport] = '1'
-settings[alpha_viewport_initial_scale] = '1'
-settings[alpha_viewport_min_scale] = '1'
-settings[alpha_viewport_max_scale] = '1'
-settings[alpha_viewport_user_scaleable] = ''
-settings[alpha_libraries][omega_formalize] = 'omega_formalize'
-settings[alpha_libraries][omega_equalheights] = ''
-settings[alpha_libraries][omega_mediaqueries] = 'omega_mediaqueries'
-settings[alpha_css][alpha-reset.css] = 'alpha-reset.css'
-settings[alpha_css][alpha-mobile.css] = 'alpha-mobile.css'
-settings[alpha_css][alpha-alpha.css] = 'alpha-alpha.css'
-settings[alpha_css][omega-text.css] = 'omega-text.css'
-settings[alpha_css][omega-branding.css] = 'omega-branding.css'
-settings[alpha_css][omega-menu.css] = 'omega-menu.css'
-settings[alpha_css][omega-forms.css] = 'omega-forms.css'
-;settings[alpha_css][omega-visuals.css] = 'omega-visuals.css'
-settings[alpha_css][global.css] = 'global.css'
-settings[alpha_debug_block_toggle] = '0'
-settings[alpha_debug_block_active] = '0'
-settings[alpha_debug_grid_toggle] = '0'
-settings[alpha_debug_grid_active] = '0'
-settings[alpha_debug_grid_roles][] = '1'
-settings[alpha_debug_grid_roles][] = '2'
-settings[alpha_debug_grid_roles][] = '3'
-settings[alpha_toggle_messages] = '1'
-settings[alpha_toggle_action_links] = '1'
-settings[alpha_toggle_tabs] = '1'
-settings[alpha_toggle_breadcrumb] = '1'
-settings[alpha_toggle_page_title] = '1'
-settings[alpha_toggle_feed_icons] = '1'
-settings[alpha_hidden_title] = ''
-settings[alpha_hidden_site_name] = ''
-settings[alpha_hidden_site_slogan] = ''
-
-settings[alpha_zone_slide_top_equal_height_container] = ''
-settings[alpha_zone_slide_top_wrapper] = '1'
-settings[alpha_zone_slide_top_force] = ''
-settings[alpha_zone_slide_top_section] = 'header'
-settings[alpha_zone_slide_top_weight] = '1'
-settings[alpha_zone_slide_top_columns] = '12'
-settings[alpha_zone_slide_top_primary] = ''
-settings[alpha_zone_slide_top_css] = ''
-settings[alpha_zone_slide_top_wrapper_css] = ''
-
-settings[alpha_zone_header_equal_height_container] = ''
-settings[alpha_zone_header_wrapper] = '1'
-settings[alpha_zone_header_force] = ''
-settings[alpha_zone_header_section] = 'header'
-settings[alpha_zone_header_weight] = '2'
-settings[alpha_zone_header_columns] = '12'
-settings[alpha_zone_header_primary] = ''
-settings[alpha_zone_header_css] = ''
-settings[alpha_zone_header_wrapper_css] = ''
-
-settings[alpha_zone_content_wrapper] = ''
-settings[alpha_zone_content_force] = ''
-settings[alpha_zone_content_section] = 'content'
-settings[alpha_zone_content_weight] = '3'
-settings[alpha_zone_content_columns] = '12'
-settings[alpha_zone_content_primary] = 'content'
-settings[alpha_zone_content_css] = ''
-settings[alpha_zone_content_wrapper_css] = ''
-
-settings[alpha_zone_footer_equal_height_container] = ''
-settings[alpha_zone_footer_wrapper] = '1'
-settings[alpha_zone_footer_force] = ''
-settings[alpha_zone_footer_section] = 'footer'
-settings[alpha_zone_footer_weight] = '4'
-settings[alpha_zone_footer_columns] = '12'
-settings[alpha_zone_footer_primary] = ''
-settings[alpha_zone_footer_css] = ''
-settings[alpha_zone_footer_wrapper_css] = ''
-
-settings[alpha_zone_slide_bottom_equal_height_container] = ''
-settings[alpha_zone_slide_bottom_wrapper] = '1'
-settings[alpha_zone_slide_bottom_force] = ''
-settings[alpha_zone_slide_bottom_section] = 'footer'
-settings[alpha_zone_slide_bottom_weight] = '5'
-settings[alpha_zone_slide_bottom_columns] = '12'
-settings[alpha_zone_slide_bottom_primary] = ''
-settings[alpha_zone_slide_bottom_css] = ''
-settings[alpha_zone_slide_bottom_wrapper_css] = ''
-; Region
-
-settings[alpha_region_slide_top_force] = '1'
-settings[alpha_region_slide_top_zone] = 'slide_top'
-settings[alpha_region_slide_top_prefix] = ''
-settings[alpha_region_slide_top_columns] = '12'
-settings[alpha_region_slide_top_suffix] = ''
-settings[alpha_region_slide_top_weight] = '1'
-settings[alpha_region_slide_top_css] = ''
-
-settings[alpha_region_secondary_menu_force] = '1'
-settings[alpha_region_secondary_menu_zone] = 'header'
-settings[alpha_region_secondary_menu_prefix] = ''
-settings[alpha_region_secondary_menu_columns] = '12'
-settings[alpha_region_secondary_menu_suffix] = ''
-settings[alpha_region_secondary_menu_weight] = '1'
-settings[alpha_region_secondary_menu_css] = ''
-
-settings[alpha_region_branding_force] = '1'
-settings[alpha_region_branding_zone] = 'header'
-settings[alpha_region_branding_prefix] = ''
-settings[alpha_region_branding_columns] = '8'
-settings[alpha_region_branding_suffix] = ''
-settings[alpha_region_branding_weight] = '2'
-settings[alpha_region_branding_css] = ''
-
-settings[alpha_region_header_force] = '1'
-settings[alpha_region_header_zone] = 'header'
-settings[alpha_region_header_prefix] = ''
-settings[alpha_region_header_columns] = '4'
-settings[alpha_region_header_suffix] = ''
-settings[alpha_region_header_weight] = '3'
-settings[alpha_region_header_css] = ''
-
-settings[alpha_region_menu_force] = '1'
-settings[alpha_region_menu_zone] = 'header'
-settings[alpha_region_menu_prefix] = ''
-settings[alpha_region_menu_columns] = '12'
-settings[alpha_region_menu_suffix] = ''
-settings[alpha_region_menu_weight] = '4'
-settings[alpha_region_menu_css] = ''
-
-settings[alpha_region_sidebar_equal_height_container] = ''
-settings[alpha_region_sidebar_equal_height_element] = ''
-settings[alpha_region_sidebar_force] = '0'
-settings[alpha_region_sidebar_zone] = 'content'
-settings[alpha_region_sidebar_prefix] = ''
-settings[alpha_region_sidebar_columns] = '4'
-settings[alpha_region_sidebar_suffix] = ''
-settings[alpha_region_sidebar_weight] = '1'
-settings[alpha_region_sidebar_css] = ''
-
-settings[alpha_region_content_equal_height_container] = ''
-settings[alpha_region_content_equal_height_element] = ''
-settings[alpha_region_content_force] = ''
-settings[alpha_region_content_zone] = 'content'
-settings[alpha_region_content_prefix] = ''
-settings[alpha_region_content_columns] = '8'
-settings[alpha_region_content_suffix] = ''
-settings[alpha_region_content_weight] = '2'
-settings[alpha_region_content_css] = ''
-
-settings[alpha_region_footer_equal_height_container] = ''
-settings[alpha_region_footer_equal_height_element] = ''
-settings[alpha_region_footer_force] = ''
-settings[alpha_region_footer_zone] = 'footer'
-settings[alpha_region_footer_prefix] = ''
-settings[alpha_region_footer_columns] = '12'
-settings[alpha_region_footer_suffix] = ''
-settings[alpha_region_footer_weight] = '2'
-settings[alpha_region_footer_css] = ''
-
-settings[alpha_region_slide_bottom_force] = '1'
-settings[alpha_region_slide_bottom_zone] = 'slide_bottom'
-settings[alpha_region_slide_bottom_prefix] = ''
-settings[alpha_region_slide_bottom_columns] = '12'
-settings[alpha_region_slide_bottom_suffix] = ''
-settings[alpha_region_slide_bottom_weight] = '10'
-settings[alpha_region_slide_bottom_css] = ''
-
-version = '2.x'
+; ========================================
+; Zones
+; ========================================
+;zones[slide_top] = 'Slide top'
+;zones[header] = 'Header'
+;zones[content] = 'Content'
+;zones[footer] = 'Footer'
+;zones[slide_bottom] = 'Slide bottom'

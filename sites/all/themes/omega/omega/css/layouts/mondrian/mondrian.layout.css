@@ -1,0 +1,96 @@
+/*******************************************************************************
+ * mondrian.layout.scss
+ *
+ * Styling of the "mondrian" panels content layout.
+ ******************************************************************************/
+.panel-display--mondrian {
+  *zoom: 1;
+}
+.panel-display--mondrian:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.mondrian-region {
+  margin-bottom: 20px;
+}
+
+.mondrian-region--tertiary-second {
+  width: 6.77966%;
+  float: left;
+  margin-right: -100%;
+  margin-left: 0;
+  clear: none;
+}
+
+.mondrian-region--tertiary-third {
+  width: 6.77966%;
+  float: left;
+  margin-right: -100%;
+  margin-left: 8.47458%;
+  clear: none;
+}
+
+@media (min-width: 700px) {
+  .mondrian-region--secondary,
+  .mondrian-region--tertiary-second {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: none;
+    clear: left;
+  }
+
+  .mondrian-region--tertiary-first,
+  .mondrian-region--tertiary-third {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 8.47458%;
+    clear: none;
+    clear: right;
+  }
+}
+@media (min-width: 1250px) {
+  .mondrian-region--main {
+    width: 15.25424%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: none;
+  }
+
+  .mondrian-region--secondary {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 16.94915%;
+    clear: none;
+  }
+
+  .mondrian-region--tertiary-first {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 8.47458%;
+    clear: left;
+  }
+
+  .mondrian-region--tertiary-second {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 0;
+    clear: none;
+  }
+
+  .mondrian-region--tertiary-third {
+    width: 6.77966%;
+    float: left;
+    margin-right: -100%;
+    margin-left: 16.94915%;
+    clear: right;
+  }
+}
