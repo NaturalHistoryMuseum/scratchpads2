@@ -46,7 +46,11 @@ function scratchpads_species_menu_alter(&$items){
   $items['taxonomy/term/%taxonomy_term/view']['title arguments'] = array(
     2
   );
+  $items['taxonomy/term/%taxonomy_term']['access callback'] = 'scratchpads_species_access_callback';
+  $items['taxonomy/term/%taxonomy_term']['access arguments'] = array(2, 'default');
   $items['taxonomy/term/%taxonomy_term']['page callback'] = 'scratchpads_species_term_page';
+  $items['taxonomy/term/%taxonomy_term']['page arguments'] = array(2, 'default');
+
   $items['taxonomy/term/%taxonomy_term/edit']['context'] = MENU_CONTEXT_INLINE;
   if(array_key_exists('taxonomy/term/%taxonomy_term/devel', $items)){
     $items['taxonomy/term/%taxonomy_term/devel']['context'] = MENU_CONTEXT_INLINE;
@@ -166,7 +170,15 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
 
     $weight = 1;
 
-    $ordered_tabs = scratchpads_species_get_ordered_core_tabs($vid);
+    $ordered_tabs = array();
+    if($vid){
+      $ordered_tabs = scratchpads_species_get_ordered_core_tabs($vid);
+    }
+
+    if(empty($ordered_tabs)){
+      $ordered_tabs = scratchpads_species_get_core_tabs();
+    }
+
     $active_tabs = array_keys(scratchpads_species_get_active_tabs($vid));
 
 
@@ -403,7 +415,7 @@ function scratchpads_species_title_callback($term){
  * @param array $term
  * @param string - tab $op
  */
-function scratchpads_species_access_callback($term, $op = 'default'){
+function scratchpads_species_access_callback($term = array(), $op = 'default'){
   if(scratchpads_species_term_is_biological_classification($term)){
 
     $active_tabs = array_keys(scratchpads_species_get_active_tabs($term->vid));
@@ -666,6 +678,7 @@ function scratchpads_species_preprocess_block(&$vars){
 }
 
 function scratchpads_species_preprocess_views_view(&$vars){
+
   switch($vars['view']->name){
     case 'species_nomenclature':
       if(!scratchpads_blocks_show_placeholders()){
