@@ -207,6 +207,24 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
         '#attributes' => array('class' => array('item-row-weight')),
       );
     }
+
+    $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+
+    // create a settings section for the species tab display options
+    $form['gbif_map_display'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('GBIF maps display'),
+      '#weight' => 10,
+      '#description' => t("Check this box to always display GBIF map titles, even when there isn't any other map content."),
+    );
+
+    $form['gbif_map_display']['always_display_gbif_map_tiles'] = array(
+      '#title' => t("Always display GBIF map tiles"),
+      '#type' => 'checkbox',
+      '#default_value' => $gbif_map_display[$vid],
+      '#enabled' => module_exists('eol_gbif_maps') ? 1 : 0
+    );
+
     $form['#validate'][] = 'scratchpads_species_form_taxonomy_form_vocabulary_validate';
     $form['#submit'][] = 'scratchpads_species_form_taxonomy_form_vocabulary_submit';
   }
@@ -256,6 +274,12 @@ function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_s
   }
 
   variable_set('scratchpads_species_display_synonyms', $show_syns);
+
+  // Update scratchpads_species_gbif_map_display
+  $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+  $always_display_gbif_map_tiles = $form_state['values']['always_display_gbif_map_tiles'];
+  $gbif_map_display[$vid] = $always_display_gbif_map_tiles;
+  variable_set('scratchpads_species_gbif_map_display', $gbif_map_display);
 
 }
 
@@ -387,7 +411,7 @@ function scratchpads_species_preprocess_html(&$vars)
   if($vars['page']['#tag'] == 'species-page'){
     $vars['head_title'] = $vars['page']['title'];
 
-    if (!empty($vars['page']['subtitle'])) {
+    if (!empty($vars['page']['subtitle']) && $vars['page']['subtitle'] != '&nbsp;') {
       $vars['head_title']  .= ' [' . $vars['page']['subtitle'] . ']';
     }
   }
@@ -678,7 +702,6 @@ function scratchpads_species_preprocess_block(&$vars){
 }
 
 function scratchpads_species_preprocess_views_view(&$vars){
-
   switch($vars['view']->name){
     case 'species_nomenclature':
       if(!scratchpads_blocks_show_placeholders()){
@@ -715,6 +738,24 @@ function scratchpads_species_preprocess_views_view(&$vars){
           }else{
             $vars['empty'] = '';
           }
+        }
+      }
+      break;
+    case 'species_map':
+    case 'species_overview_map':
+
+      // If we have no records to display, we still want to display the map if:
+      // a) GBIF module is enabled, and b) user has selected to do so
+      if(!$view->result && module_exists('eol_gbif_maps')){
+        // Get active term for menu item
+        $term = menu_get_object('taxonomy_term', 2);
+        $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+        // Does the user want to always display GBIF taxon maps
+        if($gbif_map_display[$term->vid]){
+          // Then display the map, which will come with the GBIF tiles
+          $view = $vars['view'];
+          $view->result = array(array());
+          $vars['rows'] = $view->style_plugin->render($view->result);
         }
       }
       break;
