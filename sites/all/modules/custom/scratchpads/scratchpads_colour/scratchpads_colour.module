@@ -117,14 +117,8 @@ function scratchpads_colour_add_dynamic_css(){
   if($css_file && file_exists($css_file)){return drupal_add_css($css_file);}
   $css = array();
   foreach(scratchpads_colour_get_colours() as $colour){
-    $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2 a{ color: #FFFFFF;}'; // required or link in h2 gets hidden by background color
-    $css[] = 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}';
-    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-bg { background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-fg { color: #' . $colour . ';}';
   }
   $css = implode(PHP_EOL, $css);
   $filename = 'css_' . drupal_hash_base64($css) . '.css';
