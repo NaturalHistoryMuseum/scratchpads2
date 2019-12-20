@@ -16,10 +16,10 @@
     pagedContent.appendChild(contentArea);
 
     // Add all of the tabs
-    for(const page of content) {
+    for(let index = 1, page = content[0]; index <= content.length; page = content[index++]) {
       const tabButton = document.createElement('button');
       tabButton.classList.add('gm3-info-tab');
-      tabButton.innerText = page.title;
+      tabButton.innerText = page.title || index;
 
       // On tab click, replace the contents of the `content` div
       tabButton.addEventListener('click', () => {
@@ -44,6 +44,24 @@
     return pagedContent;
   }
 
+  // Define some different coloured markers
+  const colours = [
+    'blue',
+    'aqua',
+    'brown',
+    'gold',
+    'green',
+    'olive',
+    'orange',
+    'purple',
+    'red',
+    'violet',
+    'yellow'
+  ];
+  // Use grey and black as special secret colours
+  colours[-1] = 'grey';
+  colours[-2] = 'black';
+
   Drupal.GM3.point = class extends Drupal.GM3.Library {
     constructor(settings) {
       super();
@@ -61,7 +79,7 @@
         for(const point of settings.points) {
           this.addMarker(
             L.latLng(point.latitude, point.longitude),
-            point.editable,
+            'editable' in point ? point.editable : settings.editable,
             point.colour,
             point.title,
             point.content
@@ -86,7 +104,7 @@
      * @param {string} content The content text for the marker's popup;
                                might be an array of { title, content } objects
      */
-    addMarker(latLng, editable = true, colour, title = '', content = ''){
+    addMarker(latLng, editable = true, colour=0, title = '', content = ''){
       if(!this.canAddObject()) {
         return;
       }
@@ -97,7 +115,11 @@
         latLng,
         {
           draggable: editable,
-          title
+          title,
+          icon: new L.Icon.Default({
+            iconUrl: `${colours[colour||0]}.png`,
+            imagePath: Drupal.settings.gm3.markerDirectory
+          })
         }
       );
       this.addObject(point);
@@ -121,16 +143,42 @@
         }
       });
 
-      if(content) {
-         // Use tab pages if there's an array of items:
-        if(Array.isArray(content)) {
-          content = makePagedContent(content);
-        } else if(title) {
-          content = `<h3>${title}</h3>\n${content}`;
+      const popupContent = this.getPopupContent(title, content);
+
+      if(popupContent) {
+        point.bindPopup(popupContent, { className: 'gm3_infobubble' });
+      }
+    }
+
+    /**
+     * Generate the content to be bound to a marker popup.
+     *
+     * @param {string} title Title of the popup
+     * @param {string} content Body of the popup
+     */
+    getPopupContent(title, content) {
+      if(!content) {
+        if(!title) {
+          return;
+        }
+        content = title;
+        title = null;
+      }
+
+      if(Array.isArray(content)) {
+        if(content.length > 1) {
+          return makePagedContent(content);
         }
 
-        point.bindPopup(content, { className: 'gm3_infobubble' });
+        title = content[0].title;
+        content = content[0].content;
       }
+
+      if(title) {
+        content = `<h3>${title}</h3>\n${content}`;
+      }
+
+      return content;
     }
 
     /**

@@ -264,17 +264,44 @@ function gm3_add_js($id, $settings = [], $libraries = []){
   }
 
   // Add the core library and the settings
-  drupal_add_js(array(
-    'gm3' => array(
-      'maps' => array(
+  drupal_add_js([
+    'gm3' => [
+      'maps' => [
         $id => [
           'id' => $id,
           'settings' => $settings,
           'libraries' => $libraries
         ]
-      )
-    )
-  ), 'setting');
+      ],
+      'markerDirectory' => '/' . drupal_get_path('module', 'gm3') . '/images/marker/'
+    ]
+  ], 'setting');
+}
+
+/**
+ * Add a point indexed by latlng, or merge point if that latlng already exists
+ *
+ * @param Array $points Array containing points indexed by latlng
+ * @param Array $point Point settings assoc array
+ * @return void
+ */
+function gm3_theme_view_add_point(&$points, $point) {
+  $latlong = $point['latitude'] . ',' . $point['longitude'];
+  $content = $point['content'];
+
+  //If there is no point at that coordinate, set it with empty content
+  if(!isset($points[$latlong])){
+    $point['content'] = [];
+    $points[$latlong] = $point;
+  } elseif ($points[$latlong]['colour'] != $point['colour']) {
+    // If there is already a point with a different colour, set colour to blank
+    $points[$latlong]['colour'] = -1;
+  }
+
+  // Add new page of content to the point
+  $points[$latlong]['content'][] = [
+    'content' => $content
+  ];
 }
 
 /**
@@ -282,9 +309,8 @@ function gm3_add_js($id, $settings = [], $libraries = []){
  * e.g. spm module.
  */
 function theme_gm3_view_gm3($variables){
-  static $colours = 0;
-  $colours++;
-  //$colours = $colours % 8;
+  static $colours = [];
+
   $geo_fields = array();
   $none_geo_fields = array();
   foreach($variables['view']->field as $field_key => $field){
@@ -299,7 +325,8 @@ function theme_gm3_view_gm3($variables){
   );
   // Because it's not possible to click on two points with the exact same
   // location, we group content that have the exact same location.
-  $array_points = array();
+  // Points is an array of points indexed by latlng
+  $points = [];
   foreach(array_keys($variables['rows']) as $index){
     $row = $variables['view']->result[$index];
     $content = $variables['rows'][$index];
@@ -323,44 +350,30 @@ function theme_gm3_view_gm3($variables){
           }
           break;
         case 'gm3_point':
-          if(!isset($map['libraries']['point'])){
-            $map['libraries']['point'] = array(
-              'points' => array()
-            );
-          }
           if(count($row->{"field_$key"})){
+            // Points field is an array
             foreach($row->{"field_$key"} as $item){
-              $point = $item['raw'];
-              if(isset($array_points[$point['latitude']][$point['longitude']])){
-                if(!is_array($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'])){
-                  $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'] = array(
-                    array(
-                      'title' => '1',
-                      'content' => $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']
-                    )
-                  );
-                }
-                $map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content'][] = array(
-                  'title' => count($map['libraries']['point']['points'][$array_points[$point['latitude']][$point['longitude']]]['content']) + 1,
-                  'content' => $content
-                );
-              }else{
-                $point['content'] = $content;
-                $array_points[$point['latitude']][$point['longitude']] = count($map['libraries']['point']['points']);
-                $map['libraries']['point']['points'][] = $point;
+              // If there is no basis of record, give it a separate colour
+              $basisOfRecord = $row->field_field_basis_of_record[0]['raw']['value'] ?? 'default';
+              if(!isset($colours[$basisOfRecord])) {
+                $colours[$basisOfRecord] = count($colours);
               }
+              $colour = $colours[$basisOfRecord];
+              // Get the actual record(?)
+              $point = $item['raw'];
+              $point['colour'] = $colour;
+              $point['content'] = $content;
+
+              gm3_theme_view_add_point($points, $point);
             }
-          }else{
-            if(isset($row->{"field_data_{$key}_{$key}_latitude"})){
-              $map['libraries']['point']['points'][] = array(
-                'latitude' => $row->{"field_data_{$key}_{$key}_latitude"},
-                'longitude' => $row->{"field_data_{$key}_{$key}_longitude"},
-                'content' => $content
-              );
-            }
-          }
-          foreach(array_keys($map['libraries']['point']['points']) as $key){
-            $map['libraries']['point']['points'][$key]['colour'] = $colours;
+          }else if(isset($row->{"field_data_{$key}_{$key}_latitude"})){
+            // Item is a single object with latitude and longitude
+            $point = [
+              'latitude' => $row->{"field_data_{$key}_{$key}_latitude"},
+              'longitude' => $row->{"field_data_{$key}_{$key}_longitude"},
+              'content' => $content
+            ];
+            gm3_theme_view_add_point($points, $point);
           }
           break;
         case 'gm3_combination':
@@ -377,16 +390,12 @@ function theme_gm3_view_gm3($variables){
             foreach($values['entity']->{$key}[$lang] as $item){
               switch($item['gm3_type']){
                 case 'point':
-                  if(!isset($map['libraries']['point'])){
-                    $map['libraries']['point'] = array(
-                      'points' => array()
-                    );
-                  }
-                  $map['libraries']['point']['points'][] = array(
+                  $point = [
                     'latitude' => $item['latitude'],
                     'longitude' => $item['longitude'],
                     'content' => $content
-                  );
+                  ];
+                  gm3_theme_view_add_point($points, $point);
                   break;
                 case 'rectangle':
                 case 'polyline':
@@ -425,5 +434,39 @@ function theme_gm3_view_gm3($variables){
       }
     }
   }
+
+  // All the points have been collated so set the library
+  $map['libraries']['point'] = gm3_js_point_settings($points);
+
   return theme('gm3_map', $map);
+}
+
+/**
+ * Generate the js settings for the point library
+ *
+ * @param array $items  Array of points to display on the map
+ * @param boolean $editable True if the points are user editable
+ * @param array $settings Extra options:
+ *  - display_convex_hull to show convex hull
+ *  - enableClustering to force clustering on or off
+ * @return array Settings object to add to $map['libraries']['point']
+ */
+function gm3_js_point_settings($items, $editable = false, $settings = []){
+  if(is_array($editable)) {
+    $settings = $editable;
+    $editable = false;
+  }
+
+  $library = [
+    'points' => array_values($items),
+    'module' => 'gm3',
+    'convexhull' => $settings['display_convex_hull'] ?? false,
+    'editable' => $editable
+  ];
+
+  if(isset($settings['enableClustering'])) {
+    $library['enableClustering'] = $settings['enableClustering'];
+  }
+
+  return $library;
 }

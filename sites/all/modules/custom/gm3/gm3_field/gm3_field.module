@@ -1152,23 +1152,7 @@ function _gm3_field_get_points_string_from_array($items){
  * Generate the js settings for the point library
  */
 function gm3_field_js_point_settings($items, $editable = false, $settings = []){
-  if(is_array($editable)) {
-    $settings = $editable;
-    $editable = false;
-  }
-
-  // Todo: Must we mark each individual item editable? Can't we just do it on the module settings?
-  foreach($items as $key => $item){
-    $items[$key]['editable'] = $editable;
-  }
-
-  $library = [
-    'points' => $items,
-    'module' => 'gm3',
-    'convexhull' => $settings['display_convex_hull'] ?? false
-  ];
-
-  return $library;
+  return gm3_js_point_settings($items, $editable, $settings);
 }
 
 /**

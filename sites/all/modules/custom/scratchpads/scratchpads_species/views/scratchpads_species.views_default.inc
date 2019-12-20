@@ -1576,6 +1576,8 @@ function scratchpads_species_views_default_views(){
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE;
+
+  /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Distribution';
   $handler->display->display_options['css_class'] = 'grid-8 alpha omega';
@@ -1635,6 +1637,10 @@ function scratchpads_species_views_default_views(){
     'multiple_from' => '',
     'multiple_to' => ''
   );
+  /* Field: Content: Basis of record */
+  $handler->display->display_options['fields']['field_basis_of_record']['id'] = 'field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['table'] = 'field_data_field_basis_of_record';
+  $handler->display->display_options['fields']['field_basis_of_record']['field'] = 'field_basis_of_record';
   /* Sort criterion: Content: Sticky */
   $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
   $handler->display->display_options['sorts']['sticky']['table'] = 'node';
@@ -1669,6 +1675,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['value'] = array(
     'specimen_observation' => 'specimen_observation'
   );
+
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');
   $views[$view->name] = $view;
