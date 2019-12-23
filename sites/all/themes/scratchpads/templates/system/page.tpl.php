@@ -26,9 +26,7 @@
 
           <?php print render($page['header']); ?>
         </div>
-        <h1>hello</h1>
       <?php print render($page['menu']); ?>
-        <h1>ahhh</h1>
     </header>
 
     <div class="l-main">

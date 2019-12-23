@@ -1,5 +1,6 @@
 @import "variables/fonts";
 @import "variables/colours";
+@import "variables/misc";
 @import "components/flex";
 
 // BASICS ==============================================================================================================
@@ -93,10 +94,15 @@ sub, sup {
   flex-direction: column;
 }
 
+.l-main {
+  padding-left: $side-padding;
+  padding-right: $side-padding;
+}
+
 // BRANDING ------------------------------------------------------------------------------------------------------------
 
 .l-branding {
-  padding: 10px 40px;
+  padding: 10px $side-padding;
   min-height: 150px;
 }
 
@@ -105,6 +111,7 @@ h1.site-name {
     color: $grey11;
     text-decoration: none;
   }
+
   font-size: $font-size-head-xl !important;
   margin: 0;
 }
@@ -134,9 +141,7 @@ h2.site-name {
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
-  grid-template-areas:
-          'searchbox button'
-          'options options';
+  grid-template-areas: 'searchbox button' 'options options';
   grid-gap: 10px 20px;
 
   & > * {
@@ -162,6 +167,7 @@ h2.site-name {
 
   & > .form-type-textfield {
     grid-area: searchbox;
+
     & > input {
       max-width: 200px;
     }
@@ -201,5 +207,62 @@ h2.site-name {
 
   & .embeded_image_float_right {
     float: right;
+  }
+
+  .front & {
+    // Allow for no breadcrumb on front page
+    margin-top: 30px;
+  }
+}
+
+// MENUS ---------------------------------------------------------------------------------------------------------------
+
+.navigation {
+  padding: 0 $side-padding;
+
+  & > ul {
+    @extend .flex-row;
+    list-style: none;
+
+    & > li {
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      background-color: $grey0-alpha;
+
+      &:hover, &.active, &.active-trail {
+        background-color: $grey11;
+      }
+    }
+
+    & a {
+      color: $grey11;
+      letter-spacing: normal;
+      text-decoration: none;
+      text-transform: uppercase;
+
+      &:active, &:hover, &:focus, &.active, &.active-trail {
+        color: $grey2;
+      }
+    }
+  }
+}
+
+.tabs {
+  @extend .flex-row;
+  list-style: none;
+
+  & > li {
+    float: none;
+    > a {
+      padding: 5px;
+      border-radius: 5px 5px 0 0;
+      border: 1px solid $grey5;
+      margin-bottom: -1px;
+
+      &.active {
+        background-color: $grey11;
+        border-bottom: 1px solid $grey11;
+      }
+    }
   }
 }

@@ -82,7 +82,7 @@
   font-display: swap;
   src: url("../fonts/Inter/Inter-BlackItalic.woff2?v=3.11") format("woff2"), url("../fonts/Inter/Inter-BlackItalic.woff?v=3.11") format("woff"); }
 
-.flex-row {
+.flex-row, .navigation > ul, .tabs {
   display: -webkit-box;
   display: flex;
   -webkit-box-orient: horizontal;
@@ -96,7 +96,7 @@
   -webkit-box-direction: normal;
           flex-direction: column; }
 
-.flex-reverse.flex-row {
+.flex-reverse.flex-row, .navigation > ul.flex-reverse, .flex-reverse.tabs {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: reverse;
           flex-direction: row-reverse; }
@@ -106,7 +106,7 @@
   -webkit-box-direction: reverse;
           flex-direction: column-reverse; }
 
-.flex-boxes-center.flex-row > * {
+.flex-boxes-center.flex-row > *, .navigation > ul.flex-boxes-center > *, .flex-boxes-center.tabs > * {
   align-self: center; }
 
 .flex-boxes-center.flex-column > * {
@@ -228,8 +228,12 @@ sub, sup {
   -webkit-box-direction: normal;
           flex-direction: column; }
 
+.l-main {
+  padding-left: 30px;
+  padding-right: 30px; }
+
 .l-branding {
-  padding: 10px 40px;
+  padding: 10px 30px;
   min-height: 150px; }
 
 h1.site-name {
@@ -302,5 +306,39 @@ h2.site-name {
 
 .l-content .embeded_image_float_right {
   float: right; }
+
+.front .l-content {
+  margin-top: 30px; }
+
+.navigation {
+  padding: 0 30px; }
+  .navigation > ul {
+    list-style: none; }
+    .navigation > ul > li {
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      background-color: rgba(0, 0, 0, 0.3); }
+      .navigation > ul > li:hover, .navigation > ul > li.active, .navigation > ul > li.active-trail {
+        background-color: #FFFFFF; }
+    .navigation > ul a {
+      color: #FFFFFF;
+      letter-spacing: normal;
+      text-decoration: none;
+      text-transform: uppercase; }
+      .navigation > ul a:active, .navigation > ul a:hover, .navigation > ul a:focus, .navigation > ul a.active, .navigation > ul a.active-trail {
+        color: #3E3E3E; }
+
+.tabs {
+  list-style: none; }
+  .tabs > li {
+    float: none; }
+    .tabs > li > a {
+      padding: 5px;
+      border-radius: 5px 5px 0 0;
+      border: 1px solid #ACACAC;
+      margin-bottom: -1px; }
+      .tabs > li > a.active {
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #FFFFFF; }
 
 /*# sourceMappingURL=scratchpads.styles.css.map */
