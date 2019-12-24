@@ -256,12 +256,12 @@ function scratchpads_front_page_view(){
   ));
   return array(
     'welcome' => array(
-      '#prefix' => '<div class="grid-4 alpha">',
+      '#prefix' => '<div class="welcome">',
       '#markup' => $welcome_message,
       '#suffix' => '</div>'
     ),
     'block' => array(
-      '#prefix' => '<div class="grid-8 omega">',
+      '#prefix' => '<div class="content-block">',
       '#markup' => $block,
       '#suffix' => '</div>'
     ),
