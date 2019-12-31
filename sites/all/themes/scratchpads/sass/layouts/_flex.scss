@@ -93,3 +93,11 @@
     flex-grow: 1;
   }
 }
+
+.flex-wrap {
+  flex-wrap: wrap;
+
+  &.flex-reverse {
+    flex-wrap: wrap-reverse;
+  }
+}

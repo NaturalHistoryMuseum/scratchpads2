@@ -1,0 +1,52 @@
+$sm-max: 600px;
+$md-max: 900px;
+$lg-max: 1200px;
+
+@mixin media-sm {
+  @media (max-width: $sm-max) {
+    @content;
+  }
+}
+
+@mixin media-md {
+  @media (min-width: $sm-max + 1) and (max-width: $md-max) {
+    @content;
+  }
+}
+
+@mixin media-md-up {
+  @media (min-width: $sm-max + 1) {
+    @content;
+  }
+}
+
+@mixin media-md-down {
+  @media (max-width: $md-max) {
+    @content;
+  }
+}
+
+@mixin media-lg {
+  @media (min-width: $md-max + 1) and (max-width: $lg-max) {
+    @content;
+  }
+}
+
+@mixin media-lg-up {
+  @media (min-width: $md-max + 1) {
+    @content;
+  }
+}
+
+@mixin media-lg-down {
+  @media (max-width: $lg-max) {
+    @content;
+  }
+}
+
+@mixin media-xl {
+  @media (min-width: $lg-max + 1) {
+    @content;
+  }
+}
+

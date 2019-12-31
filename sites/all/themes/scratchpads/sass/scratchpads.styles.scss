@@ -1,7 +1,8 @@
 @import "variables/fonts";
 @import "variables/colours";
 @import "variables/misc";
-@import "components/flex";
+@import "layouts/flex";
+@import "mixins/media";
 
 // BASICS ==============================================================================================================
 
@@ -84,6 +85,10 @@ sub, sup {
   padding-bottom: 10px;
 }
 
+.region--debug {
+  background: none;
+}
+
 // LAYOUT ==============================================================================================================
 // PAGE ----------------------------------------------------------------------------------------------------------------
 
@@ -97,6 +102,10 @@ sub, sup {
 .l-main {
   padding-left: $side-padding;
   padding-right: $side-padding;
+
+  & .l-region {
+    margin-bottom: 30px;
+  }
 }
 
 // BRANDING ------------------------------------------------------------------------------------------------------------
@@ -215,6 +224,15 @@ h2.site-name {
   }
 }
 
+.l-region--content {
+  padding: 10px 0;
+
+  & > div {
+    display: grid;
+
+  }
+}
+
 // MENUS ---------------------------------------------------------------------------------------------------------------
 
 .navigation {
@@ -253,8 +271,10 @@ h2.site-name {
 
   & > li {
     float: none;
+
     > a {
-      padding: 5px;
+      color: $grey0;
+      padding: 5px 10px;
       border-radius: 5px 5px 0 0;
       border: 1px solid $grey5;
       margin-bottom: -1px;
@@ -263,6 +283,132 @@ h2.site-name {
         background-color: $grey11;
         border-bottom: 1px solid $grey11;
       }
+    }
+  }
+}
+
+// FRONT PAGE ==========================================================================================================
+
+.welcome {
+  margin-bottom: 20px;
+}
+
+// SLIDESHOW -----------------------------------------------------------------------------------------------------------
+
+.views-slideshow-cycle-processed {
+  display: flex;
+  @include media-md-down {
+    flex-direction: column;
+  }
+  @include media-lg-up {
+    flex-direction: row;
+  }
+
+  & .title_only {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: $grey0-alpha;
+    z-index: 10;
+    & h3 {
+      color: $grey11;
+      margin: 10px 10px 12px;
+    }
+  }
+
+}
+
+.views_slideshow_main {
+  & img {
+    max-width: 80vw;
+    height: auto;
+  }
+
+  .views-slideshow-cycle-main-frame-row-item {
+    position: relative;
+  }
+}
+
+.views-slideshow-cycle-main-frame {
+  width: 80vw !important;
+  max-width: 619px;
+  height: 100%;
+
+  & > div {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+  }
+}
+
+.views-slideshow-pager-fields {
+  display: grid;
+  @include media-md-down {
+    grid-template-columns: repeat(4, 25%);
+    // this is the size of the main image set inline (I can't work out how to get rid of it so we're stuck with this)
+    width: 80vw;
+    max-width: 619px;
+  }
+  @include media-lg-up {
+    grid-template-rows: repeat(4, 25%);
+    // see above...
+    height: 463px;
+  }
+
+  & > * {
+    padding: 0 !important;
+    display: block !important;
+    overflow: hidden;
+
+    @include media-md-down {
+      width: auto;
+      margin: 5px 5px 0 0;
+
+      &:last-child {
+        margin-right: 0 !important;
+      }
+    }
+
+    @include media-lg-up {
+      height: auto;
+      margin: 0 0 5px 5px;
+
+      &:last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+  }
+
+  & .active {
+    position: relative;
+
+    & img {
+      border: none;
+    }
+
+    &::after {
+      content: '';
+      background-color: scale_color($grey0, $alpha: -50%);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+  }
+
+  & img {
+    max-height: unset;
+    max-width: unset;
+
+    @include media-md-down {
+      width: auto;
+      height: 100%;
+    }
+
+    @include media-lg-up {
+      height: auto;
+      width: 100%;
     }
   }
 }
