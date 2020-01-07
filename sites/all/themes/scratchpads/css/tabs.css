@@ -6,9 +6,11 @@
   font-size: 0.929em;
   margin: 20px 0 0 0;
   padding: 0;
+
+  /* Override default display:inline for RTL support */
+  display: flex;
 }
 #main-menu li {
-  float: left; /* LTR */
   list-style: none;
   padding: 0 1px;
   margin: 0 1px;
@@ -71,7 +73,6 @@ background: rgba(255, 255, 255, 0.7);
 .tabs ul.primary li {
   display: block;
   float: left; /* LTR */
-  vertical-align: bottom;
   margin: 0 5px 0 0; /* LTR */
 }
 .tabs ul.primary li.active a {
@@ -129,5 +130,3 @@ background: rgba(255, 255, 255, 0.7);
   -khtml-border-radius: 5px;
   border-radius: 5px;
 }
-
-
