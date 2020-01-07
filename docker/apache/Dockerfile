@@ -16,6 +16,7 @@ RUN apt-get -y install wget \
     libgd-dev cron \
     msmtp \
     unzip \
+    libxml2-dev \
     --no-install-recommends
 
 WORKDIR /tmp/
@@ -32,6 +33,7 @@ RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-install opcache
 RUN docker-php-ext-install sockets
+RUN docker-php-ext-install soap
 
 RUN pecl install imagick
 RUN docker-php-ext-enable imagick
