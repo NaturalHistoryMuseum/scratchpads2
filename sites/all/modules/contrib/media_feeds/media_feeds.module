@@ -77,6 +77,13 @@ function media_feeds_set_target($source, $entity, $target, $values, $config = ar
 
   foreach ($values as $value) {
     try {
+      // if the MediaFeedsInternetProvider is in use and the value is the empty string, then we
+      // ignore the value as the MediaFeedsInternetProvider will throw a
+      // MediaInternetNoHandlerException exception otherwise
+      if ($provider === 'MediaFeedsInternetProvider' && $value === '') {
+        continue;
+      }
+
       // Find a provider to create a file object.
       $provider = new $provider($value, $config);
 
