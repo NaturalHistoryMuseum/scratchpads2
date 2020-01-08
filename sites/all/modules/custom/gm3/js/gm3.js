@@ -30,22 +30,30 @@
 
   Drupal.GM3 = class {
     constructor (map) {
-      // Create the map tileset
-      const gl = L.mapboxGL({
-        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
-        accessToken: 'not-needed',
-        style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey,
-        pane: 'tilePane'
-      });
-
-      const satellite = L.mapboxGL({
-        attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
-        accessToken: 'not-needed',
-        style: 'https://api.maptiler.com/maps/hybrid/style.json?key=' + map.settings.mapTilerKey,
-        pane: 'tilePane'
-      });
-
-      const layersControl = L.control.layers({ "Basic": gl, "Satellite": satellite });
+      // Create the map tileset, which depends on the user's settings
+      const tileLayer =
+        map.settings.mapStyle === 'translated' ?
+          L.mapboxGL({
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            accessToken: 'not-needed',
+            style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey,
+            pane: 'tilePane'
+          }).on('add', event =>
+            event.target._glMap.autodetectLanguage()
+          )
+        : map.settings.mapStyle === 'satellite' ?
+          L.mapboxGL({
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            accessToken: 'not-needed',
+            style: 'https://api.maptiler.com/maps/hybrid/style.json?key=' + map.settings.mapTilerKey,
+            pane: 'tilePane'
+          })
+        : // mapStyle === 'default'
+          L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            subdomains: ['a','b','c']
+          })
+        ;
 
       if (map instanceof Drupal.GM3) {
         return map;
@@ -60,7 +68,7 @@
 
       const leafletOptions = {
         center: [settings.center.latitude, settings.center.longitude],
-        layers: [gl],
+        layers: [tileLayer],
         editable: true,
       };
 
@@ -96,14 +104,8 @@
       // Create the actual map
       const leafletMap = L.map(mapNode, leafletOptions);
 
-      // Set the language to the user's language
-      gl._glMap.autodetectLanguage();
-
       // Add a scale bar to the map
       L.control.scale().addTo(leafletMap);
-
-      // Add option to switch layers
-      layersControl.addTo(leafletMap);
 
       // If the map starts as hidden it will not render properly.
       // Once it becomes visible we must re-render it.

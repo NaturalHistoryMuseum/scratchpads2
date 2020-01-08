@@ -327,6 +327,7 @@ function gm3_settings(){
     'maxZoom' => null,
     'minZoom' => null,
     'enableClustering' => true,
+    'mapStyle' => 'default',
     'mapTilerKey' => variable_get('gm3_tile_key', 'a7gYjHDMqIbwzM1ifyNh')
   ];
 }

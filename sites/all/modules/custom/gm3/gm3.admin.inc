@@ -49,6 +49,17 @@ function gm3_admin_settings_form(){
       '#default_value' => $settings['enableClustering'],
       '#description' => t('For points that are close together at lower zoom levels, shows the number of points in that area instead of the individual points themselves.')
     ],
+    'mapStyle' => [
+      '#type' => 'select',
+      '#title' => t('Map style'),
+      '#options' => [
+        'default' => t('Default'),
+        'translated' => t('Translated to user\'s local language'),
+        'satellite' => t('Satellite')
+      ],
+      '#default_value' => $settings['mapStyle'],
+      '#description' => t('Change the map tiles to render in a different style')
+    ],
     'submit' => [
       '#type' => 'submit',
       '#value' => t('Save')
@@ -68,7 +79,8 @@ function gm3_admin_settings_form_submit(&$form, &$form_state){
       'latitude' => $form_state['values']['latitude'],
       'longitude' => $form_state['values']['longitude']
     ],
-    'enableClustering' => $form_state['values']['enableClustering']
+    'enableClustering' => $form_state['values']['enableClustering'],
+    'mapStyle' => $form_state['values']['mapStyle']
   ];
   variable_set('gm3_default_settings', $settings);
 }
