@@ -24,26 +24,6 @@ function gm3_library(){
           'options' => 'external'
         ],
         [
-          // Plugin for clusting points together
-          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js',
-          'options' => 'external'
-        ],
-        [
-          // Mapbox library for rendering Web GL maps
-          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.js',
-          'options' => 'external'
-        ],
-        [
-          // Leaflet plugin for adding Web GL maps as a layer
-          'data' => 'https://cdn.maptiler.com/mapbox-gl-leaflet/latest/leaflet-mapbox-gl.js',
-          'options' => 'external'
-        ],
-        [
-          // Library for changing the mapbox map language
-          'data' => 'https://cdn.klokantech.com/openmaptiles-language/v1.0/openmaptiles-language.js',
-          'options' => 'external'
-        ],
-        [
           // Intersection observer pollyfill for browsers that don't support it (IE, Safari <12)
           'data' => drupal_get_path('module', 'gm3') . '/js/libs/intersection-observer.js',
           'options' => 'external',
@@ -63,10 +43,6 @@ function gm3_library(){
           // Base class that most of the gm3 libraries inherit from
           'data' => drupal_get_path('module', 'gm3') . "/js/gm3.library.js"
         ],
-        [
-          // Base class that polyline, polygon, rectangle inherit from
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
-        ],
         array(
           'data' => array(
             'gm3' => array(
@@ -83,7 +59,52 @@ function gm3_library(){
       'css' => array(
         [
           'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.css'
+        ]
+      )
+    ),
+    'gm3.gl' => [
+      'title' => t('WebGL maps libraries'),
+      'js' => [
+        [
+          // Mapbox library for rendering Web GL maps
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.js',
+          'options' => 'external'
         ],
+        [
+          // Leaflet plugin for adding Web GL maps as a layer
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-leaflet/latest/leaflet-mapbox-gl.js',
+          'options' => 'external'
+        ],
+        [
+          // Library for changing the mapbox map language
+          'data' => 'https://cdn.klokantech.com/openmaptiles-language/v1.0/openmaptiles-language.js',
+          'options' => 'external'
+        ]
+      ],
+      'css' => [
+        [
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.css',
+          'options' => 'external'
+        ]
+      ],
+      'dependencies' => [
+        ['gm3', 'gm3']
+      ]
+    ],
+    // Enable the clicking of points.
+    'gm3.point' => array(
+      'title' => t('Javascript Maps: Point drawing'),
+      'js' => array(
+        [
+          // Plugin for clusting points together
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js',
+          'options' => 'external'
+        ],
+        [
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point.js"
+        ]
+      ),
+      'css' => [
         [
           'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css',
           'options' => 'external'
@@ -92,20 +113,7 @@ function gm3_library(){
           'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css',
           'options' => 'external'
         ],
-        [
-          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.css',
-          'options' => 'external'
-        ]
-      )
-    ),
-    // Enable the clicking of points.
-    'gm3.point' => array(
-      'title' => t('Javascript Maps: Point drawing'),
-      'js' => array(
-        array(
-          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point.js"
-        )
-      ),
+      ],
       'dependencies' => array(
         array(
           'gm3',
@@ -113,6 +121,16 @@ function gm3_library(){
         )
       )
     ),
+    'gm3.shape' => [
+      'title' => t('Javascript Maps: Base shape library'),
+      'js' => [
+        // Base class that polyline, polygon, rectangle inherit from
+        'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
+      ],
+      'dependencies' => [
+        ['gm3', 'gm3']
+      ]
+    ],
     // Enable drawing of Polygons.
     'gm3.polygon' => array(
       'title' => t('Javascript Maps: Polygon drawing'),
@@ -122,10 +140,10 @@ function gm3_library(){
         )
       ),
       'dependencies' => array(
-        array(
+        [
           'gm3',
-          'gm3'
-        )
+          'gm3.shape'
+        ]
       )
     ),
     // Enable the drawing of rectangles.
@@ -137,10 +155,10 @@ function gm3_library(){
         )
       ),
       'dependencies' => array(
-        array(
+        [
           'gm3',
-          'gm3.polygon'
-        )
+          'gm3.shape'
+        ]
       )
     ),
     // Enable the drawing of Lines.
@@ -152,10 +170,10 @@ function gm3_library(){
         )
       ),
       'dependencies' => array(
-        array(
+        [
           'gm3',
-          'gm3'
-        )
+          'gm3.shape'
+        ]
       )
     )
   );

@@ -47,7 +47,9 @@
             accessToken: 'not-needed',
             style: 'https://api.maptiler.com/maps/hybrid/style.json?key=' + map.settings.mapTilerKey,
             pane: 'tilePane'
-          })
+          }).on('add', event =>
+            event.target._glMap.autodetectLanguage()
+          )
         : // mapStyle === 'default'
           L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

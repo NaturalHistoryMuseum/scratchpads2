@@ -255,6 +255,14 @@ function gm3_add_js($id, $settings = [], $libraries = []){
     }
   }
 
+  // Add extra libraries required by different map styles
+  switch($settings['mapStyle']) {
+    case 'translated':
+    case 'satellite':
+      drupal_add_library('gm3', 'gm3.gl');
+      break;
+  }
+
   // Add the core library and the settings
   drupal_add_js(array(
     'gm3' => array(
