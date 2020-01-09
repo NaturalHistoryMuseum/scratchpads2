@@ -206,10 +206,17 @@ function tui_permission(){
 function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
   // Tweak the links on the overview vocabulary page a little.
   $children = element_children($form);
-  foreach($children as $child){
-    if(is_numeric($child) && isset($form[$child]['edit']) && isset($form[$child]['list'])){
-      $form[$child]['edit']['#title'] = t('Settings');
-      $form[$child]['list']['#title'] = t('Edit terms');
+  foreach ($children as $child) {
+    if (is_numeric($child)) {
+      if (isset($form[$child]['edit'])) {
+        $form[$child]['edit']['#title'] = t('Settings');
+      }
+      if (isset($form[$child]['list'])) {
+        $form[$child]['list']['#title'] = t('Edit terms');
+      }
+      if (isset($form[$child]['add'])) {
+        $form[$child]['add']['#title'] = t('Add terms');
+      }
     }
   }
 }
