@@ -25,6 +25,7 @@ function taxonomy_overview_vocabularies($form) {
       '#delta' => 10,
       '#default_value' => $vocabulary->weight,
     );
+    $form[$vocabulary->vid]['#opkeys'] = ['edit', 'list', 'add'];
     $form[$vocabulary->vid]['edit'] = array('#type' => 'link', '#title' => t('edit vocabulary'), '#href' => "admin/structure/taxonomy/$vocabulary->machine_name/edit");
     $form[$vocabulary->vid]['list'] = array('#type' => 'link', '#title' => t('list terms'), '#href' => "admin/structure/taxonomy/$vocabulary->machine_name");
     $form[$vocabulary->vid]['add'] = array('#type' => 'link', '#title' => t('add terms'), '#href' => "admin/structure/taxonomy/$vocabulary->machine_name/add");
@@ -69,8 +70,9 @@ function taxonomy_overview_vocabularies_submit($form, &$form_state) {
  */
 function theme_taxonomy_overview_vocabularies($variables) {
   $form = $variables['form'];
-
   $rows = array();
+  # use this array to track how many operation columns we're showing
+  $operations = array();
 
   foreach (element_children($form) as $key) {
     if (isset($form[$key]['name'])) {
@@ -82,9 +84,11 @@ function theme_taxonomy_overview_vocabularies($variables) {
         $vocabulary['weight']['#attributes']['class'] = array('vocabulary-weight');
         $row[] = drupal_render($vocabulary['weight']);
       }
-      $row[] = drupal_render($vocabulary['edit']);
-      $row[] = drupal_render($vocabulary['list']);
-      $row[] = drupal_render($vocabulary['add']);
+      foreach ($vocabulary['#opkeys'] as $opkey) {
+        $row[] = drupal_render($vocabulary[$opkey]);
+        # add the key to the array
+        $operations[$opkey] = TRUE;
+      }
       $rows[] = array('data' => $row, 'class' => array('draggable'));
     }
   }
@@ -94,7 +98,7 @@ function theme_taxonomy_overview_vocabularies($variables) {
     $header[] = t('Weight');
     drupal_add_tabledrag('taxonomy', 'order', 'sibling', 'vocabulary-weight');
   }
-  $header[] = array('data' => t('Operations'), 'colspan' => '3');
+  $header[] = array('data' => t('Operations'), 'colspan' => count($operations));
   return theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('No vocabularies available. <a href="@link">Add vocabulary</a>.', array('@link' => url('admin/structure/taxonomy/add'))), 'attributes' => array('id' => 'taxonomy'))) . drupal_render_children($form);
 }
 

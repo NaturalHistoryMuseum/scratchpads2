@@ -849,3 +849,29 @@ function scratchpads_tweaks_views_post_build(&$view) {
     $view->build_info['title'] = $view->title;
   }
 }
+
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ *
+ * This adds an import link to each vocabulary on the taxaonomy admin view allowing users to navigate directly from the
+ * admin view to the taxonomy import page for the given vocabulary.
+ */
+function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state) {
+  foreach (element_children($form) as $key) {
+    # get a reference to the child we're going to work on
+    $child = &$form[$key];
+    # the key will be the vocabulary id if the child is a vocabulary so check that as well as whether the other keys
+    # we require exist
+    if (is_numeric($key) && array_key_exists('#vocabulary', $child) && array_key_exists('#opkeys', $child)) {
+      $child['import'] = array(
+        '#type' => 'link',
+        '#title' => t('Import'),
+        # link to xls importer by default to match other import admin view shortcut links (might be because the xls feed
+        # importer is always available whereas the csv one is optional?)
+        '#href' => 'import/taxonomy_importer_' . $child['#vocabulary']->machine_name . '_xls'
+      );
+      $child['#opkeys'][] = 'import';
+    }
+  }
+}
