@@ -1572,10 +1572,10 @@ function scratchpads_species_views_default_views(){
   $view->tag = 'default';
   $view->context = 'species_maps';
   $view->base_table = 'node';
-  $view->human_name = 'Species  map';
+  $view->human_name = 'Species map';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE;
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -1606,7 +1606,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['fields']['field_map']['click_sort_column'] = 'latitude';
   $handler->display->display_options['fields']['field_map']['type'] = 'gm3_text';
   $handler->display->display_options['fields']['field_map']['settings'] = array(
-    'display_convex_hull' => FALSE
+    'display_convex_hull' => FALSE,
   );
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
@@ -1635,12 +1635,23 @@ function scratchpads_species_views_default_views(){
     'fromto' => 'both',
     'multiple_number' => '',
     'multiple_from' => '',
-    'multiple_to' => ''
+    'multiple_to' => '',
   );
   /* Field: Content: Basis of record */
   $handler->display->display_options['fields']['field_basis_of_record']['id'] = 'field_basis_of_record';
   $handler->display->display_options['fields']['field_basis_of_record']['table'] = 'field_data_field_basis_of_record';
   $handler->display->display_options['fields']['field_basis_of_record']['field'] = 'field_basis_of_record';
+  /* Field: Content: Coordinate uncertainty in meters */
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['id'] = 'field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['table'] = 'field_data_field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['field'] = 'field_coordinate_uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['relationship'] = 'field_location_nid';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['label'] = 'Coordinate uncertainty';
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['hide_empty'] = TRUE;
+  $handler->display->display_options['fields']['field_coordinate_uncertainty']['settings'] = array(
+    'thousand_separator' => '',
+    'prefix_suffix' => 1,
+  );
   /* Sort criterion: Content: Sticky */
   $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
   $handler->display->display_options['sorts']['sticky']['table'] = 'node';
@@ -1673,7 +1684,7 @@ function scratchpads_species_views_default_views(){
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'specimen_observation' => 'specimen_observation'
+    'specimen_observation' => 'specimen_observation',
   );
 
   /* Display: Block */

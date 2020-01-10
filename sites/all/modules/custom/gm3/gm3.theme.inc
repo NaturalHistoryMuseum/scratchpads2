@@ -353,8 +353,11 @@ function theme_gm3_view_gm3($variables){
           if(count($row->{"field_$key"})){
             // Points field is an array
             foreach($row->{"field_$key"} as $item){
+              // Some of these fields are specific to scratchpads_species/darwincore.
+              // If it gets much more complex maybe time to refactor
               // If there is no basis of record, give it a separate colour
               $basisOfRecord = $row->field_field_basis_of_record[0]['raw']['value'] ?? 'default';
+
               if(!isset($colours[$basisOfRecord])) {
                 $colours[$basisOfRecord] = count($colours);
               }
@@ -363,6 +366,7 @@ function theme_gm3_view_gm3($variables){
               $point = $item['raw'];
               $point['colour'] = $colour;
               $point['content'] = $content;
+              $point['radius'] = $row->field_field_coordinate_uncertainty[0]['raw']['value'] ?? null;
 
               gm3_theme_view_add_point($points, $point);
             }

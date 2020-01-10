@@ -80,9 +80,7 @@
           this.addMarker(
             L.latLng(point.latitude, point.longitude),
             'editable' in point ? point.editable : settings.editable,
-            point.colour,
-            point.title,
-            point.content
+            point
           );
         }
       }
@@ -104,7 +102,15 @@
      * @param {string} content The content text for the marker's popup;
                                might be an array of { title, content } objects
      */
-    addMarker(latLng, editable = true, colour=0, title = '', content = ''){
+    addMarker(latLng, editable = true, options){
+      let { colour, title, content, radius } = {
+        colour: 0,
+        title: '',
+        content:'',
+        radius: null,
+        ...options
+      };
+
       if(!this.canAddObject()) {
         return;
       }
@@ -122,6 +128,17 @@
           })
         }
       );
+
+      if(radius) {
+        // Add the radius circle to `this` instead of the object layer,
+        // (a) so it doesn't get counted as an object and (b) so it
+        // doesn't get included as a member of the cluster
+        const radiusMarker = L.circle(latLng, { radius: parseInt(radius, 10) });
+        // Syncronise the addition and removal of the radius circle with the actual location marker
+        point.on('add', () => radiusMarker.addTo(this));
+        point.on('remove', () => this.removeLayer(radiusMarker));
+      }
+
       this.addObject(point);
 
       point.on({

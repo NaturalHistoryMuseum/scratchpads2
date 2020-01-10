@@ -557,3 +557,14 @@ function darwincore_update_7023(){
     field_update_instance($instance);
   }
 }
+
+/**
+ * Update gm3 settings
+ */
+function darwincore_update_7024(){
+  if(field_info_instance('node', 'field_map', 'location')){
+    module_load_include('features.field.inc', 'darwincore');
+    $fields = darwincore_field_default_fields();
+    field_update_instance($fields['node-location-field_map']['field_instance']);
+  }
+}
