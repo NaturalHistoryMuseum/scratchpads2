@@ -23,7 +23,7 @@ function scratchpads_biblio_form_node_form_validate(&$form, &$form_state)
   $title = $form_state['values']['title'];
   if (strpos($title, '<') !== false) {
     libxml_use_internal_errors(true);
-    $xmlString = '<xml>' . str_replace('&', '&amp;', $title) . '</xml>';
+    $xmlString = '<xml>' . htmlspecialchars($title) . '</xml>';
     $doc = simplexml_load_string($xmlString);
     $errors = libxml_get_errors();
     if (!$doc || $errors) {
