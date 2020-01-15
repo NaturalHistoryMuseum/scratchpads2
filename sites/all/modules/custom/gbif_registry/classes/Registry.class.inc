@@ -239,7 +239,7 @@ class Registry
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $http_is_successful = $httpcode >= 200 && $httpCode < 400;
+        $http_is_successful = $httpcode >= 200 && $httpcode < 400;
         $error = curl_error($ch);
         if ($error || !$http_is_successful) {
             watchdog(

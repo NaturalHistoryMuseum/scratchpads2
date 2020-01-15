@@ -21,10 +21,15 @@ $conf['dockerised_scratchpad'] = TRUE;
 # Use test endpoints if we're in dev mode
 if(getenv('DEVELOPMENT_ENV')) {
   $conf['gbif_registry_web_service_url'] = 'http://api.gbif-uat.org/v1/';
+
+  # Disable posting stats
+  $conf['scratchpad_central_servers'] = array();
 }
 
-# Disable posting stats
-$conf['scratchpad_central_servers'] = array();
+$conf['scratchpads_gbif_registry_ini'] = [
+  'username' => 'scratchpads',
+  'password' => getenv('GBIF_REGISTRY_PASSWORD'),
+];
 
 # Remote issue block (disabled by default)
 $conf['remote_issue_tab_github_auth_key'] = getenv('GITHUB_AUTH_KEY');
