@@ -30,7 +30,10 @@ function ecoint_menu_link_alter(&$item){
   }
   // Enable the Solr page link
   if($item['link_path'] == 'interactions'){
-    $item['hidden'] = 0;
+    // Only set it if it wasn't being explicitly set already - otherwise users are unable to hide/disable it
+    if(!isset($item['hidden'])){
+      $item['hidden'] = 0;
+    }
     $item['menu_name'] = 'main-menu';
   }
 }
