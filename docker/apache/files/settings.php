@@ -18,6 +18,11 @@ $conf['standard_scratchpad'] = FALSE;
 # Mark as dockerised so install profile options can be tweaked
 $conf['dockerised_scratchpad'] = TRUE;
 
+# Use test endpoints if we're in dev mode
+if(getenv('DEVELOPMENT_ENV')) {
+  $conf['gbif_registry_web_service_url'] = 'http://api.gbif-uat.org/v1/';
+}
+
 # Disable posting stats
 $conf['scratchpad_central_servers'] = array();
 

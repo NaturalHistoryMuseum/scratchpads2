@@ -29,7 +29,7 @@ function scratchpads_gbif_registry_client_admin_settings()
       '#options' => $licence_options,
       '#title' => t('GBIF licence'),
       '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_licence', $default_licence),
-      '#description' => t("Whether to register this scratchpad with GBIF"),
+      '#description' => t("The licence to use for the DwC-A archive"),
     )
   );
 
@@ -47,5 +47,3 @@ function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$fo
   variable_del('scratchpads_gbif_registry_client_last_update');
   dwcarchiver_rebuild('gbif-dwca', false);
 }
-
-
