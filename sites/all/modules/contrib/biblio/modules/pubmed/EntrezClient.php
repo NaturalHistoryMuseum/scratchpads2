@@ -9,7 +9,7 @@ class BiblioEntrezClient
 {
   const DEFAULT_DATABASE = 'pubmed';
 
-  const BASE_URL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
+  const BASE_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
 
   private $database = self::DEFAULT_DATABASE;
 

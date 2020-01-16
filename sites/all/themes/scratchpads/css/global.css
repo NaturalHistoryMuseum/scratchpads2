@@ -822,10 +822,15 @@ td.views-field-contextual-links {
   vertical-align: top;
   zoom: 1; }
 
-#forum table {
-  width: 100%; }
+td.views-field-contextual-links {
+  position:relative
+}
 
-#forum td {
-  vertical-align: top; }
-  #forum td.icon {
-    width: 20px; }
+.lexicon-related > a:not(:last-child)::after {
+  content: ',';
+  margin-right: 0.5em;
+}
+
+.lexicon-extralinks > a {
+  margin-left: 1em;
+}

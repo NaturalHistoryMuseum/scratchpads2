@@ -88,6 +88,15 @@ function citethispage_block_info(){
 function citethispage_block_view($delta = ''){
   // Permission check
   if(!user_access('citethispage_cite')){return;}
+
+  // Check that anonymous users have access to the node
+  $node = menu_get_object();
+  if (isset($node->nid)) {
+    if (!node_access('view', $node, drupal_anonymous_user())) {
+      return;
+    }
+  }
+
   return array(
     'subject' => t('Cite this page'),
     'content' => array(
@@ -135,6 +144,7 @@ function citethispage_page_alter(&$page){
  * _citethispage_find_nested_parents
  *
  * Helper function to find nested parents in an array
+ *
  */
 function _citethispage_find_nested_parents($key, $array){
   if(isset($array[$key])){

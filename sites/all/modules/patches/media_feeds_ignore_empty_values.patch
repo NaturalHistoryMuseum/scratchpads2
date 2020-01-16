@@ -1,0 +1,18 @@
+diff --git a/sites/all/modules/contrib/media_feeds/media_feeds.module b/sites/all/modules/contrib/media_feeds/media_feeds.module
+index 8496d9691..1d7926a58 100644
+--- a/sites/all/modules/contrib/media_feeds/media_feeds.module
++++ b/sites/all/modules/contrib/media_feeds/media_feeds.module
+@@ -77,6 +77,13 @@ function media_feeds_set_target($source, $entity, $target, $values, $config = ar
+ 
+   foreach ($values as $value) {
+     try {
++      // if the MediaFeedsInternetProvider is in use and the value is the empty string, then we
++      // ignore the value as the MediaFeedsInternetProvider will throw a
++      // MediaInternetNoHandlerException exception otherwise
++      if ($provider === 'MediaFeedsInternetProvider' && $value === '') {
++        continue;
++      }
++
+       // Find a provider to create a file object.
+       $provider = new $provider($value, $config);
+ 

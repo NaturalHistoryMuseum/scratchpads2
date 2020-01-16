@@ -94,11 +94,32 @@ class BiblioCrossRefClient
       xml_get_current_line_number($this->parser)),'error');
     }
 
+    // clean the title up
+    $this->node['title'] = $this->cleanTitle($this->node['title']);
+
     xml_parser_free($this->parser);
 
     return $this->node;
   }
 
+
+  /**
+   * Given a title, cleans it by removing any non <i> or <em> tags and ensuring that all remaining
+   * tags are lowercase.
+   *
+   * @param $title string the title
+   * @return string
+   */
+  function cleanTitle($title) {
+    // remove any tags that aren't <i> or <em> (this is a case-insensitive strip)
+    $title = strip_tags($title, '<i><em>');
+    // then ensure any uppsercase <i> or <em> tags are lowercased
+    $search = array('<I>', '</I>', '<EM>', '</EM>', '<eM>', '</eM>', '<Em>', '</Em>');
+    // the replacements of each are just the lowercase versions
+    $replace = array_map('strtolower', $search);
+    // replace and return
+    return str_replace($search, $replace, $title);
+  }
 
   function unixref_startElement($parser, $name, $attrs) {
     switch ($name) {
