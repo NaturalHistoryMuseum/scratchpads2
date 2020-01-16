@@ -35,13 +35,13 @@ class RegistryChild {
   }
 
   public function save(){
-    if($this->key){
+    if(isset($this->key)){
       // A key has already been set. This object already exists on the server,
       // and therefore just needs updating.
     }else{
       // No key, we simply need to create a new object, and save the key.
       $this->key = json_decode(Registry::singleton()->post($this->parent->getURLPrefix() . '/' . $this->parent->getKey() . '/' . $this->getURLPrefix(), json_encode($this->getAsArray())), TRUE);
-      if(!$this->key){
+      if(!isset($this->key)){
         // An error occurred. PANIC!
         throw new Exception('Unable to save object');
       }

@@ -48,5 +48,6 @@ function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$fo
 
   if(module_exists('dwcarchiver')) {
     dwcarchiver_rebuild('gbif-dwca', false);
+    menu_rebuild();
   }
 }

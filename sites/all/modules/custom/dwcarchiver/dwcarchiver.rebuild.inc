@@ -3,7 +3,10 @@
 function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
 {
   try {
-    if (user_access('scratchpads team')) {
+    if(is_string($dwcarchiver)) {
+      $dwcarchiver = dwcarchiver_machine_name_load($dwcarchiver);
+    }
+    if ($deliver && user_access('scratchpads team')) {
       timer_start('dwcarchiver_rebuild');
     }
     // Create the dwcarchiver directory.
@@ -18,14 +21,15 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
       _dwcarchiver_create_xml_and_data_files($dwcarchiver, $zip);
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
-      file_unmanaged_move($zip_filename, 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip', FILE_EXISTS_REPLACE);
+      file_unmanaged_move($zip_filename, dwcarchiver_get_archive_uri($dwcarchiver), FILE_EXISTS_REPLACE);
       if ($deliver && !user_access('scratchpads team')) {
         drupal_set_message(t('The DwC-A has been rebuilt'));
       }
     }
-    $timer = timer_stop('dwcarchiver_rebuild');
+
     if ($deliver) {
       if (user_access('scratchpads team')) {
+        $timer = timer_stop('dwcarchiver_rebuild');
         drupal_set_message(t('@time seconds: Archive rebuilt', array(
           '@time' => round($timer['time'] / 1000, 2)
         )));

@@ -1766,7 +1766,7 @@ function scratchpads_tweaks_update_7098()
 }
 
 /**
- * Enable GBIF registry client module & grant maintainers config permissions
+ * Grant maintainers GBIF registry client config permissions
  */
 function scratchpads_tweaks_update_7099()
 {
@@ -1779,4 +1779,3 @@ function scratchpads_tweaks_update_7099()
   }
 
 }
-

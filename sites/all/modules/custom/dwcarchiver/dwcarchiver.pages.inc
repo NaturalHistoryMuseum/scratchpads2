@@ -287,14 +287,14 @@ function dwcarchiver_settings_submit($form, &$form_state)
  */
 function dwcarchiver_deliver_archive($machine_name)
 {
-  $dwcarchiver = dwcarchiver_machine_name_load($machine_name);
-  $filename = 'public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip';
+  $filename = dwcarchiver_get_archive_uri($machine_name);
   if (file_exists($filename)) {
     // Set headers.
     header('Content-type: application/zip');
-    header('Content-Disposition: attachment; filename="' . $dwcarchiver->machine_name . '.zip"');
+    header('Content-Disposition: attachment; filename="' . $machine_name . '.zip"');
     readfile($filename);
   } else {
+    $dwcarchiver = dwcarchiver_machine_name_load($machine_name);
     drupal_set_message(t('The archive "@archive_name" has not yet been created.', array(
       '@archive_name' => $dwcarchiver->name
     )), 'error');
@@ -1060,8 +1060,9 @@ function dwcarchiver_archive_delete_form_submit($form, &$form_state)
 {
   // Delete the zip file if we need to
   $dwcarchiver = dwcarchiver_machine_name_load($form_state['values']['machine_name']);
-  if (file_exists('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip')) {
-    drupal_unlink('public://dwcarchiver/' . $dwcarchiver->machine_name . '.zip');
+  $filepath = dwcarchiver_get_archive_uri($dwcarchiver);
+  if (file_exists($filepath)) {
+    drupal_unlink($filepath);
   }
   if ($form_state['values']['confirm']) {
     db_delete('dwcarchiver_archive')->condition('did', $dwcarchiver->did)->execute();

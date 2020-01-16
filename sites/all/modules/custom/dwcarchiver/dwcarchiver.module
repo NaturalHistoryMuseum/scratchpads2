@@ -183,6 +183,21 @@ function dwcarchiver_menu(){
 }
 
 /**
+ * Returns the drupal URI for the given archive
+ *
+ * @param String|Object $archive The dwcarchive object or the archive's machine name
+ * @return String
+ */
+function dwcarchiver_get_archive_uri($archive){
+    $machine_name = $archive->machine_name ?? (is_string($archive) ? $archive : null);
+    if(!isset($machine_name)) {
+      return null;
+    }
+
+    return "public://dwcarchiver/$machine_name.zip";
+}
+
+/**
  * Implements hook_gbif_registry_endpoints
  */
 function dwcarchiver_gbif_registry_endpoints(){

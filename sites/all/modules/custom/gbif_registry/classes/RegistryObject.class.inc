@@ -256,7 +256,7 @@ class RegistryObject extends RegistryChild
      */
     public function getEndpoints()
     {
-        return new Endpoints($this->getURLPrefix() . "/{$this->key}/endpoint");
+        return new Endpoints($this->getURLPrefix() . "/{$this->key}/endpoint", $this);
     }
 
     /**

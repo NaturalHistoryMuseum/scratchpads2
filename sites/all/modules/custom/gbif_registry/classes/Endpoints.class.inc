@@ -23,7 +23,9 @@ namespace GBIF;
 
 class Endpoints extends Iterator{
 
-  public function __construct($path, $endpointType = FALSE){
+  public function __construct($path, $parent, $endpointType = FALSE){
+    $this->parent = $parent;
+
     $parameters = array();
     if($endpointType){
       $parameters['endpointType'] = $endpointType;
@@ -38,7 +40,7 @@ class Endpoints extends Iterator{
     // time, and could be an issue for efficiency.
     foreach($this->results as $key => $value){
       if(gettype($value) !== 'object'){
-        $this->results[$key] = new Endpoint($value);
+        $this->results[$key] = new Endpoint($value, $this->parent);
       }
     }
   }
