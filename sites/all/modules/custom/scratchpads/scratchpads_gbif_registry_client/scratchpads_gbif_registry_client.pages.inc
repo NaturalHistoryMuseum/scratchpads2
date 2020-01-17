@@ -17,7 +17,20 @@ function scratchpads_gbif_registry_client_admin_settings()
   if (in_array($cc_block_licence_type, $licence_options)) {
     $default_licence = $cc_block_licence_type;
   }
-  $form = array(
+  $form = [];
+
+  $uuid = variable_get('scratchpads_gbif_registry_client_uuid', false);
+  if($uuid) {
+    $api = variable_get('gbif_registry_web_service_url', 'http://api.gbif.org/v1/');
+    $domain = str_replace('api', 'www', parse_url($api, PHP_URL_HOST));
+    $url = "http://$domain/dataset/$uuid";
+    $form['scratchpads_gbif_registry_client_uuid'] = [
+      '#type' => 'markup',
+      '#markup' => '<p>' . l(t('Registered on GBIF with UUID @uuid', ['@uuid' => $uuid]), $url) . '</p>'
+    ];
+  }
+
+  $form += array(
     'scratchpads_gbif_registry_client_registration_enabled' => array(
       '#type' => 'checkbox',
       '#title' => t('Enable GBIF registration'),
@@ -35,7 +48,7 @@ function scratchpads_gbif_registry_client_admin_settings()
 
   $form['#submit'][] = 'scratchpads_gbif_registry_client_admin_settings_form_submit';
 
-    // use the system_settings_form function so that we don't have to implement our own submit function
+  // use the system_settings_form function so that we don't have to implement our own submit function
   return system_settings_form($form);
 }
 
