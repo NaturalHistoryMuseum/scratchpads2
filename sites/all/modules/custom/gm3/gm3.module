@@ -288,17 +288,20 @@ function gm3_menu(){
  * Get the default settings for Leaflet maps
  */
 function gm3_settings(){
-  return variable_get('gm3_default_settings', array(
+  $saved_settings = variable_get('gm3_default_settings', []);
+
+  return $saved_settings + [
     'width' => '100%',
     'height' => '500px',
-    'center' => array(
+    'center' => [
       'latitude' => 52,
       'longitude' => 0
-    ),
+    ],
     'zoom' => 4,
     'maxZoom' => null,
-    'minZoom' => null
-  ));
+    'minZoom' => null,
+    'enableClustering' => true
+  ];
 }
 
 /**
