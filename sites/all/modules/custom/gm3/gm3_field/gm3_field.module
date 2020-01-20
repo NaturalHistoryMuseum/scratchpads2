@@ -125,27 +125,8 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
     ]
   ];
 
-  $gm3_settings = gm3_settings();
-  $cluster_default = $gm3_settings['enableClustering'] ? t('enabled') : t('disabled');
-
-  $enable_clustering = [
-    '#type' => 'radios',
-    '#title' => t('Enable Clustering'),
-    '#options' => [
-      '' => t('Site default') . " ($cluster_default)",
-      'yes' => t('Yes'),
-      'no' => t('No')
-    ],
-    '#default_value' => $field['settings']['enable_clustering'] ?? '',
-    '#description' => t('For points that are close together at lower zoom levels, shows the number of points in that area instead of the individual points themselves.')
-  ];
-
   switch($field['type']){
-    case 'gm3_point':
-      $form['enable_clustering'] = $enable_clustering;
-      break;
     case 'gm3_combination':
-      $form['enable_clustering'] = $enable_clustering;
       $options = [
         'gm3_point' => 'Point',
         'gm3_polygon' => 'Polygon',
@@ -1186,13 +1167,6 @@ function gm3_field_js_point_settings($items, $editable = false, $settings = []){
     'module' => 'gm3',
     'convexhull' => $settings['display_convex_hull'] ?? false
   ];
-
-  // This will be "yes", "no" or empty string.
-  $cluster = $settings['enable_clustering'] ?? '';
-
-  if($cluster) {
-    $library['enableClustering'] = $cluster == 'yes';
-  }
 
   return $library;
 }
