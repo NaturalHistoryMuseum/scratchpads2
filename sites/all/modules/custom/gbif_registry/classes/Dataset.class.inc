@@ -129,6 +129,16 @@ class Dataset extends RegistryObject {
     return new Contacts("dataset/{$this->key}/contact");
   }
 
+  /**
+   * Request GBIF to re-ingest the dataset
+   *
+   * @return bool True on success, false on error
+   */
+  public function requestCrawl(){
+    $crawlEndpoint = "dataset{$this->key}/crawl";
+    return Registry::singleton()->post($crawlEndpoint);
+  }
+
   public function __toString(){
     return "{$this->key} - {$this->title}";
   }

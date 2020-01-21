@@ -142,6 +142,27 @@ function scratchpads_gbif_registry_client_cron()
 }
 
 /**
+ * Implements hook_dwcarchiver_rebuild
+ *
+ * Ask GBIF to recrawl the dataset when it gets rebuilt
+ */
+function scratchpads_gbif_registry_dwcarchiver_rebuild($did) {
+  if($did != 'gbif-dwca') {
+    return;
+  }
+
+  $uuid = variable_get('scratchpads_gbif_registry_client_uuid', false);
+
+  if (!$uuid) {
+    return;
+  }
+
+  $dataset = new GBIF\Dataset($uuid);
+
+  $dataset->requiestCrawl();
+}
+
+/**
  * Implements hook_permission()
  */
 function scratchpads_gbif_registry_client_permission()

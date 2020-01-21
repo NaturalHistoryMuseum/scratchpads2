@@ -22,6 +22,9 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
       file_unmanaged_move($zip_filename, dwcarchiver_get_archive_uri($dwcarchiver), FILE_EXISTS_REPLACE);
+      // Let other modules (e.g. scratchpads_gbif_registry_client) know the rebuild has happened
+      module_invoke_all('dwcarchiver_rebuild', $dwarchiver->did, $dwarchiver);
+
       if ($deliver && !user_access('scratchpads team')) {
         drupal_set_message(t('The DwC-A has been rebuilt'));
       }
