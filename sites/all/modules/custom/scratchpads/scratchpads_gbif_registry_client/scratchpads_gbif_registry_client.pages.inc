@@ -30,12 +30,15 @@ function scratchpads_gbif_registry_client_admin_settings()
     ];
   }
 
+  $nonBio = !variable_get('biological_vids');
+
   $form += array(
     'scratchpads_gbif_registry_client_registration_enabled' => array(
       '#type' => 'checkbox',
       '#title' => t('Enable GBIF registration'),
       '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_enabled', false),
-      '#description' => t("Whether to register this scratchpad with GBIF"),
+      '#description' => t("Whether to register this scratchpad with GBIF."),
+      '#disabled' => $nonBio
     ),
     'scratchpads_gbif_registry_client_registration_licence' => array(
       '#type' => 'select',
@@ -45,6 +48,17 @@ function scratchpads_gbif_registry_client_admin_settings()
       '#description' => t("The licence to use for the DwC-A archive"),
     )
   );
+
+  if($nonBio) {
+    $link = url('admin/structure/taxonomy/add');
+    $text = t(
+      'There are no biological taxonomies on this scratchpad, please <a href="@url">create one</a> before registering with GBIF.',
+      [
+        "@url" => $link
+      ]
+    );
+    $form['scratchpads_gbif_registry_client_registration_enabled']['#description'] .= "<p><b>". $text ."</b></p>";
+  }
 
   $form['#submit'][] = 'scratchpads_gbif_registry_client_admin_settings_form_submit';
 
