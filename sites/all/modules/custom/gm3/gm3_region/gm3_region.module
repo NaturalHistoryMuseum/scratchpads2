@@ -95,7 +95,7 @@ function gm3_region_library(){
       'dependencies' => array(
         array(
           'gm3',
-          'gm3.polygon'
+          'gm3'
         )
       )
     )

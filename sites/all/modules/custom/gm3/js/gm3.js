@@ -30,11 +30,32 @@
 
   Drupal.GM3 = class {
     constructor (map) {
-      // Create the OSM tileset
-      const osmTileLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: ['a','b','c']
-      });
+      // Create the map tileset, which depends on the user's settings
+      const tileLayer =
+        map.settings.mapStyle === 'translated' ?
+          L.mapboxGL({
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            accessToken: 'not-needed',
+            style: 'https://api.maptiler.com/maps/basic/style.json?key=' + map.settings.mapTilerKey,
+            pane: 'tilePane'
+          }).on('add', event =>
+            event.target._glMap.autodetectLanguage()
+          )
+        : map.settings.mapStyle === 'satellite' ?
+          L.mapboxGL({
+            attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            accessToken: 'not-needed',
+            style: 'https://api.maptiler.com/maps/hybrid/style.json?key=' + map.settings.mapTilerKey,
+            pane: 'tilePane'
+          }).on('add', event =>
+            event.target._glMap.autodetectLanguage()
+          )
+        : // mapStyle === 'default'
+          L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            subdomains: ['a','b','c']
+          })
+        ;
 
       if (map instanceof Drupal.GM3) {
         return map;
@@ -49,25 +70,15 @@
 
       const leafletOptions = {
         center: [settings.center.latitude, settings.center.longitude],
-        layers: [osmTileLayer],
+        layers: [tileLayer],
         editable: true,
       };
 
-      if(settings.zoom) {
-        leafletOptions.zoom = settings.zoom;
-      }
+      leafletOptions.zoom = settings.zoom = parseInt(settings.zoom, 10) || 5;
 
       // How far in/out user is allowed to zoom
-      const maxZoom = parseInt(settings.maxZoom, 10);
-      const minZoom = parseInt(settings.minZoom, 10);
-
-      if(maxZoom) {
-        leafletOptions.maxZoom = maxZoom;
-      }
-
-      if(minZoom) {
-        leafletOptions.minZoom = minZoom;
-      }
+      leafletOptions.maxZoom = parseInt(settings.maxZoom, 10) || 24;
+      leafletOptions.minZoom = parseInt(settings.minZoom, 10) || 0;
 
       // The currently selected tool (left sidebar)
       this.activeClass = 'default';
@@ -410,7 +421,7 @@
       }
 
       // Handy in case we want to debug an individual map
-      Drupal.settings.gm3.mapInstances = {};
+      Drupal.settings.gm3.mapInstances = Drupal.settings.gm3.mapInstances || {};
 
       // Jquery object
       if(context[0]) {

@@ -37,17 +37,28 @@ function gm3_admin_settings_form(){
         '#default_value' => $settings['center']['longitude']
       ]
     ],
-    'minZoom' => [
+    'zoom' => [
       '#type' => 'select',
-      '#title' => t('Minimum zoom level'),
-      '#default_value' => $settings['minZoom'],
-      '#options' => drupal_map_assoc(range(2, 10))
+      '#title' => t('Default zoom level'),
+      '#default_value' => $settings['zoom'],
+      '#options' => drupal_map_assoc(range(0, 10))
     ],
     'enableClustering' => [
       '#type' => 'checkbox',
       '#title' => t('Enable clustering'),
       '#default_value' => $settings['enableClustering'],
       '#description' => t('For points that are close together at lower zoom levels, shows the number of points in that area instead of the individual points themselves.')
+    ],
+    'mapStyle' => [
+      '#type' => 'select',
+      '#title' => t('Map style'),
+      '#options' => [
+        'default' => t('Default'),
+        'translated' => t('Translated to user\'s local language'),
+        'satellite' => t('Satellite')
+      ],
+      '#default_value' => $settings['mapStyle'],
+      '#description' => t('Change the map tiles to render in a different style')
     ],
     'submit' => [
       '#type' => 'submit',
@@ -63,13 +74,13 @@ function gm3_admin_settings_form_submit(&$form, &$form_state){
   $settings = [
     'width' => $form_state['values']['width'],
     'height' => $form_state['values']['height'],
-    'minZoom' => $form_state['values']['minZoom'],
-    'zoom' => $form_state['values']['minZoom'],
+    'zoom' => $form_state['values']['zoom'],
     'center' => [
       'latitude' => $form_state['values']['latitude'],
       'longitude' => $form_state['values']['longitude']
     ],
-    'enableClustering' => $form_state['values']['enableClustering']
+    'enableClustering' => $form_state['values']['enableClustering'],
+    'mapStyle' => $form_state['values']['mapStyle']
   ];
   variable_set('gm3_default_settings', $settings);
 }
