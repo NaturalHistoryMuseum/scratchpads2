@@ -230,7 +230,7 @@ function gm3_add_js($id, $settings = [], $libraries = []){
 
   // Iterate through and requrie the library files
   if(is_array($libraries)){
-    foreach($libraries as $library => $lib_settings){
+    foreach($libraries as $library => &$lib_settings){
       // If not module specified, assume gm3
       $module = $lib_settings['module'] ?? 'gm3';
 
@@ -240,7 +240,13 @@ function gm3_add_js($id, $settings = [], $libraries = []){
       if(!is_array($lib_settings)){
         unset($libraries[$library]);
         $library = $lib_settings;
-        $libraries[$library] = $library;
+        $lib_settings = [];
+        $libraries[$library] = $lib_settings;
+      }
+
+      // If enable clustering is not specified on the map, use the global setting for it
+      if($library === 'point' && !isset($lib_settings['enableClustering'])){
+        $lib_settings['enableClustering'] = $settings['enableClustering'];
       }
 
       // gm3 libs need gm3 prepended to their filename

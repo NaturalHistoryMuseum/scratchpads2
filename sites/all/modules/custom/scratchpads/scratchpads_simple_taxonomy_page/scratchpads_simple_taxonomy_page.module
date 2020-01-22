@@ -505,4 +505,7 @@ function scratchpads_simple_taxonomy_page_preprocess_node(&$variables){
     // Keeping the title as a single space ensures the edit links are displayed
     $variables['title'] = ' ';
   }
+  if(isset($variables['title'])){
+    $variables['title'] = htmlspecialchars_decode($variables['title']);
+  }
 }
