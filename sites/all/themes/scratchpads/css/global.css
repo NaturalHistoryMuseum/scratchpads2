@@ -344,6 +344,12 @@ a.scratchpads-slide-toggle {
   float: none !important;
 }
 
+.logo-img {
+  /* Use logical position properties so logo renders correctly in rtl mode */
+  float: inline-start;
+  margin-inline: 0 20px;
+}
+
 h1.site-name,h2.site-name {
   font-size: 40px;
   margin: 14px 0 8px 0;
@@ -441,7 +447,7 @@ h1.site-name,h2.site-name {
   color: #ACACAC;
 }
 
-.block-footer-menu ul li:not  (.last  ):after {
+.block-footer-menu ul li:not(.last):after {
   content: "|";
 }
 
