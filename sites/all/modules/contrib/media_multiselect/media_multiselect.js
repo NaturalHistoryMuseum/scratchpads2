@@ -4,8 +4,14 @@
       for (var base in settings.ajax) {
         var element_settings = settings.ajax[base];
         if (element_settings.event == 'media_select' && !$('#' + base + '.media-multiselect-processed').length) {
+          const $base = $('#' + base);
+
+          // Change the type from submit to button so an enter in the form doesn't trigger the new
+          // Only want to do this in the javascript so it still submits with js dsiabled
+          $base.prop('type', 'button');
+
           // Bind a click-event to the 'add more' button.
-          $('#' + base).click((function(element) { return function(event) {
+          $base.click((function(element) { return function(event) {
             var media_settings = settings.media.multi_select.elements[element];
 
             // Add a new beforeSubmit that adds in our fids
