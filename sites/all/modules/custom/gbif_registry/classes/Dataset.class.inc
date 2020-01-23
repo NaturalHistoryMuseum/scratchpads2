@@ -125,12 +125,6 @@ class Dataset extends RegistryObject {
 
   /**
    */
-  public function getEndpoints(){
-    return new Endpoints("dataset/{$this->key}/endpoint");
-  }
-
-  /**
-   */
   public function getContacts(){
     return new Contacts("dataset/{$this->key}/contact");
   }

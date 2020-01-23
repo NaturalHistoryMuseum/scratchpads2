@@ -1,4 +1,5 @@
 <?php
+
 /*********************************************************************************************
  *
  * CONSTANTS
@@ -30,7 +31,8 @@ define('CC_URL', 'cc_url');
  *
  * Provides the description of the field.
  */
-function creative_commons_field_info(){
+function creative_commons_field_info()
+{
   return array(
     // We name our field as the associative name of the array.
     'creative_commons' => array(
@@ -45,7 +47,8 @@ function creative_commons_field_info(){
 /**
  * Implements hook_field_settings_form().
  */
-function creative_commons_field_settings_form($field, $instance, $has_data){
+function creative_commons_field_settings_form($field, $instance, $has_data)
+{
   $settings = $field['settings'];
   $form['allowed_values'] = array(
     '#type' => 'checkboxes',
@@ -67,14 +70,16 @@ function creative_commons_field_settings_form($field, $instance, $has_data){
 /**
  * Implements hook_field_is_empty().
  */
-function creative_commons_field_is_empty($item, $field){
+function creative_commons_field_is_empty($item, $field)
+{
   return empty($item['licence']);
 }
 
 /**
  * Implements hook_field_formatter_info().
  */
-function creative_commons_field_formatter_info(){
+function creative_commons_field_formatter_info()
+{
   return array(
     'creative_commons_small_image' => array(
       'label' => t('Creative Commons small image'),
@@ -100,10 +105,11 @@ function creative_commons_field_formatter_info(){
 /**
  * Implements hook_field_formatter_view().
  */
-function creative_commons_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+function creative_commons_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display)
+{
   $element = array();
-  foreach($items as $delta => $item){
-    switch($display['type']){
+  foreach ($items as $delta => $item) {
+    switch ($display['type']) {
       case 'creative_commons_small_image':
         $element[$delta] = creative_commons_display($item['licence'], $field['settings']['jurisdiction'], CC_SMALL_IMAGE);
         break;
@@ -121,20 +127,21 @@ function creative_commons_field_formatter_view($entity_type, $entity, $field, $i
 /**
  * Helper function to build the render array for the creative commons logo & link
  */
-function creative_commons_display($licence_type, $jurisdiction, $display_type){
+function creative_commons_display($licence_type, $jurisdiction, $display_type)
+{
   $path = drupal_get_path('module', 'creative_commons');
-  if($jurisdiction && strpos($jurisdiction, '_')){
+  if ($jurisdiction && strpos($jurisdiction, '_')) {
     list($jurisdiction, $version) = explode('_', $jurisdiction);
     $version = substr($version, 0, 1) . '.' . substr($version, 1, 1);
-  }else{
+  } else {
     $version = CC_DEFAULT_VERSION;
   }
-  switch($licence_type){
+  switch ($licence_type) {
     // These licence types are text only
     case CC_NONE:
-      if($display_type == CC_URL){
+      if ($display_type == CC_URL) {
         $url = '';
-      }else{
+      } else {
         return array(
           '#markup' => t('All rights reserved.')
         );
@@ -142,11 +149,11 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       break;
     case CC_0:
       $image = $path . '/images/zero.png';
-      $url = 'http://creativecommons.org/about/cc0';
+      $url = '//creativecommons.org/about/cc0';
       break;
     case CC_PD:
       $image = $path . '/images/public_domain.png';
-      $url = 'http://creativecommons.org/about/pdm';
+      $url = '//creativecommons.org/about/pdm';
       break;
     case CC_BY:
       $licence = 'by';
@@ -168,19 +175,20 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
       break;
   }
   // Default image
-  if(!isset($image)){
+  if (!isset($image)) {
     $image = CC_IMAGE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction . '/' : '') . $display_type;
   }
-  if(!isset($url)){
+  if (!isset($url)) {
     $url = CC_LICENCE_URI . '/' . $licence . '/' . $version . '/' . ($jurisdiction ? $jurisdiction : '');
   }
-  if($display_type == CC_LARGE_IMAGE || $display_type == CC_SMALL_IMAGE){return array(
+  if ($display_type == CC_LARGE_IMAGE || $display_type == CC_SMALL_IMAGE) {
+    return array(
       '#type' => 'html_tag',
       '#tag' => 'a',
       '#attributes' => array(
         'href' => url($url, array(
-          'absolute' => TRUE,
-          'external' => TRUE
+          'absolute' => true,
+          'external' => true
         )),
         'class' => ($display_type == CC_LARGE_IMAGE ? 'cc-large' : 'cc-small'),
         'target' => '_blank'
@@ -191,8 +199,9 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
         'width' => $display_type == CC_LARGE_IMAGE ? '88px' : '80px',
         'height' => $display_type == CC_LARGE_IMAGE ? '31px' : '15px'
       ))
-    );}
-  if($display_type == CC_URL){
+    );
+  }
+  if ($display_type == CC_URL) {
     //For DwC-A reasons need to change licences to licenses - bloody Americans ;)
     $url = str_replace('licences', 'licenses', $url);
     return array(
@@ -204,7 +213,8 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type){
 /**
  * Implements hook_field_widget_info().
  */
-function creative_commons_field_widget_info(){
+function creative_commons_field_widget_info()
+{
   return array(
     'select' => array(
       'label' => t('Select list'),
@@ -224,20 +234,21 @@ function creative_commons_field_widget_info(){
 /**
  * Implements hook_field_widget_form().
  */
-function creative_commons_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+function creative_commons_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element)
+{
   $value = isset($items[$delta]['licence']) ? $items[$delta]['licence'] : '';
   $widget = $element;
   $widget['#delta'] = $delta;
-  if($instance['required'] || $instance['widget']['type'] == 'radios'){
+  if ($instance['required'] || $instance['widget']['type'] == 'radios') {
     $options = array();
-  }else{
+  } else {
     $options = array(
       '' => '- None -'
     );
   }
-  if(count($allowed_values = array_filter($field['settings']['allowed_values']))){
+  if (count($allowed_values = array_filter($field['settings']['allowed_values']))) {
     $options += (array)array_intersect_key(creative_commons_get_licence_types(), $allowed_values);
-  }else{
+  } else {
     $options += (array)creative_commons_get_licence_types();
   }
   $widget += array(
@@ -249,10 +260,11 @@ function creative_commons_field_widget_form(&$form, &$form_state, $field, $insta
   return $element;
 }
 
-function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_state){
-  if($form['#field']['type'] == 'creative_commons'){
+function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_state)
+{
+  if ($form['#field']['type'] == 'creative_commons') {
     $form['field']['cardinality']['#default_value'] = 1;
-    $form['field']['#access'] = FALSE;
+    $form['field']['#access'] = false;
   }
 }
 
@@ -264,10 +276,11 @@ function creative_commons_form_field_ui_field_edit_form_alter(&$form, &$form_sta
 /**
  * Implements hook_feeds_processor_targets_alter().
  */
-function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
-  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name)
+{
+  foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
-    if($info['type'] == 'creative_commons'){
+    if ($info['type'] == 'creative_commons') {
       $targets[$name] = array(
         'name' => check_plain($instance['label']),
         'callback' => '_creative_commons_feeds_set_target_value',
@@ -284,15 +297,16 @@ function creative_commons_feeds_processor_targets_alter(&$targets, $entity_type,
  *
  * FIXME - Should CC be translatable?
  */
-function _creative_commons_feeds_set_target_value($source, $entity, $target, $value){
+function _creative_commons_feeds_set_target_value($source, $entity, $target, $value)
+{
   $entity_type = strtolower(get_class($source->importer->processor));
-  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+  if (($processor_location = strpos($entity_type, 'processor')) > 0) {
     $entity_type = substr($entity_type, 0, $processor_location);
   }
-  if(substr($entity_type, 0, 5) == 'feeds'){
+  if (substr($entity_type, 0, 5) == 'feeds') {
     $entity_type = substr($entity_type, 5);
   }
-  if(!entity_get_info($entity_type)){
+  if (!entity_get_info($entity_type)) {
     $entity_type = 'node';
   }
   $field = isset($entity->$target) ? $entity->$target : array();
@@ -313,18 +327,19 @@ function _creative_commons_feeds_set_target_value($source, $entity, $target, $va
 /**
  * Implements hook_apachesolr_field_mappings().
  */
-function creative_commons_apachesolr_field_mappings(){
+function creative_commons_apachesolr_field_mappings()
+{
   return array(
     'creative_commons' => array(
       'indexing_callback' => 'creative_commons_indexing_callback',
       'map callback' => 'creative_commons_get_licence_types',
       'index_type' => 'integer',
-      'facets' => TRUE,
+      'facets' => true,
       'query types' => array(
         'term'
       ),
       'query type' => 'term',
-      'facet missing allowed' => TRUE
+      'facet missing allowed' => true
     )
   );
 }
@@ -332,9 +347,10 @@ function creative_commons_apachesolr_field_mappings(){
 /**
  * Indexing callback
  */
-function creative_commons_indexing_callback($entity, $field_name, $index_key, $field_info){
+function creative_commons_indexing_callback($entity, $field_name, $index_key, $field_info)
+{
   $fields = array();
-  if(!empty($entity->{$field_name})){
+  if (!empty($entity->{$field_name})) {
     $fields[] = array(
       'key' => $index_key,
       'value' => $entity->{$field_name}[LANGUAGE_NONE][0]['licence']
@@ -351,7 +367,8 @@ function creative_commons_indexing_callback($entity, $field_name, $index_key, $f
 /**
  * Implements hook_block_info().
  */
-function creative_commons_block_info(){
+function creative_commons_block_info()
+{
   $blocks['creative_commons'] = array(
     'info' => t('Creative Commons'),
     'region' => 'footer',
@@ -360,9 +377,10 @@ function creative_commons_block_info(){
   return $blocks;
 }
 
-function creative_commons_block_configure($delta = ''){
+function creative_commons_block_configure($delta = '')
+{
   $form = array();
-  if($delta == 'creative_commons'){
+  if ($delta == 'creative_commons') {
     $form['creative_commons_block_licence_type'] = array(
       '#type' => 'select',
       '#title' => t('Licence type'),
@@ -388,9 +406,10 @@ function creative_commons_block_configure($delta = ''){
   return $form;
 }
 
-function creative_commons_block_save($delta = '', $edit = array()){
+function creative_commons_block_save($delta = '', $edit = array())
+{
   // This example comes from node.module.
-  if($delta == 'creative_commons'){
+  if ($delta == 'creative_commons') {
     variable_set('creative_commons_block_licence_type', $edit['creative_commons_block_licence_type']);
     variable_set('creative_commons_block_jurisdiction', $edit['creative_commons_block_jurisdiction']);
     variable_set('creative_commons_block_display_type', $edit['creative_commons_block_display_type']);
@@ -400,9 +419,10 @@ function creative_commons_block_save($delta = '', $edit = array()){
 /**
  * Implements hook_block_view().
  */
-function creative_commons_block_view($delta = ''){
+function creative_commons_block_view($delta = '')
+{
   $block = array();
-  switch($delta){
+  switch ($delta) {
     case 'creative_commons':
       $licence = variable_get('creative_commons_block_licence_type', CC_BY);
       $block['content'] = array(
@@ -412,7 +432,7 @@ function creative_commons_block_view($delta = ''){
           '!licence' => creative_commons_get_licence_types($licence)
         ))
       );
-      if($licence != CC_NONE){
+      if ($licence != CC_NONE) {
         $block['content']['#attached'] = array(
           'css' => array(
             drupal_get_path('module', 'creative_commons') . '/css/creative_commons.css'
@@ -429,18 +449,20 @@ function creative_commons_block_view($delta = ''){
  * THEME FUNCTIONS
  *
  ********************************************************************************************/
-function creative_commons_theme($existing, $type, $theme, $path){
+function creative_commons_theme($existing, $type, $theme, $path)
+{
   return array(
     'creative_commons_block' => array(
       'variables' => array(
-        'licence' => NULL,
-        'text' => NULL
+        'licence' => null,
+        'text' => null
       )
     )
   );
 }
 
-function theme_creative_commons_block($variables){
+function theme_creative_commons_block($variables)
+{
   $output = '';
   $output .= drupal_render($variables['licence']);
   $output .= '<p>' . $variables['text'] . '</p>';
@@ -455,7 +477,8 @@ function theme_creative_commons_block($variables){
 /**
  * Allowed values callback for field_license list field.
  */
-function creative_commons_get_licence_types($type = null){
+function creative_commons_get_licence_types($type = null)
+{
   $licence_types = array(
     CC_NONE => t('All Rights Reserved'),
     CC_0 => t('CC0'),
@@ -467,14 +490,15 @@ function creative_commons_get_licence_types($type = null){
     CC_BY_NC_SA => t('Attribution, Non-Commercial, Share Alike CC BY-NC-SA'),
     CC_BY_NC_ND => t('Attribution, Non-Commercial, No Derivative Works CC BY-NC-ND')
   );
-  if($type && !is_array($type)){
+  if ($type && !is_array($type)) {
     return $licence_types[$type];
-  }else{
+  } else {
     return $licence_types;
   }
 }
 
-function creative_commons_get_jurisdictions(){
+function creative_commons_get_jurisdictions()
+{
   return array(
     "" => t('International'),
     "ar_25" => t("Argentina"),

@@ -17,6 +17,7 @@ services:
     volumes:
       - apache-files:/var/www/html/sites/default
     environment:
+      - DEVELOPMENT_ENV=${DEVELOPMENT_ENV}
       - BASE_URL=${APACHE_BASE_URL}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
@@ -47,6 +48,7 @@ services:
       - APACHE_PHP_XDEBUG_REMOTE_AUTOSTART=${APACHE_PHP_XDEBUG_REMOTE_AUTOSTART}
       - GITHUB_AUTH_KEY=${APACHE_GITHUB_AUTH_KEY}
       - GITHUB_REPOSITORY=${APACHE_GITHUB_REPOSITORY}
+      - GBIF_REGISTRY_PASSWORD=${GBIF_REGISTRY_PASSWORD}
     logging:
       driver: json-file
       options:

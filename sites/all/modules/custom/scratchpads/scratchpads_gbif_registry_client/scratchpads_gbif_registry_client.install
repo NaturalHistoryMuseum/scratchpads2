@@ -7,3 +7,10 @@ function scratchpads_gbif_registry_client_update_7004(){
   variable_del('scratchpads_gbif_registry_client_last_update');
   variable_del('scratchpads_gbif_registry_client_uuid');
 }
+
+/**
+ * Ensure dwcarchiver module is installed
+ */
+function scratchpads_gbif_registry_client_update_7005(){
+  module_enable(['dwcarchiver']);
+}

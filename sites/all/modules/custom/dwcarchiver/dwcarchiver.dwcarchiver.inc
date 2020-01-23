@@ -3,7 +3,8 @@
 /**
  * Implements hook_dwcarchiver_archives
  */
-function dwcarchiver_dwcarchiver_archives(){
+function dwcarchiver_dwcarchiver_archives()
+{
   // Get all of the "taxonomy" vocabularies, and create an archive for each.
   // Note, we may want to be able to allow multiple vocabularies for a single
   // archive.
@@ -11,13 +12,13 @@ function dwcarchiver_dwcarchiver_archives(){
   $archives = array();
   // Get the site license URL
   $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
-  if($jurisdiction && strpos($jurisdiction, '_')){
+  if ($jurisdiction && strpos($jurisdiction, '_')) {
     list($jurisdiction, $version) = explode('_', $jurisdiction);
     $version = substr($version, 0, 1) . '.' . substr($version, 1, 1);
-  }else{
+  } else {
     $version = CC_DEFAULT_VERSION;
   }
-  switch(variable_get('creative_commons_block_licence_type', CC_BY)){
+  switch (variable_get('creative_commons_block_licence_type', CC_BY)) {
     // These licence types are text only
     case CC_NONE:
       $url = '';
@@ -83,7 +84,7 @@ function dwcarchiver_dwcarchiver_archives(){
   $eol_replacements = array(
     'behavious' => 'behaviour'
   );
-  foreach(array(
+  foreach (array(
     'general_description',
     'morphology',
     'behavious',
@@ -117,7 +118,7 @@ function dwcarchiver_dwcarchiver_archives(){
     'taxon_biology',
     'trophic_strategy',
     'uses'
-  ) as $field){
+  ) as $field) {
     $description_extension_gbif['maps'][] = array(
       array(
         'field' => 'uuid',
@@ -247,16 +248,16 @@ function dwcarchiver_dwcarchiver_archives(){
     );
   }
   $bundles = array();
-  foreach($bio_vids as $vid => $type){
-    if($type){
+  foreach ($bio_vids as $vid => $type) {
+    if ($type) {
       $vocabulary = taxonomy_vocabulary_load($vid);
-      if($vocabulary){
+      if ($vocabulary) {
         $bundles[] = $vocabulary->machine_name;
       }
     }
   }
-  if(count($bundles)){
-    if(module_exists('darwincore')){
+  if (count($bundles)) {
+    if (module_exists('darwincore')) {
       //
       //
       //
