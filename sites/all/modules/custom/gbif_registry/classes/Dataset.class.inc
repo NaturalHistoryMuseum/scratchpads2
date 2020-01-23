@@ -135,7 +135,7 @@ class Dataset extends RegistryObject {
    * @return bool True on success, false on error
    */
   public function requestCrawl(){
-    $crawlEndpoint = "dataset{$this->key}/crawl";
+    $crawlEndpoint = "dataset/{$this->key}/crawl";
     return Registry::singleton()->post($crawlEndpoint);
   }
 

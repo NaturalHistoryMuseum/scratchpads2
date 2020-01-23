@@ -146,7 +146,7 @@ function scratchpads_gbif_registry_client_cron()
  *
  * Ask GBIF to recrawl the dataset when it gets rebuilt
  */
-function scratchpads_gbif_registry_dwcarchiver_rebuild($did) {
+function scratchpads_gbif_registry_client_dwcarchiver_rebuild($did) {
   if($did != 'gbif-dwca') {
     return;
   }
@@ -157,9 +157,10 @@ function scratchpads_gbif_registry_dwcarchiver_rebuild($did) {
     return;
   }
 
+  GBIFRegistry::singleton();
   $dataset = new GBIF\Dataset($uuid);
 
-  $dataset->requiestCrawl();
+  $dataset->requestCrawl();
 }
 
 /**
