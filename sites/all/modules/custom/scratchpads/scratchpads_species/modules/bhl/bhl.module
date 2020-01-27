@@ -96,7 +96,7 @@ function bhl_block_view($delta = ''){
 
   // default the markup we return to an error message
   $markup = '<p>' . t('Unable to fetch references from @name.', array('@name' => 'BHL')) . '</p>';
-
+  $titles = _bhl_get_namebank_titles($term->name);
   if($term){
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
       $cache = cache_get($term->tid, 'cache_bhl');
@@ -220,52 +220,41 @@ function _bhl_fetch_xml($url, $options = array('timeout' => 30, 'ignore_empty_ch
 
 function _bhl_get_namebank_titles($term_name, $limit = 20) {
   $titles = array();
-
-  $name_search_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameSearch&apikey=' . BHL_API_KEY . '&name=' . urlencode($term_name);
-  $namebank_ids = _bhl_fetch_xml($name_search_url);
-  if (!$namebank_ids) {
-    // total failure, bin out
-    return array(false, array());
-  }
-
   $errors = 0;
-  foreach ($namebank_ids->Result->Name as $data) {
-    if (strtolower($data->NameConfirmed) == str_replace("+", " ", strtolower($term_name))) {
-      $name_detail_url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=NameGetDetail&apikey=' . BHL_API_KEY . '&namebankid=' . $data->NameBankID;
-      $namebank_details = _bhl_fetch_xml($name_detail_url);
-      if (!$namebank_details) {
-        $errors++;
+
+  $name_detail_url = 'https://www.biodiversitylibrary.org/api3?op=GetNameMetadata&apikey=' . BHL_API_KEY  . '&name=' . urlencode($term_name);
+  $name_metadata = _bhl_fetch_xml($name_detail_url);
+
+  if ($name_metadata) {
+
+    foreach ($name_metadata->Result->Name->Titles->Title as $title) {
+      // no content so don't add
+      if (!$title->Items->Item) {
         continue;
       }
-
-      foreach ($namebank_details->Result->Titles->Title as $title) {
-        // no content so don't add
-        if (!$title->Items->Item) {
-          continue;
-        }
-        //convert the titleID to numeric
-        $title_id = intval($title->TitleID);
-        // if the publication has already been added, just add the items
-        if (!empty($titles[$title_id])) {
-          $titles[$title_id]['items'][] = $title->Items;
-        } else { //else add some publication details - expand here for more publication data if nec.
-          // convert to an array - numerical key causing error
-          $title_array = (array)$title->ShortTitle;
-          $title_url = (array)$title->TitleUrl;
-          $titles[$title_id] = array(
-            'title' => $title_array[0],
-            'items' => array(
-              $title->Items
-            ),
-            'title_url' => $title_url[0]
-          );
-        }
-        if (count($titles) == $limit) {
-          break 2;
-        }
+      //convert the titleID to numeric
+      $title_id = intval($title->TitleID);
+      // if the publication has already been added, just add the items
+      if (!empty($titles[$title_id])) {
+        $titles[$title_id]['items'][] = $title->Items;
+      } else { //else add some publication details - expand here for more publication data if nec.
+        // convert to an array - numerical key causing error
+        $title_array = (array)$title->ShortTitle;
+        $title_url = (array)$title->TitleUrl;
+        $titles[$title_id] = array(
+          'title' => $title_array[0],
+          'items' => array(
+            $title->Items
+          ),
+          'title_url' => $title_url[0]
+        );
+      }
+      if (count($titles) == $limit) {
+        break;
       }
     }
   }
+
 
   // if there are errors and no titles were collected, return a false success as we couldn't get any
   // data from the bhl api due to errors
