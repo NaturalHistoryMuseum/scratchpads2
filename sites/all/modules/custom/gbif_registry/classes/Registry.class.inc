@@ -223,7 +223,7 @@ class Registry
     /**
      * http post.
      */
-    function post($path, $data)
+    function post($path, $data=[])
     {
         $ch = curl_init($this->registryURL . $path);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -250,7 +250,8 @@ class Registry
             );
             return false;
         } else {
-            return $response;
+            // Make sure we don't return a falsy value if response is empty (e.g. a 204)
+            return $response ?: true;
         }
     }
 
