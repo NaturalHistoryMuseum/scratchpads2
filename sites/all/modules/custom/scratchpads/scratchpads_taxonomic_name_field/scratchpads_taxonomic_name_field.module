@@ -254,6 +254,11 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
     ));
     exit();
   }
+  // we need at least one vocabulary associated with the field to filter the results. If there aren't any, error
+  if (empty($field['settings']['allowed_values'])) {
+    print t('Taxonomy field @field_name must have at least one associated vocabulary.', ['@field_name' => $field_name]);
+    exit();
+  }
   // The user enters a comma-separated list of tags. We only autocomplete the
   // last tag.
   $tags_typed = drupal_explode_tags($tags_typed);
