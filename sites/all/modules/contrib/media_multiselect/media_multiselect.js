@@ -22,7 +22,7 @@
               
               // Add the fids to the form_values.
               for (var i=0; i<this.media_multiselect_files.length; i++) {
-                form_values.unshift({name: 'media_multiselect_fids[]', value: this.media_multiselect_files[i].fid});
+                form_values.push({name: 'media_multiselect_fids[]', value: this.media_multiselect_files[i].fid});
               }
 
               // Call the prototype, so we preseve any existing functionality in there.
