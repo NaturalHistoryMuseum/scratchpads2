@@ -8,9 +8,12 @@ function theme_ecoint_search($variables){
   foreach($variables['results'] as $result){
     $ecoint_node = node_load($result['node']->entity_id);
     $row = array();
+    $lang = _variable_language()->language;
     if(isset($ecoint_node->field_taxonomic_name['und'][0]['tid'])){
       $left_term = taxonomy_term_load($ecoint_node->field_taxonomic_name['und'][0]['tid']);
-    }elseif(isset(array_values($ecoint_node->field_specimen_1)[0][0]['nid'])){
+    } elseif(isset($ecoint_node->field_taxonomic_name[$lang][0]['tid'])){
+      $left_term = taxonomy_term_load($ecoint_node->field_taxonomic_name[$lang][0]['tid']);
+    } elseif(isset(array_values($ecoint_node->field_specimen_1)[0][0]['nid'])){
       $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
       $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
       $left_term = taxonomy_term_load($tid);
@@ -21,7 +24,9 @@ function theme_ecoint_search($variables){
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
     if(isset($right_fields->field_taxonomic_name['und'][0]['tid'])){
       $right_term = taxonomy_term_load($right_fields->field_taxonomic_name['und'][0]['tid']);
-    }else if(isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])){
+    } elseif(isset($right_fields->field_taxonomic_name[$lang][0]['tid'])){
+      $right_term = taxonomy_term_load($right_fields->field_taxonomic_name[$lang][0]['tid']);
+    } elseif(isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])){
       $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
       $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
       $right_term = taxonomy_term_load($tid);
