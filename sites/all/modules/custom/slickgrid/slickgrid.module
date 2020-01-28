@@ -439,6 +439,7 @@ function slickgrid_get_fields_of_type($type, $entity_type = null){
  */
 function slickgrid_editor_form($form, &$form_state){
   $editor = $form_state['editor'];
+  $required = false;
   // Use the first entity - this will be used as the default value for all selected entities 
   foreach($editor->entities as $entity){
     list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
@@ -456,20 +457,31 @@ function slickgrid_editor_form($form, &$form_state){
       );
       $form['#entity_property'] = true;
       // Create an instance of the field
-    }elseif(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
-      $editor->set_error($id, t('Field doesn\'t exist'), 'form');
-      return;
-    }elseif($instance['required']){ // If any field instance is required, set required to true
-      $required = true;
+    } else {
+      $instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name);
+
+      if(!$instance) {
+        $editor->set_error($id, t('Field doesn\'t exist'), 'form');
+        return;
+      }
+
+      if($instance['required']){ // If any field instance is required, set required to true
+        $required = true;
+      }
     }
     // have we retrieved the form field yet?
     if(!count($form)){
       // file_field_widget_form() requires parents to be an array so ensure it is
       $form['#parents'] = array();
+
+      // Get the language code for this field
+      $lang = field_language($editor->entity_type, $entity, $editor->field_id);
+
       // Invoke & return the field form
       $form = _field_invoke_default('form', $editor->entity_type, $entity, $form, $form_state, array(
         'field_id' => $editor->field_id,
-        'field_name' => $editor->field_id
+        'field_name' => $editor->field_id,
+        'language' => $lang
       ));
     }
   }
@@ -753,4 +765,3 @@ function slickgrid_list_addable_entities(){
   }
   return $entities;
 }
-
