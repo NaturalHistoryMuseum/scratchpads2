@@ -635,9 +635,6 @@ h1.site-name,h2.site-name {
 }
 
 .stripy-div-group .field {
-  border-width: 1px;
-  border-color: #D9DADD;
-  border-style: none solid solid solid;
   clear: left;
   display: table-row;
 }
@@ -645,6 +642,9 @@ h1.site-name,h2.site-name {
 .stripy-div-group .field > div {
   display: table-cell;
   padding: 5px 5px 10px;
+  border-width: 1px;
+  border-color: #D9DADD;
+  border-style: none solid solid solid;
 }
 
 .stripy-div-group .field > div p {
