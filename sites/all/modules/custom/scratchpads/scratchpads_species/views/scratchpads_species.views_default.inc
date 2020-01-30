@@ -2089,7 +2089,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Images ([fid])';
@@ -2159,7 +2159,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Videos ([fid])';
@@ -2229,7 +2229,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Audio ([fid])';
