@@ -2066,6 +2066,9 @@ function scratchpads_species_views_default_views(){
     $handler = $view->new_display('block', 'Block', 'block');
     $handler->display->display_options['defaults']['css_class'] = FALSE;
     $handler->display->display_options['css_class'] = 'view-inline-filters grid-8 alpha omega';
+    $handler->display->display_options['defaults']['query'] = FALSE;
+    $handler->display->display_options['query']['type'] = 'views_query';
+    $handler->display->display_options['query']['options']['distinct'] = TRUE;
     /* Display: Count images */
     $handler = $view->new_display('attachment', 'Count images', 'attachment_1');
     $handler->display->display_options['defaults']['group_by'] = FALSE;
