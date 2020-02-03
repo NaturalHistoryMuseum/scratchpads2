@@ -148,6 +148,7 @@ function ecoint_block_view($delta = ''){
 function ecoint_preprocess_block(&$variables){
   if($variables['block']->module == 'ecoint' && $variables['block']->delta == 'species-interactions'){
     $variables['classes_array'][] = drupal_html_class('grid-8');
+    $variables['classes_array'][] = drupal_html_class('alpha');
   }
 }
 
