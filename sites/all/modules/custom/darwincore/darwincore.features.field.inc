@@ -952,7 +952,8 @@ function darwincore_field_default_fields(){
           'label' => 'above',
           'module' => 'gm3_field',
           'settings' => array(
-            'display_convex_hull' => FALSE
+            'display_convex_hull' => FALSE,
+            'point_radius_field' => 'field_coordinate_uncertainty'
           ),
           'type' => 'gm3_entity_map',
           'weight' => '1'
@@ -961,7 +962,8 @@ function darwincore_field_default_fields(){
           'label' => 'above',
           'module' => 'gm3_field',
           'settings' => array(
-            'display_convex_hull' => FALSE
+            'display_convex_hull' => FALSE,
+            'point_radius_field' => 'field_coordinate_uncertainty'
           ),
           'type' => 'gm3_entity_map',
           'weight' => '1'
@@ -970,7 +972,8 @@ function darwincore_field_default_fields(){
           'label' => 'above',
           'module' => 'gm3_field',
           'settings' => array(
-            'display_convex_hull' => FALSE
+            'display_convex_hull' => FALSE,
+            'point_radius_field' => 'field_coordinate_uncertainty'
           ),
           'type' => 'gm3_entity_map',
           'weight' => '1'

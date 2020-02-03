@@ -786,7 +786,9 @@ function gm3_field_field_formatter_info(){
         'gm3_combination'
       ),
       'settings' => array(
-        'display_convex_hull' => FALSE
+        'display_convex_hull' => FALSE,
+        // Allow entities to specify a field to pull the radius setting from (gm3_point type only)
+        'point_radius_field' => null
       )
     ),
     'gm3_field_map' => array(
@@ -933,11 +935,15 @@ function theme_gm3_rectangle_text($variables){
  * map will show all the fields set as "entity_map" on that entity.
  */
 function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  // Get the bundle name as we need it later on in a couple of places
+  $entity_info = entity_get_info($entity_type);
+  $bundle_key = $entity_info['entity keys']['bundle'] ?? null;
+  $bundle = !empty($bundle_key) ? $entity->{$bundle_key} : null;
+
   switch($display['type']){
     case 'gm3_entity_map':
       // Set an ID based on the entity.
-      $entity_info = entity_get_info($entity_type);
-      $id = "gm3_map-" . (!empty($entity_info['entity keys']['bundle']) ? $entity->{$entity_info['entity keys']['bundle']} : 'bundle') . "-" . $entity->{$entity_info['entity keys']['id']};
+      $id = "gm3_map-" . ($bundle ?? 'bundle') . "-" . $entity->{$entity_info['entity keys']['id']};
       break;
     case 'gm3_field_map':
       // Setting the ID here is easy, as we can simply use the field ID.
@@ -1007,12 +1013,26 @@ function gm3_field_field_formatter_view($entity_type, $entity, $field, $instance
   switch($field['type']){
     case 'gm3_point':
       if(count($items)){
+        // See if there's a field to get the radius from and get field info
+        $radius_field = $display['settings']['point_radius_field'] ?? null;
+        if($radius_field) {
+          $radii =  field_get_items($entity_type, $entity, $radius_field);
+          $radius_field_info = field_info_instance($entity_type, $radius_field, $bundle);
+          $radius_field_label = $radius_field_info['label'];
+        }
+
         // Set the items as not being editable.
         foreach(array_keys($items) as $key){
           $items[$key]['editable'] = FALSE;
           $items[$key]['colour'] = variable_get('gm3_default_point_colour', 0);
+          $items[$key]['radius'] = $radii[$key]['value'] ?? null;
           if(!isset($items[$key]['content'])){
             $items[$key]['content'] = 'Latitude: ' . $items[$key]['latitude'] . '<br/>Longitude: ' . $items[$key]['longitude'];
+
+            // If there's a radius for this point, add it to the content
+            if(isset($items[$key]['radius'])) {
+              $items[$key]['content'].= "<br>$radius_field_label:  {$items[$key]['radius']}";
+            }
           }
         }
 
@@ -1152,23 +1172,7 @@ function _gm3_field_get_points_string_from_array($items){
  * Generate the js settings for the point library
  */
 function gm3_field_js_point_settings($items, $editable = false, $settings = []){
-  if(is_array($editable)) {
-    $settings = $editable;
-    $editable = false;
-  }
-
-  // Todo: Must we mark each individual item editable? Can't we just do it on the module settings?
-  foreach($items as $key => $item){
-    $items[$key]['editable'] = $editable;
-  }
-
-  $library = [
-    'points' => $items,
-    'module' => 'gm3',
-    'convexhull' => $settings['display_convex_hull'] ?? false
-  ];
-
-  return $library;
+  return gm3_js_point_settings($items, $editable, $settings);
 }
 
 /**
