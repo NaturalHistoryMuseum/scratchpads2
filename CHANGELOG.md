@@ -1,4 +1,46 @@
-2.9.11 (2019-10-22)
+# Change log
+
+## 2.9.12 (2020-02-03)
+
+This release had four developers working over a longer time period trying to fix as many outstanding bugs as possible to bring the issue queue down to a more manageable size. Here's a summary of the fixes:
+
+### Localisation & Internationalisation:
+ - Move menu tabs to the right for RTL languages ([#6091](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6091) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Float logo right for RTL ([#6097](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6097) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Check for terms in current language in ecoint module ([#6119](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6119) - [@alycejenni](https://github.com/alycejenni))
+ - Correctly detect language for slickgrid fields ([#6126](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6126) - [@PaulKiddle](https://github.com/PaulKiddle))
+
+### UI, UX & Accessibility:
+ - Prevent the media select box opening prematurely ([#6099](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6099) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Disable autocomplete for search when "all" selected ([#6100](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6100) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Patch the biblio's crossref importer to only include certain tags in titles ([#6077](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6077) - [@jrdh](https://github.com/jrdh))
+ - Captalise the "Add terms" taxonomy operation ([#6096](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6096) - [@jrdh](https://github.com/jrdh))
+ - Use htmlspecialchars to make title xml safe ([#6103](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6103) - [@alycejenni](https://github.com/alycejenni))
+ - Check that anon users have access to node before generating 'cite me' ([#6102](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6102) - [@alycejenni](https://github.com/alycejenni))
+ - Add margins around lexicon links ([#6105](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6105) - [@alycejenni](https://github.com/alycejenni))
+ - Decode html chars when displaying node titles on taxon pages ([#6106](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6106) - [@alycejenni](https://github.com/alycejenni))
+ - Return an error when autocompleting taxons without a vocabulary ([#6114](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6114) - [@jrdh](https://github.com/jrdh))
+ - Remove duplicates from species media view ([#6129](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6129) - [@jrdh](https://github.com/jrdh))
+ - Move stripy-div-group border to table cells ([#6128](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6128) - [@alycejenni](https://github.com/alycejenni))
+ - Add 'alpha' class to ecoint block to match other blocks ([#6125](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6125) - [@alycejenni](https://github.com/alycejenni))
+ - Set the max_input_vars in php.ini ([#6120](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6120) - [@alycejenni](https://github.com/alycejenni))
+
+### Maps:
+ - Add satelite map & localized language map ([#6093](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6093) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Add option to disable map clusters ([#6092](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6092) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Show uncertainty of records on map ([#6113](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6113) - [@PaulKiddle](https://github.com/PaulKiddle))
+
+### Import, Export & Interoperability:
+ - Add php soap dependency to apache Dockerfile ([#6083](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6083) - [@jrdh](https://github.com/jrdh))
+ - Allow DOIs to be imported using the URL as well as the short form ([#6082](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6082) - [@jrdh](https://github.com/jrdh))
+ - Fix pubmed imports ([#6081](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6081) - [@jrdh](https://github.com/jrdh))
+ - Ignore empty strings in URL column on import ([#6075](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6075) - [@jrdh](https://github.com/jrdh))
+ - Add an import operation to the taxonomy admin view ([#6095](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6095) - [@jrdh](https://github.com/jrdh))
+ - Fix GBIF registrations ([#6110](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6110) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Notify GBIF on change to archive ([#6111](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6111) - [@PaulKiddle](https://github.com/PaulKiddle))
+ - Update BHL to api v3 ([#6117](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6117) - [@PaulKiddle](https://github.com/PaulKiddle))
+
+## 2.9.11 (2019-10-22)
 
 Among other issues, this release makes further improvements to the maps module
 including fixes for previous regressions, and imrpoves docker support.
@@ -20,7 +62,7 @@ including fixes for previous regressions, and imrpoves docker support.
 - Allow use of ampersands and HTML in node titles (#5982 - @paulkiddle)
 
 
-2.9.10 (2019-08-12)
+## 2.9.10 (2019-08-12)
 
 This release fixes a number of regressions and bugs, including significant work refactoring map fields to be more reliable.
 
@@ -33,17 +75,17 @@ This release fixes a number of regressions and bugs, including significant work 
  - Add scale bar to maps (#5986 - @PaulKiddle)
  - Fix problems with taxonomy spreadsheet import (#5981 - @PaulKiddle)
 
-2.9.9 (2019-07-01)
+## 2.9.9 (2019-07-01)
 
 - Make BHL and ReFindIt API uses more reliable (#5944 - @jrdh)
 - Allow configuration of species tabs (#5947 - @jrdh)
 - Apply toggle setting on page load (#5888 - @jrdh)
 
-2.9.8 (2019-06-02)
+## 2.9.8 (2019-06-02)
 
 - Upgrade to Drupal 7.67
 
-2.9.7 (2019-04-16)
+## 2.9.7 (2019-04-16)
 
 - Fixed overlapping borders in tables (#5863 - @alycejenni)
 - Search submits after clicking an autocomplete suggestion (#5869 - @alycejenni)
@@ -61,7 +103,7 @@ This release fixes a number of regressions and bugs, including significant work 
 - Titles for custom blocks now display (#5910 - @alycejenni)
 - Crossbrowser maps fix (#5904 - @benscott)
 
-2.9.6 (2019-02-26)
+## 2.9.6 (2019-02-26)
 
 Replaces Google-based map interfaces and fixes many bugs, including:
 
@@ -80,7 +122,7 @@ Replaces Google-based map interfaces and fixes many bugs, including:
 - Scratchpads.eu stats (#5689) (@benscott)
 - PHP 7.1 Docker (#5808) (@benscott)
 
-2.9.5 (2019-01-30)
+## 2.9.5 (2019-01-30)
 
 This is a small update that includes a security fix for Drupal core
 and also fixes a bug we missed in the PHP 7 work.
@@ -89,7 +131,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Update views_slideshow module (#5792) (@PaulKiddle)
 
 
-2.9.4 (2019-01-14)
+## 2.9.4 (2019-01-14)
 
 - Upgrade to PHP 7 (#5671) (@PaulKiddle)
 - Upgrade to Drupal 7.61 (#5707) (@jrdh)
@@ -100,7 +142,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Fix AJAX responses when using the wavesurfer module (#5764) (@jrdh)
 - Wrap biblio URLs to improve presentation (#5765) (@PaulKiddle)
 
-2.9.3 (2018-10-22)
+## 2.9.3 (2018-10-22)
 
 - Upgraded Drupal to 7.60
 - Fixed GBIF map tiles
@@ -108,7 +150,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Simplify docker filesystem
 - Update bio.acousti.ca modules
 
-2.9.2 (2018-10-03)
+## 2.9.2 (2018-10-03)
 
 - Upgraded Drupal to 7.59
 - Added Docker & docker compose
@@ -117,61 +159,61 @@ and also fixes a bug we missed in the PHP 7 work.
 - Fixed Google Maps
 - Removed duplicated legacy modules
 
-2.8.1 (2016-06-17)
+## 2.8.1 (2016-06-17)
 
 - Ecological interactions.
 
-2.8.0.11 (2016-06-01)
+## 2.8.0.11 (2016-06-01)
 
 - Upgrades to some of the easier contrib modules to check.
 
-2.8.0.10 (2016-06-01)
+## 2.8.0.10 (2016-06-01)
 
 - Upgrade Drupal
 - Fix maps issue
 - Update team logins
 
-2.8.0.9 (2015-10-30)
+## 2.8.0.9 (2015-10-30)
 
 - One last release before I leave (#4477)
 
-2.8.0.8 (2015-10-30)
+## 2.8.0.8 (2015-10-30)
 
 - Fix an issue with scratchpads_tweaks_cron() caused by new security
   constraints in Drupal 7.40
 
-2.8.0.7 (2015-10-29)
+## 2.8.0.7 (2015-10-29)
 
 - Upgraded Drupal to 7.41
 - Hide the OBOE module (needs removing)
 - Minor fix to the Morphbank harvest module
 
-2.8.0.6 (2015-10-21)
+## 2.8.0.6 (2015-10-21)
 
 - Fix a permissions issue with the Taverna module
 
-2.8.0.5 (2015-10-08)
+## 2.8.0.5 (2015-10-08)
 
 - Delete JSPhylo temporary files
 
-2.8.0.4 (2015-10-07)
+## 2.8.0.4 (2015-10-07)
 
 - Allow missing parent menu items (#4468)
 
-2.8.0.3 (2015-10-07)
+## 2.8.0.3 (2015-10-07)
 
 - Moved the scratchpads_em theme to fix issues with e-monocot sites.
 
-2.8.0.2 (2015-10-07)
+## 2.8.0.2 (2015-10-07)
 
 - Upgrade the Wavesurfer library
 - Update the Taverna module to use Curl
 
-2.8.0.1 (2015-09-24)
+## 2.8.0.1 (2015-09-24)
 
 - Minor fixes
 
-2.8.0 (2015-09-21)
+## 2.8.0 (2015-09-21)
 
 - Added a tool that allows users to create graphs using views (#4453)
 - The map field allows the use of UK grid references (#4452)
@@ -185,31 +227,31 @@ and also fixes a bug we missed in the PHP 7 work.
 - Update the name of an SPM node if the term it's associated with is updated
   (#4356)
 
-2.7.3.4 (2015-09-17)
+## 2.7.3.4 (2015-09-17)
 
 - Fix an issue with the GBIF Registry code that resulted in an error on install
 
-2.7.3.3 (2015-09-17)
+## 2.7.3.3 (2015-09-17)
 
 - Fixed a bug with the bio.acousti.ca site
 
-2.7.3.2 (2015-09-02)
+## 2.7.3.2 (2015-09-02)
 
 - Code for detecting duplicate Specimen IDs reported false positives
 
-2.7.3.1 (2015-08-28)
+## 2.7.3.1 (2015-08-28)
 
 - Remove the Scratchpads statistics endpoints from the GBIF registry
 - Register datasets with the GBIF registry as Checklists
 
-2.7.3 (2015-08-27)
+## 2.7.3 (2015-08-27)
 
 - Upgrade Drupal to 7.39
 - Fix registration with GBIF
 - Fixed a minor bug with IUCN (#4442)
 - Allow hiding of the Revisions tab by role
 
-2.7.2 (2015-07-28)
+## 2.7.2 (2015-07-28)
 
 - Added caching to drupal_system_listing() and drupal_parse_info_file()
 - Upgraded PHPExcel library to 1.8.1
@@ -224,31 +266,31 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure Slickgrid works correctly on translated sites
 - Ensure that the correct term is 'bold' on each taxonomy term page (#4437)
 
-2.7.1.5 (2015-07-09)
+## 2.7.1.5 (2015-07-09)
 
 - Check the field_langauge of all fields and tweak the values accordingly
   (#4426)
 
-2.7.1.4 (2015-07-08)
+## 2.7.1.4 (2015-07-08)
 
 - Only convert LANGUAGE_NONE values in node entities (#4426)
 
-2.7.1.3 (2015-07-03)
+## 2.7.1.3 (2015-07-03)
 
 - Upgraded views_data_export module to 7.x-3.0beta8
 
-2.7.1.2 (2015-07-02)
+## 2.7.1.2 (2015-07-02)
 
 - Ensure that when rows are skipped in Slickgrid, that the rows are correctly
   indexed (#4416)
 
-2.7.1.1 (2015-07-01)
+## 2.7.1.1 (2015-07-01)
 
 - Fix a bug with the tag/tagtag module that prevented it from being possible to
   disable tag/autotag altogether
 - Ensure the removal of LANGUAGE_NONE values works as expected
 
-2.7.1 (2015-06-30)
+## 2.7.1 (2015-06-30)
 
 - Upgrades: Webform (7.x-4.9), Drupal (7.38)
 - Fixed a long standing bug with the handling of translated fields and imported
@@ -259,15 +301,15 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure users can create polygons on maps (#4414)
 - Enable importing from Catalogue of Life's 2015 checklist
 
-2.7.0.3 (2015-05-15)
+## 2.7.0.3 (2015-05-15)
 
 - Updated the URL of the Scratchpads Solr instance
 
-2.7.0.2 (2015-05-07)
+## 2.7.0.2 (2015-05-07)
 
 - We do not want the scratchpads_col module enabled on sites
 
-2.7.0 (2015-05-07)
+## 2.7.0 (2015-05-07)
 
 - Added a module that uses our own Classification Service, which currently
   provides classifications from the Catalogue of Life
@@ -281,41 +323,41 @@ and also fixes a bug we missed in the PHP 7 work.
 - Field Media no longer required for Specimen/Observation nodes (although it was
   never actually required)
 
-2.6.4.8 (2015-05-05)
+## 2.6.4.8 (2015-05-05)
 
 - Fix a minor typo in the Excel importer that had a major effect on the import.
   (#4388, 4389, #4393)
 
-2.6.4.7 (2015-04-30)
+## 2.6.4.7 (2015-04-30)
 
 - Upgraded views to 7.x-3.11
 
-2.6.4.6 (2015-04-29)
+## 2.6.4.6 (2015-04-29)
 
 - Fixed a typo that resulted in incorrect GUIDs for node reference (GUID)
   columns in the Feeds Excel template (#4366)
 
-2.6.4.5 (2015-04-17)
+## 2.6.4.5 (2015-04-17)
 
 - Removed GBIF ECat module
 
-2.6.4.4 (2015-04-16)
+## 2.6.4.4 (2015-04-16)
 
 - Allow users to edit translation strings
 
-2.6.4.3 (2015-04-16)
+## 2.6.4.3 (2015-04-16)
 
 - Stop the update module from moaning completely
 
-2.6.4.2 (2015-04-15)
+## 2.6.4.2 (2015-04-15)
 
 - Don't CAPTCHA the user_login and user_login_block forms
 
-2.6.4.1 (2015-04-13)
+## 2.6.4.1 (2015-04-13)
 
 - Ensure we only filter EOLAPI files out if the EOLAPI module is enabled
 
-2.6.4 (2015-04-13)
+## 2.6.4 (2015-04-13)
 
 - Updated Drupal and many contrib modules
 - Hide the updates from our users (#4371)
@@ -336,42 +378,42 @@ and also fixes a bug we missed in the PHP 7 work.
 - Converted most instances of file_get_contents() to drupal_http_request()
 - Patched media module to redirect to home page
 
-2.6.3.8 (2015-04-10)
+## 2.6.3.8 (2015-04-10)
 
 - Ensure files associated with a gallery more than once can be indexed
 
-2.6.3.7 (2015-04-10)
+## 2.6.3.7 (2015-04-10)
 
 - Fix an issue with the Tinytax block on multilingual sites
 
-2.6.3.6 (2015-04-08)
+## 2.6.3.6 (2015-04-08)
 
 - Fix a error that resulted in a redirect to a private file when viewing a
   private file in a media gallery (#4360)
 
-2.6.3.5 (2015-04-07)
+## 2.6.3.5 (2015-04-07)
 
 - Fix a minor issue with scratchpads_width_and_height that prevented remote
   images from having their widths/heights calculated (#4357)
 
-2.6.3.4 (2015-03-28)
+## 2.6.3.4 (2015-03-28)
 
 - Performance improvements for remote_stream_wrapper files
 
-2.6.3.3 (2015-03-27)
+## 2.6.3.3 (2015-03-27)
 
 - Converted most instances of file_get_contents() to drupal_http_request(), and
   ensured a timeout is set for each request.
 
-2.6.3.2 (2015-03-26)
+## 2.6.3.2 (2015-03-26)
 
 - Ensure all EoL DwC-A rows are returned (#4353)
 
-2.6.3.1 (2015-03-25)
+## 2.6.3.1 (2015-03-25)
 
 - Fixed an issue that prevented some sites from upgrading to 2.6.3
 
-2.6.3 (2015-03-24)
+## 2.6.3 (2015-03-24)
 
 - Updated NCBI, BHL, IUCN and ReFindit modules to use ajaxblocks module
 - Added a timeout to scratchpads_width_and_height to prevent it taking a lot of
@@ -382,34 +424,34 @@ and also fixes a bug we missed in the PHP 7 work.
   on request, and will be available in a later release following testing)
 - Update all file/media fields so they can reference remote images
 
-2.6.2.4 (2015-03-23)
+## 2.6.2.4 (2015-03-23)
 
 - Prevent scratchpads_width_and_height causing very slow page loads.
 
-2.6.2.3 (2015-03-23)
+## 2.6.2.3 (2015-03-23)
 
 - Changed the URL to our Solr instance
 
-2.6.2.2 (2015-03-19)
+## 2.6.2.2 (2015-03-19)
 
 - Security update, updated Drupal to 7.35, Ctools to 7.x-1.7 and Webform to
   7.x-3.23
 
-2.6.2.1 (2015-03-13)
+## 2.6.2.1 (2015-03-13)
 
 - Fixed an issue with Feeds XLS that prevented more than 49 rows being imported
 - Display the title of a linked node for a node reference field (#4161)
 
-2.6.2 (2015-03-12)
+## 2.6.2 (2015-03-12)
 
 - Revert the changes to the CKEditor plugin/module (#4343)
 - Ensure users can login and accept T&Cs on offline sites (#4342)
 
-2.6.1.1 (2015-03-10)
+## 2.6.1.1 (2015-03-10)
 
 - Increase the length of the biblio_keywords field (#4225)
 
-2.6.1 (2015-03-10)
+## 2.6.1 (2015-03-10)
 
 - Altered EOLAPI module so that it does not store full images locally (just
   thumbnails and previews)
@@ -434,56 +476,56 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure DOI import works as expected (#4328)
 - Upgraded CKEditor
 
-2.6.0.10.1 (2015-03-06)
+## 2.6.0.10.1 (2015-03-06)
 
 - Improve the scratchpads_statistics_cron function to prevent memory issues and
   possible timeouts (#4239)
 
-2.6.0.10 (2015-03-04)
+## 2.6.0.10 (2015-03-04)
 
 - Fixes the display of text and application files when attached to nodes (#4321)
 - Prevent access to the updates page
 
-2.6.0.9 (2015-03-04)
+## 2.6.0.9 (2015-03-04)
 
 - Ensure that languagefield fields can be imported into (#4334)
 
-2.6.0.8 (2015-02-26)
+## 2.6.0.8 (2015-02-26)
 
 - Enable the update module to reflect our usage on Drupal.org
 
-2.6.0.7.1 (2015-02-25)
+## 2.6.0.7.1 (2015-02-25)
 
 - Ensure empty cells are not imported into list values (#4338)
 
-2.6.0.7 (2015-02-25)
+## 2.6.0.7 (2015-02-25)
 
 - Allow searching within literature (#4331)
 
-2.6.0.6 (2015-02-24)
+## 2.6.0.6 (2015-02-24)
 
 - Ensure that user_reference fields are displayed consistently, and also include
   given names (#4336)
 
-2.6.0.5 (2015-02-24)
+## 2.6.0.5 (2015-02-24)
 
 - Fixed a bug that prevented GM3 maps from displaying, and possibly also values
   from being saved to GM3 fields (#4333)
 
-2.6.0.4 (2015-02-12)
+## 2.6.0.4 (2015-02-12)
 
 - Ensure Slickgrid works with the latest Views module (#4326)
 
-2.6.0.3 (2015-02-11)
+## 2.6.0.3 (2015-02-11)
 
 - Allow the Editor role to add/delete/edit/import taxonomy terms (#4324)
 
-2.6.0.1 (2015-02-09)
+## 2.6.0.1 (2015-02-09)
 
 - Clean up EOL API files that haven't been successfully moved
 - Also fix the aspect ratio of species page images (#1247)
 
-2.6.0 (2015-02-06)
+## 2.6.0 (2015-02-06)
 
 - Updated the EXIF Custom module enabling it for all Scratchpads (#4176)
 - Created a simple Entity filter (#4219)
@@ -522,45 +564,45 @@ and also fixes a bug we missed in the PHP 7 work.
 - Tweaked the ShareThis widget settings to improve performance
 - Merged code from various development branches (yet to be fully released)
 
-2.5.5 (2015-01-07)
+## 2.5.5 (2015-01-07)
 
 - Upgrade the DwC-Archiver module
 
-2.5.4.3 (2015-01-02)
+## 2.5.4.3 (2015-01-02)
 
 - Display the front page images uncropped if desired (#1247)
 
-2.5.4.2 (2014-12-10)
+## 2.5.4.2 (2014-12-10)
 
 - Fixes an issue with Autotag that prevented saving of content with specific
   diacritic marks (e.g. Baňař). (#4283)
 
-2.5.4.1 (2014-11-20)
+## 2.5.4.1 (2014-11-20)
 
 - Patched Drupal to include patches from Drupal 7.34
 
-2.5.4 (2014-11-10)
+## 2.5.4 (2014-11-10)
 
 - Added the improved DwC-A Export module. (#4126)
 
-2.5.3.4 (2014-10-24)
+## 2.5.3.4 (2014-10-24)
 
 - Possibly improve "cold start" times of sites
 
-2.5.3.3 (2014-10-23)
+## 2.5.3.3 (2014-10-23)
 
 - Prevent clearing of image width and height cache.
 
-2.5.3.2 (2014-10-20)
+## 2.5.3.2 (2014-10-20)
 
 - Applied patch for https://www.drupal.org/SA-CORE-2014-005
 
-2.5.3.1 (2014-09-15)
+## 2.5.3.1 (2014-09-15)
 
 - Fix an error that caused "odd" behaviour when importing into a user reference
   field by name (#4226)
 
-2.5.3 (2014-08-14)
+## 2.5.3 (2014-08-14)
 
 - Delete unpublished anonymous forum nodes older than one week (likely to be
   spam)
@@ -573,19 +615,19 @@ and also fixes a bug we missed in the PHP 7 work.
 - Fix an error that could result in duplicate UUIDs from the Taxonomy Editor
 - Allow more than 1024 chars in a taxonomy autocomplete field (#4195)
 
-2.5.2.3 (2014-07-24)
+## 2.5.2.3 (2014-07-24)
 
 - Try and ensure that the WoRMS service does not timeout (#4199)
 
-2.5.2.2 (2014-07-22)
+## 2.5.2.2 (2014-07-22)
 
 - Prevent caching of all species page blocks (#4202)
 
-2.5.2.1 (2014-07-22)
+## 2.5.2.1 (2014-07-22)
 
 - Prevent caching of species nomenclature block (#4202)
 
-2.5.2 (2014-07-15)
+## 2.5.2 (2014-07-15)
 
 - Added .gz to list of allowed extensions (#4194)
 - Removed the emails sent to the Scratchpads team
@@ -606,19 +648,19 @@ and also fixes a bug we missed in the PHP 7 work.
 - Prevent "ghost" galleries from being displayed (#4155)
 - Improved caching, which should improve the performance of sites
 
-2.5.1.3 (2014-06-26)
+## 2.5.1.3 (2014-06-26)
 
 - Fix a bug introduced in 2.5.1 (#4173)
 
-2.5.1.2 (2014-06-16)
+## 2.5.1.2 (2014-06-16)
 
 - Ensure GM3 fields render correctly (#4152)
 
-2.5.1.1 (2014-06-13)
+## 2.5.1.1 (2014-06-13)
 
 - Tweak the .htaccess file for the AdvAgg module
 
-2.5.1 (2014-06-13)
+## 2.5.1 (2014-06-13)
 
 - Fix a bug with Google Maps that prevented wide area points from displaying
   (#4150)
@@ -638,12 +680,12 @@ and also fixes a bug we missed in the PHP 7 work.
 - Link to the results page of ReFindIt (#4105)
 - Fix formatting of inline citations on taxon pages (#4118)
 
-2.5.0.1 (2014-05-08)
+## 2.5.0.1 (2014-05-08)
 
 - Updated the EoL/GBIF maps layer module to use the GBIF service (EoL have
   pulled theirs). (#4117)
 
-2.5.0 (2014-05-07)
+## 2.5.0 (2014-05-07)
 
 - Enable the revisioning of taxonomy terms (#3892)
 - Replace Google Scholar module with ReFindit (#4105, #1174)
@@ -655,19 +697,19 @@ and also fixes a bug we missed in the PHP 7 work.
 - Minor presentation tweak (#3884)
 - Aggregate slickgrid views on taxonomy pages (#4082)
 
-2.4.1.2 (2014-04-22)
+## 2.4.1.2 (2014-04-22)
 
 - Prevent a WSOD on some pages with facets. (#4097)
 
-2.4.1.2 (2014-04-04)
+## 2.4.1.2 (2014-04-04)
 
 - Ensure TUI allows a term to be moved to the root of a tree. (#4084)
 
-2.4.1.1 (2014-04-03)
+## 2.4.1.1 (2014-04-03)
 
 - Prevent taxonomic name terms from displaying in the terms facet (#4081)
 
-2.4.1 (2014-04-03)
+## 2.4.1 (2014-04-03)
 
 - Delete temporary files older than one month to free up valuable disk space
 - Ensure description fields on files are imported as Filtered HTML, rather than
@@ -690,17 +732,17 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure the emonocot citation block is not cached (#4008)
 - Some minor code fixes
 
-2.4.0.2 (2014-03-27)
+## 2.4.0.2 (2014-03-27)
 
 - Prevent field_group_info_groups() from clearing ctools caches and prevent
   further errors(#4026, #4029, #4030, #4061)
 
-2.4.0.1 (2014-03-18)
+## 2.4.0.1 (2014-03-18)
 
 - Prevent field_group_info_groups() from clearing ctools caches (#4026, #4029,
   #4030)
 
-2.4.0 (2014-03-06)
+## 2.4.0 (2014-03-06)
 
 - Enable the use of a private file system (#909)
 
@@ -756,24 +798,24 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure tabs in the Specimens Slickgrid can be switched between (#3747)
 - Allow the Tinytax block to be hidden for anonymous users (#3773)
 
-2.3.2.4 (2014-01-16)
+## 2.3.2.4 (2014-01-16)
 
 - Half of the fix for #3680 which will allow sites to be fixed by clearing their
   caches.
 
-2.3.2.3 (2014-01-14)
+## 2.3.2.3 (2014-01-14)
 
 - Updated Ed's OpenID
 
-2.3.2.2 (2014-01-09)
+## 2.3.2.2 (2014-01-09)
 
 - Prevent the user being fooled into thinking a block is going to appear (#3773)
 
-2.3.2.1 (2014-01-08)
+## 2.3.2.1 (2014-01-08)
 
 - Enable CAPTCHA on Webform forms (#3749)
 
-2.3.2 (2014-01-08)
+## 2.3.2 (2014-01-08)
 
 - Allow exporting of all references from a search, rather than just the first
   100 (#1420)
@@ -804,19 +846,19 @@ and also fixes a bug we missed in the PHP 7 work.
 - Allow filtering of the users pages (#3724)
 - Remove the confusing HTML option for newsletters (it is not supported) (#3701)
 
-2.3.1.3 (2013-12-17)
+## 2.3.1.3 (2013-12-17)
 
 - Ensure that the Slickgrid data callback is not cached #3738
 
-2.3.1.2 (2013-12-09)
+## 2.3.1.2 (2013-12-09)
 
 - Remove a faulty line of code (#3719)
 
-2.3.1.1 (2013-12-06)
+## 2.3.1.1 (2013-12-06)
 
 - Remove a faulty line of code (#3719)
 
-2.3.1 (2013-12-05)
+## 2.3.1 (2013-12-05)
 
 - Upgraded Drupal to 7.24 (#3495)
 - Display a preview of an entity when using the entityconnect widget (#1297)
@@ -841,21 +883,21 @@ and also fixes a bug we missed in the PHP 7 work.
 - Use WYSIWYG editor for the Remarks field (#3567)
 - Refresh the admin paths when enabling a tool (#3623)
 
-2.3.0.3 (2013-11-08)
+## 2.3.0.3 (2013-11-08)
 
 - Added IMu library
 
-2.3.0.2 (2013-11-08)
+## 2.3.0.2 (2013-11-08)
 
 - Added IMu module
 
-2.3.0.1 (2013-11-07)
+## 2.3.0.1 (2013-11-07)
 
 - Fixed a minor bug with the tools module
 - Ensure we do not try to edit an incorrectly cached copy of a node (#3503)
 - Cache the language switcher block by page, not role (#3545)
 
-2.3.0 (2013-11-06)
+## 2.3.0 (2013-11-06)
 
 - Added the Publication tool
 
@@ -874,11 +916,11 @@ and also fixes a bug we missed in the PHP 7 work.
 - Allow associating content with a file in imports (#3494)
 - Ensure required and permitted values are included in templates (#3521)
 
-2.2.0.1 (2013-10-10)
+## 2.2.0.1 (2013-10-10)
 
 - Ensure the changes to the role_delegation module work as expected (#3448)
 
-2.2.0 (2013-10-09)
+## 2.2.0 (2013-10-09)
 
 - Added the Citations tool (#3130)
 
@@ -897,7 +939,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Only display the specimens tab when required (#3445)
 - Show optgroups for role delegation (#3448)
 
-2.1.10 (2013-09-25)
+## 2.1.10 (2013-09-25)
 
 - Fixed the twitter filter (#3288)
 - Fixed an issue with cloned nodes and UUIDs (#3384)
@@ -922,15 +964,15 @@ and also fixes a bug we missed in the PHP 7 work.
 - Ensure the IUCN and other widgets display correctly (#3385)
 - Fixed (#3393, #3402, #3386)
 
-2.1.9.2 (2013-09-24)
+## 2.1.9.2 (2013-09-24)
 
 - Prevent non-admin users from being redirected to their user page (#3444)
 
-2.1.9.1 (2013-09-13)
+## 2.1.9.1 (2013-09-13)
 
 - Ensure select text fields can be imported from Excel (#3393)
 
-2.1.9 (2013-09-11)
+## 2.1.9 (2013-09-11)
 
 - Ensure the EOL TCS import works (#3318)
 - Export TID rather than name for the Excel template (#3362)
@@ -946,7 +988,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Minor fix to the "Make this profile public" option (#3378)
 - Display author names even when they can not be parsed (#3365)
 
-2.1.8 (2013-08-28)
+## 2.1.8 (2013-08-28)
 
 - Only include approved comments in DwC-A exports (#3144)
 - Added honeypot to help fight spam user account submissions (#3238)
@@ -962,7 +1004,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Prevent duplicate terms from being added to autotag taxonomies (#3236)
 - Theme the media browser (#1962)
 
-2.1.7 (2013-08-14)
+## 2.1.7 (2013-08-14)
 
 - Added the tracker module as a tool (#931)
 - Ensure that certain configuration pages are hidden
@@ -991,26 +1033,26 @@ and also fixes a bug we missed in the PHP 7 work.
 - Only show NCBI data for valid terms (#2190)
 - Display user references as full names (#2735)
 
-2.1.6.1 (2013-08-05)
+## 2.1.6.1 (2013-08-05)
 
 - Ensure editing of a site's URL aliases is enabled
 
-2.1.6 (2013-07-31)
+## 2.1.6 (2013-07-31)
 
 - Italicise subgeneric ranked taxa (#3138)
 - Enabled the editing of a site's URL aliases
 - Minor DwC-A additions for image metadata.
 - Enable harvesting of site categories for the stats pages (#110)
 
-2.1.5.2 (2013-07-21)
+## 2.1.5.2 (2013-07-21)
 
 - Prevent body field from being deleted.
 
-2.1.5.1 (2013-07-18)
+## 2.1.5.1 (2013-07-18)
 
 - Ensure ITIS Term and Scratchpads Group updates run as expected
 
-2.1.5 (2013-07-17)
+## 2.1.5 (2013-07-17)
 
 - Various DwC-A bug fixes
 - Tweaks to the presentation of Scratchpads statistics (#110)
@@ -1033,11 +1075,11 @@ and also fixes a bug we missed in the PHP 7 work.
 - Generate COinS on Biblio pages (#3082)
 - Renamed the Taxonomy description field to Comments (#882)
 
-2.1.4.1 (2013-07-04)
+## 2.1.4.1 (2013-07-04)
 
 - Ensure one time logins work before a user has accepted the T&Cs
 
-2.1.4 (2013-07-03)
+## 2.1.4 (2013-07-03)
 
 - Updates redirect module to the latest "dev" version (Fixes a duplicate hashes
   issue)
@@ -1053,7 +1095,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Further tweaks to the DwC-A
 - Fix cloning of Biblio nodes (#3037)
 
-2.1.3 (2013-06-19)
+## 2.1.3 (2013-06-19)
 
 - Added a switch for displaying of thumbnails as scaled images (#1247)
 - Enable the hiding of borders from tables (#2908)
@@ -1072,17 +1114,17 @@ and also fixes a bug we missed in the PHP 7 work.
 - Minor fixes to DwC-A
 - Remove the Hashcash module (#2961)
 
-2.1.2.2 (2013-06-07)
+## 2.1.2.2 (2013-06-07)
 
 - Restored the code to scratchpads_audubon_core_update_7002()
 - Removed the optional end dates from audubon core fields that are preventing
   the update from running.
 
-2.1.2.1 (2013-06-07)
+## 2.1.2.1 (2013-06-07)
 
 - Removed the code from scratchpads_audubon_core_update_7002()
 
-2.1.2 (2013-06-05)
+## 2.1.2 (2013-06-05)
 
 - Added additional update options for media files (#615)
 - Ensure the default newsletter is available (#1123)
@@ -1120,7 +1162,7 @@ and also fixes a bug we missed in the PHP 7 work.
 - Removed the content type facet from the literature pages (#2219)
 - Upgraded Omega theme to 7.x-3.1
 
-2.1.1 (2013-05-20)
+## 2.1.1 (2013-05-20)
 
 - Ensure Primary menu links on Forum pages are displayed correctly (#2869)
 - Disable changing the display of the Forum content type
@@ -1147,7 +1189,7 @@ and also fixes a bug we missed in the PHP 7 work.
   over the Scratchpads logo
 - Performance improvement for the taxon page map blocks
 
-2.1.0 (2013-05-08)
+## 2.1.0 (2013-05-08)
 
 - Convert vernacular names to field_collections if the name is not blank
 - Slickgrid now loads rows dynamically
@@ -1169,16 +1211,16 @@ and also fixes a bug we missed in the PHP 7 work.
 - Updated Views module to 7.x-3.7
 - Updated views_bulk_operations to 7.x-3.1
 
-2.0.1.2 (2013-05-01+1)
+## 2.0.1.2 (2013-05-01+1)
 
 - An intermediate update to help us upgrade to 2.1.0
 
-2.0.1.1 (2013-05-01)
+## 2.0.1.1 (2013-05-01)
 
 - Rerun the itis_term_7004 (now 7005) update to enable the languagefield and
   field_collection modules.
 
-2.0.1 (2013-04-24)
+## 2.0.1 (2013-04-24)
 
 - Upgraded Drupal to 7.22
 - Prepared the sites to use Varnish
