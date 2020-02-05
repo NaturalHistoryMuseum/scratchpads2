@@ -2084,9 +2084,6 @@ function scratchpads_species_views_default_views(){
     $handler = $view->new_display('block', 'Block', 'block');
     $handler->display->display_options['defaults']['css_class'] = FALSE;
     $handler->display->display_options['css_class'] = 'view-inline-filters grid-8 alpha omega';
-    $handler->display->display_options['defaults']['query'] = FALSE;
-    $handler->display->display_options['query']['type'] = 'views_query';
-    $handler->display->display_options['query']['options']['distinct'] = TRUE;
     /* Display: Count images */
     $handler = $view->new_display('attachment', 'Count images', 'attachment_1');
     $handler->display->display_options['defaults']['group_by'] = FALSE;
@@ -2107,7 +2104,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Images ([fid])';
@@ -2177,7 +2174,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Videos ([fid])';
@@ -2247,7 +2244,7 @@ function scratchpads_species_views_default_views(){
     $handler->display->display_options['fields']['fid']['id'] = 'fid';
     $handler->display->display_options['fields']['fid']['table'] = 'file_managed';
     $handler->display->display_options['fields']['fid']['field'] = 'fid';
-    $handler->display->display_options['fields']['fid']['group_type'] = 'count_distinct';
+    $handler->display->display_options['fields']['fid']['group_type'] = 'count';
     $handler->display->display_options['fields']['fid']['label'] = '';
     $handler->display->display_options['fields']['fid']['alter']['alter_text'] = 1;
     $handler->display->display_options['fields']['fid']['alter']['text'] = 'Audio ([fid])';
