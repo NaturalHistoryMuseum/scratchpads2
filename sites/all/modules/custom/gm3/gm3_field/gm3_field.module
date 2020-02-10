@@ -1172,6 +1172,7 @@ function _gm3_field_get_points_string_from_array($items){
  * Generate the js settings for the point library
  */
 function gm3_field_js_point_settings($items, $editable = false, $settings = []){
+  module_load_include('inc', 'gm3', 'gm3.theme');
   return gm3_js_point_settings($items, $editable, $settings);
 }
 
