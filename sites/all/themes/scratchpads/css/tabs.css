@@ -9,6 +9,7 @@
 
   /* Override default display:inline for RTL support */
   display: flex;
+  flex-wrap: wrap;
 }
 #main-menu li {
   list-style: none;
