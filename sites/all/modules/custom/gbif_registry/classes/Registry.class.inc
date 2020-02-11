@@ -186,22 +186,48 @@ class Registry
     }
 
     /**
-     * http put
+     * Make an HTTP PUT request with JSON
      *
-     * FIXME - Need to add authentication to this.
-     * FIXME - Should this be data, or a filename?
+     * @param string $path The path to PUT to
+     * @param resource|string $data The request body
+     * @return string|true  False if failed, true if successful but
+     *                      empty resposnse, otherwise the response body
      */
-    public function put($path, $file_handle)
+    public function put($path, $data)
     {
-        $ch = curl_init($this->registryURL . $path);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_PUT, true);
-        curl_setopt($ch, CURLOPT_INFILE, $file_handle);
-    //curl_setopt($ch, CURLOPT_INFILESIZE, filesize($filename));
-        $response = curl_exec($ch);
+        if(is_resource($data)) {
+            $data = stream_get_contents($data);
+        }
 
+        $response = drupal_http_request(
+            $this->registryURL . $path,
+            [
+                'method' => 'PUT',
+                'headers' => [
+                    'Authorization' => 'Basic ' . base64_encode("{$this->user}:{$this->password}"),
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                'data' => $data
+            ]
+        );
+
+        $httpcode = $response->code;
+        $http_is_successful = $httpcode >= 200 && $httpcode < 400;
+        $error = $response->error;
+
+        if ($error || !$http_is_successful) {
+            watchdog(
+                'GBIF',
+                'Could not save GBIF registry object - Error: %error HTTP status: %httpcode',
+                array('%error' => $error, '%httpcode' => $httpcode),
+                WATCHDOG_ERROR
+            );
+            return false;
+        } else {
+            // Make sure we don't return a falsy value if response is empty (e.g. a 204)
+            return $response->data ?: true;
+        }
     }
 
     /**

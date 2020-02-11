@@ -32,6 +32,11 @@ function scratchpads_gbif_registry_client_admin_settings()
 
   $nonBio = !variable_get('biological_vids');
 
+  $default_description = implode(' | ', array_filter([
+    variable_get('site_slogan', ''),
+    strip_tags(variable_get('front_page_welcome_message', ['value'=>''])['value'])
+  ]));
+
   $form += array(
     'scratchpads_gbif_registry_client_registration_enabled' => array(
       '#type' => 'checkbox',
@@ -39,6 +44,12 @@ function scratchpads_gbif_registry_client_admin_settings()
       '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_enabled', false),
       '#description' => t("Whether to register this scratchpad with GBIF."),
       '#disabled' => $nonBio
+    ),
+    'scratchpads_gbif_registry_client_description' => array(
+      '#type' => 'textarea',
+      '#title' => t('Dataset description'),
+      '#default_value' => variable_get('scratchpads_gbif_registry_client_description', $default_description),
+      '#description' => t('A summary of the dataset. This will appear on the GBIF web page for your dataset and in GBIF search results.')
     ),
     'scratchpads_gbif_registry_client_registration_licence' => array(
       '#type' => 'select',
@@ -61,9 +72,22 @@ function scratchpads_gbif_registry_client_admin_settings()
   }
 
   $form['#submit'][] = 'scratchpads_gbif_registry_client_admin_settings_form_submit';
+  $form['#validate'][] = 'scratchpads_gbif_registry_client_admin_settings_form_validate';
 
   // use the system_settings_form function so that we don't have to implement our own submit function
   return system_settings_form($form);
+}
+
+/**
+ * Validation handler for settings form
+ */
+function scratchpads_gbif_registry_client_admin_settings_form_validate($form, &$form_state) {
+  $enabled = $form_state['values']['scratchpads_gbif_registry_client_registration_enabled'];
+  $description = $form_state['values']['scratchpads_gbif_registry_client_description'];
+
+  if($enabled && !$description) {
+    form_set_error('scratchpads_gbif_registry_client_description', t('You must proide a description to submit your dataset to GBIF.'));
+  }
 }
 
 /**
@@ -72,6 +96,18 @@ function scratchpads_gbif_registry_client_admin_settings()
 function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$form_state)
 {
   variable_del('scratchpads_gbif_registry_client_last_update');
+
+  $new_desc = $form_state['values']['scratchpads_gbif_registry_client_description'];
+
+  if($form['scratchpads_gbif_registry_client_description']['#default_value'] !== $new_desc) {
+    $uuid = variable_get('scratchpads_gbif_registry_client_uuid', false);
+    if($uuid) {
+      GBIFRegistry::singleton();
+      $dataset = new GBIF\Dataset($uuid);
+      $dataset->setDescription($new_desc);
+      $dataset->save();
+    }
+  }
 
   if(module_exists('dwcarchiver')) {
     dwcarchiver_rebuild('gbif-dwca', false);

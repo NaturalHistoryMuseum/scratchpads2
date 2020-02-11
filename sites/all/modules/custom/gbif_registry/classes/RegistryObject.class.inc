@@ -211,11 +211,9 @@ class RegistryObject extends RegistryChild
             foreach ($this->getAsArray() as $key => $value) {
                 $current_data[$key] = $value;
             }
-            $f = tmpfile();
-            fwrite($f, json_encode($current_data));
-            fseek($f, 0);
+
+            $f = json_encode($current_data);
             Registry::singleton()->put($this->getURLPrefix() . "/{$this->key}", $f);
-            unlink($filename);
         } else {
       // No key, we simply need to create a new object, and save the key.
 
