@@ -21,7 +21,7 @@ function theme_ecoint_search($variables){
     $row[] = $interaction->name;
 
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
-    $lang = field_language('node', $right_fields, 'field_taxonomic_name');
+    $lang = field_language('field_collection_item', $right_fields, 'field_taxonomic_name');
     if(isset($right_fields->field_taxonomic_name[$lang][0]['tid'])){
       $right_term = taxonomy_term_load($right_fields->field_taxonomic_name[$lang][0]['tid']);
     } elseif(isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])){
