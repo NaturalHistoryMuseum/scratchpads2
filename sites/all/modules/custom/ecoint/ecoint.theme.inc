@@ -21,13 +21,16 @@ function theme_ecoint_search($variables){
     $row[] = $interaction->name;
 
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
-    $lang = field_language('field_collection_item', $right_fields, 'field_taxonomic_name');
-    if(isset($right_fields->field_taxonomic_name[$lang][0]['tid'])){
-      $right_term = taxonomy_term_load($right_fields->field_taxonomic_name[$lang][0]['tid']);
-    } elseif(isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])){
-      $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
-      $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
-      $right_term = taxonomy_term_load($tid);
+    # if there are no $right_fields it just means that the other side of this ecoint hasn't been specified yet
+    if ($right_fields) {
+        $lang = field_language('field_collection_item', $right_fields, 'field_taxonomic_name');
+        if (isset($right_fields->field_taxonomic_name[$lang][0]['tid'])) {
+            $right_term = taxonomy_term_load($right_fields->field_taxonomic_name[$lang][0]['tid']);
+        } elseif (isset(array_values($right_fields->field_specimen_2)[0][0]['nid'])) {
+            $specimen_node = node_load(array_values($ecoint_node->field_specimen_1)[0][0]['nid']);
+            $tid = array_values($specimen_node->field_taxonomic_name)[0][0]['tid'];
+            $right_term = taxonomy_term_load($tid);
+        }
     }
     $row[] = l($right_term->name, 'taxonomy/term/' . $right_term->tid) . " " . $right_fields->field_life_cycle_stage_2['und'][0]['safe_value'] . " " . $right_fields->field_organism_part_2['und'][0]['safe_value'];
     $row[] = l('view', 'node/' . $ecoint_node->nid);
