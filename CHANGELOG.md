@@ -1,5 +1,15 @@
 # Change log
 
+## 2.9.12.1 (2020-02-25)
+
+This release (as the version implies) contains a few small post-2.9.12 hot fixes.
+
+  - Add gm3_field missing include ([#6140](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6140) - [@PaulKiddle](https://github.com/PaulKiddle))
+  - Auto-wrap menu buttons ([#6137](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6137) - [@PaulKiddle](https://github.com/PaulKiddle))
+  - Add description field to DwC-A for GBIF submissions ([#6142](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6142) - [@PaulKiddle](https://github.com/PaulKiddle))
+  - Fix image information display ([#6148](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6148) - [@jrdh](https://github.com/jrdh))
+  - Fix ecoint display issues ([#6143](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6143) & [6154](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6154) - [@PaulKiddle](https://github.com/PaulKiddle) & [@jrdh](https://github.com/jrdh))
+
 ## 2.9.12 (2020-02-03)
 
 This release had four developers working over a longer time period trying to fix as many outstanding bugs as possible to bring the issue queue down to a more manageable size. Here's a summary of the fixes:
