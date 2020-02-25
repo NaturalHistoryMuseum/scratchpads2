@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implements hook_install
+ *
+ * Mark that we need to register with the stats server
+ * See scratchpads_stats_cron hook
+ *
+ * @return void
+ */
+function scratchpads_stats_install(){
+	variable_set('scratchpads_stats_register', true);
+}

@@ -7,11 +7,11 @@
 function scratchpads_stats_menu(){
 	return [
 		'statistics' => [
-            'page callback' => 'scratchpads_stats_get_stats',
-            'delivery callback' => 'drupal_json_output',
-            'title' => 'Node info',
-            'access callback' => TRUE,
-            'type' => MENU_CALLBACK, 
+			'page callback' => 'scratchpads_stats_get_stats',
+			'delivery callback' => 'drupal_json_output',
+			'title' => 'Node info',
+			'access callback' => TRUE,
+			'type' => MENU_CALLBACK,
 		]
 	];
 }
@@ -44,8 +44,10 @@ function scratchpads_stats_get_stats() {
             ];
         }
     }
-    
+
     return [
+        'name' => variable_get('site_name'),
+        'created' => variable_get('install_time'),
         'since' => $since,
         'bundles' => $bundles,
         //'entities' => $entities,
@@ -167,4 +169,48 @@ function scratchpads_stats_handle_entity($name, $entity, $since) {
         ];
     }
     return $out;
+}
+
+/**
+ * Implements hook_cron
+ *
+ * Run the scratchpads registration function
+ * This must be done after install so the menu routes are available
+ *
+ * @return void
+ */
+function scratchpads_stats_cron(){
+	if(!variable_get('scratchpads_stats_register', false)) {
+		return;
+	}
+
+	global $base_url;
+
+	$servers = variable_get(
+		'scratchpads_stats_servers',
+		[ 'http://stats2.scratchpads.eu' ]
+	);
+
+	$options = [
+		'method' => 'POST',
+		'data' => $base_url
+	];
+
+	foreach($servers AS $server) {
+		$response = drupal_http_request(
+			$server . '/register',
+			$options
+		);
+
+		if(isset($response->error)) {
+			watchdog(
+				'Scratchpads Stats',
+				'Could not register with %server; %error',
+				array('%error' => $response->error, '%server' => $server),
+				WATCHDOG_WARNING
+			);
+		}
+	}
+
+	variable_del('scratchpads_stats_register');
 }
