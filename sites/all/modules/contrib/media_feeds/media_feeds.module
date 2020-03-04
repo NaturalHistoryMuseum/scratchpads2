@@ -73,7 +73,12 @@ function media_feeds_set_target($source, $entity, $target, $values, $config = ar
   list($target, $provider) = explode(':', $target, 2) + array(1 => 'MediaFeedsInternetProvider');
 
   $field_info = field_info_field($target);
-  $field = array(LANGUAGE_NONE => array());
+  // ensure we don't overwrite any existing values from other columns in the import which are writing to the same field
+  if (property_exists($entity, $target)) {
+    $field = $entity->{$target};
+  } else {
+    $field = array(LANGUAGE_NONE => array());
+  }
 
   foreach ($values as $value) {
     try {
