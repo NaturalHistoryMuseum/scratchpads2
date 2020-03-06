@@ -78,7 +78,11 @@ function scratchpads_stats_entity_stats_info($entity){
                 'status',
                 'created',
                 'active' => 'access',
-                'bundles' => false
+                'bundles' => false,
+                'modify' => function(&$query) {
+                    // Modify the query to ignore the Scratchpad Team user
+                    $query->entityCondition('entity_id', 1, '!=');
+                }
             ];
         // File entity has a status, and its created column is called "timestamp". Has bundles.
         case 'file':
@@ -137,9 +141,10 @@ function scratchpads_stats_handle_entity($name, $entity, $since) {
     $statusField = _array_find($info, 'status');
     $createdField = _array_find($info, 'created');
     $activeField = _array_find($info, 'active');
+    $queryModifier = $info['modify'] ?? null;
 
     require_once (__DIR__.'/EntityCounter.php');
-    $ec = new \Scratchpads\Stats\EntityCounter($name, $statusField);
+    $ec = new \Scratchpads\Stats\EntityCounter($name, $statusField, $queryModifier);
 
     if($createdField) {
         $ec->addCount('recent', $createdField);
@@ -168,6 +173,7 @@ function scratchpads_stats_handle_entity($name, $entity, $since) {
             'bundles' => $bundles
         ];
     }
+
     return $out;
 }
 

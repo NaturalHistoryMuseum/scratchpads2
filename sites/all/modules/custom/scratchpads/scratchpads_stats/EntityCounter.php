@@ -12,12 +12,14 @@ class EntityCounter {
 	 *
 	 * @param String $entity	The name of the entity to get counts for
 	 * @param String $statusField	The field that designates whether an entity is eligable for counting, or null
+	 * @param Callable $queryModifier A function to modify the query
 	 */
-	function __construct($entity, $statusField){
+	function __construct($entity, $statusField, $queryModifier){
 			$this->entity = $entity;
 			$this->statusField = $statusField;
 			$this->bundle = null;
 			$this->counts = [];
+			$this->queryModifier = $queryModifier;
 	}
 
 	/**
@@ -35,6 +37,11 @@ class EntityCounter {
 					$query->propertyCondition($this->statusField, 1);
 			}
 			$query->count();
+
+			if($this->queryModifier) {
+				$query = call_user_func($this->queryModifier, $query) ?? $query;
+			}
+
 			return $query;
 	}
 
@@ -49,7 +56,7 @@ class EntityCounter {
 	}
 
 	/**
-	 * Return a count of all entities or bundles 
+	 * Return a count of all entities or bundles
 	 *
 	 * @return Number
 	 */
@@ -94,7 +101,7 @@ class EntityCounter {
 			return [
 					'total' => $this->count()
 			]
-			+ array_map( 
+			+ array_map(
 					function($field) use ($self, $since) {
 							return $self->countRecent($field, $since);
 					},
