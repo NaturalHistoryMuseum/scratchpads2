@@ -1,5 +1,11 @@
 # Change log
 
+## 2.9.12.2 (2020-03-04)
+
+This release contains a single hot fix for a long running issue.
+
+  - Allow multiple import columns to map to a single media field ([#6163](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6163) - [@jrdh](https://github.com/jrdh))
+
 ## 2.9.12.1 (2020-02-25)
 
 This release (as the version implies) contains a few small post-2.9.12 hot fixes.
