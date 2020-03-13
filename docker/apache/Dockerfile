@@ -82,6 +82,9 @@ RUN usermod -u 1000 www-data
 RUN groupmod -g 1000 www-data
 RUN chown -R www-data:www-data /var/www/html
 
+# Install extra modules
+RUN docker-php-ext-install exif
+
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
