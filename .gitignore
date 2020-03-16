@@ -33,3 +33,4 @@ scratchpads_twitter.ini
 .env
 .docker-sync
 nohup.out
+docker-compose.dev.yml
