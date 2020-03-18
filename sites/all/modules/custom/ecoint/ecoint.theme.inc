@@ -18,7 +18,12 @@ function theme_ecoint_search($variables){
     }
     $row[] = l($left_term->name, 'taxonomy/term/' . $left_term->tid) . " " . $ecoint_node->field_life_cycle_stage['und'][0]['safe_value'] . " " . $ecoint_node->field_organism_part['und'][0]['safe_value'];
     $interaction = taxonomy_term_load($ecoint_node->field_interaction_type['und'][0]['tid']);
-    $row[] = $interaction->name;
+    if (!$interaction) {
+        // the field_interaction_type field can be specified using a string instead of a link to a taxonomy
+        $row[] = $ecoint_node->field_interaction_type['und'][0]['value'];
+    } else {
+        $row[] = $interaction->name;
+    }
 
     $right_fields = field_collection_item_load($ecoint_node->field_int_collection['und'][0]['value']);
     # if there are no $right_fields it just means that the other side of this ecoint hasn't been specified yet
