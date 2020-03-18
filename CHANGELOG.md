@@ -1,5 +1,14 @@
 # Change log
 
+## 2.9.12.3 (2020-03-18)
+
+This release contains two fixes:
+
+  - Add exif extension to apache docker image ([#6167](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6167) - [@PaulKiddle](https://github.com/PaulKiddle))
+  - Include docker-compose dev override file in gitignore ([#6171](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6171) - [@jrdh](https://github.com/jrdh))
+  - Allow ecological interactions to link to strings as well as taxonomic terms ([#6155](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6155) - [@jrdh](https://github.com/jrdh))
+
+
 ## 2.9.12.2 (2020-03-04)
 
 This release contains a single hot fix for a long running issue.
