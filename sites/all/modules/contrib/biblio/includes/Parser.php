@@ -138,7 +138,7 @@ class HumanNameParser_Parser {
     $arr['prefix']    = $this->leadingInit;
     $arr['firstname'] = $this->first;
     $arr['nicknames'] = $this->nicknames;
-    $arr['initials']  = substr($this->middle, 0, 10);
+    $arr['initials']  = preg_replace('/(?<=\b[A-Za-z])[A-Za-z]+\s*/m', '', $this->middle);
     $arr['lastname']  = $this->last;
     $arr['suffix']    = $this->suffix;
     $arr['md5']       = md5(json_encode($arr));
