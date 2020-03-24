@@ -395,6 +395,16 @@ function _save_contributors(&$contributors, $nid, $vid, $update = FALSE) {
         $auth = biblio_get_contributor_by_name($author['name']);
         if (!empty($auth) && isset($auth->cid)) {
           $author['cid'] = $auth->cid;
+          // update capitalisation if necessary; spelling should be identical but capitalisation may differ
+          if ($auth->name != $author['name']) {
+            try {
+              $author = $name_parser->parseName($author);
+              biblio_update_contributor($author);
+            }
+            catch (Exception $e) {
+              // don't update the record then i guess
+            }
+          }
           $contributors[$key] = array_merge($author, (array)$auth);
         }
       }
