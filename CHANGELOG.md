@@ -1,5 +1,18 @@
 # Change log
 
+## 2.9.13 (2020-04-23)
+
+This release fixes various bugs and adds .fas files to the list of accepted upload formats.
+
+  - Set latitude & longitude to null if empty string ([#6173](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6173) - [@alycejenni](https://github.com/alycejenni))
+  - Enable updating casing of contributors + keywords ([#6174](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6174) - [@alycejenni](https://github.com/alycejenni))
+  - Check the parent vocab is a bio classification when autocompleting ([#6180](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6180) - [@alycejenni](https://github.com/alycejenni))
+  - Account for areas with a different country code ([#6188](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6188) - [@alycejenni](https://github.com/alycejenni))
+  - i18n taxonomy autocomplete includes TIDs ([#6194](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6194) - [@alycejenni](https://github.com/alycejenni))
+  - Added <> to doi regex ([#6197](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6197) - [@alycejenni](https://github.com/alycejenni))
+  - Include .fas files in the list of acceptable formats ([#6200](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6200) - [@alycejenni](https://github.com/alycejenni))
+
+
 ## 2.9.12.3 (2020-03-18)
 
 This release contains two fixes:
@@ -68,7 +81,7 @@ This release had four developers working over a longer time period trying to fix
 ## 2.9.11 (2019-10-22)
 
 Among other issues, this release makes further improvements to the maps module
-including fixes for previous regressions, and imrpoves docker support.
+including fixes for previous regressions, and improves docker support.
 
 - Maps:
     - Pan/zoom map to include regions on load (#5992 - @PaulKiddle)
