@@ -125,7 +125,7 @@ function _i18n_taxonomy_autocomplete($langcode, $vids, $tags_typed = '') {
 
     $term_matches = array();
     foreach ($tags_return as $tid => $name) {
-      $n = $name;
+      $n = $name . ' [' . $tid . ']';
       // Term names containing commas or quotes must be wrapped in quotes.
       if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
         $n = '"' . str_replace('"', '""', $name) . '"';
