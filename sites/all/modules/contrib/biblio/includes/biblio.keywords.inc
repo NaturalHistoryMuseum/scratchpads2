@@ -185,6 +185,17 @@ function biblio_insert_keywords($node, $update = FALSE) {
     }
     // Defend against duplicate, differently cased tags
     if (!isset($inserted[$kid])) {
+      // update casing
+      if ($kw->word != $word) {
+        try {
+          $kw = array('word' => trim($word));
+          $kw['kid'] = $kid;
+          biblio_save_keyword($kw);
+        }
+        catch (Exception $e) {
+          // ignore it
+        }
+      }
       db_merge('biblio_keyword')
         ->key(array('kid' => $kid, 'vid' => $node->vid))
         ->fields(
