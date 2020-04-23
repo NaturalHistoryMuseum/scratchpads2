@@ -44,6 +44,14 @@ function gm3_region_get_region_id_from_latlng($latlng, $iso_codes, $level = 4){
     ':iso_codes' => $iso_codes
   ));
 
+  if ($results->rowCount() == 0) {
+    // if nothing found, ignore the country code because it might not match (e.g. Puerto Rico)
+    $sql = "select * from {gm3_region_data} where WITHIN(POINTFROMTEXT(:point_wkt), mysql_polygons) AND level_5_code != ''";
+    $results = db_query($sql, array(
+      ':point_wkt' => $point_wkt
+    ));
+  }
+
   // Apparently mysql is not always so accurate for geo so we use geophp to do further filtering
   // Load the Library.
   gm3_load_geophp();
