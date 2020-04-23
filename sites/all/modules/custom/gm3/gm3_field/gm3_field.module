@@ -362,8 +362,8 @@ function _gm3_field_get_arrays_from_points_strings($value){
       $lat_lng = explode(",", $lat_lng[0]);
     }
     $lat_lng = array(
-      'latitude' => $lat_lng[0],
-      'longitude' => $lat_lng[1]
+      'latitude' => $lat_lng[0] == '' ? null : $lat_lng[0],
+      'longitude' => $lat_lng[1] == '' ? null : $lat_lng[1]
     );
     $items[] = $lat_lng;
   }
