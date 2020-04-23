@@ -17,6 +17,9 @@ function scratchpads_search_block_autocomplete($search = ''){
     foreach($tags_return as $tid => $vid){
       $parents = taxonomy_get_parents_all($tid);
       $parents[] = $vocabularies[$vid];
+      if (end($parents)->biological_classification != 1) {
+        continue;
+      }
       $parents = array_reverse($parents, FALSE);
       foreach($parents as $key => $parent){
         $parents[$key] = $parent->name;
