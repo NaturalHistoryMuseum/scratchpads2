@@ -135,6 +135,14 @@ function scratchpads_gbif_registry_client_cron()
     foreach ($endpoints as $endpoint) {
       $dataset->addEndpoint($endpoint);
     }
+
+    // Also rebuild the archive
+    if(module_exists('dwcarchiver')) {
+      module_load_include('rebuild.inc', 'dwcarchiver');
+      dwcarchiver_rebuild('gbif-dwca', false);
+      menu_rebuild();
+    }
+
     if (variable_get('scratchpads_gbif_registry_client_uuid', false)) {
       variable_set('scratchpads_gbif_registry_client_last_update', time());
     }
