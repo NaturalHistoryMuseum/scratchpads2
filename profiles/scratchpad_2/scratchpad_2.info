@@ -2,4 +2,5 @@ name = Scratchpad 2
 description = Install a Scratchpad 2 site
 core = 7.x
 dependencies[] = scratchpads_tweaks
+dependencies[] = scratchpads_col
 files[] = scratchpad_2.profile
