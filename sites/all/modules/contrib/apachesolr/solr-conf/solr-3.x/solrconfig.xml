@@ -20,7 +20,7 @@
      For more details about configurations options that may appear in
      this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-4.1-solr-3.x">
+<config name="drupal-4.3-solr-3.x">
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -68,8 +68,9 @@
        the classpath, this is useful for including all jars in a
        directory.
     -->
-  <lib dir="../../contrib/extraction/lib" />
-  <lib dir="../../contrib/clustering/lib/" />
+  <lib dir="${solr.contrib.dir:../../contrib}/extraction/lib" />
+  <lib dir="${solr.contrib.dir:../../contrib}/clustering/lib/" />
+
   <!-- The velocity library has been known to crash Solr in some
        instances when deployed as a war file to Tomcat. Therefore all
        references have been removed from the default configuration.
@@ -870,6 +871,7 @@
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
+      <str>elevator</str>
     </arr>
   </requestHandler>
 
@@ -1076,7 +1078,7 @@
   <!-- Solr Replication
 
        The SolrReplicationHandler supports replicating indexes from a
-       "master" used for indexing and "salves" used for queries.
+       "master" used for indexing and "slaves" used for queries.
 
        http://wiki.apache.org/solr/SolrReplication 
 

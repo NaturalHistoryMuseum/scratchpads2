@@ -155,9 +155,13 @@ class ApacheSolrFacetapiDate extends FacetapiQueryTypeDate implements FacetapiQu
     //$start = (!empty($raw_data['start'])) ? $raw_data['start'] : '';
     $gap = (!empty($raw_data['gap'])) ? $raw_data['gap'] : '';
 
+    $settings = $this->getSettings()->settings;
+    $granularity = isset($settings['date_granularity']) ? $settings['date_granularity'] : FACETAPI_DATE_MINUTE;
+
     // We cannot list anything below a minute (range of 00 seconds till 59
-    // seconds. Milliseconds are not possible)
-    if ($gap != "+1SECOND") {
+    // seconds). Milliseconds are not possible. Also, anything below the set
+    // granularity should not be shown either.
+    if ($gap != "+1" . FACETAPI_DATE_SECOND && (!$gap || strtotime($gap, 0) >= strtotime("+1" . $granularity, 0))) {
       unset($raw_data['start']);
       unset($raw_data['end']);
       unset($raw_data['gap']);

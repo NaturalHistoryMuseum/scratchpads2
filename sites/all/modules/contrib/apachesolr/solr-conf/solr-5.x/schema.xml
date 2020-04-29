@@ -10,7 +10,7 @@
  http://wiki.apache.org/solr/SchemaXml
 -->
 
-<schema name="drupal-4.3-solr-3.x" version="1.3">
+<schema name="drupal-4.3-solr-4.x" version="1.3">
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
          Applications should change this to reflect the nature of the search collection.
          version="1.2" is Solr's version number for the schema syntax and semantics.  It should
@@ -96,7 +96,7 @@
      and require different update frequencies than the documents they are
      associated with.
     -->
-    <fieldType name="pfloat" class="solr.FloatField" omitNorms="true"/>
+    <fieldType name="pfloat" class="solr.TrieFloatField" omitNorms="true"/>
     <fieldType name="file" keyField="id" defVal="1" stored="false" indexed="false" class="solr.ExternalFileField" valType="pfloat"/>
 
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
@@ -119,7 +119,7 @@
 
          Consult the DateField javadocs for more information.
       -->
-    <fieldType name="date" class="solr.DateField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="true"/>
 
     <!-- A Trie based date field for faster date range queries and date faceting. -->
     <fieldType name="tdate" class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
@@ -372,6 +372,7 @@
      -->
     <fieldtype name="geohash" class="solr.GeoHashField"/>
     <!-- End added Solr 3.4+ types -->
+
   </types>
 
   <!-- Following is a dynamic way to include other types, added by other contrib modules -->
@@ -403,6 +404,11 @@
         The format used is $document->id = $site_hash . '/' . $entity_type . '/' . $entity->id;
     -->
     <field name="id" type="string" indexed="true" stored="true" required="true" />
+
+    <!-- Add Solr Cloud version field as mentioned in
+         http://wiki.apache.org/solr/SolrCloud#Required_Config
+    -->
+    <field name="_version_" type="long" indexed="true" stored="true" multiValued="false"/>
 
     <!-- Search Api specific fields -->
     <!-- item_id contains the entity ID, e.g. a node's nid. -->

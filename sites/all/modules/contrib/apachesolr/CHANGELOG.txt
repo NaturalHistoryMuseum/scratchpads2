@@ -1,6 +1,98 @@
 Apache Solr integration 7.x-1.x, xxxx-xx-xx
 -----------------------------
 
+Apache Solr integration 7.x-1.11, 2018-05-17
+-----------------------------
+#2860854 by lokapujya: apachesolr_taxonomy_term_update implements comment fix
+#2954804 and #2786477 by 8bitplateau, becassin, elavault: Reverting change from #2786477 which introduced a problem
+#2972819 by jack.minster: Hidden variable name typo
+#2863134 by KeyboardCowboy, janusman: Allow Watchdog Warnings for Indexing in Read-Only Mode to be Disabled
+#2635244 by Jon Nunan: Deleting an entity type from the index will drop the whole index
+#2834242 by dwebpoint: Adding CSS file using hook_init for single table
+Fixed: apachesolr_index_delete_entity_from_index() does not distinguish failures per-environment.
+
+Apache Solr integration 7.x-1.10, 2018-03-13
+-----------------------------
+#2950882 by janusman: Protect against running optimize on every single cron run
+#2605756 by volkerk: Entity type is not checked during delete
+#2946579 by oadaeh: Remove usage of deprecrated each() function for PHP 7.2+ future proofing
+#2786477 by jmoreira, janusman: Error: "multiple values encountered for non multiValued field" for multi-value entity reference fields
+#1596308 by travismark, wulff:  Apache Solr recommendations Block fix for custom filter or ADDITIONAL QUERY field
+#1844270 by amontero: Spelling mistake
+#2942932 by fadonascimento: Duplicates array keys
+#2109291 by jcamposanok: user_load should use uid instead of array in hook_apachesolr_index_document_build_ENTITY_TYPE()
+#2686685 by aprohl5, sandhya.addweb: typo on line 343 of apachesolr.api.php
+
+Apache Solr integration 7.x-1.9, 2017-10-25
+-----------------------------
+#[N/A] Added query argument to /admin/reports/apachesolr/*/conf/[filename] to avoid conflic with fast_404 behavior.
+#2609204 by janusman: Watchdog logging should indicate environment in use
+#2792283 by larsmw: apachesolr_entity_update unnessicarily calls entity_get_info()
+#2794597 by KarlShea: Not every entity has a status
+#2784939 by tamarpe: Fixes unecessary call to apachesolr_entity_update for new entities with status == 0
+#Issue #2614666 by nicrodgers: SQL error attempting to clone search page with a label longer than 23 characters
+
+#2338591 by mkalkbrenner: apachesolr_index_get_entities_to_index() randomly fails
+#2334725 by Xano: Remove apachesolr_search.pages.inc.orig
+#2343001 by mkalkbrenner: Retain filters checkbox is missing
+
+Apache Solr integration 7.x-1.8, 2015-12-02
+-----------------------------
+SA-CONTRIB-2015-170 by Dave Reid, theapi: fix for anonymous users can delete Solr environments that are not default.
+
+Apache Solr integration 7.x-1.7, 2014-08-29
+-----------------------------
+#2151325 by JulienD: Remove useless files[] directive from .info files.
+#2187689 by siliconmeadow: Fixed the misspelling of 'successfully'.
+#1984502 by blazindrop, bforchhammer: Fixed Don't include time dependent configuration and state in ctools exports.
+#2237145 by Dave Reid: Fixed The default Solr search should have it's tab appear first on the search page.
+#2288867 by larowlan: Fixed Search results built twice when using search pages with a search box.
+#1439564 by recidive, Nick_vh, bforchhammer, neochief, jhedstrom, dawehner: Added Index bundles Export/Import.
+#2287599 by BarisW: Added Provide Context integration.
+#1314664 by stefan.r, pwolanin, Nick_vh, mindbat, brunogoossens | brianV: Fixed Search pages custom pages title setting does nothing.
+#2287599 by BarisW: Added Provide Context integration.
+#2023349 by juampy, theapi: Fixed addParam('mm', '100%') does not work as expected because it should be considered a single_value_params.
+#2237113 by cilefen: Fix for wrong per-field array key in apachesolr_get_field_mappings()
+#2157849 by pwolanin: copy the final 4.2 Solr Config files from the common schema project
+#2157849 | Copy over the new Solr Config files from the common schema project
+
+Apache Solr integration 7.x-1.6, 2013-11-14
+-----------------------------
+#2008832 by Nick_vh, j0rd: Re-apply added Allow turning off 'successful" actions in watchdog.
+REVERTED: #1827868 and releated path changes in #2008832
+
+Apache Solr integration 7.x-1.5, 2013-10-23
+-----------------------------
+#2118947 by Nick_vh: Added Allow mapping to accept multiple index_callbacks().
+#1828014 by ianthomas_uk, Nick_vh, DeFr: Fixed Mass re-indexation can miss (a lot of) content.
+#2106693 by wulff: Fixed Drush help refers to non-existent command.
+#2011492 by ianmthomasuk: Added Remove duplicated indexing code. (2/2)
+#2093031 by Nick_vh: Fixed Speed up indexing process significantly : make use of the filter cache.
+#1925026 by blazindrop: Added Allow modules to modify query used to select nodes for reindexing.
+#2012244 by Nick_vh, joseph.zhao: Added In Drupal 7, using short summary in the teaser.
+#1938976 by ajw, Nick_vh: Fixed Escape sort strings to support function sorts like geodist().
+#1361854 by acbramley, Nick_vh, wiifm: Added Ability to control the 'Did you mean?' by asking Solr for spellcheck.extendedResults.
+#1828134 by ianmthomasuk, Nick_vh: Fixed apachesolr_entity_delete() should apply to all writable environments.
+#2006602 by pwolanin, David_Rothstein: Fixed Documents are deleted from the Solr index in read-only environments.
+#1916558 by jwalz: Fixed Custom Filters are ignored in facet blocks on non-search paths.
+#2008832 by Nick_vh, j0rd: Added Allow to optionally turn off 'successful" actions in watchdog.
+#1952296 by David_Rothstein, zerolab, SamChez: Added Date facet granularity support.
+#1930686 by kevin.dutra: Fixed Multiple search pages can have the same path.
+REVERTED: #1827868 by ianmthomasuk, Nick_vh: Added Improve usability of admin interface when using multiple environments.
+#1433366 by Darren Oh | becw: Added Text field values not mapped in field_apachesolr_field_mappings().
+#1881878 by thsutton: Added Include source field ID in facet admin interface.
+#1365304 by brianV, deviantintegral, Nick_vh: Fixed Date field minimum/maximum range callbacks don't handle some cases; cause Solr exceptions.
+#1834862 by rupl: Improve documentation of hook_apachesolr_query_alter().
+#1825426 by cpliakas: Added an API function apachesolr_get_field_mappings().
+#1827216 by ianmthomasuk, ciss, Nick_vh: Fixed Bundle specific overrides for status callback and document callback ignored.
+#2072211 by pwolanin: Document the behavior of apachesolr_access() relative to hook_node_access().
+#1708200 by ianmthomasuk: Added Improve error reporting for invalid sorts and invalid solr responses.
+#1852088 by pwolanin | brianV: Fixed Apachesolr search results come back with $doc->url starting with 'default'.
+#2089845 by Nick_vh: Fixed When indexing, the module pings solr way too much.
+#2033913 by Nick_vh | epieddy: Fixed Small error in schema.xml.
+#1974124 by Nick_vh: Fixed Allow a more configurable soft commit status so we can start taking advantage of Solr 4."
+#2014067 by David_Rothstein: Fixed File types provided by the File Entity module are not always recognized by Apache Solr.
+
 Apache Solr integration 7.x-1.4, 2013-07-25
 -----------------------------
 #1807552 by pwolanin: further fixes to use the right language field.
