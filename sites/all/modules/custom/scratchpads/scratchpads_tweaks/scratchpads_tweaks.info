@@ -70,7 +70,6 @@ dependencies[] = scratchpads_biblio_search
 dependencies[] = scratchpads_blocks
 dependencies[] = scratchpads_classification_service_client
 dependencies[] = scratchpads_cleanup
-dependencies[] = scratchpads_col
 dependencies[] = scratchpads_colour
 dependencies[] = scratchpads_contact
 dependencies[] = scratchpads_data_integrity
