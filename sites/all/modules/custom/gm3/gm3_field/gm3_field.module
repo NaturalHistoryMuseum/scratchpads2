@@ -745,24 +745,39 @@ function gm3_field_field_is_empty($item, $field){
     case 'gm3_rectangle':
       return !isset($item['rectangle']);
     case 'gm3_combination':
-      if(is_array($item)){
-        if(isset($item['map']['children'])){
-          foreach($item['map']['children'] as $type => $value){
-            if(is_array($value)){
-              if(count($value)){return FALSE;}
-            }else if(is_string($value)){
-              if(strlen(trim($value))){return FALSE;}
-            }
-          }
-        }else{
-          $gm3_type = $item['gm3_type'];
-          return empty($item[$gm3_type]);
+      return gm3_field_is_combo_field_empty($item);
+  }
+}
+
+/**
+ * Returns true if the given combo field item is empty
+ *
+ * @param $item Field item object $item
+ * @return Boolean
+ */
+function gm3_field_is_combo_field_empty($item) {
+  if(is_array($item)){
+    if(isset($item['map']['children'])){
+      foreach($item['map']['children'] as $type => $value){
+        if(is_array($value)){
+          if(count($value)){return FALSE;}
+        }else if(is_string($value)){
+          if(strlen(trim($value))){return FALSE;}
         }
-        return TRUE;
-      }else{
-        // This is for the benefit of the Feeds module.
-        return !strlen(trim($item));
       }
+    }else{
+      $gm3_type = $item['gm3_type'];
+      switch($gm3_type) {
+        case 'point':
+          return !isset($item['latitude']);
+        default:
+          return empty($item[$gm3_type]);
+      }
+    }
+    return TRUE;
+  }else{
+    // This is for the benefit of the Feeds module.
+    return !strlen(trim($item));
   }
 }
 
@@ -1314,6 +1329,15 @@ function gm3_field_get_map($id, $max_objects = -1, $libraries = []) {
 }
 
 /**
+ * Get the gm3_type of a combo field item, without the gm3_ or module prefix
+ */
+function gm3_field_combo_type($combo_item){
+  # The gm3_type should just be e.g. "polygon", "region",
+  # but some existing records might be under "gm3_region_region"
+  return array_pop(explode("_", $item['gm3_type']));
+}
+
+/**
  * Create the widget for the combination field
  * @param element The basic widget element to start from
  * @param items The field values
@@ -1324,9 +1348,7 @@ function gm3_field_create_combination_widget($element, $items, $field) {
   $values = array_reduce(
     $items,
     function($carry, $item){
-      # The gm3_type should just be e.g. "polygon", "region",
-      # but some existing records might be under "gm3_region_region"
-      $type = array_pop(explode("_", $item['gm3_type']));
+      $type = gm3_field_combo_type($item);
 
       if (!isset($carry[$type])) {
         $carry[$type] = [$item];
