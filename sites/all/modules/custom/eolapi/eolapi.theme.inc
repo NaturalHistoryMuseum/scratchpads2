@@ -105,6 +105,11 @@ function theme_eolapi_movingimage_full($variables)
     case 'video/x-flv':
       return '<object data="' . $data->mediaURL . '" height="420" type="application/x-shockwave-flash" width="540"></object>';
       break;
+    case 'video/mp4':
+      return "<video controls preload=\"auto\" src=\"$data->mediaURL\">
+          <source src=\"$data->mediaURL\" type=\"video/mp4\"/>
+        </video>";
+      break;
   }
 }
 
@@ -113,10 +118,18 @@ function theme_eolapi_movingimage_full($variables)
  */
 function theme_eolapi_movingimage_teaser($variables)
 {
+
+
   $data = unserialize($variables['entity']->data);
   switch ($data->mimeType) {
     case 'video/x-flv':
       return '<object data="' . $data->mediaURL . '" height="100" type="application/x-shockwave-flash" width="100"></object>';
+      break;
+    case 'video/mp4':
+      return "<video controls preload=\"auto\" src=\"$data->mediaURL\">
+          <source src=\"$data->mediaURL\" type=\"video/mp4\"/>
+        </video>";
+
       break;
   }
 }
