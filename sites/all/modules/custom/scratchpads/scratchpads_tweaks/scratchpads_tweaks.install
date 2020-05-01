@@ -1777,5 +1777,23 @@ function scratchpads_tweaks_update_7099()
     $role = user_role_load_by_name('maintainer');
     user_role_grant_permissions($role->rid, $permissions);
   }
+}
 
+/**
+ * Disable the scratchpads_col module
+ */
+function scratchpads_tweaks_update_7100()
+{
+  global $base_url;
+  if($base_url == 'http://classifications.scratchpads.eu') {
+    return;
+  }
+
+  drupal_flush_all_caches();
+  module_disable(array(
+    'scratchpads_col'
+  ));
+  drupal_uninstall_modules(array(
+    'scratchpads_col'
+  ));
 }
