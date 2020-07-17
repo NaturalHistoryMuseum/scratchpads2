@@ -108,7 +108,7 @@
 
         // We need to do this x regions at a time, else the server will complain
         // that the URL is too long
-        const batchSize = 10;
+        const batchSize = Number(Drupal.settings.gm3_region.callback_size) || 1;
         const regionBatches = [];
         let sliceStart = 0;
 
@@ -120,36 +120,50 @@
           sliceStart = sliceEnd;
         }
 
-        for(const batch of regionBatches) {
-          const regionDataUrl = Drupal.settings.gm3_region.callback;
-          const res = await fetch(`${regionDataUrl}/${batch.join(',')}`);
-          const data = await res.json();
+        const regionDataUrl = Drupal.settings.gm3_region.callback;
 
-          for (const region of data) {
-            const regionId = region.regionId || Object.keys(region)[0];
-            const shape = region.shape || region[regionId].shape;
-            const polygons = shape.type === 'MultiPolygon' ? shape.coordinates :
-                             shape.type === 'Polygon' ? [shape.coordinates] : [];
-            const regionParts = [];
+        await Promise.all(regionBatches.map(async batch => {
+          try {
+            const res = await fetch(`${regionDataUrl}/${batch.join(',')}`);
+            const data = await res.json();
 
-            for (const polygon of polygons) {
-              for(const points of polygon) {
-                regionParts.push(this.addPolygon(points));
-              }
+            for (const region of data) {
+              this.addRegion(region, editable);
             }
+          } catch(e) {
+            console.error(e);
+          }
+        }));
 
-            this.countries[regionId] = this.addObject(regionParts);
+        return this;
+      }
 
-            if (editable) {
-              this.countries[regionId].on('contextmenu', e => {
-                this.removePolygonsById(regionId);
-                L.DomEvent.stopPropagation(e);
-              });
-            }
+      /**
+      *  Add a region object to the map
+       * @param {Object} region Region object to add
+       * @param {Boolean} editable True to make it editable
+       */
+      addRegion(region, editable) {
+        const regionId = region.regionId || Object.keys(region)[0];
+        const shape = region.shape || region[regionId].shape;
+        const polygons = shape.type === 'MultiPolygon' ? shape.coordinates :
+                         shape.type === 'Polygon' ? [shape.coordinates] : [];
+        const regionParts = [];
+
+        for (const polygon of polygons) {
+          for(const points of polygon) {
+            regionParts.push(this.addPolygon(points));
           }
         }
 
-        return this;
+        this.countries[regionId] = this.addObject(regionParts);
+
+        if (editable) {
+          this.countries[regionId].on('contextmenu', e => {
+            this.removePolygonsById(regionId);
+            L.DomEvent.stopPropagation(e);
+          });
+        }
       }
 
       /**
