@@ -2,12 +2,11 @@
 
 function scratchpad_admin_openids(){
   return array(
-    'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
-    'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
-    'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
-    'http://www.vbrant.eu/users/paul-kiddle/openid' => 'Paul Kiddle (http://www.vbrant.eu/users/paul-kiddle/openid)',
-    'http://www.vbrant.eu/users/josh-humphries/openid' => 'Josh Humphries (http://www.vbrant.eu/users/josh-humphries/openid)',
-    'http://www.vbrant.eu/users/ginger/openid' => 'Ginger (http://www.vbrant.eu/users/ginger/openid)',
+    'http://vbrant-eu.scratchpads.eu/user/57/identity' => 'Ben Scott (http://vbrant-eu.scratchpads.eu/user/57/identity)',
+    'http://vbrant-eu.scratchpads.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant-eu.scratchpads.eu/users/vince-smith/openid)',
+    'http://vbrant-eu.scratchpads.eu/users/paul-kiddle/openid' => 'Paul Kiddle (http://vbrant-eu.scratchpads.eu/users/paul-kiddle/openid)',
+    'http://vbrant-eu.scratchpads.eu/users/josh-humphries/openid' => 'Josh Humphries (http://vbrant-eu.scratchpads.eu/users/josh-humphries/openid)',
+    'http://vbrant-eu.scratchpads.eu/users/ginger/openid' => 'Ginger (http://vbrant-eu.scratchpads.eu/users/ginger/openid)',
   );
 }
 
@@ -51,10 +50,10 @@ function scratchpad_logins(){
   }
   switch($_SERVER['SERVER_ADDR']){
     case '157.140.127.10':
-      $default_value = 'http://vbrant.eu/user/57/identity';
+      $default_value = 'http://vbrant-eu.scratchpads.eu/user/57/identity';
       break;
     case '157.140.126.27':
-      $default_value = 'http://vbrant.eu/users/vince-smith/openid';
+      $default_value = 'http://vbrant-eu.scratchpads.eu/users/vince-smith/openid';
       break;
     default:
       $default_value = 'https://id.ebaker.me.uk/ed';

@@ -511,7 +511,150 @@ function scratchpads_tweaks_menu(){
       'file' => 'scratchpads_tweaks.pages.inc',
       'weight' => -10
     )
-  );
+  ) + scratchpads_tweaks_rpc_menu();
+}
+
+function scratchpads_tweaks_rpc_menu(){
+  return [
+    'rpc' => [
+      'page callback' => 'scratchpads_tweaks_rpc',
+      'access callback' => 'scratchpads_tweaks_rpc_access',
+      'access arguments' => ['access content']
+    ]
+  ];
+}
+
+function scratchpads_tweaks_rpc_access(){
+  $h = $_SERVER['HTTP_AUTHORIZATION'];
+  list($type, $value) = explode(' ', $h);
+  if($type!='Basic') {
+    return false;
+  }
+
+  list($user, $pass) = explode(':', base64_decode($value));
+
+  return $user == variable_get('rpc_user', 'scratchpads')
+    && $pass == variable_get('rpc_password', '');
+}
+
+function scratchpads_tweaks_rpc(){
+  $input = file_get_contents("php://input");
+  $body = json_decode($input, true);
+  $method = $body['method'];
+  $args = $body['params'];
+
+  module_load_include('php', 'scratchpads_tweaks', 'RpcRouter');
+
+  $rpc = new RpcRouter();
+
+  if(!method_exists($rpc, $method)) {
+    drupal_json_output([
+      'error' => "The method $method does not exist."
+    ]);
+    return;
+  }
+
+  drupal_json_output([
+    'result' => $rpc->{$method}(...$args)
+  ]);
+}
+
+function scratchpads_tweaks_rdf_settings(){
+  $ns = 'https://www.w3.org/TR/2020/WD-appmanifest-20200715/#dom-webappmanifest-';
+
+  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $j = file_get_contents("php://input");
+    $body = json_decode($j, true);
+
+    if(isset($body[$ns.'name'])) {
+      variable_set('site_name', $body[$ns.'name']);
+    }
+    if(isset($body[$ns.'theme_color'])) {
+      $colour = str_replace('#', '', $body[$ns.'theme_color']);
+      variable_set('scratchpads_custom_colour', $colour);
+      variable_set('scratchpads_colour', 'custom');
+      variable_del('scratchpads_colour_css_file');
+    }
+  }
+
+  $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
+  if($colour == 'custom'){
+    $colour = variable_get('scratchpads_custom_colour');
+  }
+
+  $output = [
+    $ns.'name' => variable_get('site_name', 'Scratchpad'),
+    $ns.'theme_color' => '#' . $colour
+  ];
+
+  drupal_json_output($output);
+}
+
+function scratchpads_tweaks_rdf_taxon_concepts(){
+  $out = [];
+
+  foreach(variable_get('biological_vids', []) as $vid => $x) {
+    $tree = taxonomy_get_tree($vid, 0, 1);
+    $out[] = './' . $tree[0]->tid;
+  }
+  drupal_json_output($out);
+}
+
+function _sp_tax_value($e, $f){
+  //$val = isset($e->$f) ? array_values($e->$f)[0] : null;
+  $val = field_get_items('taxonomy_term', $e, $f);
+
+  if(isset($val[0])) {
+    return $val[0];
+  } else {
+    return $val;
+  }
+}
+
+function scratchpads_tweaks_rdf_taxon_concept($term){
+  $ns = 'http://rs.tdwg.org/ontology/voc/TaxonConcept#';
+
+  $rels = [];
+
+  $out = [
+    $ns.'hasName' => $term->name
+  ];
+
+  $aan = _sp_tax_value($term, 'field_aan_'.$term->vid);
+
+  if($aan){
+    $rels[] = [
+      $ns.'relationshipCategory' => $ns.'isSynonymFor',
+      $ns.'toTaxon' => '../' . $aan['tid']
+    ];
+  }
+
+  $rank = _sp_tax_value($term, 'field_rank');
+
+  if($rank) {
+    $out[$ns.'rank'] = $rank['value'];
+  }
+
+  //$out['term'] = $term;
+  foreach(taxonomy_get_children($term->tid) as $id => $t) {
+    $rels[] = [
+      $ns.'relationshipCategory' => $ns.'isParentTaxonOf',
+      $ns.'toTaxon' => '../'.$id,
+      $ns.'hasName' => $t->name
+    ];
+  }
+
+  foreach(taxonomy_get_parents($term->tid) as $id => $t) {
+    $rels[] = [
+      $ns.'relationshipCategory' => $ns.'isChildTaxonOf',
+      $ns.'toTaxon' => '../'.$id,
+      $ns.'hasName' => $t->name
+    ];
+  }
+
+  $out[$ns.'hasRelationship'] = $rels;
+
+  drupal_json_output($out);
 }
 
 /**
