@@ -6,10 +6,10 @@
 function scratchpads_metadata_service_json_page($authorised = FALSE){
   drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
   // As a simple method of checking authorisation, we simply check that the
-  // client has originated from "stats.scratchpads.eu". This leaves us open to
+  // client has originated from "stats.scratchpads.org". This leaves us open to
   // hacks from our local server, but given that we do not allow posting of PHP,
   // this should not be possible.
-  if($_SERVER['REMOTE_ADDR'] == gethostbyname('stats.scratchpads.eu') || $_SERVER['REMOTE_ADDR'] == '127.0.0.1'){
+  if($_SERVER['REMOTE_ADDR'] == gethostbyname('stats.scratchpads.org') || $_SERVER['REMOTE_ADDR'] == '127.0.0.1'){
     $authorised = TRUE;
   }
   print json_encode(scratchpads_metadata_service_get_metadata($authorised));

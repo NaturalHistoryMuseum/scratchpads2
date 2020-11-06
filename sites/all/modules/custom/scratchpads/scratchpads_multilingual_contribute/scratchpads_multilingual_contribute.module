@@ -68,7 +68,7 @@ function scratchpads_multilingual_contribute_block_view($delta = ''){
             '#suffix' => '</div>',
             'content' => array(
               '#markup' => '<div class="login-link">
-    <h2>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.eu/uwho', '', t('Login to the Scratchpads Localize site')) . '</h2>
+    <h2>' . uwho_client_block_content($ini['uwho'], 'http://localize.scratchpads.org/uwho', '', t('Login to the Scratchpads Localize site')) . '</h2>
   </div><h2>Translation status</h2>' . str_replace('sticky-enabled', '', locale_translate_overview_screen())
             )
           )

@@ -48,7 +48,7 @@ function scratchpads_statistics_gbif_registry_endpoints(){
     'type' => 'OTHER',
     'machineTags' => array(
       array(
-        'namespace' => 'http://scratchpads.eu/',
+        'namespace' => 'http://scratchpads.org/',
         'name' => 'name',
         'value' => 'scratchpads-statistics-login'
       )
@@ -62,7 +62,7 @@ function scratchpads_statistics_gbif_registry_endpoints(){
     'type' => 'OTHER',
     'machineTags' => array(
       array(
-        'namespace' => 'http://scratchpads.eu/',
+        'namespace' => 'http://scratchpads.org/',
         'name' => 'name',
         'value' => 'scratchpads-statistics'
       )
@@ -388,7 +388,7 @@ function scratchpads_statistics_menu(){
     ),
     'stats.json' => array(
       'title' => 'Scratchpad statistics (JSON)',
-      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.eu">http://scratchpads.eu</a> site.',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.org">http://scratchpads.org</a> site.',
       'page callback' => 'scratchpads_statistics_stats_page_json',
       'delivery callback' => 'json_deliver',
       'access callback' => 'scratchpads_statistics_access',
@@ -397,7 +397,7 @@ function scratchpads_statistics_menu(){
     ),
     'login.json' => array(
       'title' => 'Scratchpad login statistics (JSON)',
-      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.eu">http://scratchpads.eu</a> site.',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.org">http://scratchpads.org</a> site.',
       'page callback' => 'scratchpads_statistics_stats_page_login_json',
       'delivery callback' => 'json_deliver',
       'access callback' => 'scratchpads_statistics_access',

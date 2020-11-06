@@ -16,11 +16,11 @@ $node = (object)array(
   'body' => array(
     'und' => array(
       0 => array(
-        'value' => '<p>For further information on the Scratchpads, please see the <a href="http://scratchpads.eu/about">Scratchpads website</a>.</p>',
-        'summary' => '<p>For further information on the Scratchpads, please see the <a href="http://scratchpads.eu/about">Scratchpads website</a>.</p>',
+        'value' => '<p>For further information on the Scratchpads, please see the <a href="http://scratchpads.org/about">Scratchpads website</a>.</p>',
+        'summary' => '<p>For further information on the Scratchpads, please see the <a href="http://scratchpads.org/about">Scratchpads website</a>.</p>',
         'format' => 'filtered_html',
-        'safe_value' => ' <p>For further information on the Scratchpads, please see the <a href="http://scratchpads.eu/about">Scratchpads website</a>.</p>',
-        'safe_summary' => ' <p>For further information on the Scratchpads, please see the <a href="http://scratchpads.eu/about">Scratchpads website</a>.</p>'
+        'safe_value' => ' <p>For further information on the Scratchpads, please see the <a href="http://scratchpads.org/about">Scratchpads website</a>.</p>',
+        'safe_summary' => ' <p>For further information on the Scratchpads, please see the <a href="http://scratchpads.org/about">Scratchpads website</a>.</p>'
       )
     )
   ),

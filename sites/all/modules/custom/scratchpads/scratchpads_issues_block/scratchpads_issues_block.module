@@ -34,7 +34,7 @@ function scratchpads_issues_block_issue_tab_settings() {
   return array(
     "fetch_url" => "https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues",
     "html_link" => "https://github.com/NaturalHistoryMuseum/scratchpads2/issues",
-    "footer" => '<h2>Help</h2><p>Not sure what you are doing? Try the <a href="http://help.scratchpads.eu/">Scratchpad Help Wiki</a>.',
+    "footer" => '<h2>Help</h2><p>Not sure what you are doing? Try the <a href="http://help.scratchpads.org/">Scratchpad Help Wiki</a>.',
     "scripts" => array(
       drupal_get_path('module', 'scratchpads_issues_block') . "/js/scratchpads_issues_block.js"
     ),

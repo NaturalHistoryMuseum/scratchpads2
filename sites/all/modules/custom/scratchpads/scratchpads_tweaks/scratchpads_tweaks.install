@@ -1785,7 +1785,7 @@ function scratchpads_tweaks_update_7099()
 function scratchpads_tweaks_update_7100()
 {
   global $base_url;
-  if($base_url == 'http://classifications.scratchpads.eu') {
+  if($base_url == 'http://classifications.scratchpads.org') {
     return;
   }
 

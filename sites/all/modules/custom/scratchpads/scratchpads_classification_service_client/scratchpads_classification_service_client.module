@@ -72,10 +72,10 @@ function scratchpads_classification_service_client_feeds_importer_default_alter(
 }
 
 /**
- * 
+ *
  */
 function scratchpads_classification_service_client_autocomplete_callback($search){
-  $request = drupal_http_request('http://classifications.scratchpads.eu/classification/search/' . urlencode($search), array(
+  $request = drupal_http_request('http://classifications.scratchpads.org/classification/search/' . urlencode($search), array(
     'timeout' => 10
   ));
   drupal_add_http_header('Content-Type', 'application/json');
@@ -88,7 +88,7 @@ function scratchpads_classification_service_client_autocomplete_callback($search
 
 /**
  * Implements hook_form_FORM_ID_alter
- * 
+ *
  * Alter the import form to add a search box for querying the service
  */
 function scratchpads_classification_service_client_form_feeds_import_form_alter(&$form, &$form_state, $form_id){

@@ -84,7 +84,7 @@ function scratchpads_gbif_registry_client_cron()
           '+44 20 7942 5127'
         ),
         'homepage' => array(
-          'http://scratchpads.eu/'
+          'http://scratchpads.org/'
         ),
         'position' => array(
           'Development Team',

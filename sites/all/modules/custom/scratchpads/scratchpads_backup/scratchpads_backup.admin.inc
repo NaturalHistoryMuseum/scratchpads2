@@ -21,7 +21,7 @@ define('SCRATCHPADS_BACKUP_REQUEST_FILE', 'public://scratchpads_backup_requested
  * Form for requesting/downloading a site backup.
  */
 function scratchpads_backup_request_form($form, $form_state){
-  // We don't do backups if the site is larger than 20GB.  Instead, we give a 
+  // We don't do backups if the site is larger than 20GB.  Instead, we give a
   // warning and ask them to email the Scratchpads team instead.
   $query = db_select('file_managed');
   $query->addExpression('SUM(filesize)', 'sum_filesize');
@@ -105,7 +105,7 @@ function _scratchpads_backup_get_previous_backups(){
   $potential_files = array();
   foreach(scandir('/var/aegir/backups') as $potential_file){
     if(strpos($potential_file, _scratchpads_backup_get_domain()) === 0){
-      $potential_files[] = l($potential_file, 'http://backup.scratchpads.eu/' . $potential_file);
+      $potential_files[] = l($potential_file, 'http://backup.scratchpads.org/' . $potential_file);
     }
   }
   return $potential_files;

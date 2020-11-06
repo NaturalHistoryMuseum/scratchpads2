@@ -15,7 +15,7 @@ function scratchpads_data_integrity_mail($key, &$message, $params){
           'There is no reason to be concerned by this, but if you would like further information, then please do not hesitate to reply to this message.',
           'Thanks,',
           'Scratchpads Support Team',
-          "--\nsupport@scratchpads.eu"
+          "--\nsupport@scratchpads.org"
         )
       ));
       break;
@@ -32,7 +32,7 @@ function scratchpads_data_integrity_mail($key, &$message, $params){
         ), $params['messages'], array(
           'Thanks,',
           'Scratchpads Support Team',
-          "--\nsupport@scratchpads.eu"
+          "--\nsupport@scratchpads.org"
         ))
       ));
   }
@@ -89,7 +89,7 @@ function scratchpads_data_integrity_scratchpads_data_integrity(){
 
 /**
  * Helper function to get a list of messages.
- * 
+ *
  * $mail = Whether or not to return messages that are not for mailing.
  * $all = Whether or not to ignore the last run time
  */
@@ -147,7 +147,7 @@ function scratchpads_data_integrity_cron(){
     /*
      * The following code will be allowed to run once we are confident that
      * there are no sites with large quantities of problematic data.
-     * 
+     *
     $query = db_select('users', 'u');
     $query->innerJoin('users_roles', 'r', 'u.uid = r.uid');
     $results = $query->condition('rid', 5)->fields('u', array(
@@ -158,14 +158,14 @@ function scratchpads_data_integrity_cron(){
         'site_url' => url('', array(
           'absolute' => TRUE
         ))
-      ), 'Scratchpads Support Team <support@scratchpads.eu>');
+      ), 'Scratchpads Support Team <support@scratchpads.org>');
     }
     */
-    drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Scratchpads Support Team <support@scratchpads.eu>', $language, array(
+    drupal_mail('scratchpads_data_integrity', 'scratchpads_team', 'Scratchpads Support Team <support@scratchpads.org>', $language, array(
       'site_url' => url('', array(
         'absolute' => TRUE
       )),
       'messages' => $messages
-    ), 'Scratchpads Team (No reply) <no-reply@scratchpads.eu>');
+    ), 'Scratchpads Team (No reply) <no-reply@scratchpads.org>');
   }
 }

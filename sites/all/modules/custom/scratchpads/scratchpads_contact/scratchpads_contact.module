@@ -53,9 +53,9 @@ function scratchpads_contact_contact_site_form_validate(&$form, $form_state){
 }
 
 function scratchpads_contact_mail_alter(&$message){
-  // Always replace "site-email-address@scratchpads.eu" in the "to" line to the 
+  // Always replace "site-email-address@scratchpads.org" in the "to" line to the
   // site's email address.
-  $message['to'] = str_replace('site-email-address@scratchpads.eu', variable_get('site_mail', ''), $message['to']);
+  $message['to'] = str_replace('site-email-address@scratchpads.org', variable_get('site_mail', ''), $message['to']);
   if(isset($message['params']['report'])){
     $abuse_types = scratchpads_contact_abuse_types();
     $type = $message['params']['report'];

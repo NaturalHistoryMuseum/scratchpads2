@@ -23,5 +23,5 @@ $mail = array(
 
 Simon
 --
-http://scratchpads.eu/"
+http://scratchpads.org/"
 );

@@ -1,7 +1,7 @@
 <?php
 require_once (str_replace('.module', '.authors.inc', __FILE__));
 if(!defined('CITE_URL')) {
-  define('CITE_URL', 'cite.scratchpads.eu');
+  define('CITE_URL', 'cite.scratchpads.org');
 }
 DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://' . CITE_URL);
 DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', CITE_SCRATCHPADS_EU_HOST_DEFAULT.'/generate');
@@ -323,7 +323,7 @@ function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
     'post' => 'scratchpads_citethispage_msg_token=' . urlencode($rand_token_id) . $open_tids
   );
   $arguments_str = http_build_query($arguments, '', '&');
-  // Invoke the cite.scratchpads.eu service
+  // Invoke the cite.scratchpads.org service
   if(!$preview){
     $cite_service_url = variable_get('scratchpads_citethispage_cite_service_url', CITE_SCRATCHPADS_EU_GENERATE_DEFAULT);
   }else{

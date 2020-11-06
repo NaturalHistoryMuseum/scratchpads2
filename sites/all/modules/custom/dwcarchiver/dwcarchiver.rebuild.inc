@@ -150,7 +150,7 @@ function _dwcarchiver_get_eml($dwcarchiver)
   $address->addChild('postalCode', 'SW7 5BD');
   $address->addChild('country', 'UK');
   $metadataProvider->addChild('electronicMailAddress', 'scratchpads@nhm.ac.uk');
-  $metadataProvider->addChild('onlineUrl', 'http://scratchpads.eu/');
+  $metadataProvider->addChild('onlineUrl', 'http://scratchpads.org/');
   foreach (_dwcarchiver_get_maintainers() as $other_maintainer) {
     if ($other_maintainer->uid == $primary_author->uid) {
       continue;

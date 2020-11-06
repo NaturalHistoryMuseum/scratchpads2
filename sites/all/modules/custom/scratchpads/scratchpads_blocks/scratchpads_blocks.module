@@ -75,7 +75,7 @@ function scratchpads_blocks_block_info(){
 
 /**
  * Implementation of hook_system_info_alter().
- * 
+ *
  * We tweak the rubik theme so that we can assign blocks automatically to the
  * "scratchpads" theme regions without Drupal being fucking stupid.
  */
@@ -95,7 +95,7 @@ function scratchpads_blocks_system_info_alter(&$info, $file, $type){
 }
 
 /**
- * 
+ *
  * Implentation of hook_block_info_alter
  * Adjust the blocks for this theme
  * @param array $blocks
@@ -177,7 +177,7 @@ function scratchpads_blocks_block_view($delta = ''){
           'in_active_trail' => FALSE,
           'has_children' => FALSE,
           'hidden' => FALSE,
-          'href' => 'http://scratchpads.eu/about/policies',
+          'href' => 'http://scratchpads.org/about/policies',
           'title' => t('Scratchpads Policies'),
           'access' => TRUE,
           'menu_name' => '',
@@ -219,7 +219,7 @@ function scratchpads_blocks_block_view($delta = ''){
           'path' => $path . '/images/vbrant.png',
           'alt' => 'ViBRANT logo',
           'title' => 'ViBRANT'
-        )), 'http://vbrant.eu/', $options),
+        )), 'http://vbrant.scratchpads.org/', $options),
         l(theme('image', array(
           'path' => $path . '/images/drupal_small.png',
           'alt' => 'Drupal logo',
@@ -229,7 +229,7 @@ function scratchpads_blocks_block_view($delta = ''){
           'path' => $path . '/images/scratchpads.png',
           'alt' => 'Scratchpads logo',
           'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
-        )), 'http://scratchpads.eu/', $options)
+        )), 'http://scratchpads.org/', $options)
       );
       $block['content'] = array(
         '#theme' => 'item_list',
@@ -281,9 +281,9 @@ function scratchpads_blocks_themes_enabled($theme_list){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MENU CALLBACKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_views_pre_view().
@@ -307,9 +307,9 @@ function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MENU CALLBACKS
- * 
+ *
  ********************************************************************************************/
 function scratchpads_blocks_toggle_placeholder($term){
   if(!scratchpads_blocks_show_placeholders()){
@@ -324,9 +324,9 @@ function scratchpads_blocks_toggle_placeholder($term){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MODULE FUNCTIONS
- * 
+ *
  ********************************************************************************************/
 function scratchpads_blocks_block_load($module, $delta){
   return db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
@@ -342,7 +342,7 @@ function scratchpads_blocks_show_placeholders(){
 }
 
 /**
- * 
+ *
  * Build an add link for a view
  * @param object $view
  * @param integer $tid
@@ -373,5 +373,3 @@ function scratchpads_blocks_views_add_link($view, $tid){
   }
   return false;
 }
-
-

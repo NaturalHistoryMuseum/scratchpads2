@@ -25,7 +25,7 @@ function scratchpads_training_block_view($delta = ''){
       $block['content'] = array(
         'training_files' => array(
           '#type' => 'link',
-          '#href' => 'http://help.scratchpads.eu/w/File:Basic_Training_Files.zip',
+          '#href' => 'http://help.scratchpads.org/w/File:Basic_Training_Files.zip',
           '#title' => t("Training files"),
           '#prefix' => '<p>',
           '#suffix' => '</p>',
@@ -35,7 +35,7 @@ function scratchpads_training_block_view($delta = ''){
         ),
         'feedback' => array(
           '#type' => 'link',
-          '#href' => 'http://scratchpads.eu/training-course-feedback',
+          '#href' => 'http://scratchpads.org/training-course-feedback',
           '#title' => t("Feedback"),
           '#prefix' => '<p>',
           '#suffix' => '</p>',

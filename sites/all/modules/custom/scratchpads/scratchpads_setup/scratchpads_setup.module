@@ -308,8 +308,8 @@ function scratchpads_setup_category_form_submit($form, &$form_state){
 
 /**
  * Implements hook_form_alter()
- * 
- * We add the "scratchpads_setup_form_submit" function to ALL steps of the setup 
+ *
+ * We add the "scratchpads_setup_form_submit" function to ALL steps of the setup
  * work flow.
  */
 function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
@@ -329,7 +329,7 @@ function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
 
 /**
  * Implements hook_form_FORM_ID_alter()
- * 
+ *
  * Tweak the user_profile form so that we can redirect to the setup workflow.
  */
 function scratchpads_setup_form_user_profile_form_alter(&$form, &$form_state, $form_id){
@@ -390,10 +390,10 @@ function scratchpads_setup_complete_page(){
       ),
       'help' => array(
         '#items' => array(
-          l(t("Help"), 'http://help.scratchpads.eu', array(
+          l(t("Help"), 'http://help.scratchpads.org', array(
             'absolute' => true
           )),
-          l(t("Sandbox"), 'http://sandbox.scratchpads.eu', array(
+          l(t("Sandbox"), 'http://sandbox.scratchpads.org', array(
             'absolute' => true
           ))
         ),
@@ -478,4 +478,3 @@ function scratchpads_setup_block_view($delta = ''){
   }
   return $block;
 }
-

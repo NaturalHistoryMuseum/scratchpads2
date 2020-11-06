@@ -94,10 +94,10 @@ If you experience any problems help is available on the Scratchpad help wiki [1]
 
 The Scratchpad Team
 
-[1] http://help.scratchpads.eu/
+[1] http://help.scratchpads.org/
 
 --
-http://scratchpads.eu
+http://scratchpads.org
 scratchpad@nhm.ac.uk", array(
       '!site' => variable_get('site_name', 'Scratchpad'),
       '!onetime' => $onetime,

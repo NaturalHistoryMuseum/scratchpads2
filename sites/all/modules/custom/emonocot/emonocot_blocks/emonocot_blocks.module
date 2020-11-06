@@ -2,12 +2,12 @@
 /**
  * Provides some custom blocks for the eMonocot project (note that some other blocks
  * are created by the module emonocot_views).
- * 
+ *
  * eMonocot Footer Logos (replaces Scratchpads Footer Logos)
- * 
+ *
  * eMonocot Typification overview
  * Show type specimens or type taxa on species pages
- * 
+ *
  * Hybrid Children
  * Provides functionality to show how species participate in named hybrids
  * on species pages
@@ -16,7 +16,7 @@ define('EMONOCOT_THEME_NAME', 'scratchpads_em');
 
 /**
  * Implements hook_block_info().
- * 
+ *
  * @return $blocks
  * A Drupal blocks array
  */
@@ -61,7 +61,7 @@ function emonocot_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
 
 /**
  * Implements hook_block_view().
- * 
+ *
  * @return $block
  * A Drupal block
  */
@@ -82,9 +82,9 @@ function emonocot_blocks_block_view($delta = ''){
 }
 
 /**
- * 
+ *
  * eMonocot footer block
- * 
+ *
  * @return $block
  * A Drupal block
  */
@@ -104,7 +104,7 @@ function emonocot_blocks_block_view_footer(){
       'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
       'alt' => 'Scratchpads logo',
       'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
-    )), 'http://scratchpads.eu/', $options)
+    )), 'http://scratchpads.org/', $options)
   );
   //Nolinoideae site has extra logos
   if(strstr($base_url, 'nolinoideae.e-monocot.org') != FALSE){
@@ -130,7 +130,7 @@ function emonocot_blocks_block_view_footer(){
 /**
  *
  * eMonocot Typification block
- * 
+ *
  * @return $block
  * A Druapl block
  */
@@ -196,9 +196,9 @@ function emonocot_blocks_block_view_typification(){
 }
 
 /**
- * 
+ *
  * eMonocot hybrids block
- * 
+ *
  * @return $block
  * A Druapl block
  */

@@ -5,10 +5,10 @@
  */
 function scratchpads_tweaks_menu_default_menu_links(){
   $menu_links = array();
-  // Exported menu link: management:http://help.scratchpads.eu/
-  $menu_links['management:http://help.scratchpads.eu/'] = array(
+  // Exported menu link: management:http://help.scratchpads.org/
+  $menu_links['management:http://help.scratchpads.org/'] = array(
     'menu_name' => 'management',
-    'link_path' => 'http://help.scratchpads.eu/',
+    'link_path' => 'http://help.scratchpads.org/',
     'router_path' => '',
     'link_title' => 'Help',
     'options' => array(

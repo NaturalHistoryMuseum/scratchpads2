@@ -45,7 +45,7 @@ function scratchpads_qa_mail($key, &$message, $params){
       }
       $message['body'][] = $extra_line;
       $message['body'][] = 'Cheers,';
-      $message['body'][] = "Scratchpads Testing Bot\n--\nhttp://qa.scratchpads.eu/";
+      $message['body'][] = "Scratchpads Testing Bot\n--\nhttp://qa.scratchpads.org/";
   }
 }
 

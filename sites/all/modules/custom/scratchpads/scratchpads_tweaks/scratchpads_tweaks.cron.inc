@@ -17,7 +17,7 @@ function _scratchpads_tweaks_cron(){
     if(variable_get('scratchpad_last_reported', 0) < time() - 86400){ // Seconds in a day
       // Send the update to our central server
       $central_servers = variable_get('scratchpad_central_servers', array(
-        'http://stats.scratchpads.eu/'
+        'http://stats.scratchpads.org/'
       ));
       $result = db_query('SELECT COUNT(*) AS count, type FROM node GROUP BY type');
       $nodes = array();
@@ -63,11 +63,11 @@ function _scratchpads_tweaks_cron(){
       variable_set('scratchpad_last_reported', time());
     }
     if(variable_get('scratchpad_last_updated', 0) < time() - 86400 && !in_array("http://" . $_SERVER['HTTP_HOST'] . "/", variable_get('scratchpad_central_servers', array(
-      'http://stats.scratchpads.eu/'
+      'http://stats.scratchpads.org/'
     )))){ // 86400 = seconds in a day
       // Also update the sites list for this site
       $central_servers = variable_get('scratchpad_central_servers', array(
-        'http://stats.scratchpads.eu/'
+        'http://stats.scratchpads.org/'
       ));
       $sites = array();
       foreach($central_servers as $central_server){
@@ -110,7 +110,7 @@ function _scratchpads_tweaks_cron(){
       menu_rebuild();
     }
   }
-  // Disable the dblog module, as we occasionaly forget to disable it after 
+  // Disable the dblog module, as we occasionaly forget to disable it after
   // enabling it to debug issues with live sites.
   module_disable(array(
     'dblog'
@@ -131,7 +131,7 @@ function _scratchpads_tweaks_cron(){
     }
   }
   // Clean up the file_display table now that we have removed its primary key
-  db_query('CREATE TABLE {file_display_temp} AS SELECT DISTINCT * FROM {file_display};'); 
+  db_query('CREATE TABLE {file_display_temp} AS SELECT DISTINCT * FROM {file_display};');
   db_query('TRUNCATE {file_display};');
   db_query('INSERT INTO {file_display} SELECT * FROM {file_display_temp};');
   db_query('DROP TABLE {file_display_temp}');
