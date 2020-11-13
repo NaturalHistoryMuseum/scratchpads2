@@ -1,5 +1,16 @@
 # Change log
 
+## 2.9.14 (2020-11-13)
+
+This release upgrades Drupal to version 7.73, as well as some smaller changes:
+
+ - Allow HTML video in content fields (partial fix for [#6277](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6277) - [@paulkiddle](https://github.com/PaulKiddle))
+ - Change scratchpads.eu references to .org ([#6261](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6261) - [@paulkiddle](https://github.com/PaulKiddle))
+ - Handle loading of map region data better - ([#6248](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6248) - [@paulkiddle](https://github.com/PaulKiddle))
+ - Fix failure to uncheck publishing options ([#6234](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/#6234) - [@paulkiddle](https://github.com/PaulKiddle))
+ - Disable the scratchpads_col module ([#6164](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6164) - [@paulkiddle](https://github.com/PaulKiddle))
+ - Regenerate GBIF DWCA on cron ([#6202](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6202) - [@paulkiddle](https://github.com/PaulKiddle))
+
 ## 2.9.13 (2020-04-23)
 
 This release fixes various bugs and adds .fas files to the list of accepted upload formats.
