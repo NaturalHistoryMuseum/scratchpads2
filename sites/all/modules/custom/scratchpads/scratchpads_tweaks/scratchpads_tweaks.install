@@ -374,7 +374,7 @@ function scratchpads_tweaks_install_help_install_filters()
         'weight' => 1,
         'status' => 1,
         'settings' => array(
-          'allowed_html' => '<span> <div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
+          'allowed_html' => '<span> <div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <video> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
           'filter_html_help' => 0,
           'filter_html_nofollow' => 0
         )
@@ -1796,4 +1796,25 @@ function scratchpads_tweaks_update_7100()
   drupal_uninstall_modules(array(
     'scratchpads_col'
   ));
+}
+
+/**
+ * Allow html5 video in WYSIWYG fields
+ *
+ * @return void
+ */
+function scratchpads_tweaks_update_7101(){
+  $format = filter_format_load('filtered_html');
+
+  $filters = filter_list_format($format->format);
+
+  $format->filters = array_map(function($f){ return (array) $f; }, $filters);
+
+  $filter_html = $format->filters['filter_html'];
+
+  if(strpos($filter_html['settings']['allowed_html'], '<video>') == false){
+    $format->filters['filter_html']['settings']['allowed_html'].=' <video>';
+
+    filter_format_save($format);
+  }
 }
