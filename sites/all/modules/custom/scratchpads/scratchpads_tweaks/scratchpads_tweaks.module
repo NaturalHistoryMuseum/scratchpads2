@@ -514,6 +514,11 @@ function scratchpads_tweaks_menu(){
   ) + scratchpads_tweaks_rpc_menu();
 }
 
+/**
+ * Menu settings for the rpc endpoint
+ *
+ * @return Array The rpc menu configuration
+ */
 function scratchpads_tweaks_rpc_menu(){
   return [
     'rpc' => [
@@ -524,6 +529,11 @@ function scratchpads_tweaks_rpc_menu(){
   ];
 }
 
+/**
+ * Determines whether the http request is authorized to make an RPC call
+ *
+ * @return Boolean
+ */
 function scratchpads_tweaks_rpc_access(){
   $h = $_SERVER['HTTP_AUTHORIZATION'];
   list($type, $value) = explode(' ', $h);
@@ -537,124 +547,57 @@ function scratchpads_tweaks_rpc_access(){
     && $pass == variable_get('rpc_password', '');
 }
 
-function scratchpads_tweaks_rpc(){
-  $input = file_get_contents("php://input");
-  $body = json_decode($input, true);
-  $method = $body['method'];
-  $args = $body['params'];
-
-  module_load_include('php', 'scratchpads_tweaks', 'RpcRouter');
-
-  $rpc = new RpcRouter();
-
-  if(!method_exists($rpc, $method)) {
-    drupal_json_output([
-      'error' => "The method $method does not exist."
-    ]);
-    return;
-  }
-
-  drupal_json_output([
-    'result' => $rpc->{$method}(...$args)
+/**
+ * Creates and sends a JsonRPC error object
+ *
+ * @param integer $id The ID of the request that this message is a response to
+ * @param string $message The error message
+ * @param integer $code The JsonRPC error code
+ * @return void
+ */
+function scratchpads_tweaks_rpc_error($id, $message, $code=-32603) {
+  return drupal_json_output([
+    'error' => [
+      'message' => $message,
+      'code' => $code
+    ],
+    'id' => $id
   ]);
 }
 
-function scratchpads_tweaks_rdf_settings(){
-  $ns = 'https://www.w3.org/TR/2020/WD-appmanifest-20200715/#dom-webappmanifest-';
+/**
+ * Handle JsonRPC requests
+ *
+ * @return void
+ */
+function scratchpads_tweaks_rpc(){
+  $input = file_get_contents("php://input");
+  $body = json_decode($input, true);
 
-  if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $j = file_get_contents("php://input");
-    $body = json_decode($j, true);
+  if($body == NULL) {
+    return scratchpads_tweaks_rpc_error(null, 'Failed to parse JSON', -32600);
+  }
 
-    if(isset($body[$ns.'name'])) {
-      variable_set('site_name', $body[$ns.'name']);
+  $method = $body['method'];
+  $args = $body['params'];
+  $id = $body['id'];
+
+  try {
+    module_load_include('php', 'scratchpads_tweaks', 'RpcRouter');
+
+    $rpc = new RpcRouter();
+
+    if(!method_exists($rpc, $method)) {
+      return scratchpads_tweaks_rpc_error($id, "The method $method does not exist.", -32601);
     }
-    if(isset($body[$ns.'theme_color'])) {
-      $colour = str_replace('#', '', $body[$ns.'theme_color']);
-      variable_set('scratchpads_custom_colour', $colour);
-      variable_set('scratchpads_colour', 'custom');
-      variable_del('scratchpads_colour_css_file');
-    }
+
+    drupal_json_output([
+      'result' => $rpc->{$method}(...$args),
+      'id' => $id
+    ]);
+  } catch(Throwable $e) {
+    scratchpads_tweaks_rpc_error($id, $e->getMessage(), -32603);
   }
-
-  $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
-  if($colour == 'custom'){
-    $colour = variable_get('scratchpads_custom_colour');
-  }
-
-  $output = [
-    $ns.'name' => variable_get('site_name', 'Scratchpad'),
-    $ns.'theme_color' => '#' . $colour
-  ];
-
-  drupal_json_output($output);
-}
-
-function scratchpads_tweaks_rdf_taxon_concepts(){
-  $out = [];
-
-  foreach(variable_get('biological_vids', []) as $vid => $x) {
-    $tree = taxonomy_get_tree($vid, 0, 1);
-    $out[] = './' . $tree[0]->tid;
-  }
-  drupal_json_output($out);
-}
-
-function _sp_tax_value($e, $f){
-  //$val = isset($e->$f) ? array_values($e->$f)[0] : null;
-  $val = field_get_items('taxonomy_term', $e, $f);
-
-  if(isset($val[0])) {
-    return $val[0];
-  } else {
-    return $val;
-  }
-}
-
-function scratchpads_tweaks_rdf_taxon_concept($term){
-  $ns = 'http://rs.tdwg.org/ontology/voc/TaxonConcept#';
-
-  $rels = [];
-
-  $out = [
-    $ns.'hasName' => $term->name
-  ];
-
-  $aan = _sp_tax_value($term, 'field_aan_'.$term->vid);
-
-  if($aan){
-    $rels[] = [
-      $ns.'relationshipCategory' => $ns.'isSynonymFor',
-      $ns.'toTaxon' => '../' . $aan['tid']
-    ];
-  }
-
-  $rank = _sp_tax_value($term, 'field_rank');
-
-  if($rank) {
-    $out[$ns.'rank'] = $rank['value'];
-  }
-
-  //$out['term'] = $term;
-  foreach(taxonomy_get_children($term->tid) as $id => $t) {
-    $rels[] = [
-      $ns.'relationshipCategory' => $ns.'isParentTaxonOf',
-      $ns.'toTaxon' => '../'.$id,
-      $ns.'hasName' => $t->name
-    ];
-  }
-
-  foreach(taxonomy_get_parents($term->tid) as $id => $t) {
-    $rels[] = [
-      $ns.'relationshipCategory' => $ns.'isChildTaxonOf',
-      $ns.'toTaxon' => '../'.$id,
-      $ns.'hasName' => $t->name
-    ];
-  }
-
-  $out[$ns.'hasRelationship'] = $rels;
-
-  drupal_json_output($out);
 }
 
 /**
