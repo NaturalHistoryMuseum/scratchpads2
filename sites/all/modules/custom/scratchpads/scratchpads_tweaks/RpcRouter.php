@@ -65,6 +65,46 @@ class RpcRouter {
 		];
 	}
 
+
+
+	function getTaxonOverview($n) {
+		$t = $this->getTaxon($n);
+
+		$ancestors = taxonomy_get_parents_all($n);
+
+		$t['ancestors'] = array_reverse(array_map(
+			function($taxon) {
+				return [
+					'tid' => $taxon->tid,
+					'name' => $taxon->name,
+					'rank' => $taxon->field_rank['und'][0]['value']
+				];
+			},
+			$ancestors
+		));
+
+		$tree = null;
+
+		foreach($ancestors as $term) {
+			$children = array_map(
+				function($term) { return ['tid'=>$term->tid, 'name'=>$term->name]; },
+				taxonomy_get_children($term->tid)
+			);
+
+			$children = array_values($children);
+
+			$tree = [
+				'tid' => $term->tid,
+				'name' => $term->name,
+				'children' => $tree ? ([$tree] + $children) : $children
+			];
+		}
+
+		$t['tree'] = $tree;
+
+		return $t;
+	}
+
 	function getSynonyms($tid) {
 		$vid = taxonomy_term_load($tid)->vid;
 		$field_aan = "field_aan_$vid";
