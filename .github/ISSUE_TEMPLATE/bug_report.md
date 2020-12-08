@@ -2,7 +2,7 @@
 name: Bug report
 about: Tell us about something that's not working
 title: ''
-labels: bug
+labels: 'status: triage, type: bug'
 assignees: ''
 
 ---
