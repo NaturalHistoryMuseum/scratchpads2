@@ -6,11 +6,10 @@
 function scratchpads_biblio_form_node_form_alter(&$form, &$form_state, $form_id)
 {
 
-  if ($form_id == 'biblio_node_form' && arg(2) == 'clone') {
+  if (($form_id == 'biblio_node_form' && arg(2) == 'clone') || !isset($form_state['biblio_type'])) {
     $form_state['biblio_type'] = 'set biblio type so that we can save!';
   }
 
-  $form_state['biblio_type'] = 'set biblio type so that we can save!';
   $form['#validate'][] = 'scratchpads_biblio_form_node_form_validate';
 
 }
