@@ -60,6 +60,10 @@ services:
     container_name: scratchpads.mysql
     restart: always
     image: naturalhistorymuseum/scratchpads-mysql
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
     build:
       context: ./docker/mysql
     volumes:
