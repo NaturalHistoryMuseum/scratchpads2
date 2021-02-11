@@ -11,7 +11,7 @@ dependencies[] = field_sql_storage
 required = TRUE
 stylesheets[all][] = theme/field.css
 
-; Information added by Drupal.org packaging script on 2020-09-16
-version = "7.73"
+; Information added by Drupal.org packaging script on 2021-01-20
+version = "7.78"
 project = "drupal"
-datestamp = "1600272641"
+datestamp = "1611162699"
