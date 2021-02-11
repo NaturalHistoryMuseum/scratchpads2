@@ -51,7 +51,7 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE) {
     }
   }
   catch (Exception $e) {
-    $function = 'drupsl_set_message';
+    $function = 'drupal_set_message';
     if (function_exists('drush_log')) {
       $function = 'drush_log';
     }
