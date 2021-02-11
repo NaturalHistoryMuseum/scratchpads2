@@ -1101,7 +1101,7 @@ function dwcarchiver_override($machine_name)
     'machine_name' => $fields['machine_name']
   ))->fields($fields)->execute();
   $dwcarchiver = dwcarchiver_machine_name_load($fields['machine_name']);
-  db_delete('dwcarchiver_archive_bundles')->condition('did', $dwcarchiver->did);
+  db_delete('dwcarchiver_archive_bundles')->condition('did', $dwcarchiver->did)->execute();
   $query = db_insert('dwcarchiver_archive_bundles')->fields(array(
     'did',
     'bundle'
