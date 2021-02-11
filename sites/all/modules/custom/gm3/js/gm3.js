@@ -156,10 +156,16 @@
       // This is the active tool/setting in the toolbar
       this.setActiveClass('default');
 
-      // Automatically zoom to fit all points in map, but don't zoom in further than the default zoom level
-      this.autozoom({
-        maxZoom: settings.zoom
-      });
+
+
+      if(settings.autoZoom){
+        // Automatically zoom to fit all points in map, but don't zoom in further than the default zoom level
+        this.autozoom({
+          maxZoom: settings.zoom
+        });
+      }else{
+        this.leafletMap.setZoom(settings.zoom);
+      }
     }
 
     /**
