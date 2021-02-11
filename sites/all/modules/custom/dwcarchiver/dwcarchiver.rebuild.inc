@@ -1,9 +1,15 @@
 <?php
 
-function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
-{
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE) {
   try {
-    if(is_string($dwcarchiver)) {
+    if (is_string($dwcarchiver)) {
       $dwcarchiver = dwcarchiver_machine_name_load($dwcarchiver);
     }
     if ($deliver && user_access('scratchpads team')) {
@@ -15,15 +21,16 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
     // Create the ZIP file, and add files directly to it.
     $zip_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
     $zip = new ZipArchive();
-    if ($zip->open($zip_filename, ZipArchive::CREATE) !== true) {
+    if ($zip->open($zip_filename, ZipArchive::CREATE) !== TRUE) {
       drupal_set_message(t('Unable to rebuild the archive, please contact an administrator.'), 'error');
-    } else {
+    }
+    else {
       _dwcarchiver_create_xml_and_data_files($dwcarchiver, $zip);
       $zip->close();
       // Move the zip file to the dwcarchiver folder.
       file_unmanaged_move($zip_filename, dwcarchiver_get_archive_uri($dwcarchiver), FILE_EXISTS_REPLACE);
 
-      // Let other modules (e.g. scratchpads_gbif_registry_client) know the rebuild has happened
+      // Let other modules (e.g. scratchpads_gbif_registry_client) know the rebuild has happened.
       module_invoke_all('dwcarchiver_rebuild', $dwcarchiver->machine_name, $dwcarchiver);
 
       if ($deliver && !user_access('scratchpads team')) {
@@ -34,23 +41,24 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
     if ($deliver) {
       if (user_access('scratchpads team')) {
         $timer = timer_stop('dwcarchiver_rebuild');
-        drupal_set_message(t('@time seconds: Archive rebuilt', array(
-          '@time' => round($timer['time'] / 1000, 2)
-        )));
+        drupal_set_message(t('@time seconds: Archive rebuilt', [
+          '@time' => round($timer['time'] / 1000, 2),
+        ]));
       }
     }
     if ($deliver) {
       drupal_goto('admin/config/content/dwcarchiver');
     }
-  } catch (Exception $e) {
-    $function = 'drupsl_set_message';
+  }
+  catch (Exception $e) {
+    $function = 'drupal_set_message';
     if (function_exists('drush_log')) {
       $function = 'drush_log';
     }
-    $function(t('<strong>Unable to rebuild the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', array(
+    $function(t('<strong>Unable to rebuild the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', [
       '@errormessage' => $e->getMessage(),
-      '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString()
-    )), 'error');
+      '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString(),
+    ]), 'error');
     if ($deliver) {
       drupal_goto('admin/config/content/dwcarchiver');
     }
@@ -60,8 +68,7 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = true)
 /**
  * Helper function to create the XML file for an archive.
  */
-function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip)
-{
+function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip) {
   // Firstly, we start with the XML file.
   // No elegant way of adding namespaces to SimpleXMLElement elements, so we
   // simply read in the namespaces from a string.
@@ -77,13 +84,13 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip)
   $core->addAttribute('rowType', $dwcarchiver->rowtype);
   $files = $core->addChild('files');
   $files->addChild('location', $dwcarchiver->machine_name . '.' . variable_get('dwcarchiver_data_file_extension', 'csv'));
-  _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], true);
+  _dwcarchiver_write_xml_for_fields($core, $dwcarchiver->maps[0], TRUE);
   // Write the data for the core to the archive.
   _dwcarchiver_create_and_add_data_file($dwcarchiver, $dwcarchiver, $zip);
   if (user_access('scratchpads team')) {
-    drupal_set_message(t('@time seconds: Starting extensions', array(
-      '@time' => round(timer_read('dwcarchiver_rebuild') / 1000, 2)
-    )));
+    drupal_set_message(t('@time seconds: Starting extensions', [
+      '@time' => round(timer_read('dwcarchiver_rebuild') / 1000, 2),
+    ]));
   }
   foreach ($dwcarchiver->extensions as $extension) {
     $extension_element = $archive->addChild('extension');
@@ -95,10 +102,10 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip)
     // Write the data for the extension to the archive.
     _dwcarchiver_create_and_add_data_file($extension, $dwcarchiver, $zip);
     if (user_access('scratchpads team')) {
-      drupal_set_message(t('@time seconds: Completed @extension', array(
+      drupal_set_message(t('@time seconds: Completed @extension', [
         '@time' => round(timer_read('dwcarchiver_rebuild') / 1000, 2),
-        '@extension' => $extension->name
-      )));
+        '@extension' => $extension->name,
+      ]));
     }
   }
   $zip->addFromString(variable_get('dwcarchiver_folder_name', 'dwca') . '/meta.xml', $archive->saveXML());
@@ -109,8 +116,7 @@ function _dwcarchiver_create_xml_and_data_files($dwcarchiver, ZipArchive $zip)
  *
  * @return XML string
  */
-function _dwcarchiver_get_eml($dwcarchiver)
-{
+function _dwcarchiver_get_eml($dwcarchiver) {
   $eml = new SimpleXMLElement('<eml:eml
     xmlns:eml="eml://ecoinformatics.org/eml-2.1.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -118,15 +124,21 @@ function _dwcarchiver_get_eml($dwcarchiver)
     xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 eml.xsd"
     xml:lang="en"
     packageId="619a4b95-1a82-4006-be6a-7dbe3c9b33c5/v7" system="http://gbif.org" scope="system"/>');
-  $dataset = $eml->addChild('dataset', null, '');
+  $dataset = $eml->addChild('dataset', NULL, '');
   $title = $dataset->addChild('title', variable_get('site_name', 'Scratchpad'));
   $title->addAttribute('xml:lang', 'en', 'xml');
+  // Add description
+  if($dwcarchiver->machine_name == 'gbif-dwca'){
+    $description = variable_get('scratchpads_gbif_registry_client_description', variable_get('site_name', 'Scratchpads'));
+    $abstract = $dataset->addChild('abstract');
+    $abstract->addChild('para', $description);
+  }
   $add_to = $dataset->addChild('creator');
   $contact = $dataset->addChild('contact');
-  foreach (array(
+  foreach ([
     $contact,
-    $add_to
-  ) as $add_to) {
+    $add_to,
+  ] as $add_to) {
     $individualName = $add_to->addChild('individualName');
     $primary_author = _dwcarchiver_get_primary_author();
     $individualName->addChild('givenName', $primary_author->field_user_given_names[LANGUAGE_NONE][0]['value']);
@@ -167,13 +179,13 @@ function _dwcarchiver_get_eml($dwcarchiver)
   $distribution = $dataset->addChild('distribution');
   $distribution->addAttribute('scope', 'document');
   $online = $distribution->addChild('online');
-  $biological_vids = variable_get('biological_vids', array());
+  $biological_vids = variable_get('biological_vids', []);
   $vids = array_filter($biological_vids);
   $vids = array_keys($biological_vids);
   $vid = array_shift($vids);
-  $url = $online->addChild('url', url('classification/' . $vid, array(
-    'absolute' => true
-  )));
+  $url = $online->addChild('url', url('classification/' . $vid, [
+    'absolute' => TRUE,
+  ]));
   $url->addAttribute('function', 'information');
   $coverage = $dataset->addChild('coverage');
   $taxonomicCoverage = $coverage->addChild('taxonomicCoverage');
@@ -184,15 +196,15 @@ function _dwcarchiver_get_eml($dwcarchiver)
   }
   $project = $dataset->addChild('project');
   $project->addChild('title', variable_get('site_name', 'Scratchpad'));
-  $additionalMetadata = $eml->addChild('additionalMetadata', null, '');
+  $additionalMetadata = $eml->addChild('additionalMetadata', NULL, '');
   $metadata = $additionalMetadata->addChild('metadata');
   $gbif = $metadata->addChild('gbif');
   $gbif->addChild('dateStamp', date('Y-m-d'));
   $gbif->addChild('hierarchyLevel', 'dataset');
-  $citation = $gbif->addChild('citation', variable_get('dwcarchiver_alternative_citation', url('', array(
-    'absolute' => true
-  )) . ' - ' . variable_get('site_name', 'Scratchpad')));
-  if (($identifier = variable_get('dwcarchiver_alternative_identifier', false)) != false) {
+  $citation = $gbif->addChild('citation', variable_get('dwcarchiver_alternative_citation', url('', [
+    'absolute' => TRUE,
+  ]) . ' - ' . variable_get('site_name', 'Scratchpad')));
+  if (($identifier = variable_get('dwcarchiver_alternative_identifier', FALSE)) != FALSE) {
     $citation->addAttribute('identifier', $identifier);
   }
   $intrights = $dataset->addChild('intellectualRights');
@@ -201,6 +213,14 @@ function _dwcarchiver_get_eml($dwcarchiver)
   $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
   $ulink = $para->addChild('ulink');
   $ulink->addAttribute('url', 'https:' . $cc_markup['#markup']);
+
+  // For debugging: output the EML
+  // $dom = new DOMDocument("1.0");
+  // $dom->preserveWhiteSpace = FALSE;
+  // $dom->formatOutput = TRUE;
+  // $dom->loadXML($eml->asXML());
+  // echo $dom->saveXML();
+
   return $eml->saveXML();
   // Due to the slightly silly structure of the para element, we need to use the
   // DOM functions to manipulate the XML.
@@ -222,12 +242,11 @@ function _dwcarchiver_get_eml($dwcarchiver)
 /**
  * Get other maintainers.
  */
-function _dwcarchiver_get_maintainers()
-{
+function _dwcarchiver_get_maintainers() {
   $query = db_select('users', 'u');
-  $query->fields('u', array(
-    'uid'
-  ));
+  $query->fields('u', [
+    'uid',
+  ]);
   $query->innerJoin('users_roles', 'ur', 'u.uid = ur.uid');
   $query->innerJoin('role', 'r', 'r.rid = ur.rid');
   $query->innerJoin('field_data_field_user_family_name', 'fn', 'fn.entity_id = u.uid');
@@ -246,13 +265,12 @@ function _dwcarchiver_get_maintainers()
  * Get the licence for this DwC-A
  * If GBIF needs to use scratchpads_gbif_registry_client_registration_licence
  */
-function _dwcarchiver_get_licence($dwcarchiver)
-
-{
+function _dwcarchiver_get_licence($dwcarchiver) {
   switch ($dwcarchiver->machine_name) {
     case 'gbif-dwca':
       $licence = variable_get('scratchpads_gbif_registry_client_registration_licence', CC_0);
       break;
+
     default:
       $licence = variable_get('creative_commons_block_licence_type', CC_BY);
       break;
@@ -264,14 +282,14 @@ function _dwcarchiver_get_licence($dwcarchiver)
  * Get first author from variable_get('dwcarchiver_author')
  * Or default to the first maintainer.
  */
-function _dwcarchiver_get_primary_author()
-{
-  $dwcarchiver_author_uid = variable_get('dwcarchiver_author', null);
+function _dwcarchiver_get_primary_author() {
+  $dwcarchiver_author_uid = variable_get('dwcarchiver_author', NULL);
   if (!$dwcarchiver_author_uid) {
+
     $query = db_select('users', 'u');
-    $query->fields('u', array(
-      'uid'
-    ));
+    $query->fields('u', [
+      'uid',
+    ]);
     $query->innerJoin('users_roles', 'ur', 'u.uid = ur.uid');
     $query->innerJoin('role', 'r', 'r.rid = ur.rid');
     $query->innerJoin('field_data_field_user_family_name', 'fn', 'fn.entity_id = u.uid');
@@ -290,8 +308,7 @@ function _dwcarchiver_get_primary_author()
  * Write core/extension data to a temporary file, and then add the temporary
  * file to the zip.
  */
-function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiver, $zip = false, $limit = false)
-{
+function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiver, $zip = FALSE, $limit = FALSE) {
   // $entity, $bundle, $maps, ZipArchive $zip, $machine_name, $dwcarchiver){
   // We create an SQL query that will pull out all the data required for the map
   $info = entity_get_info($archive_or_extension->entity);
@@ -301,27 +318,29 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
   }
   switch ($archive_or_extension->entity) {
     case 'taxonomy_term':
-      $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
-        'vid'
-      ))->condition('machine_name', $archive_or_extension->bundles)->execute()->fetchCol();
+      $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', [
+        'vid',
+      ])->condition('machine_name', $archive_or_extension->bundles)->execute()->fetchCol();
       $base_query->condition('base.vid', $vids);
       break;
+
     case 'user':
-      // Prevent returning of Scratchpads Team, and Anonymous
+      // Prevent returning of Scratchpads Team, and Anonymous.
       $base_query->condition('base.uid', 1, '>');
       break;
+
     default:
       $base_query->condition("base.{$info['entity keys']['bundle']}", $archive_or_extension->bundles[0]);
       break;
   }
   $processors = dwcarchiver_get_processors();
-  // Create the temporary file for holding the CSV data
+  // Create the temporary file for holding the CSV data.
   $csv_filename = drupal_tempnam(file_directory_temp(), 'dwcarchiver');
   $f = fopen($csv_filename, 'w');
   foreach (array_keys($archive_or_extension->maps) as $delta) {
     // Keep a track of the joins we've made - we only want to make a join once,
     // and not multiple times.
-    $joins = array();
+    $joins = [];
     $query = clone $base_query;
     foreach ($archive_or_extension->maps[$delta] as $map_id => $map) {
       // Check to see if we need to join to another entity.
@@ -335,25 +354,28 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
         }
         $table = $joins[$field[0]];
         $field = $field[1];
-      } else {
+      }
+      else {
         $field = $field[0];
       }
       // Load the processor, and call it!
       $path = drupal_get_path('module', $processors[$map->processor]['module']);
-      include_once($path . '/' . $processors[$map->processor]['file']);
+      include_once $path . '/' . $processors[$map->processor]['file'];
       if ($map->uri == 'coreid' && $map->processor != 'dwcarchiver_value') {
         module_load_include('processors.inc', 'dwcarchiver');
         dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, $query);
-      } else if (function_exists($processors[$map->processor]['callback'])) {
+      }
+      elseif (function_exists($processors[$map->processor]['callback'])) {
         call_user_func($processors[$map->processor]['callback'], $query, $field, $archive_or_extension->entity, $map_id, $map, $table);
-      } else {
-        drupal_set_message(t('@function does not exist', array(
-          '@function' => $processors[$map->processor]['callback']
-        )));
+      }
+      else {
+        drupal_set_message(t('@function does not exist', [
+          '@function' => $processors[$map->processor]['callback'],
+        ]));
       }
     }
     $results = $query->execute();
-    while (($row = $results->fetch(PDO::FETCH_ASSOC)) != false) {
+    while (($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE) {
       /*
        * foreach($row as $key => $value){ $row[$key] = str_replace("\r", "",
        * $value); // TEMPORARY UNTIL EOL FIX THEIR DwC-A parser. // // EOL are
@@ -371,41 +393,45 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     $zip->close();
     unlink($csv_filename);
     $zip->open($zip_filename);
-  } else {
+  }
+  else {
     fclose($f);
     $f = fopen($csv_filename, 'r');
-    $rows = array();
-    while (($row = fgetcsv($f)) != false) {
+    $rows = [];
+    while (($row = fgetcsv($f)) != FALSE) {
       $rows[] = $row;
     }
     unlink($csv_filename);
-    return array(
+    return [
       'rows' => $rows,
-      'query' => (string)$query
-    );
+      'query' => (string) $query,
+    ];
   }
 }
 
 /**
  * Helper function for joining to another entity by a field.
  */
-function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity)
-{
+function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity) {
   switch ($field) {
     case 'feeds_item':
       $alias = $query->leftJoin('feeds_item', $field, $field . ".entity_id = base.{$info['entity keys']['id']}");
-      $or = db_or()->condition($alias . '.entity_type', $entity)->condition($alias . '.entity_type', null);
+      $or = db_or()->condition($alias . '.entity_type', $entity)->condition($alias . '.entity_type', NULL);
       $query->condition($or);
       return $alias;
+
     case 'parent':
       $query->leftJoin('taxonomy_term_hierarchy', $field, $field . ".tid = base.{$info['entity keys']['id']}");
       return $query->leftJoin('taxonomy_term_data', "{$field}_term_data", "{$field}_term_data.tid = {$field}.parent");
+
     case 'special_biblio_back_reference':
       $query->leftJoin('field_data_field_taxonomic_name', $field, "({$field}.field_taxonomic_name_tid = base.{$info['entity keys']['id']} AND {$field}.entity_type = 'node')");
       $alias = $query->leftJoin('node', "special_biblio_back_reference_node", "(special_biblio_back_reference_node.nid = {$field}.entity_id AND 'special_biblio_back_reference_node.type' = 'biblio')");
       return $alias;
+
     case 'user':
       return $query->leftJoin('users', "{$field}", "{$field}.uid = base.uid");
+
     default:
       // No doubt have a field here, so we load it, and work out what we need
       // to join to.
@@ -415,31 +441,34 @@ function _dwcarchiver_join_from_field($field, SelectQuery $query, $info, $entity
           case 'taxonomy_term_reference':
             $query->leftJoin('field_data_' . $field, "{$field}_field", "{$field}_field.entity_id = base.{$info['entity keys']['id']}");
             return $query->leftJoin('taxonomy_term_data', $field, "{$field}_field.{$field}_tid = {$field}.tid");
+
           case 'node_reference':
             $query->leftJoin('field_data_' . $field, "{$field}_field", "{$field}_field.entity_id = base.{$info['entity keys']['id']}");
             return $query->leftJoin('node', $field, "{$field}_field.{$field}_nid = {$field}.nid");
+
           default:
             print_r($field_info);
             exit();
         }
-      } else {
+      }
+      else {
         // We shouldn't be here, but we are - what has gone wrong?
       }
   }
 }
 
 /**
- * Helper function to write out the fields to an XML element
+ * Helper function to write out the fields to an XML element.
  */
-function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $is_core = false)
-{
+function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $is_core = FALSE) {
   $index = 0;
   foreach ($fields as $field) {
     $field_element = 'field';
     if ($field->uri == 'coreid') {
       if ($is_core) {
         $field_element = 'id';
-      } else {
+      }
+      else {
         $field_element = 'coreid';
       }
     }
@@ -453,10 +482,9 @@ function _dwcarchiver_write_xml_for_fields(SimpleXMLElement $element, $fields, $
 }
 
 /**
- * Add default attributes for meta.xml
+ * Add default attributes for meta.xml.
  */
-function _dwcarchiver_add_default_attributes(SimpleXMLElement $element)
-{
+function _dwcarchiver_add_default_attributes(SimpleXMLElement $element) {
   // encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy=","
   // fieldsEnclosedBy="&quot;" ignoreHeaderLines="0"
   // rowType="http://rs.tdwg.org/dwc/terms/Taxon"

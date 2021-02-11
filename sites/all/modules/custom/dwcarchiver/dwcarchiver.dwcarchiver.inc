@@ -357,24 +357,24 @@ function dwcarchiver_dwcarchiver_archives()
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
                 ),
-                array(
-                  'field' => 'biblio_issn',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
+                // array(
+                //   'field' => 'biblio_issn',
+                //   'uri' => 'http://purl.org/dc/terms/identifier',
+                //   'required' => 0,
+                //   'processor' => 'dwcarchiver_biblio'
+                // ),
                 array(
                   'field' => 'biblio_isbn',
                   'uri' => 'http://purl.org/dc/terms/identifier',
                   'required' => 0,
                   'processor' => 'dwcarchiver_biblio'
                 ),
-                array(
-                  'field' => 'biblio_doi',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_biblio'
-                ),
+                // array(
+                //   'field' => 'biblio_doi',
+                //   'uri' => 'http://purl.org/dc/terms/identifier',
+                //   'required' => 0,
+                //   'processor' => 'dwcarchiver_biblio'
+                // ),
                 array(
                   'field' => 'biblio_type',
                   'uri' => 'http://purl.org/dc/terms/type',
@@ -393,12 +393,12 @@ function dwcarchiver_dwcarchiver_archives()
                   'required' => 0,
                   'processor' => 'dwcarchiver_content_language'
                 ),
-                array(
-                  'field' => 'content_url',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_content_url'
-                ),
+                // array(
+                //   'field' => 'content_url',
+                //   'uri' => 'http://purl.org/dc/terms/identifier',
+                //   'required' => 0,
+                //   'processor' => 'dwcarchiver_content_url'
+                // ),
                 array(
                   'field' => 'biblio_date',
                   'uri' => 'http://purl.org/dc/terms/date',
@@ -441,9 +441,9 @@ function dwcarchiver_dwcarchiver_archives()
             )
           ),
           array(
-            'name' => 'Image',
-            'machine_name' => 'image',
-            'rowtype' => 'http://rs.gbif.org/terms/1.0/Image',
+            'name' => 'Multimedia',
+            'machine_name' => 'multimedia',
+            'rowtype' => 'http://rs.gbif.org/terms/1.0/Multimedia',
             'entity' => 'file',
             'bundles' => array(
               'image'
@@ -469,12 +469,12 @@ function dwcarchiver_dwcarchiver_archives()
                   'required' => 0,
                   'processor' => 'dwcarchiver_raw_text'
                 ),
-                array(
-                  'field' => 'uuid',
-                  'uri' => 'http://purl.org/dc/terms/identifier',
-                  'required' => 0,
-                  'processor' => 'dwcarchiver_raw_text'
-                ),
+                // array(
+                //   'field' => 'uuid',
+                //   'uri' => 'http://purl.org/dc/terms/identifier',
+                //   'required' => 0,
+                //   'processor' => 'dwcarchiver_raw_text'
+                // ),
                 array(
                   'field' => 'filemime',
                   'uri' => 'http://purl.org/dc/terms/format',
