@@ -6,7 +6,7 @@
 - Upgrade Drupal to 7.78
 - Option to disable map autozoom to points [#6325](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6325)
 - Fix GBIF DwC export - duplicate fields in EML and export and adding metadata abstract [#6327](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6327)
-- Fixe WORMS taxonomic import [#6324](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6324)
+- Fix WORMS taxonomic import [#6324](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6324)
 
 
 ## 2.9.14 (2020-11-13)
