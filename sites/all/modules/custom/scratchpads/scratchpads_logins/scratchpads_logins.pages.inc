@@ -2,12 +2,12 @@
 
 function scratchpad_admin_openids(){
   return array(
-    'http://vbrant.eu/user/57/identity' => 'Ben Scott (http://vbrant.eu/user/57/identity)',
-    'http://vbrant.eu/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.eu/users/laurence-livermore/openid)',
-    'http://vbrant.eu/users/vince-smith/openid' => 'Vince Smith (http://vbrant.eu/users/vince-smith/openid)',
-    'http://www.vbrant.eu/users/paul-kiddle/openid' => 'Paul Kiddle (http://www.vbrant.eu/users/paul-kiddle/openid)',
-    'http://www.vbrant.eu/users/josh-humphries/openid' => 'Josh Humphries (http://www.vbrant.eu/users/josh-humphries/openid)',
-    'http://www.vbrant.eu/users/ginger/openid' => 'Ginger (http://www.vbrant.eu/users/ginger/openid)',
+    'http://vbrant.scratchpads.org/user/57/identity' => 'Ben Scott (http://vbrant.scratchpads.org/user/57/identity)',
+    'http://vbrant.scratchpads.org/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.scratchpads.org/users/laurence-livermore/openid)',
+    'http://vbrant.scratchpads.org/users/vince-smith/openid' => 'Vince Smith (http://vbrant.scratchpads.org/users/vince-smith/openid)',
+    'http://vbrant.scratchpads.org/users/paul-kiddle/openid' => 'Paul Kiddle (http://vbrant.scratchpads.org/users/paul-kiddle/openid)',
+    'http://vbrant.scratchpads.org/users/josh-humphries/openid' => 'Josh Humphries (http://vbrant.scratchpads.org/users/josh-humphries/openid)',
+    'http://vbrant.scratchpads.org/users/ginger/openid' => 'Ginger (http://vbrant.scratchpads.org/users/ginger/openid)',
   );
 }
 
