@@ -117,6 +117,9 @@ class FacetapiUrlProcessorStandard extends FacetapiUrlProcessor {
       // Replaces with the mapped value.
       $value = $this->adapter->getMappedValue($item['facets'][0], $item['value']);
 
+      // make sure any html special chars are decoded for the UI
+      $value['#markup'] = htmlspecialchars_decode($value['#markup'], ENT_QUOTES);
+
       // The last item should be text, not a link.
       if ($last == $item) {
         $breadcrumb[] = !empty($value['#html']) ? $value['#markup'] : check_plain($value['#markup']);
