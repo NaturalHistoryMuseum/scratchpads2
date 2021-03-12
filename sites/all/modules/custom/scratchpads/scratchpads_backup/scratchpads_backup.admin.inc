@@ -88,23 +88,29 @@ function scratchpads_backup_request_form_submit(&$form, &$form_state){
 /**
  * Simple helper function to get the sites domain name.
  */
-function _scratchpads_backup_get_domain(){
-  static $domain = FALSE;
-  if(!$domain){
+function _scratchpads_backup_get_domain() {
+  // the backup creation bash script uses the dir name in the sites dir to build the backup file
+  // name so if we can get hold of the public:// dir we can do the same
+  if ($wrapper = file_stream_wrapper_get_instance_by_uri('public://')) {
+    $realpath = $wrapper->realpath();
+    // the path will be something like .../sites/{domain}/files so extract {domain}
+    return basename(dirname($realpath));
+  } else {
+    // if we can't get the domain from the public:// uri just use the domain of the current request
     global $base_url;
     $parsed_base_url = parse_url($base_url);
-    $domain = $parsed_base_url['host'];
+    return $parsed_base_url['host'];
   }
-  return $domain;
 }
 
 /**
  * Helper function to return a list of links to previously requested backups.
  */
 function _scratchpads_backup_get_previous_backups(){
+  $domain = _scratchpads_backup_get_domain();
   $potential_files = array();
   foreach(scandir('/var/aegir/backups') as $potential_file){
-    if(strpos($potential_file, _scratchpads_backup_get_domain()) === 0){
+    if(strpos($potential_file, $domain) === 0){
       $potential_files[] = l($potential_file, 'http://backup.scratchpads.org/' . $potential_file);
     }
   }
