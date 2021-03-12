@@ -1491,7 +1491,8 @@ class FacetapiFacetProcessor {
     // instead of element_children().
     foreach (array_keys($build) as $value) {
       $item_defaults = array(
-        '#markup' => $value,
+        // make sure any html special chars are decoded for the UI
+        '#markup' => htmlspecialchars_decode($value, ENT_QUOTES),
         '#indexed_value' => $value,
         '#active' => $adapter->itemActive($this->facet['name'], $value),
       );
