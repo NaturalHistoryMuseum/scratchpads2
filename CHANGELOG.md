@@ -6,6 +6,7 @@
 - Update OpenIDs after .eu -> .org switch [#6336](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6336) - [@jrdh](https://github.com/jrdh)
 - Resolve race condition with Google charts on stats pages [#6337](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6337) - [@jrdh](https://github.com/jrdh)
 - Decode html encoded facet values [#6338](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6338) - [@jrdh](https://github.com/jrdh)
+- Correctly find existing site backups [#6250](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6250) - [@jrdh](https://github.com/jrdh)
 
 ## 2.9.15 (2021-02-15)
 
