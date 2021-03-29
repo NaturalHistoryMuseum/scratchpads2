@@ -1,13 +1,14 @@
 # Change log
 
 
-## 2.9.16 (tbd)
+## 2.9.16 (2021-03-29)
 
 - Update OpenIDs after .eu -> .org switch [#6336](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6336) - [@jrdh](https://github.com/jrdh)
 - Resolve race condition with Google charts on stats pages [#6337](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6337) - [@jrdh](https://github.com/jrdh)
 - Decode html encoded facet values [#6338](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6338) - [@jrdh](https://github.com/jrdh)
 - Correctly find existing site backups [#6250](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6250) - [@jrdh](https://github.com/jrdh)
 - Update default CC license version to 4.0 [#6332](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6332) - [@jrdh](https://github.com/jrdh)
+- Allow WAV file upload [#6224](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6224) - [@PaulKiddle](https://github.com/PaulKiddle)
 
 ## 2.9.15 (2021-02-15)
 
