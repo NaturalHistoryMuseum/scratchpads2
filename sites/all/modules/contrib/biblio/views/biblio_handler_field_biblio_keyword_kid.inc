@@ -1,7 +1,14 @@
 <?php
 
+/**
+ *
+ */
 class biblio_handler_field_biblio_keyword_kid extends views_handler_field_prerender_list {
-  function init(&$view, $options) {
+
+  /**
+   *
+   */
+  public function init(&$view, $options) {
     parent::init($view, $options);
     $this->multiple = TRUE;
     if ($view->base_table == 'node_revision') {
@@ -12,8 +19,10 @@ class biblio_handler_field_biblio_keyword_kid extends views_handler_field_preren
     }
   }
 
-
-  function pre_render($values) {
+  /**
+   *
+   */
+  public function pre_render($values) {
     $this->field_alias = $this->aliases['vid'];
     $vids = array();
     foreach ($values as $result) {
@@ -37,4 +46,5 @@ class biblio_handler_field_biblio_keyword_kid extends views_handler_field_preren
       }
     }
   }
+
 }

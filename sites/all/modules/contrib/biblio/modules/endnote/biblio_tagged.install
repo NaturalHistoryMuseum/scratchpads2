@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Database table creation for biblio_tagged module.
@@ -11,6 +12,9 @@ function biblio_tagged_install() {
   _save_tagged_maps();
 }
 
+/**
+ *
+ */
 function biblio_tagged_uninstall() {
   if (db_table_exists('biblio_type_maps')) {
     db_delete('biblio_type_maps')
@@ -19,10 +23,16 @@ function biblio_tagged_uninstall() {
   }
 }
 
+/**
+ *
+ */
 function biblio_tagged_enable() {
   biblio_tagged_set_system_weight();
 }
 
+/**
+ *
+ */
 function biblio_tagged_set_system_weight() {
   db_update('system')
     ->fields(array('weight' => 22))
@@ -30,75 +40,82 @@ function biblio_tagged_set_system_weight() {
     ->execute();
 }
 
+/**
+ *
+ */
 function _get_tagged_type_map() {
   $map['type_map'] = serialize(
         array(
-                "Journal Article"         => 102,
-                "Conference Paper"        => 103,
-                "Conference Proceedings"  => 104,
-                "Report"                  => 109,
-                "Book"                    => 100,
-                "Edited Book"             => 100,
-                "Book Section"            => 101,
-                "Thesis"                  => 108,
-                "Patent"                  => 119,
-                "Generic"                 => 129,
-                "Newspaper Article"       => 105,
-                "Magazine Article"        => 106,
-                "Web Page"                => 107,
-                "Film or Broadcast"       => 110,
-                "Artwork"                 => 112,
-                "Audiovisual Material"    => 114,
-                "Hearing"                 => 115,
-                "Case"                    => 116,
-                "Bill"                    => 117,
-                "Statute"                 => 118,
-                "Personal Communication"  => 120,
-                "Manuscript"              => 121,
-                "Map"                     => 122,
-                "Chart or Table"          => 123,
-                "Unpublished Work"        => 124,
-                "Online Database"         => 125,
-                "Government Document"     => 126,
-                "Classical Work"          => 127,
-                "Legal Rule or Regulation" => 128,
+          "Journal Article"         => 102,
+          "Conference Paper"        => 103,
+          "Conference Proceedings"  => 104,
+          "Report"                  => 109,
+          "Book"                    => 100,
+          "Edited Book"             => 100,
+          "Book Section"            => 101,
+          "Thesis"                  => 108,
+          "Patent"                  => 119,
+          "Generic"                 => 129,
+          "Newspaper Article"       => 105,
+          "Magazine Article"        => 106,
+          "Web Page"                => 107,
+          "Film or Broadcast"       => 110,
+          "Artwork"                 => 112,
+          "Audiovisual Material"    => 114,
+          "Hearing"                 => 115,
+          "Case"                    => 116,
+          "Bill"                    => 117,
+          "Statute"                 => 118,
+          "Personal Communication"  => 120,
+          "Manuscript"              => 121,
+          "Map"                     => 122,
+          "Chart or Table"          => 123,
+          "Unpublished Work"        => 124,
+          "Online Database"         => 125,
+          "Government Document"     => 126,
+          "Classical Work"          => 127,
+          "Legal Rule or Regulation" => 128,
         )
   );
   $map['format'] = 'tagged';
   return $map;
 }
+
+/**
+ *
+ */
 function _get_tagged_type_names() {
-  $map['type_names'] =  serialize(
+  $map['type_names'] = serialize(
         array(
-                "Journal Article"         => "Journal Article",
-                "Conference Paper"        => "Conference Paper",
-                "Conference Proceedings"  => "Conference Proceedings",
-                "Report"                  => "Report",
-                "Book"                    => "Book",
-                "Edited Book"             => "Edited Book",
-                "Book Section"            => "Book Section",
-                "Thesis"                  => "Thesis",
-                "Patent"                  => "Patent",
-                "Generic"                 => "Generic",
-                "Newspaper Article"       => "Newspaper Article",
-                "Magazine Article"        => "Magazine Article",
-                "Web Page"                => "Web Page",
-                "Film or Broadcast"       => "Film or Broadcast",
-                "Artwork"                 => "Artwork",
-                "Audiovisual Material"    => "Audiovisual Material",
-                "Hearing"                 => "Hearing",
-                "Case"                    => "Case",
-                "Bill"                    => "Bill",
-                "Statute"                 => "Statute",
-                "Personal Communication"  => "Personal Communication",
-                "Manuscript"              => "Manuscript",
-                "Map"                     => "Map",
-                "Chart or Table"          => "Chart or Table",
-                "Unpublished Work"        => "Unpublished Work",
-                "Online Database"         => "Online Database",
-                "Government Document"     => "Government Document",
-                "Classical Work"          => "Classical Work",
-                "Legal Rule or Regulation" => "Legal Rule or Regulation",
+          "Journal Article"         => "Journal Article",
+          "Conference Paper"        => "Conference Paper",
+          "Conference Proceedings"  => "Conference Proceedings",
+          "Report"                  => "Report",
+          "Book"                    => "Book",
+          "Edited Book"             => "Edited Book",
+          "Book Section"            => "Book Section",
+          "Thesis"                  => "Thesis",
+          "Patent"                  => "Patent",
+          "Generic"                 => "Generic",
+          "Newspaper Article"       => "Newspaper Article",
+          "Magazine Article"        => "Magazine Article",
+          "Web Page"                => "Web Page",
+          "Film or Broadcast"       => "Film or Broadcast",
+          "Artwork"                 => "Artwork",
+          "Audiovisual Material"    => "Audiovisual Material",
+          "Hearing"                 => "Hearing",
+          "Case"                    => "Case",
+          "Bill"                    => "Bill",
+          "Statute"                 => "Statute",
+          "Personal Communication"  => "Personal Communication",
+          "Manuscript"              => "Manuscript",
+          "Map"                     => "Map",
+          "Chart or Table"          => "Chart or Table",
+          "Unpublished Work"        => "Unpublished Work",
+          "Online Database"         => "Online Database",
+          "Government Document"     => "Government Document",
+          "Classical Work"          => "Classical Work",
+          "Legal Rule or Regulation" => "Legal Rule or Regulation",
         )
   );
 
@@ -106,51 +123,57 @@ function _get_tagged_type_names() {
   return $map;
 }
 
+/**
+ *
+ */
 function _get_tagged_field_map() {
-  $map['field_map'] =  serialize(
+  $map['field_map'] = serialize(
         array(
-                '%B' => 'biblio_secondary_title',
-                '%C' => 'biblio_place_published',
-                '%D' => 'biblio_year',
-                '%F' => 'biblio_label',
-                '%G' => 'biblio_lang',
-                '%I' => 'biblio_publisher',
-                '%J' => 'biblio_secondary_title',
-                '%K' => 'biblio_keywords',
-                '%L' => 'biblio_call_number',
-                '%M' => 'biblio_accession_number',
-                '%N' => 'biblio_issue',
-                '%P' => 'biblio_pages',
-                '%R' => 'biblio_doi',
-                '%S' => 'biblio_tertiary_title',
-                '%U' => 'biblio_url',
-                '%V' => 'biblio_volume',
-                '%1' => 'biblio_custom1',
-                '%2' => 'biblio_custom2',
-                '%3' => 'biblio_custom3',
-                '%4' => 'biblio_custom4',
-                '%#' => 'biblio_custom5',
-                '%$' => 'biblio_custom6',
-                '%]' => 'biblio_custom7',
-                '%6' => 'biblio_number_of_volumes',
-                '%7' => 'biblio_edition',
-                '%8' => 'biblio_date',
-                '%9' => 'biblio_type_of_work',
-                '%?' => '',
-                '%@' => 'biblio_isbn',
-                '%<' => 'biblio_research_notes',
-                '%!' => 'biblio_short_title',
-                '%&' => 'biblio_section',
-                '%(' => 'biblio_original_publication',
-                '%)' => 'biblio_reprint_edition',
-                '%*' => '',
-                '%+' => '',
+          '%B' => 'biblio_secondary_title',
+          '%C' => 'biblio_place_published',
+          '%D' => 'biblio_year',
+          '%F' => 'biblio_label',
+          '%G' => 'biblio_lang',
+          '%I' => 'biblio_publisher',
+          '%J' => 'biblio_secondary_title',
+          '%K' => 'biblio_keywords',
+          '%L' => 'biblio_call_number',
+          '%M' => 'biblio_accession_number',
+          '%N' => 'biblio_issue',
+          '%P' => 'biblio_pages',
+          '%R' => 'biblio_doi',
+          '%S' => 'biblio_tertiary_title',
+          '%U' => 'biblio_url',
+          '%V' => 'biblio_volume',
+          '%1' => 'biblio_custom1',
+          '%2' => 'biblio_custom2',
+          '%3' => 'biblio_custom3',
+          '%4' => 'biblio_custom4',
+          '%#' => 'biblio_custom5',
+          '%$' => 'biblio_custom6',
+          '%]' => 'biblio_custom7',
+          '%6' => 'biblio_number_of_volumes',
+          '%7' => 'biblio_edition',
+          '%8' => 'biblio_date',
+          '%9' => 'biblio_type_of_work',
+          '%?' => '',
+          '%@' => 'biblio_isbn',
+          '%<' => 'biblio_research_notes',
+          '%!' => 'biblio_short_title',
+          '%&' => 'biblio_section',
+          '%(' => 'biblio_original_publication',
+          '%)' => 'biblio_reprint_edition',
+          '%*' => '',
+          '%+' => '',
         )
   );
   $map['format'] = 'tagged';
   return $map;
 }
 
+/**
+ *
+ */
 function _save_tagged_maps() {
   $typemap = _get_tagged_type_map();
   $typenames = _get_tagged_type_names();
@@ -159,24 +182,32 @@ function _save_tagged_maps() {
   biblio_save_map($maps);
 }
 
+/**
+ *
+ */
 function _reset_tagged_map($type) {
   $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='tagged'")->fetchField();
-  if ($count && $type) { //update
+  // Update.
+  if ($count && $type) {
     $function = '_get_tagged_' . $type;
-    if (!function_exists($function)) return;
+    if (!function_exists($function)) {
+      return;
+    }
     $map = $function();
     db_update('biblio_type_maps')
       ->fields($map)
       ->condition('format', 'tagged')
       ->execute();
   }
-  else { // install
+  // Install.
+  else {
     db_delete('biblio_type_maps')
       ->condition('format', 'tagged')
       ->execute();
     _save_tagged_maps();
   }
 }
+
 /**
  * Implementation of hook_schema().
  *
@@ -189,8 +220,8 @@ function biblio_tagged_schema() {
     'fields' => array(
       'nid'       => array('type' => 'int', 'not null' => TRUE),
       'biblio_tagged_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
-      ),
-  'primary key' => array('nid'),
+    ),
+    'primary key' => array('nid'),
   );
   return $schema;
 }

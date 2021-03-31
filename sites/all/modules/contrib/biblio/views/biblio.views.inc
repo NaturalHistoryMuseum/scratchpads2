@@ -1,35 +1,8 @@
 <?php
-//function biblio_views_plugins() {
-//  return array(
-//    'display' => array(
-//      'biblio' => array(
-//        'title' => t('Biblio Page'),
-//        'help' => t(''),
-//        'handler' => 'views_plugin_display_page_biblio',
-//        'path' => drupal_get_path('module', 'biblio') . '/views', // not necessary for most modules
-////        'theme' => 'views_view_row_node',
-//        'base' => array('node'), // only works with 'node' as base.
-//        'uses options' => TRUE,
-//        'type' => 'normal',
-//        ),
-//      ),
-//    'style' => array(
-//      // ... list of style plugins,
-//      ),
-//    'row' => array(
-//      // ... list of row style plugins,
-//      ),
-//    'argument default' => array(
-//      // ... list of argument default plugins,
-//      ),
-//    'argument validator' => array(
-//      // ... list of argument validator plugins,
-//      ),
-//    'access' => array(
-//      // ... list of access plugins,
-//      ),
-//   );
-//}
+
+/**
+ * @file
+ */
 
 /**
  * Implementation of hook_views_data().
@@ -41,7 +14,7 @@ function biblio_views_data() {
 
   /**************** biblio table **************/
   $data = array();
-  // everything belongs to the Biblio group
+  // Everything belongs to the Biblio group.
   $data['table']['group'] = t('Biblio');
 
   $data['citation'] = array(
@@ -63,10 +36,10 @@ function biblio_views_data() {
       'field'     => array('handler' => 'biblio_handler_field'),
       'sort'      => array('handler' => 'views_handler_sort'),
       'filter'    => array('handler' => 'views_handler_filter_string'),
-      'argument'  => array('handler' => 'views_handler_argument_string')
+      'argument'  => array('handler' => 'views_handler_argument_string'),
     );
 
-    // for contrib_widgets we use a special handler:
+    // For contrib_widgets we use a special handler:
     if ($field->type == 'contrib_widget') {
       $data[$field->name]['field'] = array(
         'handler' => 'biblio_handler_field_contributor',
@@ -80,26 +53,27 @@ function biblio_views_data() {
       $data[$field->name]['field']['handler'] = 'biblio_handler_field_markup';
     }
   }
-  $data['biblio_year']['argument']  = array('handler' => 'views_handler_argument_numeric');  // biblio_year is an int
-  $data['biblio_year']['filter']    = array('handler' => 'views_handler_filter_numeric');  // biblio_year is an int
+  // biblio_year is an int.
+  $data['biblio_year']['argument'] = array('handler' => 'views_handler_argument_numeric');
+  // biblio_year is an int.
+  $data['biblio_year']['filter'] = array('handler' => 'views_handler_filter_numeric');
 
   $data['biblio_keywords']['field'] = array('handler' => 'biblio_handler_field_keyword');
   $data['biblio_keywords']['title'] = 'Keywords';
-  $data['biblio_keywords']['help']  = t('All Keywords associated with the biblio node');
-
+  $data['biblio_keywords']['help'] = t('All Keywords associated with the biblio node');
 
   $data['biblio_sort_title'] = array(
-      'title'     => 'Sort Title',
-      'help'      => t('Sort Title is a normalized version of the Title with leading special characters and stop words removed, use for sorting only.'),
-      'field'     => array('handler' => 'biblio_handler_field'),
-      'sort'      => array('handler' => 'views_handler_sort'),
-      'filter'    => array('handler' => 'views_handler_filter_string'),
-      'argument'  => array('handler' => 'views_handler_argument_string')
+    'title'     => 'Sort Title',
+    'help'      => t('Sort Title is a normalized version of the Title with leading special characters and stop words removed, use for sorting only.'),
+    'field'     => array('handler' => 'biblio_handler_field'),
+    'sort'      => array('handler' => 'views_handler_sort'),
+    'filter'    => array('handler' => 'views_handler_filter_string'),
+    'argument'  => array('handler' => 'views_handler_argument_string'),
   );
 
   $data['table']['join'] = array(
     'node' => array(
-      // links directly to node via vid
+      // Links directly to node via vid.
       'left_field' => 'vid',
       'field'      => 'vid',
       'type'       => 'left',
@@ -109,7 +83,7 @@ function biblio_views_data() {
       'field'      => 'vid',
       'type'       => 'left',
     ),
-    );
+  );
 
   $viewsdata['biblio'] = $data;
 
@@ -129,14 +103,14 @@ function biblio_views_data() {
       'field' => 'tid',
     ),
   );
-  $data['name'] =  array(
+  $data['name'] = array(
     'field'   => array('handler' => 'views_handler_field'),
     'sort'    => array('handler' => 'views_handler_sort'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'   => t('Type of Publication'),
-    'help'    => t('The type of publication: Journal, Book, Conference Paper, etc.')
+    'help'    => t('The type of publication: Journal, Book, Conference Paper, etc.'),
   );
-  $data['tid'] =  array(
+  $data['tid'] = array(
     'argument' => array(
       'handler' => 'biblio_handler_argument_many_to_one',
       'name table' => 'biblio_types',
@@ -146,7 +120,7 @@ function biblio_views_data() {
     ),
     'filter'  => array('handler' => 'biblio_handler_filter_biblio_type'),
     'title'   => t('Type of Publication'),
-    'help'    => t('The type of publication: Journal, Book, Conference Paper, etc.')
+    'help'    => t('The type of publication: Journal, Book, Conference Paper, etc.'),
   );
 
   $viewsdata['biblio_types'] = $data;
@@ -165,7 +139,7 @@ function biblio_views_data() {
       'left_field' => 'vid',
       'field' => 'vid',
     ),
-    // This is provided for many_to_one argument
+    // This is provided for many_to_one argument.
     'biblio' => array(
       'field' => 'vid',
       'left_field' => 'vid',
@@ -187,28 +161,28 @@ function biblio_views_data() {
       'empty name field' => t('No Author'),
       'numeric' => TRUE,
     ),
-  'filter' => array(
+    'filter' => array(
       'handler' => 'biblio_handler_filter_contributor',
-    )
+    ),
   );
   $data['rank'] = array(
     'title' => t('Author Rank'),
     'help' => t('Rank defines the author order "0" being the first author, "1" the second and so on.'),
     'filter' => array(
       'handler' => 'views_handler_filter_numeric',
-    )
+    ),
   );
   $data['auth_type'] = array(
     'title' => t('Author Type'),
     'help' => t('Rank defines the type of author Author, Editor, Translator and so on.'),
     'filter' => array(
       'handler' => 'biblio_handler_filter_biblio_contributor_auth_type',
-    )
+    ),
   );
 
   $viewsdata['biblio_contributor'] = $data;
 
-/**************** biblio_contributor_data table ***********/
+  /**************** biblio_contributor_data table ***********/
   $data = array();
   $data['table']['group'] = t('Biblio');
   $data['table']['base'] = array(
@@ -229,8 +203,8 @@ function biblio_views_data() {
       'left_field' => 'uid',
       'field' => 'drupal_uid',
     ),
-    );
-  $data['drupal_uid'] =  array(
+  );
+  $data['drupal_uid'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'filter'    => array('handler' => 'biblio_handler_filter_contributor_uid'),
     'argument'  => array('handler' => 'views_handler_argument_numeric'),
@@ -242,70 +216,68 @@ function biblio_views_data() {
     ),
 
     'title'     => t('Drupal UserID'),
-    'help'      => t('This is the Drupal user associated with the Biblio Author.')
+    'help'      => t('This is the Drupal user associated with the Biblio Author.'),
   );
-  $data['cid'] =  array(
+  $data['cid'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'biblio_handler_sort_contributor_lastname'),
     'filter'    => array('handler' => 'biblio_handler_filter_contributor_lastname'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author id'),
-    'help'      => t('Author id')
+    'help'      => t('Author id'),
   );
-  $data['lastname'] =  array(
+  $data['lastname'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'biblio_handler_sort_contributor_lastname'),
     'filter'    => array('handler' => 'biblio_handler_filter_contributor_lastname'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author last name'),
-    'help'      => t('Author last name')
+    'help'      => t('Author last name'),
   );
-  $data['firstname'] =  array(
+  $data['firstname'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'filter'    => array('handler' => 'views_handler_filter'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author first name'),
-    'help'      => t('Author first name')
+    'help'      => t('Author first name'),
   );
-  $data['name'] =  array(
+  $data['name'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'filter'    => array('handler' => 'views_handler_filter'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author full name'),
-    'help'      => t('Author full name')
+    'help'      => t('Author full name'),
   );
-  $data['prefix'] =  array(
+  $data['prefix'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'filter'    => array('handler' => 'views_handler_filter'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author preix'),
-    'help'      => t('Attributes which typically proceed the authors first name')
+    'help'      => t('Attributes which typically proceed the authors first name'),
   );
-  $data['suffix'] =  array(
+  $data['suffix'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'filter'    => array('handler' => 'views_handler_filter'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author suffix'),
-    'help'      => t('Attributes which typically follow the authors last name.')
+    'help'      => t('Attributes which typically follow the authors last name.'),
   );
-  $data['affiliation'] =  array(
+  $data['affiliation'] = array(
     'field'     => array('handler' => 'views_handler_field'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'filter'    => array('handler' => 'views_handler_filter'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'title'     => t('Author affiliation'),
-    'help'      => t('Organization the author is affiliated with')
+    'help'      => t('Organization the author is affiliated with'),
   );
 
   $viewsdata['biblio_contributor_data'] = $data;
 
-
-
-/***************** Describe the keyword table *************/
+  /***************** Describe the keyword table *************/
 
   $data = array();
   $data['table']['group'] = t('Biblio');
@@ -344,7 +316,7 @@ function biblio_views_data() {
       'numeric' => TRUE,
     ),
     'skip base' => array('node', 'node_revision'),
-    );
+  );
 
   $viewsdata['biblio_keyword'] = $data;
 
@@ -359,8 +331,7 @@ function biblio_views_data() {
     ),
   );
 
-
-/***************** Describe the keyword_data table ***********/
+  /***************** Describe the keyword_data table ***********/
 
   $data = array();
   $data['table']['group'] = t('Biblio');
@@ -384,38 +355,37 @@ function biblio_views_data() {
       'left_field' => 'kid',
       'field' => 'kid',
     ),
-    );
-  $data['word'] =  array(
+  );
+  $data['word'] = array(
     'field'     => array('handler' => 'biblio_handler_field_biblio_keyword_data_word'),
     'filter'    => array('handler' => 'views_handler_filter_string'),
     'argument'  => array('handler' => 'views_handler_argument_string'),
     'sort'      => array('handler' => 'views_handler_sort'),
     'title'     => t('Keyword'),
     'help'      => t('A single keyword related to a biblio node'),
-    //'skip base' => array('node', 'node_revision'),
+    // 'skip base' => array('node', 'node_revision'),.
   );
-  $data['kid'] =  array(
+  $data['kid'] = array(
     'field'     => array('handler' => 'views_handler_field_numeric'),
- //   'filter'    => array('handler' => 'views_handler_filter'),
- //   'argument'  => array('handler' => 'views_handler_argument'),
+  // 'filter'    => array('handler' => 'views_handler_filter'),
+  //   'argument'  => array('handler' => 'views_handler_argument'),.
     'title'     => t('Keyword ID'),
     'skip base' => array('node', 'node_revision'),
   );
-
 
   $viewsdata['biblio_keyword_data'] = $data;
 
   $export_links = module_invoke_all('biblio_export_options');
   foreach ($export_links as $type => $name) {
-    $viewsdata['biblio'][$type.'_export'] = array(
-        'title' => t('Export link - ' . $name),
-        'help'  => t("Provides a link to export the data in ") . $name . t(" format"),
-        'field' => array(
-          'handler' => 'biblio_handler_field_export_link',
-          'group' => t('Biblio'),
-          'format' => $type,
-          'format name' => $name,
-       ),
+    $viewsdata['biblio'][$type . '_export'] = array(
+      'title' => t('Export link - ' . $name),
+      'help'  => t("Provides a link to export the data in ") . $name . t(" format"),
+      'field' => array(
+        'handler' => 'biblio_handler_field_export_link',
+        'group' => t('Biblio'),
+        'format' => $type,
+        'format name' => $name,
+      ),
     );
 
   }
@@ -423,9 +393,12 @@ function biblio_views_data() {
   return $viewsdata;
 }
 
+/**
+ *
+ */
 function template_preprocess_views_view_unformatted__biblio_year(&$vars) {
-  $view     = $vars['view'];
-  $rows     = $vars['rows'];
+  $view = $vars['view'];
+  $rows = $vars['rows'];
 
   $vars['classes'] = array();
   // Set up striping values.

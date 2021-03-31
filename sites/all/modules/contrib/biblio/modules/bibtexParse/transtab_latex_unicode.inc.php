@@ -1,5 +1,7 @@
 <?php
-/** @file
+
+/**
+ * @file
  * Copyright:  Matthias Steffens
  *             This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
  *             Please see the GNU General Public License for more details.
@@ -14,12 +16,14 @@
  * Modified:   2013-08-23 Christian Spitzlay:
  *             made sure closing braces match only if there are corresponding opening braces
  *             migrated most regular expressions to config arrays; regexps are generated on the fly now (more readable).
- *             added decoding of some missing greek symbols
+ *             added decoding of some missing greek symbols.
  */
 
 /**
- * Creates a translation table for decoding of TeX symbols in BibTeX input
+ * Creates a translation table for decoding of TeX symbols in BibTeX input.
+ *
  * @return array An array with substitutions (regexps as keys, characters as values)
+ *
  * @throws Exception Indicates that an internal check failed. Should only be thrown if someone broke a config array.
  */
 function get_transtab_latex_unicode() {
@@ -59,8 +63,8 @@ function get_transtab_latex_unicode() {
     '\\$_\\{=\\}\\$' => '₌',
   );
 
-  // map for diacritics that do *not* require whitespace in the absence of curly braces around the letter;
-  // diacritic code and letter are separated by a pipe symbol
+  // Map for diacritics that do *not* require whitespace in the absence of curly braces around the letter;
+  // diacritic code and letter are separated by a pipe symbol.
   $quoty_mapping = array(
     '`|A' => 'À',
     '\'|A' => 'Á',
@@ -133,7 +137,7 @@ function get_transtab_latex_unicode() {
     '.|z' => 'ż',
   );
   foreach ($quoty_mapping as $sequence => $character) {
-    // split sequence at the pipe symbol
+    // Split sequence at the pipe symbol.
     $key = explode('|', $sequence);
     if (count($key) != 2) {
       throw new Exception('Internal error: Invalid sequence ' . check_plain($sequence) . ' for character ' . check_plain($character));
@@ -142,8 +146,8 @@ function get_transtab_latex_unicode() {
     $transtab[$pattern] = $character;
   }
 
-  // map for diacritics that *require* whitespace in the absence of curly braces around the letter;
-  // diacritic code and letter are separated by a pipe symbol
+  // Map for diacritics that *require* whitespace in the absence of curly braces around the letter;
+  // diacritic code and letter are separated by a pipe symbol.
   $lettery_mapping = array(
     'v|L' => 'Ľ',
     'v|l' => 'ľ',
@@ -188,18 +192,18 @@ function get_transtab_latex_unicode() {
     'v|z' => 'ž',
   );
   foreach ($lettery_mapping as $sequence => $character) {
-    // split sequence at the pipe symbol
+    // Split sequence at the pipe symbol.
     $key = explode('|', $sequence);
     if (count($key) != 2) {
       throw new Exception('Internal error: Invalid sequence ' . check_plain($sequence) . ' for character ' . check_plain($character));
     }
-    // letter escapes require whitespace or quotes, or both
+    // Letter escapes require whitespace or quotes, or both.
     $pattern = '(\\{)?\\\\' . preg_quote($key[0], '/') . '((\s*\\{)?|\s+)' . preg_quote($key[1], '/') . '(?(3)\\}|)(?(1)\\}|)';
     $transtab[$pattern] = $character;
   }
 
-  // simple named sequences like greek letters
-  // tex name without the backslash => unicode
+  // Simple named sequences like greek letters
+  // tex name without the backslash => unicode.
   $mapping = array(
     'alpha'               => 'α',
     'beta'                => 'β',
@@ -215,7 +219,7 @@ function get_transtab_latex_unicode() {
     'mu'                  => 'μ',
     'nu'                  => 'ν',
     // AFAICT there is no omicron sequence in TeX,
-    // but the previous version had this replacement
+    // but the previous version had this replacement.
     'omicron'             => 'o',
     'xi'                  => 'ξ',
     'pi'                  => 'π',
@@ -333,19 +337,18 @@ function get_transtab_latex_unicode() {
     'textless'            => '<',
   );
   foreach ($mapping as $name => $character) {
-    // consume pairs of $ signs and curly braces, if any;
-    // if neither brace nor $ is present then whitespace or a backslash is required to end a sequence
+    // Consume pairs of $ signs and curly braces, if any;
+    // if neither brace nor $ is present then whitespace or a backslash is required to end a sequence.
     $pattern = '(\\$)?(\\{)?\\\\' . $name . '(?(2)\\}|(\\s+|(?=\\$)|(?=\\\\)))(?(1)\\s*\\$|)';
     $transtab[$pattern] = $character;
   }
 
-  // decode escaped underscores
+  // Decode escaped underscores.
   $transtab['\\\\_'] = '_';
 
-  // finally, handle escaped space
+  // finally, handle escaped space.
   $transtab['\\\\ '] = ' ';
 
-  // drupal_set_message('<pre>'.check_plain(print_r($transtab, TRUE)).'</pre>');
-
+  // drupal_set_message('<pre>'.check_plain(print_r($transtab, TRUE)).'</pre>');.
   return $transtab;
 }

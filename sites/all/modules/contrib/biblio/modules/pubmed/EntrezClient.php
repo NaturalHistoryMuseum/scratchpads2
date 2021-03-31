@@ -1,12 +1,16 @@
 <?php
+
 /**
- * @file EntrezClient.php
- * Provides Entrez client to retrieve items from the NCBI databases
- * Orginally writen by Stefan Freudenberg
+ * @file
+ * Provides Entrez client to retrieve items from the NCBI databases.
+ *
+ * Orginally writen by Stefan Freudenberg.
  */
 
-class BiblioEntrezClient
-{
+/**
+ *
+ */
+class BiblioEntrezClient {
   const DEFAULT_DATABASE = 'pubmed';
 
   const BASE_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
@@ -40,8 +44,7 @@ class BiblioEntrezClient
    *
    * @param string $webEnvironment
    */
-  public function setWebEnvironment($webEnvironment)
-  {
+  public function setWebEnvironment($webEnvironment) {
     $this->webEnvironment = $webEnvironment;
   }
 
@@ -55,8 +58,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getWebEnvironment()
-  {
+  public function getWebEnvironment() {
     return $this->webEnvironment;
   }
 
@@ -65,8 +67,7 @@ class BiblioEntrezClient
    *
    * @param int $key
    */
-  public function setQueryKey($key)
-  {
+  public function setQueryKey($key) {
     $this->queryKey = $key;
   }
 
@@ -75,8 +76,7 @@ class BiblioEntrezClient
    *
    * @return int
    */
-  public function getQueryKey()
-  {
+  public function getQueryKey() {
     return $this->queryKey;
   }
 
@@ -86,10 +86,10 @@ class BiblioEntrezClient
    * Values available from EInfo, PubMed is the default db.
    *
    * @param string $database
+   *
    * @see getAvailableDatabases
    */
-  public function setDatabase($database)
-  {
+  public function setDatabase($database) {
     $this->database = strtolower($database);
   }
 
@@ -98,8 +98,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getDatabase()
-  {
+  public function getDatabase() {
     return $this->database;
   }
 
@@ -107,10 +106,10 @@ class BiblioEntrezClient
    * Returns the available entrez databases from EInfo.
    *
    * @return array
+   *
    * @throws Exception
    */
-  public function getAvailableDatabases()
-  {
+  public function getAvailableDatabases() {
     $databases = array();
 
     $url = self::BASE_URL . 'einfo.fcgi';
@@ -122,7 +121,7 @@ class BiblioEntrezClient
 
     if (isset($result->DbList->DbName)) {
       foreach ($result->DbList->DbName as $name) {
-        $databases[] = (string)$name;
+        $databases[] = (string) $name;
       }
     }
 
@@ -142,8 +141,7 @@ class BiblioEntrezClient
    *
    * @param string $tool
    */
-  public function setTool($tool)
-  {
+  public function setTool($tool) {
     $this->tool = str_replace(array(" ", "\n", "\r"), '', $tool);
   }
 
@@ -152,8 +150,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getTool()
-  {
+  public function getTool() {
     return $this->tool;
   }
 
@@ -169,8 +166,7 @@ class BiblioEntrezClient
    *
    * @param string $email
    */
-  public function setEmail($email)
-  {
+  public function setEmail($email) {
     $this->email = $email;
   }
 
@@ -179,8 +175,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getEmail()
-  {
+  public function getEmail() {
     return $this->email;
   }
 
@@ -193,8 +188,7 @@ class BiblioEntrezClient
    *
    * @param string $term
    */
-  public function setTerm($term)
-  {
+  public function setTerm($term) {
     $this->term = $term;
     $this->webEnvironment = NULL;
     $this->count = NULL;
@@ -205,8 +199,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getTerm()
-  {
+  public function getTerm() {
     return $this->term;
   }
 
@@ -215,13 +208,14 @@ class BiblioEntrezClient
    *
    * @param $minDate
    * @param $maxDate
+   *
    * @throws Exception
    */
-  public function setDateRange($minDate, $maxDate=null)
-  {
+  public function setDateRange($minDate, $maxDate = NULL) {
     if (is_null($maxDate)) {
       $maxDate = date('Y/m/d');
-    } else {
+    }
+    else {
       $maxDate = date('Y/m/d', strtotime($maxDate));
     }
 
@@ -240,8 +234,7 @@ class BiblioEntrezClient
    * @return array
    *   a pair of dates
    */
-  public function getDateRange()
-  {
+  public function getDateRange() {
     return $this->dateRange;
   }
 
@@ -250,8 +243,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getMinDate()
-  {
+  public function getMinDate() {
     return $this->dateRange[0];
   }
 
@@ -260,8 +252,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getMaxDate()
-  {
+  public function getMaxDate() {
     return $this->dateRange[1];
   }
 
@@ -269,10 +260,10 @@ class BiblioEntrezClient
    * Sets the maximum number of items retrieved by a search query.
    *
    * @param int $number
+   *
    * @see search
    */
-  public function setReturnMax($number)
-  {
+  public function setReturnMax($number) {
     $this->returnMax = $number;
   }
 
@@ -281,8 +272,7 @@ class BiblioEntrezClient
    *
    * @return int
    */
-  public function getReturnMax()
-  {
+  public function getReturnMax() {
     return $this->returnMax;
   }
 
@@ -291,8 +281,7 @@ class BiblioEntrezClient
    *
    * @return string
    */
-  public function getLastQuery()
-  {
+  public function getLastQuery() {
     return $this->query;
   }
 
@@ -301,24 +290,27 @@ class BiblioEntrezClient
    * at $retstart.
    *
    * If this is the first search for a given term a web environment and a query
-   * key is retrieved from the NCBI server in addition to the result set.
-   * See http://eutils.ncbi.nlm.nih.gov/corehtml/query/static/esearch_help.html
+   * key is retrieved from the NCBI server in addition to the result set. See
+   * https://eutils.ncbi.nlm.nih.gov/corehtml/query/static/esearch_help.html.
    *
    * @param int $retStart
    *   the sequential number of the first record retrieved - default=0
-   *   which will retrieve the first record
+   *   which will retrieve the first record.
+   *
    * @return SimpleXMLElement
    *   an array of PubMed IDs
+   *
    * @throws Exception
+   *
    * @see setReturnMax
    * @see setRelativeDate
    */
-  public function search($retStart=0)
-  {
+  public function search($retStart = 0) {
     if (!is_null($this->webEnvironment)) {
       $params['WebEnv'] = $this->webEnvironment;
       $params['query_key'] = $this->queryKey;
-    } else {
+    }
+    else {
       $params['usehistory'] = $this->useHistory;
       $params['tool'] = $this->getTool();
       $params['email'] = $this->getEmail();
@@ -342,9 +334,9 @@ class BiblioEntrezClient
     }
 
     if (isset($result->WebEnv)) {
-      $this->webEnvironment = (string)$result->WebEnv;
-      $this->queryKey = (int)$result->QueryKey;
-      $this->count = (int)$result->Count;
+      $this->webEnvironment = (string) $result->WebEnv;
+      $this->queryKey = (int) $result->QueryKey;
+      $this->count = (int) $result->Count;
     }
 
     return $result;
@@ -354,10 +346,10 @@ class BiblioEntrezClient
    * Returns the number of results for the previously set search terms.
    *
    * @return int
+   *
    * @throws Exception
    */
-  public function count()
-  {
+  public function count() {
     if (is_null($this->count)) {
       $params['tool'] = $this->getTool();
       $params['email'] = $this->getEmail();
@@ -378,7 +370,7 @@ class BiblioEntrezClient
       }
 
       if (isset($result->Count)) {
-        $this->count = (int)$result->Count;
+        $this->count = (int) $result->Count;
       }
     }
 
@@ -390,17 +382,18 @@ class BiblioEntrezClient
    * object. The root element is PubmedArticleSet.
    *
    * @param int $id
+   *
    * @return SimpleXMLElement
    */
-  public function fetch($id)
-  {
+  public function fetch($id) {
     $params['db'] = $this->getDatabase();
     $params['retmode'] = 'xml';
     $params['id'] = $id;
 
     $this->query = self::BASE_URL . 'efetch.fcgi?' . http_build_query($params);
     $request_options = array(
-      'method' => 'POST');
+      'method' => 'POST',
+    );
     $result = drupal_http_request($this->query, $request_options);
     if ($result->code != 200) {
       throw new Exception('Query ' . $this->query . ' failed.');
@@ -413,10 +406,18 @@ class BiblioEntrezClient
 
     return $result;
   }
-  public function fetchSummaries($retStart=0) {
+
+  /**
+   *
+   */
+  public function fetchSummaries($retStart = 0) {
     return $this->fetchRecords($retStart, TRUE);
   }
-  public function fetchResult($retStart=0) {
+
+  /**
+   *
+   */
+  public function fetchResult($retStart = 0) {
     return $this->fetchRecords($retStart);
   }
 
@@ -435,12 +436,15 @@ class BiblioEntrezClient
    * @param $retStart
    *   the sequential number of the first record retrieved - default=0
    *   which will retrieve the first record
+   *
    * @return SimpleXMLElement
+   *
    * @throws Exception
+   *
    * @see search
    * @see setReturnMax
    */
-  public function fetchRecords($retStart=0, $summaries = FALSE) {
+  public function fetchRecords($retStart = 0, $summaries = FALSE) {
     if (is_null($this->webEnvironment)) {
       throw new Exception(t('No web environment set.'));
     }
@@ -471,12 +475,16 @@ class BiblioEntrezClient
 
     $result = @simplexml_load_string($result->data);
 
-
-    if (isset($result->body->pre->ERROR)) return FALSE;
+    if (isset($result->body->pre->ERROR)) {
+      return FALSE;
+    }
 
     return $result;
   }
 
+  /**
+   *
+   */
   public function post($uids) {
     $params['db'] = $this->getDatabase();
     $params['id'] = implode(',', $uids);
@@ -495,9 +503,9 @@ class BiblioEntrezClient
     }
 
     if (isset($result->WebEnv)) {
-      $this->webEnvironment = (string)$result->WebEnv;
-      $this->queryKey = (int)$result->QueryKey;
-      $this->count = (int)$result->Count;
+      $this->webEnvironment = (string) $result->WebEnv;
+      $this->queryKey = (int) $result->QueryKey;
+      $this->count = (int) $result->Count;
     }
 
   }

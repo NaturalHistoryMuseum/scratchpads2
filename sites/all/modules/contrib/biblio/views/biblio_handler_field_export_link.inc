@@ -1,15 +1,29 @@
 <?php
+
+/**
+ *
+ */
 class biblio_handler_field_export_link extends views_handler_field {
-  function init(&$view, &$options) {
+
+  /**
+   *
+   */
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
   }
 
-  function query() {
+  /**
+   *
+   */
+  public function query() {
     $this->add_additional_fields();
   }
 
-  function option_definition() {
+  /**
+   *
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['text'] = array('default' => '', 'translatable' => TRUE);
@@ -18,7 +32,10 @@ class biblio_handler_field_export_link extends views_handler_field {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   *
+   */
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $text = !empty($this->options['text']) ? $this->options['text'] : $this->definition['format name'];
     $form['text'] = array(
@@ -28,7 +45,10 @@ class biblio_handler_field_export_link extends views_handler_field {
     );
   }
 
-  function render($values) {
+  /**
+   *
+   */
+  public function render($values) {
     if (user_access('show export links')) {
       $format = $this->definition['format'];
       $base = variable_get('biblio_base', 'biblio');

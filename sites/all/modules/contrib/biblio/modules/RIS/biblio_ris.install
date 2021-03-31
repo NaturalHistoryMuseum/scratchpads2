@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Database table creation for biblio_ris module.
@@ -11,6 +12,9 @@ function biblio_ris_install() {
   _save_ris_maps();
 }
 
+/**
+ *
+ */
 function biblio_ris_uninstall() {
   if (db_table_exists('biblio_type_maps')) {
     db_delete('biblio_type_maps')
@@ -19,10 +23,16 @@ function biblio_ris_uninstall() {
   }
 }
 
+/**
+ *
+ */
 function biblio_ris_enable() {
   biblio_ris_set_system_weight();
 }
 
+/**
+ *
+ */
 function biblio_ris_set_system_weight() {
   db_update('system')
     ->fields(array('weight' => 27))
@@ -30,6 +40,9 @@ function biblio_ris_set_system_weight() {
     ->execute();
 }
 
+/**
+ *
+ */
 function _save_ris_maps() {
 
   $typemap = _get_ris_type_map();
@@ -39,11 +52,18 @@ function _save_ris_maps() {
   biblio_save_map($maps);
 
 }
+
+/**
+ *
+ */
 function _reset_ris_map($type) {
   $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='ris'")->fetchField();
-  if ($count && $type) { //update
+  // Update.
+  if ($count && $type) {
     $function = '_get_ris_' . $type;
-    if (!function_exists($function)) return;
+    if (!function_exists($function)) {
+      return;
+    }
     $map = $function();
 
     db_update('biblio_type_maps')
@@ -51,154 +71,212 @@ function _reset_ris_map($type) {
       ->condition('format', 'ris')
       ->execute();
   }
-  else { // install
+  // Install.
+  else {
     db_delete('biblio_type_maps')
       ->condition('format', 'ris')
       ->execute();
     _save_ris_maps();
   }
 }
-  function _get_ris_type_map() {
+
+/**
+ *
+ */
+function _get_ris_type_map() {
   $map['type_map'] = serialize(
-        array(
-                'ABST' => 129,
-                'ADVS' => 114,
-                'ART'  => 112,
-                'BILL' => 117,
-                'BOOK' => 100,
-                'CASE' => 116,
-                'CHAP' => 101,
-                'COMP' => 113,
-                'CONF' => 103,
-                'CTLG' => 129,
-                'DATA' => 125,
-                'ELEC' => 129,
-                'GEN'  => 129,
-                'HEAR' => 115,
-                'ICOMM' => 107,
-                'INPR'  => 129,
-                'JFULL' => 129,
-                'JOUR'  => 102,
-                'MAP'   => 122,
-                'MGZN'  => 106,
-                'MPCT'  => 110,
-                'MUSIC' => 129,
-                'NEWS'  => 105,
-                'PAMP'  => 129,
-                'PAT'   => 119,
-                'PCOMM' => 120,
-                'RPRT'  => 109,
-                'SER'   => 100,
-                'SLIDE' => 129,
-                'SOUND' => 129,
-                'STAT'  => 125,
-                'THES'  => 108,
-                'UNBILl' => 129,
-                'UNPB'  => 124,
-                'VIDEO' => 129,
-        )
-    );
+    array(
+      'ABST' => 129,
+      'ADVS' => 114,
+      'ART'  => 112,
+      'BILL' => 117,
+      'BOOK' => 100,
+      'CASE' => 116,
+      'CHAP' => 101,
+      'COMP' => 113,
+      'CONF' => 103,
+      'CTLG' => 129,
+      'DATA' => 125,
+      'ELEC' => 129,
+      'GEN'  => 129,
+      'HEAR' => 115,
+      'ICOMM' => 107,
+      'INPR'  => 129,
+      'JFULL' => 129,
+      'JOUR'  => 102,
+      'MAP'   => 122,
+      'MGZN'  => 106,
+      'MPCT'  => 110,
+      'MUSIC' => 129,
+      'NEWS'  => 105,
+      'PAMP'  => 129,
+      'PAT'   => 119,
+      'PCOMM' => 120,
+      'RPRT'  => 109,
+      'SER'   => 100,
+      'SLIDE' => 129,
+      'SOUND' => 129,
+      'STAT'  => 125,
+      'THES'  => 108,
+      'UNBILl' => 129,
+      'UNPB'  => 124,
+      'VIDEO' => 129,
+    )
+  );
   $map['format'] = 'ris';
   return $map;
 }
 
+/**
+ *
+ */
 function _get_ris_type_names() {
-  $map['type_names'] =  serialize(
+  $map['type_names'] = serialize(
         array(
-                'ABST'   => 'Abstract',
-                'ADVS'   => 'Audiovisual material',
-                'ART'    => 'Art Work',
-                'BILL'   => 'Bill/Resolution',
-                'BOOK'   => 'Book, Whole',
-                'CASE'   => 'Case',
-                'CHAP'   => 'Book chapter',
-                'COMP'   => 'Computer program',
-                'CONF'   => 'Conference proceeding',
-                'CTLG'   => 'Catalog',
-                'DATA'   => 'Data file',
-                'ELEC'   => 'Electronic Citation',
-                'GEN'    => 'Generic',
-                'HEAR'   => 'Hearing',
-                'ICOMM'  => 'Internet Communication',
-                'INPR'   => 'In Press',
-                'JFULL'  => 'Journal (full)',
-                'JOUR'   => 'Journal',
-                'MAP'    => 'Map',
-                'MGZN'   => 'Magazine article',
-                'MPCT'   => 'Motion picture',
-                'MUSIC'  => 'Music score',
-                'NEWS'   => 'Newspaper',
-                'PAMP'   => 'Pamphlet',
-                'PAT'    => 'Patent',
-                'PCOMM'  => 'Personal communication',
-                'RPRT'   => 'Report',
-                'SER'    => 'Serial (Book, Monograph)',
-                'SLIDE'  => 'Slide',
-                'SOUND'  => 'Sound recording',
-                'STAT'   => 'Statute',
-                'THES'   => 'Thesis/Dissertation',
-                'UNBILl' => 'Unenacted bill/resolution',
-                'UNPB'   => 'Unpublished work',
-                'VIDEO'  => 'Video recording',
+          'ABST'   => 'Abstract',
+          'ADVS'   => 'Audiovisual material',
+          'ART'    => 'Art Work',
+          'BILL'   => 'Bill/Resolution',
+          'BOOK'   => 'Book, Whole',
+          'CASE'   => 'Case',
+          'CHAP'   => 'Book chapter',
+          'COMP'   => 'Computer program',
+          'CONF'   => 'Conference proceeding',
+          'CTLG'   => 'Catalog',
+          'DATA'   => 'Data file',
+          'ELEC'   => 'Electronic Citation',
+          'GEN'    => 'Generic',
+          'HEAR'   => 'Hearing',
+          'ICOMM'  => 'Internet Communication',
+          'INPR'   => 'In Press',
+          'JFULL'  => 'Journal (full)',
+          'JOUR'   => 'Journal',
+          'MAP'    => 'Map',
+          'MGZN'   => 'Magazine article',
+          'MPCT'   => 'Motion picture',
+          'MUSIC'  => 'Music score',
+          'NEWS'   => 'Newspaper',
+          'PAMP'   => 'Pamphlet',
+          'PAT'    => 'Patent',
+          'PCOMM'  => 'Personal communication',
+          'RPRT'   => 'Report',
+          'SER'    => 'Serial (Book, Monograph)',
+          'SLIDE'  => 'Slide',
+          'SOUND'  => 'Sound recording',
+          'STAT'   => 'Statute',
+          'THES'   => 'Thesis/Dissertation',
+          'UNBILl' => 'Unenacted bill/resolution',
+          'UNPB'   => 'Unpublished work',
+          'VIDEO'  => 'Video recording',
         )
   );
   $map['format'] = 'ris';
   return $map;
 }
+
+/**
+ *
+ */
 function _get_ris_field_map() {
-  $map['field_map'] =  serialize(
+  $map['field_map'] = serialize(
         array(
-                'ID'  =>  '',                     //- Reference ID (not imported to reference software)
-                'T1'  =>  'title',                     //- Primary title
-                'TI'  =>  'title',                     //- Book title
-                'BT'  =>  'title',                     //- Book title
-                'CT'  =>  'title',                     //- Title of unpublished reference
-                'A1'  =>  '',                     //- Primary author
-                'A2'  =>  '',                     //- Secondary author (each name on separate line)
-                'AU'  =>  '',                     //- Author (syntax. Last name, First name, Suffix)
-                'Y1'  =>  'biblio_year',                     //- Primary date
-                'PY'  =>  '',                     //- Publication year (YYYY/MM/DD)
-                'N1'  => 'biblio_notes',          //- Notes
-                'KW'  =>  '',                     //- Keywords (each keyword must be on separate line preceded KW -)
-                'RP'  =>  '',                     //- Reprint status (IN FILE, NOT IN FILE, ON REQUEST (MM/DD/YY))
-                'SP'  =>  '',                     //- Start page number
-                'EP'  =>  '',                     //- Ending page number
-                'JF'  => 'biblio_secondary_title',//- Periodical full name
-                'JO'  => 'biblio_short_title',    //- Periodical standard abbreviation
-                'JA'  => 'biblio_secondary_title',//- Periodical in which article was published
-                'J1'  => 'biblio_short_title',    //- Periodical name //- User abbreviation 1
-                'J2'  => 'biblio_short_title',    //- Periodical name - User abbreviation 2
-                'VL'  => 'biblio_volume',         //- Volume number
-                'IS'  => 'biblio_issue',          //- Issue number
-                'CP'  => 'biblio_issue',          //- Issue number
-                'T2'  => 'biblio_secondary_title',//- Title secondary
-                'CY'  => 'biblio_place_published',//- City of Publication
-                'PB'  => 'biblio_publisher',      //- Publisher
-                'U1'  => 'biblio_custom1',        //- User definable 1
-                'U2'  => 'biblio_custom2',        //- User definable 2
-                'U3'  => 'biblio_custom3',        //- User definable 3
-                'U4'  => 'biblio_custom4',        //- User definable 4
-                'U5'  => 'biblio_custom5',        //- User definable 5
-                'T3'  => 'biblio_tertiary_title', //- Title series
-                'AB'  => 'biblio_abst_e',         //- Abstract
-                'N2'  => 'biblio_abst_e',         //- Abstract
-                'SN'  => 'biblio_isbn',           //- ISSN/ISBN (e.g. ISSN XXXX-XXXX)
-                'AV'  =>  '',                     //- Availability
-                'M1'  =>  '',                     //- Misc. 1
-                'M3'  =>  '',                     //- Misc. 3
-                'AD'  =>  '',                     //- Address
-                'UR'  => 'biblio_url',            //- Web/URL
-                'L1'  =>  '',                     //- Link to PDF
-                'L2'  =>  '',                     //- Link to Full-text
-                'L3'  =>  '',                     //- Related records
-                'L4'  =>  '',                     //- Images
-                'ER'  =>  '',                     //- End of Reference (must be the last tag)
-                )
+          // - Reference ID (not imported to reference software)
+          'ID'  => '',
+          // - Primary title.
+          'T1'  => 'title',
+          // - Book title.
+          'TI'  => 'title',
+          // - Book title.
+          'BT'  => 'title',
+          // - Title of unpublished reference.
+          'CT'  => 'title',
+          // - Primary author.
+          'A1'  => '',
+          // - Secondary author (each name on separate line)
+          'A2'  => '',
+          // - Author (syntax. Last name, First name, Suffix)
+          'AU'  => '',
+          // - Primary date.
+          'Y1'  => 'biblio_year',
+          // - Publication year (YYYY/MM/DD)
+          'PY'  => '',
+          // - Notes.
+          'N1'  => 'biblio_notes',
+          // - Keywords (each keyword must be on separate line preceded KW -)
+          'KW'  => '',
+          // - Reprint status (IN FILE, NOT IN FILE, ON REQUEST (MM/DD/YY))
+          'RP'  => '',
+          // - Start page number.
+          'SP'  => '',
+          // - Ending page number.
+          'EP'  => '',
+          // - Periodical full name.
+          'JF'  => 'biblio_secondary_title',
+          // - Periodical standard abbreviation.
+          'JO'  => 'biblio_short_title',
+          // - Periodical in which article was published.
+          'JA'  => 'biblio_secondary_title',
+          // - Periodical name //- User abbreviation 1.
+          'J1'  => 'biblio_short_title',
+          // - Periodical name - User abbreviation 2.
+          'J2'  => 'biblio_short_title',
+          // - Volume number.
+          'VL'  => 'biblio_volume',
+          // - Issue number.
+          'IS'  => 'biblio_issue',
+          // - Issue number.
+          'CP'  => 'biblio_issue',
+          // - Title secondary.
+          'T2'  => 'biblio_secondary_title',
+          // - City of Publication.
+          'CY'  => 'biblio_place_published',
+          // - Publisher.
+          'PB'  => 'biblio_publisher',
+          // - User definable 1.
+          'U1'  => 'biblio_custom1',
+          // - User definable 2.
+          'U2'  => 'biblio_custom2',
+          // - User definable 3.
+          'U3'  => 'biblio_custom3',
+          // - User definable 4.
+          'U4'  => 'biblio_custom4',
+          // - User definable 5.
+          'U5'  => 'biblio_custom5',
+          // - Title series.
+          'T3'  => 'biblio_tertiary_title',
+          // - Abstract.
+          'AB'  => 'biblio_abst_e',
+          // - Abstract.
+          'N2'  => 'biblio_abst_e',
+          // - ISSN/ISBN (e.g. ISSN XXXX-XXXX)
+          'SN'  => 'biblio_isbn',
+          // - Availability.
+          'AV'  => '',
+          // - Misc. 1.
+          'M1'  => '',
+          // - Misc. 3.
+          'M3'  => '',
+          // - Address.
+          'AD'  => '',
+          // - Web/URL.
+          'UR'  => 'biblio_url',
+          // - Link to PDF.
+          'L1'  => '',
+          // - Link to Full-text.
+          'L2'  => '',
+          // - Related records.
+          'L3'  => '',
+          // - Images.
+          'L4'  => '',
+          // - End of Reference (must be the last tag)
+          'ER'  => '',
+        )
   );
 
   $map['format'] = 'ris';
   return $map;
 }
+
 /**
  * Implementation of hook_schema().
  *
@@ -211,8 +289,8 @@ function biblio_ris_schema() {
     'fields' => array(
       'nid'       => array('type' => 'int', 'not null' => TRUE),
       'biblio_ris_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
-      ),
-  'primary key' => array('nid'),
+    ),
+    'primary key' => array('nid'),
   );
   return $schema;
 }
