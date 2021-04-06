@@ -246,13 +246,13 @@ function scratchpads_species_form_taxonomy_form_vocabulary_validate($form, $form
  * @return Array List of strings representing species tabs
  */
 function _scratchpads_species_get_enabled_tabs($vid, $default=null){
-  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', [])
+  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', []);
   if (!isset($enabled_species_tabs[$vid])) {
     return $default;
   }
 
   $tabs = [];
-  foreach($enabled_species_tabs as $key=>$value) {
+  foreach($enabled_species_tabs[$vid] as $key=>$value) {
     if(is_int($key)) {
       $tabs[] = $value;
     } else if($value == 1) {
@@ -274,18 +274,16 @@ function _scratchpads_species_set_enabled_tabs($vid, $tabs = []){
   if(is_null($tabs)) {
     unset($enabled_species_tabs[$vid]);
   } else {
-    $tabs_assoc = [];
     foreach($tabs as $key=>$value) {
-      if(is_int($key) || !is_string($value)) {
-        throw new TypeError('Tabs must be an array of tab names only');
+      if(!is_int($key) || !is_string($value)) {
+        throw new TypeError('Tabs must be an array of tab names only. Received '.print_r($tabs, true));
         return;
       }
-      $tabs_assoc[$key] = 1;
     }
-    $enabled_species_tabs[$vid] = $tabs_assoc;
+    $enabled_species_tabs[$vid] = $tabs;
   }
 
-  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs)
+  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
 }
 
 function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_state){
