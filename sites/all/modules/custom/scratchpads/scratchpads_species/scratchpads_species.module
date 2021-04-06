@@ -173,9 +173,7 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
     $ordered_tabs = array();
     if($vid){
       $ordered_tabs = scratchpads_species_get_ordered_core_tabs($vid);
-    }
-
-    if(empty($ordered_tabs)){
+    } else {
       $ordered_tabs = scratchpads_species_get_core_tabs();
     }
 
@@ -241,10 +239,54 @@ function scratchpads_species_form_taxonomy_form_vocabulary_validate($form, $form
   form_set_error('scratchpads_species_display', t("Please select at least one species page tab to display."));
 }
 
-function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_state){
+/**
+ * Get an array of enabled tabs for a given vocabulary
+ * @param int $vid The vocabulary id
+ * @param $default The default value to return if tab list is not set, defaults to "null"
+ * @return Array List of strings representing species tabs
+ */
+function _scratchpads_species_get_enabled_tabs($vid, $default=null){
+  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', []);
+  if (!isset($enabled_species_tabs[$vid])) {
+    return $default;
+  }
 
-  // retrieve the current tab enabled settings
-  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
+  $tabs = [];
+  foreach($enabled_species_tabs[$vid] as $key=>$value) {
+    if(is_int($key)) {
+      $tabs[] = $value;
+    } else if($value == 1) {
+      $tabs[] = $key;
+    }
+  }
+
+  return $tabs;
+}
+
+/**
+ * Set the array of enabled tabs for a given vocabulary
+ * @param int $vid The vocabulary id
+ * @param Array $tabs List of strings representing species tabs
+ */
+function _scratchpads_species_set_enabled_tabs($vid, $tabs = []){
+  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', []);
+
+  if(is_null($tabs)) {
+    unset($enabled_species_tabs[$vid]);
+  } else {
+    foreach($tabs as $key=>$value) {
+      if(!is_int($key) || !is_string($value)) {
+        throw new TypeError('Tabs must be an array of tab names only. Received '.print_r($tabs, true));
+        return;
+      }
+    }
+    $enabled_species_tabs[$vid] = $tabs;
+  }
+
+  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
+}
+
+function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_state){
   $vid = $form_state['vocabulary']->vid;
   $tab_values = array();
   foreach (array_keys(scratchpads_species_get_core_tabs()) as $tab) {
@@ -261,10 +303,9 @@ function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_s
   });
 
   $ordered_tabs = array_column($tab_values, 'tab');
-  $enabled_species_tabs[$vid] = $ordered_tabs;
 
   // save the data
-  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
+  _scratchpads_species_set_enabled_tabs($vid, $ordered_tabs);
 
   $show_syns = variable_get('scratchpads_species_display_synonyms', array());
   if(!empty($form_state['values']['show_synonym_data'])){
@@ -322,11 +363,7 @@ function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
  */
 function scratchpads_species_taxonomy_vocabulary_delete($vocabulary){
   // clear out the data from our "scratchpads_species_enabled_tabs" variable (if needed)
-  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
-  if (isset($enabled_species_tabs[$vocabulary->vid])) {
-    unset($enabled_species_tabs[$vocabulary->vid]);
-  }
-  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
+  _scratchpads_species_set_enabled_tabs($vocabulary->vid, null);
 }
 
 /**
@@ -1020,6 +1057,7 @@ function scratchpads_species_term_is_biological_classification($term){
 /**
  * Return a list of node types to display on the species page
  * If tab is specified, only return items for that tab
+ * @return Array An associative array of node type display names, keyed by the type.
  */
 function scratchpads_species_get_species_node_types($tab = NULL){
   $node_types = array();
@@ -1053,29 +1091,33 @@ function scratchpads_species_get_core_tabs(){
 
 /**
  * Return a list of species tabs
+ * @return Array An associative array of species tab display names, keyed by the tab keyname.
  */
 function scratchpads_species_get_tabs(){
   return array_merge(scratchpads_species_get_core_tabs(), scratchpads_species_get_species_node_types('own'));
 }
 
 /**
- * Return a list of species tabs
+ * Return a list of species tabs, ordered by the order of enabled_tabs variable
+ * @return Array associative array of tab display text, keyed by tab name
  */
 function scratchpads_species_get_ordered_core_tabs($vid){
-  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
-  $enabled_tabs = $enabled_species_tabs[$vid];
+  $enabled_tab_keys = _scratchpads_species_get_enabled_tabs($vid, []);
+  // tabname=>display text
   $core_tabs = scratchpads_species_get_core_tabs();
 
-  $ordered_tab_keys = array_merge($enabled_tabs, array_diff(array_keys($core_tabs), $enabled_tabs));
+  $ordered_tab_keys = array_merge($enabled_tab_keys, array_diff(array_keys($core_tabs), $enabled_tab_keys));
   $ordered_tabs = array();
   foreach ($ordered_tab_keys as $ordered_tab_key){
     $ordered_tabs[$ordered_tab_key] = $core_tabs[$ordered_tab_key];
   }
+  //tabname=>display text
   return $ordered_tabs;
 }
 
 /**
- * Return a list of species tabs
+ * Return a list of species tabs - core tabs plus node type tabs
+ * @return Array associative array of tab display text, keyed by tab name
  */
 function scratchpads_species_get_ordered_tabs($vid){
   return array_merge(scratchpads_species_get_ordered_core_tabs($vid), scratchpads_species_get_species_node_types('own'));
@@ -1088,17 +1130,14 @@ function scratchpads_species_get_active_tabs($vid)
 {
   $active_tabs = array();
   // retrieve the tab settings for the vocabulary this term belongs to
-  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', array());
-  if (isset($enabled_species_tabs[$vid])) {
-    $vocabulary_tabs = $enabled_species_tabs[$vid];
-  }
+  $vocabulary_tab_keys = _scratchpads_species_get_enabled_tabs($vid);
 
   $tabs = scratchpads_species_get_core_tabs();
 
-  if(is_null($vocabulary_tabs)){
+  if(is_null($vocabulary_tab_keys)){
     $active_tabs = $tabs;
   }else{
-    foreach ($vocabulary_tabs as $vocabulary_tab) {
+    foreach ($vocabulary_tab_keys as $vocabulary_tab) {
       $active_tabs[$vocabulary_tab] = $tabs[$vocabulary_tab];
     }
   }
