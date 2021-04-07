@@ -1802,6 +1802,8 @@ function biblio_update($node) {
   _biblio_prepare_submit($node);
   biblio_update_contributors($node);
   biblio_update_keywords($node);
+  $contributors = biblio_load_contributors($node->vid);
+  $node->biblio_contributors = $contributors[$node->vid];
   $node->biblio_coins = biblio_coins($node);
 
   // Update the node in the database:
@@ -2277,7 +2279,7 @@ function _biblio_filter_replace_callback($matches, $op = '') {
     $text .= '<span id="reference' . $ref . '" class="hovertip">' . _biblio_citekey_print($title) . '</span>';
   }
   else {
-    $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . '">[' . $ref . ']</a>';
+    $text = '<a href="#ref' . $ref . '" title="'. strip_tags(_biblio_citekey_print($title)).'">[' . $ref . ']</a>';
 
   }
   return $text;

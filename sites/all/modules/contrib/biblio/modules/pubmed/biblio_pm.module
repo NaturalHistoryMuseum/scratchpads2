@@ -127,7 +127,7 @@ function biblio_pm_form_biblio_node_form_alter(&$form, &$form_state, $form_id) {
     );
 
   }
-  if ((!isset($form_state['biblio_type']) || empty($form_state['biblio_type'])) && !isset($form_state['node']->nid)) {
+  if (!$form_state['submitted'] && !isset($form['#node']->nid)) {
     $form['biblio_pubmed_lookup'] = array(
       '#type' => 'fieldset',
       '#title' => t('PubMed Lookup'),

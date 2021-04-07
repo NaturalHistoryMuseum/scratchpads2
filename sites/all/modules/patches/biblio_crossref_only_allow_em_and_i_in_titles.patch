@@ -2,20 +2,16 @@ diff --git a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.c
 index 642de8e14..5b9b40e3e 100644
 --- a/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
 +++ b/sites/all/modules/contrib/biblio/modules/crossref/biblio.crossref.client.php
-@@ -94,8 +94,8 @@ class BiblioCrossRefClient
+@@ -94,4 +94,7 @@ class BiblioCrossRefClient
        xml_get_current_line_number($this->parser)),'error');
      }
- 
--    // only allow certain tags in the title field
--    $this->node['title'] = strip_tags($this->node['title'], '<i><em>');
+
 +    // clean the title up
 +    $this->node['title'] = $this->cleanTitle($this->node['title']);
- 
++
      xml_parser_free($this->parser);
- 
 @@ -103,6 +103,24 @@ class BiblioCrossRefClient
    }
- 
  
 +  /**
 +   * Given a title, cleans it by removing any non <i> or <em> tags and ensuring that all remaining
@@ -35,6 +31,9 @@ index 642de8e14..5b9b40e3e 100644
 +    return str_replace($search, $replace, $title);
 +  }
 +
-   function unixref_startElement($parser, $name, $attrs) {
+   /**
+    *
+    */
+   public function unixref_startElement($parser, $name, $attrs) {
      switch ($name) {
-       case 'doi_record' :
+       case 'doi_record':

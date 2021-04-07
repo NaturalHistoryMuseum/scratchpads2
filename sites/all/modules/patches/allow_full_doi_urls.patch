@@ -3,14 +3,14 @@ index 36920e231..0a2e61827 100644
 --- a/sites/all/modules/contrib/biblio/modules/crossref/biblio_crossref.module
 +++ b/sites/all/modules/contrib/biblio/modules/crossref/biblio_crossref.module
 @@ -32,7 +32,7 @@ function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
-         '#title' => t('DOI'),
-         '#required' => FALSE,
-         '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
--        '#description' => t('Enter a DOI name in the form: <b>10.1000/123456</b>'),
-+        '#description' => t('Enter a DOI in the form: <b>10.1000/123456</b> or the full URL: <b>https://doi.org/10.1000/123456</b>'),
-         '#disabled' => empty($have_pid),
-         '#size' => 60,
-         '#maxlength' => 255,
+       '#title' => t('DOI'),
+       '#required' => FALSE,
+       '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
+-      '#description' => t('Enter a DOI name in the form: <b>10.1000/123456</b>'),
++      '#description' => t('Enter a DOI in the form: <b>10.1000/123456</b> or the full URL: <b>https://doi.org/10.1000/123456</b>'),
+       '#disabled' => empty($have_pid),
+       '#size' => 60,
+       '#maxlength' => 255,
 @@ -54,8 +54,11 @@ function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
  function biblio_crossref_form_biblio_node_form_submit($form, &$form_state) {
    global $user;

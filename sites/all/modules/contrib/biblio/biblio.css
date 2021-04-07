@@ -340,3 +340,11 @@ ul.biblio-export-buttons li {
   background-color: #fff4f4;
   border: 2px solid #494949;
 }
+
+#biblio-node {
+  table-layout: fixed;
+}
+
+#biblio-node td{
+  word-wrap: break-word;
+}

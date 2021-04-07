@@ -7,7 +7,7 @@ index 6c4d1ac..fb4272b 100644
            break;
          case 'resource':
 -          if ($this->doi_data) {
--              $this->_set_data('biblio_url', $data);
+-            $this->_set_data('biblio_url', $data);
 +          static $finished = FALSE;
 +          if ($this->doi_data && !$finished) {
 +              if(strlen($this->node['biblio_url']) && (strpos($data, 'http://')!==FALSE || strpos($data, 'https://'))){
