@@ -35,7 +35,7 @@ function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
       '#title' => t('DOI'),
       '#required' => FALSE,
       '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
-      '#description' => t('Enter a DOI in the form: <b>10.1000/123456</b> or the full URL: <b>https://doi.org/10.1000/123456</b>'),
+      '#description' => t('Enter a DOI name in the form: <b>10.1000/123456</b>'),
       '#disabled' => empty($have_pid),
       '#size' => 60,
       '#maxlength' => 255,
@@ -60,11 +60,8 @@ function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
 function biblio_crossref_form_biblio_node_form_submit($form, &$form_state) {
   global $user;
   $node_data = array();
-  if (strlen($form_state['values']['doi_data'])) {
-    // this regex matches "modern" crossref patterns, see here: https://www.crossref.org/blog/dois-and-matching-regular-expressions/
-    preg_match('/^.*?(10.\d{4,9}\/[-._;()\/:a-zA-Z0-9]+)$/i', $form_state['values']['doi_data'], $match);
-    if ($match) {
-      $doi = $match[1];
+  if (strlen($doi = $form_state['values']['doi_data'])) {
+    if (($doi_start = strpos($form_state['values']['doi_data'], '10.')) !== FALSE) {
       if (!($dup = biblio_crossref_check_doi($doi))) {
         $crossref_pid = variable_get('biblio_crossref_pid', '');
         $user_pid = (isset($user->data['biblio_crossref_pid']) && !empty($user->data['biblio_crossref_pid'])) ? $user->data['biblio_crossref_pid'] : '';
@@ -95,7 +92,7 @@ function biblio_crossref_form_biblio_node_form_submit($form, &$form_state) {
       }
     }
     else {
-      form_set_error('doi_data', t('This does not appear to be a valid DOI name'));
+      form_set_error('doi_data', t('This does not appear to be a valid DOI name, it should start with "10."'));
     }
   }
   $form_state['rebuild'] = TRUE;

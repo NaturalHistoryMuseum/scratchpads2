@@ -37,9 +37,16 @@ function scratchpads_biblio_form_node_form_validate(&$form, &$form_state)
 function scratchpads_biblio_module_implements_alter(&$implementations, $hook)
 {
   if ($hook == 'form_alter' && isset($implementations['scratchpads_biblio'])) {
-    $new_implementations = array();
-    $new_implementations['scratchpads_biblio'] = $implementations['scratchpads_biblio'];
-    unset($implementations['scratchpads_biblio']);
+    // We want our form_alter functions to be called after biblio_crossref,
+    // but before other modules (which specifically?)
+    $new_implementations = [
+      'biblio_crossref' => $implementations['biblio_crossref'],
+      'scratchpads_biblio' => $implementations['scratchpads_biblio']
+    ];
+    unset(
+      $implementations['biblio_crossref'],
+      $implementations['scratchpads_biblio']
+    );
     foreach ($implementations as $key => $value) {
       $new_implementations[$key] = $value;
     }
@@ -213,4 +220,57 @@ function scratchpads_biblio_queue_node_for_reindexing($nid){
     ))
     ->execute();
 
+}
+
+/**
+ * Implements hook_FORM_ID_alter
+ * Add modifications to the biblio form
+ */
+function scratchpads_biblio_form_biblio_node_form_alter(&$form, &$form_state){
+  // Since we're now using the json API, we don't need the user to add their registration details
+  unset($form['biblio_doi_lookup']['doi_register']);
+
+	$form['biblio_doi_lookup']['doi_data']['#disabled'] = false;
+  $form['biblio_doi_lookup']['doi_data']['#description'] = t('Enter a DOI in the form: <b>10.1000/123456</b> or the full URL: <b>https://doi.org/10.1000/123456</b>');
+
+	$form['biblio_doi_lookup']['doi_submit']['#disabled'] = false;
+	$form['biblio_doi_lookup']['doi_submit']['#submit'] = [
+    '_scratchpads_biblio_crossref_form_submit'
+	];
+}
+
+/**
+ * Populate the biblio form with data from the crossref json api
+ */
+function _scratchpads_biblio_crossref_form_submit($form, &$form_state) {
+  $node_data = array();
+  if (strlen($form_state['values']['doi_data'])) {
+    // this regex matches "modern" crossref patterns, see here: https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+    preg_match('/^.*?(10.\d{4,9}\/[-._;()\/:a-zA-Z0-9]+)$/i', $form_state['values']['doi_data'], $match);
+    if ($match) {
+      $doi = $match[1];
+      if (!($dup = biblio_crossref_check_doi($doi))) {
+        // Load our custom crossref client
+        module_load_include('php', 'scratchpads_biblio', 'scratchpads_biblio.crossref.client');
+        $client = new BiblioCrossRefClient($doi);
+        $node_data = $client->fetch();
+
+        if (!empty($node_data)) {
+          $form_state['values'] = array_merge($form_state['values'], $node_data);
+          $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data['biblio_type'];
+        }
+        else {
+          form_set_error('doi_data', '');
+        }
+      }
+      else {
+        $message = t('The DOI that you are trying to import already exists in the database, see !url', array('!url' => l('node/' . $dup, 'node/' . $dup)));
+        form_set_error('doi_data', $message);
+      }
+    }
+    else {
+      form_set_error('doi_data', t('This does not appear to be a valid DOI name'));
+    }
+  }
+  $form_state['rebuild'] = TRUE;
 }
