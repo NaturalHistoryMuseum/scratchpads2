@@ -22,10 +22,3 @@ index fd976d7a45..2b48259369 100644
        $csl_doc = new DOMDocument();
        $csl_doc->loadXML($csl);
        $auth_proc = new csl_rendering_element($csl_doc);
-@@ -1254,4 +1265,4 @@ function _biblio_sort_tab($tab, $tabs = FALSE) {
-     return $tab['pfx'] . l($tab['text'], $tab['path'], $tab) . $tab['arrow'] . $tab['sfx'];
-   }
-   return;
--}
-\ No newline at end of file
-+}

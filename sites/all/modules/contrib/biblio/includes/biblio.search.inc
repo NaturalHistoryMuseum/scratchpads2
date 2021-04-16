@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @file
+ */
+
+/**
+ *
+ */
 function _biblio_search_info() {
   return array(
     'title' => 'Content',
@@ -8,6 +15,9 @@ function _biblio_search_info() {
   );
 }
 
+/**
+ *
+ */
 function sample_search_conditions_callback($keys) {
   $conditions = array();
 
@@ -23,6 +33,9 @@ function sample_search_conditions_callback($keys) {
   return $conditions;
 }
 
+/**
+ *
+ */
 function _biblio_search_access() {
   return user_access('access content');
 }
@@ -47,9 +60,9 @@ function _biblio_search_reset() {
  * Report the status of indexing.
  *
  * @return
- *  An associative array with the key-value pairs:
- *  - 'remaining': The number of items left to index.
- *  - 'total': The total number of items to index.
+ *   An associative array with the key-value pairs:
+ *   - 'remaining': The number of items left to index.
+ *   - 'total': The total number of items to index.
  *
  * @ingroup search
  */
@@ -75,7 +88,7 @@ function _biblio_search_admin() {
   );
   $form['content_ranking']['#theme'] = 'node_search_admin';
   $form['content_ranking']['info'] = array(
-    '#value' => '<em>' . t('The following numbers control which properties the content search should favor when ordering the results. Higher numbers mean more influence, zero means the property is ignored. Changing these numbers does not require the search index to be rebuilt. Changes take effect immediately.') . '</em>'
+    '#value' => '<em>' . t('The following numbers control which properties the content search should favor when ordering the results. Higher numbers mean more influence, zero means the property is ignored. Changing these numbers does not require the search index to be rebuilt. Changes take effect immediately.') . '</em>',
   );
 
   // Note: reversed to reflect that higher number = higher ranking.
@@ -131,7 +144,7 @@ function _biblio_search_admin() {
  * @ingroup search
  */
 function _biblio_search_execute($keys = NULL, $conditions = NULL) {
-  // Build matching conditions
+  // Build matching conditions.
   $query = db_select('search_index', 'i', array('target' => 'slave'))->extend('SearchQuery')->extend('PagerDefault');
   $query->join('node', 'n', 'n.nid = i.sid');
   $query
@@ -246,7 +259,7 @@ function _biblio_search_page($results) {
  * @ingroup search
  */
 function _biblio_search_preprocess($text) {
-  // Do processing on $text
+  // Do processing on $text.
   return $text;
 }
 
@@ -271,7 +284,7 @@ function _biblio_search_preprocess($text) {
  * @ingroup search
  */
 function _biblio_update_index() {
-  $limit = (int)variable_get('search_cron_limit', 100);
+  $limit = (int) variable_get('search_cron_limit', 100);
 
   $result = db_query_range("SELECT n.nid FROM {node} n LEFT JOIN {search_dataset} d ON d.type = 'node' AND d.sid = n.nid WHERE d.sid IS NULL OR d.reindex <> 0 ORDER BY d.reindex ASC, n.nid ASC", 0, $limit);
 
@@ -288,16 +301,17 @@ function _biblio_update_index() {
 
     $text = '<h1>' . check_plain($node->title) . '</h1>' . $node->rendered;
 
-    // Fetch extra data normally not visible
+    // Fetch extra data normally not visible.
     $extra = module_invoke_all('node_update_index', $node);
     foreach ($extra as $t) {
       $text .= $t;
     }
 
-    // Update index
+    // Update index.
     search_index($node->nid, 'node', $text);
   }
 }
+
 /**
  * @} End of "addtogroup hooks".
  */

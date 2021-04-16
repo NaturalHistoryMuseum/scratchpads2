@@ -1,8 +1,21 @@
 <?php
-class biblio_handler_filter_biblio_keyword_kid extends views_handler_filter_many_to_one {
-  function has_extra_options() { return TRUE; }
 
-  function get_value_options() {
+/**
+ *
+ */
+class biblio_handler_filter_biblio_keyword_kid extends views_handler_filter_many_to_one {
+
+  /**
+   *
+   */
+  public function has_extra_options() {
+    return TRUE;
+  }
+
+  /**
+   *
+   */
+  public function get_value_options() {
     $result = db_query("SELECT kd.* FROM {biblio_keyword_data} kd ORDER BY kd.word");
     foreach ($result as $term) {
       $this->value_options[$term->kid] = $term->word;
@@ -10,7 +23,10 @@ class biblio_handler_filter_biblio_keyword_kid extends views_handler_filter_many
 
   }
 
-  function option_definition() {
+  /**
+   *
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['type'] = array('default' => 'textfield');
@@ -20,21 +36,27 @@ class biblio_handler_filter_biblio_keyword_kid extends views_handler_filter_many
     return $options;
   }
 
-  function extra_options_form(&$form, &$form_state) {
+  /**
+   *
+   */
+  public function extra_options_form(&$form, &$form_state) {
 
     if ($this->options['limit']) {
       // We only do this when the form is displayed so this query doesn't run
       // unnecessarily just when the object is constructed.
-
       $form['type'] = array(
-      '#type' => 'radios',
-      '#title' => t('Selection type'),
-      '#options' => array('select' => t('Dropdown'), 'textfield' => t('Autocomplete')),
-      '#default_value' => $this->options['type'],
+        '#type' => 'radios',
+        '#title' => t('Selection type'),
+        '#options' => array('select' => t('Dropdown'), 'textfield' => t('Autocomplete')),
+        '#default_value' => $this->options['type'],
       );
     }
   }
-  function value_form(&$form, &$form_state) {
+
+  /**
+   *
+   */
+  public function value_form(&$form, &$form_state) {
     if ($this->options['type'] == 'textfield') {
       $default = '';
       if ($this->value) {
@@ -107,9 +129,8 @@ class biblio_handler_filter_biblio_keyword_kid extends views_handler_filter_many
       }
     }
 
-
     if (empty($form_state['exposed'])) {
-      // Retain the helper option
+      // Retain the helper option.
       $this->helper->options_form($form, $form_state);
     }
   }

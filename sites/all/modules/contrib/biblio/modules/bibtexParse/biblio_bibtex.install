@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Database table creation for biblio_bibtex module.
@@ -11,6 +12,9 @@ function biblio_bibtex_install() {
   _save_bibtex_maps();
 }
 
+/**
+ *
+ */
 function biblio_bibtex_uninstall() {
   if (db_table_exists('biblio_type_maps')) {
     db_delete('biblio_type_maps')
@@ -19,10 +23,16 @@ function biblio_bibtex_uninstall() {
   }
 }
 
+/**
+ *
+ */
 function biblio_bibtex_enable() {
   biblio_bibtex_set_system_weight();
 }
 
+/**
+ *
+ */
 function biblio_bibtex_set_system_weight() {
   db_update('system')
     ->fields(array('weight' => 22))
@@ -30,24 +40,26 @@ function biblio_bibtex_set_system_weight() {
     ->execute();
 }
 
-
+/**
+ *
+ */
 function _get_bibtex_type_map() {
   $map['type_map'] = serialize(
         array(
-                'article'       => 102,
-                'book'          => 100,
-                'booklet'       => 129,
-                'conference'    => 103,
-                'inbook'        => 101,
-                'incollection'  => 101,
-                'inproceedings' => 103,
-                'manual'        => 129,
-                'mastersthesis' => 108,
-                'misc'          => 129,
-                'phdthesis'     => 108,
-                'proceedings'   => 104,
-                'techreport'    => 129,
-                'unpublished'   => 124,
+          'article'       => 102,
+          'book'          => 100,
+          'booklet'       => 129,
+          'conference'    => 103,
+          'inbook'        => 101,
+          'incollection'  => 101,
+          'inproceedings' => 103,
+          'manual'        => 129,
+          'mastersthesis' => 108,
+          'misc'          => 129,
+          'phdthesis'     => 108,
+          'proceedings'   => 104,
+          'techreport'    => 129,
+          'unpublished'   => 124,
         )
   );
   $map['format'] = 'bibtex';
@@ -55,56 +67,63 @@ function _get_bibtex_type_map() {
 
 }
 
+/**
+ *
+ */
 function _get_bibtex_type_names() {
-  $map['type_names'] =  serialize(
+  $map['type_names'] = serialize(
         array(
-                'article'       => 'An article from a journal',
-                'book'          => 'A book with an explicit publisher',
-                'booklet'       => 'A work that is printed and bound, but without a named publisher or sponsoring institution',
-                'conference'    => 'An article in a conference proceedings',
-                'inbook'        => 'A part of a book, usually untitled. May be a chapter (or section or whatever) and/or a range of pages',
-                'incollection'  => 'A part of a book having its own title',
-                'inproceedings' => 'An article in a conference proceedings',
-                'manual'        => 'Technical documentation',
-                'mastersthesis' => 'A Master\'s thesis',
-                'misc'          => 'For use when nothing else fits',
-                'phdthesis'     => 'A Ph.D. thesis',
-                'proceedings'   => 'The proceedings of a conference',
-                'techreport'    => 'A report published by a school or other institution, usually numbered within a series',
-                'unpublished'   => 'A document having an author and title, but not formally published',
+          'article'       => 'An article from a journal',
+          'book'          => 'A book with an explicit publisher',
+          'booklet'       => 'A work that is printed and bound, but without a named publisher or sponsoring institution',
+          'conference'    => 'An article in a conference proceedings',
+          'inbook'        => 'A part of a book, usually untitled. May be a chapter (or section or whatever) and/or a range of pages',
+          'incollection'  => 'A part of a book having its own title',
+          'inproceedings' => 'An article in a conference proceedings',
+          'manual'        => 'Technical documentation',
+          'mastersthesis' => 'A Master\'s thesis',
+          'misc'          => 'For use when nothing else fits',
+          'phdthesis'     => 'A Ph.D. thesis',
+          'proceedings'   => 'The proceedings of a conference',
+          'techreport'    => 'A report published by a school or other institution, usually numbered within a series',
+          'unpublished'   => 'A document having an author and title, but not formally published',
         )
   );
   $map['format'] = 'bibtex';
   return $map;
 
 }
+
+/**
+ *
+ */
 function _get_bibtex_field_map() {
 
-  $map['field_map'] =  serialize(
+  $map['field_map'] = serialize(
         array(
-                'journal'      => 'biblio_secondary_title',
-                'booktitle'    => 'biblio_secondary_title',
-                'series'       => 'biblio_secondary_title',
-                'volume'       => 'biblio_volume',
-                'number'       => 'biblio_number',
-                'year'         => 'biblio_year',
-                'note'         => 'biblio_notes',
-                'month'        => 'biblio_date',
-                'pages'        => 'biblio_pages',
-                'publisher'    => 'biblio_publisher',
-                'school'       => 'biblio_publisher',
-                'organization' => 'biblio_publisher',
-                'institution'  => 'biblio_publisher',
-                'type'         => 'biblio_type_of_work',
-                'edition'      => 'biblio_edition',
-                'chapter'      => 'biblio_section',
-                'address'      => 'biblio_place_published',
-                'abstract'     => 'biblio_abst_e',
-                'keywords'     => 'biblio_keywords',
-                'isbn'         => 'biblio_isbn',
-                'issn'         => 'biblio_issn',
-                'doi'          => 'biblio_doi',
-                'url'          => 'biblio_url',
+          'journal'      => 'biblio_secondary_title',
+          'booktitle'    => 'biblio_secondary_title',
+          'series'       => 'biblio_secondary_title',
+          'volume'       => 'biblio_volume',
+          'number'       => 'biblio_number',
+          'year'         => 'biblio_year',
+          'note'         => 'biblio_notes',
+          'month'        => 'biblio_date',
+          'pages'        => 'biblio_pages',
+          'publisher'    => 'biblio_publisher',
+          'school'       => 'biblio_publisher',
+          'organization' => 'biblio_publisher',
+          'institution'  => 'biblio_publisher',
+          'type'         => 'biblio_type_of_work',
+          'edition'      => 'biblio_edition',
+          'chapter'      => 'biblio_section',
+          'address'      => 'biblio_place_published',
+          'abstract'     => 'biblio_abst_e',
+          'keywords'     => 'biblio_keywords',
+          'isbn'         => 'biblio_isbn',
+          'issn'         => 'biblio_issn',
+          'doi'          => 'biblio_doi',
+          'url'          => 'biblio_url',
 
         )
   );
@@ -114,6 +133,9 @@ function _get_bibtex_field_map() {
 
 }
 
+/**
+ *
+ */
 function _save_bibtex_maps() {
   $typemap = _get_bibtex_type_map();
   $typenames = _get_bibtex_type_names();
@@ -122,18 +144,25 @@ function _save_bibtex_maps() {
   biblio_save_map($maps);
 }
 
+/**
+ *
+ */
 function _reset_bibtex_map($type) {
   $count = db_query("SELECT COUNT(*)  FROM {biblio_type_maps} WHERE format='bibtex'")->fetchField();
-  if ($count && $type) { //update
+  // Update.
+  if ($count && $type) {
     $function = '_get_bibtex_' . $type;
-    if (!function_exists($function)) return;
+    if (!function_exists($function)) {
+      return;
+    }
     $map = $function();
     db_update('biblio_type_maps')
       ->fields($map)
       ->condition('format', 'bibtex')
       ->execute();
   }
-  else { // install
+  // Install.
+  else {
     db_delete('biblio_type_maps')
       ->condition('format', 'bibtex')
       ->execute();
@@ -141,6 +170,9 @@ function _reset_bibtex_map($type) {
   }
 }
 
+/**
+ *
+ */
 function biblio_bibtex_schema() {
   $schema = array();
   $schema['biblio_bibtex'] = array(
@@ -148,18 +180,18 @@ function biblio_bibtex_schema() {
       'nid'       => array('type' => 'int', 'not null' => TRUE),
       'biblio_bibtex_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
       'biblio_bibtex_id' => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),
-  ),
-  'primary key' => array('nid'),
+    ),
+    'primary key' => array('nid'),
   );
   return $schema;
 }
 
+/**
+ *
+ */
 function biblio_bibtex_update_7001() {
   if (!db_field_exists('biblio_bibtex', 'biblio_bibtex_id')) {
     $spec = array('type' => 'varchar', 'length' => 255, 'not null' => FALSE);
     db_add_field('biblio_bibtex', 'biblio_bibtex_id', $spec);
   }
 }
-
-
-

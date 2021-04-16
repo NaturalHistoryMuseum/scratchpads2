@@ -1,13 +1,24 @@
 <?php
+
+/**
+ *
+ */
 class biblio_handler_field_contributor extends biblio_handler_field {
-  function init(&$view, &$options) {
+
+  /**
+   *
+   */
+  public function init(&$view, &$options) {
     module_load_include('inc', 'biblio', 'includes/biblio.contributors');
     parent::init($view, $options);
     $this->multiple = TRUE;
     $this->additional_fields['vid'] = array('table' => 'biblio', 'field' => 'vid');
   }
 
-  function option_definition() {
+  /**
+   *
+   */
+  public function option_definition() {
     $options = parent::option_definition();
     $options['auth_category'] = array('default' => 1);
     $options['auth_links'] = array('default' => 0);
@@ -22,7 +33,10 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   *
+   */
+  public function options_form(&$form, &$form_state) {
     $form['auth_category'] = array(
       '#type' => 'select',
       '#title' => t('Category of Author'),
@@ -33,7 +47,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
         2 => t('Secondary'),
         3 => t('Tertiary'),
         4 => t('Subsidiary'),
-        5 => t('Corporate/Institutional')
+        5 => t('Corporate/Institutional'),
       ),
 
     );
@@ -58,7 +72,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
       '#title' => t('Shorten given names'),
       '#default_value' => $this->options['initialize'],
       '#description' => t('Shorten given names to single initial each.'),
-    	'#fieldset' => 'formatting',
+      '#fieldset' => 'formatting',
     );
     $form['short_form'] = array(
       '#type' => 'checkbox',
@@ -101,12 +115,18 @@ class biblio_handler_field_contributor extends biblio_handler_field {
 
   }
 
-  function query() {
+  /**
+   *
+   */
+  public function query() {
     $this->add_additional_fields();
     $this->field_alias = $this->aliases['vid'];
   }
 
-  function post_execute(&$values) {
+  /**
+   *
+   */
+  public function post_execute(&$values) {
     $vids = array();
     $this->items = array();
     $filter = '';
@@ -123,14 +143,22 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     }
   }
 
-  function render($values) {
+  /**
+   *
+   */
+  public function render($values) {
     parent::set_label($values);
     $vid = $values->{$this->field_alias};
-    if (!isset($this->items[$vid])) return NULL;
+    if (!isset($this->items[$vid])) {
+      return NULL;
+    }
     return $this->render_contriubutors($this->items[$vid]);
   }
 
-  function render_contriubutors($contributors) {
+  /**
+   *
+   */
+  public function render_contriubutors($contributors) {
     $authors = array();
     if (!isset($this->alnum)) {
       list($this->alnum, $this->alpha, $this->cntrl, $this->dash,
@@ -140,7 +168,7 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     }
 
     foreach ($contributors as $rank => $author) {
-      $author = (object)$author;
+      $author = (object) $author;
       if ($author->literal == 1) {
         $authors[] = $author->name;
       }
@@ -151,27 +179,27 @@ class biblio_handler_field_contributor extends biblio_handler_field {
           $author->initials = $author->firstname . $author->initials;
         }
         if (isset($author->initials)) {
-          // within initials, remove any dots:
+          // Within initials, remove any dots:
           $author->initials = preg_replace("/([$this->upper])\.+/$this->patternModifiers", "\\1", $author->initials);
-          // within initials, remove any spaces *between* initials:
+          // Within initials, remove any spaces *between* initials:
           $author->initials = preg_replace("/(?<=[-$this->upper]) +(?=[-$this->upper])/$this->patternModifiers", "", $author->initials);
           if ($this->options['initialize_with_hyphen'] === FALSE) {
             $author->initials = preg_replace("/-/", '', $author->initials);
           }
-          // within initials, add a space after a hyphen, but only if ...
-          if (preg_match("/ $/", $this->options['initialize_with'])) {// ... the delimiter that separates initials ends with a space
+          // Within initials, add a space after a hyphen, but only if ...
+          // ... the delimiter that separates initials ends with a space.
+          if (preg_match("/ $/", $this->options['initialize_with'])) {
             $author->initials = preg_replace("/-(?=[$this->upper])/$this->patternModifiers", "- ", $author->initials);
           }
           // then, separate initials with the specified delimiter:
           $init_sep = $this->options['initialize_with'];
           $author->initials = preg_replace("/([$this->upper])(?=[^$this->lower]+|$)/$this->patternModifiers", "\\1$init_sep", $author->initials);
 
-          //      $shortenInitials = (isset($options['numberOfInitialsToKeep)) ? $options['numberOfInitialsToKeep : FALSE;
-          //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);
-
+          // $shortenInitials = (isset($options['numberOfInitialsToKeep)) ? $options['numberOfInitialsToKeep : FALSE;
+          //      if ($shortenInitials) $given = drupal_substr($given, 0, $shortenInitials);.
           if ($this->options['initialize'] == 1) {
             $author->firstname = $author->initials;
-            // if ($shortenInitials) $author->firstname = drupal_substr($author->firstname, 0, $shortenInitials);
+            // If ($shortenInitials) $author->firstname = drupal_substr($author->firstname, 0, $shortenInitials);.
           }
           elseif (!empty($author->firstname)) {
             $author->firstname = $author->firstname . ' ' . $author->initials;
@@ -190,8 +218,9 @@ class biblio_handler_field_contributor extends biblio_handler_field {
               case 'last-first':
                 $authors[] = $author->lastname . $this->options['sort_separator'] . $author->firstname;
                 break;
+
               default:
-                $authors[] = $author->firstname . ' ' . $author->lastname ;
+                $authors[] = $author->firstname . ' ' . $author->lastname;
             }
           }
         }
@@ -200,19 +229,26 @@ class biblio_handler_field_contributor extends biblio_handler_field {
 
     return implode($this->options['separator'], $authors);
   }
-  function get_regex_patterns() {
-    // Checks if PCRE is compiled with UTF-8 and Unicode support
+
+  /**
+   *
+   */
+  public function get_regex_patterns() {
+    // Checks if PCRE is compiled with UTF-8 and Unicode support.
     if (!@preg_match('/\pL/u', 'a')) {
-      // probably a broken PCRE library
+      // Probably a broken PCRE library.
       return $this->get_latin1_regex();
     }
     else {
-      // Unicode safe filter for the value
+      // Unicode safe filter for the value.
       return $this->get_utf8_regex();
     }
   }
 
-  function get_latin1_regex() {
+  /**
+   *
+   */
+  public function get_latin1_regex() {
     $alnum = "[:alnum:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆäåáàâãçéèêëñöøóòôõüúùûíìîïæÿß";
     // Matches ISO-8859-1 letters:
     $alpha = "[:alpha:]ÄÅÁÀÂÃÇÉÈÊËÑÖØÓÒÔÕÜÚÙÛÍÌÎÏÆäåáàâãçéèêëñöøóòôõüúùûíìîïæÿß";
@@ -241,39 +277,57 @@ class biblio_handler_field_contributor extends biblio_handler_field {
     $patternModifiers = "";
 
     return array($alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower,
-    $print, $punct, $space, $upper, $word, $patternModifiers);
+      $print, $punct, $space, $upper, $word, $patternModifiers,
+    );
 
   }
-  function get_utf8_regex() {
+
+  /**
+   *
+   */
+  public function get_utf8_regex() {
     // Matches Unicode letters & digits:
-    $alnum = "\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}"; // Unicode-aware equivalent of "[:alnum:]"
+    // Unicode-aware equivalent of "[:alnum:]".
+    $alnum = "\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}";
     // Matches Unicode letters:
-    $alpha = "\p{Ll}\p{Lu}\p{Lt}\p{Lo}"; // Unicode-aware equivalent of "[:alpha:]"
+    // Unicode-aware equivalent of "[:alpha:]".
+    $alpha = "\p{Ll}\p{Lu}\p{Lt}\p{Lo}";
     // Matches Unicode control codes & characters not in other categories:
-    $cntrl = "\p{C}"; // Unicode-aware equivalent of "[:cntrl:]"
+    // Unicode-aware equivalent of "[:cntrl:]".
+    $cntrl = "\p{C}";
     // Matches Unicode dashes & hyphens:
     $dash = "\p{Pd}";
     // Matches Unicode digits:
-    $digit = "\p{Nd}"; // Unicode-aware equivalent of "[:digit:]"
+    // Unicode-aware equivalent of "[:digit:]".
+    $digit = "\p{Nd}";
     // Matches Unicode printing characters (excluding space):
-    $graph = "^\p{C}\t\n\f\r\p{Z}"; // Unicode-aware equivalent of "[:graph:]"
+    // Unicode-aware equivalent of "[:graph:]".
+    $graph = "^\p{C}\t\n\f\r\p{Z}";
     // Matches Unicode lower case letters:
-    $lower = "\p{Ll}\p{M}"; // Unicode-aware equivalent of "[:lower:]"
+    // Unicode-aware equivalent of "[:lower:]".
+    $lower = "\p{Ll}\p{M}";
     // Matches Unicode printing characters (including space):
-    $print = "\P{C}"; // same as "^\p{C}", Unicode-aware equivalent of "[:print:]"
+    // same as "^\p{C}", Unicode-aware equivalent of "[:print:]".
+    $print = "\P{C}";
     // Matches Unicode punctuation (printing characters excluding letters & digits):
-    $punct = "\p{P}"; // Unicode-aware equivalent of "[:punct:]"
+    // Unicode-aware equivalent of "[:punct:]".
+    $punct = "\p{P}";
     // Matches Unicode whitespace (separating characters with no visual representation):
-    $space = "\t\n\f\r\p{Z}"; // Unicode-aware equivalent of "[:space:]"
+    // Unicode-aware equivalent of "[:space:]".
+    $space = "\t\n\f\r\p{Z}";
     // Matches Unicode upper case letters:
-    $upper = "\p{Lu}\p{Lt}"; // Unicode-aware equivalent of "[:upper:]"
+    // Unicode-aware equivalent of "[:upper:]".
+    $upper = "\p{Lu}\p{Lt}";
     // Matches Unicode "word" characters:
-    $word = "_\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}"; // Unicode-aware equivalent of "[:word:]" (or "[:alnum:]" plus "_")
+    // Unicode-aware equivalent of "[:word:]" (or "[:alnum:]" plus "_")
+    $word = "_\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}";
     // Defines the PCRE pattern modifier(s) to be used in conjunction with the above variables:
     // More info: <http://www.php.net/manual/en/reference.pcre.pattern.modifiers.php>
-    $patternModifiers = "u"; // the "u" (PCRE_UTF8) pattern modifier causes PHP/PCRE to treat pattern strings as UTF-8
+    // the "u" (PCRE_UTF8) pattern modifier causes PHP/PCRE to treat pattern strings as UTF-8.
+    $patternModifiers = "u";
     return array($alnum, $alpha, $cntrl, $dash, $digit, $graph, $lower,
-    $print, $punct, $space, $upper, $word, $patternModifiers);
+      $print, $punct, $space, $upper, $word, $patternModifiers,
+    );
   }
 
 }

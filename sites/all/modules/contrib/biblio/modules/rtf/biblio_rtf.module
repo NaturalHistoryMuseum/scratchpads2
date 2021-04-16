@@ -1,6 +1,10 @@
 <?php
-/*
- * @file biblio_rtf.module
+
+/**
+ * @file
+ */
+
+/**
  *
  */
 function biblio_rtf_views_api() {
@@ -10,10 +14,16 @@ function biblio_rtf_views_api() {
   );
 }
 
+/**
+ *
+ */
 function biblio_rtf_biblio_export_options() {
   return array('rtf' => t('RTF'));
 }
 
+/**
+ *
+ */
 function biblio_rtf_node_view($node, $view_mode) {
   if ($node->type == 'biblio') {
     switch ($view_mode) {
@@ -27,41 +37,55 @@ function biblio_rtf_node_view($node, $view_mode) {
     }
   }
 }
+
+/**
+ *
+ */
 function biblio_rtf_link($type, $node = NULL, $teaser = FALSE) {
-  if ($type != 'node' && $node->type != 'biblio') return;
+  if ($type != 'node' && $node->type != 'biblio') {
+    return;
+  }
 
   return biblio_rtf_biblio_export_link($node->nid);
 }
 
 /**
- * Creates a link to export a node (or view) in rtf format
+ * Creates a link to export a node (or view) in rtf format.
  *
- * @param $base this is the base url (defaults to /biblio)
- * @param $nid  the node id, if NULL then the current view is exported
- * @return  a link (<a href=...>rtf</a>)
+ * @param $base
+ *   this is the base url (defaults to /biblio)
+ * @param $nid
+ *   the node id, if NULL then the current view is exported
+ *
+ * @return a link (<a href=...>rtf</a>)
  */
 function biblio_rtf_biblio_export_link($nid = NULL, $filter = array()) {
   $show_link = variable_get('biblio_export_links', array('rtf' => TRUE));
-  if (!isset($show_link['rtf']) || empty($show_link['rtf']) || !biblio_access('export') ) {
+  if (!isset($show_link['rtf']) || empty($show_link['rtf']) || !biblio_access('export')) {
     return array();
   }
   $base = variable_get('biblio_base', 'biblio');
 
   $link = array(
-      'attributes' => array(
-           'title' => t("Click to download the RTF formatted file"),
-            'rel'  => 'nofollow')
-      );
+    'attributes' => array(
+      'title' => t("Click to download the RTF formatted file"),
+      'rel'  => 'nofollow',
+    ),
+  );
 
-  $link['href']  = (!empty($nid) ? "$base/export/rtf/$nid" : "$base/export/rtf");
+  $link['href'] = (!empty($nid) ? "$base/export/rtf/$nid" : "$base/export/rtf");
   $link['title'] = t('RTF');
 
-  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+  // Add any filters which may be on the current page.
+  if (empty($nid) && !empty($filter)) {
     $link['query'] = $filter;
   }
   return array('biblio_rtf' => $link);
 }
 
+/**
+ *
+ */
 function biblio_rtf_biblio_export($nids) {
   $count = 0;
   $variables = array(
@@ -70,7 +94,7 @@ function biblio_rtf_biblio_export($nids) {
 
   $nodes = node_load_multiple($nids, array(), TRUE);
   foreach ($nodes as $node) {
-    if (variable_get('biblio_hide_bibtex_braces', 0) ) {
+    if (variable_get('biblio_hide_bibtex_braces', 0)) {
       $node->title = biblio_remove_brace($node->title);
     }
     $count++;
@@ -90,6 +114,7 @@ function biblio_rtf_biblio_export($nids) {
 
     $rtf->addText(filter_xss(theme('biblio_style', $variables) . '<br><br>', array('i', 'b', 'br', 'u', 'p', 'strong', 'em', 'sub', 'sup', 'ul', 'li')));
   }
-  if ($count > 0) $rtf->getDocument();
+  if ($count > 0) {
+    $rtf->getDocument();
+  }
 }
-

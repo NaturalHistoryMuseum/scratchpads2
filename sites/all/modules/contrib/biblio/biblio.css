@@ -15,18 +15,21 @@
   text-align: center;
 }
 
-dl.bibliomultiselect dd.b,dl.bibliomultiselect dd.b .form-item,dl.bibliomultiselect dd.b select
-  {
+dl.bibliomultiselect dd.b,
+dl.bibliomultiselect dd.b .form-item,
+dl.bibliomultiselect dd.b select {
   font-family: inherit;
   font-size: inherit;
   width: 14em;
 }
 
-dl.bibliomultiselect dd.a,dl.bibliomultiselect dd.a .form-item {
+dl.bibliomultiselect dd.a,
+dl.bibliomultiselect dd.a .form-item {
   width: 8em;
 }
 
-dl.bibliomultiselect dt,dl.bibliomultiselect dd {
+dl.bibliomultiselect dt,
+dl.bibliomultiselect dd {
   float: left;
   line-height: 1.75em;
   padding: 0;
@@ -37,7 +40,8 @@ dl.bibliomultiselect .form-item {
   height: 1.75em;
   margin: 0;
 }
-#biblio-authors table, #biblio-tertiary-authors  table  {
+#biblio-authors table,
+#biblio-tertiary-authors  table {
   width: 100%;
 }
 #biblio-authors  .form-text {
@@ -47,7 +51,7 @@ dl.bibliomultiselect .form-item {
 #biblio-secondary-authors td.biblio-contributor,
 #biblio-tertiary-authors td.biblio-contributor,
 #biblio-subsidiary-authors  td.biblio-contributor,
-#biblio-corp-authors td.biblio-contributor{
+#biblio-corp-authors td.biblio-contributor {
   width: 98%;
 }
 #biblio-authors #biblio-tertiary-authors .draggable a.tabledrag-handle {
@@ -58,17 +62,20 @@ dl.bibliomultiselect .form-item {
   width: 97%;
   color: Black;
   font-weight: normal;
-  background-color: #EAEAEA;
+  background-color: #eaeaea;
   border: medium solid;
-  border-left-color: #F0F8FF;
+  border-left-color: #f0f8ff;
   border-right-color: Gray;
   border-bottom-color: Gray;
-  border-top-color: #F0F8FF;
+  border-top-color: #f0f8ff;
   padding: 3px;
 }
 
-.biblio-head a:link,.biblio-head a.active,.biblio-head a:visited,.biblio-head a:focus,.biblio-head a:hover
-  {
+.biblio-head a:link,
+.biblio-head a.active,
+.biblio-head a:visited,
+.biblio-head a:focus,
+.biblio-head a:hover {
   color: black;
 }
 
@@ -91,10 +98,10 @@ dl.bibliomultiselect .form-item {
   font-weight: bold;
   background-color: Silver;
   border: medium solid;
-  border-left-color: #F0F8FF;
+  border-left-color: #f0f8ff;
   border-right-color: Gray;
   border-bottom-color: Gray;
-  border-top-color: #F0F8FF;
+  border-top-color: #f0f8ff;
   padding: 3px;
 }
 
@@ -122,10 +129,6 @@ dl.bibliomultiselect .form-item {
   color: #336599;
 }
 
-a:active {
-
-}
-
 .biblio-authors a {
   font-weight: normal;
   text-decoration: none;
@@ -133,39 +136,39 @@ a:active {
 }
 
 .biblio_type-1 {
-  background-color: #F2F2D9;
+  background-color: #f2f2d9;
 }
 
 .biblio_type-2 {
-  background-color: #D9E6F2;
+  background-color: #d9e6f2;
 }
 
 .biblio_type-3 {
-  background-color: #E5F2D9;
+  background-color: #e5f2d9;
 }
 
 .biblio_type-4 {
-  background-color: #D9F2E6;
+  background-color: #d9f2e6;
 }
 
 .biblio_type-5 {
-  background-color: #F2E6D9;
+  background-color: #f2e6d9;
 }
 
 .biblio_type-6 {
-  background-color: #D9E6F2;
+  background-color: #d9e6f2;
 }
 
 .biblio_type-7 {
-  background-color: #D9E6F2;
+  background-color: #d9e6f2;
 }
 
 .biblio_type-8 {
-  background-color: #D9E6F2;
+  background-color: #d9e6f2;
 }
 
 .biblio_type-9 {
-  background-color: #D9E6F2;
+  background-color: #d9e6f2;
 }
 
 .biblio-export {
@@ -192,7 +195,8 @@ a:active {
   line-height: 100%;
 }
 
-ul.biblio-export-buttons,ul.biblio-export-buttons li {
+ul.biblio-export-buttons,
+ul.biblio-export-buttons li {
   background: transparent;
   list-style-image: none;
   list-style-type: none;
@@ -333,8 +337,8 @@ ul.biblio-export-buttons,ul.biblio-export-buttons li {
   margin-right: 1em; /* LTR */
 }
 .biblio-highlight {
-    background-color: #FFF4F4;
-    border: 2px solid #494949;
+  background-color: #fff4f4;
+  border: 2px solid #494949;
 }
 
 #biblio-node {

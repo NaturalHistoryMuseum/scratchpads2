@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Database table creation for biblio_crossref module.
@@ -11,6 +12,9 @@ function biblio_crossref_install() {
   _save_crossref_maps();
 }
 
+/**
+ *
+ */
 function biblio_crossref_uninstall() {
   if (db_table_exists('biblio_type_maps')) {
     db_delete('biblio_type_maps')
@@ -19,16 +23,26 @@ function biblio_crossref_uninstall() {
   }
 }
 
+/**
+ *
+ */
 function biblio_crossref_enable() {
   biblio_crossref_set_system_weight();
 }
 
+/**
+ *
+ */
 function biblio_crossref_set_system_weight() {
   db_update('system')
     ->fields(array('weight' => 20))
     ->condition('name', 'biblio_crossref')
     ->execute();
 }
+
+/**
+ *
+ */
 function _save_crossref_maps() {
   $typemap = _get_crossref_type_map();
   $typenames = _get_crossref_type_names();
@@ -36,93 +50,117 @@ function _save_crossref_maps() {
   $maps = array_merge($typemap, $typenames, $fieldmap);
   biblio_save_map($maps);
 }
+
+/**
+ *
+ */
 function _reset_crossref_map($type) {
   $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='crossref'")->fetchField();
-  if ($count && $type) { //update
+  // Update.
+  if ($count && $type) {
     $function = '_get_crossref_' . $type;
-    if (!function_exists($function)) return;
+    if (!function_exists($function)) {
+      return;
+    }
     $map = $function();
     db_update('biblio_type_maps')
       ->fields($map)
       ->condition('format', 'crossref')
       ->execute();
   }
-  else { // install
-//    db_query("DELETE FROM {biblio_type_maps} WHERE format='crossref'");
+  // Install.
+  else {
+    // db_query("DELETE FROM {biblio_type_maps} WHERE format='crossref'");.
     db_delete('biblio_type_maps')
       ->condition('format', 'crossref')
       ->execute();
-      _save_crossref_maps();
+    _save_crossref_maps();
   }
 }
 
+/**
+ *
+ */
 function _get_crossref_type_map() {
   $map['type_map'] = serialize(
         array(
-                'error'        => 0,
-                'book'         => 100, // Book
-                'journal'      => 102, // Journal Article
-                'standard'     => 129, // Generic
-                'conference'   => 103, // conference_paper
-                'report-paper' => 109, // Report
-                'dissertation' => 108, // Thesis
-                'database'     => 125, // online database
-                'sa_component' => 129
+          'error'        => 0,
+          // Book.
+          'book'         => 100,
+          // Journal Article.
+          'journal'      => 102,
+          // Generic.
+          'standard'     => 129,
+          // conference_paper.
+          'conference'   => 103,
+          // Report.
+          'report-paper' => 109,
+          // Thesis.
+          'dissertation' => 108,
+          // Online database.
+          'database'     => 125,
+          'sa_component' => 129,
         )
   );
   $map['format'] = 'crossref';
   return $map;
 }
 
+/**
+ *
+ */
 function _get_crossref_type_names() {
-  $map['type_names'] =  serialize(
+  $map['type_names'] = serialize(
         array(
-                'error'        => 'Error',
-                'book'         => 'Book',
-                'journal'      => 'Journal Article',
-                'standard'     => 'Generic',
-                'conference'   => 'Conference Paper',
-                'report-paper' => 'Report',
-                'dissertation' => 'Thesis',
-                'database'     => 'Online database',
-                'sa_component' => 'SA Component',
+          'error'        => 'Error',
+          'book'         => 'Book',
+          'journal'      => 'Journal Article',
+          'standard'     => 'Generic',
+          'conference'   => 'Conference Paper',
+          'report-paper' => 'Report',
+          'dissertation' => 'Thesis',
+          'database'     => 'Online database',
+          'sa_component' => 'SA Component',
         )
   );
   $map['format'] = 'crossref';
   return $map;
 }
 
+/**
+ *
+ */
 function _get_crossref_field_map() {
-  $map['field_map'] =  serialize(
+  $map['field_map'] = serialize(
         array(
-                'publisher_place'     => 'biblio_place_published',
-                'publisher_name'      => 'biblio_publisher',
-                'volume'              => 'biblio_volume',
-                'number'              => 'biblio_number',
-                'issue'               => 'biblio_issue',
-                'edition_number'      => 'biblio_edition',
-                'section'             => 'biblio_section',
-                'doi'                 => 'biblio_doi',
-                'title'               => 'title',
-                'isbn'                => 'biblio_isbn',
-                'issn'                => 'biblio_issn',
-                'first_page'          => 'biblio_first_page',
-                'last_page'           => 'biblio_last_page',
-                // Journal metadata
-                'full_title'          => 'biblio_secondary_title',
-                'abbrev_title'        => 'biblio_short_title',
-                // Conference metadata
-                'conference_location' => 'biblio_place_published',
-                'conference_name'     => 'biblio_secondary_title',
-                'conference_acronym'  => 'biblio_short_title',
-                // Proceedings metadata
-                'proceedings_title'   => 'biblio_secondary_title',
-                'year'                => 'year',
-                'month'               => 'month',
-                'day'                 => 'day',
-                'degree'              => 'biblio_type_of_work',
-                'error'               => 'error',
-                'language'            => 'biblio_lang',
+          'publisher_place'     => 'biblio_place_published',
+          'publisher_name'      => 'biblio_publisher',
+          'volume'              => 'biblio_volume',
+          'number'              => 'biblio_number',
+          'issue'               => 'biblio_issue',
+          'edition_number'      => 'biblio_edition',
+          'section'             => 'biblio_section',
+          'doi'                 => 'biblio_doi',
+          'title'               => 'title',
+          'isbn'                => 'biblio_isbn',
+          'issn'                => 'biblio_issn',
+          'first_page'          => 'biblio_first_page',
+          'last_page'           => 'biblio_last_page',
+          // Journal metadata.
+          'full_title'          => 'biblio_secondary_title',
+          'abbrev_title'        => 'biblio_short_title',
+          // Conference metadata.
+          'conference_location' => 'biblio_place_published',
+          'conference_name'     => 'biblio_secondary_title',
+          'conference_acronym'  => 'biblio_short_title',
+          // Proceedings metadata.
+          'proceedings_title'   => 'biblio_secondary_title',
+          'year'                => 'year',
+          'month'               => 'month',
+          'day'                 => 'day',
+          'degree'              => 'biblio_type_of_work',
+          'error'               => 'error',
+          'language'            => 'biblio_lang',
         )
   );
 
@@ -144,8 +182,8 @@ function biblio_crossref_schema() {
       'nid'       => array('type' => 'int', 'not null' => TRUE),
       'biblio_crossref_md5'       => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
       'biblio_crossref_id' => array('type' => 'char', 'length' => 255, 'not null' => TRUE),
-      ),
-  'primary key' => array('nid'),
+    ),
+    'primary key' => array('nid'),
   );
   return $schema;
 }

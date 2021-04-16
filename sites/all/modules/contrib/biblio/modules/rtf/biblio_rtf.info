@@ -4,11 +4,9 @@ core = 7.x
 package = Biblio
 dependencies[] = biblio
 files[] = rtf_export.inc
-files[] = views/biblio_handler_field_export_link_rtf.inc
 
-; Information added by Drupal.org packaging script on 2016-04-08
-version = "7.x-1.0-rc7+31-dev"
+; Information added by Drupal.org packaging script on 2020-09-08
+version = "7.x-1.4"
 core = "7.x"
 project = "biblio"
-datestamp = "1460079871"
-
+datestamp = "1599573145"

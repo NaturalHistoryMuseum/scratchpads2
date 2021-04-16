@@ -1,16 +1,30 @@
 <?php
+
+/**
+ *
+ */
 class biblio_handler_citation extends views_handler_field {
-  function init(&$view, &$options) {
+
+  /**
+   *
+   */
+  public function init(&$view, &$options) {
     parent::init($view, $options);
     $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
   }
 
-  function query() {
+  /**
+   *
+   */
+  public function query() {
     $this->field_alias = 'nid';
     $this->add_additional_fields();
   }
 
-  function option_definition() {
+  /**
+   *
+   */
+  public function option_definition() {
     $options = parent::option_definition();
     $options['style_name'] = array('default' => biblio_get_style());
     $options['export_links'] = array('default' => 1);
@@ -19,37 +33,43 @@ class biblio_handler_citation extends views_handler_field {
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   *
+   */
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $form['style_name'] = array(
       '#type' => 'select',
       '#title' => t('Style'),
       '#default_value' => $this->options['style_name'],
       '#options' => biblio_get_styles(),
-      '#description' => t('Define the layout of citation.')
+      '#description' => t('Define the layout of citation.'),
     );
     $form['export_links'] = array(
       '#type' => 'checkbox',
       '#title' => t('Show export links'),
       '#default_value' => $this->options['export_links'],
-      '#description' => t('This will add a set of links to export the entry in various file formats such as Bibtex or RIS.')
+      '#description' => t('This will add a set of links to export the entry in various file formats such as Bibtex or RIS.'),
     );
     $form['file_attachments'] = array(
       '#type' => 'checkbox',
       '#title' => t('Show download links for file attachments'),
       '#default_value' => $this->options['file_attachments'],
-      '#description' => t('If there are files attached to the entry, this will add a download link for each file attached.')
+      '#description' => t('If there are files attached to the entry, this will add a download link for each file attached.'),
     );
     $form['open_url_link'] = array(
       '#type' => 'checkbox',
       '#title' => t('Show OpenURL links'),
       '#default_value' => $this->options['open_url_link'],
-      '#description' => t('This will add an !openurl link to the entry, assuming you have competed the OpenURL configuration on the Biblio !settings page.', array('!openurl' => l('OpenURL', "http://en.wikipedia.org/wiki/OpenURL"), '!settings' => l('settings', 'admin/config/content/biblio') )),
+      '#description' => t('This will add an !openurl link to the entry, assuming you have competed the OpenURL configuration on the Biblio !settings page.', array('!openurl' => l('OpenURL', "http://en.wikipedia.org/wiki/OpenURL"), '!settings' => l('settings', 'admin/config/content/biblio'))),
     );
   }
 
-  function pre_render(&$values) {
-    $nids  = array();
+  /**
+   *
+   */
+  public function pre_render(&$values) {
+    $nids = array();
     $nodes = array();
 
     foreach ($values as $result) {
@@ -63,7 +83,7 @@ class biblio_handler_citation extends views_handler_field {
       $nodes = node_load_multiple($nids);
       if (!empty($nodes)) {
         field_attach_prepare_view('node', $nodes, 'full', $langcode);
-        entity_prepare_view('node',  $nodes, $langcode);
+        entity_prepare_view('node', $nodes, $langcode);
 
         foreach ($values as $key => $result) {
           if (isset($result->{$this->aliases['nid']})) {
@@ -74,7 +94,10 @@ class biblio_handler_citation extends views_handler_field {
     }
   }
 
-  function render($values) {
+  /**
+   *
+   */
+  public function render($values) {
     $output = '';
 
     if (!isset($values->node) || $values->node->type != 'biblio') {
@@ -87,7 +110,9 @@ class biblio_handler_citation extends views_handler_field {
 
     $item = $values->node;
 
-    if (isset($item->biblio_year)) $item->biblio_year = _biblio_text_year($item->biblio_year);
+    if (isset($item->biblio_year)) {
+      $item->biblio_year = _biblio_text_year($item->biblio_year);
+    }
     if (variable_get('biblio_hide_bibtex_braces', 0)) {
       $item->title = biblio_remove_brace($item->title);
     }
@@ -96,11 +121,11 @@ class biblio_handler_citation extends views_handler_field {
       $output .= '<div id="node-' . $item->nid . '" class="node node-unpublished">';
     }
 
-    // first add the styled entry...
+    // First add the styled entry...
     $output .= theme('biblio_style', array('node' => $item, 'style_name' => $this->options['style_name']));
 
     $annotation_field = variable_get('biblio_annotations', 'none');
-    if ($annotation_field != 'none' && $item-> $annotation_field) {
+    if ($annotation_field != 'none' && $item->$annotation_field) {
       $output .= '<div class="biblio-annotation">';
       $output .= filter_xss($item->$annotation_field, biblio_get_allowed_tags());
       $output .= '</div>';
@@ -123,6 +148,6 @@ class biblio_handler_citation extends views_handler_field {
     }
 
     return $output;
-   }
+  }
 
 }

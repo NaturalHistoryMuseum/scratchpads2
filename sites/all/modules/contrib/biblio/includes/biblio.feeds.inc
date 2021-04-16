@@ -1,14 +1,22 @@
 <?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
 function _biblio_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   if ($entity_type == 'node' && $bundle_name == 'biblio') {
     $schema = drupal_get_schema('biblio');
     foreach ($schema['fields'] as $field => $spec) {
       if (strstr($field, 'biblio_')) {
         $type = $spec['type'];
-        $length = isset($spec['length']) ? ' ['. $spec['length'] . ']': '';
+        $length = isset($spec['length']) ? ' [' . $spec['length'] . ']' : '';
         $targets[$field] = array(
           'name' => $field . '  (' . $type . $length . ')',
-          'description' =>'',
+          'description' => '',
           'callback' => '_biblio_feeds_set__simple_target',
         );
       }
@@ -18,17 +26,20 @@ function _biblio_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_
       'name' => t('biblio_contributor'),
       'description' => t('This is a contributor (author) contained in a biblio entry.'),
       'callback' => '_biblio_feeds_set__contrib_target',
- //     'real_target' => 'my_node_field_two', // Specify real target field on node.
+    // 'real_target' => 'my_node_field_two', // Specify real target field on node.
     );
     $targets['biblio_keyword'] = array(
       'name' => t('biblio_keyword'),
       'description' => t('This is a keyword contained in a biblio entry.'),
       'callback' => '_biblio_feeds_set__keyword_target',
- //     'real_target' => 'my_node_field_two', // Specify real target field on node.
+    // 'real_target' => 'my_node_field_two', // Specify real target field on node.
     );
   }
 }
 
+/**
+ *
+ */
 function _biblio_feeds_set__type_target($source, $entity, $target, $value) {
   static $types = array();
 
@@ -43,7 +54,7 @@ function _biblio_feeds_set__type_target($source, $entity, $target, $value) {
 
   if (isset($value[0]) && !empty($value[0])) {
     if (intval($value[0]) > 0) {
-      // value[0] is the bibio type ID
+      // value[0] is the bibio type ID.
       if (empty($types)) {
         $result = db_query('SELECT t.* FROM {biblio_types} as t WHERE t.tid > 0');
         foreach ($result as $row) {
@@ -55,11 +66,11 @@ function _biblio_feeds_set__type_target($source, $entity, $target, $value) {
       $entity->biblio_type = (isset($types[$type_id])) ? $type_id : 129;
     }
     elseif (is_string($value[0])) {
-      // value[0] is the bibio type name
+      // value[0] is the bibio type name.
       if (empty($types)) {
         $result = db_query('SELECT t.* FROM {biblio_types} as t WHERE t.tid > 0');
         foreach ($result as $row) {
-          $types[$row->tid] = str_replace(" ","_", strtolower($row->name));
+          $types[$row->tid] = str_replace(" ", "_", strtolower($row->name));
         }
       }
 
@@ -69,6 +80,9 @@ function _biblio_feeds_set__type_target($source, $entity, $target, $value) {
   }
 }
 
+/**
+ *
+ */
 function _biblio_feeds_set__simple_target($source, $entity, $target, $value) {
   if (empty($value)) {
     return;
@@ -87,27 +101,36 @@ function _biblio_feeds_set__simple_target($source, $entity, $target, $value) {
   }
 }
 
+/**
+ *
+ */
 function _biblio_feeds_set__contrib_target($source, $entity, $target, $value) {
   if (is_string($value)) {
     $value = explode('||', $value);
   }
   foreach ($value as $author) {
-    $entity->biblio_contributors[] =  array(
-            'name' => $author,
-            'auth_category' => 1,
-          );
+    $entity->biblio_contributors[] = array(
+      'name' => $author,
+      'auth_category' => 1,
+    );
   }
 }
 
+/**
+ *
+ */
 function _biblio_feeds_set__keyword_target($source, $entity, $target, $value) {
   if (!empty($value)) {
     $entity->biblio_keywords = $value;
   }
 }
 
+/**
+ *
+ */
 function _biblio_feeds_oai_importer_default() {
 
-  $feeds_importer = new stdClass;
+  $feeds_importer = new stdClass();
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
   $feeds_importer->id = 'biblio_oai_pmh';
@@ -206,6 +229,6 @@ function _biblio_feeds_oai_importer_default() {
   );
 
   return array(
-    'biblio_oai' => $feeds_importer
+    'biblio_oai' => $feeds_importer,
   );
 }

@@ -5,10 +5,14 @@ dependencies[] = taxonomy
 package = Biblio
 
 configure = admin/config/content/biblio
-files[] = tests/biblio.test
-files[] = tests/keyword.test
-files[] = tests/contributor.test
-files[] = tests/import.export.test
+
+files[] = tests/BiblioContributorUnitTest.test
+files[] = tests/BiblioContributorWebTestCase.test
+files[] = tests/BiblioImportExportWebTestCase.test
+files[] = tests/BiblioKeywordWebTestCase.test
+files[] = tests/BiblioNodeCreationTestCase.test
+files[] = tests/BiblioPageViewTestCase.test
+files[] = tests/BiblioWebTestCase.test
 
 files[] = includes/Name.php
 files[] = includes/Parser.php
@@ -31,9 +35,10 @@ files[] = views/biblio_handler_filter_contributor.inc
 files[] = views/biblio_handler_sort_contributor_lastname.inc
 files[] = views/biblio_handler_argument_many_to_one.inc
 files[] = views/biblio_handler_field_export_link.inc
-; Information added by Drupal.org packaging script on 2016-04-08
-version = "7.x-1.0-rc7+31-dev"
+php = 5.3
+
+; Information added by Drupal.org packaging script on 2020-09-08
+version = "7.x-1.4"
 core = "7.x"
 project = "biblio"
-datestamp = "1460079871"
-
+datestamp = "1599573145"

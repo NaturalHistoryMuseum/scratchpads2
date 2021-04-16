@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Database table creation for biblio_pm module.
@@ -10,6 +11,9 @@
 function biblio_pm_install() {
 }
 
+/**
+ *
+ */
 function biblio_pm_uninstall() {
   variable_del('biblio_pm_dup_action');
   variable_del('biblio_pm_auto_update');
@@ -20,10 +24,16 @@ function biblio_pm_uninstall() {
 
 }
 
+/**
+ *
+ */
 function biblio_pm_enable() {
   biblio_pm_set_system_weight();
 }
 
+/**
+ *
+ */
 function biblio_pm_set_system_weight() {
   db_update('system')
     ->fields(array('weight' => 19))
@@ -43,26 +53,26 @@ function biblio_pm_schema() {
     'fields' => array(
       'biblio_pubmed_id' => array(
         'type'     => 'int',
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'biblio_pmcid' => array(
         'type'     => 'varchar',
         'length' => 20,
       ),
-        'nid' => array(
+      'nid' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'biblio_pubmed_md5' => array(
         'type' => 'char',
         'length' => 32,
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'biblio_pm_changed' => array(
         'description' => 'The Unix timestamp when the pmid was most recently saved.',
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
       ),
     ),
     'primary key' => array('nid'),
@@ -77,11 +87,11 @@ function biblio_pm_schema() {
       ),
       'nid' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
-        'biblio_pubmed_id' => array(
+      'biblio_pubmed_id' => array(
         'type'     => 'int',
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'grantid' => array(
         'type'     => 'varchar',
@@ -105,51 +115,43 @@ function biblio_pm_schema() {
   return $schema;
 }
 
+/**
+ * UPDATES.
+ */
 
 /**
-*
-* UPDATES
-*
-*/
-
-
-/**
-*
-* add two new fields to the biblio_pubmed table
-*
-*/
-
+ * Add two new fields to the biblio_pubmed table.
+ */
 function biblio_pm_update_7001() {
-  $spec =  array(
+  $spec = array(
     'description' => 'The Unix timestamp when the pmid was most recently saved.',
     'type' => 'int',
     'not null' => TRUE,
-    'default' => 0
+    'default' => 0,
   );
   db_add_field('biblio_pubmed', 'biblio_pm_changed', $spec);
-  $spec =  array(
+  $spec = array(
     'type'     => 'int',
     'not null' => TRUE,
     'default'  => 0,
   );
   db_add_field('biblio_pubmed', 'biblio_pmcid', $spec);
 }
-/**
-*
-* change field type for biblio_pmcid field to the biblio_pubmed table
-*
-*/
 
+/**
+ * Change field type for biblio_pmcid field to the biblio_pubmed table.
+ */
 function biblio_pm_update_7002() {
-  $spec =  array(
+  $spec = array(
     'type'     => 'varchar',
     'length'   => 20,
     'not null' => FALSE,
   );
   db_change_field('biblio_pubmed', 'biblio_pmcid', 'biblio_pmcid', $spec);
 }
+
 /**
- * Add a new table 'biblio_pubmed_grant_info'
+ * Add a new table 'biblio_pubmed_grant_info'.
  */
 function biblio_pm_update_7004() {
   $schema = biblio_pm_schema();

@@ -1,18 +1,21 @@
 <?php
-/*
- * @file biblio_marc.module
- *
+
+/**
+ * @file
  */
 
-/*
- *   add the marc option to the option list of the biblio_import_form
- *   the key is the module name use by module_invoke to call hook_biblio_import
- *   module_invoke('biblio_marc', 'biblio_import',...)
+/**
+ * Add the marc option to the option list of the biblio_import_form
+ * the key is the module name use by module_invoke to call hook_biblio_import
+ * module_invoke('biblio_marc', 'biblio_import',...)
  */
 function biblio_marc_biblio_import_options() {
   return array('biblio_marc' => t('MARC'));
 }
 
+/**
+ *
+ */
 function biblio_marc_node_delete($node) {
   if ($node->type != 'biblio') {
     return;
@@ -22,6 +25,9 @@ function biblio_marc_node_delete($node) {
     ->execute();
 }
 
+/**
+ *
+ */
 function biblio_marc_node_insert($node) {
   if ($node->type != 'biblio') {
     return;
@@ -32,12 +38,15 @@ function biblio_marc_node_insert($node) {
   drupal_write_record('biblio_marc', $node);
 }
 
+/**
+ *
+ */
 function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
   $nids = array();
   $dups = array();
   module_load_include('php', 'biblio_marc', 'php-marc');
   $marcfile = new File($file->uri);
-  while ($record = $marcfile->next() ) {
+  while ($record = $marcfile->next()) {
     $node = new stdClass();
     $node->biblio_contributors = array();
     $fields = $record->fields();
@@ -54,73 +63,92 @@ function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $ses
             $node->biblio_year = substr($data, 7, 4);
             $node->biblio_lang = substr($data, 35, 3);
             break;
+
           case '020':
             $node->biblio_isbn = $field->subfield('a');
             break;
+
           case '022':
             $node->biblio_issn = $field->subfield('a');
             break;
+
           case '024':
             $node->biblio_other_number = $field->subfield('a');
             break;
-          case '050': //LIBRARY OF CONGRESS CALL NUMBER
-          case '055': //CLASSIFICATION NUMBERS ASSIGNED IN CANADA
-          case '060': //NATIONAL LIBRARY OF MEDICINE CALL NUMBER
+
+          // LIBRARY OF CONGRESS CALL NUMBER.
+          case '050':
+            // CLASSIFICATION NUMBERS ASSIGNED IN CANADA.
+          case '055':
+            // NATIONAL LIBRARY OF MEDICINE CALL NUMBER.
+          case '060':
             $node->biblio_call_number = $field->subfield('a');
             break;
+
           case '130':
             $node->title = str_replace(' /', '', $field->subfield('a'));
             break;
+
           case '210':
             $node->biblio_short_title = str_replace(' /', '', $field->subfield('a'));
             break;
+
           case '245':
             $node->title = str_replace(' /', '', $field->subfield('a')) . ' ' . $field->subfield('b');
             break;
+
           case '250':
             $node->biblio_edition = $field->subfield('a');
             break;
+
           case '260':
             $node->biblio_place_published = str_replace(' :', '', $field->subfield('a'));
             $node->biblio_publisher = $field->subfield('b');
             $node->biblio_date = $field->subfield('c');
             break;
+
           case '300':
             $node->biblio_pages = $field->subfield('a');
             break;
+
           case '490':
             $node->biblio_volume = $field->subfield('v');
             break;
+
           case ($tagnum >= 500 && $tagnum <= 599):
             $value = $field->subfield('a');
             if (!empty($value)) {
               $node->biblio_notes .= $value;
             }
             break;
+
           case '650':
             foreach ($field->subfields() as $subject) {
               $node->biblio_keywords[] = $subject[0];
             }
             break;
+
           case '100':
           case '700':
             $value = $field->subfield('a');
             if (!empty($value)) {
               $node->biblio_contributors[] = array(
-              'name' => $value,
-              'auth_category' => 1,
-              'auth_type' => 1
+                'name' => $value,
+                'auth_category' => 1,
+                'auth_type' => 1,
               );
             }
             break;
+
           case '110':
           case '710':
             $node->biblio_contributors[] = array(
               'name' => $field->subfield('a'),
               'auth_category' => 5,
-              'auth_type' => 5
+              'auth_type' => 5,
             );
             break;
+
           case '856':
             $value = $field->subfield('u');
             if (!empty($value)) {
@@ -133,9 +161,11 @@ function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $ses
     if (!empty($node)) {
       $node->biblio_marc_md5 = md5(serialize($node));
 
-      if (! ($dup = biblio_marc_check_md5($node->biblio_marc_md5))) {
+      if (!($dup = biblio_marc_check_md5($node->biblio_marc_md5))) {
         biblio_save_node($node, $terms, $batch, $session_id);
-        if (!empty($node->nid)) $nids[] = $node->nid;
+        if (!empty($node->nid)) {
+          $nids[] = $node->nid;
+        }
       }
       else {
         $dups[] = $dup;
@@ -146,6 +176,9 @@ function biblio_marc_biblio_import($file, $terms = array(), $batch = FALSE, $ses
   return array($nids, $dups);
 }
 
+/**
+ *
+ */
 function biblio_marc_check_md5($md5) {
   static $marc_md5s = array();
   if (empty($marc_md5s)) {
@@ -158,12 +191,15 @@ function biblio_marc_check_md5($md5) {
     return $marc_md5s[$md5];
   }
   else {
-    $marc_md5s[$md5] = TRUE; // gaurd against duplicates in the same import
+    // Gaurd against duplicates in the same import.
+    $marc_md5s[$md5] = TRUE;
     return;
   }
 }
 
-
+/**
+ *
+ */
 function _biblio_marc_type_map($type, $reverse = FALSE) {
   static $map = array();
 
@@ -172,15 +208,23 @@ function _biblio_marc_type_map($type, $reverse = FALSE) {
   }
 
   if ($reverse) {
-    return ($tag = array_search($type, $map)) ? $tag : 'Generic'; //return the biblio type or 129 (Misc) if type not found
+    // Return the biblio type or 129 (Misc) if type not found.
+    return ($tag = array_search($type, $map)) ? $tag : 'Generic';
   }
-  return (isset($map[$type]))?$map[$type]:129; //return the biblio type or 129 (Misc) if type not found
+  // Return the biblio type or 129 (Misc) if type not found.
+  return (isset($map[$type])) ? $map[$type] : 129;
 }
 
+/**
+ *
+ */
 function biblio_marc_biblio_export_options() {
   return array('marc' => t('MARC'));
 }
 
+/**
+ *
+ */
 function biblio_marc_node_view($node, $view_mode) {
   if ($node->type == 'biblio') {
     switch ($view_mode) {
@@ -196,10 +240,12 @@ function biblio_marc_node_view($node, $view_mode) {
 }
 
 /**
- * Creates a link to export a node (or view) in MARC format
+ * Creates a link to export a node (or view) in MARC format.
  *
- * @param $nid  the node id, if NULL then the current view is exported
- * @return  a link (<a href=...>marc</a>)
+ * @param $nid
+ *   the node id, if NULL then the current view is exported
+ *
+ * @return a link (<a href=...>marc</a>)
  */
 function biblio_marc_biblio_export_link($nid = NULL, $filter = array()) {
   $show_link = variable_get('biblio_export_links', array('marc' => TRUE));
@@ -210,31 +256,39 @@ function biblio_marc_biblio_export_link($nid = NULL, $filter = array()) {
 
   if (module_exists('popups') && !empty($nid)) {
     $link = array(
-        'attributes' => array(
-          'class' => 'popups',
-          'title' => t("Click to get the MARC formatted output")));
+      'attributes' => array(
+        'class' => 'popups',
+        'title' => t("Click to get the MARC formatted output"),
+      ),
+    );
   }
   else {
     $link = array(
-        'attributes' => array(
-          'title' => t("Click to download the MARC formatted file")));
+      'attributes' => array(
+        'title' => t("Click to download the MARC formatted file"),
+      ),
+    );
   }
 
   $link['attributes'] += array('rel' => 'nofollow');
 
-  $link['href']  = "$base/export/marc";
+  $link['href'] = "$base/export/marc";
   if (!empty($nid)) {
     $link['href'] .= '/' . $nid;
   }
   $link['title'] = t('MARC');
 
-  if (empty($nid) && !empty($filter)) { // add any filters which may be on the current page
+  // Add any filters which may be on the current page.
+  if (empty($nid) && !empty($filter)) {
     $link['query'] = $filter;
   }
 
   return array('biblio_marc' => $link);
 }
 
+/**
+ *
+ */
 function biblio_marc_biblio_export($nids) {
   if (module_exists('popups') && count($nids)) {
     $popup = TRUE;
@@ -250,21 +304,26 @@ function biblio_marc_biblio_export($nids) {
     if (!$popup) {
       print _biblio_marc_export($node);
     }
-    else{
-      $popup_data .=  _biblio_marc_export($node);
+    else {
+      $popup_data .= _biblio_marc_export($node);
     }
   }
-  if ($popup && !empty($popup_data)) return '<pre>' . $popup_data . '</pre>';
+  if ($popup && !empty($popup_data)) {
+    return '<pre>' . $popup_data . '</pre>';
+  }
 }
 
-function  _biblio_marc_export($node) {
+/**
+ *
+ */
+function _biblio_marc_export($node) {
   module_load_include('php', 'biblio_marc', 'php-marc');
   $record = new Record();
-  //           case '008':
+  // Case '008':
   //             $data = $field->data();
   //             $node->biblio_year = substr($data, 7, 4);
   //             $node->biblio_lang = substr($data, 35, 3);
-  //             break;
+  //             break;.
   $leader = $record->leader();
   if ($node->biblio_type == 100) {
     $type = 'nam a';
@@ -305,9 +364,9 @@ function  _biblio_marc_export($node) {
     $field = new Field("210", "0", "#", array("a" => $node->biblio_sort_title));
     $record->append_fields($field);
   }
-  //           case '245':
+  // Case '245':
   //             $node->title = str_replace(' /', '', $field->subfield('a')) . ' ' . $field->subfield('b');
-  //             break;
+  //             break;.
   if (!empty($node->biblio_edition)) {
     $field = new Field("250", "", "", array("a" => $node->biblio_edition));
     $record->append_fields($field);
@@ -337,13 +396,13 @@ function  _biblio_marc_export($node) {
     $field = new Field("520", "3", "#", array("a" => $node->biblio_abst_e));
     $record->append_fields($field);
   }
-  //           case ($tagnum >= 500 && $tagnum <= 599):
+  // Case ($tagnum >= 500 && $tagnum <= 599):
   //             $value = $field->subfield('a');
   //             if (!empty($value)) {
   //               $node->biblio_notes .= $value;
-  //             }
+  //             }.
   if (!empty($node->biblio_keywords)) {
-    foreach($node->biblio_keywords as $keyword) {
+    foreach ($node->biblio_keywords as $keyword) {
       $field = new Field("653", "1", "0", array("a" => $keyword));
       $record->append_fields($field);
     }
@@ -354,8 +413,8 @@ function  _biblio_marc_export($node) {
       $last  = $author['lastname'];
       $init  = $author['initials'];
       $cat   = $author['auth_category'];
-      $name = $last . ($first ? ', ' . $first : '') . ($init ? ', ' . $init : '');
-      $tag = ($i == 0 ? ($cat == 5 ? 110 :100) : ($cat == 5 ? 710 :700));
+      $name  = $last . ($first ? ', ' . $first : '') . ($init ? ', ' . $init : '');
+      $tag   = ($i == 0 ? ($cat == 5 ? 110 : 100) : ($cat == 5 ? 710 : 700));
       $field = new Field($tag, "1", "#", array("a" => $name));
       $record->append_fields($field);
     }
