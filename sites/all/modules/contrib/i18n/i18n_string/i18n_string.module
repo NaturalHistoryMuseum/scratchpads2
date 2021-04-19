@@ -118,13 +118,14 @@ function i18n_string_menu() {
     'file' => 'i18n_string.admin.inc',
     'access arguments' => array('translate interface'),
   );
+
   $items['admin/config/regional/i18n/strings'] = array(
     'title' => 'Strings',
     'description' => 'Options for user defined strings.',
     'weight' => 20,
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('variable_edit_form', array('i18n_string_allowed_formats', 'i18n_string_source_language')),
+    'page arguments' => array('variable_edit_form', array('i18n_string_allowed_formats', 'i18n_string_source_language', 'i18n_string_textgroup_class_[textgroup]')),
     'access arguments' => array('administer site configuration'),
   );
   // AJAX callback path for strings.
@@ -259,6 +260,34 @@ function i18n_string_locale_translate_import_form_submit($form, &$form_state) {
 }
 
 /**
+ * Implements hook_element_info_alter().
+ *
+ * We need to do this on the element info level as wysiwyg also does so and form
+ * API (incorrectly) does not merge in the defaults for values that are arrays.
+ */
+function i18n_string_element_info_alter(&$types) {
+  $types['text_format']['#pre_render'][] = 'i18n_string_pre_render_text_format';
+}
+
+/**
+ * The '#pre_render' function to alter the text format element in a translation.
+ * The text format for a translation is taken form the original, so the text
+ * format drop down should be disabled.
+ *
+ * @param array $element
+ *   The text_format element which will be rendered.
+ *
+ * @return array
+ *   The altered text_format element with a disabled "Text format" select.
+ */
+function i18n_string_pre_render_text_format($element) {
+  if (!empty($element['#i18n_string_is_translation'])) {
+      $element['format']['format']['#attributes']['disabled'] = TRUE;
+  }
+  return $element;
+}
+
+/**
  * Check if translation is required for this language code.
  *
  * Translation is required when default language is different from the given
@@ -334,7 +363,10 @@ function i18n_string_update_context($oldname, $newname) {
 }
 
 /**
- * Get textgroup handler
+ * Get textgroup handler.
+ *
+ * @return i18n_string_textgroup_default
+ *
  */
 function i18n_string_textgroup($textgroup) {
   $groups = &drupal_static(__FUNCTION__);
@@ -488,6 +520,19 @@ function i18n_string_group_info($group = NULL, $property = NULL, $default = NULL
   }
 }
 
+/**
+ * Implements hook_i18n_string_info_alter().
+ *
+ * Set determined classes to use for the text group.
+ */
+function i18n_string_i18n_string_info_alter(&$info) {
+  foreach (array_keys($info) as $name) {
+    // If class is not defined. Classes from other modules, fixed classes and etc.
+    if (!isset($info[$name]['class'])) {
+      $info[$name]['class'] = variable_get('i18n_string_textgroup_class_' . $name, 'i18n_string_textgroup_default');
+    }
+  }
+}
 
 /**
  * Translate / update multiple strings
@@ -519,11 +564,12 @@ function i18n_string_multiple($operation, $name, $strings, $options = array()) {
  *
  * This function is intended to return translations for plain strings that have NO text format
  *
- * @param $name
+ * @param array|string name
  *   Array or string concatenated with ':' that contains textgroup and string context
- * @param $string
- *   String in default language or array of strings to be translated
- * @param $options
+ * @param array|string $string
+ *   A string in the default language, a string wth format (array with keys
+ *   value and format),or an array of strings (without format) to be translated.
+ * @param array $options
  *   An associative array of additional options, with the following keys:
  *   - 'langcode' (defaults to the current language) The language code to translate to a language other than what is used to display the page.
  *   - 'filter' Filtering callback to apply to the translated string only
@@ -531,8 +577,13 @@ function i18n_string_multiple($operation, $name, $strings, $options = array()) {
  *   - 'callback' Callback to apply to the result (both to translated or untranslated string
  *   - 'sanitize' Whether to filter the translation applying the text format if any, default is TRUE
  *   - 'sanitize default' Whether to filter the default value if no translation found, default is FALSE
+ *
+ * @return string
  */
 function i18n_string_translate($name, $string, $options = array()) {
+  if (is_array($string) && isset($string['value'])) {
+    $string = $string['value'];
+  }
   if (is_array($string)) {
     return i18n_string_translate_list($name, $string, $options);
   }
@@ -583,10 +634,17 @@ function i18n_string_translate_access($string_format, $account = NULL) {
  *   Message if the user cannot translate that string.
  */
 function i18n_string_translate_check_string($i18nstring, $account = NULL) {
-  if (!user_access('translate interface', $account) || !user_access('translate user-defined strings', $account)) {
+  // Check block translation permissions.
+  if ($i18nstring->textgroup == 'blocks') {
+    if (!user_access('translate interface', $account) && !user_access('translate blocks', $account)) {
+      return t('This is a user-defined string within a block. You are not allowed to translate blocks.');
+    }
+  }
+  elseif (!user_access('translate interface', $account) || !user_access('translate user-defined strings', $account)) {
     return t('This is a user-defined string. You are not allowed to translate these strings.');
   }
-  elseif (!empty($i18nstring->format)) {
+
+  if (!empty($i18nstring->format)) {
     if (!i18n_string_allowed_format($i18nstring->format)) {
       $format = filter_format_load($i18nstring->format);
       return t('This string uses the %name text format. Strings with this format are not allowed for translation.', array('%name' => $format->name));

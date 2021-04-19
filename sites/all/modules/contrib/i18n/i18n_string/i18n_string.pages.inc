@@ -170,14 +170,16 @@ function i18n_string_translate_page_form_base($form, $langcode, $redirect = NULL
 
 /**
  * Create field elements for strings
+ *
+ * @param i18n_string_object[] $strings
+ * @param string $langcode
+ *
+ * @return array
  */
 function i18n_string_translate_page_form_strings($strings, $langcode) {
-  $formats = filter_formats();
+  global $user;
+  $form = array();
   foreach ($strings as $item) {
-    // We may have a source or not. Load it, our string may get the format from it.
-    $source = $item->get_source();
-    $format_id = $source ? $source->format : $item->format;
-    $description = '';
     // Check permissions to translate this string, depends on format, etc..
     if ($message = $item->check_translate_access()) {
       // We'll display a disabled element with the reason it cannot be translated.
@@ -188,27 +190,31 @@ function i18n_string_translate_page_form_strings($strings, $langcode) {
       $disabled = FALSE;
       $description = '';
       // If we don't have a source and it can be translated, we create it.
-      if (!$source) {
+      if (!$item->get_source()) {
         // Enable messages just as a reminder these strings are not being updated properly.
         $status = $item->update(array('messages' => TRUE));
         if ($status === FALSE || $status === SAVED_DELETED) {
           // We don't have a source string so nothing to translate here
           $disabled = TRUE;
         }
-        else {
-          $source = $item->get_source();
-        }
       }
     }
 
     $default_value = $item->format_translation($langcode, array('langcode' => $langcode, 'sanitize' => FALSE, 'debug' => FALSE));
+    $available_formats = array_keys(filter_formats($user));
+    if (!in_array($item->format, $available_formats)) {
+      $item->format = NULL;
+    }
     $form[$item->get_name()] = array(
       '#title' => $item->get_title(),
-      '#type' => 'textarea',
+      '#type' => $item->format ? 'text_format' : 'textarea',
       '#default_value' => $default_value,
+      '#format' => $item->format,
+      // This will trigger i18n_string_pre_render_text_format() to actually
+      // alter the element.
+      '#i18n_string_is_translation' => TRUE,
       '#disabled' => $disabled,
-      '#description' => $description . _i18n_string_translate_format_help($format_id),
-      //'#i18n_string_format' => $source ? $source->format : 0,
+      '#description' => $description,
       // If disabled, provide smaller textarea (that can be expanded anyway).
       '#rows' => $disabled ? 1 : min(ceil(str_word_count($default_value) / 12), 10),
       // Change the parent for disabled strings so we don't get empty values later
@@ -226,6 +232,16 @@ function i18n_string_translate_page_form_submit($form, &$form_state) {
   foreach ($form_state['values']['strings'] as $name => $value) {
     $count++;
     list($textgroup, $context) = i18n_string_context(explode(':', $name));
+    if (is_array($value)) {
+      if (isset($value['value'])) {
+        $value = $value['value'];
+        $form_state['values']['strings'][$name] = $value;
+      }
+      else {
+        form_set_error("strings][$name", t('Unable to get the translated string value.'));
+        watchdog('locale', 'Unable to get the translated string value, string array is: %string', array('%string' => var_dump($value)), WATCHDOG_WARNING);
+      }
+    }
     $result = i18n_string_textgroup($textgroup)->update_translation($context, $form_state['values']['langcode'], $value);
     $success += ($result ? 1 : 0);
   }

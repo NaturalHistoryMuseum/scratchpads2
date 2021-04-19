@@ -38,6 +38,17 @@ function i18n_block_menu() {
 }
 
 /**
+ * Implements hook_permission().
+ */
+function i18n_block_permission() {
+  return array(
+    'translate blocks' => array(
+      'title' => t('Translate Blocks'),
+    ),
+  );
+}
+
+/**
  * Implement hook_menu_alter().
  *
  * Reorganize block tabs so that they make sense.
@@ -59,7 +70,7 @@ function i18n_block_menu_alter(&$items) {
  */
 function i18n_block_translate_tab_access($module, $delta) {
   $block = block_load($module, $delta);
-  return user_access('translate interface') && $block && isset($block->i18n_mode) && ($block->i18n_mode == I18N_MODE_LOCALIZE);
+  return (user_access('translate interface') || user_access('translate blocks')) && $block && isset($block->i18n_mode) && ($block->i18n_mode == I18N_MODE_LOCALIZE);
 }
 
 /**
@@ -226,7 +237,7 @@ function i18n_block_form_block_admin_configure_alter(&$form, &$form_state, $form
     '#options' => i18n_language_list(),
     '#description' => t('If no language is selected, block will show regardless of language.'),
   );
-  if (user_access('translate interface')) {
+  if (user_access('translate interface') || user_access('translate blocks')) {
     $form['actions']['translate'] = array(
       '#type' => 'submit',
       '#name'   => 'save_translate',

@@ -15,6 +15,10 @@ function i18n_taxonomy_token_info() {
     'name' => t("Name (localized)"),
     'description' => t("The name of the taxonomy term."),
   );
+  $term['localized-name'] = array(
+    'name' => t("Name in current language"),
+    'description' => t("The name of the taxonomy term in current language."),
+  );
   $term['i18n-description'] = array(
     'name' => t("Description (localized)"),
     'description' => t("The optional description of the taxonomy term."),
@@ -66,6 +70,12 @@ function i18n_taxonomy_tokens($type, $tokens, array $data = array(), array $opti
 
         case 'i18n-name':
           $name = i18n_taxonomy_term_name($term, $langcode);
+          $replacements[$original] = $sanitize ? check_plain($name) : $name;
+          break;
+
+        case 'localized-name':
+          $translated_term = i18n_taxonomy_term_get_translation($term, $langcode);
+          $name = i18n_taxonomy_term_name($translated_term, $langcode);
           $replacements[$original] = $sanitize ? check_plain($name) : $name;
           break;
 

@@ -45,10 +45,27 @@ function i18n_node_variable_info($options = array()) {
     'repeat' => array(
       'type' => 'options',
       'options' => array(
-        'current' => t('Set current language as default for new content.', array(), $options),
+        // Note: this was previously used only to mark new, translatable nodes
+        // with the current language of the user. Now, this setting is extended
+        // to allow a specific language to be chosen (defaulting to the current
+        // language). This was done for backwards compatibility reasons.
+        'current' => t('Set custom language as default for new content.', array(), $options),
         'required' => t('Require language (Do not allow Language Neutral).', array(), $options),
         'lock' => t('Lock language (Cannot be changed).', array(), $options),
       ),
+    ),
+    'group' => 'i18n',
+  );
+  // This field will only be displayed if "current" is checked above.
+  $variables['i18n_node_default_language_for_[node_type]'] = array(
+    'type' => 'multiple',
+    'title' => t('Custom default language', array(), $options),
+    'repeat' => array(
+      'type' => 'select',
+      'options' => array_merge(array(
+        '-- current --' => t('Current language')
+      ), locale_language_list('name')),
+      'default' => '-- current --',
     ),
     'group' => 'i18n',
   );

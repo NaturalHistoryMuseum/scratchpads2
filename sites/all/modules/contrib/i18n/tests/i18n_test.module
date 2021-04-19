@@ -40,7 +40,7 @@ function i18n_test_i18n_string_info() {
     'title' => t('Test Cached Strings'),
     'description' => t('Translatable items of a textgroup with caching enabled.'),
     'format' => FALSE, // This group doesn't have strings with format
-    'class' => 'i18n_string_textgroup_cached_logged',
+    'class' => variable_get('i18n_string_textgroup_class_test_cached', 'i18n_string_textgroup_cached_logged'),
   );
   return $groups;
 }

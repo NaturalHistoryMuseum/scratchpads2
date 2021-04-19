@@ -1,8 +1,8 @@
 name = Variable translation
 description = Multilingual variables that switch language depending on page language.
 dependencies[] = i18n
-dependencies[] = variable_store
-dependencies[] = variable_realm
+dependencies[] = variable_store (7.x-2.x)
+dependencies[] = variable_realm (7.x-2.x)
 package = Multilingual - Internationalization
 core = 7.x
 configure = admin/config/regional/i18n/variable
@@ -10,9 +10,8 @@ configure = admin/config/regional/i18n/variable
 files[] = i18n_variable.class.inc
 files[] = i18n_variable.test
 
-; Information added by Drupal.org packaging script on 2015-01-26
-version = "7.x-1.12"
+; Information added by Drupal.org packaging script on 2020-06-17
+version = "7.x-1.27"
 core = "7.x"
 project = "i18n"
-datestamp = "1422286982"
-
+datestamp = "1592373390"

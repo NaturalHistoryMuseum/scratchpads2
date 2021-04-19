@@ -48,7 +48,7 @@ function i18n_taxonomy_translation_term_form($form, $form_state, $vocabulary, $t
       $form['translations'][$lang] = array(
         '#title' => $langname,
         '#type' => 'item',
-        '#markup' => $source->name,
+        '#markup' => check_plain($source->name),
         '#langcode' => $lang,
       );
     }

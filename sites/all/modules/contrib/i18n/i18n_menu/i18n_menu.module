@@ -53,6 +53,24 @@ function i18n_menu_menu_alter(&$items) {
   $items['admin/structure/menu/item/%menu_link'] = $items['admin/structure/menu/item/%menu_link/edit'];
   $items['admin/structure/menu/item/%menu_link']['type'] = MENU_CALLBACK;
   $items['admin/structure/menu/item/%menu_link/edit']['type'] = MENU_DEFAULT_LOCAL_TASK;
+  $items['admin/structure/menu/manage/%menu']['title callback'] = 'i18n_menu_menu_overview_title';
+}
+
+/**
+ * Preprocess theme_menu_admin_overview to translate menu name and description
+ *
+ * @param $variables
+ */
+function i18n_menu_preprocess_menu_admin_overview(&$variables) {
+  $variables['title'] = i18n_string(array('menu', 'menu', $variables['name'], 'title'), $variables['title'], array('sanitize' => FALSE));
+  $variables['description'] = i18n_string(array('menu', 'menu', $variables['name'], 'description'), $variables['description'], array('sanitize' => FALSE));
+}
+
+/**
+ * Title callback for the menu overview page and links.
+ */
+function i18n_menu_menu_overview_title($menu) {
+  return i18n_string(array('menu', 'menu', $menu['menu_name'], 'title'), $menu['title']);
 }
 
 /**
@@ -379,7 +397,7 @@ function i18n_menu_localize_tree($tree, $langcode = NULL) {
     if (_i18n_menu_link_process($item['link'])) {
       if (!_i18n_menu_link_is_visible($item['link'], $langcode)) {
         // Remove links for other languages than current.
-        // Links with language wont be localized.
+        // Links with language won't be localized.
         unset($tree[$index]);
         // @todo Research whether the above has any advantage over:
         // $item['hidden'] = TRUE;
@@ -504,7 +522,7 @@ function _i18n_menu_link_localize(&$link, $langcode = NULL) {
 function _i18n_menu_link_description($link, $langcode = NULL) {
   if (!empty($link['options']['attributes']['title'])) {
     $key = i18n_object_info('menu_link', 'key');
-    return i18n_string_translate(array('menu', 'item', $link[$key], 'description'), $link['options']['attributes']['title'], array('langcode' => $langcode));
+    return i18n_string_translate(array('menu', 'item', $link[$key], 'description'), $link['options']['attributes']['title'], array('langcode' => $langcode, 'sanitize' => FALSE));
   }
   else {
     return NULL;
@@ -515,9 +533,11 @@ function _i18n_menu_link_description($link, $langcode = NULL) {
  * Check whether this link is to be processed by i18n_menu and start processing.
  */
 function _i18n_menu_link_process(&$link) {
-  // Only visible links that have a language property and haven't been processed
-  // before. We also check that they belong to a menu with language options.
-  if (empty($link['i18n_menu']) && !empty($link['language']) && !empty($link['access']) && empty($link['hidden']) && i18n_menu_mode($link['menu_name'])) {
+  // Only links that have a language property and haven't been processed before.
+  // We also translate links marked as hidden because core breadcrumbs ignore
+  // that flag and excluding them would basically interfere with core behaviour.
+  // We also check that they belong to a menu with language options.
+  if (empty($link['i18n_menu']) && !empty($link['language']) && !empty($link['access']) && i18n_menu_mode($link['menu_name'])) {
     // Mark so it won't be processed twice.
     $link['i18n_menu'] = TRUE;
     // Skip if administering this menu or this menu item.
@@ -579,7 +599,7 @@ function _i18n_menu_link_is_visible($link, $langcode = NULL) {
 }
 
 /**
- * Get localizable properties for menu link checking agains the router item.
+ * Get localizable properties for menu link checking against the router item.
  */
 function _i18n_menu_link_localizable_properties($link) {
   $props = array();
@@ -588,7 +608,7 @@ function _i18n_menu_link_localizable_properties($link) {
     // If the title callback is 't' and the link title matches the router title
     // it will be localized by core, not by i18n_menu.
     if (!$router ||
-        (empty($router['title_callback']) || $router['title_callback'] != 't') ||
+        (empty($router['title_callback']) || ($router['title_callback'] != 't' || !empty($link['customized']))) ||
         (empty($router['title']) || $router['title'] != $link['link_title'])
     ) {
       $props[] = 'title';
@@ -597,7 +617,7 @@ function _i18n_menu_link_localizable_properties($link) {
   if (!empty($link['options']['attributes']['title'])) {
     // If the description matches the router description, it will be localized
     // by core.
-    if (!$router || empty($router['description']) || $router['description'] != $link['options']['attributes']['title']) {
+    if (!$router || empty($router['description']) || ($router['description'] != $link['options']['attributes']['title']) || !empty($link['customized'])) {
       $props[] = 'description';
     }
   }
@@ -723,15 +743,19 @@ function i18n_menu_form_menu_edit_item_alter(&$form, &$form_state) {
  * Add a "translate" link in operations column for each menu item.
  */
 function i18n_menu_form_menu_overview_form_alter(&$form, &$form_state) {
-  foreach (element_children($form) as $element) {
-    if (substr($element, 0, 5) == 'mlid:') {
-      $mlid = $form[$element]['#item']['mlid'];
-      if (i18n_get_object('menu', $mlid)->get_translate_access()) {
-        $form[$element]['operations']['translate'] = array(
-          '#type' => 'link',
-          '#title' => t('translate'),
-          '#href' => "admin/structure/menu/item/{$mlid}/translate",
-        );
+  if (i18n_menu_mode($form['#menu']['menu_name'], I18N_MODE_MULTIPLE)) {
+    foreach (element_children($form) as $element) {
+      if (substr($element, 0, 5) == 'mlid:') {
+        $item = $form[$element]["#item"];
+        $mlid = $form[$element]['#item']['mlid'];
+        if (i18n_get_object('menu', $mlid)->get_translate_access()) {
+          $form[$element]['operations']['translate'] = array(
+            '#type' => 'link',
+            '#title' => t('translate'),
+            '#href' => "admin/structure/menu/item/{$mlid}/translate",
+          );
+          $form[$element]['title']['#markup'] = l(_i18n_menu_link_title($item), $item['href'], $item['localized_options']);
+        }
       }
     }
   }
@@ -898,93 +922,25 @@ function i18n_menu_query_features_menu_link_alter($query) {
 }
 
 /**
- * Implements hook_init().
+ * Implements hook_query_TAG_alter()
+ *
+ * Using tag 'preferred_menu_links' added in menu_link_get_preferred().
+ * See http://drupal.org/node/1854134
  */
-function i18n_menu_init() {
+function i18n_menu_query_preferred_menu_links_alter(QueryAlterableInterface $query) {
+  global $language;
+  // Get queried tables.
+  $tables = $query->getTables();
 
-  // The only way to override the default preferred menu link for a path is to
-  // inject it into the static cache of the function menu_link_get_preferred().
-
-  // The problem with the default implementation is that it does not take the
-  // language of a menu link into account. Whe having different menu trees for
-  // different menus, this means that the active trail will not work for all but
-  // one language.
-
-  // The code below is identical to the mentioned function except the added
-  // language condition on the query.
-
-  // TODO: Adding an alter tag to the query would allow to do this with a simple
-  // hook_query_alter() implementation.
-
-  $preferred_links = &drupal_static('menu_link_get_preferred');
-
-  $path = $_GET['q'];
-
-  // Look for the correct menu link by building a list of candidate paths,
-  // which are ordered by priority (translated hrefs are preferred over
-  // untranslated paths). Afterwards, the most relevant path is picked from
-  // the menus, ordered by menu preference.
-  $item = menu_get_item($path);
-  $path_candidates = array();
-  // 1. The current item href.
-  $path_candidates[$item['href']] = $item['href'];
-  // 2. The tab root href of the current item (if any).
-  if ($item['tab_parent'] && ($tab_root = menu_get_item($item['tab_root_href']))) {
-    $path_candidates[$tab_root['href']] = $tab_root['href'];
-  }
-  // 3. The current item path (with wildcards).
-  $path_candidates[$item['path']] = $item['path'];
-  // 4. The tab root path of the current item (if any).
-  if (!empty($tab_root)) {
-    $path_candidates[$tab_root['path']] = $tab_root['path'];
-  }
-  // Retrieve a list of menu names, ordered by preference.
-  $menu_names = menu_get_active_menu_names();
-  // Use an illegal menu name as the key for the preferred menu link.
-  $selected_menu = MENU_PREFERRED_LINK;
-  // Put the selected menu at the front of the list.
-  array_unshift($menu_names, $selected_menu);
-
-  $query = db_select('menu_links', 'ml', array('fetch' => PDO::FETCH_ASSOC));
-  $query->leftJoin('menu_router', 'm', 'm.path = ml.router_path');
-  $query->fields('ml');
-  // Weight must be taken from {menu_links}, not {menu_router}.
-  $query->addField('ml', 'weight', 'link_weight');
-  $query->fields('m');
-  $query->condition('ml.link_path', $path_candidates, 'IN');
-
-  // Only look menu links with none or the current language.
-  $query->condition('ml.language', array(LANGUAGE_NONE, i18n_language_interface()->language), 'IN');
-
-  // Sort candidates by link path and menu name.
-  $candidates = array();
-  foreach ($query->execute() as $candidate) {
-    $candidate['weight'] = $candidate['link_weight'];
-    $candidates[$candidate['link_path']][$candidate['menu_name']] = $candidate;
-    // Add any menus not already in the menu name search list.
-    if (!in_array($candidate['menu_name'], $menu_names)) {
-      $menu_names[] = $candidate['menu_name'];
-    }
-  }
-
-  // Store the most specific link for each menu. Also save the most specific
-  // link of the most preferred menu in $preferred_link.
-  foreach ($path_candidates as $link_path) {
-    if (isset($candidates[$link_path])) {
-      foreach ($menu_names as $menu_name) {
-        if (empty($preferred_links[$path][$menu_name]) && isset($candidates[$link_path][$menu_name])) {
-          $candidate_item = $candidates[$link_path][$menu_name];
-          $map = explode('/', $path);
-          _menu_translate($candidate_item, $map);
-          if ($candidate_item['access']) {
-            $preferred_links[$path][$menu_name] = $candidate_item;
-            if (empty($preferred_links[$path][MENU_PREFERRED_LINK])) {
-              // Store the most specific link.
-              $preferred_links[$path][MENU_PREFERRED_LINK] = $candidate_item;
-            }
-          }
-        }
+  foreach ($tables as $alias => $table) {
+    if ($table['table'] == 'menu_links') {
+      // Add language filter, ensuring that we don't have any collision when
+      // determining the active menu trail when there are multiple menu items
+      // with same link path but different languages.
+      if ($language) {
+        $query->condition('language', array($language->language, LANGUAGE_NONE), 'IN');
       }
+      break;
     }
   }
 }

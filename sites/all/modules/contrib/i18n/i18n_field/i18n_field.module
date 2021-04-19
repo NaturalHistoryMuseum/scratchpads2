@@ -194,6 +194,9 @@ function i18n_field_field_widget_form_alter(&$element, &$form_state, $context) {
     // Single-value file fields and image fields.
     $alter_element = &$element[0];
   }
+  elseif ($field['type'] == 'url' && $field['module'] == 'url' && $field['cardinality'] == 1) {
+    $alter_element = &$element;
+  }
   elseif (isset($element['value'])) {
     // Number fields. Single-value text fields.
     $alter_element = &$element['value'];
@@ -201,6 +204,10 @@ function i18n_field_field_widget_form_alter(&$element, &$form_state, $context) {
   elseif ($field['type'] == 'entityreference' && isset($element['target_id'])) {
     // Entityreference fields using the entityreference_autocomplete widget.
     $alter_element = &$element['target_id'];
+  }
+  elseif ($field['type'] == 'node_reference' && isset($element['nid'])) {
+    // The node_reference fields using the entityreference_autocomplete widget.
+    $alter_element = &$element['nid'];
   }
   else {
     // All other fields.
@@ -444,5 +451,122 @@ function i18n_field_type_info($type = NULL, $property = NULL) {
   }
   else {
     return $info;
+  }
+}
+
+/**
+ * Implements hook_field_info_alter().
+ */
+function i18n_field_field_info_alter(&$field_info) {
+  foreach(array_keys($field_info) as $type) {
+    $field_info[$type]['property_callbacks'][] = 'i18n_field_entity_property_callback';
+  }
+}
+
+/**
+ * Prime the cache to avoid single db queries for entity fields / properties.
+ *
+ * This is mainly uses when large operations are occuring like a flush of the
+ * entity_property_infos().
+ */
+function i18n_field_prime_caches() {
+  global $language;
+  static $cache_primed;
+
+  // Fill the cache. This should avoid single db queries when filling the
+  // properties.
+  if (empty($cache_primed)) {
+    $cache_primed = TRUE;
+    $text_group = i18n_string_textgroup('field');
+    // Load all strings at once to avoid callbacks for each individual string.
+    $text_group->load_strings();
+    $text_group->multiple_translation_search(array('type' => '*', 'objectid' => '*', 'property' => '*'), $language->language);
+  }
+}
+
+/**
+ * Callback to translate entity property info for a fields.
+ *
+ * @see entity_metadata_field_entity_property_info()
+ * @see entity_metadata_field_default_property_callback()
+ * @see i18n_field_i18n_object_info_alter()
+ * @see hook_module_implements_alter()
+ */
+function i18n_field_entity_property_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  global $language;
+
+  // This could create a endless recursion if it's called during rebuilding the
+  // cache for i18n_object_info(). So if the cache of i18n_object_info isn't
+  // available yet we assume the worst case, leave the info alone but trigger a
+  // rebuild of the property when hook_i18n_object_info_alter is invoked. At
+  // that point the info is available and we can rely on it.
+  if (!$info = &drupal_static('i18n_object_info')) {
+    $i18n_field_entity_property_callback_fallback = &drupal_static(__FUNCTION__);
+    $i18n_field_entity_property_callback_fallback = TRUE;
+    return;
+  }
+
+  i18n_field_prime_caches();
+  $name = $field['field_name'];
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$name];
+  $property['label'] = i18n_field_translate_property($instance, 'label', $language->language);
+}
+
+/**
+ * Implements hook_i18n_object_info_alter().
+ */
+function i18n_field_i18n_object_info_alter(&$info) {
+  if (drupal_static('i18n_field_entity_property_callback')) {
+    if ($info = drupal_static('i18n_object_info')) {
+      // Clean static and permanent cache of the data and then re-run the property
+      // building.
+      // Use a lock to avoid stampeding.
+      $lock_name = 'i18n_field_entity_property_callback_fallback:' . $GLOBALS['language']->language;
+      // See if another request is already doing this. If so we bail out here as
+      // we won't help with anything at the moment.
+      if (!lock_may_be_available($lock_name)) {
+        return;
+      }
+      if (lock_acquire($lock_name)) {
+        i18n_field_prime_caches();
+        // Inject translated properties.
+        $entity_property_info = entity_get_property_info();
+        foreach ($entity_property_info as $entity_type => $properties) {
+          if (isset($properties['bundles'])) {
+            foreach ($properties['bundles'] as $bundle => $bundle_properties) {
+              if ($bundle_properties['properties']) {
+                foreach ($bundle_properties['properties'] as $bundle_property => $bundle_property_info) {
+                  if ($instance = field_info_instance($entity_type, $bundle_property, $bundle)) {
+                    $property = &$entity_property_info[$entity_type]['bundles'][$instance['bundle']]['properties'][$bundle_property];
+                    $property['label'] = i18n_field_translate_property($instance, 'label', $GLOBALS['language']->language);
+                  }
+                }
+              }
+            }
+          }
+        }
+        // Inject into static cache.
+        $entity_get_property_info = &drupal_static('entity_get_property_info', array());
+        $entity_get_property_info = $entity_property_info;
+        // Write permanent cache.
+        cache_set('entity_property_info:' . $GLOBALS['language']->language, $entity_property_info);
+        lock_release($lock_name);
+      }
+    }
+    else {
+      watchdog('i18n_field', 'Unable to run fall-back handling for entity property translation due missing "i18n_object_info" cache', array(), WATCHDOG_WARNING);
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function i18n_field_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'i18n_object_info_alter') {
+    // Move our hook implementation to the bottom.
+    $group = $implementations['i18n_field'];
+    unset($implementations['i18n_field']);
+    $implementations['i18n_field'] = $group;
   }
 }

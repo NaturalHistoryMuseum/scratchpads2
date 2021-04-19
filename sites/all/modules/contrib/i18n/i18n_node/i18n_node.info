@@ -9,9 +9,8 @@ configure = admin/config/regional/i18n/node
 files[]=i18n_node.test
 files[]=i18n_node.variable.inc
 
-; Information added by Drupal.org packaging script on 2015-01-26
-version = "7.x-1.12"
+; Information added by Drupal.org packaging script on 2020-06-17
+version = "7.x-1.27"
 core = "7.x"
 project = "i18n"
-datestamp = "1422286982"
-
+datestamp = "1592373390"

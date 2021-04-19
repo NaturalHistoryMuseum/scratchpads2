@@ -33,7 +33,7 @@ function i18n_sync($status = NULL) {
 function i18n_sync_help($path, $arg) {
   switch ($path) {
     case 'admin/help#i18n_sync' :
-      $output = '<p>' . t('This module synchronizes content taxonomy and fields accross translations:') . '</p>';
+      $output = '<p>' . t('This module synchronizes content taxonomy and fields across translations:') . '</p>';
       $output .= '<p>' . t('First you need to select which fields should be synchronized. Then, after a node has been updated, all enabled vocabularies and fields will be synchronized as follows:') . '</p>';
       $output .= '<ul>';
       $output .= '<li>' . t('All the node fields selected for synchronization will be set to the same value for all translations.') . '</li>';
@@ -91,6 +91,7 @@ function i18n_sync_form_node_type_form_alter(&$form, &$form_state) {
 
     $form['i18n_sync']['i18n_sync_node_type'] = array(
       '#tree' => TRUE,
+      '#weight' => 1,
     );
 
     // Each set provides title and options. We build a big checkboxes control for it to be
@@ -121,6 +122,21 @@ function i18n_sync_form_node_type_form_alter(&$form, &$form_state) {
         );
       }
     }
+
+    // Add option to restrict syncing only when editing the translation source.
+    $form['i18n_sync']['i18n_sync_source_description'] = array(
+      '#prefix' => '<div>', '#suffix' => '</div>',
+      '#markup' => t('Restrict synchronization to the translation source.'),
+      '#weight' => 2,
+    );
+    $form['i18n_sync']['i18n_sync_source'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Synchronize translations only when saving the translation source'),
+      '#default_value' => variable_get('i18n_sync_source_' . $type, FALSE),
+      '#disabled' => $disabled,
+      '#weight' => 3,
+      '#description' => t('If not checked each node will trigger the synchronization, whether it\'s the source or not.'),
+    );
   }
 }
 
@@ -167,9 +183,17 @@ function i18n_sync_node_insert($node) {
  */
 function i18n_sync_node_update($node) {
   // Let's go with field synchronization.
-  if (i18n_sync_node_check($node) && !empty($node->tnid) && ($fields = i18n_sync_node_fields($node->type)) && ($translations = i18n_sync_node_get_translations($node, TRUE))) {
-    module_load_include('node.inc', 'i18n_sync');
-    i18n_sync_node_translation($node, $translations, $fields, 'update');
+  if (i18n_sync_node_check($node) && !empty($node->tnid) && (!variable_get('i18n_sync_source_' . $node->type, TRUE) || $node->tnid == $node->nid) && ($fields = i18n_sync_node_fields($node->type)) && ($translations = i18n_sync_node_get_translations($node, TRUE))) {
+    $do_sync = TRUE;
+    if (module_exists('entity_translation')) {
+      if (entity_translation_enabled_bundle('node', $node->type)) {
+        $do_sync = FALSE;
+      }
+    }
+    if ($do_sync) {
+      module_load_include('node.inc', 'i18n_sync');
+      i18n_sync_node_translation($node, $translations, $fields, 'update');
+    }
   }
 }
 
