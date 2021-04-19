@@ -72,15 +72,16 @@ class i18nBlocksTestCase extends Drupali18nTestCase {
 
     $this->clickLink(t('translate'));
 
+    // Title is a textarea, body is a text_format.
     $this->assertFieldByName('strings[blocks:block:' . $box2['delta'] . ':title]', $translations['title']['es']);
-    $this->assertFieldByName('strings[blocks:block:' . $box2['delta'] . ':body]', $translations['body']['es']);
+    $this->assertFieldByName('strings[blocks:block:' . $box2['delta'] . ':body][value]', $translations['body']['es']);
 
     // Update the translation.
     $translations['title']['es'] = $this->randomName(10);
     $translations['body']['es'] = $this->randomName(20);
     $edit = array(
       'strings[blocks:block:' . $box2['delta'] . ':title]' => $translations['title']['es'],
-      'strings[blocks:block:' . $box2['delta'] . ':body]' => $translations['body']['es'],
+      'strings[blocks:block:' . $box2['delta'] . ':body][value]' => $translations['body']['es'],
     );
     $this->drupalPost(NULL, $edit, t('Save translation'));
     $this->i18nAssertTranslations($translations['title'], '', 'Updated block title translation displayed.');

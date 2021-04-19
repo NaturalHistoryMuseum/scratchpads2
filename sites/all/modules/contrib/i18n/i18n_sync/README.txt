@@ -3,7 +3,7 @@ README.txt
 ==========
 Drupal module: i18n_sync (Synchronization)
 
-This module will handle content synchronization accross translations.
+This module will handle content synchronization across translations.
 
 The available list of fields to synchronize will include standard node fields and cck fields.
 To have aditional fields, add the list in a variable in the settings.php file, like this:

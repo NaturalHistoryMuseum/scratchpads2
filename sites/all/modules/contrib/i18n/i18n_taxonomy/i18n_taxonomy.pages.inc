@@ -100,7 +100,7 @@ function _i18n_taxonomy_autocomplete($langcode, $vids, $tags_typed = '') {
     $query = db_select('taxonomy_term_data', 't')
       ->fields('t', array('tid', 'name'));
     $query->addTag('translatable');
-    $query->addTag('term_access');
+    $query->addTag('taxonomy_term_access');
     // Disable i18n_select for this query
     $query->addTag('i18n_select');
     // Add language condition
@@ -125,7 +125,7 @@ function _i18n_taxonomy_autocomplete($langcode, $vids, $tags_typed = '') {
 
     $term_matches = array();
     foreach ($tags_return as $tid => $name) {
-      $n = $name . ' [' . $tid . ']';
+      $n = $name;
       // Term names containing commas or quotes must be wrapped in quotes.
       if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
         $n = '"' . str_replace('"', '""', $name) . '"';

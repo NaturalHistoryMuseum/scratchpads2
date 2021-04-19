@@ -222,8 +222,16 @@ function i18n_node_language_mode($type) {
 function i18n_node_node_prepare($node) {
   $options = variable_get('i18n_node_options_' . $node->type, array());
   if (i18n_node_type_enabled($node) && empty($node->nid) && !i18n_object_langcode($node) && in_array('current', $options)) {
+    $default = variable_get('i18n_node_default_language_for_' . $node->type, '-- current --');
+
     // Set current language for new nodes if option enabled
-    $node->language = i18n_language_content()->language;
+    if ($default === '-- current --') {
+      $node->language = i18n_language_content()->language;
+    }
+    // If a custom language was specified, apply it.
+    else {
+      $node->language = $default;
+    }
   }
 }
 
@@ -249,13 +257,16 @@ function i18n_node_permission() {
 /**
  * Implements hook_node_view()
  */
-function i18n_node_node_view($node) {
+function i18n_node_node_view($node, $view_mode, $langcode) {
   if (i18n_node_type_enabled($node)) {
-    $node->content['language'] = array(
-      '#type' => 'item',
-      '#title' => t('Language'),
-      '#markup' => i18n_language_name($node->language),
-    );
+    $extra_fields_display_settings = field_extra_fields_get_display('node', $node->type, $view_mode);
+    if ($extra_fields_display_settings['language']['visible']) {
+      $node->content['language'] = array(
+        '#type' => 'item',
+        '#title' => t('Language'),
+        '#markup' => i18n_language_name($node->language),
+      );
+    }
   }
 }
 
@@ -265,7 +276,9 @@ function i18n_node_node_view($node) {
  * Handles links for extended languages. Sets current interface language.
  */
 function i18n_node_node_view_alter(&$build) {
-  $node = $build['#node'];
+  if (isset($build['#node'])) {
+    $node = $build['#node'];
+  }
   // Hide node translation links.
   if (variable_get('i18n_hide_translation_links', 0)) {
     if (isset($build['links']['translation'])) {
@@ -417,7 +430,16 @@ function i18n_node_form_node_type_form_alter(&$form, &$form_state) {
     // Some settings about node languages. Add variables for node type from variable definition
     if ($form['#node_type']->type) {
       variable_type_include('node_type');
-      $form['i18n'] += node_variable_type_subform($form['#node_type']->type, array('i18n_node_options', 'i18n_node_extended'));
+      $form['i18n'] += node_variable_type_subform($form['#node_type']->type, array('i18n_node_options', 'i18n_node_default_language_for', 'i18n_node_extended'));
+      // Only show custom default language field if "current" is checked.
+      $form['i18n']['i18n_node_default_language_for']['#states'] = array(
+        'visible' => array(
+          ':input[name="i18n_node_options[current]"]' => array('checked' => TRUE),
+        ),
+        'required' => array(
+          ':input[name="i18n_node_options[current]"]' => array('checked' => TRUE),
+        ),
+      );
     }
     // Add disabled message
     if ($disabled) {
@@ -506,8 +528,11 @@ function _i18n_node_form_node_form_alter($form, &$form_state) {
     }
   }
   elseif (variable_get('i18n_node_default_language_none', 0) && !isset($form['#node']->nid)) {
-    // Override locale module setting default language to nodes. It is already in form_state.
-    $form['language']['#value'] = $form_state['values']['language'] = LANGUAGE_NONE;
+    // Only do this if the language is really disabled
+    if (variable_get('language_content_type_' . $node->type, 0) == 0) {
+      // Override locale module setting default language to nodes. It is already in form_state.
+      $form['language']['#value'] = $form_state['values']['language'] = LANGUAGE_NONE;
+    }
   }
   // Translate field names for title and body for the node edit form.
   if (!empty($form['title']['#title'])) {
