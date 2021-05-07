@@ -1,5 +1,14 @@
 # Change log
 
+## 2.9.17 (2021-05-07)
+
+This release brings two module upgrades and fixes bugs with DOI import and Species Tabs display.
+
+- Upgrade the i18n module [#6357](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6357) - [@PaulKiddle](https://github.com/PaulKiddle)
+- Upgrade the biblio module [#6124](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6124) - [@PaulKiddle](https://github.com/PaulKiddle)
+- Fix errors when importing biblio records from crossref [#6299](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6299), [#6147](https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6147) - [@PaulKiddle](https://github.com/PaulKiddle)
+- Fix for species tabs not displaying correctly on some sites [#6350](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6350) - [@PaulKiddle](https://github.com/PaulKiddle)
+
 
 ## 2.9.16 (2021-03-29)
 
