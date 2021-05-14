@@ -1,0 +1,17 @@
+; $Id: bad_judgement.info,v 1.3 2010/04/24 15:29:05 johnalbin Exp $
+
+name = Bad judgement
+description = Explicit dependency for modules whose usage requires bad judgement.
+package = Questionable Decision Making API
+
+core = 7.x
+files[] = bad_judgement.module
+files[] = bad_judgement.install
+files[] = bad_judgement.test
+
+; Information added by drupal.org packaging script on 2010-06-01
+version = "7.x-1.0-rc39"
+core = "7.x"
+project = "bad_judgement"
+datestamp = "1275420302"
+

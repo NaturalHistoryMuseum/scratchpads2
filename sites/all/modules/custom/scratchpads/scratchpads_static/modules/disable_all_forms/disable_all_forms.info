@@ -1,0 +1,12 @@
+name = Disable all forms
+description = Disables all forms, except for user 1. Use with caution.
+core = 7.x
+configure = admin/config/content/disable-all-forms
+dependencies[] = bad_judgement
+
+
+; Information added by Drupal.org packaging script on 2018-09-05
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "disable_all_forms"
+datestamp = "1536166998"
