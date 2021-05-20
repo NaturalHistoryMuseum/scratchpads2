@@ -16,6 +16,7 @@ index fd976d7a45..2b48259369 100644
 +        $xml->registerXPathNamespace('csl', 'http://purl.org/net/xbiblio/csl');
 +        $result = $xml->xpath("//csl:macro[@name='author']/csl:names/csl:name");
 +        if ($result) {
++          $result[0]->attributes()->and='';
 +          $csl = $result[0]->asXML();
 +        }
 +      }

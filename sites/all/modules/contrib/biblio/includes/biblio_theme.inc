@@ -473,6 +473,7 @@ function biblio_format_authors($authors) {
         $xml->registerXPathNamespace('csl', 'http://purl.org/net/xbiblio/csl');
         $result = $xml->xpath("//csl:macro[@name='author']/csl:names/csl:name");
         if ($result) {
+          $result[0]->attributes()->and='';
           $csl = $result[0]->asXML();
         }
       }
