@@ -1,5 +1,9 @@
 # Change log
 
+## 2.9.17.1 (2021-05-21)
+
+This is a patch release to fix a bug in the biblio module that was reintroduced by 2.9.17. Original fix: [#5853](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/5853).
+
 ## 2.9.17 (2021-05-07)
 
 This release brings two module upgrades and fixes bugs with DOI import and Species Tabs display.
