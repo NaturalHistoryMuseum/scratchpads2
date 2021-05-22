@@ -31,7 +31,7 @@ function dwcarchiver_processor_dwcarchiver_raw_text_group_concat(SelectQuery $qu
 
 /**
  * Similar to the above processor, but this concatenates a value to it.
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_raw_text_concatenate_value_after(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $concat_items = array();
@@ -55,7 +55,7 @@ function dwcarchiver_processor_dwcarchiver_raw_text_concatenate_value_after(Sele
 }
 
 /**
- * Special processor (takes different args) for mapping back to the core 
+ * Special processor (takes different args) for mapping back to the core
  * entity.
  */
 function dwcarchiver_processor_core_map($archive_or_extension, $dwcarchiver, SelectQuery $query){
@@ -164,7 +164,7 @@ function dwcarchiver_processor_gm3_longitude(SelectQuery $query, $field, $entity
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_date_from(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $entity_info = entity_get_info($entity_type);
@@ -173,7 +173,7 @@ function dwcarchiver_processor_dwcarchiver_date_from(SelectQuery $query, $field,
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_link(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $entity_info = entity_get_info($entity_type);
@@ -182,7 +182,7 @@ function dwcarchiver_processor_dwcarchiver_link(SelectQuery $query, $field, $ent
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_date_to(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $entity_info = entity_get_info($entity_type);
@@ -191,14 +191,14 @@ function dwcarchiver_processor_dwcarchiver_date_to(SelectQuery $query, $field, $
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_timestamp(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $query->addExpression("FROM_UNIXTIME({$table}.$field)");
 }
 
 /**
- * Return a URL for an entity.  Note, I'm not sure if this will work for all 
+ * Return a URL for an entity.  Note, I'm not sure if this will work for all
  * entity types, so possibly needs testing.
  */
 function dwcarchiver_processor_dwcarchiver_content_url(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
@@ -236,7 +236,7 @@ function dwcarchiver_processor_dwcarchiver_value(SelectQuery $query, $field, $en
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_path(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $public_url = file_create_url('public://');
@@ -245,7 +245,7 @@ function dwcarchiver_processor_dwcarchiver_path(SelectQuery $query, $field, $ent
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_creative_commons(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $entity_info = entity_get_info($entity_type);
@@ -263,7 +263,7 @@ function dwcarchiver_processor_dwcarchiver_creative_commons(SelectQuery $query, 
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_creative_commons_url(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   $jurisdiction = variable_get('creative_commons_block_jurisdiction', '');
@@ -316,7 +316,7 @@ function dwcarchiver_processor_dwcarchiver_creative_commons_url(SelectQuery $que
 
 /**
  * dwcarchiver_processor_dwcarchiver_content_language
- * 
+ *
  * This may need a little more processing, perhaps converting "und" or "en" into
  * "undefined" and "English" respectively.
  */
@@ -334,7 +334,7 @@ function dwcarchiver_processor_dwcarchiver_language_field(SelectQuery $query, $f
 }
 
 /**
- * 
+ *
  */
 function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $entity_type, $map_id, $map, $table = 'base'){
   // Note, biblio is always associated with a node, so we can link via nid.
@@ -354,7 +354,7 @@ function dwcarchiver_processor_dwcarchiver_biblio(SelectQuery $query, $field, $e
       // far too slow.
       $query->leftJoin('biblio_contributor', "table_{$map_id}", "{$table}.vid = table_{$map_id}.vid");
       $query->leftJoin('biblio_contributor_data', "table_{$map_id}_data", "table_{$map_id}.cid = table_{$map_id}_data.cid");
-      $query->addExpression("GROUP_CONCAT(DISTINCT table_{$map_id}_data.name)");
+      $query->addExpression("GROUP_CONCAT(DISTINCT REPLACE(REPLACE(table_{$map_id}_data.name, '\r', ''), '\n', ' '))");
       $query->groupBy("table_{$map_id}.vid");
       //$query->addExpression("table_{$map_id}_data.name");
       break;
