@@ -200,7 +200,7 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   $additionalMetadata = $eml->addChild('additionalMetadata', NULL, '');
   $metadata = $additionalMetadata->addChild('metadata');
   $gbif = $metadata->addChild('gbif');
-  $gbif->addChild('dateStamp', date('Y-m-d'));
+  $gbif->addChild('dateStamp', date('Y-m-d\TH:i:s'));
   $gbif->addChild('hierarchyLevel', 'dataset');
   $citation = $gbif->addChild('citation', variable_get('dwcarchiver_alternative_citation', url('', [
     'absolute' => TRUE,
