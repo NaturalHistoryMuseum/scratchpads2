@@ -176,7 +176,7 @@ function _dwcarchiver_get_eml($dwcarchiver) {
     $associatedParty->addChild('role', 'pointOfContact');
   }
   $dataset->addChild('language', 'en');
-  $dataset->addChild('pubDateRRRRR', date('Y-m-d'));
+  $dataset->addChild('pubDate', date('Y-m-d'));
   $distribution = $dataset->addChild('distribution');
   $distribution->addAttribute('scope', 'document');
   $online = $distribution->addChild('online');
@@ -345,8 +345,8 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     foreach ($archive_or_extension->maps[$delta] as $map_id => $map) {
 
       // BS: 21st May 2021 Add Group By field for coreid
-      // Note: This is the equivalent of postgreSQL disinct on clause
-      if ($map->field == 'uuid' && $map->uri == 'coreid'){
+      // Note: This is the equivalent of postgreSQL disinct on clause.
+      if ($map->field == 'uuid' && $map->uri == 'coreid') {
         $query->groupBy('base.uuid');
       }
 
@@ -384,7 +384,6 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
 
     // dpm((string) $query);
     // dpm($query->arguments());
-
     $results = $query->execute();
     while (($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE) {
       /*
