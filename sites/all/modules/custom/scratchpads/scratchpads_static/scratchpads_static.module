@@ -1,1 +1,10 @@
 <?php
+
+/**
+ * Remove the scratchpads messages X button
+ *
+ * Implements hook_form_FORM_ID_alter
+ */
+function scratchpads_static_form_scratchpads_messages_seen_msg_alter(&$form){
+	$form=[];
+}
