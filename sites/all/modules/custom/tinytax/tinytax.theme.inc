@@ -159,7 +159,7 @@ function theme_tinytax_term($variables){
       'path' => file_create_url(drupal_get_path('module', 'tinytax') . '/images/leaf.gif')
     ));
   }
-  $term_uri = taxonomy_term_uri($variables['term']);
+  $term_uri = scratchpads_species_term_uri($variables['term']);
   $term_text = theme('scratchpads_species_name', array(
     'term' => $variables['term']
   ));
