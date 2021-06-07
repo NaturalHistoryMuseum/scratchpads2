@@ -1,14 +1,17 @@
 <?php
 
+/**
+ * @file
+ */
+
 module_load_include('inc', 'dwcarchiver', 'dwcarchiver.rebuild');
 
 /**
  * Admin settings.
  */
-function scratchpads_gbif_registry_client_admin_settings()
-{
+function scratchpads_gbif_registry_client_admin_settings() {
   $default_licence = CC_BY;
-  $gbif_allowed_licences = array(CC_0, CC_BY, CC_BY_NC);
+  $gbif_allowed_licences = [CC_0, CC_BY, CC_BY_NC];
   $licence_options = [];
   foreach ($gbif_allowed_licences as $licence) {
     $licence_options[$licence] = creative_commons_get_licence_types($licence);
@@ -19,14 +22,14 @@ function scratchpads_gbif_registry_client_admin_settings()
   }
   $form = [];
 
-  $uuid = variable_get('scratchpads_gbif_registry_client_uuid', false);
-  if($uuid) {
+  $uuid = variable_get('scratchpads_gbif_registry_client_uuid', FALSE);
+  if ($uuid) {
     $api = variable_get('gbif_registry_web_service_url', 'http://api.gbif.org/v1/');
     $domain = str_replace('api', 'www', parse_url($api, PHP_URL_HOST));
     $url = "http://$domain/dataset/$uuid";
     $form['scratchpads_gbif_registry_client_uuid'] = [
       '#type' => 'markup',
-      '#markup' => '<p>' . l(t('Registered on GBIF with UUID @uuid', ['@uuid' => $uuid]), $url) . '</p>'
+      '#markup' => '<p>' . l(t('Registered on GBIF with UUID @uuid', ['@uuid' => $uuid]), $url) . '</p>',
     ];
   }
 
@@ -34,58 +37,58 @@ function scratchpads_gbif_registry_client_admin_settings()
 
   $default_description = implode(' | ', array_filter([
     variable_get('site_slogan', ''),
-    strip_tags(variable_get('front_page_welcome_message', ['value'=>''])['value'])
+    strip_tags(variable_get('front_page_welcome_message', ['value' => ''])['value']),
   ]));
 
-  $form += array(
-    'scratchpads_gbif_registry_client_registration_enabled' => array(
+  $form += [
+    'scratchpads_gbif_registry_client_registration_enabled' => [
       '#type' => 'checkbox',
       '#title' => t('Enable GBIF registration'),
-      '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_enabled', false),
+      '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_enabled', FALSE),
       '#description' => t("Whether to register this scratchpad with GBIF."),
-      '#disabled' => $nonBio
-    ),
-    'scratchpads_gbif_registry_client_description' => array(
+      '#disabled' => $nonBio,
+    ],
+    'scratchpads_gbif_registry_client_description' => [
       '#type' => 'textarea',
       '#title' => t('Dataset description'),
       '#default_value' => variable_get('scratchpads_gbif_registry_client_description', $default_description),
-      '#description' => t('A summary of the dataset. This will appear on the GBIF web page for your dataset and in GBIF search results.')
-    ),
-    'scratchpads_gbif_registry_client_registration_licence' => array(
+      '#description' => t('A summary of the dataset. This will appear on the GBIF web page for your dataset and in GBIF search results.'),
+    ],
+    'scratchpads_gbif_registry_client_registration_licence' => [
       '#type' => 'select',
       '#options' => $licence_options,
       '#title' => t('GBIF licence'),
       '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_licence', $default_licence),
       '#description' => t("The licence to use for the DwC-A archive"),
-    )
-  );
+    ],
+  ];
 
-  if($nonBio) {
+  if ($nonBio) {
     $link = url('admin/structure/taxonomy/add');
     $text = t(
       'There are no biological taxonomies on this scratchpad, please <a href="@url">create one</a> before registering with GBIF.',
       [
-        "@url" => $link
+        "@url" => $link,
       ]
     );
-    $form['scratchpads_gbif_registry_client_registration_enabled']['#description'] .= "<p><b>". $text ."</b></p>";
+    $form['scratchpads_gbif_registry_client_registration_enabled']['#description'] .= "<p><b>" . $text . "</b></p>";
   }
 
   $form['#submit'][] = 'scratchpads_gbif_registry_client_admin_settings_form_submit';
   $form['#validate'][] = 'scratchpads_gbif_registry_client_admin_settings_form_validate';
 
-  // use the system_settings_form function so that we don't have to implement our own submit function
+  // Use the system_settings_form function so that we don't have to implement our own submit function.
   return system_settings_form($form);
 }
 
 /**
- * Validation handler for settings form
+ * Validation handler for settings form.
  */
 function scratchpads_gbif_registry_client_admin_settings_form_validate($form, &$form_state) {
   $enabled = $form_state['values']['scratchpads_gbif_registry_client_registration_enabled'];
   $description = $form_state['values']['scratchpads_gbif_registry_client_description'];
 
-  if($enabled && !$description) {
+  if ($enabled && !$description) {
     form_set_error('scratchpads_gbif_registry_client_description', t('You must proide a description to submit your dataset to GBIF.'));
   }
 }
@@ -93,8 +96,7 @@ function scratchpads_gbif_registry_client_admin_settings_form_validate($form, &$
 /**
  * Submit handler for the scratchpads_gbif_registry_client_admin_settings form.
  */
-function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$form_state)
-{
+function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$form_state) {
   variable_del('scratchpads_gbif_registry_client_last_update');
 
   $new_desc = $form_state['values']['scratchpads_gbif_registry_client_description'];
@@ -102,13 +104,12 @@ function scratchpads_gbif_registry_client_admin_settings_form_submit($form, &$fo
   if($form['scratchpads_gbif_registry_client_description']['#default_value'] !== $new_desc) {
     $uuid = variable_get('scratchpads_gbif_registry_client_uuid', false);
     if($uuid) {
-      GBIFRegistry::singleton();
-      $dataset = new GBIF\Dataset($uuid);
-      $dataset->setDescription($new_desc);
-      $dataset->save();
+      // GBIFRegistry::singleton();
+      // $dataset = new GBIF\Dataset($uuid);
+      // $dataset->setDescription($new_desc);
+      // $dataset->save();
     }
   }
-
   if(module_exists('dwcarchiver')) {
     dwcarchiver_rebuild('gbif-dwca', false);
     menu_rebuild();
