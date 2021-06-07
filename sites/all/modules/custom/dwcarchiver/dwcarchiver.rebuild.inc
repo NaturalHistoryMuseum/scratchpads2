@@ -8,6 +8,7 @@
  *
  */
 function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE) {
+
   try {
     if (is_string($dwcarchiver)) {
       $dwcarchiver = dwcarchiver_machine_name_load($dwcarchiver);
@@ -127,8 +128,8 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   $dataset = $eml->addChild('dataset', NULL, '');
   $title = $dataset->addChild('title', variable_get('site_name', 'Scratchpad'));
   $title->addAttribute('xml:lang', 'en', 'xml');
-  // Add description
-  if($dwcarchiver->machine_name == 'gbif-dwca'){
+  // Add description.
+  if ($dwcarchiver->machine_name == 'gbif-dwca') {
     $description = variable_get('scratchpads_gbif_registry_client_description', variable_get('site_name', 'Scratchpads'));
     $abstract = $dataset->addChild('abstract');
     $abstract->addChild('para', $description);
@@ -175,7 +176,7 @@ function _dwcarchiver_get_eml($dwcarchiver) {
     $associatedParty->addChild('role', 'pointOfContact');
   }
   $dataset->addChild('language', 'en');
-  $dataset->addChild('pubData', date('Y-m-d'));
+  $dataset->addChild('pubDate', date('Y-m-d'));
   $distribution = $dataset->addChild('distribution');
   $distribution->addAttribute('scope', 'document');
   $online = $distribution->addChild('online');
@@ -199,7 +200,7 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   $additionalMetadata = $eml->addChild('additionalMetadata', NULL, '');
   $metadata = $additionalMetadata->addChild('metadata');
   $gbif = $metadata->addChild('gbif');
-  $gbif->addChild('dateStamp', date('Y-m-d'));
+  $gbif->addChild('dateStamp', date('Y-m-d\TH:i:s'));
   $gbif->addChild('hierarchyLevel', 'dataset');
   $citation = $gbif->addChild('citation', variable_get('dwcarchiver_alternative_citation', url('', [
     'absolute' => TRUE,
@@ -210,7 +211,7 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   $intrights = $dataset->addChild('intellectualRights');
   $licence = _dwcarchiver_get_licence($dwcarchiver);
   $cc_markup = creative_commons_display($licence, variable_get('creative_commons_block_jurisdiction', ''), CC_URL);
-  $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 3.0 License - https:' . $cc_markup['#markup']);
+  $para = $intrights->addChild('para', 'This work is licensed under a Creative Commons 4.0 License - https:' . $cc_markup['#markup']);
   $ulink = $para->addChild('ulink');
   $ulink->addAttribute('url', 'https:' . $cc_markup['#markup']);
 
@@ -220,7 +221,6 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   // $dom->formatOutput = TRUE;
   // $dom->loadXML($eml->asXML());
   // echo $dom->saveXML();
-
   return $eml->saveXML();
   // Due to the slightly silly structure of the para element, we need to use the
   // DOM functions to manipulate the XML.
@@ -343,6 +343,13 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
     $joins = [];
     $query = clone $base_query;
     foreach ($archive_or_extension->maps[$delta] as $map_id => $map) {
+
+      // BS: 21st May 2021 Add Group By field for coreid
+      // Note: This is the equivalent of postgreSQL disinct on clause.
+      if ($map->field == 'uuid' && $map->uri == 'coreid') {
+        $query->groupBy('base.uuid');
+      }
+
       // Check to see if we need to join to another entity.
       $field = explode(':', $map->field);
       $table = 'base';
@@ -374,6 +381,9 @@ function _dwcarchiver_create_and_add_data_file($archive_or_extension, $dwcarchiv
         ]));
       }
     }
+
+    // dpm((string) $query);
+    // dpm($query->arguments());
     $results = $query->execute();
     while (($row = $results->fetch(PDO::FETCH_ASSOC)) != FALSE) {
       /*
