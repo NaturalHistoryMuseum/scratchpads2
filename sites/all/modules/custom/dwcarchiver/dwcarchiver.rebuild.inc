@@ -131,6 +131,10 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   // Add description.
   if ($dwcarchiver->machine_name == 'gbif-dwca') {
     $description = variable_get('scratchpads_gbif_registry_client_description', variable_get('site_name', 'Scratchpads'));
+    // Fix encoding for XML
+    $description = str_replace("&", "&amp;", $description);
+    $description = str_replace("\n", "&#10;", $description);
+    $description = str_replace("\r", "&#10;", $description);
     $abstract = $dataset->addChild('abstract');
     $abstract->addChild('para', $description);
   }
