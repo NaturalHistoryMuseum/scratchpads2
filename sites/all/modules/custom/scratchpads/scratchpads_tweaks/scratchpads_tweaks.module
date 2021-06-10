@@ -872,3 +872,15 @@ function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$
     }
   }
 }
+
+
+/**
+ * Implements hook_tokens_alter().
+ */
+function scratchpads_tweaks_tokens_alter(array &$replacements, array $context){
+  if ($context['type'] == 'current-user' && !user_is_logged_in()) {
+    foreach ($context['tokens'] as $token) {
+      $replacements[$token] = '';
+    }
+  }
+}

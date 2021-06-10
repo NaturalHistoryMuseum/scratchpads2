@@ -848,7 +848,7 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
     // [array:value:*] dynamic tokens.
     if ($value_tokens = token_find_with_prefix($tokens, 'value')) {
       foreach ($value_tokens as $key => $original) {
-        if ($key[0] !== '#' && isset($array[$key])) {
+        if (array_key_exists($key, $array) && in_array($key, $keys)) {
           $replacements[$original] = token_render_array_value($array[$key], $options);
         }
       }
@@ -1392,7 +1392,6 @@ function field_token_info_alter(&$info) {
  */
 function field_tokens($type, $tokens, array $data = array(), array $options = array()) {
   $replacements = array();
-  $sanitize = !empty($options['sanitize']);
   $langcode = isset($options['language']) ? $options['language']->language : NULL;
 
   // Entity tokens.
@@ -1437,7 +1436,7 @@ function field_tokens($type, $tokens, array $data = array(), array $options = ar
 /**
  * Pre-render callback for field output used with tokens.
  */
-function token_pre_render_field_token(&$elements) {
+function token_pre_render_field_token($elements) {
   // Remove the field theme hook, attachments, and JavaScript states.
   unset($elements['#theme']);
   unset($elements['#states']);
