@@ -956,6 +956,7 @@ class TokenArrayTestCase extends TokenTestHelper {
       'last' => 'b',
       'value:0' => 'a',
       'value:2' => 'c',
+      'value:#property' => NULL,
       'count' => 4,
       'keys' => '2, 0, 4, 1',
       'keys:value:3' => '1',
@@ -1080,7 +1081,7 @@ class TokenBlockTestCase extends TokenTestHelper {
     $edit['body[value]'] = 'This is the test token title block.';
     $this->drupalPost('admin/structure/block/add', $edit, 'Save block');
     // Ensure token validation is working on the block.
-    $this->assertText('The Block title is using the following invalid tokens: [user:name].');
+    $this->assertText('Block title is using the following invalid tokens: [user:name].');
 
     // Create the block for real now with a valid title.
     $edit['title'] = '[current-page:title] block title';
