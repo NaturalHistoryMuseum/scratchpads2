@@ -1367,3 +1367,19 @@ function scratchpads_species_image_default_styles(){
     )
   );
 }
+
+/**
+ * Implements callback_entity_info_uri().
+ */
+function scratchpads_species_term_uri($term) {
+  if (scratchpads_species_term_is_biological_classification($term)) {
+    return array(
+      'path' => 'taxonomy/term/' . $term->tid,
+    );
+  }
+  else {
+    return array(
+      'path' => 'nontaxonomy/term/' . $term->tid,
+    );
+  }
+}
