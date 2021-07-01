@@ -1,9 +1,9 @@
 <?php
 
 /*********************************************************************************************
- * 
+ *
  * CORE HOOKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implements hook_permission().
@@ -138,9 +138,9 @@ function scratchpads_front_form_system_site_information_settings_alter(&$form, $
 }
 
 /*********************************************************************************************
- * 
+ *
  * VIEWS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_views_api
@@ -201,9 +201,9 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MENU CALLBACKS
- * 
+ *
  ********************************************************************************************/
 /**
  * Menu callback
@@ -275,7 +275,7 @@ function scratchpads_front_page_view(){
 
 /**
  * Implements hook_entity_view
- * 
+ *
  * REMOVE links from the species slideshow, and ADD links to the front page
  * slideshow. This is a thoroughly shit way of doing this, but the styles and
  * file entity code is so messed up that I'm reluctant to spend time trying to
@@ -504,7 +504,7 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
    * $form_state['vars'][2] = front_page_block_3_node_type
    * $form_state['values']['front_page_block_3_node_type'] = 'custom'
    * $form_state['values']['front_page_block_3_node_type_custom'] = views:custom_twitter_block-block' (module:delta)
-   * 
+   *
    * unset custom variable if custom is not selected as a node type
    */
   foreach($form_state['vars'] as $var){
@@ -521,12 +521,12 @@ function scratchpads_front_page_edit_submit($form, &$form_state){
 }
 
 /*********************************************************************************************
- * 
+ *
  * MODULE FUNCTIONS
- * 
+ *
  ********************************************************************************************/
 /**
- * 
+ *
  * Helper function for variable_get
  * @param string $name
  */
@@ -536,7 +536,7 @@ function scratchpads_front_variable_get($name){
 }
 
 /**
- * 
+ *
  * Helper function for variable defaults
  * @param string $name
  */
@@ -574,7 +574,7 @@ function scratchpads_front_variable_default($name = NULL){
 }
 
 /**
- * 
+ *
  * Get a list of node types
  */
 function scratchpads_front_node_types(){
@@ -588,9 +588,9 @@ function scratchpads_front_node_types(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * PREPROCESSORS
- * 
+ *
  ********************************************************************************************/
 /**
  * Preprocessor for theme('block').
@@ -620,9 +620,9 @@ function scratchpads_front_preprocess_block(&$vars){
 }
 
 /*********************************************************************************************
- * 
+ *
  * CTOOLS
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_ctools_plugin_api().
@@ -635,9 +635,9 @@ function scratchpads_front_ctools_plugin_api(){
 }
 
 /*********************************************************************************************
- * 
+ *
  * IMAGE STYLES
- * 
+ *
  ********************************************************************************************/
 /**
  * Implementation of hook_styles_default_styles().
@@ -789,6 +789,17 @@ function scratchpads_front_image_default_styles(){
     )
   );
 }
+
+/**
+ * Hook for defining extra blocks are allowed
+ * in scratchpads_front
+ */
+function hook_scratchpads_front_blocks(){
+  return [
+    'block_module_name' => 'block_delta'
+  ];
+}
+
 /* adding custom blocks */
 function scratchpads_front_blocks_as_options(){
   $query = db_select('block', 'b');
@@ -802,6 +813,27 @@ function scratchpads_front_blocks_as_options(){
   ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute()->fetchAllAssoc('bid');
   $options = array();
   $hidden_views = _scratchpads_hands_off_hidden_views();
+
+  // Invoke hook to see if any other modules provide blocks for the front page
+  $contrib_blocks = module_invoke_all('scratchpads_front_blocks');
+
+  foreach($contrib_blocks as $module => $deltas) {
+    // Block delta is basically its machine name or id (not database id though)
+    // May or may not be an array
+    if(!is_array($deltas)) {
+      $deltas = [$deltas];
+    }
+
+    foreach($deltas as $delta) {
+      // Load the block record from the database
+      $block = block_load($module, $delta);
+      // Need to get the title from the block_info hook since it's not kept in DB
+      $block->title = module_invoke($module, "block_info")[$delta]['info'];
+      // Add to the block lists
+      $block_info[$block->bid] = $block;
+    }
+  }
+
   foreach($block_info as $block){
     $blockTitle = strip_tags($block->title);
     if($blockTitle){
