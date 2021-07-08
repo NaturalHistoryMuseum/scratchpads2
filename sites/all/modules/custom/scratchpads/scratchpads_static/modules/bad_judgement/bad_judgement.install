@@ -1,0 +1,15 @@
+<?php
+// $Id: bad_judgement.install,v 1.1 2010/04/22 13:27:34 johnalbin Exp $
+
+/**
+ * @file
+ * Provides snarky enable messages for bad judgement.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function bad_judgement_enable() {
+  drupal_set_message(t('The Bad Judgement module has been enabled.'));
+  drupal_set_message(t('Dude. Really?'), 'error');
+}

@@ -1,0 +1,34 @@
+<?php
+// $Id: bad_judgement.module,v 1.3 2010/06/01 19:18:58 johnalbin Exp $
+
+/**
+ * @file
+ * Explicit dependency for modules that require bad judgement.
+ */
+
+/**
+ * Tests if the site admin has bad judgement based on the module being enabled.
+ */
+function bad_judgement($module) {
+  // You've enabled _this_ module, ergo you have bad judgement.
+  return TRUE;
+}
+
+/**
+ * Implements hook_help().
+ */
+function bad_judgement_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#bad_judgement':
+      return t('Trust me. You need help.');
+  }
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function bad_judgement_system_info_alter(&$info, $file) {
+  if ($file->name == 'php') {
+    $info['dependencies'][] = 'bad_judgement';
+  }
+}

@@ -1,0 +1,5 @@
+core = "7.x"
+description = "Scratchpads Static site mode"
+name = "Static"
+package = "Scratchpads"
+dependencies[] = disable_all_forms

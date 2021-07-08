@@ -1,0 +1,28 @@
+<?php
+// $Id: bad_judgement.test,v 1.2 2010/04/22 14:01:12 johnalbin Exp $
+
+/**
+ * @file
+ * Tests of bad judgement.
+ */
+
+/**
+ * Test for cleaning HTML identifiers.
+ */
+class GoodJudgementTestCase extends DrupalUnitTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Good judgement',
+      'description' => 'Test if the site administrator exhibits good judgement.',
+      'group' => 'Questionable Decision Making API',
+    );
+  }
+
+  /**
+   * Tests for good judgement.
+   */
+  function testGoodJudgement() {
+    // Test self.
+    $this->assertFalse(bad_judgement('bad_judgement'), t('You’ve enabled <em>this</em> module, ergo you have bad judgement.'));
+  }
+}

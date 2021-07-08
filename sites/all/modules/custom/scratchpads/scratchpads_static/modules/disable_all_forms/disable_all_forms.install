@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implement hook_enable()
+ */
+function disable_all_forms_enable() {
+  drupal_set_message(t('All non-admin forms are now disabled. Change configuration settings !here to disable admin forms or modify message.', array('!here' => '<a href="/admin/config/content/disable-all-forms">here</a>')), 'warning');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function disable_all_forms_uninstall() {
+  // Clear variables.
+  $name = 'disable_all_forms_';
+  db_delete('variable')
+    ->condition('name', db_like($name) . '%', 'LIKE')
+    ->execute();
+
+  cache_clear_all('variables', 'cache_bootstrap');
+}

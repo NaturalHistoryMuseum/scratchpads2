@@ -1,0 +1,158 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function disable_all_forms_permission() {
+  return array(
+    'administer disabled forms' => array(
+      'title' => t('Administer disabled forms'),
+    ),
+    'use disabled forms' => array(
+      'title' => t('Use disabled forms'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function disable_all_forms_menu() {
+  $items = array();
+
+  $items['admin/config/content/disable-all-forms'] = array(
+    'title' => t('Disable all forms'),
+    'description' => 'Administer disabled forms.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('disable_all_forms_form'),
+    'access arguments' => array('administer disabled forms'),
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback; Display the settings form for Disable All Forms.
+ */
+function disable_all_forms_form() {
+  $form = array();
+
+  $form['disable_all_forms_admin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable admin forms'),
+    '#description' => t('Disable forms on admin pages. This form will always be accessible.'),
+    '#default_value' => variable_get('disable_all_forms_admin', 0),
+  );
+  $form['disable_all_forms_non_admin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable non-admin forms'),
+    '#description' => t('Disable forms on non-admin pages.'),
+    '#default_value' => variable_get('disable_all_forms_non_admin', 0),
+  );
+  $form['disable_all_forms_ignore_login'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Ignore login forms'),
+    '#description' => t('Leave login form enabled.'),
+    '#default_value' => variable_get('disable_all_forms_ignore_login', 0),
+  );
+
+  $form['disable_all_forms_individual'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Individual'),
+  );
+  $form['disable_all_forms_individual']['disable_all_forms_form_ids'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Disable individual forms'),
+    '#description' => t('Disable individual forms by form_id, separate by new lines. This form will always be accessible.'),
+    '#default_value' => variable_get('disable_all_forms_form_ids', ''),
+  );
+  $form['disable_all_forms_individual']['disable_all_forms_invert'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Invert'),
+    '#description' => t('Invert to enable ONLY the individual forms above.'),
+    '#default_value' => variable_get('disable_all_forms_invert', 0),
+  );
+
+  $form['disable_all_forms_message'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Message settings'),
+  );
+  $form['disable_all_forms_message']['disable_all_forms_message_status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable message'),
+    '#default_value' => variable_get('disable_all_forms_message_status', 1),
+  );
+  $form['disable_all_forms_message']['disable_all_forms_message_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Message text'),
+    '#description' => t('Modify message text.'),
+    '#default_value' => variable_get('disable_all_forms_message_text', 'All forms are disabled.'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="disable_all_forms_message_status"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Disable all form elements and invalidate submissions.
+ */
+function disable_all_forms_form_alter(&$form, &$form_state, $form_id) {
+  $path = current_path();
+
+  if (
+    !user_access('use disabled forms') ||
+    (!user_access('administer disabled forms') && !$path == 'admin/config/content/disable-all-forms')
+  ) {
+    $is_admin = path_is_admin($path);
+
+    $form_ids = preg_split('/(\r\n?|\n)/', variable_get('disable_all_forms_form_ids', ''), -1, PREG_SPLIT_NO_EMPTY);
+    $invert = variable_get('disable_all_forms_invert', 0);
+
+    if (
+      (variable_get('disable_all_forms_admin', 0) && $is_admin) ||
+      (variable_get('disable_all_forms_non_admin', 0) && !$is_admin) ||
+      (in_array($form_id, $form_ids) && !$invert) ||
+      (!in_array($form_id, $form_ids) && $invert)
+    ) {
+      if ($form_id == 'user_login' && variable_get('disable_all_forms_ignore_login', 0)) {
+        drupal_set_message(t('User Login still enabled!'));
+
+        return TRUE;
+      }
+
+      $form['#after_build'][] = '_disable_all_forms_recursive';
+
+      if ($form_id !== 'views_exposed_form') {
+        $form['#validate'][] = '_disable_all_forms_invalidate';
+      }
+
+      if (variable_get('disable_all_forms_message_status', 1)) {
+        drupal_set_message(t(variable_get('disable_all_forms_message_text', 'All forms are disabled.')), 'warning', FALSE);
+
+        if (user_access('administer disabled forms')) {
+          drupal_set_message(t('Change configuration settings !here.', array('!here' => '<a href="/admin/config/content/disable-all-forms">here</a>')), 'warning', FALSE);
+        }
+      }
+    }
+  }
+}
+
+function _disable_all_forms_recursive(&$element) {
+  foreach (element_children($element) as $name) {
+    $element[$name]['#attributes']['disabled'] = 'disabled';
+
+    _disable_all_forms_recursive($element[$name]);
+  }
+
+  return $element;
+}
+
+function _disable_all_forms_invalidate($form, $form_state) {
+  if (variable_get('disable_all_forms_message_status', 1)) {
+    form_set_error('', t(variable_get('disable_all_forms_message_text', 'All forms are disabled.')));
+  }
+}

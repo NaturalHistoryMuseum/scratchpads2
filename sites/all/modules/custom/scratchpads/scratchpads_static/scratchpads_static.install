@@ -1,0 +1,66 @@
+<?php
+
+function scratchpads_static_enable(){
+	drupal_set_message('install');
+	_scratchpads_static_set_permissions(False);
+	_scratchpads_static_set_login_block_region(False);
+	_scratchpads_static_set_message(True);
+}
+
+function scratchpads_static_disable(){
+	drupal_set_message('uninstall');
+	_scratchpads_static_set_permissions(True);
+	_scratchpads_static_set_login_block_region(True);
+	_scratchpads_static_set_message(False);
+
+	module_disable(['disable_all_forms', 'bad_judgement'], FALSE);
+}
+
+function _scratchpads_static_set_permissions($enabled=False){
+	user_role_change_permissions(
+		1,
+		[
+			"post comments"=>$enabled,
+			"access site-wide contact form"=>$enabled,
+			"access user contact forms"=>$enabled,
+			"access form flows"=>$enabled,
+			"access overlay"=>$enabled,
+			"search content"=>$enabled
+		]
+	);
+}
+
+function _scratchpads_static_set_login_block_region($enabled=False){
+	db_update('block')
+		->fields(array(
+			'region' => $enabled ? 'slide_top' : -1,
+		))
+		->condition('module', 'user')
+		->condition('delta', 'login')
+		->condition('theme', 'scratchpads')
+		->execute();
+}
+
+function _scratchpads_static_set_message($enabled) {
+  if(module_exists('scratchpads_messages')){
+    module_load_include('admin.inc', 'scratchpads_messages');
+
+		if($enabled){
+			$date = strftime('%Y-%m-%d %H:%M:%S %Z');
+			$mid = scratchpads_messages_add_message([
+				'message' => "This site has been archived since $date and is no longer updated.",
+				'expire' => null,
+				'created' => 'now',
+				'type' => 3
+			]);
+
+			variable_set('scratchpads_static_message_id', $mid);
+		} else {
+			$mid = variable_get('scratchpads_static_message_id', null);
+
+			scratchpads_messages_delete_messages([$mid]);
+
+			variable_del('scratchpads_static_message_id');
+		}
+	}
+}
