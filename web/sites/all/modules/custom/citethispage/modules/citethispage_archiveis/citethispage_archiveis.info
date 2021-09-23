@@ -1,0 +1,5 @@
+name = Cite this page archive using archive.is
+description = "This module provides a backend for 'Cite this page'. It uses Archive.is http://archive.is to archive pages."
+core = 7.x
+
+dependencies[] = citethispage

@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_biblio_autocomplete_info().
+ * 
+ * @return $fields
+ *   An array of Biblio fields with associated autocomplete data.
+ *   Format: 
+ *     'biblio_field_to_autocomplete' => array('function' => 'autocomplete_callback_function')
+ */
+function biblio_self_biblio_autocomplete_info(){
+	$fields = array(
+	  'biblio_secondary_title' => array('function' => 'biblio_self_autocomplete_secondary_title'),
+	  'biblio_tertiary_title' => array('function' => 'biblio_self_autocomplete_tertiary_title'),
+	  'biblio_alternate_title' => array('function' => 'biblio_self_autocomplete_alternate_title'),
+	  'biblio_original_publication' => array('function' => 'biblio_self_autocomplete_original_publication'),
+	  'biblio_short_title' => array('function' => 'biblio_self_autocomplete_short_title'),
+	  'biblio_publisher' => array('function' => 'biblio_self_autocomplete_publisher'),
+	  'biblio_place_published' => array('function' => 'biblio_self_autocomplete_place_published'),
+	  'biblio_type_of_work' => array('function' => 'biblio_self_autocomplete_type_of_work'),
+	  'biblio_translated_title' => array('function' => 'biblio_self_autocomplete_translated_title'),
+	);
+	return $fields;
+}
+
+function biblio_self_autocomplete_secondary_title($string){
+  return biblio_self_autocomplete($string, 'secondary_title');
+}
+
+function biblio_self_autocomplete_tertiary_title($string){
+	return biblio_self_autocomplete($string, 'tertiary_title');
+}
+
+function biblio_self_autocomplete_alternate_title($string){
+	return biblio_self_autocomplete($string, 'alternate_title');
+}
+
+function biblio_self_autocomplete_original_publication($string){
+	return biblio_self_autocomplete($string, 'original_publication');
+}
+	
+function biblio_self_autocomplete_short_title($string){
+	return biblio_self_autocomplete($string, 'short_title');
+}
+
+function biblio_self_autocomplete_publisher($string){
+	return biblio_self_autocomplete($string, 'publisher');
+}
+
+function biblio_self_autocomplete_place_published($string){
+	return biblio_self_autocomplete($string, 'place_published');
+}
+
+function biblio_self_autocomplete_type_of_work($string){
+	return biblio_self_autocomplete($string, 'type_of_work');
+}
+
+function biblio_self_autocomplete_translated_title($string){
+	return biblio_self_autocomplete($string, 'translated_title');
+}
+
+
+function biblio_self_autocomplete($string, $field){
+	$field = 'biblio_'.$field;
+	$sql = 'SELECT DISTINCT '.$field.' FROM biblio WHERE '.$field." LIKE '%".$string."%';";
+	$result = db_query($sql)->fetchAll();
+	$results = array();
+	foreach ($result as $match){
+		$results[] = array(
+		  'key' => $match->$field,
+		  'description' => $match->$field,
+		  'provider' => 'Biblio',
+		);
+	}
+	return $results;
+}

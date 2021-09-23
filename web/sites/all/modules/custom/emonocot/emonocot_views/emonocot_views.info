@@ -1,0 +1,11 @@
+core = "7.x"
+description = "Provides custom views and customises for eMonocot Scratchpads"
+name = "eMonocot Views"
+package = "eMonocot"
+dependencies[] = scratchpads_species
+dependencies[] = emonocot_itis
+
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_views

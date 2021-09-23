@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Implements hook_install
+ */
+function scratchpads_twitter_install(){
+  $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
+  if(!variable_get('twitter_consumer_key', FALSE) || variable_get('twitter_consumer_secret', FALSE)){
+    variable_set('twitter_consumer_key', $ini['key']);
+    variable_set('twitter_consumer_secret', $ini['secret']);
+  }
+  variable_set('twitter_api', 'https://api.twitter.com');
+  variable_set('twitter_expire', 0);
+  variable_set('twitter_host', 'http://twitter.com');
+  variable_set('twitter_import', 0);
+  variable_set('twitter_search', 'http://search.twitter.com');
+  //variable_set('twitter_signin_button', 'Sign-in-with-Twitter-darker.png');
+  //variable_set('twitter_signin_register', 1);
+  variable_set('twitter_tinyurl', 'http://tinyurl.com');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function scratchpads_twitter_requirements($phase){
+  $requirements = array();
+  if($phase == 'install'){
+    $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
+    $requirement = array(
+      'title' => 'Twitter settings file',
+      'description' => ''
+    );
+    if($ini && isset($ini['key']) && isset($ini['secret'])){
+      // Success
+      $requirement['severity'] = REQUIREMENT_OK;
+    }else{
+      // Failure
+      $requirement['severity'] = REQUIREMENT_ERROR;
+    }
+    $requirements[] = $requirement;
+  }
+  return $requirements;
+}

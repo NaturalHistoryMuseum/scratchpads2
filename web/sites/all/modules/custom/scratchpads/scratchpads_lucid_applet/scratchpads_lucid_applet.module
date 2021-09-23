@@ -1,0 +1,258 @@
+<?php
+define('SCRATCHPADS_LUCID_APPLET_300_JAR', '300/Lucid3PlayerApplet.jar');
+define('SCRATCHPADS_LUCID_APPLET_300_CODE', 'com.cbit.lucid.player.application.LucidPlayerAppletV3_00');
+define('SCRATCHPADS_LUCID_APPLET_350_JAR', '350/Lucid3PlayerApplet.jar');
+define('SCRATCHPADS_LUCID_APPLET_350_CODE', 'com.cbit.lucid.player.application.LucidPlayerApplet');
+define('SCRATCHPADS_LUCID_APPLET_EXTENSIONS', 'lkc3,lkc4,dep,fil,sco,data,xml,htm,html,css,doc,jpg,png,gif,db,tif');
+
+/**
+ * Implement hook_field_formatter_info
+ *
+ * - Provide a formatter for Lucid Keys
+ */
+function scratchpads_lucid_applet_field_formatter_info(){
+  return array(
+    'scratchpads_lucid_applet' => array(
+      'label' => t('Lucid3 Key player applet'),
+      'description' => t('Embeds the Lucid3 Key player applet. The uploaded file must be a .zip file, containing the .lkc3/4 key file and associated directory.'),
+      'field types' => array(
+        'file'
+      ),
+      'settings' => array(
+        'lucid_width' => '100%',
+        'lucid_height' => '800px'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_field_formatter_view
+ *
+ * Embeded a iframe which will fetch the player. We embed the app in an iframe because of a bug
+ * in the Lucid Player applets which makes it fail under certain circumstances (#2952).
+ *
+ */
+function scratchpads_lucid_applet_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  if($display['type'] == 'scratchpads_lucid_applet'){
+    $elements = array();
+    $width = $display['settings']['lucid_width'];
+    $height = $display['settings']['lucid_height'];
+    foreach($items as $index => $item){
+      $url = url('lucidplayer/' . $item['fid'], array(
+        'absoulte' => TRUE,
+        'query' => array(
+          'width' => $width,
+          'height' => $height
+        )
+      ));
+      $elements[$index] = array(
+        '#type' => 'markup',
+        '#markup' => "<iframe width='$width' height='$height' src='$url'></iframe>"
+      );
+    }
+    return $elements;
+  }
+}
+
+/**
+ * Implement hook_field_formatter_settings_form
+ *
+ */
+function scratchpads_lucid_applet_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  $display = $instance['display'][$view_mode];
+  if($display['type'] == 'scratchpads_lucid_applet'){
+    $settings = $display['settings'];
+    $element = array();
+    $element['lucid_width'] = array(
+      '#title' => t('Width'),
+      '#type' => 'textfield',
+      '#description' => t('A width in pixels or %'),
+      '#default_value' => $settings['lucid_width'],
+      '#element_validate' => array(
+        '_scratchpads_lucid_applet_validate_css_size'
+      ),
+      '#required' => TRUE
+    );
+    $element['lucid_height'] = array(
+      '#title' => t('Height'),
+      '#type' => 'textfield',
+      '#description' => 'A height in pixels or %',
+      '#default_value' => $settings['lucid_height'],
+      '#element_validate' => array(
+        '_scratchpads_lucid_applet_validate_css_size'
+      ),
+      '#required' => TRUE
+    );
+    return $element;
+  }
+}
+
+/**
+ * Implement hook_field_formatter_settings_summary
+ *
+ */
+function scratchpads_lucid_applet_field_formatter_settings_summary($field, $instance, $view_mode){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = '';
+  if($display['type'] == 'scratchpads_lucid_applet'){
+    $summary = t('Width: @width, Height: @height', array(
+      '@width' => $settings['lucid_width'],
+      '@height' => $settings['lucid_height']
+    ));
+  }
+  return $summary;
+}
+
+/**
+ * Validate that a string is a CSS style measurement
+ *
+ */
+function _scratchpads_lucid_applet_validate_css_size($element, &$form_state){
+  $value = trim($element['#value']);
+  if(!preg_match('/^\d+(px|%|em|pt)$/', $value)){
+    form_error($element, t('%name must be a valid CSS size, such as 100% or 800px', array(
+      '%name' => $element['#title']
+    )));
+  }
+}
+
+/**
+ * Implement hook_file_delete
+ *
+ * Delete extracted versions of ZIP files that were extracted
+ * from a Lucid key archive
+ *
+ */
+function scratchpads_lucid_applet_file_delete($file){
+  if($file->filemime == 'application/zip'){
+    $lucid_archives = variable_get('scratchpads_lucid_archives', array());
+    if(isset($lucid_archives[$file->fid])){
+      module_load_include('inc', 'scratchpads_lucid_applet', 'scratchpads_zip_archive');
+      try{
+        $archive = new ScratchpadsZipArchive($file);
+        $archive->deleteExtractedFiles();
+      }
+      catch(Exception $e){
+        drupal_set_message(t("Could not delete extracted files for archive %file_name", array(
+          '%name' => $file->filename
+        )));
+      }
+      unset($lucid_archives[$file->fid]);
+      variable_set('scratchpads_lucid_archives', $lucid_archives);
+    }
+  }
+}
+
+/**
+ * Implement hook_menu
+ *
+ */
+function scratchpads_lucid_applet_menu(){
+  return array(
+    'lucidplayer' => array(
+      'title' => 'Lucid Player Embeded',
+      'page callback' => '_scratchpads_lucid_applet_page',
+      'access arguments' => array(
+        'access content'
+      ),
+      'delivery callback' => '_scratchpads_lucid_applet_delivery',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * _scratchpads_lucid_applet_delivery
+ *
+ * Deliver our iframe, and ensure 404s are returned for
+ * the player's other requests.
+ *
+ */
+function _scratchpads_lucid_applet_delivery($html){
+  if($html){
+    drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+    echo '<html><head></head><body style="margin:0; padding:0;">';
+    echo $html;
+    echo '</body></html>';
+  }else{
+    drupal_add_http_header('Status', '404 Not Found');
+  }
+}
+
+/**
+ * _scratchpads_lucid_applet_page
+ *
+ * Page callback, generating the applet emebeding code.
+ */
+function _scratchpads_lucid_applet_page($fid){
+  // The LucidPlayer looks for a "resource" subfolder - ensure we
+  // return 404
+  $fid = intval($fid);
+  if(!$fid){return NULL;}
+  $width = $_GET['width'];
+  $height = $_GET['height'];
+  if(!preg_match('/^\d+(em|px|%|pt)$/', $width)){
+    $width = '100%';
+  }
+  if(!preg_match('/^\d+(em|px|%|pt)$/', $height)){
+    $height = '800px';
+  }
+  try{
+    $embed = _scratchpads_lucid_applet_embed_html($fid, $width, $height);
+  }
+  catch(Excpetion $e){
+    drupal_set_message($e->getMessage(), 'error');
+    return NULL;
+  }
+  return $embed;
+}
+
+/**
+ * _scratchpads_lucid_applet_embed_html
+ *
+ * Ensures files are extracted, and returns the
+ * HTML to embed the applet represented
+ * by the given file id.
+ *
+ * Throws an exception on error
+ */
+function _scratchpads_lucid_applet_embed_html($fid, $width, $height){
+  module_load_include('inc', 'scratchpads_lucid_applet', 'scratchpads_zip_archive');
+  $lucid_archives = variable_get('scratchpads_lucid_archives', array());
+  $archive = new ScratchpadsZipArchive($fid);
+  $archive->extract(explode(',', SCRATCHPADS_LUCID_APPLET_EXTENSIONS));
+  if(!isset($lucid_archives[$archive->archiveFid()])){
+    $lucid_archives[$archive->archiveFid()] = $archive->archiveFid();
+    variable_set('scratchpads_lucid_archives', $lucid_archives);
+  }
+  // Locate the key file
+  $files = $archive->extractedFiles();
+  $key_file = reset(array_filter($files, function ($v){
+    return preg_match('/\.lkc[34]$/', $v);
+  }));
+  $jar_file_pos = array_search('Lucid3PlayerApplet.jar', $files);
+  if($jar_file_pos !== FALSE){
+    // This is not currently available (.jar doesn't get extracted) - because we can't actually guess the right 'code' element.
+    $jar_file = $files[$jar_file_pos];
+    $code = '';
+  }else{
+    if(preg_match('/\.lkc3$/', $key_file)){
+      $jar_file = file_create_url(drupal_get_path('module', 'scratchpads_lucid_applet') . '/jars/' . SCRATCHPADS_LUCID_APPLET_300_JAR);
+      $code = SCRATCHPADS_LUCID_APPLET_300_CODE;
+    }else{
+      $jar_file = file_create_url(drupal_get_path('module', 'scratchpads_lucid_applet') . '/jars/' . SCRATCHPADS_LUCID_APPLET_350_JAR);
+      $code = SCRATCHPADS_LUCID_APPLET_350_CODE;
+    }
+  }
+  if(!$key_file){
+    // For safety we delete the extracted archive.
+    $archive->deleteExtractedFiles();
+    throw new Exception(t('Could not find key file %key_file', array(
+      '%key_file' => implode(' ', $files) //$key_file
+    )));
+  }
+  $key_file = file_create_url($key_file);
+  return '<applet code="' . $code . '" archive="' . $jar_file . '" width="' . $width . '" height="' . $height . '">' . '<param name="code" value="' . $code . '" />' . '<param name="archive" value="' . $jar_file . '" />' . '<param name="key" value="' . $key_file . '" />' . '</applet>';
+}

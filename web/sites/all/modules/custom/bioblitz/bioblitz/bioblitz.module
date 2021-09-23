@@ -1,0 +1,265 @@
+<?php
+
+function bioblitz_menu(){
+  $items['bioblitz/add'] = array(
+    'title' => 'New Record',
+    'title callback' => 'check_plain',
+    'page callback' => 'node_add',
+    'page arguments' => array(
+      'specimen_observation'
+    ),
+    'access callback' => 'node_access',
+    'access arguments' => array(
+      'create',
+      'specimen_observation'
+    ),
+    'description' => '',
+    'file' => 'node.pages.inc',
+    'file path' => drupal_get_path('module', 'node'),
+    'menu_name' => 'main-menu'
+  );
+  $items['admin/bioblitz'] = array(
+    'title' => 'BioBlitz Settings',
+    'description' => 'Configure settings for BioBlitz',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(
+      'administer bioblitz'
+    ),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'weight' => -14
+  );
+  $items['admin/bioblitz/settings'] = array(
+    'title' => 'Configure BioBlitz',
+    'description' => 'Configure settings for BioBlitz',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'bioblitz_admin_settings'
+    ),
+    'access arguments' => array(
+      'administer bioblitz'
+    ),
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+function bioblitz_menu_alter(&$items){
+  $items['bioblitz/add']['access callback'] = 'bioblitz_access';
+  $items['bioblitz/add']['access arguments'] = array(
+    'create bioblitz'
+  );
+}
+
+function bioblitz_access($keys){
+  switch($keys){
+    case 'create bioblitz':
+      if(user_access('create specimen_observation content')){return TRUE;}
+      if(isset($user->uid) && in_array('registered', variable_get('bioblitz_roles', array()))){return TRUE;}
+      if(in_array('anonymous', variable_get('bioblitz_roles', array()))){return TRUE;}
+      return FALSE;
+      break;
+  }
+}
+
+function bioblitz_form_alter(&$form, &$form_state, $form_id){
+  switch($form_id){
+    case 'specimen_observation_node_form':
+      bioblitz_form_alter_specimen_observation_node($form, $form_state, $form_id);
+      break;
+    case 'location_node_form':
+      bioblitz_form_alter_location_node($form, $form_state, $form_id);
+      break;
+  }
+}
+
+function bioblitz_form_alter_location_node(&$form, &$form_state, $form_id){
+  if(arg(0) == 'bioblitz' || substr($form_state['node']->title, 0, 8) == 'BioBlitz'){
+    unset($form['#group_children']['field_map']);
+    unset($form['#group_children']['field_locality']);
+    unset($form['#group_children']['field_min_elevation']);
+    unset($form['#group_children']['field_min_depth']);
+    unset($form['#group_children']['group_extra_fields']);
+    $form['field_continent_or_ocean']['#type'] = 'hidden';
+    $form['field_coordinate_system']['#type'] = 'hidden';
+    $form['field_coordinate_uncertainty']['#type'] = 'hidden';
+    $form['field_country']['#type'] = 'hidden';
+    $form['field_county']['#type'] = 'hidden';
+    $form['field_geodetic_datum']['#type'] = 'hidden';
+    $form['field_georeference_protocol']['#type'] = 'hidden';
+    $form['field_georeference_remarks']['#type'] = 'hidden';
+    $form['field_island_group']['#type'] = 'hidden';
+    $form['field_island']['#type'] = 'hidden';
+    $form['field_max_depth']['#type'] = 'hidden';
+    $form['field_max_elevation']['#type'] = 'hidden';
+    $form['field_state_province']['#type'] = 'hidden';
+    $form['field_min_elevation']['und'][0]['value']['#title'] = 'Elevation';
+    $form['field_min_elevation']['und'][0]['value']['#description'] = 'Elevation of the observed organism above mean sea level';
+    $form['field_min_depth']['und'][0]['value']['#title'] = 'Depth';
+    $form['field_min_depth']['und'][0]['value']['#description'] = 'Depth of the observed organism underwater';
+    $form['field_locality']['#weight'] = 17;
+    $form['field_locality']['und'][0]['value']['#description'] = 'A description of the locality from which the catalogued item was collected';
+    $form['revision_information']['#type'] = 'hidden';
+    $form['author']['#type'] = 'hidden';
+    $form['options']['#type'] = 'hidden';
+    $form['actions']['#type'] = 'hidden';
+    //Are we creating or editing? If creating set the title
+    if(arg(0) == 'bioblitz'){
+      //Use the location_link to set the title
+      $form['title']['#default_value'] = $form['#node']->location_link;
+    }
+    $form['title']['#type'] = 'hidden';
+    bioblitz_form_alter_no_settings($form);
+  }
+}
+
+function bioblitz_form_alter_specimen_observation_node(&$form, &$form_state, $form_id){
+  //Check if we are creating a new BioBlitz record, or editing an exisiting BioBlitz record
+  if(arg(0) == 'bioblitz' || $form_state['node']->field_institution_code['und'][0]['value'] == 'BioBlitz'){
+    bioblitz_check_for_biological_vocabulary();
+    bioblitz_check_user_logged_in();
+    if($form['#node']->name != ''){
+      $collection_code = $form['#node']->name;
+    }else{
+      $collection_code = 'anon';
+    }
+    //Some of these fields are pretty hard to understand - let's autocomplete as much as possible, hide as much as we can and give better descriptions
+    $form['field_basis_of_record']['und']['#default_value'] = 'LivingSpecimen';
+    $form['field_basis_of_record']['und'][0]['value']['#description'] = 'Does this record come from observation of a living specimen, a fossil or a historic record?';
+    $form['field_institution_code']['und'][0]['value']['#default_value'] = 'BioBlitz'; //Set to custom on install
+    $form['field_institution_code']['#type'] = 'hidden';
+    $form['field_collection_code']['und'][0]['value']['#default_value'] = $collection_code;
+    $form['field_collection_code']['#type'] = 'hidden';
+    $form['field_catalogue_number']['und'][0]['value']['#default_value'] = time();
+    $form['field_catalogue_number']['und'][0]['value']['#description'] = 'This field is automatically filled in to give each record a unique value. If you use your own identifying number or text for your personal collections/records you can enter it here.';
+    $form['field_collector_number']['#type'] = 'hidden';
+    $form['field_number']['#type'] = 'hidden';
+    $form['field_collector']['#type'] = 'hidden';
+    $form['field_date_collected']['und'][0]['#title'] = 'Date observed';
+    $form['field_type_status']['#type'] = 'hidden';
+    $form['field_collection_code']['und'][0]['#title'] = 'Scientific name';
+    $form['field_identified_by']['und']['#description'] = 'The name of the site user who provided the above identification';
+    $form['field_date_identified']['und']['#description'] = 'The date the above identification was made';
+    $form['field_date_identified']['und'][0]['#description'] = 'The date the above identification was made';
+    $form['field_count']['und'][0]['value']['#description'] = 'The number of individuals seen at this location';
+    $form['field_notes']['und'][0]['value']['#description'] = 'Please provide any additional information in this field';
+    $form['field_identification_qualifier']['#type'] = 'hidden';
+    $form['field_genbank_number']['#type'] = 'hidden';
+    $form['field_other_catalogue_numbers']['#type'] = 'hidden';
+    $form['field_remarks']['#type'] = 'hidden';
+    $form['field_notes']['#weight'] = 30;
+    $form['field_date_collected']['und']['#description'] = 'The date of observation';
+    $form['field_location']['#type'] = 'hidden';
+    //Add the location form as a subform...
+    if(arg(0) == 'bioblitz' || arg(2) == 'clone'){ //...to the create node form or clone form
+      $location_link = 'BioBlitz' . time();
+      //Add location_link to this forms #node so it is passed to the submit function
+      $form['#node']->location_link = $location_link;
+      $node = array(
+        'uid' => $user->uid,
+        'name' => (isset($user->name) ? $user->name : ''),
+        'type' => 'location',
+        'language' => '',
+        'location_link' => $location_link
+      );
+      bioblitz_form_alter_add_location_subform($form, $node);
+    }
+    if(arg(0) == 'node' && arg(2) == 'edit'){ //...to the node edit form
+      $node = node_load($form_state['node']->field_location['und'][0]['nid']);
+      bioblitz_form_alter_add_location_subform($form, $node);
+    }
+    //Make sure it's submitted
+    $form['actions']['submit']['#submit'][0] = 'subform_submit_all';
+    $form['actions']['submit']['#submit'][1] = 'bioblitz_link_location';
+    $form['actions']['submit']['#submit'][2] = 'node_form_submit';
+    //The groups are ok for taxonomists, but let's make it easy for a lay audience (let's move some fields around too!)
+    $form['#groups']['group_required']->label = 'Essentials';
+    $form['#groups']['group_required']->weight = 0;
+    $form['#groups']['group_collection']->label = 'When';
+    $form['#groups']['group_collection']->weight = 20;
+    $form['#groups']['group_taxonomy']->label = 'What';
+    $form['#groups']['group_taxonomy']->weight = 10;
+    $form['#groups']['group_miscellaneous']->label = 'Image/video';
+    $form['#groups']['group_miscellaneous']->weight = 40;
+    $form['#groups']['group_location']->label = 'Where';
+    $form['#groups']['group_location']->weight = 30;
+    $form['#group_children']['field_sex'] = 'group_taxonomy';
+    $form['#group_children']['field_notes'] = 'group_taxonomy';
+    $form['#group_children']['field_lifestage'] = 'group_taxonomy';
+    $form['#group_children']['field_count'] = 'group_taxonomy';
+    $form['#group_children']['subform_location'] = 'group_location';
+    bioblitz_form_alter_no_settings($form);
+  }
+}
+
+function bioblitz_form_alter_add_location_subform(&$form, $node){
+  $form['subform_location'] = array(
+    '#type' => 'subform',
+    '#subform_id' => 'location_node_form',
+    '#subform_file' => array(
+      'module' => 'node',
+      'name' => 'node.pages.inc'
+    ),
+    '#subform_arguments' => array(
+      (object)$node
+    )
+  );
+}
+
+function bioblitz_form_alter_no_settings(&$form){
+  $form['revision_information']['#type'] = 'hidden';
+  $form['author']['#type'] = 'hidden';
+  $form['options']['#type'] = 'hidden';
+  $form['comment_settings']['#type'] = 'hidden';
+  $form['path']['#type'] = 'hidden';
+}
+
+function bioblitz_link_location(&$form, &$form_state){
+  $location_link = $form['#node']->location_link;
+  $sql = "SELECT nid FROM node WHERE title = '" . $location_link . "'";
+  $res = db_query($sql);
+  foreach($res as $result){
+    $form_state['values']['field_location']['und'][0]['nid'] = $result->nid;
+  }
+}
+
+function bioblitz_check_for_biological_vocabulary(){
+  $biological_vids = variable_get('biological_vids', FALSE);
+  if(!$biological_vids){
+    drupal_set_message('There are no biological classifications on this site, you will be unable to associate this record with a taxonomic name.', 'warning');
+  }
+}
+
+function bioblitz_check_user_logged_in(){
+  GLOBAL $user;
+  if($user->uid == 0){
+    drupal_set_message('You are not logged in. To use many features of this site you will need to create an account and sign in.', 'warning');
+  }
+}
+
+function bioblitz_admin_settings(){
+  $form['bioblitz_settings'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Who may submit BioBlitz records?'),
+    '#options' => array(
+      'anonymous' => 'Anybody who visits the site',
+      'registered' => 'Users who have created an account'
+    ),
+    '#default_value' => variable_get('bioblitz_roles', array(
+      'registered'
+    )),
+    '#description' => t('Users who have been assigned contributor, editor or maintainer rights will be able to submit records, you may additionally allow submissions from the public and registered users')
+  );
+  return system_settings_form($form);
+}
+
+function bioblitz_context_load_alter(&$context){
+  if($context->name == 'species_overview'){
+    $context->reactions['block']['blocks']['views-bioblitz_records-block_1'] = array(
+      'module' => 'views',
+      'delta' => 'bioblitz_records-block_1',
+      'region' => 'content',
+      'weight' => '-10'
+    );
+  }
+}

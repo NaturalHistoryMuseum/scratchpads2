@@ -1,0 +1,119 @@
+<?php
+
+/**
+ * Implement hook_install
+ *
+ */
+function publication_html_format_install(){
+  // Create insert_from_view instances
+  insert_from_view_new_instance('Pensoft publication references', 'Add Reference citation', 'publication_citations_references', 'references', array(
+    'machine_name' => 'pensoft_publication_references',
+    'field' => 'nothing',
+    'icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png'
+  ));
+  insert_from_view_new_instance('Pensoft publication figures', 'Add Figure citation', 'publication_citations_figures', 'figures', array(
+    'machine_name' => 'pensoft_publication_figures',
+    'field' => 'nothing',
+    'icon' => drupal_get_path('module', 'publication_html_format') . '/images/figures.png'
+  ));
+  insert_from_view_new_instance('Pensoft publication specimens', 'Create specimen table', 'publication_create_specimens', 'default', array(
+    'machine_name' => 'pensoft_publication_specimens',
+    'field' => 'nothing',
+    'icon' => drupal_get_path('module', 'publication_html_format') . '/images/specimens.png',
+    'wrap_tag' => 'table',
+    'row_tag' => 'tr'
+  ));
+  // Ensure we are heavier than relation_select, as relation_select
+  // incorrectly uses hook_entity_insert to save it's data.
+  publication_html_format_update_7002();
+  // Create the publication_html filter format. We can't use Features for this, as we
+  // must be sure it's enabled before the CKEditor Profile
+  if(!filter_format_exists('publication_html')){
+    $format = array(
+      'format' => 'publication_html',
+      'name' => 'Publication HTML',
+      'cache' => '0',
+      'status' => '1',
+      'weight' => '0',
+      'filters' => array(
+        'filter_url' => array(
+          'weight' => '-49',
+          'status' => '1',
+          'settings' => array(
+            'filter_url_length' => '72'
+          )
+        ),
+        'filter_autop' => array(
+          'weight' => '-47',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'filter_htmlcorrector' => array(
+          'weight' => '-46',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'media_filter' => array(
+          'weight' => '-45',
+          'status' => '1',
+          'settings' => array()
+        ),
+        'emptyparagraphkiller' => array(
+          'weight' => '-44',
+          'status' => '1',
+          'settings' => array()
+        )
+      )
+    );
+    filter_format_save((object)$format);
+  }
+}
+
+/**
+ * Ensure the right path to the insert from view icons
+ * after this was re-factored out of the pensoft_publication
+ * module
+ */
+function publication_html_format_update_7001(){
+  insert_from_view_delete_instance('pensoft_publication_references', FALSE);
+  insert_from_view_delete_instance('pensoft_publication_figures', FALSE);
+  insert_from_view_delete_instance('pensoft_publication_specimens', FALSE);
+  publication_html_format_install();
+}
+
+/**
+ * Ensure we are heavier than relation_select, as relation_select
+ * incorrectly uses hook_entity_insert to save it's data.
+ */
+function publication_html_format_update_7002(){
+  // Get the weight of relation_select
+  $rlw = db_select('system', 's')->fields('s', array(
+    'weight'
+  ))->condition('type', 'module')->condition('name', 'relation_select')->execute()->fetchField();
+  // Set our module's weight
+  db_update('system')->fields(array(
+    'weight' => $rlw + 1
+  ))->condition('type', 'module')->condition('name', 'publication_html_format')->execute();
+}
+
+/**
+ * Revert the Publication HTML CKEditor profile
+ */
+function publication_html_format_update_7004(){
+  features_revert(array(
+    'publication_html_format' => array(
+      'ckeditor_profile'
+    )
+  ));
+}
+
+/**
+ * Revert the Publication HTML CKEditor profile
+ */
+function publication_html_format_update_7005(){
+  features_revert(array(
+    'publication_html_format' => array(
+      'ckeditor_profile'
+    )
+  ));
+}

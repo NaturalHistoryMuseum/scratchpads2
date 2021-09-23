@@ -1,0 +1,19 @@
+<?php
+
+function relation_select_install() {
+  db_update('system')->fields(array(
+    'weight' => 10
+  ))->condition('name', 'relation_select')->execute();
+}
+
+/**
+ * Ensure all Relation Select fields are 'relation_select' type.
+ * @see http://drupal.org/node/1753844
+ */
+function relation_select_update_7100(&$sandbox) {
+  db_update('field_config')
+    ->condition('type', 'relation')
+    ->condition('module', 'relation_select')
+    ->fields(array('type' => 'relation_select'))
+    ->execute();
+}

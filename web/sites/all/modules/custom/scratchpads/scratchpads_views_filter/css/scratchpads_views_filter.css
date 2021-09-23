@@ -1,0 +1,102 @@
+@CHARSET "UTF-8";
+
+#views-exposed-form-admin-vbo-node-page-1 {
+	padding-bottom: 1em;
+}
+
+.views-exposed-widget {
+	display: none;
+	clear: both;
+}
+
+#edit-selected-wrapper {
+	display: inline-block;
+}
+
+.views-submit-button {
+	display: block;
+}
+
+.add_filter_div {
+	display: block;
+	clear: both;
+}
+
+.views-widget div {
+	display: inline-block;
+}
+
+.remove_button {
+	margin-left: 1.6em;
+}
+
+.add_button {
+	margin-left: 1.6em;
+	margin-right: 0.8em;
+}
+
+.reset_button {
+	margin-left: 0.8em;
+	margin-right: 1.6em;
+	display: none;
+}
+
+.views-exposed-form .views-exposed-widget .form-submit {
+	position: relative;
+	top: -8px;
+	margin-bottom: 4px;
+}
+
+.views-operator,.views-widget {
+	display: inline-block;
+}
+
+.views-exposed-widgets label {
+	display: block;
+}
+
+.views-exposed-form .views-exposed-widget {
+	padding-left: 0em !important;
+	margin-left: 0;
+}
+
+.views-exposed-form .views-widget .dependent-options {
+	margin-left: 1em;
+}
+
+.views-exposed-form .views-widget .form-item-timestamp-value {
+	margin-left: 0em;
+}
+
+
+
+.views-exposed-widget .views-operator {
+	margin-left: 1em;
+}
+
+#edit-selected-wrapper .views-operator {
+	margin-left: 0em;
+	padding-left: 0px;
+}
+
+.filter_message {
+	color: red;
+	display: none;
+	position: relative;
+	top: -6px;
+	left: 2em;
+}
+
+.views-operator .form-type-select.form-item {
+	top: 0px;
+	padding: 8px;
+}
+
+.filter_description{
+	font-weight:normal;
+}
+
+.page-admin-content table tr td.views-field-edit-node a, .view-admin-vbo-file table tr td.views-field-fid a {
+    margin: 0 5px;
+}
+

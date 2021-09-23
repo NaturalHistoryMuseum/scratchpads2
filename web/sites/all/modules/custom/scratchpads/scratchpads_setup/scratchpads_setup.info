@@ -1,0 +1,8 @@
+core = "7.x"
+name = "Scratchpads setup"
+description = "Scratchpads setup process"
+package = "Scratchpads"
+dependencies[] = formflow
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_setup

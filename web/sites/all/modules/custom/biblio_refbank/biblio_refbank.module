@@ -1,0 +1,145 @@
+<?php
+define('REFBANK_URL', 'http://vbrant.ipd.uka.de/RefBank/rbk?action=find&format=BibTeX.xslt&author=%s&date=%d');
+
+/**
+ * Implements hook_menu().
+ */
+function biblio_refbank_menu(){
+  return array(
+    'biblio_refbank' => array(
+      'title' => 'Biblio refbank',
+      'page callback' => 'biblio_refbank_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Biblio refbank callback.
+ */
+function biblio_refbank_autocomplete($search_string, $return_xml = FALSE){
+  $text = explode(" ", $search_string);
+  $year = array_pop($text);
+  if(!is_numeric($year) || $year < 1000){
+    drupal_json_output(array());
+    return;
+  }
+  $request = drupal_http_request(sprintf(REFBANK_URL, urlencode(implode(" ", $text)), $year), array(
+    'timeout' => 5
+  ));
+  $options = array();
+  if($request->code == 200){
+    $_SESSION['biblio_refbank_xml'] = $request->data;
+    try{
+      $refbank = new SimpleXMLElement($request->data);
+      if($return_xml){return $refbank;}
+      $i = 0;
+      foreach($refbank->ref as $ref){
+        $ref_attributes = $ref->attributes();
+        $id = (string)$ref_attributes->id;
+        $options["$search_string (REFBANKID:$id)"] = (string)$ref->refString;
+        $i++;
+        if($i == 10){
+          break;
+        }
+      }
+    }
+    catch(Exception $e){
+      // Do nothing, most likely the service is down.
+    }
+  }
+  if(!$options){
+    drupal_set_message(t('We are having issues with RefBank, please come back later.'));
+  }
+  drupal_json_output($options);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Tweak the biblio node form so that we can add our fieldset.
+ */
+function biblio_refbank_form_biblio_node_form_alter(&$form, &$form_state){
+  if(!$form_state['submitted'] && !isset($form['#node']->nid)){
+    $form['biblio_refbank'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('RefBank Lookup'),
+      '#weight' => -20,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'refbank_data' => array(
+        '#type' => 'textfield',
+        '#title' => t('RefBank ID'),
+        '#required' => FALSE,
+        '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
+        '#description' => t('This field will autocomplete. Enter an author name, and a year in the form: <b>Author Year</b>'),
+        '#size' => 60,
+        '#maxlength' => 255,
+        '#weight' => -4,
+        '#autocomplete_path' => 'biblio_refbank'
+      ),
+      'refbank_submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Populate using RefBank'),
+        '#submit' => array(
+          'biblio_refbank_form_biblio_node_form_submit'
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Submit function for the above tweak.
+ */
+function biblio_refbank_form_biblio_node_form_submit($form, &$form_state){
+  if($form_state['values']['op'] == $form_state['values']['refbank_submit']){
+    global $user;
+    if(($pos = strpos($form_state['values']['refbank_data'], ' (REFBANKID')) != FALSE){
+      $search_text = substr($form_state['values']['refbank_data'], 0, $pos);
+      $id = substr($form_state['values']['refbank_data'], $pos + 12, 32);
+      if(isset($_SESSION['biblio_refbank_xml'])){
+        $refbank = new SimpleXMLElement($_SESSION['biblio_refbank_xml']);
+      }else{
+        $refbank = biblio_refbank_autocomplete(search_text, TRUE);
+      }
+      $found_data = FALSE;
+      foreach($refbank->ref as $ref){
+        $ref_attributes = $ref->attributes();
+        if($id == (string)$ref_attributes->id){
+          $found_data = TRUE;
+          break;
+        }
+      }
+      if($found_data){
+        $bibtex = (string)$ref->refParsed;
+        if(strlen($bibtex)){
+          list($node_data, $dups) = biblio_bibtex_biblio_import($bibtex, array(), FALSE, NULL, FALSE, TRUE);
+        }
+        if(!empty($node_data) && is_object($node_data[0])){
+          $form_state['values'] = array_merge($form_state['values'], (array)$node_data[0]);
+          $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data[0]->biblio_type;
+          $form_state['storage']['biblio_type'] = $node_data[0]->biblio_type;
+        }elseif(!empty($dups)){
+          $dup_node = node_load($dups[0]);
+          $message = t('The bibtex node that you are trying to paste into the form already exists in the database, see !url', array(
+            '!url' => l($dup_node->title, 'node/' . $dups[0])
+          ));
+          form_set_error('biblio_refbank', $message);
+        }else{
+          form_set_error('biblio_refbank', t('<strong>RefBank did not return valid BibTeX.</strong><br/>BibTeX returned by RefBank: <pre>"@bibtex"</pre>', array(
+            '@bibtex' => $bibtex
+          )));
+        }
+      }else{
+        form_set_error('biblio_refbank', t('There has been an error.  Please try again.'));
+      }
+    }else{
+      form_set_error('biblio_refbank', t('Please ensure you select a citation from the dropdown.'));
+    }
+    $form_state['rebuild'] = TRUE;
+  }
+}

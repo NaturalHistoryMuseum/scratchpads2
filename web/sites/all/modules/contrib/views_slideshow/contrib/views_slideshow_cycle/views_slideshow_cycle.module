@@ -1,0 +1,135 @@
+<?php
+
+/**
+ * @file
+ * Views Slideshow: cycle is typically used for field views.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function views_slideshow_cycle_theme($existing, $type, $theme, $path) {
+  return array(
+    'views_slideshow_cycle' => array(
+      'variables' => array(
+        'view' => NULL,
+        'settings' => array(),
+        'rows' => array(),
+        'title' => '',
+      ),
+      'template' => 'theme/views-slideshow-cycle',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle__',
+    ),
+    'views_slideshow_cycle_main_frame' => array(
+      'variables' => array(
+        'vss_id' => NULL,
+        'view' => NULL,
+        'settings' => NULL,
+        'rows' => NULL,
+      ),
+      'template' => 'theme/views-slideshow-cycle-main-frame',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle_main_frame__',
+    ),
+    'views_slideshow_cycle_main_frame_row' => array(
+      'variables' => array(
+        'vss_id' => NULL,
+        'items' => NULL,
+        'count' => NULL,
+        'view' => NULL,
+      ),
+      'template' => 'theme/views-slideshow-cycle-main-frame-row',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle_main_frame_row__',
+    ),
+    'views_slideshow_cycle_main_frame_row_item' => array(
+      'variables' => array(
+        'item' => NULL,
+        'item_count' => NULL,
+        'count' => NULL,
+        'view' => NULL,
+        'length' => NULL,
+      ),
+      'template' => 'theme/views-slideshow-cycle-main-frame-row-item',
+      'file' => 'theme/views_slideshow_cycle.theme.inc',
+      'pattern' => 'views_slideshow_cycle_main_frame_row_item__',
+    ),
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function views_slideshow_cycle_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#views_slideshow_cycle':
+      if (module_exists('advanced_help')) {
+        $output = '<p>' . l(t('Click here to view the documentation for Views Slideshow Cycle.'), 'admin/help/ah/views_slideshow_cycle') . '</p>';
+      }
+      else {
+        $output = '<p>' . t('Views Slideshow Cycle help can be found by installing and enabling the !advanced_help', array(
+          '!advanced_help' => l(t('Advanced Help module'), 'http://drupal.org/project/advanced_help'))
+        ) . '</p>';
+      }
+      return $output;
+  }
+}
+
+/**
+ * Gets the path to the jQuery cycle library.
+ *
+ * @return string
+ *   The path to the cycle library js file, or FALSE if not found.
+ */
+function _views_slideshow_cycle_library_path() {
+  $cycle_path = libraries_get_path('jquery.cycle');
+
+  if (!empty($cycle_path)) {
+    // Attempt to use minified version of jQuery cycle plugin.
+    if (file_exists($cycle_path . '/jquery.cycle.all.min.js')) {
+      $cycle_path .= '/jquery.cycle.all.min.js';
+    }
+    // Otherwise use non-minified version if available.
+    elseif (file_exists($cycle_path . '/jquery.cycle.all.js')) {
+      $cycle_path .= '/jquery.cycle.all.js';
+    }
+    else {
+      $cycle_path = FALSE;
+    }
+  }
+  else {
+    $cycle_path = FALSE;
+  }
+
+  return $cycle_path;
+}
+
+/**
+ * Gets the path to the jQuery pause library.
+ *
+ * @return string
+ *   The path to the pause library js file, or FALSE if not found.
+ */
+function _views_slideshow_cycle_pause_library_path() {
+  $pause_path = libraries_get_path('jquery.pause');
+
+  if (!empty($pause_path)) {
+    // Attempt to use minified version of jQuery pause plugin.
+    if (file_exists($pause_path . '/jquery.pause.min.js')) {
+      $pause_path .= '/jquery.pause.min.js';
+    }
+    // Otherwise use non-minified version if available.
+    elseif (file_exists($pause_path . '/jquery.pause.js')) {
+      $pause_path .= '/jquery.pause.js';
+    }
+    else {
+      $pause_path = FALSE;
+    }
+  }
+  else {
+    $pause_path = FALSE;
+  }
+
+  return $pause_path;
+}

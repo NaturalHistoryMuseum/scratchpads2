@@ -1,0 +1,118 @@
+<?php
+
+function emonocot_citation_block_info(){
+  $blocks['cite-this-page'] = array(
+    'info' => t('Cite this page'),
+    'status' => TRUE,
+    'region' => 'content',
+    'weight' => 90,
+    'visibility' => 1,
+    'cache' => DRUPAL_CACHE_PER_PAGE
+  );
+  return $blocks;
+}
+
+function emonocot_citation_block_view($delta = ''){
+  switch($delta){
+    case 'cite-this-page':
+      return emonocot_citation_cite_this_page();
+      break;
+  }
+}
+
+function emonocot_citation_cite_this_page(){
+  //Get URL
+  global $base_url;
+  $path = isset($_GET['q']) ? $_GET['q'] : '<front>';
+  switch($path){
+    case '<front>':
+    case 'scratchpads-front':
+      $link = $base_url;
+      break;
+    default:
+      $link = url($path, array(
+        'absolute' => TRUE
+      ));
+  }
+  //Site title
+  $title = variable_get('site_name', "Default site name");
+  //Access date
+  $date = getdate();
+  $date_string = "(accessed " . $date['mday'] . " " . $date['month'] . " " . $date['year'] . ")";
+  $block['subject'] = '';
+  $block['content'] = '<p>Cite this page: ' . variable_get('emonocot_citation_author_text', 'eMonocot Team') . ' ' . drupal_get_title() . ' <i>' . $title . '</i> ' . $link . ' ' . $date_string . '</p>';
+  return $block;
+}
+
+function emonocot_citation_context_load_alter(&$context){
+  $context->reactions['block']['blocks']['emonocot_citation-cite-this-page'] = array(
+    'module' => 'emonocot_citation',
+    'delta' => 'cite-this-page',
+    'region' => 'footer',
+    'weight' => -50
+  );
+}
+
+function emonocot_citation_menu(){
+  $items['admin/config/emonocot/settings'] = array(
+    'title' => 'Citation settings',
+    'description' => 'Change citation text',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'emonocot_citation_admin_settings'
+    ),
+    'access arguments' => array(
+      'administer site configuration'
+    ),
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+function emonocot_citation_admin_settings(){
+  $form['emonocot_citation_text'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Author text',
+    '#description' => t('Please enter a formatted list of authors for the site citation'),
+    '#default_value' => variable_get('emonocot_citation_author_text', 'eMonocot Team')
+  );
+  $form['#submit'][] = 'emonocot_citation_admin_settings_submit';
+  return system_settings_form($form);
+}
+
+function emonocot_citation_admin_settings_submit($form, $form_state){
+  variable_set('emonocot_citation_author_text', $form_state['values']['emonocot_citation_text']);
+}
+
+function emonocot_citation_views_default_views_alter(&$views){
+  foreach($views as $view){
+    if($view->name == 'species_description'){
+      /* Field: Content: General Description Reference */
+      $new_field = array();
+      $new_field['id'] = 'field_spm_em_gd_ref';
+      $new_field['table'] = 'field_data_field_spm_em_gd_ref';
+      $new_field['field'] = 'field_spm_em_gd_ref';
+      $new_field['alter']['alter_text'] = 0;
+      $new_field['alter']['make_link'] = 0;
+      $new_field['alter']['absolute'] = 0;
+      $new_field['alter']['external'] = 0;
+      $new_field['alter']['replace_spaces'] = 0;
+      $new_field['alter']['trim_whitespace'] = 0;
+      $new_field['alter']['nl2br'] = 0;
+      $new_field['alter']['word_boundary'] = 1;
+      $new_field['alter']['ellipsis'] = 1;
+      $new_field['alter']['more_link'] = 0;
+      $new_field['alter']['strip_tags'] = 0;
+      $new_field['alter']['trim'] = 0;
+      $new_field['alter']['html'] = 0;
+      $new_field['element_label_colon'] = 1;
+      $new_field['element_default_classes'] = 1;
+      $new_field['hide_empty'] = 0;
+      $new_field['empty_zero'] = 0;
+      $new_field['hide_alter_empty'] = 1;
+      $new_field['field_api_classes'] = 0;
+      $new_field['label'] = 'Source';
+      $view->display['default']->display_options['fields']['field_spm_em_gd_ref'] = $new_field;
+    }
+  }
+}

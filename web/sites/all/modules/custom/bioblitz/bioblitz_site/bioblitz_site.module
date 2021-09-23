@@ -1,0 +1,95 @@
+<?php
+
+function bioblitz_site_block_info(){
+	$blocks['bioblitz_tasks']= array(
+	  'info' => t('BioBlitz Tasks'),
+	  'status' => FALSE,
+	  'region' => 'content',
+	  'weight' => 0,
+	  'visibility' => 1,
+	);
+	
+	return $blocks;
+}
+
+function bioblitz_site_block_view($delta = ''){
+	switch ($delta) {
+		case 'bioblitz_tasks':
+			$block = bioblitz_site_bioblitz_tasks_block_view();
+			return $block;
+			break;
+	}
+}
+
+function bioblitz_site_bioblitz_tasks_block_view(){
+	$block['subject'] = t('BioBlitz Tasks');
+	
+	$content = '';
+	$items = array();
+	$items[] = l('Add a record', 'bioblitz/add');
+	
+	GLOBAL $user;
+	if ($user->uid != 0){
+		$items[] = l('View your records', 'bioblitz/user/'.$user->uid);
+	} else {
+		$items[] = 'Please create an account or log in to access additional features';
+	}
+	
+	$content .= theme('item_list', array('items' => $items));
+	
+	$block['content'] = $content;
+	return $block;
+}
+
+function bioblitz_site_context_load_alter(&$context){
+	if ($context->name == 'scratchpads_front_page'){
+		//Remove the default Scratchpads blocks
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_1']);
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_2']);
+		unset($context->reactions['block']['blocks']['views-front_page_blocks-block_3']);
+		//Add our own blocks
+		$context->reactions['block']['blocks']['views-bioblitz_records-block'] = array('module' => 'views', 'delta' => 'bioblitz_records-block', 'region' => 'content', 'weight' => 0); 
+		$context->reactions['block']['blocks']['bioblitz_site-bioblitz_tasks'] = array('module' => 'bioblitz_site', 'delta' => 'bioblitz_tasks', 'region' => 'content', 'weight' => 1);
+	}
+}
+
+function bioblitz_site_menu_link_alter(&$item){
+	$items_to_hide = array('biblio', 'darwincorelocation', 'darwincore', 'itis_term', 'specimen_observation', 'taxonomy/term/%/descriptions');
+	if (in_array($item['link_path'], $items_to_hide)){
+		$item['hidden'] = 1;
+	}
+
+}
+
+function bioblitz_site__form_alter(&$form, &$form_state, $form_id){
+	switch ($form_id){
+		case 'user_register_form':
+			bioblitz_site_form_alter_user_register($form, $form_state, $form_id);
+			break;
+	}
+}
+
+function bioblitz_site_form_alter_user_register(&$form, &$form_state, $form_id){
+	$form['field_user_institution']['und'][0]['value']['#default_value'] = 'BioBlitz Participant';
+	$form['field_user_institution']['und'][0]['value']['#description'] = 'If you are associated with a relevant instiutuion then you may name it here, otherwise leave as BioBlitz Participant';
+	$form['field_user_taxonomic_interest']['und'][0]['value']['#description'] = 'If you have particular expertise in a taxonomic group state it here';
+}
+
+function bioblitz_site_views_query_alter(&$view, &$query){
+	if ($view->name == 'front_page_slideshow'){
+/*	  $query->where[1]['conditions'][2] = array('field' => 'field_usage.type', 'value' => 'eolapi', 'operator' => 'NOT LIKE');
+	  $query->table_queue['file_usage'] = array('table' => 'file_usage', 'num' => 1, 'alias' => 'file_usage', 'relationship' => 'file_managed');
+unset($query->table_queue['file_usage']['join']);
+	  $query->table_queue['file_usage']['join'] = new views_join;
+	  $query->table_queue['file_usage']['join']->table = 'file_usage';
+	  $query->table_queue['file_usage']['join']->left_table = 'file_managed'; 
+	  $query->table_queue['file_usage']['join']->left_field = 'fid';
+	  $query->table_queue['file_usage']['join']->field = 'fid';
+	  $query->table_queue['file_usage']['join']->extra = NULL; 
+	  $query->table_queue['file_usage']['join']->type = 'LEFT'; 
+	  $query->table_queue['file_usage']['join']->extra_type = 'AND'; 
+	  $query->table_queue['file_usage']['join']->adjusted = true;
+	  $query->table_queue['file_usage']['join']->definition = array('field' => 'fid', 'left_field' => 'fid', 'table' => 'file_usage', 'left_table' => 'file_managed');
+	  $query->tables['file_managed']['file_usage'] = array('count' => 1, 'alias' => 'file_usage');*/
+	}
+}

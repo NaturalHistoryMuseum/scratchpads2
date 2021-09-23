@@ -1,0 +1,563 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_statistics_install(){
+  // Quick and simple insert into scratchpads_statistics__term
+  db_query('INSERT INTO {scratchpads_statistics_term} (term) SELECT DISTINCT LOWER(name) FROM {taxonomy_term_data}');
+  // Insert into scratchpads_statistics_user, ensuring the site owner is first.
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid'
+  ))->condition('uid', 1, '>')->orderBy('uid')->execute();
+  $query = db_insert('scratchpads_statistics_user')->fields(array(
+    'name',
+    'email'
+  ));
+  foreach($results as $row){
+    $user = user_load($row->uid);
+    $lang = field_language('user', $user, 'field_user_family_name');
+    $lang_given_names = field_language('user', $user, 'field_user_given_names');
+    $query->values(array(
+      'name' => @isset($user->field_user_family_name[$lang][0]['value']) ? trim($user->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $user->field_user_family_name[$lang][0]['value']) : $user->name,
+      'email' => $user->mail
+    ));
+  }
+  $query->execute();
+  // Insert this site.
+  $url = url('', array(
+    'absolute' => TRUE
+  ));
+  db_insert('scratchpads_statistics_site')->fields(array(
+    'title' => variable_get('site_name', $url),
+    'owner' => 1,
+    'url' => $url,
+    'created' => variable_get('install_time', time())
+  ))->execute();
+  // Insert a list of site types.
+  // FIXME - Add site types.
+  // Associate this site with a site type
+  // FIXME - Associate this site with site types.
+  // Insert all of the different entity/bundles
+  $info = entity_get_info();
+  $query = db_insert('scratchpads_statistics_entity_bundle')->fields(array(
+    'entity',
+    'bundle',
+    'name'
+  ));
+  foreach(entity_get_info() as $entity => $entity_info){
+    foreach($entity_info['bundles'] as $bundle => $bundle_info){
+      $query->values(array(
+        'entity' => $entity,
+        'bundle' => $bundle,
+        'name' => $bundle_info['label']
+      ));
+    }
+  }
+  $query->execute();
+  // Set the variables
+  scratchpads_statistics_update_7008();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function scratchpads_statistics_uninstall(){
+  variable_del('scratchpads_statistics_hash');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function scratchpads_statistics_schema(){
+  return array(
+    // Site
+    'scratchpads_statistics_site' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'title' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'owner' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'url' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'id'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_site_title_index' => array(
+          'title'
+        )
+      ),
+      'unique keys' => array(
+        'scratchpads_statistics_site_url_unique' => array(
+          'url'
+        )
+      )
+    ),
+    // SiteType
+    'scratchpads_statistics_site_type' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'type' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        )
+      ),
+      'primary key' => array(
+        'id'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_site_type_type_index' => array(
+          'type'
+        )
+      ),
+      'unique keys' => array(
+        'scratchpads_statistics_site_type_type_unique' => array(
+          'type'
+        )
+      )
+    ),
+    // Site - SiteType (m:n relationship table).
+    'scratchpads_statistics_site_site_type' => array(
+      'fields' => array(
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site_type' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'site',
+        'site_type'
+      )
+    ),
+    // User
+    'scratchpads_statistics_user' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 1024,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'email' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'country' => array(
+          'type' => 'varchar',
+          'length' => 2
+        ),
+        'latitude' => array(
+          'type' => 'varchar',
+          'length' => 10
+        ),
+        'longitude' => array(
+          'type' => 'varchar',
+          'length' => 10
+        )
+      ),
+      'primary key' => array(
+        'id'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_user_name_index' => array(
+          array(
+            'name',
+            255
+          )
+        ),
+        'scratchpads_statistics_user_email_index' => array(
+          'email'
+        )
+      ),
+      'unique keys' => array(
+        'scratchpads_statistics_user_email_unique' => array(
+          'email'
+        )
+      )
+    ),
+    // Entity/Bundle
+    'scratchpads_statistics_entity_bundle' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'entity' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'bundle' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        )
+      ),
+      'primary key' => array(
+        'id'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_entity_bundle_entity_index' => array(
+          'entity'
+        ),
+        'scratchpads_statistics_entity_bundle_bundle_index' => array(
+          'bundle'
+        )
+      ),
+      'unique keys' => array(
+        'scratchpads_statistics_entity_bundle_entity_bundle_unique' => array(
+          array(
+            'entity',
+            166
+          ),
+          array(
+            'bundle',
+            166
+          )
+        )
+      )
+    ),
+    // Term
+    // Note, we do not store the TID here, as we need to show revisions of
+    // terms.
+    'scratchpads_statistics_term' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'term' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''
+        )
+      ),
+      'primary key' => array(
+        'id'
+      ),
+      'unique keys' => array(
+        'scratchpads_statistics_term_term_unique' => array(
+          'term'
+        )
+      )
+    ),
+    // Data item
+    'scratchpads_statistics_data' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'term' => array(
+          // Note, we use 0 to represent NONE
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'entity_bundle' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_edited' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_views' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'captured' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'term',
+        'site',
+        'entity_bundle',
+        'captured'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_data_captured_index' => array(
+          'captured'
+        )
+      )
+    ),
+    // Login details
+    'scratchpads_statistics_login' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 1
+        ),
+        'created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'access' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'site'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_login_created_index' => array(
+          'created'
+        ),
+        'scratchpads_statistics_login_access_index' => array(
+          'access'
+        )
+      )
+    ),
+    // Data item temp (to be loaded into the proper table later).
+    'scratchpads_statistics_data_temp' => array(
+      'fields' => array(
+        'user' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'term' => array(
+          // Note, we use 0 to represent NONE
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'site' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'entity_bundle' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_created' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_edited' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'number_views' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'captured' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'user',
+        'term',
+        'site',
+        'entity_bundle',
+        'captured'
+      ),
+      'indexes' => array(
+        'scratchpads_statistics_data_captured_index' => array(
+          'captured'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Add the scratchpads_statistics_data_temp table.
+ */
+function scratchpads_statistics_update_7001(){
+  $schema = scratchpads_statistics_schema();
+  db_create_table('scratchpads_statistics_data_temp', $schema['scratchpads_statistics_data_temp']);
+}
+
+/**
+ * Add the latitude/longitude/country fields to the s..s.._user table
+ */
+function scratchpads_statistics_update_7002(){
+  $fields = array(
+    'country' => array(
+      'type' => 'varchar',
+      'length' => 2
+    ),
+    'latitude' => array(
+      'type' => 'varchar',
+      'length' => 10
+    ),
+    'longitude' => array(
+      'type' => 'varchar',
+      'length' => 10
+    )
+  );
+  foreach($fields as $field => $spec){
+    db_add_field('scratchpads_statistics_user', $field, $spec);
+  }
+}
+
+/**
+ * Add the scratchpads_statistics_login table.
+ */
+function scratchpads_statistics_update_7003(){
+  $schema = scratchpads_statistics_schema();
+  db_create_table('scratchpads_statistics_login', $schema['scratchpads_statistics_login']);
+  // Add data to the table.
+  $select = db_select('scratchpads_statistics_user', 'ssu');
+  $select->innerJoin('users', 'u', 'u.mail = ssu.email');
+  $select->condition('u.uid', 1, '>');
+  $select->condition('u.status', 1);
+  $select->addField('ssu', 'id', 'user');
+  $select->addField('u', 'created');
+  $select->addField('u', 'access');
+  $query = db_insert('scratchpads_statistics_login')->from($select)->execute();
+  menu_rebuild();
+}
+
+/**
+ * Update the created times of sites which do not have a value set.
+ */
+function scratchpads_statistics_update_7004(){
+  db_update('scratchpads_statistics_site')->fields(array(
+    'created' => variable_get('install_time', time())
+  ))->condition('created', 0)->condition('id', 1)->execute();
+}
+
+/**
+ * Enable the simple_google_charts module
+ */
+function scratchpads_statistics_update_7006(){
+  module_enable(array(
+    'simple_google_charts'
+  ));
+}
+
+/**
+ * Lengthen the name column - names, theoretically, can be much longer than 255
+ * characters.
+ */
+function scratchpads_statistics_update_7007(){
+  db_change_field('scratchpads_statistics_user', 'name', 'name', array(
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => TRUE,
+    'default' => ''
+  ));
+}
+
+/**
+ * Enable the counting of node views.
+ */
+function scratchpads_statistics_update_7008(){
+  variable_set('statistics_count_content_views', 1);
+  variable_set('statistics_count_content_views_ajax', 1);
+}

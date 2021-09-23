@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_translate_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/i18n',
+    'admin/config/regional/i18n_translation',
+    'admin/structure/menu/manage/translation'
+  ));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_translate_menu(){
+  return array(
+    'admin/config/regional/translate-setup' => array(
+      'title' => 'Translate settings',
+      'description' => 'Configure the content types and fields that you would like to enable translations for.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_translate_setup_translation_form'
+      ),
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'administer languages'
+      ),
+      'file' => 'scratchpads_translate.admin.inc',
+      'weight' => 10
+    )
+  );
+}
+
+/**
+ * Implements hook_boot().
+ */
+function scratchpads_translate_boot(){
+  if(isset($_SESSION['scratchpads_translate'])){
+    if(isset($_GET['destination']) && $_GET['destination'] == 'admin/config/regional/translate-setup' && arg(0) == 'admin' && arg(1) == 'structure' && ((arg(2) == 'types' && arg(3) == 'manage' && arg(5) == 'fields' && in_array(arg(6), $_SESSION['scratchpads_translate'])) || (arg(2) == 'taxonomy' && arg(4) == 'fields' && in_array(arg(5), $_SESSION['scratchpads_translate'])))){
+      // We need to unlock the field to ensure the user can edit it
+      db_update('field_config')->fields(array(
+        'locked' => 0
+      ))->condition('field_name', (arg(2) == 'taxonomy' ? arg(5) : arg(6)))->execute();
+      // We set a shutdown function to lock the field so that it remains locked
+      drupal_register_shutdown_function('scratchpads_translate_shutdown', (arg(2) == 'taxonomy' ? arg(5) : arg(6)));
+    }
+  }
+}
+
+/**
+ * Shutdown function to re-lock unlocked fields.
+ */
+function scratchpads_translate_shutdown($field_name){
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $field_name)->execute();
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_translate_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'translate content',
+      'translate any entity'
+    ),
+    'maintainer' => array(
+      'translate user-defined strings'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_translate_form_taxonomy_form_vocabulary_alter(&$form, &$form_state){
+  // FIXME - This needs properly investigatin, is this correct?
+  unset($form['i18n_translation']['i18n_mode']['#options'][2]);
+  unset($form['i18n_translation']['i18n_mode']['#options'][4]);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_translate_form_menu_edit_menu_alter(&$form, &$form_state){
+  unset($form['i18n_translation']);
+  $form['i18n_mode'] = array(
+    '#type' => 'hidden',
+    '#value' => 5
+  );
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_translate_module_implements_alter(&$imps, $hook){
+  if(in_array($hook, array(
+    'form_taxonomy_form_vocabulary_alter',
+    'form_menu_edit_menu_alter',
+    'form_alter'
+  )) && isset($imps['scratchpads_translate'])){
+    $move = $imps['scratchpads_translate'];
+    unset($imps['scratchpads_translate']);
+    $imps['scratchpads_translate'] = $move;
+  }
+}

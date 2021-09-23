@@ -1,0 +1,119 @@
+<?php
+define('SEARCH_AUTOCOMPLETE_SEPARATOR', '&nbsp;&raquo;&nbsp;');
+
+/**
+ * Implementation of hook_menu
+ */
+function search_autocomplete_menu(){
+  return array(
+    'search_autocomplete' => array(
+      'title' => 'Autocomplete all searches',
+      'page callback' => 'search_autocomplete_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter
+ */
+function search_autocomplete_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  $form['search_block_form']['#autocomplete_path'] = 'search_autocomplete';
+  $form['#submit'] = array_merge(array(
+    'search_autocomplete_search_submit'
+  ), (is_array($form['#submit']) ? $form['#submit'] : array()));
+  $form['#attached']['css'][] = drupal_get_path('module', 'search_autocomplete') . '/css/search_autocomplete.css';
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter
+ */
+function search_autocomplete_form_search_form_alter(&$form, &$form_state, $form_id){
+  $form['basic']['keys']['#autocomplete_path'] = 'search_autocomplete';
+  $form['#submit'] = array_merge(array(
+    'search_autocomplete_search_submit'
+  ), (is_array($form['#submit']) ? $form['#submit'] : array()));
+}
+
+/**
+ * Submit function for search form.
+ */
+function search_autocomplete_search_submit(&$form, &$form_state){
+  // We split by the separator
+  $search_string = '';
+  if(isset($form_state['values']['keys']) && is_string($form_state['values']['keys'])){
+    $search_string = $form_state['values']['keys'];
+  }else if(isset($form_state['values']['search_block_form']) && is_string($form_state['values']['search_block_form'])){
+    $search_string = $form_state['values']['search_block_form'];
+  }
+  if(substr($search_string, 0, 4) == 'http' && parse_url($search_string)){
+    drupal_goto($search_string);
+  }
+}
+
+/**
+ * Callback for menu
+ */
+function search_autocomplete_autocomplete($search = ''){
+  // Here we search for a number of different values, allowing other modules to
+  // plugin to the autocomplete results with the use of a hook
+  $term_matches = module_invoke_all('search_autocomplete_search', $search);
+  $matches = array();
+  foreach($term_matches as $match){
+    $matches[$match['url']] = check_plain($match['text']) . SEARCH_AUTOCOMPLETE_SEPARATOR . $match['url'];
+  }
+  drupal_json_output($matches);
+}
+
+/**
+ * Implementation of hook_search_autocomplete_search() for taxonomy
+ */
+function taxonomy_search_autocomplete_search($search){
+  $matches = array();
+  if($search != ''){
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+    // Select rows that match by term name.
+    $tags_return = $query->fields('t')->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute();
+    $term_matches = array();
+    foreach($tags_return as $term){
+      $uri = entity_uri('taxonomy_term', $term);
+      $term_matches[] = array(
+        'text' => $term->name,
+        'url' => url($uri['path'], array_merge($uri['options'], array(
+          'absolute' => TRUE
+        )))
+      );
+    }
+  }
+  return $term_matches;
+}
+
+/**
+ * Implementation of hook_search_autocomplete_search() for node
+ */
+function node_search_autocomplete_search($search){
+  $matches = array();
+  if($search != ''){
+    $query = db_select('node', 'n');
+    $query->addTag('translatable');
+    $query->addTag('node_access');
+    // Select rows that match by term name.
+    $tags_return = $query->fields('n')->condition('n.title', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute();
+    $term_matches = array();
+    foreach($tags_return as $node){
+      $uri = entity_uri('node', $node);
+      $term_matches[] = array(
+        'text' => $node->title,
+        'url' => url($uri['path'], array_merge($uri['options'], array(
+          'absolute' => TRUE
+        )))
+      );
+    }
+  }
+  return $term_matches;
+}

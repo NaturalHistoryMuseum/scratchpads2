@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Tests for Relation Entity Collector module.
+ */
+
+/**
+ * Functional test of Relation's integration with the Entity Collector.
+ */
+class RelationEntityCollectorTestCase extends RelationTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Relation Entity Collector test',
+      'description' => 'Tests the Relation Entity Collector.',
+      'group' => 'Relation',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('relation', 'relation_ui', 'relation_entity_collector');
+    $this->drupalLogin($this->web_user);
+  }
+
+  /**
+   * Add relations to Node 1 and to Node 3 and then check that they are related.
+   */
+  function testEntityCollector() {
+    $node1key = 'node:' . $this->node1->nid;
+    $node3key = 'node:' . $this->node3->nid;
+
+    $relation_type = $this->relation_types['symmetric']['relation_type'];
+    $edit = array(
+      "relation_type" => $relation_type,
+      "entity_key" => $node1key,
+    );
+    $this->drupalPost('node', $edit, t('Pick'));
+    $edit = array(
+      "relation_type" => $relation_type,
+      "entity_key" => $node3key,
+    );
+    $this->drupalPost('node', $edit, t('Pick'));
+    $this->drupalPost('node', array(), t('Save relation'));
+    // Now figure out the new rid.
+    $result = array_keys(relation_query('node', $this->node3->nid)
+      ->propertyCondition('relation_type', $relation_type)
+      ->execute());
+    $path = 'relation/' . $result[0];
+    $link = l($relation_type, $path);
+    // Rebuild the message. Use the known node labels to make sure the message
+    // contains those.
+    $node1_label = entity_label('node', $this->node1);
+    $node3_label = entity_label('node', $this->node3);
+    $items = array(
+      "article: " . $node1_label,
+      "page: " . $node3_label,
+    );
+    $item_list = array(
+      '#theme' => 'item_list',
+      '#items' => $items,
+    );
+    $list = drupal_render($item_list);
+    $message = t('Created new !link from !list', array('!link' => $link, '!list' => $list));
+    $this->assertRaw($message, 'Created a new relation.');
+    $this->drupalGet($path);
+    $node1_uri = entity_uri('node', $this->node1);
+    $node3_uri = entity_uri('node', $this->node3);
+    $this->assertRaw(l($node1_label, $node1_uri['path'], $node1_uri['options']), 'Node1 link found');
+    $this->assertRaw(l($node3_label, $node3_uri['path'], $node3_uri['options']), 'Node1 link found');
+  }
+}

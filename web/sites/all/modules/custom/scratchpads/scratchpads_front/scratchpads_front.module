@@ -1,0 +1,871 @@
+<?php
+
+/*********************************************************************************************
+ *
+ * CORE HOOKS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_front_permission(){
+  return array(
+    'administer front page' => array(
+      'title' => t('Administer front page')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_front_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer front page'
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_front_menu(){
+  $items['scratchpads-front'] = array(
+    // The page callback also invokes drupal_set_title() in case
+    // the menu router's title is overridden by a menu link.
+    'page callback' => 'scratchpads_front_page_view',
+    'access arguments' => array(
+      'access content'
+    )
+  );
+  $items['scratchpads-front/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+  $items['scratchpads-front/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'scratchpads_front_page_edit'
+    ),
+    'access arguments' => array(
+      'administer front page'
+    ),
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_view_alter
+ */
+function scratchpads_front_block_view_alter(&$data, $block){
+  // We need to set the block title for the "Custom" views blocks.
+  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_'){
+    // if the form has passed in the argument of custom
+    if(@isset($data['content']['#views_contextual_links_info']['views_ui']['view']->args[0]) && $data['content']['#views_contextual_links_info']['views_ui']['view']->args[0] == 'custom'){
+      $custom_block = scratchpads_front_get_custom_block('front_page_' . $data['content']['#views_contextual_links_info']['views_ui']['view_display_id'] . '_node_type');
+      if($custom_block->module == 'views'){
+        // title too long so it is md5 hashed by views
+        if(strlen($custom_block->delta) == 32){
+          $hashes = variable_get('views_block_hashes', array());
+          if(!empty($hashes[$custom_block->delta])){
+            $custom_block->delta = $hashes[$custom_block->delta];
+          }
+        }
+        $view_and_display = explode('-', $custom_block->delta);
+        $view = views_get_view($view_and_display[0]);
+        $data['title'] = $view->display[$view_and_display[1]]->display_options['title'];
+      }elseif(isset($custom_block->title)){
+        $data['title'] = $custom_block->title;
+      }
+    }
+    // Check to see whether or not the block has content.
+    $content = $data['content'];
+    $content = trim(str_replace("\n", '', strip_tags(drupal_render($content))));
+    if(!$content){
+      unset($data['content']);
+      unset($data['subject']);
+    }
+  }
+  if(isset($block->context) && substr($block->bid, 0, -1) == 'views-front_page_blocks-block_' && isset($data['subject']) && substr($data['subject'], -3) == 'rys'){
+    $data['subject'] = substr($data['subject'], 0, -2) . 'ies';
+  }
+  if(isset($block->context) && (!user_access('administer front page'))){
+    if($block->context == 'scratchpads_front_page'){
+      if(isset($data['content']) && substr_count($data['content']['#markup'], 'class="view-empty"') > 1){
+        unset($data['content']);
+        unset($data['subject']);
+      }
+    }
+  }
+}
+
+function scratchpads_front_menu_contextual_links_alter(&$links, $router_item, $root_path){
+  if($root_path == 'scratchpads-front/edit'){
+    $links['block-']['title'] = t("Edit front page");
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_front_admin_paths(){
+  $paths = array(
+    'scratchpads-front/edit' => true
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_front_form_system_site_information_settings_alter(&$form, $form_state, $form_id){
+  unset($form['front_page']['default_nodes_main']);
+  $welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  $form['front_page']['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'textarea',
+    '#default_value' => $welcome_message['value'],
+    '#required' => true
+  );
+}
+
+/*********************************************************************************************
+ *
+ * VIEWS
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_front_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_front');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Implements hook_views_pre_view().
+ * Pass the view front page settings as arguments
+ */
+function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
+  $var = 'front_page_' . $display_id . '_node_type';
+  switch($view->name){
+    case 'front_page_blocks':
+      if(scratchpads_front_variable_get($var) == 'custom' && $view->current_display == $display_id){
+        $custom_block = scratchpads_front_get_custom_block($var);
+        $render_array = _block_get_renderable_array(_block_render_blocks(array(
+          $custom_block
+        )));
+        $render_block_id = $custom_block->module . '_' . $custom_block->delta;
+        $custom_view_block_css = '';
+        if(!empty($render_array[$render_block_id]['#views_contextual_links_info']['views_ui']['view']->display['block']->display_options['css_class'])){
+          $custom_view_block_css = $render_array[$render_block_id]['#views_contextual_links_info']['views_ui']['view']->display['block']->display_options['css_class'];
+        }
+        $markup = '<div class="view view-front-page-blocks view-id-front_page_blocks view-display-id-' . $display_id . '">
+        <div class="view-content' . $custom_view_block_css . '">' . (isset($render_array[$render_block_id]['#markup']) ? $render_array[$render_block_id]['#markup'] : '') . '</div>
+      </div>';
+        $empty_area_options = array(
+          'area' => array(
+            'id' => 'area',
+            'table' => 'views',
+            'field' => 'area',
+            'format' => 'filtered_html',
+            'content' => $markup
+          )
+        );
+        $view->display_handler->set_option('empty', $empty_area_options);
+      }
+      if (isset($custom_block->subject) && $custom_block->subject != ''){
+        $view->title = $custom_block->subject;
+      }
+      $view->args[] = scratchpads_front_variable_get($var);
+      break;
+    case 'front_page_slideshow':
+      $view->args[] = scratchpads_front_variable_get($var);
+      if(!user_access('administer front page')){
+        $view->display_handler->default_display->options['empty'] = array();
+        $view->display_handler->options['empty'] = array();
+      }
+      break;
+  }
+}
+
+/*********************************************************************************************
+ *
+ * MENU CALLBACKS
+ *
+ ********************************************************************************************/
+/**
+ * Menu callback
+ * Display the home page
+ */
+function scratchpads_front_page_view(){
+  $page = array();
+  $path = drupal_get_path('module', 'scratchpads_front');
+  $welcome_message = '<h1 id="front-page-title" class="title"> ';
+  $default_welcome_message = t('Welcome to @site-name', array(
+    '@site-name' => variable_get('site_name', 'Drupal')
+  ));
+  if(variable_get('front_page_override_welcome_title', 0)){
+    $welcome_message .= variable_get('front_page_welcome_title', $default_welcome_message);
+  }else{
+    $welcome_message .= $default_welcome_message;
+  }
+  $welcome_message .= '</h1>';
+  if(($set_message = variable_get('front_page_welcome_message', FALSE)) !== FALSE){
+    $welcome_message .= check_markup($set_message['value'], 'filtered_html');
+  }else{
+    if(user_access('administer front page')){
+      $welcome_message .= '<p>' . t('Click <em>Edit</em> above to customise the "Welcome message" for your site or, complete your site setup by clicking <em>Dashboard</em>, and then <em>Finish setting up the site</em>.') . '</p>';
+    }
+  }
+  switch(scratchpads_front_variable_get('front_page_main_block_type')){
+    case 'images':
+      $view_name = 'front_page_slideshow';
+      $args = array();
+      break;
+    case 'content':
+      $view_name = 'front_page_content';
+      $args = array(
+        scratchpads_front_variable_get('front_page_main_block_node_type')
+      );
+      break;
+  }
+  // Load the view and render it.
+  if($view = views_get_view($view_name)){
+    $block = $view->execute_display(NULL, $args);
+  }
+  // Add an alternate link to the RSS feed.
+  drupal_add_html_head_link(array(
+    'rel' => 'alternate',
+    'title' => variable_get('site_name', ''),
+    'href' => url('rss.xml', array(
+      'absolute' => TRUE
+    )),
+    'type' => 'application/rss+xml'
+  ));
+  return array(
+    'welcome' => array(
+      '#prefix' => '<div class="grid-4 alpha">',
+      '#markup' => $welcome_message,
+      '#suffix' => '</div>'
+    ),
+    'block' => array(
+      '#prefix' => '<div class="grid-8 omega">',
+      '#markup' => $block,
+      '#suffix' => '</div>'
+    ),
+    '#attached' => array(
+      'css' => array(
+        $path . '/css/scratchpads_front.css'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_entity_view
+ *
+ * REMOVE links from the species slideshow, and ADD links to the front page
+ * slideshow. This is a thoroughly shit way of doing this, but the styles and
+ * file entity code is so messed up that I'm reluctant to spend time trying to
+ * do this correctly.
+ */
+function scratchpads_front_entity_view_alter(&$build, $type){
+  if($type == 'file' && isset($build['#view_mode']) && $build['#view_mode'] == 'file_styles_slideshow_large'){
+    $matches = FALSE;
+    preg_match('/<img [^>]*>/', $build['file']['#markup'], $matches);
+    if($matches){
+      $build['file']['#markup'] = str_replace($matches[0], l($matches[0], 'file/' . $build['file']['#file']->fid, array(
+        'html' => TRUE
+      )), $build['file']['#markup']);
+    }
+  } elseif($type == 'file' && isset($build['#view_mode']) && $build['#view_mode'] == 'file_styles_species_slideshow_thumbnail'){
+    $matches = FALSE;
+    preg_match('|(<a href[^>]*>)<img [^>]*>(</a>)|', $build['file']['#markup'], $matches);
+    for($i = 1; $i <= 2; $i++){
+      $build['file']['#markup'] = str_replace($matches[$i], '', $build['file']['#markup']);
+    }
+  }
+}
+
+/**
+ * Menu callback
+ * Edit the home page
+ */
+function scratchpads_front_page_edit($form, &$form_state){
+  // Switch the realm if we need to.
+  if(module_exists('variable_realm')){
+    if(($params = variable_realm_params()) != FALSE){
+      foreach($params as $realm_name => $realm_key){
+        variable_realm_switch($realm_name, $realm_key, FALSE);
+      }
+      variable_realm_rebuild();
+    }
+  }
+  $node_types = scratchpads_front_node_types();
+  $form['site_information'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site details')
+  );
+  $form['site_information']['site_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site name'),
+    '#default_value' => variable_get('site_name', 'Drupal'),
+    '#required' => TRUE
+  );
+  $form['site_information']['site_slogan'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Slogan'),
+    '#default_value' => variable_get('site_slogan', ''),
+    '#description' => t("How this is used depends on your site's theme.")
+  );
+  $form['site_information']['site_mail'] = array(
+    '#type' => 'textfield',
+    '#title' => t('E-mail address'),
+    '#default_value' => variable_get('site_mail', ini_get('sendmail_from')),
+    '#description' => t("The <em>From</em> address in automated e-mails sent during registration and new password requests, and other notifications. (Use an address ending in your site's domain to help prevent this e-mail being flagged as spam.)"),
+    '#required' => TRUE
+  );
+  $form['front_page_welcome'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Welcome'
+  );
+  $form['front_page_welcome']['front_page_override_welcome_title'] = array(
+    '#title' => t('Override welcome title'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('front_page_override_welcome_title', 0)
+  );
+  $form['front_page_welcome']['front_page_welcome_title'] = array(
+    '#title' => t('Welcome title'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('front_page_welcome_title', t('Welcome to @site-name', array(
+      '@site-name' => variable_get('site_name', 'Drupal')
+    ))),
+    '#description' => t('Setting the welcome title will prevent it from being translated on multi-lingual sites.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="front_page_override_welcome_title"]' => array(
+          'checked' => TRUE
+        )
+      )
+    )
+  );
+  $default_welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  $form['front_page_welcome']['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#default_value' => $default_welcome_message['value'],
+    '#required' => true
+  );
+  $form['main_block'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Main block'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  $form['main_block']['front_page_main_block_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Main block'),
+    '#default_value' => scratchpads_front_variable_get('front_page_main_block_type'),
+    '#options' => array(
+      'images' => t('Images'),
+      'content' => t('Content')
+    ),
+    '#description' => t('Please select what content type to display in the main front page block.'),
+    '#required' => true
+  );
+  $form['main_block']['front_page_main_block_node_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Content type'),
+    '#options' => array(
+      'all' => 'All content types'
+    ) + $node_types,
+    '#default_value' => scratchpads_front_variable_get('front_page_main_block_node_type'),
+    '#required' => true,
+    '#states' => array(
+      'invisible' => array(
+        'input[name="front_page_main_block_type"]' => array(
+          'value' => 'images'
+        )
+      )
+    )
+  );
+  // if the view has been edited we don't add the option to edit the view via this form
+  if(strlen(views_get_view('front_page_slideshow')->vid) == 0){
+    $form['main_block']['front_page_main_block_slideshow_text_creator'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Creator'),
+      '#description' => t('Do you want the image creators to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_creator'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
+        )
+      )
+    );
+    $form['main_block']['front_page_main_block_slideshow_text_licence'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display Image Licence'),
+      '#description' => t('Do you want the image licences to be displayed in the slideshow?'),
+      '#default_value' => scratchpads_front_variable_get('front_page_main_block_slideshow_text_licence'),
+      '#required' => false,
+      '#states' => array(
+        'visible' => array(
+          'input[name="front_page_main_block_type"]' => array(
+            'value' => 'images'
+          )
+        )
+      )
+    );
+  }
+  $form['small_blocks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Small blocks'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  $view = views_get_view('front_page_blocks');
+  $count = 1;
+  $form_state['vars'] = array();
+  foreach(array_keys($view->display) as $display_id){
+    if($display_id === 'default'){
+      continue;
+    }
+    $var = 'front_page_' . $display_id . '_node_type';
+    $form_state['vars'][] = $var;
+    $form['small_blocks']['small_block_' . $count] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Block ' . $count),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE
+    );
+    $form['small_blocks']['small_block_' . $count][$var] = array(
+      '#type' => 'select',
+      '#title' => t('Block ' . $count),
+      '#options' => $node_types + array(   /* add custom as an option. If user selects this, a list of blocks is returned to choose from */
+        'custom' => 'Custom'
+      ),
+      '#default_value' => scratchpads_front_variable_get($var),
+      '#description' => t('Select which node type to display in the home page block.'),
+      '#required' => true
+    );
+    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Custom block ' . $count),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      // This #states rule says that the "custom block" fieldset should only be shown if the "nodetype (var)" form element is set to "custom".
+      '#states' => array(
+        'visible' => array(
+          ':input[name="' . $var . '"]' => array(
+            'value' => 'custom'
+          )
+        )
+      )
+    );
+    $form['small_blocks']['small_block_' . $count]['custom_block_' . $count][$var . '_custom'] = array(
+      '#type' => 'select',
+      '#title' => t('Block ' . $count . ' custom'),
+      '#options' => scratchpads_front_blocks_as_options(),
+      '#default_value' => scratchpads_front_variable_get($var . '_custom'),
+      '#empty_option' => '- SELECT -',
+      '#empty_value' => 0
+    );
+    $count++;
+  }
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'scratchpads_front_page_edit_submit';
+  return $form;
+}
+
+/**
+ * Form submit
+ * Edit the home page
+ */
+function scratchpads_front_page_edit_submit($form, &$form_state){
+  /*
+   * $form_state['vars'][2] = front_page_block_3_node_type
+   * $form_state['values']['front_page_block_3_node_type'] = 'custom'
+   * $form_state['values']['front_page_block_3_node_type_custom'] = views:custom_twitter_block-block' (module:delta)
+   *
+   * unset custom variable if custom is not selected as a node type
+   */
+  foreach($form_state['vars'] as $var){
+    if($form_state['values'][$var] && $form_state['values'][$var] != 'custom'){
+      variable_del($var . '_custom');
+    }
+    variable_set($var, $form_state['values'][$var]);
+  }
+  $form_state['redirect'] = '<front>';
+  // Clear the views cache, as the slideshow view is dynamic
+  views_invalidate_cache();
+  // clear the other caches so the blocks update
+  drupal_flush_all_caches();
+}
+
+/*********************************************************************************************
+ *
+ * MODULE FUNCTIONS
+ *
+ ********************************************************************************************/
+/**
+ *
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_front_variable_get($name){
+  $default = scratchpads_front_variable_default($name);
+  return variable_get($name, $default);
+}
+
+/**
+ *
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_front_variable_default($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'front_page_main_block_type' => 'images',
+      'front_page_main_block_node_type' => 'all'
+    );
+    $view = views_get_view('front_page_blocks');
+    foreach(array_keys($view->display) as $display_id){
+      if($display_id === 'default'){
+        continue;
+      }
+      $var = 'front_page_' . $display_id . '_node_type';
+      switch($display_id){
+        case 'block_1':
+          $defaults[$var] = 'page';
+          $defaults[$var . '_custom'] = 0;
+          break;
+        case 'block_2':
+          $defaults[$var] = 'biblio';
+          $defaults[$var . '_custom'] = 0;
+          break;
+        case 'block_3':
+          $defaults[$var] = 'spm';
+          $defaults[$var . '_custom'] = 0;
+          break;
+      }
+    }
+  }
+  if(!isset($name)){return $defaults;}
+  if(isset($defaults[$name])){return $defaults[$name];}
+}
+
+/**
+ *
+ * Get a list of node types
+ */
+function scratchpads_front_node_types(){
+  static $node_types;
+  if(!isset($node_types)){
+    foreach(node_type_get_types() as $node_type => $node_info){
+      $node_types[$node_type] = $node_info->name;
+    }
+  }
+  return $node_types;
+}
+
+/*********************************************************************************************
+ *
+ * PREPROCESSORS
+ *
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ */
+function scratchpads_front_preprocess_block(&$vars){
+  $block = $vars['block'];
+  if(isset($block->context) && $block->context == 'scratchpads_front_page'){
+    $display_id = substr(strrchr($block->bid, "-"), 1); // this is the block into which we are placing the custom block
+    $custom_block_selected = variable_get('front_page_' . $display_id . '_node_type_custom');
+    if($custom_block_selected){
+      list($module, $delta) = explode(':', $custom_block_selected, 2);
+      $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+        'admin/structure/block/manage',
+        array(
+          $module,
+          $delta
+        )
+      );
+    }else{
+      // Change the contextual links
+      $vars['title_suffix']['contextual_links']['#contextual_links']['block'] = array(
+        'scratchpads-front/edit',
+        array()
+      );
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * CTOOLS
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_front_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/*********************************************************************************************
+ *
+ * IMAGE STYLES
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_front_styles_default_styles(){
+  $styles = array();
+  // Exported style: slideshow_large
+  $styles['file']['styles']['slideshow_large'] = array(
+    'label' => 'slideshow_large',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original',
+          'preset' => 'slideshow_large'
+        )
+      ),
+      'audio' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'video' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'default' => array(
+        'slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  // Exported style: slideshow_thumbnail
+  $styles['file']['styles']['slideshow_thumbnail'] = array(
+    'label' => 'slideshow_thumbnail',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original',
+          'preset' => 'slideshow_thumbnail'
+        )
+      ),
+      'audio' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'video' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      ),
+      'default' => array(
+        'slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_front_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['slideshow_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['slideshow_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'slideshow_large'
+    );
+    $presets['file']['containers']['audio']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+  if($styles['file']['styles']['slideshow_thumbnail']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original',
+      'preset' => 'slideshow_thumbnail'
+    );
+    $presets['file']['containers']['audio']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_image_default_styles().
+ */
+function scratchpads_front_image_default_styles(){
+  return array(
+    'slideshow_large' => array(
+      'name' => 'slideshow_large',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '619',
+            'height' => '463'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'slideshow_thumbnail' => array(
+      'name' => 'slideshow_thumbnail',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '154',
+            'height' => '115'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Hook for defining extra blocks are allowed
+ * in scratchpads_front
+ */
+function hook_scratchpads_front_blocks(){
+  return [
+    'block_module_name' => 'block_delta'
+  ];
+}
+
+/* adding custom blocks */
+function scratchpads_front_blocks_as_options(){
+  $query = db_select('block', 'b');
+  $or_cond = db_or()->condition('b.module', 'views', '=')->condition('b.module', 'block', '=');
+  $block_info = $query->fields('b')->orderBy('b.title')->orderBy('b.module')->condition($or_cond)->condition('b.theme', 'scratchpads')->condition('b.delta', array(
+    'front_page_blocks-block_1',
+    'front_page_blocks-block_2',
+    'front_page_blocks-block_3',
+    'front_page_slideshow-block_1',
+    'front_page_content-block'
+  ), 'NOT IN')->addTag('block_load')->addTag('translatable')->execute()->fetchAllAssoc('bid');
+  $options = array();
+  $hidden_views = _scratchpads_hands_off_hidden_views();
+
+  // Invoke hook to see if any other modules provide blocks for the front page
+  $contrib_blocks = module_invoke_all('scratchpads_front_blocks');
+
+  foreach($contrib_blocks as $module => $deltas) {
+    // Block delta is basically its machine name or id (not database id though)
+    // May or may not be an array
+    if(!is_array($deltas)) {
+      $deltas = [$deltas];
+    }
+
+    foreach($deltas as $delta) {
+      // Load the block record from the database
+      $block = block_load($module, $delta);
+      // Need to get the title from the block_info hook since it's not kept in DB
+      $block->title = module_invoke($module, "block_info")[$delta]['info'];
+      // Add to the block lists
+      $block_info[$block->bid] = $block;
+    }
+  }
+
+  foreach($block_info as $block){
+    $blockTitle = strip_tags($block->title);
+    if($blockTitle){
+      $options['Block']["{$block->module}:{$block->delta}"] = "{$blockTitle}";
+    }elseif($block->module == 'views'){
+      // title too long so it is md5 hashed by views
+      if(strlen($block->delta) == 32){
+        $hashes = variable_get('views_block_hashes', array());
+        if(!empty($hashes[$block->delta])){
+          $block->delta = $hashes[$block->delta];
+        }
+      }
+      $view_and_display = explode('-', $block->delta);
+      if(!in_array($view_and_display[0], $hidden_views)){
+        $view = views_get_view($view_and_display[0]);
+        if($view){
+          $arguments = $view->get_items('argument', $view_and_display[1]);
+          if(!$arguments){
+            $options[$view->get_human_name()]["{$block->module}:{$block->delta}"] = $view->display[$view_and_display[1]]->display_title;
+          }
+        }
+      }
+    }
+  }
+  return $options;
+}
+
+function scratchpads_front_get_custom_block($var){
+  $custom_block_selected = variable_get($var . '_custom');
+  if($custom_block_selected){
+    list($module, $delta) = explode(':', $custom_block_selected);
+    $custom_block = block_load($module, $delta);
+    return $custom_block;
+  }
+}

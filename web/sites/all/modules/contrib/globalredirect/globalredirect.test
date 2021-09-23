@@ -1,0 +1,626 @@
+<?php
+
+define('ERROR_MESSAGE',   'ERROR<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
+define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expected Status Code: !expected_status<br />Location: !location<br />Status: !status');
+define('INFO_MESSAGE',    'Running Test: !id<br />Requesting URL: !url<br />Path Info:<br />!path');
+
+
+/**
+ * @file
+ * Global Redirect functionality tests
+ */
+
+class GlobalRedirectTestCase extends DrupalWebTestCase {
+
+  private $gr_forum_term;
+  private $gr_term;
+
+
+  function setUp(array $modules = array()) {
+    $modules[] = 'path';
+    $modules[] = 'globalredirect';
+    $modules[] = 'taxonomy';
+    $modules[] = 'forum';
+    parent::setUp($modules);
+
+    // Clean URLs should be enabled for testing.
+    variable_set('clean_url', 1);
+
+    // Create a user
+    $this->normal_user = $this->drupalCreateUser(array(
+      'access content',
+      'create page content',
+      'create url aliases',
+      'access administration pages', // For the 'ignore admin path' test
+    ));
+    $this->drupalLogin($this->normal_user);
+
+    // Create a dummy node
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test Page Node',
+      'path' => array('alias' => 'test-node'),
+      'language' => LANGUAGE_NONE,
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+    // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
+    $path = array('source' => 'node/add/article', 'alias' => 'node-add-article');
+    path_save($path);
+
+    // Create an alias for the admin URL - this is used in the "ignore admin path" test.
+    $path = array('source' => 'admin', 'alias' => 'administration');
+    path_save($path);
+
+
+    // The forum vocab should already be created - should be term 1?
+    $forum_term = (object)array(
+      'vid' => variable_get('forum_nav_vocabulary', 0),
+      'name' => 'Test Forum Term',
+    );
+    taxonomy_term_save($forum_term);
+    $this->gr_forum_term = taxonomy_term_load($forum_term->tid);
+
+    // Create another test vocab (with a default module) - should be vocab 2?
+    $vocab = (object)array(
+      'name' => 'test vocab',
+      'machine_name' => 'test-vocab',
+      'hierarchy' => 0,
+      'module' => 'taxonomy',
+    );
+    taxonomy_vocabulary_save($vocab);
+    $vocab = taxonomy_vocabulary_load($vocab->vid, TRUE);
+
+    // Create a test term - Should be term 2?
+    $term = (object)array(
+      'vid' => $vocab->vid,
+      'name' => 'Test Term',
+      'path' => array('alias' => 'test-term'),
+    );
+    taxonomy_term_save($term);
+    $this->gr_term = taxonomy_term_load($term->tid);
+  }
+
+
+
+  protected function _globalredirect_test_paths() {
+    // Get the settings
+    $settings = _globalredirect_get_settings();
+    $this->assert('pass', '<pre>' . print_r($settings, TRUE) . '</pre>');
+
+    // Array of request => "array of expected data" pairs.
+    // The array must have a return-code key (with a numeric HTTP code as a value (eg 301 or 200).
+    // The array may also have an expected-path key with a value representing the expected path. If this is ommitted, the request is passed through url().
+    return array(
+      // "" is the frontpage. Should NOT redirect. -- Test for normal requests
+      array(
+        'request' => '',
+        'return-code' => 200,
+        'expected-path' => '',
+      ),
+
+      // "node" is the default frontpage. Should redirect to base path. --- Test for frontpage redirect
+      // The result depends on settings
+      array(
+        'request' => 'node',
+        'return-code' => $settings['frontpage_redirect'] ? 301 : 200,
+        'expected-path' => $settings['frontpage_redirect'] ? '' : 'node',
+      ),
+
+      // "node/1" has been defined above as having an alias ("test-node"). Should 301 redirect to the alias. --- Test for source path request on aliased path
+      array(
+        'request' => 'node/1',
+        'return-code' => 301,
+      ),
+
+      // "node/add/article" has an alias, however the redirect depends on the menu_check setting --- Test for access request to secured url
+      array(
+        'request' => 'node/add/article',
+        'return-code' => $settings['menu_check'] ? 403 : 301,
+      ),
+
+      // "user/[uid]/" has no alias, but the redirect depends on the $deslash_check setting --- Test for deslashing redirect
+      array(
+        'request' => 'user/' . $this->loggedInUser->uid . '/',
+        'return-code' => $settings['deslash'] ? 301 : 200,
+        'expected-path' => 'user/' . $this->loggedInUser->uid,
+      ),
+
+      // NonClean to Clean check 1 --- This should always redirect as we're requesting an aliased path in unaliased form (albeit also unclean)
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'node/1'), 'external' => TRUE),
+        'return-code' => 301,
+        'expected-path' => 'test-node',
+      ),
+
+      // NonClean to Clean check 2 --- This may or may not redirect, depending on the state of nonclean_to_clean as we're requesting an unaliased path
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'node/add/page'), 'external' => TRUE),
+        'return-code' => $settings['nonclean_to_clean'] ? 301 : 200,
+        'expected-path' => $settings['nonclean_to_clean'] ? 'node/add/page' : '?q=node/add/page',
+      ),
+
+      // Ensure that the NonClean to Clean with an external URL does not redirect.
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'http://www.example.com'), 'external' => TRUE),
+        'return-code' => 404,
+      ),
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)),
+        'options' => array('query' => array('q' => 'http://www.example.com/'), 'external' => TRUE),
+        'return-code' => 404,
+      ),
+      // Also test un-escaped query strings with external URLs.
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)) . '?q=http://www.example.com',
+        'options' => array('external' => TRUE),
+        'return-code' => 404,
+      ),
+      array(
+        'request' => url('<front>', array('absolute' => TRUE)) . '?q=http://www.example.com/',
+        'options' => array('external' => TRUE),
+        'return-code' => 404,
+      ),
+      // Test with external URLs in the destination query string.
+      array(
+        'request' => 'node/1',
+        'options' => array('query' => array('destination' => 'http://www.example.com/')),
+        'return-code' => 301,
+        'expected-path' => 'test-node',
+      ),
+
+      // Case Sensitive URL Check --- This may or may not redirect, depending on the state of case_sensitive_urls as we're requesting an aliased path in the wrong case
+      array(
+        'request' => 'Test-Node',
+        'options' => array('external' => TRUE),
+        'return-code' => $settings['case_sensitive_urls'] ? (db_driver() == 'sqlite' ? 404 : 301) : (db_driver() == 'sqlite' ? 404 : 200), // SQLite cannot return case-insensitive rows.
+        'expected-path' => $settings['case_sensitive_urls'] ? 'test-node' : 'Test-Node',
+      ),
+
+
+      // Term Path Handler Check --- This may or may not redirect, depending on the state of term_path_handler as we're requesting an aliased path with the wrong source
+      array(
+        'request' => 'taxonomy/term/' . $this->gr_forum_term->tid, // TODO: WE're assumeing term 1 is the forum tid created in setUp() - bad?
+        'return-code' => $settings['term_path_handler'] ? 301 : 200,
+        'expected-path' => $settings['term_path_handler'] ? 'forum/' . $this->gr_forum_term->tid : 'taxonomy/term/' . $this->gr_forum_term->tid,
+      ),
+
+
+      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
+      // If 1, we trim ALL trailing /0... If 0 (disabled) or 2 (taxonomy term only), then a 200 response should be issued.
+      array(
+        'request' => 'node/1/0',
+        'return-code' => $settings['trailing_zero'] == 1 ? 301 : 200,
+        'expected-path' => $settings['trailing_zero'] == 1 ? 'test-node' : 'node/1/0',
+      ),
+
+      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
+      // If not disabled, then we should trim from taxonomy/term/1/0
+      array(
+        'request' => 'taxonomy/term/' . $this->gr_term->tid . '/0',
+        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/' .  $this->gr_term->tid . '/0',
+      ),
+
+      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
+      array(
+        'request' => 'taxonomy/term/10/0',
+        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 404, // Term 10 does not exist in testing.
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
+      ),
+
+      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
+      array(
+        'request' => 'admin',
+        'return-code' => $settings['ignore_admin_path'] > 0 ? 200 : 301, // Ignoring the admin path means no src=>alias redirecting.
+        'expected-path' => $settings['ignore_admin_path'] > 0 ? 'admin' : 'administration',
+      ),
+    );
+  }
+
+
+  protected function _globalredirect_batch_test() {
+    // Define the default path options
+    $path_defaults = array(
+      'options' => array()
+    );
+    $path_options_defaults = array(
+      'base_url' => $GLOBALS['base_url'] . base_path(),
+      'absolute' => TRUE,
+      'alias' => TRUE,
+      'external' => TRUE,
+    );
+
+    // Get the test paths
+    $test_paths = $this->_globalredirect_test_paths();
+    $this->assert('pass', '<pre>' . print_r($test_paths, TRUE) . '</pre>');
+
+    // Foreach of the above, lets check they redirect correctly
+    foreach ($test_paths as $id => $path) {
+      // Overlay some defaults onto the path. This ensures 'options' is set as an array.
+      $path += $path_defaults;
+
+      // If the path doesn't have an absolute or alias setting, set them to TRUE.
+      $path['options'] += $path_options_defaults;
+
+      // Build a URL from the path
+      $request_path = $path['options']['external'] ? ($path['options']['base_url'] . $path['request']) : $path['request'];
+      $request_path = url($request_path, $path['options']);
+
+
+      // Display a message telling the user what we're testing
+      $info = array(
+        '!id' => $id,
+        '!path' => '<pre>'. print_r($path, TRUE) .'</pre>',
+        '!url' => $request_path,
+      );
+      $this->pass(t(INFO_MESSAGE, $info), 'GlobalRedirect');
+
+
+      // Do a HEAD request (don't care about the body). The alias=>TRUE is to tell Drupal not to lookup the alias - this is a raw request.
+      $this->drupalHead($request_path, array('alias' => TRUE));
+
+
+      // Grab the headers from the request
+      $headers = $this->drupalGetHeaders(TRUE);
+
+
+      // Build a nice array of results
+      $result = array(
+        '!expected_status' => $path['return-code'],
+        '!location' => isset($headers[0]['location']) ? $headers[0]['location'] : 'N/A',
+        '!status' => $headers[0][':status'],
+      );
+
+
+      // If the expected result is not a redirect, then there is no expected path in the location header.
+      if ($path['return-code'] != 301) {
+        $result['!expected_path'] = 'N/A';
+      }
+      else {
+        $url_options = array('absolute' => TRUE);
+
+        if (isset($path['expected-path'])) {
+          // If we have an expected path provided, use this and tell url() not to do an alias lookup
+          $expected = $path['expected-path'];
+          $url_options['alias'] = TRUE;
+        }
+        else {
+          // Otherwise set the path to the request and let url() do an alias lookup.
+          $expected = $path['request'];
+        }
+        $result['!expected_path'] = url($expected, $url_options);
+      }
+
+
+      // First test - is the status as expected? (Note: The expected status must be cast to string for strpos to work)
+      if (strpos($result['!status'], (string)$result['!expected_status']) !== FALSE) {
+        // Ok, we have a status and the status contains the appropriate response code (eg, 200, 301, 403 or 404).
+
+        // Next test (if expected return code is 301) - is the location set, and is it as expected?
+        if ($result['!expected_status'] == 301 && $result['!location'] == $result['!expected_path']) {
+          // We have redirect and ended up in the right place - a PASS!!!
+          $this->pass(t(SUCCESS_MESSAGE, $result), 'GlobalRedirect');
+        }
+        elseif ($result['!expected_status'] != 301) {
+          // We weren't supposed to redirect - this is good!
+          $this->pass(t(SUCCESS_MESSAGE, $result), 'GlobalRedirect');
+        }
+        else {
+          // In this case either the return-code or the returned location is unexpected
+          $this->fail(t(ERROR_MESSAGE, $result), 'GlobalRedirect');
+          $this->fail('<pre>' . print_r($headers, TRUE) . '</pre>');
+        }
+      }
+      else {
+        // The status either wasn't present or was not as expected
+        $this->fail(t(ERROR_MESSAGE, $result), 'GlobalRedirect');
+        $this->fail('<pre>' . print_r($headers, TRUE) . '</pre>');
+      }
+    }
+  }
+}
+
+
+class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '1. Global Redirect - Default Settings',
+      'description' => 'Ensure that Global Redirect functions correctly',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'deslash' => 1,
+      'menu_check' => 0,
+      'nonclean_to_clean' => 1,
+      'case_sensitive_urls' => 1,
+      'term_path_handler' => 1,
+      'frontpage_redirect' => 1,
+      'trailing_zero' => 0,
+      'ignore_admin_path' => 1,
+    ));
+    $this->_globalredirect_batch_test();
+  }
+}
+
+
+class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '2. Global Redirect - Config Alpha',
+      'description' => 'Ensure that Global Redirect functions correctly. Only enable Trailing Zero',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'deslash' => 0,
+      'menu_check' => 0,
+      'nonclean_to_clean' => 0,
+      'case_sensitive_urls' => 0,
+      'term_path_handler' => 0,
+      'frontpage_redirect' => 0,
+      'trailing_zero' => 1,
+      'ignore_admin_path' => 0,
+    ));
+
+    $this->_globalredirect_batch_test();
+  }
+}
+
+
+
+class GlobalRedirectTestCaseConfigBeta extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '3. Global Redirect - Config Beta',
+      'description' => 'Ensure that Global Redirect functions correctly. Only enable Menu Checking',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'deslash' => 0,
+      'menu_check' => 1,
+      'nonclean_to_clean' => 0,
+      'case_sensitive_urls' => 0,
+      'term_path_handler' => 0,
+      'frontpage_redirect' => 0,
+      'trailing_zero' => 0,
+    ));
+
+    $this->_globalredirect_batch_test();
+  }
+}
+
+
+// TODO - If Menu Check AND Trailing Zero enabled, there is no 301 to get rid of /0 off a non-existant term (as the menu check fails).
+// This why they are separated out into to test suites.
+
+
+class GlobalRedirectTestCaseConfigLanguages extends GlobalRedirectTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => '4. Global Redirect - Languages',
+      'description' => 'Ensure that Global Redirect functions correctly when locales are used',
+      'group' => 'Global Redirect',
+    );
+  }
+
+  protected function _globalredirect_test_paths() {
+    $settings = _globalredirect_get_settings();
+
+    $paths = parent::_globalredirect_test_paths();
+
+    // "node/1" has been defined as having an alias ("test-node") and Language NONE. Should 301 redirect to the alias. --- Test for source path request on aliased path
+    $paths[] = array(
+      'request' => 'fr/node/1',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-node',
+    );
+
+    // "node/2" is english - should plainly redirect to an alias
+    $paths[] = array(
+      'request' => 'node/2',
+      'return-code' => 301,
+      'expected-path' => 'test-english-node',
+    );
+
+    // Node 3 is french. As no language prefix is provided, should redirect to the english version
+    $paths[] = array(
+      'request' => 'node/3',
+      'return-code' => 301,
+      'expected-path' => 'test-english-node',
+    );
+
+    // Now we're requesting a french node using the french language - redirect to the nodes alias with french prefix
+    $paths[] = array(
+      'request' => 'fr/node/3',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-french-node',
+    );
+
+    // Node 4 is german - requesting under french prefix. Redirect to french node
+    $paths[] = array(
+      'request' => 'fr/node/4',
+      'return-code' => 301,
+      'expected-path' => 'fr/test-french-node',
+    );
+
+    // Node 3 is french, requesting with german prefix. Should redirect to the german node with german prefix.
+    $paths[] = array(
+      'request' => 'de/node/3',
+      'return-code' => 301,
+      'expected-path' => 'de/test-german-node',
+    );
+
+    // Requesting to edit the french node on the english site. Should redirect to the english node edit
+    $paths[] = array(
+      'request' => 'node/3/edit',
+      'return-code' => 301,
+      'expected-path' => 'node/2/edit',
+    );
+
+    // Requesting to edit the english node on the french site - should redirect to edit the french node
+    $paths[] = array(
+      'request' => 'fr/node/2/edit',
+      'return-code' => 301,
+      'expected-path' => 'fr/node/3/edit',
+    );
+
+    // Requesting to edit the german node on the german site. Should return a 200...
+    $paths[] = array(
+      'request' => 'de/node/4/edit',
+      'return-code' => 200,
+    );
+
+    return $paths;
+  }
+
+
+  function setUp(array $modules = array()) {
+    parent::setUp(array('locale', 'translation'));
+
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages'));
+    $this->drupalLogin($this->admin_user);
+
+    // Force each lang code to have a prefix.
+    foreach (array('en', 'fr', 'de') as $langcode) {
+      $prefix = '';
+      if ($langcode != 'en') {
+        $this->addLanguage($langcode);
+        $prefix = $langcode;
+      }
+
+      $edit = array('prefix' => $prefix);
+      $this->drupalPost('admin/config/regional/language/edit/'. $langcode, $edit, t('Save language'));
+      // TODO: There doesn't seem to be a message to confirm the save was successful!
+      //$this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
+    }
+
+
+    $this->drupalGet('admin/structure/types/manage/page');
+    $edit = array();
+    $edit['language_content_type'] = 2;
+    $this->drupalPost('admin/structure/types/manage/page', $edit, t('Save content type'));
+    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Basic page')), t('Basic page content type has been updated.'));
+
+    // Enable URL language detection and selection
+    $edit = array('language[enabled][locale-url]' => TRUE);
+    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $this->assertRaw(t('Language negotiation configuration saved.'), t('URL language detection enabled.'));
+    drupal_static_reset('locale_url_outbound_alter');
+
+    // Ensure the URL part is set to prefix
+    $edit = array('locale_language_negotiation_url_part' => 0);
+    $this->drupalPost('admin/config/regional/language/configure/url', $edit, t('Save configuration'));
+    $this->assertRaw(t('The configuration options have been saved.'), t('URL language part set to prefix.'));
+
+
+    // Create a dummy english node
+    // This is Node 2 (node 1 is in the parent::setUp())
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test English Page Node',
+      'path' => array('alias' => 'test-english-node'),
+      'language' => 'en',
+      'tnid' => 2,
+      'body' => array('en' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+
+    // Create a translation of the english node, tp French
+    // This is Node 3
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test French Page Node',
+      'path' => array('alias' => 'test-french-node'),
+      'language' => 'fr',
+      'tnid' => 2,
+      'body' => array('fr' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+
+
+
+    // Create another translation of the english node, to German
+    // This is Node 4
+    $node = array(
+      'type' => 'page',
+      'title' => 'Test German Page Node',
+      'path' => array('alias' => 'test-german-node'),
+      'language' => 'de',
+      'tnid' => 2,
+      'body' => array('de' => array(array())),
+    );
+
+    // Save the node
+    $node = $this->drupalCreateNode($node);
+  }
+
+
+
+  function testGlobalRedirect() {
+    variable_set('globalredirect_settings', array(
+      'language_redirect' => 1,
+    ));
+
+
+    $this->_globalredirect_batch_test();
+  }
+
+
+  /**
+   * NOTE: Borrowed from translation.test
+   * Install a the specified language if it has not been already. Otherwise make sure that
+   * the language is enabled.
+   *
+   * @param $language_code
+   *   The language code the check.
+   */
+  function addLanguage($language_code) {
+    // Check to make sure that language has not already been installed.
+    $this->drupalGet('admin/config/regional/language');
+
+    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+      // Doesn't have language installed so add it.
+      $edit = array();
+      $edit['langcode'] = $language_code;
+      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+      // Make sure we are not using a stale list.
+      drupal_static_reset('language_list');
+      $languages = language_list('language');
+      $this->assertTrue(array_key_exists($language_code, $languages), t('Language was installed successfully.'));
+
+      if (array_key_exists($language_code, $languages)) {
+        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), t('Language has been created.'));
+      }
+    }
+    elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
+      // It's installed and enabled. No need to do anything.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed and enabled.');
+    }
+    else {
+      // It's installed but not enabled. Enable it.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
+      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->assertRaw(t('Configuration saved.'), t('Language successfully enabled.'));
+    }
+  }
+}

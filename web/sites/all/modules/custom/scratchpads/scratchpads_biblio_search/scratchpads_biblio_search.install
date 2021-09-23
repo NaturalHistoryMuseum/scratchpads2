@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_biblio_search_install(){
+  // Add a taxonomy search page to the database
+  $fields = array(
+    'page_id' => 'biblio_search',
+    'label' => 'Literature Search',
+    'description' => 'Search the site\'s literature.',
+    'search_path' => 'biblio',
+    'env_id' => 'solr',
+    'page_title' => 'Literature',
+    'settings' => serialize(array(
+      'fq' => array(
+        'bundle:biblio',
+        'entity_type:node'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 1
+    ))
+  );
+  db_insert('apachesolr_search_page')->fields($fields)->execute();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_biblio_search_uninstall(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'biblio_search')->execute();
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function scratchpads_biblio_search_schema(){
+  return array(
+    'biblio_secondary_title' => array(
+      'description' => 'Normalize the Biblio data for Solr.',
+      'fields' => array(
+        'bstid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Primary Key: Unique term ID.'
+        ),
+        'secondary_title' => array(
+          'description' => 'The secondary title',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        )
+      ),
+      'unique keys' => array(
+        'secondary_title' => array(
+          'secondary_title'
+        )
+      ),
+      'primary key' => array(
+        'bstid'
+      )
+    )
+  );
+}
+
+/**
+ * Rebuild registry so that the extra functions are found.
+ */
+function scratchpads_biblio_search_update_7001(){
+  drupal_flush_all_caches();
+}
+
+/**
+ * Set the settings for the new Apachesolr module
+ * 
+ * scratchpads_biblio_search_update_7002 removed, as 7004 replaces it.
+ */
+/**
+ * Reindex all biblio nodes to ensure they're sorted correctly on the biblio
+ * page.
+ */
+function scratchpads_biblio_search_update_7003(){
+  db_update('apachesolr_index_entities_node')->fields(array(
+    'changed' => time()
+  ))->condition('entity_type', 'node')->condition('bundle', 'biblio')->execute();
+}
+
+/**
+ * Update the bibliography page so that only 50 references are displayed.  This
+ * is for performance reasons.
+ */
+function scratchpads_biblio_search_update_7004(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'biblio_search',
+    'label' => 'Literature Search',
+    'description' => 'Search the site\'s literature.',
+    'search_path' => 'biblio',
+    'env_id' => 'solr',
+    'page_title' => 'Literature',
+    'settings' => serialize(array(
+      'fq' => array(
+        'bundle:biblio',
+        'entity_type:node'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 1
+    ))
+  ))->key(array(
+    'page_id' => 'biblio_search'
+  ))->execute();
+}

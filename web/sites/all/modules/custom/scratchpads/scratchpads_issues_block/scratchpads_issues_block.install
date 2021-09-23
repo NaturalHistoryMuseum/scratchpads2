@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_issues_block_install(){
+  // Set this block to use the blockexpose module.
+  variable_set('blockexpose_settings_remote_issue_tab_0', array(
+    'side' => 'left',
+    'event' => 'click',
+    'show' => 1
+  ));
+  // Only show the block to authenticated users.
+  try{
+    db_insert('block_role')->fields(array(
+      'module' => 'remote_issue_tab',
+      'delta' => 0,
+      'rid' => 2
+    ))->execute();
+  }
+  catch(Exception $e){
+    ; // Do nothing, we're proabably just inserting the same record again.
+  }
+}
+
+/**
+ * Util function to delete a feed by url
+ */
+function _scratchpads_issues_block_remove_feed($oldFeedUrl) {
+  $fid = array_pop(db_select('aggregator_feed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('url', $oldFeedUrl)->execute()->fetchCol(0));
+
+  if(!$fid){return;}
+
+  try{
+    // Delete the feed
+    aggregator_save_feed(array("fid" => $fid));
+  }
+  catch(Exception $e){
+  }
+}
+
+/**
+ * Switch to JS fetch instead of using aggregator
+ */
+function scratchpads_issues_block_update_7005(){
+  // Remove aggregator feeds that may have been created
+  _scratchpads_issues_block_remove_feed('http://dev.scratchpads.eu/project/issues/rss/');
+  _scratchpads_issues_block_remove_feed('http://support.scratchpads.eu/projects/scratchpads2/issues.atom');
+}

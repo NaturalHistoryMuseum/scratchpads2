@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_pretty_urls_disable(){
+  drupal_register_shutdown_function('module_disable', array(
+    'redirect',
+    'pathauto'
+  ));
+}

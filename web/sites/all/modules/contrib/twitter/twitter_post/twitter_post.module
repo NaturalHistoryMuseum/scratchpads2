@@ -1,0 +1,157 @@
+<?php
+/**
+ * @file
+ * Hook implementations for twitter_post module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function twitter_post_menu() {
+  $items['admin/config/services/twitter/post'] = array(
+    'title' => 'Post',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('twitter_post_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'twitter_post.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function twitter_post_permission() {
+  return array(
+    'post to twitter' => array(
+      'title' => t('Post a message to Twitter'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function twitter_post_form_alter(&$form, $form_state, $form_id) {
+  // Alter any node forms.
+  if (isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id) {
+    // If we haven't enabled Twitter posting on this node type, nothing to do here.
+    $type = $form['#node']->type;
+    $allowed_types = variable_get('twitter_post_types', array());
+    if (empty($allowed_types[$type])) {
+      return;
+    }
+
+    module_load_include('inc', 'twitter');
+    $twitter_form = twitter_post_form();
+    if (!$twitter_form) {
+      return;
+    }
+    $form['twitter'] = array(
+      '#type' => 'fieldset',
+      '#group' => 'additional_settings',
+      '#title' => t('Post to twitter.com'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#tree' => TRUE,
+    );
+    $form['twitter']['post'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Announce this post on Twitter'),
+      '#default_value' => variable_get('twitter_post_default_value', 0),
+      '#id' => 'twitter-toggle',
+    );
+    $form['twitter'] += $twitter_form;
+    $form['twitter']['status']['#default_value'] = variable_get('twitter_post_default_format', 'New post: !title !url-alias');
+    $form['twitter']['status']['#description'] = t('The given text will be posted to twitter.com. You can use !url, !url-alias, !tinyurl, !title and !user as replacement text.');
+    $form['twitter']['status']['#maxlength'] = 150;
+  }
+}
+
+/**
+ * Implementation of hook_node_insert().
+ *
+ * Intercepts newly published nodes and posts notices to Twitter.
+ */
+function twitter_post_node_insert($node) {
+  if (!empty($node->status) && !empty($node->twitter) && !empty($node->twitter['post'])) {
+    module_load_include('inc', 'twitter');
+
+    $twitter_account = twitter_account_load($node->twitter['account']);
+    $replacements = array(
+      '!title' => $node->title,
+      '!url' => url('node/' . $node->nid, array('absolute' => TRUE, 'alias' => TRUE)),
+      '!url-alias' => url('node/' . $node->nid, array('absolute' => TRUE)),
+      '!user' => $node->name,
+    );
+
+    // Only generate the shortened URL if it's going to be used. No sense
+    // burning through TinyURLs without a good reason.
+    if (strstr($node->twitter['status'], '!tinyurl') !== FALSE) {
+      $replacements['!tinyurl'] = twitter_shorten_url(url('node/' . $node->nid, array('absolute' => TRUE)));
+    }
+
+    $status = strtr($node->twitter['status'], $replacements);
+    if (twitter_set_status($twitter_account, $status)) {
+      drupal_set_message(t('Successfully posted to Twitter'));
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_update().
+ */
+function twitter_post_node_update($node) {
+  twitter_post_node_insert($node);
+}
+
+/**
+ * Generate a twitter posting form for the given user.
+ *
+ * @param $account
+ *   A Drupal user object.
+ */
+function twitter_post_form($account = NULL) {
+  if (empty($account)) {
+    $account = user_load($GLOBALS['user']->uid);
+  }
+
+  if (!user_access('post to twitter', $account)) {
+    return;
+  }
+
+  drupal_add_js(drupal_get_path('module', 'twitter_post') . '/twitter_post.js');
+  $options = array();
+  $twitter_accounts = twitter_load_authenticated_accounts();
+  foreach ($twitter_accounts as $twitter_account) {
+    $options[$twitter_account->id] = $twitter_account->screen_name;
+  }
+
+  if (count($options)) {
+    $form = array();
+    $form['status'] = array(
+      '#type' => 'textfield',
+      '#id' => 'twitter-textfield',
+    );
+
+    if (count($options) > 1) {
+      $form['account'] = array(
+        '#type' => 'select',
+        '#title' => t('Account'),
+        '#options' => $options,
+        '#id' => 'twitter-account',
+      );
+    }
+    else {
+      $options_keys = array_keys($options);
+      $form['account'] = array(
+        '#type' => 'value',
+        '#value' => array_pop($options_keys),
+      );
+    }
+    return $form;
+  }
+}

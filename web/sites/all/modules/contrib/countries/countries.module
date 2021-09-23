@@ -1,0 +1,1104 @@
+<?php
+
+/**
+ * @file
+ * Defines the field and entity information for countries.
+ */
+
+/**
+ * Flag to return all countries.
+ */
+define('COUNTRIES_ALL', 0);
+
+/**
+ * Flag to return enabled countries only.
+ */
+define('COUNTRIES_ENABLED', 1);
+
+/**
+ * Flag to return disabled countries only.
+ */
+define('COUNTRIES_DISABLED', 2);
+
+/**
+ * Internal flag for views_handler_filter_countries_list class.
+ */
+define('COUNTRIES_VIEWS_WIDGET_FIELD', 1);
+
+/**
+ * Internal flag for views_handler_filter_countries_list class.
+ */
+define('COUNTRIES_VIEWS_WIDGET_CUSTOM', 2);
+
+// Loads the field functions.
+include_once 'countries.fields.inc';
+
+/**
+ * Implements hook_element_info().
+ */
+function countries_element_info() {
+  module_load_include('elements.inc', 'countries');
+  return _countries_element_info();
+}
+
+/**
+ * Implements hook_theme().
+ */
+function countries_theme() {
+  return array(
+    'countries_number' => array(),
+    'country_icon_adapter' => array(
+      'variables' => array('country' => NULL, 'settings' => array()),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function countries_menu() {
+  $items = array();
+  $items['admin/config/regional/countries'] = array(
+    'title' => 'Countries',
+    'description' => 'List, edit, or add countries.',
+    'page callback' => 'countries_admin_overview',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'countries.admin.inc',
+  );
+  $items['admin/config/regional/countries/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/regional/countries/add'] = array(
+    'title' => 'Add country',
+    'description' => 'Admin page to add a country.',
+    'page callback' => 'countries_admin_page',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 1,
+    'file' => 'countries.admin.inc',
+  );
+  $items['admin/config/regional/countries/import'] = array(
+    'title' => 'Update countries',
+    'description' => 'Bulk import countries from the ISO standard.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('countries_admin_import_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 2,
+    'file' => 'countries.admin.inc',
+  );
+  $items['admin/config/regional/countries/%country'] = array(
+    'title callback' => 'countries_page_title',
+    'title arguments' => array(4),
+    'description' => 'Edit a country.',
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'page callback' => 'countries_admin_page',
+    'page arguments' => array(4),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'countries.admin.inc',
+  );
+  $items['admin/config/regional/countries/%country/edit'] = array(
+    'title' => 'Edit',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/regional/countries/%country/delete'] = array(
+    'title' => 'Delete country',
+    'description' => 'Country delete confirmation form.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('countries_admin_delete', 4),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'countries.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Menu page title callback.
+ *
+ * @return string
+ *   The santitised country name.
+ */
+function countries_page_title($country) {
+  return check_plain($country->label());
+}
+
+
+/**
+ * Wrapper function to hook into the countries_i18n module.
+ */
+function countries_t($country, $property = 'name', $langcode = NULL, $type = 'country') {
+  static $i18n = NULL;
+  if (!isset($i18n)) {
+    $i18n = module_exists('countries_i18n');
+  }
+  switch ($property) {
+    case 'name':
+      $value = $country->name;
+      break;
+
+    case 'official_name':
+      $value = empty($country->official_name) ? '' : $country->official_name;
+      break;
+
+    default:
+      return isset($country->$property) ? $country->$property : '';
+  }
+
+  return $i18n ? countries_i18n_translate($country->iso2, $property, $value, $langcode, $type) : $value;
+}
+
+/**
+ * Implements hook_countries_alter().
+ *
+ * Currently the only usage in core is in system module when setting the sites
+ * default country.
+ */
+function countries_countries_alter(&$countries) {
+  $enabled_countries = &drupal_static(__FUNCTION__, array());
+  if (empty($enabled_countries)) {
+    $enabled_countries = countries_get_countries('name', array('enabled' => COUNTRIES_ENABLED));
+  }
+  $countries = $enabled_countries;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function countries_entity_info() {
+  $return = array(
+    'country' => array(
+      'label' => t('Country'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table' => 'countries_country',
+      'fieldable' => TRUE,
+      'module' => 'countries',
+      'entity keys' => array(
+        'id' => 'cid',
+        'name' => 'iso2',
+        'label' => 'name',
+      ),
+      'bundles' => array(
+        'country' => array(
+          'label' => t('Country'),
+          'admin' => array(
+            'path' => 'admin/config/regional/countries',
+            'access arguments' => array('administer site configuration'),
+          ),
+        ),
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Country'),
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function countries_field_extra_fields() {
+  $extra = array();
+  $extra['country']['country'] = array(
+    'form' => array(),
+    'display' => array(),
+  );
+  $weight = -20;
+  foreach (countries_core_properties() as $key => $title) {
+    $extra['country']['country']['form'][$key] = array(
+      'label' => $title,
+      'description' => $title,
+      'weight' => $weight++,
+    );
+  }
+  return $extra;
+}
+
+/**
+ * Load a country entity.
+ *
+ * @param int $cid
+ *   The country ID.
+ *
+ * @param bool $reset
+ *   Whether to reset the countries_load_multiple cache.
+ *
+ * @return object
+ *   A country entity or FALSE on failure.
+ */
+function countries_load($cid, $reset = FALSE) {
+  return entity_load('country', array($cid), array(), $reset);
+}
+
+/**
+ * Load multiple country entities.
+ *
+ * @return array
+ *   An array of country entities.
+ */
+function countries_load_multiple($cids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('country', $cids, $conditions, $reset);
+}
+
+/**
+ * Creates a default country object.
+ *
+ * @param array $properties
+ *   An array of additional properties to add to the new object.
+ *
+ * @return object
+ *   A country strut by the additional properties and defaulted to the schema
+ *   defined defaults.
+ */
+function country_create($properties = array()) {
+  return entity_create('country', $properties + array(
+    'cid' => NULL,
+    'iso2' => '',
+    'iso3' => '',
+    'name' => '',
+    'official_name' => '',
+    'continent' => 'UN',
+    'enabled' => 1,
+    'numcode' => 0));
+}
+
+/**
+ * Loads a country entity by ISO alpha-2 code.
+ *
+ * This is also a menu wildcard loader.
+ *
+ * @param string $iso2
+ *   An ISO alpha-2 string. This is case-insensitive.
+ *
+ * @return object
+ *   A country object loaded by the entity controller.
+ */
+function country_load($iso2) {
+  // The URL's should be case insensitive.
+  $iso2 = $iso2 ? drupal_strtoupper($iso2) : $iso2;
+  return entity_load_single('country', $iso2);
+}
+
+/**
+ * Wrapper for country_load().
+ *
+ * @deprecated
+ *   Use country_load($iso2) instead.
+ */
+function countries_get_country($iso2) {
+  watchdog('countries', 'Use of deprecated function countries_get_country(), use country_load() instead.', array(), WATCHDOG_NOTICE);
+  return country_load($iso2);
+}
+
+/**
+ * Validates a country.
+ *
+ * Validates and normalises the core country properties. Note that this requires
+ * the cid to test updates valids correctly.
+ *
+ * @code
+ *   if (country_validate($country)) {
+ *     country_save($country);
+ *   }
+ *   else {
+ *     foreach($country->_errors as $property => $error_message) {
+ *       form_set_error($property, $error_message);
+ *     }
+ *   }
+ * @endcode
+ *
+ * @param object $country
+ *   The country object that is about to be saved.
+ *
+ * @return bool
+ *   TRUE if there were no errors, FALSE otherwise.
+ *
+ *   If FALSE, the $country->_errors will store an array of error messages
+ *   indexed by the country property that caused the error.
+ */
+function country_validate(&$country) {
+  module_load_include('admin.inc', 'countries');
+
+  $errors = array();
+  $defaults = country_create();
+
+  foreach (countries_core_properties() as $key => $label) {
+    $country->$key = isset($country->$key) ? trim($country->$key) : $defaults->{$key};
+    if ($length = drupal_strlen($country->$key)) {
+      if ($error = countries_property_invalid($key, $country->$key)) {
+        $errors[$key] = $error;
+      }
+    }
+    elseif ($key == 'name') {
+      $errors['name'] = t('Name is required');
+    }
+    elseif ($key == 'iso2') {
+      $errors['iso2'] = t('ISO alpha-2 field is required');
+    }
+  }
+  // Only continue checking if there are no errors with the ISO alpha-2 value,
+  // as this is required for the other validation functions.
+  if (empty($errors['iso2'])) {
+    // If there is no cid, check that the ISO alpha-2 is not being used.
+    if (empty($country->cid) && $existing = country_load($country->iso2)) {
+      $errors['iso2'] = t('The ISO alpha-2 code is already in use.');
+    }
+    else {
+      // Only record duplicate errors if there is no other errors on the field.
+      if ($duplicates = country_duplicate_field_check($country)) {
+        foreach ($duplicates as $key => $error) {
+          if (empty($errors[$key])) {
+            $errors[$key] = $error;
+          }
+        }
+      }
+    }
+  }
+  if (!empty($errors)) {
+    $country->_errors = $errors;
+  }
+  return empty($errors);
+}
+
+/**
+ * Saves a country.
+ *
+ * @param object $country
+ *   The country object to save.
+ *
+ * @param bool $clear_cache
+ *   A flag to prevent cache flushes.
+ *
+ * @return int
+ *   SAVED_NEW or SAVED_UPDATED is returned depending on the operation.
+ */
+function country_save(&$country, $clear_cache = TRUE) {
+  $result = entity_save('country', $country);
+  if ($clear_cache) {
+    countries_clear_caches();
+  }
+  return $result;
+}
+
+/**
+ * Delete a countries object from the database.
+ *
+ * @param string $iso2
+ *   The countries ISO alpha-2 code.
+ *
+ * @param bool $clear_cache
+ *   A flag to prevent cache flushes.
+ *
+ * @return mixed
+ *   There is no standard result from this callback. However, FALSE would almost
+ *   certainly indicate a failure.
+ */
+function country_delete($iso2, $clear_cache = TRUE) {
+  $iso2 = drupal_strtoupper($iso2);
+  $result = entity_delete('country', $iso2);
+  if ($clear_cache) {
+    countries_clear_caches();
+  }
+  return $result;
+}
+
+/**
+ * The module locks a country record if it is defined internally by Drupal.
+ *
+ * @param object $country
+ *   The country object.
+ *
+ * @return bool
+ *   TRUE if the country is not deletable.
+ */
+function country_is_locked($country) {
+  include_once DRUPAL_ROOT . '/includes/iso.inc';
+  $countries = _country_get_predefined_list();
+  return !empty($country->iso2) && array_key_exists($country->iso2, $countries);
+}
+
+/**
+ * Helper function to clear various caches.
+ */
+function countries_clear_caches() {
+  drupal_static('countries_get_countries', NULL, TRUE);
+  drupal_static('countries_get_continents', NULL, TRUE);
+  drupal_static('countries_countries_alter', NULL, TRUE);
+  entity_get_controller('country')->resetCache();
+}
+
+/**
+ * Gets a list of all continents currently enabled.
+ *
+ * Note that it is possible to have continent codes that are not present in this
+ * array if the user has overridden the variable setting "countries_continents".
+ *
+ * @return array
+ *   An array of continents indexed by their continent code.
+ *
+ * @see countries_get_default_continents()
+ */
+function countries_get_continents() {
+  $continents = &drupal_static(__FUNCTION__, array());
+  if (empty($continents)) {
+    $continents = variable_get('countries_continents', countries_get_default_continents());
+    $known = countries_known_continents();
+    $continents = array_intersect_key($known, $continents) + array_diff_key($continents, $known);
+    uasort($continents, 'countries_sort');
+  }
+  return $continents;
+}
+
+/**
+ * Provides a bigger set of continents for i18n.
+ *
+ * If you enable a different set of continents from the default using the system
+ * variable 'countries_continents', following the codes below to allow the
+ * module to correctly set the continent names in multi-locale systems.
+ *
+ * As per the default continent fields, these codes do not correlate to any
+ * known existing continental code standard.
+ *
+ * Please submit an issue if you want other continents added to this list.
+ */
+function countries_known_continents() {
+  return countries_get_default_continents() + array(
+    'AE' => t('Afro-Eurasia'),
+
+    '1S' => t('Southern Africa'),
+    '1W' => t('Western Africa'),
+    '1N' => t('Northern Africa'),
+    '1M' => t('Middle Africa'),
+    '1E' => t('Eastern Africa'),
+
+    '2S' => t('Southern Asia'),
+    '2W' => t('Western Asia'),
+    '2Z' => t('South-Eastern Asia'),
+    '2E' => t('Eastern Asia'),
+    '2C' => t('Central Asia'),
+    'IC' => t('Indian subcontinent'),
+    '2M' => t('Middle East'),
+    '2G' => t('Greater Middle East'),
+
+    '3S' => t('Southern Europe'),
+    '3W' => t('Western Europe'),
+    '3E' => t('Eastern Europe'),
+    '3N' => t('Northern Europe'),
+    'CE' => t('Continental Europe'),
+    'ER' => t('Eurasia'),
+
+    'AM' => t('Americas'),
+    'CA' => t('Caribbean'),
+    'AC' => t('Central America'),
+
+    'AU' => t('Australasia'),
+    'AZ' => t('Australia and New Zealand'),
+    'PO' => t('Polynesia'),
+    'ME' => t('Melanesia'),
+    'MI' => t('Micronesia'),
+  );
+}
+
+/**
+ * Get the default continents. For internal use only.
+ *
+ * @see countries_get_continents()
+ */
+function countries_get_default_continents() {
+  return array(
+    'AF' => t('Africa'),
+    'AS' => t('Asia'),
+    'EU' => t('Europe'),
+    'NA' => t('North America'),
+    'SA' => t('South America'),
+    'OC' => t('Oceania'),
+    'AN' => t('Antarctica'),
+    'UN' => t('Unknown', array(), array('context' => 'countries')),
+  );
+}
+
+/**
+ * A helper function to filter country lists.
+ *
+ * If the country code is not found in the database, the country will be not be
+ * return by this function. This is preferably called using:
+ *
+ * @code
+ * countries_get_countries('name', array('enabled' => COUNTRIES_ENABLED)).
+ * @endcode
+ *
+ * @param array $countries
+ *   An array indexed by ISO2 country value. The actual value held in the array
+ *   does not matter to this function.
+ *
+ * @param array $filters
+ *   This allows you to get a full country list that is filtered. Currently, the
+ *   defined filters includes:
+ *
+ *   enabled    - Limits to results by country status. Valid options include:
+ *                - COUNTRIES_ALL : Include all countries
+ *                - COUNTRIES_ENABLED : Enabled countries only
+ *                - COUNTRIES_DISABLED : Disabled countries only
+ *   countries  - An array of ISO2 codes of countries to include.
+ *   continents - An array of continent codes. Only countries assigned to these
+ *                continents will be returned.
+ *
+ * @return array
+ *   The original array filtered using the supplied country filters.
+ */
+function countries_filter($countries, $filters = array()) {
+  if (!empty($filters)) {
+    $target_countries = array();
+    foreach (countries_get_countries() as $country) {
+      $include = TRUE;
+      if (isset($filters['enabled'])) {
+        $include &= ($filters['enabled'] == COUNTRIES_ALL || ($filters['enabled'] == COUNTRIES_ENABLED && $country->enabled) || ($filters['enabled'] == COUNTRIES_DISABLED && !$country->enabled));
+      }
+      if (!empty($filters['countries'])) {
+        $include &= in_array($country->iso2, $filters['countries']);
+      }
+      if (!empty($filters['continents'])) {
+        $include &= in_array($country->continent, $filters['continents']);
+      }
+      if ($include) {
+        $target_countries[$country->iso2] = TRUE;
+      }
+    }
+    $countries = array_intersect_key($countries, $target_countries);
+  }
+  return $countries;
+}
+
+/**
+ * Updates a Query object by adding country filters.
+ *
+ * @param SelectQuery $query
+ *   The SelectQuery object passed by reference.
+ *
+ * @param array $filters
+ *   An array of country filters as defined in countries_filters().
+ *
+ * @param string $alias
+ *   The {countries} table alias.
+ */
+function countries_filter_query_alter(&$query, $filters = array(), $alias = 'c') {
+  if (!empty($filters)) {
+    $filters += array(
+      'countries' => array(),
+      'continents' => array(),
+    );
+    $filters['countries'] = array_filter($filters['countries']);
+    $filters['continents'] = array_filter($filters['continents']);
+    if (isset($filters['enabled']) && !$filters['enabled'] == COUNTRIES_ALL) {
+      $query->condition($alias . '.enabled', $filters['enabled']);
+    }
+    if (!empty($filters['countries'])) {
+      $query->condition($alias . '.iso2', $filters['countries']);
+    }
+    if (!empty($filters['continents'])) {
+      $query->condition($alias . '.continent', $filters['continents']);
+    }
+  }
+}
+
+/**
+ * A helper uasort callback function to sort an array of countries or names.
+ */
+function countries_sort($a, $b) {
+  $a = countries_transliterate(is_object($a) ? $a->name : $a);
+  $b = countries_transliterate(is_object($b) ? $b->name : $b);
+  return strnatcasecmp($a, $b);
+}
+
+/**
+ * Helper function to transliterate names.
+ *
+ * This will integrate with the transliteration module if present, falling back
+ * to a reduced character list otherwise.
+ */
+function countries_transliterate($word) {
+  static $words = array();
+  if (!isset($words[$word])) {
+    if (function_exists('transliteration_get')) {
+      $words[$word] = transliteration_get($word, '');
+    }
+    else {
+      $words[$word] = str_replace(
+        array('€', 'ƒ', 'Š', 'Ž', 'š', 'ž', 'Ÿ', '¢', '¥', 'µ', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'à', 'á', 'â', 'ã', 'ä', 'å', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ', 'Œ',  'œ',  'Æ',  'Ð',  'Þ',  'ß',  'æ',  'ð',  'þ'),
+        array('E', 'f', 'S', 'Z', 's', 'z', 'Y', 'c', 'Y', 'u', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'N', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'a', 'a', 'a', 'a', 'a', 'a', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'n', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y', 'OE', 'oe', 'AE', 'DH', 'TH', 'ss', 'ae', 'dh', 'th'),
+        $word);
+    }
+  }
+  return $words[$word];
+}
+
+/**
+ * Invoke hook_countries_alter() while bypassing the Countries module.
+ */
+function countries_invoke_additional_countries_alter(&$countries) {
+  foreach (module_implements('countries_alter') as $module) {
+    if ($module != 'countries') {
+      $func = $module . '_countries_alter';
+      $func($countries);
+    }
+  }
+}
+
+/**
+ * Helper function to load countries. This includes all countries by default.
+ *
+ * This now accepts a list of filters to provide an easy method of returning
+ * a filtered list of countries.
+ *
+ * @param string $property
+ *   A property of the country to return rather than the  entire country object.
+ *   Leave unset or pass in 'all' to have the country objects returned.
+ *
+ * @param array $filters
+ *   An array of filters. See countries_filter() for details.
+ *
+ * @return array
+ *   An array of countries ordered by name or by the specified property.
+ */
+function countries_get_countries($property = 'all', $filters = array()) {
+  $countries = entity_load_multiple_by_name('country');
+
+  $filtered_countries = countries_filter($countries, $filters);
+
+  if ($property == 'all' || empty($property)) {
+    return $filtered_countries;
+  }
+
+  $core_properties = countries_core_properties();
+  if (!isset($core_properties[$property])) {
+    $test = current($countries);
+    if (!isset($test->$property)) {
+      throw new Exception(t('Invalid property lookup in countries_get_countries()'));
+    }
+  }
+
+  $mapped_countries = array();
+  foreach ($filtered_countries as $country) {
+    if (isset($country->$property)) {
+      if ($property == 'name') {
+        $mapped_countries[$country->iso2] = $country->label();
+      }
+      else {
+        $mapped_countries[$country->iso2] = $country->$property;
+      }
+    }
+  }
+  uasort($mapped_countries, 'countries_sort');
+  return $mapped_countries;
+}
+
+/**
+ * Helper function to list the core properties of a country entity.
+ *
+ * @return array
+ *   An array of strings indexed by the country schema keys.
+ */
+function countries_core_properties() {
+  $core_properties = NULL;
+  if (!isset($core_properties)) {
+    $core_properties = array(
+      'name' => t('Name'),
+      'official_name' => t('Official name'),
+      'enabled' => t('Status'),
+      'iso2' => t('ISO alpha-2 code'),
+      'iso3' => t('ISO alpha-3 code'),
+      'numcode' => t('ISO numeric-3 code'),
+      'continent' => t('Continent'),
+    );
+  }
+  return $core_properties;
+}
+
+/**
+ * Helper function to help standardise the display of the core properties.
+ *
+ * @param object $country
+ *   A country object.
+ * @param string $property
+ *   The requested property.
+ * @param string $default
+ *   The default value to use if the property is not set or it is empty.
+ *
+ *   The cid and enabled flags ignore defaults. The cid value is always returned
+ *   raw and enabled is either Enabled or Disabled strings.
+ *
+ * @param bool $sanitize
+ *   Boolean to indicate whether an HTML safe version is required.
+ *
+ * @return string|int
+ *   Integer cid or string representation of other properties.
+ */
+function country_property($country, $property, $default = NULL, $sanitize = TRUE) {
+  $output = NULL;
+  switch ($property) {
+    case 'cid':
+      return $country->cid;
+
+    case 'enabled':
+      return empty($country->enabled) ? t('Disabled') : t('Enabled');
+
+    case 'continent_code':
+      if (!empty($country->continent)) {
+        $output = $country->continent;
+      }
+      break;
+
+    case 'continent':
+    case 'continent_name':
+      $continents = countries_get_continents();
+      if (!empty($country->continent) && !empty($continents[$country->continent])) {
+        $output = $continents[$country->continent];
+      }
+      elseif (!isset($default)) {
+        $output = t('Unknown');
+      }
+      break;
+
+    case 'official_name':
+      if (!empty($country->official_name)) {
+        $output = $country->official_name;
+      }
+      elseif (!isset($default)) {
+        // Entity->label() returns an empty string if not set.
+        $output = $country->label();
+        if (!$output) {
+          $output = NULL;
+        }
+      }
+      break;
+
+    case 'numcode':
+      // We do not need to sanitize this output.
+      if (!empty($country->numcode)) {
+        return theme('countries_number', array('country' => $country));
+      }
+      break;
+
+    case 'name':
+      // Entity->label() returns an empty string if not set.
+      $output = $country->label();
+      if (!$output) {
+        $output = NULL;
+      }
+      break;
+
+    default:
+      if (!empty($country->$property)) {
+        $output = $country->$property;
+      }
+
+  }
+  if (!isset($output)) {
+    $output = isset($default) ? $default : '';
+  }
+  return $sanitize ? check_plain($output) : $output;
+}
+
+/**
+ * A helper function to find a country based on any country property.
+ *
+ * @param string $value
+ *   Search keyword to find a country for.
+ *
+ * @param string $property
+ *   The country property to search with. If empty, the code will attempt to
+ *   guess what property the user is looking for. This is not recommended!
+ *
+ * @return object
+ *   The loaded country or FALSE if no match was found.
+ */
+function countries_country_lookup($value, $property = NULL) {
+  if (empty($value)) {
+    return FALSE;
+  }
+  // For lazy coders / sources, try to discover the $key from the $value.
+  if (empty($property)) {
+    $property = _countries_estimate_property_type($value);
+  }
+
+  // Helper function to maximise the lookup chances.
+  switch ($property) {
+    case 'iso2':
+    case 'iso3':
+      $value = drupal_strtoupper($value);
+      break;
+
+    case 'numcode':
+      $value = intval($value);
+      break;
+
+    default:
+      $value = trim($value);
+      break;
+  }
+  foreach (countries_get_countries($property) as $iso2 => $country_value) {
+    if ($value == $country_value) {
+      return country_load($iso2);
+    }
+  }
+  // Try the official name too when doing name searches.
+  if ($property == 'name') {
+    foreach (countries_get_countries('official_name') as $iso2 => $country_value) {
+      if ($value == $country_value) {
+        return country_load($iso2);
+      }
+    }
+
+    // This is a fallback to try and find a match if none are found. This
+    // should match common shorthand forms such as USA or US.
+    $property = _countries_estimate_property_type($value);
+    if ($property != 'name') {
+      return countries_country_lookup($value, $property);
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Private internal helper function to estimate the property type.
+ */
+function _countries_estimate_property_type($value) {
+  if (is_numeric($value)) {
+    return 'numcode';
+  }
+  switch (drupal_strlen($value)) {
+    case 2:
+      return 'iso2';
+
+    case 3:
+      return 'iso3';
+
+    default:
+      return 'name';
+  }
+}
+
+/**
+ * Themes ISO numeric-3 codes to a '0' padded string three characters long.
+ */
+function theme_countries_number($variables) {
+  if (isset($variables['country']) && !empty($variables['country']->numcode)) {
+    return sprintf("%03s", $variables['country']->numcode);
+  }
+  return '';
+}
+
+/**
+ * Theming function for the Country Icon (country_icon) country field formatter.
+ */
+function theme_country_icon_adapter($variables) {
+  $country = $variables['country'];
+  $icon_set = $variables['settings']['countryiconset'];
+  $property = $variables['settings']['property'];
+  list($icon_type, $icon_set_name) = explode('_', $icon_set, 2);
+  $variables = array(
+    'code'    => $country->iso2,
+    'iconset' => $icon_set_name,
+    'alt'     => $country->iso2,
+    'title'   => $country->label(),
+  );
+
+  $icon = '';
+  if ($icon_type == 'sprite') {
+    $icon = theme('countryicons_icon_sprite', $variables);
+  }
+  elseif ($icon_type == 'icon') {
+    $icon = theme('countryicons_icon', $variables);
+  }
+  if ($property && $value = country_property($country, $property)) {
+    return $icon . ' ' . $value;
+  }
+  return $icon;
+}
+
+/**
+ * Helper function to determine the value for a country form element.
+ *
+ * @see _form_type_country_value()
+ */
+function form_type_country_value($element, $input = FALSE) {
+  module_load_include('elements.inc', 'countries');
+  return _form_type_country_value($element, $input);
+}
+
+/**
+ * Validate callback for the country FAPI element.
+ *
+ * @see _countries_country_element_validate()
+ */
+function countries_country_element_validate($element, &$form_state) {
+  module_load_include('elements.inc', 'countries');
+  return _countries_country_element_validate($element, $form_state);
+}
+
+/**
+ * Our process callback to expand the country FAPI element.
+ *
+ * @see _countries_country_expand()
+ */
+function countries_country_expand($element) {
+  module_load_include('elements.inc', 'countries');
+  return _countries_country_expand($element);
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function countries_ctools_plugin_directory($module, $plugin) {
+  if (in_array($module, array('ctools')) && $plugin == 'arguments') {
+    return "plugins/$plugin";
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function countries_views_api() {
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'countries') . '/views',
+  );
+}
+
+/**
+ * Implements hook_migrate_api().
+ */
+function countries_migrate_api() {
+  $api = array(
+    'api' => 2,
+    'field handlers' => array('MigrateCountryFieldHandler'),
+  );
+  return $api;
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function countries_action_info() {
+  return array(
+    'country_enable_action' => array(
+      'type' => 'country',
+      'label' => t('Enable country'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+    ),
+    'country_disable_action' => array(
+      'type' => 'country',
+      'label' => t('Disable country'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_property'),
+    ),
+  );
+}
+
+/**
+ * Enable country action
+ */
+function country_enable_action($country, $context = array()) {
+  $country->enabled = 1;
+  country_save($country);
+}
+
+/**
+ * Disable country action
+ */
+function country_disable_action($country, $context = array()) {
+  $country->enabled = 0;
+  country_save($country);
+}
+
+/**
+ * Implements hook_apachesolr_field_mappings().
+ */
+function countries_apachesolr_field_mappings() {
+  $mappings = array(
+    'country' => array(
+      'display_callback' => 'countries_apachesolr_display_callback',
+      'indexing_callback' => 'countries_apachesolr_indexing_callback',
+      'map callback' => 'countries_apachesolr_map_callback',
+      'index_type' => 'string',
+      'facets' => TRUE,
+    ),
+  );
+  return $mappings;
+}
+
+/**
+ * Callback that converts countries module field into an array.
+ */
+function countries_apachesolr_indexing_callback($entity, $field_name, $index_key, $field_info) {
+  $fields = array();
+  if (!empty($entity->{$field_name})) {
+    $field = $entity->$field_name;
+    list($lang, $values) = each($field);
+    foreach ($values as $fval) {
+      $fields[] = array(
+        'key' => $index_key,
+        'value' => $fval['iso2'],
+      );
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Map callback.
+ */
+function countries_apachesolr_map_callback(array $values) {
+  $map = array();
+  foreach ($values as $value) {
+    if ($country = country_load($value)) {
+      $map[$value] = countries_t($country, 'name');
+    }
+  }
+  return $map;
+}
+
+/**
+ * Returns the country name to be used in the facet.
+ *
+ * @param string $facet
+ *   The indexed value.
+ * @param array $options
+ *   An array of options including the hook_block $delta.
+ */
+function countries_apachesolr_display_callback($facet, $options) {
+  $fields = field_info_fields();
+  $field_name = $options['delta'];
+  if (isset($fields[$field_name])) {
+    $allowed_values = list_allowed_values($field);
+    if (isset($allowed_values[$facet])) {
+      $country = country_load($allowed_values[$facet]);
+    }
+  }
+  else {
+    $country = country_load($allowed_values[$facet]);
+  }
+
+  if ($country) {
+    return check_plain(countries_t($country, 'name'));
+  }
+  return '';
+}
+
+/**
+ * Callback for getting extra country properties.
+ *
+ * @see countries_entity_property_info_alter()
+ */
+function countries_get_properties($data = FALSE, array $options, $name) {
+  return country_property($data, $name);
+}

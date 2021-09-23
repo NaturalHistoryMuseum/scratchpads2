@@ -1,0 +1,9 @@
+name = WoRMS - Importer
+description = "Import a classication via the World Registry of Marine Species (WoRMS) web service."
+package = "Data provider"
+dependencies[] = tcsdc
+tool=true;
+core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = worms

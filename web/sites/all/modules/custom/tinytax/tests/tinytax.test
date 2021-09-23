@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Tiny Tax tests.  
+ * 
+ */
+class TinyTaxTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Tiny Tax',
+      'description' => 'Test that tiny tax block shows up in the correct places',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+  }
+
+  /**
+   * Create a vocab and term and test that the tinytax block shows up on the term page.
+   */
+  public function testTinyTax(){
+    $this->drupalLogin($this->maintainer); 
+    $result = $this->createVocabAndTerm();
+    $tid = $result['tid'];
+    $vid = $result['vid'];
+    // go to the term page
+    $this->drupalGet('taxonomy/term/' . $tid);
+    // Test that the block view creates a renderable array
+    $this->verifyBlockView($vid);
+    // look for the tiny tax block
+    $this->assertRaw('block-tinytax-' . $vid, 'Tiny tax block found');
+    // test that the block doesn't show up on the home page
+    $this->drupalGet('');
+    $this->assertNoRaw('block-tinytax-' . $vid, 'Tiny tax block not found on front page');
+  }
+
+  /**
+   * Create a term and return an associative array of the form 'tid'=>tid, 'vid'=>vid
+   * @return array
+   */
+  function createVocabAndTerm(){
+    $reply = array();
+    // create taxonomy   
+    $this->drupalGet('admin/structure/taxonomy/add');
+    $edit = array();
+    $human_name = $this->randomName();
+    $edit['name'] = $human_name;
+    $machine_readable = $this->machine_name($human_name);
+    $edit['machine_name'] = $machine_readable;
+    $edit['biological_classification'] = 1;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Created new vocabulary', 'biological classification successfully created');
+    $vocab = taxonomy_vocabulary_machine_name_load($machine_readable);
+    $reply['vid'] = $vocab->vid;
+    // create a term for the newly created taxonomy
+    $this->drupalGet('admin/structure/taxonomy/' . $machine_readable . '/add');
+    $edit2 = array();
+    // We will use these variables later on
+    $name2 = $this->randomName();
+    $name3 = $this->randomName();
+    $edit2['name'] = $name2;
+    $edit2['field_unit_name1[und][0][value]'] = $name3;
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertText('Created new term', 'New term successfully created');
+    // get the term id of the newly created term
+    $taxon_array = taxonomy_get_term_by_name($name3);
+    reset($taxon_array);
+    $tid = key($taxon_array);
+    $reply['tid'] = $tid;
+    return $reply;
+  }
+ 
+  
+  /**
+   * Tests that block_view() returns a renderable array
+   * 
+   */
+  public function verifyBlockView($delta){
+    $data = module_invoke('tinytax', 'block_view', $delta);
+    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
+  }
+}

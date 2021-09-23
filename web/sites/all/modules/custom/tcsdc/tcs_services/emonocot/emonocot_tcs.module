@@ -1,0 +1,172 @@
+<?php
+global $base_url;
+define('EMONOCOT_QUERY_URL', 'http://e-monocot.org/endpoint?scratchpad=' . urlencode($base_url) . '&function=search&search=');
+define('EMONOCOT_REQUEST_URL', 'http://e-monocot.org/endpoint?function=details_tcs&id=%s&scratchpad=' . str_replace('%', '%%', urlencode($base_url)));
+
+
+/**
+ * Implementation of hook_classification_import_form
+ */
+function emonocot_tcs_tcsdc_form($form, $form_state){
+  $emonocot_tcs_service_status = @strlen(file_get_contents(substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')) . '?scratchpad=scratchpad', 0, stream_context_create(array(
+    'http' => array(
+      'timeout' => 3
+    )
+  ))));
+  return array(
+    'emonocot' => array(
+      '#type' => 'fieldset',
+      '#title' => 'emonocot',
+      '#description' => 'Import a classification directly from "The World Checklist of Monocots"',
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'emonocot-status' => array(
+        '#weight' => -10,
+        '#type' => 'markup',
+        '#markup' => $emonocot_tcs_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The emonocot classification service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The emonocot classification service (<a href="' . EMONOCOT_REQUEST_URL . '">' . (strpos(EMONOCOT_REQUEST_URL, '?') ? substr(EMONOCOT_REQUEST_URL, 0, strpos(EMONOCOT_REQUEST_URL, '?')) : EMONOCOT_REQUEST_URL) . '</a>) does not appear to be running.  Please try again later.</div>'
+      ),
+      'emonocot-name' => array(
+        '#weight' => -5,
+        '#type' => 'textfield',
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#attributes' => array(
+          'onkeypress' => 'if(event.keyCode == 13){return false;}else{return true}'
+        )
+      ),
+      'emonocot-search' => array(
+        '#weight' => 0,
+        '#type' => 'button',
+        '#value' => 'Search emonocot',
+        '#title' => 'Search emonocot',
+        '#disabled' => $emonocot_tcs_service_status ? FALSE : TRUE,
+        '#ajax' => array(
+          'callback' => 'emonocot_tcs_classifications_js',
+          'event' => 'click',
+          'wrapper' => 'emonocot-import-full'
+        )
+      ),
+      'import-full' => array(
+        '#weight' => 5,
+        '#markup' => '<div id="emonocot-import-full" style="clear:both"><input name="emonocot-import-id" style="display:none"/></div>'
+      ),
+      'submit-emonocot' => array(
+        '#weight' => 10,
+        '#disabled' => $emonocot_tcs_service_status ? FALSE : TRUE,
+        '#type' => 'submit',
+        '#title' => t('Import from emomocot'),
+        '#value' => t('Import from emonocot'),
+        '#submit' => array(
+          'emonocot_tcs_submit'
+        ),
+        '#validate' => array(
+          'emonocot_tcs_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="emonocot-import-id"]' => array(
+              'value' => ''
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Callback for the ajax
+ */
+function emonocot_tcs_classifications_js($form, $form_state){
+  // We rebuild the form here, and output only the bit that we need (the emono
+  // options).
+  // sleep(30);
+  $url = EMONOCOT_QUERY_URL . urlencode($_POST['emonocot-name']);
+  $emonocot_tcs_xml = file_get_contents($url);
+  if($emonocot_tcs_xml){
+    $emonocot_tcs_xml = new SimpleXMLElement($emonocot_tcs_xml);
+    $num_results = count($emonocot_tcs_xml->value);
+    $options = array();
+    for($i = 0; $i < $num_results; $i++){
+      $options[check_plain($emonocot_tcs_xml->value[$i]->id) . '|' . check_plain($emonocot_tcs_xml->value[$i]->number_of_children + $emonocot_tcs_xml->value[$i]->number_of_children_synonyms)] = check_plain($emonocot_tcs_xml->value[$i]->ancestry . '|' . $emonocot_tcs_xml->value[$i]->name) . " <br/>(" . l($emonocot_tcs_xml->value[$i]->metadata->title, $emonocot_tcs_xml->value[$i]->metadata->url, array(
+        'abosulte' => 1
+      )) . ') [approx. ' . check_plain($emonocot_tcs_xml->value[$i]->number_of_children + $emonocot_tcs_xml->value[$i]->number_of_children_synonyms) . ' taxa]';
+    }
+  }
+  $form['emonocot']['emonocot-import-id'] = array(
+    '#weight' => 5,
+    '#name' => 'emonocot-import-id',
+    '#type' => 'radios',
+    '#title' => t('Import from Classification'),
+    '#default_value' => '',
+    '#options' => $options,
+    '#parents' => array(
+      'emonocot-import-id'
+    ),
+    '#prefix' => '<div id="emonocot-import-full" style="clear:both">',
+    '#suffix' => '</div>'
+  );
+  form_set_cache($form['#build_id'], $form, $form_state);
+  // The following few lines of code are clearly not right. I shouldn't have
+  // to manually set the '#name' for each 'radio' element within the radios
+  // element. Ah well, it works!
+  $form_to_return = form_process_radios($form['emonocot']['emonocot-import-id']);
+  $children = element_children($form_to_return);
+  foreach($children as $key){
+    $form_to_return[$key]['#name'] = 'emonocot-import-id';
+  }
+  $output = drupal_render($form_to_return);
+  if(count($options) == 1){
+    // Odd bug with #states that seems to stop what I've written above from
+    // working.
+    // It may well be the case that what I've written shouldn't work, but this
+    // is a work around.
+    $output .= '<input id="edit-emonocot-import-id-randomgibberish" class="form-radio" type="radio" value="randomgibberish" name="emonocot-import-id" style="display:none;">';
+  }
+  drupal_get_messages();
+  return $output;
+}
+
+/**
+ * Validate the form
+ */
+function emonocot_tcs_validate($form, &$form_state){
+  // Lets just check that the emonocot-import-id is set in #post, and that it is
+  // numeric (is this likely to change Patrick?).
+  if(!(isset($form_state['values']['emonocot-import-id']) && count(explode("|", $form_state['values']['emonocot-import-id'])) == 2)){
+    form_set_error('emonocot-import-id', t('Please ensure you select a classification to import.'));
+  }
+}
+
+/**
+ * Callback function when pressing "Import from emonocot"
+ */
+function emonocot_tcs_submit($form, $form_state){
+  // Added for D7 to prevent errors on submission/testing.
+  $parts = explode("|", $form_state['values']['emonocot-import-id']);
+  $batch = array(
+    'operations' => array(
+      array(
+        'tcsdc_batch_downloader',
+        array(
+          array(
+            sprintf(EMONOCOT_REQUEST_URL, urlencode($parts[0]))
+          ),
+          $parts[1],
+          $form_state['values']['taxonomy_vid']
+        )
+      ),
+      array(
+        'tcsdc_import_terms',
+        array(
+          $form_state['values']['taxonomy_vid']
+        )
+      )
+    ),
+    'finished' => 'tcsdc_finished_batch',
+    'title' => t('Importing'),
+    // We use a single multi-pass operation, so the default
+    // 'Remaining x of y operations' message will be confusing here.
+    'error_message' => t('The import has encountered an error.')
+  );
+  batch_set($batch);
+}

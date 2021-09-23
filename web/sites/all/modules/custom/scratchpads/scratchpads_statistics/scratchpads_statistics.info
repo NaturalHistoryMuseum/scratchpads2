@@ -1,0 +1,13 @@
+core = "7.x"
+name = "Scratchpads Statistics"
+description = "Provides the statistics webservice, and also the front end statistics pages for Scratchpads."
+package = "Scratchpads"
+dependencies[] = statistics
+dependencies[] = simple_google_charts
+dependencies[] = "context"
+dependencies[] = "ctools"
+features[context][] = "scratchpads_statistics"
+features[ctools][] = "context:context:3"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_statistics

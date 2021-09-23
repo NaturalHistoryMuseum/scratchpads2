@@ -1,0 +1,25 @@
+/* Expand/collapse image for project title */
+html.js .l10n-update-wrapper .project-legend {
+  padding-right: 10px;
+}
+html.js .l10n-update-wrapper.collapsed .project-legend {
+  background: url("../images/menu-collapsed-rtl.png") right 50% no-repeat;
+}
+
+html.js .l10n-update-wrapper .project-legend a {
+  margin-right: -10px;
+  padding-right: 10px;
+}
+
+/* Translation update status data */
+html.js .l10n-update-wrapper.collapsed .project .version-status {
+  float: left;
+}
+
+.l10n-update .version-status {
+  float: left;
+}
+
+.l10n-update .version-links {
+  float: left;
+}

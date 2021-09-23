@@ -1,0 +1,169 @@
+<?php
+if(module_exists('apachesolr_access')){
+
+  /**
+   * Implements hook_apachesolr_index_document_build_node()
+   */
+  function apachesolr_file_apachesolr_index_document_build_file($document, $file, $env_id){
+    // Grant access to all files.
+    $document->setMultiValue('access__all', 0);
+  }
+}
+
+/**
+ * Indexer for the userhook_apachesolr_entity_info_alter entities for the Apachesolr module.
+ */
+function apachesolr_file_apachesolr_entity_info_alter(&$entity_info){
+  $entity_info['file']['indexable'] = TRUE;
+  $entity_info['file']['status callback'][] = 'apachesolr_file_status_callback';
+  $entity_info['file']['document callback'][] = 'apachesolr_file_solr_document';
+  $entity_info['file']['reindex callback'] = 'apachesolr_file_solr_reindex';
+  $entity_info['file']['index_table'] = 'apachesolr_index_entities';
+}
+
+/**
+ * Implementation of hook_entity_info_alter().
+ */
+function apachesolr_file_entity_info_alter(&$entity_info){
+  foreach($entity_info['file']['bundles'] as $bundle => $value){
+    $entity_info['file']['bundles'][$bundle]['apachesolr']['index'] = TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_module_implements_alter().
+ * 
+ * We need to ensure that this module's entity_info_alter fires after other 
+ * modules (particularly file_styles and media).
+ */
+function apachesolr_file_module_implements_alter(&$implementations, $hook){
+  if($hook == 'entity_info_alter'){
+    if(isset($implementations['apachesolr_file'])){
+      $this_module = $implementations['apachesolr_file'];
+      unset($implementations['apachesolr_file']);
+      $implementations['apachesolr_file'] = $this_module;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_facetapi_searcher_info_alter();
+ */
+function apachesolr_file_facetapi_searcher_info_alter(&$searcher_info){
+  // Add files to the types funky.
+  foreach($searcher_info as $key => $value){
+    $searcher_info[$key]['types']['file'] = 'file';
+  }
+}
+
+/**
+ * Apachesolr: status callback
+ */
+function apachesolr_file_status_callback($id, $type, $file = FALSE){
+  if(!$file){
+    $file = file_load($id);
+  }
+  if($file->status){
+    $file_parts = parse_url($file->uri);
+    // 1 means we want to index.
+    if($file_parts && isset($file_parts['scheme']) && $file_parts['scheme'] == 'public'){
+      return 1;
+    }
+  }
+  // 0 means we don't want to index.
+  return 0;
+}
+
+/**
+ * Builds the node-specific information for a Solr document.
+ *
+ * @param ApacheSolrDocument $document
+ * The Solr document we are building up.
+ * @param stdClass $entity
+ * The entity we are indexing.
+ * @param string $entity_type
+ * The type of entity we're dealing with.
+ * 
+ * Note, this is a stripped down copy of the apachesolr node code.
+ */
+function apachesolr_file_solr_document(ApacheSolrDocument $document, $file, $entity_type, $env_id){
+  // None of these get added unless they are explicitly in our schema.xml
+  $document->label = apachesolr_clean_text($file->filename);
+  // Build the file view.
+  $build = file_view($file, 'search_index');
+  // Why do we need this?
+  unset($build['#theme']);
+  $text = drupal_render($build);
+  $document->content = apachesolr_clean_text($text);
+  $document->teaser = $document->content;
+  $account = user_load($file->uid);
+  $username = format_username($account);
+  $document->ss_name_formatted = $username;
+  $document->tos_name_formatted = $username;
+  // Everything else uses dynamic fields
+  $document->setField("is_uid", $file->uid);
+  $document->setField("bs_status", $file->status);
+  $document->setField("ds_created", apachesolr_date_iso($file->timestamp));
+  $document->setField("ds_changed", apachesolr_date_iso($file->timestamp));
+  $document->setField("created", apachesolr_date_iso($file->timestamp));
+  $document->setField("changed", apachesolr_date_iso($file->timestamp));
+  $document->setField("last_comment_or_change", apachesolr_date_iso($file->timestamp));
+  $document->setField("tus_type_name", file_type_get_name($file));
+  // We need to get the real username here, since it needs a full user object.
+  // That means we can't do the format_username() call on the display side.
+  $document->name = format_username($account);
+  // Fetch extra data normally not visible, including comments.
+  // We do this manually (with module_implements instead of node_invoke_nodeapi)
+  // because we want a keyed array to come back. Only in this way can we decide
+  // whether to index comments or not.
+  $extra = array();
+  foreach(module_implements('file_update_index') as $module){
+    $function = $module . '_file_update_index';
+    if($output = $function($file)){
+      $extra[$module] = $output;
+    }
+  }
+  // Use an omit-norms text field since this is generally going to be short; not
+  // really a full-text field.
+  $document->tos_content_extra = apachesolr_clean_text(implode(' ', $extra));
+  //  Generic usecase for future reference. Callbacks can
+  //  allow you to send back multiple documents
+  $documents = array();
+  $documents[] = $document;
+  return $documents;
+}
+
+/**
+ * Apachesolr: reindex callback
+ */
+function apachesolr_file_solr_reindex(){
+  $indexer_table = apachesolr_get_indexer_table('file');
+  $transaction = db_transaction();
+  $env_id = apachesolr_default_environment();
+  try{
+    // FIXME - This needs to be a little more intelligent I suspect.
+    db_delete($indexer_table)->condition('entity_type', 'file')->execute();
+    $select = db_select('file_managed', 'f');
+    $select->addField('f', 'fid', 'entity_id');
+    $select->addField('f', 'type', 'bundle');
+    $select->addField('f', 'status', 'status');
+    $select->addExpression(REQUEST_TIME, 'changed');
+    $select->addExpression("'file'", 'entity_type');
+    $select->condition('f.status', 1);
+    $select->condition('f.uri', 'public://%', 'LIKE');
+    $select->condition('f.type', apachesolr_get_index_bundles($env_id, 'file'), 'IN');
+    $insert = db_insert($indexer_table)->fields(array(
+      'entity_id',
+      'bundle',
+      'status',
+      'changed',
+      'entity_type'
+    ))->from($select)->execute();
+  }
+  catch(Exception $e){
+    $transaction->rollback();
+    watchdog_exception('Apache Solr', $e);
+    return FALSE;
+  }
+  return TRUE;
+}

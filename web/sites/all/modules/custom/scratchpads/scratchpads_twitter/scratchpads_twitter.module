@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_twitter_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'add authenticated twitter accounts',
+      'administer twitter accounts'
+    )
+  );
+}
+
+/**
+ * Implements hook_menu_alter()
+ * 
+ * We tweak the twitter menu so that we can alter what is displayed on the
+ * admin/config/services/twitter page.
+ */
+function scratchpads_twitter_menu_alter(&$items){
+  $items['admin/config/services/twitter']['page callback'] = 'scratchpads_twitter_user_settings';
+  $items['user/%user/edit/twitter']['access callback'] = 'user_access';
+  $items['user/%user/edit/twitter']['access arguments'] = array(
+    'scratchpads team'
+  );
+}
+
+/**
+ * Callback to allow us to tweak the page.
+ */
+function scratchpads_twitter_user_settings($account = NULL){
+  $output = twitter_user_settings($account);
+  if(isset($output['list_form'])){
+    try{
+      unset($output['add_account']);
+      unset($output['header']);
+    }
+    catch(Exception $e){
+      ;
+    }
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_theme_registry_alter()
+ */
+function scratchpads_twitter_theme_registry_alter(&$theme_registry){
+  $theme_registry['twitter_account_list_form']['function'] = 'theme_scratchpads_twitter_account_list_form';
+}
+
+/**
+ * Override the twitter theme.
+ */
+function theme_scratchpads_twitter_account_list_form($variables){
+  $form = $variables['form'];
+  $header = array(
+    '',
+    t('Name'),
+    t('Description'),
+    t('Delete')
+  );
+  $rows = array();
+  foreach(element_children($form['accounts']) as $key){
+    $element = &$form['accounts'][$key];
+    $row = array(
+      drupal_render($element['image']),
+      drupal_render($element['id']) . drupal_render($element['screen_name']) . drupal_render($element['visible_name']),
+      drupal_render($element['description']),
+      drupal_render($element['delete'])
+    );
+    drupal_render($element['user']);
+    drupal_render($element['auth']);
+    drupal_render($element['protected']);
+    drupal_render($element['import']);
+    drupal_render($element['mentions']);
+    $rows[] = $row;
+  }
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows
+  ));
+  $output .= drupal_render_children($form);
+  return $output;
+}

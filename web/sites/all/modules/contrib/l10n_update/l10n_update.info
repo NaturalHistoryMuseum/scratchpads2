@@ -1,0 +1,14 @@
+name = Localization update
+description = Provides automatic downloads and updates for translations.
+dependencies[] = locale
+core = 7.x
+package = Multilingual
+
+files[] = l10n_update.parser.inc
+
+; Information added by Drupal.org packaging script on 2014-11-10
+version = "7.x-1.1"
+core = "7.x"
+project = "l10n_update"
+datestamp = "1415605322"
+

@@ -1,0 +1,1189 @@
+<?php
+/**
+ * @file
+ * Relation Select module.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function relation_select_help($path, $arg) {
+  if ($path == 'admin/help#relation_select') {
+    return t('An entity select widget for Relation Fields.');
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function relation_select_menu() {
+  $items = array();
+  $items['relation-select/ajax'] = array(
+    'title' => 'Views',
+    'page callback' => 'relation_select_ajax',
+    'theme callback' => 'ajax_base_page_theme',
+    'delivery callback' => 'ajax_deliver',
+    'access callback' => TRUE,
+    'description' => 'Ajax callback for view loading.',
+    'type' => MENU_CALLBACK,
+    'file' => 'ajax.inc',
+    'file path' => drupal_get_path('module', 'views') . '/includes'
+  );
+  $items['relation-select/add/%/%'] = array(
+    'title' => 'Add relation',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('relation_select_add_relation_form', 2, 3, 4, 5, 6),
+    'access callback' => TRUE,
+    'description' => 'Add a relation.',
+    'file' => 'includes/relation_select.pages.inc'
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function relation_select_admin_paths() {
+  $paths = array(
+    'relation-select/add/*/*' => TRUE
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function relation_select_views_api() {
+  $path = drupal_get_path('module', 'relation_select');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes'
+  );
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * Clear the endpoint entity field cache after inserting a relation.
+ */
+function relation_select_entity_insert($entity, $type) {
+  if ($type == 'relation') {
+    relation_select_field_cache_clear($entity);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ *
+ * Clear the endpoint entity field cache after deleting a relation.
+ */
+function relation_select_entity_delete($entity, $type) {
+  if ($type == 'relation') {
+    relation_select_field_cache_clear($entity);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function relation_select_theme($existing, $type, $theme, $path) {
+  return array(
+    'relation_select_link' => array(
+      'variables' => array(
+        'entity_type' => NULL,
+        'entity_id' => NULL
+      ),
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    ),
+    'relation_select_attachment_before' => array(
+      'variables' => array(
+        'view' => NULL
+      ),
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    ),
+    'relation_select_item_wrapper' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    ),
+    'relation_select_item_value' => array(
+      'variables' => array(
+        'entity' => NULL,
+        'element' => NULL
+      ),
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    ),
+    'relation_select_field' => array(
+      'variables' => array(
+        'entity' => NULL,
+        'related_entities' => NULL,
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field_name' => NULL,
+        'items' => NULL,
+        'suffix' => NULL,
+        'prefix' => NULL,
+        'list_type' => NULL,
+        'relation' => NULL
+      ),
+      'template' => 'relation-select-field',
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    )
+  );
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function relation_select_modules_enabled($modules) {
+  // Ensure relation select field handling takes precedence over other modules 
+  field_associate_fields('relation_select');
+  field_cache_clear();
+}
+
+/**
+ * Implements hook_element_info().
+ *
+ * Define a relation select element.
+ */
+function relation_select_element_info() {
+  $path = drupal_get_path('module', 'relation_select');
+  $types['relation_select'] = array(
+    '#input' => TRUE,
+    '#process' => array(
+      'relation_select_element_process'
+    ),
+    '#element_validate' => array(
+      'relation_select_element_validate'
+    ),
+    '#view' => array(
+      'name' => relation_select_get_default_view(),
+      'display' => 'default'
+    ),
+    '#extended' => FALSE,
+    '#theme_wrappers' => array(
+      'form_element'
+    ),
+    '#attached' => array(
+      'css' => array(
+        $path . '/css/relation-select.css'
+      ),
+      'js' => array(
+        $path . '/js/relation-select.js'
+      ),
+      'library' => array(
+        array(
+          'system',
+          'ui.sortable'
+        )
+      )
+    )
+  );
+
+  return $types;
+}
+
+/**
+ * Process a Relation Select element.
+ */
+function relation_select_element_process(&$element, &$form_state, $form) {
+  $field_name = isset($element['#field_name']) ? $element['#field_name'] : $element['#name'];
+  $delta = isset($element['#delta']) ? $element['#delta'] : 0;
+  $element['#tree'] = TRUE;
+  if ($view = views_get_view($element['#view']['name'])) {
+    // If there's exposed view filters, embed the form as a subform 
+    $view->set_display(isset($element['#view']['display']) ? $element['#view']['display'] : 'default');
+    $style = $view->display_handler->get_plugin('style');
+    if ($relation_type = relation_type_load($element['#relation_type'])) {
+      $element['#target_bundles'] = relation_select_get_target_bundles($relation_type);
+      if (count($view->display_handler->get_option('exposed_form'))) {
+        $element['exposed_filters'] = array(
+          '#type' => 'subform',
+          '#subform_id' => 'relation_select_views_exposed_form',
+          '#subform_arguments' => array(
+            $view,
+            &$element,
+            isset($style->options['lookup_on_change']) ? array_filter($style->options['lookup_on_change']) : array()
+          ),
+          '#required' => FALSE,
+          '#submit' => array('relation_select_views_exposed_form_submit'),
+          '#limit_validation_errors' => TRUE
+        );
+      }
+      else {
+        drupal_set_message(t('There are no exposed filters for the view being used in the relation select field'), 'error');
+      }
+      // Don't add settings if this is a rebuild (form add more is happening)    
+      if (!@in_array('field_add_more_submit', $form_state['submit_handlers'])) {
+        $element['#attached']['js'][] = array(
+          'data' => array(
+            'relationSelect' => array(
+              $relation_type->relation_type => array(
+                'targetBundles' => $element['#target_bundles'],
+                'maxArity' => $relation_type->max_arity
+              )
+            )
+          ),
+          'type' => 'setting'
+        );
+      }
+      $element['view_output'] = array(
+        '#prefix' => '<div class="relation-select-views-output" id="' . $element['#id'] . '-ajax-wrapper">',
+        '#markup' => '<div></div>',
+        '#suffix' => '</div>'
+      );
+      // Add the actual selected items to the form
+      $element['endpoints'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+          'class' => array('relation-select-entities'),
+          'data-field-name' => array(
+            $element['#name'] . '[endpoints]'
+          ),
+          'data-relation-type' => array(
+            $relation_type->relation_type
+          ),
+          'data-relation-arity' => array(
+            $relation_type->max_arity
+          )
+        ),
+        '#weight' => 10
+      );
+      // Make endpoints sortable.
+      if ($relation_type->max_arity != 1) {
+        $element['endpoints']['#attributes']['class'][] = 'sortable';
+      }
+      if (is_array($element['#value'])) {
+        if (isset($element['#value']['endpoints'])) {
+          foreach ($element['#value']['endpoints'] as $value) {
+            $element['endpoints'][] = array(
+              '#type' => 'hidden',
+              '#value' => $value,
+              '#theme_wrappers' => array(
+                'relation_select_item_wrapper'
+              )
+            );
+          }
+        }
+        if (isset($element['#value']['relation_id'])) {
+          $element['relation_id'] = array(
+            '#type' => 'hidden',
+            '#value' => $element['#value']['relation_id']
+          );
+        }
+      }
+    }
+  }
+  else {
+    drupal_set_message(t('View could not be loaded.'), 'error');
+  }
+
+  return $element;
+}
+
+/**
+ * Validate a Relation Select element.
+ */
+function relation_select_element_validate(&$element, &$form_state) {
+  $errors = array();
+  if (isset($element['#value']['endpoints']) && $endpoint_count = count($element['#value']['endpoints'])) {
+    // Endpoint count needs to include the node being edited
+    $endpoint_count++;
+    // Borrowed from relation_endpoints_field_validate()
+    $endpoints = $element['#value']['endpoints'];
+    $relation_type = relation_type_load($element['#relation_type']);
+    // Check that relation_type exists.
+    if (!$relation_type) {
+      $errors[] = t("The !relation_type relation type does not exist!", array(
+        '!relation_type' => $element['#relation_type']
+      ));
+    }
+    // Check that arity is within acceptable bounds.
+    if ($endpoint_count < $relation_type->min_arity) {
+      $errors[] = t("Relation has too few end points (:relation_type min arity :min_arity)", array(
+        ':relation_type' => $element['#relation_type'],
+        ':min_arity' => $relation_type->min_arity
+      ));
+    }
+    if ($relation_type->max_arity && $endpoint_count > $relation_type->max_arity) {
+      $errors[] = t("Relation has too many end points (:relation_type max arity :max_arity)", array(
+        ':relation_type' => $entity->relation_type,
+        ':max_arity' => $relation_type->max_arity
+      ));
+    }
+    foreach ($endpoints as $endpoint) {
+      list($entity_type, $entity_id) = explode(':', $endpoint);
+      if ($entity_type == $element['#entity_type'] && $entity_id == $element['#entity_id']) {
+        $errors[] = t("Entities cannot be related to themselves.");
+      }
+      if ($relation_entity = entity_load($entity_type, array($entity_id))) {
+        $bundle = relation_select_entity_get_bundle($entity_type, $relation_entity[$entity_id]);
+        if (array_key_exists($entity_type, $element['#target_bundles']) && in_array($bundle, $element['#target_bundles'][$entity_type])) {
+          continue;
+        }
+        else {
+          $t_arguments = array(
+            '%relation_type' => $relation_type->relation_type,
+            '@bundle' => $bundle
+          );
+          if ($relation_type->directional) {
+            $errors[] = t("The %relation_type relation type does not allow @bundle entities as target.", $t_arguments);
+          }
+          else {
+            $errors[] = t("The %relation_type relation type does not allow @bundle entities as an endpoint.", $t_arguments);
+          }
+        }
+      }
+      else {
+        $errors[] = t("Entity %entity_type:%entity_id could not be found", array(
+          '%entity_type' => $entity_type,
+          '%entity_id' => $entity_id
+        ));
+      }
+    }
+    // If this is a new relation, check if it already exists
+    if ($relation_type->r_unique && !isset($element['relation_id'])) {
+      $entity_keys = relation_select_build_entity_keys($element['#entity_type'], $element['#entity_id'], $endpoints);
+      if (relation_relation_exists($entity_keys, $element['#relation_type'])) {
+        $errors[] = t('This relation already exists.');
+      }
+    }
+  }
+  elseif ($element['#required']) {
+    $errors[] = t('Please select endpoints for this relation.');
+  }
+  if (count($errors)) {
+    foreach ($errors as $error) {
+      form_error($element['endpoints'], $error);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_info().
+ */
+function relation_select_field_info() {
+  return array(
+    'relation_select' => array(
+      'label' => t('Relation Select'),
+      'description' => t("Create and edit relations."),
+      'settings' => array(),
+      'default_widget' => 'relation_select',
+      'default_formatter' => 'relation_select',
+      'instance_settings' => array(
+        'relation_type' => ''
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function relation_select_field_widget_info() {
+  return array(
+    'relation_select' => array(
+      'label' => t('Relation Select'),
+      'field types' => array(
+        'relation_select'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function relation_select_field_formatter_info() {
+  return array(
+    'relation_select' => array(
+      'label' => t('Relation (link)'),
+      'description' => t('Display the relation title & a link to the related entity.'),
+      'field types' => array(
+        'relation_select'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ */
+function relation_select_field_instance_settings_form($field, $instance) {
+  $form = array();
+  $relation_types = relation_get_available_types($instance['entity_type'], $instance['bundle']);
+  $form['relation_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Relation type'),
+    '#default_value' => $instance['settings']['relation_type']
+  );
+  if (count($relation_types)) {
+    foreach ($relation_types as $relation_type) {
+      $form['relation_type']['#options'][$relation_type->relation_type] = $relation_type->label;
+    }
+  }
+  else {
+    form_set_error('relation_type', t('There are no relation types defined for this entity type.'));
+  }
+  $form['relation_view'] = array(
+    '#type' => 'select',
+    '#title' => t('View'),
+    '#default_value' => isset($instance['settings']['relation_view']) ? $instance['settings']['relation_view'] : 'relation_select',
+    '#options' => relation_select_get_views(),
+    '#description' => t('Please select the view to browse available entities for this relation.'),
+    '#required' => true
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_load().
+ *
+ * Get the selected entities.
+ */
+function relation_select_field_load($entity_type, $entities, $field, $instances, $langcode, &$items, $age) {
+  $items = array();
+  foreach ($entities as $entity_id => $entity) {
+    $instance = $instances[$entity_id];
+    $items[$entity_id] = array_values(relation_select_entity_get_relations($entity_type, $entity_id, $instance['settings']['relation_type']));
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_prepare_view().
+ */
+function relation_select_field_prepare_view($entity_type, $entities, &$field, &$instances, $langcode, &$items, $displays) {
+  foreach ($entities as $entity_id => $entity) {
+    $relation_type = $instances[$entity_id]['settings']['relation_type'];
+    $query = relation_query($entity_type, $entity_id);
+    $query->propertyCondition('relation_type', $relation_type);
+    $relation_ids = array_keys($query->execute());
+    // Who knows why but field does not like it if the delta does not start at 0...
+    $items[$entity_id] = $relation_ids ? array_values(entity_load('relation', $relation_ids)) : array();
+  }
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * Define the actual field input element.
+ */
+function relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  if (isset($instance['settings']['relation_view'])) {
+    list($view, $display) = explode(':', $instance['settings']['relation_view']);
+  }
+  else {
+    $view = relation_select_get_default_view();
+    $display = 'default';
+  }
+  $field_elements = array();
+  if ($field['cardinality'] == 1) {
+    $field_elements[$delta] = _relation_select_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $view, $display);
+  }
+  else {
+    $field_elements = relation_select_field_widget_multiple_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $view, $display);
+  }
+  return $field_elements;
+}
+
+/**
+ * Attach relation subform to Relation Select field element.
+ */
+function _relation_select_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element, $view, $display) {
+
+  // Get ID of entity to which this RS field is attached.
+  //
+  // @todo Clean this up.
+  // @see https://drupal.org/node/1762946
+  if (isset($form_state['node']->nid)) {
+    $entity_id = $form_state['node']->nid;
+  }
+  elseif (isset($form_state['taxonomy_term'])) {
+    $entity_id = $form_state['taxonomy_term']->tid;
+  }
+  else {
+    $entity_id = NULL;
+  }
+
+  // Get Relation ID if one exists for this field.
+  //
+  // @todo: Clean this up.
+  // @see https://drupal.org/node/1762946
+  //
+  // $items[$delta] starts as array on Edit page (Why?)
+  // $items[$delta] becomes object on Preview page (Why?)
+  if (isset($items[$delta]) && is_object($items[$delta])) {
+    $relation_id = $items[$delta]->rid;
+  }
+  elseif (isset($items[$delta]['relation_id'])) {
+    $relation_id = $items[$delta]['relation_id'];
+  }
+  else {
+    $relation_id = NULL;
+  }
+
+  // Add Relation field attributes for later processing.
+  $element += array(
+    '#type' => 'relation_select',
+    '#entity_type' => $instance['entity_type'],
+    '#bundle' => $instance['bundle'],
+    '#entity_id' => $entity_id,
+    '#view' => array(
+      'name' => $view,
+      'display' => $display
+    ),
+    // @todo standardize this so it's either an array or object?
+    '#default_value' => isset($items[$delta]) ? $items[$delta] : NULL,
+    '#relation_type' => $instance['settings']['relation_type']
+  );
+  $element['#title'] = check_plain($instance['label']);
+  if ($field['cardinality'] != 1 && !is_null($relation_id)) {
+    $element['#title'] .= t(' (Relation @relation_id)', array(
+      '@relation_id' => $relation_id
+    ));
+  }
+  // Add Relation fields to Relation Select form widget.
+  relation_select_relation_fields_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $view, $display);
+
+  return $element;
+}
+
+/**
+ * Add multiple Relation Select field instances.
+ */
+function relation_select_field_widget_multiple_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element, $view, $display) {
+  $title = check_plain($instance['label']);
+  $field_name = $field['field_name'];
+  $parents = $form['#parents'];
+  // Determine the number of widgets to display.
+  switch ($field['cardinality']) {
+    case FIELD_CARDINALITY_UNLIMITED:
+      $field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
+      $max = ($field_state['items_count'] >= 1) ? $field_state['items_count'] : 1;
+      break;
+    default:
+      $max = $field['cardinality'];
+      break;
+  }
+  $description = field_filter_xss($instance['description']);
+  $id_prefix = implode('-', array_merge($parents, array($field_name)));
+  $wrapper_id = drupal_html_id($id_prefix . '-add-more-wrapper');
+  $field_elements = array();
+  for ($delta = 0; $delta < $max; $delta++) {
+    $multiple = $field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED;
+    $element = array(
+      '#entity_type' => $instance['entity_type'],
+      '#bundle' => $instance['bundle'],
+      '#field_name' => $field_name,
+      '#language' => $langcode,
+      '#field_parents' => $parents,
+      '#columns' => array_keys($field['columns']),
+      '#description' => $multiple ? '' : $description,
+      // Only the first widget should be required.
+      '#required' => $delta == 0 && $instance['required'],
+      '#delta' => $delta,
+      '#weight' => $delta
+    );
+    // Get an individual relation form.
+    _relation_select_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element, $view, $display);
+    $field_elements[$delta] = $element;
+  }
+  if ($field_elements) {
+    $field_elements += array(
+      '#field_name' => $field['field_name'],
+      '#cardinality' => $field['cardinality'],
+      '#title' => $title,
+      '#required' => $instance['required'],
+      '#description' => $description,
+      '#prefix' => '<div id="' . $wrapper_id . '">',
+      '#suffix' => '</div>',
+      '#max_delta' => $max
+    );
+    // Add 'add more' button if not working with a programmed form.
+    if ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED && empty($form_state['programmed'])) {
+      $field_elements['add_more'] = array(
+        '#type' => 'submit',
+        '#name' => strtr($id_prefix, '-', '_') . '_add_more',
+        '#value' => t('Add another item'),
+        '#attributes' => array(
+          'class' => array(
+            'field-add-more-submit'
+          )
+        ),
+        '#limit_validation_errors' => array(
+          array_merge($parents, array(
+            $field_name,
+            $langcode
+          ))
+        ),
+        '#submit' => array(
+          'field_add_more_submit'
+        ),
+        '#ajax' => array(
+          'callback' => 'field_add_more_js',
+          'wrapper' => $wrapper_id,
+          'effect' => 'fade'
+        ),
+        '#weight' => $max + 1
+      );
+    }
+  }
+
+  return $field_elements;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function relation_select_field_widget_error($element, $error, $form, &$form_state) {
+  form_error($element, $error['message']);
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function relation_select_field_is_empty($items, $field) {
+  return count($items) == 0;
+}
+
+/**
+ * Implements hook_field_update().
+ */
+function relation_select_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // This runs on entity update if at first the relation wasn't created.
+  relation_select_field_insert($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+/**
+ * Implements hook_field_insert().
+ *
+ * Save an instance of a Relation Select field.
+ */
+function relation_select_field_insert($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  if ($instance['widget']['type'] == 'relation_select') {
+    $relation_type = relation_type_load($instance['settings']['relation_type']);
+    list($entity_id) = entity_extract_ids($entity_type, $entity);
+    $relations = relation_select_entity_get_relations($entity_type, $entity_id, $relation_type->relation_type);
+    if (empty($relations)) {
+      foreach ($items as $delta => $item) {
+        if (isset($item['endpoints']) && count($item['endpoints'])) {
+          // Create new relation.
+          $endpoints_ids = relation_select_build_entity_keys($entity_type, $entity_id, $item['endpoints']);
+          $relation = relation_create($relation_type->relation_type, $endpoints_ids);
+          $relation_fields = field_info_instances('relation', $relation->relation_type);
+          if (isset($item['relation_fields'])) {
+            // Add relation fields.
+            foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
+              foreach ($relation_field as $field_langcode => $field_val) {
+                unset($relation_field[$field_langcode]['add_more']);
+              }
+              $relation->{$relation_field_name} = $relation_field;
+            }
+          }
+          relation_save($relation);
+        }
+      }
+    }
+    elseif (!empty($relations)) {
+      // Relations of this type already exist for this entity.
+      $rids = array();
+      foreach ($relations as $relation) {
+        $rids[] = $relation['relation_id'];
+      }
+      $relation_entities = relation_load_multiple($rids);
+      foreach ($items as $delta => $item) {
+        if (isset($item['endpoints']) && count($item['endpoints'])) {
+          $endpoints_ids = relation_select_build_entity_keys($entity_type, $entity_id, $item['endpoints']);
+          if (isset($item['relation_id'])) {
+            // Update an existing relation.
+            $relation = $relation_entities[$item['relation_id']];
+            $lang = field_language($entity_type, $relation, 'endpoints');
+            $relation->endpoints[$lang] = $endpoints_ids;
+          }
+          else {
+            // Create a new relation.
+            $relation = relation_create($relation_type->relation_type, $endpoints_ids);
+          }
+          $relation_fields = field_info_instances('relation', $relation->relation_type);
+          if (isset($item['relation_fields'])) {
+            foreach ($item['relation_fields'] as $relation_field_name => $relation_field) {
+              if (isset($relation_fields[$relation_field_name])) {
+                // Update an existing relation field instance.
+                $langcode = array_shift(array_keys($relation_field));
+                $relation_field_items = array_shift($relation_field);
+                $relation_field = field_info_field($relation_field_name);
+                unset($relation_field_items['add_more']);
+                field_default_submit('relation', $relation, $relation_field, $relation_fields[$relation_field_name], $langcode, $relation_field_items, $item, $form_state);
+                $relation->{$relation_field_name}[$langcode] = $relation_field_items;
+              }
+              else {
+                // Create a new relation field instance.
+                foreach ($relation_field as $field_langcode => $field_val) {
+                  unset($relation_field[$field_langcode]['add_more']);
+                }
+                $relation->{$relation_field_name} = $relation_field;
+              }
+            }
+          }
+          relation_save($relation);
+        }
+        elseif (isset($item['relation_id'])) {
+          // Delete relations which no longer have endpoints.
+          relation_delete($item['relation_id']);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function relation_select_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  switch ($display['type']) {
+    case 'relation_select':
+      foreach ($items as $delta => $item) {
+        $related_entities = array();
+        foreach ($item->endpoints[LANGUAGE_NONE] as $endpoint) {
+          if ($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id) {
+            continue;
+          }
+          // No link to the parent entity
+          $related_entity = @reset(entity_load($endpoint['entity_type'], array(
+            $endpoint['entity_id']
+          )));
+          $related_entity->entity_type = $endpoint['entity_type'];
+          $related_entities[] = $related_entity;
+        }
+        $element[$delta]['relation'] = array(
+          '#theme' => 'relation_select_field',
+          '#related_entities' => $related_entities,
+          '#entity_type' => $entity_type,
+          '#bundle' => $instance['bundle'],
+          '#entity' => $entity,
+          '#field_name' => $instance['field_name'],
+          '#relation' => $item
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Helper funtion to build Relation entity keys.
+ *
+ * @param string $relation_type
+ * @param string $entity_type
+ * @param int $entity_id
+ * @param array $endpoints
+ */
+function relation_select_build_entity_keys($entity_type, $entity_id, $endpoints) {
+  $entity_keys = array(
+    array(
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_id,
+      'r_index' => 0
+    )
+  );
+  foreach ($endpoints as $i => $value) {
+    list($relation_entity_type, $relation_entity_id) = explode(':', $value);
+    $entity_keys[] = array(
+      'entity_type' => $relation_entity_type,
+      'entity_id' => $relation_entity_id,
+      'r_index' => $i + 1
+    );
+  }
+  return $entity_keys;
+}
+
+/**
+ * Get all relations for an entity.
+ *
+ * NOTE: Need to use a custom query rather than relation_query to ensure no
+ * entities are actually loaded.
+ *
+ * @param string $entity_type
+ * @param integer $entity_id
+ * @param array $relation_types
+ */
+function relation_select_entity_get_relations($entity_type, $entity_id, $relation_type) {
+  // Get the relation entities for this entity's relation type
+  $relation_query = relation_query($entity_type, $entity_id);
+  $relation_query->propertyCondition('relation_type', $relation_type);
+  $relation_ids = array_keys($relation_query->execute());
+  // Return empty array if we have no relations.
+  if (!count($relation_ids)) {
+    return array();
+  }
+  // Or query for a list of related entities.
+  $query = db_select('field_data_endpoints', 'fde');
+  $query->fields('fde', array(
+    'endpoints_entity_id',
+    'endpoints_entity_type',
+    'endpoints_r_index',
+    'entity_id',
+    'revision_id'
+  ));
+  $query->condition('fde.entity_id', $relation_ids, 'IN');
+  $query->where('!(fde.endpoints_entity_type = :entity_type AND fde.endpoints_entity_id = :entity_id)', array(
+    ':entity_type' => $entity_type,
+    ':entity_id' => $entity_id
+  ));
+  $result = $query->execute();
+  $relations = array();
+  while ($record = $result->fetchObject()) {
+    if (!array_key_exists($record->revision_id, $relations)) {
+      $relations[$record->revision_id] = array(
+        'endpoints' => array(),
+        'entity_id' => $entity_id,
+        'relation_id' => $record->entity_id
+      );
+    }
+    $relations[$record->revision_id]['endpoints'][$record->endpoints_r_index] = $record->endpoints_entity_type . ':' . $record->endpoints_entity_id;
+  }
+
+  return $relations;
+}
+
+/**
+ * Wrap views_ajax() and alter posted AJAX data.
+ */
+function relation_select_ajax() {
+  if ($subform_element_name = $_REQUEST['_subform_element_name']) {
+    $_REQUEST = $_REQUEST[$subform_element_name];
+  }
+  $element_id = $_REQUEST['element_id'];
+  $remove = array(
+    'form_build_id',
+    'form_token',
+    'form_id'
+  );
+  foreach ($remove as $key) {
+    unset($_REQUEST[$key]);
+    unset($_POST[$key]);
+  }
+  // Keep a copy of ajax page state - need this to add css/js files bit it is removed in views_ajax()
+  $ajax_page_state = $_POST['ajax_page_state'];
+  $ajax_iframe_upload = !empty($_POST['ajax_iframe_upload']);
+  $commands = array();
+  $views_ajax_commands = views_ajax();
+  foreach ($views_ajax_commands['#commands'] as $command) {
+    // Change the command selector
+    $command['selector'] = '#' . $element_id . '-ajax-wrapper div:eq(0)';
+    $commands[] = $command;
+  }
+  // Re-define ajax_post_state before rendering to allow css/js files used by the view to be added
+  $_POST['ajax_page_state'] = $ajax_page_state;
+  $_POST['ajax_iframe_upload'] = $ajax_iframe_upload;
+
+  return array(
+    '#commands' => $commands,
+    '#type' => 'ajax'
+  );
+}
+
+/**
+ * Implements hook_views_ajax_data_alter().
+ *
+ * This hook is called from views_ajax().
+ * views_ajax() rewrites $_GET['q'].
+ */
+function relation_select_views_ajax_data_alter($commands, $view) {
+  if ($_GET['q'] == 'relation-select/ajax' && isset($_GET['page']) && isset($_POST['ajax_iframe_upload'])) {
+    unset($_POST['ajax_iframe_upload']);
+  }
+}
+
+/**
+ * Get a list of all enabled views with relation_select displays.
+ * @return array A list of views as "Name : Title" keyed by 'view_name:display_id'.
+ */
+function relation_select_get_views() {
+  $views = array();
+  foreach (views_get_enabled_views() as $name => $view) {
+    foreach (array_keys($view->display) as $id) {
+      $styleplugin = isset($view->display[$id]->display_options['style_plugin']) ? $view->display[$id]->display_options['style_plugin'] : NULL;
+      if ($styleplugin == 'relation_select') {
+        $view_name = isset($view->human_name) ? $view->human_name : $name;
+        $views["{$name}:{$id}"] = "{$view_name} : {$view->display[$id]->display_title}";
+      }
+    }
+  }
+
+  return $views;
+}
+
+/**
+ * Get a Views exposed filters form to display in the Relation Select form element.
+ */
+function relation_select_views_exposed_form($form, &$form_state, $view, $element, $on_change_elements) {
+  $view->init_handlers();
+  $form_state += array(
+    'view' => &$view,
+    'display' => &$view->display_handler->display,
+    'exposed_form_plugin' => $view->display_handler->get_plugin('exposed_form'),
+    'method' => 'get',
+    'rerender' => TRUE,
+    'no_redirect' => TRUE
+  );
+  $form = drupal_retrieve_form('views_exposed_form', $form_state);
+  if (count($on_change_elements)) {
+    foreach ($on_change_elements as $on_change_element) {
+      if (array_key_exists($on_change_element, $form)) {
+        $form[$on_change_element]['#attributes']['class'][] = 'rs-on-change';
+      }
+    }
+  }
+  $form['view_name'] = array(
+    '#type' => 'hidden',
+    '#value' => $view->name
+  );
+  $form['view_display_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $view->current_display
+  );
+  $form['element_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $element['#id'],
+    '#attributes' => array(
+      'class' => array(
+        'element-id'
+      )
+    )
+  );
+  $form['#after_build'] = array('relation_select_exposed_form_after_build');
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#ajax' => array(
+      'path' => 'relation-select/ajax'
+    )
+  );
+  $form['#parent'] = $element;
+
+  return $form;
+}
+
+/**
+ * Submit Views exposed filters form for Relation Select.
+ */
+function relation_select_views_exposed_form_submit($form, &$form_state) {
+  // ...
+  // For relation_select_element_process().
+}
+
+/**
+ * #after_build callback for the Relation Select Views exposed filters form.
+ *
+ * Display only exposed filters relevent to the current relation type.
+ */
+function relation_select_exposed_form_after_build(&$subform) {
+  $target_bundles = $subform['#parent']['#target_bundles'];
+  // If there's an entity type filter, only allow entity type permitted in the relationship
+  if (isset($subform['entity_type'])) {
+    // If there's only one target entity type, make the exposed filter hidden & set default value
+    if (count($target_bundles) == 1) {
+      $subform['entity_type'] = array(
+        '#type' => 'hidden',
+        '#value' => key($target_bundles),
+        '#name' => $subform['entity_type']['#name'],
+        '#subform_name' => isset($subform['entity_type']['#subform_name']) ? $subform['entity_type']['#subform_name']: NULL,
+        '#pre_render' => $subform['entity_type']['#pre_render']
+      );
+      // Remove the label
+      unset($subform['#info']['filter-entity_type']);
+    }
+    else { // Limit to permitted entity types
+      $allowed_entity_types = $target_bundles + array(
+        'All' => true
+      );
+      $subform['entity_type']['#options'] = array_intersect_key($subform['entity_type']['#options'], $allowed_entity_types);
+    }
+  }
+  if (isset($subform['bundle'])) {
+    $bundles = array();
+    foreach ($target_bundles as $target_bundle) {
+      $bundles += array_fill_keys($target_bundle, TRUE);
+    }
+    // Hide exposed filter and set default value for entity type when only one is available.
+    if (count($bundles) == 1) {
+      $subform['bundle'] = array(
+        '#type' => 'hidden',
+        '#value' => key($bundles),
+        '#name' => $subform['bundle']['#name'],
+        '#subform_name' => isset($subform['bundle']['#subform_name']) ? $subform['bundle']['#subform_name'] : NULL,
+        '#pre_render' => $subform['bundle']['#pre_render']
+      );
+      unset($subform['#info']['filter-bundle']);
+    }
+    else {
+      // Allow all to be selected
+      $bundles['All'] = TRUE;
+      // Limit to permitted bundle types
+      $subform['bundle']['#options'] = array_intersect_key($subform['bundle']['#options'], $bundles);
+    }
+  }
+
+  return $subform;
+}
+
+/**
+ * Get all target bundles allowed for a given relation type.
+ *
+ * @param string
+ *   The machine name of the relation type.
+ *
+ * @return array
+ *   An array of bundles that can be related as endpoints.
+ */
+function relation_select_get_target_bundles($relation_type) {
+  if ($relation_type->directional) {
+    // Possible target bundles are defined in target_bundles
+    $target_bundles = $relation_type->target_bundles;
+  }
+  else {
+    // Not directional, so use source bundles as targets
+    $target_bundles = $relation_type->source_bundles;
+  }
+  $bundles = array();
+  foreach ($target_bundles as $target_bundle) {
+    $exploded_target_bundle = explode(':', $target_bundle);
+    $entity_type = $exploded_target_bundle[0];
+    // Is this for every bundle?
+    if ($exploded_target_bundle[1] == '*') {
+      // If it is, get every bundle for the type
+      foreach (relation_select_list_bundles($entity_type) as $bundle) {
+        $bundles[$entity_type][] = $bundle;
+      }
+    }
+    else {
+      $bundles[$entity_type][] = $exploded_target_bundle[1];
+    }
+  }
+
+  return $bundles;
+}
+
+/**
+ * Get all bundles for a given entity type.
+ *
+ * @param string
+ *   The machine name of the entity type.
+ *
+ * @return array
+ *   An array of bundles.
+ */
+function relation_select_list_bundles($entity_type) {
+  $bundles = array();
+  $entity_info = entity_get_info($entity_type);
+  if (is_array($entity_info['bundles'])) {
+    $bundles = array_keys($entity_info['bundles']);
+  }
+
+  return $bundles;
+}
+
+/**
+ * Attach Relation fields subform to Relation Select element.
+ */
+function relation_select_relation_fields_form($form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element, $view, $display) {
+  if ($instance['settings']['relation_type']) {
+    $field_parents = $element['#field_parents'];
+    $field_name = $element['#field_name'];
+    $language = $element['#language'];
+
+    $parents = array_merge($field_parents, array($field_name, $language, $delta));
+    $parents[] = 'relation_fields';
+
+    $form_element = array();
+    $form_element['relation_fields'] = array(
+      '#parents' => $parents,
+      '#prefix' => '<div id="relation-select-relation-fields-' . $delta . '">',
+      '#suffix' => '</div>',
+      '#weight' => 49
+    );
+
+    // Get Relation ID of one exists for this field.
+    //
+    // @todo clean this up.
+    // @see http://drupal.org/node/1762946
+    if (is_object($element['#default_value']) && isset($element['#default_value']->rid)) {
+      $relation_id = $element['#default_value']->rid;
+    }
+    elseif (is_array($element['#default_value']) && isset($element['#default_value']['relation_id'])) {
+      $relation_id = $element['#default_value']['relation_id'];
+    }
+    else {
+      $relation_id = NULL;
+    }
+
+    $relation = $relation_id ? relation_load($relation_id) : (object) relation_create($element['#relation_type'], array());
+
+    field_attach_form('relation', $relation, $form_element['relation_fields'], $form_state);
+    unset($form_element['relation_fields']['endpoints']);
+    $form_state['relation'] = $relation;
+
+    $element = array_merge($element, $form_element);
+  }
+}
+
+/**
+ * Get the name of the default Relation Select view.
+ */
+function relation_select_get_default_view() {
+  module_load_include('inc', 'relation_select', 'includes/relation_select.views_default');
+  return key(relation_select_views_default_views());
+}
+
+/**
+ * Get the bundle name for a particular entity
+ */
+function relation_select_entity_get_bundle($entity_type, $entity) {
+  $info = entity_get_info($entity_type);
+  return $info['entity keys']['bundle'] ? $entity->{$info['entity keys']['bundle']} : $entity_type;
+}
+
+/**
+ * Get the base entity type of a given View.
+ * 
+ * @param View
+ *   View object.
+ *
+ * @return string
+ *   Entity type.
+ */
+function relation_select_entity_get_type_from_view($view) {
+  foreach (entity_get_info() as $type => $entity) {
+    if ($view->base_table == $entity['base table']) {
+      return $type;
+    }
+  }
+}
+
+/**
+ * Clear the field cache for a given endpoint entity.
+ *
+ * @param object
+ *   Relation entity.
+ */
+function relation_select_field_cache_clear($entity) {
+  foreach ($entity->endpoints[LANGUAGE_NONE] as $endpoint) {
+    $cid = "field:{$endpoint['entity_type']}:{$endpoint['entity_id']}";
+    cache_clear_all($cid, 'cache_field');
+  }
+}

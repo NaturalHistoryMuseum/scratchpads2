@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * @file
+ *   Localization server for Drupal.
+ *
+ *   Connects tarballs in Drupal's expected format and filenames to
+ *   Localization server.
+ */
+
+// = Core hooks ================================================================
+
+/**
+ * Implements hook_help().
+ */
+function l10n_drupal_help($path, $arg) {
+  if (($arg[0] == 'translate') && ($arg[1] == 'projects') && ($arg[3] == 'releases') && !empty($arg[4])) {
+    $project = l10n_server_get_projects(array('uri' => $arg[2]));
+    if ($project->connector_module == 'l10n_drupal_files') {
+      return t('Source code parsing warnings listed here might indicate but not necessarily mean misuse of the APIs our source code parser looks at. <a href="@url">Detailed explanation and a cheat sheet of the localization API</a> can be found in the Drupal.org handbooks.', array('@url' => 'http://drupal.org/node/322729'));
+    }
+  }
+}
+
+
+/**
+ * Implements hook_cron().
+ */
+function l10n_drupal_cron() {
+  if (variable_get('l10n_server_connector_l10n_drupal_files_enabled', FALSE) && variable_get('l10n_server_connector_l10n_drupal_files_cron', FALSE)) {
+    module_load_include('inc', 'l10n_drupal', 'l10n_drupal.files');
+    l10n_drupal_files_scan(TRUE);
+  }
+  if (variable_get('l10n_server_connector_l10n_project_drupalorg_enabled', FALSE) && variable_get('l10n_server_connector_l10n_project_drupalorg_cron', FALSE)) {
+    module_load_include('inc', 'l10n_drupal', 'l10n_drupal.drupalorg');
+    l10n_drupal_drupalorg_scan();
+
+    // Pick the oldest releases we did not parse yet.
+    $result = db_query_range("
+      SELECT r.*
+      FROM {l10n_server_project} p INNER JOIN
+           {l10n_server_release} r ON p.pid = r.pid
+      WHERE p.connector_module = 'l10n_project_drupalorg' AND p.status = 1 AND r.download_link != '' AND r.last_parsed = 0 ORDER BY r.file_date ASC",
+              0, variable_get('l10n_server_connector_l10n_project_drupalorg_limit', 1)
+    );
+    $return = array();
+    foreach ($result as $release) {
+      l10n_drupal_drupalorg_parse_release($release);
+    }
+  }
+
+}
+
+/**
+ * Implements hook_l10n_server_connector_info().
+ */
+function l10n_drupal_l10n_server_connector_info() {
+  global $databases;
+
+  $connectors = array();
+  $connectors['l10n_drupal'] = array(
+    'title' => t('Drupal packages'),
+    'sources' => array('files', 'uploads'),
+    'file' => drupal_get_path('module', 'l10n_drupal') . '/l10n_drupal.files.inc',
+    // Only provide scan functionality if enabled.
+    'scan' => variable_get('l10n_server_connector_l10n_drupal_files_enabled', FALSE) ? 'l10n_drupal_files_scan' : NULL,
+    // Display warnings tab, because we are parsing source code here.
+    'warnings' => TRUE,
+  );
+
+  // Only include projects connector if the database is already set up.
+  // This is obscure and internal enough that we should not expose it to
+  // unaware eyes.
+  if (isset($databases['projects']['default'])) {
+    $connectors['l10n_project'] = array(
+      'title' => t('Drupal.org packages'),
+      'sources' => array('drupalorg'),
+      'file' => drupal_get_path('module', 'l10n_drupal') . '/l10n_drupal.drupalorg.inc',
+      // Only provide scan functionality if enabled.
+      'scan' => variable_get('l10n_server_connector_l10n_project_drupalorg_enabled', FALSE) ? 'l10n_drupal_drupalorg_scan_page' : NULL,
+      // Display warnings tab, because we are parsing source code here.
+      'warnings' => TRUE,
+    );
+  }
+
+  return $connectors;
+}
+
+/**
+ * Implements hook_l10n_server_source_info().
+ */
+function l10n_drupal_l10n_server_source_info() {
+  return array(
+    'drupalorg' => array(
+      'title' => t('the drupal.org database'),
+      // Reuse file settings mostly (will be modified in form_alter()).
+      'form' => 'l10n_server_connectors_files_settings_form',
+      'scan' => TRUE,
+      'file' => drupal_get_path('module', 'l10n_server') . '/l10n_server.connectors.inc',
+    ),
+  );
+}
+
+// = Settings ==================================================================
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function l10n_drupal_form_l10n_server_connectors_files_settings_form_alter(&$form, &$form_state) {
+  if ($form['#connector_name'] == 'l10n_drupal') {
+    $form['buttons']['#weight'] = 200;
+    $form['l10n_server_connector_l10n_drupal_files_drupal_home'] = array(
+      '#title' => t('Assign drupal.org home links to packages'),
+      '#type' => 'checkbox',
+      '#default_value' => variable_get('l10n_server_connector_l10n_drupal_files_drupal_home', 0),
+      '#description' => t('Assigns http://drupal.org/project/<em>project</em> type home links to projects. These home links are used to guide users to the home pages of the projects. The setting only affects newly parsed packages.'),
+      '#weight' => 100,
+    );
+  }
+  elseif ($form['#connector_name'] == 'l10n_project') {
+    // No file directory setting here.
+    $form['l10n_server_connector_l10n_project_drupalorg_directory']['#access'] = FALSE;
+    unset($form['l10n_server_connector_l10n_project_drupalorg_directory']['#after_build']);
+  }
+}

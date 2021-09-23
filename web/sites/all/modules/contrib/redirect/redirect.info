@@ -1,0 +1,23 @@
+name = Redirect
+description = Allows users to redirect from old URLs to new URLs.
+core = 7.x
+files[] = redirect.module
+files[] = redirect.admin.inc
+files[] = redirect.install
+files[] = redirect.test
+files[] = views/redirect.views.inc
+;files[] = views/redirect_handler_field_redirect_type.inc
+files[] = views/redirect_handler_filter_redirect_type.inc
+files[] = views/redirect_handler_field_redirect_source.inc
+files[] = views/redirect_handler_field_redirect_redirect.inc
+files[] = views/redirect_handler_field_redirect_operations.inc
+files[] = views/redirect_handler_field_redirect_link_edit.inc
+files[] = views/redirect_handler_field_redirect_link_delete.inc
+configure = admin/config/search/redirect/settings
+
+; Information added by drupal.org packaging script on 2013-05-25
+version = "7.x-1.0-rc1+4-dev"
+core = "7.x"
+project = "redirect"
+datestamp = "1369451639"
+

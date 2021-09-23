@@ -1,0 +1,5 @@
+name = Cite this page archive using WebCite
+description = "This module provides a backend for 'Cite this page'. It uses WebCite http://webcitation.org to archive pages."
+core = 7.x
+
+dependencies[] = citethispage

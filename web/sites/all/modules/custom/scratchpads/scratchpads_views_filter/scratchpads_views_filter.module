@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * 
+ * Adds a drop down list of fields to the exposed form
+ */
+function scratchpads_views_filter_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
+  if((strpos($form_state['view']->name, 'admin_vbo_node') !== false) || ($form_state['view']->name == 'admin_vbo_file')){
+    $optionsarray = array();
+    $optionsarray[0] = '- ' . t('Select a field') . ' -';
+    $has_taxa = false;
+    $has_location = false;
+    foreach($form['#info'] as $key => $element){
+      if(substr($element['label'], 0, 10) == 'Taxonomy |'){
+        $has_taxa = true;
+      }
+      if(substr($element['label'], 0, 10) == 'Location |'){
+        $has_location = true;
+      }
+    }
+    foreach($form['#info'] as $key => $element){
+      $key2 = 'views-widget-' . $key;
+      // Add Option Groups for Location and Taxonomy
+      if(substr($element['label'], 0, 10) == 'Location |'){
+        $optionsarray['Location Fields'][$key2] = substr($element['label'], 11);
+      }elseif(substr($element['label'], 0, 10) == 'Taxonomy |'){
+        $optionsarray['Taxonomy'][$key2] = substr($element['label'], 11);
+      }elseif($has_taxa){
+        $optionsarray['Other Fields'][$key2] = $element['label'];
+      }elseif($has_location){
+        $optionsarray['Fields'][$key2] = $element['label'];
+      }else{
+        $optionsarray[$key2] = $element['label'];
+      }
+    }
+    $newform = array();
+    $newform['selected'] = array(
+      '#type' => 'select',
+      '#options' => $optionsarray,
+      '#weight' => -15
+    );
+    foreach($form as $key => $element){
+      $newform[$key] = $element;
+    }
+    $form = $newform;
+    $newforminfo = array();
+    $newforminfo['selected'] = array(
+      'operator' => '',
+      'value' => 'selected',
+      'label' => 'Filter By Fields',
+      'description' => ''
+    );
+    foreach($form['#info'] as $key => $element){
+      $newforminfo[$key] = $element;
+    }
+    $form['#info'] = $newforminfo;
+    $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/js/scratchpads_views_filter.js';
+    $form['#attached']['css'][] = drupal_get_path('module', 'scratchpads_views_filter') . '/css/scratchpads_views_filter.css';
+  }
+}
+
+/**
+ * Implements hook_query_alter().
+ * 
+ * Remove duplicate entries from the admin_vbo_file views. The apparent duplicate is caused by the file lock module.
+ */
+function scratchpads_views_filter_query_alter($query){
+  if(isset($query->alterMetaData)){
+    if(isset($query->alterMetaData['view'])){
+      if($query->alterMetaData['view']->name == "admin_vbo_file"){
+        $query->groupBy("fid");
+      }
+    }
+  }
+}

@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * Unit tests for contributor functions.
+ */
+class BiblioContributorUnitTest extends DrupalUnitTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Biblio contributor unit tests',
+      'description' => 'Unit tests for contributor functions.',
+      'group' => 'Biblio',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+    require_once __DIR__ . '/../includes/biblio.contributors.inc';
+  }
+
+  /**
+   *
+   */
+  public function testGrabSurname() {
+    $surname = 'van der Plus';
+    list ($surname, $prefix) = _grabSurname($surname);
+    $this->assertIdentical($surname, 'Plus');
+    $this->assertIdentical($prefix, 'van der');
+    $surname = 'Van den Bussche';
+    list ($surname, $prefix) = _grabSurname($surname);
+    $this->assertIdentical($surname, 'Van den Bussche');
+    $this->assertIdentical($prefix, FALSE);
+  }
+
+  /**
+   *
+   */
+  public function testGrabFirstnameInitials() {
+    $string = "Ron";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, 'Ron');
+    $this->assertIdentical($initials, '');
+    $string = "Ron J.";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, 'Ron');
+    $this->assertIdentical($initials, 'J');
+    $string = "sir Ron J.";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, 'Ron');
+    $this->assertIdentical($initials, 'J');
+    $this->assertIdentical($prefix, 'sir');
+    $string = "R J";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, '');
+    $this->assertIdentical($initials, 'R J');
+    $string = "R. J.";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, '');
+    $this->assertIdentical($initials, 'R J');
+    $string = "R.J.";
+    list($firstname, $initials, $prefix) = _grabFirstnameInitials($string);
+    $this->assertIdentical($firstname, '');
+    $this->assertIdentical($initials, 'R J');
+
+  }
+
+  /**
+   *
+   */
+  public function testBiblioParseAuthor() {
+    $author['name'] = 'Bush, Jr. III, George W';
+    $author['auth_category'] = 1;
+    $author = biblio_parse_author($author);
+    $this->assertIdentical($author['firstname'], 'George', 'Test biblio_parse_author($author), firstname');
+    $this->assertIdentical($author['lastname'], 'Bush', 'Test biblio_parse_author($author), lastname');
+    $this->assertIdentical($author['initials'], 'W', 'Test biblio_parse_author($author), initials');
+    $this->assertIdentical($author['suffix'], 'Jr. III', 'Test biblio_parse_author($author), suffix');
+
+  }
+
+}

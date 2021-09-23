@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * Implementation of hook_client_block_info()
+ */
+function uwho_client_block_info(){
+  return array(
+    array(
+      'info' => t('UWho client block'),
+      'cache' => DRUPAL_CACHE_PER_USER
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_configure()
+ */
+function uwho_client_block_configure($delta = ''){
+  return array(
+    'uwho_link_text' => array(
+      '#type' => 'textfield',
+      '#title' => t('Link text'),
+      '#description' => t('Override the default linktext ("Login to remote site").'),
+      '#default_value' => variable_get('uwho_client_link_text', '')
+    ),
+    'uwho_client_key' => array(
+      '#title' => t('UWho Client Key'),
+      '#description' => t('Enter the key from the site you\'d like to enable your users to login to.'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('uwho_client_key', '')
+    ),
+    'uwho_client_url' => array(
+      '#title' => t('UWho Client URL'),
+      '#description' => t('Enter the URL of the site you\'d like to enable your users to login to.  This must be EXACTLY as provided by the other site.'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('uwho_client_url', '')
+    ),
+    'uwho_client_redirect_path' => array(
+      '#title' => t('UWho Client Redirect Path'),
+      '#description' => t('Enter the path to which you\'d like to redirect to once logged in.'),
+      '#type' => 'textfield',
+      '#default_value' => variable_get('uwho_client_redirect_path', '')
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_save()
+ */
+function uwho_client_block_save($delta = '', $edit = array()){
+  variable_set('uwho_client_link_text', $edit['uwho_link_text']);
+  variable_set('uwho_client_key', $edit['uwho_client_key']);
+  variable_set('uwho_client_url', $edit['uwho_client_url']);
+  variable_set('uwho_client_redirect_path', $edit['uwho_client_redirect_path']);
+}
+
+/**
+ * Implementation of hook_block_view()
+ */
+function uwho_client_block_view($delta = ''){
+  return array(
+    'subject' => t('UWho Login Block'),
+    'content' => uwho_client_block_content(variable_get('uwho_client_key', FALSE), variable_get('uwho_client_url', FALSE), variable_get('uwho_client_redirect_path', FALSE), variable_get('uwho_client_link_text', FALSE))
+  );
+}
+
+/**
+ * helper function for above which returns the block content
+ */
+function uwho_client_block_content($key, $url, $redirect = FALSE, $text = FALSE){
+  // If we're not logged in, and the text is set, then we'll simply return a
+  // link
+  global $user;
+  if(!$user->uid){return ($text != '') ? '<a href="' . ($redirect ? $redirect : $url) . '">' . $text . '</a>' : '';}
+  if(!$text){
+    $text = t('Login to remote site');
+  }
+  // First, we need to get the key that has been set, if no key is set, we
+  // return the empty string.
+  // If one of the essential settings hasn't been set, error!
+  if(!($key && $url)){return t('Please set the Key and URL on the <a href="!settings_page">settings page</a>', array(
+      '!settings_page' => url('admin/structure/block/manage/uwho_client/0/configure')
+    ));}
+  // Load the class file
+  require_once libraries_get_path('cryptastic') . '/cryptastic.php';
+  $cryptastic = new cryptastic();
+  $site_url = url('', array(
+    'absolute' => TRUE
+  ));
+  $url_parts = parse_url($site_url);
+  $encrypted = &drupal_static(__FUNCTION__, array());
+  if(!isset($encrypted[$key][$url])){
+    $crypt_key = $cryptastic->pbkdf2($key, $key . $url, 1000, 32);
+    $encrypted[$key][$url] = $cryptastic->encrypt(array(
+      'site_url' => $site_url,
+      'guid' => $url_parts['host'] . ':' . (strlen($url_parts['path']) > 1 ? $url_parts['path'] . ':' : '') . $user->uid,
+      'user' => array(
+        'url' => url('user/' . $user->uid, array(
+          'absolute' => TRUE
+        )),
+        'name' => $user->name,
+        'mail' => $user->mail,
+        'drupal_user_object' => $user
+      )
+    ), $crypt_key, TRUE);
+    if(!$encrypted[$key][$url]){
+      watchdog('uwho', 'Encryption failed');
+      return '';
+    }
+  }
+  // We need to ensure that jquery.js is added to the page
+  // FIXME - Is this still necessary?
+  drupal_add_js(array(), 'setting');
+  if(variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
+    $link_or_button = '<a href="' . $url . ((strlen(urlencode($encrypted[$key][$url])) + strlen($url)) < 1800 ? (strpos($url, '?') ? '&' : '?') . 'uwhodata=' . urlencode($encrypted[$key][$url]) : '') . ($redirect ? '&redirect=' . urlencode($redirect) : '') . '" onclick="jQuery(this).parent().trigger(\'submit\'); return false;">' . $text . '</a>';
+  }else{
+    $link_or_button = '<input type="submit" value="' . $text . '"/>';
+  }
+  // Note, we only include the data in the URL, if the length of the data and
+  // URL is less than 1800 characters. This helps to ensure we don't go over
+  // apache's URL length limit.
+  return '<form action="' . $url . ($redirect ? (strpos($url, '?') ? '&' : '?') . '&redirect=' . urlencode($redirect) : '') . '" accept-charset="UTF-8" method="post" target="_blank">
+  <input type="text" name="uwhodata" value="' . urlencode($encrypted[$key][$url]) . '" style="display:none"/>
+  ' . $link_or_button . '
+ </form>';
+}

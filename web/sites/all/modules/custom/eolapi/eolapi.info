@@ -1,0 +1,17 @@
+name = "Encyclopædia of Life taxon page data"
+description = "Provides additional blocks of data for displaying on taxon pages."
+package = "Widgets"
+core = 7.x
+dependencies[] = entity
+dependencies[] = field
+dependencies[] = image
+dependencies[] = views
+dependencies[] = scratchpads_image_styles
+dependencies[] = remote_stream_wrapper
+files[] = views/eolapi_plugin_style_eolapi.inc
+files[] = EOLAPIController.class.inc
+
+tool = true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = eolapi

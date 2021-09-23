@@ -1,0 +1,165 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function publication_schema(){
+  $schema = array();
+  $schema['publication'] = array(
+    'description' => 'The base table for publication entities.',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'Primary Key: Identifier for a publication.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'type' => array(
+        'description' => 'The {publication_type}.type of this publication.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'title' => array(
+        'description' => 'The human-readable name of this publication type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that created this publication.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the publication was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the publication was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'status' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+        'size' => 'tiny',
+        'description' => 'The published status of this publication. (0 = Not Published, 1 = Published)'
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.'
+      ),
+      'published' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Indicates whether the publication has already been published'
+      ),
+      'publisher_data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of data from the online publisher'
+      )
+    ),
+    'foreign keys' => array(
+      'publication_type' => array(
+        'table' => 'publication_type',
+        'columns' => array(
+          'type' => 'type'
+        )
+      ),
+      'publication_author' => array(
+        'table' => 'users',
+        'columns' => array(
+          'uid' => 'uid'
+        )
+      )
+    ),
+    'primary key' => array(
+      'pid'
+    ),
+    'indexes' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  $schema['publication_type'] = array(
+    'description' => 'Stores information about defined publication types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique publication type identifier.'
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this publication type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this publication type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this publication type in relation to others.'
+      )
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array(
+      'id'
+    ),
+    'unique keys' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  return $schema;
+}
+
+/**
+ * Update: add fields for managing data from online publishers
+ */
+function publication_update_7000(){
+  $published = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'size' => 'tiny',
+    'description' => 'Indicates whether the publication has already been published'
+  );
+  db_add_field('publication', 'published', $published);
+  $publisher_data = array(
+    'type' => 'blob',
+    'not null' => FALSE,
+    'size' => 'big',
+    'serialize' => TRUE,
+    'description' => 'A serialized array of data from the online publisher'
+  );
+  db_add_field('publication', 'publisher_data', $publisher_data);
+}

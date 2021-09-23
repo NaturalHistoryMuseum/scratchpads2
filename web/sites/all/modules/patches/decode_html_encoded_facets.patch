@@ -1,0 +1,29 @@
+diff --git a/sites/all/modules/contrib/facetapi/plugins/facetapi/adapter.inc b/sites/all/modules/contrib/facetapi/plugins/facetapi/adapter.inc
+index 3fa3ee05f..af8d22ff5 100644
+--- a/sites/all/modules/contrib/facetapi/plugins/facetapi/adapter.inc
++++ b/sites/all/modules/contrib/facetapi/plugins/facetapi/adapter.inc
+@@ -1491,7 +1491,8 @@ class FacetapiFacetProcessor {
+     // instead of element_children().
+     foreach (array_keys($build) as $value) {
+       $item_defaults = array(
+-        '#markup' => $value,
++        // make sure any html special chars are decoded for the UI
++        '#markup' => htmlspecialchars_decode($value, ENT_QUOTES),
+         '#indexed_value' => $value,
+         '#active' => $adapter->itemActive($this->facet['name'], $value),
+       );
+diff --git a/sites/all/modules/contrib/facetapi/plugins/facetapi/url_processor_standard.inc b/sites/all/modules/contrib/facetapi/plugins/facetapi/url_processor_standard.inc
+index 7f29960ce..692824541 100644
+--- a/sites/all/modules/contrib/facetapi/plugins/facetapi/url_processor_standard.inc
++++ b/sites/all/modules/contrib/facetapi/plugins/facetapi/url_processor_standard.inc
+@@ -117,6 +117,9 @@ class FacetapiUrlProcessorStandard extends FacetapiUrlProcessor {
+       // Replaces with the mapped value.
+       $value = $this->adapter->getMappedValue($item['facets'][0], $item['value']);
+ 
++      // make sure any html special chars are decoded for the UI
++      $value['#markup'] = htmlspecialchars_decode($value['#markup'], ENT_QUOTES);
++
+       // The last item should be text, not a link.
+       if ($last == $item) {
+         $breadcrumb[] = !empty($value['#html']) ? $value['#markup'] : check_plain($value['#markup']);
+

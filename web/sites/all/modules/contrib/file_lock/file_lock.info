@@ -1,0 +1,12 @@
+name = File Lock
+description = Prevent deletion of untracked files from file system.
+package = Media
+core = 7.x
+dependencies[] = file
+
+; Information added by drupal.org packaging script on 2012-01-15
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "file_lock"
+datestamp = "1326587364"
+

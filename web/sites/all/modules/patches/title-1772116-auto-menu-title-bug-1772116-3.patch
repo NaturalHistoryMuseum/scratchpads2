@@ -1,0 +1,27 @@
+From 2c865542665e47153e4753e763912bb25da0366a Mon Sep 17 00:00:00 2001
+From: gaelg <ggosset@insite.coop>
+Date: Mon, 22 Oct 2012 14:59:01 +0200
+Subject: [PATCH] Issue #1772116 by GaelG: Fixed automatic filling of menu
+ link.
+
+---
+ title.module |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/title.module b/title.module
+index f48fa5e..0ae17a7 100644
+--- a/title.module
++++ b/title.module
+@@ -473,6 +473,9 @@ function title_field_attach_form($entity_type, $entity, &$form, &$form_state, $l
+       if (isset($form[$legacy_field]) && title_field_replacement_enabled($entity_type, $bundle, $legacy_field)) {
+         $form[$legacy_field]['#access'] = FALSE;
+         $form[$legacy_field]['#field_replacement'] = TRUE;
++        // Add a class for automatic filling of menu link title.
++        $replacing_field = &$form[$info['instance']['field_name']];
++        $replacing_field['#attributes']['class'][] = 'form-item-title';
+       }
+     }
+   }
+-- 
+1.7.9.5
+

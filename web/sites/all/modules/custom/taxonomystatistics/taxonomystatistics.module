@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function taxonomystatistics_menu(){
+  return array(
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/statistics' => array(
+      'title' => 'Statistics',
+      'description' => 'Display statistics for a specific vocabulary',
+      'page callback' => 'taxonomystatistics_statistics_page',
+      'page arguments' => array(
+        3,
+        FALSE
+      ),
+      'access arguments' => array(
+        'view taxonomystatistics page'
+      ),
+      'file' => 'taxonomystatistics.pages.inc',
+      'weight' => 100,
+      'type' => MENU_LOCAL_TASK
+    ),
+    'taxonomy/term/%taxonomy_term/statistics' => array(
+      'title' => 'Statistics',
+      'description' => 'Display statistics for a specific vocabulary',
+      'page callback' => 'taxonomystatistics_statistics_page',
+      'page arguments' => array(
+        FALSE,
+        2
+      ),
+      'access arguments' => array(
+        'view taxonomystatistics page'
+      ),
+      'file' => 'taxonomystatistics.pages.inc',
+      'weight' => 100,
+      'type' => MENU_LOCAL_TASK
+    )
+  );
+}
+
+/**
+ * Implements hook_permission
+ */
+function taxonomystatistics_permission(){
+  return array(
+    'view taxonomystatistics page' => array(
+      'title' => t('View taxonomy statistics page'),
+      'description' => ''
+    )
+  );
+}
+
+/**
+ * Implements hook_them()
+ */
+function taxonomystatistics_theme($existing, $type, $theme, $path){
+  return array(
+    'taxonomystatistics_page' => array(
+      'variables' => array(
+        'name' => '',
+        'allterms' => 0,
+        'leafterms' => 0,
+        'fields' => array()
+      ),
+      'file' => 'taxonomystatistics.theme.inc'
+    )
+  );
+}

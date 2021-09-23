@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function tinytax_schema(){
+  return array(
+    'cache_tinytax' => drupal_get_schema_unprocessed('system', 'cache')
+  );
+}
+
+/**
+ * Install the tinytax cache table.
+ */
+function tinytax_update_7001(){
+  $schema = tinytax_schema();
+  db_create_table('cache_tinytax', $schema['cache_tinytax']);
+}

@@ -1,0 +1,5 @@
+<?php
+
+function emonocot_citation_install(){
+  variable_set('emonocot_citation_author_text', $form_state['values']['emonocot_citation_text']);
+}

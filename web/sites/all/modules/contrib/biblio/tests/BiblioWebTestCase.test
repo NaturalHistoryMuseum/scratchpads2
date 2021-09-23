@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * Base class used by other tests.
+ */
+class BiblioWebTestCase extends DrupalWebTestCase {
+
+  /**
+   * Keep a list of all keyword id's created.
+   *
+   * @var array
+   */
+  protected $kids = array();
+
+  /**
+   * Keep a list of all contributor id's created.
+   *
+   * @var array
+   */
+  protected $cids = array();
+
+  /**
+   * Keep a list of all node id's created.
+   *
+   * @var array
+   */
+  protected $nids = array();
+
+  /**
+   * Array of test users.
+   *
+   * @var array
+   */
+  protected $users;
+
+  // @code
+  // function tearDown() {
+  //    if (!empty($this->kids)) {
+  //      db_delete('biblio_keyword')
+  //      ->condition('kid', $this->kids, 'IN')
+  //      ->execute();
+  //
+  //      db_delete('biblio_keyword_data')
+  //      ->condition('kid', $this->kids, 'IN')
+  //      ->execute();
+  //
+  //    }
+  //
+  //    foreach ($this->nids as $nid) {
+  //      node_delete($nid);
+  //    }
+  //
+  //    if (!empty($this->cids)) {
+  //      db_delete('biblio_contributor')
+  //      ->condition('cid', $this->cids, 'IN')
+  //      ->execute();
+  //
+  //      db_delete('biblio_contributor_data')
+  //      ->condition('cid', $this->cids, 'IN')
+  //      ->execute();
+  //
+  //    }
+  //    $this->cids = array();
+  // }
+  // @endcode
+
+  /**
+   * Return a test user.
+   */
+  public function getUser($type) {
+    if (isset($users[$type])) {
+      return $users[$type];
+    }
+    switch ($type) {
+      case 'access biblio content':
+        $users[$type] = $this->drupalCreateUser(array('access biblio content'));
+        break;
+
+      case 'administer biblio':
+        $users[$type] = $this->drupalCreateUser(array('administer biblio', 'access biblio content'));
+        break;
+    }
+    return isset($users[$type]) ? $users[$type] : NULL;
+  }
+
+  /**
+   * Create a test node.
+   */
+  public function createNode($type = 100) {
+    $schema = drupal_get_schema('biblio');
+    foreach ($schema['fields'] as $name => $values) {
+      if ($values['type'] == 'int') {
+        continue;
+      }
+      switch ($values['type']) {
+        case 'varchar':
+          $length = $values['length'];
+          break;
+
+        case 'text':
+          $length = 1000;
+          break;
+      }
+      $biblio_fields["$name"] = $name;
+    }
+    $settings = array(
+      'title' => 'Biblio Title',
+      // This replaces the default type.
+      'type' => 'biblio',
+      // This appends a new field.
+      'biblio_type' => $type,
+      'biblio_year' => 2009,
+      'biblio_contributors' => array(
+        0 => array(
+          'name' => 'Ron J. Jeromezzzzzz',
+          'auth_type' => 1,
+          'auth_category' => 1,
+        ),
+        1 => array(
+          'name' => 'John Smithzzzzzz',
+          'auth_type' => 1,
+          'auth_category' => 1,
+        ),
+        2 => array(
+          'name' => 'George W. Bushzzzzzz',
+          'auth_type' => 1,
+          'auth_category' => 1,
+        ),
+      ),
+      'biblio_keywords' => array('biblio_keywords'),
+    );
+    $settings = array_merge($biblio_fields, $settings);
+
+    $node = $this->drupalCreateNode($settings);
+    $node = node_load($node->nid, NULL, TRUE);
+    foreach ($node->biblio_contributors as $author) {
+      $this->cids[] = $author['cid'];
+    }
+
+    $this->nids[] = $node->nid;
+
+    return $node;
+
+  }
+
+  /**
+   *
+   */
+  public function assertBiblioFields($node1, $node2, $fields = array()) {
+    $count = 0;
+    foreach ($fields as $field) {
+      if ($field == 'biblio_contributors') {
+        foreach ($node1->{$field} as $key => $auth) {
+          unset($node1->{$field}[$key]['nid']);
+          unset($node1->{$field}[$key]['vid']);
+        }
+        foreach ($node2->{$field} as $key => $auth) {
+          unset($node2->{$field}[$key]['nid']);
+          unset($node2->{$field}[$key]['vid']);
+        }
+      }
+      if ($node1->$field != $node2->$field) {
+        $this->assertIdentical($node1->$field, $node2->$field);
+        $count++;
+      }
+    }
+    $this->assertEqual($count, 0, "There were $count differences between the two nodes");
+  }
+
+}

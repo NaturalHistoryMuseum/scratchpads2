@@ -1,0 +1,361 @@
+<?php
+DEFINE('CITETHISPAGE_PHANTOMJS_DEFAULT_PREVIEW_PATH', 'public://cite/preview');
+
+/**
+ * _citethispage_phantomjs_var_get
+ * 
+ * Wrapper around variable_get to make it easey to manage our defaults
+ */
+function _citethispage_phantomjs_var_get($key){
+  $default = NULL;
+  switch($key){
+    case 'citethispage_phantomjs_destination':
+      $default = 'public://cite/[citethispage_phantomjs:year]-[citethispage_phantomjs:month]-[citethispage_phantomjs:day]/[citethispage_phantomjs:flatpath].pdf';
+      break;
+    case 'citethispage_phantomjs_inject':
+      $default = array(
+        'value' => "<p>This is a <strong>snapshop</strong> of the page at [citethispage_phantomjs:url], as it was on <strong>[citethispage_phantomjs:year]-[citethispage_phantomjs:month]-[citethispage_phantomjs:day]</strong>. The snapshot was created for citation purposes.</p>",
+        'format' => 'filtered_html'
+      );
+      break;
+    case 'citethispage_phantomjs_tool':
+      $default = '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtomodule]/js/snapshot.js [citethispage_phantomjs:url] [citethispage_phantomjs:destination] [citethispage_phantomjs:post]';
+      break;
+  }
+  return variable_get($key, $default);
+}
+
+/**
+ * Implements hook_init
+ * 
+ * This is used to add a message on snapshots
+ */
+function citethispage_phantomjs_init(){
+  if(!empty($_POST['citethispage_phantomjs_msg_token'])){
+    $token = $_POST['citethispage_phantomjs_msg_token'];
+    $tokens = variable_get('citethispage_phantomjs_tokens', array());
+    if(isset($tokens[$token])){
+      module_invoke_all('citethispage_snapshot');
+      if(isset($tokens[$token]['message'])){
+        drupal_set_message($tokens[$token]['message']);
+      }
+      // Note that we don't need to delete the token here - the call is synchronous,
+      // and the deletion is done by the caller.
+    }
+  }
+}
+
+/**
+ * Implements hook_menu
+ */
+function citethispage_phantomjs_menu(){
+  $items = array();
+  // Settings page
+  $items['admin/config/services/citethispage/phantomjs'] = array(
+    'title' => 'Phantomjs',
+    'description' => 'Archiving backend using phantomjs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_phantomjs_settings_form'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_admin'
+    ),
+    'file' => 'citethispage_phantomjs.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_citethispage_info
+ */
+function citethispage_phantomjs_citethispage_info(){
+  global $base_url;
+  return array(
+    'citethispage_phantomjs' => array(
+      'archive' => array(
+        'title' => t('Snapshot on server'),
+        'description' => t('Generate a snapshot using phantomjs and store in on !host', array(
+          '!host' => l($base_url, $base_url)
+        )),
+        'callback' => 'citethispage_phantomjs_archive'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_form_citethispage_backend_selection_form_alter
+ */
+function citethispage_phantomjs_form_citethispage_backend_selection_form_alter(&$form, &$form_state){
+  if($form_state['citethispage_backend_handler'] == 'citethispage_phantomjs'){
+    $form['citethispage_phantomjs_msg'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Include a message on the archived page'),
+      '#default_value' => isset($form_state['values']['citethispage_phantomjs_msg']) ? $form_state['values']['citethispage_phantomjs_msg'] : 1
+    );
+    $preview_mode = variable_get('citethispage_phantomjs_preview', 2);
+    global $user;
+    if($preview_mode == 2 || ($user->uid > 0 && $preview_mode == 1)){
+      drupal_add_library('system', 'ui.dialog');
+      drupal_add_js(drupal_get_path('module', 'citethispage_phantomjs') . '/js/citethispage_phantomjs.js');
+      $warn = NULL;
+      if(isset($form['warn'])){
+        $warn = $form['warn'];
+        unset($form['warn']);
+      }
+      $form['preview'] = array(
+        '#type' => 'button',
+        '#value' => t('Preview'),
+        '#ajax' => array(
+          'callback' => 'citethispage_phantomjs_preview_ajax'
+        )
+      );
+      if($warn){
+        $form['warn'] = $warn;
+      }
+    }
+  }
+}
+
+/**
+ * citethispage_phantomjs_preview_ajax
+ */
+function citethispage_phantomjs_preview_ajax($form, &$form_state){
+  // Generate a preview
+  $path = $form_state['values']['path'];
+  $context = array(
+    'results' => _citethispage_parse_path($path),
+    'form_state' => $form_state
+  );
+  $preview_path = citethispage_phantomjs_archive($path, $context, TRUE);
+  $form_state['citethispage_phantomjs_preview'] = $preview_path;
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'citethispagePhantomJSPreview',
+        'path' => $form_state['citethispage_phantomjs_preview']
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_cron
+ * 
+ * Delete all the page previews
+ */
+function citethispage_phantomjs_cron(){
+  file_unmanaged_delete_recursive(CITETHISPAGE_PHANTOMJS_DEFAULT_PREVIEW_PATH);
+}
+
+/**
+ * Implement hook_token_info
+ */
+function citethispage_phantomjs_token_info(){
+  $data = array();
+  $data['types']['citethispage_phantomjs'] = array(
+    'name' => t('Cite this page phantomjs'),
+    'description' => t('Tokens that are relevant when generating an archive using Cite this page phantomjs module')
+  );
+  $data['tokens']['citethispage_phantomjs'] = array(
+    'url' => array(
+      'name' => t('URL'),
+      'description' => t("The URL we want to archive, as a text string, including protocol")
+    ),
+    'flatpath' => array(
+      'name' => t('Flat path'),
+      'description' => t("The path to the archived page, with characters replaced such that the path can safely be used as a file name")
+    ),
+    'pathtomodule' => array(
+      'name' => t('Path to module'),
+      'description' => t("The path to the citethispage_phantomjs module")
+    ),
+    'year' => array(
+      'name' => t('Year'),
+      'description' => t("The year from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'month' => array(
+      'name' => t('Month'),
+      'description' => t("The month from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'day' => array(
+      'name' => t('Day'),
+      'description' => t("The day from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'title' => array(
+      'name' => t('Title'),
+      'description' => t("An alpha-numeric string representation of the path or (if known) the title of the page we want to archive")
+    ),
+    'destination' => array(
+      'name' => t('Destination'),
+      'description' => t("The destination file or folder where the result will be stored")
+    ),
+    'post' => array(
+      'name' => t('Post data'),
+      'description' => t("The post data phantomjs should send. This is required to display messages on the archived page")
+    )
+  );
+  return $data;
+}
+
+/**
+ * Implement hook_tokens
+ */
+function citethispage_phantomjs_tokens($type, $tokens, $data = array(), $options = array()){
+  if($type != 'citethispage_phantomjs'){return NULL;}
+  $citethispage = isset($data['citethispage_phantomjs']) ? ((array)$data['citethispage_phantomjs']) : array();
+  global $base_url;
+  $replacements = array_merge(array(
+    'url' => '',
+    'flatpath' => '',
+    'pathtomodule' => drupal_realpath(drupal_get_path('module', 'citethispage_phantomjs')),
+    'destination' => '',
+    'title' => '',
+    'year' => '',
+    'month' => '',
+    'day' => '',
+    'post' => ''
+  ), $citethispage);
+  $result = array();
+  foreach($tokens as $name => $original){
+    if(isset($replacements[$name])){
+      $result[$original] = $replacements[$name];
+    }
+  }
+  return $result;
+}
+
+/**
+ * citethispage_phantomjs_archive
+ * 
+ * The archiving callback
+ */
+function citethispage_phantomjs_archive($path, $context, $preview = FALSE){
+  $result = $context['results'];
+  // Build the replace tokens
+  global $base_url;
+  $data = new StdClass();
+  $tokens = array(
+    'citethispage_phantomjs' => $data
+  );
+  $data->url = $base_url . '/' . $path;
+  $data->flatpath = preg_replace('/[^-a-zA-Z0-9_]+/', '-', $path);
+  if(!empty($result['date']) && is_array($result['date'])){
+    $timestamps = array_keys($result['date']);
+    $date = reset($timestamps);
+  }else{
+    $date = time();
+  }
+  $data->year = date('Y', $date);
+  $data->month = date('m', $date);
+  $data->day = date('d', $date);
+  if(isset($result['title'])){
+    $data->title = implode(',', $result['title']);
+  }else{
+    $data->title = drupal_get_path_alias($path);
+  }
+  $data->title = str_replace(' ', '', ucwords(preg_replace('/[^-_a-zA-Z0-9]+/', ' ', $data->title)));
+  // Get a unique destination path
+  if($preview){
+    $destination = CITETHISPAGE_PHANTOMJS_DEFAULT_PREVIEW_PATH . '/' . substr(md5(rand()), 0, 8) . '.png';
+  }else{
+    $destination = _citethispage_phantomjs_var_get('citethispage_phantomjs_destination');
+    $destination = token_replace($destination, $tokens);
+  }
+  if(!empty($destination)){
+    $final_destination = $destination;
+    $unique = 1;
+    while(file_exists($final_destination)){
+      $final_destination = preg_replace('%^(.+?)(\.[^\./]+|/)?$%', '$1-' . $unique . '$2', $destination);
+      $unique++;
+    }
+    // Attempt to create the directory
+    if(!is_dir(dirname($final_destination))){
+      if(!drupal_mkdir(dirname($final_destination), NULL, TRUE)){
+        drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+        watchdog('citethispage_phantomjs', "Could not create directory %directory", array(
+          '%directory' => dirname($final_destination)
+        ), WATCHDOG_ERROR);
+        return;
+      }
+    }
+    $data->destination = $final_destination;
+  }else{
+    $data->destination = '';
+    $final_destination = '';
+  }
+  // Check if we should inject a message
+  $rand_token_id = substr(md5(rand()), 0, 7);
+  $data->post = 'citethispage_phantomjs_msg_token=' . urlencode($rand_token_id);
+  $phantomjs_tokens = variable_get('citethispage_phantomjs_tokens', array());
+  $token = array(
+    'timestamp' => time(),
+    'preview' => $preview
+  );
+  $inject_message = _citethispage_phantomjs_var_get('citethispage_phantomjs_inject');
+  if(!empty($context['form_state']['values']['citethispage_phantomjs_msg']) && $inject_message['value']){
+    $inject = check_markup($inject_message['value'], $inject_message['format']);
+    $inject = token_replace($inject, $tokens);
+    $token['message'] = $inject;
+  }
+  $phantomjs_tokens[$rand_token_id] = $token;
+  variable_set('citethispage_phantomjs_tokens', $phantomjs_tokens);
+  // Generate the archive !
+  $command = _citethispage_phantomjs_var_get('citethispage_phantomjs_tool');
+  $command = token_replace($command, $tokens, array(
+    'callback' => '_citethispage_phantomjs_shell_escape'
+  ));
+  $output = array();
+  $return = 0;
+  exec($command, $output, $return);
+  unset($tokens[$rand_token_id]);
+  variable_set('citethispage_phantomjs_tokens', $tokens);
+  if($return != 0){
+    drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+    watchdog('citethispage_phantomjs', "An error occured while running %command : %output", array(
+      '%command' => $command,
+      '%output' => implode("; ", $output)
+    ), WATCHDOG_ERROR);
+    return;
+  }
+  if($final_destination){
+    // Ensure it worked by chekcing the file exits
+    if(!file_exists($final_destination)){
+      drupal_set_message(t('An error occured while generating the snapshot', 'error'));
+      watchdog('citethispage_phantomjs', "Could not locate the generated file at %path", array(
+        '%path' => $final_destination
+      ), WATCHDOG_ERROR);
+      return;
+    }
+    $file_path = file_create_url($final_destination);
+  }else{
+    $file_path = trim(implode('', $output));
+  }
+  if(!$preview){
+    drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
+      '!path' => l($file_path, $file_path, array(
+        'attributes' => array(
+          'target' => '_blank'
+        )
+      ))
+    )));
+  }
+  return $file_path;
+}
+
+/**
+ * citethispage_phantomjs_shell_escape
+ */
+function _citethispage_phantomjs_shell_escape(&$replacements, $data, $options){
+  foreach($replacements as $key => $value){
+    if(preg_match('/citethispage_phantomjs:destination/', $key)){
+      $value = drupal_realpath($value);
+    }
+    $replacements[$key] = escapeshellarg($value);
+  }
+}

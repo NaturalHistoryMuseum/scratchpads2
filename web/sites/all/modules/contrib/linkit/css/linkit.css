@@ -1,0 +1,90 @@
+
+#linkit-modal { padding: 20px; }
+
+#linkit-modal #edit-linkit-link.with_imce { margin-bottom:10px; }
+
+#linkit-modal #edit-linkit-path,
+#linkit-modal #edit-linkit-search {
+  font-size: 1em;
+  height: 2em;
+  padding: 3px 25px 3px 5px;
+  width:440px;
+}
+
+#linkit-modal #edit-linkit-search { background: transparent url(../throbber-inactive.gif) no-repeat 99% 10px; }
+#linkit-modal #edit-linkit-search.fetching { background-image: url(../throbber-active.gif); }
+
+/* Better Autocomplete */
+
+.better-autocomplete {
+  left: 1px;
+  top: -1px;
+}
+
+.better-autocomplete > .result img {
+  float: left;
+  margin: 0 5px 5px 0;
+}
+
+.better-autocomplete > .result > p:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+  font-size: 0;
+}
+
+/* Additional status types */
+
+.better-autocomplete > .result.status-ok {
+  background: #397928;
+  border-top-color: #6ba15d;
+}
+
+.better-autocomplete > .result.status-warning {
+  background: #8a3131;
+  border-top-color: #b77878;
+}
+
+.better-autocomplete > .result.status-notice {
+  border-top-width: 0;
+  background: #575757;
+}
+
+.better-autocomplete > .result span.status {
+  font-style: italic;
+}
+
+.better-autocomplete > .result.unpublished-node {
+   background: #fff4f4;
+}
+
+.better-autocomplete > .result.unpublished-node.highlight {
+  background: #0075ba;
+  border-top-color: #1f4a64;
+}
+
+#linkit-modal #edit-linkit-attributes .form-item {
+  float:left;
+  margin-right:20px;
+  width:200px;
+}
+
+#linkit-modal #edit-linkit-attributes .form-item .linkit-attribute {
+  width:100%;
+}
+
+.linkit-wrapper {
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  border-radius:5px;
+}
+
+.linkit-wrapper .ui-dialog-buttonpane {
+  display:none;
+}
+
+span.mceIcon.mce_linkit {
+  background: transparent url(../editors/tinymce/images/linkit.png) no-repeat 0 0;
+}

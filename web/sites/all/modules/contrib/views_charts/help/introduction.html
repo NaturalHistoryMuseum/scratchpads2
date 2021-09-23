@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>Views Charts - Introduction</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Views Charts implements a new View style: charts. With it the use can
+      present view data as charts.</p>
+    <h3>Dependencies</h3>
+      <p>Views Charts depends on <a href="http://drupal.org/project/charts_graphs">
+        Charts and Graphs</a> and <a href="http://drupal.org/project/views">
+        Views</a>.</p>
+      <p>The <a href="http://drupal.org/project/views_groupby">Views GroupBy</a> 
+        module provides important functionality that greatly enhances Views
+        Charts usage. Please consider installing it with Views Charts.</p>
+    <h3>Usage</h3>
+      <p>This usage instructions were shamelessly stolen from Views GroupBy
+        project page:</p>
+      <ol>
+        <li>Create a new View</li>
+        <li>Add following fields:
+          <ul>
+             <li>Taxonomy: Term Term</li>
+             <li>Taxonomy: Vocabulary Name</li>
+             <li>Node: Nid Nid (and rename its label to Nid Count)</li>
+             <li>SQL Aggregation: Group By Fields Group By Fields <strong>(must be last field!)</strong></li>
+          </ul>
+        </li>
+        <li>Click on the "SQL Aggregation: Group By Fields" and configure its settings as follows:
+          <ul>
+             <li>Fields to Group On = 'Taxonomy: Term' and 'Taxonomy: Vocabulary Name' (both fields)</li>
+             <li>SQL Aggregation Function = Count</li>
+             <li>Fields to Aggregate with the SQL function = Node: Nid</li>
+             <li>Field to Sort Resultset On (after SQL Function is applied) = Node: Nid</li>
+             <li>Sorting Direction: Descending</li>
+          </ul>
+        </li>
+        <li>Add a filtering criteria for the node type if you need to.</li>
+        <li>Add a page display to the view. Set the page path to
+          <i>views_charts_example_view</i></li>
+      </ol>
+      <p>Test this view. You should get aggregated data per taxonomy term.</p>
+      <p>Lastly you only have to set the charting options:</p>
+      <ol>
+        <li>In <i>Basic settings</i> change the <i>Style</i> to <i>Charts</i>
+          and click the <i>Update</i> button</li>
+        <li>In the settings page choose:
+          <ul>
+            <li>For <i>Fields to be used in Chart Series</i> choose <i>Node: Nid (Nid
+              Count)</i></li>
+            <li>For <i>Fields to be used as X axis labels</i> choose <i>Taxonomy: Term
+                (Term)</i></li>
+          </ul>
+        </li>
+      </ol>
+      <p>That's it. Save the view. Views with Charts style can't be previewed. Open
+        &lt;http://www.example.org/views_charts_example_view&gt; to see the
+        chart.</p>
+      <h3>Customizing charts</h3>
+      <p>The presented charts can be customized through the 
+        <em>hook_views_charts_graph_alter()</em> hook.</p>
+      <dl>
+        <dt>hook_views_charts_graph_alter(&$canvas);</dt>
+        <dd>The <em>hook_views_charts_graph_alter()</em> hook is called just
+          before actual chart draw. You can freely change <em>$canvas</em> to
+          customize any chart property. To understand how to customize 
+          <em>$canvas</em> please see the 
+          <a href="http://drupal.org/project/charts_graphs">Charts and Graphs</a>
+          module documentation.</dd>
+      </dl>
+  </body>
+</html>

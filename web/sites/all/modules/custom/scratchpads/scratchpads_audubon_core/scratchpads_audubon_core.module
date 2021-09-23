@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Scratchpads Audubon Core feature.
+ */
+
+include_once('scratchpads_audubon_core.features.inc');

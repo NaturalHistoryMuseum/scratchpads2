@@ -1,0 +1,17 @@
+<?php 
+/**
+ * @file
+ *   Install routines for module
+ */
+
+/**
+ * Implementation of hook_enable()
+ *
+ * Ensure we load after the usual core.
+ */
+function bigmenu_enable() {
+  db_update('system')
+  ->fields(array('weight' => 10))
+  ->condition('name', 'bigmenu')
+  ->execute();
+}

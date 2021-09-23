@@ -1,0 +1,9 @@
+name = "Entity Admin Example"
+description = "Provides an example use of the entity admin module."
+core = 7.x
+dependencies[] = entity
+dependencies[] = entity_admin
+package = Entity
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = entity_admin_example

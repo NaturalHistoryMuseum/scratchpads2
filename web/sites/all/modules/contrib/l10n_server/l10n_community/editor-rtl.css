@@ -1,0 +1,48 @@
+
+li.translation {
+  direction: rtl;
+  padding: 4px 20px 4px 0;
+  clear: right;
+}
+
+li.translation > .selector {
+  left: auto;
+  right: 2px;
+}
+
+.l10n-table ul.actions {
+  float: left;
+}
+  .l10n-table ul.actions {
+    float: left;
+    margin-right:0;
+    margin-left:4px;
+  }
+  .l10n-table ul.actions li {
+    float: left;
+    padding: 0 4px 4px 0;
+  }
+  .l10n-table ul.actions li.declined label {
+    background: url(images/decline.png) no-repeat left top;
+  }
+  .l10n-table ul.actions li.edit label {
+    background: url(images/edit-rtl.png) no-repeat left top;
+  }
+  li.translation.is-declined > .actions li.declined label {
+    background-image:url(images/undecline-rtl.png);
+  }
+
+li.translation > .author {
+  padding-left: 0;
+  padding-right: 10px;
+}
+  li.new-translation .l10n-string {
+    margin-right: 0;
+    margin-left: 6px;
+  }
+  li.new-translation textarea {
+    clear: right;
+  }
+  li.filter-match, label.filter-match {
+    border-width: 0 0 1px 1px;
+  }

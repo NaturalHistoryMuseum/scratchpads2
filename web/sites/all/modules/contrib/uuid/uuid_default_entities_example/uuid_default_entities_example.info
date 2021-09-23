@@ -1,0 +1,8 @@
+core = "7.x"
+dependencies[] = "entity"
+dependencies[] = "features"
+dependencies[] = "uuid"
+description = "Example feature mainly used for testing."
+features[uuid_entities][] = "deploy_example_plan"
+name = "UUID default entities example"
+package = "Features"

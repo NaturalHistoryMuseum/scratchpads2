@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Provides a variable clean up via hook_uninstall().
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function countries_example_uninstall() {
+  for ($i = 1; $i <= 2; $i++) {
+    variable_del('countries_example_default_core_' . $i);
+  }
+
+  for ($i = 1; $i <= 8; $i++) {
+    variable_del('countries_example_default_country_' . $i);
+  }
+}

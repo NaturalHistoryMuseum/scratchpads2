@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function citethispage_nodes_menu(){
+  $items = array();
+  $items['admin/config/services/citethispage/nodes'] = array(
+    'title' => 'Node settings',
+    'description' => 'Cite this page node parsing settings page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_nodes_settings_form'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_admin'
+    ),
+    'file' => 'citethispage_nodes.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_citethispage_info
+ */
+function citethispage_nodes_citethispage_info(){
+  return array(
+    'citethispage_nodes' => array(
+      'parse' => array(
+        'node/%' => array(
+          'title' => t('Node page information parser'),
+          'description' => t('Parses author, date and title information from node pages. It can be enabled or disabled per content-type.'),
+          'default' => variable_get('citethispage_nodes_default', 0),
+          'callback' => 'citethispage_nodes_parse_callback'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * citethispage_nodes_parse_callback
+ */
+function citethispage_nodes_parse_callback($path, $page){
+  $result = FALSE;
+  if(preg_match('/^node\/(\d+)$/', $path, $matches)){
+    $nid = $matches[1];
+    $node = node_load($nid);
+    if(variable_get('citethispage_nodes_types_' . $node->type, 1)){
+      $result = array();
+      $result['title'] = $node->title;
+      $result['date'] = $node->changed;
+      $revisions = array_reverse(node_revision_list($node), true);
+      $result['authors'] = array(
+        'initial' => array(
+          $revisions[0]->uid
+        ),
+        'current' => array(
+          $node->uid
+        ),
+        'others' => array()
+      );
+      foreach($revisions as $revision){
+        if($revision->uid != $node->uid && $revision->uid != $revisions[0]->uid){
+          $result['authors']['others'][] = $revision->uid;
+        }
+      }
+    }
+    $result = array(
+      'nodes' => array(
+        $node->uid => $result
+      )
+    );
+  }
+  return $result;
+}

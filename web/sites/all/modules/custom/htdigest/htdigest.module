@@ -1,0 +1,498 @@
+<?php
+
+/**
+ * Implementation of hook_user_insert
+ */
+function htdigest_user_insert(&$edit, $account, $category){
+  // Add the blank entry to the htdigest_alias table.
+  db_insert('htdigest_alias')->fields(array(
+    'uid' => $account->uid
+  ))->execute();
+  if(strpos($account->name, " ")){
+    db_insert('htdigest_alias')->fields(array(
+      'uid' => $account->uid,
+      'alias' => str_replace(" ", "", $account->name)
+    ))->execute();
+  }
+  // Here we will ensure that htdigest_user entries are upto date.
+  if($edit['pass']){
+    htdigest_update_user($account, $edit['pass']);
+  }
+}
+
+/**
+ * Implementation of hook_user_update
+ */
+function htdigest_user_update(&$edit, $account, $category){
+  // Here we will ensure that htdigest_user entries are upto date.
+  if($edit['pass']){
+    htdigest_update_user($account, $edit['pass']);
+  }
+}
+
+/**
+ * Implementation of hook_user_login
+ */
+function htdigest_user_login(&$edit, $account){
+  // Here we will ensure that htdigest_user entries are upto date.
+  if($edit['input']['pass']){
+    htdigest_update_user($account, $edit['input']['pass']);
+  }
+}
+
+/**
+ * Update htdigest_user table for a specific user
+ */
+function htdigest_update_user($account, $password){
+  // We're updating the user's password, lets save the user's password to the
+  // htdigest tables.
+  // First we save for basic authentication if it is being used.
+  if(variable_get('htdigest_allow_basic', 0) && $account->uid > 1){
+    // We're using Basic, lets save the password
+    if(current(db_query('SELECT COUNT(*) FROM {htdigest_basic} WHERE uid = :uid', array(
+      ':uid' => $account->uid
+    ))->fetchCol())){
+      // Update
+      db_update('htdigest_basic')->fields(array(
+        'pass' => crypt($password, base64_encode($password))
+      ))->condition('uid', $account->uid)->execute();
+       //db_query("UPDATE {htdigest_basic} SET pass = '%s' WHERE uid = %d", crypt($password, base64_encode($password)), $account->uid);
+    }else{
+      // Insert
+      db_insert('htdigest_basic')->fields(array(
+        'pass' => crypt($password, base64_encode($password)),
+        'uid' => $account->uid
+      ))->execute();
+       //db_query("INSERT INTO {htdigest_basic} (pass, uid) VALUES ('%s', %d)", crypt($password, base64_encode($password)), $account->uid);
+    }
+  }
+  // Save for each realm
+  $result = db_select('htdigest_realm', 'h')->fields('h')->execute();
+  foreach($result as $row_realm){
+    // Does this account have permission to access this realm, if so, we save
+    // the password
+    if(user_access('access htdigest realm ' . $row_realm->realm, $account)){
+      // We add a little extra SQL to the following query if the realm does not
+      // allow aliases
+      $extra_sql = '';
+      if(!$row_realm->allow_alias){
+        $extra_sql = ' AND alias IS NULL';
+      }
+      // We do, so we save (or update).
+      // Get the list of names/aliases we need to save
+      $result_aliases = db_query('SELECT COALESCE(alias, name) AS alias, aid FROM {users} u, {htdigest_alias} h WHERE h.uid = u.uid AND u.uid = :uid' . $extra_sql, array(':uid' => $account->uid));
+      foreach($result_aliases as $row_aliases){
+        if(current(db_query('SELECT COUNT(*) FROM {htdigest_user} WHERE rid = :rid AND aid = :aid', array(':rid' => $row_realm->rid, ':aid' => $row_aliases->aid))->fetchCol())){
+          // Update
+          //db_query("UPDATE {htdigest_user} SET pass = '%s' WHERE rid = %d AND aid = %d", md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password), $row_realm->rid, $row_aliases->aid);
+          db_update('htdigest_user')->fields(array(
+            'pass' => md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password)
+          ))->condition('rid', $row_realm->rid)->condition('aid', $row_aliases->aid)->execute();
+        }else{
+          // Insert
+          db_insert('htdigest_user')->fields(array(
+            'aid' => $row_aliases->aid,
+            'rid' => $row_realm->rid,
+            'pass' => md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password)
+          ))->execute();
+           //db_query("INSERT INTO {htdigest_user} (aid, rid, pass) VALUES (%d, %d, '%s')", $row_aliases->aid, $row_realm->rid, md5($row_aliases->alias . ':' . $row_realm->realm . ':' . $password));
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu
+ */
+function htdigest_menu(){
+  return array(
+    'admin/config/services/htdigest' => array(
+      'title' => 'HTDigest Settings',
+      'description' => 'Add additional realms to a site.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'htdigest_settings_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      )
+    ),
+    'admin/config/services/htdigest/confirm' => array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'htdigest_settings_delete_confirm'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'type' => MENU_CALLBACK
+    ),
+    'user/%user/htdigest' => array(
+      'title' => 'HTDigest Aliases',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'htdigest_user_settings',
+        1
+      ),
+      'access callback' => 'user_edit_access',
+      'access arguments' => array(
+        1
+      ),
+      'type' => MENU_LOCAL_TASK
+    ),
+    'user/%user/htdigest/delete' => array(
+      'title' => 'HTDigest Aliases delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'htdigest_user_settings_delete_alias',
+        1,
+        4
+      ),
+      'access callback' => 'user_edit_access',
+      'access arguments' => array(
+        1
+      ),
+      'type' => MENU_LOCAL_TASK
+    )
+  );
+}
+
+/**
+ * Callback for the delete form
+ */
+function htdigest_user_settings_delete_alias($form, &$form_state, $account, $aids){
+  $result = db_select('htdigest_alias', 'h')->fields('h', array(
+    'alias'
+  ))->condition('aid', explode(",", $aids))->orderBy('h.alias')->execute();
+  $aliases = array();
+  foreach($result as $row){
+    $aliases[] = check_plain($row->alias);
+  }
+  $form = array(
+    'aids' => array(
+      '#type' => 'hidden',
+      '#value' => explode(",", $aids)
+    ),
+    'uid' => array(
+      '#type' => 'hidden',
+      '#value' => $account->uid
+    ),
+    'aids_list' => array(
+      '#type' => 'markup',
+      '#value' => '<ul><li>' . implode('</li><li>', $aliases) . '</li></ul>'
+    )
+  );
+  return confirm_form($form, 'Are you sure you want to delete the aliases', 'user/' . $account->uid . '/htdigest');
+}
+
+/**
+ * Do the delete
+ */
+function htdigest_user_settings_delete_alias_submit($form, &$form_state){
+  // Delete the aids
+  db_delete('htdigest_alias')->condition('aid', $form_state['values']['aids'])->execute();
+  db_delete('htdigest_user')->condition('aid', $form_state['values']['aids'])->execute();
+  drupal_goto('user/' . $form_state['values']['uid'] . '/htdigest');
+}
+
+/**
+ * Callback for htdigest user settings
+ */
+function htdigest_user_settings($form, &$form_state, $account){
+  $form = array(
+    'new_alias_fieldset' => array(
+      '#type' => 'fieldset',
+      '#title' => 'New alias',
+      'new_alias' => array(
+        '#type' => 'textfield',
+        '#title' => t('New alias'),
+        '#description' => t('Enter a new alias for your account.')
+      ),
+      'account' => array(
+        '#type' => 'hidden',
+        '#value' => $account->uid
+      ),
+      'password' => array(
+        '#type' => 'password',
+        '#title' => t('Password'),
+        '#description' => t('Enter this accounts current password - this is required for setting the hashes for all realms this user is able to access')
+      ),
+      'submit_new_alias' => array(
+        '#type' => 'submit',
+        '#value' => t('Create')
+      )
+    )
+  );
+  $aliases = array();
+  //$result_aliases = db_query('SELECT alias, aid FROM htdigest_alias WHERE uid = %d AND alias IS NOT NULL ORDER BY alias', $account->uid);
+  $result_aliases = db_select('htdigest_alias', 'h')->fields('h', array(
+    'alias',
+    'aid'
+  ))->condition('uid', $account->uid)->condition('alias', '', 'IS NOT NULL')->orderBy('alias')->execute();
+  foreach($result_aliases as $row){
+    $aliases[$row->aid] = check_plain($row->alias);
+  }
+  if(count($aliases)){
+    $form['current_aliases_fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Current aliases',
+      'current_aliases' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Current aliases'),
+        '#options' => $aliases
+      ),
+      'delete_selected_aliases' => array(
+        '#type' => 'submit',
+        '#value' => t('Delete selected'),
+        '#required' => TRUE
+      )
+    );
+  }
+  return $form;
+}
+
+/**
+ * 
+ */
+function htdigest_user_settings_validate($form, &$form_state){
+  // If we're creating
+  if($form_state['values']['op'] == $form_state['values']['submit_new_alias']){
+    // Ensure an alias has been entered, else set an error.
+    if($form_state['values']['new_alias'] == ''){
+      form_set_error('new_alias', t('Please enter an alias'));
+    }
+    // Ensure the alias is unique
+    if(current(db_query("SELECT COUNT(*) FROM users u, htdigest_alias h WHERE h.uid = u.uid AND COALESCE(alias, name) = :name", array(
+      ':name' => $form_state['values']['new_alias']
+    ))->fetch())){
+      form_set_error('new_alias', t('That alias has already been taken'));
+    }
+    // Ensure the password has also been entered, and that it matches the
+    // current password set for the user.
+    if($form_state['values']['password'] == ''){
+      form_set_error('password', t('Please enter a password'));
+    }
+    if(!db_query("SELECT COUNT(*) FROM {users} WHERE uid = :uid AND pass = :pass", array(
+      ':uid' => $form_state['values']['account'],
+      ':pass' => md5($form_state['values']['password'])
+    ))->fetchCol()){
+      form_set_error('password', t('Password entered is incorrect'));
+    }
+  }else if($form_state['values']['op'] == $form_state['values']['delete_selected_aliases']){
+    $realm_set = FALSE;
+    foreach($form_state['values']['current_aliases'] as $value){
+      if($value){
+        $realm_set = TRUE;
+        break;
+      }
+    }
+    if(!$realm_set){
+      form_set_error('current_realms', t('Please select at least one alias to delete'));
+    }
+  }
+}
+
+/**
+ * Submit function for above form
+ */
+function htdigest_user_settings_submit($form, &$form_state){
+  // If we're creating
+  if($form_state['values']['op'] == $form_state['values']['submit_new_alias']){
+    // Following ignores the error if a realm already exists.
+    db_insert('htdigest_alias')->fields(array(
+      'uid' => $form_state['values']['account'],
+      'alias' => $form_state['values']['new_alias']
+    ))->execute();
+    //db_query("INSERT INTO {htdigest_alias} (uid, alias) VALUES (%d, '%s')", $form_state['values']['account'], $form_state['values']['new_alias']);
+    // Update the passwords
+    $account = user_load($form_state['values']['account']);
+    htdigest_update_user($account, $form_state['values']['password']);
+  }else if($form_state['values']['op'] == $form_state['values']['delete_selected_aliases']){
+    $aliases_to_delete = array();
+    foreach($form_state['values']['current_aliases'] as $aid => $value){
+      if($value){
+        $aliases_to_delete[] = $aid;
+      }
+    }
+    drupal_goto('user/' . $form_state['values']['account'] . '/htdigest/delete/' . implode(",", $aliases_to_delete));
+  }
+}
+
+/**
+ * Implementation of hook_permission
+ */
+function htdigest_permission(){
+  // Add a permission for each realm
+  $perms = array();
+  $result = db_select('htdigest_realm', 'h')->fields('h')->orderBy('h.realm')->execute();
+  foreach($result as $row){
+    $perms['access htdigest realm ' . $row->realm] = array(
+      'title' => t('Allow login to the realm !realm', array('!realm' => $row->realm))
+    );
+  }
+  if(variable_get('htdigest_allow_basic', 0)){
+    // FIXME - This isn't actually used!
+    $perms['access with basic authentication'] = array(
+      'title' => t('Allow login to another service using basic authentication')
+    );
+  }
+  return $perms;
+}
+
+/**
+ * Callback for the menu
+ */
+function htdigest_settings_form($form, &$form_state){
+  $form = array(
+    'basic' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Basic'),
+      'allow_basic' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Allow Basic authentication'),
+        '#default_value' => variable_get('htdigest_allow_basic', 0),
+        '#description' => t('If checked, you will be able to use username/password combinations with Basic HTTP authentication.')
+      ),
+      'save_basic' => array(
+        '#type' => 'submit',
+        '#value' => t('Save')
+      )
+    ),
+    'new_realm' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Digest: New realm'),
+      'new_realm' => array(
+        '#type' => 'textfield',
+        '#title' => t('New realm'),
+        '#description' => t('Enter a new realm that defines a different area on your server that you would like to restrict access to.')
+      ),
+      'allow_alias' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Allow alias'),
+        '#description' => t('If checked, this realm will allow logging in using an alias.')
+      ),
+      'submit_new_realm' => array(
+        '#type' => 'submit',
+        '#value' => t('Create')
+      )
+    )
+  );
+  $realms = array();
+  $result = db_select('htdigest_realm', 'h')->fields('h')->orderBy('h.realm')->execute();
+  foreach($result as $row){
+    $realms[$row->rid] = $row->realm . ' <span style="font-size:80%;color:' . ($row->allow_alias ? 'green' : 'red') . '">(' . ($row->allow_alias ? t('alias allowed') : t('alias not allowed')) . ')</span>';
+  }
+  if(count($realms)){
+    $form['current_realms_fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Digest: Current realms',
+      'current_realms' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Select realms to delete'),
+        '#options' => $realms
+      ),
+      'delete_selected_realms' => array(
+        '#type' => 'submit',
+        '#value' => t('Delete selected'),
+        '#required' => TRUE
+      )
+    );
+  }
+  return $form;
+}
+
+/**
+ * Submit function for above form
+ */
+function htdigest_settings_form_submit($form, &$form_state){
+  // Set the value of Basic
+  if($form_state['values']['op'] == $form_state['values']['save_basic']){
+    variable_set('htdigest_allow_basic', $form_state['values']['allow_basic']);
+  }// If we're creating
+else if($form_state['values']['op'] == $form_state['values']['submit_new_realm']){
+    // Following ignores the error if a realm already exists.
+    db_insert('htdigest_realm')->fields(array(
+      'realm' => $form_state['values']['new_realm'],
+      'allow_alias' => $form_state['values']['allow_alias']
+    ))->execute();
+     //db_query("INSERT INTO {htdigest_realm} (realm, allow_alias) VALUES ('%s', %d)", $form_state['values']['new_realm'], $form_state['values']['allow_alias']);
+  }else if($form_state['values']['op'] == $form_state['values']['delete_selected_realms']){
+    $realms_to_delete = array();
+    foreach($form_state['values']['current_realms'] as $rid => $value){
+      if($value){
+        $realms_to_delete[] = $rid;
+      }
+    }
+    drupal_goto('admin/config/services/htdigest/confirm/' . implode(",", $realms_to_delete));
+  }
+}
+
+/**
+ * 
+ */
+function htdigest_settings_form_validate($form, &$form_state){
+  // If we're creating
+  //drupal_set_message(kprint_r($form_state, 1));
+  //drupal_set_message(kprint_r($form, 1));
+  if($form_state['values']['op'] == $form_state['values']['submit_new_realm']){
+    // Ensure a realm has been entered, else set an error.
+    if($form_state['values']['new_realm'] == ''){
+      form_set_error('new_realm', t('Please enter a realm'));
+    }
+  }else if(isset($form_state['values']['delete_selected_realms']) && $form_state['values']['op'] == $form_state['values']['delete_selected_realms']){
+    $realm_set = FALSE;
+    foreach($form_state['values']['current_realms'] as $value){
+      if($value){
+        $realm_set = TRUE;
+        break;
+      }
+    }
+    if(!$realm_set){
+      form_set_error('current_realms', t('Please select at least one realm to delete'));
+    }
+  }
+}
+
+/**
+ * Callback for the delete form
+ */
+function htdigest_settings_delete_confirm($form, &$form_state, $rids){
+  $result = db_select('htdigest_realm', 'h')->fields('h', array(
+    'realm'
+  ))->condition('rid', explode(",", $rids))->orderBy('h.realm')->execute();
+  $realms = array();
+  foreach($realms as $row){
+    $realms[] = $row->realm;
+  }
+  $form = array(
+    'rids' => array(
+      '#type' => 'hidden',
+      '#value' => explode(",", $rids)
+    ),
+    'rids_list' => array(
+      '#type' => 'markup',
+      '#value' => '<ul><li>' . implode('</li><li>', $realms) . '</li></ul>'
+    )
+  );
+  return confirm_form($form, 'Are you sure you want to delete the realms', 'admin/config/services/htdigest');
+}
+
+/**
+ * Do the delete
+ */
+function htdigest_settings_delete_confirm_submit($form, &$form_state){
+  // Do the delete, and then redirect to the original pages
+  foreach($form_state['values']['rids'] as $rid){
+    // Get the name first, so that we can delete the permission
+    $realm = db_select('htdigest_realm', 'h')->fields('h', array(
+      'realm'
+    ))->condition('rid', $rid)->execute()->fetchCol();
+    db_delete('role_permission')->condition('permission', 'access htdigest realm ' . $realm)->execute();
+    // Delete the realm
+    db_delete('htdigest_realm')->condition('rid', $rid)->execute();
+    db_delete('htdigest_user')->condition('rid', $rid)->execute();
+  }
+  drupal_goto('admin/config/services/htdigest');
+}

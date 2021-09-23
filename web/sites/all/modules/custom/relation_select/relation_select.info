@@ -1,0 +1,20 @@
+name = Relation Select
+description = A form element to create and edit relations
+dependencies[] = relation
+dependencies[] = views
+dependencies[] = subform
+package = "Relation"
+core = 7.x
+
+; Views
+files[] = includes/relation_select.views.inc
+files[] = includes/relation_select.views_default.inc
+files[] = includes/relation_select_plugin_style.inc
+files[] = theme/theme.inc
+
+core = "7.x"
+datestamp = "1354455784"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = relation_select

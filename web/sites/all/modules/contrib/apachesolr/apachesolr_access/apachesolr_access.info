@@ -1,0 +1,15 @@
+name = Apache Solr Access
+description = Integrates node access and other permissions with Apache Solr search
+dependencies[] = apachesolr
+package = Search Toolkit
+core = 7.x
+
+files[] = apachesolr_access.module
+files[] = tests/apachesolr_access.test
+
+; Information added by drupal.org packaging script on 2013-07-26
+version = "7.x-1.4"
+core = "7.x"
+project = "apachesolr"
+datestamp = "1374808867"
+

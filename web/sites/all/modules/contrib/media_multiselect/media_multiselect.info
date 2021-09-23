@@ -1,0 +1,7 @@
+name = Media Multiselect
+description = Provides a multiselect Media functionality
+package = Media
+core = 7.x
+
+dependencies[] = media
+

@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function formflow_schema(){
+  $schema['formflow'] = array(
+    'fields' => array(
+      'fid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The ID of the form flow, defined by the database.',
+        'no export' => TRUE
+      ),
+      'title' => array(
+        'description' => 'The title of this formflow.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '32',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'The unique name of the formflow. This is the primary field formflows are loaded from, and is used so that views may be internal and not necessarily in the database. May only be alphanumeric characters plus underscores.'
+      ),
+      'path' => array(
+        'description' => 'The path of this form flow.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'menu' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Serialized configuration of menu settings.',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'object default' => array(),
+      ),
+      'finish_path' => array(
+        'description' => 'The path this flow should redirect to when completed.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'cancel_path' => array(
+        'description' => 'The path this flow should redirect to when cancelled.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'default' => '',
+        'description' => 'A description of the view for the admin interface.'
+      ),
+      'show_trail' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+      ),
+      'show_back' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+      ),
+      'show_cancel' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+      ),
+      'show_return' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+      )
+    ),
+    'primary key' => array(
+      'fid'
+    ),
+    'unique key' => array(
+      'name' => array(
+        'name'
+      )
+    )
+  );
+  $schema['formflow_step'] = array(
+    'fields' => array(
+      'fid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The formflow fid.'
+      ),
+      'title' => array(
+        'description' => 'The title of this formflow.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'form_id' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'The form id to use for this step.'
+      ),
+      'path' => array(
+        'description' => 'The path of this formflow step.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      )
+    ),
+    'primary key' => array(
+      'fid',
+      'form_id'
+    ),
+    'foreign keys' => array(
+      'fid' => array(
+        'table' => 'formflow',
+        'columns' => array(
+          'fid' => 'fid'
+        )
+      )
+    )
+  );
+  return $schema;
+}

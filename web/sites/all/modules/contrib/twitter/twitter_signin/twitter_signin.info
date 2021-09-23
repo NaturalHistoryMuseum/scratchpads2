@@ -1,0 +1,12 @@
+name = Twitter Signin
+description = Adds support for "Sign in with Twitter"
+core = 7.x
+dependencies[] = twitter
+configure = admin/config/services/twitter/signin
+
+; Information added by drupal.org packaging script on 2013-06-03
+version = "7.x-5.8"
+core = "7.x"
+project = "twitter"
+datestamp = "1370303463"
+

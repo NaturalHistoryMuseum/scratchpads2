@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+*  Prevents media files from being deleted when an entity they are attached to
+*  is deleted.
+*/
+/**
+ * Implements hook_menu_alter().
+ * 
+ * Disable the admin pages for file_lock
+ */
+function scratchpads_file_lock_menu_alter(&$items){
+  $items['admin/config/media/lock']['access callback'] = FALSE;
+}
+
+/**
+ * Default to allow the download of ALL files
+ */
+function scratchpads_file_lock_file_download($uri){
+  $info = image_get_info($uri);
+  return array(
+    'Content-Type' => $info['mime_type']
+  );
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ * 
+ * Change the order in which the hooks are run.
+ */
+function scratchpads_file_lock_module_implements_alter(&$implementations, $hook){
+  if($hook == 'file_insert'){
+    $group = $implementations['scratchpads_file_lock'];
+    unset($implementations['scratchpads_file_lock']);
+    $implementations['scratchpads_file_lock'] = $group;
+  }
+}
+
+/**
+ * Implements hook_file_insert().
+ */
+function scratchpads_file_lock_file_insert($file){
+  drupal_register_shutdown_function('scratchpads_file_lock_remove_eolapi_locks', $file);
+}
+
+/**
+ * Shutdown function added by scratchpads_file_lock_file_insert().
+ */
+function scratchpads_file_lock_remove_eolapi_locks($file){
+  if(scratchpads_file_lock_is_eolapi($file)){
+    // Modules have no id, but file_usage want's one.
+    file_usage_delete($file, 'file_lock', FILE_LOCK_ID);
+  }
+}
+
+/**
+ * Check if a file is from eolapi
+ *
+ * @param file $file
+ *   the file to check
+ *
+ * @return bool
+ *   TRUE if file is from eolapi
+ *   FALSE if file is not from eolapi
+ */
+function scratchpads_file_lock_is_eolapi($file){
+  $file_usage_list = file_usage_list($file);
+  return isset($file_usage_list['file']['eolapi']);
+}

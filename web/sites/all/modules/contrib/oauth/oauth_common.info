@@ -1,0 +1,25 @@
+name = OAuth
+description = Provides OAuth functionality
+configure = admin/config/services/oauth
+package = "OAuth"
+
+recommends[] = ctools
+suggests[] = inputstream
+
+core = 7.x
+
+files[] = lib/OAuth.php
+files[] = includes/DrupalOAuthServer.inc
+files[] = includes/DrupalOAuthDataStore.inc
+files[] = includes/DrupalOAuthRequest.inc
+files[] = includes/DrupalOAuthToken.inc
+files[] = includes/DrupalOAuthConsumer.inc
+files[] = includes/DrupalOAuthClient.inc
+files[] = includes/OAuthSignatureMethod_HMAC.inc
+
+; Information added by Drupal.org packaging script on 2014-01-24
+version = "7.x-3.2"
+core = "7.x"
+project = "oauth"
+datestamp = "1390561406"
+

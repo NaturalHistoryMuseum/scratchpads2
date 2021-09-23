@@ -1,0 +1,72 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: POT extractor\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2007-09-02 19:28+0300\n"
+"Last-Translator: klay <sadhoo@mail.ru>\n"
+"Language-Team: SadhooKlay <sadhoo@mail.ru>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIAN FEDERATION\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: potx.module:15
+msgid "Helps to extract pot-files for translations from the sources of installed modules."
+msgstr "Помогает извлекать строки в pot-файлы, для локализации их на другие языки, из исходных текстов установленных модулей."
+
+#: potx.module:17
+msgid "This page allows you to generate translation templates for module files. Select the module you wish to generate a template file for. A single Gettext Portable Object Template file is generated (unlike the output of the command line extractor utility), so you can easily save it and start translation."
+msgstr "На этой странице можно создавать шаблоны для перевода файлов модулей. Выберите модуль, для которого вы хотите создать шаблон. Будет создан единый файл (в отличие от экспорта утилитой из консоли) формата Gettext Portable Object Template, поэтому вы можете легко сохранить его и начать перевод."
+
+#: potx.module:30
+msgid "Extract strings"
+msgstr "Извлечь строки"
+
+#: potx.module:77
+msgid "Extract"
+msgstr "Извлечь"
+
+#: potx.module:168
+msgid "Extract from %module_name module, in directory %dir_name"
+msgstr "Извлечь из модуля %module_name, из директории %dir_name"
+
+#: potx.module:169
+msgid "Generates output from all files found in this directory."
+msgstr "Экспортировать строки из всех файлов из этой директории."
+
+#: potx.module:184
+msgid "Extract from all modules in directory \"@dir_name\""
+msgstr "Извлечь из всех модулей, из директории  \"@dir_name\""
+
+#: potx.module:185
+msgid "To extract from a single module in this directory, choose the module entry in the fieldset below."
+msgstr "Для извлечения из произвольного модуля из этой директории, выберите модуль из группы ниже."
+
+#: potx.module:194
+msgid "Modules in \"@dir_name\""
+msgstr "Модули из \"@dir_name\""
+
+#: potx.module:214
+msgid "Extract from module %module_name"
+msgstr "Извлечь из модуля %module_name"
+
+#: potx.module:215
+msgid "Extract from files named %module_pattern, in directory %module_dir."
+msgstr "Извлечь из файлов  named %module_pattern, из директории %module_dir."
+
+#: potx.module:0
+#: potx.info:0
+msgid "potx"
+msgstr "potx"
+
+#: potx.info:0
+msgid "POT extractor"
+msgstr "POT extractor"
+
+#: potx.info:0
+msgid "Provides a web interface to extract Gettext templates from the sources of installed modules."
+msgstr "Предоставляет веб интерфейс для извлечения шаблонов Gettext из исходных текстов установленных модулей."
+

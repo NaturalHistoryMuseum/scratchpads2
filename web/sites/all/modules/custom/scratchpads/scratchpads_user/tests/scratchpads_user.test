@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads User tests.
+* Tests components on a "FULL" Scratchpad.
+*/
+class ScratchpadsUserTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads User',
+      'description' => "Test the creation of users and 'non users' with simpletests",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+  }
+
+  function testUsers(){
+    $this->drupalLogin($this->maintainer);
+    $this->verifyCreateNoLoginUser();
+    $this->verifyCreateLoginUser();
+  }
+
+  /** 
+   * Test for no-login users
+   * 
+   * - Create a non-login user via the create user form. 
+   * - Test that a user is created.
+   * - Test that the non-login user shows up on the people page.
+   * - Test that the username is set.
+   * - Test that the user can be edited
+   */
+  public function verifyCreateNoLoginUser(){
+    $this->drupalGet('admin/people/create');
+    $this->assertText('Allow user login?', 'Create user page accessible by maintainer');
+    $edit = array();
+    $given_name = $this->randomName();
+    $family_name = $this->randomName();
+    $edit['field_user_given_names[und][0][value]'] = $given_name;
+    $edit['field_user_family_name[und][0][value]'] = $family_name;
+    $edit['create_user_account'] = FALSE;
+    $this->drupalPost(NULL, $edit, t('Create new account'));
+    $this->assertRaw('Created a new profile', 'Success page shown.');
+    $this->assertText('No user account was created so this person will not be able to log into the website!', 'No login message shown');
+    // Test that this user shows up on the people page
+    $this->drupalGet('admin/people');
+    $this->assertText($given_name, 'Given name shown on people page');
+    $this->assertText($family_name, 'Family name shown on people page');
+    // Test that the username has been set to given_name + family_name
+    $no_login_user = user_load_by_name($given_name . ' ' . $family_name);
+    $this->assertTrue($no_login_user, 'Username successfully set');
+    // Test that the user can be edited
+    $this->drupalGet('user/' . $no_login_user->uid . '/edit');
+    $this->assertRaw('user-profile-form', 'User edit form for non login user accessible to maintainer');
+    $edit2['field_user_given_names[und][0][value]'] = $given_name . 'changed';
+    $edit2['field_user_family_name[und][0][value]'] = $family_name . 'changed';
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertRaw('The changes have been saved.', 'Edit success page shown');
+    $this->assertText($given_name . 'changed' . ' ' . $family_name . 'changed', 'No login user successfully edited by maintainer');
+  }
+
+  /**
+   * Test for login users
+   *
+   * - Create a login user via the create user form.
+   * - Test that a user is created.
+   * - Test that the user shows up on the people page.
+   * - Test that the username is set.
+   * - Test that the user can be edited
+   */
+  public function verifyCreateLoginUser(){
+    $this->drupalGet('admin/people/create');
+    $this->assertText('Allow user login?', 'Create user page accessible by maintainer');
+    $edit = array();
+    $given_name = $this->randomName();
+    $family_name = $this->randomName();
+    $user_name = $this->randomName();
+    $mail = $this->randomName() . '@gmail.com';
+    $pass = $this->randomName();
+    $country = 'FR';
+    $edit['create_user_account'] = TRUE;
+    $edit['field_user_given_names[und][0][value]'] = $given_name;
+    $edit['field_user_family_name[und][0][value]'] = $family_name;
+    $edit['name'] = $user_name;
+    $edit['mail'] = $mail;
+    $edit['pass[pass1]'] = $pass;
+    $edit['pass[pass2]'] = $pass;
+    $edit['field_user_country[und]'] = $country;
+    $this->drupalPost(NULL, $edit, t('Create new account'));
+    $this->assertRaw('Created a new user account', 'Success page shown.');
+    $this->assertNoText('No user account was created so this person will not be able to log into the website!', 'No login message not shown');
+    // Test that this user shows up on the people page
+    $this->drupalGet('admin/people');
+    $this->assertText($user_name, 'Username shown on people page');
+    $this->assertText($given_name, 'Given name shown on people page');
+    $this->assertText($family_name, 'Family name shown on people page');
+    // Test that the user can be edited
+    $login_user = user_load_by_name($user_name);
+    $this->drupalGet('user/' . $login_user->uid . '/edit');
+    $this->assertRaw('user-profile-form', 'User edit form for login user accessible to maintainer');
+    $edit2['field_user_family_name[und][0][value]'] = $family_name . 'changed';
+    $this->drupalPost(NULL, $edit2, t('Save'));
+    $this->assertRaw('The changes have been saved.', 'Edit success page shown');
+    $this->assertText($family_name . 'changed', 'User successfully edited by maintainer');
+  }
+}

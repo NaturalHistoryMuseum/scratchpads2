@@ -1,0 +1,516 @@
+<?php
+require_once ('publication_html_format.features.inc');
+
+/**
+ * Implement hook_entity_view_alter
+ *
+ */
+function publication_html_format_entity_view_alter(&$build, $type){
+  if($type != 'publication'){return;}
+  // We need the full build array now, in order to match all references/figures/tables.
+  $modules = module_implements('publication_prepare_build');
+  foreach($modules as $module){
+    $function = $module . '_publication_prepare_build';
+    if(function_exists($function)){
+      $function($build);
+    }
+  }
+  // Change the citations and get the order of the tables & figures. Make sure
+  // we do this following the group order.
+  $process = new PublicationHtmlFormatChangeCitations();
+  $ordered_groups = $build['#groups'];
+  usort($ordered_groups, function ($a, $b){
+    if($a->weight == $b->weight){return 0;}
+    return ($a->weight < $b->weight) ? -1 : 1;
+  });
+  foreach($ordered_groups as $group){
+    $process->process($build, $group->children);
+  }
+  // Re-order the tables
+  $max_table_count = count($process->table_ids) + 1;
+  foreach(element_children($build['field_publication_tables']) as $key){
+    $table = & $build['field_publication_tables'][$key];
+    if(!isset($build['field_publication_tables']['#items'][$key]['value'])){
+      continue;
+    }
+    $item = $build['field_publication_tables']['#items'][$key]['value'];
+    $current_id = $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#items'][0]['value'];
+    $pos = array_search($current_id, $process->table_ids);
+    if($pos === FALSE){
+      $number = $max_table_count++;
+    }else{
+      $number = $pos + 1;
+    }
+    $build['field_publication_tables'][$key]['#weight'] = $number;
+    $build['field_publication_tables'][$key]['#prefix'] = '<strong>' . t('Table') . ' ' . $number . '</strong>';
+    $table['entity']['field_collection_item'][$item]['field_publication_table_id']['#printed'] = TRUE;
+  }
+  // Re-order the figures
+  $max_figure_count = count($process->figure_ids) + 1;
+  foreach(element_children($build['field_publication_figures']) as $key){
+    $figure = & $build['field_publication_figures'][$key];
+    if(!isset($build['field_publication_figures']['#items'][$key]['value'])){
+      continue;
+    }
+    $item = $build['field_publication_figures']['#items'][$key]['value'];
+    $current_id = $figure['entity']['field_collection_item'][$item]['field_publication_figure_figure']['#items'][0]['fid'];
+    $pos = array_search($current_id, $process->figure_ids);
+    if($pos === FALSE){
+      $number = $max_figure_count++;
+    }else{
+      $number = $pos + 1;
+    }
+    $build['field_publication_figures'][$key]['#weight'] = $number;
+    $build['field_publication_figures'][$key]['#prefix'] = '<strong>' . t('Figure') . ' ' . $number . '</strong>';
+  }
+  // Re-order the references by first author name
+  $order = array();
+  foreach(element_children($build['field_publication_references']) as $key){
+    if(empty($build['field_publication_references']['#items'][$key]['nid'])){
+      continue;
+    }
+    $nid = $build['field_publication_references']['#items'][$key]['nid'];
+    $node = node_load($nid);
+    if(!empty($node->biblio_contributors)){
+      $contributor = reset($node->biblio_contributors);
+      $order[$key] = strtolower($contributor['lastname']);
+    }else{
+      $order[$key] = '';
+    }
+  }
+  asort($order);
+  $weight = 0;
+  foreach($order as $key => $name){
+    $build['field_publication_references'][$key]['#weight'] = $weight;
+    $weight++;
+  }
+}
+
+/**
+ * Class PublicationHtmlFormatChangeCitations
+ *
+ * This class is used to parse data and rename citations (table/figure) such that
+ * they are in the order they were found. It also changes [bib] tags into reference
+ * citations.
+ *
+ * At the end of the process, $table_ids and $figure_ids provide the table and figure ids
+ * in the order they were found.
+ *
+ * This class can be used as is, and also provides functionality for recursively applying
+ * the renaming process to the #markup elements of a render array.
+ */
+class PublicationHtmlFormatChangeCitations{
+
+  var $table_ids = array();
+
+  var $figure_ids = array();
+
+  /**
+   * The main process function
+  */
+  function process(&$build, $limit_to_fields = array(), $apply = FALSE){
+    if(isset($build['#markup']) && $apply){
+      $build['#markup'] = preg_replace_callback('/(<tbls-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/tbls-citation>)/', array(
+        $this,
+        '_replace_table_citation'
+      ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(<fig-citation.*?citation_id=["\'](.*?)["\'].*?>).*?(<\/fig-citation>)/', array(
+        $this,
+        '_replace_figure_citation'
+      ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(<reference-citation.*?citation_id=["\'](.*?)["\'].*?>)(.*?)(<\/reference-citation>)/', array(
+        $this,
+        '_replace_reference_citation'
+      ), $build['#markup']);
+      $build['#markup'] = preg_replace_callback('/(\[bib\]\s*(\d+)\s*\[\/bib\])/', array(
+        $this,
+        '_replace_reference_citation'
+      ), $build['#markup']);
+    }
+    // Recurse
+    foreach(element_children($build, TRUE) as $key){
+      $apply_child = $apply || empty($limit_to_fields) || in_array($key, $limit_to_fields, TRUE);
+      $this->process($build[$key], $limit_to_fields, $apply_child);
+    }
+  }
+
+  /**
+   * preg_replace callback function for replacing table citations
+   */
+  function _replace_table_citation($matches){
+    $id = $matches[2];
+    $pos = array_search($id, $this->table_ids);
+    if($pos !== FALSE){
+      $table_number = $pos + 1;
+    }else{
+      $this->table_ids[] = $id;
+      $table_number = count($this->table_ids);
+    }
+    $out = '<tbls-citation citation_id="' . $id . '" contenteditable="false">' . t('Table') . ' ' . $table_number . '</tbls-citation>';
+    return $out;
+  }
+
+  /**
+   * preg_replace callback function for replacing figure citations
+   */
+  function _replace_figure_citation($matches){
+    $id = $matches[2];
+    $pos = array_search($id, $this->figure_ids);
+    if($pos !== FALSE){
+      $figure_number = $pos + 1;
+    }else{
+      $this->figure_ids[] = $id;
+      $figure_number = count($this->figure_ids);
+    }
+    $out = '<fig-citation citation_id="' . $id . '" contenteditable="false">' . t('Figure') . ' ' . $figure_number . '</fig-citation>';
+    return $out;
+  }
+
+  /**
+   * preg_replace callback function for replacing reference citations
+   */
+  function _replace_reference_citation($matches){
+    $nid = $matches[2];
+    if(preg_match('/^\[bib\]/', $matches[1])){
+      $node = node_load($nid);
+      $all_authors = array();
+      foreach($node->biblio_contributors as $contributor){
+        $all_authors[] = $contributor['lastname'];
+      }
+      if(count($all_authors) > 2){
+        $authors = $all_authors[0] . ' et al.';
+      }else{
+        $authors = implode(' and ', $all_authors);
+      }
+      $year = $node->biblio_year;
+      return '<reference-citation citation_id="' . $nid . '" contenteditable="false">' . "$authors $year</reference-citation>";
+    }else{
+      return '<reference-citation citation_id="' . $nid . '" contenteditable="false">' . $matches[3] . "</reference-citation>";
+    }
+  }
+}
+
+/**
+ * Implement hook_element_info_alter
+ *
+ * Add our own processing function for filter format selector
+ */
+function publication_html_format_element_info_alter(&$type){
+  $location = array_search('filter_process_format', $type['text_format']['#process']);
+  $replacement = array(
+    'filter_process_format',
+    '_publication_html_format_filter_process_format'
+  );
+  array_splice($type['text_format']['#process'], $location, 1, $replacement);
+}
+
+/**
+ * Modify the filter format selector to ensure we are only enabled on publication
+ * types
+ */
+function _publication_html_format_filter_process_format($element){
+  $entity_types = array(
+    'publication' => TRUE,
+    'field_collection_item' => array(
+      'field_publication_figures',
+      'field_publication_tables'
+    )
+  );
+  $type_match = FALSE;
+  if(!empty($element['#entity_type']) && !empty($element['#bundle'])){
+    $type = $element['#entity_type'];
+    $bundle = $element['#bundle'];
+    $type_match = isset($entity_types[$type]) && ($entity_types[$type] === TRUE || in_array($bundle, $entity_types[$type]));
+  }
+  if(!$type_match){
+    unset($element['format']['format']['#options']['publication_html']);
+  }else{
+    list($eid, $vid, $bundle) = entity_extract_ids($element['#entity_type'], $element['#entity']);
+    // Only set a default on new entities and empty fields
+    if((empty($eid) || empty($element['value']['#default_value'])) && isset($element['format']['format']['#options']['publication_html'])){
+      $element['format']['format']['#default_value'] = 'publication_html';
+    }
+  }
+  return $element;
+}
+
+/**
+ * Implement hook_scratchpads_default_permissions
+ *
+ */
+function publication_html_format_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'use text format publication_html',
+      'use insert from view pensoft_publication_references',
+      'use insert from view pensoft_publication_figures',
+      'use insert from view pensoft_publication_specimens'
+    )
+  );
+}
+
+/**
+ * Implement hook_theme to override view template. This is used by the view
+ * used to create the specimen tables.
+ */
+function publication_html_format_theme($existing, $type, $theme, $path){
+  $themes['views_view_table__publication_create_specimens'] = array(
+    'path' => drupal_get_path('module', 'publication_html_format'),
+    'template' => 'views-view-table--publication_create_specimens',
+    'base hook' => 'views_view_table',
+    'preprocess functions' => array(
+      'template_preprocess',
+      'template_preprocess_views_view_table'
+    )
+  );
+  return $themes;
+}
+
+/**
+ * Implement hook_entity_insert/update
+ * - Add the references and figures that were inserted via insert_from_view
+ * - Ensure tables without a title and body are removed (as id is auto-generated)
+ */
+function publication_html_format_entity_insert($entity, $type){
+  _publication_html_format_entity_upsert($entity, $type);
+}
+
+function publication_html_format_entity_update($entity, $type){
+  _publication_html_format_entity_upsert($entity, $type);
+}
+
+function _publication_html_format_entity_upsert($entity, $type){
+  if($type != 'publication'){return;}
+  if(!empty($entity->publication_html_format_processed)){return;}
+  // We might need to re-save the entity. Even though it's already been saved, it might still
+  // be marked as new - so ensure it isn't.
+  $need_saving = FALSE;
+  $was_new = !empty($entity->is_new);
+  $entity->is_new = FALSE;
+  $entity->publication_html_format_processed = TRUE;
+  // Add references
+  $references_to_add = array();
+  // References added via insert_from_view
+  if(!empty($entity->pensoft_add_multiple_references)){
+    $references_to_add = explode(',', $entity->pensoft_add_multiple_references);
+  }
+  // References found by other modules
+  $references_to_add = array_merge($references_to_add, module_invoke_all('publication_parse_references', $entity));
+  if(!empty($references_to_add)){
+    $existing_references = array();
+    $lang = field_language('publication', $entity, 'field_publication_references');
+    foreach($entity->field_publication_references[$lang] as $key => $value){
+      $existing_references[] = $value['nid'];
+    }
+    $references_to_add = array_unique(array_diff($references_to_add, $existing_references));
+    foreach($references_to_add as $nid){
+      if(!empty($nid)){
+        $entity->field_publication_references[$lang][] = array(
+          'nid' => $nid
+        );
+      }
+    }
+    $need_saving = TRUE;
+    $entity->pensoft_add_multiple_references = array();
+  }
+  // Add figures
+  if(!empty($entity->pensoft_add_multiple_figures)){
+    $figures_to_add = explode(',', $entity->pensoft_add_multiple_figures);
+    $existing_figures = array();
+    $lang = field_language('publication', $entity, 'field_publication_figures');
+    foreach($entity->field_publication_figures[$lang] as $key => $value){
+      $figure_collection_item = reset(entity_load('field_collection_item', array(
+        $value['value']
+      )));
+      $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_figure');
+      $fid = $figure_collection_item->field_publication_figure_figure[$lang][0]['fid'];
+      $existing_figures[] = $fid;
+    }
+    $figures_to_add = array_unique(array_diff($figures_to_add, $existing_figures));
+    $entity->pensoft_add_multiple_figures = array();
+    foreach($figures_to_add as $fid){
+      if(!empty($fid)){
+        $file = file_load($fid);
+        $figure_collection_item = entity_create('field_collection_item', array(
+          'field_name' => 'field_publication_figures'
+        ));
+        $file_lang = field_language('file', $file, 'field_description');
+        $figure_collection_item->setHostEntity('publication', $entity);
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_title');
+        $figure_collection_item->field_publication_figure_title[$lang][0]['value'] = $file->title;
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_desc');
+        $figure_collection_item->field_publication_figure_desc[$lang][0]['value'] = !empty($file->field_description[$file_lang][0]['value']) ? $file->field_description[$file_lang][0]['value'] : '';
+        $lang = field_language('field_collection_item', $figure_collection_item, 'field_publication_figure_figure');
+        $figure_collection_item->field_publication_figure_figure[$lang][0]['fid'] = $fid;
+        // Beware, as calling this could cause recursion.
+        $figure_collection_item->save();
+        $need_saving = FALSE;
+      }
+    }
+  }
+  // Remove tables
+  $lang = field_language('publication', $entity, 'field_publication_tables');
+  foreach($entity->field_publication_tables[$lang] as $key => $value){
+    $table_collection_item = reset(entity_load('field_collection_item', array(
+      $value['value']
+    )));
+    if($table_collection_item && empty($table_collection_item->field_publication_table) && empty($table_collection_item->field_publication_table_title)){
+      $table_collection_item->delete();
+      $need_saving = FALSE;
+    }
+  }
+  if($need_saving){
+    $entity->save();
+  }
+  $entity->is_new = $was_new;
+}
+
+/**
+ * Implement hook_ckeditor_plugin
+ */
+function publication_html_format_ckeditor_plugin(){
+  $items = array();
+  $items['pensoft_publication_insert_table'] = array(
+    'name' => 'pensoft_publication_insert_table',
+    'desc' => t('This plugin allows to insert references to tables in the entitie\'s field_publication_table field'),
+    'path' => drupal_get_path('module', 'publication_html_format') . '/plugins/insert_table/',
+    'buttons' => array(
+      'pensoft_publication_insert_table' => array(
+        'icon' => '../../images/tables.png',
+        'label' => 'Insert reference to tables'
+      )
+    )
+  );
+  $items['pensoft_publication_reference_editor'] = array(
+    'name' => 'pensoft_publication_reference_editor',
+    'desc' => t('This plugin allows editing the text of references'),
+    'path' => drupal_get_path('module', 'publication_html_format') . '/plugins/reference_editor/'
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_form_publication_edit_form_alter
+ *
+ * - Add hidden fields for the automatic addition of references/figures that have
+ *   been inserted using the insert_from_view module ;
+ *
+ */
+function publication_html_format_form_publication_edit_form_alter(&$form, &$form_state, $form_id){
+  // Attach resources
+  $form['#attached']['js'][] = drupal_get_path('module', 'publication_html_format') . '/js/publication_html_format.js';
+  // Handle automatic adding of references
+  $entity = $form['#entity'];
+  $references_map = array();
+  $lang = field_language('publication', $entity, 'field_publication_references');
+  if(isset($entity->field_publication_references[$lang])){
+    foreach($entity->field_publication_references[$lang] as $ref_key => $ref){
+      if(!empty($ref['nid'])){
+        $references_map[$ref['nid']] = true;
+      }
+    }
+  }
+  $form['pensoft_add_multiple_references'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($form_state['values']['pensoft_add_multiple_references']) ? $form_state['values']['pensoft_add_multiple_references'] : '',
+    '#prefix' => '<div class="pensoft_add_multiple_references">',
+    '#suffix' => '</div>'
+  );
+  // Handle automatic adding of figures
+  $figures_map = array();
+  $lang = field_language('publication', $entity, 'field_publication_figures');
+  if(!empty($form['field_publication_figures'][$lang])){
+    foreach(element_children($form['field_publication_figures'][$lang]) as $fig_child){
+      if(isset($form['field_publication_figures'][$lang][$fig_child]['#entity'])){
+        $entity = $form['field_publication_figures'][$lang][$fig_child]['#entity'];
+        if(!empty($entity->is_new)){
+          continue;
+        }
+        $lang2 = field_language('field_collection_item', $entity, 'field_publication_figure_figure');
+        $fid = $entity->field_publication_figure_figure[$lang2][0]['fid'];
+        $figures_map[$fid] = $fid;
+      }
+    }
+  }
+  $form['pensoft_add_multiple_figures'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($form_state['values']['pensoft_add_multiple_figures']) ? $form_state['values']['pensoft_add_multiple_figures'] : '',
+    '#prefix' => '<div class="pensoft_add_multiple_figures">',
+    '#suffix' => '</div>'
+  );
+  // Handle automatic adding of tables
+  $entity = $form['#entity'];
+  $tables_map = array();
+  $table_key = 1;
+  $table_ids_to_assign = array();
+  $lang = field_language('publication', $entity, 'field_publication_tables');
+  foreach(element_children($form['field_publication_tables'][$lang]) as $elem_key){
+    if($elem_key === 'add_more'){
+      continue;
+    }
+    $collection = & $form['field_publication_tables'][$lang][$elem_key];
+    // FIXME - These need updating.  What entity is a collection (I'm guessing relation).
+    $lang = field_language('field_collection_item', $collection['#entity'], 'field_publication_table_id');
+    if(!empty($collection['field_publication_table_id'][$lang][0]['value']['#default_value'])){
+      $table_id_value = $collection['field_publication_table_id'][$lang][0]['value']['#default_value'];
+      if($table_id_value >= $table_key){
+        $table_key = $table_id_value + 1;
+      }
+      $form['field_publication_tables'][$lang][$elem_key]['#prefix'] = '<p>Table id: ' . $table_id_value . '</p>';
+      $collection['field_publication_table_id'][$lang][0]['value']['#type'] = 'hidden';
+    }else{
+      $table_ids_to_assign[] = $elem_key;
+    }
+  }
+  foreach($table_ids_to_assign as $elem_key){
+    $collection = & $form['field_publication_tables'][$lang][$elem_key];
+    $collection['field_publication_table_id'][$lang][0]['value']['#default_value'] = $table_key;
+    $collection['field_publication_table_id'][$lang][0]['value']['#type'] = 'hidden';
+    $form['field_publication_tables'][$lang][$elem_key]['#prefix'] = '<p>Table id: ' . $table_key . '</p>';
+    $table_key++;
+  }
+  // JS settings
+  $form['#attached']['js'][] = array(
+    'data' => array(
+      'pensoft' => array(
+        'figures_map' => $figures_map,
+        'references_map' => $references_map,
+        'table_key' => $table_key,
+        'editor_table_icon' => drupal_get_path('module', 'publication_html_format') . '/images/tables.png',
+        'editor_table_width' => '75%',
+        'editor_table_height' => '75%',
+        'editor_reference_editor_icon' => drupal_get_path('module', 'publication_html_format') . '/images/references.png',
+        'editor_css' => url(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format_editor.css'),
+        'editor_table_header' => '<div class="publication_html_format_header">' . '<h1>' . t('Select table citation(s) to insert') . '</h1>' . '<p>' . t('The table citation will be inserted as <strong>"Table [id:<em>id-of-the-table</em>]"</strong>.' . 'Once the publication is saved, the tables will be ordered by order of appeareance, and the citations will ' . 'be renamed accordingly as <strong>"Table <em>table-number</em>"</strong>.') . '</p>' . '</div>'
+      )
+    ),
+    'type' => 'setting'
+  );
+  // Add our CSS
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensure that the 'filter' component of the feature is included before
+ * the 'ckeditor' component.
+ *
+ */
+function publication_html_format_module_implements_alter(&$implementations, $hook){
+  if($hook == 'features_api' && isset($implementations['ckeditor'])){
+    $setting = $implementations['ckeditor'];
+    unset($implementations['ckeditor']);
+    $implementations['ckeditor'] = $setting;
+  }
+}
+
+/**
+ * Implement hook_insert_from_view_view_alter
+ *
+ * Add our CSS
+ */
+function publication_html_format_insert_from_view_view_alter(&$view){
+  drupal_add_css(drupal_get_path('module', 'publication_html_format') . '/css/publication_html_format.css');
+}
+

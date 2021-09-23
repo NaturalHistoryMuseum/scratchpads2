@@ -1,0 +1,361 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_solr_form_node_type_form_alter(&$form, &$form_state, $form_id){
+  // Add an additional submit function to the form, so that we can react to any
+  // changes to the content type.
+  $form['#submit'][] = 'scratchpads_solr_node_type_form_submit';
+}
+
+/**
+ * Submit function for the node_type_form.
+ */
+function scratchpads_solr_node_type_form_submit($form, $form_state){
+  if(isset($form_state['values']['page_display_type']) && $form_state['values']['page_display_type'] == 'solr'){
+    if(!in_array($form_state['values']['type'], array(
+      'biblio',
+      'group',
+      'media_gallery'
+    ))){
+      // We create a search page for this content type.
+      $fields = array(
+        'page_id' => 'content_type_' . $form_state['values']['type'] . '_search',
+        'label' => t('@content_label Search', array(
+          '@content_label' => $form_state['values']['name']
+        )),
+        'description' => t('Content type search for @content_label', array(
+          '@content_label' => $form_state['values']['name']
+        )),
+        'search_path' => $form_state['values']['type'],
+        'env_id' => 'solr',
+        'page_title' => $form_state['values']['name'],
+        'settings' => serialize(array(
+          'fq' => array(
+            'bundle:' . $form_state['values']['type']
+          ),
+          'apachesolr_search_custom_enable' => 1,
+          'apachesolr_search_search_type' => 'custom',
+          'apachesolr_search_search_box' => 1,
+          'apachesolr_search_per_page' => '50',
+          'apachesolr_search_browse' => 'browse',
+          'apachesolr_search_spellcheck' => 1
+        ))
+      );
+      try{
+        db_insert('apachesolr_search_page')->fields($fields)->execute();
+      }
+      catch(Exception $e){
+        ; // Do nothing, most likely a result of the entry in the DB already 
+        // existing.
+      }
+    }
+  }else{
+    scratchpads_solr_node_type_delete(array(
+      'type' => $form_state['values']['type']
+    ));
+  }
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings()
+ */
+function scratchpads_solr_facetapi_default_facet_settings(){
+  $facets = array();
+  $facet = new stdClass();
+  $facet->disabled = FALSE;
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr:block:bundle';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = 'block';
+  $facet->facet = 'bundle';
+  $facet->enabled = TRUE;
+  $facet->settings = array(
+    'weight' => 0,
+    'widget' => 'facetapi_links',
+    'filters' => array(),
+    'active_sorts' => array(
+      'active' => 'active',
+      'count' => 'count',
+      'display' => 'display'
+    ),
+    'sort_weight' => array(
+      'active' => -50,
+      'display' => -49,
+      'count' => -48
+    ),
+    'sort_order' => array(
+      'active' => 3,
+      'count' => 3,
+      'display' => 4
+    ),
+    'empty_behavior' => 'none',
+    'soft_limit' => 20,
+    'nofollow' => 1,
+    'show_expanded' => 0
+  );
+  $facets['bundle'] = $facet;
+  $facet = new stdClass();
+  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr::bundle';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = '';
+  $facet->facet = 'bundle';
+  $facet->enabled = FALSE;
+  $facet->settings = array(
+    'operator' => 'and',
+    'hard_limit' => '200',
+    'dependencies' => array(),
+    'facet_mincount' => 1,
+    'facet_missing' => 0,
+    'flatten' => 0,
+    'query_type' => 'term'
+  );
+  $facets['bundle_global'] = $facet;
+  $facet = new stdClass();
+  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr:block:author';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = 'block';
+  $facet->facet = 'author';
+  $facet->enabled = TRUE;
+  $facet->settings = array(
+    'weight' => 0,
+    'widget' => 'facetapi_links',
+    'filters' => array(),
+    'active_sorts' => array(
+      'active' => 'active',
+      'count' => 'count',
+      'display' => 'display'
+    ),
+    'sort_weight' => array(
+      'active' => -50,
+      'display' => -49,
+      'count' => -48
+    ),
+    'sort_order' => array(
+      'active' => 3,
+      'count' => 3,
+      'display' => 4
+    ),
+    'empty_behavior' => 'text',
+    'empty_text' => array(
+      'value' => 'There are no facets available to filter on.',
+      'format' => 'filtered_html'
+    ),
+    'soft_limit' => 20,
+    'show_expanded' => 0
+  );
+  $facets['author'] = $facet;
+  $facet = new stdClass();
+  $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+  $facet->api_version = 1;
+  $facet->name = 'apachesolr@solr::author';
+  $facet->searcher = 'apachesolr@solr';
+  $facet->realm = '';
+  $facet->facet = 'author';
+  $facet->enabled = FALSE;
+  $facet->settings = array(
+    'operator' => 'and',
+    'hard_limit' => '200',
+    'dependencies' => array(),
+    'facet_mincount' => 1,
+    'facet_missing' => 0,
+    'flatten' => 0,
+    'query_type' => 'term'
+  );
+  $facets['author_global'] = $facet;
+  return $facets;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_solr_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_solr_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'scratchpads_solr_facets';
+  $context->description = t('Display author and bundle facets on a search page.');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'search*' => 'search*',
+        'group*' => 'group*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_solr_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['scratchpads_solr_facets'] = $context;
+  return $export;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_solr_cron(){
+  // Ensure various bundles are being searched.
+  $entity_info = entity_get_info('node');
+  $env_id = apachesolr_default_environment();
+  foreach($entity_info['bundles'] as $key => $value){
+    try{
+      db_insert('apachesolr_index_bundles')->fields(array(
+        'env_id' => $env_id,
+        'entity_type' => 'node',
+        'bundle' => $key
+      ))->execute();
+    }
+    catch(Exception $e){
+      ; // Ignore.  Probably just a duplicate in the table.
+    }
+  }
+  foreach(variable_get('biological_vids', array()) as $vid => $type){
+    if($type){
+      // We have a biological classification. We need to insert a record in the
+      // database.
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      try{
+        db_insert('apachesolr_index_bundles')->fields(array(
+          'env_id' => $env_id,
+          'entity_type' => 'taxonomy_term',
+          'bundle' => $vocabulary->machine_name
+        ))->execute();
+      }
+      catch(Exception $e){
+        ; // Ignore.  Probably just a duplicate in the table.
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_solr_theme(){
+  return array(
+    'scratchpads_solr_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_solr.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_page_alter().
+ */
+function scratchpads_solr_page_alter(&$page){
+  // FIXME - Here we should add the empty results themes (if they're required).
+  if(@isset($page['content']['system_main']['search_results']['#theme'])){
+    $page['content']['system_main']['search_results']['#theme'] = 'scratchpads_solr_search';
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter(&$theme_registry)
+ */
+function scratchpads_solr_theme_registry_alter(&$theme_registry){
+  $theme_registry['apachesolr_search_noresults_original'] = $theme_registry['apachesolr_search_noresults'];
+  $theme_registry['apachesolr_search_noresults']['function'] = 'theme_scratchpads_solr_apachesolr_search_noresults';
+}
+
+/**
+ * Empty search results theme function.
+ */
+function theme_scratchpads_solr_apachesolr_search_noresults($variables){
+  $info = module_invoke_all('scratchpads_solr_info');
+  drupal_alter('scratchpads_solr_info', $info);
+  if(isset($info[arg(0)]) && isset($info[arg(0)]['empty'])){
+    return theme($info[arg(0)]['empty']);
+  }else{
+    return theme('apachesolr_search_noresults_original');
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_solr_menu_alter(&$items){
+  $content_type_settings = variable_get('scratchpads_pages_display', array());
+  $node_types = node_type_get_types();
+  foreach($content_type_settings as $content_type => $type){
+    if($type == 'solr' && isset($node_types[$content_type]) && isset($items[$content_type])){
+      $items[$content_type]['menu_name'] = PRIMARY_MENU_NAME;
+      $items[$content_type]['weight'] = 1;
+      $items[$content_type]['type'] = MENU_NORMAL_ITEM;
+    }
+  }
+  // No, really, don't fucking touch the bias page.
+  $items['admin/config/search/apachesolr/settings/%apachesolr_environment/bias']['access callback'] = FALSE;
+}
+
+/**
+ * Implements hook_apachesolr_query_alter.
+ * 
+ * Allows us to make searches "AND" rather than "OR".
+ */
+function scratchpads_solr_apachesolr_query_alter($query){
+  $query->replaceParam('mm', '100%');
+}
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function scratchpads_solr_update_dependencies(){
+  return array(
+    'scratchpads_solr' => array(
+      '7005' => array(
+        'apachesolr' => 7017
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_node_type_delete().
+ */
+function scratchpads_solr_node_type_delete($info){
+  if(is_object($info) && isset($info->type)){
+    // Attempt to delete this content type from the apachesolr_search_page table.
+    db_delete('apachesolr_search_page')->condition('page_id', 'content_type_' . $info->type . '_search')->execute();
+    // Also stop indexing this bundle type.
+    db_delete('apachesolr_index_bundles')->condition('entity_type', 'node')->condition('bundle', $info->type)->execute();
+  }
+}

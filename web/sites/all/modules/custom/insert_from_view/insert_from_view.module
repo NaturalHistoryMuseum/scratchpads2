@@ -1,0 +1,278 @@
+<?php
+define("INSERT_FROM_VIEW_FIELD_ROW", '_insert_from_view_field_render_row');
+
+/**
+ * Implement hook_init
+ */
+function insert_from_view_init(){
+  // XXX we only need to do this if there is an editor on the page
+  $settings = variable_get('insert_from_view_settings', array());
+  $js_settings = array();
+  foreach($settings as $machine_name => $value){
+    if(!user_access("use insert from view $machine_name")){
+      continue;
+    }
+    $js_settings[] = array_merge(array(
+      'machine_name' => $machine_name
+    ), $value);
+  }
+  if(count($js_settings)){
+    drupal_add_js(array(
+      'insert_from_view' => array(
+        'init' => FALSE,
+        'settings' => $js_settings
+      )
+    ), 'setting');
+    drupal_add_css(drupal_get_path('module', 'insert_from_view') . '/css/insert_from_view.css');
+  }
+}
+
+/**
+ * Implement hook_menu
+ */
+function insert_from_view_menu(){
+  $items = array();
+  $items['admin/config/content/insert_from_view'] = array(
+    'type' => MENU_NORMAL_ITEM,
+    'title' => t('Setup Insert from View'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'insert_from_view_setup_form'
+    ),
+    'access arguments' => array(
+      'administer insert from view'
+    ),
+    'file' => 'insert_from_view.admin.inc'
+  );
+  $items['insert-from-view/%'] = array(
+    'page callback' => 'insert_from_view_view_callback',
+    'page arguments' => array(
+      1
+    ),
+    'access callback' => 'insert_from_view_access_callback',
+    'access arguments' => array(
+      1
+    ),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_admin_paths
+ */
+function insert_from_view_admin_paths(){
+  return array(
+    'insert-from-view/*' => TRUE
+  );
+}
+
+/**
+ * Implement hook_permission
+ */
+function insert_from_view_permission(){
+  $items = array(
+    'administer insert from view' => array(
+      'title' => t('Administer Insert from View')
+    )
+  );
+  $settings = variable_get('insert_from_view_settings', array());
+  foreach($settings as $machine_name => $value){
+    $items["use insert from view $machine_name"] = array(
+      'title' => t('Use insert from view @s', array(
+        '@s' => $value['name']
+      ))
+    );
+  }
+  return $items;
+}
+
+/**
+ * Access callback
+ */
+function insert_from_view_access_callback($machine_name){
+  return user_access("use insert from view $machine_name");
+}
+
+/**
+ * Implement hook_ckeditor_plugin
+ */
+function insert_from_view_ckeditor_plugin(){
+  $items = array();
+  $settings = variable_get('insert_from_view_settings', array());
+  $path = drupal_get_path('module', 'insert_from_view') . '/plugins/insert_from_view/';
+  $relative_path = preg_replace('/[^\/]+/', '..', $path);
+  foreach($settings as $machine_name => $value){
+    $id = "insert_from_view_$machine_name";
+    $items[$id] = array(
+      'name' => $id,
+      'desc' => t('This plugin allows the selection and insertion of items picked from the view @s', array(
+        '@s' => $value['view']
+      )),
+      'path' => $path,
+      'buttons' => array(
+        $id => array(
+          'icon' => $relative_path . $value['icon'],
+          'label' => $value['label']
+        )
+      )
+    );
+  }
+  return $items;
+}
+
+/**
+ * Implement hook_views_api
+ */
+function insert_from_view_views_api(){
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'insert_from_view') . '/views'
+  );
+}
+
+/**
+ * Call back function used to generate the required view
+ * 
+ */
+function insert_from_view_view_callback($machine_name){
+  $settings = variable_get('insert_from_view_settings', array());
+  if(isset($settings[$machine_name])){
+    $index = 2;
+    $arguments = array();
+    while(arg($index) !== NULL){
+      $arguments[] = arg($index);
+      $index++;
+    }
+    $view = views_get_view($settings[$machine_name]['view'], TRUE);
+    if(!$view || !$view->access($settings[$machine_name]['display'])){return;}
+    $view->override_path = $_GET['q'];
+    $view->set_display($settings[$machine_name]['display']);
+    $view->build($settings[$machine_name]['display']);
+    $style = $view->style_plugin;
+    $style->options['row_class'] .= ' insert_from_view_row';
+    // Allow other modules to modify the view
+    drupal_alter('insert_from_view_view', $view);
+    $html = $view->preview($settings[$machine_name]['display'], $arguments);
+    $field = $settings[$machine_name]['field'];
+    $insert_array = array();
+    $uses_fields = (!empty($style->definition['uses fields']) || (!empty($style->definition['uses row plugin']) && !empty($style->row_plugin->definition['uses fields'])));
+    if($field != INSERT_FROM_VIEW_FIELD_ROW && $uses_fields){
+      foreach($view->style_plugin->rendered_fields as $row => $values){
+        $insert_array[$row] = $values[$field];
+      }
+    }else if($uses_fields){
+      // XXX there should be a function for this, as this should have wrappers.
+      foreach($view->style_plugin->rendered_fields as $row => $values){
+        $insert_array[$row] = implode($view->style_plugin->rendered_fields[$row]);
+      }
+    }else{
+      // XXX todo
+      $inserts_array[$row] = t('(not implemented)');
+      drupal_set_message("Insert from view with non-field views has not been implemented", 'error');
+    }
+    $commands[] = ajax_command_html('#insert-from-view-' . $machine_name, $html);
+    $commands[] = ajax_command_invoke(NULL, 'insert_from_view_setup_view', array(
+      $machine_name,
+      $insert_array
+    ));
+    $page = array(
+      '#type' => 'ajax',
+      '#commands' => $commands
+    );
+    ajax_deliver($page);
+  }else{
+    drupal_set_message("Unknown view insert instance", 'error');
+  }
+}
+
+/**
+ * API function to read existing instances of insert from view
+ */
+function insert_from_view_get_instances(){
+  return variable_get('insert_from_view_settings', array());
+}
+
+/**
+ * API function to allow other modules to add entries programatically.
+ * Returns the allocated machine name on succes, FALSE on failure.
+ * 
+ * $name: name of the insert_from_view instance
+ * $label: Label for the button
+ * $view: View to pick from
+ * $display: display to pick from
+ * $settings = array(
+ *   'field' => Field to insert when row is clicked. By default this would insert the whole row ;
+ *   'width' => Width of the colorbox. By default 75%
+ *   'height' => Height of the colorbox. By default 75%
+ *   'icon' => Icon to use for button. By default the one provided with insert_from_view,
+ *   'row_tag' => The HTML tag used to wrap around each inserted row (may be blank, defaults to span),
+ *   'wrap_tag' => The HTML tag used to wrap around groups of insert (may be blank, defaults to blank),
+ *   'machine_name' => Machine name to use. By default a new one is generated. If
+ *      the requested machine name contains illegal characters (a-zA-Z0-9_- accepted) or if it is already used, 
+ *      this returns false.
+ * )
+ * $clear_cache:   By default this call clears Drupal's bootstrap cache, as permissions need 
+ * to be added. Set $clear_ cache to FALSE to avoid this.
+ *
+ * The calling module may then want to
+ * set the permission to use this instance as 'use insert from view $machine_name'
+ * 
+ * This function returns TRUE, unless the 'machine_name' setting was specified and either contained illegal characters
+ * or no machine name was available.
+ * 
+ */
+function insert_from_view_new_instance($name, $label, $view, $display, $settings = array(), $clear_cache = TRUE){
+  $inserts = variable_get('insert_from_view_settings', array());
+  $settings = array_merge(array(
+    'field' => INSERT_FROM_VIEW_FIELD_ROW,
+    'width' => '75%',
+    'height' => '75%',
+    'icon' => drupal_get_path('module', 'insert_from_view') . '/plugins/insert_from_view/insert_from_view.png',
+    'row_tag' => 'span',
+    'wrap_tag' => ''
+  ), $settings);
+  // Validation
+  if(empty($name) || empty($label) || empty($display)){return FALSE;}
+  if(isset($settings['machine_name'])){
+    if(!preg_match('/^[a-zA-Z0-9-_]+$/', $settings['machine_name']) || isset($inserts[$settings['machine_name']])){return FALSE;}
+    $machine_name = $settings['machine_name'];
+  }else{
+    $machine_name = md5(time() + rand());
+    while(isset($inserts[$machine_name])){
+      $machine_name = md5(time() + rand());
+    }
+  }
+  $inserts[$machine_name] = array(
+    'name' => $name,
+    'label' => $label,
+    'view' => $view,
+    'display' => $display,
+    'field' => $settings['field'],
+    'width' => $settings['width'],
+    'height' => $settings['height'],
+    'icon' => $settings['icon'],
+    'row_tag' => $settings['row_tag'],
+    'wrap_tag' => $settings['wrap_tag']
+  );
+  variable_set('insert_from_view_settings', $inserts);
+  if($clear_cache){
+    cache_clear_all('*', 'cache_bootstrap');
+  }
+  return $machine_name;
+}
+
+/**
+ * API function to delete an instance by machine name. By default this clears
+ * Drupal's bootstrap cache, as permissions need to be removed.
+ * Set $clear_ cache to FALSE to avoid this.
+ * 
+ */
+function insert_from_view_delete_instance($machine_name, $clear_cache = TRUE){
+  $inserts = variable_get('insert_from_view_settings', array());
+  unset($inserts[$machine_name]);
+  variable_set('insert_from_view_settings', $inserts);
+  if($clear_cache){
+    cache_clear_all('*', 'cache_bootstrap');
+  }
+}

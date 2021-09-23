@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @file
+ * Definition of views_plugin_pager_none.
+ */
+
+/**
+ * Plugin for views without pagers.
+ *
+ * @ingroup views_pager_plugins
+ */
+class views_plugin_pager_none extends views_plugin_pager {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function init(&$view, &$display, $options = array()) {
+    parent::init($view, $display, $options);
+
+    // If the pager is set to none, then it should show all items.
+    $this->set_items_per_page(0);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function summary_title() {
+    if (!empty($this->options['offset'])) {
+      return t('All items, skip @skip', array('@skip' => $this->options['offset']));
+    }
+    return t('All items');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
+    $options = parent::option_definition();
+    $options['offset'] = array('default' => 0);
+
+    return $options;
+  }
+
+  /**
+   * Provide the default form for setting options.
+   */
+  public function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+    $form['offset'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Offset'),
+      '#description' => t('The number of items to skip. For example, if this field is 3, the first 3 items will be skipped and not displayed.'),
+      '#default_value' => $this->options['offset'],
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function use_pager() {
+    return FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function use_count_query() {
+    return FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function get_items_per_page() {
+    return 0;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function execute_count_query(&$count_query) {
+    // If we are displaying all items, never count. But we can update the count
+    // in post_execute.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function post_execute(&$result) {
+    $this->total_items = count($result);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function query() {
+    // The only query modifications we might do are offsets.
+    if (!empty($this->options['offset'])) {
+      $this->view->query->set_offset($this->options['offset']);
+    }
+  }
+
+}

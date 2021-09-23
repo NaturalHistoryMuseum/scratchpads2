@@ -1,0 +1,97 @@
+Linkit x.x-x.x, xxxx-xx-xx
+
+Linkit 7.x-2.4, 2012-05-04
+------------------------------
+- Fixed issue #1551276 Removed the maxlength attribute from the target path
+  field.
+- Added support for fields. #1462194
+- Added support for "insert pluings" on fields. #1462194
+- Fixed so install message isn't show in drupal itself is in install mode.
+
+Linkit 7.x-2.3, 2012-04-25
+------------------------------
+- Added feature #1511966: Autofocus in the search field.
+- Fixed issue #1508846: Token module support for terms does not handle the right
+  tokens.
+- Added entity module as a new dependency.
+- Fixed issue #1508148: Term autocompletion by bundle doesn't work.
+- Fixed issue #1508826: Warning: Invalid argument supplied for foreach() in
+  element_children().
+
+Linkit 7.x-2.2, 2012-03-28
+------------------------------
+- Removed whitespace from the user plugin.
+- Fixed miss spelled path.
+- Added a new way that plugins will be extended on.
+- Made the function description better for linkit_entity_info_alter().
+- Implemented hook_entity_info_alter to control which entities that works with
+  linkit.
+- Added a contructor method to the user plugin.
+- Fixed Issue #1423316: Theme key '_linkit_theme_profile_form_table' not found.
+- Fixed Issue #1459832: If there is no selection, add the result title as the
+  link text.
+- Fixed issue #1489980: Use term 'managed files' for file plugin.
+- Fixed Issue #1464178: Setting: Group by bundle seem to have no effect.
+- Added broken handler check.
+- Added handler broken class.
+- Fixed coding standards.
+- Fixed notice warning when plugins did not have a buildSettingsForm method.
+- Fixed error in update 7202.
+- Fixed error in the default buildDescription.
+- Change filename for the file where the default plugin interface and classes
+  are implemented.
+- Added some documentation about the new plugins.
+- Added update function for old plugin settings.
+- Fixed undefined index issue in entity plugin.
+- Fixed JS error when no profile was found in the modal.
+- Issue #1435946 - Deleted the defualt profile hook and added a message about
+  adding new profiles when Linkit is installed.
+- Added Linkit to the contextmenu in TinyMCE.
+- Issue #1417452: Linkit menu option in CKeditor Context Menu.
+- Added support for the token module.
+- Added description about tokens in the result description settings.
+- Added extract tokens function.
+- Fixed the fieldset state in the profile settings form.
+- Fixed method name issue.
+- Added class documentation.
+- Change searchString to search_string.
+- Added documentation for this class.
+- Use FILE_STATUS_PERMANENT instead of 1 in the query.
+- Removed the 'path auto callback' as this is not really needed.
+- Fixed file buildGroup and buildDescription.
+- Started working on the file plugin.
+- Deleted old plugin files.
+- Fixed issue with bundle filtering.
+- Fixed basic start for the new profile system.
+- New plugin system, basic support for entities, nodes, users, terms.
+- Beginning of generic entity support
+- Added EntityFieldQuery support for entities.
+- Issue #1412482: Fix the changelog for 7.x-2.x
+- Issue 1395506: Rows with unpublished nodes needs to have a visual difference
+  in the search results.
+- Issue #1395102: Page scrolls to top when user clicks Cancel button
+
+Linkit 7.x-2.1, 2012-01-05
+------------------------------
+- Issue #1394052 - Linkit causing other modules' attach behaviors to fail.
+
+Linkit 7.x-2.0, 2011-12-27
+------------------------------
+Some of the new features coming up in the 7.x-2.0 release.
+
+- Settings are now handled by profiles, similar to the profiles of the WYSIWYG
+  module. A profile contains settings and can be assigned to Drupal roles. Thus,
+  it is possible to customize the behavior of Linkit in detail. (This requires
+  ctools)
+- Since Drupal's own autocomplete was not enough, we developed our own Better
+  Autocomplete which provides a rich autocomplete experience. It is GPL and
+  bundled with Linkit 7.x-2.x.
+- Works without Pathologic, (However, Pathologic is recommended for portability
+  between environments and URL alias generation)
+- External links. If you paste an external URL, Linkit will check that the URL
+  is not broken. (Can be turned off)
+- Internal absolute URL:s converts automatically into drupal paths, very simple
+  for users who are used to copy-pasting.
+- No more popups, the Linkit dashboard is now handled with a dialog UI.
+- More settings, for even more flexible customization. One cool feature is
+  thumbnails and dimenstions next to images in the autocomplete results list.

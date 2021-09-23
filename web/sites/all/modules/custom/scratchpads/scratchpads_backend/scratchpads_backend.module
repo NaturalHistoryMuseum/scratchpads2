@@ -1,0 +1,316 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_backend_menu(){
+  $items = array();
+  $items['admin/config/content/comments'] = array(
+    'title' => t('Comment settings'),
+    'description' => t('Set the comment settings for each content type'),
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'administer comments'
+    ),
+    'page callback' => 'scratchpads_backend_comments_page',
+    'file' => 'scratchpads_backend.pages.inc'
+  );
+  $items['admin/config/content/biblio/style'] = array(
+    'title' => t('Style'),
+    'description' => t('Basic Biblio styles settings'),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'scratchpads biblio settings'
+    ),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'scratchpads_backend_biblio_settings_form'
+    ),
+    'file' => 'scratchpads_backend.biblio.inc'
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_help()
+ */
+function scratchpads_backend_help($path, $arg){
+  if(substr($path, 0, 24) == 'admin/content/slickgrid/'){return '<p>' . implode('</p><p>', array(
+      t('The grid editor is an Excel-like matrix editor for bulk updating content. Rows represent nodes and columns represent fields. Select the fields to show by right clicking on the column header and (de)selecting columns.'),
+      t('To edit a single cell click into the cell, edit and save. To edit the same field in several nodes, select the respective nodes by checking the box to the left of the row. Then click into the cell you want to edit for one of the nodes, edit and save. The content of this field will change for all selected nodes.'),
+      t('To filter for certain content click on the little magnifying glass in the upper right corner of the matrix and enter the search word in the respective search box. You can sort rows by clicking on a column header.'),
+      t('At the bottom of the matrix there are icons for adding, cloning, deleting and undoing.')
+    )) . '</p>';}
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_backend_menu_alter(&$items){
+  // Overwite the admin/content callback node_admin_content() with one showing
+  // all entity types
+  $items['admin/content']['page callback'] = 'scratchpads_backend_admin_content';
+  $items['admin/content']['module'] = 'scratchpads_backend';
+  unset($items['admin/content']['page arguments']);
+  $items['admin/content']['file'] = 'scratchpads_backend.admin.inc';
+  $items['admin/content/node']['page callback'] = 'drupal_goto';
+  $items['admin/content/node']['page arguments'] = array(
+    'admin/content'
+  );
+  $items['admin/content/node']['type'] = MENU_CALLBACK;
+  $items['admin/content/file']['page callback'] = 'drupal_goto';
+  $items['admin/content/file']['page arguments'] = array(
+    'admin/content'
+  );
+  $items['admin/content/file']['type'] = MENU_CALLBACK;
+  $items['node/add'] = array(
+    'title' => '',
+    'title callback' => FALSE,
+    'page callback' => 'scratchpads_backend_goto',
+    'page arguments' => array(
+      'admin/content'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'access content overview'
+    )
+  );
+  // Remove the tabs for these items
+  $items['admin/content/character-editor/projects']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/comment']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/file']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/content/relation']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/config/development/maintenance']['access arguments'] = array(
+    'administer maintenance mode'
+  );
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function scratchpads_backend_entity_info_alter(&$entity_info){
+  // Remove the "default" file type - it does not appear to be used.
+  unset($entity_info['file']['bundles']['default']);
+  // Relabel "Application (multipurpose)" to "Others".
+  $entity_info['file']['bundles']['application']['label'] = t('Other');
+}
+
+/**
+ * scratchpads_admin_goto
+ *
+ * This was added, as simply changing the callback of node/add to drupal_goto
+ * resulted in an error when accessing node/add/unknown_path. The second
+ * argument to drupal_goto must be an array.
+ */
+function scratchpads_backend_goto($path = ''){
+  drupal_set_message(t('That content type has been disabled.'));
+  drupal_goto($path);
+}
+
+/**
+ * Implements hook_permissions().
+ */
+function scratchpads_backend_permission(){
+  return array(
+    'administer maintenance mode' => array(
+      'title' => t('Administer maintenance mode'),
+      'description' => t('Allow this role to put the site into maintenance mode for ALL users.')
+    ),
+    'scratchpads biblio settings' => array(
+      'title' => t('Scratchpad Biblio settings'),
+      'description' => t('Access Scratchpad specific biblio settings')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_backend_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer maintenance mode',
+      'scratchpads biblio settings'
+    )
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_backend_admin_paths(){
+  return array(
+    'file/add' => TRUE
+  );
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function scratchpads_backend_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  $local_tasks = array();
+  switch($root_path){
+    case 'admin/content/' . arg(2):
+      $local_tasks[] = 'node/add/' . str_replace('_', '-', arg(2));
+    case 'node/add/' . arg(2):
+      if(arg(2) == 'biblio'){
+        $local_tasks[] = 'biblio/import';
+      }else{
+        $local_tasks[] = 'import/node_importer_' . str_replace('-', '_', arg(2)) . '_xls';
+      }
+      break;
+    case 'admin/file/%':
+      $local_tasks[] = 'file/add';
+      $local_tasks[] = 'admin/content/file/import';
+      break;
+  }
+  if(count($local_tasks)){
+    foreach($local_tasks as $local_task){
+      $item = menu_get_item($local_task);
+      if($item['access']){
+        $data['actions']['output'][] = array(
+          '#theme' => 'menu_local_action',
+          '#link' => $item
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implement hook_form_alter
+ */
+function scratchpads_backend_form_alter(&$form, &$form_state, $form_id){
+  // Theme the entity connect elements if any are present
+  foreach(_entityconnect_get_ref_fields() as $field_name => $field){
+    if(isset($form[$field_name])){
+      $type = $form[$field_name][$form[$field_name]['#language']]['#title'];
+      $fix_type = array(
+        t('Identified by') => t('Person')
+      );
+      if(isset($fix_type[$type])){
+        $type = $fix_type[$type];
+      }
+      foreach(element_children($form[$field_name]) as $child_field_name){
+        if(preg_match('/^add_entityconnect__' . $field_name . '_/', $child_field_name)){
+          /*$form[$field_name][$child_field_name]['#value'] = t('Create a new @type and use it here', array(
+            '@type' => ucfirst($type)
+          ));*/
+          $form[$field_name][$child_field_name]['#weight'] = 50;
+        }else if(preg_match('/^edit_entityconnect__' . $field_name . '_/', $child_field_name)){
+          $form[$field_name][$child_field_name]['#value'] = t('Edit the currently selected @type', array(
+            '@type' => ucfirst($type)
+          ));
+          $form[$field_name][$child_field_name]['#weight'] = 40;
+          $id = 'edit-' . str_replace('_', '-', $field_name) . '-' . $form[$field_name]['#language'];
+          $form[$field_name][$child_field_name]['#states'] = array(
+            'invisible' => array(
+              '#' . $id => array(
+                'value' => '_none'
+              )
+            )
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_backend_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * *******************************************************************************************
+ *
+ * VIEWS
+ *
+ * ******************************************************************************************
+ */
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_backend_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_backend');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Implementation of hook_views_pre_view
+ */
+function scratchpads_backend_views_pre_view(&$view, &$display_id, &$args){
+  if($view->name == 'admin_vbo_node' || $view->name == 'admin_vbo_file'){
+    $field_taxonomic_name = false;
+    $bundle_name = arg(2);
+    $entity_type = ($view->base_table == 'file_managed' ? 'file' : $view->base_table);
+    $instances = field_info_instances($entity_type, $bundle_name);
+    $field = $view->display_handler->get_handler('field', 'views_bulk_operations');
+    foreach(array_keys($instances) as $field_name){
+      if($field_name == 'field_taxonomic_name'){
+        $field_taxonomic_name = true;
+      }
+      if($field_name == 'title_field' && isset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title'])){
+        unset($field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values']['title']);
+      }
+      $edit_field = $bundle_name . '::' . $field_name;
+      $field->options['vbo']['operations']['action::views_bulk_operations_modify_action']['settings']['display_values'][$edit_field] = $edit_field;
+    }
+    // If there's no taxonomy name field, hide the taxon filter
+    if(!$field_taxonomic_name){
+      $display_id = $view->current_display;
+      $view->set_item($display_id, 'filter', 'field_taxonomic_name_tid', NULL);
+    }
+  }
+}
+
+/**
+ *
+ *
+ *
+ *
+ *
+ * Usort comparison function for ordering field groups
+ *
+ * @param object $a          
+ * @param object $b          
+ */
+function scratchpads_backend_usort_comparison($a, $b){
+  if($a->weight == $b->weight){
+    return 0;
+  }else{
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
+
+/**
+ * Implement hook_ckeditor_plugin
+ *
+ * - Register our own plugin which ensures that image width/height/align are set as attributes, not as styles
+ *   when using the image editor.
+ *
+ */
+function scratchpads_backend_ckeditor_plugin(){
+  return array(
+    'scratchpads_backend_tweaks' => array(
+      'name' => 'scratchpads_backend_tweaks',
+      'desc' => t('Ensure that image width/height/align are set as attributes, not as styles when using the image editor'),
+      'path' => drupal_get_path('module', 'scratchpads_backend') . '/ckeditor/'
+    )
+  );
+}

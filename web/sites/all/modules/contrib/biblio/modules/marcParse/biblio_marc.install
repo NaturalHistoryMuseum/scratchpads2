@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * @file
+ * Database table creation for biblio_marc module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function biblio_marc_install() {
+  _save_marc_maps();
+}
+
+/**
+ *
+ */
+function biblio_marc_uninstall() {
+  if (db_table_exists('biblio_type_maps')) {
+    db_delete('biblio_type_maps')
+      ->condition('format', 'marc')
+      ->execute();
+  }
+}
+
+/**
+ *
+ */
+function biblio_marc_enable() {
+  biblio_marc_set_system_weight();
+}
+
+/**
+ *
+ */
+function biblio_marc_set_system_weight() {
+  db_update('system')
+    ->fields(array('weight' => 24))
+    ->condition('name', 'biblio_marc')
+    ->execute();
+}
+
+/**
+ *
+ */
+function _save_marc_maps() {
+  $maps['type_map'] = serialize(
+        array(
+          // Journal Article.
+          'ab' => 102,
+          // Journal Article.
+          'as' => 102,
+          // Book.
+          'am' => 100,
+          // Thesis.
+          2 => 108,
+          // Conference Proceedings.
+          3 => 103,
+          // Personal Communication.
+          4 => 120,
+          // NewsPaper Article.
+          5 => 105,
+          // Computer Program.
+          6 => 113,
+          // Book Section.
+          'aa' => 101,
+          // Magazine Article.
+          8 => 106,
+          // Edited Book.
+          9 => 100,
+          // Report.
+          10 => 109,
+          // Map.
+          'em' => 122,
+          // Audiovisual Material.
+          12 => 114,
+          // Artwork.
+          13 => 112,
+          // Patent.
+          15 => 119,
+          // Electronic Source.
+          16 => 107,
+          // Bill.
+          17 => 117,
+          // Case.
+          18 => 116,
+          // Hearing.
+          19 => 115,
+          // Manuscript.
+          20 => 121,
+          // Film or Broadcast.
+          21 => 110,
+          // Statute.
+          22 => 118,
+          // Chart or Table.
+          26 => 123,
+          // Generic.
+          31 => 129,
+
+        )
+  );
+
+  $maps['type_names'] = serialize(
+        array()
+  );
+
+  $maps['field_map'] = serialize(
+        array()
+  );
+
+  $maps['format'] = 'marc';
+  biblio_save_map($maps);
+
+}
+
+/**
+ * Implementation of hook_schema().
+ *
+ * Note:  Pro Drupal Development models use of t() to translate 'description'
+ * for field definitions, but Drupal core does not use them.  We follow core.
+ */
+function biblio_marc_schema() {
+  $schema = array();
+  $schema['biblio_marc'] = array(
+    'fields' => array(
+      'nid'       => array('type' => 'int', 'not null' => TRUE),
+      'biblio_marc_md5' => array('type' => 'char', 'length' => 32, 'not null' => TRUE),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}

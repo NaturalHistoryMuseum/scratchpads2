@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Implements hook_image_default_styles().
+ */
+function scratchpads_image_styles_image_default_styles(){
+  return array(
+    'square_thumbnail' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 85,
+            'height' => 85
+          ),
+          'weight' => 0
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'square_thumbnail_large' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 200,
+            'height' => 200
+          ),
+          'weight' => 0
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_image_default_styles_alter().
+ */
+function scratchpads_image_styles_image_styles_alter(&$styles){
+  $styles_to_change = array(
+    'thumbnail',
+    'medium',
+    'large',
+    'linkit_thumb'
+  );
+  foreach($styles_to_change as $style_to_change){
+    if($styles[$style_to_change]['storage'] == IMAGE_STORAGE_DEFAULT){
+      $styles[$style_to_change]['effects'][] = array(
+        'label' => 'Change file format',
+        'help' => 'Choose to save the image as a different filetype.',
+        'effect callback' => 'convert_image_format_image',
+        'dimensions passthrough' => TRUE,
+        'form callback' => 'convert_image_format_form',
+        'summary theme' => 'convert_image_format_summary',
+        'module' => 'convert_image_format',
+        'name' => 'convert_image_format',
+        'data' => array(
+          'format' => 'image/jpeg',
+          'quality' => '80',
+        ),
+        'weight' => '100',
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_image_styles_styles_default_styles(){
+  $styles = array();
+  $styles['file']['styles']['square_thumbnail_large'] = array(
+    'label' => t("Large square thumbnail"),
+    'description' => 'A 200x200 square thumbnail.'
+  );
+  return $styles;
+}

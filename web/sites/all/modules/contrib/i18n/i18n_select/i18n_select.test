@@ -1,0 +1,170 @@
+<?php
+/**
+ * @file
+ * Test language selection modes
+ */
+
+class i18nSelectTestCase extends Drupali18nTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Content Selection',
+      'group' => 'Internationalization',
+      'description' => 'Internationalization Content Selection'
+    );
+  }
+
+  function setUp() {
+    parent::setUp('translation', 'i18n_variable', 'i18n_select');
+    parent::setUpLanguages();
+    parent::setUpContentTranslation();
+  }
+
+  function testIi18nSelect() {
+    drupal_static_reset('language_list');
+    $language_list = language_list();
+    $language_count = count($language_list);
+    // Set site name for each language and check pages later
+    variable_set('i18n_variable_list', array('site_name'));
+    foreach (i18n_language_list() as $langcode => $name) {
+      i18n_variable_set('site_name', "Drupal-$name", $langcode);
+    }
+
+    // Enable tags field for page content type.
+    $edit = array(
+      'fields[_add_existing_field][label]' => t('Tags'),
+      'fields[_add_existing_field][field_name]' => 'field_tags',
+      'fields[_add_existing_field][widget_type]' => 'taxonomy_autocomplete',
+    );
+    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
+    $this->drupalPost(NULL, array(), t('Save settings'));
+
+    // Create some content and check selection modes
+    $this->drupalLogin($this->content_editor);
+
+    // variable_set('language_content_type_story', 1);
+    $neutral = $this->drupalCreateNode(array('type' => 'page', 'promote' => 1));
+    $source = $this->createNode('page', $this->randomName(), $this->randomString(20), language_default('language'), array('field_tags[und]' => $tag_name = $this->randomName()));
+    $translations = $this->createNodeTranslationSet($source);
+
+    drupal_static_reset('translation_node_get_translations');
+    $this->assertEqual(count(translation_node_get_translations($source->tnid)), $language_count, "Created $language_count $source->type translations.");
+
+    // Log in user with access content permission
+    $user = $this->drupalCreateUser(array('access comments', 'access content'));
+    $this->drupalLogin($user);
+    // Default selection mode, only language neutral and current
+    variable_set('i18n_select_nodes', TRUE);
+    foreach (i18n_language_list() as $langcode => $name) {
+      $this->i18nGet($langcode);
+      $this->assertText("Drupal-$name", 'Checked translated site name: Drupal-' . $name);
+      $display = array($translations[$langcode], $neutral);
+      $hide = $translations;
+      unset($hide[$langcode]);
+      $this->assertContent($display, $hide);
+      // Visit the taxonomy page of that node and try again. Only the translated
+      // pages are tagged.
+      unset($display[1]);
+      $this->i18nGet($langcode, 'taxonomy/term/' . $source->field_tags[LANGUAGE_NONE][0]['tid']);
+      $this->assertContent($display, $hide);
+    }
+
+  }
+
+  /**
+   * Check some nodes are displayed, some are not
+   */
+  function assertContent($display, $hide = array()) {
+    $languages = language_list();
+    foreach ($display as $node) {
+      $this->assertText($node->title, 'Content displayed for ' . i18n_language_name($node->language));
+    }
+    foreach ($hide as $node) {
+      $this->assertNoText($node->title, 'Content not displayed for ' . i18n_language_name($node->language));
+    }
+  }
+}
+
+/**
+ * Test case for AJAX queries on "views/ajax" when view on admin page.
+ */
+class I18NSelectAdminViewsAjax extends Drupali18nTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('I18N select Admin Views (AJAX)'),
+      'group' => 'Internationalization',
+      'description' => t('Test AJAX requests to the "views/ajax" when view located on "admin/*" and list of skipping tags is empty.'),
+      // Skip this test when "admin_views" module does not exists.
+      'dependencies' => array('admin_views'),
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp('translation', 'i18n_variable', 'i18n_select', 'admin_views');
+    parent::setUpLanguages(array('access content overview'));
+    parent::setUpContentTranslation();
+  }
+
+  /**
+   * Test AJAX of a view without skipping tags for selection.
+   *
+   * @see i18n_select_page()
+   */
+  public function testViewsAjaxWithoutSkippingTags() {
+    // If this variable will have the "views" value then this test will not
+    // have sense. For instance, we want apply language selection filter
+    // for views and remove "views" from "i18n_select_skip_tags" variable.
+    // In this case all AJAX for views, on administration part of the site,
+    // will be broken because the "i18n_select_page()" function will work
+    // with "views/ajax" path instead of, for example, "admin/content".
+    variable_set('i18n_select_skip_tags', '');
+
+    // Create one hundred of nodes.
+    for ($i = 1; $i <= 100; $i++) {
+      // Create every second node on Spanish language and
+      // every first - on English.
+      $node = $this->createNode('page', "Node $i", '', $i % 2 ? $this->default_language : $this->secondary_language);
+
+      // Update "changed" in order to sort the content by updating date. In
+      // other case all nodes will be with the same date and not arranged in
+      // order.
+      db_update('node')
+        ->fields(array('changed' => strtotime("+ $i minute")))
+        ->condition('nid', $node->nid)
+        ->execute();
+    }
+
+    $this->drupalGet('admin/content');
+
+    // Check that latest node exists at the top.
+    $this->assertText('Node 100');
+    // Check that our page contains fifty nodes (the latest must be 51).
+    $this->assertNoText('Node 50');
+
+    // Test $_REQUEST['view_path']. There's no form to submit to, so
+    // drupalPost() won't work here. This just tests a direct $_POST
+    // request instead.
+    $this->curlExec(array(
+      CURLOPT_URL => $this->getAbsoluteUrl('views/ajax'),
+      CURLOPT_POST => TRUE,
+      CURLOPT_POSTFIELDS => http_build_query(array(
+        'page' => 1,
+        'view_path' => 'admin/content',
+        'view_name' => 'admin_views_node',
+        'view_display_id' => 'system_1',
+      )),
+    ));
+
+    // Check that we are successfully switched to a new page of content.
+    $this->assertText('Node 50');
+    $this->assertNoText('Node 100');
+  }
+
+}

@@ -1,0 +1,324 @@
+<?php
+
+/**
+ * @file
+ * Install file for Countries module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function countries_schema() {
+  $schema['countries_country'] = array(
+    'description' => 'Maintains a country database.',
+    'fields' => array(
+      'cid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique country ID. Required for the country bundle.',
+      ),
+      'iso2' => array(
+        'description' => 'ISO 3166-1 alpha-2 country code.',
+        'type' => 'char',
+        'length' => 2,
+        'not null' => TRUE,
+      ),
+      'iso3' => array(
+        'description' => 'ISO 3166-1 alpha-3 country code.',
+        'type' => 'char',
+        'length' => 3,
+        'not null' => FALSE,
+      ),
+      'name' => array(
+        'description' => 'ISO 3166-1 official short name.',
+        'type' => 'varchar',
+        'length' => 95,
+        'not null' => TRUE,
+      ),
+      'official_name' => array(
+        'description' => 'ISO 3166-1 official long name.',
+        'type' => 'varchar',
+        'length' => 127,
+        'not null' => TRUE,
+      ),
+      'numcode' => array(
+        'description' => 'ISO 3166-1 numeric-3 country code.',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => FALSE,
+      ),
+      'continent' => array(
+        'description' => 'Continent code.',
+        'type'        => 'char',
+        'length'      => 2,
+        'not null'    => TRUE,
+      ),
+      'enabled' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+        'description' => 'Whether the country is enabled.',
+      ),
+      'language' => array(
+        'description' => 'The {languages}.language of this node.',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => LANGUAGE_NONE,
+      ),
+    ),
+    'primary key' => array('cid'),
+    'unique keys' => array(
+      'iso2' => array('iso2'),
+      'name' => array('name'),
+    ),
+    'indexes' => array(
+      'enabled' => array('enabled'),
+      'continent' => array('continent'),
+    ),
+
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function countries_field_schema($field) {
+  return array(
+    'columns' => array(
+      'iso2' => array(
+        'type' => 'varchar',
+        'length' => 2,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'iso2' => array('iso2'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function countries_install() {
+  // Import the data.
+  countries_import_csv();
+  $t = get_t();
+  drupal_set_message($t('Visit the countries !config_page to import the most recent changes from the ISO 3166-1 standard.',
+    array(
+      '!config_page' => l($t('configuration page'), 'admin/config/regional/countries/import'),
+    )));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function countries_uninstall() {
+  variable_del('countries_continents');
+  variable_del('countries_csv_datasource');
+  variable_del('countries_admin_overview_columns');
+}
+
+
+/**
+ * Helper function to inform users about available updates.
+ */
+function countries_install_available_update_message($link) {
+  $t = get_t();
+  drupal_set_message($t('Visit the countries !config_page to import the most recent changes from the !link.',
+    array(
+      '!config_page' => l($t('configuration page'), 'admin/config/regional/countries/import'),
+      '!link' => $link,
+    )));
+}
+
+/**
+ * Helper function to import countries.
+ */
+function countries_import_csv() {
+  $t = get_t();
+  $countries = array();
+  $handle = fopen(dirname(__FILE__) . '/countries.csv', 'r');
+  $headers = fgetcsv($handle, 1024, ",");
+  while (($row = fgetcsv($handle, 1024, ",")) !== FALSE) {
+    // The iso2 data.
+    $row[0] = trim($row[0]);
+    // The iso3 data.
+    $row[1] = empty($row[1]) || $row[1] == 'NULL' ? '' : trim($row[1]);
+    // The name data.
+    $row[2] = empty($row[2]) || $row[2] == 'NULL' ? '' : $t(trim($row[2]));
+    // The official name data.
+    $row[3] = empty($row[3]) || $row[3] == 'NULL' ? '' : $t(trim($row[3]));
+    // The number code data.
+    $row[4] = empty($row[4]) || $row[4] == 'NULL' ? 0 : trim($row[4]);
+    // The continent data.
+    $row[5] = empty($row[5]) || $row[5] == 'NULL' ? 'UN' : trim($row[5]);
+    // The enabled data.
+    $row[6] = empty($row[6]) || $row[6] == 'NULL' ? 0 : 1;
+    if (!empty($row[0]) && $row[0] != 'NULL') {
+      $countries[$row[0]] = array(
+        'iso2' => $row[0],
+        'iso3' => $row[1],
+        'name' => $row[2],
+        'official_name' => $row[3],
+        'numcode' => $row[4],
+        'continent' => $row[5],
+        'enabled' => $row[6],
+      );
+    }
+  }
+  fclose($handle);
+  include_once DRUPAL_ROOT . '/includes/iso.inc';
+  foreach (_country_get_predefined_list() as $code => $name) {
+    if (array_key_exists($code, $countries)) {
+      $countries[$code]['name'] = $name;
+      $countries[$code]['enabled'] = 1;
+    }
+    else {
+      drupal_set_message($t('Missing details for ISO 3166-1 alpha-2 code %code for %name in Countries data.', array('%code' => $code, '%name' => $name)), 'warning');
+      $countries[$code] = array(
+        'iso2' => $code,
+        'iso3' => '',
+        'name' => $name,
+        'official_name' => '',
+        'continent' => 'UN',
+        'enabled' => 1,
+        'numcode' => 0,
+      );
+    }
+  }
+  $insert = db_insert('countries_country')->fields(array(
+    'iso2',
+    'iso3',
+    'name',
+    'official_name',
+    'continent',
+    'enabled',
+    'numcode',
+  ));
+  foreach ($countries as $country) {
+    $insert->values($country);
+  }
+  $insert->execute();
+  watchdog('countries', "Pre-populated countries data.");
+}
+
+/**
+ * This adds a translatable country possibility.
+ */
+function countries_update_7101() {
+  db_add_field('countries_country', 'language', array(
+    'description' => 'The {languages}.language of this node.',
+      'type' => 'varchar',
+      'length' => 12,
+      'not null' => TRUE,
+      'default' => LANGUAGE_NONE,
+  ));
+}
+
+/**
+ * Convert fields into option module select lists.
+ */
+function countries_update_7200() {
+  foreach (field_read_fields(array(), array('include_inactive' => TRUE)) as $field_name => $info) {
+    if ($info['module'] == 'countries' && $info['type'] == 'country') {
+      $field_updated = isset($info['settings']['continents']);
+      foreach (field_read_instances(array('field_name' => $field_name), array('include_inactive' => TRUE)) as $instance_info) {
+        if (!$field_updated) {
+          if (!isset($info['settings']['continents']) && isset($instance_info['widget']['settings'])) {
+            $info['settings'] += $instance_info['widget']['settings'];
+            field_update_field($info);
+            $field_updated = TRUE;
+          }
+        }
+        if ($instance_info['widget']['type'] == 'country_select') {
+          $instance_info['widget']['type'] = 'options_select';
+          $instance_info['widget']['module'] = 'options';
+          $instance_info['widget']['settings'] = array();
+          field_update_instance($instance_info);
+        }
+      }
+      // Set the defaults if required.
+      if (!$field_updated) {
+        $info['settings'] += array(
+          'enabled' => COUNTRIES_ENABLED,
+          'continents' => array(),
+        );
+        field_update_field($info);
+      }
+    }
+  }
+}
+
+/**
+ * This drops the unique indexes on the official name, ISO3 and NumCode.
+ *
+ * These fields are not required, so this will lead to PDO exceptions if two or
+ * more countries have these fields left blank.
+ */
+function countries_update_7202() {
+  db_drop_unique_key('countries_country', 'iso3');
+  db_drop_unique_key('countries_country', 'numcode');
+  db_drop_unique_key('countries_country', 'official_name');
+}
+
+/**
+ * This updates the display settings to handle the new singular icon formatter.
+ */
+function countries_update_7203() {
+  if (!module_exists('countryicons')) {
+    return;
+  }
+  $flush = FALSE;
+  foreach (field_info_fields() as $field_name => $field) {
+    if ($field['type'] == 'country' && !empty($field['bundles'])) {
+      foreach ($field['bundles'] as $entity_type => $bundles) {
+        foreach ($bundles as $bundle) {
+          $changed = FALSE;
+          $instance = field_info_instance($entity_type, $field_name, $bundle);
+          if (!empty($instance['display'])) {
+            foreach ($instance['display'] as $view_mode => &$display) {
+              if (strpos($display['type'], 'country_countryicons_') === 0) {
+                list(, , $icon_type, $icon_set_name) = explode('_', $display['type'], 4);
+                $property = '';
+                if ($icon_type == 'imagename') {
+                  $property = 'name';
+                  $icon_type = 'image';
+                }
+                $display['type'] = 'country_icon';
+                $display['settings']['countryiconset'] = $icon_type . '_' . $icon_set_name;
+                $display['settings']['property'] = '';
+                $changed = TRUE;
+              }
+            }
+          }
+          if ($changed) {
+            field_update_instance($instance);
+            $flush = TRUE;
+          }
+        }
+      }
+    }
+  }
+  if ($flush) {
+    field_cache_clear();
+  }
+}
+
+/**
+ * Informs the user about the latest round of name changes.
+ *
+ * The name field is 100% in sync with the ISO standard with this release.
+ */
+function countries_update_7205() {
+  $t = get_t();
+  $link = l($t('ISO Newsletter !version', array('!version' => 'VI-14')),
+    'http://www.iso.org/iso/iso_3166-1_newsletter_vi-14_name_change_state_of_palestine.pdf',
+    array('external' => 1));
+  countries_install_available_update_message($link);
+  cache_clear_all();
+}

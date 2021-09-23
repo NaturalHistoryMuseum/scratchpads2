@@ -1,0 +1,17 @@
+name = Menu translation
+description = Supports translatable custom menu items.
+dependencies[] = i18n
+dependencies[] = menu
+dependencies[] = i18n_string
+dependencies[] = i18n_translation
+package = Multilingual - Internationalization
+core = 7.x
+
+files[] = i18n_menu.inc
+files[] = i18n_menu.test
+
+; Information added by Drupal.org packaging script on 2020-06-17
+version = "7.x-1.27"
+core = "7.x"
+project = "i18n"
+datestamp = "1592373390"

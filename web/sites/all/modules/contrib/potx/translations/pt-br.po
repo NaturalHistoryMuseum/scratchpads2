@@ -1,0 +1,148 @@
+# $Id: pt-br.po,v 1.1.2.1 2009/02/11 22:06:20 fernao Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  potx-cli.php,v 1.1.2.2 2007/05/02 09:18:15 goba
+#  potx.module,v 1.1.2.8 2007/05/02 09:18:15 goba
+#  potx.info,v 1.1.2.3 2007/03/27 19:40:09 goba
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Potx module Drupal 6.1\n"
+"POT-Creation-Date: 2007-05-02 23:09+0200\n"
+"PO-Revision-Date: 2007-06-05 13:03+0100\n"
+"Last-Translator: Fernão <fernao@riseup.net>\n"
+"Language-Team: fernao <fernao@riseup.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
+
+#: modules/potx/potx-cli.php:99
+msgid "Test string 1"
+msgstr "Texto de teste 1"
+
+#: modules/potx/potx-cli.php:100
+msgid "Test string 2 %string"
+msgstr "Texto de teste 2 %string"
+
+#: modules/potx/potx-cli.php:101
+msgid "Test string 3"
+msgstr "Texto de teste 3"
+
+#: modules/potx/potx-cli.php:102
+msgid ""
+"Special\n"
+"characters"
+msgstr ""
+"Caracteres\n"
+"especiais"
+
+#: modules/potx/potx-cli.php:103
+msgid ""
+"Special\\n"
+"characters"
+msgstr ""
+"Caracteres\\n"
+"especiais"
+
+#: modules/potx/potx-cli.php:105
+msgid "Embedded $variable"
+msgstr "$variable embutido/a"
+
+#: modules/potx/potx-cli.php:106
+msgid "more $special characters"
+msgstr "maiss caracteres $special"
+
+#: modules/potx/potx-cli.php:107
+msgid "even more \\$special characters"
+msgstr "Ainda mais caracteres \\$special"
+
+#: modules/potx/potx-cli.php:108
+msgid "Mixed 'quote' \"marks\""
+msgstr "Combinação de 'símbolos' de  \"aspas\""
+
+#: modules/potx/potx-cli.php:109
+msgid "Mixed \"quote\" 'marks'"
+msgstr "Combinação de \"símbolos\" de  'aspas'"
+
+#: modules/potx/potx-cli.php:110;111
+msgid "This is some repeating text"
+msgstr "Esto es algo de texto repetido"
+
+#: modules/potx/potx-cli.php:123
+msgid "Help called"
+msgstr "Ajuda pedida"
+
+#: modules/potx/potx-cli.php:124
+msgid "This is some help"
+msgstr "Isto é um pouco de ajuda"
+
+#: modules/potx/potx-cli.php:123
+msgid "help"
+msgstr "ajuda"
+
+#: modules/potx/potx-cli.php:113;114
+msgid "one day"
+msgid_plural "@count days"
+msgstr[0] "um dia"
+msgstr[1] "@count dias"
+
+#: modules/potx/potx.module:15
+msgid "Helps to extract pot-files for translations from the sources of installed modules."
+msgstr "Ajuda na extração de arquivos pot para a tradução das mensagens no código fonte dos módulos instalados."
+
+#: modules/potx/potx.module:17
+msgid "This page allows you to generate translation templates for module files. Select the module you wish to generate a template file for. A single Gettext Portable Object Template file is generated (unlike the output of the command line extractor utility), so you can easily save it and start translation."
+msgstr "Esta página te ajuda a gerar modelos de tradução para os módulos instalados. Selecione o módulo o qual deseja criar um modelo. Se criará um único arquivo po de tipo Gettext (diferentemente da saída do aplicativo de linha de comando potxcli). A única coisa que você deve fazer é guardá-lo dentro de um arquivo de texto (unicode), alterar a extensão a \"po\" e começar a editá-lo com um editor desse tipo de arquivos (como <a href=\"http://www.poedit.net/\">poedit</a>, por exemplo)."
+
+#: modules/potx/potx.module:30
+msgid "Extract strings"
+msgstr "Extrair textos"
+
+#: modules/potx/potx.module:77
+msgid "Extract"
+msgstr "Extrair"
+
+#: modules/potx/potx.module:165
+msgid "Extract from %module_name module, in directory %dir_name"
+msgstr "Extrai do módulo %module_name no diretório %dir_name"
+
+#: modules/potx/potx.module:166
+msgid "Generates output from all files found in this directory."
+msgstr "Extrai as mensagens de todos os arquivos que se encontram nesse diretório."
+
+#: modules/potx/potx.module:181
+msgid "Extract from all modules in directory \"@dir_name\""
+msgstr "Extrair de todos os módulos no diretório \"@dir_name\""
+
+#: modules/potx/potx.module:182
+msgid "To extract from a single module in this directory, choose the module entry in the fieldset below."
+msgstr "Para extrair os textos de um único módulo dentro deste diretório, marqueo módulo na lista abaixo."
+
+#: modules/potx/potx.module:191
+msgid "Modules in \"@dir_name\""
+msgstr "Módulos no diretório \"@dir_name\""
+
+#: modules/potx/potx.module:211
+msgid "Extract from module %module_name"
+msgstr "Extrair do módulo %module_name"
+
+#: modules/potx/potx.module:212
+msgid "Extract from files named %module_pattern, in directory %module_dir."
+msgstr "Extrair dos arquivos com o padrão %module_pattern, no diretório %module_dir."
+
+#: modules/potx/potx.module:0
+#: modules/potx/potx.info:0
+msgid "potx"
+msgstr "potx"
+
+#: modules/potx/potx.info:0
+msgid "POT extractor"
+msgstr "Extrator de POT"
+
+#: modules/potx/potx.info:0
+msgid "Provides a web interface to extract Gettext templates from the sources of installed modules."
+msgstr "Proporciona uma interface web para extrair modelos do tipo Gettext do código fonte dos módulos instalados."
+

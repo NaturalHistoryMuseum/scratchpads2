@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Handles Views Slideshow installation and upgrade tasks.
+ */
+
+ /**
+  * Ensure all caches are cleared. Primarily for 7.x-3.2 -> 7.x-3.4+.
+  *
+  * Implements hook_update_N().
+  */
+function views_slideshow_update_7300(&$sandbox) {
+  drupal_flush_all_caches();
+}

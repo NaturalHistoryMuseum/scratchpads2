@@ -1,0 +1,7 @@
+core = "7.x"
+description = "Displays phylogenetic trees embeded within a Nexus or NeXML file using the jsPhyloSVG library."
+name = "jsPhyloSVG"
+package = "Taxonomy"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = jsphylosvg

@@ -1,0 +1,15 @@
+name = Countries Example
+description = "Countries example module"
+
+; Core version (required)
+core = 7.x
+package = Example modules
+
+dependencies[] = countries
+
+; Information added by Drupal.org packaging script on 2014-08-31
+version = "7.x-2.3"
+core = "7.x"
+project = "countries"
+datestamp = "1409450929"
+

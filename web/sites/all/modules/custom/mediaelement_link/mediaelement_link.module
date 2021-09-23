@@ -1,0 +1,183 @@
+<?php
+
+/**
+ * @file
+ * Provides HTML5 video and audio elements using Mediaelement.js for HTML4 browsers.
+ */
+/**
+ * Render audio and video with MediaElement.
+ *
+ * @param mixed $file
+ * Either a string with a path to a file or an array of paths to files.
+ * @param array $options
+ * - id: Optionally set the unique ID. Otherwise the MediaElement module
+ * creates a unique one using a static count variable.
+ * - width: Width of the player in pixels or percentage.
+ * - height: Height of the player in pixels or percentage.
+ * - opts: MediaElement.js API options.
+ * - attributes: Override defaults for theme_mediaelement_link_audio().
+ * - settings: Override defaults for theme_mediaelement_link_audio().
+ * - type: video or audio. Otherwise MediaElement module determines it by the
+ * file extension of $file.
+ *
+ * @return string
+ * The html to inject into the page is returned. Apart from this, the
+ * javaScript needed to support the html is added using Drupal APIs.
+ */
+function mediaelement_link_render($file, array $options = array()){}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function mediaelement_link_field_formatter_info(){
+  $formatters = array();
+  $formatters['mediaelement_link_video'] = array(
+    'label' => t('MediaElement Video Link'),
+    'field types' => array(
+      'file',
+      'link_field'
+    ),
+    'settings' => array(
+      'width' => variable_get('mediaelement_link_video_default_width', '180'),
+      'height' => variable_get('mediaelement_link_video_default_height', '180')
+    )
+  );
+  $formatters['mediaelement_link_audio'] = array(
+    'label' => t('MediaElement Audio Link'),
+    'field types' => array(
+      'file',
+      'link_field'
+    ),
+    'settings' => array(
+      'width' => variable_get('mediaelement_link_audio_default_width', '180'),
+      'height' => variable_get('mediaelement_link_audio_default_height', '180')
+    )
+  );
+  return $formatters;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function mediaelement_link_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  foreach($items as $delta => $item){
+    $settings = $display['settings'];
+    $element[$delta] = array(
+      '#settings' => $settings
+    );
+    if($display['type'] == 'mediaelement_link_video'){
+      $element[$delta]['#theme'] = 'mediaelement_link_video';
+      $element[$delta]['#settings']['height'] = $display['settings']['height'];
+      $element[$delta]['#settings']['width'] = $display['settings']['width'];
+      $element[$delta]['#settings']['fid'] = $items[0]['fid'];
+    }elseif($display['type'] == 'mediaelement_link_audio'){
+      $element[$delta]['#theme'] = 'mediaelement_link_audio';
+      $element[$delta]['#settings']['height'] = $display['settings']['height'];
+      $element[$delta]['#settings']['width'] = $display['settings']['width'];
+      $element[$delta]['#settings']['fid'] = $items[0]['fid'];
+    }
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function mediaelement_link_theme(){
+  return array(
+    'mediaelement_link_video' => array(
+      'variables' => array(
+        'settings' => array()
+      )
+    ),
+    'mediaelement_link_audio' => array(
+      'variables' => array(
+        'settings' => array()
+      )
+    )
+  );
+}
+
+function theme_mediaelement_link_video($variables){
+  $thumbnail_file = "public://mediaelement_link_thumbnail/{$variables['settings']['fid']}-{$variables['settings']['width']}x{$variables['settings']['height']}.jpg";
+  $file = entity_load_single('file', $variables['settings']['fid']);
+  if(!file_exists($thumbnail_file)){
+    $full_size_file = "public://mediaelement_link_thumbnail/{$variables['settings']['fid']}.jpg";
+    if(!file_exists($full_size_file)){
+      exec('ffmpeg -ss 2 -i "' . drupal_realpath($file->uri) . '" -f image2 -vframes 1 ' . drupal_realpath($full_size_file));
+    }
+    $image = image_load($full_size_file);
+    if($image){
+      module_load_include('effects.inc', 'image');
+      image_scale_and_crop_effect($image, $variables['settings']);
+      image_save($image, $thumbnail_file);
+      // Finally, we attempt to bitch slap that file with a play button.
+      $real_path = drupal_realpath($thumbnail_file);
+      @exec('convert "' . $real_path . '" "' . drupal_get_path('module', 'mediaelement_link') . '/images/play.png' . '" -gravity center -composite -format jpg -quality 90 "' . $real_path . '"');
+    }
+  }
+  $entity_uri = entity_uri('file', $file);
+  if(file_exists($thumbnail_file)){
+    $output = l(theme('image', array(
+      'title' => $file->filename,
+      'path' => file_create_url($thumbnail_file)
+    )), $entity_uri['path'], array(
+      'html' => TRUE
+    ));
+  }else{
+    $output = l(theme('image', array(
+      'path' => file_create_url(file_icon_path($file))
+    )), $entity_uri['path'], array(
+      'html' => TRUE
+    ));
+  }
+  return $output;
+}
+
+function theme_mediaelement_link_audio($variables){
+  // FIXME - Allow users to dynamically set the size of the image
+  $file = entity_load_single('file', $variables['settings']['fid']);
+  $entity_uri = entity_uri('file', $file);
+  $output = l(theme('image', array(
+    'title' => $file->filename,
+    'width' => 85,
+    'height' => 85,
+    'path' => file_create_url(drupal_get_path('module', 'mediaelement_link') . '/images/audio-icon.jpg')
+  )), $entity_uri['path'], array(
+    'html' => TRUE
+  ));
+  return $output;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function mediaelement_link_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  $element['width'] = array(
+    '#title' => t('Width'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['width']
+  );
+  $element['height'] = array(
+    '#title' => t('Height'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['height']
+  );
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function mediaelement_link_field_formatter_settings_summary($field, $instance, $view_mode){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  return t('Width: @width px, Height: @height px', array(
+    '@width' => $settings['width'],
+    '@height' => $settings['height']
+  ));
+}

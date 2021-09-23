@@ -1,0 +1,399 @@
+.slickgrid-wrapper,.bt-content {
+  font-size: 10px !important;
+  position: relative;
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+}
+
+.slickgrid-wrapper #controls,.slickgrid-wrapper #slickgrid {
+  border-width: 1px;
+  border-color: #A5A5A5;
+}
+
+#slickgrid {
+  border-style: solid;
+}
+
+.slickgrid-wrapper #controls {
+  border-style: none solid solid;
+  width: 100%;
+}
+
+/* Give the views preview a fixed width, otherwise it stretches to 100%*/
+.preview-section .slickgrid-wrapper {
+  width: 1000px
+}
+
+/* Views */
+
+/* turn off conext menu outline */
+.contextual-links-region {
+  outline: none !important;
+}
+
+/* Header bar */
+#slickgrid .slick-header {
+  /* Allow 1px for the bottom column border - overflow is hidden*/
+  height: 31px !important;
+  border: none;
+}
+
+.slick-header-columns,.slick-header-column {
+  height: 30px !important;
+}
+
+.slick-header,.slick-header-columns {
+  /* Give header bar a basic grey fill for when there's no columns */
+  background: #E8E8E8 !important;
+}
+
+.slick-header-columns {
+  border-bottom: 1px solid #A5A5A5 !important;
+}
+
+/* Main column headers */
+.slick-header-column.ui-state-default {
+  border-width: 1px;
+  border-style: none solid;
+  line-height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Default column state */
+.slick-header-column.ui-state-default,.slick-header-column.ui-state-hover,.slick-header-column:hover
+  {
+  background: #E8E8E8;
+  border-right-color: #E8E8E8;
+  border-left-color: #E8E8E8;
+}
+
+.slick-header-column.ui-state-default .slick-resizable-handle {
+  right: -1px;
+  background: url('../images/resize-handle.gif') no-repeat 0 9px;
+}
+
+/************************** FILTER BAR ************************/
+#slickgrid-toggle-search-panel {
+  position: absolute;
+  right: 2px;
+  z-index: 100;
+  top: 7px;
+  cursor: pointer;
+}
+
+.grid-with-tabs #slickgrid-toggle-search-panel {
+  top: 39px;
+}
+
+.slick-headerrow {
+  background: #cfcfcf !important;
+  border: none !important;
+  height: 30px;
+  border-bottom: 1px solid #A5A5A5 !important;
+}
+
+.slick-headerrow .slick-headerrow-column {
+  border-color: #cfcfcf !important;
+  background: none;
+  padding-top: 0;
+}
+
+/* text filter boxes */
+.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter input
+  {
+  border: 1px solid #949494;
+  background: #fff;
+  height: 18px;
+  line-height: 8px;
+  font-size: 10px;
+  margin-top: 4px;
+  border-radius: 8px;
+  max-width: 200px;
+}
+
+.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter span,.slick-headerrow .slick-headerrow-column span.slickgrid-filter-textFilter input
+  {
+  display: block;
+  width: 100%;
+  text-indent: 5px;
+}
+
+/**************************** VIEWPORT & CELLS  ***************************/
+.slick-viewport {
+  overflow-y: scroll !important;
+}
+
+/* Cells */
+.slick-cell {
+  border-right-style: solid;
+  padding-left: 4px;
+  padding-right: 4px;
+  line-height: 2em;
+}
+
+input.editor-text {
+  background: none;
+  border: 0 none;
+  height: 100%;
+  margin: 0;
+  outline: 0 none;
+  padding: 0;
+  width: 100%;
+}
+
+.active-row .slick-cell.editable {
+  border-color: #00A8FF;
+  background: #fff;
+}
+
+.slick-cell.invalid {
+  border-color: #CE0020 !important;
+}
+
+.slick-cell p {
+  white-space: normal !important;
+}
+
+/* Rows */
+.grid-canvas div.odd div.slick-cell {
+  background: #F1F5FA;
+}
+
+/* Groups */
+span.grouping-field-count {
+  color: green;
+}
+
+.slick-group-toggle {
+  margin-right: 5px;
+}
+
+/* Collapsible */
+.toggle,.slick-group-toggle {
+  height: 9px;
+  width: 9px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.toggle.expand,.slick-group-toggle.collapsed {
+  background: url(../images/expand.gif) no-repeat center center;
+}
+
+.toggle.collapse,.slick-group-toggle.expanded {
+  background: url(../images/collapse.gif) no-repeat center center;
+}
+
+/* Selected rows */
+div.slick-cell-checkboxsel {
+  background: #EFEFEF !important;
+  line-height: 14px;
+}
+
+div.slick-cell-checkboxsel.selected {
+  background: #E3E3E3 !important;
+}
+
+div.slick-cell-checkboxsel input,.slick-column-name input[type='checkbox']
+  {
+  margin-left: 2px;
+}
+
+div.slick-cell-checkboxsel input {
+  margin-top: 5px;
+}
+
+.slick-column-name input[type='checkbox'] {
+  margin-top: 0;
+}
+
+.slick-cell.selected,.active-row .slick-cell {
+  background-color: #E1EEFF;
+}
+
+.delete-row .slick-cell {
+  background-color: #FAF4D1;
+  color: #B92C29;
+}
+
+/**************************** CONTROLS  ***************************/
+
+/* Resizable handle */
+#slickgrid .ui-resizable-handle.ui-resizable-s {
+  bottom: 0;
+  height: 5px;
+  z-index: 100;
+}
+
+/* Control bar */
+#controls {
+  height: 30px;
+  background: #E8E8E8;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Slickgrid status */
+#slickgrid-status {
+  float: right;
+  margin-top: 3px;
+  text-align: center;
+  height: 26px;
+  min-width: 30px;
+  margin-left: 5px;
+}
+
+#slickgrid-status.slickgrid-loading {
+  background: url('../images/ajax-loader.gif') no-repeat center;
+}
+
+#slickgrid-status span {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  height: 12px;
+  color: #fff;
+  display: inline-block;
+  line-height: 8px;
+  padding: 4px 2px 1px;
+  min-width: 12px;
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+#slickgrid-status span.slickgrid-status-errors {
+  background-color: #CE0020;
+  cursor: pointer;
+}
+
+#slickgrid-status span.slickgrid-status-success {
+  background-color: #9BBF19;
+  cursor: pointer;
+}
+
+.slickgrid-dialog h6 {
+  font-size: 1.2em;
+  color: inherit !important;
+  margin: 0 0 5px 0 !important;
+  font-weight: bold;
+  font-family: "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+}
+
+.slickgrid-dialog button {
+  margin-right: 10px;
+}
+
+.slickgrid-dialog input {
+  margin-right: 8px;
+}
+
+.slickgrid-dialog input#export-selected-rows {
+  display: inline;
+}
+
+.slickgrid-dialog label {
+  display: inline-block;
+  margin-left: 5px;
+  font-weight: normal;
+}
+
+/* Response messages */
+ul.slickgrid-messages {
+  margin: 0;
+  padding: 0 6px !important;
+}
+
+ul.slickgrid-messages li {
+  list-style: none;
+  padding-left: 30px;
+}
+
+ul.slickgrid-messages li.status {
+  background: url('../images/no-error.png') no-repeat left;
+}
+
+ul.slickgrid-messages li.error {
+  font-weight: bold;
+  color: #CE0020;
+  padding: 0;
+}
+
+ul.slickgrid-messages li.error .item-list {
+  max-height: 100px;
+  overflow-y: auto;
+  color: inherit !important;
+  margin-top: 10px;
+  font-weight: normal;
+  color: #000;
+}
+
+ul.slickgrid-messages li ul {
+  margin-top: 0 !important;
+}
+
+ul.slickgrid-messages li ul li {
+  padding-left: 0;
+  list-style: disc !important;
+  color: #333;
+}
+
+/* Context menu */
+.slick-columnpicker {
+  border: 1px solid #949494;
+  display: inline-block;
+  -moz-box-shadow: 3px 3px 3px #C0C0C0;
+  -webkit-box-shadow: 3px 3px 3px #C0C0C0;
+  z-index: 99999;
+  padding-bottom: 5px;
+  background: #F4F4F4;
+  font-size: 0.9em;
+}
+
+.slick-columnpicker label {
+  display: inline;
+  font-weight: normal;
+}
+
+.slick-columnpicker hr {
+  margin: 5px;
+  border: 1px inset #B2B2B2;
+}
+
+.slick-columnpicker li:last-child {
+  display: none;
+}
+
+.slick-columnpicker li:nth-last-child(2) {
+  border-top: solid 1px #ccc;
+  margin-top: 3px;
+  padding-top: 3px;
+}
+
+/* Dialog */
+.bt-content {
+  background-color: #fff;
+  border-top: 1px solid #A5A5A5;
+  border-left: 1px solid #A5A5A5;
+}
+
+/* Modal popup (edit and add) */
+.ctools-slickgrid-modal-content .modal-header {
+  background: #E8E8E8 !important;
+  line-height: 26px;
+  border-bottom: 1px solid #949494;
+}
+
+.ctools-slickgrid-modal-content .modal-header .modal-title {
+  color: #333333 !important;
+  font-size: 1em !important
+}
+
+div.ctools-modal-content a.close img {
+  right: -22px !important;
+  top: 3px !important;
+  position: absolute !important;
+}
+
+div.ctools-modal-content {
+  border-color: #949494 !important;
+}

@@ -1,0 +1,32 @@
+
+ImageMagick 7.x-1.x, xxxx-xx-xx
+-------------------------------
+
+
+ImageMagick 7.x-1.0-ALPHA2, 2011-06-23
+--------------------------------------
+#1196008 by sun: Improved error handling.
+#1145432 by sun: Fixed error handling in image toolkit setup.
+#1183706 by smk-ka: Fixed negated condition always suppresses error messages.
+#1176172 by chx: Fixed calling crop without offsets leads to HTTP 500.
+#1045710 by sun: Added ImageMagick Advanced sub-module from Image project.
+#1045454 by sun: Fixed migration from ImageAPI ImageMagick upon installation.
+#1068980 by sun: Fixed errors not output on settings page.
+
+
+ImageMagick 7.x-1.0-ALPHA1, 2011-01-30
+--------------------------------------
+by sun: Added README.txt instructions.
+#613814 by StephaneC, sun: Added support for convert executable in the path.
+#1045454 by andypost, sun: Added migration for ImageAPI ImageMagick variables.
+#373759 by sarvab, andypost, sun: Fixed negative offsets for crop action.
+#862406 by andypost: Fixed working directory on Windows.
+#1045454 by sun: Fixed variables not cleaned up upon uninstallation.
+#1045454 by sun: Fixed rotate action and debug output.
+#1045454 by sun: Fixed missing _get_info() toolkit callback and streamwrapper
+  conversion.
+#1045454 by sun: Fixed various coding standards issues.
+#1045454 by sun: Synchronized function order and phpDoc with GD toolkit.
+#1045454 by sun: Updated for D7 image toolkit configuration.
+#1045454 by sun: Initial merge and rename from ImageAPI.
+#1028876 by sun: Added initial baseline of module files.

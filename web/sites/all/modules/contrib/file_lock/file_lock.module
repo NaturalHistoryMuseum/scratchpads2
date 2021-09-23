@@ -1,0 +1,195 @@
+<?php
+
+/**
+ * @file
+ * Locks media objects from being deleted by adding an file_usage entry
+ * https://drupal.org/node/1239056
+ * drupal deletes files which aren't used anymore
+ */
+
+// Modules have no id, but file_usage want's one.
+define("FILE_LOCK_ID", 0);
+
+/**
+ * Implements hook_help().
+ */
+function file_lock_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#file_lock':
+      $output = '<p>' . t("This module provides a way to lock files on your website. Locked files won't get deleted if they aren't used anymore.") . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function file_lock_menu() {
+  $items['admin/config/media/lock'] = array(
+    'title' => 'File Lock',
+    'description' => 'Configure the file lock settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_lock_admin_config'),
+    'access arguments' => array('administer files'),
+    'file' => 'file_lock.admin.inc',
+  );
+
+  return $items;
+
+}
+
+/**
+ * Implements hook_file_insert().
+ */
+function file_lock_file_insert($file) {
+  $config_hook = variable_get("file_lock_hook", 'none');
+  if ($config_hook == 'insert' || $config_hook == 'all') {
+    file_lock_act_on($file);
+  }
+}
+
+/**
+ * Implements hook_file_update().
+ */
+function file_lock_file_update($file) {
+  $config_hook = variable_get("file_lock_hook", 'none');
+  if ($config_hook == 'update' || $config_hook == 'all') {
+    file_lock_act_on($file);
+  }
+}
+
+
+/**
+ * Implements hook_file_operations_info().
+ */
+function file_lock_file_operations_info() {
+  $operations = array(
+    'file_lock' => array(
+      'label' => t('Lock selected files'),
+      'callback' => 'file_lock_lock_files',
+      'confirm' => FALSE,
+    ),
+    'file_unlock' => array(
+      'label' => t('Unlock selected files'),
+      'callback' => 'file_lock_unlock_files',
+      'confirm' => FALSE,
+    ),
+  );
+  return $operations;
+}
+
+/**
+ * set lock for $file if it matches the given $lock_mode
+ *
+ * @param file $file
+ *   the file to lock
+ * @param string $lock_mode
+ *   the mode to check the file for
+ */
+function file_lock_act_on($file, $lock_mode = NULL) {
+  // Do not lock temporary files.
+  if (empty($file->status)) {
+    return;
+  }
+
+  if ($lock_mode == NULL) {
+    $lock_mode = variable_get('file_lock_mode', 'none');
+  }
+
+  switch ($lock_mode) {
+
+    case 'all':
+      file_lock_add_lock($file);
+      break;
+
+    case 'pattern':
+      $pattern = variable_get('file_lock_pattern', '*');
+      if (fnmatch($pattern, $file->filename)) {
+        file_lock_add_lock($file);
+      }
+      break;
+
+    case 'regex':
+      $pattern = variable_get('file_lock_regex', '/.*/');
+      if (preg_match($pattern, $file->filename)) {
+        file_lock_add_lock($file);
+      }
+      break;
+
+  }
+}
+
+
+/**
+ * Add lock for multiple files
+ *
+ * @param array $files
+ *   array of files, indexed by fid.
+ */
+function file_lock_lock_files($files) {
+  foreach ($files as $fid => $f) {
+    // Do not lock temporary files.
+    if (($file = file_load($fid)) && !empty($file->status)) {
+      file_lock_add_lock($file);
+    }
+    else {
+      unset($files[$fid]);
+    }
+  }
+  drupal_set_message(t('Locked @count files.', array('@count' => count($files))));
+}
+
+/**
+ * Remove lock for multiple files
+ *
+ * @param array $files
+ *   array of files, indexed by fid.
+ */
+function file_lock_unlock_files($files) {
+  foreach ($files as $fid => $f) {
+    $file = new stdClass();
+    $file->fid = $fid;
+
+    file_lock_remove_lock($file);
+  }
+  drupal_set_message(t('Unlocked @count files.', array('@count' => count($files))));
+}
+
+/**
+ * Add lock for the $file
+ * This is done by adding an entry to the file_usage table.
+ *
+ * @param file $file
+ *   file object (with at least 'fid' set)
+ */
+function file_lock_add_lock($file) {
+  if (!file_lock_is_locked($file)) {
+    // Only add one lock for every file.
+    file_usage_add($file, 'file_lock', 'module', FILE_LOCK_ID);
+  }
+}
+
+/**
+ * Remove lock for the $file
+ *
+ * @param file $file
+ *   file object (with at least 'fid' set)
+ */
+function file_lock_remove_lock($file) {
+  file_usage_delete($file, 'file_lock', 'FILE_LOCK_ID');
+}
+
+/**
+ * Check if a file has already an entry in file_usage for file_lock
+ *
+ * @param file $file
+ *   the file to check
+ *
+ * @return bool
+ *   TRUE if file is locked
+ *   FALSE if file is not locked
+ */
+function file_lock_is_locked($file) {
+  $file_usage_list = file_usage_list($file);
+  return isset($file_usage_list['file_lock']);
+}

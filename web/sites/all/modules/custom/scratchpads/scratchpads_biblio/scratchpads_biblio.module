@@ -1,0 +1,276 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter.
+ */
+function scratchpads_biblio_form_node_form_alter(&$form, &$form_state, $form_id)
+{
+
+  if (($form_id == 'biblio_node_form' && arg(2) == 'clone') || !isset($form_state['biblio_type'])) {
+    $form_state['biblio_type'] = 'set biblio type so that we can save!';
+  }
+
+  $form['#validate'][] = 'scratchpads_biblio_form_node_form_validate';
+
+}
+
+/**
+ * Custom validation for scratchpads_biblio_form_node_form
+ */
+function scratchpads_biblio_form_node_form_validate(&$form, &$form_state)
+{
+  $title = $form_state['values']['title'];
+  if (strpos($title, '<') !== false) {
+    libxml_use_internal_errors(true);
+    $xmlString = '<xml>' . htmlspecialchars($title) . '</xml>';
+    $doc = simplexml_load_string($xmlString);
+    $errors = libxml_get_errors();
+    if (!$doc || $errors) {
+      form_set_error('title', t('Invalid HTML'));
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter.
+ */
+function scratchpads_biblio_module_implements_alter(&$implementations, $hook)
+{
+  if ($hook == 'form_alter' && isset($implementations['scratchpads_biblio'])) {
+    // We want our form_alter functions to be called after biblio_crossref,
+    // but before other modules (which specifically?)
+    $new_implementations = [
+      'biblio_crossref' => $implementations['biblio_crossref'],
+      'scratchpads_biblio' => $implementations['scratchpads_biblio']
+    ];
+    unset(
+      $implementations['biblio_crossref'],
+      $implementations['scratchpads_biblio']
+    );
+    foreach ($implementations as $key => $value) {
+      $new_implementations[$key] = $value;
+    }
+    $implementations = $new_implementations;
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_biblio_menu_alter(&$items)
+{
+  $items['admin/config/content/biblio'] = $items['admin/config/content/biblio/iomap'];
+  $items['admin/config/content/biblio']['title'] = 'Biblio settings';
+  $items['admin/config/content/biblio']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/config/content/biblio/iomap'] = array(
+    'title' => 'Import/Export Mapping',
+    'type' => MENU_DEFAULT_LOCAL_TASK
+  );
+}
+
+/**
+ * Implements hook_node_view_alter().
+ */
+function scratchpads_biblio_node_view_alter(&$build)
+{
+  if ($build['#node']->type == 'biblio' && (biblio_access('download', $build['#node']) == NODE_ACCESS_DENY || !biblio_access('download', $build['#node']))) {
+    unset($build['field_file']);
+  }
+  if ($build['#node']->type == 'biblio') {
+    $breadcrumb = array();
+    $breadcrumb[] = l(t('Home'), '');
+    $breadcrumb[] = l(t('Literature'), 'biblio');
+    // Set Breadcrumbs
+    drupal_set_breadcrumb($breadcrumb);
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ *
+ * Prevent biblio nodes from being saved with a title.
+ */
+function scratchpads_biblio_node_presave($node)
+{
+  if ($node->type == 'biblio') {
+    // Set a title if it is blank.
+    if (!isset($node->title)) {
+      $node->title = t('[TITLE BLANK]');
+    }
+    if (isset($node->biblio_keywords) && count($node->biblio_keywords) && ($vids = array_keys(array_filter(variable_get('biological_vids', array()))))) {
+      // Associate this record with terms in any vocabulary.
+      $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'tid'
+      ))->condition('vid', $vids)->condition('name', $node->biblio_keywords)->execute();
+      foreach ($results as $row) {
+        $not_found = true;
+        foreach ($node->field_taxonomic_name[LANGUAGE_NONE] as $key => $value) {
+          if (isset($value['tid']) && $value['tid'] == $row->tid) {
+            $not_found = false;
+            break;
+          }
+        }
+        if ($not_found) {
+          $node->field_taxonomic_name[LANGUAGE_NONE][] = (array)taxonomy_term_load($row->tid);
+        }
+      }
+    }
+  }
+  return $node;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_biblio_field_formatter_info()
+{
+  return array(
+    'scratchpads_biblio_biblio_ref' => array(
+      'label' => t('Citation'),
+      'description' => t("Properly formatted citation using the site's style"),
+      'field types' => array(
+        'node_reference'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ *
+ * For all node types returns link to attached files as an image
+ */
+function scratchpads_biblio_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display)
+{
+  $element = array();
+  switch ($display['type']) {
+    case 'scratchpads_biblio_biblio_ref':
+      foreach ($items as $delta => $item) {
+        $node = node_load($item['nid'], null, false);
+        if ($node->type == 'biblio') {
+          $output = theme('biblio_style', array(
+            'node' => $node,
+            'style_name' => biblio_get_style()
+          ));
+          $element[] = array(
+            '#markup' => $output
+          );
+        }
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Hoook form alter
+ * Add another submit handler to biblio_admin_author_edit_form
+ */
+function scratchpads_biblio_form_biblio_admin_author_edit_form_alter(&$form, &$form_state, $form_id)
+{
+  $form['#submit'][] = 'scratchpads_biblio_biblio_admin_author_edit_form_submit';
+}
+
+/**
+ * Custom submit handler for biblio_admin_author_edit_form
+ * When an author is merged/linked, reset the search index
+ * for all contributed biblio nodes
+ * Fixes bug: https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6024
+ */
+function scratchpads_biblio_biblio_admin_author_edit_form_submit(&$form, &$form_state){
+  $cids = array($form_state['values']['cid']);
+  foreach ($form_state['values']['candidates'] as $ccid => $options) {
+    if ($options['link'] || $options['merge']) {
+      $cids[] = $ccid;
+    }
+  }
+  $query = db_select('biblio_contributor', 'b')
+    ->fields('b', array('nid'))
+    ->condition('cid', $cids, 'IN')
+    ->execute();
+
+  $nids = $query->fetchCol();
+  foreach ($nids as &$nid) {
+    // Clear field cache for the node.
+    cache_clear_all('field:node:' . $nid, 'cache_field');
+    scratchpads_biblio_queue_node_for_reindexing($nid);
+  }
+}
+
+/**
+ * Reindex biblio node, so merge/link actions are reflected in the solr index
+ */
+function scratchpads_biblio_queue_node_for_reindexing($nid){
+  $indexer_table = apachesolr_get_indexer_table('node');
+
+  // If we haven't seen this entity before it may not be there, so merge
+  // instead of update.
+  db_merge($indexer_table)
+    ->key(array(
+      'entity_type' => 'node',
+      'entity_id' => $nid,
+    ))
+    ->fields(array(
+      'bundle' => 'biblio',
+      'status' => 1,
+      'changed' => REQUEST_TIME,
+    ))
+    ->execute();
+
+}
+
+/**
+ * Implements hook_FORM_ID_alter
+ * Add modifications to the biblio form
+ */
+function scratchpads_biblio_form_biblio_node_form_alter(&$form, &$form_state){
+  // Since we're now using the json API, we don't need the user to add their registration details
+  unset($form['biblio_doi_lookup']['doi_register']);
+
+	$form['biblio_doi_lookup']['doi_data']['#disabled'] = false;
+  $form['biblio_doi_lookup']['doi_data']['#description'] = t('Enter a DOI in the form: <b>10.1000/123456</b> or the full URL: <b>https://doi.org/10.1000/123456</b>');
+
+	$form['biblio_doi_lookup']['doi_submit']['#disabled'] = false;
+	$form['biblio_doi_lookup']['doi_submit']['#submit'] = [
+    '_scratchpads_biblio_crossref_form_submit'
+	];
+}
+
+/**
+ * Populate the biblio form with data from the crossref json api
+ */
+function _scratchpads_biblio_crossref_form_submit($form, &$form_state) {
+  $node_data = array();
+  if (strlen($form_state['values']['doi_data'])) {
+    // this regex matches "modern" crossref patterns, see here: https://www.crossref.org/blog/dois-and-matching-regular-expressions/
+    preg_match('/^.*?(10.\d{4,9}\/[-._;()\/:a-zA-Z0-9]+)$/i', $form_state['values']['doi_data'], $match);
+    if ($match) {
+      $doi = $match[1];
+      if (!($dup = biblio_crossref_check_doi($doi))) {
+        // Load our custom crossref client
+        module_load_include('php', 'scratchpads_biblio', 'scratchpads_biblio.crossref.client');
+        $client = new BiblioCrossRefClient($doi);
+        $node_data = $client->fetch();
+
+        if (!empty($node_data)) {
+          $form_state['values'] = array_merge($form_state['values'], $node_data);
+          $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data['biblio_type'];
+        }
+        else {
+          form_set_error('doi_data', '');
+        }
+      }
+      else {
+        $message = t('The DOI that you are trying to import already exists in the database, see !url', array('!url' => l('node/' . $dup, 'node/' . $dup)));
+        form_set_error('doi_data', $message);
+      }
+    }
+    else {
+      form_set_error('doi_data', t('This does not appear to be a valid DOI name'));
+    }
+  }
+  $form_state['rebuild'] = TRUE;
+}

@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Install, update & uninstall functions for the Entity Connect module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function entityconnect_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  switch ($phase) {
+    case 'install':
+      $requirements['entityconnect'] = array();
+      $requirements['entityconnect']['title'] = $t('Private filesystem support');
+
+      if (module_exists('entityreference')) {
+        $requirements['entityconnect']['severity'] = REQUIREMENT_OK;
+      }
+      elseif (module_exists('node_reference') || module_exists('user_reference')) {
+        $requirements['entityconnect']['severity'] = REQUIREMENT_OK;
+      }
+      else {
+        $requirements['entityconnect']['severity'] = REQUIREMENT_ERROR;
+        $requirements['entityconnect']['description'] = $t(
+          'Neither Entityreference nor References modules is installed or activated.
+          Entityconnect need at least one of those modules to work.'
+          );
+      }
+
+      break;
+
+    default:
+      break;
+  }
+
+  return $requirements;
+}

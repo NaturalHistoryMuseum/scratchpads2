@@ -1,0 +1,480 @@
+<?php
+
+/*********************************************************************************************
+ *
+ * HOOKS
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_default_flows().
+ */
+function scratchpads_setup_default_flows($name = null){
+  $default_flows = array(
+    'site_setup' => array(
+      'title' => t('Site setup'),
+      'name' => 'site_setup',
+      'description' => t('New scratchpad site set up.'),
+      'path' => 'setup',
+      'show_trail' => 1,
+      'show_back' => 1,
+      'show_cancel' => 1,
+      'finish_path' => '',
+      'steps' => array(
+        array(
+          'form_id' => 'scratchpads_welcome_form',
+          'title' => t('Welcome')
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_front_form',
+          'title' => t('Front page')
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_about_form',
+          'title' => t('About')
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_licence_form',
+          'title' => t('Licence')
+        ),
+        array(
+          'form_id' => 'scratchpads_setup_category_form',
+          'title' => t('Category')
+        ),
+        array(
+          'form_id' => 'tools_admin_form',
+          'title' => t('Tools'),
+          'path' => 'admin/structure/tools'
+        )
+      )
+    )
+  );
+  if($name){
+    return $default_flows[$name];
+  }else{
+    return $default_flows;
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scratchpads_setup_admin_paths(){
+  $paths = array(
+    'setup' => true,
+    'setup/*' => true,
+    'setup-complete' => true
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_setup_menu(){
+  $items = array();
+  $items['setup-complete'] = array(
+    'title' => 'Setup complete',
+    'description' => 'Setup complete.',
+    'page callback' => 'scratchpads_setup_complete_page',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(
+      'access content'
+    )
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_setup_module_implements_alter(&$implementations, $hook){
+  if($hook == 'form_alter'){
+    // Scratchpads setup form later should be called last
+    $group = $implementations['scratchpads_setup'];
+    unset($implementations['scratchpads_setup']);
+    $implementations['scratchpads_setup'] = $group;
+  }
+}
+
+/*********************************************************************************************
+ *
+ * SETUP FORMS
+ *
+ ********************************************************************************************/
+function scratchpads_welcome_form($form, &$form_state){
+  // Sanity check - ensure this hasn't already been completed
+  // If it hasn't been filled in, scratchpads_setup will be integer 0 - 5
+  if(variable_get('scratchpads_setup', false) === false){
+    drupal_goto();
+  }
+  $form['welcome'] = array(
+    '#markup' => t('<h3>Welcome to your new scratchpad! Thank you for signing up.</h3>')
+  );
+  $form['explanation'] = array(
+    '#markup' => t('<p>This walkthrough will guide you through the basic steps to get a scratchpad up and running.</p><p>We recommend you take a few minutes to go through them now - they can be changed later, if needed.</p><p>Click continue to start the set up process.</p>')
+  );
+  return $form;
+}
+
+function scratchpads_setup_front_form($form, &$form_state){
+  $welcome_message = variable_get('front_page_welcome_message', array(
+    'value' => ''
+  ));
+  $form['front_page_welcome_message'] = array(
+    '#title' => t('Welcome message'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#description' => t('Please enter an introductory message to welcome people to your site.'),
+    '#default_value' => $welcome_message['value'],
+    '#required' => true
+  );
+  return $form;
+}
+
+/**
+ * Form submit
+ * Front page
+ */
+function scratchpads_setup_front_form_submit($form, &$form_state){
+  variable_set('front_page_welcome_message', $form_state['values']['front_page_welcome_message']);
+}
+
+function scratchpads_setup_about_form($form, &$form_state){
+  $form['about_us'] = array(
+    '#title' => t('About your site'),
+    '#type' => 'text_format',
+    '#format' => null,
+    '#description' => t('An <em>About us</em> page is automatically created for your site.'),
+    '#required' => true
+  );
+  return $form;
+}
+
+function scratchpads_setup_about_form_submit($form, &$form_state){
+  $node = new stdClass();
+  $node->type = 'page';
+  node_object_prepare($node);
+  $lang = field_language('node', $node, 'body');
+  $node->title = t('About us');
+  $node->language = $lang;
+  $body_text = $form_state['values']['about_us']['value'];
+  $node->body[$node->language][0]['value'] = $body_text;
+  $node->body[$node->language][0]['summary'] = text_summary($body_text);
+  $node->body[$node->language][0]['format'] = $form_state['values']['about_us']['format'];
+  $path = 'about-us';
+  $node->path = array(
+    'alias' => $path
+  );
+  $node->menu = array(
+    'enabled' => 1,
+    'module' => 'menu',
+    'link_title' => $node->title,
+    'description' => $node->title,
+    'weight' => 5,
+    'menu_name' => PRIMARY_MENU_NAME
+  );
+  node_save($node);
+}
+
+function scratchpads_setup_licence_form($form, &$form_state){
+  $form['licence_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Licence type'),
+    '#description' => l(t('Read about creative commons licenses.'), 'http://creativecommons.org/licenses/?lang=en', array(
+      'attributes' => array(
+        'target' => '_blank'
+      )
+    )),
+    '#default_value' => variable_get('creative_commons_block_licence_type', CC_BY),
+    '#options' => creative_commons_get_licence_types()
+  );
+  return $form;
+}
+
+function scratchpads_setup_licence_form_submit($form, &$form_state){
+  variable_set('creative_commons_block_licence_type', $form_state['values']['licence_type']);
+  // Update all instances of field_cc_licence.
+  $info = field_info_field('field_cc_licence');
+  foreach($info['bundles'] as $entity => $bundles){
+    foreach($bundles as $bundle){
+      $instance = field_info_instance($entity, 'field_cc_licence', $bundle);
+      $instance['default_value'][0]['licence'] = $form_state['values']['licence_type'];
+      field_update_instance($instance);
+    }
+  }
+}
+
+function scratchpads_setup_category_form($form, &$form_state){
+  $default_values = scratchpads_statistics_get_site_categories();
+  return array_merge($form, array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_setup') . '/css/scratchpads-setup.css'
+      )
+    ),
+    'left_column' => array(
+      '#prefix' => '<div class="scratchpads-setup-column left">',
+      '#suffix' => '</div>',
+      'scope_focus' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Scope'),
+        '#options' => array(
+          'Citizen Science' => t('Citizen science project'),
+          'Journal' => t('Journal'),
+          'Research proejct' => t('Research project'),
+          'Society/Organisation' => t('Society/Organisation'),
+          'Scope - Other' => t('Other')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'ecoregion' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Ecoregion'),
+        '#options' => array(
+          'Marine' => t('Marine'),
+          'Freshwater' => t('Freshwater'),
+          'Terrestrial' => t('Terrestrial'),
+          'No ecoregional restriction' => t('No ecoregional restriction'),
+          'Ecoregion - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'geography' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Geographical extent'),
+        '#options' => array(
+          'Global/No geographic restriction' => t('Global/No geographical restriction'),
+          'Continental/subcontinental' => t('Continental/subcontinental'),
+          'Regional' => t('Regional (More than one country in a region, e.g. Baltic countries'),
+          'Local' => t('Local (Country/sub-country level)'),
+          'Geography - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      )
+    ),
+    'right_column' => array(
+      '#prefix' => '<div class="scratchpads-setup-column right">',
+      '#suffix' => '</div><div class="clearfix"></div>',
+      'research_domain' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Research domain'),
+        '#options' => array(
+          'Biogeography' => t('Biogeography'),
+          'Conservation' => t('Conservation'),
+          'Mineralogy' => t('Mineralogy'),
+          'Paleontology/Fossils' => t('Paleontology/Fossils'),
+          'Taxonomy/Systematics' => t('Taxonomy/Systematics'),
+          'Research - Other' => t('Other')
+        ),
+        '#default_value' => $default_values,
+        '#attributes' => array(
+          'class' => array(
+            'clearfix'
+          )
+        ),
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      ),
+      'taxonomic_area' => array(
+        '#type' => 'checkboxes',
+        '#title' => t('Taxonomic area'),
+        '#options' => array(
+          'Algae/Fungi' => t('Algae/Fungi'),
+          'Animals' => t('Animals'),
+          'Plants' => t('Plants'),
+          'Taxonomic - Other' => t('Other'),
+          'All taxa' => t('No taxonomic restriction'),
+          'Taxonomic - None' => t('Not applicable')
+        ),
+        '#default_value' => $default_values,
+        '#description' => t('Select all that apply'),
+        '#required' => TRUE
+      )
+    )
+  ));
+}
+
+function scratchpads_setup_category_form_submit($form, &$form_state){
+  $categories = array_merge($form_state['values']['scope_focus'], $form_state['values']['ecoregion'], $form_state['values']['geography'], $form_state['values']['research_domain'], $form_state['values']['taxonomic_area']);
+  $categories = array_filter($categories);
+  scratchpads_statistics_set_site_categories($categories);
+}
+
+/**
+ * Implements hook_form_alter()
+ *
+ * We add the "scratchpads_setup_form_submit" function to ALL steps of the setup
+ * work flow.
+ */
+function scratchpads_setup_form_alter(&$form, &$form_state, $form_id){
+  switch($form_id){
+    case 'scratchpads_welcome_form':
+    case 'scratchpads_setup_front_form':
+    case 'scratchpads_setup_about_form':
+    case 'scratchpads_setup_licence_form':
+    case 'scratchpads_setup_category_form':
+    case 'tools_admin_form':
+      // Add scratchpads_setup_form_submit() to all set up flow forms
+      if(scratchpads_setup_get_step_delta('site_setup', $form_id) !== FALSE){
+        $form['#submit'][] = 'scratchpads_setup_form_submit';
+      }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ *
+ * Tweak the user_profile form so that we can redirect to the setup workflow.
+ */
+function scratchpads_setup_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  if($form['#user']->uid == 2 && !variable_get('scratchpads_setup_complete', FALSE)){
+    $form['#submit'][] = 'scratchpads_setup_user_profile_form_submit';
+  }
+}
+
+function scratchpads_setup_user_profile_form_submit(&$form, &$form_state){
+  $form_state['redirect'] = 'setup';
+  drupal_get_messages();
+}
+
+/**
+ * Get the position of the current step
+ * @param name of flow $flow_name
+ * @param $form_id
+ */
+function scratchpads_setup_get_step_delta($flow_name, $form_id){
+  $setup_flow = scratchpads_setup_default_flows($flow_name);
+  foreach($setup_flow['steps'] as $delta => $step){
+    if($step['form_id'] == $form_id){return $delta;}
+  }
+  return false;
+}
+
+function scratchpads_setup_form_submit(&$form, &$form_state){
+  if(isset($form_state['formflow']) && isset($form_state['form_info'])){
+    $delta = scratchpads_setup_get_step_delta($form_state['form_info']['id'], $form_state['values']['form_id']);
+    // Keep a record of what step we're up to
+    $delta++;
+    variable_set('scratchpads_setup', $delta);
+  }
+}
+
+/*********************************************************************************************
+ *
+ * COMPLETE PAGE
+ *
+ ********************************************************************************************/
+function scratchpads_setup_complete_page(){
+  return array(
+    '#show_messages' => TRUE,
+    '#theme' => 'page',
+    '#type' => 'page',
+    'content' => array(
+      'thanks' => array(
+        '#type' => 'markup',
+        '#markup' => t('<p>Thank you, the basic configuration of your site is complete.</p>')
+      ),
+      'next' => array(
+        '#items' => array(
+          l(t("Create content"), 'admin/content'),
+          l(t("Add a taxonomy"), 'admin/structure/taxonomy')
+        ),
+        '#title' => t("What next?"),
+        '#theme' => 'item_list'
+      ),
+      'help' => array(
+        '#items' => array(
+          l(t("Help"), 'http://help.scratchpads.org', array(
+            'absolute' => true
+          )),
+          l(t("Sandbox"), 'http://sandbox.scratchpads.org', array(
+            'absolute' => true
+          ))
+        ),
+        '#title' => t("Need more help?"),
+        '#theme' => 'item_list'
+      )
+    ),
+    '#sorted' => TRUE
+  );
+}
+
+/*********************************************************************************************
+ *
+ * BLOCKS
+ *
+ ********************************************************************************************/
+function scratchpads_setup_block_info(){
+  // This example comes from node.module.
+  $blocks['scratchpads_setup'] = array(
+    'info' => t('Scratchpads setup'),
+    'cache' => DRUPAL_NO_CACHE,
+    'region' => 'dashboard_sidebar',
+    'status' => 1,
+    'theme' => 'scratchpads_admin'
+  );
+  return $blocks;
+}
+
+function scratchpads_setup_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'scratchpads_setup':
+      $path = drupal_get_path('module', 'scratchpads_setup');
+      $block['subject'] = t('Setup status');
+      $setup_flow = scratchpads_setup_default_flows('site_setup');
+      $current_step = variable_get('scratchpads_setup', false);
+      if(is_numeric($current_step)){
+        $percentage_complete = round(($current_step / count($setup_flow['steps'])) * 100);
+      }else{
+        $percentage_complete = 100;
+      }
+      if($percentage_complete <= 0){
+        $class = 'zero-complete';
+      }elseif($percentage_complete < 60){
+        $class = 'half-complete';
+      }else{
+        $class = 'complete';
+      }
+      $block['content'] = array(
+        'bar' => array(
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => '&nbsp;',
+          '#attributes' => array(
+            'style' => 'width: ' . ($percentage_complete > 0 ? $percentage_complete : '1') . '%',
+            'class' => $class
+          ),
+          '#prefix' => '<div class="setup-complete">',
+          '#suffix' => '</div>'
+        ),
+        'text' => array(
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => t('!percentage% complete', array(
+            '!percentage' => $percentage_complete
+          ))
+        ),
+        '#attached' => array(
+          'css' => array(
+            $path . '/css/scratchpads-setup.css'
+          )
+        )
+      );
+      if($percentage_complete < 100){
+        $block['content']['link'] = array(
+          '#type' => 'link',
+          '#href' => 'setup/' . $current_step,
+          '#title' => t("Finish setting up the site")
+        );
+      }
+      break;
+  }
+  return $block;
+}

@@ -1,0 +1,209 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function biblio_crossref_form_biblio_node_form_alter(&$form, &$form_state) {
+  global $user;
+  if (phpversion() > 5 && !$form_state['submitted'] && !isset($form['#node']->nid)) {
+    $form['biblio_doi_lookup'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('DOI Lookup'),
+      '#weight' => -20,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $have_pid = variable_get('biblio_crossref_pid', '');
+    $user_pid = (isset($user->data['biblio_crossref_pid']) && !empty($user->data['biblio_crossref_pid'])) ? $user->data['biblio_crossref_pid'] : '';
+    if (variable_get('biblio_show_crossref_profile_form', '1') && !empty($user_pid)) {
+      $have_pid = $user_pid;
+    }
+    if (empty($have_pid)) {
+      $form['biblio_doi_lookup']['doi_register'] = array(
+        '#prefix' => '<p><b>',
+        '#suffix' => '</b></p>',
+        '#markup' => t('!url1 and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url2', array('!url1' => l(t('You need to register with CrossRef'), 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)), '!url2' => l(t('here...'), "user/$user->uid/edit"))),
+      );
+    }
+
+    $form['biblio_doi_lookup']['doi_data'] = array(
+      '#type' => 'textfield',
+      '#title' => t('DOI'),
+      '#required' => FALSE,
+      '#default_value' => (isset($form_state['values']['doi_data']) ? $form_state['values']['doi_data'] : ''),
+      '#description' => t('Enter a DOI name in the form: <b>10.1000/123456</b>'),
+      '#disabled' => empty($have_pid),
+      '#size' => 60,
+      '#maxlength' => 255,
+      '#weight' => -4,
+    );
+    $form['biblio_doi_lookup']['doi_submit'] = array(
+      '#type' => 'submit',
+      '#disabled' => empty($have_pid),
+      '#value' => t('Populate using DOI'),
+      '#submit' => array('biblio_crossref_form_biblio_node_form_submit'),
+    );
+  }
+  $biblio_crossref_id = (isset($form_state['values']['biblio_crossref_id'])) ? $form_state['values']['biblio_crossref_id'] : '';
+  $biblio_crossref_md5 = (isset($form_state['values']['biblio_crossref_md5'])) ? $form_state['values']['biblio_crossref_md5'] : '';
+  $form['biblio_crossref_id'] = array('#type' => 'value', '#value' => $biblio_crossref_id);
+  $form['biblio_crossref_md5'] = array('#type' => 'value', '#value' => $biblio_crossref_md5);
+}
+
+/**
+ *
+ */
+function biblio_crossref_form_biblio_node_form_submit($form, &$form_state) {
+  global $user;
+  $node_data = array();
+  if (strlen($doi = $form_state['values']['doi_data'])) {
+    if (($doi_start = strpos($form_state['values']['doi_data'], '10.')) !== FALSE) {
+      if (!($dup = biblio_crossref_check_doi($doi))) {
+        $crossref_pid = variable_get('biblio_crossref_pid', '');
+        $user_pid = (isset($user->data['biblio_crossref_pid']) && !empty($user->data['biblio_crossref_pid'])) ? $user->data['biblio_crossref_pid'] : '';
+        if (variable_get('biblio_show_crossref_profile_form', '1') && !empty($user_pid)) {
+          $crossref_pid = $user_pid;
+        }
+
+        if (empty($crossref_pid)) {
+          form_set_error('doi_data', l(t('You need to register with CrossRef'), 'http://www.crossref.org/requestaccount/', array('attributes' => array('target' => '_blank'), 'absolue' => TRUE)) . ' ' . t('and then enter your CrossRef UserID in the "<i>CrossRef Login Information</i>" section of your account profile !url', array('!url' => l(t('here...'), "user/$user->uid/edit"))));
+          return;
+        }
+
+        module_load_include('php', 'biblio_crossref', 'biblio.crossref.client');
+        $client = new BiblioCrossRefClient($doi, $crossref_pid);
+        $node_data = $client->fetch();
+
+        if (!empty($node_data)) {
+          $form_state['values'] = array_merge($form_state['values'], $node_data);
+          $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data['biblio_type'];
+        }
+        else {
+          form_set_error('doi_data', '');
+        }
+      }
+      else {
+        $message = t('The DOI that you are trying to import already exists in the database, see !url', array('!url' => l('node/' . $dup, 'node/' . $dup)));
+        form_set_error('doi_data', $message);
+      }
+    }
+    else {
+      form_set_error('doi_data', t('This does not appear to be a valid DOI name, it should start with "10."'));
+    }
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ *
+ */
+function biblio_crossref_check_doi($doi) {
+  return db_query("SELECT nid FROM {biblio_crossref} WHERE biblio_crossref_id = :doi", array(':doi' => $doi))->fetchField();
+}
+
+/**
+ *
+ */
+function biblio_crossref_biblio_lookup_link_settings() {
+  return array('crossref' => t('DOI'));
+}
+
+/**
+ *
+ */
+function biblio_crossref_biblio_mapper_options() {
+  return array(
+    'crossref' => array(
+      'title' => t('CrossRef XML'),
+      'export' => FALSE,
+    ),
+  );
+}
+
+/**
+ *
+ */
+function biblio_crossref_biblio_lookup_link($node) {
+  $show_link = variable_get('biblio_lookup_links', array('crossref' => TRUE));
+  if (empty($show_link['crossref']) || !isset($node) || (!isset($node->biblio_crossref_id) && empty($node->biblio_doi))) {
+    return;
+  }
+  if ($node->type == 'biblio') {
+    $doi = isset($node->biblio_crossref_id) ? $node->biblio_crossref_id : $node->biblio_doi;
+    if (($doi_start = strpos($doi, '10.')) !== FALSE) {
+      $doi = substr($doi, $doi_start);
+    }
+    $link = 'http://dx.doi.org/' . $doi;
+    return array(
+      'biblio_crossref' => array(
+        'title'      => t('DOI'),
+        'href'       => $link,
+        'attributes' => array('title' => t("Click to view the CrossRef listing for this node")),
+      ),
+    );
+  }
+}
+
+/**
+ *
+ */
+function biblio_crossref_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'biblio' && (isset($node->biblio_crossref_id) || !empty($node->biblio_doi))) {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $node->content['links']['biblio_crossref'] = array(
+          '#links' => biblio_crossref_biblio_lookup_link($node),
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+/**
+ *
+ */
+function biblio_crossref_node_delete($node) {
+  if ($node->type != 'biblio') {
+    return;
+  }
+  db_delete('biblio_crossref')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ *
+ */
+function biblio_crossref_node_insert($node) {
+  if ($node->type != 'biblio' ||
+      empty($node->biblio_crossref_id) ||
+    empty($node->biblio_crossref_md5)
+  ) {
+    return;
+  }
+  drupal_write_record('biblio_crossref', $node);
+}
+
+/**
+ *
+ */
+function biblio_crossref_node_load($nodes, $types) {
+  $result = db_query('SELECT  nid, biblio_crossref_id, biblio_crossref_md5  FROM {biblio_crossref} WHERE nid IN(:nids)', array(':nids' => array_keys($nodes)));
+  foreach ($result as $record) {
+    $nodes[$record->nid]->biblio_crossref_id = $record->biblio_crossref_id;
+    $nodes[$record->nid]->biblio_crossref_md5 = $record->biblio_crossref_md5;
+  }
+}
+
+/**
+ *
+ */
+function biblio_crossref_crossref_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_crossref', 'biblio_crossref');
+  _reset_crossref_map($type);
+}

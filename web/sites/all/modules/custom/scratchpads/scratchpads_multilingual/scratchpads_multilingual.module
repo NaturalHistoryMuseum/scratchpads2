@@ -1,0 +1,452 @@
+<?php
+
+/**
+ * Implements hook_multilingual_settings_changed
+ */
+function scratchpads_multilingual_multilingual_settings_changed(){
+  // we want to do this just once, but have to wait until after a
+  // language has been enabled
+  if(variable_get('scratchpads_multilingual_init', 0) == 0){
+    variable_set('scratchpads_multilingual_init', 1);
+    include_once DRUPAL_ROOT . '/includes/language.inc';
+    $negotiation_all = language_negotiation_info();
+    $negotiation = array(
+      'locale-url' => $negotiation_all['locale-url'],
+      'locale-user' => $negotiation_all['locale-user'],
+      'language-default' => $negotiation_all['language-default']
+    );
+    language_negotiation_set('language', $negotiation);
+  }
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_multilingual_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer languages',
+      'translate interface'
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_multilingual_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/regional/language/edit',
+    'admin/config/regional/language/update',
+    'admin/config/regional/language/configure',
+    'admin/config/regional/translate'
+  ));
+}
+
+/**
+ * Implements hook_module_implements_alter(). Change the order in which the
+ * hooks are run, to ensure that our menu alter occurs after the hands off menu
+ * alter.
+ */
+function scratchpads_multilingual_module_implements_alter(&$implementations, $hook){
+  if($hook == 'menu_alter'){
+    $group = $implementations['scratchpads_multilingual'];
+    unset($implementations['scratchpads_multilingual']);
+    $implementations['scratchpads_multilingual'] = $group;
+  }
+}
+
+/**
+ * Implements hook_menu_alter()
+ */
+function scratchpads_multilingual_menu_alter(&$items){
+  $items['admin/config/regional/translate/edit/%']['access arguments'] = array(
+    'administer languages'
+  );
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_multilingual_menu(){
+  return array(
+    'admin/config/regional/translate-strings' => array(
+      'title' => 'Translate interface',
+      'description' => 'Add or tweak translations for specific strings. You should use the "Interface Translate - Contribute" tool before using this.',
+      'weight' => 10,
+      'page callback' => 'locale_translate_seek_screen',
+      'access arguments' => array(
+        'translate interface'
+      ),
+      'file' => 'locale.admin.inc',
+      'file path' => drupal_get_path('module', 'locale')
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter Add an additional submit function so that
+ * we can remove the redirect that is pointlessly added byu the
+ * locale_translation_filter_form_submit() function
+ */
+function scratchpads_multilingual_form_locale_translation_filter_form_alter(&$form, &$form_state, $form_id){
+  $form['#submit'] = array(
+    'locale_translation_filter_form_submit',
+    'scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit'
+  );
+}
+
+/**
+ * Implements hook_theme
+ */
+function scratchpads_multilingual_theme(){
+  return array(
+    'scratchpads_multilingual_locale_languages_overview_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter Remove the "edit" and "Operations" columns
+ * from the language page
+ */
+function scratchpads_multilingual_form_locale_languages_overview_form_alter(&$form, &$form_state, $form_id){
+  if(!user_access('scratchpads team')){
+    $form['#theme'] = 'scratchpads_multilingual_locale_languages_overview_form';
+  }
+}
+
+/**
+ * Copy of theme_locale_languages_overview_form(), but without the Operations
+ * column.
+ */
+function theme_scratchpads_multilingual_locale_languages_overview_form($variables){
+  $form = $variables['form'];
+  $default = language_default();
+  foreach($form['name'] as $key => $element){
+    // Do not take form control structures.
+    if(is_array($element) && element_child($key)){
+      // Disable checkbox for the default language, because it cannot be
+      // disabled.
+      if($key == $default->language){
+        $form['enabled'][$key]['#attributes']['disabled'] = 'disabled';
+      }
+      // Add invisible labels for the checkboxes and radio buttons in the table
+      // for accessibility. These changes are only required and valid when the
+      // form is themed as a table, so it would be wrong to perform them in the
+      // form constructor.
+      $title = drupal_render($form['name'][$key]);
+      $form['enabled'][$key]['#title'] = t('Enable !title', array(
+        '!title' => $title
+      ));
+      $form['enabled'][$key]['#title_display'] = 'invisible';
+      $form['site_default'][$key]['#title'] = t('Set !title as default', array(
+        '!title' => $title
+      ));
+      $form['site_default'][$key]['#title_display'] = 'invisible';
+      $rows[] = array(
+        'data' => array(
+          '<strong>' . $title . '</strong>',
+          drupal_render($form['native'][$key]),
+          check_plain($key),
+          drupal_render($form['direction'][$key]),
+          array(
+            'data' => drupal_render($form['enabled'][$key]),
+            'align' => 'center'
+          ),
+          drupal_render($form['site_default'][$key]),
+          drupal_render($form['weight'][$key])
+        ),
+        'class' => array(
+          'draggable'
+        )
+      );
+    }
+  }
+  $header = array(
+    array(
+      'data' => t('English name')
+    ),
+    array(
+      'data' => t('Native name')
+    ),
+    array(
+      'data' => t('Code')
+    ),
+    array(
+      'data' => t('Direction')
+    ),
+    array(
+      'data' => t('Enabled')
+    ),
+    array(
+      'data' => t('Default')
+    ),
+    array(
+      'data' => t('Weight')
+    )
+  );
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(
+      'id' => 'language-order'
+    )
+  ));
+  $output .= drupal_render_children($form);
+  drupal_add_tabledrag('language-order', 'order', 'sibling', 'language-order-weight');
+  return $output;
+}
+
+/**
+ * Submit handler to remove the form redirect
+ */
+function scratchpads_multilingual_remove_redirect_from_locale_translation_filter_form_submit($form, &$form_state){
+  unset($form_state['redirect']);
+}
+
+/**
+ * Implements hook_block_info
+ */
+function scratchpads_multilingual_block_info(){
+  $blocks = array();
+  $blocks['language_switcher'] = array(
+    'info' => t('Scratchpads language switcher'),
+    'region' => 'slide_top',
+    'weight' => 1,
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1,
+    'cache' => DRUPAL_CACHE_PER_PAGE
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_multilingual_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'language_switcher':
+      if(drupal_multilingual()){
+        $path = drupal_is_front_page() ? '<front>' : $_GET['q'];
+        $links = language_negotiation_get_switch_links('language', $path);
+        if(isset($links->links)){
+          $class = "language-switcher-{$links->provider} scratchpads-slide-toggle-body";
+          $variables = array(
+            'links' => $links->links,
+            'attributes' => array(
+              'class' => array(
+                $class
+              )
+            )
+          );
+          $link = l(t('Language'), $path, array(
+            'attributes' => array(
+              'class' => array(
+                'scratchpads-slide-toggle'
+              )
+            )
+          ));
+          $block['content'] = '<div class="scratchpads-slide-toggle-container">' . theme('links__locale_block', $variables) . $link . '</div>';
+          $block['subject'] = t('Languages');
+        }
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_preprocess_html
+ */
+function scratchpads_multilingual_preprocess_html(&$variables){
+  if(drupal_multilingual()){
+    $variables['classes_array'][] = "multilingual";
+  }
+}
+
+/**
+ * Implements hook_system_info_alter()
+ */
+/**
+ * Implements hook_system_info_alter().
+ */
+function scratchpads_multilingual_system_info_alter(&$info, $file, $type){
+  switch($file->name){
+    // The following updates allow us to download the translations for latest
+    // stable release of a module when we're actually using a "dev" release.
+    case 'entitycache':
+    case 'field_group':
+      $info['version'] = '7.x-1.1';
+      break;
+    case 'role_delegation':
+    case 'gravatar':
+    case 'site_map':
+      $info['version'] = '7.x-1.0';
+      break;
+    case 'biblio':
+      $info['version'] = '7.x-1.0-rc5';
+      break;
+    case 'redirect':
+      $info['version'] = '7.x-1.0-rc1';
+      break;
+    case 'views_data_export':
+      $info['version'] = '7.x-3.0-beta6';
+      break;
+    case 'field_collection':
+      $info['version'] = '7.x-1.0-beta5';
+      break;
+    case 'l10n_update':
+      $info['version'] = '7.x-1.0-beta3';
+      break;
+    case 'beautytips':
+      $info['version'] = '7.x-2.0-beta2';
+      break;
+    case 'boost':
+    case 'entity_translation':
+      $info['version'] = '7.x-1.0-beta2';
+      break;
+    case 'efq_views':
+      $info['version'] = '7.x-1.0-alpha3';
+      break;
+    case 'feeds':
+    case 'styles':
+      $info['version'] = '7.x-2.0-alpha8';
+      break;
+    case 'file_entity':
+    case 'media':
+      $info['version'] = '7.x-2.0-unstable7';
+      break;
+  }
+  if(substr($file->uri, 0, 24) == 'sites/all/modules/custom'){
+    if(empty($info['version']) || $info['version'] != VERSION){
+      if(SCRATCHPADS_VERSION == 'TAG'){
+        // Do nothing here, we're on a development branch, and not on a release.
+      }else{
+        $info['version'] = '7.x-' . SCRATCHPADS_VERSION;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_load()
+ */
+function scratchpads_multilingual_field_attach_load($entity_type, $queried_entities, $age, $options){
+  foreach($queried_entities as $entity){
+    list ( $id, $vid, $bundle ) = entity_extract_ids($entity_type, $entity);
+    $instances = _field_invoke_get_instances($entity_type, $bundle, array(
+      'deleted' => FALSE
+    ));
+    foreach($instances as $instance){
+      if(count($queried_entities[$id]->{$instance['field_name']})){
+        $field = field_info_field_by_id($instance['field_id']);
+        if($field['translatable']){
+          $language = field_language($entity_type, $entity, $field['field_name']);
+          $set_to_language_none = FALSE;
+          if($language == LANGUAGE_NONE){
+            $set_to_language_none = TRUE;
+          }
+          $queried_entities[$id]->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($queried_entities[$id]->{$instance['field_name']}, $set_to_language_none);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_storage_pre_update()
+ */
+function scratchpads_multilingual_field_storage_pre_update($entity_type, $entity, &$skip_fields){
+  scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, $skip_fields);
+}
+
+/**
+ * Implements hook_field_storage_pre_insert()
+ */
+function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity, &$skip_fields){
+  list ( $id, $vid, $bundle ) = entity_extract_ids($entity_type, $entity);
+  $instances = _field_invoke_get_instances($entity_type, $bundle, array(
+    'deleted' => FALSE
+  ));
+  foreach($instances as $instance){
+    if(count($entity->{$instance['field_name']})){
+      $field = field_info_field_by_id($instance['field_id']);
+      if($field['translatable']){
+        try{
+          db_delete('field_data_' . $instance['field_name'])->condition('entity_id', $id)->condition('entity_type', $entity_type)->execute();
+        }catch(Exception $e){
+          ;
+        }
+        $language = field_language($entity_type, $entity, $field['field_name']);
+        $set_to_language_none = FALSE;
+        if($language == LANGUAGE_NONE){
+          $set_to_language_none = TRUE;
+        }
+        $entity->{$instance['field_name']} = _scratchpads_multilingual_merge_language_none_values($entity->{$instance['field_name']}, $set_to_language_none);
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to merge values from LANGUAGE_NONE into the currently
+ * selected language. Note, we retain the LANGUAGE_NONE values so that they can
+ * be merged into other languages. Note, this function is only called on arrays
+ * that HAVE LANGUAGE_NONE values, so there is no need to check that first.
+ */
+function _scratchpads_multilingual_merge_language_none_values($values, $set_to_language_none = FALSE){
+  $languages = language_list('enabled');
+  if($set_to_language_none){
+    $hashes = array();
+    if(isset($values[LANGUAGE_NONE])) {
+      foreach($values[LANGUAGE_NONE] as $id => $value){
+        $hash = md5(serialize($value));
+        $hashes[$hash] = $hash;
+      }
+    }
+    // First we loop through the language we are merging into, and create
+    // hashes
+    // of each value which we can then compare against.
+    foreach($languages[1] as $language){
+      if(isset($values[$language->language])){
+        foreach($values[$language->language] as $id => $value){
+          $hash = md5(serialize($value));
+          if(!isset($hashes[$hash])){
+            $hashes[$hash] = $hash;
+            $values[LANGUAGE_NONE][] = $value;
+          }
+        }
+      }
+    }
+  }else{
+    // First we loop through the language we are merging into, and create
+    // hashes
+    // of each value which we can then compare against.
+    foreach($languages[1] as $language){
+      $hashes = array();
+      if(isset($values[$language->language])){
+        foreach($values[$language->language] as $id => $value){
+          $hash = md5(serialize($value));
+          $hashes[$hash] = $hash;
+        }
+      }
+      // Now we loop through the undefined language, and add any values that
+      // are
+      // not
+      // in the current language to the current language
+      if(!empty($values[LANGUAGE_NONE]) && (is_array($values[LANGUAGE_NONE]) || is_object($values[LANGUAGE_NONE]))){
+        foreach($values[LANGUAGE_NONE] as $id => $value){
+          $hash = md5(serialize($value));
+          if(!isset($hashes[$hash])){
+            $values[$language->language][] = $value;
+          }
+        }
+      }
+    }
+    unset($values[LANGUAGE_NONE]);
+  }
+  return $values;
+}

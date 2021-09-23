@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_sandbox_block_info(){
+  return array(
+    'timer' => array(
+      'info' => t('Sandbox timer'),
+      'cache' => DRUPAL_NO_CACHE,
+      'region' => 'footer',
+      'status' => 1
+    ),
+    'login_details' => array(
+      'info' => t('Sandbox login details'),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+      'region' => 'content',
+      'status' => 1,
+      'weight' => -1000,
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'pages' => '<front>'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_sandbox_block_view($delta = ''){
+  // Prevent caching of the page so that the time remaining, and any other
+  // elements are kept fresh.  We do this ONLY for the Sandbox.
+  global $conf;
+  $conf['cache'] = FALSE;
+  $login_text = t('<a href="!login_url">Login</a> to the site using the username: "username" and the password: "password"', array(
+    '!login_url' => url('user')
+  ));
+  switch($delta){
+    case 'timer':
+      $time_passed = time() - variable_get('sandbox_site_created', time());
+      $time_left = format_interval(21600 - $time_passed);
+      $time_passed = format_interval($time_passed);
+      return array(
+        'subject' => NULL,
+        'content' => '<div style="position:fixed !important;bottom:0px;border-top:solid 1px black;z-index:100;right:0;left:0;background-color:#bbb"><p style="margin:0 !important;padding:3px !important">' . t('The Sandbox was last updated !time_passed ago. You have approximately !time_left before the site is wiped.', array(
+          '!time_left' => $time_left,
+          '!time_passed' => $time_passed
+        )) . (user_is_anonymous() ? ' ' . $login_text : '') . '</p></div>'
+      );
+      break;
+    case 'login_details':
+      if(user_is_anonymous()){return array(
+          'subject' => NULL,
+          'content' => '<h3>' . $login_text . '</h3>'
+        );}
+      break;
+  }
+}

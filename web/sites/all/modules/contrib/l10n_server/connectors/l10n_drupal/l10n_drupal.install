@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ *   Localization server for Drupal installation/uninstallation and updates.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function l10n_drupal_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  // Look for Tar library used for compression and uncompression.
+  $tar_library = @file_get_contents('Archive/Tar.php', TRUE);
+  $tar_available = !empty($tar_library);
+  $requirements['l10n_community_tar'] = array(
+    'title' => $t('Compression functionality'),
+    'value' => $t('Archive/Tar.php available'),
+  );
+  if (!$tar_available) {
+    $requirements['l10n_drupal_tar']['description'] = $t('The PEAR library Archive/Tar.php is missing. Please <a href="@pear">obtain PEAR</a> or a copy of this file and put it on the include path.', array('@pear' => 'http://pear.php.net/'));
+    $requirements['l10n_drupal_tar']['severity'] = REQUIREMENT_WARNING;
+    $requirements['l10n_drupal_tar']['value'] = $t('Not available');
+  }
+
+  if (module_exists('potx')) {
+    $requirements['l10n_drupal_potx'] = l10n_drupal_require_potx_with_context();
+  }
+
+  return $requirements;
+}
+
+/**
+ * Check that potx supports context.
+ *
+ * In its own function, so potx can itself cross-check that l10n_drupal is
+ * up to date in its API use.
+ */
+function l10n_drupal_require_potx_with_context() {
+  // If potx is already installed and enabled, check its version by looking at
+  // the specific API piece which lets us fingerprint the right version.
+  // The 3.x branch introduced _potx_find_t_calls_with_context().
+
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  module_load_include('inc', 'potx');
+  $requirement = array(
+    'title' => $t('Translation template extractor'),
+    'value' => $t('Localization Server compatible version'),
+  );
+  if (!function_exists('_potx_find_t_calls_with_context')) {
+    $requirement['description'] = $t('The Translation template extractor should be from the 6.x-3.x branch to be compatible with the Localization Server.');
+    $requirement['severity'] = REQUIREMENT_ERROR;
+    $requirement['value'] = $t('Not compatible with Localization Server');
+  }
+
+  return $requirement;
+}

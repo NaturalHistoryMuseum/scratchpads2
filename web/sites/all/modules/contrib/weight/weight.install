@@ -1,0 +1,531 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function weight_schema() {
+  $schema['weight_settings'] = array(
+    'description' => 'Table for storing Weight configuration',
+    'fields' => array(
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight_enabled' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight_range' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 20,
+      ),
+      'menu_weight' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight_default' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'sync_translations' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('type'),
+    'foreign keys' => array(
+      'node_type' => array(
+        'table' => 'node_type',
+        'columns' => array('type' => 'type'),
+      ),
+    ),
+  );
+
+  $schema['weight_weights'] = array(
+    'fields' => array(
+      'entity_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('entity_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Initial schema for update 7200().
+ */
+function weight_schema_7200() {
+  $schema['weight_settings'] = array(
+    'description' => 'Table for storing Weight configuration',
+    'fields' => array(
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight_enabled' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight_range' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 20,
+      ),
+      'menu_weight' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight_default' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('type'),
+    'foreign keys' => array(
+      'node_type' => array(
+        'table' => 'node_type',
+        'columns' => array('type' => 'type'),
+      ),
+    ),
+  );
+
+  // n.b. weight_weights was not in the original schema, but some of the
+  // subsequent update hooks were written as if it were, so it's simpler
+  // to include it.
+  $schema['weight_weights'] = array(
+    'fields' => array(
+      'entity_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('entity_id'),
+  );
+  return $schema;
+}
+
+/**
+ * Insert existing settings into {weight_settings}.
+ */
+function weight_update_7200() {
+  $types = node_type_get_names();
+  $weight_types = variable_get('weight_node_types', array());
+  $range = variable_get('weight_range', 20);
+  $menu_weight = (int) variable_get('weight_use_menu', 0);
+  $default = (int) variable_get('weight_default', 0);
+
+  // This is essentially the same as calling drupal_install_schema(), but
+  // using weight_schema_7200() rather than the default weight_schema().
+  // This is important for processing subsequent table updates.
+  $schema = weight_schema_7200();
+  _drupal_schema_initialize($schema, 'weight');
+  foreach ($schema as $name => $table) {
+    db_create_table($name, $table);
+  }
+
+  // If there are no content types, there is nothing to convert.
+  if (empty($types)) {
+    return;
+  }
+
+  foreach ($types as $type => $name) {
+    if (in_array($type, $weight_types)) {
+      $enabled = 1;
+    }
+    else {
+      $enabled = 0;
+    }
+
+    $query = db_insert('weight_settings')
+      ->fields(array(
+        'type' => $type,
+        'weight_enabled' => $enabled,
+        'weight_range' => $range,
+        'menu_weight' => $menu_weight,
+        'weight_default' => $default,
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * We don't need weight_update_7201 anymore.
+ *
+ * This originally created a new field_weight and associated
+ * instances, but this approach is deprecated. Updates 7206
+ * and 7207 will clean up any remnants of this.
+ */
+
+/**
+ * Move existing node weights to weight_weights table and restore sticky values.
+ */
+function weight_update_7202(&$sandbox) {
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last'] = 0;
+    $sandbox['max'] = db_query("SELECT COUNT(nid) FROM {node}")->fetchField();
+  }
+
+  $query = db_select('node', 'n');
+  $query
+    ->fields('n', array('nid', 'type', 'sticky'))
+    ->condition('n.nid', $sandbox['last'], '>')
+    ->orderBy('n.nid')
+    ->range(0, 200);
+  $nodes = $query->execute();
+
+  foreach ($nodes as $node) {
+    $values = _weight_update_7202_decode($node->sticky);
+    if ($values['weight'] != NULL) {
+      $query = db_insert('weight_weights')
+        ->fields(array(
+          'entity_id' => $node->nid,
+          'entity_type' => 'node',
+          'weight' => $values['weight'],
+        ))
+        ->execute();
+    }
+
+    db_update('node')
+      ->fields(array(
+        'sticky' => $values['sticky'],
+      ))
+      ->condition('nid', $node->nid)
+      ->execute();
+
+    db_update('node_revision')
+      ->fields(array(
+        'sticky' => $values['sticky'],
+      ))
+      ->condition('nid', $node->nid)
+      ->execute();
+
+    $sandbox['progress']++;
+    $sandbox['last'] = $node->nid;
+  }
+
+  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+}
+
+/**
+ * Remove existing variables.
+ */
+function weight_update_7203() {
+  variable_del('weight_node_types');
+  variable_del('weight_range');
+  variable_del('weight_use_menu');
+  variable_del('weight_default');
+  variable_del('weight_label');
+  variable_del('weight_position');
+}
+
+/**
+* Alter database to allow for negative default weights.
+*/
+function weight_update_7204() {
+  $spec = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_change_field('weight_settings', 'weight_default', 'weight_default', $spec);
+}
+
+/**
+ * Set default weights for enabled types.
+ */
+function weight_update_7205(&$sandbox) {
+  if (!db_table_exists('weight_weights')) {
+    $types = array();
+    $defaults = array();
+    $result = db_query('SELECT type, weight_default FROM {weight_settings} WHERE weight_enabled=1');
+    foreach ($result as $row) {
+      $types[] = $row->type;
+      $defaults[$row->type] = $row->weight_default;
+    }
+
+    if (!empty($types)) {
+      if (!isset($sandbox['progress'])) {
+        if (!db_table_exists('weight_weights')) {
+          db_create_table('weight_weights', drupal_get_schema_unprocessed('weight', 'weight_weights'));
+        }
+
+        $sandbox['progress'] = 0;
+        $sandbox['last'] = 0;
+        $sandbox['max'] = db_query("SELECT COUNT(nid) FROM {node} WHERE type IN (:types)",
+          array(':types' => $types))->fetchField();
+      }
+
+      $query = db_select('node', 'n');
+      $query
+        ->fields('n', array('nid', 'type'))
+        ->condition('n.type', $types, 'IN')
+        ->condition('n.nid', $sandbox['last'], '>')
+        ->orderBy('n.nid')
+        ->range(0, 200);
+      $nodes = $query->execute();
+
+      foreach ($nodes as $node) {
+        db_insert('weight_weights')
+          ->fields(array(
+            'entity_id' => $node->nid,
+            'entity_type' => 'node',
+            'weight' => $defaults[$node->type],
+          ))
+          ->execute();
+
+        $sandbox['progress']++;
+        $sandbox['last'] = $node->nid;
+      }
+
+      $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+    }
+  }
+}
+
+/**
+ * Move existing node weights to weight_weights from field_data_weight.
+ * @see weight_update_7201().
+ */
+function weight_update_7206(&$sandbox) {
+  if (db_table_exists('field_data_weight')) {
+    if (!isset($sandbox['progress'])) {
+      $sandbox['progress'] = 0;
+      $sandbox['last'] = 0;
+      $sandbox['max'] = db_query("SELECT COUNT(entity_id) FROM {field_data_weight}
+        WHERE language=:lang", array(':lang' => LANGUAGE_NONE))->fetchField();
+    }
+
+    $query = db_select('field_data_weight', 'fw');
+    $query
+      ->fields('fw', array('entity_id', 'weight_value'))
+      ->condition('fw.language', LANGUAGE_NONE)
+      ->condition('fw.entity_id', $sandbox['last'], '>')
+      ->orderBy('fw.entity_id')
+      ->range(0, 200);
+    $nodes = $query->execute();
+
+    foreach ($nodes as $node) {
+      db_update('weight_weights')
+        ->fields(array(
+          'entity_id' => $node->entity_id,
+          'entity_type' => 'node',
+          'weight' => $node->weight_value,
+        ))
+        ->condition('entity_id', $node->entity_id)
+        ->execute();
+
+      $sandbox['progress']++;
+      $sandbox['last'] = $node->entity_id;
+    }
+
+    $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  }
+}
+
+/**
+ * Remove unneeded weight field.
+ * @see weight_update_7201().
+ */
+function weight_update_7207() {
+  if (field_info_field('weight')) {
+    field_delete_field('weight');
+    field_sync_field_status();
+    $limit = variable_get('field_purge_batch_size', 10);
+    field_purge_batch($limit);
+  }
+}
+
+/**
+ * Remove unused id column from weight_settings and add primary key to type.
+ */
+function weight_update_7208() {
+  db_drop_field('weight_settings', 'id');
+  db_add_primary_key('weight_settings', array('type'));
+}
+
+/**
+ * Add sync_translations column to weight_settings.
+ */
+function weight_update_7209() {
+  // Due to previous schema mix-ups in update 7200, this field may already exist.
+  if (db_field_exists('weight_settings', 'sync_translations')) {
+    return;
+  }
+  $spec = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('weight_settings', 'sync_translations', $spec);
+}
+
+/**
+ * Ensure all nodes of enabled types have a weight.
+ */
+function weight_update_7210(&$sandbox) {
+  $types = array();
+  $defaults = array();
+  $result = db_query('SELECT type, weight_default FROM {weight_settings} WHERE weight_enabled=1');
+  foreach ($result as $row) {
+    $types[] = $row->type;
+    $defaults[$row->type] = $row->weight_default;
+  }
+
+  if (!empty($types)) {
+    // Form the base query.
+    $query = db_select('node', 'n');
+    $query->leftJoin('weight_weights', 'w',
+      "w.entity_type = 'node' AND w.entity_id = n.nid"
+    );
+    $query->fields('n', array('nid', 'type'))
+      ->condition('n.type', $types, 'IN')
+      ->isNull('w.entity_id');
+
+    // The first time through, establish the total number of nodes.
+    if (!isset($sandbox['progress'])) {
+      $sandbox['progress'] = 0;
+      $sandbox['last'] = 0;
+      $sandbox['max'] = $query->countQuery()->execute()->fetchField();
+    }
+
+    // Add the query conditions for the current iteration only.
+    $query->condition('n.nid', $sandbox['last'], '>')
+      ->orderBy('n.nid')
+      ->range(0, 200);
+
+    $nodes = $query->execute();
+
+    foreach ($nodes as $node) {
+      db_insert('weight_weights')
+        ->fields(array(
+          'entity_id' => $node->nid,
+          'entity_type' => 'node',
+          'weight' => $defaults[$node->type],
+        ))
+        ->execute();
+
+      $sandbox['progress']++;
+      $sandbox['last'] = $node->nid;
+    }
+
+    $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  }
+}
+
+/**
+ * Make sure all content types have an entry in {weight_settings}.
+ */
+function weight_update_7211() {
+  $types = node_type_get_names();
+  $settings = _weight_get_settings();
+
+  $range = variable_get('weight_range', 20);
+  $menu_weight = (int) variable_get('weight_use_menu', 0);
+  $default = (int) variable_get('weight_default', 0);
+
+  foreach ($types as $type => $name) {
+    if (!array_key_exists($type, $settings)) {
+      $query = db_insert('weight_settings')
+        ->fields(array(
+          'type' => $type,
+          'weight_enabled' => 0,
+          'weight_range' => $range,
+          'menu_weight' => $menu_weight,
+          'weight_default' => $default,
+        ))
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Remove unused id column from {weight_settings}.
+ */
+function weight_update_7212() {
+  if (db_field_exists('weight_settings', 'id')) {
+    db_drop_field('weight_settings', 'id');
+    db_add_primary_key('weight_settings', array('type'));
+  }
+}
+
+/**
+ * Decode weight from sticky column.
+ */
+function _weight_update_7202_decode($sticky) {
+  $values = array();
+
+  if ($sticky == 0 || $sticky == 1) {
+    $values['weight'] = NULL;
+    $values['sticky'] = $sticky;
+  }
+  elseif ($sticky > 0) {
+    $values['weight'] = 100 - $sticky;
+    $values['sticky'] = 1;
+  }
+  else {
+    $values['weight'] = -($sticky + 100);
+    $values['sticky'] = 0;
+  }
+
+  return $values;
+}

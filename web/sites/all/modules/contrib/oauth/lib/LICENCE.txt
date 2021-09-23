@@ -1,0 +1,1 @@
+The OAuth php library is originally licensed under the MIT license. And is to be found at google code: http://code.google.com/p/oauth/

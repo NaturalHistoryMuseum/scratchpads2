@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * Test page view permissions.
+ */
+class BiblioPageViewTestCase extends BiblioWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Biblio node view and edit permissions',
+      'description' => 'Create a biblio node and test view / edit permissions.',
+      'group' => 'Biblio',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp('biblio');
+  }
+
+  /**
+   * Creates a node and an anonymous and unpermissioned user attempt to edit it.
+   */
+  public function testBiblioPageView() {
+    // Create a node to view.
+    $node = $this->createNode('101');
+    $this->assertTrue(node_load($node->nid), t('Node created.'));
+
+    // Try to edit with anonymous user.
+    $html = $this->drupalGet("node/$node->nid/edit");
+    $this->assertResponse(403);
+
+    // Create a user without permission to edit node.
+    $web_user = $this->drupalCreateUser(array('access content'));
+    $this->drupalLogin($web_user);
+
+    // Attempt to access edit page.
+    $this->drupalGet("node/$node->nid/edit");
+    $this->assertResponse(403);
+
+    // Create user with permission to edit node.
+    $web_user = $this->drupalCreateUser(array('edit any biblio content'));
+    $this->drupalLogin($web_user);
+
+    // Attempt to access edit page.
+    $this->drupalGet("node/$node->nid/edit");
+    $this->assertResponse(200);
+  }
+
+}

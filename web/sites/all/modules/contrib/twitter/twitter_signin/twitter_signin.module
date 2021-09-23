@@ -1,0 +1,240 @@
+<?php
+/**
+ * @file
+ * Hook implementations for Twitter Signin module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function twitter_signin_menu() {
+  $items['twitter/redirect'] = array(
+    'title' => 'Twitter Redirect',
+    'page callback' => 'twitter_signin_redirect',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/services/twitter/signin'] = array(
+    'title' => 'Sign-in',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('twitter_signin_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'twitter_signin.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function twitter_signin_block_info() {
+  $block[0]['info'] = t('Sign in with Twitter');
+  return $block;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function twitter_signin_block_view($delta) {
+  global $user;
+
+  if (!$user->uid) {
+    $block['subject'] = t('Sign in with Twitter');
+    $block['content'] = twitter_signin_button();
+    return $block;
+  }
+}
+
+/**
+ * Returns an image link for signing in with Twitter.
+ */
+function twitter_signin_button() {
+  return theme('twitter_signin_button');
+}
+
+/**
+ * Implements hook_theme().
+ */
+function twitter_signin_theme() {
+  return array(
+    'twitter_signin_button' => array(),
+  );
+}
+
+/**
+ * Themable function for an image link for signing in with Twitter.
+ */
+function theme_twitter_signin_button() {
+  $img = drupal_get_path('module', 'twitter_signin') . '/images/' . variable_get('twitter_signin_button', 'Sign-in-with-Twitter-lighter-small.png');
+
+  return l(theme('image', array('path' => $img, 'alt' => t('Sign in with Twitter'))), 'twitter/redirect', array('html' => TRUE));
+}
+
+/**
+ * Submit handler for Twitter signin.
+ */
+function twitter_signin_redirect() {
+  module_load_include('inc', 'twitter');
+
+  $key = variable_get('twitter_consumer_key', '');
+  $secret = variable_get('twitter_consumer_secret', '');
+  $twitter = new Twitter($key, $secret);
+  $token = $twitter->get_request_token();
+
+  $_SESSION['twitter_oauth']['token'] = $token;
+  $_SESSION['twitter_oauth']['destination'] = $_SERVER['HTTP_REFERER'];
+  $_SESSION['twitter_oauth']['signin'] = TRUE;
+  drupal_goto($twitter->get_authenticate_url($token));
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function twitter_signin_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'twitter_oauth_callback_form' && isset($_SESSION['twitter_oauth']['signin'])) {
+    $form['#submit'] = array_merge(array('twitter_signin_oauth_callback_submit'), $form['#submit']);
+  }
+
+  if ($form_id == 'user_login' || $form_id == 'user_login_block') {
+    $items = array();
+    $items[] = twitter_signin_button();
+
+    $form['twitter_signin'] = array(
+      '#markup' => theme('item_list', array('items' => $items)),
+    );
+  }
+  elseif ($form_id == 'user_register_form' && isset($_SESSION['twitter']['values'])) {
+    $form['account']['name']['#default_value'] = $_SESSION['twitter']['values']['screen_name'];
+    $form['auth_twitter'] = array(
+      '#type' => 'hidden',
+      '#value' => $_SESSION['twitter']['values']['user_id'],
+    );
+  }
+}
+
+/**
+ * Form submit for the OAuth callback. Here we add in sign-in specific handling.
+ */
+function twitter_signin_oauth_callback_submit(&$form, &$form_state) {
+  global $user;
+  $success = FALSE;
+
+  $key = variable_get('twitter_consumer_key', '');
+  $secret = variable_get('twitter_consumer_secret', '');
+  $response = $form_state['twitter_oauth']['response'];
+
+  $account = user_external_load($response['user_id']);
+  if (isset($account->uid)) {
+    user_external_login($account, $response);
+    $success = TRUE;
+  }
+  elseif ($uid = db_query("SELECT uid FROM {twitter_account} WHERE twitter_uid = :twitter_uid",
+                          array(':twitter_uid' => $response['user_id']))->fetchField()) {
+    // We have an existing Twitter account - set it up for login.
+    $account = user_load($uid);
+    $edit["authname_twitter"] = $response['user_id'];
+    user_save($account, $edit);
+    $user = $account;
+    $form_state['twitter_oauth']['account'] = $account;
+    $success = TRUE;
+  }
+  else {
+    // No existing user account, let's see if we can register.
+    if (variable_get('twitter_signin_register', 0)) {
+      // Check for a nickname collision.
+      $account = array_shift(user_load_multiple(array(), array('name' => $response['screen_name'])));
+      if (empty($account->uid)) {
+        $password = user_password();
+        $account->name = $response['screen_name'];
+        $account->pass = $password;
+        $account->init = $response['screen_name'];
+        $account->status = 1;
+        $account->authname_twitter = $response['user_id'];
+        $account->access = REQUEST_TIME;
+        $account->is_new = TRUE;
+        $account = user_save($account);
+        $user = $account;
+        $form_state['twitter_oauth']['account'] = $account;
+        drupal_set_message(t('You have been automatically registered with the password !password. ' .
+          'Copy it to !link.', array(
+            '!password' => $password,
+            '!link' => l('set your account settings', 'user/' . $account->uid . '/edit'),
+          )
+        ));
+        $success = TRUE;
+      }
+      else {
+        drupal_set_message(t('The nickname %name is already in use on this site, please register below with a new nick name, or @login to continue.',
+          array(
+            '%name' => $response['screen_name'],
+            '@login' => url('user/login')
+          )
+        ), 'warning');
+      }
+    }
+    else {
+      drupal_set_message(t('Please log in or register to relate your Twitter account with a user.'));
+    }
+  }
+
+  if (!$success) {
+    $_SESSION['twitter']['values'] = $response;
+    drupal_goto('user/login');
+  }
+  else {
+    user_login_finalize();
+  }
+}
+
+/**
+ * Implements hook_user_insert().
+ *
+ * Relates a Twitter account with a just created user account if the user
+ * signed in with Twitter but did not have an account in the site yet.
+ */
+function twitter_signin_user_insert(&$edit, $account, $category) {
+  _twitter_signin_add_account($edit, $account);
+}
+
+/**
+ * Implements hook_user_login().
+ *
+ * Relates a Twitter account with an existing user account if the user
+ * signed in with Twitter.
+ */
+function twitter_signin_user_login(&$edit, $account) {
+  _twitter_signin_add_account($edit, $account);
+}
+
+/**
+ * Relates a user account with a Twitter account.
+ *
+ * @param $account
+ *   The Drupal user account.
+ */
+function _twitter_signin_add_account($edit, $account) {
+  if (isset($_SESSION['twitter']['values'])) {
+    module_load_include('inc', 'twitter');
+    $key = variable_get('twitter_consumer_key', '');
+    $secret = variable_get('twitter_consumer_secret', '');
+    $response = $_SESSION['twitter']['values'];
+
+    $twitter = new Twitter($key, $secret, $response['oauth_token'], $response['oauth_token_secret']);
+    try {
+      $twitter_account = $twitter->users_show($response['screen_name']);
+    } catch (TwitterException $e) {
+      drupal_set_message(t('Request failed: @message.', array('@message' => $e->getMessage())), 'error');
+      return;
+    }
+    $twitter_account->set_auth($response);
+    $twitter_account->uid = $account->uid;
+    twitter_account_save($twitter_account, TRUE);
+
+    unset($_SESSION['twitter']);
+    drupal_set_message(t('You have related a Twitter account with your user. Next time you can sign in with Twitter.'));
+  }
+}

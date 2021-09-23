@@ -1,0 +1,18 @@
+@CHARSET "UTF-8";
+
+/* publication_edit_form */
+
+#taxon-treatment{
+  margin-top: 1em;
+}
+
+#edit-field-publication-treatments .form-item{
+  margin-bottom: 0!important;
+  padding: 3px 0;
+}
+
+#edit-list .form-type-item p{
+  color: #777;
+  font-size: 0.85em;
+  margin: 0 0 0 20px;
+}

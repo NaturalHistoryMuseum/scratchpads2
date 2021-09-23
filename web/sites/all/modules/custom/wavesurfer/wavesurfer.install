@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Install file for the wavesurfer module.
+ */
+/**
+ * Implements hook_requirements().
+ */
+function wavesurfer_requirements($phase){
+  $t = get_t();
+  if($phase != 'runtime'){return array();}
+  $library = libraries_detect('wavesurfer');
+  if($library && !empty($library['installed'])){
+    $requirements['wavesurfer'] = array(
+      'title' => $t('Wavesurfer Library'),
+      'value' => $t('Installed @ v@version.', array(
+        '@version' => $library['version']
+      )),
+      'severity' => REQUIREMENT_OK
+    );
+  }else{
+    $requirements['wavesurfer'] = array(
+      'title' => $t('Wavesurfer Library'),
+      'value' => $t('The Wavesurfer module requires the Wavesurfer library.'),
+      'description' => $t('The Libraries module reported the following error: !error_message<br />
+Please check the installation instructions for Waveform.', array(
+        '!error_message' => filter_xss($library['error message'])
+      )),
+      'severity' => REQUIREMENT_ERROR
+    );
+  }
+  return $requirements;
+}

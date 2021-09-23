@@ -1,0 +1,17 @@
+/**
+ * @file relation types form css
+ */
+
+.relation-type-form-table {
+  display: table;
+}
+
+.relation-type-form-table .form-item{
+  display: table-cell;
+  padding-right:10px;
+  width: 33%;
+}
+
+.relation-type-form-table .form-item:last-child {
+  padding-right: 0;
+}

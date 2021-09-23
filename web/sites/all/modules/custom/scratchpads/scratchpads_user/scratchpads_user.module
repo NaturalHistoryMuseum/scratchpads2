@@ -1,0 +1,880 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ * 
+ * Theme the user edit/create form.
+ */
+function scratchpads_user_theme(){
+  return array(
+    'scratchpads_user_register_form' => array(
+      'file' => 'scratchpads_user.theme.inc',
+      'render element' => 'form'
+    )
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ * 
+ * Add the user/register as an admin path (the registration form looks 100x
+ * better in an overlay).
+ */
+function scratchpads_user_admin_paths(){
+  return array(
+    'user/register' => TRUE
+  );
+}
+
+/**
+ * Ensure that the Scratchpads Team (UID:1) user has not been tweaked.
+ */
+function scratchpads_user_cron(){
+  if(variable_get('standard_scratchpad', TRUE)){
+    db_update('users')->fields(array(
+      'name' => 'Scratchpad Team',
+      'pass' => '',
+      'theme' => '',
+      'signature' => '',
+      'timezone' => 'UTC',
+      'language' => 'en',
+      'picture' => 0,
+      'mail' => 'scratchpad@nhm.ac.uk',
+      'status' => 1,
+      'init' => 'scratchpad@nhm.ac.uk',
+      'data' => serialize(array())
+    ))->condition('uid', 1)->execute();
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ * 
+ * Override the admin/people page to add columns and display stub users
+ * correctly.
+ * 
+ * Alter the user_reference/autocomplete function so that we can make the names
+ * look a little more beautiful.
+ */
+function scratchpads_user_menu_alter(&$items){
+  $items['admin/people']['page callback'] = 'scratchpads_user_admin';
+  $items['admin/people']['file'] = 'scratchpads_user.admin.inc';
+  $items['admin/people']['module'] = 'scratchpads_user';
+  $items['admin/people/people']['title'] = 'All';
+}
+
+/**
+ * Implements hook_menu();
+ *
+ * Add tabs to the menu for users and non-users
+ */
+function scratchpads_user_menu(){
+  return array(
+    'admin/people/users' => array(
+      'title' => 'Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '1'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-2'
+    ),
+    'admin/people/non_users' => array(
+      'title' => 'Non Users',
+      'page callback' => 'scratchpads_user_admin',
+      'page arguments' => array(
+        '',
+        '0'
+      ),
+      'file' => 'scratchpads_user.admin.inc',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => '-1'
+    ),
+    'scratchpads-user-autocomplete' => array(
+      'title' => 'Autocomplete ',
+      'page callback' => 'scratchpads_user_biblio_autocomplete',
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'access biblio content'
+      ),
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Biblio autocomplete function to provide an author ID rather than just a name
+ */
+function scratchpads_user_biblio_autocomplete($string = ''){
+  $string = db_like($string);
+  $or = db_or()->condition('lastname', $string . '%', 'LIKE')->condition('firstname', $string . '%', 'LIKE');
+  $matches = db_select('biblio_contributor_data', 'b')->fields('b', array(
+    'cid',
+    'name'
+  ))->condition($or)->orderBy('lastname')->range(0, 10)->execute()->fetchAllKeyed();
+  print drupal_json_encode($matches);
+  exit();
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * 
+ * Add the 'Add user' button
+ */
+function scratchpads_user_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  $local_tasks = array();
+  switch($root_path){
+    case 'admin/people/users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+    case 'admin/people/non_users':
+      $local_tasks[] = 'admin/people/create';
+      break;
+  }
+  if(count($local_tasks)){
+    foreach($local_tasks as $local_task){
+      $item = menu_get_item($local_task);
+      if($item['access']){
+        $data['actions']['output'][] = array(
+          '#theme' => 'menu_local_action',
+          '#link' => $item
+        );
+      }
+    }
+  }
+}
+
+/**
+ * 
+ * Implements hook_ENTITY_TYPE_load().
+ * 
+ * Add the "stub_user" property, and also set the name to the given name/surname
+ * fields.
+ */
+function scratchpads_user_user_load($entities){
+  // For entitites with a dummy username, use the name/surname
+  foreach($entities as $entity_id => $entity){
+    if($entity->uid > 1 && empty($entity->pass)){
+      // Is this user just a stub - cannot login
+      $entities[$entity_id]->stub_user = true;
+      $entities[$entity_id]->status = 1;
+      // Following edited as it throws up an error on install with UID 1.
+      $new_name = FALSE;
+      preg_match('/(.*) [0-9]*$/', $entities[$entity_id]->name, $matches);
+      if(count($matches) == 2){
+        $entities[$entity_id]->name = $matches[1];
+      }
+    }
+  }
+  return $entities;
+}
+
+/**
+ * Implements hook_entity_presave().
+ * 
+ * Prevent saving of a "1" status for stub users.
+ * Reset password to '' for stub users.
+ */
+function scratchpads_user_user_presave(&$edit, $account, $category){
+  // Was a stub user and is still a stub user
+  if((!empty($account->stub_user)) && ($edit['create_user_account'] == 0)){
+    $edit['status'] = 0;
+    $edit['pass'] = '';
+  }  // Was a stub user but isn't any more
+elseif((!empty($account->stub_user)) && ($edit['create_user_account'] == 1)){
+    $edit['status'] = 1;
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ * 
+ * Execute our form_alter functions last.
+ */
+function scratchpads_user_module_implements_alter(&$imps, $hook){
+  if($hook == 'form_alter'){
+    if(isset($imps['scratchpads_user'])){
+      $this_module = $imps['scratchpads_user'];
+      unset($imps['scratchpads_user']);
+      $imps['scratchpads_user'] = $this_module;
+    }
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Create" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function scratchpads_user_form_user_register_form_alter(&$form, &$form_state){
+  _scratchpads_user_form_alter($form, $form_state);
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $handlers = array(
+      'scratchpads_user_register_form_pre_submit',
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+  }else{
+    $handlers = array(
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+  }
+  _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+  $form['#validate'][] = 'scratchpads_user_user_register_validate';
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function scratchpads_user_form_user_profile_form_alter(&$form, &$form_state){
+  if(arg(3)){return;}
+  _scratchpads_user_form_alter($form, $form_state);
+  if(isset($form['#user']->stub_user)){
+    $form['create_user_account']['#default_value'] = 0;
+    // Get rid of the crap that we don't need.
+    $form['biblio_fieldset']['biblio_show_profile'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+    unset($form['biblio_fieldset']['biblio_my_pubs_menu']);
+    unset($form['biblio_fieldset']['biblio_user_style']);
+    unset($form['biblio_fieldset']['openurl']);
+    unset($form['biblio_fieldset']['biblio_id_change_count']);
+    unset($form['biblio_fieldset']['biblio_doi']);
+    unset($form['overlay_control']);
+    unset($form['timezone']);
+    unset($form['comment_notify_settings']);
+    unset($form['contact']);
+    unset($form['legal']);
+    unset($form['slickgrid']);
+    // Set the correct user name, as we may have removed a number from the end
+    $row = db_select('users', 'u')->fields('u', array(
+      'name'
+    ))->condition('uid', $form['#user']->uid)->execute()->fetchCol(0);
+    $form['account']['name']['#default_value'] = array_pop($row);
+    // Set certain fields to not be required.
+    $form['field_user_given_names'][LANGUAGE_NONE][0]['value']['#required'] = FALSE;
+    $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#required'] = FALSE;
+    $form['field_user_country'][LANGUAGE_NONE]['#required'] = FALSE;
+    // Because "title" defaults to "Mr", we need to set the default to "" if a 
+    // default value isn't provided.
+    $form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#options'][NULL] = t('- None -');
+    if(!count($form['#user']->field_user_title)){
+      unset($form['field_user_title'][LANGUAGE_NONE][0]['select_other_list']['#default_value']);
+    }
+  }else{
+    $form['create_user_account']['#default_value'] = 1;
+  }
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account'])){
+    $handlers = array(
+      'scratchpads_user_register_form_pre_submit_set_name',
+      'user_profile_form_submit',
+      'scratchpads_user_register_form_post_submit_clear_error'
+    );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+    $form['#validate'][] = 'scratchpads_user_allow_picture_validate';
+  }
+  foreach(element_children($form) as $key){
+    if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'fieldset' && (!isset($form[$key]['#collapsible']) || $form[$key]['#collapsible'])){
+      $form[$key]['#collapsed'] = TRUE;
+    }
+  }
+  // Change the select dropdown to an autocomplete field
+  $form['biblio_fieldset']['biblio_contributor_id']['#type'] = 'textfield';
+  $form['biblio_fieldset']['biblio_contributor_id']['#autocomplete_path'] = 'scratchpads-user-autocomplete';
+  if($form['biblio_fieldset']['biblio_contributor_id']['#default_value'] == '0'){
+    $form['biblio_fieldset']['biblio_contributor_id']['#default_value'] = '';
+  }
+  unset($form['biblio_fieldset']['biblio_contributor_id']['#options']);
+  $form['#validate'][] = 'scratchpads_user_user_profile_validate';
+}
+
+/**
+ * 
+ * helper function - make alterations to both the user_profile_form() & user_register_form() forms
+ */
+function _scratchpads_user_form_alter(&$form, &$form_state){
+  global $user;
+  $form['#attached']['js'][] = drupal_get_path('module', 'scratchpads_user') . '/js/scratchpads_user.js';
+  $form['account']['#type'] = 'fieldset';
+  $form['account']['#title'] = t('User account settings');
+  if($user->uid > 0){
+    $form['account']['#states'] = array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'invisible' => array(
+        'input[name="create_user_account"]' => array(
+          'checked' => FALSE
+        )
+      )
+    );
+    $form['legal']['#states'] = array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'invisible' => array(
+        'input[name="create_user_account"]' => array(
+          'checked' => FALSE
+        )
+      )
+    );
+    $disable_button = ($form['#user']->uid ? 1 : 0);
+    if($form['#id'] == 'user-profile-form'){
+      if(!empty($form['#user']->stub_user)){
+        $disable_button = false;
+      }
+    }
+    $form['create_user_account'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user login?'),
+      '#description' => t("Do you want to create a user account for this user so they can log into the website?"),
+      '#default_value' => 1,
+      '#disabled' => $disable_button
+    );
+  }else{
+    $form['create_user_account'] = array(
+      '#type' => 'hidden',
+      '#value' => 1
+    );
+  }
+  $form['#fields'] = field_info_instances($form['#entity_type'], $form['#bundle']);
+  // Add the theme function to make this form look better
+  array_unshift($form['#theme'], 'scratchpads_user_register_form');
+  // If the user isn't creating a user account, limit the validation errors to & extra fields
+  if(count($form_state['input']) && !isset($form_state['input']['create_user_account']) && (!$form['#user']->uid || $form_state['input']['name'] == '')){
+    $form['actions']['submit']['#limit_validation_errors'] = array(
+      array(
+        'mail'
+      ),
+      array(
+        'parent_build_cache_id'
+      )
+    );
+    foreach($form['#fields'] as $field_name => $field){
+      $form['actions']['submit']['#limit_validation_errors'][] = array(
+        $field_name
+      );
+    }
+  }
+}
+
+/**
+ * Helper function to replace a submit handler in a form with any other number of handlers
+ */
+function _scratchpads_user_replace_submit_handler(&$form, $origin_handler, $handlers){
+  if(!isset($form['actions']['submit']['#submit'])){
+    $form['actions']['submit']['#submit'] = $handlers;
+  }else{
+    $pos = array_search($origin_handler, $form['actions']['submit']['#submit']);
+    if($pos === FALSE){
+      $form['actions']['submit']['#submit'] = array_merge($handlers, $form['actions']['submit']['#submit']);
+    }else{
+      array_splice($form['actions']['submit']['#submit'], $pos, 1, $handlers);
+    }
+  }
+}
+
+/**
+ * Alter the triggering element to allow picture upload.
+ */
+function scratchpads_user_allow_picture_validate($form, &$form_state){
+  if(isset($form_state['values']['picture_upload']) && is_object($form_state['values']['picture_upload'])){
+    $form_state['triggering_element']['#limit_validation_errors'][] = array(
+      'picture_upload'
+    );
+  }
+}
+
+/**
+ * Validate the submission of a user edit form so that a user can switch from loginless to login
+ */
+function scratchpads_user_user_profile_validate($form, &$form_state){
+  // If we are converting from a loginless user to a login user 
+  if((!empty($form['#user']->stub_user)) && ($form_state['values']['create_user_account'])){
+    $required_fields = array(
+      'field_user_family_name',
+      'field_user_given_names'
+    );
+    // if we are converting from loginless to login then a new password is required
+    if($form_state['input']['pass']['pass1'] == ''){
+      form_set_error('pass', 'Password is required');
+    }
+    if((is_array($form_state['input']['field_user_country'][LANGUAGE_NONE])) || ($form_state['input']['field_user_country'][LANGUAGE_NONE] == '_none')){
+      form_set_error('field_user_country', 'Country field is required');
+    }
+    foreach($required_fields as $required_field){
+      if($form_state['input'][$required_field][LANGUAGE_NONE][0]['value'] == ''){
+        $field_name = $form[$required_field][LANGUAGE_NONE]['#title'];
+        form_set_error($required_field, $field_name . ' field is required');
+      }
+    }
+  }
+}
+
+/**
+ * Validate the user register form so that we can add an email address if we are
+ * not allowing login!
+ */
+function scratchpads_user_user_register_validate($form, &$form_state){
+  if(!$form_state['values']['create_user_account']){
+    $handlers = array(
+      'scratchpads_user_register_form_pre_submit',
+      'user_register_submit',
+      'scratchpads_user_register_form_post_submit'
+    );
+    _scratchpads_user_replace_submit_handler($form, 'user_register_submit', $handlers);
+    // This sets the username
+    scratchpads_user_register_form_pre_submit($form, $form_state);
+    // Clear old errors and prevent new errors on non required fields (for non login users)
+    scratchpads_user_register_form_post_submit_clear_error($form, $form_state);
+    $not_required = array(
+      'mail',
+      'field_user_country',
+      'field_user_given_names',
+      'name',
+      'pass'
+    );
+    $errors = form_get_errors();
+    $set_errors = FALSE;
+    foreach($errors as $key => $error){
+      $key_parts = explode(']', $key);
+      if(in_array($key_parts[0], $not_required)){
+        $set_errors = TRUE;
+        unset($errors[$key]);
+      }
+    }
+    if($set_errors){
+      form_clear_error();
+      foreach($errors as $key => $msg){
+        form_set_error($key, $msg);
+      }
+    }
+    global $base_url;
+    $url = parse_url($base_url);
+    $form_state['values']['mail'] = uniqid('', TRUE) . '@' . $url['host'];
+  }
+}
+
+/**
+ * Submit function called before user_register_submit()
+ * Used to manipulate the values before the user is saved
+ * @param array $form
+ * @param array $form_state
+ */
+function scratchpads_user_register_form_pre_submit($form, &$form_state){
+  $form_state['values']['administer_users'] = 1;
+  scratchpads_user_register_form_pre_submit_set_name($form, $form_state);
+}
+
+/**
+ * Submit function simply to clear the errors displayed in user_register_submit.
+ */
+function scratchpads_user_register_form_post_submit_clear_error($form, &$form_state){
+  drupal_get_messages('error');
+  if(isset($form_state['values']['uid']) && $form_state['values']['uid']){
+    $form_state['redirect'] = 'user/' . $form_state['values']['uid'];
+  }
+}
+
+/**
+ * Submit function to set the name.
+ */
+function scratchpads_user_register_form_pre_submit_set_name($form, &$form_state){
+  // Don't do anything if this is a login user
+  if(!empty($form_state['values']['create_user_account']) || !empty($form_state['values']['picture_upload'])){return;}
+  // Set the name
+  $name = '';
+  foreach(array(
+    'field_user_title',
+    'field_user_given_names',
+    'field_user_family_name'
+  ) as $field_name){
+    if(@isset($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $name = $name . ' ' . trim($form_state['values'][$field_name][LANGUAGE_NONE][0]['value']);
+    }
+    $name = trim($name);
+  }
+  // If we have a blank $name, then we're probably on a profile page (e.g. simplenews).
+  if($name){
+    if(@isset($form['#user']->uid)){
+      $user_id = $form['#user']->uid;
+    }else{
+      $user_id = '';
+    }
+    $name = _scratchpads_user_get_full_name($name, $user_id);
+    $form_state['values']['name'] = $name;
+  }
+}
+
+/**
+ *
+ * helper function - returns a full name, a concatonation of the given fields
+ * If this name already exists it adds a number to the end.
+ */
+function _scratchpads_user_get_full_name($name, $uid = ''){
+  // Check this name does not exist, else we add a number to the end.
+  $results = db_select('users', 'u')->fields('u', array(
+    'name'
+  ))->condition('name', "$name%", 'LIKE')->condition('uid', $uid, '!=')->execute();
+  $matches = array();
+  foreach($results as $row){
+    $matches[] = $row->name;
+  }
+  $index = 1;
+  $new_name = $name;
+  while(in_array($new_name, $matches)){
+    $new_name = "$name $index";
+    $index++;
+  }
+  return $new_name;
+}
+
+/**
+ * Submit function called after user_register_submit()
+ * Used to manipulate the message displayed to the user
+ * @param array $form
+ * @param array $form_state
+ */
+function scratchpads_user_register_form_post_submit($form, &$form_state){
+  // check whether this a stub user
+  if(empty($form_state['values']['create_user_account'])){
+    // Reset the messages
+    drupal_get_messages('status');
+    // Reset the error messages, as the following error is displayed:
+    // Notice: Undefined index: pass in user_register_submit() (line 3752 of /home/simor/Zend/workspaces/DefaultWorkspace7/Scratchpads-2.0/modules/user/user.module).
+    drupal_get_messages('error');
+    drupal_set_message(t('Created a new profile for @user_title @user_given_name @user_family_name.', array(
+      '@user_title' => $form_state['values']['field_user_title'][LANGUAGE_NONE][0]['value'],
+      '@user_given_name' => $form_state['values']['field_user_given_names'][LANGUAGE_NONE][0]['value'],
+      '@user_family_name' => $form_state['values']['field_user_family_name'][LANGUAGE_NONE][0]['value']
+    )));
+    // Give a warning that no user account was created
+    drupal_set_message('No user account was created so this person will not be able to log into the website!', 'warning');
+    // Ensure that no password is set
+    $form['#user']->pass = '';
+    $form['#user']->status = 0;
+    user_save($form['#user']);
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_user_field_formatter_info(){
+  return array(
+    'scratchpads_user_full_name' => array(
+      'label' => t('Full name'),
+      'description' => t('Display as full name'),
+      'field types' => array(
+        'user_reference'
+      ),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+      'settings' => array(
+        'show_name_as_link' => 1,
+        'separator_option' => '',
+        'element_option' => '- None -',
+        'element_class' => ''
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function scratchpads_user_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      $element['show_name_as_link'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Show name as link to user'),
+        '#description' => t('Check this if you want to show the name as link to user'),
+        '#default_value' => $settings['show_name_as_link']
+      );
+      $element['separator_option'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Separator'),
+        '#description' => t('The separator to use, including leading and trailing spaces'),
+        '#default_value' => $settings['separator_option']
+      );
+      $element['element_option'] = array(
+        '#type' => 'select',
+        '#title' => t('Element'),
+        '#description' => t('The HTML element to wrap each name in'),
+        '#default_value' => $settings['element_option'],
+        '#options' => array(
+          '- None -' => '- None -',
+          'span' => 'span',
+          'h1' => 'h1',
+          'h2' => 'h2',
+          'h3' => 'h3',
+          'h4' => 'h4',
+          'h5' => 'h5',
+          'strong' => 'h6',
+          'em' => 'h7'
+        )
+      );
+      $element['element_class'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Element Class'),
+        '#description' => t('The class assigned to the element'),
+        '#default_value' => $settings['element_class']
+      );
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function scratchpads_user_field_formatter_settings_summary($field, $instance, $view_mode){
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      if($settings['separator_option']){
+        $summary[] = t('Full names will be displayed separated by "@separator"', array(
+          '@separator' => $settings['separator_option']
+        ));
+      }else{
+        $summary[] = t('Full names will not have a separator');
+      }
+      if($settings['show_name_as_link']){
+        $summary[] = t("Full names will link to the user");
+      }else{
+        $summary[] = t("Full names will not link to the user");
+      }
+      if($settings['element_option'] != "- None -"){
+        $summary[] = t('Elements will be wrapped in a "@element" tag', array(
+          '@element' => $settings['element_option']
+        ));
+        if(!empty($settings['element_class'])){
+          $summary[] = t(' with the class of @elemclass', array(
+            '@elemclass' => $settings['element_class']
+          ));
+        }
+      }
+      break;
+  }
+  $summary = theme('item_list', array(
+    'type' => 'ul',
+    'items' => $summary
+  ));
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpads_user_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $settings = $display['settings'];
+  $element = array();
+  $number_of_items = count($items);
+  switch($display['type']){
+    case 'scratchpads_user_full_name':
+      $formatted = '';
+      foreach($items as $delta => $item){
+        if($settings['separator_option']){
+          $formatted .= _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings);
+          if($settings['element_option'] != '- None -'){
+            $element[0] = array(
+              '#type' => 'html_tag',
+              '#tag' => $settings['element_option'],
+              '#value' => $formatted
+            );
+          }else{
+            $element[0]['#markup'] = $formatted;
+          }
+        }else{
+          $formatted = _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, $settings);
+          if($settings['element_option'] != '- None -'){
+            $element[$delta] = array(
+              '#type' => 'html_tag',
+              '#tag' => $settings['element_option'],
+              '#value' => $formatted
+            );
+          }else{
+            $element[$delta] = array(
+              '#type' => 'markup',
+              '#markup' => $formatted
+            );
+          }
+        }
+      }
+      break;
+  }
+  return $element;
+}
+
+function _scratchpads_user_field_formatter_view($number_of_items, $delta, $item, array $settings = NULL){
+  $user = user_load($item['uid']);
+  $content = array();
+  $lang = field_language('user', $user, 'field_user_title');
+  if(!empty($user->field_user_title[$lang])){
+    $content[] = $user->field_user_title[$lang][0]['value'];
+  }
+  $lang = field_language('user', $user, 'field_user_given_names');
+  if(!empty($user->field_user_given_names[$lang])){
+    $content[] = $user->field_user_given_names[$lang][0]['safe_value'];
+  }
+  $lang = field_language('user', $user, 'field_user_family_name');
+  if(!empty($user->field_user_family_name[$lang])){
+    $content[] = $user->field_user_family_name[$lang][0]['safe_value'];
+  }
+  $content = implode(' ', $content);
+  if(!$content){
+    $content = $user->name;
+  }
+  if($settings['show_name_as_link']){
+    $content = l($content, 'user/' . $item['uid']);
+  }
+  if($settings['separator_option'] && $delta < ($number_of_items - 1)){
+    $content .= $settings['separator_option'];
+  }
+  return $content;
+}
+
+/**
+ * Invoked before a feed item is saved.
+ *
+ * @param $source
+ *  FeedsSource object that describes the source that is being imported.
+ * @param $entity
+ *   The entity object.
+ */
+function scratchpads_user_feeds_presave($source, $entity){
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    if($entity->uid && !$entity->pass){
+      unset($entity->pass);
+    }
+    // set status to 0 if email is not given.
+    if(substr($entity->mail, 0, 17) == "email_placeholder"){
+      $entity->mail = substr($entity->mail, 17);
+      $entity->status = 0;
+    }
+    // Check we've not got a placeholder name
+    if(substr($entity->name, 0, 28) == 'SCRATCHPADS_USER_PLACEHOLDER'){
+      $entity->name = _scratchpads_user_get_full_name(substr($entity->name, 28), empty($entity->uid) ? '' : $entity->uid);
+    }else if($entity->uid){
+      $entity->name = _scratchpads_user_get_full_name($entity->name, $entity->uid);
+    }
+  }
+}
+
+/**
+* Invoked after a feed source has been parsed, before it will be processed.
+*
+* @param $source
+*  FeedsSource object that describes the source that has been imported.
+* @param $result
+*   FeedsParserResult object that has been parsed from the source.
+*/
+function scratchpads_user_feeds_after_parse($source, $result){
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    // find source mappings from targets
+    $our_mappings = array();
+    foreach($source->importer->config['processor']['config']['mappings'] as $mapping){
+      $our_mappings[$mapping['target']] = $mapping['source'];
+    }
+    // get an array of user emails
+    $mail_array = array();
+    // set default values for username, email and password if not set
+    foreach($result->items as $key => $item){
+      if(!empty($item[$our_mappings['mail']])){
+        $mail_array[] = $item[$our_mappings['mail']];
+      }
+    }
+    if(count($mail_array)){
+      $results = db_select('users', 'u')->fields('u', array(
+        'mail'
+      ))->condition('uid', 1, '>')->condition('mail', $mail_array)->execute();
+      $mail_array = array();
+      foreach($results as $row){
+        $mail_array[] = $row->mail;
+      }
+    }
+    // Load the currently logged in user, and ensure we don't try to change this
+    // user - we'll end up with an error if we do.
+    global $user;
+    // set default values for username, email and password if not set
+    foreach($result->items as $key => $item){
+      // Is this item the same as the global user, if so, unset it.
+      if($item[$our_mappings['mail']] == $user->mail){
+        unset($result->items[$key]);
+        continue;
+      }
+      if($item[$our_mappings['name']] == $user->name){
+        unset($result->items[$key]);
+        continue;
+      }
+      // check to see if the email is already in the database
+      if(!isset($item[$our_mappings['name']])){
+        // We set the name here as we have the mapping, but we need to check it
+        // is OK later, so we add a placeholder.
+        $name = '';
+        foreach(array(
+          'field_user_title',
+          'field_user_given_names',
+          'field_user_family_name'
+        ) as $field_name){
+          if(@isset($result->items[$key][$our_mappings[$field_name]])){
+            $name = $name . ' ' . $result->items[$key][$our_mappings[$field_name]];
+          }
+          $name = trim($name);
+        }
+        $result->items[$key][$our_mappings['name']] = 'SCRATCHPADS_USER_PLACEHOLDER' . $name;
+      }
+      // if an email is given but not in the database, but no password is given, set a password
+      if((!isset($item[$our_mappings['pass']])) && (isset($item[$our_mappings['mail']])) && !in_array($item[$our_mappings['mail']], $mail_array)){
+        // no passsword, so set one
+        $result->items[$key][$our_mappings['pass']] = uniqid('', TRUE);
+      }
+      if(!isset($item[$our_mappings['mail']])){
+        global $base_url;
+        $url = parse_url($base_url);
+        $result->items[$key][$our_mappings['mail']] = uniqid('email_placeholder', TRUE) . '@' . $url['host'];
+        // Unset the password, if it has been set
+        if(isset($item[$our_mappings['pass']])){
+          unset($result->items[$key][$our_mappings['pass']]);
+        }
+      }
+    }
+  }
+}
+
+/**
+   * Implements hook_user_insert().
+   * 
+   * Send a user notification email if the status is set to 1
+   */
+function scratchpads_user_user_insert(&$edit, $account, $category){
+  if(($account->status == 1) && (isset($account->feeds_item))){
+    _user_mail_notify('register_admin_created', $account);
+  }
+}
+
+/**
+ * Implements hook_feeds_xls_not_required_alter
+ *
+ * We specify fields that should not be required on user import
+ */
+function scratchpads_user_feeds_xls_not_required_alter(&$fields_array){
+  $fields_array[] = 'field_user_given_names';
+}
+
+

@@ -1,0 +1,9 @@
+core = "7.x"
+name = "IUCN Widget"
+description = "Displays an International Union for Conservation of Nature widget on a taxonomy term page."
+package = "Widgets"
+dependencies[] = scratchpads_species
+tool=yes
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = iucn

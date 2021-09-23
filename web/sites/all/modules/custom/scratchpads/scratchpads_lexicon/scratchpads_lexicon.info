@@ -1,0 +1,9 @@
+name = Lexicon
+description = Maintain one or more lexicons on your site and optionally mark term from one or more lexicons in the content of the website.<br/><span class="error">Enabling this feature will have an adverse effect on the performance of your site, only enable if you are certain you need this functionality.</span>
+core = 7.x
+dependencies[] = lexicon
+tool=true
+configure = admin/config/system/lexicon
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_lexicon

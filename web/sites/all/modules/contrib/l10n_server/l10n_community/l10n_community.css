@@ -1,0 +1,113 @@
+/* Overview navigation tables for projects and languages */
+table.l10n-community-overview {
+  width: 100%;
+}
+.l10n-community-overview td, .l10n-community-overview thead th {
+  text-align: center;
+  vertical-align: middle;
+}
+.l10n-community-overview td.rowhead, .l10n-community-overview thead th.rowhead {
+  text-align: left; /* LTR */
+  padding: 0.4em;
+}
+.l10n-community-progress {
+  height: 1em;
+  background-color: #eaeae1;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+.l10n-community-progress-translated,
+.l10n-community-progress-untranslated {
+  background-color: #96bc44;
+  height: 1em;
+  float: left; /* LTR */
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+}
+.l10n-community-progress-untranslated {
+  background-color: transparent;
+}
+
+/* String search filtering form */
+.l10n-server-filter {
+  background-color: #f6f6f2;
+  padding: 0.6em 150px 1.5em 0.6em; /* LTR */
+  position: relative;
+}
+.l10n-server-filter .filter-widget {
+  float: left; /* LTR */
+  padding: 0 1em 0 0; /* LTR */
+  height: 6em;
+}
+.l10n-server-filter .filter-widget label {
+  font-weight: bold;
+  color: #003150;
+}
+.l10n-server-filter .filter-widget .form-item {
+  margin-top: 0;
+}
+.l10n-server-filter .form-item#edit-status-translation-wrapper {
+  margin-bottom: 0;
+}
+.l10n-server-filter .filter-submit {
+  clear: both;
+}
+.l10n-server-filter .filter-submit .form-submit {
+  position: absolute;
+  top: 0;
+  right: 0; /* LTR */
+  margin: 0.5em;
+  display: block;
+}
+.l10n-server-filter .filter-submit .reset-link {
+  position: absolute;
+  bottom: 0;
+  right: 0; /* LTR */
+  margin: 0 1em 0.5em 0;
+}
+.l10n-server-filter .reveal-link {
+  position: absolute;
+  bottom: 0;
+  left: 0; /* LTR */
+  margin: 0 0 0.5em 1em; /* LTR */
+}
+
+/* Emphasized replaceable parts of translatables */
+em.l10n-community-marker {
+  font-weight: bold;
+}
+
+#l10n-community-pick-go .form-text {
+  width: 100%;
+}
+
+#l10n-community-explore-projects-jump-form {
+  text-align: center;
+}
+
+#autocomplete {
+  text-align:left; /* LTR */
+}
+
+.page-translate .item-list .pager {
+  padding: 1em;
+  text-align: center;
+}
+
+#edit-release {
+  direction:ltr;
+}
+
+#block-l10n_community-contributors table {
+  width: 100%;
+}
+#block-l10n_community-contributors tr.even, #block-l10n_community-contributors tr.odd {
+  background-color: transparent;
+}
+
+/* Alphabetic pager for browsing projects */
+.item-list ul.pager-alphabetic {
+  margin: 1em 0;
+  padding: 0.5em;
+}

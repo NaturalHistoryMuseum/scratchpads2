@@ -1,0 +1,8 @@
+name = "UWho - Site"
+description = "Enables the creation of Users, and automatic logging from a URL.  Security is provided by a key system, which helps to ensure that no unwanted access can be provided"
+package = "Scratchpads"
+core = 7.x
+dependencies[] = libraries
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = uwho

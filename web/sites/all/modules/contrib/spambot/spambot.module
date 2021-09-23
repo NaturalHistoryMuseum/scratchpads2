@@ -1,0 +1,550 @@
+<?php
+
+/**
+ * @file
+ * Anti-spam module that uses data from www.stopforumspam.com to protect the user registration form against known spammers and spambots.
+ */
+
+define('SPAMBOT_ACTION_NONE', 0);
+define('SPAMBOT_ACTION_BLOCK', 1);
+define('SPAMBOT_ACTION_DELETE', 2);
+define('SPAMBOT_DEFAULT_CRITERIA_EMAIL', 1);
+define('SPAMBOT_DEFAULT_CRITERIA_USERNAME', 0);
+define('SPAMBOT_DEFAULT_CRITERIA_IP', 20);
+define('SPAMBOT_DEFAULT_DELAY', 0);
+define('SPAMBOT_DEFAULT_CRON_USER_LIMIT', 0);
+define('SPAMBOT_DEFAULT_BLOCKED_MESSAGE', 'Your email address or username or IP address is blacklisted.');
+define('SPAMBOT_MAX_EVIDENCE_LENGTH', 1024);
+
+/**
+ * Implements hook_menu().
+ */
+function spambot_menu() {
+  $items['admin/config/system/spambot'] = array(
+    'title' => 'Spambot',
+    'description' => 'Configure the spambot module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('spambot_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'spambot.admin.inc',
+  );
+
+  $items['user/%user/spambot'] = array(
+    'title' => 'Spam',
+    'page callback' => 'spambot_user_spam',
+    'page arguments' => array(1),
+    'access arguments' => array('administer users'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'spambot.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function spambot_permission() {
+  return array(
+    'protected from spambot scans' => array(
+      'title' => t('Protected from spambot scans'),
+      'description' => t('Roles with this access permission would not be checked for spammer'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function spambot_admin_paths() {
+  $paths = array(
+    'user/*/spambot' => TRUE,
+  );
+
+  return $paths;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function spambot_form_user_register_form_alter(&$form, &$form_state) {
+  if (variable_get('spambot_user_register_protect', TRUE) && !user_access('protected from spambot scans')) {
+    $form['#validate'][] = 'spambot_user_register_form_validate';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Adds an Operations link to the user administration form with a link to user/$uid/spambot
+ */
+function spambot_form_user_admin_account_alter(&$form, &$form_state, $form_id){
+  foreach ($form['accounts']['#options'] as $uid => $user_options) {
+    // Change $form['accounts']['#options'][$uid]['operations']['data'] into a multi-item render array so we can append to it
+    $form['accounts']['#options'][$uid]['operations']['data'] = array(
+      'edit' => $form['accounts']['#options'][$uid]['operations']['data']
+    );
+    $form['accounts']['#options'][$uid]['operations']['data']['spam'] = array(
+      '#type' => 'link',
+      '#title' => t('spam'),
+      '#href' => "user/$uid/spambot",
+      // Ugly hack to insert a space
+      '#prefix' => ' ',
+    );
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function spambot_node_insert($node) {
+  db_insert('node_spambot')
+    ->fields(array(
+      'nid' => $node->nid,
+      'uid' => $node->uid,
+      'hostname' => ip_address(),
+    ))
+    ->execute();
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function spambot_node_delete($node) {
+  db_delete('node_spambot')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function spambot_cron() {
+  if ($limit = variable_get('spambot_cron_user_limit', SPAMBOT_DEFAULT_CRON_USER_LIMIT)) {
+    $last_uid = variable_get('spambot_last_checked_uid', 0);
+    if ($last_uid < 1) {
+      // Skip scanning the anonymous user.
+      $last_uid = 1;
+    }
+
+    $uids = db_select('users')
+      ->fields('users', array('uid'))
+      ->condition('uid', $last_uid, '>')
+      ->orderBy('uid')
+      ->range(0, $limit)
+      ->execute()
+      ->fetchCol();
+
+    if ($uids) {
+      $action = variable_get('spambot_spam_account_action', SPAMBOT_ACTION_NONE);
+      $accounts = user_load_multiple($uids);
+
+      foreach ($accounts as $account) {
+        if ($account->status || variable_get('spambot_check_blocked_accounts', FALSE)) {
+          $result = spambot_account_is_spammer($account);
+
+          if ($result > 0) {
+            $link = l(t('spammer'), 'user/' . $account->uid);
+            switch (user_access('protected from spambot scans', $account) ? SPAMBOT_ACTION_NONE : $action) {
+              case SPAMBOT_ACTION_BLOCK:
+                if ($account->status) {
+                  // Block spammer's account.
+                  $account->status = 0;
+                  user_save($account);
+                  watchdog('spambot', 'Blocked spam account: @name &lt;@email&gt; (uid @uid)', array(
+                    '@name' => $account->name,
+                    '@email' => $account->mail,
+                    '@uid' => $account->uid,
+                  ), WATCHDOG_NOTICE, $link);
+                }
+                else {
+                  // Don't block an already blocked account.
+                  watchdog('spambot', 'Spam account already blocked: @name &lt;@email&gt; (uid @uid)', array(
+                    '@name' => $account->name,
+                    '@email' => $account->mail,
+                    '@uid' => $account->uid,
+                  ), WATCHDOG_NOTICE, $link);
+                }
+                break;
+
+              case SPAMBOT_ACTION_DELETE:
+                user_delete($account->uid);
+                watchdog('spambot', 'Deleted spam account: @name &lt;@email&gt; (uid @uid)', array(
+                  '@name' => $account->name,
+                  '@email' => $account->mail,
+                  '@uid' => $account->uid,
+                ), WATCHDOG_NOTICE, $link);
+                break;
+
+              default:
+                watchdog('spambot', 'Found spam account: @name &lt;@email&gt; (uid @uid)', array(
+                  '@name' => $account->name,
+                  '@email' => $account->mail,
+                  '@uid' => $account->uid,
+                ), WATCHDOG_NOTICE, $link);
+                break;
+            }
+
+            // Mark this uid as successfully checked.
+            variable_set('spambot_last_checked_uid', $account->uid);
+          }
+          else if ($result == 0) {
+            // Mark this uid as successfully checked.
+            variable_set('spambot_last_checked_uid', $account->uid);
+          }
+          else if ($result < 0) {
+            // Error contacting service, so pause processing.
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Validate callback for user_register form.
+ */
+function spambot_user_register_form_validate(&$form, &$form_state) {
+  $values = $form_state['values'];
+  $form_errors = form_get_errors();
+
+  $email_threshold = variable_get('spambot_criteria_email', SPAMBOT_DEFAULT_CRITERIA_EMAIL);
+  $username_threshold = variable_get('spambot_criteria_username', SPAMBOT_DEFAULT_CRITERIA_USERNAME);
+  $ip_threshold = variable_get('spambot_criteria_ip', SPAMBOT_DEFAULT_CRITERIA_IP);
+
+  // Build request parameters according to the criteria to use.
+  $request = array();
+  if (!empty($values['mail']) && $email_threshold > 0 && !spambot_check_whitelist('email', $values['mail'])) {
+    $request['email'] = $values['mail'];
+  }
+
+  if (!empty($values['name']) && $username_threshold > 0 && !spambot_check_whitelist('username', $values['name'])) {
+    $request['username'] = $values['name'];
+  }
+
+  $ip = ip_address();
+  if ($ip_threshold > 0 && $ip != '127.0.0.1' && !spambot_check_whitelist('ip', $ip)) {
+    $request['ip'] = $ip;
+  }
+
+  // Only do a remote API request if there is anything to check.
+  if ($request && !$form_errors) {
+    $data = array();
+    if (spambot_sfs_request($request, $data)) {
+      $substitutions = array(
+        '@email' => $values['mail'],
+        '%email' => $values['mail'],
+        '@username' => $values['name'],
+        '%username' => $values['name'],
+        '@ip' => $ip,
+        '%ip' => $ip,
+      );
+
+      $reasons = array();
+      if ($email_threshold > 0 && !empty($data['email']['appears']) && $data['email']['frequency'] >= $email_threshold) {
+        form_set_error('mail', t(variable_get('spambot_blocked_message_email', SPAMBOT_DEFAULT_BLOCKED_MESSAGE), $substitutions));
+        $reasons[] = t('email=@value', array('@value' => $request['email']));
+      }
+      if ($username_threshold > 0 && !empty($data['username']['appears']) && $data['username']['frequency'] >= $username_threshold) {
+        form_set_error('name', t(variable_get('spambot_blocked_message_username', SPAMBOT_DEFAULT_BLOCKED_MESSAGE), $substitutions));
+        $reasons[] = t('username=@value', array('@value' => $request['username']));
+      }
+      if ($ip_threshold > 0 && !empty($data['ip']['appears']) && $data['ip']['frequency'] >= $ip_threshold) {
+        form_set_error('', t(variable_get('spambot_blocked_message_ip', SPAMBOT_DEFAULT_BLOCKED_MESSAGE), $substitutions));
+        $reasons[] = t('ip=@value', array('@value' => $request['ip']));
+      }
+
+      if ($reasons) {
+        if (variable_get('spambot_log_blocked_registration', TRUE)) {
+          watchdog('spambot', 'Blocked registration: @reasons', array('@reasons' => implode(',', $reasons)));
+
+          $hook_args = array(
+            'request' => $request,
+            'reasons' => $reasons,
+          );
+          module_invoke_all('spambot_registration_blocked', $hook_args);
+        }
+
+        // Slow them down if configured.
+        if ($delay = variable_get('spambot_blacklisted_delay', SPAMBOT_DEFAULT_DELAY)) {
+          sleep($delay);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Invoke www.stopforumspam.com's api
+ *
+ * @param array $query
+ *   A keyed array of url parameters ie. array('email' => 'blah@blah.com')
+ * @param array $data
+ *   An array that will be filled with the data from www.stopforumspam.com.
+ *
+ * @return bool
+ *   TRUE on successful request (and $data will contain the data), FALSE if error
+ *
+ * $data should be an array of the following form:
+ * Array
+ * (
+ *     [success] => 1
+ *     [email] => Array
+ *         (
+ *             [lastseen] => 2010-01-10 08:41:26
+ *             [frequency] => 2
+ *             [appears] => 1
+ *         )
+ *
+ *     [username] => Array
+ *         (
+ *             [frequency] => 0
+ *             [appears] => 0
+ *         )
+ * )
+ *
+ */
+function spambot_sfs_request($query, &$data) {
+  // An empty request results in no match
+  if (empty($query)) {
+    return FALSE;
+  }
+
+  // Use php serialisation format
+  $query['f'] = 'serial';
+
+  $url = 'http://www.stopforumspam.com/api?' . http_build_query($query, '', '&');
+  $result = drupal_http_request($url);
+  if (!empty($result->code) && $result->code == 200 && empty($result->error) && !empty($result->data)) {
+    $data = unserialize($result->data);
+    if (!empty($data['success'])) {
+      return TRUE;
+    }
+    else {
+      watchdog('spambot', "Request unsuccessful: @url <pre>\n@dump</pre>", array('@url' => $url, '@dump' => print_r($data, TRUE)));
+    }
+  }
+  else {
+    watchdog('spambot', "Error contacting service: @url <pre>\n@dump</pre>", array('@url' => $url, '@dump' => print_r($result, TRUE)));
+  }
+
+  return FALSE;
+}
+
+/**
+ * Checks an account to see if it's a spammer.
+ * This one uses configurable automated criteria checking of email and username only
+ *
+ * @param object $account
+ *
+ * @return int
+ *   positive if spammer, 0 if not spammer, negative if error
+ */
+function spambot_account_is_spammer($account) {
+  $email_threshold = variable_get('spambot_criteria_email', SPAMBOT_DEFAULT_CRITERIA_EMAIL);
+  $username_threshold = variable_get('spambot_criteria_username', SPAMBOT_DEFAULT_CRITERIA_USERNAME);
+  $ip_threshold = variable_get('spambot_criteria_ip', SPAMBOT_DEFAULT_CRITERIA_IP);
+
+  // Build request parameters according to the criteria to use
+  $request = array();
+  if (!empty($account->mail) && $email_threshold > 0 && !spambot_check_whitelist('email', $account->mail)) {
+    $request['email'] = $account->mail;
+  }
+
+  if (!empty($account->name) && $username_threshold > 0 && !spambot_check_whitelist('username', $account->name)) {
+    $request['username'] = $account->name;
+  }
+
+  // Only do a remote API request if there is anything to check
+  if ($request) {
+    $data = array();
+    if (spambot_sfs_request($request, $data)) {
+      if (($email_threshold > 0 && !empty($data['email']['appears']) && $data['email']['frequency'] >= $email_threshold)
+        || ($username_threshold > 0 && !empty($data['username']['appears']) && $data['username']['frequency'] >= $username_threshold)) {
+
+        return 1;
+      }
+    }
+    else {
+      // Return error
+      return -1;
+    }
+  }
+
+  // Now check IP's
+  // If any IP matches the threshold, then flag as a spammer
+  if ($ip_threshold > 0) {
+    $ips = spambot_account_ip_addresses($account);
+    foreach ($ips as $ip) {
+      // Skip the loopback interface
+      if ($ip == '127.0.0.1') {
+        continue;
+      }
+
+      $request = array('ip' => $ip);
+      $data = array();
+      if (spambot_sfs_request($request, $data)) {
+        if (!empty($data['ip']['appears']) && $data['ip']['frequency'] >= $ip_threshold) {
+          return 1;
+        }
+      }
+      else {
+        // Abort on error
+        return -1;
+      }
+    }
+  }
+
+  // Return no match
+  return 0;
+}
+
+/**
+ * Retrieves a list of IP addresses for an account
+ *
+ * @param object $account
+ *   Account to retrieve IP addresses for
+ *
+ * @return array
+ *   An array of IP addresses, or an empty array if none found
+ */
+function spambot_account_ip_addresses($account) {
+  $hostnames = array();
+
+  // Retrieve IPs from node_spambot table.
+  $items = db_select('node_spambot')
+    ->distinct()
+    ->fields('node_spambot', array('hostname'))
+    ->condition('uid', $account->uid, '=')
+    ->execute()
+    ->fetchCol();
+  $hostnames = array_merge($hostnames, $items);
+
+  // Retrieve IPs from any sessions which may still exist.
+  $items = db_select('sessions')
+    ->distinct()
+    ->fields('sessions', array('hostname'))
+    ->condition('uid', $account->uid, '=')
+    ->execute()
+    ->fetchCol();
+  $hostnames = array_merge($hostnames, $items);
+
+  // Retrieve IPs from comments.
+  if (module_exists('comment')) {
+    $items = db_select('comment')
+      ->distinct()
+      ->fields('comment', array('hostname'))
+      ->condition('uid', $account->uid, '=')
+      ->execute()
+      ->fetchCol();
+    $hostnames = array_merge($hostnames, $items);
+  }
+
+  // Retrieve IPs from statistics.
+  if (module_exists('statistics')) {
+    $items = db_select('accesslog')
+      ->distinct()
+      ->fields('accesslog', array('hostname'))
+      ->condition('uid', $account->uid, '=')
+      ->execute()
+      ->fetchCol();
+    $hostnames = array_merge($hostnames, $items);
+  }
+
+  // Retrieve IPs from user stats.
+  if (module_exists('user_stats')) {
+    $items = db_select('user_stats_ips')
+      ->distinct()
+      ->fields('user_stats_ips', array('ip_address'))
+      ->condition('uid', $account->uid, '=')
+      ->execute()
+      ->fetchCol();
+    $hostnames = array_merge($hostnames, $items);
+  }
+
+  $hostnames = array_unique($hostnames);
+  return $hostnames;
+}
+
+/**
+ * Reports an account as a spammer. Requires ip address and evidence of a single incident
+ *
+ * @param object $account
+ *   Account to report
+ * @param string $ip
+ *   IP address to report
+ * @param string $evidence
+ *   Evidence to report
+ *
+ * @return bool
+ *   TRUE if successful, FALSE if error
+ */
+function spambot_report_account($account, $ip, $evidence) {
+  $success = FALSE;
+
+  if ($key = variable_get('spambot_sfs_api_key', FALSE)) {
+    $query['api_key'] = $key;
+    $query['email'] = $account->mail;
+    $query['username'] = $account->name;
+    $query['ip_addr'] = $ip;
+    $query['evidence'] = truncate_utf8($evidence, SPAMBOT_MAX_EVIDENCE_LENGTH);
+
+    $url = 'http://www.stopforumspam.com/add.php';
+    $options = array(
+      'headers' => array('Content-type' => 'application/x-www-form-urlencoded'),
+      'method' => 'POST',
+      'data' => http_build_query($query, '', '&'),
+    );
+    $result = drupal_http_request($url, $options);
+
+    if (!empty($result->code) && $result->code == 200 && !empty($result->data) && stripos($result->data, 'data submitted successfully') !== FALSE) {
+      $success = TRUE;
+    }
+    elseif (stripos($result->data, 'duplicate') !== FALSE) {
+      // www.stopforumspam.com can return a 503 code with data = '<p>recent duplicate entry</p>'
+      // which we will treat as successful.
+      $success = TRUE;
+    }
+    else {
+      watchdog('spambot', "Error reporting account: @url <pre>\n@dump</pre>", array('@url' => $url, '@dump' => print_r($result, TRUE)));
+    }
+  }
+
+  return $success;
+}
+
+/**
+ * Check if current data $type is whitelisted.
+ *
+ * @param string $type
+ *  Type can be one of these three values:
+ *  'ip', 'email' or 'username'.
+ * @param string $value
+ *  Value to be checked.
+ *
+ * @return bool
+ */
+function spambot_check_whitelist($type, $value) {
+  switch ($type) {
+    case 'ip':
+      $whitelist_ips = variable_get('spambot_whitelist_ip', '');
+      $result = strpos($whitelist_ips, $value) !== FALSE;
+      break;
+
+    case 'email':
+      $whitelist_usernames = variable_get('spambot_whitelist_email', '');
+      $result = strpos($whitelist_usernames, $value) !== FALSE;
+      break;
+
+    case 'username':
+      $whitelist_emails = variable_get('spambot_whitelist_username', '');
+      $result = strpos($whitelist_emails, $value) !== FALSE;
+      break;
+
+    default:
+      $result = FALSE;
+      break;
+  }
+
+  return $result;
+}

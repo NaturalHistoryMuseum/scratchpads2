@@ -1,0 +1,11 @@
+name = User mail translation
+description = "Translate emails sent from the User module."
+core = 7.x
+package = Multilingual - Internationalization
+dependencies[] = i18n_variable
+
+; Information added by Drupal.org packaging script on 2020-06-17
+version = "7.x-1.27"
+core = "7.x"
+project = "i18n"
+datestamp = "1592373390"

@@ -1,0 +1,218 @@
+<?php
+
+/**
+ * _scratchpads_group_install_search_page()
+ *
+ * Define the search page parameters. This is called
+ * from the install hook. When it changes, create an
+ * update that calls it too.
+ */
+function _scratchpads_group_install_search_page(){
+  db_merge('apachesolr_search_page')->key(array(
+    'page_id' => 'group_search'
+  ))->fields(array(
+    'page_id' => 'group_search',
+    'label' => t('Group content'),
+    'description' => 'Display the content associated with a group.',
+    'search_path' => 'group',
+    'env_id' => 'solr',
+    'page_title' => t('Group content'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:(node OR file)'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'blocks',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->execute();
+}
+
+/**
+ * Implements hook_disable().
+ */
+function scratchpads_group_disable(){
+  // Delete the content type
+  node_type_delete('group');
+  db_delete('apachesolr_search_page')->condition('page_id', 'group_search')->execute();
+  // Remove the fields
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  // If the module has been disabled, we delete the fields.
+  foreach($fields as $field){
+    field_delete_instance($field['field_instance']);
+  }
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('module_disable', array(
+    'og',
+    'og_access',
+    'og_register',
+    'og_ui'
+  ));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function scratchpads_group_enable(){
+  // Install the search page.
+  _scratchpads_group_install_search_page();
+  // Remove the content permissions flag if we have no content.
+  $col = db_query('SELECT COUNT(*) FROM {node}')->fetchCol();
+  if(!array_pop($col)){
+    // We do this at the end, to prevent og from setting it after this point.
+    register_shutdown_function('variable_del', 'node_access_needs_rebuild');
+  }
+}
+
+/**
+ * Add the solr search page
+ */
+function scratchpads_group_update_7001(){
+  _scratchpads_group_install_search_page();
+  // Set the display type
+  $scratchpads_pages_display = variable_get('scratchpads_pages_display', array());
+  $scratchpads_pages_display['group'] = 'solr';
+  variable_set('scratchpads_pages_display', $scratchpads_pages_display);
+}
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function scratchpads_group_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'scratchpads_group')->execute();
+}
+
+/**
+ * Update the /group search page so that it shows no results when the page is
+ * first loaded.
+ */
+function scratchpads_group_update_7004(){
+  db_merge('apachesolr_search_page')->key(array(
+    'page_id' => 'group_search'
+  ))->fields(array(
+    'page_id' => 'group_search',
+    'label' => t('Group content'),
+    'description' => 'Display the content associated with a group.',
+    'search_path' => 'group',
+    'env_id' => 'solr',
+    'page_title' => t('Group content'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:node'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'blocks',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->execute();
+}
+
+/**
+ * Ensure file entities have OG support
+ */
+function scratchpads_group_update_7005(){
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  if(!module_exists('scratchpads_group')){
+    // If the module has been disabled, we delete the fields.
+    foreach($fields as $field){
+      field_delete_instance($field['field_config']['field_instance']);
+    }
+  }else{
+    // Add OG Fields to file entities
+    foreach($fields as $field_name => $field){
+      if($field['field_instance']['entity_type'] == 'file'){
+        if(!field_info_field($field['field_config']['field_name'])){
+          field_create_field($field['field_config']);
+        }
+        $instance_exists = field_info_instance($field['field_instance']['entity_type'], $field['field_config']['field_name'], $field['field_instance']['bundle']);
+        if(!$instance_exists){
+          field_create_instance($field['field_instance']);
+        }
+      }
+    }
+    // Ensure the search page displays files as well as nodes
+    _scratchpads_group_install_search_page();
+  }
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_group_update_7006(){
+  if(module_exists('scratchpads_group')){
+    $fields_to_lock = array();
+    module_load_include('features.field.inc', 'scratchpads_group');
+    foreach(scratchpads_group_field_default_fields() as $field){
+      $fields_to_lock[] = $field['field_config']['field_name'];
+      if(!field_info_field($field['field_config']['field_name'])){
+        field_create_field($field['field_config']);
+      }
+      try{
+        field_create_instance($field['field_instance']);
+      }
+      catch(Exception $e){
+      }
+    }
+    db_update('field_config')->fields(array(
+      'locked' => 1
+    ))->condition('field_name', $fields_to_lock)->execute();
+  }
+}
+
+/**
+ * Add the node-group-group_access field.
+ */
+function scratchpads_group_update_7007(){
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields();
+  try{
+    field_create_field($fields['node-group-group_access']['field_config']);
+  }
+  catch(Exception $e){
+    ;
+  }
+  try{
+    field_create_instance($fields['scratchpads_group_field_default_fields']['field_instance']);
+  }
+  catch(Exception $e){
+    ;
+  }
+}
+
+/**
+ * Add the contributor and editor group roles, and set the permissions for them
+ */
+function scratchpads_group_update_7008(){
+  try{
+    db_insert('og_role')->fields(array(
+      'rid',
+      'gid',
+      'name'
+    ))->values(array(
+      'rid' => 4,
+      'gid' => 0,
+      'name' => 'contributor'
+    ))->values(array(
+      'rid' => 5,
+      'gid' => 0,
+      'name' => 'editor'
+    ))->execute();
+  }
+  catch(Exception $e){
+    ;
+  }
+  drupal_flush_all_caches();
+}

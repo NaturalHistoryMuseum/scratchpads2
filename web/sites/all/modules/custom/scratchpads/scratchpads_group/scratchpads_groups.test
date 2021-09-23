@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads group tests.
+*/
+class ScratchpadsGroupTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $admin_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Group',
+      'description' => "Tests that an admin user can create a group and add content to the group",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_group';
+    parent::setUp($modules);
+    //  Create users.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments',
+      'administer taxonomy',
+      'administer group'
+    ));
+    
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->admin_user->uid);
+   
+  }
+
+  /**
+   *  Test that you can create a group node
+ //  */
+  function testScratchpadsGroupBasic(){
+    $this->drupalLogin($this->admin_user);
+    $this->addGroup();
+    $this->verifyAddContentToGroup();
+  }
+
+  /**
+   * Tests that you can add content to a group
+   */
+  function verifyAddContentToGroup(){
+    $this->drupalGet('node/add/page');
+    $edit2 = array();
+    $title = $this->randomName(8);
+    $edit2['group_audience[und][]'] = 1;
+    $edit2['title'] = $title;
+    $edit2['body[und][0][value]'] = $this->randomName(16);
+    $edit2['status'] = 1;
+    $edit2['group_content_access[und]'] =0;
+    $this->drupalPost(NULL, $edit2, 'Save');
+    $this->assertText('has been created.', 'Page node with group successfully created');
+  }
+
+  protected function addGroup(){
+    $this->drupalGet('node/add/group');
+    $this->assertResponse(200, 'Add group page found');
+    $edit = array();
+    $title = $this->randomName(8);
+    $edit['title'] = $title;
+    $edit['body[und][0][value]'] = $this->randomName(16);
+    $edit['status'] = 1;
+    $this->drupalPost(NULL, $edit, 'Save');
+    $this->assertText('Group ' . $title . ' has been created.', 'Group node successfully created');
+  }
+}
+
+
+
+

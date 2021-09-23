@@ -1,0 +1,12 @@
+name = Role delegation
+description = Allows site administrators to grant some roles the authority to assign selected roles to users.
+core = 7.x
+files[] = role_delegation.module
+files[] = role_delegation.test
+
+; Information added by drupal.org packaging script on 2011-06-20
+version = "7.x-1.1"
+core = "7.x"
+project = "role_delegation"
+datestamp = "1308565019"
+

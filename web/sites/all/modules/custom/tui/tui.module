@@ -1,0 +1,352 @@
+<?php
+
+/**
+ * Implements hook_drupal_goto_alter().
+ */
+function tui_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if(strpos($batch['source_url'], 'hierarchy/form_callback/delete-form')){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function tui_menu(){
+  return array(
+    // Callback to get a branch.
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/callback/%taxonomy_term' => array(
+      'title' => 'TUI callback',
+      'page callback' => 'tui_hierarchy_page_callback',
+      'page arguments' => array(
+        3,
+        6
+      ),
+      'access callback' => 'tui_access_callback',
+      'access arguments' => array(
+        3
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.admin.inc'
+    ),
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/add-form' => array(
+      'title' => 'TUI form callback',
+      'page callback' => 'tui_form_callback',
+      'page arguments' => array(
+        3,
+        6,
+        7
+      ),
+      'access callback' => 'tui_access_callback',
+      'access arguments' => array(
+        3
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.ajax.inc'
+    ),
+    // Callback to get all forms.
+    'admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/hierarchy/form_callback/%/%' => array(
+      'title' => 'TUI form callback',
+      'page callback' => 'tui_form_callback',
+      'page arguments' => array(
+        3,
+        6,
+        7
+      ),
+      'access callback' => 'tui_taxonomy_term_edit_access',
+      'access arguments' => array(
+        6,
+        7
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.ajax.inc'
+    ),
+    // Callback for after a sort.
+    'tui/sort' => array(
+      'title' => 'TUI sort callback',
+      'page callback' => 'tui_sort_callback',
+      'access callback' => 'tui_sort_access',
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.ajax.inc'
+    ),
+    // Autocomplete callback for the search form
+    'tui/autocomplete' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'tui_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'tui.admin.inc'
+    )
+  );
+}
+
+/**
+ * Multiple term edit access callback.
+ */
+function tui_taxonomy_term_edit_access($form, $args){
+  switch($form){
+    case 'search-form':
+      return TRUE;
+      break;
+    default:
+      // We load all terms to ensure that they're in the same vocabulary.
+      $tids = explode(",", $args);
+      $terms = taxonomy_term_load_multiple($tids);
+      foreach($terms as $term){
+        if(!is_object($term) || !taxonomy_term_edit_access($term)){return FALSE;}
+      }
+      return TRUE;
+  }
+}
+
+/**
+ * Sort form access callback
+ */
+function tui_sort_access(){
+  // Check we have access to edit ALL the terms we have been sent.
+  return tui_taxonomy_term_edit_access('sort-access', $_POST['sort_change']['tids']);
+}
+
+/**
+ * Implementation of hook_module_implements_alter(){
+ */
+function tui_module_implements_alter(&$imps, $hook){
+  if(isset($imps['tui'])){
+    $tui = $imps['tui'];
+    unset($imps['tui']);
+    $imps['tui'] = $tui;
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
+  //Change the widget of the parent relation to deal with large taxonomies
+  $form['relations']['parent']['#type'] = 'textfield';
+  // Ensure the taxonomy.admin.inc file is included.
+  form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
+  unset($form['relations']['parent']['#options']);
+  if(arg(5) == 'form_callback' || (arg(0) == 'system' && arg(1) == 'ajax')){
+    // Hide the alias field.
+    $form['path']['alias']['#type'] = 'hidden';
+    // Alter the submit.
+    $form['actions']['submit']['#ajax'] = array(
+      'callback' => 'tui_ajax_form_callback',
+      'wrapper' => 'taxonomy-form-term'
+    );
+    // Hide the relations fieldset.
+    $form['relations']['#attributes'] = array(
+      'style' => 'display:none'
+    );
+    // Add a parent if we have one.
+    if(isset($_POST['tid'])){
+      $parent_term = taxonomy_term_load($_POST['tid']);
+      $form['relations']['parent'] = array(
+        '#type' => 'value',
+        '#value' => $_POST['tid']
+      );
+      $form['parent_message'] = array(
+        '#weight' => -1000,
+        '#markup' => '<div class="messages status"><h2 class="element-invisible">Status message</h2>' . t('This term will be added as a child of "@term_name"', array(
+          '@term_name' => $parent_term->name
+        )) . '</div>'
+      );
+    }
+    // Add the destination as a value so that we can use it later.
+    if(isset($_GET['destination'])){
+      $form['tui_destination'] = array(
+        '#type' => 'value',
+        '#value' => $_GET['destination']
+      );
+    }
+  }else if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && arg(3) == 'edit'){
+    // Redirect to the taxonomy editor if trying to edit a single term.
+    if(variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])){
+      $options = array();
+      if(isset($_GET['destination'])){
+        $options = array(
+          'query' => array(
+            'destination' => $_GET['destination']
+          )
+        );
+        unset($_GET['destination']);
+      }
+      drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid'], $options);
+      exit();
+    }
+  }
+}
+
+/**
+ * Implementation of hook_permissions
+ */
+function tui_permission(){
+  $permissions = array();
+  foreach(taxonomy_get_vocabularies() as $vocabulary){
+    $permissions += array(
+      'add terms in ' . $vocabulary->vid => array(
+        'title' => t('Edit terms in %vocabulary', array(
+          '%vocabulary' => $vocabulary->name
+        ))
+      )
+    );
+  }
+  return $permissions;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function tui_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state){
+  // Tweak the links on the overview vocabulary page a little.
+  $children = element_children($form);
+  foreach ($children as $child) {
+    if (is_numeric($child)) {
+      if (isset($form[$child]['edit'])) {
+        $form[$child]['edit']['#title'] = t('Settings');
+      }
+      if (isset($form[$child]['list'])) {
+        $form[$child]['list']['#title'] = t('Edit terms');
+      }
+      if (isset($form[$child]['add'])) {
+        $form[$child]['add']['#title'] = t('Add terms');
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter()
+ */
+function tui_menu_alter(&$items){
+  // Change the tab text, to reflect what we have done in the form alter above.
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['title'] = 'Edit terms';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/list']['weight'] = -10;
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/edit']['title'] = 'Settings';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/edit']['weight'] = -20;
+  // Change the add term page so that the link does not appear on the list terms
+  // or TUI page (As a sub tab thingy, not the tab).
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['type'] = 132;
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['access callback'] = 'tui_access_callback';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name/add']['access arguments'] = array(
+    3
+  );
+  // Change the "list terms" page to use the taxonomy editor instead.
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['page callback'] = 'tui_hierarchy_page';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['page arguments'] = array(
+    3
+  );
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['access callback'] = 'tui_access_callback';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['access arguments'] = array(
+    3
+  );
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['file'] = 'tui.admin.inc';
+  $items['admin/structure/taxonomy/%taxonomy_vocabulary_machine_name']['module'] = 'tui';
+}
+
+function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if((variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js'])) && $router_item['path'] == 'admin/structure/taxonomy/%'){
+    foreach($data['tabs'] as $tab_group_index => $tab_group){
+      foreach($tab_group['output'] as $key => $tab){
+        if($tab['#link']['path'] == 'admin/structure/taxonomy/%/add'){
+          $data['tabs'][$tab_group_index]['output'][$key]['#link']['href'] = 'admin/structure/taxonomy/' . arg(3) . '/hierarchy/form_callback/add-form/';
+          $data['tabs'][$tab_group_index]['output'][$key]['#link']['localized_options'] = array(
+            'attributes' => array(
+              'class' => 'use-ajax',
+              'id' => 'tui-add-tab-link'
+            )
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Access callback for TUI edit pages
+ */
+function tui_access_callback($vocabulary){
+  // Only grant access to the page if they can add AND edit AND delete.
+  return user_access('edit terms in ' . $vocabulary->vid) && user_access('delete terms in ' . $vocabulary->vid) && user_access('add terms in ' . $vocabulary->vid);
+}
+
+/**
+ * Implementation of hook_help()
+ */
+function tui_help($path, $arg){
+  switch($path){
+    case 'admin/structure/taxonomy/%':
+      $vocabulary = taxonomy_vocabulary_machine_name_load($arg[3]);
+      return '<h1>' . t('Taxonomy User Interface') . '</h1>' . t('<p>Clicking a term\'s edit link from the taxonomy browser on the left, will bring up a form here.</p><p>Terms can be moved in the tree by simply dragging and dropping. Click the mouse on a term, ensuring you hold down the button, and then move it to where you would like the term. When moving a name, if you drag the term being moved over another term, then the term being moved will become a sibling of the other term. If you move the mouse to the right whilst over a term, then term will become a child of the other term. If you move the mouse to the left whilst over a term, then term will become a sibling of the parent of the other term.</p><p>Clicking on a term will mark this term and all its progeny in yellow.</p>');
+  }
+}
+
+/**
+ * Implementation of hook_library
+ */
+function tui_library(){
+  return array(
+    'ui.nestedSortable' => array(
+      'title' => 'jQuery UI: nested Sortable',
+      'website' => 'http://mjsarfatti.com/sandbox/nestedSortable/',
+      'version' => '1.3.4',
+      'js' => array(
+        drupal_get_path('module', 'tui') . '/js/jquery.ui.nestedSortable.js' => array()
+      ),
+      'dependencies' => array(
+        array(
+          'system',
+          'ui.sortable'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function tui_theme(){
+  return array(
+    'tui_page' => array(
+      'variables' => array(
+        'vocabulary' => NULL,
+        'tids' => array(),
+        'highlight_tids' => array()
+      ),
+      'file' => 'tui.theme.inc'
+    ),
+    'tui_branch' => array(
+      'variables' => array(
+        'vocabulary' => NULL,
+        'tid' => 0,
+        'tids' => array(),
+        'highlight_tids' => array()
+      ),
+      'file' => 'tui.theme.inc'
+    ),
+    'tui_term' => array(
+      'variables' => array(
+        'vocabulary' => NULL,
+        'term' => NULL,
+        'tids' => array(),
+        'highlight_tids' => array()
+      ),
+      'file' => 'tui.theme.inc'
+    ),
+    'tui_term_name' => array(
+      'variables' => array(
+        'term' => NULL,
+        'highlight_tids' => array(),
+        'vocabulary' => NULL
+      ),
+      'file' => 'tui.theme.inc'
+    )
+  );
+}

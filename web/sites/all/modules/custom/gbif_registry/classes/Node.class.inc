@@ -1,0 +1,68 @@
+<?php
+/**
+ * Standard PHP class for interacting with the GBIF registry.
+ *
+ * Copyright (C) 2012 Simon David Rycroft
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author s.rycroft@nhm.ac.uk
+ */
+namespace GBIF;
+
+class Node extends RegistryObject{
+
+  // Not sure why we actually need an "organizations" variable, but its here,
+  // just in case.
+  protected $organizations = FALSE;
+
+  /**
+   * getURLPrefix
+   *
+   * @return string
+   */
+  final public function getURLPrefix(){
+    return 'node';
+  }
+
+  /**
+   * We need to override get/set endorsingNode as the Node object does not
+   * contain such a variable.
+   */
+  function getEndorsingNode(){
+    return FALSE;
+  }
+
+  function setEndorsingNode($endorsingNode){
+    ;
+  }
+
+  /**
+   * As above, but logoURL.
+   */
+  function getLogoURL(){
+    return FALSE;
+  }
+
+  function setLogoURL($logoURL){
+    ;
+  }
+
+  /**
+   * Gets the organizations endorsed by this node.
+   */
+  public function getOrganizations(){
+    return new Organizations("node/{$this->key}/organization");
+  }
+}

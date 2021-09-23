@@ -1,0 +1,32 @@
+<?php
+/**
+ * @file
+ *   drupal module file implementing bluff charting.
+ *
+ */
+
+/**
+ * Implements hook_chartgraph_provider().
+ */
+function charts_graphs_flot_chartgraph_provider() {
+  $provider = array(
+    'path' => drupal_get_path('module', 'charts_graphs_flot') . '/charts_graphs_flot.class.inc', // must be full path
+    'clazz' => 'ChartsGraphsFlot', // implementation class' name
+    'name' => 'flot', // name used when invoking through a factory method
+    'nice_name' => 'Flot',
+    'chart_types' => array(
+      'point' => t('Points'),
+      'line' => t('Line'),
+      'pointline' => t('Line with Points'),
+      'area' => t('Area'),
+      'linestack' => t('Stacked Line'),
+      'bar' => t('Bar'),
+      'sidebar' => t('Sidebar'),
+      'barstack' => t('Stacked Bar'),
+      'sidebarstack' => t('Stacked Sidebar'),
+      'pie' => t('Pie'),
+    ),
+  );
+
+  return (object) $provider;
+}

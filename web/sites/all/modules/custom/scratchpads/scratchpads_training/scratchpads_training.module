@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_training_block_info(){
+  return array(
+    'links' => array(
+      'info' => t('Training links'),
+      'region' => 'dashboard_sidebar',
+      'status' => 1,
+      'theme' => 'scratchpads_admin'
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_training_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'links':
+      $block['subject'] = t('Training material');
+      $block['content'] = array(
+        'training_files' => array(
+          '#type' => 'link',
+          '#href' => 'http://help.scratchpads.org/w/File:Basic_Training_Files.zip',
+          '#title' => t("Training files"),
+          '#prefix' => '<p>',
+          '#suffix' => '</p>',
+          '#attributes' => array(
+            'target' => '_blank'
+          )
+        ),
+        'feedback' => array(
+          '#type' => 'link',
+          '#href' => 'http://scratchpads.org/training-course-feedback',
+          '#title' => t("Feedback"),
+          '#prefix' => '<p>',
+          '#suffix' => '</p>',
+          '#attributes' => array(
+            'target' => '_blank'
+          )
+        )
+      );
+      break;
+  }
+  return $block;
+}

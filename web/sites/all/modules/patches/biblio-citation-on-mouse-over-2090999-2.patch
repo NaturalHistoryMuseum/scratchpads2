@@ -1,0 +1,14 @@
+diff --git a/sites/all/modules/contrib/biblio/biblio.module b/sites/all/modules/contrib/biblio/biblio.module
+index 366bd8d..48e8212 100644
+--- a/sites/all/modules/contrib/biblio/biblio.module
++++ b/sites/all/modules/contrib/biblio/biblio.module
+@@ -2033,7 +2033,7 @@ function _biblio_filter_replace_callback($matches, $op = '') {
+     $text .= '<span id="reference' . $ref . '" class="hovertip">' . _biblio_citekey_print($title) . '</span>';
+   }
+   else {
+-    $text = '<a href="#ref' . $ref . '" title="Reference ' . $ref . '">[' . $ref . ']</a>';
++    $text = '<a href="#ref' . $ref . '" title="'. strip_tags(_biblio_citekey_print($title)).'">[' . $ref . ']</a>';
+ 
+   }
+   return $text;
+ }

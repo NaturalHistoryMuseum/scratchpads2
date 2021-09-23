@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Tests for the site_map module.
+ */
+
+/**
+ * Test case class for sitemap tests.
+ */
+class SiteMapTest extends DrupalWebTestCase {
+  /**
+   * The getInfo() method provides information about the test.
+   *
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Site map'),
+      'description' => t('Tests main module logic.'),
+      'group' => t('Sitemap'),
+    );
+  }
+
+  /**
+   * Prepares the testing environment.
+   */
+  public function setUp() {
+    parent::setUp('site_map');
+  }
+
+  /**
+   * Tests that a new node with a menu item gets listed at /sitemap.
+   */
+  public function testNodeAddition() {
+    // Create user.
+    $this->user = $this->drupalCreateUser(array(
+      'administer site configuration',
+      'access site map',
+      'administer menu',
+      'administer nodes',
+      'create page content',
+    ));
+    $this->drupalLogin($this->user);
+
+    // Configure module to list items of Main menu.
+    $edit = array(
+      'site_map_show_menus[main-menu]' => '1',
+    );
+    $this->drupalPost('admin/config/search/sitemap',
+                      $edit, t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'));
+
+    // Create dummy node.
+    $title = $this->randomName(8);
+    $edit = array(
+      'title' => $title,
+      'menu[enabled]' => '1',
+      'menu[link_title]' => $title,
+    );
+    $this->drupalPost('node/add/page',
+                      $edit, t('Save'));
+
+    // Check that dummy node is listed at /sitemap
+    $this->drupalGet('sitemap');
+    $this->assertText($title);
+  }
+}

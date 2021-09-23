@@ -1,0 +1,45 @@
+<?php
+if(!defined('CITE_URL')) {
+  define('CITE_URL', 'cite.scratchpads.org');
+}
+
+/**
+ * Implement hook_enable
+ *
+ * Ensure blocks are rebuild
+ */
+function scratchpads_citethispage_enable(){
+  block_flush_caches();
+}
+
+/**
+ * Implement hook_disable()
+ *
+ * Ensure citethispage module gets disabled when this one gets
+ * disabled
+ */
+function scratchpads_citethispage_disable(){
+  // We need to disable the modules once everything else has done. So we register
+  // a shutdown function with arguments.
+  drupal_register_shutdown_function('module_disable', array(
+    'citethispage'
+  ));
+}
+
+/**
+ * Change the phantomjs script
+ */
+function scratchpads_citethispage_update_7001(){
+  variable_set('citethispage_phantomjs_tool', '/usr/local/bin/phantomjs [citethispage_phantomjs:pathtospadmodule]/js/scratchpads_citethispage_snapshot.js [citethispage_phantomjs:url] http://' . CITE_URL . ' /var/www/' . CITE_URL . ' [citethispage_phantomjs:post] [citethispage_phantomjs:destination]');
+  variable_set('citethispage_phantomjs_destination', '');
+}
+
+/**
+ * Disable citethispage_phantomjs and citethispage_nodes as we now provide our own services
+ */
+function scratchpads_citethispage_update_7002(){
+  drupal_register_shutdown_function('module_disable', array(
+    'citethispage_phantomjs',
+    'citethispage_nodes'
+  ));
+}

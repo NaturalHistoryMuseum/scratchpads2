@@ -1,0 +1,17 @@
+diff --git a/sites/all/modules/contrib/customerror/customerror.module b/sites/all/modules/contrib/customerror/customerror.module
+index dcb7f6b..f02270d 100644
+--- a/sites/all/modules/contrib/customerror/customerror.module
++++ b/sites/all/modules/contrib/customerror/customerror.module
+@@ -256,6 +256,12 @@ function customerror_user_login(&$edit, $account) {
+   if (!empty($_SESSION['destination'])) {
+     // If there is one, then set the REQUEST destination to it
+     $_GET['destination'] = $_SESSION['destination'];
++    // Bug fix temp
++    if(strpos($_GET['destination'], 'destination=')){
++      $dest_parts = explode('destination=', $_GET['destination']);
++      $_GET['destination'] = array_pop($dest_parts);
++    }
++    drupal_set_message($_GET['destination']);
+     // And clear the one in the session
+     unset($_SESSION['destination']);
+     // user.module then does a drupal_goto() for us after we return from here

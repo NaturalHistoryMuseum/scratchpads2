@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Implements hook_cron().
+ */
+function emonocot_tweaks_cron(){
+  // Note, we need to parse the emonocot_tweaks info file ourselves as it
+  // has its dependencies removed to allow required modules to be removed.
+  $tweaks_info = drupal_parse_info_file(drupal_get_path('module', 'emonocot_tweaks') . '/emonocot_tweaks.info');
+  $system_data = system_rebuild_module_data();
+  $modules_to_enable = array();
+  foreach($tweaks_info['dependencies'] as $module_name){
+    if(!module_exists($module_name)){
+      $row = db_select('system', 's')->condition('name', $module_name)->fields('s')->execute()->fetch();
+      if(!$row || $row->schema_version == -1){
+        // This module has never been installed, we install it.
+        $modules_to_enable[] = $module_name;
+      }else{
+        // The module has been installed before, we need to check the module's
+        // info file to check if it is a tool and could be disabled.
+        if(!isset($system_data[$module_name]->info['tool'])){
+          $modules_to_enable[] = $module_name;
+        }
+      }
+    }
+  }
+  if(count($modules_to_enable)){
+    module_enable($modules_to_enable);
+  }
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function emonocot_tweaks_system_info_alter(&$info, $file, $type){
+  switch($file->name){
+    case 'emonocot_tweaks':
+      // Unset the dependencies of the scratchpads module so that other modules
+      // can be disabled (e.g. EOL taxon page data).
+      unset($info['dependencies']);
+      break;
+    case 'sofapi':
+      $info['tool'] = TRUE;
+      $info['name'] = 'SOF World Orchid Iconography Images';
+      $info['description'] = 'Show images from the WOI on taxon pages.';
+      break;
+    case 'emonocot_tcs':
+      $info['tool'] = TRUE;
+      break;
+  }
+}
+
+function emonocot_tweaks_menu(){
+  $items['admin/config/emonocot'] = array(
+    'title' => 'eMonocot Scratchpads configuration',
+    'description' => 'Adjust how eMonocot specific functions behave.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(
+      'administer site configuration'
+    ),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system')
+  );
+  return $items;
+}

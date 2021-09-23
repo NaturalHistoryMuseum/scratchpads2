@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Logging.  This code is inspired by the devel::performance module
+ */
+/**
+ * Implements hook_boot().
+ */
+function scratchpads_load_time_log_boot(){
+  drupal_register_shutdown_function('scratchpads_load_time_log_shutdown');
+}
+
+/**
+ * Shutdown function as registered above.
+ */
+function scratchpads_load_time_log_shutdown(){
+  if(isset($_SERVER['REQUEST_URI']) && ($_SERVER['REQUEST_URI'])){
+    $path = $_SERVER['REQUEST_URI'];
+  }else{
+    $path = variable_get('site_frontpage', 'node');
+  }
+  $time = time();
+  global $user;
+  watchdog('scratchpads load time', 'Path: !path, Timer: !timer, UID: !uid, Time: !time, Request type: !request_method, Memory usage: !memory_usage, Peak memory usage: !peak_memory_usage', array(
+    '!path' => $path,
+    '!timer' => timer_read('page'),
+    '!uid' => $user->uid,
+    '!time' => $time,
+    '!request_method' => $_SERVER['REQUEST_METHOD'],
+    '!memory_usage' => round(memory_get_usage() / 1024 / 1024, 2),
+    '!peak_memory_usage' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2)
+  ));
+}

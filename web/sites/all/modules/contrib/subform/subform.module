@@ -1,0 +1,1031 @@
+<?php
+
+/**
+ * @file
+ * Defines a subform element type.
+ *
+ * Basic usage example:
+ * @code
+ *   $form['my_node_subform'] = array(
+ *     '#type' => 'subform',
+ *     '#subform_id' => 'node_form',
+ *     '#subform_file' => array('module' => 'node', 'name' => 'node.pages'),
+ *     '#subform_arguments' => array($node),
+ *     '#subform_default_triggering_element' => array('actions', 'submit'),
+ *   );
+ * @endcode
+ *
+ * Understanding the code
+ * ----------------------
+ * Order of the functions in this file is an indication of the order of
+ * execution when processing subforms, while the function names indicate their
+ * context.
+ *
+ * Note that depending on whether a form needs rebuilding, some functions can
+ * get called twice.
+ */
+
+/**
+ * Implements hook_element_info().
+ */
+function subform_element_info() {
+  $types['subform'] = array(
+    '#input' => TRUE,
+    // Actual value determined in subform_element_process()
+    '#executes_submit_callback' => TRUE,
+    '#required' => TRUE,
+    '#limit_validation_errors' => FALSE,
+
+    '#value_callback'   => 'subform_element_value',
+    '#process'          => array('subform_element_process'),
+    '#element_validate' => array('subform_element_validate'),
+    '#submit'           => array('subform_element_submit'),
+
+    '#theme_wrappers' => array('subform'),
+
+    '#subform_arguments' => array(),
+    '#subform_file' => NULL,
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function subform_theme() {
+  return array(
+    'subform' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ *
+ * If the current request is a ajax form submission and contains the special
+ * input key '_subform_element_name', the ajax path or callback expects the
+ * form structure and state of the subform. If this is the case rewrite $_POST
+ * and $_FILES so they contain the subform specific data only.
+ *
+ * During a ajax form submission only functions starting with "subform_form_"
+ * are called; all "subform_element_" and all "subform_parent_" functions are
+ * irrelevant.
+ *
+ * @see subform_form_child_pre_render()
+ *   Contains the code that renames input elements inside subforms and allows
+ *   for ajax form submissions.
+ * @see subform_form_process()
+ * @see subform_form_after_build()
+ *   Functions that get called during a ajax form submission.
+ */
+function subform_init() {
+  if (isset($_POST['_subform_element_name'])) {
+    $subform_name = $_POST['_subform_element_name'];
+    $wrapper_input = $_POST;
+
+    $_POST = isset($_POST[$subform_name]) ? $_POST[$subform_name] : array();
+    if (!empty($wrapper_input)) {
+      foreach ($wrapper_input as $name => $value) {
+         if (strpos($name, $subform_name . '-') === 0) {
+           $_POST[$name] = $value;
+         }
+      }
+    }
+
+    //$_POST['_subform_wrapper_input'] = $wrapper_input;
+
+    // This is hacky, but it works: _subform_element_name is supposed to
+    // be the first non-form-input value.
+    $non_form_input = FALSE;
+    foreach ($wrapper_input as $key => $value) {
+      if ($key == '_subform_element_name') {
+        $non_form_input = TRUE;
+      }
+      elseif ($non_form_input) {
+        $_POST[$key] = $value;
+      }
+    }
+
+    if (!empty($_FILES['files'])) {
+      foreach ($_FILES['files']['name'] as $old_name => $value) {
+        if (strpos($old_name, $subform_name . '-') === 0) {
+          // Remove the subform element name prefix.
+          $new_name = substr($old_name, strlen($subform_name . '-'));
+
+          foreach (array('name', 'type', 'tmp_name', 'error', 'size') as $key) {
+            $_FILES['files'][$key][$new_name] = $_FILES['files'][$key][$old_name];
+            unset($_FILES['files'][$key][$old_name]);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Value callback for the subform element.
+ */
+function subform_element_value(&$element, $input, &$form_state) {
+  $element['#name'] = $subform_name = (isset($form_state['subform_name']) ? $form_state['subform_name'] : 'subform') . '-' . implode('-', $element['#parents']);
+
+  if (!isset($form_state['temporary']['subform'][$subform_name])) {
+    $form_state['temporary']['subform'][$subform_name] = array();
+  }
+  $subform_state = &$form_state['temporary']['subform'][$subform_name];
+  // Ensure some defaults; if already set they will not be overridden.
+  $subform_state += form_state_defaults();
+  $subform_state['subform_name'] = $subform_name;
+  $subform_state['subform_element_parents'] = $element['#array_parents'];
+  $subform_state['subform_parent'] = array(
+    'form_id' =>  $form_state['complete form']['#form_id'],
+    'build_id' => $form_state['complete form']['#build_id'],
+  );
+
+  $subform_state['temporary']['subform_parent_state'] = &$form_state;
+
+  // Pass in subform arguments.
+  if (!empty($element['#subform_arguments'])) {
+    $subform_state['build_info']['args'] = $element['#subform_arguments'];
+  }
+
+  // Load subform files.
+  if (!empty($element['#subform_file'])) {
+    $file = $element['#subform_file'];
+    if (is_array($file)) {
+      $file += array('type' => 'inc', 'name' => $file['module']);
+      module_load_include($file['type'], $file['module'], $file['name']);
+    }
+    elseif (file_exists($file)) {
+      require_once DRUPAL_ROOT . '/' . $file;
+    }
+    $subform_state['build_info']['files'][] = $element['#subform_file'];
+  }
+
+  // The subform inherits certain properties from the subform element.
+  foreach (array('#access', '#disabled', '#allow_focus', '#subform_default_triggering_element') as $property) {
+    if (isset($element[$property]) && !isset($subform[$property])) {
+      $subform_state['subform_properties'][$property] = $element[$property];
+    }
+  }
+
+  if (isset($form_state['input'][$subform_name]) && is_array($form_state['input'][$subform_name])) {
+    $input = $form_state['input'][$subform_name];
+  }
+  elseif (isset($element['#default_value']) && is_array($element['#default_value'])) {
+    $input = $element['#default_value'];
+    // Prevent default value from triggering form validation/submission.
+    unset($input['form_id']);
+  }
+
+  // Include nested subform input.
+  if (!empty($form_state['input'])) {
+    foreach ($form_state['input'] as $name => $value) {
+       if (strpos($name, $subform_name . '-') === 0) {
+         $input[$name] = $value;
+       }
+    }
+  }
+
+  return $input;
+}
+
+/**
+ * Processes a subform element.
+ *
+ * @see drupal_build_form()
+ * @see drupal_process_form()
+ *   Contains code that is duplicated here.
+ */
+function subform_element_process($element, &$form_state) {
+  $form_id = $element['#subform_id'];
+  $subform_name = $element['#name'];
+  $subform_state = &subform_get_state($subform_name, $form_state);
+
+  $subform_state['input'] = isset($element['#value']) && is_array($element['#value']) ? $element['#value'] : array();
+
+  $element['#subform_errors'] = array();
+  $element['#subform_error_messages'] = array();
+
+  if ($subform_state['rebuild']) {
+    $subform = subform_element_rebuild($element, $form_state);
+  }
+  else {
+
+    subform_buffer('start', $element);
+
+    // Copied from drupal_build_form()
+    {
+      // Check the cache for a copy of the subform in question.
+      $check_cache = isset($subform_state['input']['form_id']) && $subform_state['input']['form_id'] == $form_id && !empty($subform_state['input']['form_build_id']);
+      if ($check_cache) {
+        $subform = form_get_cache($subform_state['input']['form_build_id'], $subform_state);
+      }
+
+      // Build subform from scratch.
+      if (!isset($subform)) {
+        if ($check_cache) {
+          $subform_state_before_retrieval = $subform_state;
+        }
+
+        $subform = drupal_retrieve_form($form_id, $subform_state);
+        drupal_prepare_form($form_id, $subform, $subform_state);
+
+        if ($check_cache) {
+          $uncacheable_keys = array_flip(array_diff(form_state_keys_no_cache(), array('always_process', 'temporary')));
+          $subform_state = array_diff_key($subform_state, $uncacheable_keys);
+          $subform_state += $subform_state_before_retrieval;
+        }
+      }
+    }
+
+    // Copied from drupal_process_form()
+    {
+      $subform_state['values'] = array();
+
+      // With $_GET, these forms are always submitted if requested.
+      if ($subform_state['method'] == 'get' && !empty($subform_state['always_process'])) {
+        if (!isset($subform_state['input']['form_build_id'])) {
+          $subform_state['input']['form_build_id'] = $subform['#build_id'];
+        }
+        if (!isset($subform_state['input']['form_id'])) {
+          $subform_state['input']['form_id'] = $form_id;
+        }
+        if (!isset($subform_state['input']['form_token']) && isset($subform['#token'])) {
+          $subform_state['input']['form_token'] = drupal_get_token($subform['#token']);
+        }
+      }
+
+      // Retain the unprocessed $subform in case it needs to be cached.
+      $subform_state['temporary']['subform_unprocessed'] = $subform;
+      $subform = form_builder($form_id, $subform, $subform_state);
+    }
+
+    // Display any errors thrown during form building.
+    subform_buffer('end', $element, TRUE);
+  }
+
+  // If the subform contains a file element, update the parent form accordingly.
+  if (isset($subform_state['has_file_element'])) {
+    $form_state['has_file_element'] = TRUE;
+  }
+
+  // Subform elements are allowed to set #limit_validation_errors to TRUE, to
+  // limit validation errors to errors within the subform only.
+  if (isset($element['#limit_validation_errors']) && $element['#limit_validation_errors'] === TRUE) {
+    $element['#limit_validation_errors'] = array($element['#parents']);
+  }
+
+  // If the subform contains a triggering element, set the subform element to be
+  // the triggering element of the parent form.
+  if (isset($subform_state['triggering_element']) && empty($subform_state['temporary']['subform_no_triggering_element'])) {
+    $element['#executes_submit_callback'] = $subform_state['triggering_element']['#executes_submit_callback'];
+
+    $form_state['triggering_element'] = $element;
+  }
+
+  $form_state['complete form']['#after_build']['subform_parent_after_build'] = 'subform_parent_after_build';
+
+  $element['#subform'] = $subform;
+  return $element;
+}
+
+/**
+ * Constructs a new $subform from the information in $subform_state.
+ *
+ * @see drupal_rebuild_form()
+ *   Contains code that is duplicated here.
+ */
+function subform_element_rebuild($element, &$form_state) {
+  $subform_state = &subform_get_state($element['#name'], $form_state);
+  if (isset($form_state['rebuild_info'])) {
+    $subform_state['rebuild_info'] = $form_state['rebuild_info'];
+  }
+  $old_subform = isset($subform_state['temporary']['subform_unprocessed']) ? $subform_state['temporary']['subform_unprocessed'] : NULL;
+
+  subform_buffer('start', $element);
+  {
+    // TODO prevent caching in drupal_rebuild_form() as we are doing it later
+    // in subform_parent_after_build().
+    $element['#subform'] = drupal_rebuild_form($element['#subform_id'], $subform_state, $old_subform);
+  }
+  subform_buffer('end', $element, TRUE);
+
+  return $element;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function subform_form_alter(&$form, &$form_state, $form_id) {
+  // Detect whether this is a form within a subform element.
+  if (!empty($form_state['subform_name'])) {
+    $form['#process']['subform_form_process'] = 'subform_form_process';
+    $form['#after_build']['subform_form_after_build'] = 'subform_form_after_build';
+  }
+}
+
+/**
+ * Process callback for form elements within subform elements.
+ *
+ * @see subform_form_alter()
+ *   Registers this callback.
+ */
+function subform_form_process($element, &$form_state) {
+  // The subform inherits certain properties from the subform element.
+  if (!empty($form_state['subform_properties'])) {
+    foreach ($form_state['subform_properties'] as $property => $value) {
+      $element[$property] = $value;
+    }
+  }
+  return $element;
+}
+
+/**
+ * After-build callback for form elements within subform elements.
+ *
+ * @see subform_form_alter()
+ *   Registers this callback.
+ */
+function subform_form_after_build($element, &$form_state) {
+  if (!isset($form_state['triggering_element'])) {
+    // Indicate that no actual triggering element is set; form_builder() will
+    // set the first button as the triggering element.
+    $form_state['temporary']['subform_no_triggering_element'] = TRUE;
+
+    // Allows to set an alternative default triggering element.
+    if (!empty($element['#subform_default_triggering_element'])) {
+      $triggering_element = &subform_array_get_nested_value($element, $element['#subform_default_triggering_element'], $triggering_element_exists);
+      if ($triggering_element_exists) {
+        $form_state['triggering_element'] = $triggering_element;
+      }
+    }
+  }
+
+  // Set a #pre_render callback on all elements within a subform.
+  $element['#pre_render']['subform_form_pre_render'] = 'subform_form_pre_render';
+  subform_form_after_build_traverse_children($form_state['subform_name'], $element);
+
+  return $element;
+}
+
+/**
+ * Helper function to set a #pre_render callback on all elements within a subform.
+ */
+function subform_form_after_build_traverse_children($subform_name, &$element) {
+  foreach (element_children($element) as $key) {
+    subform_form_after_build_traverse_children($subform_name, $element[$key]);
+  }
+
+  $element['#subform_name'] = $subform_name;
+  $element['#pre_render']['subform_form_child_pre_render'] = 'subform_form_child_pre_render';
+}
+
+/**
+ * After-build callback for form elements containing subform elements.
+ *
+ * @see subform_element_process()
+ *   Registers this callback.
+ */
+function subform_parent_after_build(&$element, &$form_state) {
+  // Subform elements may contain the first button in the whole form. If the
+  // parent form contains no actual triggering element, set this subform to
+  // be the triggering element.
+  if (!empty($form_state['temporary']['subform']) && !isset($form_state['triggering_element'])) {
+    foreach ($form_state['temporary']['subform'] as $subform_name => &$subform_state) {
+      $subform_element = &subform_array_get_nested_value($element, $subform_state['subform_element_parents'], $subform_exists);
+      if ($subform_exists && !empty($subform_element['#subform_has_first_button'])) {
+        $form_state['triggering_element'] = $subform_element;
+        break;
+      }
+    }
+  }
+
+  foreach ($form_state['temporary']['subform'] as $subform_name => &$subform_state) {
+    // The triggering element of the parent form may set specific triggering
+    // elements for its subforms using #subform_triggering_element which accepts
+    // the following format:
+    //
+    // @code
+    // array(
+    //   $form_id => array($parents, $of, $subforms, $triggering_element),
+    // );
+    // @endcode
+    if (isset($form_state['triggering_element']['#subform_triggering_element'][$subform_state['complete form']['#form_id']])) {
+      $triggering_element = &subform_array_get_nested_value($subform_state['complete form'], $form_state['triggering_element']['#subform_triggering_element'][$subform_state['complete form']['#form_id']], $triggering_element_exists);
+      if ($triggering_element_exists) {
+        subform_set_triggering_element($triggering_element, $subform_state);
+      }
+    }
+
+    // If the input is not going to be processed cache the subform here. Caching
+    // the subforms here allows for making changes to subform states in any
+    // process or after-build callback.
+    if ((!$form_state['process_input'] || !$subform_state['process_input']) && empty($subform_state['programmed']) && $subform_state['cache'] && empty($subform_state['no_cache'])) {
+      form_set_cache($subform_state['complete form']['#build_id'], $subform_state['temporary']['subform_unprocessed'], $subform_state);
+    }
+  }
+
+  // While this is also done later in form_builder() we need the triggering
+  // element here to set the after-validate/submit handlers correctly.
+  if (!$form_state['programmed'] && !isset($form_state['triggering_element']) && !empty($form_state['buttons'])) {
+    $form_state['triggering_element'] = $form_state['buttons'][0];
+  }
+
+  // Add after-validate/submit handlers to this parent form.
+  foreach (array('validate', 'submit') as $type) {
+    if (isset($form_state['triggering_element']['#' . $type])) {
+      $form_state['triggering_element']['#' . $type]['subform_parent_after_' . $type] = 'subform_parent_after_' . $type;
+    }
+    else {
+      if (!isset($element['#' . $type])) {
+        $element['#' . $type] = array();
+      }
+      $element['#' . $type]['subform_parent_after_' . $type] = 'subform_parent_after_' . $type;
+    }
+  }
+
+  return $element;
+}
+
+/**
+ * Validation handler for the subform element.
+ *
+ * It validates the subform element by validating the subform.
+ *
+ * @see drupal_process_form()
+ *   Contains code that is duplicated here.
+ */
+function subform_element_validate(&$element, &$form_state) {
+  $subform_state = &subform_get_state($element['#name'], $form_state);
+
+  // Validate the subform if we have a correct form submission.
+  if ($subform_state['process_input']) {
+
+    subform_buffer('start', $element);
+    {
+      // drupal_validate_form() expects a unique form id; use the subform name.
+      drupal_validate_form($element['#name'], $element['#subform'], $subform_state);
+    }
+    // Only display validation errors of the subform if the subform element is
+    // required or if it is considered the triggering element.
+    subform_buffer('end', $element, $element['#required'] || $form_state['triggering_element']['#name'] == $element['#name']);
+
+    // Propagate rebuild key up if set during validation.
+    if (!empty($subform_state['rebuild'])) {
+      $form_state['rebuild'] = TRUE;
+    }
+  }
+}
+
+
+/**
+ * Validation handler to be run after all other validation handlers.
+ *
+ * @see subform_parent_after_build()
+ *   Registers this callback.
+ */
+function subform_parent_after_validate(&$form, &$form_state) {
+  if (!empty($form_state['temporary']['subform'])) {
+    // If we're not going to submit the parent form we need to cache its subforms here,
+    // except when the form is going to be rebuild as subform_element_process()
+    // will cache it during the rebuild.
+    $submit = $form_state['submitted'] && !form_get_errors() && !$form_state['rebuild'];
+
+    foreach ($form_state['temporary']['subform'] as $subform_name => &$subform_state) {
+      // Cache subform if neccesary. Caching the subforms here allows for making
+      // changes to subform states in any validation handler.
+      if (!$submit && !$form_state['rebuild'] && empty($form_state['programmed']) && !$subform_state['rebuild'] && $subform_state['cache'] && empty($subform_state['no_cache'])) {
+        form_set_cache($subform_state['values']['form_build_id'], $subform_state['temporary']['subform_unprocessed'], $subform_state);
+      }
+    }
+  }
+}
+
+/**
+ * Submit handler for submitting a single subform.
+ *
+ * @param $form
+ *   An associative array containing the structure of the parent form.
+ * @param $form_state
+ *   A keyed array containing the current state of the parent form.
+ */
+function subform_element_submit(&$form, &$form_state) {
+  if ($form_state['triggering_element']['#type'] == 'subform') {
+    $subform_state = &subform_get_state($form_state['triggering_element']['#name'], $form_state);
+    $subform_element = &subform_array_get_nested_value($form, $subform_state['subform_element_parents'], $subform_exists);
+    if ($subform_exists) {
+      subform_buffer('start', $subform_element);
+      {
+        subform_submit_subform($subform_element['#subform']['#form_id'], $subform_element['#subform'], $subform_state);
+      }
+      // Always display errors of subforms requested specifically to submit.
+      subform_buffer('end', $subform_element, TRUE);
+
+      // As this submit handler only executes the subform, rebuild the
+      // parent form, but only if subform element does not have
+      // #limit_validation_errors set.
+      $form_state['rebuild'] = empty($subform_element['#limit_validation_errors']);
+    }
+  }
+}
+
+/**
+ * Submit handler for submitting all subforms.
+ *
+ * @param $form
+ *   An associative array containing the structure of the parent form.
+ * @param $form_state
+ *   A keyed array containing the current state of the parent form.
+ */
+function subform_submit_all(&$form, &$form_state) {
+  if (!empty($form_state['temporary']['subform'])) {
+    foreach ($form_state['temporary']['subform'] as $subform_name => &$subform_state) {
+      $subform_element = &subform_array_get_nested_value($form, $subform_state['subform_element_parents'], $subform_exists);
+      if ($subform_exists) {
+        subform_buffer('start', $subform_element);
+        {
+          subform_submit_subform($subform_element['#subform']['#form_id'], $subform_element['#subform'], $subform_state);
+        }
+        // Only display subform errors if it was actually executed.
+        subform_buffer('end', $subform_element, $subform_state['executed']);
+
+        // As subform_submit_all() most of the time will be called in combination
+        // with parent form's default submit handlers only request a form rebuild
+        // here if the subform does so too.
+        if (!empty($subform_state['rebuild'])) {
+          $form_state['rebuild'] = TRUE;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Submit handler to be run after all other submit handlers.
+ *
+ * @see subform_parent_after_build()
+ *   Registers this callback.
+ */
+function subform_parent_after_submit(&$form, &$form_state) {
+  if (!empty($form_state['temporary']['subform'])) {
+    $redirect = empty($form_state['programmed']) && empty($form_state['rebuild']) && empty($form_state['no_redirect']) && (!isset($form_state['redirect']) || $form_state['redirect'] !== FALSE);
+
+    foreach ($form_state['temporary']['subform'] as $subform_name => &$subform_state) {
+      if (!$subform_state['executed']) {
+        // Not executed subforms need to be rebuild if the parent form does too.
+        if ($form_state['rebuild']) {
+          $subform_state['rebuild'] = TRUE;
+        }
+      }
+
+      // Clear subform's cache if parent is redirecting or subform is executed.
+      if ($redirect || $subform_state['executed']) {
+        // We'll clear out the cached copies of the form and its stored data
+        // here, as we've finished with them. The in-memory copies are still
+        // here, though.
+        if (!variable_get('cache', 0) && !empty($subform_state['values']['form_build_id'])) {
+          cache_clear_all('form_' . $subform_state['values']['form_build_id'], 'cache_form');
+          cache_clear_all('form_state_' . $subform_state['values']['form_build_id'], 'cache_form');
+        }
+      }
+
+      // Prevent subforms from rebuilding while they shouldn't.
+      if (isset($form_state['rebuild']) && !$subform_state['rebuild']) {
+        // Reset subform state.
+        $subform_state = form_state_defaults();
+        // Remove subform input, including input for nested subforms.
+        foreach ($form_state['input'] as $name => $value) {
+          if ($name == $subform_name || strpos($name, $subform_name . '-') === 0) {
+            unset($form_state['input'][$name]);
+          }
+        }
+      }
+
+      // Cache subform if neccesary. Caching the subforms here allows for making
+      // changes to subform states in any submit handler.
+      if (!$redirect && empty($form_state['rebuild']) && empty($form_state['programmed']) && empty($subform_state['rebuild']) && !empty($subform_state['cache']) && empty($subform_state['no_cache'])) {
+        form_set_cache($subform_state['values']['form_build_id'], $subform_state['temporary']['subform_unprocessed'], $subform_state);
+      }
+    }
+  }
+}
+
+/**
+ * Pre-render callback for subforms.
+ *
+ * Remove the form option from the theme wrapper, so there will not be nested
+ * forms.
+ *
+ * @see subform_form_after_build()
+ *   Registers this callback.
+ */
+function subform_form_pre_render($element) {
+  $element['#theme_wrappers'] = array_diff($element['#theme_wrappers'], array('form'));
+
+  return $element;
+}
+
+/**
+ * Pre-render callback for elements within subforms.
+ *
+ * Prefixes the #name of all input elements except files in $form with $prefix
+ *
+ * @see subform_form_after_build()
+ *   Registers this callback.
+ */
+function subform_form_child_pre_render($element) {
+  $subform_name = $element['#subform_name'];
+
+  if (!isset($element['#access']) || $element['#access']) {
+    // Prefix the #attributes[name] of all input elements with the subform name.
+    // Don't prefix #name as theme_form_element() needs the original #name to
+    // set correct classes on which CSS and Javascript might depend.
+    if (!empty($element['#name'])) {
+      // Name set in #attributes has preference.
+      $element_name = isset($element['#attributes']['name']) ? $element['#attributes']['name'] : $element['#name'];
+
+      if ($element['#type'] == 'file') {
+        $element_name = substr($element_name, 6, -1);
+        $element['#attributes']['name'] = 'files[' . $subform_name . '-' . $element_name . ']';
+      }
+      elseif ($element['#type'] != 'subform') {
+        $element_name = explode('[', $element_name, 2);
+        $element_name[0] = '['. $element_name[0] .']';
+        $element['#attributes']['name'] = $subform_name . implode('[', $element_name);
+      }
+    }
+
+    // Prepend the special input key '_subform_element_name' to ajax settings.
+    if (!empty($element['#attached']['js'])) {
+      foreach ($element['#attached']['js'] as &$js) {
+        if (isset($element['#id']) && is_array($js) && isset($js['data']['ajax'][$element['#id']])) {
+          // Note that the submit array is rebuild so '_subform_element_name' is
+          // the first element in the array, which is very important for subform_init().
+          $js['data']['ajax'][$element['#id']]['submit'] = array('_subform_element_name' => $subform_name) + $js['data']['ajax'][$element['#id']]['submit'];
+        }
+      }
+    }
+
+    // Correct input element names in #states.
+    if (!empty($element['#states'])) {
+      foreach ($element['#states'] as $state => $conditions) {
+        $element['#states'][$state] = array();
+        foreach ($conditions as $selector => $condition) {
+          $selector = preg_replace('%\[name="([^["]+)(.+)?"\]%', '[name="' . $subform_name . '[$1]$2"]', $selector);
+          $element['#states'][$state][$selector] = $condition;
+        }
+      }
+    }
+  }
+
+  return $element;
+}
+
+/**
+ * Copy of drupal_array_get_nested_value() supporting return-by-reference.
+ *
+ * http://drupal.org/node/991066
+ */
+function &subform_array_get_nested_value(array &$array, array $parents, &$key_exists = NULL) {
+  $ref = &$array;
+  foreach ($parents as $parent) {
+    if (is_array($ref) && array_key_exists($parent, $ref)) {
+      $ref = &$ref[$parent];
+    }
+    else {
+      $key_exists = FALSE;
+      $null = NULL;
+      return $null;
+    }
+  }
+  $key_exists = TRUE;
+  return $ref;
+}
+
+/**
+ * Returns a reference on a subform's state.
+ *
+ * @param $subform_name
+ *   Unique identifier of the requested subform ($subform_element['#name']).
+ * @param $form_state
+ *   A keyed array containing the current state of the parent form.
+ *
+ * @return
+ *   A reference to the state of requested subform or FALSE if non-existant.
+ */
+function &subform_get_state($subform_name, &$form_state) {
+  if (!isset($form_state['temporary']['subform'][$subform_name])) {
+    $return = FALSE;
+    return $return;
+  }
+
+  return $form_state['temporary']['subform'][$subform_name];
+}
+
+/**
+ * Returns the form state of a subform's parent form.
+ *
+ * @param $subform_state
+ *   A keyed array containing the current state of the subform.
+ *
+ * @return
+ *   The state of subform's parent form.
+ */
+function subform_get_parent_state($subform_state) {
+  if (!empty($subform_state['subform_name'])) {
+    if (isset($subform_state['temporary']['subform_parent_state'])) {
+      return $subform_state['temporary']['subform_parent_state'];
+    }
+    elseif ($cached = cache_get('form_state_' . $subform_state['subform_parent']['build_id'], 'cache_form')) {
+      return $cached->data + form_state_defaults();
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function to manually set the triggering element of a subform.
+ *
+ * This function can be used on to manually set the triggering element of
+ * a subform. This might be useful when #subform_default_triggering_element or
+ * #subform_triggering_element are not sufficient.
+ *
+ * Example:
+ * @code
+ * function example_parent_form_process($form, &$form_state) {
+ *   $subform_element = $form['my']['subform']['element'];
+ *   $subform = $subform_element['#subform'];
+ *   $subform_state = &subform_get_state($subform_element['#name'], $form_state);
+ *
+ *   // Something conditional
+ *   if ($form_state['values']['foo'] == 'bar') {
+ *     $action = 'do_something_special';
+ *   }
+ *   else {
+ *     $action = 'default';
+ *   }
+ *   subform_set_triggering_element($subform['actions'][$action], $subform_state);
+ * }
+ * @endcode
+ *
+ * @param $element
+ *   Element to set as the triggering element.
+ * @param $form_state
+ *   Form state of the subform where $element belongs to.
+ *
+ * @see form_builder()
+ *   Contains code that is duplicated here.
+ */
+function subform_set_triggering_element($element, &$form_state) {
+  $form_state['triggering_element'] = $element;
+
+  // If the triggering element specifies "button-level" validation and submit
+  // handlers to run instead of the default form-level ones, then add those to
+  // the form state.
+  foreach (array('validate', 'submit') as $type) {
+    if (isset($form_state['triggering_element']['#' . $type])) {
+      $form_state[$type . '_handlers'] = $form_state['triggering_element']['#' . $type];
+    }
+  }
+
+  // If the triggering element executes submit handlers, then set the form
+  // state key that's needed for those handlers to run.
+  if (!empty($form_state['triggering_element']['#executes_submit_callback'])) {
+    $form_state['submitted'] = TRUE;
+  }
+
+  // Special processing if the triggering element is a button.
+  if (isset($form_state['triggering_element']['#button_type'])) {
+    $form_state['values'][$form_state['triggering_element']['#name']] = $form_state['triggering_element']['#value'];
+
+    $form_state['clicked_button'] = $form_state['triggering_element'];
+  }
+}
+
+/**
+ * Buffers errors and uploads seperating them per (sub)form.
+ */
+function subform_buffer($op, &$subform_element, $propagate = FALSE) {
+  switch ($op) {
+    case 'start':
+      subform_buffer_errors($op, $subform_element, $propagate);
+      subform_buffer_files($op, $subform_element);
+      break;
+    case 'end':
+      subform_buffer_files($op, $subform_element);
+      subform_buffer_errors($op, $subform_element, $propagate);
+      break;
+  }
+}
+
+/**
+ * Buffers errors seperating them per (sub)form.
+ */
+function subform_buffer_errors($op, &$subform_element, $propagate = FALSE) {
+  static $errors_stack = array();
+  static $sections_stack = array();
+  static $messages_stack = array();
+
+  $errors = &drupal_static('form_set_error', array());
+  $sections = &drupal_static('form_set_error:limit_validation_errors');
+
+  switch ($op) {
+    case 'start':
+      $errors_stack[] = $errors;
+      $sections_stack[] = $sections;
+      $messages_stack[] = isset($_SESSION['messages']['error']) ? $_SESSION['messages']['error'] : array();
+
+      $errors = $subform_element['#subform_errors'];
+      $sections = NULL;
+      if (isset($_SESSION['messages']['error'])) {
+        unset($_SESSION['messages']['error']);
+      }
+      break;
+
+    case 'end':
+      $subform_element['#subform_errors'] += $errors;
+      if (isset($_SESSION['messages']['error'])) {
+        $subform_element['#subform_error_messages'] += $_SESSION['messages']['error'];
+      }
+
+      $errors = array_pop($errors_stack);
+      $sections = array_pop($sections_stack);
+      $_SESSION['messages']['error'] = array_pop($messages_stack);
+      if (empty($_SESSION['messages']['error'])) {
+        unset($_SESSION['messages']['error']);
+      }
+
+      // If the subform contains errors inform the parent form, but only if
+      // the subform is required.
+      if ($propagate && !empty($subform_element['#subform_errors'])) {
+        $prior_errors = $errors;
+        form_error($subform_element);
+
+        // If the error was added (not skipped by #limit_validation_errors) to
+        // the parent form also display subform's error messages.
+        if ($errors != $prior_errors && !empty($subform_element['#subform_error_messages'])) {
+          $subform_element['#subform_has_errors'] = TRUE;
+          if (!isset($_SESSION['messages']['error'])) {
+            $_SESSION['messages']['error'] = array();
+          }
+          $_SESSION['messages']['error'] += $subform_element['#subform_error_messages'];
+          $subform_element['#subform_error_messages'] = array();
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Buffers uploads seperating them per (sub)form.
+ */
+function subform_buffer_files($op, &$subform_element) {
+  static $files_stack = array();
+
+  $subform_name = $subform_element['#name'];
+  switch ($op) {
+    case 'start':
+      $files_stack[] = $prior_files = $_FILES;
+
+      $_FILES = array();
+      if (!empty($prior_files['files'])) {
+        foreach ($prior_files['files']['name'] as $old_name => $value) {
+          if (strpos($old_name, $subform_name . '-') === 0) {
+            // Remove the subform element name prefix.
+            $new_name = substr($old_name, strlen($subform_name . '-'));
+
+            foreach (array('name', 'type', 'tmp_name', 'error', 'size') as $key) {
+              $_FILES['files'][$key][$new_name] = $prior_files['files'][$key][$old_name];
+            }
+          }
+        }
+      }
+      break;
+
+    case 'end':
+      $_FILES = array_pop($files_stack);
+      break;
+  }
+}
+
+/**
+ * Submits a subform.
+ *
+ * @param $form_id
+ *   The unique string identifying the current form.
+ * @param $form
+ *   An associative array containing the structure of the form.
+ * @param $form_state
+ *   A keyed array containing the current state of the form.
+ *
+ * @see drupal_process_form()
+ *   Contains code that is duplicated here.
+ */
+function subform_submit_subform($form_id, &$form, &$form_state) {
+
+  if ($form_state['submitted'] && !form_get_errors() && !$form_state['rebuild'] && !$form_state['executed']) {
+    // Execute form submit handlers.
+    subform_execute_submit_handlers($form, $form_state);
+
+    // Set a flag to indicate the the form has been processed and executed.
+    $form_state['executed'] = TRUE;
+  }
+
+  // Don't rebuild or cache form submissions invoked via drupal_form_submit().
+  if (!empty($form_state['programmed'])) {
+    return;
+  }
+
+  // Rebuild subform if neccesary. The rebuild indicator is propagated up to the
+  // wrapper form which will take care of the actual rebuild.
+  if (!$form_state['executed'] && !form_get_errors()) {
+    $form_state['rebuild'] = TRUE;
+  }
+}
+
+/**
+ * A helper function used to execute submission handlers for a given subform.
+ *
+ * @see form_execute_handlers()
+ *   Contains code that is duplicated here.
+ */
+function subform_execute_submit_handlers(&$form, &$form_state) {
+  // If there was a button pressed, use its handlers.
+  if (isset($form_state['submit_handlers'])) {
+    $handlers = $form_state['submit_handlers'];
+  }
+  // Otherwise, check for a form-level handler.
+  elseif (isset($form['#submit'])) {
+    $handlers = $form['#submit'];
+  }
+  else {
+    $handlers = array();
+  }
+
+  foreach ($handlers as $function) {
+    // Check if a previous _submit handler has set a batch, but make sure we
+    // do not react to a batch that is already being processed (for instance
+    // if a batch operation performs a drupal_form_submit()).
+    if ($batch =& batch_get() && !isset($batch['id'])) {
+      // Some previous submit handler has set a batch. To ensure correct
+      // execution order, store the call in a special 'control' batch set.
+      // We don't have to set $batch['has_form_submits'] as
+      // subform_parent_after_submit() is always registered for forms containing
+      // subforms. So form_execute_handlers() will set $batch['has_form_submits']
+      // for the root form.
+      batch_set(array(
+        'operations' => array(
+          array('subform_batch_execute_subform_submit_handler', array($form_state['subform_name'], $function))
+        ),
+        // TODO
+        //'file' => drupal_get_path('module', 'node') . '/node.admin.inc',
+      ));
+    }
+    else {
+      $function($form, $form_state);
+    }
+  }
+}
+
+/**
+ * Batch operation that executes a submit handler for a subform.
+ *
+ * @see subform_execute_submit_handlers()
+ *   Registers this callback.
+ */
+function subform_batch_execute_subform_submit_handler($subform_name, $submit_handler) {
+  $batch = &batch_get();
+  // TODO nested subforms aren't stored in root form's state.
+  $subform_state = subform_get_state($subform_name, $batch['form_state']);
+
+  $submit_handler($subform_state['complete form'], $subform_state);
+}
+
+/**
+ * Returns HTML for a subform.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: An associative array containing the properties of the element.
+ *     Properties used: #attributes, #subform
+ *
+ * @ingroup themeable
+ */
+function theme_subform($variables) {
+  $element = $variables['element'];
+  element_set_attributes($element, array('id'));
+  $element['#attributes']['class'][] = 'subform';
+
+  if (!isset($element['#subform_has_errors'])) {
+    $element['#subform_errors'] = array();
+  }
+
+  subform_buffer_errors('start', $element);
+  {
+    $element['#children'] = drupal_render($element['#subform']);
+  }
+  subform_buffer_errors('end', $element);
+
+  return '<div' . drupal_attributes($element['#attributes']) . '>' . $element['#children'] . '</div>';
+}

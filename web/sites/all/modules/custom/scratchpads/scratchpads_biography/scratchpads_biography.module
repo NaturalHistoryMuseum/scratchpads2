@@ -1,0 +1,179 @@
+<?php
+/**
+ * @file
+ * Code for the Biography feature.
+ */
+include_once ('scratchpads_biography.features.inc');
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Change 'none' to 'unknown' in the drop down list for gender on user register form
+ */
+function scratchpads_biography_form_user_register_form_alter(&$form, &$form_state, $form_id){
+  $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ *
+ * Change 'none' to 'unknown' in the drop down list for gender on user edit form
+ */
+function scratchpads_biography_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  $form['field_gender'][LANGUAGE_NONE]['#options']['_none'] = t('Unknown');
+}
+//
+/**
+ * Implements hook_form_FORM_ID_alter()
+ * 
+ * Add a header to the biography views exposed filter form
+ */
+function scratchpads_biography_form_views_exposed_form_alter(&$form, &$form_state, $form_id){
+  if($form['#id'] == 'views-exposed-form-biography-page'){
+    $form['#prefix'] = '<h3>Filter Results</h3>';
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_biography_field_formatter_info(){
+  return array(
+    'scratchpads_biography_link_to_orcid' => array(
+      'label' => t('Link to Orcid'),
+      'description' => t('Creates a link to the Orcid website'),
+      'field types' => array(
+        'text'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function scratchpads_biography_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    case 'scratchpads_biography_link_to_orcid':
+      foreach($items as $delta => $item){
+        $element[$delta] = array(
+          '#type' => 'markup',
+          '#markup' => _scratchpads_biography_add_orcid_link($item['value'])
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ *  Helper function.
+ *  Adds link to Orcid page
+ */
+function _scratchpads_biography_add_orcid_link($value){
+  $link = "<a href='http://orcid.org/" . trim($value) . "'>" . $value . "</a>";
+  return $link;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Remove 'link_to_orcid' option for all fields except 'field_orcid'
+ */
+function scratchpads_biography_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id){
+  foreach($form['fields'] as $name => $details){
+    $match = 0;
+    if(is_array($details)){
+      $match = isset($details['format']['type']['#options']['scratchpads_biography_link_to_orcid']);
+    }
+    if(($name != 'field_orcid') && ($match)){
+      unset($form['fields'][$name]['format']['type']['#options']['scratchpads_biography_link_to_orcid']);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_display_alter().
+ * 
+ * Alter default user fields to display them inline
+ */
+function scratchpads_biography_field_display_alter(&$display, $context){
+  if($context['entity_type'] == 'user' && $context['view_mode'] == 'full'){
+    $matches = array(
+      'field_user_given_names',
+      'field_user_family_name',
+      'field_user_title',
+      'field_user_institution',
+      'field_user_country',
+      'field_user_institution',
+      'field_homepage',
+      'field_user_taxonomic_interest'
+    );
+    if(isset($context['field']['field_name'])){
+      if(in_array($context['field']['field_name'], $matches)){
+        $display['label'] = 'inline';
+      }
+    }
+  }
+}
+
+/**
+ *  Implements theme_user_view()
+ *  
+ *  We hide specific fields and groups when the 'make_this_profile_public' field has not been checked.
+ */
+function scratchpads_biography_user_view($account, $view_mode, $langcode){
+  // Allow users with 'administer users' access to bypass this control
+  if(($account->field_make_this_profile_public_['und'][0]['value'] != 1) && (!user_access('administer users'))){
+    $fields_to_hide = array(
+      'field_biography',
+      'field_birth_date',
+      'field_birth_place',
+      'field_areas_of_professional_inte',
+      'field_example_of_handwriting',
+      'field_gender',
+      'field_alternative_name',
+      'field_standard_form',
+      'field_orcid',
+      'field_main_collaborators_co_auth',
+      'field_known_for',
+      'field_places_worked',
+      'field_user_keywords',
+      'field_comments',
+      'field_related_links'
+    );
+    $field_groups_to_hide = array(
+      'group_work',
+      'group_personal_information',
+      'group_additional_information',
+      'group_names'
+    );
+    foreach($fields_to_hide as $field){
+      if(isset($account->content[$field])){
+        hide($account->content[$field]);
+      }
+    }
+    foreach($field_groups_to_hide as $field_group){
+      if(isset($account->content['#groups'][$field_group])){
+        $account->content['#groups'][$field_group]->format_type = 'hidden';
+      }
+    }
+  }
+}
+
+/**
+ * Implements theme_preprocess_field().
+ * 
+ * Hide the 'field_example_of_handwriting' field label if the field is empty. 
+ * 
+ */
+function scratchpads_biography_preprocess_field(&$variables){
+  if($variables['element']['#field_name'] == 'field_example_of_handwriting'){
+    if($variables['items']['0']['#markup'] == ''){
+      $variables['label_hidden'] = true;
+    }
+  }
+}
+
+
+

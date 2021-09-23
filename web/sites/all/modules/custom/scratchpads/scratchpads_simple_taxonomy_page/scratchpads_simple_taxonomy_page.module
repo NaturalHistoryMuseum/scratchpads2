@@ -1,0 +1,511 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_solr_info().
+ */
+function scratchpads_simple_taxonomy_page_scratchpads_solr_info(){
+  return array(
+    'nontaxonomy' => array(
+      'theme' => 'scratchpads_simple_taxonomy_page',
+      'empty' => 'scratchpads_simple_taxonomy_page_empty'
+    )
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_simple_taxonomy_page_theme(){
+  return array(
+    'scratchpads_simple_taxonomy_page' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_simple_taxonomy_page.theme.inc'
+    ),
+    'scratchpads_simple_taxonomy_page_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_simple_taxonomy_page.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_simple_taxonomy_page_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  if(!isset($form_state['confirm_delete'])){
+    $vids = variable_get('none_biological_vids', array());
+    // We default to NOT using the simple view.
+    $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+    $default_value = 0;
+    $default_simple_value = 1;
+    if(isset($form['vid'])){
+      // Vocabulary already exists, default to off
+      if(isset($vids[$form['vid']['#value']])){
+        // Set before, use the setting.
+        $default_value = $vids[$form['vid']['#value']];
+      }
+      if(isset($simple_vids[$form['vid']['#value']])){
+        // Set before, use the setting.
+        $default_simple_value = $simple_vids[$form['vid']['#value']];
+      }
+    }else{
+      // New vocabulary, default to on.
+      $default_value = 1;
+    }
+    $form['simple_taxonomy_display'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Display options'),
+      '#weight' => 2
+    );
+    $form['simple_taxonomy_display']['display_tab'] = array(
+      '#title' => t('Display tab'),
+      '#description' => t('Check this box to add a menu item linking to this vocabulary.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_value,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+    $form['simple_taxonomy_display']['display_facets'] = array(
+      '#title' => t('Display facets'),
+      '#description' => t('Check this box to display facets on a taxonomy term page.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_simple_value,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+    $form['simple_taxonomy_display']['use_scratchpads_species_pages'] = array(
+      '#title' => t('Display taxa using Scratchpads species pages.'),
+      '#description' => t('Check this box to display taxa on Scratchpads species pages. Most users should leave this box checked.'),
+      '#type' => 'checkbox',
+      '#default_value' => $default_simple_value,
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+    if(isset($form['vid'])){
+      $default_terms = variable_get('scratchpads_default_term', array());
+      $default_value = '';
+      if(isset($default_terms[$form['vid']['#value']]) && $term = taxonomy_term_load($default_terms[$form['vid']['#value']])){
+        $default_value = $term->name;
+      }
+      $form['simple_taxonomy_display']['default_term_link'] = array(
+        '#title' => t('Default taxonomy term.'),
+        '#weight' => 2,
+        '#description' => t('Select the default term to display when viewing this classification.  Leave blank to use the first term in the classification.'),
+        '#type' => 'textfield',
+        '#autocomplete_path' => 'simpletaxonomy/autocomplete/' . $form['vid']['#value'],
+        '#default_value' => $default_value
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_insert()
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_insert($term){
+  // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
+  if(!scratchpads_species_term_is_biological_classification($term)){
+    $display_tabs = variable_get('none_biological_vids', array());
+    if(!menu_get_item('classification/' . $term->vid) && isset($display_tabs[$term->vid]) && $display_tabs[$term->vid]){
+      drupal_register_shutdown_function('menu_rebuild');
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_update()
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_update($term){
+  scratchpads_simple_taxonomy_page_taxonomy_term_insert($term);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_delete($vocabulary){
+  foreach(array(
+    'none_biological_vids',
+    'scratchpads_simple_taxonomy_page_vids',
+    'biological_vids',
+    'scratchpads_default_term'
+  ) as $variable_name){
+    $values = variable_get($variable_name, array());
+    unset($values[$vocabulary->vid]);
+    variable_set($variable_name, $values);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_update
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_update($vocabulary){
+  scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary);
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_insert($vocabulary){
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  // Which form field we read depends on what type of vocabulary this is
+  if(!empty($vocabulary->biological_classification)){
+    $simple_vids[$vocabulary->vid] = isset($vocabulary->use_scratchpads_species_pages) && $vocabulary->use_scratchpads_species_pages ? 1 : 0;
+  }else{
+    $simple_vids[$vocabulary->vid] = isset($vocabulary->display_facets) && $vocabulary->display_facets ? 1 : 0;
+  }
+  variable_set('scratchpads_simple_taxonomy_page_vids', $simple_vids);
+  // Set whether or not this is a none_biological_vid
+  $none_biological_vids = variable_get('none_biological_vids', array());
+  $none_biological_vids[$vocabulary->vid] = empty($vocabulary->biological_classification) && !empty($vocabulary->display_tab) ? 1 : 0;
+  variable_set('none_biological_vids', $none_biological_vids);
+  if(isset($vocabulary->default_term_link)){
+    // Set the default term link
+    $term = db_select('taxonomy_term_data', 'td')->fields('td', array(
+      'tid',
+      'name'
+    ))->condition('name', $vocabulary->default_term_link)->condition('vid', $vocabulary->vid)->execute()->fetchObject();
+    if($term){
+      $default_terms = variable_get('scratchpads_default_term', array());
+      $default_terms[$vocabulary->vid] = $term->tid;
+      variable_set('scratchpads_default_term', $default_terms);
+      menu_rebuild();
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_load
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_vocabulary_load($vocabularies){
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  $bio_vids = variable_get('biological_vids', array());
+  foreach($vocabularies as $vocabulary){
+    $vocabulary->biological_classification = isset($bio_vids[$vocabulary->vid]) ? $bio_vids[$vocabulary->vid] : 0;
+    $vocabulary->use_scratchpads_species_pages = isset($simple_vids[$vocabulary->vid]) ? $simple_vids[$vocabulary->vid] : 1;
+  }
+}
+
+/**
+ * Execute Context page conditions
+ *
+ * Allows modules to hook into Context's hook_page_build to execute their
+ * conditions at an appropriate time before the firing of reactions.
+ */
+function scratchpads_simple_taxonomy_page_context_page_condition(){
+  if(($plugin = context_get_plugin('condition', 'scratchpads_simple_taxonomy_page_context_condition')) && (arg(0) == 'nontaxonomy' || arg(0) == 'simpletaxonomy')){
+    $term = taxonomy_term_load(arg(2));
+    if($term){
+      $plugin->execute($term);
+    }
+  }
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_simple_taxonomy_page_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_simple_taxonomy_page_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_simple_taxonomy_page'),
+      'file' => 'scratchpads_simple_taxonomy_page.context_condition.inc',
+      'class' => 'scratchpads_simple_taxonomy_page_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_simple_taxonomy_page_context_registry(){
+  return array(
+    'conditions' => array(
+      'scratchpads_simple_taxonomy_page_context_condition' => array(
+        'title' => t('Simple taxonomy page'),
+        'plugin' => 'scratchpads_simple_taxonomy_page_context_condition'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_simple_taxonomy_page_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implementation of hook_page_alter().
+ * 
+ * FIXME - We need to check for the presence of a facet filter.
+ */
+function scratchpads_simple_taxonomy_page_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($router_item['path'] == 'nontaxonomy/term/%' && $term = taxonomy_term_load(arg(2))){
+    if(taxonomy_term_edit_access($term)){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'taxonomy/term/' . $term->tid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this term')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
+  }
+}
+
+/**
+ * Autocomplete.
+ */
+function taxonomy_search_autocomplete_search($search){
+  $matches = array();
+  if($search != ''){
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+    // Select rows that match by term name.
+    $tags_return = $query->fields('t')->condition('t.name', '%' . db_like($search) . '%', 'LIKE')->range(0, 10)->execute();
+    $term_matches = array();
+    foreach($tags_return as $term){
+      $uri = entity_uri('taxonomy_term', $term);
+      $term_matches[] = array(
+        'text' => $term->name,
+        'url' => url($uri['path'], array_merge($uri['options'], array(
+          'absolute' => TRUE
+        )))
+      );
+    }
+  }
+  return $term_matches;
+}
+
+/**
+ * Implements hook_menu().
+ * 
+ * Note, PRIMARY_MENU_NAME is defined in the scratchpads_pages.module file, but
+ * should be installed/enabled on all sites.
+ */
+function scratchpads_simple_taxonomy_page_menu(){
+  $items = array(
+    'simpletaxonomy/term/%taxonomy_term' => array(
+      'title' => 'Taxonomy term',
+      'title callback' => 'taxonomy_term_title',
+      'title arguments' => array(
+        2
+      ),
+      'page callback' => 'scratchpads_simple_taxonomy_page_taxonomy_term_page',
+      'page arguments' => array(
+        2
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    ),
+    'simpletaxonomy/autocomplete/%taxonomy_vocabulary' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'scratchpads_simple_taxonomy_page_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'page arguments' => array(
+        2
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'scratchpads_simple_taxonomy_page.pages.inc'
+    )
+  );
+  // We need to stick with taxonomy/term/[tid] for "simple" view taxonomies (ie
+  // those not using Solr).
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  foreach(variable_get('none_biological_vids', array()) as $vid => $display_tab){
+    if($display_tab){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $term = array_shift($tree);
+        $tid = $term->tid;
+        $default_terms = variable_get('scratchpads_default_term', array());
+        if(isset($default_terms[$vid])){
+          $tid = $default_terms[$vid];
+        }
+        $path = 'nontaxonomy/term/';
+        if(isset($simple_vids[$vid]) && !$simple_vids[$vid]){
+          $path = 'simpletaxonomy/term/';
+        }
+        $items['classification/' . $vid] = array(
+          'title' => $vocabulary->name,
+          'page callback' => 'drupal_goto',
+          'page arguments' => array(
+            $path . $tid
+          ),
+          'access arguments' => array(
+            'access content'
+          ),
+          'menu_name' => PRIMARY_MENU_NAME,
+          'weight' => 1
+        );
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_simple_taxonomy_page_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_simple_taxonomy_page');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Page callback
+ * Taxonomy term pages
+ *
+ * This is similiar to taxonomy_term_page, except:
+ * - If there is only one node, it sets the view mode to 'full' rather than 'teaser'
+ * - If there is only one node and the title is the same as the term, hide the node's title
+ * - It hides the unit name fields
+ */
+function scratchpads_simple_taxonomy_page_taxonomy_term_page($term){
+  $name = theme('scratchpads_species_name', array(
+    'term' => $term
+  ));
+  $subtitle = '&nbsp;';
+  $lang = field_language('taxonomy_term', $term, 'field_authors');
+  if(isset($term->field_authors[$lang][0]['safe_value'])){
+    $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
+  }
+  $lang = field_language('taxonomy_term', $term, 'field_usage');
+  if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
+    $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
+  }
+  //drupal_set_title($name);
+  $return_build = array(
+    'title' => $name,
+    'subtitle' => $subtitle,
+    '#theme' => 'page',
+    'content' => ''
+  );
+  $current = (object)array(
+    'tid' => $term->tid
+  );
+  $breadcrumb = array();
+  while($parents = taxonomy_get_parents($current->tid)){
+    $current = array_shift($parents);
+    $breadcrumb[] = l($current->name, 'taxonomy/term/' . $current->tid);
+  }
+  $breadcrumb[] = l(t('Home'), NULL);
+  $breadcrumb = array_reverse($breadcrumb);
+  drupal_set_breadcrumb($breadcrumb);
+  drupal_add_feed('taxonomy/term/' . $term->tid . '/feed', 'RSS - ' . $term->name);
+  $uri = entity_uri('taxonomy_term', $term);
+  drupal_add_html_head_link(array(
+    'rel' => 'canonical',
+    'href' => url($uri['path'], $uri['options'])
+  ), TRUE);
+  drupal_add_html_head_link(array(
+    'rel' => 'shortlink',
+    'href' => url($uri['path'], array_merge($uri['options'], array(
+      'alias' => TRUE
+    )))
+  ), TRUE);
+  $build['term_heading'] = array(
+    '#prefix' => '<div class="term-listing-heading">',
+    '#suffix' => '</div>',
+    'term' => taxonomy_term_view($term, 'full')
+  );
+  if($nids = taxonomy_select_nodes($term->tid, TRUE, variable_get('default_nodes_main', 10))){
+    $nodes = node_load_multiple($nids);
+    if(count($nodes) == 1){
+      $build += node_view_multiple($nodes, 'full');
+      $nid = reset($nids);
+      if($term->name == $build['nodes'][$nid]['#node']->title){
+        $build['nodes'][$nid]['#node']->scratchpads_simple_taxonomy_page_omit_title = TRUE;
+      }
+    }else{
+      $build += node_view_multiple($nodes);
+      $build['pager'] = array(
+        '#theme' => 'pager',
+        '#weight' => 5
+      );
+    }
+  }else{
+    $build['no_content'] = array(
+      '#prefix' => '<p>',
+      '#markup' => t('There is currently no content classified with this term.'),
+      '#suffix' => '</p>'
+    );
+  }
+  // Hide the unit name fields
+  for($x = 1; $x <= 4; $x++){
+    unset($build['term_heading']['term']['field_unit_name' . $x]);
+  }
+  $return_build['content'] = drupal_render($build);
+  return $return_build;
+}
+
+/**
+ * Implementation of hook_preprocess_node
+ *
+ */
+function scratchpads_simple_taxonomy_page_preprocess_node(&$variables){
+  if(!empty($variables['scratchpads_simple_taxonomy_page_omit_title'])){
+    // Keeping the title as a single space ensures the edit links are displayed
+    $variables['title'] = ' ';
+  }
+  if(isset($variables['title'])){
+    $variables['title'] = htmlspecialchars_decode($variables['title']);
+  }
+}

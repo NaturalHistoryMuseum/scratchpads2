@@ -1,0 +1,16 @@
+@CHARSET "UTF-8";
+.field-group-htabs {
+    border: 1px solid #ccc;
+    display: table-cell;
+    vertical-align:top;
+    float: left;
+    margin-right: 10px;
+    position: relative;
+    overflow: hidden;
+}
+#hortus-image {
+  width:40%;
+}
+#hortus-text { 
+  width:55%;
+}

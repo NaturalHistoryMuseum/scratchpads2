@@ -1,0 +1,30 @@
+diff --git a/sites/all/modules/contrib/field_collection/field_collection.install b/sites/all/modules/contrib/field_collection/field_collection.install
+index 7296346..27d0731 100644
+--- a/sites/all/modules/contrib/field_collection/field_collection.install
++++ b/sites/all/modules/contrib/field_collection/field_collection.install
+@@ -373,11 +373,23 @@ function field_collection_update_7008() {
+     }
+   }
+   if (count($results)) {
++    $orphans = array();
+     $ids = array_keys($results);
+     $field_collection_items = entity_load('field_collection_item', $ids);
+     foreach ($field_collection_items as $item) {
+-      $item->copyTranslations(LANGUAGE_NONE);
+-      $item->save();
++      /** @var FieldCollectionItemEntity $item */
++      if ($item->hostEntity()) {
++        $item->copyTranslations(LANGUAGE_NONE);
++        $item->save(TRUE);
++      }
++      else {
++        $orphans[] = $item->identifier();
++      }
++    }
++    if ($orphans) {
++      $count = count($orphans);
++      $orphans_list = print_r($orphans, TRUE);
++      drupal_set_message("There are $count orphaned field collection items, review and delete them. Entity identifiers: $orphans_list ");
+     }
+   }
+ }

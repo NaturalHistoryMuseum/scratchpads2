@@ -1,0 +1,12 @@
+name = Apache Solr Multisite Search
+description = Search across multiple sites with Solr
+dependencies[] = apachesolr
+dependencies[] = apachesolr_search
+package = Search Toolkit
+core = "7.x"
+; Information added by drupal.org packaging script on 2012-07-03
+version = "7.x-1.0"
+core = "7.x"
+project = "apachesolr_multisitesearch"
+datestamp = "1341318377"
+

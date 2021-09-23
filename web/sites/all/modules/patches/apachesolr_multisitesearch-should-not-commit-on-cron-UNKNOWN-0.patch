@@ -1,0 +1,21 @@
+diff --git a/apachesolr_multisitesearch.index.inc b/apachesolr_multisitesearch.index.inc
+index d4ad666..a0622fa 100644
+--- a/apachesolr_multisitesearch.index.inc
++++ b/apachesolr_multisitesearch.index.inc
+@@ -12,7 +12,7 @@ function apachesolr_multisitesearch_refresh_metadata() {
+       variable_set('apachesolr_multisitesearch_last_metadata_update', $time);
+     }
+   }
+-  if ($time - $last_fetch > 60*5) {
++  else if ($time - $last_fetch > 60*5) {
+     apachesolr_multisitesearch_retrieve_metadata();
+   }
+   $env_id = apachesolr_default_environment();
+@@ -101,7 +101,6 @@ function apachesolr_multisitesearch_update_metadata() {
+     $solr = apachesolr_get_solr();
+     $metadata_doc = apachesolr_multisitesearch_generate_metadata();
+     $solr->addDocuments(array($metadata_doc));
+-    $solr->commit();
+     watchdog('Apache Solr Multisite', 'Updated site meta data');
+     return TRUE;
+   }

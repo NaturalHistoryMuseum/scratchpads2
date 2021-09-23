@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads Site map tests.
+*/
+class ScratchpadsSiteMapTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $anonymous_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Sitemap',
+      'description' => 'Basic access tests for scratchpads site map module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'site_map';
+    $modules[] = 'scratchpads_sitemap';
+    parent::setUp($modules);
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    $anonymous_user_permissions = $default_permissions['anonymous user'];
+    $this->anonymous_user = $this->drupalCreateUser($anonymous_user_permissions);
+    legal_save_accept(1, 1, 'en', $this->anonymous_user->uid);
+  }
+
+  /**
+   * Tests that site map page is present and viewable by different user types
+   */
+  public function testScratchpadsSiteMapBasic(){
+    $this->drupalLogin($this->anonymous_user);
+    $this->drupalGet('sitemap');
+    $this->assertText('Site map', "Site map present on /sitemap page and viewable by a user with 'anonymous user' permissions");
+  }
+}

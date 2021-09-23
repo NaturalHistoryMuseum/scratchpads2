@@ -1,0 +1,230 @@
+<?php
+/**
+ * @file
+ * Exposes Drupal actions for sending Twitter messages.
+ */
+
+/**
+ * Implements hook_action_info().
+ */
+function twitter_actions_action_info() {
+  return array(
+    'twitter_actions_set_status_action' => array(
+      'type' => 'system',
+      'label' => t('Post a message to Twitter'),
+      'configurable' => TRUE,
+      'triggers' => array(
+        'node_view',
+        'node_insert',
+        'node_update',
+        'node_delete',
+        'comment_view',
+        'comment_insert',
+        'comment_update',
+        'comment_delete',
+        'user_view',
+        'user_insert',
+        'user_update',
+        'user_delete',
+        'user_login',
+        'cron',
+      ),
+    ),
+  );
+}
+
+/**
+ * Returns a form definition so the Twitter action can be configured.
+ *
+ * @param array $context
+ *   Default values (if we are editing an existing action instance).
+ * @return
+ *   Form definition.
+ */
+function twitter_actions_set_status_action_form($context) {
+  $options = twitter_actions_account_options();
+  // Set default values for form.
+  $form['screen_name'] = array(
+    '#type' => 'select',
+    '#title' => t('Twitter account name'),
+    '#description' => t('Twitter account which will be used. ' .
+      'By selecting [current user] the rule will check if the user ' .
+      'has authenticated a Twitter account to use.'),
+    '#options' => $options,
+    '#default_value' => isset($context['screen_name']) ? $context['screen_name'] : '',
+    '#required' => TRUE,
+  );
+
+  $form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#default_value' => isset($context['message']) ? $context['message'] : '',
+    '#cols' => '80',
+    '#rows' => '3',
+    '#description' => t('The message that should be sent. You may include the following variables: ' .
+                        '%site_name, %username, %node_url, %node_type, %title, %summary, %body, ' .
+                        '%tinyurl. Not all variables will be available in all contexts.'),
+    '#required' => TRUE,
+  );
+
+  return $form;
+}
+
+/**
+ * Returns a list of authenticated Twitter accounts to be used as options.
+ *
+ * @return
+ *   array of screen_name => screen_name entries.
+ */
+function twitter_actions_account_options() {
+  module_load_include('inc', 'twitter');
+  $twitter_accounts = twitter_load_authenticated_accounts();
+  $options = array();
+  foreach ($twitter_accounts as $twitter_account) {
+    $options[$twitter_account->screen_name] = '@' . $twitter_account->screen_name;
+  }
+  // Extra token to use current user's account.
+  $options['[current user]'] = '[current user]';
+  return $options;
+}
+
+/**
+ * Submits the form and sets the twitter account pulling the data from the
+ * twitter_account table.
+ */
+function twitter_actions_set_status_action_submit($form, $form_state) {
+  $form_values = $form_state['values'];
+  // Process the HTML form to store configuration. The keyed array that
+  // we return will be serialized to the database.
+  $params = array(
+    'screen_name' => $form_values['screen_name'],
+    'message' => $form_values['message'],
+  );
+
+  return $params;
+}
+
+/**
+ * Validates the Twitter account to use to send a Tweet.
+ *
+ * If it is a Twitter account, it will check it still exists.
+ * If it is [current user], it will see if the current user has an
+ * authenticated Twitter account to use.
+ *
+ * @param string $screen_name
+ *   The selected value that represents a Twitter account to use.
+ * @return
+ *   Integer the Twitter ID of the account to use or NULL.
+ */
+function _twitter_actions_get_twitter_id($screen_name) {
+  $twitter_uid = NULL;
+  // Find out the Twitter ID to use.
+  if ($screen_name == '[current user]') {
+    // Check if this user has an authenticated account.
+    global $user;
+    $account = user_load($user->uid);
+    foreach ($account->twitter_accounts as $twitter_account) {
+      if ($twitter_account->is_auth()) {
+        $twitter_uid = $twitter_account->id;
+      }
+    }
+  }
+  else {
+    $twitter_uid = db_query("SELECT twitter_uid FROM {twitter_account} WHERE screen_name = :screen_name",
+      array(':screen_name' => $screen_name))->fetchField();
+  }
+  return $twitter_uid;
+}
+
+/**
+ * Implementation of a configurable Twitter action.
+ * @todo Implementation for language negotiation for the body and sumary. Also
+ * need implementation for bodies with multiple values. Right now it is hard
+ * coded and it will only get body and summary for 'und' language and only
+ * the first value of the body field.
+ * If the final message is over 140 chars, there is no feedback to the user.
+ */
+function twitter_actions_set_status_action($object, $context) {
+  $twitter_uid = _twitter_actions_get_twitter_id($context['screen_name']);
+  if ($twitter_uid) {
+    global $user;
+    $variables['%site_name'] = variable_get('site_name', 'Drupal');
+    // Seting variables array depending on action's group
+    switch ($context['group']) {
+      case 'node':
+        $node = $context['node'];
+        if (isset($node)) {
+          $variables = array_merge($variables, array(
+            '%uid' => $node->uid,
+            '%username' => $node->name,
+            '%node_url' => url('node/' . $node->nid, array('absolute' => TRUE)),
+            '%node_type' => node_type_get_name($node),
+            '%title' => $node->title,
+            '%summary' => isset($node->body['und'][0]['value']) ? $node->body['und'][0]['summary'] : '',
+            '%body' => isset($node->body['und'][0]['value']) ? $node->body['und'][0]['value'] : '',
+            )
+          );
+        }
+        break;
+
+      case 'comment':
+        $node = node_load($context['comment']->nid);
+        if (isset($node)) {
+          $variables = array_merge($variables, array(
+            '%uid' => $context['comment']->uid,
+            '%username' => $context['comment']->name,
+            '%node_url' => url('node/' . $node->nid, array('absolute' => TRUE)),
+            '%node_type' => node_type_get_name($node),
+            '%title' => $node->title,
+            '%summary' => isset($node->body[LANGUAGE_NONE][0]['value']) ? $node->body['und'][0]['summary'] : '',
+            '%body' => isset($node->body[LANGUAGE_NONE][0]['value']) ? $node->body['und'][0]['value'] : '',
+            )
+          );
+        }
+        break;
+
+      case 'user':
+        $variables['%username'] = $context['user']->name;
+        break;
+
+      case 'cron':
+        break;
+
+      default:
+        // We are being called directly.
+        $node = $object;
+        if (isset($node)  && is_object($node)) {
+          $variables = array_merge($variables, array(
+            '%uid' => $node->uid,
+            '%username' => $node->name,
+            '%node_url' => url('node/' . $node->nid, array('absolute' => TRUE)),
+            '%node_type' => node_type_get_name($node),
+            '%title' => $node->title,
+            '%summary' => isset($node->body[LANGUAGE_NONE][0]['value']) ? $node->body['und'][0]['summary'] : '',
+            '%body' => isset($node->body[LANGUAGE_NONE][0]['value']) ? $node->body['und'][0]['value'] : '',
+            )
+          );
+        }
+    }
+
+    // Only make a tinyurl if it was asked for.
+    if (strstr($context['message'], '%tinyurl') !== FALSE) {
+      $variables = array_merge($variables, array(
+        '%tinyurl' => twitter_shorten_url(url('node/' . $node->nid, array('absolute' => TRUE))),
+      ));
+    }
+
+    // Send the tweet.
+    $message = strtr($context['message'], $variables);
+    module_load_include('inc', 'twitter');
+    try {
+      $twitter_account = twitter_account_load($twitter_uid);
+      twitter_set_status($twitter_account, $message);
+      drupal_set_message(t('Successfully posted to Twitter'));
+    }
+    catch (TwitterException $e) {
+      drupal_set_message(t('An error occurred when posting to Twitter: @message',
+                           array('@message' => $e->getMessage())), 'warning');
+    }
+  }
+}

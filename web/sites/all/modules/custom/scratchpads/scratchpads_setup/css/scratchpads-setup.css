@@ -1,0 +1,42 @@
+@CHARSET "UTF-8";
+
+.block-scratchpads-setup .setup-complete {
+  border: 1px solid #D4D4D4;
+  padding: 1px;
+  margin-bottom: 5px;
+}
+
+.block-scratchpads-setup .zero-complete {
+  background: #BB1023;
+}
+
+.block-scratchpads-setup .half-complete {
+  background: #FCAD00;
+}
+
+.block-scratchpads-setup .complete {
+  background: #94C821;
+}
+
+.block-scratchpads-setup p {
+  float: left;
+  width: 100px;
+}
+
+.block-scratchpads-setup a {
+  text-align: right;
+  display: block;
+}
+
+.scratchpads-setup-column {
+  width: 50%;
+  float: left;
+}
+
+.scratchpads-setup-column.left>div {
+  margin-right: 5px;
+}
+
+.scratchpads-setup-column.right>div {
+  margin-left: 5px;
+}

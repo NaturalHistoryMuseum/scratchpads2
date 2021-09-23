@@ -1,0 +1,16 @@
+name = Flag terms
+description = Allows users to flag taxonomy terms.
+core = 7.x
+package = Flags
+configure = admin/structure/flags
+
+dependencies[] = flag
+
+files[] = flag_terms.inc
+
+; Information added by drupal.org packaging script on 2011-09-16
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "flag_terms"
+datestamp = "1316132677"
+

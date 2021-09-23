@@ -1,0 +1,769 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function formflow_menu(){
+  $items = array();
+  $flows = formflow_get_flows();
+  // Register the callbacks for each of these flows
+  foreach($flows as $flow){
+    // Keep a copy of the original path to use for the menu item
+    $original_path = $flow['path'];
+    // Append %step to flow path so the ctools wizard can handle next/back button clicks
+    $flow['path'] .= '/%step';
+    $items[$original_path] = formflow_menu_item($flow);
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function formflow_permission(){
+  return array(
+    'administer form flows' => array(
+      'title' => t('Administer form flows')
+    ),
+    'create form flows' => array(
+      'title' => t('Create new form flows')
+    ),
+    'edit form flows' => array(
+      'title' => t('Edit form flows')
+    ),
+    'access form flows' => array(
+      'title' => t('Access form flows'),
+      'description' => t('Access form flows - users also need to have permissions for all of the forms in the flow (eg edit permissions for a node form).')
+    )
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ * Gets all the submit functions & moves them into $form_state['finish'] to be called upon completion
+ * Hides all buttons - replacements will be added by ctools wizard
+ */
+function formflow_form_alter(&$form, &$form_state, $form_id){
+  // Is this a formflow form?
+  if(isset($form_state['formflow'])){
+    // Array of submit functions to be called on completion
+    $form_state['finish'] = array();
+    foreach($form['#submit'] as $key => $submit){
+      if($submit == 'ctools_wizard_submit' || $submit == 'formflow_submit'){
+        continue;
+      }
+      unset($form['#submit'][$key]);
+      $form_state['finish'][] = $submit;
+    }
+    // Node form uses actions for it's submit functions
+    if(isset($form['actions'])){
+      if(isset($form['actions']['submit']['#submit'])){
+        $form_state['finish'] = array_merge($form_state['finish'], (array)$form['actions']['submit']['#submit']);
+      }
+      unset($form['actions']);
+    }
+    if(isset($form['submit'])){
+      if(isset($form['submit']['#submit'])){
+        $form_state['finish'] = array_merge($form_state['finish'], (array)$form['submit']['#submit']);
+      }
+      unset($form['submit']);
+    }
+    $form['#submit'][] = 'formflow_submit';
+  }
+}
+
+/**
+ * Implements hook_field_group_format_settings().
+ *
+ *
+ *
+ * @params Object $group The group object.
+ * @return Array $form The form element for the format settings.
+ */
+function formflow_field_group_format_settings($group){
+  // Add a wrapper for extra settings to use by others.
+  $form = array(
+    'instance_settings' => array(
+      '#tree' => TRUE,
+      '#weight' => 2
+    )
+  );
+  $form['instance_settings']['display_mode'] = array(
+    '#title' => t('Display mode'),
+    '#type' => 'select',
+    '#options' => array(
+      '' => t('Add & edit'),
+      'add' => t('Add only'),
+      'edit' => t('Edit only')
+    ),
+    '#default_value' => isset($group->format_settings['instance_settings']['display_mode']) ? $group->format_settings['instance_settings']['display_mode'] : 'all',
+    '#weight' => 3
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_field_attach_form().
+ */
+function formflow_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode){
+  if(isset($entity->is_new)){
+    // Some entities provide an "is_new" property. If that is present, respect
+    // whatever it's set to.
+    $is_new = $entity->is_new;
+  }else{
+    // Otherwise, try to find out if the entity is new by checking its ID. Note
+    // that checking empty() rather than !isset() is important here, to deal
+    // with the case of entities that store "0" as their ID while the final
+    // entity is in the process of being created (user accounts are a good
+    // example of this).
+    list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+    $is_new = empty($id);
+  }
+  formflow_attach_groups($form, $form_state, ($is_new ? 'add' : 'edit'));
+}
+
+/**
+ * Implements hook_field_group_formatter_info().
+ */
+function formflow_field_group_formatter_info(){
+  return array(
+    'form' => array(
+      'formflow' => array(
+        'label' => t('Formflow'),
+        'description' => t('Treat this group as a stage in a formflow.'),
+        'instance_settings' => array(
+          'classes' => ''
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function formflow_theme(){
+  return array(
+    // Theme the views plugin form table
+    'formflow_wizard_trail' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    ),
+    'formflow_group' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_features_api().
+ */
+function formflow_features_api(){
+  return array(
+    'formflow' => array(
+      'name' => t('Form flows'),
+      'default_hook' => 'default_flows',
+      'feature_source' => TRUE,
+      'duplicates' => FEATURES_DUPLICATES_ALLOWED,
+      'file' => drupal_get_path('module', 'formflow') . '/formflow.features.inc'
+    )
+  );
+}
+
+/**
+ * Get all flows
+ */
+function formflow_get_flows($name = null){
+  // Load the flows from the DB
+  $flows = formflow_load($name);
+  // If we're just after one flow, see if we've got it at this point & return it
+  if($name && !empty($flows) && isset($flows[$name])){return $flows[$name];}
+  // Call hook_default_flows to get any modules defined in code
+  foreach(module_implements('default_flows') as $module){
+    foreach(module_invoke($module, 'default_flows') as $default_flow){
+      // Don't overwrite DB flows - allows for overriding
+      if(!isset($flows[$default_flow['name']])){
+        $flows[$default_flow['name']] = $default_flow;
+      }
+      // Register that this is defined in code
+      $flows[$default_flow['name']]['module'] = $module;
+    }
+  }
+  if($name && !empty($flows)){return isset($flows[$name]) ? $flows[$name] : array();}
+  return $flows;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * We need to ensure that this module's entity_info_alter fires after other
+ * modules (particularly file_styles and media).
+ */
+function formflow_module_implements_alter(&$implementations, $hook){
+  if($hook == 'field_attach_form'){
+    $this_module = $implementations['formflow'];
+    unset($implementations['formflow']);
+    $implementations['formflow'] = $this_module;
+  }
+}
+
+/*********************************************************************************************
+ *
+ * DB
+ *
+ ********************************************************************************************/
+/**
+ *
+ * Retrieve all flows defined in DB
+ * @param optional formflow name $name
+ */
+function formflow_load($name = null){
+  $query = db_select('formflow', 'ff');
+  $query->fields('ff');
+  if($name){
+    $query->condition('ff.name', $name);
+  }
+  $result = $query->execute();
+  $flows = $result->fetchAllAssoc('name', PDO::FETCH_ASSOC);
+  foreach($flows as $name => $flow){
+    $flows[$name]['steps'] = formflow_load_steps($flow['fid']);
+    // Unserliase the menu settings
+    $flows[$name]['menu'] = unserialize($flows[$name]['menu']);
+  }
+  return $flows;
+}
+
+/**
+ *
+ * Retrieve the steps for a formflow from the db
+ * @param formflow id $fid
+ */
+function formflow_load_steps($fid){
+  $query = db_select('formflow_step', 'ffs');
+  $query->fields('ffs', array(
+    'title',
+    'form_id',
+    'path'
+  ));
+  $query->condition('fid', $fid, '=');
+  $query->orderBy('weight', 'ASC');
+  $result = $query->execute();
+  $steps = $result->fetchAll(PDO::FETCH_ASSOC);
+  return $steps;
+}
+
+function formflow_delete($fid){
+  db_delete('formflow')->condition('fid', $fid, '=')->execute();
+  formflow_delete_steps($fid);
+}
+
+function formflow_delete_steps($fid){
+  db_delete('formflow_step')->condition('fid', $fid, '=')->execute();
+}
+
+/**
+ *
+ * Save a flow & it's steps
+ * @param array / object $flow
+ */
+function formflow_save($flow){
+  if(is_array($flow)){
+    $flow = (object)$flow;
+  }
+  $update = array();
+  if(isset($flow->fid)){
+    $update[] = 'fid';
+  }
+  drupal_write_record('formflow', $flow, $update);
+  // If steps are defined, save them to the database
+  if(isset($flow->steps) && isset($flow->fid)){
+    formflow_save_steps($flow->fid, $flow->steps);
+  }
+  formflow_menu_cache_clear();
+}
+
+/**
+ * Save the form flow steps
+ * @param flow id $fid
+ * @param array of steps $steps
+ */
+function formflow_save_steps($fid, $steps){
+  // Delete all steps
+  formflow_delete_steps($fid);
+  // Insert the new steps into the step table
+  if(count($steps)){
+    foreach($steps as $step){
+      $record = (object)$step;
+      $record->fid = $fid;
+      drupal_write_record('formflow_step', $record);
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * MENU CALLBACKS & HELPERS
+ *
+ ********************************************************************************************/
+function formflow_page($flow, $current_step = 0){
+  global $user;
+  $form_state = array();
+  ctools_include('wizard');
+  $flow['id'] = $flow['name'];
+  $flow['finish callback'] = 'formflow_finish';
+  $flow['return callback'] = 'formflow_finish';
+  $flow['cancel callback'] = 'formflow_cancel';
+  $flow['order'] = array();
+  // Crappy database layer won't let you have spaces in field aliases! Rewrite the keys here
+  foreach(array(
+    'show_trail',
+    'show_back',
+    'show_cancel',
+    'show_return',
+    'cancel_path'
+  ) as $old_key){
+    if(isset($flow[$old_key])){
+      $new_key = str_replace('_', ' ', $old_key);
+      $flow[$new_key] = $flow[$old_key];
+      unset($flow[$old_key]);
+    }
+  }
+  foreach($flow['steps'] as $delta => $step){
+    $flow['forms'][$delta] = array(
+      'form id' => $flow['steps'][$delta]['form_id']
+    );
+    $flow['order'][$delta] = $flow['steps'][$delta]['title'];
+  }
+  $cache_id = $flow['name'];
+  // If the form hasn't been submitted & step is 0, clear the cache
+  if(!count($_POST) && $current_step === 0){
+    formflow_cache_clear($cache_id);
+  }
+  if(!count($flow['steps'])){
+    drupal_set_message(t('There are no forms in this flow.'), 'error');
+    return '';
+  }
+  // check access for this url
+  if(isset($flow['steps'][$current_step]['path'])){
+    $item = menu_get_item($flow['steps'][$current_step]['path']);
+    if($item['include_file']){
+      $flow['steps'][$current_step]['include_file'] = $item['include_file'];
+      require_once DRUPAL_ROOT . '/' . $item['include_file'];
+    }
+  }
+  // This automatically gets defaults if there wasn't anything saved.
+  $cache = formflow_cache_get($cache_id);
+  $form_state = array(
+    // Put our object and ID into the form state cache so we can easily find
+    // it.
+    'formflow' => array(
+      'cache_id' => $cache_id,
+      'cache' => &$cache
+    )
+  );
+  // Is this a node type form
+  if($strpos = strpos($flow['forms'][$current_step]['form id'], '_node_form')){
+    $node_type = substr($flow['forms'][$current_step]['form id'], 0, $strpos);
+    $node = (object)array(
+      'uid' => $user->uid,
+      'name' => (isset($user->name) ? $user->name : ''),
+      'type' => $node_type,
+      'language' => $user->language
+    );
+    $form_state['build_info']['args'] = array(
+      $node
+    );
+  }elseif(isset($flow['steps'][$current_step]['path']) && !empty($flow['steps'][$current_step]['path']) && !drupal_valid_path($flow['steps'][$current_step]['path'])){
+    drupal_access_denied();
+  }
+  // Allow other modules to make changes & additions before loading the form
+  drupal_alter('formflow', $flow, $form_state);
+  // Build the form
+  $form = ctools_wizard_multistep_form($flow, $current_step, $form_state);
+  if(!$form){
+    if(!count($flow['forms'])){
+      drupal_set_message(t('There are no forms in this flow.'), 'error');
+    }else{
+      drupal_set_message(t('Sorry, the form could not be found.'), 'error');
+    }
+    return '';
+  }
+  // Messy, but it works: after letting ctools wizard work it's magic, use our cached form if it exists
+  if(isset($cache[$current_step]['form'])){
+    $form = $cache[$current_step]['form'];
+  }
+  return $form;
+}
+
+/**
+ * Create a menu item for a formflow
+ *
+ * @param $flow
+ * The flow to use. Contains menu settings & path
+ */
+function formflow_menu_item($flow){
+  $item = array(
+    'access arguments' => array(
+      'access form flows'
+    ),
+    'page callback' => 'formflow_page',
+    'page arguments' => array(
+      $flow
+    )
+  );
+  if(isset($flow['menu']['title'])){
+    $item['title'] = $flow['menu']['title'];
+  }
+  if(isset($flow['menu']['weight'])){
+    $item['weight'] = $flow['menu']['weight'];
+  }
+  if(empty($flow['menu']['type'])){
+    $flow['menu']['type'] = 'none';
+  }
+  switch($flow['menu']['type']){
+    case 'none':
+    default:
+      $item['type'] = MENU_CALLBACK;
+      break;
+    case 'normal':
+      $item['type'] = MENU_NORMAL_ITEM;
+      // Insert item into the proper menu
+      $item['menu_name'] = $flow['menu']['name'];
+      break;
+    case 'tab':
+      $item['type'] = MENU_LOCAL_TASK;
+      break;
+    case 'action':
+      $item['type'] = MENU_LOCAL_ACTION;
+      break;
+    case 'default tab':
+      $item['type'] = MENU_DEFAULT_LOCAL_TASK;
+      break;
+  }
+  return $item;
+}
+
+/**
+ * Submit function for formflow
+ */
+function formflow_submit(&$form, &$form_state){
+  $form_state['formflow']['cache'][$form_state['step']] = array(
+    'form' => $form,
+    'form_state' => $form_state
+  );
+  formflow_cache_set($form_state['formflow']['cache_id'], $form_state['formflow']['cache']);
+}
+
+/**
+ * Handle the 'finish' click
+ */
+function formflow_finish(&$form_state){
+  $form_state['complete'] = TRUE;
+  // If a finish path has been set, redirect to it
+  if(isset($form_state['form_info']['finish_path']) & !empty($form_state['form_info']['finish_path'])){
+    $form_state['redirect'] = $form_state['form_info']['finish_path'];
+  }else{
+    $form_state['redirect'] = '<front>';
+  }
+  // Call all submit funtions for all forms in the step
+  foreach($form_state['formflow']['cache'] as $delta => $cache){
+    if(count($cache['form_state']['finish'])){
+      foreach($cache['form_state']['finish'] as $func){
+        if(isset($cache['form_state']['form_info']['steps'][$delta]['include_file'])){
+          require_once DRUPAL_ROOT . '/' . $cache['form_state']['form_info']['steps'][$delta]['include_file'];
+        }
+        if(function_exists($func)){
+          $func($cache['form'], $cache['form_state']);
+        }
+      }
+    }
+  }
+  // Clear the caches
+  formflow_cache_clear($form_state['formflow']['cache_id']);
+}
+
+/**
+ * Handle the 'cancel' click
+ */
+function formflow_cancel(&$form_state){
+  $form_state['cancel'] = TRUE;
+}
+
+/**
+ * Specific cache_set and cache_get functions
+ */
+function formflow_cache_set($id, $cache){
+  ctools_include('object-cache');
+  ctools_object_cache_set('formflow', $id, $cache);
+}
+
+function formflow_cache_get($id){
+  ctools_include('object-cache');
+  return (array)ctools_object_cache_get('formflow', $id);
+}
+
+/**
+ * Clear the wizard cache.
+ */
+function formflow_cache_clear($id){
+  ctools_include('object-cache');
+  ctools_object_cache_clear('formflow', $id);
+}
+
+/**
+ * Clear the menu caches
+ */
+function formflow_menu_cache_clear(){
+  menu_rebuild();
+}
+
+/**
+ * Attach groups to the (form) build.
+ * @param Array $element The part of the form.
+ * @param String $view_mode The mode for the build.
+ */
+function formflow_attach_groups(&$form, &$form_state, $display_mode){
+  // If there are no groups defined, do nothing
+  if(!isset($form['#groups'])){return;}
+  uasort($form['#groups'], 'formflow_sort_weight');
+  // Build up a list of formfield groups.
+  $formflow_groups = array();
+  foreach($form['#groups'] as $group_name => $group){
+    if($group->format_type == 'formflow'){
+      $formflow_groups[] = $group_name;
+    }
+  }
+  // If there are no formfield groups, do nothing.
+  if(empty($formflow_groups)){return;}
+  $form['#display_mode'] = $display_mode;
+  ctools_add_css('wizard');
+  // Attach the fieldgroup CSS
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'formflow') . '/css/formflow.css'
+  );
+  // If there's no current step, default to the first one
+  if(!isset($form_state['current_group'])){
+    $form_state['current_group'] = @array_shift(array_keys($form['#groups']));
+  }
+  $form['#current_group'] = $form_state['current_group'];
+  // Build a trail to display at the top of the form
+  $form['trail'] = array(
+    '#theme' => 'formflow_wizard_trail',
+    '#value' => array(),
+    '#weight' => -1000,
+    '#formflow' => true
+  );
+  foreach($form['#groups'] as $group){
+    if(empty($group->format_settings['instance_settings']['display_mode']) || $group->format_settings['instance_settings']['display_mode'] == $display_mode){
+      if($group->group_name == $form['#current_group']){
+        $class = 'wizard-trail-current';
+      }else{
+        $class = 'wizard-trail-next';
+      }
+      $form['trail']['#value'][] = '<span class="' . $class . '">' . $group->label . '</span>';
+    }
+  }
+  // If there's still groups for this build mode, add some buttons
+  if(count($form['trail']['#value'])){
+    // Get the numeric position of the current group
+    $form['#position'] = array_search($form['#current_group'], array_keys($form['#groups']));
+    $form['formflow_actions'] = array(
+      '#type' => 'actions'
+    );
+    // If this isn't the last group, show the back button
+    if($form['#position'] > 0){
+      $form['formflow_actions']['back'] = array(
+        '#type' => 'submit',
+        '#value' => t('Back'),
+        '#weight' => -100,
+        '#limit_validation_errors' => array(),
+        '#submit' => array(
+          'formflow_field_group_back_submit'
+        ),
+        '#formflow' => true // Set a flag to preserve this over all formflow steps
+      );
+    }
+    // If this isn't the last group, show the next button
+    if(($form['#position'] + 1) < count($form['#groups'])){
+      $form['formflow_actions']['next'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next'),
+        '#limit_validation_errors' => array(),
+        '#submit' => array(
+          'formflow_field_group_next_submit'
+        ),
+        '#formflow' => true // Set a flag to preserve this over all formflow steps
+      );
+    }
+    // limit validation errors to only the form items in the current group
+    foreach($form['#group_children'] as $element_name => $group){
+      if($group == $form['#current_group']){
+        $form['formflow_actions']['next']['#limit_validation_errors'][] = array(
+          $element_name
+        );
+      }
+    }
+  }
+  return $form;
+}
+
+/**
+ * Copy of drupal_sort_weight() for objects
+ */
+function formflow_sort_weight($a, $b){
+  $a_weight = (is_object($a) && isset($a->weight)) ? $a->weight : 0;
+  $b_weight = (is_object($b) && isset($b->weight)) ? $b->weight : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
+}
+
+/**
+ * Button submit function: handle the 'back' button on the form.
+ */
+function formflow_field_group_back_submit($form, &$form_state){
+  $form_state['current_group'] = formflow_field_group_navigate('back', $form, $form_state);
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Button submit function: handle the 'next' button on the form.
+ */
+function formflow_field_group_next_submit($form, &$form_state){
+  $form_state['current_group'] = formflow_field_group_navigate('next', $form, $form_state);
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Helper function for handling next/back navigation
+ * @param string - direction of travel $op
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_field_group_navigate($op, $form, &$form_state){
+  reset($form['#groups']);
+  do{
+    $current_group = current($form['#groups']);
+    if($current_group->group_name == $form_state['current_group']){
+      switch($op){
+        case 'back':
+          $prev_group = prev($form['#groups']);
+          return $prev_group->group_name;
+          break;
+        case 'next':
+          $next_group = next($form['#groups']);
+          return $next_group->group_name;
+          break;
+      }
+    }
+  }
+  while(next($form['#groups']));
+}
+
+/**
+ * Implemntation of hook_field_group_pre_render
+ * Adds the formflow field group elements
+ * @see called by field_group_pre_render().
+ * @param $element Array of group element that needs to be created!
+ * @param $group Object with the group information.
+ * @param $form The form object itself.
+ */
+function formflow_field_group_pre_render(&$element, $group, &$form){
+  if(isset($form['#display_mode']) && (empty($group->format_settings['instance_settings']['display_mode']) || $group->format_settings['instance_settings']['display_mode'] == $form['#display_mode'])){
+    $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $form['#display_mode'] . '_' . $group->group_name;
+    // Prepare extra classes.
+    $classes = array(
+      'field-group-' . $group->format_type,
+      str_replace('_', '-', $group->group_name)
+    );
+    if($group->group_name == $form['#current_group']){
+      $classes[] = 'active-group';
+    }
+    switch($group->format_type){
+      case 'formflow':
+        $element += array(
+          '#id' => $id,
+          '#weight' => $group->weight,
+          '#theme_wrappers' => array(
+            'formflow_group'
+          ),
+          '#prefix' => '<div class="' . implode(' ', $classes) . '">',
+          '#suffix' => '</div>',
+          '#group' => $group->format_type
+        );
+        break;
+    }
+    // Loop through & identify which group is the last one with required fields
+    // We can then use this to decide when to show the submit buttons
+    foreach(element_children($element) as $key){
+      if(is_array($instance = field_info_instance($form['#entity_type'], $key, $form['#bundle']))){
+        if($instance['required']){
+          $form['#last_required_group'] = $group->group_name;
+          break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_group_build_pre_render_alter
+ * Make changes so only relevant bits of the form are shown
+ * @param form $element
+ */
+function formflow_field_group_build_pre_render_alter(&$form){
+  // Are there trails in the form?
+  if(isset($form['#display_mode']) && count($form['trail']['#value'])){
+    // Variable denoting this stage is a form endpoint
+    $end_point = false;
+    if(isset($form['actions']) && isset($form['formflow_actions'])){
+      $form['actions'] += $form['formflow_actions'];
+      unset($form['formflow_actions']);
+    }
+    // If there are actions & formflow_actions, merge them together
+    // If we are on the last step on the form, do nothing
+    // We'll want to show all buttons
+    if(($form['#position'] + 1) == count($form['#groups'])){return;}
+    if(!isset($form['changed']) || empty($form['changed']['#value'])){
+      if(isset($form['#last_required_group'])){
+        // Loop through the groups - if we're not past the last required group in the flow, hide the buttons
+        foreach($form['#groups'] as $group_name => $group){
+          // If the current group is before the last required group, update the buttons
+          if($group_name == $form['#last_required_group']){
+            // Can the user end at this stage of the form?
+            $end_point = true;
+            break;
+          }
+          if($group_name == $form['#current_group']){
+            break;
+          }
+        }
+      }else{
+        $end_point = true;
+      }
+    }
+    formflow_field_group_remove_elements($form, $end_point);
+  }
+}
+
+/**
+ * Remove the default submit buttons
+ * @param form element $element
+ */
+function formflow_field_group_remove_elements(&$form, $end_point){
+  foreach(element_children($form) as $key){
+    if(isset($form[$key]['#formflow']) || (isset($form[$key]['#type']) && in_array($form[$key]['#type'], array(
+      'value',
+      'hidden',
+      'token'
+    ))) || ($end_point && isset($form[$key]['#type']) && $form[$key]['#type'] == 'submit')){
+      continue;
+    }
+    if(isset($form[$key]['#type']) && ($form[$key]['#type'] == 'actions' || $form[$key]['#type'] == 'container') && count(element_children($form[$key]))){
+      formflow_field_group_remove_elements($form[$key], $end_point);
+    }elseif(!(isset($form[$key]['#group']) && $form[$key]['#group'] == 'formflow')){
+      unset($form[$key]);
+    }
+  }
+  return $form;
+}

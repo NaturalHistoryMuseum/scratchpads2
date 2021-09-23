@@ -1,0 +1,267 @@
+<?php
+
+/**
+ * Implementation of hook_feeds_plugins().
+ */
+function feeds_xls_feeds_plugins(){
+  $info = array();
+  $info['FeedsExcelParser'] = array(
+    'name' => 'Excel parser',
+    'description' => 'Parses an excel file.',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsExcelParser',
+      'file' => 'FeedsExcelParser.inc',
+      'path' => drupal_get_path('module', 'feeds_xls')
+    )
+  );
+  return $info;
+}
+
+/**
+ * Simple helper function to load the PHPExcel class file(s)
+ */
+function feeds_xls_load_phpexcel(){
+  module_load_include('install', 'feeds_xls');
+  return _feeds_xls_load_phpexcel();
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function feeds_xls_menu(){
+  return array(
+    'import/%feeds_importer/xlstemplate' => array(
+      'title' => 'Excel template',
+      'page callback' => 'feeds_xls_download_template',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_xls.template.inc',
+      'type' => MENU_CALLBACK
+    ),
+    'import/%feeds_importer/populated-template' => array(
+      'title' => 'Populated Excel template',
+      'page callback' => 'feeds_xls_download_populated_template',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_xls.template.inc',
+      'type' => MENU_CALLBACK
+    ),
+    'feeds_xls/getfile' => array(
+      'title' => 'Download Populated Excel template',
+      'page callback' => 'feeds_xls_get_populated_template',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'feeds_xls.template.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function feeds_xls_permission(){
+  return array(
+    'feeds xls allow download of all entities' => array(
+      'title' => t('Feeds XLS allow download of all entities'),
+      'description' => t('Allow the user to download all of the site\'s data in an Excel template, bypassing ALL access permissions.'),
+      'restrict access' => TRUE,
+      'warning' => t('Warning: This permission provides access to ALL entity data stored within this site.')
+    )
+  );
+}
+
+/**
+ * Implements hook_module_implements_alter
+ * 
+ * Until the feeds module stops using its own feeds_alter, and instead uses the
+ * drupal_alter function, this hook is pointless.  Inestead we have altered the
+ * weight of this module to be one more than the feeds module.
+ * 
+ */
+function feeds_xls_module_implements_alter(&$implementations, $hook){
+  if($hook == 'feeds_processor_targets_alter' && isset($implementations['feeds_xls'])){
+    $set = $implementations['feeds_xls'];
+    unset($implementations['feeds_xls']);
+    $implementations['feeds_xls'] = $set;
+  }
+}
+
+/**
+ * Generate an entry in the feeds_item table that can be used by the populated
+ * Excel template (or any other import).
+ */
+function feeds_xls_get_or_generate_feeds_item_entry($entity_type, $entity_id, $id, $guid = FALSE){
+  $row = db_select('feeds_item', 'f')->fields('f')->condition('entity_type', $entity_type)->condition('entity_id', $entity_id)->execute()->fetchAssoc();
+  if($row){
+    return $row;
+  }else{
+    if(!$guid){
+      // Generate an appropriate guid
+      $guid = microtime(TRUE);
+    }
+    $record = array(
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_id,
+      'id' => $id,
+      'feed_nid' => 0,
+      'imported' => time(),
+      'url' => '',
+      'guid' => $guid,
+      'hash' => 'd41d8cd98f00b204e9800998ecf8427e'
+    );
+    drupal_write_record('feeds_item', $record);
+    return $record;
+  }
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ * 
+ * We alter the numeric field types so that fields that are set up with values
+ * like:
+ * 
+ * 1|Something
+ * 2|Rocking
+ * 3|Banana
+ * 
+ * allow the entry of the text "Something", or "Rocking" instead of "1" or "2".
+ * 
+ * We alter date field types, so that "days since epoch" values can be imported
+ * without changing the format in Excel
+ */
+function feeds_xls_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  $numeric_types = array(
+    'list_integer',
+    'list_float',
+    'list_boolean',
+    'number_integer',
+    'number_decimal',
+    'number_float'
+  );
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if(in_array($info['type'], $numeric_types)){
+      $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_numeric';
+    }elseif($info['type'] == 'list_text'){
+      $targets[$name]['callback'] = 'feeds_xls_feeds_set_target_list_text';
+    }elseif(in_array($info['type'], array(
+      'date',
+      'datestamp',
+      'datetime'
+    ))){
+      $targets[$name . ':start'] = array(
+        'name' => t('@name: Start', array(
+          '@name' => $instance['label']
+        )),
+        'callback' => 'feeds_xls_feeds_set_target_date',
+        'description' => t('The start date for the @name field. Also use if mapping both start and end.', array(
+          '@name' => $instance['label']
+        )),
+        'real_target' => $name
+      );
+      $targets[$name . ':end'] = array(
+        'name' => t('@name: End', array(
+          '@name' => $instance['label']
+        )),
+        'callback' => 'feeds_xls_feeds_set_target_date',
+        'description' => t('The end date for the @name field.', array(
+          '@name' => $instance['label']
+        )),
+        'real_target' => $name
+      );
+    }
+  }
+}
+
+/**
+ * Callback for setting date fields
+ */
+function feeds_xls_feeds_set_target_date($source, $entity, $target, $value){
+  if(strpos(get_class($source->importer->parser), 'FeedsExcelParser') !== FALSE && is_numeric($value)){
+    $userDate = PHPExcel_Shared_Date::ExcelToPHPObject($value);
+    $date = new DateTime($userDate->format('Y-m-d H:i:s'), new DateTimeZone(drupal_get_user_timezone()));
+    $date->setTimezone(new DateTimeZone('UTC'));
+    $value = $date->format('Y-m-d H:i:s');
+  }
+  return date_feeds_set_target($source, $entity, $target, $value);
+}
+
+/**
+ * Callback for mapping text list fields.
+ * 
+ * Maps from a value to a key.
+ * 
+ */
+function feeds_xls_feeds_set_target_list_text($source, $entity, $target, $value){
+  if(!is_array($value)){
+    $value = array(
+      $value
+    );
+  }
+  $field = field_info_field($target);
+  foreach($value as $k => $v){
+    // We load the field and try to do the mapping.
+    if(!empty($field['settings']['allowed_values'])){
+      $key = array_search($v, $field['settings']['allowed_values']);
+    }elseif(!empty($field['settings']['allowed_values_function']) && function_exists($field['settings']['allowed_values_function'])){
+      $key = array_search($v, $field['settings']['allowed_values_function']($field));
+    }else{
+      $key = $v;
+    }
+    if($key !== FALSE){
+      $value[$k] = $key;
+    }else{
+      unset($value[$k]);
+    }
+  }
+  text_feeds_set_target($source, $entity, $target, $value, array());
+}
+
+/**
+ * Callback for mapping numerics.
+ *
+ * Ensure that $value is a numeric to avoid database errors.  This will also map
+ * from a value to a key for list fields.
+ */
+function feeds_xls_feeds_set_target_numeric($source, $entity, $target, $value){
+  if(!is_array($value)){
+    $value = array(
+      $value
+    );
+  }
+  foreach($value as $k => $v){
+    if(!is_numeric($v)){
+      // We load the field and try to do the mapping.
+      $field = field_info_field($target);
+      if(isset($field['settings']['allowed_values'])){
+        $key = array_search($v, $field['settings']['allowed_values']);
+        if($field && is_numeric($key)){
+          $value[$k] = $key;
+        }else{
+          unset($value[$k]);
+        }
+      }
+    }
+  }
+  number_feeds_set_target($source, $entity, $target, $value, FALSE);
+}
+
+/**
+ * Overlay doesn't handle the file download path well.
+ */
+function feeds_xls_admin_paths(){
+  return array(
+    'import/*/xlstemplate' => FALSE
+  );
+}

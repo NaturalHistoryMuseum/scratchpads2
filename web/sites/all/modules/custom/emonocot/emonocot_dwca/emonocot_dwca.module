@@ -1,0 +1,566 @@
+<?php
+
+/**
+ * Implements hook_views_default_views_alter().
+ * 
+ * Replace uuid fields with wcm identifiers
+ * 
+ * @param $views
+ */
+function emonocot_dwca_views_default_views_alter(&$views){
+  foreach($views as $view){
+    //Is this a dwca_export view? and not comments or eol agents?
+    if(substr($view->name, 0, 11) == 'dwca_export' && $view->name != 'dwca_export_eol_agents' && $view->name != 'dwca_export_comment'){
+      if(isset($view->display['default']->display_options['fields']['uuid'])){
+        //Hide uuid field
+        $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
+        emonocot_dwca_add_wcm_field($view);
+        //If a relationship is set on uuid field make same relatinship on wcm field
+        if(isset($view->display['default']->display_options['fields']['uuid']['relationship'])){
+          $view->display['default']->display_options['fields']['wcm_id']['relationship'] = $view->display['default']->display_options['fields']['uuid']['relationship'];
+        }
+      }
+      //The classification dwca_export view has a parent taxonomy field, uuid_1
+      if(isset($view->display['default']->display_options['fields']['uuid_1']) && $view->name == 'dwca_export_classification'){
+        //Preserve the relationship
+        $relationship = NULL;
+        if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
+          $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
+        }
+        $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+        emonocot_dwca_add_wcm_parent_field($view);
+        if(!is_null($relationship)){
+          $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
+        }
+        $view->display['default']->display_options['fields']['wcm_id_1']['label'] = 'Parent ID';
+        $view->display['default']->display_options['fields']['wcm_id_1']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_1']['empty'] = '[wcm_id_1]';
+        $view->display['default']->display_options['fields']['citation']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_5']['type'] = 'parent_formatter_em';
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_3']['type'] = 'aan_formatter_em';
+        
+        $insert = array();
+        $insert['protologue']  = emonocot_dwca_protologue_field();
+        $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'citation');
+        
+        //Associated accepted name: change identifier
+        $view->display['default']->display_options['fields']['field_unacceptability_reason_3']['alter']['text'] = '[wcm_id_1]';
+      }
+    }
+    //Sort out protologue links in references.txt
+
+    if ($view->name == 'dwca_export_reference'){
+    	//Source     field_reference  -> emonocot_source
+    	//Related    nothing          -> field_reference
+    	$related = $view->display['default']->display_options['fields']['field_reference'];
+    	unset($view->display['default']->display_options['fields']['field_reference']);
+    	unset($view->display['default']->display_options['fields']['nothing']);
+    	$view->display['default']->display_options['fields']['dcsource'] = emonocot_dwca_source_field();
+    	$view->display['default']->display_options['fields']['dcrelated'] = $related;
+
+    }
+    
+    if ($view->name == 'dwca_export_image'){
+      $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+      $view->display['default']->display_options['fields']['uuid']['exclude'] = TRUE;
+      $view->display['default']->display_options['fields']['wcm_id']['exclude'] = TRUE;
+        
+    }
+    
+    //For description references change Rights field to associated Biblio nodes rights
+    if(substr($view->name, 0, 23) == 'dwca_export_description'){
+      $field_matching = array(
+        'dwca_export_description_genera' => 'field_spm_em_gd_ref',
+        'dwca_export_description_morpho' => 'field_spm_em_morph_ref',
+        'dwca_export_description_behavi' => 'field_spm_em_beha_ref',
+        'dwca_export_description_biolog' => 'field_spm_em_bio_ref',
+        'dwca_export_description_conser' => 'field_spm_em_cs_ref',
+        'dwca_export_description_legisl' => 'field_spm_em_leg_ref',
+        'dwca_export_description_manage' => 'field_spm_em_manage_ref',
+        'dwca_export_description_proced' => 'field_spm_em_proc_ref',
+        'dwca_export_description_threat' => 'field_spm_em_threats_ref',
+        'dwca_export_description_associ' => 'field_spm_em_assoc',
+        'dwca_export_description_cyclic' => 'field_spm_em_cyclicity_ref',
+        'dwca_export_description_diagno' => 'field_spm_em_dd_ref',
+        'dwca_export_description_diseas' => 'field_spm_em_diseases_ref',
+        'dwca_export_description_disper' => 'field_spm_em_dispersal_ref',
+        'dwca_export_description_distri' => 'field_spm_em_distribution_ref',
+        'dwca_export_description_ecolog' => 'field_spm_em_ecology_ref',
+        'dwca_export_description_evolut' => 'field_spm_em_evo_ref',
+        'dwca_export_description_geneti' => 'field_spm_em_genetics_ref',
+        'dwca_export_description_growth' => 'field_spm_em_growth_ref',
+        'dwca_export_description_habita' => 'field_spm_em_habitat_ref',
+        'dwca_export_description_life_c' => 'field_spm_em_lc_ref',
+        'dwca_export_description_life_e' => 'field_spm_em_le_ref',
+        'dwca_export_description_look_a' => 'field_spm_em_la_ref',
+        'dwca_export_description_migrat' => 'field_spm_em_migration_ref',
+        'dwca_export_description_molecu' => 'field_spm_em_mb_ref',
+        'dwca_export_description_pysiol' => 'field_sm_em_phys_ref',
+        'dwca_export_description_popula' => 'field_spm_em_popbio_ref',
+        'dwca_export_description_reprod' => 'field_spm_em_popbio_ref',
+        'dwca_export_description_risk_s' => 'field_spm_em_rs_ref',
+        'dwca_export_description_size' => 'field_spm_em_size_ref',
+        'dwca_export_description_taxonb' => 'field_spm_em_tb_ref',
+        'dwca_export_description_trophi' => 'field_spm_em_ts_ref',
+        'dwca_export_description_uses' => 'field_spm_em_uses_ref'
+      );
+      if(isset($field_matching[$view->name])){
+        $view->display['default']->display_options['fields']['nothing']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['nothing_1']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['licence']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['path']['exclude'] = TRUE;
+        $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = '[licence]';
+        $view->display['default']->display_options['fields']['nothing_7']['empty'] = '';
+        emonocot_dwca_add_description_fields($view, $field_matching[$view->name]);
+      }
+      //Set license text for descriptions
+      $view->display['default']->display_options['fields']['nothing_7']['alter']['text'] = ''; 
+    //Preserve the relationship
+    /*
+        $relationship = NULL;
+        if(isset($view->display['default']->display_options['fields']['uuid_1']['relationship'])){
+          $relationship = $view->display['default']->display_options['fields']['uuid_1']['relationship'];
+        }
+        $view->display['default']->display_options['fields']['uuid_1']['exclude'] = TRUE;
+        emonocot_dwca_add_wcm_parent_field($view);
+        if(!is_null($relationship)){
+          $view->display['default']->display_options['fields']['wcm_id_1']['relationship'] = $relationship;
+        }
+        */
+    }
+  }
+}
+
+function emonocot_dwca_add_description_fields(&$view, $ref_field){
+  $new_field = array();
+  $new_field['id'] = 'field_emonocot_acknowledgement';
+  $new_field['table'] = 'field_data_field_emonocot_acknowledgement';
+  $new_field['field'] = 'field_emonocot_acknowledgement';
+  $new_field['relationship'] = $ref_field;
+  $new_field['label'] = 'Rights';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['field_api_classes'] = 0;
+  $insert = array();
+  $insert['field_emonocot_acknowledgement'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing');
+  unset($insert);
+  unset($new_field);
+  $new_field = array();
+  $new_field['id'] = 'path_2';
+  $new_field['table'] = 'node';
+  $new_field['field'] = 'path';
+  $new_field['label'] = 'DC Reference';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['absolute'] = 1;
+  $insert = array();
+  $insert['path_2'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'path');
+  unset($insert);
+  unset($new_field);
+  $new_field = array();
+  $new_field['id'] = 'path_1';
+  $new_field['table'] = 'node';
+  $new_field['field'] = 'path';
+  $new_field['relationship'] = $ref_field;
+  $new_field['label'] = 'DC Source';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 1;
+  $new_field['empty_zero'] = 0;
+  $new_field['empty'] = '';
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['absolute'] = 1;
+  $new_field['exclude'] = TRUE;
+  $insert = array();
+  $insert['path_1'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'nothing_1');
+  unset($insert);
+  unset($new_field);
+  /* Field: Content: Nid */
+  $new_field = array();
+  $new_field['id'] = 'nid';
+  $new_field['table'] = 'node';
+  $new_field['field'] = 'nid';
+  $new_field['relationship'] = $ref_field;
+  $new_field['label'] = 'DC Source (Nid check)';
+  $new_field['alter']['alter_text'] = 1;
+  $new_field['alter']['text'] = '[path_1]';
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 1;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['link_to_node'] = 0;
+  $insert = array();
+  $insert['path_1_nid'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'path_1');
+  unset($insert);
+  unset($new_field);
+  $new_field = array();
+  $new_field['id'] = 'field_licence_for_content_derive';
+  $new_field['table'] = 'field_data_field_licence_for_content_derive';
+  $new_field['field'] = 'field_licence_for_content_derive';
+  $new_field['relationship'] = $ref_field;
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['type'] = 'creative_commons_url';
+  $new_field['field_api_classes'] = 0;
+  $insert = array();
+  $insert['licence'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_4');
+  $new_relationship = array();
+  $new_relationship['id'] = $ref_field . '_nid';
+  $new_relationship['table'] = 'field_data_' . $ref_field;
+  $new_relationship['field'] = $ref_field . '_nid';
+  $new_relationship['required'] = 0;
+  $new_relationship['delta'] = '-1';
+  $view->display['default']->display_options['relationships'][$ref_field] = $new_relationship;
+}
+
+/**
+ * 
+ * Adds the WCM-ID field to the dwca_export view
+ * 
+ * @param $view
+ */
+function emonocot_dwca_add_wcm_field(&$view){
+  $new_field = array();
+  $new_field['id'] = 'wcm_id';
+  $new_field['field'] = 'field_id';
+  $new_field['table'] = 'field_data_field_id';
+  $new_field['label'] = 'id';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['empty'] = '[uuid]';
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 0;
+  $new_field['separator'] = '';
+  $new_field['format_plural'] = 0;
+  $new_field['field_api_classes'] = 0;
+
+  //array_unshift($view->display['default']->display_options['fields'], $new_field);
+ 
+
+  
+  $insert = array();
+  $insert['wcm_id'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid');
+  unset($insert);
+  if($view->name == 'dwca_export_image'){
+  	$insert = array();
+  	$insert['wcm_id_2'] = emonocot_dwca_add_wcm_image($view);
+    $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_1');
+    unset($insert);
+  }
+}
+
+/**
+ * 
+ * Adds the WCM-ID field of the parent term to the dwca_export view
+ * 
+ * @param $view
+ */
+function emonocot_dwca_add_wcm_parent_field(&$view){
+  $new_field = array();
+  $new_field['id'] = 'wcm_id_1';
+  $new_field['field'] = 'field_id';
+  $new_field['table'] = 'field_data_field_id';
+  $new_field['label'] = 'id';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['empty'] = '[uuid_1]';
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 0;
+  $new_field['separator'] = '';
+  $new_field['format_plural'] = 0;
+  $new_field['field_api_classes'] = 0;
+  //array_unshift($view->display['default']->display_options['fields'], $new_field);
+  //$view->display['default']->display_options['fields']['wcm_id_1'] = $new_field;
+  $insert = array();
+  $insert['wcm_id_1'] = $new_field;
+  $view->display['default']->display_options['fields'] = _emonocot_dwca_insert_after_in_array($view->display['default']->display_options['fields'], $insert, 'uuid_1');
+  unset($insert);
+}
+
+function emonocot_dwca_source_field(){
+ $field = array();/* Field: Taxonomy term: Protologue Link */
+ $field['id'] = 'biblio_url';
+$field['table'] = 'biblio';
+$field['field'] = 'biblio_url';
+$field['alter']['alter_text'] = 0;
+$field['alter']['make_link'] = 0;
+$field['alter']['absolute'] = 0;
+$field['alter']['external'] = 0;
+$field['alter']['replace_spaces'] = 0;
+$field['alter']['trim_whitespace'] = 0;
+$field['alter']['nl2br'] = 0;
+$field['alter']['word_boundary'] = 1;
+$field['alter']['ellipsis'] = 1;
+$field['alter']['more_link'] = 0;
+$field['alter']['strip_tags'] = 0;
+$field['alter']['trim'] = 0;
+$field['alter']['html'] = 0;
+$field['element_label_colon'] = 1;
+$field['element_default_classes'] = 1;
+$field['hide_empty'] = 0;
+$field['empty_zero'] = 0;
+$field['hide_alter_empty'] = 1;
+$field['biblio_label'] = 1;
+
+  return $field;
+}
+
+function emonocot_dwca_add_wcm_image(&$view){
+  $new_field = array();
+  $new_field['id'] = 'wcm_id_2';
+  $new_field['table'] = 'field_data_field_id';
+  $new_field['field'] = 'field_id';
+  $new_field['relationship'] = 'field_taxonomic_name_tid_1';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['text'] = '[wcm_id]';
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['empty'] = '[wcm_id]';
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 0;
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+function emonocot_dwca_protologue_field() {
+  $new_field = array();
+  $new_field['id'] = 'field_itis_em_other_ref';
+  $new_field['table'] = 'field_data_field_itis_em_other_ref';
+  $new_field['field'] = 'field_itis_em_other_ref';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+function _emonocot_dwca_insert_after_in_array($array, $insert, $parent_key){
+  $keys = array_keys($array);
+  $position = (int)array_search($parent_key, $keys) + 1;
+  return array_merge(array_slice($array, 0, $position), $insert, array_slice($array, $position));
+}
+
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function emonocot_dwca_field_formatter_info(){
+  return array(
+    'aan_formatter_em' => array(
+      'label' => t('aan em'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'parent_formatter_em' => array(
+      'label' => t('pn em'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function emonocot_dwca_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  $markup = '';
+  switch($display['type']){
+    case 'aan_formatter_em':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = '';
+        }else{
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	if (isset($parent->field_id['und'][0]['value'])){ 
+          	  $parent = $parent->field_id['und'][0]['value'];
+          	}
+          	else {
+          		$parent = $parent->uuid;
+          	}
+          }
+          $markup = $parent;
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'parent_formatter_em':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+        if (is_array($parents)){
+          	$parent = array_pop($parents);
+          	if (isset($parent->field_id['und'][0]['value'])){ 
+          	  $parent = $parent->field_id['und'][0]['value'];
+          	}
+          	else {
+          		$parent = $parent->uuid;
+          	}
+          }
+          $markup = $parent;
+
+        }else{
+                	$markup = '';  
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+  }
+}

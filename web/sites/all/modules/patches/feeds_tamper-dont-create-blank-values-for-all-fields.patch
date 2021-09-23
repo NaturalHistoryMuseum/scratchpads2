@@ -1,0 +1,15 @@
+diff --git a/feeds_tamper.module b/feeds_tamper.module
+index 350857bb1..9814e07d3 100644
+--- a/feeds_tamper.module
++++ b/feeds_tamper.module
+@@ -48,6 +48,10 @@ function feeds_tamper_feeds_after_parse(FeedsSource $source, FeedsParserResult $
+         $element_key = drupal_strtolower($element_key);
+       }
+ 
++      if (!isset($result->items[$item_key][$element_key])){
++        continue;
++      }
++
+       // Manually advance the current_item key since we can't use shiftItem().
+       // Plugins can change it, so re-set.
+       $result->current_item = $result->items[$item_key];

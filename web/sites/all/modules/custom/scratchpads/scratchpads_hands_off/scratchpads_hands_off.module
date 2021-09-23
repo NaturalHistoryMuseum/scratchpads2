@@ -1,0 +1,725 @@
+<?php
+define('SCRATCHPADS_HANDS_OFF_ALLOWED_EXISTING_FIELDS', 'field_media,body,field_cc_licence,field_reference,field_taxonomic_name');
+
+/**
+ * Returns an array of existing fields to be added to a bundle.
+ */
+function scratchpads_hands_off_field_ui_existing_field_options($entity_type, $bundle){
+  $info = array();
+  $field_types = field_info_field_types();
+  $fields = field_info_instances();
+  $allowed_fields = explode(',', SCRATCHPADS_HANDS_OFF_ALLOWED_EXISTING_FIELDS);
+  foreach(field_info_instances() as $existing_entity_type => $bundles){
+    foreach($bundles as $existing_bundle => $instances){
+      // No need to look in the current bundle.
+      if(!($existing_bundle == $bundle && $existing_entity_type == $entity_type)){
+        foreach($instances as $instance){
+          if(in_array($instance['field_name'], $allowed_fields)){
+            $field = field_info_field($instance['field_name']);
+            // Don't show
+            // - locked fields,
+            // - fields already in the current bundle,
+            // - fields that cannot be added to the entity type,
+            // - fields that should not be added via user interface.
+            if(!field_info_instance($entity_type, $field['field_name'], $bundle) && (empty($field['entity_types']) || in_array($entity_type, $field['entity_types'])) && empty($field_types[$field['type']]['no_ui'])){
+              $info[$instance['field_name']] = array(
+                'type' => $field['type'],
+                'type_label' => $field_types[$field['type']]['label'],
+                'field' => $field['field_name'],
+                'label' => $instance['label'],
+                'widget_type' => $instance['widget']['type']
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+  return $info;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_hands_off_form_field_ui_field_overview_form_alter(&$form, &$form_state, $form_id){
+  // Additional row: add existing field.
+  $widget_type_options = field_ui_widget_type_options(NULL, TRUE);
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+  $existing_fields = scratchpads_hands_off_field_ui_existing_field_options($entity_type, $bundle);
+  $max_weight = field_info_max_weight($entity_type, $bundle, 'form');
+  if($existing_fields && $widget_type_options){
+    // Build list of options.
+    $existing_field_options = array();
+    // Add settings for the update selects behavior.
+    $js_fields = array();
+    foreach($existing_fields as $field_name => $info){
+      $text = t('@type: @field (@label)', array(
+        '@type' => $info['type_label'],
+        '@label' => $info['label'],
+        '@field' => $info['field']
+      ));
+      $existing_field_options[$field_name] = truncate_utf8($text, 80, FALSE, TRUE);
+      $js_fields[$field_name] = array(
+        'label' => $info['label'],
+        'type' => $info['type'],
+        'widget' => $info['widget_type']
+      );
+    }
+    asort($existing_field_options);
+    $name = '_add_existing_field';
+    $form['fields'][$name] = array(
+      '#attributes' => array(
+        'class' => array(
+          'draggable',
+          'tabledrag-leaf',
+          'add-new'
+        )
+      ),
+      '#row_type' => 'add_new_field',
+      '#region_callback' => 'field_ui_field_overview_row_region',
+      'label' => array(
+        '#type' => 'textfield',
+        '#title' => t('Existing field label'),
+        '#title_display' => 'invisible',
+        '#size' => 15,
+        '#description' => t('Label'),
+        '#attributes' => array(
+          'class' => array(
+            'label-textfield'
+          )
+        ),
+        '#prefix' => '<div class="label-input"><div class="add-new-placeholder">' . t('Add existing field') . '</div>',
+        '#suffix' => '</div>'
+      ),
+      'weight' => array(
+        '#type' => 'textfield',
+        '#default_value' => $max_weight + 2,
+        '#size' => 3,
+        '#title_display' => 'invisible',
+        '#title' => t('Weight for added field'),
+        '#attributes' => array(
+          'class' => array(
+            'field-weight'
+          )
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      ),
+      'parent_wrapper' => array(
+        'parent' => array(
+          '#type' => 'select',
+          '#title' => t('Parent for existing field'),
+          '#title_display' => 'invisible',
+          '#options' => $form['fields']['#parent_options'],
+          '#empty_value' => '',
+          '#attributes' => array(
+            'class' => array(
+              'field-parent'
+            )
+          ),
+          '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>',
+          '#parents' => array(
+            'fields',
+            $name,
+            'parent'
+          )
+        ),
+        'hidden_name' => array(
+          '#type' => 'hidden',
+          '#default_value' => $name,
+          '#attributes' => array(
+            'class' => array(
+              'field-name'
+            )
+          )
+        )
+      ),
+      'field_name' => array(
+        '#type' => 'select',
+        '#title' => t('Existing field to share'),
+        '#title_display' => 'invisible',
+        '#options' => $existing_field_options,
+        '#empty_option' => t('- Select an existing field -'),
+        '#description' => t('Field to share'),
+        '#attributes' => array(
+          'class' => array(
+            'field-select'
+          )
+        ),
+        '#cell_attributes' => array(
+          'colspan' => 2
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      ),
+      'widget_type' => array(
+        '#type' => 'select',
+        '#title' => t('Widget for existing field'),
+        '#title_display' => 'invisible',
+        '#options' => $widget_type_options,
+        '#empty_option' => t('- Select a widget -'),
+        '#description' => t('Form element to edit the data.'),
+        '#attributes' => array(
+          'class' => array(
+            'widget-type-select'
+          )
+        ),
+        '#cell_attributes' => array(
+          'colspan' => 3
+        ),
+        '#prefix' => '<div class="add-new-placeholder">&nbsp;</div>'
+      )
+    );
+    $form['#attached']['js'][] = array(
+      'type' => 'setting',
+      'data' => array(
+        'fields' => $js_fields,
+        'fieldWidgetTypes' => field_ui_widget_type_options()
+      )
+    );
+    // Add our own submit so that we can add the field instance.
+    $form['#submit'][] = 'scratchpads_hands_off_field_ui_overview_submit';
+  }
+}
+
+/**
+ *
+ */
+function scratchpads_hands_off_field_ui_overview_submit($form, &$form_state){
+  // We get the error messages, and clear any thrown by the field_ui module
+  $messages = drupal_get_messages('error');
+  if(!empty($messages['error'])){
+    foreach($messages['error'] as $message){
+      if($message != t('The field %label cannot be added because it is locked.', array(
+        '%label' => $form_state['values']['fields']['_add_existing_field']['label']
+      ))){
+        drupal_set_message($message, 'error');
+      }
+    }
+  }
+  // Add existing field.
+  if(!empty($form_state['values']['fields']['_add_existing_field']['field_name'])){
+    $field = field_info_field($form_state['values']['fields']['_add_existing_field']['field_name']);
+    if(!empty($field['locked'])){
+      // We only need to do anything if the field_ui has refused due to the field
+      // being locked.
+      $instance = array(
+        'field_name' => $field['field_name'],
+        'entity_type' => $form['#entity_type'],
+        'bundle' => $form['#bundle'],
+        'label' => $form_state['values']['fields']['_add_existing_field']['label'],
+        'widget' => array(
+          'type' => $form_state['values']['fields']['_add_existing_field']['widget_type'],
+          'weight' => $form_state['values']['fields']['_add_existing_field']['weight']
+        )
+      );
+      try{
+        field_create_instance($instance);
+        // We add this to a list of field instances that we will allow to be
+        // deleted.
+        $instances_allow_delete = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+        $instances_allow_delete[$field['field_name'] . ':' . $form['#entity_type'] . ':' . $form['#bundle']] = TRUE;
+        variable_set('scratchpads_hands_off_allow_instance_delete', $instances_allow_delete);
+        // Store new field information for any additional submit handlers.
+        $form_state['fields_added']['_add_existing_field'] = $instance['field_name'];
+      }
+      catch(Exception $e){
+        drupal_set_message(t('There was a problem creating field instance %label: @message.', array(
+          '%label' => $instance['label'],
+          '@message' => $e->getMessage()
+        )), 'error');
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter
+ */
+function scratchpads_hands_off_form_alter(&$form, &$form_state, $form_id){
+  global $user;
+  if($user->uid == 1){return;}
+  $forbidden_regions = array(
+    'slide_bottom',
+    'slide_top',
+    'menu',
+    'branding',
+    'header'
+  );
+  switch($form_id){
+    case 'system_site_maintenance_mode':
+      // Replace the text in the string, rather than creating a new translation
+      // string without the URL in
+      preg_match('$<a href="' . url('admin/people/permissions') . '">([^<]*)</a>$', $form['maintenance_mode']['#description'], $matches);
+      if(count($matches) == 2){
+        $form['maintenance_mode']['#description'] = str_replace($matches[0], $matches[1], $form['maintenance_mode']['#description']);
+      }
+      break;
+    case 'block_admin_configure':
+      foreach(element_children($form['regions']) as $child_key){
+        foreach($forbidden_regions as $forbidden_region){
+          try{
+            unset($form['regions'][$child_key]['#options'][$forbidden_region]);
+          }
+          catch(Exception $e){
+            ;
+          }
+        }
+      }
+      $contexts = context_enabled_contexts();
+      foreach($contexts as $context){
+        if(isset($context->reactions) && isset($context->reactions['block'])){
+          foreach($context->reactions['block']['blocks'] as $context_block_key => $context_block){
+            if($form['module']['#value'] == $context_block['module'] && $form['delta']['#value'] == $context_block['delta']){
+              // This block is used in a context, we should therefore disable the
+              // region stuff.
+              $children = element_children($form['regions']);
+              foreach($children as $key){
+                $form['regions'][$key]['#disabled'] = TRUE;
+                $form['regions'][$key]['#description'] = '<span class="error">' . t('This option is locked because this block is displayed automatically on certain pages.') . '</span>';
+              }
+              // We also disable the tabify stuff, as users will mess things up
+              unset($form['blockexpose']);
+            }
+          }
+        }
+      }
+      break;
+    case 'dashboard_admin_display_form':
+    case 'block_admin_display_form':
+      foreach($form['blocks'] as $form_block_key => $form_block){
+        switch($form_block['module']['#value']){
+          case 'facetapi':
+          case 'apachesolr_search':
+          case 'scratchpads_blocks':
+          case 'system':
+          case 'scratchpads_pages':
+          case 'uwho_client':
+          case 'scratchpads_show_taxa_revisions':
+            unset($form['blocks'][$form_block_key]);
+            break;
+          case 'views':
+            switch($form_block['delta']['#value']){
+              case 'front_page_content-block':
+              case 'front_page_slideshow-block_1':
+              case '16c4f7a3670b362537e67e77d3c889f7':
+              case 'f1e06bda7de42a4d0be1915ce9b2b9e0':
+                unset($form['blocks'][$form_block_key]);
+            }
+        }
+        // Ensure the block can only be set to the allowed regions.
+        foreach($forbidden_regions as $forbidden_region){
+          unset($form['blocks'][$form_block_key]['region']['#options'][$forbidden_region]);
+        }
+      }
+      $contexts = context_enabled_contexts();
+      foreach($contexts as $context){
+        if(isset($context->reactions) && isset($context->reactions['block'])){
+          foreach($context->reactions['block']['blocks'] as $context_block_key => $context_block){
+            foreach($form['blocks'] as $form_block_key => $form_block){
+              if($form_block['module']['#value'] == $context_block['module'] && $form_block['delta']['#value'] == $context_block['delta']){
+                unset($form['blocks'][$form_block_key]);
+              }
+            }
+          }
+        }
+      }
+      // Unset certain regions
+      foreach($forbidden_regions as $forbidden_region){
+        unset($form['block_regions']['#value'][$forbidden_region]);
+      }
+      break;
+    case 'system_themes_admin_form':
+      global $user;
+      if($user->uid != 1){
+        $form['admin_theme']['admin_theme']['#disabled'] = TRUE;
+        $form['admin_theme']['admin_theme']['#default_value'] = 'scratchpads_admin';
+        $form['admin_theme']['admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked') . '</span>';
+        $form['admin_theme']['node_admin_theme']['#disabled'] = TRUE;
+        $form['admin_theme']['node_admin_theme']['#default_value'] = 1;
+        $form['admin_theme']['node_admin_theme']['#title'] .= '<br/><span class="error">' . t('This option has been locked') . '</span>';
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_hands_off_menu_alter(&$items){
+  $hidden_urls = _scratchpads_hands_off_hidden_urls();
+  drupal_alter('scratchpads_hands_off_urls', $hidden_urls);
+  foreach($hidden_urls as $hidden_url){
+    $length = strlen($hidden_url);
+    foreach($items as $key => $item){
+      if($key == $hidden_url || substr($key, 0, $length + 1) == "$hidden_url/"){
+        $items[$key]['access callback'] = 'user_access';
+        $items[$key]['access arguments'] = array(
+          'scratchpad team'
+        );
+      }
+    }
+  }
+  // Change the callback for admin/structure/file-types so that we can remove
+  // links to paths the user does not have access to.
+  $items['admin/structure/file-types']['page callback'] = 'scratchpads_hands_off_file_entity_list_types_page';
+  // Change the callback for the delete an instance of a field form.  This will
+  // allow us to delete isntances of fields that are locked, but that the user
+  // added themselves.
+  foreach($items as $url => $item){
+    if(strpos($url, 'fields/%field_ui_menu/delete') && $item['page arguments'][0] == 'field_ui_field_delete_form'){
+      $items[$url]['page arguments'][0] = 'scratchpads_hands_off_field_ui_field_delete_form';
+    }
+  }
+}
+
+/**
+ * Copy of field_ui_field_delete_form(), adding the check to see if the user
+ * added the locked field instance themselves.
+ *
+ * Form constructor for removing a field instance from a bundle.
+ *
+ * @see field_ui_field_delete_form_submit()
+ * @ingroup forms
+ */
+function scratchpads_hands_off_field_ui_field_delete_form($form, &$form_state, $instance){
+  $bundle = $instance['bundle'];
+  $entity_type = $instance['entity_type'];
+  $field = field_info_field($instance['field_name']);
+  $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
+  $form['entity_type'] = array(
+    '#type' => 'value',
+    '#value' => $entity_type
+  );
+  $form['bundle'] = array(
+    '#type' => 'value',
+    '#value' => $bundle
+  );
+  $form['field_name'] = array(
+    '#type' => 'value',
+    '#value' => $field['field_name']
+  );
+  $output = confirm_form($form, t('Are you sure you want to delete the field %field?', array(
+    '%field' => $instance['label']
+  )), $admin_path . '/fields', t('If you have any content left in this field, it will be lost. This action cannot be undone.'), t('Delete'), t('Cancel'), 'confirm');
+  // Addition from the standard form - the check to see if the user added the
+  // instance of this field.
+  $allow_delete_fields = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+  if($field['locked'] && empty($allow_delete_fields[$field['field_name'] . ':' . $entity_type . ':' . $bundle])){
+    unset($output['actions']['submit']);
+    $output['description']['#markup'] = t('This field is <strong>locked</strong> and cannot be deleted.');
+  }
+  return $output;
+}
+
+/**
+ * Copy of field_ui_field_delete_form_submit(), adding the check to see if the
+ * user added the locked field instance themselves.
+ *
+ * Removes a field instance from a bundle. If the field has no more instances,
+ * it will be marked as deleted too.
+ */
+function scratchpads_hands_off_field_ui_field_delete_form_submit($form, &$form_state){
+  $form_values = $form_state['values'];
+  $field_name = $form_values['field_name'];
+  $bundle = $form_values['bundle'];
+  $entity_type = $form_values['entity_type'];
+  $field = field_info_field($field_name);
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $bundles = field_info_bundles();
+  $bundle_label = $bundles[$entity_type][$bundle]['label'];
+  $allow_delete_fields = variable_get('scratchpads_hands_off_allow_instance_delete', array());
+  // Addition from the standard form - the check to see if the user added the
+  // instance of this field.
+  if(!empty($bundle) && $field && (!$field['locked'] || !empty($allow_delete_fields[$field_name . ':' . $entity_type . ':' . $bundle])) && $form_values['confirm']){
+    unset($allow_delete_fields[$field_name . ':' . $entity_type . ':' . $bundle]);
+    variable_set('scratchpads_hands_off_allow_instance_delete', $allow_delete_fields);
+    field_delete_instance($instance);
+    drupal_set_message(t('The field %field has been deleted from the %type content type.', array(
+      '%field' => $instance['label'],
+      '%type' => $bundle_label
+    )));
+  }else{
+    drupal_set_message(t('There was a problem removing the %field from the %type content type.', array(
+      '%field' => $instance['label'],
+      '%type' => $bundle_label
+    )), 'error');
+  }
+  $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
+  $form_state['redirect'] = field_ui_get_destinations(array(
+    $admin_path . '/fields'
+  ));
+  // Fields are purged on cron. However field module prevents disabling modules
+  // when field types they provided are used in a field until it is fully
+  // purged. In the case that a field has minimal or no content, a single call
+  // to field_purge_batch() will remove it from the system. Call this with a
+  // low batch limit to avoid administrators having to wait for cron runs when
+  // removing instances that meet this criteria.
+  field_purge_batch(10);
+}
+
+/**
+ * Implements hook_init().
+ */
+function scratchpads_hands_off_init(){
+  if(!user_access('scratchpad team')){
+    foreach(_scratchpads_hands_off_hidden_urls() as $hidden_url){
+      if(strpos($_GET['q'], $hidden_url) === 0){
+        drupal_access_denied();
+        exit();
+      }
+    }
+  }
+}
+
+/**
+ * Simplenews implementation of hook_scratchpads_hands_off_urls_alter().
+ */
+function simplenews_scratchpads_hands_off_urls_alter(&$urls){
+  $urls = array_merge($urls, array(
+    'admin/config/services/simplenews/settings/mail',
+    'admin/config/services/simplenews/settings/subscription',
+    'admin/config/services/simplenews/settings'
+  ));
+}
+
+/**
+ * Get an array of hidden URLs
+ */
+function _scratchpads_hands_off_hidden_urls(){
+  $hidden_urls = array(
+    'admin/appearance/settings/scratchpads',
+    'admin/appearance/settings/scratchpads_admin',
+    'admin/config/content/biblio/basic',
+    'admin/config/content/biblio/citeproc',
+    'admin/config/content/biblio/export',
+    'admin/config/content/biblio/fields',
+    'admin/config/content/biblio/pubtype',
+    'admin/config/content/clone',
+    'admin/config/content/diff',
+    'admin/config/content/gm3/test',
+    'admin/config/development/jquery_update',
+    'admin/config/development/logging',
+    'admin/config/development/modal_forms',
+    'admin/config/development/performance',
+    'admin/config/development/strongarm',
+    'admin/config/media/browser',
+    'admin/config/media/colorbox',
+    'admin/config/media/file-system',
+    'admin/config/media/image-toolkit',
+    'admin/config/media/mediaelement',
+    'admin/config/regional/countries',
+    'admin/config/regional/date-time',
+    'admin/config/search/clean-urls',
+    'admin/config/search/sitemap',
+    'admin/config/services/aggregator',
+    'admin/config/services/twitter/settings',
+    'admin/config/system/boost',
+    'admin/config/system/cron',
+    'admin/config/system/customerror',
+    'admin/config/system/globalredirect',
+    'admin/config/system/remember_me',
+    'admin/config/system/site-information',
+    'admin/config/system/spambot',
+    'admin/config/user-interface/beautytips',
+    'admin/config/user-interface/menu-block',
+    'admin/dashboard/configure',
+    'admin/reports/updates',
+    'admin/structure/block/list/scratchpads_admin',
+    'admin/structure/file-types/manage/%/display/file_styles_large',
+    'admin/structure/file-types/manage/%/display/file_styles_medium',
+    'admin/structure/file-types/manage/%/display/file_styles_original',
+    'admin/structure/file-types/manage/%/display/file_styles_slideshow_large',
+    'admin/structure/file-types/manage/%/display/file_styles_slideshow_thumbnail',
+    'admin/structure/file-types/manage/%/display/file_styles_species_slideshow_large',
+    'admin/structure/file-types/manage/%/display/file_styles_species_slideshow_thumbnail',
+    'admin/structure/file-types/manage/%/display/file_styles_square_thumbnail',
+    'admin/structure/file-types/manage/%/display/file_styles_thumbnail',
+    'admin/structure/file-types/manage/%/display/linked_node',
+    'admin/structure/file-types/manage/%/display/media_large',
+    'admin/structure/file-types/manage/%/display/media_link',
+    'admin/structure/file-types/manage/%/display/media_original',
+    'admin/structure/file-types/manage/%/display/media_preview',
+    'admin/structure/file-types/manage/%/display/media_small',
+    'admin/structure/file-types/manage/%/file-display',
+    'user/1/edit',
+    'user/%user/spambot'
+  );
+  foreach(_scratchpads_hands_off_hidden_views() as $hidden_view){
+    $hidden_urls[] = 'admin/structure/views/view/' . $hidden_view;
+  }
+  return $hidden_urls;
+}
+
+/**
+ * Get an array of hidden URLs
+ */
+function _scratchpads_hands_off_hidden_views(){
+  $hidden_views = array(
+    'ecological_niche_modelling',
+    'front_page_slideshow',
+    'geocat_csv',
+    'legal_users',
+    'legal_terms',
+    'media_default',
+    'simple_taxonomy_page_images',
+    'slickgrid_admin_media_gallery',
+    'species_map',
+    'species_specimen_observation',
+    'tweets',
+    'users_references',
+    'weight'
+  );
+  foreach(array_keys(views_get_all_views()) as $key){
+    if(strpos($key, 'admin_vbo') === 0){
+      $hidden_views[] = $key;
+    }
+  }
+  drupal_alter('scratchpads_hands_off_hidden_views', $hidden_views);
+  return drupal_map_assoc($hidden_views);
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ */
+function scratchpads_hands_off_preprocess_table(&$variables){
+  if(!user_access('scratchpad team')){
+    if(strpos($_GET['q'], 'admin/structure/views') === 0 && !user_access('scratchpad team')){
+      foreach(_scratchpads_hands_off_hidden_views() as $key){
+        unset($variables['rows'][$key]);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ */
+function scratchpads_hands_off_preprocess_views_view(&$variables){
+  scratchpads_hands_off_remove_contextual_links($variables['view_array'], $variables['view']);
+}
+
+/**
+ * Implements hook_page_alter()
+ */
+function scratchpads_hands_off_page_alter(&$page){
+  $view = views_get_page_view();
+  if(!empty($view)){
+    if(is_subclass_of($view, 'views_plugin_display')){
+      $view = $view->view;
+    }
+    scratchpads_hands_off_remove_contextual_links($page, $view);
+  }
+}
+
+/**
+ * Remove contextual links to Views UI from an element
+ */
+function scratchpads_hands_off_remove_contextual_links(&$render_element, $view){
+  if(@isset($render_element['#contextual_links']['views_ui']) || @isset($render_element['#views_contextual_links_info']['views_ui'])){
+    $hidden_views = _scratchpads_hands_off_hidden_views();
+    if(isset($hidden_views[$view->name])){
+      unset($render_element['#contextual_links']['views_ui']);
+      if(empty($render_element['#contextual_links'])){
+        unset($render_element['#contextual_links']);
+      }
+      unset($render_element['#views_contextual_links_info']['views_ui']);
+      if(empty($render_element['#views_contextual_links_info'])){
+        unset($render_element['#views_contextual_links_info']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ */
+function scratchpads_hands_off_module_implements_alter(&$implementations, $hook){
+  // Move to the end and then move contextual to after that to ensure that
+  // contextual links are removed before the contextual module gets to mess with
+  // them.
+  if(in_array($hook, array(
+    'page_alter',
+    'preprocess_table',
+    'preprocess'
+  )) && isset($implementations['scratchpads_hands_off'])){
+    $move = $implementations['scratchpads_hands_off'];
+    unset($implementations['scratchpads_hands_off']);
+    $implementations['scratchpads_hands_off'] = $move;
+    if(isset($implementations['contextual'])){
+      $move = $implementations['contextual'];
+      unset($implementations['contextual']);
+      $implementations['contextual'] = $move;
+    }
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ *
+ * Prevent editing of blocks from contextual links
+ */
+function scratchpads_hands_off_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && in_array($element['#contextual_links']['block'][1][0], array(
+    'facetapi',
+    'apachesolr_search',
+    'scratchpads_blocks',
+    'system',
+    'scratchpads_show_taxa_revisions'
+  )) && !user_access('scratchpad team')){
+    $element = array();
+  }
+}
+
+/**
+ * Tweak the file overview page.
+ */
+function scratchpads_hands_off_file_entity_list_types_page(){
+  $build = file_entity_list_types_page();
+  if(user_access('scratchpad team')){return $build;}
+  foreach(array_keys($build['file_type_table']['#rows']) as $key){
+    unset($build['file_type_table']['#rows'][$key][2]);
+    unset($build['file_type_table']['#rows'][$key][3]);
+  }
+  unset($build['file_type_table']['#header'][1]['colspan']);
+  return $build;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function scratchpads_hands_off_theme_registry_alter(&$theme_registry){
+  if(($contextual_key = array_search('contextual_preprocess', $theme_registry['views_view']['preprocess functions'])) < ($hands_off_key = array_search('scratchpads_hands_off_preprocess_views_view', $theme_registry['views_view']['preprocess functions']))){
+    if($contextual_key !== FALSE && $hands_off_key !== FALSE){
+      $theme_registry['views_view']['preprocess functions'][$contextual_key] = 'scratchpads_hands_off_preprocess_views_view';
+      $theme_registry['views_view']['preprocess functions'][$hands_off_key] = 'contextual_preprocess';
+    }
+  }
+  $theme_registry['dashboard_disabled_blocks']['function'] = 'theme_scratchpads_hands_off_dashboard_disabled_blocks';
+}
+
+/**
+ * Callback to override the dashboard theme.
+ */
+function theme_scratchpads_hands_off_dashboard_disabled_blocks($variables){
+  extract($variables);
+  $output = '<div class="canvas-content"><p>' . t('Drag and drop these blocks to the columns below. Changes are automatically saved.') . '</p>';
+  $output .= '<div id="disabled-blocks"><div class="region disabled-blocks clearfix">';
+  foreach($blocks as $block){
+    $output .= theme('dashboard_disabled_block', array(
+      'block' => $block
+    ));
+  }
+  $output .= '<div class="clearfix"></div>';
+  $output .= '</div></div></div>';
+  return $output;
+}
+
+/**
+ * Implements hook_system_themes_page_alter().
+ */
+function scratchpads_hands_off_system_themes_page_alter(&$theme_groups){
+  global $user;
+  if($user->uid != 1){
+    $theme_groups['disabled'] = array();
+  }
+}

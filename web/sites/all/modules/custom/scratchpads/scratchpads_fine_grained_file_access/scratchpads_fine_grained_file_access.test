@@ -1,0 +1,223 @@
+<?php
+
+/**
+* @file
+* 
+* Scratchpads fine grained file access tests.
+* 
+*/
+class ScratchpadsFileLockTestCase extends FileFieldTestCase{
+
+  protected $profile = 'scratchpad_2';
+
+  protected $admin_user;
+
+  protected $admin_user2;
+
+  protected $admin_user3;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Fine Grained File Access',
+      'description' => 'Tests view/edit/delete file access with various permissions',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    $modules = array();
+    $modules[] = 'file';
+    $modules[] = 'file_module_test';
+    $modules[] = 'scratchpads_fine_grained_file_access';
+    // include the code for tweaks setup as we are not extenting tweaks class
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
+    // has permissions only to edit/delete own files
+    $this->admin_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'edit own file',
+      'delete own file'
+    ));
+    // has permissions only to edit/delete own files
+    $this->admin_user2 = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'edit own file',
+      'delete own file'
+    ));
+    // has full file permissions
+    $this->admin_user3 = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'create file',
+      'edit all file',
+      'edit own file',
+      'delete all file',
+      'delete own file'
+    ));
+    $this->scratchpads_fine_grained_file_access_legal_save($this->admin_user->uid);
+    $this->scratchpads_fine_grained_file_access_legal_save($this->admin_user2->uid);
+    $this->scratchpads_fine_grained_file_access_legal_save($this->admin_user3->uid);
+  }
+
+  /**
+   * We set the legal_accepted on the user so that login passes.
+   */
+  function scratchpads_fine_grained_file_access_legal_save($uid){
+    legal_save_accept(1, 1, 'en', $uid);
+  }
+
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
+      $this->drupalLogout();
+    }
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+    // override is here
+    $pass = $this->assertNoText('Sorry, unrecognized username or password', 'User successfully logged in');
+    if($pass){
+      $this->loggedInUser = $account;
+    }
+  }
+
+  /**
+   * Test access to file edit
+   */
+  function testFileEdit(){
+    // user with edit own file permissions
+    $this->drupalLogin($this->admin_user);
+    // create a file
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('text');
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New text file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    $edit_path = 'file/' . $node_file->fid . '/edit';
+    $this->drupalGet($edit_path);
+    $this->assertResponse(200, t("File edit page accessed, with 'edit own file' permissions"));
+    // See if another user can access the file edit page
+    // user has 'edit own file' permissions
+    $this->drupalLogin($this->admin_user2);
+    $this->drupalGet($edit_path);
+    $this->assertText(t('access denied'), "Access denied to " . $edit_path);
+    $this->assertResponse(403);
+    // user with full file permissions
+    $this->drupalLogin($this->admin_user3);
+    $this->drupalGet($edit_path);
+    $this->assertResponse(200, t("File edit page accessed, with 'edit all file' permissions"));
+  }
+
+  /**
+   * Test access to delete own file 
+  */
+  function testDeleteOwnFileAccess(){
+    // user with delete own file permissions
+    $this->drupalLogin($this->admin_user);
+    // create a file
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('text');
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New text file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    $delete_path = 'file/' . $node_file->fid . '/delete';
+    $this->drupalGet($delete_path);
+    $this->assertResponse(200, t("File edit page accessed, with 'delete own file' permissions"));
+  }
+
+  /**
+   * Test access to delete other user's file
+   */
+  function testDeleteOthersFileAccess(){
+    // user with delete own file permissions
+    $this->drupalLogin($this->admin_user);
+    // create a file
+    $type_name = 'page';
+    $field_name = strtolower($this->randomName());
+    $this->createFileField($field_name, $type_name);
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('node', $field_name, $type_name);
+    $test_file = $this->getTestFile('text');
+    // Create a new node with the uploaded file.
+    $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
+    $node = node_load($nid, NULL, TRUE);
+    $node_file = (object)$node->{$field_name}[LANGUAGE_NONE][0];
+    // Ensure the file got uploaded successfully.
+    $this->assertFileExists($node_file, t('New text file saved to disk on node creation.'));
+    // Ensure the file can be downloaded.
+    $this->drupalGet(file_create_url($node_file->uri));
+    $this->assertResponse(200, t('Confirmed that the generated URL is correct by downloading the shipped file.'));
+    $delete_path = 'file/' . $node_file->fid . '/delete';
+    // See if another user can access the file delete page
+    // user has 'edit own file' permissions
+    $this->drupalLogin($this->admin_user2);
+    $this->drupalGet($delete_path);
+    $this->assertText(t('access denied'), "Access denied to " . $delete_path);
+    $this->assertResponse(403);
+    // user with full file permissions
+    $this->drupalLogin($this->admin_user3);
+    $this->drupalGet($delete_path);
+    $this->assertResponse(200, t("File delete page accessed, with 'delete all file' permissions"));
+  }
+  
+  /**
+   * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
+   */
+  public function errorHandler($severity, $message, $file = NULL, $line = NULL){
+    if(strpos($message, 'Missing handler') === FALSE){
+      parent::errorHandler($severity, $message, $file, $line);
+    }
+    return TRUE;
+  }
+}
+
+
+
+  

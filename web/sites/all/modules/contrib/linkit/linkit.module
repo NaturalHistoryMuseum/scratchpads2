@@ -1,0 +1,1037 @@
+<?php
+/**
+ * @file
+ * Main file for linkit module.
+ */
+
+/**
+ * The default weight for attributes and plugins.
+ */
+define('LINKIT_DEFAULT_WEIGHT', 0);
+
+/**
+ * The default profile machine name
+ */
+define('LINKIT_DEFAULT_PROFILE_MACHINE_NAME', 'default');
+
+// Include the file with the field UI functions.
+require_once dirname(__FILE__) . '/linkit.field.inc';
+
+
+/**
+ * Implements hook_menu().
+ */
+function linkit_menu() {
+  $items = array();
+
+  $items['linkit/dashboard/%'] = array(
+    'title' => 'Linkit',
+    'description' => 'Dashboard',
+    'page callback' => '_linkit_dashboard',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'page arguments' => array(2),
+    'theme callback' => '_linkit_dashboard_theme',
+  );
+
+  $items['linkit/autocomplete'] = array(
+    'title' => 'Linkit autocomplete response function',
+    'page callback' => '_linkit_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/content/linkit/reorder'] = array(
+    'title' => 'Reorder',
+    'description' => 'Reorder Linkit profiles',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('linkit_profiles_reorder'),
+    'access arguments' => array('administer linkit'),
+    'file path' => drupal_get_path('module', 'linkit') . '/plugins/export_ui',
+    'file' => 'linkit_profiles.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function linkit_menu_alter(&$items) {
+  // Override the default titles that ctools export_ui sets.
+  // This way there is less code compared to define this in the plugin array.
+  $items['admin/config/content/linkit/add']['title'] = 'Add new profile';
+  $items['admin/config/content/linkit/import']['title'] = 'Import profiles';
+
+  // Make tabs
+  $items['admin/config/content/linkit/add']['type'] = MENU_LOCAL_TASK;
+  $items['admin/config/content/linkit/import']['type'] = MENU_LOCAL_TASK;
+}
+
+/**
+ * Return the theme name to be used when showing linkit dashboard
+ */
+function _linkit_dashboard_theme() {
+  return variable_get('admin_theme', 'seven');
+}
+
+/**
+ * Implements hook_permission().
+ */
+function linkit_permission() {
+  $permissions = array();
+  $permissions['administer linkit'] = array(
+    'title' => t('Administer Linkit'),
+    'description' => t('Perform administration tasks for Linkit.'),
+  );
+
+  return $permissions;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function linkit_theme($existing, $type, $theme, $path) {
+  return array(
+    'linkit_profiles_export_ui_form' => array(
+      'render element' => 'form',
+      'file' => 'linkit.theme.inc',
+    ),
+    'linkit_profiles_reorder' => array(
+      'render element' => 'form',
+      'file' => 'linkit.theme.inc'
+    ),
+    '_linkit_theme_profile_form_table' => array(
+      'variables' => array(),
+      'file' => 'linkit.theme.inc'
+    ),
+    'linkit_reverse_menu_trail' => array(
+      'variables' => array('menu_trail' => NULL, 'separator' => ' « '),
+      'file' => 'linkit.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function linkit_element_info_alter(&$types) {
+  if (isset($types['text_format']['#pre_render']) && is_array($types['text_format']['#pre_render'])) {
+    if (in_array('ckeditor_pre_render_text_format', $types['text_format']['#pre_render'])) {
+      $types['text_format']['#pre_render'][] = 'linkit_pre_render_ckeditor_element';
+    }
+  }
+  // Append a process function for the field integration.
+  foreach (linkit_allowed_elements() as $element) {
+    if (isset($types[$element])) {
+      $types[$element]['#process'][] = 'linkit_process_widget';
+    }
+  }
+}
+
+/**
+ * Add Linkit settings to pages where we have a ckeditor element.
+ */
+function linkit_pre_render_ckeditor_element($element) {
+  _linkit_add_settings('ckeditor');
+  return $element;
+}
+
+/**
+ * Implements hook_ckeditor_plugin().
+ */
+function linkit_ckeditor_plugin() {
+  return array(
+    'linkit' => array(
+      // Name of the plugin used to write it
+      'name' => 'linkit',
+      // Description of plugin - it would appear in plugins managment of profile settings
+      'desc' => t('Support for Linkit module'),
+      // The full path to the CKEditor plugin directory, with trailing slash.
+      'path' => drupal_get_path('module', 'linkit') . '/editors/ckeditor/',
+      // Buttons to show up in the toolbar config area.
+      'buttons' => array(
+        'linkit' => array(
+          'label' => 'Linkit',
+          'icon' => 'linkit.png',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_library().
+ */
+function linkit_library() {
+  $path = drupal_get_path('module', 'linkit');
+
+  $common = array(
+    'website' => 'http://drupal.org/project/linkit',
+    'version' => '7.2',
+  );
+
+  // Better Autocomplete
+  $libraries['linkit_bac'] = array(
+    'title' => 'Linkit Better Autocomplete',
+    'js' => array(
+      $path . '/better-autocomplete/jquery.better-autocomplete.js' => array('group' => JS_LIBRARY),
+      array(
+        'type' => 'setting',
+        'data' => array('linkit' => array('autocompletePath' => url('linkit/autocomplete', array('query' => array('s' => ''), 'absolute' => TRUE)))),
+      ),
+    ),
+    'css' => array(
+      $path . '/better-autocomplete/better-autocomplete.css' => array('group' => CSS_DEFAULT),
+    ),
+  );
+
+  // Linkit base
+  $libraries['linkit_base'] = array(
+    'title' => 'Linkit base',
+    'js' => array(
+      $path . '/js/linkit.js' => array('group' => JS_DEFAULT),
+      $path . '/js/linkit.dialog.js' => array('group' => JS_DEFAULT),
+      // Add global settings for Linkit
+      array(
+        'type' => 'setting',
+        'data' => array('linkit' => array('modulepath' => drupal_get_path('module', 'linkit'))),
+      ),
+    ),
+    'css' => array(
+      $path . '/css/linkit.css' => array('group' => CSS_DEFAULT),
+    ),
+    'dependencies' => array(
+      array('system', 'ui.dialog'),
+      array('system', 'drupal.collapse'),
+      array('linkit', 'linkit_bac'),
+    ),
+  );
+
+  // Linkit ckeditor dialog script.
+  $libraries['linkit_ckeditor'] = array(
+    'title' => 'Linkit CKeditor',
+    'js' => array(
+      $path . '/editors/ckeditor/linkitDialog.js' => array('group' => JS_DEFAULT),
+    ),
+  );
+
+  // Linkit tinymce dialog script.
+  $libraries['linkit_tinymce'] = array(
+    'title' => 'Linkit TinyMCE',
+    'js' => array(
+      $path . '/editors/tinymce/linkitDialog.js' => array('group' => JS_DEFAULT),
+    ),
+  );
+
+  // Linkit field ui script.
+  $libraries['linkit_field'] = array(
+    'title' => 'Linkit Field UI',
+    'js' => array(
+      $path . '/js/linkit.field.js' => array('group' => JS_DEFAULT),
+      $path . '/js/linkitFieldDialog.js' => array('group' => JS_DEFAULT),
+    ),
+    'dependencies' => array(
+      array('linkit', 'linkit_base'),
+    ),
+  );
+
+  foreach ($libraries as &$library) {
+    $library += $common;
+  }
+
+  return $libraries;
+}
+
+/**
+ * Creates the dashboard.
+ */
+function _linkit_dashboard($editor) {
+  $form = drupal_get_form('linkit_dashboard_form');
+  print drupal_render($form);
+  drupal_exit();
+}
+
+/**
+ * Autocomplete callback function.
+ */
+function _linkit_autocomplete($search = NULL) {
+  $search = $_GET['s'];
+  $enabled_plugins = linkit_get_profile_plugins();
+
+  // Absolute URL
+  if ($result = _linkit_result_from_url($search, $enabled_plugins)) {
+    $results = array($result);
+  }
+  elseif (!$results = _linkit_autocomplete_search($search, $enabled_plugins)) {
+    $results = array(array(
+      'title' => t('No results'),
+      'addClass' => 'status-notice',
+      'disabled' => TRUE,
+    ));
+  }
+  drupal_json_output($results);
+  drupal_exit();
+}
+
+/**
+ * Perform internal autocomplete search.
+ *
+ * @param $search_string
+ *   The search string.
+ * @return $results
+ *   An array with the result objects.
+ */
+function _linkit_autocomplete_search($search_string, $enabled_plugins) {
+  $matches = array();
+  if ($search_string) {
+    $profile = linkit_get_dashboard_profile();
+
+    foreach ($enabled_plugins as $plugin) {
+      // Get an instance of the handler for this plugin.
+      $handler = linkit_get_plugin_handler($plugin, $profile);
+      // If the handler is broken, just continue.
+      if ($handler->broken()) {
+        continue;
+      }
+      // Add the search string.
+      $handler->setSearchString($search_string);
+      // Call the plugin search metod.
+      $results = $handler->autocomplete_callback();
+      // Merge the results.
+      $matches = array_merge($matches, $results);
+    }
+    // Special for link to frontpage.
+    if (strpos($search_string, 'front') !== FALSE) {
+      $results = array(
+        array(
+          'title' => t('Frontpage'),
+          'description' => 'The frontpage for this site.',
+          'path' => url('<front>'),
+          'group' => t('System'),
+        )
+      );
+      $matches = array_merge($matches, $results);
+    }
+  }
+  if (!empty($matches)) {
+    return $matches;
+  }
+  return FALSE;
+}
+
+/**
+ * Retrieve relevant information about a URL. Specifically this function is
+ * usable for internal (absolute) URL:s, but it also works for external URL:s.
+ *
+ * @param $url
+ *   The url that should be scanned.
+ *
+ * @return $path_info
+ *   An associative array containing:
+ *   - url: The same as the argument $url, untouched.
+ *   - target: Either "internal" or "external".
+ *   - requested_path: If internal, the path requested relative to Drupal root.
+ *     The only exception is when frontpage is referred directly, then it will
+ *     be whatever the frontpage is set to.
+ *   - system_path: If internal and the path is valid, the Drupal system path,
+ *     e.g. "node/23".
+ *   - query_fragment: If internal, the query and fragment of the url.
+ *     Typically it is not needed for searching and is just reappended back
+ *     when processing of the path is done. It could e.g. look like
+ *     "?foo=bar#anchor".
+ *   - safe_url: If external, and the protocol is http or https, this will be
+ *     the original url, stripped from everything that could potentially be
+ *     dangerous. E.g. "http://user:pass@example.org/settings?evilaction=true"
+ *     will become "http://example.org/settings".
+ */
+function linkit_scan_url($url) {
+  global $base_url;
+  // We will not use the drupal wrapper function 'drupal_pasre_url' as that
+  // function should only be used for URLs that have been generated by the
+  // system, and we cant be sure that this is the case here.
+  $parts = parse_url(trim($url, '/'));
+  if (!isset($parts['scheme']) || !isset($parts['host'])) {
+    // Not an absolute URL.
+    return FALSE;
+  }
+
+  // Make a new array, this will hold the components from parse_url() and our
+  // own "Linkit" components.
+  $path_info = array();
+
+  // Append the original components from parse_url() to our array.
+  $path_info += $parts;
+
+  // Save the whole URL.
+  $path_info['url'] = $url;
+
+  if (!isset($path_info['query'])) {
+    $path_info['query'] ='';
+  }
+
+  // Convert the query string to an array as Drupal can only handle querys as
+  // arrays.
+  // @see http://api.drupal.org/drupal_http_build_query
+  parse_str($path_info['query'], $path_info['query']);
+
+  // The 'q' parameter contains the path of the current page if clean URLs are
+  // disabled. It overrides the 'path' of the URL when present, even if clean
+  // URLs are enabled, due to how Apache rewriting rules work.
+  if (isset($path_info['query']['q'])) {
+    $path_info['path'] = $path_info['query']['q'];
+    unset($path_info['query']['q']);
+  }
+
+  // Internal URL.
+  // @TODO: Handle https and other schemes here?
+  if (trim($path_info['scheme'] . '://' . $path_info['host'] . base_path(), '/') == $base_url) {
+    $path_info['target'] = 'internal';
+
+    // Remove the subdirectory name from the path if the site is installed in
+    // subdirectory. It will be added again by the url() function.
+    if (base_path() != "/") {
+      $path_info['path'] = trim(preg_replace(base_path(), '', $path_info['path'], 1), '/');
+    }
+
+    // Trim the path from slashes.
+    $path_info['path'] = trim($path_info['path'], '/');
+
+    // If we have an empty path, and an internal target, we can assume that the
+    // URL should go the the frontpage.
+    if (empty($path_info['path'])) {
+      $path_info['frontpage'] = TRUE;
+      $path_info['path'] = variable_get('site_frontpage', 'node');
+    }
+
+    // Check if the path already is an alias.
+    if (!$processed_path = drupal_lookup_path('source', $path_info['path'])) {
+      // Not an alias, so keep the original value.
+      $processed_path = $path_info['path'];
+    }
+    // Add the "real" system path (not the alias) if the current user have
+    // access to the URL.
+    $path_info['system_path'] = drupal_valid_path($processed_path) ? $processed_path : FALSE;
+  }
+  // External URL
+  else {
+    $path_info['target'] = 'external';
+    if (preg_match('~^https?$~', $parts['scheme'])) {
+      $path_info['safe_url'] = $parts['scheme'] . '://' . $parts['host'] . $parts['path'];
+    }
+  }
+
+  return $path_info;
+}
+
+/**
+ * Retrieve the result object from an absolute URL. This function calls the
+ * enabled plugins' "path info callback" to look for a result object. Both
+ * internal and external paths work.
+ *
+ * @param $url
+ *   An absolute URL.
+ *
+ * @return
+ *   A result object. This is an associative array which consists of:
+ *   - title: The title of the result
+ *   - description: The description of the result (may contain HTML).
+ *   - path: The target path which will be inserted as the href in the link.
+ *   - addClass: A CSS class that will be added to the DOM result item.
+ */
+function _linkit_result_from_url($url, $enabled_plugins) {
+  if (!$path_info = linkit_scan_url($url)) {
+    return FALSE;
+  }
+
+  // Do we have Clean URLS activated.
+  $clean_urls = !empty($GLOBALS['conf']['clean_url']);
+
+  // Set default options to pass with the url() function.
+  $url_options = array(
+    'alias' => TRUE,
+  );
+
+  // Add the URL frament.
+  $url_options['fragment'] = isset($path_info['fragment']) ? $path_info['fragment'] : '';
+  // Add the URL query.
+  $url_options['query'] = isset($path_info['query']) ? $path_info['query'] : '';
+
+  $result = array();
+
+  if (isset($path_info['system_path']) && (bool) $path_info['system_path']) {
+    $menu_item = menu_get_item($path_info['system_path']);
+    $result = array(
+      'path' => url($path_info['system_path'], $url_options),
+      'title' => $menu_item['title'] ? check_plain($menu_item['title']) : check_plain($path_info['system_path']),
+      'description' => t('This is an internal path.'),
+      'addClass' => 'status-ok',
+    );
+  }
+  // No plugin result, but the URL seems to be internal. Either we do not have
+  // access to it or it does not exists.
+  elseif ($path_info['target'] == 'internal') {
+    $result = array(
+      'path' => url($path_info['path'], $url_options),
+      'title' => t('Page not found'),
+      'description' => t('This page does not exist or you do not have access to it.'),
+      'addClass' => 'status-warning',
+    );
+  }
+  // No plugin result, and the URL seems to be external.
+  elseif ($path_info['target'] == 'external') {
+    $result = array(
+      'title' => t('No information available'),
+      'description' => t("This is an external URL, but we don't know where it leads."),
+      'path' => $path_info['url'],
+      'addClass' => 'status-notice',
+    );
+  }
+
+  return $result;
+}
+
+/**
+ * Implements hook_form().
+ */
+function linkit_dashboard_form($form, &$form_state) {
+  $profile = linkit_get_dashboard_profile();
+
+  // If we do not have a Linkit profile, lets show the user a message.
+  if (is_null($profile)) {
+    drupal_set_message(t('There is no Linkit profile associated with your role.'), 'warning');
+    $form['message'] = array(
+      '#markup' => theme('status_messages') . '<a id="linkit-cancel" href="#">' . t('Close') . '</a>',
+    );
+    return $form;
+  }
+
+  $form['linkit_search'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search content'),
+    '#description' => t('Start typing to find content or paste a URI. Use the arrow keys to navigate.'),
+    '#maxlength' => 255,
+    '#size' => 60,
+    '#default_value' => '',
+    '#weight' => -10,
+  );
+
+  // The IMCE button is generated with JavaScript, see linkit.js.
+
+  $form['linkit_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Target path'),
+    '#description' => t('Examples: <strong>node/123</strong>, <strong>http://www.example.com/path#anchor</strong>'),
+    '#required' => TRUE,
+    '#maxlength' => NULL,
+    '#size' => 60,
+    '#default_value' => '',
+    '#weight' => -1,
+  );
+
+  $enabled_attributes = linkit_get_profile_attributes();
+
+  // If we have enabled attributes, lets put them inside a fieldset.
+  if (count($enabled_attributes)) {
+    // Create the container fieldset.
+    $form['linkit_attributes'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Attributes'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#weight' => 10,
+    );
+    // Append the attributes info the fieldset.
+    foreach ($enabled_attributes AS $name => $attribute) {
+      // Add 'linkit_' prefix to ensure that is uniq.
+      $form['linkit_attributes']['linkit_' . $name] = $attribute;
+    }
+  }
+
+  $form['linkit_insert'] = array(
+    '#type' => 'button',
+    '#value' => t('Insert link'),
+    '#suffix' => '<a id="linkit-cancel" href="#">' . t('Cancel') . '</a>',
+    '#weight' => 100,
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_wysiwyg_plugin().
+ */
+function linkit_wysiwyg_plugin($editor, $version) {
+  $plugin = array();
+  _linkit_add_settings($editor);
+
+  $plugin['linkit'] = array(
+    'path' => drupal_get_path('module', 'linkit') . '/editors/' . $editor,
+    'buttons' => array('linkit' => t('Linkit')),
+    'url' => 'http://drupal.org/project/linkit',
+    'load' => TRUE,
+  );
+
+  // TinyMCE needs to know the filename.
+  if ($editor == 'tinymce') {
+    $plugin['linkit']['filename'] = 'editor_plugin.js';
+  }
+
+  return $plugin;
+}
+
+/**
+ *  Add necessary settings to the Drupal.settings array and include the
+ * libraries we need.
+ */
+function _linkit_add_settings($editor) {
+  static $globalsettings, $set_urls;
+  drupal_add_library('linkit', 'linkit_base');
+  $profile = linkit_get_dashboard_profile();
+
+  if (!$globalsettings && $profile) {
+    // Check if IMCE is enbled and accessable
+    if (module_invoke('imce', 'access') && isset($profile->data['imce']['use_imce']) && $profile->data['imce']['use_imce'] == 1) {
+      $settings['IMCEurl'] = url('imce', array('query' => array(
+        'app' => 'Linkit|sendto@Drupal.linkit.dialog.IMCECallback',
+        'absolute' => TRUE,
+      )));
+      // We will only serv public files with IMCE.
+      $settings['publicFilesDirectory'] = variable_get('file_public_path', conf_path() . '/files');
+    }
+
+    $settings['autocomplete'] = array_filter($profile->data['autocomplete']);
+
+    // Add caseSensitive
+    $settings['autocomplete'] += array('caseSensitive' => TRUE);
+    drupal_add_js(array('linkit' => $settings), 'setting');
+
+    $globalsettings = TRUE;
+  }
+
+  if (!isset($set_urls[$editor])) {
+    // Add dialog url for the editor.
+    $settings = array(
+      'linkit' => array('url' => array($editor => url('linkit/dashboard/' . $editor))),
+    );
+    drupal_add_js($settings, 'setting');
+    $set_urls[$editor] = TRUE;
+  }
+
+  // Add the linkit library for the editor.
+  drupal_add_library('linkit', 'linkit_' . $editor);
+}
+
+/**
+ * Implements hook_help().
+ */
+function linkit_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#linkit':
+      $output = file_get_contents(drupal_get_path('module', 'linkit') . '/README.txt');
+      return nl2br($output);
+  }
+}
+
+/**
+ * Determines if a profile with a given name exists.
+ *
+ * @param $profile_name
+ *   The ID of the profile check.
+ * @return
+ *   TRUE if the profile exists, FALSE otherwise.
+ *
+ * @see filter_format_load()
+ */
+function linkit_profile_exists($profile_name) {
+  $profile = linkit_profile_load($profile_name);
+  return is_object($profile);
+}
+
+/**
+ * Implements hook_image_default_styles().
+ *
+ * @return
+ *   An array of image styles, keyed by the style name.
+ */
+function linkit_image_default_styles() {
+  $styles = array();
+
+  $styles['linkit_thumb'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array('width' => 50, 'height' => 50, 'upscale' => 0),
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  return $styles;
+}
+
+/**
+ * Get all attributes defined by hook_linkit_attributes().
+ */
+function linkit_get_attributes($profile = NULL) {
+  if (is_null($profile)) {
+    $profile = linkit_get_dashboard_profile();
+  }
+
+  // Let other modules implement thier own attributes.
+  $attributes = module_invoke_all('linkit_attributes', $profile);
+
+  // Let other modules alter the attributes.
+  drupal_alter('linkit_attributes', $attributes);
+
+  return $attributes;
+}
+
+/**
+ * Implements hook_linkit_attributes().
+ *
+ * Define them like form elements.
+ */
+function linkit_linkit_attributes($profile) {
+  $attributes['accesskey'] = array(
+    '#type' => 'textfield',
+    '#title' => 'accesskey',
+  );
+
+  $attributes['class'] = array(
+    '#type' => 'textfield',
+    '#title' => 'class',
+  );
+
+  $attributes['id'] = array(
+    '#type' => 'textfield',
+    '#title' => 'id',
+  );
+
+  $attributes['rel'] = array(
+    '#type' => 'textfield',
+    '#title' => 'rel',
+  );
+
+  $attributes['title'] = array(
+    '#type' => 'textfield',
+    '#title' => 'title',
+  );
+
+  foreach ($attributes as $key => &$attribute) {
+    $attribute += array(
+      '#maxlength' => 255,
+      '#size' => 40,
+      '#default_value' => '',
+      '#weight' => isset($profile->data['attributes'][$key]['weight']) ? $profile->data['attributes'][$key]['weight'] : 0,
+    );
+  }
+  return $attributes;
+}
+
+/**
+ * Get all enabled attributes for the profiles used on the dashboard.
+ */
+function linkit_get_profile_attributes() {
+  $profile = linkit_get_dashboard_profile();
+  $enabled_attributes = array();
+
+  if (isset($profile->data['attributes'])) {
+    // Loop thru all attributes and build an array with all that is enabled.
+    foreach (linkit_get_attributes($profile) as $name => $attribute) {
+      if (isset($profile->data['attributes'][$name]['enabled']) && $profile->data['attributes'][$name]['enabled']) {
+        // Add Linkit specific class, this is used by the editor JS scripts.
+        $attribute['#attributes']['class'][] = 'linkit-attribute';
+        $enabled_attributes[$name] = $attribute;
+      }
+    }
+  }
+  return $enabled_attributes;
+}
+
+/**
+ * Get all enabled plugins for the profiles used on the dashboard.
+ */
+function linkit_get_profile_plugins() {
+  $installed_plugins = linkit_get_plugins();
+  $profile = linkit_get_dashboard_profile();
+
+  // We have no profile.
+  if (is_null($profile)) {
+    return array();
+  }
+
+  $enabled_plugins = array();
+
+  foreach ($installed_plugins AS $name => $plugin) {
+    if ($profile->data['plugins'][$name]['enabled']) {
+      $enabled_plugins[$name] = $plugin;
+    }
+  }
+  return $enabled_plugins;
+}
+
+/**
+ * Fetch metadata for all linkit plugins.
+ *
+ * @return
+ *   An array of arrays with information about all available linkit plugins.
+ */
+function linkit_get_plugins() {
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('linkit', 'linkit_plugins');
+  // If you alter the plugins handler, be sure the new handler is registerd or
+  // you include it in some other way.
+  drupal_alter('linkit_plugins', $plugins);
+  return $plugins;
+}
+
+/**
+ * Fetch metadata for one linkit plugin by the given name.
+ */
+function linkit_get_plugin($plugin_name) {
+  ctools_include('plugins');
+  $plugin = ctools_get_plugins('linkit', 'linkit_plugins', $plugin_name);
+  // If you alter the plugin handler, be sure the new handler is registerd or
+  // you include it in some other way.
+  drupal_alter('linkit_plugin', $plugin);
+  return $plugin;
+}
+
+/**
+ * Get the "best" Linkit profile based on the users roles to use on the
+ * dashboard.
+ */
+function linkit_get_dashboard_profile() {
+  global $user;
+  $best_profile = &drupal_static(__FUNCTION__);
+
+  if (!isset($best_profile)) {
+    $best_profile = NULL;
+    // Get the profiles.
+    $profiles = linkit_profile_load_all();
+    usort($profiles, '_linkit_sort_profiles_by_weight');
+
+    foreach ($profiles as $profile) {
+      // Dont work with disabled profiles.
+      if (isset($profile->disabled) && $profile->disabled) {
+        continue;
+      }
+
+      // Loop thru the associated roles, if we get a match, use that and break
+      // out of this loop.
+      foreach ($profile->role_rids as $rid => $value) {
+        if (array_key_exists($rid, $user->roles)) {
+          $best_profile = $profile;
+          break 2;
+        }
+      }
+    }
+  }
+
+  return $best_profile;
+}
+
+/**
+ * Sort profiles by weight.
+ */
+function _linkit_sort_profiles_by_weight($a, $b) {
+  return $a->weight >= $b->weight;
+}
+
+/**
+ * Get all Linkit profiles and return there names.
+ *
+ * @return
+ *   An array that can be used as an #options in a form.
+ */
+function _linkit_get_profile_names() {
+  $profiles = linkit_profile_load_all();
+  $profile_names= array();
+  foreach ($profiles AS $profile) {
+    $profile_names[$profile->name] = $profile->admin_title;
+  }
+  return $profile_names;
+}
+
+/**
+ * Load a single Linkit profile.
+ */
+function linkit_profile_load($name) {
+  $cache = &drupal_static('__FUNCTION__', array());
+  if (!isset($cache[$name])) {
+    ctools_include('export');
+    $result = ctools_export_load_object('linkit_profiles', 'names', array($name));
+    if (isset($result[$name])) {
+      $cache[$name] = $result[$name];
+    }
+    else {
+      return FALSE;
+    }
+  }
+  return $cache[$name];
+}
+
+/**
+ * Load all Linkit profiles.
+ */
+function linkit_profile_load_all() {
+  ctools_include('export');
+  $profiles = ctools_export_load_object('linkit_profiles');
+  return $profiles;
+}
+
+/**
+ * Save a single Linkit profile.
+ */
+function linkit_profile_save($profile) {
+  $schema = ctools_export_get_schema('linkit_profiles');
+  $export = $schema['export'];
+
+  // Objects should have a serial primary key. If not, simply fail to write.
+  if (empty($export['primary key'])) {
+    return FALSE;
+  }
+
+  $key = $export['primary key'];
+  if ($profile->export_type & EXPORT_IN_DATABASE) {
+    // Existing record.
+    $update = array($key);
+  }
+  else {
+    // New record.
+    $update = array();
+    $profile->export_type = EXPORT_IN_DATABASE;
+  }
+  return drupal_write_record('linkit_profiles', $profile, $update);
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function linkit_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && !empty($plugin)) {
+    return "plugins/" . $plugin;
+  }
+  if ($module == 'linkit' && !empty($plugin)) {
+    return "plugins/" . $plugin;
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_TYPE() to inform the plugin system that Linkit
+ * owns Linkit plugin types.
+ */
+function linkit_ctools_plugin_type() {
+  $plugins['linkit_plugins'] = array(
+    'child plugins' => TRUE,
+    'classes' => array('handler'),
+  );
+  $plugins['linkit_insert'] = array(
+    'classes' => array('handler'),
+  );
+  return $plugins;
+}
+
+/**
+ * Get the plugin handler for a given plugin.
+ */
+function linkit_get_plugin_handler($plugin, $profile = NULL) {
+  $object_cache = drupal_static(__FUNCTION__);
+  $identifier = $plugin['name'];
+  if (!isset($object_cache[$identifier])) {
+    ctools_include('plugins');
+    // Try load the default handler.
+    $class = ctools_plugin_get_class($plugin, 'handler');
+    if (class_exists($class)) {
+      $object_cache[$identifier] = new $class($plugin, $profile);
+    }
+    else {
+      $object_cache[$identifier] = new LinkitPluginBroken($plugin, $profile);
+
+      // The default handler class does not seems to exists, lets try the
+      // entity fallback handler if we have any.
+      if (isset($plugin['entity fallback handler'])) {
+        $fallback_class = ctools_plugin_get_class($plugin, 'entity fallback handler');
+        if (class_exists($fallback_class)) {
+          $object_cache[$identifier] = new $fallback_class($plugin, $profile);
+        }
+      }
+    }
+  }
+  return $object_cache[$identifier];
+}
+
+
+/**
+ * Extract tokens that can be used by the $type.
+ */
+function linkit_extract_tokens($type) {
+  // token_info() has it own static cache, so we can call it as we like.
+  $tokens = token_info();
+  // If no tokens for the type exists, return an empty array.
+  if (!isset($tokens['tokens'][$type])) {
+    return array();
+  }
+
+  $available_tokens = array();
+  foreach ($tokens['tokens'][$type] as $token_key => $token) {
+    $available_tokens[] = '[' . $type . ':' . $token_key . ']';
+  }
+
+  return $available_tokens;
+}
+
+/**
+ * Implements hook_entity_info_alter();
+ *
+ * Control which enteties that can be used by Linkit.
+ * Other modules can easy implement this hook aswell and make their enteties
+ * usable with Linkit or change directly in the the hook_entity_info().
+ */
+function linkit_entity_info_alter(&$entity_info) {
+  // An array of entity names that is allowed to be used in Linkit.
+  $allowed = array('node', 'user', 'taxonomy_term', 'file');
+
+  foreach ($allowed as $entity_name) {
+    if (isset($entity_info[$entity_name])) {
+      $entity_info[$entity_name]['linkit'] = TRUE;
+    }
+  }
+}
+
+/**
+ * Implements hook_linkit_plugin_entities_alter().
+ *
+ * The default behavior for entities is that they will use the default entity
+ * plugin class, which will provide them with the basic methods they need.
+ *
+ * Tho there is some plugins that will extend those basic method with more
+ * advanced once, therefor the handlers for those plugins will have to be
+ * changed.
+ *
+ * @param array $plugins
+ *   An array of all entity plugins processed within Linkit entity plugin.
+ */
+function linkit_linkit_plugin_entities_alter(&$plugins) {
+  $alter_plugins = array(
+    'entity:node',
+    'entity:user',
+    'entity:taxonomy_term',
+    'entity:file',
+  );
+
+  $path = drupal_get_path('module', 'linkit') . '/plugins/linkit_plugins';
+
+  foreach ($alter_plugins as $plugin) {
+    if (isset($plugins[$plugin])) {
+      $handler = array(
+        'class' => 'LinkitPlugin' . drupal_ucfirst($plugins[$plugin]['entity_type']),
+        'file' => 'linkit-plugin-' . $plugins[$plugin]['entity_type'] . '.class.php',
+        'path' => $path,
+      );
+      $plugins[$plugin]['handler'] = $handler;
+    }
+  }
+}

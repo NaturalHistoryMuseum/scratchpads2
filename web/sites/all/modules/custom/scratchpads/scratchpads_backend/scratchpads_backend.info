@@ -1,0 +1,13 @@
+core = "7.x"
+name = "Scratchpads admin backend"
+description = "Scratchpads admin tweaks"
+package = "Administration"
+dependencies[] = views_bulk_operations
+dependencies[] = ctools
+dependencies[] = scratchpads_views_filter
+dependencies[] = entityconnect
+dependencies[] = entityconnectpreview
+files[] = tests/scratchpads_backend.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_backend

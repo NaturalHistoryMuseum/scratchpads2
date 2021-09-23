@@ -1,0 +1,26 @@
+name = Rubik
+description = Clean admin theme.
+base theme = tao
+core = 7.x
+engine = phptemplate
+
+regions[content] = Content
+regions[help] = Help
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+
+scripts[] = js/rubik.js
+stylesheets[screen][] = core.css
+stylesheets[screen][] = icons.css
+stylesheets[screen][] = style.css
+
+; Support shortcut module links
+settings[shortcut_module_link] = 1
+
+
+; Information added by drupal.org packaging script on 2011-12-21
+version = "7.x-4.0-beta7"
+core = "7.x"
+project = "rubik"
+datestamp = "1324491645"
+

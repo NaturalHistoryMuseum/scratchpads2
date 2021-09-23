@@ -1,0 +1,10 @@
+name = "Scratchpads biblio autocomplete for taxonomists"
+description = "Scratchpads biblio autocomplete for taxonomists allowing them to type First author, Year, or Article Title."
+core = "7.x"
+package = "Scratchpads"
+dependencies[] = "biblio"
+dependencies[] = "node_reference"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_biblio_autocomplete_tweak

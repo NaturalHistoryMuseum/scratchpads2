@@ -1,0 +1,6 @@
+name = Cite this page wget
+description = "This module provides a local backend for arching snapshots of pages at a moment in time using wget"
+core = 7.x
+
+dependencies[] = citethispage
+dependencies[] = token

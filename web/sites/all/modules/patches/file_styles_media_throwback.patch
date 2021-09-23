@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/styles/contrib/file_styles/file_styles.module b/sites/all/modules/contrib/styles/contrib/file_styles/file_styles.module
+index 19e0d81..b8d7e7f 100644
+--- a/sites/all/modules/contrib/styles/contrib/file_styles/file_styles.module
++++ b/sites/all/modules/contrib/styles/contrib/file_styles/file_styles.module
+@@ -199,7 +199,7 @@ function file_styles_entity_info_alter(&$entity_info) {
+   if (module_exists('file_entity')) {
+     $styles = styles_default_styles('file');
+     foreach ($styles['styles'] as $style_name => $style) {
+-      if (!isset($entity_info['file']['view modes']['media_' . $style_name])) {
++      if (!isset($entity_info['file']['view modes']['file_styles_' . $style_name])) {
+         $label = isset($style['label']) ? $style['label'] : ucfirst($style_name);
+         $view_mode = 'file_styles_' . $style_name;
+         $entity_info['file']['view modes'][$view_mode] = array('label' => t($label), 'custom settings' => TRUE);

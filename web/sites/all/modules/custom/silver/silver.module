@@ -1,0 +1,666 @@
+<?php
+include_once ('silver.features.inc');
+
+/**
+ * Implements hook_feeds_presave()
+ */
+function silver_feeds_presave(FeedsSource $source, $entity){
+  // We do nothing if this is a user entity.
+  if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    return;
+  }
+  // Set the UID.
+  if(isset($entity->uid) && !$entity->uid){
+    global $user;
+    $entity->uid = $user->uid;
+  }
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  switch($entity_type){
+    case 'term':
+      $entity_type = 'taxonomy_term';
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
+  // If this is the SPM node type, we set the title.
+  if($entity->type == 'spm'){
+    try{
+      $lang = field_language($entity_type, $entity, 'field_taxonomic_name');
+      $entity->title = $entity->field_taxonomic_name[$lang][0]['value'];
+    }catch(Exception $e){
+      ; // Oh well, that didn't work!
+    }
+  }
+}
+
+/**
+ * Implements hook_feeds_plugins
+ */
+function silver_feeds_plugins(){
+  return array(
+    'FeedsNodeProcessorValidate' => array(
+      'name' => 'Node processor with validation',
+      'description' => 'Create and update nodes.',
+      'help' => 'Create and update nodes from parsed content.',
+      'handler' => array(
+        'parent' => 'FeedsNodeProcessor',
+        'class' => 'FeedsNodeProcessorValidate',
+        'file' => 'FeedsNodeProcessorValidate.inc',
+        'path' => drupal_get_path('module', 'silver') . '/includes'
+      )
+    )
+  );
+}
+
+/**
+ * hook_form_FORM_ID_alter().
+ */
+function silver_form_feeds_import_form_alter(&$form, &$form_state){
+  // Alter the form a little, if we're viewing it on the slashEye page.
+  $form['source_status'] = array();
+  $source = db_select('feeds_source', 'f')->fields('f')->condition('id', $form['#importer_id'])->execute()->fetch();
+  if($source){
+    $state = unserialize($source->state);
+    if(isset($state['start_time']) && $state['start_time']){
+      array_unshift($form['#submit'], 'silver_form_feeds_import_form_alter_submit');
+      unset($form['submit']);
+      unset($form['feeds']);
+      $form['source_status'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Another import is running or did not finish'),
+        'message' => array(
+          '#type' => 'markup',
+          '#markup' => '<div class="messages warning"><h2 class="element-invisible">Warning message</h2>' . t('Another import was started !interval ago. If you know this import is still running or has been deliberately stopped then cancel it.', array(
+            '!interval' => format_interval(time() - $state['start_time'])
+          )) . '</div>'
+        ),
+        'cancel_previous_import' => array(
+          '#type' => 'submit',
+          '#executes_submit_callback' => TRUE,
+          '#value' => t('Cancel import'),
+          '#name' => 'cancel',
+          '#submit' => array(
+            'silver_form_feeds_import_submit'
+          )
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Submit function to wipe the previous feeds source.
+ */
+function silver_form_feeds_import_submit(&$form, &$form_state){
+  db_delete('feeds_source')->condition('id', $form['#importer_id'])->execute();
+}
+
+/**
+ * hook_form_FORM_ID_alter().
+ */
+function silver_form_biblio_import_form_alter(&$form, &$form_state, $form_id){
+  $form['#action'] = url(variable_get('biblio_base', 'biblio') . '/import');
+}
+
+/**
+ * Hook batch alter().
+ */
+function silver_batch_alter(&$batch){
+  if(arg(0) == 'import'){
+    $batch['redirect'] = 'admin/import';
+    if(substr(arg(1), 0, 18) == 'taxonomy_importer_' && substr($batch['redirect'], 0, 14) != 'taxonomy/term/'){
+      $machine_name = substr(arg(1), 18);
+      $vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
+      if($vocabulary){
+        $batch['redirect'] = 'admin/structure/taxonomy/' . $vocabulary->machine_name;
+      }
+    }
+    $batch['css'] = array(
+      drupal_get_path('module', 'silver') . '/css/silver-overlay-close.css'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_admin_paths_alter().
+ */
+function silver_admin_paths_alter(&$paths){
+  $paths['import'] = TRUE;
+  $paths['import/*'] = TRUE;
+  $paths[variable_get('biblio_base', 'biblio') . '/import'] = TRUE;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function silver_menu(){
+  return array(
+    'admin/import' => array(
+      'title' => 'Import',
+      'description' => 'Import data into, and also export existing content from, your site.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'silver_import_form'
+      ),
+      'position' => 'left',
+      'access callback' => 'silver_access_callback'
+    )
+  );
+}
+
+/**
+ * Callback to decide if a user is able to import into ANY taxonomy.
+ */
+function silver_import_taxonomy(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    if(user_access('edit terms in ' . $vocabulary->vid)){
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_silver(). * type * name * access arguments * file *
+ * form_id
+ */
+function silver_silver(){
+  // Here we tell ourselves about the Feeds module forms, and such like.
+  $silvers = array(
+    array(
+      'type' => 'Nodes',
+      'name' => 'Excel file import',
+      // 'access callback' => 'user_access',
+      'access arguments' => array(
+        'create page content'
+      ), // FIXME
+      'form_id' => 'silver_pages_excel_form'
+    ),
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'Excel file import',
+      'access callback' => 'silver_import_taxonomy',
+      'access arguments' => array(),
+      'form_id' => 'silver_taxonomy_excel_form'
+    ),
+    array(
+      'type' => 'Files',
+      'name' => 'Excel file update',
+      'access arguments' => array(
+        'edit file'
+      ),
+      'form_id' => 'silver_file_excel_form'
+    ),
+    array(
+      'type' => 'Users',
+      'name' => 'Excel file import',
+      'access arguments' => array(
+        'administer users'
+      ),
+      'redirect' => 'import/user_importer_user_xls'
+    )
+  );
+  if(module_exists('silvercsv')){
+    $silvers = array_merge($silvers, array(
+      array(
+        'type' => 'Nodes',
+        'name' => 'CSV file import',
+        // 'access callback' => 'user_access',
+        'access arguments' => array(
+          'create page content'
+        ), // FIXME
+        'form_id' => 'silver_pages_csv_form'
+      ),
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'CSV file import',
+        // 'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'silver_taxonomy_csv_form'
+      ),
+      array(
+        'type' => 'Files',
+        'name' => 'CSV file update',
+        'access arguments' => array(
+          'edit file'
+        ),
+        'form_id' => 'silver_file_csv_form'
+      ),
+      array(
+        'type' => 'Users',
+        'name' => 'CSV file import',
+        'access arguments' => array(
+          'administer users'
+        ),
+        'redirect' => 'import/user_importer_user_csv'
+      )
+    ));
+  }
+  if(module_exists('scratchpads_classification_service_client')){
+    $silvers = array_merge($silvers, array(
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'Scratchpads Classification Service',
+        // 'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'silver_taxonomy_scsc_form'
+      )
+    ));
+  }
+  return $silvers;
+}
+
+/**
+ * Implementation of hook_silver for the biblio module.
+ */
+function biblio_silver(){
+  return array(
+    array(
+      'type' => 'Nodes',
+      'name' => 'Biblio file import',
+      'access arguments' => array(
+        'import from file'
+      ),
+      'redirect' => 'biblio/import'
+    )
+  );
+}
+
+/**
+ * If one import method that supports silver allows access to this user, then we
+ * allow the user to view the form.
+ */
+function silver_access_callback(){
+  // Note, this function conveniently loads all the required files for us,
+  // which means the submit functions should work as expected.
+  return count(silver_get_silvers());
+}
+
+/**
+ * Get an array of the silvers we can access
+ */
+function silver_get_silvers(){
+  global $user;
+  $cache = cache_get('silvers:' . implode('.',array_keys($user->roles)));
+  if(empty($cache->data)){
+    $silvers_we_can_access = array();
+    $modules = module_implements('silver');
+    foreach($modules as $module){
+      $silvers = call_user_func($module . '_silver');
+      foreach($silvers as $info){
+        // Include the file
+        if(isset($info['file'])){
+          require_once (drupal_get_path('module', $module) . '/' . $info['file']);
+        }
+        $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+        if(call_user_func_array($callback, $info['access arguments'])){
+          $info['module'] = $module;
+          $silvers_we_can_access[] = $info;
+        }
+      }
+    }
+    usort($silvers_we_can_access, 'silvers_array_sort');
+    drupal_alter('silver', $silvers_we_can_access);
+    cache_set('silvers:'.$user->uid, $silvers_we_can_access);
+  }else{
+    $silvers_we_can_access = $cache->data;
+  }
+  return $silvers_we_can_access;
+}
+
+/**
+ * Usort callback.
+ */
+function silvers_array_sort($a, $b){
+  $type_diff = strcmp($a['type'], $b['type']);
+  if($type_diff !== 0){
+    return $type_diff;
+  }
+  return strcmp($a['name'], $b['name']);
+}
+
+/**
+ * Form
+ */
+function silver_import_form($form, &$form_state){
+  // Get the info from the other modules that support "silver".
+  $options = array();
+  $i = 1;
+  $silvers = silver_get_silvers();
+  foreach($silvers as $info){
+    $callback = isset($info['access callback']) ? $info['access callback'] : 'user_access';
+    if(!call_user_func_array($callback, $info['access arguments'])){
+      continue;
+    }
+    if(!isset($options[$info['type']])){
+      $options[$info['type']] = array();
+    }
+    $options[$info['type']][$i] = $info['name'];
+    $i++;
+  }
+  if(arg(3)){
+    $alt = array(
+      'values' => array(
+        'silver_import_subform_feeds' => arg(3)
+      )
+    );
+    return array(
+      'something' => array(
+        '#markup' => $alt ? silver_ajax_callback($alt, $alt) : '<div id="silver_import_subform"></div>'
+      )
+    );
+  }else{
+    $alt = FALSE;
+    if(arg(2)){
+      $alt = array(
+        'values' => array(
+          'silver_import_select' => arg(2)
+        )
+      );
+    }
+    if(count($_POST)){
+      $form_state['redirect'] = 'biblio/import';
+    }
+    return array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'silver') . '/css/silver.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'silver') . '/js/silver.js'
+        )
+      ),
+      'silver_import_select' => array(
+        '#weight' => -100,
+        '#type' => 'select',
+        '#title' => '',
+        '#options' => $options,
+        '#empty_option' => t('Select import'),
+        '#default_value' => arg(2),
+        '#ajax' => array(
+          'callback' => 'silver_ajax_callback',
+          'wrapper' => 'silver_import_subform'
+        )
+      ),
+      '#suffix' => $alt ? silver_ajax_callback($alt, $alt) : '<div id="silver_import_subform"></div>'
+    );
+  }
+}
+
+/**
+ * AJAX callback
+ */
+function silver_ajax_callback($form, &$form_state){
+  if(isset($form_state['values']['silver_import_select'])){
+    $i = 1;
+    $silvers = silver_get_silvers();
+    $subforms_output = '';
+    foreach($silvers as $info){
+      if($i == $form_state['values']['silver_import_select']){
+        if(isset($info['redirect'])){
+          echo ajax_deliver(array(
+            '#type' => 'ajax',
+            '#commands' => array(
+              ajax_command_invoke('html', 'silver_goto', array(
+                $info['redirect']
+              ))
+            )
+          ));
+          exit();
+        }
+        if(isset($info['file']) && $info['file']){
+          require_once (drupal_get_path('module', $info['module']) . '/' . $info['file']);
+        }
+        $new_form = drupal_get_form($info['form_id']);
+        return '<div id="silver_import_subform">' . drupal_render($new_form) . '</div>';
+      }
+      $i++;
+    }
+  }else if(isset($form_state['values']['silver_import_subform_feeds'])){
+    $q = $_GET['q'];
+    if($form_state['values']['silver_import_subform_feeds']){
+      module_load_include('pages.inc', 'feeds');
+      $form_state['programmed'] = TRUE;
+      $form = drupal_get_form('feeds_import_form', $form_state['values']['silver_import_subform_feeds']);
+      $form['#action'] = url('import/' . $form_state['values']['silver_import_subform_feeds'], array(
+        'query' => array(
+          'render' => 'overlay'
+        )
+      ));
+      return '<div id="silver_import_subform_feeds">' . drupal_render($form) . '</div>';
+    }else{
+      return '<div id="silver_import_subform_feeds"></div>';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function silver_theme(){
+  return array(
+    'silver_import_form' => array(
+      'render element' => 'form'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function silver_menu_alter(&$items){
+  $items['import']['type'] = MENU_SUGGESTED_ITEM;
+}
+
+/**
+ * Theme function for the above form.
+ */
+function theme_silver_import_form($variables){
+  drupal_add_css(drupal_get_path('module', 'silver') . '/css/silver.css');
+  $children = element_children($variables['form'], TRUE);
+  $output = '';
+  foreach($children as $child){
+    $output = $output . drupal_render($variables['form'][$child]);
+  }
+  return $output;
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_excel_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_xls'] = $vocabulary->name;
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_csv_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $vocabulary->name;
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_taxonomy_excel_form
+ */
+function silver_taxonomy_scsc_form(){
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach($vocabularies as $vocabulary){
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_csv'] = $vocabulary->name;
+  }
+  $biological_vids = variable_get('biological_vids', array());
+  $taxonomies = array();
+  foreach($biological_vids as $vid => $type){
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    $taxonomies['taxonomy_importer_' . $vocabulary->machine_name . '_scsc'] = $vocabulary->name;
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $taxonomies,
+      '#empty_option' => t('Select vocabulary'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_file_excel_form
+ */
+function silver_file_excel_form(){
+  $entity_info = entity_get_info('file');
+  foreach($entity_info['bundles'] as $file_type => $file_type_info){
+    $file_types['file_importer_' . $file_type . '_xls'] = check_plain($file_type_info['label']);
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $file_types,
+      '#empty_option' => t('Select file type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_file_excel_form
+ */
+function silver_file_csv_form(){
+  $entity_info = entity_get_info('file');
+  foreach($entity_info['bundles'] as $file_type => $file_type_info){
+    $file_types['file_importer_' . $file_type . '_csv'] = check_plain($file_type_info['label']);
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $file_types,
+      '#empty_option' => t('Select file type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_user_excel_form
+ */
+function silver_user_excel_form(){
+  // Get the feeds import form.
+  return drupal_get_form('feeds_import_form', 'user_importer_user');
+}
+
+/**
+ * silver_pages_excel_form
+ */
+function silver_pages_excel_form(){
+  $content_types = array();
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $node_type => $node_type_info){
+    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
+      // 'biblio',
+      'media_gallery'
+    )))){
+      $content_types['node_importer_' . $node_type . '_xls'] = $node_type_info['label'];
+    }
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#weight' => -100,
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $content_types,
+      '#empty_option' => t('Select content type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}
+
+/**
+ * silver_pages_excel_form
+ */
+function silver_pages_csv_form(){
+  $content_types = array();
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $node_type => $node_type_info){
+    if(!in_array($node_type, variable_get('silver_restricted_node_types', array(
+      // 'biblio',
+      'media_gallery'
+    )))){
+      $content_types['node_importer_' . $node_type . '_csv'] = $node_type_info['label'];
+    }
+  }
+  return array(
+    'silver_import_subform_feeds' => array(
+      '#weight' => -100,
+      '#type' => 'select',
+      '#title' => '',
+      '#options' => $content_types,
+      '#empty_option' => t('Select content type'),
+      '#ajax' => array(
+        'callback' => 'silver_ajax_callback',
+        'wrapper' => 'silver_import_subform_feeds'
+      )
+    ),
+    '#suffix' => '<div id="silver_import_subform_feeds"></div>'
+  );
+}

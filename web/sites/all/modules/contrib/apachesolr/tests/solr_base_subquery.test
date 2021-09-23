@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ *   Unit tests for subquery object methods.
+ */
+class DrupalSolrFilterSubQueryTests extends DrupalUnitTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'SolrFilterSubQuery Unit tests',
+      'description' => 'Unit Tests for subqueries.',
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.module';
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.interface.inc';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Solr_Base_Query.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Drupal_Apache_Solr_Service.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/tests/Dummy_Solr.php';
+  }
+
+  /**
+   * Helper function to simulate the auto loading and other non-needed functions
+   * that otherwise require a database
+   * @see apachesolr_drupal_query().
+   * @return SolrBaseQuery
+   */
+  private function _apachesolr_drupal_query($name, $params = array(), $solrsort = '', $base_path = '', $solr = NULL) {
+    if (empty($solr)) {
+      $solr = new DummySolr(NULL);
+    }
+    return new SolrBaseQuery($name, $solr, $params, $solrsort, $base_path);
+  }
+
+  private function _apachesolr_drupal_subquery($operator = 'OR') {
+    return new SolrFilterSubQuery($operator);
+  }
+
+  function testSubQueriesQuery() {
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query1->addFilter('label', 'foo');
+
+    $query2 = $this->_apachesolr_drupal_subquery();
+    $query2->addFilter('label', 'bar');
+
+    $query3 = $this->_apachesolr_drupal_subquery();
+    $query3->addFilter('label', 'baz');
+
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], 'label:foo', t('First field should be label:foo'));
+    $this->assertEqual($params[1], '(label:bar)', t('Second field should be label:bar'));
+
+    $query1->removeFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertFalse(isset($params[1]), t('Second field should be empty'));
+
+    $query1->addFilterSubQuery($query2);
+    $query1->addFilterSubQuery($query2);
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], 'label:foo', t('First field should be label:foo'));
+    $this->assertEqual($params[1], '(label:bar)', t('Second field should be label:bar'));
+    $this->assertEqual(count($params), 2, t('Add bar several times; should only appear once.'));
+
+    // Empty out query1
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query2 = $this->_apachesolr_drupal_subquery('DrupalTest');
+    $query2->operator = 'OR';
+    $query2->addFilter('label', 'bar');
+    $query2->addFilter('label', 'baz');
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], '(label:bar OR label:baz)', '(label:bar OR label:baz)');
+
+    // Empty out query1
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query2 = $this->_apachesolr_drupal_subquery('DrupalTest');
+    $query2->operator = 'AND';
+    $query2->addFilter('label', 'bar');
+    $query2->addFilter('label', 'baz');
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], '(label:bar AND label:baz)', '(label:bar AND label:baz)');
+
+    // Test with multiple filters in first query
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query1->addFilter('is_uid', '10');
+
+    $query2 = $this->_apachesolr_drupal_subquery();
+    $query2->addFilter('is_uid', '1');
+    $query2->addFilter('tid', '5');
+    $query1->addFilterSubQuery($query2);
+
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], 'is_uid:10', 'First field value is is_uid:10');
+    $this->assertEqual($params[1], '(is_uid:1 OR tid:5)', 'Second field value is (is_uid:1 OR tid:5)');
+
+    $query2->operator = 'AND';
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], 'is_uid:10', 'First field value is is_uid:10');
+    $this->assertEqual($params[1], '(is_uid:1 AND tid:5)', 'Second field value is (is_uid:1 AND tid:5)');
+  }
+}

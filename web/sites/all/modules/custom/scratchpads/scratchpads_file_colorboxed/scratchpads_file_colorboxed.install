@@ -1,0 +1,5 @@
+<?php
+
+function scratchpads_file_colorboxed_install(){
+  variable_set('mediaelement_sitewide', TRUE);
+}

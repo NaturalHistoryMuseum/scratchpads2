@@ -1,0 +1,160 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_solr_install(){
+  // Set the search class to use our extended class.
+  variable_set('apachesolr_query_class', array(
+    'file' => 'Solr_Base_Query',
+    'module' => 'apachesolr',
+    'class' => 'ScratchpadsSolrBaseQuery'
+  ));
+  // Set the Solr server
+  $scratchpads_solr_urls = variable_get('scratchpads_solr_urls', array('http://web-scratchpad-solr.nhm.ac.uk/solr/scratchpads-2.7.x'));
+  $scratchpads_solr_urls = array_pop($scratchpads_solr_urls);
+  db_update('apachesolr_environment')->fields(array(
+    'name' => 'Scratchpad solr server',
+    'url' => $scratchpads_solr_urls
+  ))->condition('env_id', 'solr')->execute();
+  // Ensure we're indexing the requried content types.
+  $entity_info = entity_get_info('node');
+  foreach($entity_info['bundles'] as $key => $value){
+    // Note, we execute these separately to avoid errors.
+    $query = db_merge('apachesolr_index_bundles')->key(array(
+      'env_id' => 'solr',
+      'entity_type' => 'node',
+      'bundle' => $key
+    ))->fields(array(
+      'env_id' => 'solr',
+      'entity_type' => 'node',
+      'bundle' => $key
+    ))->execute();
+  }
+  // Set the default bias
+  scratchpads_solr_update_7003();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_solr_uninstall(){
+  // Reset the variable.
+  variable_del('apachesolr_query_class');
+}
+
+/**
+ * Update the list of bundles to search to include the taxonomy terms.
+ */
+function scratchpads_solr_update_7001(){
+  module_enable(array(
+    'apachesolr_term'
+  ));
+  foreach(variable_get('biological_vids', array()) as $vid => $type){
+    if($type){
+      // We have a biological classification. We need to insert a record in the
+      // database.
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      try{
+        db_insert('apachesolr_index_bundles')->fields(array(
+          'env_id' => apachesolr_default_environment(),
+          'entity_type' => 'taxonomy_term',
+          'bundle' => $vocabulary->machine_name
+        ))->execute();
+      }
+      catch(Exception $e){
+        ; // Ignore.  Probably just a duplicate in the table.
+      }
+    }
+  }
+}
+
+/**
+ * Install the apachesolr_access module which is now a dependency.
+ */
+function scratchpads_solr_update_7002(){
+  module_enable(array(
+    'apachesolr_access'
+  ));
+}
+
+/**
+ * Set the bias.
+ */
+function scratchpads_solr_update_7003(){
+  apachesolr_environment_variable_set('solr', 'field_bias', array(
+    'content' => '1.0',
+    'label' => '50.0',
+    'tags_h1' => '21',
+    'tags_h2_h3' => '3.0',
+    'tags_h4_h5_h6' => '2.0',
+    'taxonomy_names' => '2.0',
+    'tos_content_extra' => '0.1',
+    'tos_name' => '3.0',
+    'ts_comments' => '0.5'
+  ));
+}
+
+/**
+ * Change to the new solr instance.
+ * 
+ * Removed scratchpads_solr_update_7004
+ */
+/**
+ * Reindex ALL content.
+ */
+function scratchpads_solr_update_7005(&$sandbox){
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+  // Get the enviornment.
+  $env_id = apachesolr_default_environment();
+  if(!isset($sandbox['max'])){
+    // Clear the index.
+    apachesolr_index_delete_index($env_id);
+    // Rebuild the index.
+    apachesolr_index_mark_for_reindex($env_id);
+    // Get the max
+    $status = apachesolr_index_status($env_id);
+    $sandbox['max'] = $status['remaining'];
+    $sandbox['progress'] = 0;
+    // Set the "we are in a loop" variable to 0.  This ensures that we don't
+    // keep trying to index content that we can not index.
+    $sandbox['we_are_looping'] = 0;
+  }
+  // Do the indexing.
+  // We simply use the apachesolr_cron function to do the indexing.
+  // We will loop until the number of items to index does not
+  // decrease, and then we're done.
+  apachesolr_cron($env_id);
+  $current_status = apachesolr_index_status($env_id);
+  if(($sandbox['max'] - $current_status['remaining']) == $sandbox['progress']){
+    $sandbox['we_are_looping']++;
+    if($current_status['remaining'] == 0 || $sandbox['we_are_looping'] == 5){
+      // We failed to index anything.  Set the progress to 1 and finished to true.
+      $sandbox['progress'] = $sandbox['#finished'] = 1;
+    }else{
+      drupal_set_message("Potentially in a loop");
+    }
+  }else{
+    drupal_set_message($sandbox['progress'] . "/" . $sandbox['max']);
+    $sandbox['progress'] = $sandbox['max'] - $current_status['remaining'];
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}
+
+/**
+ * Update the URL of the Solr instance
+ * Renamed from scratchpads_solr_update_7006().
+ */
+function scratchpads_solr_update_7007(){
+  $env_id = apachesolr_default_environment();
+  $environment = apachesolr_environment_load($env_id);
+  $environment['url'] = 'http://sp-control-1.nhm.ac.uk/solr/scratchpads2';
+  apachesolr_environment_save($environment);
+}
+
+/**
+ * Reindex ALL content.
+ */
+function scratchpads_solr_update_7008(&$sandbox){
+  return scratchpads_solr_update_7005($sandbox);
+}

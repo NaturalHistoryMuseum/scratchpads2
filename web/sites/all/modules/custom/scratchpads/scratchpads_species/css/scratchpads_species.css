@@ -1,0 +1,154 @@
+@CHARSET "UTF-8";
+
+body {
+  position: static !important;
+}
+
+/***************** Overview page *******************/
+
+/* Nomenclature block */
+.block-views .item-list ul li.views-row {
+  line-height: 2em;
+  margin: 0;
+}
+
+#block-views-species-nomenclature-block div.label {
+  float: left;
+  clear: left;
+  padding-right: 5px;
+}
+
+#block-views-species-nomenclature-block strong {
+  font-weight: bold;
+}
+
+#block-views-species-nomenclature-block ul {
+  margin-bottom: 0;
+}
+
+/* Vernacular names */
+.view-species-nomenclature .field-collection-view .field-label{
+  width:auto;
+}
+
+/* Slideshow */
+.view-species-slideshow .view-wrapper {
+  padding: 1px;
+  background: #fff;
+}
+
+.view-species-slideshow .views-slideshow-pager-field-item img {
+  margin-left: 2px;
+  margin-bottom: 2px;
+}
+
+.view-species-slideshow #views_slideshow_pager_field_item_bottom_species_page_slideshow-block_1_2 img
+  {
+  margin-bottom: 0;
+}
+
+.view-species-slideshow .views_slideshow_cycle_main {
+  float: left;
+  position: relative;
+}
+
+.view-species-slideshow .views-field-filename {
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
+
+.view-species-slideshow .views-field-filename span {
+  padding: 0 10px;
+  display: block;
+  font-size: 0.9em;
+}
+
+#block-views-species-specimens-overview-block .attachment-before {
+  float: left;
+  max-width: 250px;
+}
+
+#block-views-species-specimens-overview-block .view-content,#block-views-species-specimens-overview-block .attachment-after
+  {
+  text-align: right;
+}
+
+#block-views-species-specimens-overview-block .attachment-after .item-list
+  {
+  text-align: justify;
+}
+
+/* Show fiew filter links and hide form if javascript is enabled */
+a.view-filter {
+  display: none;
+}
+
+.js .view-inline-filters .view-filters form {
+  display: none;
+}
+
+.js .view-inline-filters a.view-filter {
+  display: inline;
+}
+
+.attachment {
+  margin-bottom: 15px;
+}
+
+.attachment .view-inline-filters,.attachment .view-inline-filters div,.attachment .view-inline-filters div ul,.attachment .view-inline-filters div ul li
+  {
+  display: inline;
+}
+
+.attachment .view-inline-filters ul li {
+  padding-right: 10px;
+}
+
+/* Responsive */
+.responsive-layout-normal .views_slideshow_cycle_main img,.responsive-layout-normal .views-slideshow-cycle-main-frame,.responsive-layout-normal .views-slideshow-cycle-main-frame-row,.responsive-layout-narrow .views_slideshow_cycle_main img,.responsive-layout-narrow .views-slideshow-cycle-main-frame,.responsive-layout-narrow .views-slideshow-cycle-main-frame-row
+  {
+  width: 224px !important;
+  height: 167px !important;
+}
+
+.responsive-layout-narrow .views_slideshow_pager_field_item img,.responsive-layout-normal .views_slideshow_pager_field_item img
+  {
+  width: 73px !important;
+  height: 55px !important;
+}
+
+.responsive-layout-narrow .view-species-slideshow .views-slideshow-pager-field-item img,.responsive-layout-normal .view-species-slideshow .views-slideshow-pager-field-item img
+  {
+  margin-bottom: 1px;
+  margin-left: 1px;
+}
+
+.references ol, .references li{
+  list-style:none outside decimal !important;
+}
+.view-species-description .references ol{
+  padding-left:30px;
+}
+
+/* Remove styles restricting the size of the slider thumbnails*/
+.view-species-slideshow .views-slideshow-pager-fields img {
+  max-width: none;
+  max-height: none;
+}
+
+/* Remove styles affecting the position of the slider thumbnails*/
+.view-species-slideshow .views-slideshow-pager-fields div {
+  display: initial;
+  padding-left: initial;
+}
+
+/* Use an outline instead of border for the active thumbnail, as outline doesn't affect layout */
+.view-species-slideshow .views-slideshow-pager-fields .active img {
+  outline: 3px solid black;
+  outline-offset: -3px;
+  border: none;
+}

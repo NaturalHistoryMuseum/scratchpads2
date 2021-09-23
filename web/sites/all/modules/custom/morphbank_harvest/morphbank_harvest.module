@@ -1,0 +1,74 @@
+<?php
+/**
+ * @file
+ * Harvest images from Morphbank for a selected vocabulary
+ *
+ * Currently uses taxonomic name to search; in an ideal world
+ * the morphbank identifiers themselves could be stored in
+ * Scratchpads (by altering the vocabulary fields).  This is
+ * not currently possible, as of 28 January 2015, as the
+ * services of Morphbank do not allow image query searches
+ * using the identifiers of organisms.
+ * 
+ *
+ * This less-than-ideal implementation may result in fewer
+ * images being harvested; because species term names are
+ * substrings of subspecies term names, e.g. Bembidion festivum
+ * and Bembidion festivum hilare, if the former is searched for
+ * first (as will likely be the case), it may return images of
+ * Bembidion festivum hilare.  If so, the subsequent search for
+ * Bembidion festivum hilare may find the same image, and
+ * replace the link to the term Bembidion festivum.  See
+ * _update_file_links in morphbank_harvest.pages.inc.
+ */
+/**
+ * The URL for the morphbank service; append 'request' for queries
+ */
+define("MORPHBANK_SERVICE", "http://services.morphbank.net/mbsvc3/");
+/**
+ * The URL for morphbank records
+ */
+define("MORPHBANK_NET_URL", "http://morphbank.net/");
+/**
+ * The URL for morphbank images
+ */
+define("MORPHBANK_IMAGE_URL", "http://images.morphbank.net/");
+/**
+ * The timeout for requests to the Morphbank service
+ */
+define('MORPHBANK_TIMEOUT', 5);
+
+/**
+ * Implements hook_menu().
+ */
+function morphbank_harvest_menu(){
+  return array(
+    'admin/config/media/morphbank_harvest' => array(
+      'title' => 'Morphbank harvest',
+      'description' => 'Harvests images from Morphbank for a given vocabulary',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'morphbank_harvest_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'morphbank_harvest.pages.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_field_group_info_alter()
+ *
+ * Put the Morphbank specimen ID field in the 'Miscellaneous' tab when displayed in tables
+ *
+ * @param array $groups
+ * Reference to an array of field group definition objects.
+ */
+function morphbank_harvest_field_group_info_alter(&$groups){
+  if(!empty($groups['group_misc_display|node|specimen_observation|default'])){
+    $groups['group_misc_display|node|specimen_observation|default']->data['children'][] = 'field_morphbank_specimen_id';
+    $groups['group_miscellaneous|node|specimen_observation|form']->data['children'][] = 'field_morphbank_specimen_id';
+  }
+}

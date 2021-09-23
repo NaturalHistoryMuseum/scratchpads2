@@ -1,0 +1,487 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function oboe_menu(){
+  $menu = array(
+    'admin/services' => array( // List the Jobs.
+      'title' => 'Services',
+      'description' => 'Find and manage OBOE jobs.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'oboe_admin_jobs'
+      ),
+      'access callback' => 'oboe_access',
+      'weight' => -10,
+      'file' => 'oboe.admin.inc'
+    ),
+    'oboe/add' => array(
+      'title' => 'Add OBOE job',
+      'page callback' => 'oboe_add_job', //node_add_page
+      'access callback' => 'oboe_add_access', //_node_add_access
+      'file' => 'oboe.pages.inc'
+    ),
+    'oboe/%oboe' => array(
+      'title callback' => 'oboe_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'oboe_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access callback' => 'oboe_access',
+      'access arguments' => array(
+        'view',
+        FALSE,
+        1
+      )
+    ),
+    'oboe/%oboe/delete' => array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'oboe_delete_confirm',
+        1
+      ),
+      'access callback' => 'oboe_access',
+      'access arguments' => array(
+        'delete',
+        1
+      ),
+      'weight' => 1,
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_INLINE,
+      'file' => 'oboe.pages.inc'
+    )
+  );
+  $oboe_information = OBOEService::get_information();
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $menu['oboe/add/' . $key] = array(
+      'title' => $job_type,
+      'description' => (@isset($oboe_information[$key]['description'][0]['short']) ? $oboe_information[$key]['description'][0]['short'] : ''),
+      'title callback' => 'check_plain',
+      'page callback' => 'oboe_add',
+      'page arguments' => array(
+        $key
+      ),
+      'access callback' => 'oboe_access',
+      'access arguments' => array(
+        'create',
+        $key
+      ),
+      'file' => 'oboe.pages.inc'
+    );
+  }
+  return $menu;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function oboe_block_info(){
+  return array(
+    'user_jobs' => array(
+      'info' => t('My service jobs'),
+      'cache' => DRUPAL_CACHE_PER_USER
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function oboe_block_view($delta = 'user_jobs'){
+  switch($delta){
+    default:
+      global $user;
+      // Get a list of entity_ids
+      $query = new EntityFieldQuery();
+      $results = $query->entityCondition('entity_type', 'oboe')->propertyCondition('uid', $user->uid)->propertyOrderBy('created', 'DESC')->execute();
+      $ids = array();
+      foreach($results['oboe'] as $row){
+        $ids[] = $row->oid;
+        if(count($ids) >= 5){
+          break;
+        }
+      }
+      $entities = entity_load('oboe', $ids);
+      foreach($entities as $key => $entity){
+        $uri = entity_uri('oboe', $entity);
+        $entities[$key] = l($entity->label, $uri['path']) . ' (' . $entity->data['status'] . ')<br/>' . $entity->description;
+      }
+      return array(
+        'subject' => t('My service jobs'),
+        'content' => array(
+          '#theme' => 'item_list',
+          '#items' => $entities
+        )
+      );
+  }
+}
+
+/**
+ * Menu callback; view a single OBOE job.
+ */
+function oboe_page_view($oboe){
+  // If there is a menu link to this oboe, the link becomes the last part
+  // of the active trail, and the link name becomes the page title.
+  // Thus, we must explicitly set the page title to be the oboe title.
+  drupal_set_title($oboe->label);
+  $uri = entity_uri('oboe', $oboe);
+  // Set the oboe path as the canonical URL to prevent duplicate content.
+  drupal_add_html_head_link(array(
+    'rel' => 'canonical',
+    'href' => url($uri['path'], $uri['options'])
+  ), TRUE);
+  // Set the non-aliased path as a default shortlink.
+  drupal_add_html_head_link(array(
+    'rel' => 'shortlink',
+    'href' => url($uri['path'], array_merge($uri['options'], array(
+      'alias' => TRUE
+    )))
+  ), TRUE);
+  // Set the breadcrumb to include /admin/services in the trail.
+  $bc = drupal_get_breadcrumb();
+  $bc[] = l(t('Services'), 'admin/services');
+  drupal_set_breadcrumb($bc);
+  return oboe_show($oboe);
+}
+
+function oboe_show($oboe){
+  // For markup consistency with other pages, use oboe_view_multiple() rather than oboe_view().
+  $oboes = oboe_view_multiple(array(
+    $oboe->oid => $oboe
+  ), 'full');
+  return $oboes;
+}
+
+function oboe_view_multiple($oboes, $view_mode = 'teaser', $weight = 0, $langcode = NULL){
+  entity_prepare_view('oboe', $oboes, $langcode);
+  $build = array();
+  foreach($oboes as $oboe){
+    $build['oboes'][$oboe->oid] = oboe_view($oboe, $view_mode, $langcode);
+    $build['oboes'][$oboe->oid]['#weight'] = $weight;
+    $weight++;
+  }
+  $build['oboes']['#sorted'] = TRUE;
+  return $build;
+}
+
+function oboe_view($oboe, $view_mode, $langcode){
+  // If we're not finished.
+  $save_entity = FALSE;
+  $oboe_service = new OBOEService($oboe->data['id']);
+  if($oboe->data['status'] != 'finished'){
+    // Get the current status.
+    $current_data = $oboe_service->get_response(TRUE);
+    $oboe->data = $current_data;
+    $oboe->changed = time();
+    $save_entity = TRUE;
+    $data = $current_data;
+  }
+  // If we're finished
+  if($oboe->data['status'] == 'finished' && $oboe->data['outfile_name'] && (!isset($oboe->fid) || !$oboe->fid)){
+    // We've got a file, but have not yet downloaded it.  Lets do so now, and
+    // we'll save it to the database.
+    $file = file_save_data(@file_get_contents($oboe_service->get_download_url()));
+    $file = file_move($file, 'public://' . $oboe->data['outfile_name']);
+    $file->filename = $oboe->data['outfile_name'];
+    file_save($file);
+    $oboe->fid = $file->fid;
+    $save_entity = TRUE;
+  }
+  if($oboe->fid){
+    $data = cache_get($oboe->oid, 'cache_oboe_output');
+    if(!$data){
+      // Extract the contents of the zip if it hasn't already been done.
+      if(!file_exists('public://' . $oboe->data['outfile_id'])){
+        $zip_file = file_load($oboe->fid);
+        $zip = new ZipArchive();
+        $res = $zip->open(drupal_realpath($zip_file->uri));
+        if($res){
+          $zip->extractTo(drupal_realpath('public://'));
+        }
+      }
+      // Load the HTML file (if it exists).
+      if(file_exists("public://{$oboe->data['id']}/output/output.htm")){
+        $dom = new DOMDocument();
+        $dom->loadHTMLFile("public://{$oboe->data['id']}/output/output.htm");
+        // Loop through each image, changing the URL.
+        $images = $dom->getElementsByTagName('img');
+        foreach($images as $image){
+          $src = $image->getAttribute('src');
+          $image->setAttribute('src', file_create_url("public://{$oboe->data['id']}/output/$src"));
+        }
+        $body = $dom->getElementsByTagName('body');
+        foreach($body as $bod){
+          $html = $dom->saveXML($bod);
+          $html = preg_replace('/<body[^>]*>/', '', $html);
+          $html = preg_replace('/<\/body[^>]*>/', '', $html);
+          return array(
+            '#attached' => array(
+              'css' => array(
+                drupal_get_path('module', 'oboe') . '/css/oboe.css'
+              )
+            ),
+            'oboe_content' => array(
+              '#markup' => $html,/*filter_xss($html, array(
+                'span',
+                'a',
+                'b',
+                'br',
+                'div',
+                'h1',
+                'i',
+                'img',
+                'p',
+                'span',
+                'table',
+                'tr',
+                'td'
+              ))*/
+            )
+          );
+        }
+      }
+    }
+  }
+  if($save_entity){
+    entity_save('oboe', $oboe);
+  }
+  $rows_data = array();
+  foreach($oboe->data as $key => $value){
+    $rows_data[] = array(
+      array(
+        'data' => $key,
+        'class' => 'biblio-row-title'
+      ),
+      $value
+    );
+  }
+  $rows = array(
+    array(
+      array(
+        'data' => t('Job name'),
+        'class' => 'biblio-row-title'
+      ),
+      $oboe->label
+    ),
+    array(
+      array(
+        'data' => t('Job description'),
+        'class' => 'biblio-row-title'
+      ),
+      $oboe->description
+    ),
+    array(
+      array(
+        'data' => t('Job type'),
+        'class' => 'biblio-row-title'
+      ),
+      $oboe->type
+    ),
+    array(
+      array(
+        'data' => t('Created'),
+        'class' => 'biblio-row-title'
+      ),
+      format_date($oboe->created)
+    ),
+    array(
+      array(
+        'data' => t('Changed'),
+        'class' => 'biblio-row-title'
+      ),
+      format_date($oboe->changed)
+    )
+  );
+  if($oboe->fid){
+    $content = file_view(file_load($oboe->fid));
+    $rows[] = array(
+      array(
+        'data' => t('Output file'),
+        'class' => 'biblio-row-title'
+      ),
+      drupal_render($content)
+    );
+  }
+  return array(
+    'oboe_content' => array(
+      '#markup' => '<div class="node-biblio">' . theme('table', array(
+        'rows' => $rows
+      )) . '</div><div class="node-biblio">' . theme('table', array(
+        'rows' => $rows_data
+      )) . '</div>'
+    )
+  );
+}
+
+/**
+ * OBOE delete
+ */
+function oboe_delete($oid){
+  oboe_delete_multiple(array(
+    $oid
+  ));
+}
+
+/**
+ * OBOE delete multiple
+ */
+function oboe_delete_multiple($oids){
+  $transaction = db_transaction();
+  if(!empty($oids)){
+    $oboes = oboe_load_multiple($oids);
+    try{
+      foreach($oboes as $oid => $oboe){
+        module_invoke_all('entity_delete', $oboe, 'oboe');
+      }
+      // Delete after calling hooks so that they can query oboe tables as needed.
+      db_delete('oboe')->condition('oid', $oids, 'IN')->execute();
+    }
+    catch(Exception $e){
+      $transaction->rollback();
+      throw $e;
+    }
+    // Clear the page and block and oboe_load_multiple caches.
+    entity_get_controller('oboe')->resetCache();
+  }
+}
+
+/**
+ * OBOE load
+ */
+function oboe_load($oid = NULL){
+  $oids = (isset($oid) ? array(
+    $oid
+  ) : array());
+  $oboe = oboe_load_multiple($oids);
+  return $oboe ? reset($oboe) : FALSE;
+}
+
+/**
+ * Load multiple OBOE entities.
+ */
+function oboe_load_multiple($ids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load('oboe', $ids, $conditions, $reset);
+}
+
+/**
+ * Implements hook_help().
+ */
+function oboe_help($path, $arg){
+  switch($path){
+    case 'admin/services':
+    //return _filter_autop(OBOEService::get_documentation());
+  }
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function oboe_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  // Add action link to 'oboe/add' on 'admin/services' page.
+  if($root_path == 'admin/services'){
+    $item = menu_get_item('oboe/add');
+    if($item['access']){
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function oboe_admin_paths(){
+  return array(
+    'oboe/add' => TRUE,
+    'oboe/add/*' => TRUE,
+    'oboe/*/delete' => TRUE
+  );
+}
+
+/**
+ * Implements hook_forms().
+ */
+function oboe_forms($form_id, $args){
+  $forms = array();
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $forms[$key . '_oboe_form'] = array(
+      'callback' => 'oboe_job_form' // Note, we don't use oboe_form here due to it being a hook name.
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function oboe_entity_info(){
+  $info = array(
+    'oboe' => array(
+      'label' => t('OBOE Job'),
+      'entity class' => 'OBOE',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'oboe',
+      'fieldable' => TRUE,
+      'uri callback' => 'oboe_uri',
+      'bundles' => array(),
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'oid',
+        'name' => 'type',
+        'label' => 'label',
+        'status' => 'status',
+        'module' => 'module'
+      ),
+      'access callback' => 'oboe_entity_access',
+      'module' => 'oboe'
+    )
+  );
+  // Add the OBOE services
+  $oboe_information = OBOEService::get_information();
+  foreach(OBOEService::get_job_types() as $key => $job_type){
+    $info['oboe']['bundles'][$key] = array(
+      'label' => $job_type,
+      'description' => isset($oboe_information[$key]) ? $oboe_information[$key] : ''
+    );
+  }
+  return $info;
+}
+
+/**
+ * Callback to get a URI for an oboe entity.
+ */
+function oboe_uri($oboe){
+  return array(
+    'path' => 'oboe/' . $oboe->oid
+  );
+}
+
+/**
+ * Callback for access to the oboe add page.
+ */
+function oboe_add_access(){
+  return TRUE;
+  if(user_access('create any oboe job')){return TRUE;}
+  return FALSE;
+}
+
+/**
+ * Callback for access to a specific oboe job type.
+ */
+function oboe_access($op = 'view', $type = FALSE, $entity_id = FALSE){
+  return TRUE;
+}
+
+/**
+ * Entity access callback
+ */
+function oboe_entity_access($a = TRUE, $b = TRUE){
+  return TRUE;
+}

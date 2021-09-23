@@ -1,0 +1,22 @@
+.vertical-tabs .vertical-tabs-panes fieldset#edit-parsers fieldset legend {
+  display: block;
+}
+
+#citethispage_select_info {
+  font-size: 0.85em;
+  margin-bottom: 0.85em;
+}
+
+#citethispage_select_info span.citethispage_select_info_title {
+  font-weight: bold;
+}
+
+#citethispage_subform div.form-item {
+  margin-bottom: 0;
+}
+
+#citethispage-backend-selection-form input.form-submit {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+

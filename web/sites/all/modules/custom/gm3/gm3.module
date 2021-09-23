@@ -1,0 +1,367 @@
+<?php
+
+/**
+ * Implementation of hook_views_api().
+ * magic function that loads module.views.inc
+ */
+function gm3_views_api(){
+  return array(
+    'api' => 3
+  );
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function gm3_library(){
+  return array(
+    'gm3' => array(
+      'title' => t('Javascript maps'),
+      'js' => array(
+        [
+          // Main Leaflet library
+          'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.js',
+          'options' => 'external'
+        ],
+        [
+          // Intersection observer pollyfill for browsers that don't support it (IE, Safari <12)
+          'data' => drupal_get_path('module', 'gm3') . '/js/libs/intersection-observer.js',
+          'options' => 'external',
+          'preprocess' => FALSE
+        ],
+        [
+          // Helpers to edit map shapes graphically
+          'data' => drupal_get_path('module', 'gm3') . '/js/libs/Leaflet.Editable.js',
+          'options' => 'external',
+          'preprocess' => FALSE
+        ],
+        [
+          // Create the map and add the libraries
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.js"
+        ],
+        [
+          // Base class that most of the gm3 libraries inherit from
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.library.js"
+        ],
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'images' => array(
+                  'sprite' => file_create_url(drupal_get_path('module', 'gm3') . '/images/sprite.png')
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'css' => array(
+        [
+          'data' => 'https://unpkg.com/leaflet@1.4.0/dist/leaflet.css'
+        ]
+      )
+    ),
+    'gm3.gl' => [
+      'title' => t('WebGL maps libraries'),
+      'js' => [
+        [
+          // Mapbox library for rendering Web GL maps
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.js',
+          'options' => 'external'
+        ],
+        [
+          // Leaflet plugin for adding Web GL maps as a layer
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-leaflet/latest/leaflet-mapbox-gl.js',
+          'options' => 'external'
+        ],
+        [
+          // Library for changing the mapbox map language
+          'data' => 'https://cdn.klokantech.com/openmaptiles-language/v1.0/openmaptiles-language.js',
+          'options' => 'external'
+        ]
+      ],
+      'css' => [
+        [
+          'data' => 'https://cdn.maptiler.com/mapbox-gl-js/v0.53.0/mapbox-gl.css',
+          'options' => 'external'
+        ]
+      ],
+      'dependencies' => [
+        ['gm3', 'gm3']
+      ]
+    ],
+    // Enable the clicking of points.
+    'gm3.point' => array(
+      'title' => t('Javascript Maps: Point drawing'),
+      'js' => array(
+        [
+          // Plugin for clusting points together
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js',
+          'options' => 'external'
+        ],
+        [
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.point.js"
+        ]
+      ),
+      'css' => [
+        [
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css',
+          'options' => 'external'
+        ],
+        [
+          'data' => 'https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css',
+          'options' => 'external'
+        ],
+      ],
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    ),
+    'gm3.shape' => [
+      'title' => t('Javascript Maps: Base shape library'),
+      'js' => [
+        // Base class that polyline, polygon, rectangle inherit from
+        'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
+      ],
+      'dependencies' => [
+        ['gm3', 'gm3']
+      ]
+    ],
+    // Enable drawing of Polygons.
+    'gm3.polygon' => array(
+      'title' => t('Javascript Maps: Polygon drawing'),
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polygon.js"
+        )
+      ),
+      'dependencies' => array(
+        [
+          'gm3',
+          'gm3.shape'
+        ]
+      )
+    ),
+    // Enable the drawing of rectangles.
+    'gm3.rectangle' => array(
+      'title' => t('Javascript Maps: Rectangle drawing'),
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.rectangle.js"
+        )
+      ),
+      'dependencies' => array(
+        [
+          'gm3',
+          'gm3.shape'
+        ]
+      )
+    ),
+    // Enable the drawing of Lines.
+    'gm3.polyline' => array(
+      'title' => t('Javascript Maps: Polygon drawing'),
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.polyline.js"
+        )
+      ),
+      'dependencies' => array(
+        [
+          'gm3',
+          'gm3.shape'
+        ]
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function gm3_theme(){
+  return array(
+    'gm3_map' => array(
+      'variables' => array(
+        'id' => 'gm3-map',
+        'libraries' => [],
+        'tools' => false,
+        'settings' => []
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_view_gm3' => array(
+      'variables' => array(),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_point_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polygon_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_rectangle_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_polyline_button' => array(
+      'variables' => array(
+        'id' => 'gm3-map'
+      ),
+      'file' => 'gm3.theme.inc'
+    ),
+    'gm3_beautytip' => array(
+      'variables' => array(
+        'selector' => '',
+        'text' => ''
+      ),
+      'file' => 'gm3.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * This function ensures the user can only select the "Fields" type for a
+ * map view.
+ */
+function gm3_form_views_ui_add_form_alter(&$form, &$form_state, $form_id){
+  foreach(array(
+    'page',
+    'block'
+  ) as $type){
+    if(@isset($form_state['values'][$type]['style']['style_plugin']) && $form_state['values'][$type]['style']['style_plugin'] == 'gmap'){
+      $form['displays'][$type]['options']['style']['row_plugin'] = array(
+        '#markup' => '<span>' . t('of fields') . '</span>'
+      );
+      unset($form['displays'][$type]['options']['style']['row_options']['comments']);
+      unset($form['displays'][$type]['options']['style']['row_options']['links']);
+    }
+  }
+}
+
+/**
+ * Load the geoPHP library.  This could be made optional, as not all features
+ * require the library.
+ *
+ * This code is adapted from the geofield module.
+ */
+function gm3_load_geophp(){
+  static $filename = FALSE;
+  if(!$filename){
+    // Folk can install geoPHP using a "libraries" path, or simply shove it in
+    // the gm3 module folder.
+    if(function_exists('libraries_get_path')){
+      $library_folder = libraries_get_path('geoPHP');
+      if(!$library_folder){
+        $library_folder = libraries_get_path('geophp');
+      }
+      $file = $library_folder . '/geoPHP.inc';
+    }else{
+      $file = drupal_get_path('module', 'gm3') . '/geoPHP/geoPHP.inc';
+    }
+    if(file_exists($file)){
+      if(include_once ($file)){
+        $filename = $file;
+      }
+    }
+  }
+  return $filename;
+}
+
+/**
+ * Implements hook_permissions
+ */
+function gm3_permission(){
+  return array(
+    'administer gm3' => array(
+      'title' => t('Administer GM3'),
+      'description' => t('Administer the Javascript Maps Module.')
+    )
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function gm3_menu(){
+  return array(
+    'admin/config/content/gm3' => array(
+      'title' => 'Map settings',
+      'description' => 'Configure default behavior of the Javascript Map module.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'gm3_admin_settings_form'
+      ),
+      'access arguments' => array(
+        'administer gm3'
+      ),
+      'file' => 'gm3.admin.inc'
+    ),
+    'admin/config/content/gm3/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/content/gm3/test' => array(
+      'title' => 'Test',
+      'description' => t('Map test page - ensure the GM3 module is working correctly on your site.'),
+      'page callback' => 'gm3_test_page',
+      'file' => 'gm3.admin.inc',
+      'access arguments' => array(
+        'administer gm3'
+      ),
+      'type' => MENU_LOCAL_TASK
+    )
+  );
+}
+
+/**
+ * Get the default settings for Leaflet maps
+ */
+function gm3_settings(){
+  $saved_settings = variable_get('gm3_default_settings', []);
+
+  return $saved_settings + [
+    'width' => '100%',
+    'height' => '500px',
+    'center' => [
+      'latitude' => 52,
+      'longitude' => 0
+    ],
+    'zoom' => 5,
+    'maxZoom' => null,
+    'minZoom' => null,
+    'autoZoom' => TRUE,
+    'enableClustering' => true,
+    'mapStyle' => 'default',
+    'mapTilerKey' => variable_get('gm3_tile_key', 'a7gYjHDMqIbwzM1ifyNh')
+  ];
+}
+
+/**
+ * Invokes hook_TYPE_map_alter functions to add an item to the map
+ * If item has no gm3_type property describing the field/data type,
+ * you must supply it as the third argument.
+ * @return True if a hook modified the map, else false
+ */
+function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
+  $gm3_type = $gm3_type ?? $item['gm3_type'];
+  $type = array_pop(explode("_", $gm3_type));
+  // Call hook_TYPE_map_alter functions
+  $alter_hook = "${type}_map";
+  drupal_alter($alter_hook, $map, $item);
+  return isset($map['libraries'][$type]);
+}

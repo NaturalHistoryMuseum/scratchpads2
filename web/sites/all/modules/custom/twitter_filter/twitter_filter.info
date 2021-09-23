@@ -1,0 +1,5 @@
+name = "Twitter Filter"
+description = "Allows the quick and easy embedding of a twitter search."
+core = 7.x
+dependencies[] = twitter_pull
+stylesheets[all][] = css/twitter_filter.css

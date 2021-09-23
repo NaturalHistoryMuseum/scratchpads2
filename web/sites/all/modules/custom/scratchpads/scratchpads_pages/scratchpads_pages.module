@@ -1,0 +1,534 @@
+<?php
+/*********************************************************************************************
+ *
+ * CONSTANTS
+ *
+ ********************************************************************************************/
+define('PRIMARY_MENU_NAME', 'main-menu');
+
+/*********************************************************************************************
+ *
+ * HOOKS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_pages_menu(){
+  $items = array();
+  global $conf;
+  if(isset($conf['biological_vids'])){
+    foreach(array_keys($conf['biological_vids']) as $vid){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if(($tree = taxonomy_get_tree($vid, 0, 1)) != FALSE){
+        $term = array_shift($tree);
+        $tid = $term->tid;
+        $default_terms = variable_get('scratchpads_default_term', array());
+        if(isset($default_terms[$vid])){
+          $tid = $default_terms[$vid];
+        }
+        $items['classification/' . $vid] = array(
+          'title' => $vocabulary->name,
+          'page callback' => 'drupal_goto',
+          'page arguments' => array(
+            'taxonomy/term/' . $tid
+          ),
+          'access arguments' => array(
+            'access content'
+          ),
+          'menu_name' => PRIMARY_MENU_NAME,
+          'weight' => 1
+        );
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_pages_menu_alter(&$items){
+  if(isset($items['forum'])){
+    $items['forum']['menu_name'] = 'main-menu';
+    $items['forum']['weight'] = 1;
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_insert()
+ */
+function scratchpads_pages_taxonomy_term_insert($term){
+  global $conf;
+  static $shutdown_registered = FALSE;
+  // If this is a biological classification & there isn't yet a menu item for it, rebuild the menu
+  if(function_exists('scratchpads_species_term_is_biological_classification') && scratchpads_species_term_is_biological_classification($term)){
+    if(!$shutdown_registered && !menu_get_item('classification/' . $term->vid)){
+      $shutdown_registered = TRUE;
+      drupal_register_shutdown_function('menu_rebuild');
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete()
+ */
+function scratchpads_pages_taxonomy_term_delete($term){
+  global $conf;
+  // If this is a biological classification & there is a menu item for it, rebuild the menu to check it's still useful
+  if(scratchpads_species_term_is_biological_classification($term)){
+    if(menu_get_item('classification/' . $term->vid)){
+      $shutdown_registered = &drupal_static(__FUNCTION__);
+      if(!$shutdown_registered){
+        $shutdown_registered = TRUE;
+        drupal_register_shutdown_function('menu_rebuild');
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_pages_form_node_type_form_alter(&$form, &$form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  $type = $form['#node_type']->type;
+  $form['display']['page_display_type'] = array(
+    '#title' => t('Page display'),
+    '#type' => 'radios',
+    '#options' => array(
+      'none' => t('No page display'),
+      'view' => t('View (a list of node teasers)'),
+      'page' => t('Page (a standalone page)'),
+      'solr' => t('Solr (a faceted search page)')
+    ),
+    '#default_value' => (isset($display_settings[$type]) ? $display_settings[$type] : 'view'),
+    '#description' => t("How do you want this content type to display on pages?"),
+    '#weight' => -1
+  );
+  if(in_array($type, scratchpads_pages_page_display_locked_types())){
+    $form['display']['page_display_type']['#disabled'] = true;
+  }
+  $form['#submit'][] = 'scratchpads_pages_node_type_form_submit';
+}
+
+/**
+ * Return an array of locked page display types
+ * By default, the page type should never be changed from page
+ */
+function scratchpads_pages_page_display_locked_types(){
+  return array(
+    'page',
+    'biblio',
+    'blog',
+    'forum'
+  );
+}
+
+function scratchpads_pages_node_type_form_submit($form, $form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  $type = $form_state['values']['type'];
+  $display_settings[$type] = $form_state['values']['page_display_type'];
+  variable_set('scratchpads_pages_display', $display_settings);
+  menu_rebuild();
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function scratchpads_pages_form_node_form_alter(&$form, $form_state){
+  $display_settings = scratchpads_pages_variable_get('scratchpads_pages_display');
+  if(!empty($form['menu']['link']['mlid']['#value'])){
+    global $language;
+    if(module_exists('i18n_menu')){
+      if(($translated_title = _i18n_menu_link_title($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['link_title']['#default_value'] = $translated_title;
+      }
+      if(($translated_description = _i18n_menu_link_description($form['#node']->menu, $language->language)) != ''){
+        $form['menu']['link']['description']['#default_value'] = $translated_description;
+      }
+    }
+  }
+  // If this is page display type, force providing a menu link
+  if(isset($display_settings[$form['#node']->type]) && $display_settings[$form['#node']->type] == 'page'){
+    // Don't do this on edit pages, as the menu item should already be set.
+    if(arg(2) != 'edit'){
+      $form['menu']['enabled']['#default_value'] = 1;
+      $form['menu']['enabled']['#disabled'] = true;
+      $form['menu']['link']['link_title']['#required'] = true;
+      $form['menu']['link']['weight']['#default_value'] = 1; // Home is 0, so ensure by default pages are weighting higher
+    }
+  }else{ // If this isn't a page, remove the menu link option
+    unset($form['menu']);
+  }
+}
+
+/**
+ * Implement hook_theme().
+ */
+function scratchpads_pages_theme(){
+  return array(
+    'field_group_stripy_div' => array(
+      'render element' => 'element',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
+/*********************************************************************************************
+ *
+ * DISPLAY SETTINGS
+ *
+ ********************************************************************************************/
+function scratchpads_pages_entity_info_alter(&$entity_info){
+  // Add a linked node display setting
+  foreach(array_keys($entity_info) as $entity_type){
+    // Add the 'species page' view mode.
+    if(!empty($entity_info[$entity_type]['view modes'])){
+      $entity_info[$entity_type]['view modes']['linked_node'] = array(
+        'label' => t('Linked node'),
+        'custom settings' => TRUE
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_field_group_formatter_info().
+ */
+function scratchpads_pages_field_group_formatter_info(){
+  // Define a field group display for the publication module
+  return array(
+    'display' => array(
+      'field_group_stripy_div' => array(
+        'label' => t('Stripy div'),
+        'description' => t('Display fields in a stripy div.'),
+        'format_types' => array(
+          'open'
+        ),
+        'default_formatter' => 'open'
+      )
+    )
+  );
+}
+
+function scratchpads_pages_field_group_pre_render(& $element, $group, & $form){
+  $id = $form['#entity_type'] . '_' . $form['#bundle'] . '_' . $group->group_name;
+  $classes = array(
+    $group->format_type,
+    str_replace('_', '-', $group->group_name)
+  );
+  switch($group->format_type){
+    case 'field_group_stripy_div':
+      $flip = array(
+        'even' => 'odd',
+        'odd' => 'even'
+      );
+      $class = 'odd';
+      uasort($element, 'scratchpads_pages_sort_weight');
+      foreach(element_children($element) as $key){
+        $element[$key]['#stripe'] = $class;
+        $class = $flip[$class];
+      }
+      $element += array(
+        '#id' => $id,
+        '#type' => 'container',
+        '#weight' => $group->weight,
+        '#attributes' => array(
+          'class' => $classes
+        ),
+        '#theme_wrappers' => array(
+          'field_group_stripy_div'
+        ),
+        '#group' => $group
+      );
+      break;
+  }
+}
+
+function scratchpads_pages_sort_weight($a, $b){
+  $a_weight = (is_array($a) && isset($a['#weight'])) ? $a['#weight'] : 0;
+  $b_weight = (is_array($b) && isset($b['#weight'])) ? $b['#weight'] : 0;
+  if($a_weight == $b_weight){return 0;}
+  return ($a_weight < $b_weight) ? -1 : 1;
+}
+
+/*********************************************************************************************
+ *
+ * VIEWS
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_pages_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_pages');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes'
+  );
+}
+
+/*********************************************************************************************
+ *
+ * BLOCKS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_pages_block_info(){
+  // Block to display on node views to help user navigation
+  $blocks['signpost'] = array(
+    'info' => t('Scratchpads signpost'),
+    'status' => 0
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_pages_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'signpost':
+      global $conf;
+      if(arg(0) == 'node' && is_numeric($nid = arg(1)) && $node = node_load($nid)){
+        $node_type_info = node_type_load($node->type);
+        $display_name = $node_type_info->name;
+        if($node->type == 'biblio'){
+          $display_name = 'literature';
+        }
+        $items = array(
+          l(t('View all !type', array(
+            '!type' => scratchpads_pages_pluralise_node_name($display_name)
+          )), $node->type)
+        );
+        // If this node has a location, provide a link back to all filtered by location title
+        $lang = field_language('node', $node, 'field_location');
+        if(isset($node->field_location) && array_key_exists($lang, $node->field_location)){
+          $location = array_shift($node->field_location[$lang]);
+          $items[] = l(t('!location !type', array(
+            '!location' => $location['node']->title,
+            '!type' => scratchpads_pages_pluralise_node_name($display_name)
+          )), $node->type, array(
+            'query' => array(
+              'field_location' => $location['node']->title
+            )
+          ));
+        }
+        $block['content'] = array(
+          'links' => array(
+            '#theme' => 'item_list',
+            '#items' => $items,
+            '#title' => $display_name
+          )
+        );
+        if(count($terms = scratchpads_pages_node_get_terms($node))){
+          foreach($terms as $term){
+            if(!array_key_exists($term->vid, $block['content'])){
+              $vocabulary = taxonomy_vocabulary_load($term->vid);
+              $block['content'][$term->vid] = array(
+                '#theme' => 'item_list',
+                '#items' => array(),
+                '#title' => $vocabulary->name
+              );
+            }
+            $block['content'][$term->vid]['#items'][] = l($term->name, 'taxonomy/term/' . $term->tid);
+          }
+        }
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Finds all terms associated with a node.
+ * This is a D7 Replacement for Drupal 6 taxonomy_node_get_terms.
+ */
+function scratchpads_pages_node_get_terms($node, $key = 'tid'){
+  static $terms;
+  if(!isset($terms[$node->vid][$key])){
+    $query = db_select('taxonomy_index', 'r');
+    $t_alias = $query->join('taxonomy_term_data', 't', 'r.tid = t.tid');
+    $v_alias = $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->fields($t_alias);
+    $query->condition("r.nid", $node->nid);
+    $result = $query->execute();
+    $terms[$node->vid][$key] = array();
+    foreach($result as $term){
+      $terms[$node->vid][$key][$term->$key] = $term;
+    }
+  }
+  return $terms[$node->vid][$key];
+}
+
+/*********************************************************************************************
+ *
+ * CONTEXTS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_pages_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/*********************************************************************************************
+ *
+ * MODULE FUNCTIONS
+ *
+ ********************************************************************************************/
+/**
+ *
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_pages_variable_get($name){
+  $default = scratchpads_pages_variable_default($name);
+  return variable_get($name, $default);
+}
+
+/**
+ *
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_pages_variable_default($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'scratchpads_pages_display' => array(
+        'blog' => 'none',
+        'page' => 'page',
+        'spm' => 'none',
+        'specimen_observation' => 'view',
+        'biblio' => 'solr',
+        'media_gallery' => 'solr',
+        'simplenews' => 'none',
+        'webform' => 'none',
+        'location' => 'none',
+        'forum' => 'none',
+        'group' => 'solr'
+      )
+    );
+  }
+  if(!isset($name)){return $defaults;}
+  if(isset($defaults[$name])){return $defaults[$name];}
+}
+
+/**
+ * Pluralise a node name
+ */
+function scratchpads_pages_pluralise_node_name($name){
+  switch($name){
+    case 'image_gallery':
+      $name = 'image_galleries';
+      break;
+    case 'Blog entry':
+      $name = 'blog';
+      break;
+    case 'literature':
+      break;
+    default:
+      $last_char = substr($name, -1);
+      if(!in_array($last_char, array(
+        's',
+        'y'
+      ))){
+        $name .= 's';
+      }
+      break;
+  }
+  return $name;
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ * 
+ * Move the scratchpads_pages_node_update function to the front of the list.
+ */
+function scratchpads_pages_module_implements_alter(&$implementations, $hook){
+  if($hook == 'node_update' && isset($implementations['scratchpads_pages'])){
+    $new_implementations = array();
+    $new_implementations['scratchpads_pages'] = $implementations['scratchpads_pages'];
+    unset($implementations['scratchpads_biblio']);
+    foreach($implementations as $key => $value){
+      $new_implementations[$key] = $value;
+    }
+    $implementations = $new_implementations;
+  }
+}
+
+/**
+ * Implements hook_node_update()
+ * 
+ * This function allows us to easily add translations for a page's menu item.
+ */
+function scratchpads_pages_node_update($node){
+  // We need to save the menu translation, and then load the original string
+  // so that the "English" string doesn't get overwritten by the translation
+  // string.
+  global $language;
+  // Check to see if we're submitting a translation, if so, we continue.
+  if(module_exists('i18n_string')){
+    if(!empty($language->language) && !empty($node->language) && $node->language != $language->language && !empty($node->menu['mlid'])){
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'title'
+      ), $language->language, $node->menu['link_title']);
+      i18n_string_textgroup('menu')->update_translation(array(
+        'item',
+        $node->menu['mlid'],
+        'description'
+      ), $language->language, $node->menu['description']);
+      $original_menu = menu_link_load($node->menu['mlid']);
+      $node->menu['description'] = $original_menu['options']['attributes']['title'];
+      $node->menu['link_title'] = $original_menu['link_title'];
+    }
+  }
+}
+
+/**
+ * Get a list of all node types
+ */
+function scratchpads_pages_get_node_types(){
+  return _node_types_build(true)->types;
+}
+
+/**
+ * Does a node of this type exist?
+ */
+function scratchpads_pages_node_exists_of_type($type){
+  return db_query("SELECT count(nid) FROM {node} where type=:type", array(
+    ':type' => $type
+  ))->fetchField() >= 1;
+}
+
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_pages_menu_block_blocks(){
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_pages-1' => array(
+      'menu_name' => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link' => 0,
+      'admin_title' => 'Scratchpads secondary menu',
+      'level' => 2,
+      'follow' => 0,
+      'depth' => 0,
+      'expanded' => 0,
+      'sort' => 0
+    )
+  );
+}
+

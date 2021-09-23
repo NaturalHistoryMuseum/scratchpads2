@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ * 
+ * Change the user display style to show a larger picture
+ * 
+ * Enable the biography viewm, if it is disabled
+ */
+function scratchpads_biography_enable(){
+  variable_set('user_picture_style', 'square_thumbnail_large');
+  // Enable the biographies view, if it is disabled
+  $views_status = variable_get('views_defaults', array());
+  if(isset($views_status['biography'])){
+    $views_status['biography'] = FALSE;
+    // reset the variable with the new list
+    variable_set('views_defaults', $views_status);
+    // empty cache now
+    if(function_exists('views_invalidate_cache')){
+      views_invalidate_cache();
+    }
+  }
+}
+
+/**
+ * Implements hook_disable().
+ * 
+ * Show warning message and disable the biography view
+ */
+function scratchpads_biography_disable(){
+  drupal_set_message('The biography module has been disabled. Please note that if you wish to remove the biography fields, this needs to be done manually.');
+  // Disable the biographies view
+  $views_status = variable_get('views_defaults', array());
+  $views_status['biography'] = TRUE;
+  // reset the variable with the new list
+  variable_set('views_defaults', $views_status);
+  // empty cache now
+  if(function_exists('views_invalidate_cache')){
+    views_invalidate_cache();
+  }
+}
+
+/**
+ * Update the 'make this profile public' biography field
+ */
+function scratchpads_biography_update_7001(){
+  // Update allowed values if not already updated.
+  $field = field_info_field('field_make_this_profile_public_');
+  if(($field['settings']['allowed_values'][0] == '') && ($field['settings']['allowed_values'][1] == '')){
+    $field['settings']['allowed_values'] = array(
+      0 => 'No',
+      1 => 'Yes'
+    );
+    field_update_field($field);
+  }
+  // Update field instance to hide this field by default
+  $instance = field_info_instance('user', 'field_make_this_profile_public_', 'user');
+  $instance['display']['default'] = array(
+    'label' => 'hidden',
+    'settings' => array(),
+    'type' => 'hidden',
+    'weight' => '4'
+  );
+  field_update_instance($instance);
+}
+
+/**
+ * Remove the allowed_scheme options from the field_example_of_handwriting field
+ */
+function scratchpads_biography_update_7002(){
+  $field_instance = field_info_instance('user', 'field_example_of_handwriting', 'user');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}

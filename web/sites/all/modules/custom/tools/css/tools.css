@@ -1,0 +1,49 @@
+@CHARSET "UTF-8";
+
+.tools-container{
+}
+.tools-left, .tools-right {
+ padding:0;
+ margin:0;
+ width:49%;
+}
+.tools-left {
+ float:left;
+}
+.tools-right {
+ float:right;
+}
+
+.page-content .tool-options {
+  width: 100%;
+}
+
+.page-content .tool-options .form-item{
+  margin-bottom: 10px;
+}
+
+.page-content .tool-options span.tools-icon{
+  display: none;
+}
+
+.page-content .tool-options .form-item label{
+  color: #000;
+}
+
+.page-content .tool-options .form-item .description{
+  display: block;
+  background: none;
+  position: static;
+  color: #999999;
+  border: none;
+  margin: 2px 0;
+  padding: 0;
+  max-width: 300px;
+}
+
+
+.page-content .tool-options .form-item .iphone_switch_container{
+  position: absolute!important;
+  right: 0;
+  top: 0;
+}

@@ -1,0 +1,375 @@
+<?php
+define('SCRATCHPADS_THEME_NAME', 'scratchpads');
+define('TOGGLE_PLACEHOLDER_SESSION', 'show_placeholder_blocks');
+
+/**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_blocks_scratchpads_default_permissions(){
+  return array(
+    'contributor' => array(
+      'toggle placeholder blocks'
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_blocks_menu(){
+  // Add the empty content toggle
+  // TODO - Do we need this on any other pages?
+  $items['taxonomy/term/%/toggle-placeholder-blocks'] = array(
+    'title' => 'Toggle placeholder blocks',
+    'page callback' => 'scratchpads_blocks_toggle_placeholder',
+    'page arguments' => array(
+      2
+    ),
+    'access arguments' => array(
+      'toggle placeholder blocks'
+    ),
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function scratchpads_blocks_permission(){
+  return array(
+    'toggle placeholder blocks' => array(
+      'title' => t('Toggle placeholder blocks'),
+      'description' => t('Allows user to turn on & off placeholder blocks.')
+    )
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_blocks_block_info(){
+  $blocks['footer_menu'] = array(
+    'info' => t('Scratchpads footer menu'),
+    'region' => 'footer',
+    'weight' => 1,
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
+  );
+  $blocks['footer_logos'] = array(
+    'info' => t('Scratchpads footer logos'),
+    'region' => 'footer',
+    'weight' => 2,
+    'theme' => SCRATCHPADS_THEME_NAME,
+    'status' => 1
+  );
+  // Block to display on node views
+  $blocks['signpost'] = array(
+    'info' => t('Scratchpads signpost'),
+    'status' => 0
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_system_info_alter().
+ *
+ * We tweak the rubik theme so that we can assign blocks automatically to the
+ * "scratchpads" theme regions without Drupal being fucking stupid.
+ */
+function scratchpads_blocks_system_info_alter(&$info, $file, $type){
+  if($file->name == 'rubik'){
+    $info['regions']['page_top'] = 'Page Top';
+    $info['regions']['page_bottom'] = 'Page Bottom';
+    $info['regions']['slide_top'] = 'Slide Top';
+    $info['regions']['content'] = 'Main content';
+    $info['regions']['sidebar'] = 'Sidebar';
+    $info['regions']['footer'] = 'Footer';
+    $info['regions']['slide_bottom'] = 'Slide Bottom';
+    $info['regions']['branding'] = 'Branding';
+    $info['regions']['menu'] = 'Menu';
+    $info['regions']['header'] = 'Header';
+  }
+}
+
+/**
+ *
+ * Implentation of hook_block_info_alter
+ * Adjust the blocks for this theme
+ * @param array $blocks
+ * @param string $theme
+ * @param array $code_blocks
+ */
+function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
+  switch($theme){
+    case SCRATCHPADS_THEME_NAME:
+      // Turn of all the blocks we know we don't want
+      $blocks['system']['powered-by']['status'] = 0;
+      $blocks['system']['navigation']['status'] = 0;
+      $blocks['system']['user-menu']['status'] = 0;
+      // Move the search box to the top
+      $blocks['search']['form']['region'] = 'header';
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_blocks_form_legal_administration_alter(&$form, &$form_state, $form_id){
+  $form['#submit'][] = 'scratchpads_blocks_form_legal_administration_submit';
+}
+
+/**
+ * Submit for the above alter - we simply set a flag to say that the T&Cs have
+ * been altered.
+ */
+function scratchpads_blocks_form_legal_administration_submit(){
+  variable_set('scratchpads_legal_has_changed', TRUE);
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_blocks_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'footer_menu':
+      $tree = menu_tree_page_data('main-menu', 1);
+      $link_text = t('Subscribe to RSS of @site_name', array(
+        '@site_name' => variable_get('site_name', t('this site'))
+      ));
+      if(module_exists('tracker')){
+        $tree[] = array(
+          'below' => FALSE,
+          'link' => array(
+            'in_active_trail' => FALSE,
+            'has_children' => FALSE,
+            'hidden' => FALSE,
+            'href' => 'tracker',
+            'title' => t('Recent content'),
+            'access' => TRUE,
+            'menu_name' => '',
+            'mlid' => uniqid()
+          )
+        );
+      }
+      if(variable_get('scratchpads_legal_has_changed', FALSE)){
+        $tree[] = array(
+          'below' => FALSE,
+          'link' => array(
+            'in_active_trail' => FALSE,
+            'has_children' => FALSE,
+            'hidden' => FALSE,
+            'href' => 'legal',
+            'title' => t('Terms & Conditions'),
+            'access' => TRUE,
+            'menu_name' => '',
+            'mlid' => uniqid()
+          )
+        );
+      }
+      $tree[] = array(
+        'below' => FALSE,
+        'link' => array(
+          'in_active_trail' => FALSE,
+          'has_children' => FALSE,
+          'hidden' => FALSE,
+          'href' => 'http://scratchpads.org/about/policies',
+          'title' => t('Scratchpads Policies'),
+          'access' => TRUE,
+          'menu_name' => '',
+          'mlid' => uniqid()
+        )
+      );
+      $tree[] = array(
+        'below' => FALSE,
+        'link' => array(
+          'in_active_trail' => FALSE,
+          'has_children' => FALSE,
+          'hidden' => FALSE,
+          'href' => 'rss.xml',
+          'title' => '<img width="16" height="16" alt="' . $link_text . '" src="' . file_create_url('misc/feed.png') . '" typeof="foaf:Image">',
+          'access' => TRUE,
+          'menu_name' => '',
+          'mlid' => uniqid(),
+          'localized_options' => array(
+            'html' => TRUE,
+            'attributes' => array(
+              'class' => array(
+                'feed-icon'
+              ),
+              'title' => $link_text
+            )
+          )
+        )
+      );
+      $block['content'] = menu_tree_output($tree);
+      break;
+    case 'footer_logos':
+      $path = drupal_get_path('module', 'scratchpads_blocks');
+      $options = array(
+        'html' => true,
+        'absolute' => true
+      );
+      $links = array(
+        l(theme('image', array(
+          'path' => $path . '/images/vbrant.png',
+          'alt' => 'ViBRANT logo',
+          'title' => 'ViBRANT'
+        )), 'http://vbrant.scratchpads.org/', $options),
+        l(theme('image', array(
+          'path' => $path . '/images/drupal_small.png',
+          'alt' => 'Drupal logo',
+          'title' => 'Built with Drupal'
+        )), 'http://drupal.org/', $options),
+        l(theme('image', array(
+          'path' => $path . '/images/scratchpads.png',
+          'alt' => 'Scratchpads logo',
+          'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
+        )), 'http://scratchpads.org/', $options)
+      );
+      $block['content'] = array(
+        '#theme' => 'item_list',
+        '#items' => $links
+      );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function scratchpads_blocks_menu_block_blocks(){
+  // The array key is the block delta used by menu block.
+  return array(
+    'scratchpads_blocks-1' => array(
+      'menu_name' => 'main-menu',
+      'parent_mlid' => 0,
+      'title_link' => 0,
+      'admin_title' => 'Secondary menu',
+      'level' => 2,
+      'follow' => 0,
+      'depth' => 0,
+      'expanded' => 1,
+      'sort' => 0
+    )
+  );
+}
+
+/**
+ * Implements hook_themes_enabled().
+ */
+function scratchpads_blocks_themes_enabled($theme_list){
+  foreach(module_implements('block_info') as $module){
+    $module_blocks = module_invoke($module, 'block_info');
+    foreach($module_blocks as $delta => $block){
+      if(isset($block['theme']) && in_array($block['theme'], $theme_list)){
+        if($db_block = scratchpads_blocks_block_load($module, $delta)){
+          $db_block->status = 1;
+          $db_block->region = $block['region'];
+          drupal_write_record('block', $db_block, array(
+            'bid'
+          ));
+        }
+      }
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * MENU CALLBACKS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_views_pre_view().
+ */
+function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
+  if(scratchpads_blocks_show_placeholders() && $display_id == 'block'){
+    $filters = $view->get_items('filter');
+    // If there's one node type filter set, we know how to create the add link
+    if($link = scratchpads_blocks_views_add_link($view, arg(2))){
+      $settings = array(
+        'area' => array(
+          'id' => 'area',
+          'table' => 'views',
+          'field' => 'area',
+          'content' => $link
+        )
+      );
+      $view->display_handler->set_option('empty', $settings);
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * MENU CALLBACKS
+ *
+ ********************************************************************************************/
+function scratchpads_blocks_toggle_placeholder($term){
+  if(!scratchpads_blocks_show_placeholders()){
+    $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = TRUE;
+    drupal_set_message(t('You have turned on the display of empty blocks.'));
+  }else{
+    $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = FALSE;
+    drupal_set_message(t('You have turned off the display of empty blocks.'));
+  }
+  // Return to the original page
+  drupal_goto(drupal_get_destination());
+}
+
+/*********************************************************************************************
+ *
+ * MODULE FUNCTIONS
+ *
+ ********************************************************************************************/
+function scratchpads_blocks_block_load($module, $delta){
+  return db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
+    ':module' => $module,
+    ':delta' => $delta,
+    ':theme' => SCRATCHPADS_THEME_NAME
+  ))->fetchObject();
+}
+
+function scratchpads_blocks_show_placeholders(){
+  if(!isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) || !$_SESSION[TOGGLE_PLACEHOLDER_SESSION]){return false;}
+  return true;
+}
+
+/**
+ *
+ * Build an add link for a view
+ * @param object $view
+ * @param integer $tid
+ */
+function scratchpads_blocks_views_add_link($view, $tid){
+  $filters = $view->get_items('filter');
+  // If there's one node type filter set, we know how to create the add link
+  if(isset($filters['type']) && count($filters['type']['value']) == 1){
+    $type = array_shift($filters['type']['value']);
+    $term = taxonomy_term_load($tid);
+    switch($filters['type']['table']){
+      case 'node':
+        $node_type = node_type_load($type);
+        $type_url_str = str_replace('_', '-', $node_type->type);
+        return l(t('Add !node_type', array(
+          '!node_type' => $node_type->name
+        )), 'node/add/' . $type_url_str, array(
+          'query' => array(
+            'edit[field_taxonomic_name][und]' => $term->name,
+            'destination' => 'taxonomy/term/' . $term->tid
+          )
+        ));
+        break;
+      case 'file_managed':
+        return l(t("Add files"), 'admin/content/file');
+        break;
+    }
+  }
+  return false;
+}

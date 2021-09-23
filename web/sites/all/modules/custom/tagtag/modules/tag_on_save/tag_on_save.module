@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ */
+/**
+ * Implementation of hook_tag_ui_info().
+ */
+function tag_on_save_tag_ui_info(){
+  return array(
+    'tag_on_save' => array(
+      'label' => 'Tag on save',
+      'description' => t('Saves all found tags to a node without any user interaction required.'),
+      'submit_callback' => 'tag_on_save_tag_update',
+      'form_alter_callback' => 'tag_on_save_tag_form_alter'
+    )
+  );
+}
+
+/**
+ * Callback as defined above.
+ */
+function tag_on_save_tag_update($form, &$form_state){
+  // Simplest of all the UI submit functions.  This simply calls the 
+  // tagtag supplied function tagtag_add_tags.  Other modules should probably
+  // alter the tags array, depending on UI elements (or previously saved data).
+  tagtag_add_tags($form_state);
+}

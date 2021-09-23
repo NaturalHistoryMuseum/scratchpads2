@@ -1,0 +1,14 @@
+name = Feeds OAI-PMH Fetcher and Parser
+description = Retrieves and parses items from OAI-PMH repositories.
+dependencies[] = feeds
+package = Feeds
+core = 7.x
+
+
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "feeds_oai_pmh"
+datestamp = "1380578385"
+

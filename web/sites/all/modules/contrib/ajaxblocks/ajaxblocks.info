@@ -1,0 +1,11 @@
+name = Ajax Blocks
+description = Loads dynamic blocks on cached page for anonymous users by performing AJAX request.
+package = Cache
+core = "7.x"
+
+; Information added by Drupal.org packaging script on 2015-03-10
+version = "7.x-1.4"
+core = "7.x"
+project = "ajaxblocks"
+datestamp = "1425992603"
+

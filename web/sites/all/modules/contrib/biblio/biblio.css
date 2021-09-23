@@ -1,0 +1,350 @@
+#biblio-filter ul {
+  padding: 1px;
+  margin: 1px;
+  width: 100%;
+}
+
+#biblio-buttons {
+  float: left;
+  margin-left: 0.5em;
+  margin-top: 1em;
+  /* clear:                      right; */
+}
+
+.biblio-alpha-line {
+  text-align: center;
+}
+
+dl.bibliomultiselect dd.b,
+dl.bibliomultiselect dd.b .form-item,
+dl.bibliomultiselect dd.b select {
+  font-family: inherit;
+  font-size: inherit;
+  width: 14em;
+}
+
+dl.bibliomultiselect dd.a,
+dl.bibliomultiselect dd.a .form-item {
+  width: 8em;
+}
+
+dl.bibliomultiselect dt,
+dl.bibliomultiselect dd {
+  float: left;
+  line-height: 1.75em;
+  padding: 0;
+  margin: 0 1em 0 0;
+}
+
+dl.bibliomultiselect .form-item {
+  height: 1.75em;
+  margin: 0;
+}
+#biblio-authors table,
+#biblio-tertiary-authors  table {
+  width: 100%;
+}
+#biblio-authors  .form-text {
+  width: 95%;
+}
+#biblio-authors  td.biblio-contributor,
+#biblio-secondary-authors td.biblio-contributor,
+#biblio-tertiary-authors td.biblio-contributor,
+#biblio-subsidiary-authors  td.biblio-contributor,
+#biblio-corp-authors td.biblio-contributor {
+  width: 98%;
+}
+#biblio-authors #biblio-tertiary-authors .draggable a.tabledrag-handle {
+  padding: 0;
+}
+
+.biblio-head {
+  width: 97%;
+  color: Black;
+  font-weight: normal;
+  background-color: #eaeaea;
+  border: medium solid;
+  border-left-color: #f0f8ff;
+  border-right-color: Gray;
+  border-bottom-color: Gray;
+  border-top-color: #f0f8ff;
+  padding: 3px;
+}
+
+.biblio-head a:link,
+.biblio-head a.active,
+.biblio-head a:visited,
+.biblio-head a:focus,
+.biblio-head a:hover {
+  color: black;
+}
+
+.biblio-current-filters {
+  background-color: #ffe1e1;
+}
+
+.biblio-separator-bar {
+  color: #000000;
+  font-weight: bold;
+  background-color: #e1e1e1;
+  border: 1px solid #ccc;
+  padding: 0.5em;
+  margin: 1em 0 1em 0;
+}
+
+.biblio-toolbar {
+  width: 97%;
+  color: Red;
+  font-weight: bold;
+  background-color: Silver;
+  border: medium solid;
+  border-left-color: #f0f8ff;
+  border-right-color: Gray;
+  border-bottom-color: Gray;
+  border-top-color: #f0f8ff;
+  padding: 3px;
+}
+
+.biblio-entry {
+  margin: 1em 0 1em 0;
+}
+
+.biblio-style-mla {
+  text-indent: -25px;
+  padding-left: 25px;
+}
+
+.biblio-publisher {
+  font-style: oblique;
+  font-weight: bold;
+}
+
+.biblio-title {
+  font-weight: bold;
+  text-decoration: none;
+  font-style: normal;
+  line-height: normal;
+  text-align: left;
+  font-family: "@Arial Unicode MS", Arial, sans-serif;
+  color: #336599;
+}
+
+.biblio-authors a {
+  font-weight: normal;
+  text-decoration: none;
+  font-style: normal;
+}
+
+.biblio_type-1 {
+  background-color: #f2f2d9;
+}
+
+.biblio_type-2 {
+  background-color: #d9e6f2;
+}
+
+.biblio_type-3 {
+  background-color: #e5f2d9;
+}
+
+.biblio_type-4 {
+  background-color: #d9f2e6;
+}
+
+.biblio_type-5 {
+  background-color: #f2e6d9;
+}
+
+.biblio_type-6 {
+  background-color: #d9e6f2;
+}
+
+.biblio_type-7 {
+  background-color: #d9e6f2;
+}
+
+.biblio_type-8 {
+  background-color: #d9e6f2;
+}
+
+.biblio_type-9 {
+  background-color: #d9e6f2;
+}
+
+.biblio-export {
+  text-align: right;
+  text-decoration: none;
+  float: right;
+}
+
+.biblio-abstract-link {
+  text-align: left;
+  text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 75%;
+}
+
+.biblio-export-links {
+  float: right;
+  text-align: left;
+  text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 75%;
+  line-height: 100%;
+}
+
+ul.biblio-export-buttons,
+ul.biblio-export-buttons li {
+  background: transparent;
+  list-style-image: none;
+  list-style-type: none;
+  display: inline;
+  border-bottom: 0px;
+  border-right: 1px;
+  padding: 0;
+  margin: 0.1em;
+}
+
+.biblio-annotation {
+  text-align: left;
+  text-decoration: none;
+  margin-left: 2.5em;
+  margin-top: 0.5em;
+  margin-right: 2.5em;
+}
+
+.biblio-sort {
+  text-decoration: none;
+  text-align: left;
+}
+
+.biblio-openurl-text {
+  text-align: right;
+  text-decoration: none;
+  float: right;
+}
+
+.biblio-left-td {
+  text-align: right;
+  vertical-align: top;
+  width: 20%;
+}
+
+#biblio-header {
+  display: block;
+}
+/*
+#biblio-header ul.tabs {
+  border-bottom: 1px solid #BBBBBB;
+  padding: 0 0 1.765em 1em;
+}
+
+#biblio-header ul li {
+  padding: 0 0 0 0;
+  float: left;
+  display: block;
+}
+
+#biblio-header ul.tabs li a .a {
+  float: left;
+  height: 20px;
+  padding: 2px 0em 3px 0em;
+  margin: 0px;
+  padding: 0px;
+  background-image: url(main-tab1.png);
+  background-repeat: no-repeat;
+  background-position: 100% 0px;
+}
+
+#biblio-header ul.tabs li a .a .b {
+  display: block;
+  margin: 0px;
+  height: 20px;
+  padding: 0px 1em 3px;
+  background-image: url(main-tab2.png);
+  background-repeat: no-repeat;
+  background-position: 0% 0px;
+}
+
+#biblio-header ul.tabs li.active a {
+  background-color: transparent;
+  border-width: 0px;
+}
+
+#biblio-header ul.tabs li.active a .a {
+  background-position: 100% -60px;
+}
+
+#biblio-header ul.tabs li.active a .a .b {
+  background-position: 0% -60px;
+}
+
+#biblio-header ul.tabs li a:hover {
+  border-width: 0px;
+  text-decoration: none !important;
+}
+
+#biblio-header ul.tabs li a:hover .a {
+  background-position: 100% -30px;
+}
+
+#biblio-header ul.tabs li a:hover .a .b {
+  background-position: 0% -30px;
+}
+
+#biblio-header ul.tabs li.active a:hover {
+  background-color: #fff;
+  border-width: 0px;
+}
+
+#biblio-header ul.tabs li.active a:hover .a {
+  background-position: 100% -60px;
+}
+
+#biblio-header ul.tabs li.active a:hover .a .b {
+  background-position: 0% -60px;
+}
+*/
+.exposed-filters .filters {
+  float: left; /* LTR */
+  margin-right: 1em; /* LTR */
+  width: 25em; /* IE6 */
+}
+.exposed-filters .form-item {
+  margin: 0 0 0.1em 0;
+  padding: 0;
+}
+.exposed-filters .form-item label {
+  float: left; /* LTR */
+  font-weight: normal;
+  width: 10em;
+}
+.exposed-filters .form-select {
+  width: 14em;
+}
+/* Current filters */
+.exposed-filters .current-filters {
+  margin-bottom: 1em;
+}
+.exposed-filters .current-filters .placeholder {
+  font-style: normal;
+  font-weight: bold;
+}
+.exposed-filters .additional-filters {
+  float: left; /* LTR */
+  margin-right: 1em; /* LTR */
+}
+.biblio-highlight {
+  background-color: #fff4f4;
+  border: 2px solid #494949;
+}
+
+#biblio-node {
+  table-layout: fixed;
+}
+
+#biblio-node td{
+  word-wrap: break-word;
+}

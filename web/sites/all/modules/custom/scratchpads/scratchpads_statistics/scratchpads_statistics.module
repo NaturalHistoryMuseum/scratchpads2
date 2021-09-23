@@ -1,0 +1,581 @@
+<?php
+
+/**
+ * Implements hook_block_info()
+ */
+function scratchpads_statistics_block_info(){
+  return array(
+    'site' => array(
+      'info' => t('Scratchpads statistics facet - Site'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'user' => array(
+      'info' => t('Scratchpads statistics facet - User'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'term' => array(
+      'info' => t('Scratchpads statistics facet - Term'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    ),
+    'category' => array(
+      'info' => t('Scratchpads statistics facet - Site Category'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    )
+  );
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_statistics_ctools_plugin_api(){
+  list ( $module, $api ) = func_get_args();
+  if($module == "context" && $api == "context"){
+    return array(
+      "version" => "3"
+    );
+  }
+}
+
+/**
+ * Implements hook_gbif_registry_endpoints
+function scratchpads_statistics_gbif_registry_endpoints(){
+  $endpoints = array();
+  $url = url('login.json', array(
+    'absolute' => TRUE
+  ));
+  $endpoints[$url] = array(
+    'url' => $url,
+    'type' => 'OTHER',
+    'machineTags' => array(
+      array(
+        'namespace' => 'http://scratchpads.org/',
+        'name' => 'name',
+        'value' => 'scratchpads-statistics-login'
+      )
+    )
+  );
+  $url = url('stats.json', array(
+    'absolute' => TRUE
+  ));
+  $endpoints[$url] = array(
+    'url' => $url,
+    'type' => 'OTHER',
+    'machineTags' => array(
+      array(
+        'namespace' => 'http://scratchpads.org/',
+        'name' => 'name',
+        'value' => 'scratchpads-statistics'
+      )
+    )
+  );
+  return $endpoints;
+}
+ */
+
+/**
+ * Implements hook_block_view()
+ */
+function scratchpads_statistics_block_view($delta = ''){
+  // We only display the site block if the aggregator module is enabled.
+  if($delta == 'site' && !module_exists('scratchpads_statistics_aggregator')){
+    return;
+  }
+  if($delta == 'category'){
+    $tagged_sites = db_select('scratchpads_statistics_site_site_type', 's')->fields('s')->countQuery()->execute()->fetchCol();
+    $tagged_sites = array_pop($tagged_sites);
+    if(!$tagged_sites){
+      return array();
+    }
+  }
+  return array(
+    'subject' => t('Filter by ' . ucfirst($delta)),
+    'content' => array(
+      'scratchpads_statistics_facet_form' => drupal_get_form('scratchpads_statistics_facet_form_' . $delta, $delta),
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_statistics') . '/css/scratchpads_statistics.css'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_forms
+ */
+function scratchpads_statistics_forms($form_id, $args){
+  $forms = array();
+  foreach(array(
+    'user',
+    'site',
+    'category',
+    'term'
+  ) as $type){
+    $forms['scratchpads_statistics_facet_form_' . $type] = array(
+      'callback' => 'scratchpads_statistics_facet_form'
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Allow other modules (namely the scratchpads_setup module) to set the category
+ * for this and other sites.
+ */
+function scratchpads_statistics_set_site_categories($categories, $site = 1){
+  $query = db_insert('scratchpads_statistics_site_site_type')->fields(array(
+    'site',
+    'site_type'
+  ));
+  $do_insert = FALSE;
+  foreach($categories as $category){
+    $site_type_id = scratchpads_statistics_insert_item(array(
+      'type' => $category
+    ), 'scratchpads_statistics_site_type', 'type');
+    if($site_type_id){
+      $do_insert = TRUE;
+      $query->values(array(
+        'site' => $site,
+        'site_type' => $site_type_id
+      ));
+    }
+  }
+  if($do_insert){
+    db_delete('scratchpads_statistics_site_site_type')->condition('site', $site)->execute();
+    $query->execute();
+  }
+}
+
+/**
+ * Create/Retrieve a user
+ */
+function scratchpads_statistics_insert_item($item, $table, $key){
+  // Keep a static cache of the users.
+  $items = drupal_static(__FUNCTION__, array());
+  if(is_array($key)){
+    $itemkey = '';
+    foreach($key as $k){
+      $itemkey .= '---' . $item[$k];
+    }
+  }else{
+    $itemkey = $item[$key];
+    $key = array(
+      $key
+    );
+  }
+  if(@isset($items[$table][$itemkey])){
+    return $items[$table][$itemkey];
+  }
+  $query = db_merge($table);
+  foreach($key as $k){
+    $query->key(array(
+      $k => $item[$k]
+    ));
+  }
+  $output = $query->fields($item)->execute();
+  $query = db_select($table, 's')->fields('s', array(
+    'id'
+  ));
+  foreach($key as $key_item){
+    $query->condition($key_item, $item[$key_item]);
+  }
+  $col = $query->execute()->fetchCol();
+  $id = array_pop($col);
+  if(!isset($items[$table])){
+    $items[$table] = array();
+  }
+  $items[$table][$itemkey] = $id;
+  return $id;
+}
+
+/**
+ * Allow other modules (namely the scratchpads_setup module) to set the category
+ * for this and other sites.
+ */
+function scratchpads_statistics_get_site_categories($site = 1){
+  $query = db_select('scratchpads_statistics_site_type', 'st');
+  $query->innerJoin('scratchpads_statistics_site_site_type', 'sst', 'sst.site_type = st.id');
+  $categories = $query->condition('site', $site)->fields('st', array(
+    'type'
+  ))->execute()->fetchAll(PDO::FETCH_COLUMN);
+  require_once DRUPAL_ROOT . '/includes/install.inc';
+  $profile = install_profile_info(drupal_get_profile());
+  $categories[] = $profile['name'];
+  return $categories;
+}
+
+/**
+ * Scratchpads statistics facet form.
+ */
+function scratchpads_statistics_facet_form($form, $form_state, $type){
+  $query_without = $_GET;
+  unset($query_without[$type]);
+  unset($query_without['q']);
+  switch($type){
+    case 'category':
+      $items = array();
+      if(!empty($_GET[$type]) && is_array($_GET[$type])){
+        $results = db_select('scratchpads_statistics_site_type', 's')->fields('s')->condition('id', $_GET[$type])->execute()->fetchAll();
+        foreach($results as $row){
+          $items[] = $row->type;
+        }
+      }
+      $types = db_select('scratchpads_statistics_site_type', 's')->fields('s', array(
+        'id',
+        'type'
+      ))->orderBy('type')->execute()->fetchAllKeyed(0, 1);
+      return array(
+        'scratchpads_stats_facet_type' => array(
+          '#type' => 'hidden',
+          '#value' => $type
+        ),
+        'scratchpads_stats_facet_entry' => array(
+          '#type' => 'select',
+          '#title' => '',
+          '#options' => $types,
+          '#empty_option' => t('Select a category')
+        ),
+        'already_selected' => array(
+          '#prefix' => count($items) ? '<h5>Applied filters</h5>' : '',
+          '#suffix' => count($items) ? l(t('Remove @type filters', array(
+            '@type' => $type
+          )), 'stats', array(
+            'query' => $query_without
+          )) : '',
+          '#theme' => 'item_list',
+          '#items' => $items
+        ),
+        'submit' => array(
+          '#prefix' => '<div style="display:none">',
+          '#suffix' => '</div>',
+          '#type' => 'submit',
+          '#value' => t('Filter by category')
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
+        )
+      );
+    default:
+      $items = array();
+      if(!empty($_GET[$type]) && is_array($_GET[$type])){
+        $results = db_select('scratchpads_statistics_' . $type, 's')->fields('s')->condition('id', $_GET[$type])->execute()->fetchAll();
+        foreach($results as $row){
+          switch($type){
+            case 'site':
+              $items[] = t('<a href="!url" target="_blank">%site_title</a>', array(
+                '!url' => $row->url,
+                '%site_title' => $row->title
+              ));
+              break;
+            case 'user':
+              $items[$row->name] = $row->name;
+              break;
+            default:
+              $items[] = $row->{$type};
+              break;
+          }
+        }
+      }
+      return array(
+        'scratchpads_stats_facet_type' => array(
+          '#type' => 'hidden',
+          '#value' => $type
+        ),
+        'scratchpads_stats_facet_entry' => array(
+          '#type' => 'textfield',
+          '#autocomplete_path' => 'scratchpads-statistics-autocomplete/' . $type,
+          '#attributes' => array(
+            'placeholder' => t(ucfirst($type))
+          ),
+          '#default_value' => ''
+        ),
+        'already_selected' => array(
+          '#prefix' => count($items) ? '<h5>Applied filters</h5>' : '',
+          '#suffix' => count($items) ? l(t('Remove @type filters', array(
+            '@type' => $type
+          )), 'stats', array(
+            'query' => $query_without
+          )) : '',
+          '#theme' => 'item_list',
+          '#items' => $items
+        ),
+        submit => array(
+          '#prefix' => '<div style="display:none">',
+          '#suffix' => '</div>',
+          '#value' => t('Filter'),
+          '#type' => 'submit'
+        ),
+        '#attributes' => array(
+          'class' => array(
+            'autocomplete-submit'
+          )
+        ),
+        '#attached' => array(
+          'js' => array(
+            drupal_get_path('module', 'scratchpads_statistics') . '/js/scratchpads_statistics.js'
+          )
+        ),
+        '#submit' => array(
+          'scratchpads_statistics_facet_form_submit'
+        )
+      );
+  }
+}
+
+/**
+ * Scratchpads statistics facet form submit.
+ */
+function scratchpads_statistics_facet_form_submit($form, &$form_state){
+  $query = $_GET;
+  unset($query['q']);
+  switch($form_state['values']['scratchpads_stats_facet_type']){
+    case 'category':
+      $results = db_select('scratchpads_statistics_site_type', 's')->condition('id', $form_state['values']['scratchpads_stats_facet_entry'])->fields('s', array(
+        'id'
+      ))->execute();
+      break;
+    case 'term':
+      $results = db_select('scratchpads_statistics_term', 's')->condition('term', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
+        'id'
+      ))->execute();
+      break;
+    case 'user':
+      $results = db_select('scratchpads_statistics_user', 's')->condition('name', $form_state['values']['scratchpads_stats_facet_entry'], 'LIKE')->fields('s', array(
+        'id'
+      ))->execute();
+      break;
+    case 'site':
+      $results = db_query('SELECT id FROM {scratchpads_statistics_site} WHERE CONCAT(title, \' (\', url, \')\') LIKE :query_string', array(
+        ':query_string' => $form_state['values']['scratchpads_stats_facet_entry']
+      ));
+      break;
+  }
+  if(!isset($query[$form_state['values']['scratchpads_stats_facet_type']])){
+    $query[$form_state['values']['scratchpads_stats_facet_type']] = array();
+  }
+  foreach($results as $row){
+    $query[$form_state['values']['scratchpads_stats_facet_type']][] = $row->id;
+  }
+  drupal_goto('stats', array(
+    'query' => $query
+  ));
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_statistics_cron(){
+  if(variable_get('scratchpads_statistics_disable_cron', FALSE) === TRUE) {
+    module_load_include('cron.inc', 'scratchpads_statistics');
+    _scratchpads_statistics_cron();
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_statistics_menu(){
+  return array(
+    'stats' => array(
+      'title' => 'Scratchpads 2.0 statistics',
+      'description' => 'Display statistics related to the content created on this site.',
+      'page callback' => 'scratchpads_statistics_stats_page',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
+    'stats.json' => array(
+      'title' => 'Scratchpad statistics (JSON)',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.org">http://scratchpads.org</a> site.',
+      'page callback' => 'scratchpads_statistics_stats_page_json',
+      'delivery callback' => 'json_deliver',
+      'access callback' => 'scratchpads_statistics_access',
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
+    'login.json' => array(
+      'title' => 'Scratchpad login statistics (JSON)',
+      'description' => 'Allow a sites statistics to be accessed externally for aggregation by the <a href="http://scratchpads.org">http://scratchpads.org</a> site.',
+      'page callback' => 'scratchpads_statistics_stats_page_login_json',
+      'delivery callback' => 'json_deliver',
+      'access callback' => 'scratchpads_statistics_access',
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_SUGGESTED_ITEM
+    ),
+    'admin/config/search/scratchpads-statistics' => array(
+      'title' => 'Scratchpads Statistics',
+      'description' => 'Set the password hash required to access data',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchapds_statistics_config_page'
+      ),
+      'access arguments' => array(
+        'administer scratchpads statistics'
+      ),
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_NORMAL_ITEM
+    ),
+    'scratchpads-statistics-autocomplete' => array(
+      'title' => '',
+      'page callback' => 'scratchpads_statistics_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'scratchpads_statistics.pages.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function scratchpads_statistics_user_login(&$edit, $account){
+  // Check to see if we already have this user's details.
+  $row = db_select('scratchpads_statistics_user', 'u')->fields('u')->condition('email', $account->mail)->execute()->fetch();
+  // Stop if we already have the data.
+  if($row && $row->latitude){
+    return;
+  }
+  // We're here, we need to save the data.
+  $name = $account->name;
+  $country = NULL;
+  $latitude = NULL;
+  $longitude = NULL;
+  $lang_given_names = field_language('user', $account, 'field_user_given_names');
+  $lang = field_language('user', $account, 'field_user_family_name');
+  if(@isset($account->field_user_family_name[$lang][0]['value']) && isset($account->field_user_given_names[$lang_given_names][0]['value'])){
+    $name = trim($account->field_user_given_names[$lang_given_names][0]['value'] . ' ' . $account->field_user_family_name[$lang][0]['value']);
+  }
+  $lang = field_language('user', $account, 'field_user_country');
+  if(@isset($account->field_user_country[$lang][0]['iso2'])){
+    $country = $account->field_user_country[$lang][0]['iso2'];
+  }
+  // Do a GeoIP lookup on the remote hostname.
+  $request = drupal_http_request('http://freegeoip.net/json/' . $_SERVER['REMOTE_ADDR'], array(
+    'timeout' => 3
+  ));
+  if($request->code == 200){
+    $geoip = json_decode($request->data, 1);
+    $latitude = $geoip['latitude'];
+    $longitude = $geoip['longitude'];
+  }
+  $query = db_merge('scratchpads_statistics_user')->key(array(
+    'email' => $account->mail
+  ))->fields(array(
+    'name' => $name,
+    'email' => $account->mail,
+    'country' => $country,
+    'latitude' => $latitude,
+    'longitude' => $longitude
+  ))->execute();
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ */
+function scratchpads_statistics_query_scratchpads_statistics_alter(QueryAlterableInterface $query){
+  // If we're here, we should have one table, and possibly one field. We look
+  // through each of the fields for the "entity_id" field, and this is then used
+  // to left-join to the field_taxonomic_name table.
+  foreach($query->getTables() as $table){
+    // Add all the fields.
+    $query->fields($table['alias']);
+    // Join to the field_data_field_taxonomic_name table to allow us to count
+    // terms.
+    foreach($query->getFields() as $field){
+      if($field['alias'] == 'entity_id'){
+        break;
+      }
+    }
+    // Join to the field taxonomic name table.
+    $query->leftJoin('field_data_field_taxonomic_name', 'f', "f.entity_id = {$table['alias']}.{$field['field']}");
+    $query->fields('f', array(
+      'field_taxonomic_name_tid'
+    ));
+    $query->leftJoin('taxonomy_term_data', 't', 't.tid = f.field_taxonomic_name_tid');
+    $query->leftJoin('scratchpads_statistics_term', 'sst', 'sst.term LIKE t.name');
+    $query->addField('sst', 'id', 'ss_term_id');
+    // Join to the scratchpads_statistics_user table via the user table.
+    $query->innerJoin('users', 'u', "u.uid = {$table['alias']}.uid");
+    $query->innerJoin('scratchpads_statistics_user', 'ssu', 'ssu.email = u.mail');
+    $query->addField('ssu', 'id', 'ss_user_id');
+    if($table['table'] == 'node'){
+      // Join to the counter table, allowing it to not include a count for all
+      // nodes.
+      $query->leftJoin('node_counter', 'nc', "nc.nid = {$table['alias']}.nid");
+      $query->fields('nc', array(
+        'totalcount'
+      ));
+      // Join to the revisions table.
+      // FIXME this should work with all entities that support revisions (e.g.
+      // the character project).
+      $query->innerJoin('node_revision', 'nr', "nr.nid = {$table['alias']}.nid");
+      $query->addField('nr', 'uid', 'revision_uid');
+      // Join to the scratchpads_statistics_user table again, but for the
+      // revision
+      // user
+      $query->innerJoin('users', 'ru', 'ru.uid = nr.uid');
+      $query->innerJoin('scratchpads_statistics_user', 'ssu_r', 'ssu_r.email = ru.mail');
+      $query->addField('ssu_r', 'id', 'ss_revision_user_id');
+    }
+  }
+}
+
+/**
+ * Basic function that seems to be missing to deliver JSON to the browser or to
+ * another service. Based on ajax_delver (see documentation there).
+ */
+function json_deliver($json){
+  if($json == MENU_ACCESS_DENIED){
+    $json = array(
+      'ACCESS DENIED'
+    );
+  }
+  $iframe_upload = !empty($_POST['ajax_iframe_upload']);
+  if(is_null(drupal_get_http_header('Content-Type'))){
+    if(!$iframe_upload){
+      drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+    }else{
+      drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+    }
+  }
+  drupal_alter('json', $json);
+  $json = drupal_json_encode($json);
+  if(!$iframe_upload){
+    print $json;
+  }else{
+    print '<textarea>' . $json . '</textarea>';
+  }
+  ajax_footer();
+}
+
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_statistics_permission(){
+  return array(
+    'administer scratchpads statistics' => array(
+      'title' => t('Administer scratchpads statistics')
+    )
+  );
+}
+
+/**
+ * Access callback for the JSON page.
+ */
+function scratchpads_statistics_access(){
+  // We allow access from Quartz and from localhost. Anybody else must
+  // authenticate using a hash.
+  if(in_array($_SERVER['REMOTE_ADDR'], array(
+    '127.0.0.1',
+    '157.140.2.32',
+    '157.140.127.32',
+    '157.140.127.252'
+  )) || (isset($_GET['hash']) && md5($_GET['hash']) == variable_get('scratchpads_statistics_hash', uniqid(NULL, TRUE)))){
+    return TRUE;
+  }
+  return FALSE;
+}

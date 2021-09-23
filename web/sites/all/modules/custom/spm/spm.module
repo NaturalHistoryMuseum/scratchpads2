@@ -1,0 +1,148 @@
+<?php
+include_once ('spm.features.inc');
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function spm_form_spm_node_form_alter(&$form, &$form_state, $form_id){
+  $field_info = field_info_field('field_taxonomic_name');
+  if(!$field_info['settings']['allowed_values'][0]['vocabulary'] || $field_info['settings']['allowed_values'][0]['vocabulary'] == '__temporary__'){
+    drupal_set_message(t('You must <a href="!add_taxonomy_url">create a biological classification</a> before you can add a taxon description.', array(
+      '!add_taxonomy_url' => url('admin/structure/taxonomy/add')
+    )), 'error');
+    drupal_goto('admin/content');
+  }
+  foreach($form as $key => $possible_field){
+    $variable_name = '_spm' . $key;
+    $is_var = variable_get($variable_name, TRUE);
+    if(substr($key, 0, 6) == 'field_'){
+      $form[$key]['#attributes']['class'][] = 'taxon_field_wrapper';
+    }
+    if($is_var == '0'){
+      $form[$key]['#attributes']['class'][] = 'unused_text_field';
+    }
+  }
+  $form['#attached']['css'][] = drupal_get_path('module', 'spm') . '/css/spm.css';
+  $form['#attached']['js'][] = drupal_get_path('module', 'spm') . '/js/spm_config.js';
+}
+
+/**
+ * Implements hook_menu().
+ */
+function spm_menu(){
+  $items['admin/config/user-interface/taxon-description-settings'] = array(
+    'title' => 'Taxon description editor settings',
+    'description' => 'Choose which fields are visible on the taxon descriptions editing page.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      '_spm_form_builder'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'administer content types'
+    ),
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+/**
+ * Create an admin form for taxon description fields
+ */
+function _spm_form_builder(){
+  $data = field_info_instances("node", 'spm');
+  $form['instructions'] = array(
+    '#markup' => t('<p>Please choose the fields that you would like to appear on the taxon descriptions editing form. If unchecked, the field will not
+        appear on the editing page, even if the field has content.</p><br />')
+  );
+  $form_build = array();
+  foreach($data as $key => $single_field){
+    if($single_field['required'] == 0){
+      if($field_group = field_get_field_group($single_field)){
+        $single_field['group_name'] = $field_group->group_name;
+        $single_field['group_label'] = $field_group->label;
+        $single_field['group_weight'] = $field_group->weight;
+      }
+      if($single_field['group_weight'] == ''){
+        $single_field['group_weight'] = -10;
+      }
+      // Build an array for display
+      $form_build[$single_field['group_weight']][$single_field['group_label']][] = $single_field;
+    }
+  }
+  ksort($form_build);
+  foreach($form_build as $key => $fieldgroup){
+    $field_label = key($fieldgroup);
+    if($field_label != ''){
+      $form[$field_label] = array(
+        '#type' => 'fieldset',
+        '#title' => $field_label,
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE
+      );
+    }
+    $array_of_fields = $fieldgroup[$field_label];
+    // Sort them by weight and alphabetically
+    usort($array_of_fields, "_spm_compare");
+    foreach($array_of_fields as $onefield){
+      $variable_name = '_spm' . $onefield['field_name'];
+      $form[$field_label][$variable_name] = array(
+        '#type' => 'checkbox',
+        '#title' => $onefield['label'],
+        '#default_value' => variable_get($variable_name, true),
+        '#description' => $onefield['description']
+      );
+    }
+  }
+  return system_settings_form($form);
+}
+
+/**
+ * Helper function, compares fields by weight and alphabetically
+ */
+function _spm_compare($field_one, $field_two){
+  $comp1 = $field_one['display']['default']['weight'];
+  $comp2 = $field_two['display']['default']['weight'];
+  if($comp1 == $comp2){
+    return strcmp($field_one['label'], $field_two['label']);
+  }
+  return ($comp1 < $comp2) ? -1 : 1;
+}
+
+/**
+ * Get the field group of a field
+ */
+function field_get_field_group($field){
+  $group_info = field_group_read_groups(array(
+    'entity_type' => $field['entity_type'],
+    'bundle' => $field['bundle']
+  ));
+  foreach($group_info[$field['entity_type']][$field['bundle']]['form'] as $group){
+    if(in_array($field['field_name'], $group->children)){
+      return $group;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_taxonomy_term_update()
+ */
+function spm_taxonomy_term_update($term){
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node');
+  $query->propertyCondition('status', 1);
+  $query->propertyCondition('type', 'spm');
+  $query->fieldCondition('field_taxonomic_name', 'tid', $term->tid, '=');
+  $result = $query->execute();
+
+  if(!isset($result['node'])) {
+    return;
+  }
+
+  $nodes = node_load_multiple(array_keys($result['node']));
+  foreach($nodes as $node){
+    $node->title = $term->name;
+    node_save($node);
+  }
+}

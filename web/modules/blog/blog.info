@@ -1,0 +1,11 @@
+name = Blog
+description = Enables multi-user blogs.
+package = Core
+version = VERSION
+core = 7.x
+files[] = blog.test
+
+; Information added by Drupal.org packaging script on 2021-01-20
+version = "7.78"
+project = "drupal"
+datestamp = "1611162699"

@@ -1,0 +1,202 @@
+<?php
+
+/**
+ * Implements hook_biblio_autocomplete_info().
+ * 
+ * @return $fields
+ *   An array of Biblio fields with associated autocomplete data.
+ *   Format: 
+ *     'biblio_field_to_autocomplete' => array('function' => 'autocomplete_callback_function')
+ */
+function biblio_ipni_biblio_autocomplete_info(){
+	$fields = array(
+	  'biblio_secondary_title' => array('function' => 'biblio_ipni_autocomplete_publication'),
+	  'biblio_alternate_title' => array('function' => 'biblio_ipni_autocomplete_publication'),
+	  'biblio_original_publication' => array('function' => 'biblio_ipni_autocomplete_publication'),
+	  'biblio_short_title' => array('function' => 'biblio_ipni_autocomplete_short_publication'),
+	  'title' => array('function' => 'biblio_ipni_autocomplete_publication'),
+	  'biblio_authors' => array('function' => 'biblio_ipni_autocomplete_author_short'),
+	);
+	return $fields;
+}
+
+/**
+ * 
+ * Gets a list of potential publication matches for the autocomplete
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $return_matches
+ *   An array of autocomplete results for use in biblio_autocomple_json().
+ *   Format: 
+ *     array(
+ *       'key' => 'value to put in biblio field', 
+ *       'description' => 'can be the same as key or contain extra information to help use decide', 
+ *       'provider' => 'source of the autocmplete information',
+ *     )
+ */
+function biblio_ipni_autocomplete_publication($string){
+  $ipni_matches = biblio_ipni_get_publication_data($string);
+  $return_matches = array();
+  foreach($ipni_matches as $result){
+    $return_matches[] = array(
+      'key' => $result[3],
+      'description' => $result[3],
+      'provider' => 'IPNI',
+    );
+  }
+  return $return_matches;
+}
+
+/**
+ * 
+ * Gets a list of potential short (abbreviated) publication matches for the autocomplete
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $return_matches
+ *   An array of autocomplete results for use in biblio_autocomple_json().
+ *   Format: 
+ *     array(
+ *       'key' => 'value to put in biblio field', 
+ *       'description' => 'can be the same as key or contain extra information to help use decide', 
+ *       'provider' => 'source of the autocmplete information',
+ *     )
+ */
+function biblio_ipni_autocomplete_short_publication($string){
+  $ipni_matches = biblio_ipni_get_publication_data_short($string);
+  foreach($ipni_matches as $result){
+    $return_matches[] = array(
+      'key' => $result[2],
+      'description' =>     $result[2] . ' | ' . $result[3],
+      'provider' => 'IPNI',
+    );
+    
+
+  }
+  return $return_matches;
+}
+
+/**
+ * 
+ * Function to get publication data from IPNI
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $ipni_matches
+ *   An array of matched data from IPNI
+ */
+function biblio_ipni_get_publication_data($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_title=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = biblio_ipni_process_file($ipni_result);
+  return $ipni_matches;
+}
+
+/**
+ * 
+ * Function to get short publication data from IPNI
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $ipni_matches
+ *   An array of matched data from IPNI
+ */
+function biblio_ipni_get_publication_data_short($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = biblio_ipni_process_file($ipni_result);
+  return $ipni_matches;
+}
+
+/**
+ * 
+ * Gets a list of potential author matches for the autocomplete
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $return_matches
+ *   An array of autocomplete results for use in biblio_autocomple_json().
+ *   Format: 
+ *     array(
+ *       'key' => 'value to put in biblio field', 
+ *       'description' => 'can be the same as key or contain extra information to help use decide', 
+ *       'provider' => 'source of the autocmplete information',
+ *     )
+ */
+function biblio_ipni_autocomplete_author_short($string){
+  $ipni_matches = biblio_ipni_get_author_data($string);
+  foreach($ipni_matches as $result){
+    $return_matches[$result[5]] = $result[2];
+    $return_matches[] = array(
+      'key' => $result[5],
+      'description' => $result[2],
+      'provider' => 'IPNI',
+    );
+  }
+  return $return_matches;
+}
+
+/**
+ * 
+ * Function to get author data from IPNI
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $ipni_matches
+ *   An array of matched data from IPNI
+ */
+function biblio_ipni_get_author_data($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advAuthorSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = biblio_ipni_process_file($ipni_result);
+  return $ipni_matches;
+}
+
+/**
+ * 
+ * IPNI data is delimited by newlines and the % character, this function parses
+ * this format into an array
+ * 
+ * @param $file
+ *   Input file from IPNI
+ *   
+ * @return $ipni_matches
+ *   An array of data parsed from $file
+ */
+function biblio_ipni_process_file($file){
+  $ipni_result = explode("\n", $file);
+  $i = 0;
+  $ipni_matches = array();
+  foreach($ipni_result as $result){
+    $i++;
+    $ipni_matches[] = explode('%', $result);
+    if($i > 10){
+      break;
+    }
+  }
+  array_shift($ipni_matches);
+  array_walk($ipni_matches, 'biblio_ipni_clean');
+  return $ipni_matches;
+}
+
+
+/**
+ * 
+ * Function called by array_walk() in biblio_ipni_process_file() to remove
+ * artefacts from the IPNI data
+ * 
+ * @param $value
+ */
+function biblio_ipni_clean(&$value){
+  if(is_array($value)){
+    array_walk($value, 'biblio_ipni_clean');
+  }else{
+    if(substr($value, 0, 1) == '>'){
+      $value = substr($value, 1);
+    }
+  }
+}

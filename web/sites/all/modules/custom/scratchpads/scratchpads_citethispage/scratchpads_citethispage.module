@@ -1,0 +1,470 @@
+<?php
+require_once (str_replace('.module', '.authors.inc', __FILE__));
+if(!defined('CITE_URL')) {
+  define('CITE_URL', 'cite.scratchpads.org');
+}
+DEFINE('CITE_SCRATCHPADS_EU_HOST_DEFAULT', 'http://' . CITE_URL);
+DEFINE('CITE_SCRATCHPADS_EU_GENERATE_DEFAULT', CITE_SCRATCHPADS_EU_HOST_DEFAULT.'/generate');
+DEFINE('CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT', CITE_SCRATCHPADS_EU_HOST_DEFAULT.'/preview');
+DEFINE('CITE_SCRATCHPADS_EU_TIMEOUT', 20);
+
+/**
+ * Implement hook_block_info_alter
+ *
+ * Place the block in the slide top region
+ */
+function scratchpads_citethispage_block_info_alter(&$blocks, $theme, $code_blocks){
+  if($theme == SCRATCHPADS_THEME_NAME){
+    $blocks['citethispage']['citethispage_block']['status'] = 1;
+    $blocks['citethispage']['citethispage_block']['region'] = 'slide_top';
+    $blocks['citethispage']['citethispage_block']['weight'] = 2;
+  }
+}
+
+/**
+ * Implement hook_block_citethispage_citethispage_block_alter
+ *
+ * Re-organise the block to add sliding functionality
+ */
+function scratchpads_citethispage_block_view_citethispage_citethispage_block_alter(&$data, $block){
+  if(!$data){return;}
+  $data['content'] = array(
+    '#prefix' => '<div class="scratchpads-slide-toggle-container">',
+    '#suffix' => '</div>',
+    'link' => array(
+      '#markup' => l(t('Cite me'), '#', array(
+        'attributes' => array(
+          'class' => array(
+            'scratchpads-slide-toggle'
+          )
+        )
+      ))
+    ),
+    'body' => array(
+      '#prefix' => '<div class="scratchpads-slide-toggle-body">',
+      '#suffix' => '</div>',
+      'sub' => $data['content']
+    ),
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_citethispage') . '/scratchpads_citethispage.css'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_citethispage_info
+ */
+function scratchpads_citethispage_citethispage_info(){
+  $host = variable_get('scratchpads_citethispage_cite_host_url', CITE_SCRATCHPADS_EU_HOST_DEFAULT);
+  return array(
+    'scratchpads_citethispage' => array(
+      'parse' => array(
+        'taxonomy/term/%' => array(
+          'title' => t('Taxonomy term (main)'),
+          'description' => t('Gather information from the main taxonomy term page'),
+          'callback' => 'scratchpads_citethispage_parse_taxonomy_term'
+        ),
+        'taxonomy/term/%/%' => array(
+          'title' => t('Taxonomy term (tabs)'),
+          'description' => t('Gather information from the taxonomy term tabs'),
+          'callback' => 'scratchpads_citethispage_parse_taxonomy_term'
+        ),
+        'node/%' => array(
+          'title' => t('Node page information parser (Scratchpads)'),
+          'description' => t('Parses author and title information from node pages. Scratchpads aware version.'),
+          'default' => variable_get('citethispage_nodes_default', 0),
+          'callback' => 'scratchpads_citethispage_nodes_parse_callback'
+        ),
+        'character-editor-project/%' => array(
+          'title' => t('Character editor page information parser'),
+          'description' => t('Returns the author(s) of the character project'),
+          'callback' => 'scratchpads_citethispage_parse_character_editor'
+        )
+      ),
+      'archive' => array(
+        'title' => t(CITE_URL),
+        'description' => t('Generate a PDF snapshot on !host', array(
+          '!host' => l($host, $host)
+        )),
+        'callback' => 'scratchpads_citethispage_archive'
+      )
+    )
+  );
+}
+
+/**
+ * scratchpads_citethispage_parse_taxonomy_term
+ */
+function scratchpads_citethispage_parse_taxonomy_term($path, $page){
+  $matches = array();
+  if(!preg_match('/^taxonomy\/term\/(\d+)(\/(\w+))?$/', $path, $matches)){return FALSE;}
+  $tid = $matches[1];
+  $sub = isset($matches[3]) ? $matches[3] : 'overview';
+  $term = taxonomy_term_load($tid);
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  if(!$term || (isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid])){return FALSE;}
+  if(!scratchpads_species_term_is_biological_classification($term)){return FALSE;}
+  // Prepare authors information
+  $author_data = _scratchpads_citethispage_list_authors();
+  return array(
+    'taxonomy_term' => array(
+      $tid => array_merge($author_data, array(
+        'title' => (isset($page['title']) && isset($page['subtitle'])) ? strip_tags($page['title'] . ' ' . $page['subtitle']) : $term->name
+      ))
+    )
+  );
+}
+
+/**
+ * citethispage_nodes_parse_callback
+ */
+function scratchpads_citethispage_nodes_parse_callback($path, $page){
+  $result = FALSE;
+  if(preg_match('/^node\/(\d+)$/', $path, $matches)){
+    $nid = $matches[1];
+    $node = node_load($nid);
+    if($node->type != 'biblio'){
+      $item = array();
+      $item['title'] = $node->title;
+      $item = array_merge($item, _scratchpads_citethispage_authors_of_entity('node', $nid));
+      $result = array(
+        'nodes' => array(
+          $node->uid => $item
+        )
+      );
+    }
+  }
+  return $result;
+}
+
+/**
+ * scratchpads_citethispage_parse_character_editor
+ */
+function scratchpads_citethispage_parse_character_editor($path, $page){
+  $result = FALSE;
+  if(preg_match('/^character-editor-project\/(\d+)$/', $path, $matches)){
+    $eid = $matches[1];
+    $entity = entity_load_single('character_editor_project', array(
+      $eid
+    ));
+    $item = array();
+    $item['title'] = $entity->title;
+    $item = array_merge($item, _scratchpads_citethispage_authors_of_entity('character_editor_project', $eid));
+    $result = array(
+      'character_editor_project' => array(
+        $eid => $item
+      )
+    );
+  }
+  return $result;
+}
+
+/**
+ * Implements hook_init
+ *
+ * This is used to add a message on snapshots
+ */
+function scratchpads_citethispage_init(){
+  if(!empty($_POST['scratchpads_citethispage_msg_token'])){
+    $token = $_POST['scratchpads_citethispage_msg_token'];
+    $tokens = variable_get('scratchpads_citethispage_tokens', array());
+    if(isset($tokens[$token])){
+      module_invoke_all('citethispage_snapshot');
+      if(isset($_REQUEST['archive_url'])){
+        $archive_url = $_REQUEST['archive_url'];
+        $archive_url = l($archive_url, $archive_url);
+      }else{
+        $archive_url = t('(unknown)');
+      }
+      $absolute = url(current_path(), array(
+        'absolute' => TRUE
+      ));
+      if(!empty($tokens[$token]['preview'])){
+        $message = '<strong>[PREVIEW MODE]</strong><br/>';
+        $archive_url = '[...]';
+      }else{
+        $message = '';
+      }
+      $message .= t('This is a snapshot of the "@site_name" page located at !page_url, generated on @date and permanently archived at !archive_url.', array(
+        '@site_name' => variable_get('site_name', 'Scratchpads'),
+        '@date' => date('r', time()),
+        '!page_url' => l($absolute, $absolute),
+        '!archive_url' => $archive_url
+      ));
+      $message .= '<br/><br/>';
+      $message .= t('Please cite this page as:') . '<br/>';
+      $message .= t('@author_list (@year) @title_of_page in %site_name. !archive_url last accessed on @time.', array(
+        '@author_list' => $tokens[$token]['author_list'],
+        '@year' => date('Y', time()),
+        '@title_of_page' => $tokens[$token]['title_of_page'],
+        '%site_name' => variable_get('site_name', 'Scratchpads'),
+        '!archive_url' => $archive_url,
+        '@time' => date('r', time())
+      ));
+      drupal_set_message($message);
+      // Set the slickgrid height/tab/filters if required
+      if(!empty($tokens[$token]['slick_state'])){
+        drupal_add_js(array(
+          'scratchpads_citethispage' => array(
+            'restore_state' => TRUE,
+            'slick_state' => json_decode($tokens[$token]['slick_state'])
+          )
+        ), 'setting');
+      }
+      // Set the gmap bounds if required
+      if(!empty($tokens[$token]['gmap_state'])){
+        drupal_add_js(array(
+          'scratchpads_citethispage' => array(
+            'restore_state' => TRUE,
+            'gmap_state' => json_decode($tokens[$token]['gmap_state'])
+          )
+        ), 'setting');
+      }
+      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/pagestate.js');
+      // Note that we don't need to delete the token here - the call is synchronous,
+      // and the deletion is done by the caller.
+    }
+  }
+}
+
+/**
+ * _scratchpads_citethispage_concat_results
+ *
+ * This concatenates the results from the path parsers
+ * into single values
+ */
+function _scratchpads_citethispage_concat_results($results){
+  // Agregate the information
+  $title = array();
+  $date = array();
+  $authors_short = array(
+    'initial' => array(),
+    'others' => array()
+  );
+  $authors_full = array(
+    'initial' => array(),
+    'others' => array()
+  );
+  foreach($results as $group => $group_results){
+    foreach($group_results as $item_id => $item_results){
+      if(!empty($item_results['title'])){
+        $title[] = $item_results['title'];
+      }
+      $authors_short = array_merge_recursive($authors_short, $item_results['authors']);
+      $authors_full = array_merge_recursive($authors_full, $item_results['full_authors']);
+    }
+  }
+  // Prepare the authors
+  $authors_short['initial'] = array_unique(array_filter($authors_short['initial']));
+  sort($authors_short['initial']);
+  $authors_short['others'] = array_diff(array_unique(array_filter($authors_short['others'])), $authors_short['initial']);
+  sort($authors_short['others']);
+  $authors_full['initial'] = array_map('unserialize', array_unique(array_map('serialize', array_filter($authors_full['initial']))));
+  sort($authors_full['initial']);
+  $authors_full['others'] = array_map('unserialize', array_diff(array_unique(array_map('serialize', array_filter($authors_full['others']))), array_map('serialize', $authors_full['initial'])));
+  sort($authors_full['others']);
+  $citation_authors = array_merge($authors_short['initial'], $authors_short['others']);
+  $citation_author_list = implode(', ', array_slice($citation_authors, 0, 3));
+  if(count($citation_authors) > 3){
+    $citation_author_list .= ' ' . t('et al.');
+  }
+  return array(
+    'title' => html_entity_decode(str_replace('&nbsp;', ' ', implode(' ', $title))),
+    'date' => date('r', time()),
+    'date_data' => array(
+      time()
+    ),
+    'authors' => $citation_author_list,
+    'author_data' => $authors_full
+  );
+}
+
+/**
+ * scratchpads_citethispage_archive
+ */
+function scratchpads_citethispage_archive($path, $context, $preview = FALSE){
+  // Read the results, and extract title, authors and date
+  $results = _scratchpads_citethispage_concat_results($context['results']);
+  // Read the open tids
+  $open_tids = '';
+  if(!empty($context['form_state']['values']['citethispage_open_tids'])){
+    $open_tids = '&open_tids=' . urlencode($context['form_state']['values']['citethispage_open_tids']);
+  }
+  // Prepare the token used to inject a message on the page
+  $rand_token_id = substr(md5(rand()), 0, 7);
+  $tokens = variable_get('scratchpads_citethispage_tokens', array());
+  $token = array(
+    'timestamp' => time(),
+    'preview' => $preview,
+    'author_list' => $results['authors'],
+    'title_of_page' => $results['title']
+  );
+  if(!empty($context['form_state']['values']['citethispage_slick_state'])){
+    $token['slick_state'] = $context['form_state']['values']['citethispage_slick_state'];
+  }
+  if(!empty($context['form_state']['values']['citethispage_gmap_state'])){
+    $token['gmap_state'] = $context['form_state']['values']['citethispage_gmap_state'];
+  }
+  $tokens[$rand_token_id] = $token;
+  variable_set('scratchpads_citethispage_tokens', $tokens);
+  // Prepare the rest of the data
+  $arguments = array(
+    'url' => url($path, array(
+      'absolute' => TRUE
+    )),
+    'title' => (empty($results['title'])?t('No title'):$results['title']),
+    'site' => variable_get('site_name', 'Scratchpads'),
+    'date' => $results['date'],
+    'date_data' => serialize($results['date_data']),
+    'author' => $results['authors'],
+    'author_data' => serialize($results['author_data']),
+    'post' => 'scratchpads_citethispage_msg_token=' . urlencode($rand_token_id) . $open_tids
+  );
+  $arguments_str = http_build_query($arguments, '', '&');
+  // Invoke the cite.scratchpads.org service
+  if(!$preview){
+    $cite_service_url = variable_get('scratchpads_citethispage_cite_service_url', CITE_SCRATCHPADS_EU_GENERATE_DEFAULT);
+  }else{
+    $cite_service_url = variable_get('scratchpads_citethispage_cite_preview_url', CITE_SCRATCHPADS_EU_PREVIEW_DEFAULT);
+  }
+  $http_request = drupal_http_request($cite_service_url, array(
+    'method' => 'POST',
+    'headers' => array(
+      'Content-type' => 'application/x-www-form-urlencoded',
+      'Content-Length' => strlen($arguments_str)
+    ),
+    'data' => $arguments_str,
+    'timeout' => CITE_SCRATCHPADS_EU_TIMEOUT
+  ));
+  if($http_request){
+    $cite_result = json_decode($http_request->data);
+  }
+  if(!$preview){
+    if(empty($cite_result->status)){
+      drupal_set_message(t("There was an error generating the PDF citation: %error", array(
+        '%error' => isset($cite_result->error) ? $cite_result->error : ''
+      )), 'error');
+    }else{
+      $documents = array();
+      if(isset($cite_result->pdf)){
+        $documents[] = t('The URL of the citation is !url', array(
+          '!url' => l($cite_result->pdf, $cite_result->pdf)
+        ));
+      }
+      if(isset($cite_result->bibtex)){
+        $documents[] = t('You can download the bibtex entry for that citation at !url', array(
+          '!url' => l($cite_result->bibtex, $cite_result->bibtex)
+        ));
+      }
+      if(isset($cite_result->endnote)){
+        $documents[] = t('You can download the EndNote XML entry for that citation at !url', array(
+          '!url' => l($cite_result->endnote, $cite_result->endnote)
+        ));
+      }
+      if(isset($cite_result->ris)){
+        $documents[] = t('You can download the RIS entry for that citation at !url', array(
+          '!url' => l($cite_result->ris, $cite_result->ris)
+        ));
+      }
+      // Output a message with all required information
+      $message = t("The citation was generated successfully.") . '<br/><br/>';
+      $message .= implode('<br/>', $documents);
+      $message .= '<br/><br/>';
+      $message .= t('Please cite this page as:') . '<br/>';
+      $message .= t('@author_list (@year) @title_of_page in %site_name. !archive_url last accessed on @time.', array(
+        '@author_list' => $results['authors'],
+        '@year' => date('Y', end($results['date_data'])),
+        '@title_of_page' => $results['title'],
+        '%site_name' => variable_get('site_name', 'Scratchpads'),
+        '!archive_url' => !empty($cite_result->pdf) ? l($cite_result->pdf, $cite_result->pdf) : '(unknown)',
+        '@time' => date('r', time())
+      ));
+      drupal_set_message($message);
+    }
+  }else if(!empty($cite_result->status) && !empty($cite_result->png)){return $cite_result->png;}
+}
+
+/**
+ * Implement hook_scratchpads_default_permissions
+ */
+function scratchpads_citethispage_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'citethispage_cite'
+    ),
+    'maintainer' => array(
+      'citethispage_admin'
+    )
+  );
+}
+
+/**
+ * Implement hook_form_citethispage_backend_selection_form_alter
+ */
+function scratchpads_citethispage_form_citethispage_backend_selection_form_alter(&$form, &$form_state){
+  if($form_state['citethispage_backend_handler'] == 'scratchpads_citethispage'){
+    // Add preview button if applicable
+    global $user;
+    if($user->uid > 0){
+      drupal_add_library('system', 'ui.dialog');
+      drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/preview.js');
+      $warn = NULL;
+      if(isset($form['warn'])){
+        $warn = $form['warn'];
+        unset($form['warn']);
+      }
+      $form['preview'] = array(
+        '#type' => 'button',
+        '#value' => t('Preview'),
+        '#ajax' => array(
+          'callback' => 'scratchpads_citethispage_preview_ajax'
+        )
+      );
+      if($warn){
+        $form['warn'] = $warn;
+      }
+    }
+    // Add code to parse tinytax block, slickgrid and gmap settings so we can replicate the page
+    drupal_add_js(drupal_get_path('module', 'scratchpads_citethispage') . '/js/pagestate.js');
+    $states = array(
+      'citethispage_open_tids',
+      'citethispage_slick_state',
+      'citethispage_gmap_state'
+    );
+    foreach($states as $state){
+      $default_value = '';
+      if(isset($form_state['values'][$state])){
+        $default_value = $form_state['values'][$state];
+      }
+      $form[$state] = array(
+        '#type' => 'hidden',
+        '#default_value' => $default_value
+      );
+    }
+  }
+}
+
+/**
+ * scractchpads_citethispage_preview_ajax
+ */
+function scratchpads_citethispage_preview_ajax($form, &$form_state){
+  // Generate a preview
+  $path = $form_state['values']['path'];
+  $context = array(
+    'results' => citethispage_get_parse_result($path),
+    'form_state' => $form_state
+  );
+  $preview_path = scratchpads_citethispage_archive($path, $context, TRUE);
+  $form_state['scratchpads_citethispage_preview'] = $preview_path;
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'scratchpadsCitethispagePreview',
+        'path' => $form_state['scratchpads_citethispage_preview']
+      )
+    )
+  );
+}

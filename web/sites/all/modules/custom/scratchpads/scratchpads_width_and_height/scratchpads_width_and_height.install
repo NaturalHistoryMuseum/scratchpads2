@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_width_and_height_install(){
+  scratchpads_width_and_height_update_7001();
+}
+
+/**
+ * Impementation of hook_schema().
+ */
+function scratchpads_width_and_height_schema(){
+  module_load_include('install', 'system');
+  $system_schema = system_schema();
+  $schema = array();
+  $schema['cache_image_sizes'] = $system_schema['cache'];
+  $schema['cache_image_sizes']['description'] = 'Cache image sizes so that we don\'t need to load images every time they are viewed just to calculate their sizes.';
+  return $schema;
+}
+
+/**
+ * Force the use of the database cache for cache_image_sizes
+ */
+function scratchpads_width_and_height_update_7001(){
+  variable_set('cache_class_cache_image_sizes', 'DrupalDatabaseCache');
+}

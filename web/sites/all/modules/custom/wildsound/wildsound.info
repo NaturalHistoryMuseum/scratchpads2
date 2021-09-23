@@ -1,0 +1,7 @@
+name = "WildSoundDB Customisations"
+description = "Provides acustomisations for sounds.myspecies.info"
+package = "WildSoundDB"
+dependencies[] = taverna
+dependencies[] = wavesurfer
+dependencies[] = views
+core = 7.x

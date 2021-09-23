@@ -1,0 +1,11 @@
+; $Id$
+name = Biblio ZooBank autocomplete
+description = Allows autocompletion of Biblio fields using ZooBank
+core = 7.x
+dependencies[] = biblio_autocomplete
+package = Biblio
+
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = biblio_zoobank

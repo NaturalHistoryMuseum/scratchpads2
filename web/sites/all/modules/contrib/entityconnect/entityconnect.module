@@ -1,0 +1,269 @@
+<?php
+/**
+ * @file
+ * Handles the main hooks used by entityconnect.
+ *
+ * One will find most of the meet in the form and menu includes.
+ */
+
+/**
+ * Implements hook_permission().
+ *
+ * @return Assoc
+ *   permission items
+ */
+function entityconnect_permission() {
+  return array(
+    'entityconnect add button' => array(
+      'title' => t('Allows users to see add button'),
+      'description' => t('Display the add button for user'),
+    ),
+    'entityconnect edit button' => array(
+      'title' => t('Allows users to see edit button'),
+      'description' => t('Display the edit button for user'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function entityconnect_menu() {
+  $items = array();
+  $items['admin/entityconnect/return/%'] = array(
+    'description' => 'Return item for original entity.',
+    'page callback' => 'entityconnect_return',
+    'page arguments' => array(3),
+    'access callback' => 'entityconnect_check_access',
+    'file' => 'includes/entityconnect.menu.inc',
+  );
+
+  $items['admin/entityconnect/edit/%'] = array(
+    'description' => 'Edit item for entity referenced.',
+    'page callback' => 'entityconnect_edit',
+    'page arguments' => array(3),
+    'access callback' => 'user_access',
+    'access arguments' => array('entityconnect edit button'),
+    'file' => 'includes/entityconnect.menu.inc',
+  );
+
+  $items['admin/entityconnect/add/%'] = array(
+    'title' => "Choose type to create and add",
+    'description' => 'Add item for entity referenced.',
+    'page callback' => 'entityconnect_add',
+    'page arguments' => array(3),
+    'access callback' => 'user_access',
+    'access arguments' => array('entityconnect add button'),
+    'file' => 'includes/entityconnect.menu.inc',
+  );
+  return $items;
+}
+
+/**
+ * Access callback: Used in return menu.
+ */
+function entityconnect_check_access() {
+  if (user_access('entityconnect add button') || user_access('entityconnect edit button')) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_field_attach_form().
+ */
+function entityconnect_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
+  entityconnect_include_form();
+  foreach (_entityconnect_get_ref_fields() as $field_name => $field) {
+    if (isset($form[$field_name])) {
+      _entityconnect_field_attach_form($entity_type, $entity, $form,
+        $form_state, $field_name, $field, $langcode);
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function entityconnect_theme() {
+  $items = array();
+
+  $items['entityconnect_taxonomy_term_add_list'] = array(
+    'arguments' => array('items' => NULL),
+    'file' => 'includes/entityconnect.pages.inc',
+  );
+
+  $items['entityconnect_entity_add_list'] = array(
+    'arguments' => array('items' => NULL, 'cache id' => NULL),
+    'file' => 'includes/entityconnect.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Include the form inc file.
+ *
+ * This can be used in #submit array before the sumbit functions which are
+ * located in the inc file.
+ */
+function entityconnect_include_form() {
+  module_load_include("inc", "entityconnect", "includes/entityconnect.form");
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * If we are adding a new entity we pass of to entityconnect_add_form_alter
+ * if we are returning to the parent form we hand off to
+ * entityconnect_return_form_alter.
+ */
+function entityconnect_form_alter(&$form, &$form_state, $form_id) {
+  $child = isset($_REQUEST['child']);
+
+  // We can get the cid two different ways
+  // first we try the $_REQUEST param.  if we do not getting it from there we
+  // try the arg(3) if we are on a add form.  Also if we are on an add form we
+  // know that we are a child page.
+  if ((isset($_REQUEST['build_cache_id'])
+          && ($cid = $_REQUEST['build_cache_id']))
+          || ((arg(1) == 'add') && ($cid = arg(3)) && $child = TRUE)
+          || ((arg(1) == 'people') && (arg(2) == 'create') && ($cid = arg(3)) && $child = TRUE)
+          || ((arg(2) == 'taxonomy') && (arg(4) == 'add') && ($cid = arg(5)) && $child = TRUE)
+          || ((arg(2) == 'taxonomy') && (arg(3) == 'add') && ($cid = arg(4)) && $child = TRUE)) {
+    $cache = cache_get($cid);
+    entityconnect_include_form();
+    if ($child) {
+      $form_state['#entityconnect_child_form'] = $cache;
+    }
+    if (isset($_REQUEST['return'])) {
+      unset($_REQUEST['build_cache_id']);
+      entityconnect_return_form_alter($form, $form_state, $form_id, $cid, $cache);
+    }
+  }
+
+  // If this for is a child form lets add alter for that purpose
+  // Note that we are doing this here becuase when we retrun to a form it gets
+  // rebuild so this will get caught in the rebuild.
+  if (isset($form_state['#entityconnect_child_form'])) {
+    $cache = $form_state['#entityconnect_child_form'];
+    module_load_include('inc', 'entityconnect', 'includes/entityconnect.form');
+    entityconnect_child_form_alter($form, $form_state, $form_id, $cache->cid, $cache);
+  }
+
+  if ($form_id == 'field_ui_field_edit_form') {
+    // Use to add choice field.
+    if ($form['#field']['type'] == 'entityreference'
+          || $form['#field']['type'] == 'node_reference'
+          || $form['#field']['type'] == 'user_reference') {
+      $instance = $form['#instance'];
+      $field = $form['#field'];
+      $additions = module_invoke('entityconnect', 'field_instance_settings_form', $field, $instance);
+      if (is_array($additions) && isset($form['instance'])) {
+        $form['instance'] += $additions;
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to retieve all allowed entityreference fields.
+ */
+function _entityconnect_get_ref_fields() {
+  $ref_fields = array();
+
+  foreach (field_info_fields() as $id => $field) {
+    // Add support for Entity reference module.
+    if ($field['type'] == 'entityreference' && $field['module'] == 'entityreference') {
+      $entity_reference_info = entityreference_get_selection_handler($field);
+      $entity_type = $entity_reference_info->field['settings']['target_type'];
+      $target_bundle = isset($entity_reference_info->field['settings']['handler_settings']['target_bundles']) ? $entity_reference_info->field['settings']['handler_settings']['target_bundles'] : NULL;
+
+      switch ($entity_type) {
+        case 'user':
+          if (user_access('administer users') && (user_access('entityconnect add button') || user_access('entityconnect edit button'))) {
+            $ref_fields[$id] = $field;
+          }
+          break;
+
+        case 'node':
+          if (isset($target_bundle) && count($target_bundle) == 1) {
+            if ((user_access('create ' . array_pop($target_bundle) . ' content') || user_access('administer nodes'))
+                    && (user_access('entityconnect add button') || user_access('entityconnect edit button'))) {
+              $ref_fields[$id] = $field;
+            }
+          }
+          elseif (user_access('entityconnect add button') || user_access('entityconnect edit button')) {
+            $ref_fields[$id] = $field;
+          }
+          break;
+
+        case 'taxonomy_term':
+          if (user_access('entityconnect add button') || user_access('entityconnect edit button')) {
+            $ref_fields[$id] = $field;
+          }
+          break;
+
+        case 'taxonomy_vocabulary':
+          if (user_access('entityconnect add button') || user_access('entityconnect edit button')) {
+            $ref_fields[$id] = $field;
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    // Add support for Reference module.
+    if (($field['type'] == 'node_reference' && $field['module'] == 'node_reference')
+          || ($field['type'] == 'user_reference' && $field['module'] == 'user_reference')) {
+      $ref_fields[$id] = $field;
+    }
+  }
+  return $ref_fields;
+}
+
+/**
+ * Add settings to an instance field settings form.
+ *
+ * Invoked from field_ui_field_edit_form() to allow the module defining the
+ * field to add settings for a field instance.
+ *
+ * @return array
+ *   The form definition for the field instance settings.
+ */
+function entityconnect_field_instance_settings_form($field, $instance) {
+  $settings = $instance;
+
+  // Add choice for user to not load entity connect "add" button
+  // on the field.
+  $form['entityconnect_unload_add'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display Entity Connect "add" button.'),
+    '#default_value' => !isset ($settings['entityconnect_unload_add']) ? 0 : $settings['entityconnect_unload_add'],
+    '#description' => t('Choose "No" if you want to unload "add" button for the field'),
+    '#options' => array(
+      '0' => t('Yes'),
+      '1' => t('No'),
+    ),
+    '#weight' => 1,
+  );
+
+  // Add choice for user to not load entity connect "edit" button
+  // on the field.
+  $form['entityconnect_unload_edit'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display Entity Connect "edit" button.'),
+    '#default_value' => !isset ($settings['entityconnect_unload_edit']) ? 0 : $settings['entityconnect_unload_edit'],
+    '#description' => t('Choose "No" if you want to unload "edit" button for the field'),
+    '#options' => array(
+      '0' => t('Yes'),
+      '1' => t('No'),
+    ),
+    '#weight' => 1,
+  );
+  return $form;
+}

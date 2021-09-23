@@ -1,0 +1,6 @@
+name = Cite this page PhantomJS
+description = "This module provides a local backend for arching snapshots of pages at a moment in time using PhantomJS"
+core = 7.x
+
+dependencies[] = citethispage
+dependencies[] = token

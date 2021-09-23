@@ -1,0 +1,3 @@
+name = Prepopulate
+description = Allows form elements to be prepopulated from the URL.
+core = 7.x

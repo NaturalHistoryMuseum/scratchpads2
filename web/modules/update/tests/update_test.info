@@ -1,0 +1,11 @@
+name = Update test
+description = Support module for update module testing.
+package = Testing
+version = VERSION
+core = 7.x
+hidden = TRUE
+
+; Information added by Drupal.org packaging script on 2021-01-20
+version = "7.78"
+project = "drupal"
+datestamp = "1611162699"

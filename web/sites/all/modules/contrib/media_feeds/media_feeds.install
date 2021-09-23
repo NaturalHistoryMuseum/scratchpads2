@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Installing and updating media_feeds.
+ */
+
+/**
+ * Rebuild the class registry.
+ */
+function media_feeds_update_7100() {
+  registry_rebuild();
+}

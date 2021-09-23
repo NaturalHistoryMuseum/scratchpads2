@@ -1,0 +1,87 @@
+<html>
+<head>
+    <title>Struts Problem Report</title>
+    <style>
+    	pre {
+	    	margin: 0;
+	        padding: 0;
+	    }    
+    </style>
+</head>
+<body>
+    <h2>Struts Problem Report</h2>
+    <p>
+    Struts has detected an unhandled exception:
+    </p>
+
+
+<div id="exception-info">
+<table>
+    <tr>
+        <td><strong>Messages</strong>:</td>
+        <td>
+                    <li>There is no Action mapped for namespace / and action name wsasdgsdg.</li>
+        </td>
+    </tr>
+    
+</table>
+</div>
+
+
+<div id="stacktraces">
+<hr />
+<h3>Stacktraces</h3>
+<div class="stacktrace" style="padding-left: 0em">
+    <strong>There is no Action mapped for namespace / and action name wsasdgsdg. - [unknown location]</strong>
+    <div>
+    <pre>
+    com.opensymphony.xwork2.DefaultActionProxy.prepare(DefaultActionProxy.java:189)
+    org.apache.struts2.impl.StrutsActionProxy.prepare(StrutsActionProxy.java:61)
+    org.apache.struts2.impl.StrutsActionProxyFactory.createActionProxy(StrutsActionProxyFactory.java:39)
+    com.opensymphony.xwork2.DefaultActionProxyFactory.createActionProxy(DefaultActionProxyFactory.java:58)
+    org.apache.struts2.dispatcher.Dispatcher.serviceAction(Dispatcher.java:488)
+    org.apache.struts2.dispatcher.ng.ExecuteOperations.executeAction(ExecuteOperations.java:77)
+    org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter.doFilter(StrutsPrepareAndExecuteFilter.java:91)
+    com.google.inject.servlet.FilterDefinition.doFilter(FilterDefinition.java:163)
+    com.google.inject.servlet.FilterChainInvocation.doFilter(FilterChainInvocation.java:58)
+    org.gbif.clbportal.filter.CharsetFilter.doFilter(CharsetFilter.java:35)
+    com.google.inject.servlet.FilterDefinition.doFilter(FilterDefinition.java:163)
+    com.google.inject.servlet.FilterChainInvocation.doFilter(FilterChainInvocation.java:58)
+    org.gbif.clbportal.filter.RestfulFilter.doFilter(RestfulFilter.java:86)
+    com.google.inject.servlet.FilterDefinition.doFilter(FilterDefinition.java:163)
+    com.google.inject.servlet.FilterChainInvocation.doFilter(FilterChainInvocation.java:58)
+    com.google.inject.servlet.ManagedFilterPipeline.dispatch(ManagedFilterPipeline.java:118)
+    com.google.inject.servlet.GuiceFilter.doFilter(GuiceFilter.java:113)
+    org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:235)
+    org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:206)
+    org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:233)
+    org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:191)
+    org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:127)
+    org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:102)
+    org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+    org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:298)
+    org.apache.jk.server.JkCoyoteHandler.invoke(JkCoyoteHandler.java:190)
+    org.apache.jk.common.HandlerRequest.invoke(HandlerRequest.java:291)
+    org.apache.jk.common.ChannelSocket.invoke(ChannelSocket.java:769)
+    org.apache.jk.common.ChannelSocket.processConnection(ChannelSocket.java:698)
+    org.apache.jk.common.ChannelSocket$SocketConnection.runIt(ChannelSocket.java:891)
+    org.apache.tomcat.util.threads.ThreadPool$ControlRunnable.run(ThreadPool.java:690)
+    java.lang.Thread.run(Thread.java:662)
+    </pre>
+    </div>
+</div>
+</div>
+
+<div class="footer">
+<hr />
+<p>
+You are seeing this page because development mode is enabled.  Development mode, or devMode, enables extra
+debugging behaviors and reports to assist developers.  To disable this mode, set:
+<pre>
+  struts.devMode=false
+</pre>
+in your <code>WEB-INF/classes/struts.properties</code> file.
+</p>
+</div>
+</body>
+</html>

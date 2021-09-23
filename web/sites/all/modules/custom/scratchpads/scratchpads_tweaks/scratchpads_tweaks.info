@@ -1,0 +1,122 @@
+name = Scratchpads tweaks
+description = Tweaks a Drupal site into a Scratchpad
+core = 7.x
+
+; Features
+features[menu_links][] = "management:http://help.scratchpads.eu/"
+
+; Files
+files[] = tests/scratchpads_tweaks.test
+
+; Drupal core
+dependencies[] = block
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = syslog
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = filter
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = overlay
+dependencies[] = rdf
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = statistics
+dependencies[] = taxonomy
+dependencies[] = toolbar
+dependencies[] = update
+
+; Contrib
+dependencies[] = advanced_help
+dependencies[] = advagg
+dependencies[] = ajaxblocks
+dependencies[] = ckeditor
+dependencies[] = clone
+dependencies[] = comment_notify
+dependencies[] = dictionary_export
+dependencies[] = diff
+dependencies[] = emptyparagraphkiller
+dependencies[] = entitycache
+dependencies[] = entityconnect
+dependencies[] = feeds_oai_pmh
+dependencies[] = globalredirect
+dependencies[] = gravatar
+dependencies[] = httprl
+dependencies[] = imagemagick
+dependencies[] = link
+dependencies[] = linkit
+dependencies[] = media_multiselect
+dependencies[] = plupload
+dependencies[] = remember_me
+dependencies[] = role_delegation
+dependencies[] = uuid
+dependencies[] = varnish
+dependencies[] = weight
+
+; Scratchpads modules
+dependencies[] = scratchpads_apachesolr_instant
+dependencies[] = scratchpads_autotag
+dependencies[] = scratchpads_backend
+dependencies[] = scratchpads_backup
+dependencies[] = scratchpads_biblio
+dependencies[] = scratchpads_biblio_autocomplete_tweak
+dependencies[] = scratchpads_biblio_search
+dependencies[] = scratchpads_blocks
+dependencies[] = scratchpads_classification_service_client
+dependencies[] = scratchpads_cleanup
+dependencies[] = scratchpads_colour
+dependencies[] = scratchpads_contact
+dependencies[] = scratchpads_data_integrity
+dependencies[] = scratchpads_error
+dependencies[] = scratchpads_file_colorboxed
+dependencies[] = scratchpads_file_lock
+dependencies[] = scratchpads_fine_grained_file_access
+dependencies[] = scratchpads_front
+dependencies[] = scratchpads_hands_off
+dependencies[] = scratchpads_help
+dependencies[] = scratchpads_issues_block
+dependencies[] = scratchpads_legal
+dependencies[] = scratchpads_load_time_log
+dependencies[] = scratchpads_logins
+dependencies[] = scratchpads_media_gallery
+dependencies[] = scratchpads_messages
+dependencies[] = scratchpads_metadata_service
+dependencies[] = scratchpads_pages
+dependencies[] = scratchpads_roles_and_permissions
+dependencies[] = scratchpads_search_block
+dependencies[] = scratchpads_security
+dependencies[] = scratchpads_setup
+dependencies[] = scratchpads_show_taxa_revisions
+dependencies[] = scratchpads_simple_taxonomy_page
+dependencies[] = scratchpads_solr
+dependencies[] = scratchpads_species
+dependencies[] = scratchpads_statistics
+dependencies[] = scratchpads_taxonomic_name_field
+dependencies[] = scratchpads_user
+dependencies[] = scratchpads_width_and_height
+
+
+; Custom modules
+dependencies[] = biblio_refbank
+dependencies[] = biblio_dump
+dependencies[] = biblio_scholar
+dependencies[] = entityconnectpreview
+dependencies[] = entityfilter
+dependencies[] = eol_gbif_maps
+dependencies[] = jsphylosvg
+dependencies[] = noclickety
+dependencies[] = silver
+dependencies[] = spm
+dependencies[] = subpermissions
+dependencies[] = taxonomy_batch
+dependencies[] = taxonomy_breadcrumb_lite
+dependencies[] = tools
+dependencies[] = tree_widget
+dependencies[] = tui
+dependencies[] = twitterscript

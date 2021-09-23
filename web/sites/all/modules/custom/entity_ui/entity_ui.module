@@ -1,0 +1,425 @@
+<?php
+
+/**
+ * Implements hook_admin_paths().
+ */
+function entity_ui_admin_paths(){
+  $paths = array();
+  $entity_info = entity_ui_entity_get_info();
+  foreach(array_keys($entity_info) as $type){
+    $class = $entity_info[$type]['admin ui']['controller class'];
+    if(@method_exists($class, 'ops')){
+      $entity = new EntityUI(array(), $type);
+      $path = entity_ui_entity_uri($entity);
+      foreach(array_keys($class::ops()) as $op){
+        $paths[$path . '/*/' . $op] = TRUE;
+      }
+    }
+  }
+  return $paths;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function entity_ui_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  $entity_info = entity_ui_entity_get_info();
+  foreach($entity_info as $info){
+    if($info['fieldable']){
+      if($root_path == $info['admin ui']['path']){
+        $item = menu_get_item($info['admin ui']['path'] . '/add');
+        if($item['access']){
+          $data['actions']['output'][] = array(
+            '#theme' => 'menu_local_action',
+            '#link' => $item
+          );
+        }
+        return;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function entity_ui_field_extra_fields(){
+  $extra = array();
+  $entity_info = entity_ui_entity_get_info();
+  foreach(array_keys($entity_info) as $entity_type){
+    // Is there a label in the entity key
+    if(array_key_exists('label', $entity_info[$entity_type]['entity keys'])){
+      foreach(array_keys(entity_ui_get_entities($entity_type)) as $type){
+        $extra[$entity_type][$type] = array(
+          'form' => array(
+            'title' => array(
+              'label' => t("Short title"),
+              'description' => t('Entity module element'),
+              'weight' => -5
+            )
+          )
+        );
+      }
+    }
+  }
+  return $extra;
+}
+
+/**
+ * Get the base path of an enity
+ */
+function entity_ui_entity_uri($entity){
+  $entity_uri = $entity->uri();
+  return rtrim($entity_uri['path'], '/');
+}
+
+/*********************************************************************************************
+ * 
+ * Core hooks
+ * 
+ ********************************************************************************************/
+/**
+ * Implement hook_theme().
+ */
+function entity_ui_theme(){
+  $path = drupal_get_path('module', 'entity_ui');
+  return array(
+    'entity_ui_add_list' => array(
+      'variables' => array(
+        'content' => array()
+      ),
+      'file' => 'theme.inc',
+      'path' => $path . '/theme'
+    )
+  );
+}
+
+/*********************************************************************************************
+ * 
+ * Entity functions
+ * 
+ ********************************************************************************************/
+/**
+ * 
+ * Get a list of entity info items implementing entity ui
+ */
+function entity_ui_entity_get_info(){
+  return array_filter(entity_get_info(), '_entity_ui_entity_info_filter');
+}
+
+function _entity_ui_entity_info_filter($entity_info){
+  if(isset($entity_info['admin ui']['controller class'])){
+    if(property_exists($entity_info['admin ui']['controller class'], 'ui')){return true;}
+  }
+  return false;
+}
+
+function entity_ui_entity_info_alter(&$entity_info){
+  foreach(array_keys(entity_ui_entity_get_info()) as $type){
+    if($entity_info[$type]['fieldable']){
+      $bundle_of_type = entity_ui_get_bundle_of_type($entity_info, $type);
+      $path = $entity_info[$bundle_of_type]['admin ui']['path'];
+      $bundle_argument = substr_count($path, '/') + 2;
+      foreach(entity_ui_get_entities($bundle_of_type) as $name => $entity){
+        $entity_info[$type]['bundles'][$name] = array(
+          'label' => $entity->label,
+          'admin' => array(
+            'path' => $path . '/manage/%entity_ui_type',
+            'real path' => $path . '/manage/' . $name,
+            'bundle argument' => $bundle_argument,
+            'access arguments' => array(
+              'administer publication'
+            )
+          )
+        );
+      }
+    }elseif(isset($entity_info[$type]['bundle of'])){
+      // We need to know what type of is used to build a prticular entity
+      $entity_info[$entity_info[$type]['bundle of']]['type of'] = $type;
+    }
+    if(!isset($entity_info[$type]['form callback'])){
+      $entity_info[$type]['form callback'] = 'entity_ui_metadata_form_entity';
+    }
+    if(!isset($entity_info[$type]['creation callback'])){
+      $entity_info[$type]['creation callback'] = 'entity_ui_metadata_create_entity';
+    }
+  }
+}
+
+function entity_ui_entity_exists($name, $element, $form_state){
+  return entity_ui_get_entities($form_state['entity_type'], $name);
+}
+
+/**
+ * 
+ * Get the bundle of type for an entity type
+ */
+function entity_ui_get_bundle_of_type($entity_info, $entity_type){
+  foreach($entity_info as $type => $info){
+    if(isset($info['bundle of']) && $info['bundle of'] == $entity_type){return $type;}
+  }
+  return null;
+}
+
+/**
+ * Load multiple publications
+ */
+function entity_ui_load_multiple($entity_type, $ids = array(), $conditions = array(), $reset = FALSE){
+  return entity_load($entity_type, $ids, $conditions, $reset);
+}
+
+function entity_ui_get_entities($type, $name = null){
+  $types = entity_load_multiple_by_name($type, isset($name) ? array(
+    $name
+  ) : FALSE);
+  return isset($name) ? reset($types) : $types;
+}
+
+function entity_ui_create($type, $values = array()){
+  return entity_get_controller($type)->create($values);
+}
+
+/*********************************************************************************************
+ * 
+ * Menu callbacks & loaders
+ * 
+ ********************************************************************************************/
+/**
+ * Menu callback
+ * Provide a list of entity types that can be created
+ */
+function entity_ui_add_page(){
+  $item = menu_get_item();
+  $content = system_admin_menu_block($item);
+  return theme('entity_ui_add_list', array(
+    'content' => $content
+  ));
+}
+
+/**
+ * Menu load function
+ * Retrieve the entity type from the menu item & load it
+ */
+function entity_ui_type_load($name){
+  list($url) = explode($name, $_GET['q']);
+  $url .= $name;
+  $menu_item = menu_get_item($url);
+  $entity_type = array_shift($menu_item['page_arguments']);
+  return entity_ui_get_entities($entity_type, $name);
+}
+
+/**
+ * Menu callback
+ * Display an entity
+ */
+function entity_ui_page_view($entity_type, $id, $view_mode = 'full'){
+  $entity = _entity_ui_entity_load($entity_type, $id);
+  $page_array = array();
+  $entity_type = $entity->entityType();
+  $id = $entity->identifier();
+  $controller = entity_get_controller($entity_type);
+  $content = $controller->view(array(
+    $id => $entity
+  ));
+  return $content;
+}
+
+/**
+ * Menu title callback
+ * Get an entity title
+ */
+function entity_ui_page_title($entity_type, $id){
+  $entity = _entity_ui_entity_load($entity_type, $id);
+  return $entity->label();
+}
+
+function _entity_ui_entity_load($entity_type, $id, $reset = false){
+  $entity = entity_load($entity_type, array(
+    $id
+  ), array(), $reset);
+  return $entity[$id];
+}
+
+/*********************************************************************************************
+ * 
+ * FORMS
+ * 
+ ********************************************************************************************/
+/**
+ * Generic form for creating entity types
+ */
+function entity_ui_entity_type_form($form, &$form_state, $entity, $op = 'edit'){
+  if($op == 'clone'){
+    $entity->label .= ' (cloned)';
+    $entity->type = '';
+  }
+  $form['#entity_info'] = $entity->entityInfo();
+  $form['label'] = array(
+    '#title' => t('Label'),
+    '#type' => 'textfield',
+    '#default_value' => isset($entity->label) ? $entity->label : '',
+    '#description' => t('The human-readable name of this @label type.', array(
+      '@label' => strtolower($form['#entity_info']['label'])
+    )),
+    '#required' => TRUE,
+    '#size' => 30
+  );
+  // Machine-readable type name.
+  $form['type'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => isset($entity->type) ? $entity->type : '',
+    '#maxlength' => 32,
+    '#machine_name' => array(
+      'exists' => 'entity_ui_entity_exists',
+      'source' => array(
+        'label'
+      )
+    ),
+    '#description' => t('A unique machine-readable name for this @label type. It must only contain lowercase letters, numbers, and underscores.', array(
+      '@label' => strtolower($form['#entity_info']['label'])
+    ))
+  );
+  $form['actions'] = array(
+    '#type' => 'actions'
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  $form['actions']['cancel'] = array(
+    '#markup' => l(t('Cancel'), $form['#entity_info']['admin ui']['path'])
+  );
+  $form['#submit'] = array(
+    'entity_ui_entity_type_form_submit'
+  );
+  unset($form['#validate']);
+  return $form;
+}
+
+/**
+ * Form API submit callback for the type form.
+ */
+function entity_ui_entity_type_form_submit(&$form, &$form_state){
+  $entity = entity_ui_form_submit_build_entity($form, $form_state);
+  // Save and go back.
+  $entity->save();
+  $form_state['redirect'] = $form['#entity_info']['admin ui']['path'];
+}
+
+/*********************************************************************************************
+ * 
+ * ENTITY METADATA
+ * 
+ ********************************************************************************************/
+/**
+ * Callback to get the form of an entity.
+ */
+function entity_ui_metadata_form_entity($entity){
+  // Pre-populate the form-state with the right form include.
+  $form_state['build_info']['args'] = array(
+    $entity
+  );
+  return drupal_build_form('entity_ui_entity_form', $form_state);
+}
+
+/**
+ * Callback to get the form of an entity.
+ */
+function entity_ui_metadata_create_entity($values = array(), $entity_type){
+  return entity_ui_create($entity_type, $values);
+}
+
+/*********************************************************************************************
+ * 
+ * FORMS
+ * 
+ ********************************************************************************************/
+function entity_ui_entity_form($form, &$form_state, $entity){
+  // Add the default field elements.
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Short title'),
+    '#default_value' => isset($entity->title) ? $entity->title : '',
+    '#maxlength' => 255,
+    '#required' => TRUE,
+    '#weight' => -5
+  );
+  $form_state['entity_type'] = $entity->entityType();
+  // Add the field related form elements.
+  $form_state[$entity->entityType()] = $entity;
+  field_attach_form($entity->entityType(), $entity, $form, $form_state);
+  $form['actions'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array(
+        'form-actions'
+      )
+    ),
+    '#weight' => 400
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array(
+      'entity_ui_entity_form_submit'
+    )
+  );
+  return $form;
+}
+
+/**
+ * Generic form for creating entities
+ */
+function entity_ui_entity_edit_form($form, &$form_state, $entity_type, $id){
+  $entity = _entity_ui_entity_load($entity_type, $id);
+  return entity_ui_entity_form($form, $form_state, $entity);
+}
+
+function entity_ui_entity_form_submit(&$form, &$form_state){
+  global $user;
+  $entity_type = $form_state[$form_state['entity_type']]->entityType();
+  $entity = entity_ui_controller($entity_type)->entityFormSubmitBuildEntity($form, $form_state);
+  if($entity->is_new = isset($entity->is_new) ? $entity->is_new : 0){
+    $entity->created = time();
+    $entity->uid = $user->uid;
+  }
+  $entity->changed = time();
+  $form_state['id'] = $entity->save();
+  $form_state['redirect'] = $entity->uri();
+}
+
+/**
+ * Form callback: confirmation form for deleting a publication.
+ *
+ * @param $publication
+ * The publication to delete
+ *
+ * @see confirm_form()
+ */
+function entity_ui_entity_delete_form($form, &$form_state, $entity_type, $id){
+  $form_state['entity'] = _entity_ui_entity_load($entity_type, $id);
+  $form_state['entity_type'] = $entity_type;
+  $form_state['id'] = $id;
+  $form['#submit'][] = 'entity_ui_entity_delete_form_submit';
+  $form = confirm_form($form, t('Are you sure you want to delete publication %title?', array(
+    '%title' => $form_state['entity']->label()
+  )), $form_state['entity']->uri(), '<p>' . t('This action cannot be undone.') . '</p>', t('Delete'), t('Cancel'), 'confirm');
+  return $form;
+}
+
+/**
+ * Submit callback for publication_delete_form
+ */
+function entity_ui_entity_delete_form_submit($form, &$form_state){
+  $entity = $form_state['entity'];
+  entity_delete($form_state['entity_type'], $form_state['id']);
+  drupal_set_message(t('The publication %title has been deleted.', array(
+    '%title' => $entity->label()
+  )));
+  watchdog('Entity UI', 'Deleted entity %title.', array(
+    '%title' => $entity->label()
+  ));
+  $entity_info = entity_get_info($form_state['entity_type']);
+  $form_state['redirect'] = $entity_info['admin ui']['path'];
+}
+

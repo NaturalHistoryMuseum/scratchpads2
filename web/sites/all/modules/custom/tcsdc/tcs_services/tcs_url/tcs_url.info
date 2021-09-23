@@ -1,0 +1,9 @@
+name = "Taxon Concept Schema import from a URL"
+description = Allows the import of a classification from any external service by simply providing the URL to the TCS/XML file of the root term to import.<br/><span class="error">This tool should only be enabled/used by experienced users.</span>
+package = "Data provider"
+dependencies[] = tcsdc
+core = 7.x
+tool=true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tcsdc

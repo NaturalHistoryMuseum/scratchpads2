@@ -1,0 +1,13 @@
+name = Site map
+description = Display a site map.
+core = 7.x
+configure = admin/config/search/sitemap
+dependencies[] = menu
+files[] = site_map.test
+
+; Information added by Drupal.org packaging script on 2014-03-04
+version = "7.x-1.2"
+core = "7.x"
+project = "site_map"
+datestamp = "1393897705"
+

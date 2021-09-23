@@ -1,0 +1,331 @@
+<?php
+DEFINE('CITETHISPAGE_WGET_DEFAULT_TOOL', '/usr/bin/wget -p -k -H -E -e robots=off --post-data \'[citethispage_wget:post]\' -P [citethispage_wget:destination] [citethispage_wget:url]');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_DESTINATION', 'public://cite/[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]');
+DEFINE('CITETHISPAGE_WGET_DEFAULT_INJECT', "<p>This is a <strong>snapshop</strong> of the page at [citethispage_wget:url], as it was on <strong>[citethispage_wget:year]-[citethispage_wget:month]-[citethispage_wget:day]</strong>. The snapshot was created for citation purposes. Note that following any of the links on the page will take you back to the live version of the site.</p>");
+DEFINE('CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH', 'public://cite/preview');
+
+/**
+ * Implements hook_init
+ * 
+ * This is used to add a message on snapshots
+ */
+function citethispage_wget_init(){
+  if(!empty($_POST['citethispage_wget_msg_token'])){
+    $token = $_POST['citethispage_wget_msg_token'];
+    $tokens = variable_get('citethispage_wget_tokens', array());
+    if(isset($tokens[$token])){
+      module_invoke_all('citethispage_wget_snapshot');
+      if(isset($tokens[$token]['message'])){
+        drupal_set_message($tokens[$token]['message']);
+      }
+      // Note that we don't need to delete the token here - the call is synchronous,
+      // and the deletion is done by the caller.
+    }
+  }
+}
+
+/**
+ * Implements hook_menu
+ */
+function citethispage_wget_menu(){
+  $items = array();
+  // Settings page
+  $items['admin/config/services/citethispage/wget'] = array(
+    'title' => 'Wget',
+    'description' => 'Archiving backend using wget',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_wget_settings_form'
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_admin'
+    ),
+    'file' => 'citethispage_wget.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_citethispage_info
+ */
+function citethispage_wget_citethispage_info(){
+  global $base_url;
+  return array(
+    'citethispage_wget' => array(
+      'archive' => array(
+        'title' => t('Snapshot on server'),
+        'description' => t('Generate a snapshot using wget and store in on !host', array(
+          '!host' => l($base_url, $base_url)
+        )),
+        'callback' => 'citethispage_wget_archive'
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_form_citethispage_backend_selection_form_alter
+ */
+function citethispage_wget_form_citethispage_backend_selection_form_alter(&$form, &$form_state){
+  if($form_state['citethispage_backend_handler'] == 'citethispage_wget'){
+    $form['citethispage_wget_msg'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Include a message on the archived page'),
+      '#default_value' => isset($form_state['values']['citethispage_wget_msg']) ? $form_state['values']['citethispage_wget_msg'] : 1
+    );
+    $preview_mode = variable_get('citethispage_wget_preview', 2);
+    global $user;
+    if($preview_mode == 2 || ($user->uid > 0 && $preview_mode == 1)){
+      drupal_add_library('system', 'ui.dialog');
+      drupal_add_js(drupal_get_path('module', 'citethispage_wget') . '/js/citethispage_wget.js');
+      $warn = NULL;
+      if(isset($form['warn'])){
+        $warn = $form['warn'];
+        unset($form['warn']);
+      }
+      $form['preview'] = array(
+        '#type' => 'button',
+        '#value' => t('Preview'),
+        '#ajax' => array(
+          'callback' => 'citethispage_wget_preview_ajax'
+        )
+      );
+      if($warn){
+        $form['warn'] = $warn;
+      }
+    }
+  }
+}
+
+/**
+ * citethispage_wget_preview_ajax
+ */
+function citethispage_wget_preview_ajax($form, &$form_state){
+  // Generate a preview
+  $path = $form_state['values']['path'];
+  $context = array(
+    'results' => _citethispage_parse_path($path),
+    'form_state' => $form_state
+  );
+  $preview_path = citethispage_wget_archive($path, $context, TRUE);
+  $form_state['citethispage_wget_preview'] = $preview_path;
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      array(
+        'command' => 'citethispageWgetPreview',
+        'path' => $form_state['citethispage_wget_preview']
+      )
+    )
+  );
+}
+
+/**
+ * Implement hook_cron
+ * 
+ * Delete all the page previews
+ */
+function citethispage_wget_cron(){
+  file_unmanaged_delete_recursive(CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH);
+}
+
+/**
+ * Implement hook_token_info
+ */
+function citethispage_wget_token_info(){
+  $data = array();
+  $data['types']['citethispage_wget'] = array(
+    'name' => t('Cite this page wget'),
+    'description' => t('Tokens that are relevant when generating an archive using Cite this page wget module')
+  );
+  $data['tokens']['citethispage_wget'] = array(
+    'url' => array(
+      'name' => t('URL'),
+      'description' => t("The URL we want to archive, as a text string, including protocol")
+    ),
+    'year' => array(
+      'name' => t('Year'),
+      'description' => t("The year from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'month' => array(
+      'name' => t('Month'),
+      'description' => t("The month from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'day' => array(
+      'name' => t('Day'),
+      'description' => t("The day from the current date or (if know) last modification of the page we want to archive")
+    ),
+    'title' => array(
+      'name' => t('Title'),
+      'description' => t("An alpha-numeric string representation of the path or (if known) the title of the page we want to archive")
+    ),
+    'destination' => array(
+      'name' => t('Destination'),
+      'description' => t("The destination file or folder where the result will be stored")
+    ),
+    'post' => array(
+      'name' => t('Post data'),
+      'description' => t("The post data wget should send. This is required to display messages on the archived page")
+    )
+  );
+  return $data;
+}
+
+/**
+ * Implement hook_tokens
+ */
+function citethispage_wget_tokens($type, $tokens, $data = array(), $options = array()){
+  if($type != 'citethispage_wget'){return NULL;}
+  $citethispage = isset($data['citethispage_wget']) ? ((array)$data['citethispage_wget']) : array();
+  global $base_url;
+  $replacements = array_merge(array(
+    'url' => '',
+    'destination' => '',
+    'title' => '',
+    'year' => '',
+    'month' => '',
+    'day' => '',
+    'post' => ''
+  ), $citethispage);
+  $result = array();
+  foreach($tokens as $name => $original){
+    $result[$original] = $replacements[$name];
+  }
+  return $result;
+}
+
+/**
+ * citethispage_wget_archive
+ * 
+ * The archiving callback
+ */
+function citethispage_wget_archive($path, $context, $preview = FALSE){
+  $result = $context['result'];
+  // Build the replace tokens
+  global $base_url;
+  $data = new StdClass();
+  $tokens = array(
+    'citethispage_wget' => $data
+  );
+  $data->url = $base_url . '/' . $path;
+  if(!empty($result['date']) && is_array($result['date'])){
+    $timestamps = array_keys($result['date']);
+    $date = reset($timestamps);
+  }else{
+    $date = time();
+  }
+  $data->year = date('Y', $date);
+  $data->month = date('m', $date);
+  $data->day = date('d', $date);
+  if(isset($result['title'])){
+    $data->title = implode(',', $result['title']);
+  }else{
+    $data->title = drupal_get_path_alias($path);
+  }
+  $data->title = str_replace(' ', '', ucwords(preg_replace('/[^-_a-zA-Z0-9]+/', ' ', $data->title)));
+  // Get a unique destination path
+  if($preview){
+    $destination = CITETHISPAGE_WGET_DEFAULT_PREVIEW_PATH . '/' . substr(md5(rand()), 0, 8);
+  }else{
+    $destination = variable_get('citethispage_wget_destination', CITETHISPAGE_WGET_DEFAULT_DESTINATION);
+    $destination = token_replace($destination, $tokens);
+  }
+  if(!empty($destination)){
+    $final_destination = $destination;
+    $unique = 1;
+    while(file_exists($final_destination)){
+      $final_destination = preg_replace('/^(.+?)(\.[^\.\/]+|\/)?$/', '$1-' . $unique . '$2', $destination);
+      $unique++;
+    }
+    // Attempt to create the directory
+    if(!is_dir($final_destination)){
+      if(!drupal_mkdir($final_destination, NULL, TRUE)){
+        drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+        watchdog('citethispage_wget', "Could not create directory %directory", array(
+          '%directory' => $final_destination
+        ), WATCHDOG_ERROR);
+        return;
+      }
+    }
+    $data->destination = $final_destination;
+  }else{
+    $data->destination = '';
+    $final_destination = '';
+  }
+  // Check if we should inject a message
+  $rand_token_id = substr(md5(rand()), 0, 7);
+  $data->post = 'citethispage_wget_msg_token=' . urlencode($rand_token_id);
+  $wget_tokens = variable_get('citethispage_wget_tokens', array());
+  $token = array(
+    'timestamp' => time(),
+    'preview' => $preview
+  );
+  $inject_message = variable_get('citethispage_wget_inject', array(
+    'value' => CITETHISPAGE_WGET_DEFAULT_INJECT,
+    'format' => 'filtered_html'
+  ));
+  if(!empty($context['form_state']['values']['citethispage_wget_msg']) && $inject_message['value']){
+    $inject = check_markup($inject_message['value'], $inject_message['format']);
+    $inject = token_replace($inject, $tokens);
+    $token['message'] = $inject;
+  }
+  $wget_tokens[$rand_token_id] = $token;
+  variable_set('citethispage_wget_tokens', $wget_tokens);
+  // Generate the archive !
+  $command = variable_get('citethispage_wget_tool', CITETHISPAGE_WGET_DEFAULT_TOOL);
+  $command = token_replace($command, $tokens, array(
+    'callback' => '_citethispage_wget_shell_escape'
+  ));
+  $output = array();
+  $return = 0;
+  exec($command, $output, $return);
+  unset($tokens[$rand_token_id]);
+  variable_set('citethispage_wget_tokens', $tokens);
+  if($return != 0 && $return != 8){
+    // Error code 8 could be triggered  by one of the dependencies returning a 404 - so ignore it.
+    drupal_set_message(t('An error occured while generating the snapshot'), 'error');
+    watchdog('citethispage_wget', "An error occured while running %command : %output", array(
+      '%command' => $command,
+      '%output' => implode("; ", $output)
+    ), WATCHDOG_ERROR);
+    return;
+  }
+  // Get the final path
+  if($final_destination){
+    $file_path = $final_destination . '/' . preg_replace('/^.*?:\/\//', '', $data->url);
+    if(!file_exists($file_path)){
+      if(!file_exists($file_path . '.html')){
+        drupal_set_message(t('An error occured while generating the snapshot', 'error'));
+        watchdog('citethispage_wget', "Could not locate the generated file at %path or %path.html", array(
+          '%path' => $file_path
+        ), WATCHDOG_ERROR);
+        return;
+      }
+      $file_path .= '.html';
+    }
+    $file_path = file_create_url($file_path);
+  }else{
+    $file_path = trim(implode('', $output));
+  }
+  if(!$preview){
+    drupal_set_message(t('Your snapshot has been generated and is available at !path', array(
+      '!path' => l($file_path, $file_path)
+    )));
+  }
+  return $file_path;
+}
+
+/**
+ * citethispage_wget_shell_escape
+ */
+function _citethispage_wget_shell_escape(&$replacements, $data, $options){
+  foreach($replacements as $key => $value){
+    if(preg_match('/citethispage_wget:destination/', $key)){
+      $value = drupal_realpath($value);
+    }
+    $replacements[$key] = escapeshellarg($value);
+  }
+}

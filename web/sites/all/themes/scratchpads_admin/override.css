@@ -1,0 +1,405 @@
+/* Forms */
+.uuid{
+  font-size:70%;
+  color: #aaa;
+}
+
+.pager.clearfix .active.progress-disabled{
+  float:left !important;
+}
+
+.form-layout-default .column-main .form-actions {
+  display: block;
+}
+
+.column-main {
+  width: 100% !important;
+}
+
+.form-layout-default {
+  background: none;
+}
+
+.page-title {
+  padding-right: 300px !important;
+}
+
+.vertical-tabs {
+  margin: 0 0 10px !important;
+}
+
+/* Admin content table */
+table.scratchpads-admin-content  caption {
+  text-align: left;
+  font-size: 1.2em;
+  padding: 5px 0;
+}
+
+table.scratchpads-admin-content th.scratchpads-admin-content-operations
+  {
+  width: 180px;
+}
+
+table.scratchpads-admin-content th.scratchpads-admin-content-stats {
+  width: 100px;
+}
+
+table.scratchpads-admin-content th.scratchpads-admin-content-operations,table.scratchpads-admin-content th.scratchpads-admin-content-stats,table.scratchpads-admin-content td:nth-child(2),table.scratchpads-admin-content td:nth-child(3)
+  {
+  text-align: center;
+}
+
+table.scratchpads-admin-content td {
+  vertical-align: middle;
+}
+
+table.scratchpads-admin-content td .item-list li {
+  display: inline;
+  padding: 0 4px;
+  border: none;
+}
+
+table.scratchpads-admin-content tr td:nth-child(1) {
+  padding-left: 55px;
+  background-image: url("images/basic-page-icon.png");
+  background-repeat: no-repeat;
+  background-position: 12px 50%;
+  height: 50px !important;
+}
+
+/* Node content icons*/
+table.scratchpads-admin-content tr.node-biblio td:nth-child(1) {
+  background-image: url("images/biblio-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-media_gallery td:nth-child(1) {
+  background-image: url("images/gallery-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-spm td:nth-child(1) {
+  background-image: url("images/taxon-description-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-location td:nth-child(1) {
+  background-image: url("images/location-icon.png");
+}
+
+table.scratchpads-admin-content tr.node-specimen_observation td:nth-child(1)
+  {
+  background-image: url("images/specimen.png");
+}
+
+table.scratchpads-admin-content tr.character-project td:nth-child(1) {
+  background-image: url("images/character-project-icon.png");
+}
+
+/* Comment icons */
+table.scratchpads-admin-content-comment tr td:nth-child(1) {
+  background-image: url("images/comments-icon.png");
+}
+
+/* Relations icon */
+table.scratchpads-admin-content-relation tr td:nth-child(1) {
+  background-image: url("images/relations-icon.png");
+}
+
+/* File icons */
+table.scratchpads-admin-content tr.file-application td:nth-child(1) {
+  background-image: url("images/application-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-audio td:nth-child(1) {
+  background-image: url("images/audio-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-image td:nth-child(1) {
+  background-image: url("images/image-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-text td:nth-child(1) {
+  background-image: url("images/text-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-video td:nth-child(1) {
+  background-image: url("images/video-icon.png");
+}
+
+table.scratchpads-admin-content tr.file-default td:nth-child(1) {
+  background-image: url("images/other-icon.png");
+}
+
+/* Structure icons */
+.path-admin-structure span.icon {
+  background-position: 0px 0px;
+  min-height: 40px !important;
+  top: 8px;
+  background-image: url("images/basic-page-icon.png");
+}
+
+.path-admin-structure-block span.icon {
+  background-image: url("images/blocks.png");
+}
+
+.path-admin-structure-types span.icon {
+  background-image: url("images/content-types-icon.png");
+}
+
+.path-admin-structure-menu span.icon {
+  background-image: url("images/menus-icon.png");
+}
+
+.path-admin-structure-relation span.icon {
+  background-image: url("images/relations-icon.png");
+}
+
+.path-admin-structure-taxonomy span.icon {
+  background-image: url("images/taxonomy-icon.png");
+}
+
+.path-admin-structure-tools span.icon {
+  background-image: url("images/tools-icon.png");
+}
+
+.path-admin-structure-views span.icon {
+  background-image: url("images/views-icon.png");
+}
+
+/* VBO tables */
+.view-admin-vbo-node table tr td.views-field-edit-node a,.view-admin-vbo-file table tr td.views-field-fid a
+  {
+  margin: 0 5px;
+}
+
+/* Help system */
+#overlay-titlebar {
+  position: absolute;
+  right: 0;
+}
+
+#overlay-titlebar #overlay-title-wrapper {
+  position: absolute;
+  right: 25px;
+  top: 5px;
+  min-width: 300px;
+}
+
+#overlay-titlebar #overlay-title-wrapper div.add-or-remove-shortcuts {
+  position: static;
+  float: right;
+}
+
+#overlay-titlebar #overlay-title-wrapper .help-shortcut a {
+  background-image: url('images/help.png') !important;
+  background-position: 5px 6px;
+}
+
+.region-help {
+  padding: 10px 5px;
+}
+
+.region-help,.region-help .block,.region-help .block-content {
+  background-color: #5CA2B6 !important;
+  border: none;
+  color: #fff;
+}
+
+.region-help .block {
+  margin-bottom: 0 !important;
+}
+
+.region-help .block-content a {
+  color: #C2DCE3;
+  text-decoration: underline;
+}
+
+.js .region-help {
+  display: none;
+}
+
+/* Tools */
+.page-content .tool-options span.tools-icon {
+  background: url("../rubik/images/icons.png") no-repeat -60px 0;
+  display: block;
+  height: 30px;
+  width: 30px;
+  float: left;
+  margin-top: 3px;
+}
+
+.page-content .tool-options .form-item {
+  margin-left: 38px;
+}
+
+/* Fix for secondary tabs */
+.secondary-tabs {
+  z-index: 100;
+}
+
+/* Dashboard */
+#dashboard_main table td.edit,#dashboard_main table td.delete {
+  width: 50px;
+}
+
+#dashboard_main .node-title {
+  font-size: inherit;
+}
+
+/* Setup form */
+.wizard-trail {
+  margin-bottom: 20px;
+  color: #7D7D7D;
+}
+
+#edit-front-page-welcome-message-format{
+  display:none;
+}
+
+#scratchpads-welcome-form h3 {
+  font-size: 15px;
+}
+
+#scratchpads-welcome-form p {
+  margin: 20px 0;
+}
+
+form.formflow {
+  padding-bottom: 20px;
+}
+
+form.formflow input.form-submit {
+  margin: 20px 20px 0 0;
+}
+
+/* Fix a spacing issue with CKEditor */
+.text-format-wrapper>.ckeditor_links {
+  position: relative !important;
+  top: -9px;
+}
+
+/* Entity connect form elements */
+form div.entityconnect-add,form div.entityconnect-edit {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  float: none;
+}
+
+form div.entityconnect-edit {
+  float: left;
+}
+
+form div.entityconnect-add input,form div.entityconnect-edit input {
+  width: auto;
+  height: auto;
+  font-size: 9pt;
+  padding-left: 18px;
+  text-indent: 0;
+  color: #AAA;
+  margin-right: 16px;
+}
+
+form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
+  {
+  border-bottom: 1px solid #AAA;
+}
+
+#tui-form-container div.entityconnect-edit,#tui-form-container div.entityconnect-add
+  {
+  display: none;
+}
+
+/* Relation select entries */
+.rs-wrapper,.rs-placeholder {
+  width: 500px;
+}
+
+.diff-links li:not(.first):before {
+  content: " | "
+}
+
+/* Fix for date descriptions #811 */
+.page-content .date-padding .form-item .description {
+  bottom: 150%;
+}
+
+/* entityconnect fixes */
+.entityconnect-add,.entityconnect-edit {
+  padding: 0 !important;
+}
+
+form div.entityconnect-add input,form div.entityconnect-edit input {
+  border: solid 1px #eeeeee !important;
+  margin: 3px 3px 3px 0 !important;
+  padding: 3px 3px 3px 18px !important;
+  background: url(images/add.png) no-repeat !important;
+  background-position: 2% 50% !important;
+}
+
+form div.entityconnect-edit input {
+  background: url(images/pencil.png) no-repeat !important;
+  background-position: 0% 50% !important;
+}
+
+form div.entityconnect-add input:hover,form div.entityconnect-edit input:hover
+  {
+  color: white !important;
+  background-color: #ccc !important;
+}
+
+.entityconnect-edit input[disabled] {
+  background: none;
+}
+
+/* Media browser */
+#media-browser-tabset .ui-state-default.last {
+  padding-bottom: 0;
+}
+#mediaBrowser{
+  overflow-y:auto;
+}
+#media-browser-tabset,#media-browser-tabset .item-list{
+  border:0 !important;
+}
+.media-browser-tab .form-actions {
+  margin-top:10px;
+  background: none repeat scroll 0 0 #EEEEEE;
+  border: 1px solid #DDDDDD;
+  padding: 9px;
+}
+
+.media-browser-tab .fake-submit {
+  margin-right: 5px;
+  box-shadow: 0 1px 1px #DDDDDD;
+  background: url("../rubik/images/buttons.png") no-repeat scroll -1px 50%
+    #FFFFFF;
+  border-color: #DDDDDD #DDDDDD #CCCCCC;
+  background-position: -2401px 50%;
+  padding-left: 25px;
+  border-style: solid;
+  border-width: 1px;
+  color: #333333;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 2px 10px;
+  text-align: center;
+  color: red;
+  border-color: #DDDDDD #DDDDDD #CCCCCC;
+  border-style: solid;
+  border-width: 1px;
+  color: #333333;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 2px 10px;
+  text-align: center;
+  padding-left: 25px;
+}
+.media-browser-tab .media-item{
+  overflow:hidden;
+}
+
+.media-widget a:before{
+  content:" | ";
+}
+.media-widget a:first-of-type:before{
+  content:"";
+}

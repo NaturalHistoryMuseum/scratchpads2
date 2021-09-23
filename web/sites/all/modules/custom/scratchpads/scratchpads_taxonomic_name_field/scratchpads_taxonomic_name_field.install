@@ -1,0 +1,263 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_taxonomic_name_field_install(){
+  $field = array(
+    'locked' => '1',
+    'active' => '1',
+    'cardinality' => '-1',
+    'deleted' => '0',
+    'entity_types' => array(),
+    'field_name' => 'field_taxonomic_name',
+    'foreign keys' => array(
+      'tid' => array(
+        'columns' => array(
+          'tid' => 'tid'
+        ),
+        'table' => 'taxonomy_term_data'
+      )
+    ),
+    'indexes' => array(
+      'tid' => array(
+        0 => 'tid'
+      )
+    ),
+    'module' => 'taxonomy',
+    'settings' => array(
+      'allowed_values' => array()
+    ),
+    'translatable' => '1',
+    'type' => 'taxonomy_term_reference'
+  );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
+  field_create_field($field);
+  // Create instances of the above field associated with various content types.
+  $content_types = array(
+    'biblio',
+    'page'
+  );
+  foreach($content_types as $content_type){
+    $instance = array(
+      'bundle' => $content_type,
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'taxonomy_formatter',
+          'settings' => array(
+            'element_class' => '',
+            'element_option' => '- None -',
+            'links_option' => 1,
+            'append_vocabulary' => 1,
+            'separator_option' => ', ',
+            'wrapper_class' => '',
+            'wrapper_option' => '- None -'
+          ),
+          'type' => 'taxonomy_term_reference_csv',
+          'weight' => '1'
+        ),
+        'linked_node' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0
+        )
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_taxonomic_name',
+      'label' => t('Taxonomic name'),
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'autocomplete_path' => 'taxonomy/autocomplete',
+          'size' => 60
+        ),
+        'type' => 'taxonomy_autocomplete',
+        'weight' => '3'
+      )
+    );
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Attempt to fix issue #955.
+ *
+ * I have renamed update 7002 to 7003 just to run this update again.
+ */
+function scratchpads_taxonomic_name_field_update_7003(){
+  field_cache_clear(TRUE);
+  $field = field_info_field('field_taxonomic_name');
+  $field['settings']['allowed_values'] = array(
+    array(
+      'parent' => '0',
+      'vocabulary' => ''
+    )
+  );
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  field_update_field($field);
+  return 'Updated field_taxonomic_name';
+}
+
+/**
+ * Set the taxonomic_name_field to unlimited cardinality as requested in #981.
+ */
+function scratchpads_taxonomic_name_field_update_7005(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
+  field_update_field($field);
+}
+
+/**
+ * Rekey the settings array.
+ */
+function scratchpads_taxonomic_name_field_update_7007(){
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
+  field_update_field($field);
+}
+
+/**
+ * Set the weight of this module to one more than that of the taxonomy module.
+ * This ensures that the feeds shit is executed by this module, and not the
+ * pile of steamy crap in the feeds module.
+ */
+function scratchpads_taxonomic_name_field_update_7009(){
+  db_update('system')->fields(array(
+    'weight' => 1
+  ))->condition('name', 'scratchpads_taxonomic_name_field')->execute();
+}
+
+/**
+ * Set the cardinality to allow multiple names.
+ * Note, this was originally run
+ * as update 7006 and then 7008.
+ */
+function scratchpads_taxonomic_name_field_update_7010(){
+  $field = field_info_field('field_taxonomic_name');
+  $field['cardinality'] = '-1';
+  field_update_field($field);
+}
+
+/**
+ * - Enable the taxonomy_formatter module.
+ * - [REMOVED - replaced by update 7012] Update all instances of the 
+ * taxonomic_name_field field to use the taxonomy_formatter display type.
+ */
+function scratchpads_taxonomic_name_field_update_7011(){
+  module_enable(array(
+    'taxonomy_formatter'
+  ));
+}
+
+/**
+ * - Display the vocabulary too.
+ */
+function scratchpads_taxonomic_name_field_update_7012(){
+  $field = field_info_field('field_taxonomic_name');
+  foreach($field['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle){
+      $field_instance = field_info_instance($entity_type, 'field_taxonomic_name', $bundle);
+      $field_instance['display']['default'] = array(
+        'label' => 'above',
+        'module' => 'taxonomy_formatter',
+        'settings' => array(
+          'element_class' => '',
+          'element_option' => '- None -',
+          'links_option' => 1,
+          'append_vocabulary' => 1,
+          'separator_option' => ', ',
+          'wrapper_class' => '',
+          'wrapper_option' => '- None -'
+        ),
+        'type' => 'taxonomy_term_reference_csv',
+        'weight' => '1'
+      );
+      field_update_instance($field_instance);
+    }
+  }
+}
+
+/**
+ * Set the weight of the "Taxonomic Name".
+ */
+function scratchpads_taxonomic_name_field_update_7013(){
+  $instances = field_read_instances(array(
+    'field_name' => 'field_taxonomic_name'
+  ));
+  foreach($instances as $field_instance){
+    $field_instance['display']['default']['weight'] = '1000';
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Lock the taxonomic name field.
+ */
+function scratchpads_taxonomic_name_field_update_7014(){
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', 'field_taxonomic_name')->execute();
+}

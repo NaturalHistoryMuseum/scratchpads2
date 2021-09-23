@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/globalredirect/globalredirect.module b/sites/all/modules/contrib/globalredirect/globalredirect.module
+index 961c1ce..b8c76d7 100644
+--- a/sites/all/modules/contrib/globalredirect/globalredirect.module
++++ b/sites/all/modules/contrib/globalredirect/globalredirect.module
+@@ -126,7 +126,7 @@ function globalredirect_init() {
+ 
+ 
+   // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
+-  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
++  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/^taxonomy\/term\/([0-9]+)$/', $current_path, $matches)) {
+     // So the feature is enabled, as is taxonomy module and the current request is a taxonomy term page.
+     // NOTE: This will only match taxonomy term pages WITHOUT a depth modifier
+     $term = taxonomy_term_load($matches[1]);

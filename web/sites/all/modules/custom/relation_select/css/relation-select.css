@@ -1,0 +1,157 @@
+@CHARSET "UTF-8";
+
+/* CSS for relation select field */
+
+.relation-select-views-output{
+  position: relative;
+  overflow: visible;
+}
+.relation-select-views-output div.view{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background: #fff;
+  -moz-box-shadow: 10px 10px 5px #888;
+  -webkit-box-shadow: 10px 10px 5px #888;
+  box-shadow: 10px 10px 5px #888;
+  min-width: 300px;
+}
+
+.relation-select-views-output div.view .view-empty{
+  text-align: center;
+  color: red;
+}
+
+.relation-select-views-output img.relation-select-close{
+  position:absolute;
+  right: -11px;
+  top: -11px;
+  cursor: pointer;
+}
+
+.relation-select-views-output ul.pager{
+  border-color: #ccc;
+  border-width: 1px;
+  border-style: none solid solid solid;
+}
+
+#overlay-content{
+  min-height: 400px;
+}
+
+.rs-wrapper{
+  background-color: #eee;
+  padding: 3px 10px 3px 6px;
+}
+
+.rs-wrapper,
+.rs-placeholder{
+  margin: 1px 0;
+  height: 20px;
+  border: 1px solid #CBCBCB;
+}
+
+.sortable .rs-wrapper{
+  padding-left: 25px;
+  background: #eee url("../img/draggable.png") no-repeat 5px 7px;
+  cursor: move;
+}
+
+.rs-placeholder{
+  border-style:dashed;
+}
+
+/* Remove item */
+.rs-remove-item{
+ display: block;
+ float: right;
+ cursor: pointer;
+ font-size: 0.9em;
+}
+
+/* CSS for the relation select view style */
+
+/* Exposed filter */
+
+#edit-relation-select-exposed-filters .views-exposed-form{
+  margin-top: 15px;
+}
+
+#edit-relation-select-exposed-filters .views-exposed-form .views-exposed-widget label{
+  width: auto;
+  display: inline-block;
+  padding-right: 20px;
+}
+
+
+#edit-relation-select-exposed-filters .views-exposed-form .views-exposed-widget .views-widget{
+  display: inline-block;
+}
+
+#edit-relation-select-exposed-filters .views-exposed-form{
+  border: 1px solid #eee;
+  background: #eee;
+  display: inline-block;
+  -moz-border-radius: 15px;
+  border-radius: 20px;
+  padding: 0 9px 0 15px;
+}
+
+#edit-relation-select-exposed-filters .views-submit-button{
+  padding-right: 0;
+}
+
+#edit-relation-select-exposed-filters .views-submit-button input{
+  margin-right: 0;
+  margin-top: 0;
+}
+
+.views-view-relation-select{
+  border: 1px solid #ccc;
+  width: 450px;
+  margin-bottom: 1px;
+}
+
+.views-view-relation-select div.group{
+  float: left;
+  width: 120px;
+}
+
+.views-view-relation-select div.group span{
+  padding: 5px;
+}
+
+.views-view-relation-select table{
+  margin: 0;
+  width: 330px;
+}
+
+.views-view-relation-select table,
+.views-view-relation-select table td,
+.views-view-relation-select table tr{
+  border: none!important;
+  border-collapse: collapse;
+}
+
+.views-view-relation-select table tr{
+  background: #fff;
+  cursor: pointer;  
+}
+
+.views-view-relation-select table tr.even{
+  background: #F4F4F4;
+}
+
+.views-view-relation-select table tr:hover{
+  background: #D9E8FF;
+}
+
+.views-view-relation-select table tr.selected{
+  background: green;
+}
+
+.views-view-relation-select table tbody{
+  border-left: 1px solid #ccc;
+  border-collapse: separate;
+}

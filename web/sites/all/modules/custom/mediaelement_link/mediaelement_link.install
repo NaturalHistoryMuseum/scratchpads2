@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function mediaelement_link_install(){
+  // Create the folder(s) for thumbnails
+  @drupal_mkdir('public://mediaelement_link_thumbnail');
+}

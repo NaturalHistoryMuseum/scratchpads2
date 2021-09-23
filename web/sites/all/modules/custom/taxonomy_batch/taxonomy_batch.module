@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_batch_form_taxonomy_form_term_alter(){}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function taxonomy_batch_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form_state['confirm_delete']) && isset($form_state['values']['vid'])){
+    $form['#submit'] = array(
+      'taxonomy_batch_taxonomy_form_vocabulary_submit'
+    );
+  }
+}
+
+/**
+ * Submit function for the above.  If we are deleting, then we bloomin' do it
+ * (once they have confirmed).
+ */
+function taxonomy_batch_taxonomy_form_vocabulary_submit($form, &$form_state){
+  $batch = array(
+    'operations' => array(
+      array(
+        'taxonomy_batch_vocabulary_delete_batch',
+        array(
+          $form_state['values']['vid']
+        )
+      ),
+      array(
+        'taxonomy_batch_vocabulary_delete_vocabulary_batch',
+        array(
+          $form_state['values']['vid']
+        )
+      )
+    ),
+    'finished' => 'taxonomy_batch_vocabulary_delete_finished'
+  );
+  batch_set($batch);
+}
+
+/**
+ * Finished deleting vocabulary.
+ */
+function taxonomy_batch_vocabulary_delete_finished($success, $results, $operations){
+  cache_clear_all();
+  drupal_goto('admin/structure/taxonomy');
+}
+
+/**
+ * Batch delete the vocabulary (only need to do this so that we can get vid)
+ */
+function taxonomy_batch_vocabulary_delete_vocabulary_batch($vid, &$context){
+  $vocabulary = taxonomy_vocabulary_load($vid);
+  taxonomy_vocabulary_delete($vid);
+  drupal_set_message(t('Deleted vocabulary %name.', array(
+    '%name' => $vocabulary->name
+  )));
+  watchdog('Taxonomy', 'Deleted vocabulary %name.', array(
+    '%name' => 'Unknown'
+  ), WATCHDOG_NOTICE);
+  $context['finished'] = 1;
+}
+
+/**
+ * Batch deleting the terms.
+ */
+function taxonomy_batch_vocabulary_delete_batch($vid, &$context){
+  if(!isset($context['sandbox']['total_to_delete'])){
+    // First thing we do is delete all parent entries for each term.  This 
+    // ensures that each term is deleted one by one.
+    $subquery = db_select('taxonomy_term_data', 't')->fields('t', array(
+      'tid'
+    ))->condition('vid', $vid);
+    db_delete('taxonomy_term_hierarchy')->condition('tid', $subquery, 'IN')->execute();
+    // Get the total number of terms to delete.
+    $results = db_select('taxonomy_term_data', 't')->condition('vid', $vid)->countQuery()->execute()->fetchCol(0);
+    $context['sandbox']['total_to_delete'] = $results[0];
+    $context['sandbox']['total_deleted'] = 0;
+    if(!$context['sandbox']['total_to_delete']){
+      $context['finished'] = 1;
+      return;
+    }
+  }
+  // Get the terms to delete
+  $results = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ))->condition('vid', $vid)->execute();
+  $num_rows_processed = 0;
+  foreach($results as $row){
+    taxonomy_term_delete($row->tid);
+    $context['sandbox']['total_deleted']++;
+    $num_rows_processed++;
+    if($num_rows_processed == 3){
+      break;
+    }
+  }
+  $context['message'] = t('Deleted %terms_deleted of %max_terms terms', array(
+    '%terms_deleted' => $context['sandbox']['total_deleted'],
+    '%max_terms' => $context['sandbox']['total_to_delete']
+  ));
+  $context['finished'] = $context['sandbox']['total_deleted'] / $context['sandbox']['total_to_delete'];
+}

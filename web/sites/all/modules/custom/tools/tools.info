@@ -1,0 +1,14 @@
+name = "Tools"
+description = "An alternative, non-developer interface for turning on/off features."
+package = "Fields"
+dependencies[] = switch
+dependencies[] = features
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+
+; Information added by Drupal.org packaging script on 2015-04-13
+version = "7.x-1.1"
+core = "7.x"
+project = "tools"
+datestamp = "1428926542"

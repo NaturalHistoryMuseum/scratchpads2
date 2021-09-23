@@ -1,0 +1,46 @@
+html.js .l10n-update-wrapper.collapsed .fieldset-wrapper {
+  display: none;
+}
+
+.l10n-update-wrapper .project .version-status {
+  display: none;
+}
+
+/* Expand/collapse image for project title */
+html.js .l10n-update-wrapper .project-title {
+  background: url("../images/menu-expanded.png") left 65% no-repeat;
+  padding-left: 10px;
+}
+
+html.js .l10n-update-wrapper.collapsed .project-title {
+  background: url("../images/menu-collapsed.png") left 50% no-repeat;
+}
+
+html.js .l10n-update-wrapper .project-title a {
+  margin-left: -10px;
+  padding-left: 10px;
+}
+
+/* Translation update status data */
+html.js .l10n-update-wrapper.collapsed .project .version-status {
+  display: inline;
+  float: right;
+}
+
+.l10n-update .project-server {
+  margin: 0 10px;
+  font-size: 90%;
+  font-weight: normal
+}
+
+.l10n-update .version-status {
+  float: right;
+  font-size: 90%;
+  font-weight: normal;
+}
+
+.l10n-update .version-links {
+  float: right;
+  padding-right: 1em;
+  
+}

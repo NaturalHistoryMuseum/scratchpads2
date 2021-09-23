@@ -1,0 +1,161 @@
+<?php
+/**
+ * OAuth Common Provider UI module
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function oauth_common_providerui_menu() {
+  $menu = array();
+  $admin_base = array(
+    'access arguments' => array('administer oauth'),
+    'file' => 'oauth_common.admin.inc',
+  );
+
+  $menu['admin/config/services/oauth/contexts'] = array(
+    'title' => 'Contexts',
+    'description' => 'The different context for authorization',
+    'page callback' => 'oauth_common_list_context',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  ) + $admin_base;
+
+  ////////////
+  // Context administration
+  ////////////
+
+  $menu['admin/config/services/oauth/add'] = array(
+    'title'          => 'Add context',
+    'page callback'  => 'oauth_common_add_context',
+    'type'           => MENU_LOCAL_TASK,
+    'weight'         => 10,
+  ) + $admin_base;
+
+  $menu['admin/config/services/oauth/%oauth_common_context/edit'] = array(
+    'title'          => 'Edit context',
+    'page callback'  => 'oauth_common_edit_context',
+    'page arguments' => array(4),
+    'type'           => MENU_LOCAL_TASK,
+    'weight'         => 10,
+  ) + $admin_base;
+
+  $menu['admin/config/services/oauth/%oauth_common_context/export'] = array(
+    'title'          => 'Export context',
+    'page callback'  => 'drupal_get_form',
+    'page arguments' => array('oauth_common_export_context', 4),
+    'type'           => MENU_LOCAL_TASK,
+    'weight'         => 20,
+  ) + $admin_base;
+
+  $menu['admin/config/services/oauth/%oauth_common_context/delete'] = array(
+    'title'          => 'Delete context',
+    'page callback'  => 'drupal_get_form',
+    'page arguments' => array('oauth_common_delete_confirm_context', 4),
+    'type'           => MENU_CALLBACK,
+  ) + $admin_base;
+
+  $menu['admin/config/services/oauth/%oauth_common_context/disable'] = array(
+    'page callback'  => 'oauth_common_context',
+    'page arguments' => array(3),
+    'type'           => MENU_CALLBACK,
+  ) + $admin_base;
+
+  $menu['admin/config/services/oauth/%oauth_common_context/enable'] = array(
+    'page callback'  => 'oauth_common_enable_context',
+    'page arguments' => array(3),
+    'type'           => MENU_CALLBACK,
+  ) + $admin_base;
+
+  ////////////
+  // Authorization administration
+  ////////////
+
+  $menu['user/%user/oauth/authorizations'] = array(
+    'title' => 'OAuth Authorizations',
+    'page callback' => 'oauth_common_page_user_authorizations',
+    'page arguments' => array(1, TRUE),
+    'access callback' => '_oauth_common_user_access',
+    'access arguments' => array(1, 'access own authorizations'),
+    'file' => 'oauth_common.authorizations.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $menu['user/%user/oauth/authorizations/%oauth_common_provider_token'] = array(
+    'title' => 'Edit authorization',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('oauth_common_form_authorization', 4),
+    'access callback' => '_oauth_common_user_access',
+    'access arguments' => array(1, 'oauth authorize any consumers'),
+    'file' => 'oauth_common.authorizations.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $menu['user/%user/oauth/authorizations/%oauth_common_provider_token/delete'] = array(
+    'title' => 'Delete authorization',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('oauth_common_form_authorization_delete', 1, 4),
+    // We always want to allow the user to delete a authorization, that
+    // shouldn't be a permission that can be rescinded.
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'file' => 'oauth_common.authorizations.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  ////////////
+  // Consumer administration
+  ////////////
+
+  $menu['user/%user/oauth/consumer'] = array(
+    'title' => 'OAuth Consumers',
+    'page callback' => 'oauth_common_page_user_consumers',
+    'page arguments' => array(1),
+    'access callback' => '_oauth_common_user_access',
+    'access arguments' => array(1, 'access own consumers'),
+    'file' => 'oauth_common.consumers.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $menu['user/%user/oauth/consumer/add'] = array(
+    'title' => 'Add consumer',
+    'page callback' => 'oauth_common_add_consumer',
+    'page arguments' => array(1),
+    'access callback' => 'oauth_common_can_create_consumers',
+    'file' => 'oauth_common.consumers.inc',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 10,
+  );
+
+  $menu['user/%user/oauth/consumer/%oauth_common_consumer'] = array(
+    'title' => 'Edit consumer',
+    'page callback' => 'oauth_common_edit_consumer',
+    'page arguments' => array(4),
+    'access callback' => 'oauth_common_can_edit_consumer',
+    'access arguments' => array(4),
+    'file' => 'oauth_common.consumers.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $menu['user/%user/oauth/consumer/%oauth_common_consumer/delete'] = array(
+    'title' => 'Delete consumer',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('oauth_common_form_consumer_delete', 4),
+    'access callback' => 'oauth_common_can_edit_consumer',
+    'access arguments' => array(4),
+    'file' => 'oauth_common.consumers.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $menu['user/%user/oauth/consumer/%oauth_common_consumer/add-authorization'] = array(
+    'title' => 'Add authorization',
+    'page callback' => 'oauth_common_authorization_add',
+    'page arguments' => array(1, 4),
+    'access callback' => 'oauth_common_can_authorize_consumer',
+    'access arguments' => array(4),
+    'file' => 'oauth_common.authorizations.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  return $menu;
+}

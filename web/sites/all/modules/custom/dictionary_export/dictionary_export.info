@@ -1,0 +1,14 @@
+name = Dictionary Export
+description = Allows a Microsoft Word formatted custom dictionary to be exported from a vocabulary on your site
+package = "Taxonomy"
+core = 7.x
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+tool=true
+
+; Information added by drupal.org packaging script on 2012-11-14
+version = "7.x-1.3"
+core = "7.x"
+project = "dictionary_export"
+datestamp = "1352913056"

@@ -1,0 +1,20 @@
+Apache Solr Search Integration 7.x-1.0-XXX, xxxx-xx-xx
+------------------------------
+#1588684 by andrew.yang, Nick_vh: Added Filtering specific content types from search queries.
+#1489896 by Nick_vh: Added facets for Cross site content types and tags.
+#1006994 by Nick_vh, wmostrey, pwolanin | webchick: Port Apache Solr Multisite Search to Drupal 7.
+#1006994 by wmostrey: Initial Drupal 7 port.
+
+Apache Solr Search Integration 6.x-1.0-RC1, xxxx-xx-xx
+------------------------------
+#939236 by pwolanin, use sname field so stemmed author names are not used for facets.
+
+Apache Solr Search Integration 6.x-1.0-beta1, 2010-09-02
+------------------------------
+#879104 by slip: fix Current search block doesn't show the number of results
+#892572 protect against empty metadata
+#813744 by csevb10, pwolanin, Countzero invoke a hook to get multisite facets
+
+Apache Solr Search Integration 6.x-1.0-alpha1, 2010-06-28
+------------------------------
+First official release, incorporates fixes and enhancement from Robert Douglass.

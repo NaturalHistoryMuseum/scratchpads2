@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_roles_and_permissions_module_implements_alter(&$implementations, $hook){
+  if($hook == 'scratchpads_default_permissions'){
+    $additional_modules = array(
+      'advanced_help',
+      'aggregator',
+      'biblio',
+      'bigmenu',
+      'block',
+      'clone',
+      'comment',
+      'comment_notify',
+      'contact',
+      'context',
+      'contextual',
+      'dashboard',
+      'entityconnect',
+      'exif_custom',
+      'feeds',
+      'feeds_xls',
+      'femail',
+      'field_group',
+      'file_entity',
+      'filter',
+      'formflow',
+      'forum',
+      'gm3',
+      'googleanalytics',
+      'legal',
+      'menu',
+      'node',
+      'og',
+      'overlay',
+      'path',
+      'pathauto',
+      'redirect',
+      'role_delegation',
+      'search',
+      'shortcut',
+      'simplenews',
+      'subpermissions',
+      'system',
+      'taxonomy',
+      'taxonomy_revision',
+      'taxonomystatistics',
+      'toolbar',
+      'tools',
+      'tui',
+      'user',
+      'views',
+      'webform',
+      'weight',
+      'gravatar',
+      'relation_add'
+    );
+    $additional_implementations = array();
+    foreach($additional_modules as $additional_module){
+      if(module_exists($additional_module)){
+        $additional_implementations[$additional_module] = FALSE;
+      }
+    }
+    $implementations = array_merge($implementations, $additional_implementations);
+  }
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function scratchpads_roles_and_permissions_hook_info(){
+  return array(
+    'scratchpads_default_permissions_alter' => array(
+      'group' => 'scratchpads'
+    ),
+    'scratchpads_default_permissions' => array(
+      'group' => 'scratchpads'
+    )
+  );
+}
+
+/**
+ * Implements hook_flush_caches
+ */
+function scratchpads_roles_and_permissions_flush_caches(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_insert(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_roles_and_permissions_taxonomy_vocabulary_delete(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_roles_and_permissions_node_type_insert(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function scratchpads_roles_and_permissions_node_type_delete(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function scratchpads_roles_and_permissions_modules_enabled(){
+  _scratchpads_roles_and_permissions_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_roles_and_permissions_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_roles_and_permissions_shutdown');
+  }
+}
+
+/**
+ * Shutdown function which actually changes the permissions for us.
+ * Enter description here ...
+ * @var unknown_type
+ */
+function scratchpads_roles_and_permissions_shutdown(){
+  $default_permissions = module_invoke_all('scratchpads_default_permissions');
+  drupal_alter('scratchpads_default_permissions', $default_permissions);
+  foreach($default_permissions as $role => $permissions){
+    // Load the role
+    $role = user_role_load_by_name($role);
+    if($role && count($permissions)){
+      // Due to issues during install, we need to check that the module a
+      // permission is associated with is set.  If it isn't, then we remove it
+      // from the list.
+      $modules = user_permission_get_modules();
+      foreach($permissions as $key => $value){
+        if(!isset($modules[$value])){
+          unset($permissions[$key]);
+        }
+      }
+      $all_permissions = user_permission_get_modules();
+      $new_permissions = drupal_map_assoc($permissions);
+      foreach($all_permissions as $perm => $module){
+        if(!isset($new_permissions[$perm])){
+          $new_permissions[$perm] = FALSE;
+        }
+      }
+      user_role_change_permissions($role->rid, $new_permissions);
+    }
+  }
+}

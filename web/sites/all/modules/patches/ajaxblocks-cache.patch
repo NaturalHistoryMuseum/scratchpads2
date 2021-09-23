@@ -1,0 +1,36 @@
+diff --git a/sites/all/modules/contrib/ajaxblocks/ajaxblocks.js b/sites/all/modules/contrib/ajaxblocks/ajaxblocks.js
+index c1a6c4f..3dbb760 100644
+--- a/sites/all/modules/contrib/ajaxblocks/ajaxblocks.js
++++ b/sites/all/modules/contrib/ajaxblocks/ajaxblocks.js
+@@ -14,8 +14,9 @@ Drupal.ajaxblocksSendRequest = function (request, delay) {
+     url: ((typeof Drupal.settings.ajaxblocks_path !== 'undefined') ? Drupal.settings.ajaxblocks_path : (Drupal.settings.basePath + "ajaxblocks")),
+     type: "GET",
+     dataType: "json",
+-    data: request + '&nocache=1',
+-    cache: false,
++    // SDRycroft
++    data: request,// + '&nocache=1',
++    //cache: false,
+     success: function (data) {
+       // Replaces the placeholder divs by the actual block contents returned by the AJAX call,
+       // executes the extra JavaScript code and attach behaviours if the apply to the blocks.
+diff --git a/sites/all/modules/contrib/ajaxblocks/ajaxblocks.module b/sites/all/modules/contrib/ajaxblocks/ajaxblocks.module
+index e94666b..7c004cf 100644
+--- a/sites/all/modules/contrib/ajaxblocks/ajaxblocks.module
++++ b/sites/all/modules/contrib/ajaxblocks/ajaxblocks.module
+@@ -215,11 +215,15 @@ function ajaxblocks_is_ajax($block_id, &$settings) {
+  * Handles AJAX request and returns the content of the appropriate blocks.
+  */
+ function ajaxblocks_ajax_handler() {
++  /* SDRycroft
++   * The following code has been commented out to enable caching of the tinytax
++   * blocks in the Scratchpads.
+   // Disable client-side caching.
+   header('Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0');
+   header('Pragma: no-cache');
+   // Disable server-side caching.
+   drupal_page_is_cacheable(FALSE);
++   */
+ 
+   _ajaxblocks_in_ajax_handler_impl(TRUE);
+   $content = array();

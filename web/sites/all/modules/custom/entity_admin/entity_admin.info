@@ -1,0 +1,23 @@
+name = "Entity Admin"
+description = "Provides a generic admin for creating &amp; editing entities"
+core = 7.x
+dependencies[] = entity
+dependencies[] = views
+dependencies[] = views_bulk_operations
+package = Entity
+
+files[] = classes/EntityAdminAPIController.inc
+files[] = classes/EntityAdminController.inc
+files[] = classes/EntityAdminEntityController.inc
+files[] = classes/EntityAdminTypeController.inc
+
+; Views plugins
+files[] = views/plugins/entity_admin_views_plugin_query.inc
+
+; Views handlers
+files[] = views/handlers/entity_admin_views_handler_field_link.inc
+files[] = views/handlers/entity_admin_views_handler_field_link_edit.inc
+files[] = views/handlers/entity_admin_views_handler_field_link_delete.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = entity_admin

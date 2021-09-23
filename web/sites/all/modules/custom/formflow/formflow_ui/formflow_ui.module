@@ -1,0 +1,769 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * HOOKS
+ * 
+ ********************************************************************************************/
+/** 
+ * Implementation of hook_theme(). 
+ */
+function formflow_ui_theme(){
+  return array(
+    // Theme the views plugin form table
+    'formflow_ui_steps_form' => array(
+      'render element' => 'form',
+      'file' => 'ui.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implement hook_menu().
+ */
+function formflow_ui_menu(){
+  $items = array();
+  $items['admin/structure/formflow'] = array(
+    'title' => 'Form flow',
+    'description' => 'Organise forms into multiple steps',
+    'page callback' => 'formflow_ui_overview_page',
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'administer form flows'
+    )
+  );
+  $items['admin/structure/formflow/add'] = array(
+    'title' => 'Add new form flow',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'formflow_ui_form'
+    ),
+    'type' => MENU_LOCAL_ACTION,
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'create form flows'
+    )
+  );
+  $items['admin/structure/formflow/%formflow_ui/edit'] = array(
+    'title callback' => 'formflow_ui_title',
+    'title arguments' => array(
+      4,
+      3
+    ),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'formflow_ui_form',
+      3
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'edit form flows'
+    )
+  );
+  $items['admin/structure/formflow/%formflow_ui/steps'] = array(
+    'title callback' => 'formflow_ui_title',
+    'title arguments' => array(
+      4,
+      3
+    ),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'formflow_ui_steps_form',
+      3
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'edit form flows'
+    )
+  );
+  $items['admin/structure/formflow/%formflow_ui/delete'] = array(
+    'title callback' => 'formflow_ui_title',
+    'title arguments' => array(
+      4,
+      3
+    ),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'formflow_ui_delete_form',
+      3
+    ),
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'delete form flows'
+    )
+  );
+  return $items;
+}
+
+/*********************************************************************************************
+ * 
+ * MENU CALLBACKS
+ * 
+ ********************************************************************************************/
+/**
+ * Menu title callback - define a title for the page
+ * 
+ * @param string $op
+ * @param array $flow
+ */
+function formflow_ui_title($op, $flow){
+  if(isset($flow['title'])){
+    switch($op){
+      case 'delete':
+        $title = t('Delete @title', array(
+          '@title' => $flow['title']
+        ));
+        break;
+      default:
+        $title = t('Edit @title', array(
+          '@title' => $flow['title']
+        ));
+        break;
+    }
+  }else{
+    $title = ucfirst($op);
+  }
+  return $title;
+}
+
+/**
+ * Menu loader a callback - load a flow
+ * 
+ * @param integer $fid
+ */
+function formflow_ui_load($name){
+  return formflow_get_flows($name);
+}
+
+/**
+ * Menu callback
+ * Page displaying all form flows & edit links
+ */
+function formflow_ui_overview_page(){
+  drupal_add_css(drupal_get_path('module', 'formflow') . '/css/formflow_ui.css');
+  $flows = formflow_get_flows();
+  $rows = array();
+  $header = array(
+    t('Name'),
+    t('Forms'),
+    array(
+      'data' => t('Operations'),
+      'colspan' => 3
+    )
+  );
+  // Loop through all the flows & turn it into a table
+  if(count($flows)){
+    foreach($flows as $name => $flow){
+      $row = array();
+      if(isset($flow['module'])){ // If module is set, this is defined by a module in hook_default_flow()
+        if(isset($flow['fid'])){
+          $status = t('Overridden in database');
+          $links = array(
+            'edit' => t("Settings"),
+            'steps' => t("Forms"),
+            'delete' => t("Reset")
+          );
+        }else{
+          $status = t('Default flow (%module)', array(
+            '%module' => $flow['module']
+          ));
+          $links = array(
+            'edit' => t("Overide"),
+            'steps' => false,
+            'delete' => false
+          );
+        }
+      }else{
+        $status = t('In database');
+        $links = array(
+          'edit' => t("Settings"),
+          'steps' => t("Forms"),
+          'delete' => t("Delete")
+        );
+      }
+      $row[] = l($flow['title'], $flow['path']) . ($flow['description'] ? '<p>' . $flow['description'] . '</p>' : '') . '<div class="description">' . $status . '</div>';
+      if(count($flow['steps'])){
+        $forms = array();
+        foreach($flow['steps'] as $step){
+          $forms['items'][] = $step['title'];
+        }
+        $row[] = theme('item_list', $forms);
+      }else{
+        $row[] = '';
+      }
+      foreach($links as $link => $title){
+        if($title){
+          $row[] = l($title, 'admin/structure/formflow/' . $name . '/' . $link);
+        }else{
+          $row[] = '';
+        }
+      }
+      $rows[] = $row;
+    }
+    $output = theme('table', array(
+      'header' => $header,
+      'rows' => $rows,
+      'attributes' => array(
+        'id' => 'formflow-overview'
+      )
+    ));
+  }else{
+    $output = t('There are no flows');
+  }
+  return $output;
+}
+
+/*********************************************************************************************
+ * 
+ * FORMS
+ * 
+ ********************************************************************************************/
+/**
+ * Formflow add/edit form
+ * @param array $form
+ * @param array $form_state
+ * @param array $flow
+ */
+function formflow_ui_form($form, &$form_state, $flow = array()){
+  ctools_include('dependent');
+  $form['#tree'] = true;
+  $form['#flow'] = $flow;
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => (isset($flow['title']) ? $flow['title'] : ''),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#required' => TRUE
+  );
+  $form['name'] = array(
+    '#type' => 'machine_name',
+    '#title' => t('Name'),
+    '#default_value' => (isset($flow['name']) ? $flow['name'] : ''),
+    '#maxlength' => 32,
+    '#description' => t('A unique name for the form flow. It must only contain lowercase letters, numbers and hyphens.'),
+    '#machine_name' => array(
+      'exists' => 'formflow_ui_name_exists',
+      'source' => array(
+        'title'
+      )
+    ),
+    // A menu's machine name cannot be changed.
+    '#disabled' => !empty($flow['name'])
+  );
+  $form_state['no buttons'] = TRUE;
+  $form['description'] = array(
+    '#title' => t('Description'),
+    '#type' => 'textarea',
+    '#description' => t('A description of the form flow, used on the admin pages'),
+    '#default_value' => isset($flow['description']) ? $flow['description'] : ''
+  );
+  $form['path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path'),
+    '#default_value' => isset($flow['path']) ? $flow['path'] : '',
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#required' => TRUE
+  );
+  // Menu stuff
+  $form['menu'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Menu'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE
+  );
+  if(isset($flow['menu'])){
+    $menu = $flow['menu'];
+  }else{
+    $menu = array(
+      'type' => 'none',
+      'title' => '',
+      'weight' => 0,
+      'name' => 'navigation',
+      'parent' => array(
+        'type' => 'none',
+        'title' => '',
+        'weight' => 0,
+        'name' => 'navigation'
+      )
+    );
+  }
+  $form['menu']['type'] = array(
+    '#title' => t('Type'),
+    '#type' => 'radios',
+    '#options' => array(
+      'none' => t('No menu entry'),
+      'normal' => t('Normal menu entry'),
+      'tab' => t('Menu tab'),
+      'default tab' => t('Default menu tab'),
+      'action' => t('Local action')
+    ),
+    '#default_value' => $menu['type']
+  );
+  $form['menu']['title'] = array(
+    '#title' => t('Title'),
+    '#type' => 'textfield',
+    '#default_value' => $menu['title'],
+    '#description' => t('If set to normal or tab, enter the text to use for the menu item.'),
+    '#dependency' => array(
+      'radio:menu[type]' => array(
+        'normal',
+        'tab',
+        'default tab',
+        'action'
+      )
+    )
+  );
+  // Only display the menu selector if menu module is enabled.
+  if(module_exists('menu')){
+    $form['menu']['name'] = array(
+      '#title' => t('Menu'),
+      '#type' => 'select',
+      '#options' => menu_get_menus(),
+      '#default_value' => $menu['name'],
+      '#description' => t('Insert item into an available menu.'),
+      '#dependency' => array(
+        'radio:menu[type]' => array(
+          'normal'
+        )
+      )
+    );
+  }else{
+    $form['menu']['name'] = array(
+      '#type' => 'value',
+      '#value' => $menu['name']
+    );
+    $form['menu']['markup'] = array(
+      '#value' => t('Menu selection requires the activation of menu module.')
+    );
+  }
+  $form['menu']['weight'] = array(
+    '#title' => t('Weight'),
+    '#type' => 'textfield',
+    '#default_value' => isset($menu['weight']) ? $menu['weight'] : 0,
+    '#description' => t('The lower the weight the higher/further left it will appear.'),
+    '#dependency' => array(
+      'radio:menu[type]' => array(
+        'normal',
+        'tab',
+        'default tab',
+        'action'
+      )
+    )
+  );
+  $form['menu']['parent']['type'] = array(
+    '#prefix' => '<div id="edit-menu-parent-type-wrapper">',
+    '#suffix' => '</div>',
+    '#title' => t('Parent menu item'),
+    '#type' => 'radios',
+    '#options' => array(
+      'none' => t('No menu entry'),
+      'normal' => t('Normal menu item'),
+      'tab' => t('Menu tab')
+    ),
+    '#default_value' => $menu['parent']['type'],
+    '#description' => t('When providing a menu item as a default tab, Drupal needs to know what the parent menu item of that tab will be. Sometimes the parent will already exist, but other times you will need to have one created. The path of a parent item will always be the same path with the last part left off. i.e, if the path to this view is <em>foo/bar/baz</em>, the parent path would be <em>foo/bar</em>.'),
+    '#dependency' => array(
+      'radio:menu[type]' => array(
+        'default tab'
+      )
+    )
+  );
+  $form['menu']['parent']['title'] = array(
+    '#title' => t('Parent item title'),
+    '#type' => 'textfield',
+    '#default_value' => $menu['parent']['title'],
+    '#description' => t('If creating a parent menu item, enter the title of the item.'),
+    '#dependency' => array(
+      'radio:menu[type]' => array(
+        'default tab'
+      ),
+      'radio:menu[parent][type]' => array(
+        'normal',
+        'tab'
+      )
+    ),
+    '#dependency_count' => 2
+  );
+  // Only display the menu selector if menu module is enabled.
+  if(module_exists('menu')){
+    $form['menu']['parent']['name'] = array(
+      '#title' => t('Parent item menu'),
+      '#type' => 'select',
+      '#options' => menu_get_menus(),
+      '#default_value' => $menu['parent']['name'],
+      '#description' => t('Insert item into an available menu.'),
+      '#dependency' => array(
+        'radio:menu[type]' => array(
+          'default tab'
+        ),
+        'radio:menu[parent][type]' => array(
+          'normal'
+        )
+      ),
+      '#dependency_count' => 2
+    );
+  }else{
+    $form['menu']['parent']['name'] = array(
+      '#type' => 'value',
+      '#value' => $menu['parent']['name']
+    );
+  }
+  $form['menu']['parent']['weight'] = array(
+    '#title' => t('Tab weight'),
+    '#type' => 'textfield',
+    '#default_value' => $menu['parent']['weight'],
+    '#size' => 5,
+    '#description' => t('If the parent menu item is a tab, enter the weight of the tab. The lower the number, the more to the left it will be.'),
+    '#dependency' => array(
+      'radio:menu[type]' => array(
+        'default tab'
+      ),
+      'radio:menu[parent][type]' => array(
+        'tab'
+      )
+    ),
+    '#dependency_count' => 2
+  );
+  $form['fid'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($flow['fid']) ? $flow['fid'] : ''
+  );
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Options'),
+    '#collapsible' => TRUE
+  );//    '#collapsed' => TRUE
+
+  $form['options']['show_trail'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show trail.'),
+    '#default_value' => isset($flow['show_trail']) ? $flow['show_trail'] : true
+  );
+  $form['options']['show_back'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show back.'),
+    '#default_value' => isset($flow['show_back']) ? $flow['show_back'] : true
+  );
+  $form['options']['show_cancel'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show cancel.'),
+    '#default_value' => isset($flow['show_cancel']) ? $flow['show_cancel'] : ''
+  );
+  $form['options']['cancel_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Cancel path'),
+    '#default_value' => isset($flow['cancel_path']) ? $flow['cancel_path'] : '',
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t('The path to redirect to when the user cancels mid-flow.'),
+    '#dependency' => array(
+      'edit-options-show-cancel' => array(
+        TRUE
+      )
+    )
+  );
+  $form['options']['show_return'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show return.'),
+    '#description' => t('Users can exit the flow at any point.'),
+    '#default_value' => isset($flow['show_return']) ? $flow['show_return'] : ''
+  );
+  $form['options']['finish_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Finish path'),
+    '#default_value' => isset($flow['finish_path']) ? $flow['finish_path'] : '',
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t('The path to redirect to when the flow completes.')
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+    '#limit_validation_errors' => array(),
+    '#submit' => array(
+      'formflow_ui_form_cancel'
+    )
+  );
+  return $form;
+}
+
+/**
+ * Returns whether a menu name already exists.
+ * @see form_validate_machine_name()
+ */
+function formflow_ui_name_exists($value){
+  return array_key_exists($value, formflow_get_flows());
+}
+
+/**
+ * Handle clicking cancel button on a form - redirect to main page
+ * 
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_form_cancel($form, &$form_state){
+  $form_state['redirect'] = 'admin/structure/formflow';
+}
+
+/**
+ * Validate the form - is the path valid?
+ * 
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_form_validate($form, &$form_state){
+  if(!valid_url($form_state['values']['path'])){
+    form_set_error('path', t("Please enter a valid URL"));
+  }
+}
+
+/**
+ * Formflow settings form has been submitted
+ * Save settings in the DB
+ * Clear menu caches
+ * 
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_form_submit($form, &$form_state){
+  $form['#flow']['title'] = $form_state['values']['title'];
+  $form['#flow']['name'] = $form_state['values']['name'];
+  $form['#flow']['path'] = $form_state['values']['path'];
+  $form['#flow']['menu'] = $form_state['values']['menu'];
+  $form['#flow']['description'] = $form_state['values']['description'];
+  $form['#flow']['show_trail'] = $form_state['values']['options']['show_trail'];
+  $form['#flow']['show_back'] = $form_state['values']['options']['show_back'];
+  $form['#flow']['show_cancel'] = $form_state['values']['options']['show_cancel'];
+  $form['#flow']['show_return'] = $form_state['values']['options']['show_return'];
+  $form['#flow']['cancel_path'] = $form_state['values']['options']['cancel_path'];
+  $form['#flow']['finish_path'] = $form_state['values']['options']['finish_path'];
+  // If this isn't a plugin being overridden, delelete the flows as they don't need to be saved
+  if(!(isset($form['#flow']['module']) & !isset($form['#flow']['fid']))){
+    unset($form['#flow']['steps']);
+  }
+  formflow_save($form['#flow']);
+  if(isset($form['#flow']['fid'])){
+    drupal_set_message(t('Form flow %title updated', array(
+      '%title' => $form_state['values']['title']
+    )));
+  }else{
+    drupal_set_message(t('New form flow %title has been created', array(
+      '%title' => $form_state['values']['title']
+    )));
+  }
+  $form_state['redirect'] = 'admin/structure/formflow';
+  formflow_menu_cache_clear();
+}
+
+/**
+ * 
+ * Add / remove form flow steps
+ * @param array $form
+ * @param array $form_state
+ * @param array $flow
+ */
+function formflow_ui_steps_form($form, &$form_state, $flow = array()){
+  $available_forms_list = formflow_ui_list_forms();
+  $form['#tree'] = true;
+  $form['#flow'] = $flow;
+  foreach($available_forms_list as $module => $available_forms){
+    $form['available_forms'][$module] = array(
+      '#type' => 'fieldset',
+      '#title' => !empty($module) ? $module : t('Unknown'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE
+    );
+    foreach($available_forms as $available_form){
+      $form['available_forms'][$module][$available_form['form_id']]['button'] = array(
+        '#prefix' => '<p><strong>' . $available_form['title'] . '</strong><br />' . $available_form['description'] . '</p>',
+        '#type' => 'submit',
+        '#value' => t('Add form'),
+        '#submit' => array(
+          'formflow_ui_steps_form_add_submit'
+        ),
+        '#title' => $available_form['title'],
+        '#name' => $available_form['form_id'],
+        '#path' => $available_form['path']
+      );
+    }
+  }
+  if(isset($form_state['add'])){
+    $flow['steps'] = array_merge($flow['steps'], (array)$form_state['add']);
+  }
+  foreach($flow['steps'] as $delta => $step){
+    // Don't add removed items
+    if(isset($form_state['remove']) && in_array($step['form_id'], (array)$form_state['remove'])){
+      continue;
+    }
+    $form['enabled_forms'][$step['form_id']] = array(
+      'title' => array(
+        '#type' => 'textfield',
+        '#title' => t('Title'),
+        '#title_display' => 'invisible',
+        '#default_value' => $step['title'],
+        '#size' => 60,
+        '#maxlength' => 128,
+        '#required' => TRUE
+      ),
+      'path' => array(
+        '#type' => 'hidden',
+        '#value' => $step['path']
+      ),
+      'weight' => array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#title_display' => 'invisible',
+        '#default_value' => $delta,
+        '#delta' => 10
+      ),
+      'remove' => array(
+        '#type' => 'submit',
+        '#value' => t('Remove form'),
+        '#submit' => array(
+          'formflow_ui_steps_form_remove_submit'
+        ),
+        '#name' => $step['form_id']
+      )
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save')
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+    '#limit_validation_errors' => array(),
+    '#submit' => array(
+      'formflow_ui_form_cancel'
+    )
+  );
+  return $form;
+}
+
+/**
+ * 
+ * Form submit function: Add a step
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_steps_form_add_submit(&$form, &$form_state){
+  $form_state['rebuild'] = TRUE;
+  $form_state['add'][] = array(
+    'title' => $form_state['clicked_button']['#title'],
+    'form_id' => $form_state['clicked_button']['#name'],
+    'path' => $form_state['clicked_button']['#path']
+  );
+}
+
+/**
+ * 
+ * Form submit function: Remove a step
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_steps_form_remove_submit(&$form, &$form_state){
+  $form_state['rebuild'] = TRUE;
+  $form_state['remove'][] = $form_state['clicked_button']['#name'];
+}
+
+/**
+ * 
+ * Form submit function
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_steps_form_submit($form, &$form_state){
+  $steps = array();
+  if(is_array($form_state['values']['enabled_forms'])){
+    foreach($form_state['values']['enabled_forms'] as $form_id => $step){
+      $steps[] = array(
+        'form_id' => $form_id,
+        'title' => $step['title'],
+        'weight' => $step['weight'],
+        'path' => $step['path']
+      );
+    }
+  }
+  formflow_save_steps($form['#flow']['fid'], $steps);
+  $form_state['redirect'] = 'admin/structure/formflow';
+  drupal_set_message(t('Form flow %title updated', array(
+    '%title' => $form['#flow']['title']
+  )));
+  formflow_menu_cache_clear();
+}
+
+/**
+ * 
+ * Form to confirm deletion of a flow
+ * @param array $form
+ * @param array $form_state
+ * @param array $flow
+ */
+function formflow_ui_delete_form($form, &$form_state, $flow){
+  // Always provide entity id in the same form key as in the entity edit form.
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $flow['fid']
+  );
+  $form['#flow'] = $flow;
+  return confirm_form($form, t('Are you sure you want to delete %title?', array(
+    '%title' => $flow['title']
+  )), 'admin/structure/formflow', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+}
+
+/**
+ * 
+ * Form submit;
+ * Delete a flow
+ * @param array $form
+ * @param array $form_state
+ */
+function formflow_ui_delete_form_submit($form, &$form_state){
+  formflow_delete($form_state['values']['fid']);
+  drupal_set_message(t('%title has been deleted.', array(
+    '%title' => $form['#flow']['title']
+  )));
+  $form_state['redirect'] = 'admin/structure/formflow';
+  formflow_menu_cache_clear();
+}
+
+/**
+ * List of all available forms
+ */
+function formflow_ui_list_forms(){
+  $forms = array();
+  $menu = menu_get_router();
+  foreach($menu as $path => $item){
+    // This will only work if the sole argument is the form ID
+    // TODO - allow users to specify arguments in the UI?
+    if($item['page callback'] == 'drupal_get_form' && (count($item['page arguments']) <= 1)){
+      $forms[$item['module']][] = array(
+        'form_id' => array_shift($item['page arguments']),
+        'title' => $item['title'],
+        'description' => $item['description'],
+        'path' => $path
+      );
+    }
+  }
+  $node_types = node_type_get_types();
+  foreach($node_types as $node_type){
+    $forms['node'][] = array(
+      'form_id' => $node_type->type . '_node_form',
+      'title' => $node_type->name,
+      'description' => t('Create @name node.', array(
+        '@name' => $node_type->name
+      )),
+      'path' => 'node/add/' . $node_type->type
+    );
+  }
+  ksort($forms);
+  return $forms;
+}
+

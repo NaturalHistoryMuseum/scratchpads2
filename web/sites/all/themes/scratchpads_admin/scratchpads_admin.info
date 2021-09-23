@@ -1,0 +1,12 @@
+name = Scratchpads Admin
+description = Scratchpads administration theme.
+base theme = rubik
+core = 7.x
+stylesheets[screen][] = override.css
+scripts[] = js/scratchpads-admin.js
+settings[shortcut_module_link] = 1
+[overlay_regions][] = dashboard_main
+[overlay_regions][] = dashboard_sidebar
+[overlay_regions][] = dashboard_inactive
+[overlay_regions][] = content
+[overlay_regions][] = help

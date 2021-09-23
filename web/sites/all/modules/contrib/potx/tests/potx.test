@@ -1,0 +1,298 @@
+<?php
+// $Id: potx.test,v 1.1.4.8 2011/01/26 12:16:06 goba Exp $
+
+/**
+ * @file
+ *   Tests to ensure that the template extractor works as intended.
+ */
+
+class PotxTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Translation template extractor'),
+      'description' => t('Ensure that the translation template extractor functions properly.'),
+      'group' => t('Translation template extractor'),
+    );
+  }
+
+  public function setUp() {
+    // Set up required modules for potx.
+    parent::setUp(array('locale', 'potx'));
+
+    // Add potx.inc which we test for its functionality.
+    include_once(drupal_get_path('module', 'potx') .'/potx.inc');
+    // Store empty error message for reuse in multiple cases.
+    $this->empty_error = t('Empty string attempted to be localized. Please do not leave test code for localization in your source.');
+  }
+
+  /**
+   * Test parsing of Drupal 5 module.
+   */
+  public function testDrupal5() {
+    // Parse and build the Drupal 5 module file.
+    $filename = drupal_get_path('module', 'potx') .'/tests/potx_test_5.module';
+    $this->parseFile($filename, POTX_API_5);
+
+    // Assert strings found in module source code.
+    $this->assertMsgID('Test menu item in 5');
+    $this->assertMsgID('This is a test menu item in 5');
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('test watchdog type');
+    // No support for instant t() in watchdog.
+    $this->assertNoMsgID('My watchdog message');
+    $this->assertMsgID('test potx permission');
+    $this->assertMsgID('one more test potx permission');
+    $this->assertMsgID('1 test string');
+    $this->assertPluralID('@count test strings');
+
+    // Installer string should not appear in runtime output.
+    $this->assertNoMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgID('Installer string in context');
+
+    // No context support yet.
+    $this->assertNoMsgIDContext('Test string in context', 'Test context');
+    $this->assertMsgID('Test string in context');
+    $this->assertNoMsgIDContext('Dynamic string in context', 'Dynamic context');
+    $this->assertMsgID('Dynamic string in context');
+
+    // Look at installer strings.
+    $this->parseFile($filename, POTX_API_5, POTX_STRING_INSTALLER);
+    $this->assertMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgID('1 test string');
+    $this->assertNoMsgID('This is a test string.');
+    $this->assertNoMsgIDContext('Installer string in context', 'Installer context');
+    $this->assertMsgID('Installer string in context');
+    $this->assertNoMsgIDContext('Dynamic string in context', 'Dynamic context');
+    $this->assertMsgID('Dynamic string in context');
+
+    $this->assert(count($this->potx_status) == 3, t('3 error messages found'));
+    $this->assert($this->potx_status[0][0] == $this->empty_error, t('First empty error found.'));
+    $this->assert($this->potx_status[1][0] == $this->empty_error, t('Second empty error found.'));
+    $this->assert($this->potx_status[2][0] == $this->empty_error, t('Third empty error found.'));
+  }
+
+  /**
+   * Test parsing of Drupal 6 module.
+   */
+  public function testDrupal6() {
+    // Parse and build the Drupal 6 module file.
+    $filename = drupal_get_path('module', 'potx') .'/tests/potx_test_6.module';
+    $this->parseFile($filename, POTX_API_6);
+
+    // Assert strings found in module source code.
+    $this->assertMsgID('Test menu item');
+    $this->assertMsgID('This is a test menu item');
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('test watchdog type');
+    $this->assertMsgID('My watchdog message');
+    $this->assertMsgID('test potx permission');
+    $this->assertMsgID('one more test potx permission');
+    $this->assertMsgID('1 test string');
+    $this->assertPluralID('@count test strings');
+    $this->assertMsgID('Test menu item description');
+    $this->assertMsgID('Test menu item description altered (1)');
+    $this->assertMsgID('Test menu item description altered (2)');
+    $this->assertMsgID('Test menu item title altered');
+
+    // Installer string should not appear in runtime output.
+    $this->assertNoMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgID('Installer string in context');
+
+    // No context support yet.
+    $this->assertNoMsgIDContext('Test string in context', 'Test context');
+    $this->assertMsgID('Test string in context');
+    $this->assertNoMsgIDContext('Dynamic string in context', 'Dynamic context');
+    $this->assertMsgID('Dynamic string in context');
+
+    // Look at installer strings.
+    $this->parseFile($filename, POTX_API_6, POTX_STRING_INSTALLER);
+    $this->assertMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgID('1 test string');
+    $this->assertNoMsgID('This is a test string.');
+    $this->assertNoMsgIDContext('Installer string in context', 'Installer context');
+    $this->assertMsgID('Installer string in context');
+    $this->assertNoMsgIDContext('Dynamic string in context', 'Dynamic context');
+    $this->assertMsgID('Dynamic string in context');
+
+    $this->assert(count($this->potx_status) == 3, t('3 error messages found'));
+    $this->assert($this->potx_status[0][0] == $this->empty_error, t('First empty error found.'));
+    $this->assert($this->potx_status[1][0] == $this->empty_error, t('Second empty error found.'));
+    $this->assert($this->potx_status[2][0] == $this->empty_error, t('Third empty error found.'));
+  }
+
+  /**
+   * Test parsing of Drupal 7 module.
+   */
+  public function testDrupal7() {
+    // Parse and build the Drupal 7 module file.
+    $filename = drupal_get_path('module', 'potx') .'/tests/potx_test_7.module';
+    $this->parseFile($filename, POTX_API_7);
+
+    // Assert strings found in module source code.
+    $this->assertMsgID('Test menu item');
+    $this->assertMsgID('This is a test menu item');
+    $this->assertMsgID('This is a test string.');
+    $this->assertMsgID('test watchdog type');
+    $this->assertMsgID('My watchdog message');
+
+    // No support for hook_perm() anymore. t() in hook_permissions().
+    $this->assertNoMsgID('test potx permission');
+    $this->assertNoMsgID('one more test potx permission');
+    $this->assertMsgID('Test potx permission');
+    $this->assertMsgID('Test potx permission description');
+    $this->assertMsgID('One more test potx permission');
+    $this->assertMsgID('One more test potx permission description');
+
+    $this->assertMsgID('1 test string');
+    $this->assertPluralID('@count test strings');
+
+    $this->assertMsgID('Test menu item description');
+    $this->assertMsgID('Test menu item description altered (1)');
+    $this->assertMsgID('Test menu item description altered (2)');
+    $this->assertMsgID('Test menu item title altered');
+
+    $this->assertNoMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgIDContext('Installer string in context', 'Installer context');
+    $this->assertMsgIDContext('Dynamic string in context', 'Dynamic context');
+
+    // Context support added.
+    $this->assertMsgIDContext('Test string in context', 'Test context');
+
+    // Look at installer strings.
+    $this->parseFile($filename, POTX_API_7, POTX_STRING_INSTALLER);
+    $this->assertMsgID('Installer only test string');
+    $this->assertMsgID('Dynamic callback test string');
+    $this->assertNoMsgID('1 test string');
+    $this->assertNoMsgID('This is a test string.');
+    $this->assertMsgIDContext('Installer string in context', 'Installer context');
+    $this->assertMsgIDContext('Dynamic string in context', 'Dynamic context');
+
+    $this->assert(count($this->potx_status) == 2, t('2 error messages found'));
+    $this->assert($this->potx_status[0][0] == $this->empty_error, t('First empty error found.'));
+    $this->assert($this->potx_status[1][0] == $this->empty_error, t('Second empty error found.'));
+  }
+
+  /**
+   * Test parsing of Drupal 6 info file. Drupal 5 and 7 have no other rules.
+   */
+  public function testDrupalInfo() {
+    // Parse and build the Drupal 6 module file.
+    $filename = drupal_get_path('module', 'potx') .'/tests/potx_test_6.info';
+    $this->parseFile($filename, POTX_API_6);
+
+    // Look for name, description and package name extracted.
+    $this->assertMsgID('Translation template extractor tester');
+    $this->assertMsgID('Test description');
+    $this->assertMsgID('Test package');
+  }
+
+  /**
+   * Test parsing of a Drupal JS file.
+   */
+  public function testDrupalJS() {
+    // Parse and build the Drupal JS file (from above Drupal 5).
+    $filename = drupal_get_path('module', 'potx') .'/tests/potx_test.js';
+    $this->parseFile($filename, POTX_API_6);
+
+    // Assert strings found in JS source code.
+    $this->assertMsgID('Test string in JS');
+    $this->assertMsgID('1 test string in JS');
+    $this->assertPluralID('@count test strings in JS');
+    $this->assertMsgID('Another test string in JS');
+    $this->assertMsgID('Embedded test string in JS');
+
+    $this->assert(count($this->potx_status) == 1, t('1 error message found'));
+    $this->assert($this->potx_status[0][0] == $this->empty_error, t('Empty error found.'));
+  }
+
+  /**
+   * Parse the given file with the given API version.
+   */
+  private function parseFile($filename, $api_version, $string_mode = POTX_STRING_RUNTIME) {
+    global $_potx_store, $_potx_strings, $_potx_install;
+    $_potx_store = $_potx_strings = $_potx_install = array();
+
+    potx_status('set', POTX_STATUS_STRUCTURED);
+    _potx_process_file($filename, 0, '_potx_save_string', '_potx_save_version', $api_version);
+    _potx_build_files($string_mode, POTX_BUILD_SINGLE, 'general', '_potx_save_string', '_potx_save_version', '_potx_get_header', NULL, NULL, $api_version);
+
+    // Grab .po representation of parsed content.
+    ob_start();
+    _potx_write_files('potx-test.po');
+    $this->potx_output = ob_get_clean();
+    //debug(var_export($this->potx_output, TRUE));
+    $this->potx_status = potx_status('get', TRUE);
+    //debug(var_export($this->potx_status, TRUE));
+}
+
+  /**
+   * Helper function to assert an msgid construct in the .po file.
+   */
+  private function assertMsgID($string, $message = '', $group = 'Other') {
+    if (!$message) {
+      $message = t('MsgID "@raw" found', array('@raw' => check_plain($string)));
+    }
+    $this->assert(strpos($this->potx_output, 'msgid "'. _potx_format_quoted_string('"'. $string . '"') .'"') !== FALSE, $message, $group);
+  }
+
+  /**
+   * Helper function to assert a missing msgid construct in the .po file.
+   */
+  private function assertNoMsgID($string, $message = '', $group = 'Other') {
+    if (!$message) {
+      $message = t('MsgID "@raw" not found', array('@raw' => check_plain($string)));
+    }
+    $this->assert(strpos($this->potx_output, 'msgid "'. _potx_format_quoted_string('"'. $string . '"') .'"') === FALSE, $message, $group);
+  }
+
+  /**
+   * Helper function to assert an msgid with context in the .po file.
+   */
+  private function assertMsgIDContext($string, $context, $message = '', $group = 'Other') {
+    if (!$message) {
+      $message = t('MsgID "@raw" in context "@context" found', array('@raw' => check_plain($string), '@context' => check_plain($context)));
+    }
+    $this->assert(strpos($this->potx_output, 'msgctxt "'. _potx_format_quoted_string('"'. $context . '"') . "\"\nmsgid \"". _potx_format_quoted_string('"'. $string . '"') .'"') !== FALSE, $message, $group);
+  }
+
+  /**
+   * Helper function to assert an msgid with context in the .po file.
+   */
+  private function assertNoMsgIDContext($string, $context, $message = '', $group = 'Other') {
+    if (!$message) {
+      $message = t('No MsgID "@raw" in context "@context" found', array('@raw' => check_plain($string), '@context' => check_plain($context)));
+    }
+    $this->assert(strpos($this->potx_output, 'msgid "'. _potx_format_quoted_string('"'. $string . '"') .'"'. "\nmsgctxt \"". _potx_format_quoted_string('"'. $context . '"') . '"') === FALSE, $message, $group);
+  }
+
+  /**
+   * Helper function to assert an msgid_plural construct in the .po file.
+   */
+  private function assertPluralID($string, $message = '', $group = 'Other') {
+    if (!$message) {
+      $message = t('Plural ID "@raw" found', array('@raw' => check_plain($string)));
+    }
+    $this->assert(strpos($this->potx_output, 'msgid_plural "'. _potx_format_quoted_string('"'. $string . '"') .'"') !== FALSE, $message, $group);
+  }
+
+  /**
+   * Debug functionality until simpletest built-in debugging is backported.
+   */
+  private function outputScreenContents($description = 'output', $basename = 'output') {
+    // This is a hack to get a directory that won't be cleaned up by simpletest
+    $file_dir = file_directory_path() .'/../simpletest_output_pages';
+    if (!is_dir($file_dir)) {
+      mkdir($file_dir, 0777, TRUE);
+    }
+    $output_path = "$file_dir/$basename.". $this->randomName(10) .'.html';
+    $rv = file_put_contents($output_path, $this->drupalGetContent());
+    $this->pass("$description: ". l('Contents of result page', $output_path));
+  }
+
+}

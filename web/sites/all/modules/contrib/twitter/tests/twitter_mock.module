@@ -1,0 +1,80 @@
+<?php
+/** @file
+ * Module for Mock Twitter API requests
+ *
+ * Allows easy testing of functions that call web services without depending
+ * on the web service working at the time the test is performed.
+ *
+ */
+
+/**
+ * Implements hook_enable().
+ *
+ * Sets the Twitter API host to be the local site.
+ */
+function twitter_mock_enable() {
+  global $base_root;
+  variable_set('twitter_api', $base_root);
+}
+
+/**
+ * Implements hook_disable().
+ *
+ * Sets the Twitter API host back to its default value
+ */
+function twitter_mock_disable() {
+  variable_del('twitter_api');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function twitter_mock_menu() {
+  $items = array();
+
+  $items['1/users/show.json'] = array(
+    'page callback' => 'twitter_mock_user_show',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['1/statuses/user_timeline.json'] = array(
+    'page callback' => 'twitter_mock_user_timeline',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Menu page callback. Returns HTTP status and data based on url params.
+ */
+function twitter_mock_user_show() {
+  if (isset($_GET['screen_name']) && ($_GET['screen_name'] == 'drupal')) {
+    $response = <<<EOD
+{"id":2166341,"profile_background_tile":false,"listed_count":2823,"profile_sidebar_fill_color":"B2CCFF","location":"Internet","utc_offset":3600,"name":"Drupal","is_translator":false,"time_zone":"Amsterdam","profile_image_url_https":"https:\\/\\/si0.twimg.com\\/profile_images\\/29645282\\/druplicon_normal.png","contributors_enabled":false,"profile_background_color":"EEEEEE","protected":false,"geo_enabled":true,"profile_background_image_url_https":"https:\\/\\/si0.twimg.com\\/images\\/themes\\/theme1\\/bg.png","friends_count":173,"lang":"en","default_profile_image":false,"favourites_count":69,"profile_background_image_url":"http:\\/\\/a0.twimg.com\\/images\\/themes\\/theme1\\/bg.png","statuses_count":1341,"show_all_inline_media":false,"profile_link_color":"0303AA","description":"Drupal is a Free, Open, Modular CMS written in PHP","follow_request_sent":false,"verified":false,"screen_name":"drupal","profile_use_background_image":false,"id_str":"2166341","notifications":false,"following":false,"profile_text_color":"000000","profile_image_url":"http:\\/\\/a0.twimg.com\\/profile_images\\/29645282\\/druplicon_normal.png","status":{"created_at":"Sat Apr 21 01:17:17 +0000 2012","possibly_sensitive":false,"in_reply_to_screen_name":null,"place":null,"geo":null,"retweet_count":12,"in_reply_to_status_id":null,"retweeted":false,"in_reply_to_user_id":null,"possibly_sensitive_editable":true,"truncated":false,"id_str":"193508673891479552","coordinates":null,"in_reply_to_status_id_str":null,"source":"\\u003Ca href=\\"http:\\/\\/www.hootsuite.com\\" rel=\\"nofollow\\"\\u003EHootSuite\\u003C\\/a\\u003E","contributors":null,"id":193508673891479552,"in_reply_to_user_id_str":null,"favorited":false,"text":"http:\\/\\/t.co\\/H5KmuEcb Update: New maintainers and plans for Drupal 7 http:\\/\\/t.co\\/RxNQexML"},"default_profile":false,"url":"http:\\/\\/drupal.org","followers_count":30257,"profile_sidebar_border_color":"447DBC","created_at":"Sun Mar 25 09:59:38 +0000 2007"}
+EOD;
+  }
+  else {
+    $response = '{"error":"Not found","request":"\/users\/show.json?screen_name=' . $_GET['screen_name'] . '"}';
+  }
+  print $response;
+  exit(0);
+}
+
+/**
+ * Callback for returning tweets of a Twitter account
+ */
+function twitter_mock_user_timeline() {
+  if (isset($_GET['user_id']) && ($_GET['user_id'] == '2166341')) {
+    $response = <<<EOD
+[{"created_at":"Sat Apr 21 01:17:17 +0000 2012","possibly_sensitive":false,"in_reply_to_screen_name":null,"place":null,"geo":null,"retweet_count":12,"in_reply_to_status_id":null,"user":{"id":2166341,"profile_background_tile":false,"listed_count":2824,"profile_sidebar_fill_color":"B2CCFF","location":"Internet","utc_offset":3600,"name":"Drupal","is_translator":false,"time_zone":"Amsterdam","profile_image_url_https":"https:\/\/si0.twimg.com\/profile_images\/29645282\/druplicon_normal.png","contributors_enabled":false,"profile_background_color":"EEEEEE","protected":false,"geo_enabled":true,"profile_background_image_url_https":"https:\/\/si0.twimg.com\/images\/themes\/theme1\/bg.png","friends_count":173,"lang":"en","default_profile_image":false,"favourites_count":69,"profile_background_image_url":"http:\/\/a0.twimg.com\/images\/themes\/theme1\/bg.png","statuses_count":1341,"show_all_inline_media":false,"profile_link_color":"0303AA","description":"Drupal is a Free, Open, Modular CMS written in PHP","follow_request_sent":false,"verified":false,"screen_name":"drupal","profile_use_background_image":false,"id_str":"2166341","notifications":false,"following":true,"profile_text_color":"000000","profile_image_url":"http:\/\/a0.twimg.com\/profile_images\/29645282\/druplicon_normal.png","default_profile":false,"url":"http:\/\/drupal.org","followers_count":30269,"profile_sidebar_border_color":"447DBC","created_at":"Sun Mar 25 09:59:38 +0000 2007"},"retweeted":false,"in_reply_to_user_id":null,"possibly_sensitive_editable":true,"truncated":false,"id_str":"193508673891479552","coordinates":null,"in_reply_to_status_id_str":null,"source":"\u003Ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003EHootSuite\u003C\/a\u003E","contributors":null,"id":193508673891479552,"in_reply_to_user_id_str":null,"favorited":false,"text":"http:\/\/t.co\/H5KmuEcb Update: New maintainers and plans for Drupal 7 http:\/\/t.co\/RxNQexML"},{"created_at":"Wed Mar 07 07:55:39 +0000 2012","in_reply_to_screen_name":null,"place":null,"geo":null,"retweet_count":4,"in_reply_to_status_id":null,"user":{"id":2166341,"profile_background_tile":false,"listed_count":2824,"profile_sidebar_fill_color":"B2CCFF","location":"Internet","utc_offset":3600,"name":"Drupal","is_translator":false,"time_zone":"Amsterdam","profile_image_url_https":"https:\/\/si0.twimg.com\/profile_images\/29645282\/druplicon_normal.png","contributors_enabled":false,"profile_background_color":"EEEEEE","protected":false,"geo_enabled":true,"profile_background_image_url_https":"https:\/\/si0.twimg.com\/images\/themes\/theme1\/bg.png","friends_count":173,"lang":"en","default_profile_image":false,"favourites_count":69,"profile_background_image_url":"http:\/\/a0.twimg.com\/images\/themes\/theme1\/bg.png","statuses_count":1341,"show_all_inline_media":false,"profile_link_color":"0303AA","description":"Drupal is a Free, Open, Modular CMS written in PHP","follow_request_sent":false,"verified":false,"screen_name":"drupal","profile_use_background_image":false,"id_str":"2166341","notifications":false,"following":true,"profile_text_color":"000000","profile_image_url":"http:\/\/a0.twimg.com\/profile_images\/29645282\/druplicon_normal.png","default_profile":false,"url":"http:\/\/drupal.org","followers_count":30269,"profile_sidebar_border_color":"447DBC","created_at":"Sun Mar 25 09:59:38 +0000 2007"},"retweeted":false,"in_reply_to_user_id":null,"truncated":false,"id_str":"177301470608244737","coordinates":null,"in_reply_to_status_id_str":null,"source":"\u003Ca href=\"http:\/\/www.hootsuite.com\" rel=\"nofollow\"\u003EHootSuite\u003C\/a\u003E","contributors":null,"id":177301470608244737,"in_reply_to_user_id_str":null,"favorited":false,"text":"RT @drupalassoc: Hey @cebit folks! Meet the Drupal team in the Open Source Park - Hall 2, Booth D58-166 - Learn more about #drupal and..."}]
+EOD;
+  }
+  else {
+    // NOT covered.
+    $response = '';
+  }
+  print $response;
+  exit(0);
+}

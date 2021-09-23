@@ -1,0 +1,4 @@
+name = "Entity Connect Preview"
+description = "Allows for previewing of a selected item when using the entityconnect widget dingle dongle."
+core = "7.x"
+dependencies[] = entityconnect

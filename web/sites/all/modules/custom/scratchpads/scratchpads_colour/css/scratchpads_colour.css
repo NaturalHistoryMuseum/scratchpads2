@@ -1,0 +1,52 @@
+@CHARSET "UTF-8";
+
+/* Colour picker */
+
+#edit-colour span.scratchpad-color-option{
+  width: 25px;
+  height: 25px;
+  display: inline-block;
+  margin: 1px 6px;
+}
+
+/* Block */
+
+#scratchpads-colour-form span.scratchpad-color-option{
+  cursor: pointer;
+  border: 1px solid #fff;
+}
+
+#scratchpads-colour-form span.scratchpad-color-option:hover{
+  border-width: 2px;
+  margin: 0 5px;
+}
+
+#scratchpads-colour-form #edit-colour .form-item-colour{
+  display: none;
+}
+
+#scratchpads-colour-form{
+  padding: 40px 0;
+}
+
+#scratchpads-colour-form #edit-colour{
+  float: right;
+  margin-right: 30px;
+}
+
+#scratchpads-colour-form input.form-submit{
+  margin: 2px 0 0 20px!important;
+  float: right;
+}
+
+/* The form */
+
+#system-theme-settings #edit-custom-colour{
+  width: auto;
+}
+
+#system-theme-settings #edit-colour span.scratchpad-color-option{
+  margin-left: 18px;
+}
+
+

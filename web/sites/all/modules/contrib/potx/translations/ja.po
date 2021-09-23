@@ -1,0 +1,102 @@
+# $Id: ja.po,v 1.1.4.3 2008/04/02 16:46:31 imagine Exp $
+# -----------------------------------------------------------------------------
+# Japanese translation of Drupal (modules-potx)
+#
+# Copyright (c) 2006-2008  Drupal Japan  ( http://drupal.jp/ )  /
+#                          Takafumi      ( jp.drupal@imagine **reverse order**)
+#
+# Generated from file:
+#  potx.module,v 1.1.2.12.2.2.2.2 2008/01/25 16:47:22 goba
+#  potx.info,v 1.1.2.3.2.2 2007/11/12 20:19:06 goba
+#
+# -----------------------------------------------------------------------------
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2008-04-03 01:01+0900\n"
+"Last-Translator: Takafumi <jp.drupal@imagine **reverse order**>\n"
+"Language-Team: Drupal Japan\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: potx.module:20
+msgid "This page allows you to generate translation templates for module and theme files. Select the module or theme you wish to generate a template file for. A single Gettext Portable Object (Template) file is generated, so you can easily save it and start translation."
+msgstr "このページでモジュールやテーマファイル用の翻訳テンプレートを生成することができます。 テンプレートファイルを生成したいモジュールやテーマを選んでください。 単独のGettext Portable Object（テンプレート）ファイルが生成されますので、それを保存し、翻訳を始めることができます。"
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr "言語に依存しないテンプレート"
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr "!langname翻訳用テンプレートファイル"
+
+#: potx.module:62
+msgid "Template language"
+msgstr "テンプレートの言語"
+
+#: potx.module:65
+msgid "Export a language independent or language dependent (plural forms, language team name, etc.) template."
+msgstr "言語依存（複数形、翻訳チーム名など）や言語非依存のテンプレートをエクスポートします。"
+
+#: potx.module:69
+msgid "Include translations"
+msgstr "翻訳を含める"
+
+#: potx.module:70
+msgid "Include translations of strings in the file generated. Not applicable for language independent templates."
+msgstr "生成されるファイルに文字列の翻訳を含めるかどうかを指定してください。 言語非依存のテンプレートには適用できません。"
+
+#: potx.module:76;29
+msgid "Extract"
+msgstr "抽出"
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr "エクスポートするコンポーネントを選択する必要があります。"
+
+#: potx.module:185
+msgid "Extract from %name in the %directory directory"
+msgstr "%directory の %name から抽出"
+
+#: potx.module:186
+msgid "Generates output from all files found in this directory."
+msgstr "このディレクトリで見つかった全ファイルから出力を生成します。"
+
+#: potx.module:201
+msgid "Extract from all in directory \"@directory\""
+msgstr "\"@directory\" のすべてから抽出"
+
+#: potx.module:202
+msgid "To extract from a single component in this directory, choose the desired entry in the fieldset below."
+msgstr "このディレクトリ内の単独のコンポーネントから抽出するには、以下のフィールドセットから希望のエントリを選んでください。"
+
+#: potx.module:211
+msgid "Directory \"@directory\""
+msgstr "ディレクトリ \"@directory\""
+
+#: potx.module:232
+msgid "Extract from %name"
+msgstr "%name から抽出"
+
+#: potx.module:233
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr "%directory の %pattern ファイルから抽出"
+
+# Coder module で使用
+#: potx.module:303
+msgid "Interface text translatability"
+msgstr "インターフェイステキスト・トランスレータビリティ"
+
+#: potx.module:0
+msgid "potx"
+msgstr "potx"
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr "翻訳テンプレートエクストラクター"
+
+#: potx.info:0
+msgid "Provides a web interface and an API to extract translatable text from the sources of installed components."
+msgstr "インストールされたコンポーネントのソースから翻訳可能なテキストを抽出するための、ウェブインターフェイスとAPIを提供します。"

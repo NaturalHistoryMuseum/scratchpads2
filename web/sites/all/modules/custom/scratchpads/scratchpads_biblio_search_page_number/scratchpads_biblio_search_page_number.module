@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_solr_info_alter().
+ */
+function scratchpads_biblio_search_page_number_scratchpads_solr_info_alter(&$info){
+  if(isset($info['biblio'])){
+    $info['biblio']['theme'] = 'scratchpads_biblio_search_page_number';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_biblio_search_page_number_theme(){
+  return array(
+    'scratchpads_biblio_search_page_number' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_biblio_search_page_number.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_biblio_search_page_number_apache_solr_default_sorts_alter(&$default_sorts){
+  $default_sorts = array_merge(array(
+    'fss_biblio_section' => array(
+      'title' => t('Section'),
+      'default' => 'asc'
+    )
+  ), $default_sorts);
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_biblio_search_page_number_apache_solr_sortstring_alter(&$sortstring){
+  // Here we teak the $sortstring to reflect what is set in the $_GET array.
+  if(arg(0) == 'biblio'){
+    if(isset($_GET['order'])){
+      switch($_GET['order']){
+        case t('Page'):
+          $sortstring = 'fss_biblio_section ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+          break;
+      }
+    }else{
+      $sortstring = 'fss_biblio_section asc';
+    }
+  }
+}

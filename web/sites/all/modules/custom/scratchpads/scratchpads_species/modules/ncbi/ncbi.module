@@ -1,0 +1,179 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function ncbi_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('NCBI Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 100
+    )
+  );
+}
+
+/**
+ * Implements hook_flush_caches()
+ */
+function ncbi_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_ncbi'
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function ncbi_block_view($delta = ''){
+  $content = array(
+    'subject' => t('NCBI'),
+    'content' => array(
+      '#markup' => '<p>' . t('Unable to fetch data from NCBI.') . '</p>'
+    )
+  );
+  // We load the term from the menu
+  $term = menu_get_object('taxonomy_term', 2);
+  if($term && !(isset($term->usage) && in_array($term->usage['und'][0]['value'], array(
+    'not accepted',
+    'invalid'
+  )))){
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cache = cache_get($term->tid, 'cache_ncbi');
+      if($cache->data){
+        $content['content']['#markup'] = $cache->data;
+      }else{
+        $items = _ncbi_get_data($term);
+        foreach($items as $key => $item){
+          $items[$key] = array(
+            'data' => $item,
+            'style' => 'margin-left:0'
+          );
+        }
+        if(count($items)){
+          $block_content = array(
+            '#theme' => 'item_list',
+            '#items' => $items,
+            '#attributes' => array(
+              'style' => 'padding-left:0'
+            )
+          );
+          $content['content']['#markup'] = drupal_render($block_content);
+          cache_set($term->tid, $content['content']['#markup'], 'cache_ncbi');
+        }
+      }
+    }
+  }
+  return $content;
+}
+
+/**
+ * Helper function to get some data from NCBI.
+ */
+function _ncbi_get_data($term){
+  $items = array();
+  $request = drupal_http_request('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=' . urlencode($term->name), array(
+    'timeout' => 5
+  ));
+  if($request->code == 200){
+    $esearch_results = new SimpleXMLElement($request->data);
+  }
+  if($esearch_results){
+    if($esearch_results->IdList->Id){
+      foreach($esearch_results->IdList->Id as $id){
+        $request = drupal_http_request('http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=' . $id, array(
+          'timeout' => 5
+        ));
+        if($request->code == 200){
+          $dom = DOMDocument::loadHTML($request->data);
+          $tables = $dom->getElementsByTagName('table');
+          foreach($tables as $table){
+            if($table->getAttribute('align') == 'right'){
+              $trs = $table->getElementsByTagName('tr');
+              $rows = array();
+              $row_num = 0;
+              foreach($trs as $tr){
+                if($row_num > 0){
+                  $tds = $tr->getElementsByTagName('td');
+                  $row = array();
+                  foreach($tds as $td){
+                    $html = preg_replace('/\xC2\xA0/', ' ', $dom->saveXML($td));
+                    $html = str_replace('href="', 'target="_blank" href="http://www.ncbi.nlm.nih.gov', $html);
+                    $row[] = filter_xss($html);
+                  }
+                  $rows[] = $row;
+                }
+                $row_num++;
+              }
+            }
+          }
+        }
+        $headers = array_shift($rows);
+        $request = drupal_http_request('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?dbfrom=taxonomy&db=all&id=' . $id . '&cmd=llinks', array(
+          'timeout' => 5
+        ));
+        if($request->code == 200){
+          $elinks = new SimpleXMLElement($request->data);
+          $links = array();
+          foreach($elinks->LinkSet->IdUrlList->IdUrlSet->ObjUrl as $link){
+            if($link->LinkName){
+              if($link->Provider->NameAbbr == 'taxresource'){
+                $name = 'GBIF bookmark: ' . $link->LinkName;
+              }else{
+                $name = $link->Provider->NameAbbr . ': ' . $link->LinkName;
+              }
+              $title = $link->Provider->Name . ': ' . $link->LinkName;
+            }else{
+              $name = $link->Provider->Name;
+              $title = $name;
+            }
+            $links[] = array(
+              'data' => '<a href="' . $link->Url . '" title="' . $title . '">' . $name . '</a>',
+              'style' => 'list-style:disc;padding-bottom:3px;'
+            );
+          }
+        }
+        $items[] = theme('table', array(
+          'header' => $headers,
+          'rows' => $rows
+        )) . theme('item_list', array(
+          'items' => $links,
+          'attributes' => array(
+            'style' => 'display:none'
+          ),
+          'title' => '<a onclick="jQuery(this).parent().next().toggle();return false" href="#">' . t('External links') . '</a>'
+        ));
+      }
+    }
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function ncbi_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if($form['module']['#value'] == 'ncbi'){
+    // Prevent editing of this block.
+    if(!user_access('scratchpad team')){
+      drupal_set_message(t('You may not edit the ncbi block'));
+      drupal_goto();
+    }
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function ncbi_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'ncbi' && !user_access('scratchpad team')){
+    $element = array();
+  }
+}

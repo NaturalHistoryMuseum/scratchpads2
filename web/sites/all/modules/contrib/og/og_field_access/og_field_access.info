@@ -1,0 +1,16 @@
+name = Organic groups field access
+description = "Provide field access based on group."
+package = "Organic groups"
+dependencies[] = og
+core = 7.x
+files[] = og_field_access.module
+
+; Tests
+files[] = og_field_access.test
+
+; Information added by drupal.org packaging script on 2012-09-26
+version = "7.x-1.5"
+core = "7.x"
+project = "og"
+datestamp = "1348684475"
+

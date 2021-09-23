@@ -1,0 +1,318 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function character_editor_install(){
+  // New module weights in core: put char editor as the very last in the chain.
+  db_update('system')->fields(array(
+    'weight' => 100
+  ))->condition('type', 'module')->condition('name', 'character_editor')->execute();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function character_editor_schema(){
+  $schema = array();
+  // Projects schema defintion
+  $schema['character_editor_project'] = array(
+    'description' => 'The base table for character_project entities.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key: Identifier for a character project.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'type' => array(
+        'description' => 'The {character_project_type}.type of this character project.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'title' => array(
+        'description' => 'The human-readable name of this character project type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that created this character project.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the character project was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the character project was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'status' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+        'size' => 'tiny',
+        'description' => 'The published status of a character project. (0 = Not Published, 1 = Published)'
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.'
+      )
+    ),
+    'foreign keys' => array(
+      'character_project_type' => array(
+        'table' => 'character_project_type',
+        'columns' => array(
+          'type' => 'type'
+        )
+      ),
+      'character_project_author' => array(
+        'table' => 'users',
+        'columns' => array(
+          'uid' => 'uid'
+        )
+      )
+    ),
+    'primary key' => array(
+      'id'
+    ),
+    'indexes' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  $schema['character_editor_project_type'] = array(
+    'description' => 'Stores information about defined character project types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique character project type identifier.'
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this character project type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this character project type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this character project type in relation to others.'
+      )
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array(
+      'id'
+    ),
+    'unique keys' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  // Characters schema definiton
+  $schema['character_editor_character'] = array(
+    'description' => 'The base table for character entities.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary Key: Identifier for a character .',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'type' => array(
+        'description' => 'The {character_editor_character_type}.type of this character.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'title' => array(
+        'description' => 'The human-readable name of this character.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'uid' => array(
+        'description' => 'The {users}.uid that created this character.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the character was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the character was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data.'
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this character type in relation to others.'
+      )
+    ),
+    'foreign keys' => array(
+      'character_editor_character_type' => array(
+        'table' => 'character_editor_character_type',
+        'columns' => array(
+          'type' => 'type'
+        )
+      ),
+      'character_project_author' => array(
+        'table' => 'users',
+        'columns' => array(
+          'uid' => 'uid'
+        )
+      )
+    ),
+    'primary key' => array(
+      'id'
+    ),
+    'indexes' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  $schema['character_editor_character_type'] = array(
+    'description' => 'Stores information about defined character types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique character type identifier.'
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this character type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this character type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      )
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array(
+      'id'
+    ),
+    'unique keys' => array(
+      'type' => array(
+        'type'
+      )
+    )
+  );
+  return $schema;
+}
+
+/**
+ * Set the image style for characters to thumbnail
+ */
+function character_editor_update_7001(){
+  module_load_include('features.field.inc', 'character_editor');
+  $info = character_editor_field_default_fields();
+  $to_update = array(
+    'character_editor_character' => array(
+      'dna' => array(
+        'field_char_image',
+        'field_char_description'
+      ),
+      'group' => array(
+        'field_char_image'
+      ),
+      'numeric' => array(
+        'field_char_image'
+      ),
+      'text' => array(
+        'field_char_image'
+      )
+    ),
+    'field_collection_item' => array(
+      'field_char_states' => array(
+        'field_char_state_image'
+      )
+    )
+  );
+  foreach($to_update as $entity_type => $bundles){
+    foreach($bundles as $bundle => $fields){
+      foreach($fields as $field_name){
+        $field_info = $info[$entity_type . '-' . $bundle . '-' . $field_name];
+        $instance = field_info_instance($entity_type, $field_name, $bundle);
+        if($instance){
+          $instance['display']['default'] = $field_info['field_instance']['display']['default'];
+          $instance['widget'] = $field_info['field_instance']['widget'];
+          field_update_instance($instance);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Remove the allowed_scheme options from the field_example_of_handwriting field
+ */
+function character_editor_update_7002(){
+  $field_instance = field_info_instance('field_collection_item', 'field_char_state_image', 'field_char_states');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+  foreach(array(
+    'controlled',
+    'dna',
+    'group',
+    'numeric',
+    'text'
+  ) as $bundle){
+    if(field_info_field('field_char_image')){
+      $field_instance = field_info_instance('character_editor_character', 'field_char_image', $bundle);
+      if($field_instance){
+        $field_instance['widget']['settings']['allowed_schemes'] = array();
+        field_update_instance($field_instance);
+      }
+    }
+  }
+}

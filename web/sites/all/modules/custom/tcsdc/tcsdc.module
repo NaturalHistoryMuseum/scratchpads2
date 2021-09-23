@@ -1,0 +1,512 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Provides three additional hooks:
+ * 
+ * hook_tcsdc_form()
+ * hook_tcsdc_help()
+ * hook_tcsdc_data_alter()
+ */
+/**
+ * Implementation of hook_menu().
+ */
+function tcsdc_menu(){
+  return array(
+    'admin/structure/taxonomy/tcs-import' => array(
+      'title' => 'TCS Import',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'tcsdc_primary_form'
+      ),
+      'access arguments' => array(
+        'administer taxonomy'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_cron()
+ */
+function tcsdc_cron(){
+  // Delete any records in the tcsdc_data table that are associated with batch
+  // objects that have failed.
+  $subquery = db_select('batch', 'b')->fields('b', array(
+    'bid'
+  ));
+  db_delete('tcsdc_data')->condition('bid', $subquery, 'NOT IN')->execute();
+}
+
+/**
+ * Implementation of hook_silver().
+ */
+function tcsdc_silver(){
+  $modules = module_implements('tcsdc_form');
+  if(count($modules)){
+    $additional_text = array();
+    foreach($modules as $module){
+      $info = system_get_info('module', $module);
+      $additional_text[] = $info['name'];
+    }
+    return array(
+      array(
+        'type' => 'Taxonomy',
+        'name' => 'TCS (' . implode('; ', $additional_text) . ')',
+        //'access callback' => 'user_access',
+        'access arguments' => array(
+          'administer taxonomy'
+        ),
+        'form_id' => 'tcsdc_primary_form'
+      )
+    );
+  }else{
+    return array();
+  }
+}
+
+/**
+ * Form definition, as used by the form flow.
+ */
+function tcsdc_primary_form($form, &$form_state){
+  // First, we need to get the TCS form definitions from the respective modules.
+  // We do this by getting the tcsdc defintions and looping through each.
+  $form = module_invoke_all('tcsdc_form', $form, $form_state);
+  $form['#action'] = url('admin/structure/taxonomy/tcs-import');
+  if(count($form)){
+    if(count($form) == 1){
+      foreach($form as $key => $value){
+        if(isset($form[$key]['#type']) && $form[$key]['#type'] == 'fieldset'){
+          $form[$key]['#collapsed'] = FALSE;
+        }
+      }
+      return array_merge($form, array(
+        '#submit' => array(
+          'tcsdc_primary_form_submit'
+        )
+      ));
+    }
+    $vocabularies = taxonomy_get_vocabularies();
+    $taxonomies = array(
+      '- SELECT VOCABULARY -'
+    );
+    foreach($vocabularies as $vid => $vocabulary){
+      $taxonomies[$vid] = $vocabulary->name;
+    }
+    return array_merge($form, array(
+      '#submit' => array(
+        'tcsdc_primary_form_submit'
+      ),
+      'information' => array(
+        '#markup' => '<p>' . t('Please select from one of the classification sources below.') . '</p>',
+        '#weight' => -50
+      ),
+      'taxonomy_vid' => array(
+        '#type' => 'select',
+        '#title' => t('Taxonomy'),
+        '#options' => $taxonomies,
+        '#weight' => -90,
+        '#required' => TRUE
+      )
+    ));
+  }else{
+    return array(
+      'information' => array(
+        '#markup' => '<div class="messages error"><h2 class="element-invisible">Status message</h2>No TCS import modules have been installed.  Please install at least one.</div>'
+      )
+    );
+  }
+}
+
+/**
+ * Implements hook_drupal_goto_alter().
+ */
+function tcsdc_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if($batch['source_url'] == 'admin/structure/taxonomy/tcs-import'){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
+ * Helper function for setting variables that need to be accessed in different
+ * functions.
+ */
+function tcsdc_variable($name, $value = NULL){
+  static $data = array();
+  if(!is_null($value)){
+    $data[$name] = $value;
+  }
+  if(isset($data[$name])){
+    return $data[$name];
+  }else{
+    return $value;
+  }
+}
+
+/**
+ * Batch downloader.  This does the recursive downloading of the XML.  The XML
+ * is converted and saved in the database, eventually to be output as CSV.
+ */
+function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
+  if(!isset($context['sandbox']['progress'])){
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = $total;
+    $context['sandbox']['originalurl'] = $urls[0];
+    $context['sandbox']['urls'] = $urls;
+    $context['sandbox']['start_time'] = time();
+    // Set a static array for the URLs, this means that we can alter it when
+    // parsing the XML.
+    tcsdc_variable('tcsdc_urls', $urls);
+  }
+  $batch = &batch_get();
+  $url = array_shift($context['sandbox']['urls']);
+  tcsdc_variable('tcsdc_urls', $context['sandbox']['urls']);
+  if(isset($context['sandbox']['vernacular_urls'])){
+    tcsdc_variable('tcsdc_vernaculars', $context['sandbox']['vernacular_urls']);
+  }
+  if(isset($context['sandbox']['synonym_urls'])){
+    tcsdc_variable('tcsdc_synonyms', $context['sandbox']['synonym_urls']);
+  }
+  tcsdc_batch_downloader_helper($url, $vid);
+  $context['sandbox']['urls'] = tcsdc_variable('tcsdc_urls');
+  $context['sandbox']['vernacular_urls'] = tcsdc_variable('tcsdc_vernaculars');
+  $context['sandbox']['synonym_urls'] = tcsdc_variable('tcsdc_synonyms');
+  // Get the number of names we have downloaded.
+  $num_names_saved = db_query("SELECT COUNT(*) FROM {tcsdc_data} WHERE bid = ?", array(
+    $batch['id']
+  ))->fetchField();
+  $context['sandbox']['progress'] = $num_names_saved / $context['sandbox']['max'];
+  // Set the message
+  $time_taken_so_far = time() - $context['sandbox']['start_time'];
+  $approx_time_remaining = $context['sandbox']['progress'] == 0 ? 'Too soon to guess' : format_interval($time_taken_so_far * ((1 - $context['sandbox']['progress']) / $context['sandbox']['progress']));
+  $context['message'] = t('Downloaded %numnames names of approximately %totalnames', array(
+    '%numnames' => $num_names_saved,
+    '%totalnames' => $context['sandbox']['max']
+  )) . '<br/>' . t('Approximate time remaining: %time_remaining', array(
+    '%time_remaining' => $approx_time_remaining
+  ));
+  // Inform the batch engine that we are not finished,
+  // and provide an estimation of the completion level we reached.
+  if(count($context['sandbox']['urls'])){
+    if($context['sandbox']['progress'] < 1){
+      $context['finished'] = $context['sandbox']['progress'];
+    }else{
+      $context['finished'] = 0.95;
+    }
+  }else{
+    $context['finished'] = 1;
+  }
+}
+
+/**
+ * Import the terms
+ */
+function tcsdc_import_terms($vid, &$context){
+  ini_set('max_execution_time', 240);
+  $batch = batch_get();
+  if(!isset($context['sandbox']['progress'])){
+    $context['sandbox']['progress'] = 0;
+    $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+      ':vid' => $vid,
+      ':bid' => $batch['id']
+    ))->fetchAssoc();
+    $context['sandbox']['max'] = array_pop($to_pop);
+    $context['sandbox']['start_time'] = time();
+    $_SESSION['tcsdc_import_vid'] = $vid;
+  }
+  // We import 50 terms per cycle.
+  $condition = db_select('tcsdc_data', 't')->fields('t', array(
+    'id'
+  ))->condition('vid', $vid)->condition('bid', $batch['id']);
+  $or = db_or()->condition('parent', $condition, 'NOT IN')->condition('parent', NULL, 'IS');
+  $results = db_select('tcsdc_data', 't')->fields('t')->condition('vid', $vid)->condition('bid', $batch['id'])->condition($or)->range(0, 50)->execute();
+  foreach($results as $term){
+    $id = $term->id;
+    $parent = $term->parent;
+    $data = unserialize($term->data);
+    // Set the term name based on the canonical name, and also set the authority
+    // based on what's remaining from the name.
+    if(isset($data['canonicalname'])){
+      // Set unit names
+      $unit_name_index = 1;
+      foreach(explode(' ', $data['canonicalname']) as $unit_name){
+        // Check whether or not we are an indicator for the next unit name.
+        $unit_indicators = itis_term_allowed_values(array(
+          'field_name' => 'field_unit_indicator' . $unit_name_index
+        ));
+        if(isset($unit_indicators[$unit_name])){
+          $data['unit_indicator' . $unit_name_index] = $unit_name;
+        }else{
+          $data['unit_name' . $unit_name_index] = $unit_name;
+          $unit_name_index++;
+        }
+      }
+      // Set authors
+      $data['authors'] = trim(substr($term->name, strlen($data['canonicalname'])));
+      // Set the name
+      $term->name = $data['canonicalname'];
+    }
+    foreach($data as $key => $value){
+      // We should be checking to see if this vocabulary actually has a field
+      // with this name associated.
+      if(is_string($value)){
+        $key = "field_$key";
+        $term->$key = array(
+          LANGUAGE_NONE => array(
+            array(
+              'value' => $value
+            )
+          )
+        );
+      }
+    }
+    unset($term->data, $term->id, $term->bid, $term->parent);
+    $previously_imported = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $id)->execute()->fetch();
+    if($previously_imported){
+      $term->tid = $previously_imported->tid;
+    }
+    $parent_tid = db_select('tcsdc_ids', 't')->fields('t')->condition('id', $parent)->execute()->fetch();
+    if($parent_tid){
+      if(taxonomy_term_load($parent_tid->tid)){
+        $term->parent = $parent_tid->tid;
+      }
+    }
+    taxonomy_term_save($term);
+    if(!$previously_imported){
+      db_insert('tcsdc_ids')->fields(array(
+        'tid' => $term->tid,
+        'id' => $id
+      ))->execute();
+    }
+    // Delete this record from the table.
+    db_delete('tcsdc_data')->condition('bid', $batch['id'])->condition('id', $id)->execute();
+  }
+  // Set the progress.
+  $to_pop = db_query('SELECT COUNT(*) FROM {tcsdc_data} WHERE vid = :vid AND bid = :bid', array(
+    ':vid' => $vid,
+    ':bid' => $batch['id']
+  ))->fetchAssoc();
+  $terms_left = array_pop($to_pop);
+  $time_taken_so_far = time() - $context['sandbox']['start_time'];
+  $approx_time_remaining = $context['sandbox']['progress'] == 0 ? 'Too soon to guess' : format_interval($time_taken_so_far * ((1 - $context['sandbox']['progress']) / $context['sandbox']['progress']));
+  $context['message'] = t('Imported %numnames names of approximately %totalnames', array(
+    '%numnames' => $context['sandbox']['max'] - $terms_left,
+    '%totalnames' => $context['sandbox']['max']
+  )) . '<br/>' . t('Approximate time remaining: %time_remaining', array(
+    '%time_remaining' => $approx_time_remaining
+  ));
+  if($terms_left){
+    $context['sandbox']['progress'] = ($context['sandbox']['max'] - $terms_left) / $context['sandbox']['max'];
+    $context['finished'] = $context['sandbox']['progress'];
+  }else{
+    $context['finished'] = 1;
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ */
+function tcsdc_taxonomy_term_delete($term){
+  db_delete('tcsdc_ids')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Implements hook_taxonomy_term_update().
+ */
+function tcsdc_taxonomy_term_update($term){
+  // Note, we delete a from the list of ids if it is updated.  This means that
+  // if the classification is refreshed, the update is not lost (although an
+  // additional term with the same name will be imported).
+  tcsdc_taxonomy_term_delete($term);
+}
+
+/**
+ * Finish function
+ */
+function tcsdc_finished_batch(&$context){
+  if($_SESSION['tcsdc_import_vid']){
+    $tree = taxonomy_get_tree($_SESSION['tcsdc_import_vid'], 0, 1);
+    $term = array_shift($tree);
+    // The follownig four lines cause an issue with ZendStudio that stops it
+    // from recognising functions in the file (possibly it's hittin a regex or
+    // something equally silly).
+    $vocabulary = taxonomy_vocabulary_load($_SESSION['tcsdc_import_vid']);
+    drupal_goto('taxonomy/term/' . $term->tid, array(
+      'fragment' => 'overlay=admin/structure/taxonomy/' . $vocabulary->machine_name
+    ));
+  }else{
+    drupal_set_message(t('There has been an error with the import'), 'error');
+    drupal_goto();
+  }
+}
+
+/**
+ * Helper for the above function
+ */
+function tcsdc_batch_downloader_helper($url, $vid){
+  try{
+    $xml = new SimpleXMLElement($url, 0, TRUE);
+  }
+  catch(Exception $e){
+    drupal_set_message(t('Unable to parse <a href="!url">XML</a>', array(
+      '!url' => $url
+    )));
+    return;
+  }
+  $batch = &batch_get();
+  $data = array();
+  // Check if we're operating on a vernacular URL.  If so, we add the data to
+  // the parent URL (which WILL be set).
+  $vernacular_urls = tcsdc_variable('tcsdc_vernaculars');
+  if(isset($vernacular_urls[$url])){
+    $row = array_pop(db_select('tcsdc_data', 't')->fields('t')->condition('bid', $batch['id'])->condition('id', $vernacular_urls[$url])->execute()->fetchAll());
+    $data = unserialize($row->data);
+    foreach($xml->TaxonNames->TaxonName as $name){
+      if(isset($data['vernaculars']) && is_array($data['vernaculars'])){
+        $data['vernaculars'][] = (string)$name->Simple;
+      }else{
+        $data['vernaculars'] = array(
+          (string)$name->Simple
+        );
+      }
+    }
+    db_update('tcsdc_data')->fields(array(
+      'data' => serialize($data)
+    ))->condition('id', $vernacular_urls[$url])->condition('bid', $batch['id'])->execute();
+    unset($vernacular_urls[$url]);
+    tcsdc_variable('tcsdc_vernaculars', $vernacular_urls);
+    return;
+  }
+  foreach($xml->TaxonNames->TaxonName as $name){
+    // Lets save the data to the table so that we can extract it later.
+    // Get the type of this element.  If it is a vernacular of synonym, we
+    // should have a record of it (for parentage).
+    $data = array(
+      'simple' => (string)$name->Simple,
+      'rank' => (string)$name->Rank,
+      'canonicalname' => (string)$name->CanonicalName->Simple
+    );
+    foreach($name->attributes() as $key => $value){
+      $data[(string)$key] = (string)$value;
+    }
+  }
+  foreach($xml->TaxonConcepts->TaxonConcept->TaxonRelationships->TaxonRelationship as $relationship){
+    switch((string)$relationship['type']){
+      case 'has synonym':
+        // Add the URL to the list to download, and also add to the list of
+        // synonyms (referencing this name).
+        // URLs
+        $urls = tcsdc_variable('tcsdc_urls');
+        $urls[] = (string)$relationship->ToTaxonConcept['ref'];
+        tcsdc_variable('tcsdc_urls', $urls);
+        // Synonyms
+        $synonym_urls = tcsdc_variable('tcsdc_synonyms');
+        $synonym_urls[(string)$relationship->ToTaxonConcept['ref']] = $url;
+        tcsdc_variable('tcsdc_synonyms', $synonym_urls);
+        break;
+      case 'has vernacular':
+        // Add the URL to the list to download, and also add to the list of 
+        // vernacular names (referencing this name).
+        // URLs
+        $urls = tcsdc_variable('tcsdc_urls');
+        $urls[] = (string)$relationship->ToTaxonConcept['ref'];
+        tcsdc_variable('tcsdc_urls', $urls);
+        // Vernaculars
+        $vernacular_urls[(string)$relationship->ToTaxonConcept['ref']] = $url;
+        tcsdc_variable('tcsdc_vernaculars', $vernacular_urls);
+        break;
+      case 'is parent taxon of':
+        // Add the URL to the list
+        $urls = tcsdc_variable('tcsdc_urls');
+        $urls[] = (string)$relationship->ToTaxonConcept['ref'];
+        tcsdc_variable('tcsdc_urls', $urls);
+        break;
+      case 'is child taxon of':
+        $data['parent'] = (string)$relationship->ToTaxonConcept['ref'];
+        break;
+      default:
+        break;
+    }
+  }
+  // Add the status (valid/invalid).
+  $biological_vids = variable_get('biological_vids', array());
+  if(isset($biological_vids[$vid])){
+    switch($biological_vids[$vid]){
+      case 1:
+      case 3:
+        $data['usage'] = 'valid';
+        break;
+      case 2:
+        $data['usage'] = 'accepted';
+        break;
+    }
+  }
+  $synonym_urls = tcsdc_variable('tcsdc_synonyms');
+  if(isset($synonym_urls[$url])){
+    // Set the parent
+    $data['parent'] = $synonym_urls[$url];
+    // Add the status (valid/invalid).
+    if(isset($biological_vids[$vid])){
+      switch($biological_vids[$vid]){
+        case 1:
+        case 3:
+          $data['usage'] = 'invalid';
+          break;
+        case 2:
+          $data['usage'] = 'not accepted';
+          break;
+      }
+    }
+    unset($synonym_urls[$url]);
+    tcsdc_variable('tcsdc_synonyms', $synonym_urls);
+  }
+  if(count($data)){
+    db_insert('tcsdc_data')->fields(array(
+      'id' => $url,
+      'name' => $data['simple'],
+      'bid' => $batch['id'],
+      'vid' => $vid,
+      'parent' => $data['parent'],
+      'data' => serialize($data)
+    ))->execute();
+  }
+}
+
+// /**
+//  * Final step of the download.  This outputs the data into a tab delimitted file
+//  * which can then be imported using the feeds module.
+//  */
+// function tcsdc_generate_tab_file(){
+//   $batch = &batch_get();
+//   $filename = file_create_filename('tcsdc', 'public://');
+//   $file_resource = fopen($filename, 'w');
+//   //$url = db_select('tcsdc_data', 't')->fields('t', array('id'))->condition('bid', $batch['id'])->execute()->fetchCol();
+//   $id = db_query('SELECT id FROM {tcsdc_data} WHERE bid = :bid AND parent NOT IN (SELECT id FROM {tcsdc_data} WHERE bid = :bid)', array(
+//     ':bid' => $batch['id']
+//   ))->fetchField();
+//   fwrite($file_resource, "GUID\tTerm name\tParent GUID\tRank\n");
+//   tcsdc_generate_tab_file_recurse($id, $file_resource, $batch);
+//   fclose($file_resource);
+// }
+
+// /** 
+//  * Recursive function to ensure that the terms are in the correct order.
+//  */
+// function tcsdc_generate_tab_file_recurse($id, $file_resource, &$batch){
+//   // Get the data for this id
+//   $results = db_select('tcsdc_data', 't')->fields('t')->condition('id', $id)->condition('bid', $batch['id'])->execute();
+//   foreach($results as $result){
+//     $data = unserialize($result->data);
+//     fwrite($file_resource, "{$result->id}\t{$result->name}\t{$result->parent}\t{$data['rank']}\n");
+//     $results2 = db_select('tcsdc_data', 't')->fields('t', array(
+//       'id'
+//     ))->condition('parent', $result->id)->execute();
+//     foreach($results2 as $result2){
+//       tcsdc_generate_tab_file_recurse($result2->id, $file_resource, $batch);
+//     }
+//   }
+// }

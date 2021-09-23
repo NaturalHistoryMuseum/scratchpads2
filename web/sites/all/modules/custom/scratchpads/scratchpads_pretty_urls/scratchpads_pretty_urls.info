@@ -1,0 +1,9 @@
+name = Pretty URLs
+description = Automatically generates pretty URLs based on the title of the content being edited/created. e.g. A page titled "About this site" will be given the URL content/about-this-site, instead of node/x.
+core = 7.x
+dependencies[] = redirect
+dependencies[] = pathauto
+tool = TRUE
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_pretty_urls

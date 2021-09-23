@@ -1,0 +1,18 @@
+name = Twitter
+description = Adds integration with the Twitter microblogging service.
+php = 5.1
+core = 7.x
+files[] = twitter_views_field_handlers.inc
+files[] = twitter.lib.php
+files[] = tests/core.test
+files[] = tests/input_filters.test
+dependencies[] = oauth_common
+dependencies[] = views
+configure = admin/config/services/twitter
+
+; Information added by drupal.org packaging script on 2013-06-03
+version = "7.x-5.8"
+core = "7.x"
+project = "twitter"
+datestamp = "1370303463"
+

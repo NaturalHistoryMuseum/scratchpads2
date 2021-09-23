@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implements hook_cron().
+ */
+function biblio_dump_cron(){
+  module_load_include('cron.inc', 'biblio_dump');
+  _biblio_dump_cron();
+}
+
+/**
+ * Implements hook_menu().
+ */
+function biblio_dump_menu(){
+  $filename = variable_get('biblio_dump_filename', FALSE);
+  if($filename){return array(
+      'biblio.bib' => array(
+        'title' => t('All biblio entries.'),
+        'page callback' => 'file_download',
+        'page arguments' => array(
+          'public',
+          substr($filename, 9)
+        ),
+        'access arguments' => array(
+          'access content'
+        )
+      )
+    );}
+}
+
+/**
+ * Implements hook_file_download()
+ */
+function biblio_dump_file_download($uri){
+  if($uri && $uri == variable_get('biblio_dump_filename', FALSE)){
+    $url = parse_url(url('', array(
+      'absolute' => TRUE
+    )));
+    return array(
+      'Content-Type' => 'text/plain',
+      'Content-Disposition' => 'attachment; filename="' . $url['host'] . '-biblio.bib"',
+      'Cache-Control' => 'public',
+      'Expires' => date('r', time() + 604800),
+      'Last-Modified' => date('r', filemtime(variable_get('biblio_dump_filename', FALSE)))
+    );
+  }
+}
+
+/**
+ * Implements hook_node_update()
+ */
+function biblio_dump_node_update($node){
+  if($node->type == 'biblio'){
+    module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+    variable_set('biblio_dump_rebuild', TRUE);
+    db_merge('biblio_dump')->key(array(
+      'nid' => $node->nid
+    ))->fields(array(
+      'nid' => $node->nid,
+      'bibtex' => _biblio_bibtex_export($node)
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function biblio_dump_node_insert($node){
+  biblio_dump_node_update($node);
+}
+
+/**
+ * Implements hook_node_delete()
+ */
+function biblio_dump_node_delete($node){
+  if($node->type == 'biblio'){
+    db_delete('biblio_dump')->condition('nid', $node->nid)->execute();
+  }
+}

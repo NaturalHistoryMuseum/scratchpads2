@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * Implements hook_flush_caches()
+ */
+function scratchpads_security_flush_caches(){
+  $form_ids_to_captcha = array(
+    'user_pass' => 'user_pass',
+    'user_register_form' => 'user_register_form'
+  );
+  drupal_alter('scratchpads_security_captcha_form_ids', $form_ids_to_captcha);
+  // We do this as a transaction to prevent a form being provided that does not
+  // contain a CAPTCHA when it should.
+  $transaction = db_transaction();
+  try{
+    db_delete('captcha_points')->execute();
+    $query = db_insert('captcha_points')->fields(array(
+      'form_id',
+      'captcha_type'
+    ));
+    foreach($form_ids_to_captcha as $form_id){
+      $query->values(array(
+        'form_id' => $form_id,
+        'captcha_type' => 'default'
+      ));
+    }
+    $query->execute();
+  }
+  catch(Exception $e){
+    $transaction->rollback();
+    watchdog_exception('scratchpads_security', $e);
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter.
+ */
+function scratchpads_security_module_implements_alter(&$implementations, $hook){
+  if($hook == 'captcha_default_points_alter'){
+    $group = $implementations['scratchpads_security'];
+    unset($implementations['scratchpads_security']);
+    $implementations['scratchpads_security'] = $group;
+  }
+}
+
+/**
+ * Implements hook_captcha_default_points_alter()
+ */
+function scratchpads_security_captcha_default_points_alter(&$items){
+  unset($items['user_login']);
+  unset($items['user_login_block']);
+}
+
+/**
+ * Implements hook_scratchpads_security_captcha_form_ids_alter()
+ * 
+ * Adds form_ids that the comment module provides.
+ */
+function comment_scratchpads_security_captcha_form_ids_alter(&$form_ids){
+  foreach(array_keys(node_type_get_types()) as $bundle){
+    $form_ids['comment_node_' . $bundle . '_form'] = 'comment_node_' . $bundle . '_form';
+  }
+}
+
+/**
+ * Implements hook_scratchpads_security_captcha_form_ids_alter()
+ * 
+ * Adds form_ids that the contact module provides.
+ */
+function contact_scratchpads_security_captcha_form_ids_alter(&$form_ids){
+  $form_ids['contact_personal_form'] = 'contact_personal_form';
+  $form_ids['contact_site_form'] = 'contact_site_form';
+}
+
+/**
+ * Implements hook_scratchpads_security_captcha_form_ids_alter()
+ * 
+ * Add webforms to the mix.
+ */
+function webform_scratchpads_security_captcha_form_ids_alter(&$form_ids){
+  $query = db_select('node', 'n');
+  $query->addExpression("CONCAT('webform_client_form_',nid)", 'form_id');
+  $rows = $query->condition('type', 'webform')->execute()->fetchCol();
+  $rows = drupal_map_assoc($rows);
+  $form_ids = array_merge($form_ids, $rows);
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function scratchpads_security_node_insert($node){
+  if($node->type == 'webform'){
+    $query = db_merge('captcha_points')->key(array(
+      'form_id' => 'webform_client_form_' . $node->nid
+    ))->fields(array(
+      'form_id' => 'webform_client_form_' . $node->nid,
+      'captcha_type' => 'default'
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function captcha_scratchpads_default_permissions(){
+  return array(
+    'authenticated user' => array(
+      'skip CAPTCHA'
+    )
+  );
+}

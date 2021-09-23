@@ -1,0 +1,219 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function scratchpads_search_block_form_search_block_form_alter(&$form, &$form_state, $form_id){
+  // Set the placeholder for the search box.  
+  $form[$form_id]['#attributes']['placeholder'] = t('Search...');
+  // Set the autocomplete path, so that when we select "Taxonomy", we can attempt
+  // to autocomplete.
+  $form[$form_id]['#autocomplete_path'] = 'scratchpads_search_block';
+  $options = array(
+    '_all' => t('All'),
+    '_taxonomy' => t('Taxonomy')
+  ); // FIXME - Possibly add a search by user option in the future.
+  //'_user' => t('User')
+  $default_value = '_all';
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    // If we're on a taxonomy page, we add additional options.
+    switch(arg(3)){
+      case 'media':
+        $options['_media'] = t('Media');
+        $default_value = '_media';
+        break;
+      default:
+        $info = entity_get_info('node');
+        if(arg(3) && isset($info['bundles'][arg(3)])){
+          $options['bundle:' . arg(3)] = $info['bundles'][arg(3)]['label'];
+          $default_value = 'bundle:' . arg(3);
+        }else{
+          $default_value = '_taxonomy';
+        }
+        break;
+    }
+  }else if(arg(0) == 'biblio'){
+    $options['_biblio'] = t('Literature');
+    $default_value = '_biblio';
+  }else if(arg(0) == 'gallery'){
+    $options['_media'] = t('Media');
+    $default_value = '_media';
+  }else if(arg(0) == 'node' && is_numeric(arg(1))){
+    // If we're viewing a node, we add the content type
+    $node = node_load(arg(1));
+    if($node){
+      $info = entity_get_info('node');
+      $options['bundle:' . $node->type] = $info['bundles'][$node->type]['label'];
+      $default_value = 'bundle:' . $node->type;
+    }
+  }else{
+    // Finally, if we're viewing a search results page.
+    if(isset($_GET['f']) && is_array($_GET['f']) && isset($_GET['f'][0])){
+      // We ONLY check the first facet.  If more have been set, we don't need to
+      // check them.
+      // Split on the : and switch on the first part
+      $facet_parts = explode(":", $_GET['f'][0]);
+      switch($facet_parts[0]){
+        case 'bundle':
+          // FIXME - Not actually sure what this code is doing, but it causes 
+          // an error when the bundle is not a "node" bundle.
+          $info = entity_get_info('node');
+          if(!empty($info['bundles'][$facet_parts[1]])){
+            $options['bundle:' . $facet_parts[1]] = $info['bundles'][$facet_parts[1]]['label'];
+            $default_value = 'bundle:' . $facet_parts[1];
+          }
+          break;
+        case 'entity_type':
+          if($facet_parts[1] == 'file'){
+            $options['_media'] = t('Media');
+            $default_value = '_media';
+          }
+          break;
+        case 'im_field_taxonomic_name':
+          $default_value = '_taxonomy';
+          break;
+      }
+    }
+  }
+  $form['facet'] = array(
+    '#title' => '',
+    '#type' => 'radios',
+    '#default_value' => $default_value,
+    '#options' => $options,
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/css/scratchpads_search_block.css'
+      ),
+      'js' => array(
+        drupal_get_path('module', 'scratchpads_search_block') . '/js/scratchpads_search_block.js'
+      )
+    )
+  );
+  // Alter the submit function so that we can add facet magic.
+  $form['#submit'][0] = 'scratchpads_search_block_form_submit';
+  $form['#theme'][0] = 'scratchpads_search_block_form';
+}
+
+/**
+ * Process a scratchpad search form submission.
+ */
+function scratchpads_search_block_form_submit($form, &$form_state){
+  // The search form relies on control of the redirect destination for its
+  // functionality, so we override any static destination set in the request,
+  // for example by drupal_access_denied() or drupal_not_found()
+  // (see http://drupal.org/node/292565).
+  if(isset($_GET['destination'])){
+    unset($_GET['destination']);
+  }
+  // Check to see if the form was submitted empty.
+  // If it is empty, display an error message.
+  // (This method is used instead of setting #required to TRUE for this field
+  // because that results in a confusing error message.  It would say a plain
+  // "field is required" because the search keywords field has no title.
+  // The error message would also complain about a missing #title field.)
+  if($form_state['values']['search_block_form'] == ''){
+    form_set_error('keys', t('Please enter some keywords.'));
+  }
+  $form_id = $form['form_id']['#value'];
+  $info = search_get_default_module_info();
+  if($info){
+    $query = array();
+    $search_string = trim($form_state['values'][$form_id]);
+    switch($form_state['values']['facet']){
+      case '_taxonomy':
+        // If we sent the tid correctly, we go directly to that page.
+        preg_match('/([^\[]*)\[([0-9]*)\]/', trim($form_state['values'][$form_id]), $matches);
+        $term = FALSE;
+        if(count($matches) >= 3){
+          $term = taxonomy_term_load($matches[2]);
+        }else{
+          $term = taxonomy_get_term_by_name(trim($form_state['values'][$form_id]));
+          $term = array_shift($term);
+        }
+        if($term){
+          drupal_goto('taxonomy/term/' . $term->tid);
+        }
+        $search_string = trim($form_state['values'][$form_id]);
+        break;
+      case '_media':
+        drupal_goto('gallery/' . $form_state['values']['search_block_form']);
+        break;
+      case '_biblio':
+        drupal_goto('biblio/' . $form_state['values']['search_block_form']);
+        break;
+      default:
+        $query = array(
+          'query' => array(
+            'f' => array(
+              $form_state['values']['facet']
+            )
+          )
+        );
+      case '_all':
+        break;
+    }
+    $form_state['redirect'] = array(
+      'search/' . $info['path'] . '/' . $search_string,
+      $query
+    );
+  }else{
+    form_set_error(NULL, t('Search is currently disabled.'), 'error');
+  }
+}
+
+/**
+ * Hook theme
+ */
+function scratchpads_search_block_theme(){
+  return array(
+    'scratchpads_search_block_form' => array(
+      'render element' => 'form',
+      'template' => 'scratchpads-search-block-form'
+    )
+  );
+  taxonomy_menu();
+}
+
+/**
+ * hook_menu().
+ */
+function scratchpads_search_block_menu(){
+  return array(
+    'scratchpads_search_block' => array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'scratchpads_search_block_autocomplete',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'scratchpads_search_block.callback.inc'
+    )
+  );
+}
+
+/**
+ * Process variables for search-block-form.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $form
+ *
+ * @see search-block-form.tpl.php
+ */
+function template_preprocess_scratchpads_search_block_form(&$variables){
+  $variables['search'] = array();
+  $hidden = array();
+  // Provide variables named after form keys so themers can print each element independently.
+  foreach(element_children($variables['form']) as $key){
+    $type = $variables['form'][$key]['#type'];
+    if($type == 'hidden' || $type == 'token'){
+      $hidden[] = drupal_render($variables['form'][$key]);
+    }else{
+      $variables['search'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  // Hidden form elements have no value to themers. No need for separation.
+  $variables['search']['hidden'] = implode($hidden);
+  // Additional to the standard preprocess function
+  // Collect all form elements to make it easier to print the whole form.
+  $variables['search_form'] = implode($variables['search']);
+}

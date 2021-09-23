@@ -1,0 +1,125 @@
+# LANGUAGE translation of Strongarm (all releases)
+# Copyright (c) 2009
+# Generated from files:
+#  strongarm.admin.inc,v 1.1.2.2.2.1 2009/11/20 22:51:18 yhahn
+#  strongarm.admin.inc,v 1.1.2.1 2009/08/03 14:06:52 yhahn
+#  strongarm.admin.inc,v 1.1.2.2 2009/11/18 19:02:13 jmiccolis
+#  strongarm.module,v 1.1.2.3 2009/07/06 05:33:29 yhahn
+#  strongarm.module,v 1.1.2.5 2009/08/03 14:06:52 yhahn
+#  strongarm.info,v 1.1 2009/05/06 17:55:05 jmiccolis
+#  strongarm.module,v 1.1.2.6 2009/09/24 16:17:23 jmiccolis
+#  strongarm.module,v 1.1.2.6.2.1 2009/11/20 22:51:18 yhahn
+#  strongarm.info,v 1.1.4.1 2009/11/20 22:51:18 yhahn
+#
+msgid ""
+msgstr "Project-Id-Version: Strongarm (all releases)\n"
+"POT-Creation-Date: 2009-12-11 20:41+0000\n"
+"PO-Revision-Date: 2009-12-11 21:47+0100\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: Thomas Zahreddin <thomas@voicehero.net>\n"
+
+#: strongarm.admin.inc:50
+msgid "Reset to defaults"
+msgstr "Zurücksetzen auf Standardwerte"
+
+#: strongarm.admin.inc:114
+msgid "Value"
+msgstr "Wert"
+
+#: strongarm.admin.inc:215,215,215,112
+msgid "Variable"
+msgstr "Variable"
+
+#: strongarm.admin.inc:39
+msgid "Default"
+msgstr "Standard"
+
+#: strongarm.admin.inc:218,218,218
+msgid "Module"
+msgstr "Modul"
+
+#: strongarm.admin.inc:39
+msgid "Overridden"
+msgstr "Übersschrieben"
+
+#: strongarm.admin.inc:96,96,96
+msgid "Revert"
+msgstr "Rückgängig"
+
+#: strongarm.admin.inc:113
+msgid "Storage"
+msgstr "Speicher"
+
+#: strongarm.module:58,142
+msgid "The hilighted fields below may need to retain their current values for your site to operate properly. Settings may be disabled or reverted automatically if they are not compatible with one or more of your site's modules."
+msgstr "Die hervorgehobenen unten stehenden Felder sollen ihre aktuellen Werte behalten, damit Ihre Website ordnungsgemäß funktioniert. Diese Einstellungen sind möglicherweise deaktiviert oder automatisch zurückgesetzt, wenn sie nicht kompatibel sind mit einem oder mehreren der Module Ihrer Website sind."
+
+#: strongarm.info:0,0,0,0,0;
+#: strongarm.module:109,109,109,41
+msgid "Strongarm"
+msgstr "Strongarm"
+
+#: strongarm.info:0,0,0,0,0
+msgid "Enforces variable values defined by modules that need settings set to operate properly."
+msgstr "Erzwingt Werte von Variablen definierter Module, die zum ordnungsgemäßen Funktionieren der Website erforderlich sind."
+
+#: strongarm.admin.inc:216,216,216
+msgid "Current value"
+msgstr "Aktueller Wert"
+
+#: strongarm.admin.inc:36,36,36
+msgid "Strongarm mode"
+msgstr "Strongarm-Modus"
+
+#: strongarm.admin.inc:37,37,37
+msgid "Choose the strength of strongarm's restrictive behavior."
+msgstr "Wählen Sie die Stärke des restriktiven Verhaltens von Strongarm."
+
+#: strongarm.admin.inc:40,40,40
+msgid "Force variables values"
+msgstr "Werte von Variablen erzwingen"
+
+#: strongarm.admin.inc:41,41,41
+msgid "Allow variable overrides"
+msgstr "Variablen überschreiben lassen"
+
+#: strongarm.admin.inc:46,46,46
+msgid "Show messages"
+msgstr "Nachrichten anzeigen"
+
+#: strongarm.admin.inc:47,47,47
+msgid "Show helper messages to site administrators when variables have been strongarmed or overridden."
+msgstr "Nachrichten mit Hinweisen für Website-Administratoren anzeigen, wenn Variablen strongarmed wurden oder überschrieben werden."
+
+#: strongarm.admin.inc:211,211,211
+msgid "Manage overridden variables"
+msgstr "Verwalten von überschriebenen Variablen"
+
+#: strongarm.admin.inc:217,217,217
+msgid "Module value"
+msgstr "Wert für Modul"
+
+#: strongarm.module:31,31,31
+msgid "The following variables have overridden values: !vars. Manage these variables on the !strongarm_page."
+msgstr "Die folgenden Variablen überschrieben haben Werte: !vars. Verwalten dieser Variablen auf !strongarm_page."
+
+#: strongarm.module:31,31,144,31,144
+msgid "Strongarm admin page"
+msgstr "Strongarm Verwaltungsseite"
+
+#: strongarm.module:110,110,110,42
+msgid "Manage Drupal variable settings that have been strongarmed."
+msgstr "Verwalten von Drupal Einstellungen, die von Strongarm übersteuert wurden."
+
+#: strongarm.module:142,142
+msgid "The highlighted fields may need to retain their current values for your site to operate properly. Settings may be disabled or reverted automatically if they are not compatible with one or more of your site's modules."
+msgstr "Die hervorgehobenen Felder sollen ihre aktuellen Werte behalten, damit Ihre Website ordnungsgemäß funktioniert. Diese Einstellungen sind möglicherweise deaktiviert oder automatisch zurückgesetzt, wenn sie nicht kompatibel sind mit einem oder mehreren der Module Ihrer Website sind."
+
+#: strongarm.module:144,144
+msgid "You can change locked-in settings by switching to \"Allow variable overrides\" on the !admin_page."
+msgstr "Sie können gesperrte Einstellungen dennoch ändern, wenn Sie für diese \"Überschreiben von Variablen zulassen\" auf der !admin_page - vorübergehend - festlegen."
+

@@ -1,0 +1,11 @@
+name = Subform Example
+description = Example module for the Subform module.
+core = 7.x
+dependencies[] = subform
+
+; Information added by drupal.org packaging script on 2012-09-18
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "subform"
+datestamp = "1347973543"
+

@@ -1,0 +1,534 @@
+<?php
+
+/**
+ * Provides the following fields:
+ *
+ * - Maps regions (click on a country to select)
+ */
+/**
+ * Implementation of hook_field_info().
+ */
+function gm3_region_field_field_info(){
+  return array(
+    'gm3_region' => array(
+      'label' => t('Geo: Region'),
+      'description' => t('Allows for the storage of geographical regions.'),
+      'default_widget' => 'gm3_region_gm3',
+      'default_formatter' => 'gm3_entity_map'
+    )
+  );
+}
+
+/**
+ * Callback to validate an item
+ *
+ * NOTE, this function is NOT gm3_region_field_items_validate to enable users
+ * to enter REGION: REGION-ID rather than REGION_FIELD: REGION-ID
+ */
+function gm3_region_items_validate($items, $field_name, &$errors){
+  gm3_region_switch_to_gm3_database();
+  foreach($items as $item){
+    if(is_string($item)){
+      $item = trim($item);
+      switch(strlen($item)){
+        case '1':
+          // We have a continent code
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_1_code = :l1c', array(
+            ':l1c' => $item
+          ));
+          break;
+        case '2':
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_2_code = :l2c OR level_5_code = :l3c', array(
+            ':l2c' => $item
+          ));
+          // We have a sub-continent code or a VC code
+          break;
+        case '3':
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c OR level_5_code = :l3c', array(
+            ':l3c' => $item
+          ));
+          // We have a level-3 code or a VC code
+          break;
+        case '6':
+          $item_part = explode('-', $item);
+          $result = db_query('SELECT COUNT(*) AS item_count FROM {gm3_region_data} WHERE level_3_code = :l3c AND level_4_code = :l4c', array(
+            ':l3c' => $item_part[0],
+            ':l4c' => $item_part[1]
+          ));
+          // We have  a level-4 code
+          break;
+        default:
+          // Definitely an error here!
+          $result = db_query('SELECT 0 AS item_count');
+          break;
+      }
+      foreach($result as $row){
+        if(!$row->item_count){
+          $errors[] = array(
+            'error' => 'gm3_invalid_data',
+            'message' => t('Invalid map data has been entered. Please reload this page before resubmitting.')
+          );
+        }
+      }
+    }
+  }
+  db_set_active();
+}
+
+/**
+ * Validation function called when the region_field widget is submitted.
+ * Also the only place we can convert the submitted form value to
+ * the structure it should be in the database.
+ * It sounds dodgy but this is in fact how Drupal core does it too;
+ * see options_field_widget_validate.
+ */
+function gm3_region_field_widget_validate(&$element, &$form_state) {
+  $field = field_widget_field($element, $form_state);
+
+  // The input element name should be hardcoded as 'field' in the widget definition
+  $input_element = $element['field'];
+
+  // Convert the submitted values to the database structure
+  $items = gm3_region_field_form_to_storage(null, $input_element);
+
+  // Save the value
+  form_set_value($element, $items, $form_state);
+
+  // Set the javascript data
+  $element['map']['#gm3']['libraries']['region'] = gm3_region_field_js_settings($items, true);
+}
+
+/**
+ * Converts submitted form element data to the structured it's needed
+ * in the database.
+ */
+function gm3_region_field_form_to_storage($value, &$input_element = null) {
+  if($value == null) {
+    $value = $input_element['#value'];
+  }
+
+  $items = _gm3_region_field_parse_field_value($value);
+
+  if(isset($input_element)) {
+    // For some reason the <select> element's value needs to be keyed numerically
+    // whereas its keys are the same as its values.
+    // This matters to keep the inputed state if the form is invalid.
+    $input_element['#value'] = array_values($input_element['#value']);
+  }
+
+  return $items;
+}
+
+/**
+ * Given the submitted form, return the js settings for the map
+ * Used to ingegrate into the combo field
+ */
+function gm3_region_field_combo_js_settings($items) {
+  return gm3_region_field_js_settings(array_values($items), true);
+}
+
+/**
+ * Given database data, generate the select field to add to the combo widget
+ */
+function gm3_region_field_input_element($id, $items, $allow_text_entry) {
+  $regions = _gm3_region_field_storage_to_form($items);
+
+  return gm3_region_field_map_field($id, $regions, $allow_text_entry);
+}
+
+/**
+ * Parse the value submitted by the map input element, convert it
+ * into a format that can be saved in the database
+ */
+function _gm3_region_field_parse_field_value($items) {
+  $new_items = [];
+
+  foreach($items as $region_id){
+    // Convert short code to long code
+    // The options in the select list should all be the long code,
+    // so i don't know if we really need this stil
+    // But I'll keep it in just in case
+    if(!strpos($region_id, ':')){
+       $region_id = _gm3_region_convert_short_code_to_full_code($region_id);
+    }
+
+    $new_items[] = array(
+      'region_id' => $region_id
+    );
+  }
+
+  return $new_items;
+}
+
+function _gm3_region_field_storage_to_form($items) {
+  $regions = [];
+  foreach($items as $item){
+    $regions[] = $item['region_id'];
+  }
+
+  return $regions;
+}
+
+/**
+ * Helper function to convert a value like 'ITA-IT' to '1:13:ITA:ITA-IT'.
+ */
+function _gm3_region_convert_short_code_to_full_code($val){
+  gm3_region_switch_to_gm3_database();
+  // We have simply been sent an id, we must get the full hierarchy.
+  if(is_numeric($val)){
+    // We have a region 1 or 2 code.  No need to do anything to a region 1
+    // code.
+    if($val > 10){
+      // Region 2, we need to get the region 1 code.
+      $level_1_code = array_pop(db_select('gm3_region_data', 'g')->fields('g', array(
+        'level_1_code'
+      ))->condition('level_2_code', $val)->execute()->fetchCol());
+      $val = "$level_1_code:$val";
+    }
+  }else{
+    if(!strpos($val, ':')){
+      if(strtolower(substr($val, 0, 2)) == 'vc'){
+        // VC
+        $val = '1:10:GRB:GRB-OO:' . substr($val, 2);
+      }else if(strlen($val) == 3){
+        // Region 3
+        $row = db_select('gm3_region_data', 'g')->fields('g', array(
+          'level_1_code',
+          'level_2_code'
+        ))->condition('level_3_code', $val)->execute()->fetch();
+        $val = "{$row->level_1_code}:{$row->level_2_code}:$val";
+      }else{
+        // Region 4
+        $val = explode("-", $val);
+        $row = db_select('gm3_region_data', 'g')->fields('g', array(
+          'level_1_code',
+          'level_2_code',
+          'level_3_code'
+        ))->condition('level_4_code', $val[1])->condition('level_3_code', $val[0])->execute()->fetch();
+        $val = "{$row->level_1_code}:{$row->level_2_code}:{$row->level_3_code}:{$val[0]}-{$val[1]}";
+      }
+    }
+  }
+  db_set_active();
+  return $val;
+}
+
+/**
+ * Generates the JS settings that will be passed to the map as the region library.
+ * Should be set as `$map['libraries']['region']`, which becomes
+ * `Drupal.settings.gm3.maps[mapId].libraries.region` in the browser.
+ */
+function gm3_region_field_js_settings($items = [], $editable = false){
+  return [
+    'module' => 'gm3_region',
+    'editable' => $editable,
+    'regions' => $items
+  ];
+}
+
+/**
+ * Advertise that we know how to handle gm3_region fields in the combo widget
+ * Implements hook_gm3_field_combination_info
+ */
+function gm3_region_field_gm3_field_combination_info() {
+  return [
+    'gm3_region' => [
+      'name' => 'region',
+      'form_to_storage' => 'gm3_region_field_form_to_storage',
+      'map_settings' => 'gm3_region_field_combo_js_settings',
+      'field_element' => 'gm3_region_field_input_element'
+    ]
+  ];
+}
+
+/**
+ * Add a single item to the read-only map view
+ * Implments hook_TYPE_map_alter
+ */
+function gm3_region_field_region_map_alter(&$map, $item){
+  // This function gets called when we view the map (read-only)
+  if(!isset($map['libraries']['region']['module'])) {
+    $map['libraries']['region'] = gm3_region_field_js_settings();
+  }
+  $map['libraries']['region']['regions'][] = $item['region_id'];
+}
+
+/**
+ * Implementation of hook_gm3_combination_field_options_alter()
+ */
+function gm3_region_field_gm3_combination_field_options_alter(&$options){
+  $options['gm3_region'] = t('Region');
+}
+
+/**
+ * Generate the select element that the region map will be synced with
+ */
+function gm3_region_field_map_field($id, $default_value = [], $visible = false, $text_only = false){
+  // Field has to be visible if it's text only, ya dingus
+  $visible = $text_only || $visible;
+
+  return array(
+    '#default_value' => $default_value,
+    '#options' => _gm3_region_field_get_options(),
+    '#multiple' => TRUE,
+    '#size' => 10,
+    '#type' => 'select',
+    '#attributes' => array(
+      'class' => array(
+        $id . '-region'
+      ),
+      'style' => $visible ? '' : 'display:none'
+    ),
+    '#suffix' => $text_only ? null : '<p style="text-align:right"><a href="#" onclick="const select = this.parentElement.previousElementSibling.querySelector(\'select\'); select.style.display = select.style.display ? \'\' : \'none\'; return false">' . t('Toggle manual selection') . '</a></p>',
+  );
+}
+
+/**
+ * Implementation of hook_field_widget_info().
+ */
+function gm3_region_field_field_widget_info(){
+  return array(
+    'gm3_region_gm3' => array(
+      'label' => t('Geo: Region select (with map)'),
+      'description' => t('Regions entered by selecting, or clicking on a map.'),
+      'field types' => array(
+        'gm3_region'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    ),
+    'gm3_region_select' => array(
+      'label' => t('Geo: Region select (no map)'),
+      'description' => t('Regions entered by selecting.'),
+      'field types' => array(
+        'gm3_region'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_DEFAULT
+      )
+    )
+  );
+}
+
+/**
+ * View function that is called by the gm3_field module.
+ * Used in gm3_field_field_formatter_view
+ */
+function gm3_region_field_gm3_region_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $id){
+  $element = array();
+  if(count($items)){
+    $element = array(
+      'map' => array(
+        '#markup' => theme('gm3_map', array(
+            'id' => $id,
+            'libraries' => array(
+              'region' => gm3_region_field_js_settings($items)
+            )
+        ))
+      )
+    );
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function gm3_region_field_field_is_empty($item, $field){
+  return !count($item);
+}
+
+/**
+ * Helper function to get the options for the region field.
+ */
+function _gm3_region_field_get_options(){
+  gm3_region_switch_to_gm3_database();
+  // We cache this, as it should only change if the module is updated.
+  $result = db_select('gm3_region_data', 'g')->fields('g', array(
+    'name',
+    'continent',
+    'iso_code',
+    'level_5_code',
+    'level_4_code',
+    'level_3_code',
+    'level_2_code',
+    'level_1_code'
+  ))->execute();
+  $options = array();
+  foreach($result as $region){
+    if($region->level_2_code == 0){
+      $options["{$region->level_1_code}"] = $region->name;
+    }else if($region->level_3_code == ''){
+      $options["{$region->level_1_code}:{$region->level_2_code}"] = "- {$region->name}";
+    }else if($region->level_4_code == ''){
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}"] = "- - {$region->name}";
+    }else if($region->level_5_code == '00'){
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}:{$region->level_3_code}-{$region->level_4_code}"] = "- - - {$region->name}";
+    }else{
+      $options["{$region->level_1_code}:{$region->level_2_code}:{$region->level_3_code}:{$region->level_3_code}-{$region->level_4_code}:{$region->level_5_code}"] = "- - - - {$region->name}";
+    }
+  }
+  uksort($options, '_gm3_region_field_array_sort');
+  db_set_active();
+  return $options;
+}
+
+/**
+ * Sort the array
+ */
+function _gm3_region_field_array_sort($a, $b){
+  $a = explode(":", $a);
+  $b = explode(":", $b);
+  if($a[0] != $b[0]){return $a[0] > $b[0];}
+  if(isset($a[1]) && isset($b[1])){
+    if($a[1] != $b[1]){return $a[1] > $b[1];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[2]) && isset($b[2])){
+    if($a[2] != $b[2]){return $a[2] > $b[2];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[3]) && isset($b[3])){
+    if($a[3] != $b[3]){return $a[3] > $b[3];}
+  }else{
+    return count($a) > count($b);
+  }
+  if(isset($a[4]) && isset($b[4])){
+    if($a[4] != $b[4]){return $a[4] > $b[4];}
+  }else{
+    return count($a) > count($b);
+  }
+}
+
+/**
+ * Implementation of hook_field_settings_form().
+ */
+function gm3_region_field_field_settings_form($field, $instance, $has_data){
+  return array(
+    'allow_text_entry' => array(
+      '#type' => 'radios',
+      '#title' => t('Allow text entry'),
+      '#options' => array(
+        'No',
+        'Yes'
+      ),
+      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : 0,
+      '#required' => TRUE,
+      '#description' => t('Select whether a user can also enter data using a text field')
+    )
+  );
+}
+
+/**
+ * Generate the form for the gm3_region_gm3 widget
+ * Implements hook_field_widget_form().
+ */
+function gm3_region_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  switch($instance['widget']['type']) {
+    case 'gm3_region_select':
+    case 'gm3_region_gm3':
+
+      $text_only = $instance['widget']['type'] === 'gm3_region_select';
+
+      // Data field type
+      $allow_text_entry = $text_only || !empty($field['settings']['allow_text_entry']);
+
+      $regions = _gm3_region_field_storage_to_form($items);
+
+      $input_field = gm3_region_field_map_field(
+        $element['#field_name'],
+        $regions,
+        $allow_text_entry,
+        $text_only
+      );
+
+      $element += array(
+        '#type' => 'fieldset',
+        '#attributes' => array(
+          'class' => array(
+            'gm3_fieldset'
+          )
+        ),
+        // Use the element_validate function to convert the field value
+        // to the structure used in the database
+        '#element_validate' => array(
+          'gm3_region_field_widget_validate',
+        ),
+        'field' => $input_field
+      );
+
+      if($text_only) {
+        break;
+      }
+
+      // We need to add a GM3 map to the page.
+      // We'll also need some additional JS to record the points and save them
+      // actually into a form element.
+      $element += [
+        'map' => gm3_field_get_map(
+            $element['#field_name'],
+            $field['cardinality'],
+            [
+              'region' => gm3_region_field_js_settings($regions, true)
+            ]
+        ),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'gm3_field') . '/css/gm3_field.css'
+          )
+        )
+      ];
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ * Hooks into the node importer to process imported regions
+ * Mostly copied from gm3_field
+ */
+function gm3_region_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  $map_type = 'gm3_region';
+
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if($info['type'] == $map_type){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'gm3_region_field_feeds_set_target_text',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback to set the value for a GM3 region field when using the importer.
+ * More or less the same as gm3_field
+ */
+function gm3_region_field_feeds_set_target_text($source, $entity, $target, $value){
+  $entity_type = strtolower(get_class($source->importer->processor));
+  if(($processor_location = strpos($entity_type, 'processor')) > 0){
+    $entity_type = substr($entity_type, 0, $processor_location);
+  }
+  if(substr($entity_type, 0, 5) == 'feeds'){
+    $entity_type = substr($entity_type, 5);
+  }
+  if(!entity_get_info($entity_type)){
+    $entity_type = 'node';
+  }
+
+  $field = isset($entity->$target) ? $entity->$target : array();
+  $lang = field_language($entity_type, $entity, $target);
+
+  $field[$lang] = _gm3_region_field_parse_field_value($value);
+  $entity->{$target} = $field;
+}

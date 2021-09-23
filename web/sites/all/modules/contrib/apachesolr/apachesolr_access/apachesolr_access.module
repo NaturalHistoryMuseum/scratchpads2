@@ -1,0 +1,218 @@
+<?php
+
+/**
+ * Implements hook_apachesolr_index_document_build_node()
+ *
+ * Add node access grants of generic view grants if node access is not used.
+ *
+ * @param $document
+ *   The document to add our node access information to
+ * @param $node
+ *   The node which is used to built the document from
+ * @param $env_id
+ *   The environment for which we are building the document. This parameter does not have any effect in
+ *   this code so it can be ignored
+ */
+function apachesolr_access_apachesolr_index_document_build_node(ApacheSolrDocument $document, $node, $env_id) {
+  $account = &drupal_static(__FUNCTION__);
+
+  if (!isset($account)) {
+    // Load the anonymous user.
+    $account = drupal_anonymous_user();
+  }
+
+  // When using a node access module like Domain Access which has
+  // access grants that vary for anonymous users for the same content,
+  // this variable should be set to 1.  Note that doing so will prevent
+  // any results from being returned if using apachesolr_multisitesearch
+  // from a different site.
+  $always_add = apachesolr_environment_variable_get($env_id, 'apachesolr_access_always_add_grants', 0);
+  if ($always_add || !node_access('view', $node, $account)) {
+    // Get node access grants.
+    $result = db_query('SELECT * FROM {node_access} WHERE (nid = 0 OR nid = :nid) AND grant_view = 1', array(':nid' => $node->nid));
+    foreach ($result as $grant) {
+      $grant_realm = apachesolr_access_clean_realm_name($grant->realm);
+      $key = 'access_node_' . apachesolr_site_hash() . '_' . $grant_realm;
+      $document->addField($key, $grant->gid);
+    }
+  }
+  else {
+    // Add the generic view grant if we are not using
+    // node access or the node is viewable by anonymous users.
+    // We assume we'll never have an entity with the name '__all'.
+    $document->addField('access__all', 0);
+  }
+}
+
+/**
+ * Creates a Solr query for a given user
+ *
+ * @param $account
+ *   an account to get grants for and build a solr query
+ *
+ * @throws Exception
+ *
+ * @return SolrFilterSubQuery
+ *   Instance of SolrFilterSubQuery
+ */
+function apachesolr_access_build_subquery($account) {
+  if (!user_access('access content', $account)) {
+    throw new Exception('No access');
+  }
+  $node_access_query = apachesolr_drupal_subquery();
+  if (user_access('bypass node access', $account)) {
+    // Access all content from the current site.
+    $node_access_query->addFilter('hash', apachesolr_site_hash());
+  }
+  else {
+    // Get node access grants.
+    $grants = node_access_grants('view', $account);
+    foreach ($grants as $realm => $gids) {
+      $realm = apachesolr_access_clean_realm_name($realm);
+      foreach ($gids as $gid) {
+        $node_access_query->addFilter('access_node_' . apachesolr_site_hash() . '_' . $realm, $gid);
+      }
+    }
+  }
+  // Everyone can access public content. Note that if the variable
+  // 'apachesolr_access_always_add_grants' is TRUE, no content from this site
+  // is considered "public". However, this condition may match documents in
+  // the Solr index supplied by other sites when multiple sites are indexing
+  // into the same index , i.e. multisite search.
+  $node_access_query->addFilter('access__all', 0);
+  return $node_access_query;
+}
+
+/**
+ * Implements hook_apachesolr_query_alter().
+ *
+ * Alter the query to include the access subquery
+ *
+ * @param DrupalSolrQueryInterface $query
+ *
+ */
+function apachesolr_access_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  global $user;
+  try {
+    $subquery = apachesolr_access_build_subquery($user);
+    $query->addFilterSubQuery($subquery);
+  }
+  catch (Exception $e) {
+    watchdog("apachesolr_access", 'User %name (UID:!uid) cannot search: @message', array('%name' => $user->name, '!uid' => $user->uid, '@message' => $e->getMessage()));
+    $query->abort_search = TRUE;
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ *
+ * hook_node_ACTION() is called before hook_node_access_records() in node_save().
+ *
+ * @param object $node
+ */
+function apachesolr_access_node_insert($node) {
+  $node->apachesolr_access_node_ignore = 1;
+}
+
+/**
+ * Implements hook_node_update().
+ *
+ * hook_node_ACTION() is called before hook_node_access_records() in node_save().
+ *
+ * @param object $node
+ */
+function apachesolr_access_node_update($node) {
+  $node->apachesolr_access_node_ignore = 1;
+}
+
+/**
+ * Implements hook_node_access_records().
+ *
+ * Listen to this hook to find out when a node needs to be re-indexed
+ * for its node access grants.
+ *
+ * @param object $node
+ */
+function apachesolr_access_node_access_records($node) {
+  // node_access_needs_rebuild() will usually be TRUE during a
+  // full rebuild.
+  if (empty($node->apachesolr_access_node_ignore) && !node_access_needs_rebuild()) {
+    // Only one node is being changed - mark for re-indexing.
+    apachesolr_mark_entity('node', $node->nid);
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param string $form_id
+ *
+ */
+function apachesolr_access_form_node_configure_rebuild_confirm_alter(&$form, $form_state, $form_id) {
+  $form['#submit'][] = 'apachesolr_access_rebuild_nodeaccess';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function apachesolr_access_form_apachesolr_environment_edit_form_alter(&$form, $form_state) {
+  $form['conf']['apachesolr_access_always_add_grants'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add access grants even for public content'),
+    '#default_value' => empty($form['#environment']['conf']['apachesolr_access_always_add_grants']) ? 0 : 1,
+    '#description' => t('Normally should be disabled. Changing this value requires all content to be re-indexed. Useful for sites using Domamin Access or simliar node acess modules with grants that vary for anonymous users.'),
+  );
+  $form['actions']['save']['#submit'][] = 'apachesolr_access_environment_edit_form_submit';
+  $form['actions']['save_edit']['#submit'][] = 'apachesolr_access_environment_edit_form_submit';
+}
+
+/**
+ * Added button-level form submit function for apachesolr_environment_edit_form.
+ */
+function apachesolr_access_environment_edit_form_submit($form, &$form_state) {
+  $prior = empty($form['#environment']['conf']['apachesolr_access_always_add_grants']) ? 0 : 1;
+  if ($form_state['values']['conf']['apachesolr_access_always_add_grants'] != $prior) {
+    apachesolr_access_enable();
+  }
+}
+
+/**
+ * Force Solr to do a total re-index when node access rules change.
+ *
+ * This is unfortunate because not every node is going to be affected, but
+ * there is little we can do.
+ *
+ * @param $form
+ * @param $form_state
+ *
+ */
+function apachesolr_access_rebuild_nodeaccess($form, $form_state) {
+  drupal_set_message(t('Solr search index will be rebuilt.'));
+  // Clear last updated
+  apachesolr_clear_last_index_position();
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * On enabling the module, tell the user to reindex
+ */
+function apachesolr_access_enable() {
+  drupal_set_message(t('Your content <a href="@url">must be re-indexed</a> before Apache Solr Access will be functional on searches.', array('@url' => url('admin/config/search/apachesolr/index'))), 'warning');
+}
+
+/**
+ * Helper function - return a safe (PHP identifier) realm name.
+ *
+ * @todo See if we can replace this with a native php function
+ *
+ * @param string $realm
+ *
+ * @return string
+ *   Clean string without bad characters
+ */
+function apachesolr_access_clean_realm_name($realm) {
+  return preg_replace('/[^a-zA-Z0-9_\x7f-\xff]/', '_', $realm);
+}

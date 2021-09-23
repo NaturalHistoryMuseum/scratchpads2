@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function gbif_registry_menu(){
+  return array(
+    'admin/config/services/gbif_registry' => array(
+      'title' => 'GBIF Registry',
+      'description' => t('Configure how this Scratchpad interacts with the GBIF Registry.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'gbif_registry_admin_form'
+      ),
+      'access arguments' => array(
+        'administer gbif registry'
+      ),
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/settings' => array(
+      'title' => 'Settings',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/services/gbif_registry/browse' => array(
+      'title' => 'Browse',
+      'description' => t('Display data from GBIF Registry.'),
+      'page callback' => 'gbif_registry_browse_page',
+      'page arguments' => array(
+        'Nodes'
+      ),
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/browse/nodes' => array(
+      'title' => 'Nodes',
+      'description' => t('Lists all "nodes" held in the registry.'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/services/gbif_registry/browse/organizations' => array(
+      'title' => 'Organizations',
+      'description' => t('Lists all "organizations" held in the registry.'),
+      'page callback' => 'gbif_registry_browse_page',
+      'page arguments' => array(
+        'Organizations'
+      ),
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/browse/networks' => array(
+      'title' => 'Networks',
+      'description' => t('Lists all "networks" held in the registry.'),
+      'page callback' => 'gbif_registry_browse_page',
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/browse/datasets' => array(
+      'title' => 'Datasets',
+      'description' => t('Lists all "datasets" held in the registry.'),
+      'page callback' => 'gbif_registry_browse_page',
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'page arguments' => array(
+        'Datasets'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/browse/installations' => array(
+      'title' => 'Installations',
+      'description' => t('Lists all "installations" held in the registry.'),
+      'page callback' => 'gbif_registry_browse_page',
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'page arguments' => array(
+        'Installations'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/view' => array(
+      'title' => 'View GBIF Registry object',
+      'description' => t('View an Object retrieved from the GBIF Registry'),
+      'page callback' => 'gbif_registry_view_object',
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'gbif_registry.admin.inc'
+    ),
+    'admin/config/services/gbif_registry/view/%/%' => array(
+      'title' => 'View GBIF Registry object',
+      'description' => t('View an Object retrieved from the GBIF Registry'),
+      'page callback' => 'gbif_registry_view_object',
+      'page arguments' => array(
+        5,
+        6
+      ),
+      'access arguments' => array(
+        'view gbif registry data'
+      ),
+      'file' => 'gbif_registry.admin.inc'
+    )
+  );
+}
+
+/**
+ * Implements hook_permission()
+ */
+function gbif_registry_permission(){
+  return array(
+    'administer gbif registry' => array(
+      'title' => t('Administer GBIF Registry')
+    ),
+    'view gbif registry data' => array(
+      'title' => t('View GBIF Registry data')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchapds_default_permission().
+ *
+ * We don't allow any of our users to administer the GBIF Registry module.
+ */
+function gbif_registry_scratchpads_default_permissions(){
+  ;
+}

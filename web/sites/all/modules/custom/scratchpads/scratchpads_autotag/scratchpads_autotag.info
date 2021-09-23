@@ -1,0 +1,9 @@
+name = Scratchpads autotag
+description = Settings for the Autotag/Tag/Tag-on-save modules.
+core = 7.x
+dependencies[] = autotag
+dependencies[] = tagtag
+dependencies[] = tag_on_save
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_autotag

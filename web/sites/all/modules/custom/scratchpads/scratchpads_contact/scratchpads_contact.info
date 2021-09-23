@@ -1,0 +1,11 @@
+core = "7.x"
+name = "Scratchpads contact"
+description = "Scratchpads contact forms"
+package = "Scratchpads"
+dependencies[] = modal_forms
+dependencies[] = contact
+
+scripts[] = js/scratchpads_contact.js
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_contact

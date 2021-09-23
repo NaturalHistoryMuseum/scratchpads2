@@ -1,0 +1,767 @@
+<?php
+
+/** 
+ * Implements hook_menu().
+ */
+function slickgrid_menu(){
+  return array(
+    'slickgrid/callback/add' => array(
+      'page callback' => 'slickgrid_callback_add',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.callbacks.inc'
+    ),
+    'slickgrid/callback/update' => array(
+      'page callback' => 'slickgrid_callback_update',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.callbacks.inc'
+    ),
+    'slickgrid/get/form/%' => array(
+      'page callback' => 'slickgrid_get_form',
+      'page arguments' => array(
+        3
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'delivery callback' => 'ajax_deliver',
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.form.inc'
+    ),
+    'slickgrid/get/data/%/%/%' => array(
+      'page callback' => 'slickgrid_get_data',
+      'page arguments' => array(
+        3,
+        4,
+        5
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/slickgrid.getdata.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_views_api
+ */
+function slickgrid_views_api(){
+  $path = drupal_get_path('module', 'slickgrid');
+  return array(
+    'api' => '3',
+    'path' => $path . '/includes',
+    'template path' => $path . '/theme'
+  );
+}
+
+/** 
+ * Implementation of hook_theme(). 
+ */
+function slickgrid_theme(){
+  $path = drupal_get_path('module', 'slickgrid');
+  return array(
+    // slickgrid theme function
+    'slickgrid' => array(
+      'arguments' => array(
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // slickgrid controls theme function
+    'slickgrid_controls' => array(
+      'arguments' => array(
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // Theme individual control
+    'slickgrid_control' => array(
+      'arguments' => array(
+        'type' => null,
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // Theme add control differently
+    'slickgrid_control__add' => array(
+      'arguments' => array(
+        'type' => null,
+        'view' => array()
+      ),
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    ),
+    // slickgrid tabs theme function
+    'slickgrid_tabs' => array(
+      'arguments' => array(
+        'view' => array()
+      )
+    ),
+    // Theme the views plugin form table
+    'slickgrid_views_plugin_table' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'file' => 'theme.inc'
+    )
+  );
+}
+
+/** 
+ * Implementation of hook_library(). 
+ */
+function slickgrid_library(){
+  $path = libraries_get_path('slickgrid');
+  // Slickgrid core library
+  return array(
+    'slickgrid' => array(
+      'title' => 'Slickgrid',
+      'website' => 'https://github.com/mleibman/SlickGrid/',
+      'version' => 'Master',
+      'js' => array(
+        $path . '/lib/firebugx.js' => array(),
+        $path . '/lib/jquery.event.drag-2.0.min.js' => array(),
+        $path . '/slick.core.js' => array(),
+        $path . '/slick.dataview.js' => array(),
+        $path . '/slick.grid.js' => array(),
+        $path . '/plugins/slick.checkboxselectcolumn.js' => array(),
+        $path . '/plugins/slick.rowselectionmodel.js' => array(),
+        $path . '/controls/slick.columnpicker.js' => array()
+      ),
+      'css' => array(
+        $path . '/slick.grid.css' => array(),
+        $path . '/controls/slick.columnpicker.css' => array()
+      ),
+      'dependencies' => array(
+        array(
+          'system',
+          'ui.sortable'
+        ),
+        array(
+          'system',
+          'ui.resizable'
+        ),
+        array(
+          'system',
+          'effects.highlight'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_views_post_build
+ */
+function slickgrid_views_post_build(&$view){
+  if(get_class($view->style_plugin) == 'slickgrid_views_plugin'){
+    if(substr($_GET['q'], 0, 18) == 'slickgrid/get/data'){
+      $view->build_info['query']->range(arg(4), arg(5));
+    }else{
+      $view->build_info['query']->range(0, 1);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_views_pre_view
+ * @param object $view 
+ * @return void
+ */
+function slickgrid_views_pre_view(&$view, $display_id, $args){
+  // TODO - Check this isn't running for all views
+  global $user;
+  if(isset($display_id)){
+    $view->slickgrid_settings = slickgrid_get_settings(array(
+      'uid' => $user->uid,
+      'view_name' => $view->name,
+      'display_id' => $display_id
+    ));
+  }
+  // FIXME - The following code is used to remove hidden columns from export
+  // data.  This was also being run on standard slickgrid views which prevent
+  // re-enabling of hidden columns
+  /*
+  // If there are hidden columns
+  if(isset($view->slickgrid_settings['hidden_columns']) && !empty($view->slickgrid_settings['hidden_columns'])){
+    // Remove them from the exported file
+    foreach($view->slickgrid_settings['hidden_columns'] as $hidden_column){
+      $view->set_item($display_id, 'field', $hidden_column, null);
+    }
+  }
+  */
+  // If row selection checkboxes are enabled, allow users to only export selected nodes.
+  if(isset($_POST['export_selected_rows']) && isset($_POST['entity_ids'])){
+    // Remove all existing arguments - we'll limit result set by entity ID only
+    foreach($view->get_items('argument') as $id => $arg){
+      $view->set_item($display_id, 'argument', $id, NULL);
+    }
+    // Add an argument to limit the view to only nids being updated	
+    $options = array(
+      'table' => $view->base_table,
+      'field' => $view->base_field,
+      'break_phrase' => 1 // Allow multiple nids,
+    );
+    $view->add_item($display_id, 'argument', $view->base_table, $view->base_field, $options);
+    $view->set_arguments(array(
+      implode('+', $_POST['entity_ids'])
+    ));
+  }
+  // Collapsible tree stuff
+  $plugins = array();
+  // Is this a slickgrid?
+  if($view->display_handler->get_option('style_plugin') == 'slickgrid'){
+    $style_options = $view->display_handler->get_option('style_options');
+    if(isset($style_options['columns'])){
+      foreach($style_options['columns'] as $field_id => $column){
+        // Get all plugin types
+        foreach(array_keys(slickgrid_get_plugin_types()) as $plugin_type){
+          // Has the plugin been set for this column?
+          if(!empty($column[$plugin_type])){
+            if(!isset($plugins[$plugin_type])){
+              $plugins[$plugin_type] = slickgrid_get_plugins($plugin_type);
+            }
+            // Plugins can define callbacks for views+pre_view
+            if(isset($plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'])){
+              //Load the plugin file if there's a callback function
+              require_once DRUPAL_ROOT . '/' . $plugins[$plugin_type][$column[$plugin_type]]['path'] . '/' . $plugins[$plugin_type][$column[$plugin_type]]['file'];
+              // Get & call the function
+              $func = $plugins[$plugin_type][$column[$plugin_type]]['hooks']['views_pre_view'];
+              $func($view, $field_id, $display_id);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete()
+ */
+function slickgrid_user_delete($account){
+  $query = db_delete('slickgrid')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function slickgrid_ctools_plugin_api($owner, $api){
+  if($owner == 'slickgrid'){return array(
+      'version' => 1
+    );}
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory() to let the system know
+ * we implement task and task_handler plugins.
+ */
+function slickgrid_ctools_plugin_directory($module, $plugin){
+  if($module == 'slickgrid'){return 'plugins/' . $plugin . 's';}
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function slickgrid_ctools_plugin_type(){
+  return array(
+    'filter' => array(
+      'cache' => TRUE,
+      'title' => t("Filter")
+    ),
+    'editor' => array(
+      'cache' => TRUE,
+      'title' => t("Editor")
+    ),
+    'formatter' => array(
+      'cache' => TRUE,
+      'title' => t("Formatter")
+    ),
+    'validator' => array(
+      'cache' => TRUE,
+      'title' => t("Validator")
+    )
+  );
+}
+
+function slickgrid_get_plugins($plugin_type){
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('slickgrid', $plugin_type);
+  return $plugins;
+}
+
+function slickgrid_get_plugin_types(){
+  return array_map(create_function('$type', 'return $type["title"];'), slickgrid_ctools_plugin_type());
+}
+
+function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){
+  $options = array();
+  $plugins = slickgrid_get_plugins($plugin_type);
+  foreach($plugins as $type => $plugin){
+    if(!isset($plugin['field_types'])){
+      $options[$type] = $plugin['title'];
+    }elseif(in_array($field_type, $plugin['field_types'])){
+      $options[$type] = $plugin['title'];
+    }
+  }
+  if(count($options)){
+    $options = array_merge(array(
+      '' => '<none>'
+    ), $options);
+  }
+  return $options;
+}
+
+function slickgrid_plugin_load_class($type, $id, $class_name){
+  ctools_include('plugins');
+  $plugin_definition = ctools_get_plugins('slickgrid', $type, $id);
+  require_once DRUPAL_ROOT . '/' . $plugin_definition['path'] . "/$class_name.class.php";
+  $class = ctools_plugin_get_class($plugin_definition, $class_name);
+  return $class;
+}
+
+function slickgrid_set_settings($uid, $view_name, $display_id, $settings){
+  $record = new stdClass();
+  $record->uid = $uid;
+  $record->view_name = $view_name;
+  $record->display_id = $display_id;
+  if($record->settings = slickgrid_get_settings(array(
+    'uid' => $uid,
+    'view_name' => $view_name,
+    'display_id' => $display_id
+  ))){
+    $update = array(
+      'uid',
+      'view_name',
+      'display_id'
+    );
+  }else{
+    $update = array();
+  }
+  foreach($settings as $setting => $value){
+    $record->settings[$setting] = $value;
+  }
+  $record->settings = serialize($record->settings);
+  drupal_write_record('slickgrid', $record, $update);
+}
+
+/**
+ * 
+ * Get settings from the DB
+ * Pass in $setting to retrieve a particular setting, NULL to get akll for a UID / View
+ * @param string $uid
+ * @param string $view_name
+ * @param string $setting
+ */
+function slickgrid_get_settings($conditions = array(), $setting = null){
+  $query = db_select('slickgrid', 'sg');
+  foreach($conditions as $field => $condition){
+    $query->condition($field, $condition);
+  }
+  $query->fields('sg', array(
+    'settings'
+  ));
+  $result = $query->execute();
+  $settings = unserialize($result->fetchField());
+  if($setting){
+    return $settings[$setting];
+  }else{
+    return $settings;
+  }
+}
+
+/**
+ * 
+ * Get a views filtered by NIDs 
+ * @param string $view_name
+ * @param string $display_id
+ * @param array $nids
+ */
+function slickgrid_get_view($view_name, $display_id, $entity_ids = array(), $args = array()){
+  $view = views_get_view($view_name);
+  $view->set_display($display_id);
+  // If there are entity IDs specified, add arguments to return only these ones
+  if(count($entity_ids)){
+    // Remove all existing arguments
+    foreach($view->get_items('argument') as $id => $arg){
+      $view->set_item($display_id, 'argument', $id, NULL);
+    }
+    // Add an argument to limit the view to only nids being updated	
+    $options = array(
+      'table' => $view->base_table,
+      'field' => $view->base_field,
+      'break_phrase' => 1 // Allow multiple nids,
+    );
+    $view->add_item($display_id, 'argument', $view->base_table, $view->base_field, $options);
+    $args = array(
+      implode('+', $entity_ids)
+    );
+  }
+  $view->pre_execute($args);
+  $view->execute();
+  $view->render();
+  return $view;
+}
+
+/**
+ * Get all fields of a aprticular type
+ * @param string $type
+ * @param string $entity_type
+ */
+function slickgrid_get_fields_of_type($type, $entity_type = null){
+  $query = db_select('field_config', 'fc');
+  $query->fields('fc', array(
+    'field_name'
+  ));
+  $query->condition('type', $type, '=');
+  if(!is_null($entity_type)){
+    $query->join('field_config_instance', 'fci', 'fci.field_id = fc.field_id'); //JOIN node with users
+    $query->condition('entity_type', $entity_type);
+  }
+  $result = $query->execute();
+  return $result->fetchAllKeyed();
+}
+
+/**
+ * 
+ * Default form used for editors
+ * @param array $form
+ * @param array $form_state
+ */
+function slickgrid_editor_form($form, &$form_state){
+  $editor = $form_state['editor'];
+  $required = false;
+  // Use the first entity - this will be used as the default value for all selected entities 
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    $info = entity_get_info($editor->entity_type);
+    $label_key = $info['entity keys']['label'];
+    // Is this the label we're editing?
+    if($editor->field_id == $label_key){
+      $form[$editor->field_id] = array(
+        '#type' => 'textfield',
+        '#title' => ucfirst($label_key),
+        '#default_value' => $entity->{$label_key},
+        '#size' => 60,
+        '#maxlength' => 128,
+        '#required' => TRUE
+      );
+      $form['#entity_property'] = true;
+      // Create an instance of the field
+    } else {
+      $instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name);
+
+      if(!$instance) {
+        $editor->set_error($id, t('Field doesn\'t exist'), 'form');
+        return;
+      }
+
+      if($instance['required']){ // If any field instance is required, set required to true
+        $required = true;
+      }
+    }
+    // have we retrieved the form field yet?
+    if(!count($form)){
+      // file_field_widget_form() requires parents to be an array so ensure it is
+      $form['#parents'] = array();
+
+      // Get the language code for this field
+      $lang = field_language($editor->entity_type, $entity, $editor->field_id);
+
+      // Invoke & return the field form
+      $form = _field_invoke_default('form', $editor->entity_type, $entity, $form, $form_state, array(
+        'field_id' => $editor->field_id,
+        'field_name' => $editor->field_id,
+        'language' => $lang
+      ));
+    }
+  }
+  // If any of the bundles have the field as required, make the form field required
+  if($required){
+    $langcode = $form[$editor->field_id]['#language'];
+    $form[$editor->field_id][$langcode][0]['#required'] = $required;
+  }
+  // Ensure values passed in from the slickgrid are persistent across the form rebuild
+  foreach(array(
+    'field_name',
+    'field_id',
+    'view',
+    'display_id',
+    'plugin',
+    'revision',
+    'entity_type',
+    'entity_ids'
+  ) as $element_name){
+    if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
+      foreach($form_state['values'][$element_name] as $element_value){
+        $form[$element_name][] = array(
+          '#type' => 'hidden',
+          '#value' => $element_value,
+          '#parents' => array(
+            $element_name,
+            ''
+          ) // Make these items into an array
+        );
+      }
+    }else{
+      $form[$element_name] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['values'][$element_name]
+      );
+    }
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#weight' => 100
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_module_implements_alter()
+ * 
+ * Move this module's hook_file_presave to the top.
+ */
+function slickgrid_module_implements_alter(&$implementations, $hook){
+  if($hook == 'file_presave'){
+    if(isset($implementations['slickgrid'])){
+      $move = $implementations['slickgrid'];
+      unset($implementations['slickgrid']);
+      $new_implementations = array(
+        'slickgrid' => $move
+      );
+      foreach($implementations as $key => $move){
+        $new_implementations[$key] = $move;
+      }
+      $implementations = $new_implementations;
+    }
+  }
+}
+
+/**
+ * Due to the fact that we validate all forms at once, and then submit all forms
+ * at once, we can end up with multiple new terms, when only one is required.
+ * This function helps remedy that issue.
+ */
+function slickgrid_prevent_duplicate_terms($entity){
+  // Get the names of all taxonomy fields
+  $field_names = db_select('field_config', 'f')->fields('f', array(
+    'field_name'
+  ))->condition('module', 'taxonomy')->execute()->fetchCol();
+  foreach($field_names as $field_name){
+    if(isset($entity->{$field_name})){
+      foreach(array_keys($entity->{$field_name}) as $lang){
+        foreach($entity->{$field_name}[$lang] as $key => $value){
+          if(isset($value['tid']) && $value['tid'] == 'autocreate'){
+            // We try and load the term, as it may now exist.
+            $new = db_select('taxonomy_term_data', 'td')->fields('td', array(
+              'tid'
+            ))->condition('name', $value['name'])->condition('vid', $value['vid'])->execute()->fetchField();
+            if($new){
+              $entity->{$field_name}[$lang][$key] = (array)taxonomy_term_load($new);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function slickgrid_editor_form_submit($form, &$form_state){
+  $editor = &$form_state['editor'];
+  foreach($editor->entities as $entity){
+    // Get the entity ids
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Create an instance of the field
+    if(!isset($form['#entity_property'])){
+      if(!$instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+        // Add entity to the editor's error array
+        $editor->set_error($id, t('Field does not exist for this bundle'), 'submit');
+        continue;
+      }
+    }
+    // Populate the entity with the submitted values
+    entity_form_submit_build_entity($editor->entity_type, $entity, $form, $form_state);
+    // Try to save the entity
+    try{
+      slickgrid_prevent_duplicate_terms($entity);
+      entity_save($editor->entity_type, $entity);
+      // Add entity to the editor's updated array
+      $editor->updated[$id] = array(
+        'vid' => $vid
+      );
+    }
+    // ERROR: Entity save callback has thrown an exception
+    catch(Exception $e){
+      // Add entity to the editor's error array
+      $editor->set_error($id, t('Error trying to update entity'), 'submit');
+    }
+  }
+}
+
+/**
+ * 
+ * Validate the slickgrid editor form
+ * If multiple items are being edited, need to ensure all are validated properly 
+ * @param unknown_type $form
+ * @param unknown_type $form_state
+ */
+function slickgrid_editor_form_validate($form, &$form_state){
+  $editor = &$form_state['editor'];
+  // Loop through all of the entities
+  foreach($editor->entities as $entity){
+    list($id, $vid, $bundle_name) = entity_extract_ids($editor->entity_type, $entity);
+    // Check access
+    if(($editor->entity_type == 'file' && !file_entity_access('update')) || ($editor->entity_type != 'file' && !entity_access('update', $editor->entity_type, $entity))){
+      // User doesn't have access to edit
+      $error = t('You do not have access to update this @type', array(
+        '@type' => isset($entity->type) ? $entity->type : $editor->entity_type
+      ));
+    }elseif($instance = field_info_instance($editor->entity_type, $editor->field_id, $bundle_name)){
+      _field_invoke_default('extract_form_values', $editor->entity_type, $entity, $form, $form_state);
+      try{
+        field_attach_validate($editor->entity_type, $entity);
+        // If reached here, validation has passed
+        continue;
+      }
+      catch(FieldValidationException $e){
+        foreach($e->errors as $field_name => $field_errors){
+          $error .= strip_tags(_slickgrid_editor_get_form_error_message($field_errors));
+        }
+      }
+    }elseif(!isset($form['#entity_property'])){
+      $error = t('Field doesn\'t exist');
+    }
+    if(isset($error)){
+      // If got to this point the bundle failed validation
+      $editor->set_error($id, $error);
+      // Set form error to prevent form submission
+      form_set_error($editor->field_id, t('Validation error'));
+    }
+  }
+}
+
+/**
+ * Helper function to recurse into an error to get the actual text.
+ */
+function _slickgrid_editor_get_form_error_message($error){
+  if(is_array($error)){
+    if(isset($error['message'])){
+      return $error['message'];
+    }else{
+      $error = array_pop($error);
+      return _slickgrid_editor_get_form_error_message($error);
+    }
+  }else{
+    return t('Unknown error');
+  }
+}
+
+/**
+ * Implements hook_field_attach_validate().
+ * 
+ * This is simply here to prevent errors when editing an entity that was 
+ * associated with a term that has been deleted.
+ * 
+ * This error is to prevent errors being thrown under the following situation:
+ * - Create term
+ * - Associate term with entity
+ * - Delete term
+ * - Edit term in slickgrid, but editing a different field.
+ * These would normally be prevented because the values in a taxonomy field do
+ * not include links to terms that have been deleted.
+ */
+function slickgrid_field_attach_validate($entity_type, $entity, &$errors){
+  if($_GET['q'] == 'slickgrid/callback/update'){
+    foreach($errors as $key => $value){
+      // Check if the $key is a taxonomy field, and if it is, we remove the
+      // error.
+      $field = field_info_field($key);
+      if($field['type'] == 'taxonomy_term_reference'){
+        unset($errors[$key]);
+      }
+    }
+  }
+}
+
+/**
+ * Implentats hook_form_alter
+ * 
+ * Add an after build function to supress redirecting forms when used in the slickgrid callback
+ */
+function slickgrid_form_alter(&$form, &$form_state, $form_id){
+  if(arg(0) == 'slickgrid' && arg(1) == 'callback'){
+    $form['#after_build'][] = 'slickgrid_form_redirect_handler';
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ * 
+ * The "Edit" user form.  This needs to be able to handle both login and 
+ * loginless changes.
+ */
+function slickgrid_form_user_profile_form_alter(&$form, &$form_state){
+  if($form['#user']->uid && !arg(3)){
+    $disabled = db_select('slickgrid', 's')->fields('s')->condition('uid', $form['#user']->uid)->countQuery()->execute()->fetchCol();
+    $form['slickgrid'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Slickgrid'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE
+    );
+    if($disabled[0]){
+      $form['slickgrid']['scratchpads_messages_reset_tips'] = array(
+        '#type' => 'submit',
+        '#value' => t('Reset Slickgrid settings'),
+        '#submit' => array(
+          'slickgrid_reset_user'
+        ),
+        '#limit_validation_errors' => array()
+      );
+    }else{
+      $form['slickgrid']['scratchpads_messages_reset_tips'] = array(
+        '#markup' => '<p>' . t('You do not currently have any custom settings.') . '</p>'
+      );
+    }
+  }
+}
+
+/**
+ * Reset the viewed status of all messages related to a specific user.
+ */
+function slickgrid_reset_user($form, &$form_state){
+  if(@isset($form_state['complete form']['#user']->uid)){
+    db_delete('slickgrid')->condition('uid', $form_state['complete form']['#user']->uid)->execute();
+  }
+}
+
+/**
+ * After build form function - set no redirect
+ */
+function slickgrid_form_redirect_handler(&$form, &$form_state){
+  $form_state['no_redirect'] = true;
+  return $form;
+}
+
+function slickgrid_list_addable_entities(){
+  $entities = array();
+  foreach($entities_info = entity_get_info() as $entity_type => $entity_info){
+    if(isset($entity_info['form callback'])){
+      foreach($entity_info['bundles'] as $bundle_name => $bundle){
+        $entities[$entity_type . '/' . $bundle_name] = $entity_info['label'] . ': ' . $bundle['label'];
+      }
+    }
+  }
+  return $entities;
+}

@@ -1,0 +1,574 @@
+<?php
+
+/**
+ * Implementation of hook_entity_info().
+ */
+function eolapi_entity_info()
+{
+  return array(
+    'eolapi' => array(
+      'label' => 'Encyclopaedia of Life data',
+      'controller class' => 'EOLAPIController',
+      'views controller class' => 'EntityDefaultViewsController',
+      'base table' => 'eolapi',
+      'revision table' => 'eolapi_revision',
+      'load hook' => 'eolapi_load',
+      'save callback' => 'eolapi_save',
+      'uri callback' => 'eolapi_uri',
+      'fieldable' => false,
+      'entity keys' => array(
+        'id' => 'eid',
+        'revision' => 'erid',
+        'bundle' => 'type'
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type'
+      ),
+      'bundles' => array(
+        'search' => array(
+          'label' => 'EOL API Search result'
+        ),
+        'pages' => array(
+          'label' => 'EOL API Page'
+        ),
+        'text' => array(
+          'label' => 'EOL API Text'
+        ),
+        'stillimage' => array(
+          'label' => 'EOL API image'
+        ),
+        'movingimage' => array(
+          'label' => 'EOL API Video'
+        )
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => false
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => true
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function eolapi_tools_pre_disable()
+{
+  return array(
+    'can_disable' => (db_select('eolapi', 'e')->countQuery()->execute()->fetchField() > 100 ? 0 : 1),
+    'cannot_disable_message' => t('You cannot disable the EOLAPI module before <a href="!url">deleting the content</a>.', array(
+      '!url' => url('admin/config/content/eolapi')
+    )),
+    'disable_message' => 'All EOLAPI content, including files, will be removed.'
+  );
+}
+
+/**
+ * Implements hook_apachesolr_index_documents_alter().
+ */
+function eolapi_apachesolr_index_documents_alter(array &$documents, $entity, $entity_type)
+{
+  if ($entity_type == 'file') {
+    // If this ID appears in the field_data_eolapi_image table, then it's
+    // associated with an eolapi entity, and therefore should not be indexed.
+    $row = db_query('SELECT COUNT(*) as count FROM {field_data_eolapi_image} WHERE eolapi_image_fid = :entity_id', array(
+      ':entity_id' => $entity->fid
+    ))->fetch();
+    if ($row->count) {
+      // Clear the document array if the file is associated!  There must be a
+      // better way of doing this, but I'm not sure what it is.
+      $documents = array();
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ *
+ * Exactly the same function (almost) from the Scratchpads taxonomic name module
+ */
+function eolapi_taxonomy_vocabulary_insert($vocabulary)
+{
+  if (isset($vocabulary->biological_classification) && $vocabulary->biological_classification) {
+    // We have a biological classification.  We need to update the field.
+    $field = field_info_field('eolapi_taxonomy');
+    if ($field) {
+      $bio_vids = variable_get('biological_vids', array());
+      $i = 0;
+      $field['settings']['allowed_values'] = array();
+      foreach ($bio_vids as $vid => $value) {
+        $voc = taxonomy_vocabulary_load($vid);
+        if ($voc) {
+          $field['settings']['allowed_values'][$i] = array(
+            'parent' => 0,
+            'vocabulary' => $voc->machine_name
+          );
+          $i++;
+        }
+      }
+      $field['settings']['allowed_values'][] = array(
+        'parent' => 0,
+        'vocabulary' => $vocabulary->machine_name
+      );
+      field_update_field($field);
+    } else {
+      watchdog('eolapi', 'The field "eolapi_taxonomy" has been deleted - recreating!', null, WATCHDOG_NOTICE);
+      module_load_include('install', 'eolapi');
+      eolapi_enable();
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function eolapi_taxonomy_vocabulary_delete($vocabulary)
+{
+  // We have a biological classification.  We need to update the field.
+  $field = field_info_field('eolapi_taxonomy');
+  if ($field) {
+    $update = false;
+    foreach ($field['settings']['allowed_values'] as $key => $value) {
+      if ($value['vocabulary'] == $vocabulary->machine_name) {
+        $update = true;
+        unset($field['settings']['allowed_values'][$key]);
+        if (!count($field['settings']['allowed_values'])) {
+          $field['settings']['allowed_values'][0] = array(
+            'parent' => 0,
+            'vocabulary' => $vocabulary->machine_name
+          );
+        }
+        break;
+      }
+    }
+    if ($update) {
+      field_update_field($field);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function eolapi_views_api()
+{
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'eolapi') . '/views'
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function eolapi_menu()
+{
+  return array(
+    'admin/config/content/eolapi' => array(
+      'title' => 'EOLAPI Content',
+      'description' => 'Disable the harvesting of additional content, and delete existing content.',
+      'page arguments' => array(
+        'eolapi_config_form'
+      ),
+      'page callback' => 'drupal_get_form',
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'eolapi.pages.inc'
+    ),
+    'eolapi' => array(
+      'title' => 'EOLAPI Callback',
+      'description' => 'Endpoint to enable dynamic creation of EOLAPI content.',
+      'page callback' => 'eolapi_callback',
+      'file' => 'eolapi.ajax.inc',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    ),
+    'eol/%eolapi' => array(
+      'title callback' => 'eolapi_page_title',
+      'title arguments' => array(
+        1
+      ),
+      'page callback' => 'eolapi_page_view',
+      'page arguments' => array(
+        1
+      ),
+      'access arguments' => array(
+        'access content' // Basic permission that all users have
+      )
+    )
+  );
+}
+
+/**
+ * Alter the query for files done by the Feeds XLS module
+ */
+function eolapi_feeds_xls_template_query_alter(&$query, $entity_type, $entity_key)
+{
+  if ($entity_type == 'file') {
+    if (db_table_exists('field_data_eolapi_image')) {
+      $subquery = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+        'eolapi_image_fid'
+      ));
+      $query->condition('fid', $subquery, 'NOT IN');
+    }
+  }
+}
+
+/**
+ * EOL Page title.
+ */
+function eolapi_page_title($eolapi)
+{
+  return $eolapi->label;
+}
+
+/**
+ * Load function
+ */
+function eolapi_load($entity_id)
+{
+  return entity_load_single('eolapi', $entity_id);
+}
+
+/**
+ * Delete function
+ */
+function eolapi_eolapi_delete($entity)
+{
+
+  // var_dump($entity->eolapi_image);
+  $lang = field_language('eolapi', $entity, 'eolapi_image');
+  // if (is_array($entity->eolapi_image[$lang])) {
+  //   foreach ($entity->eolapi_image[$lang] as $f) {
+  //     $file = file_load($f['fid']);
+  //     if ($file) {
+  //       file_delete($file, $force = true);
+  //     }
+  //   }
+  // }
+}
+
+/**
+ * Display the EOL object
+ */
+function eolapi_page_view($eolapi)
+{
+  $rows = array();
+  if (count($eolapi->eolapi_image)) {
+    $lang = field_language('eolapi', $eolapi, 'eolapi_image');
+    if (@isset($eolapi->eolapi_image[$lang][0]['fid'])) {
+      $file = file_load($eolapi->eolapi_image[$lang][0]['fid']);
+      $file_view = entity_view('file', array(
+        $file
+      ), 'file_styles_colorbox');
+      $rows[] = array(
+        array(
+          'data' => drupal_render($file_view),
+          'colspan' => 2
+        )
+      );
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => t('License'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->license
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Rating'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->rating
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Vetted'),
+      'class' => 'biblio-row-title'
+    ),
+    $eolapi->trusted ? t('Trusted') : t('Untrusted')
+  );
+  $data = unserialize($eolapi->data);
+  foreach ($data as $key => $value) {
+    switch ($key) {
+      case 'title':
+        $img = array_shift($rows);
+        array_unshift($rows, array(
+          array(
+            'data' => t('Title'),
+            'class' => 'biblio-row-title'
+          ),
+          $value
+        ));
+        array_unshift($rows, $img);
+        break;
+      case 'mediaURL':
+        $rows[] = array(
+          array(
+            'data' => t('Original URL'),
+            'class' => 'biblio-row-title'
+          ),
+          l(truncate_utf8($value, 100, false, true), $value)
+        );
+        break;
+      case 'description':
+        $rows[] = array(
+          array(
+            'data' => t('Description'),
+            'class' => 'biblio-row-title'
+          ),
+          '<div style="max-width:400px">' . $data->description . '</div>'
+        );
+        break;
+      case 'agents':
+        foreach ($data->agents as $agent) {
+          $rows[] = array(
+            array(
+              'data' => t($agent->role),
+              'class' => 'biblio-row-title'
+            ),
+            $agent->homepage ? l($agent->full_name, $agent->homepage) : $agent->full_name
+          );
+        }
+        break;
+    }
+  }
+  $markup = array(
+    'eolapi' => array(
+      '#markup' => '<div class="node-biblio">' . theme('table', array(
+        'rows' => $rows
+      )) . '</div>',
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'eolapi') . '/js/eolapi.js'
+        )
+      )
+    )
+  );
+  if (arg(2) == 'ajax') {
+    echo drupal_render($markup);
+    exit();
+  } else {
+    return $markup;
+  }
+}
+
+/**
+ * Implement hook_taxonomy_term_delete().
+ */
+function eolapi_taxonomy_term_delete($term = false)
+{
+  // Don't go any further if the field does not exist.
+  $field = field_info_field('eolapi_taxonomy');
+  if (!$field) {
+    return;
+  }
+  // Delete the field data.  Looks like there is a bug somewhere with my code,
+  // as I would expect the field module to do this for me!
+  if ($term) {
+    db_delete('field_data_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $term->tid)->execute();
+    db_delete('field_revision_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $term->tid)->execute();
+  }
+  // Tidying, just in case a delete failed.
+  $subquery = db_select('taxonomy_term_data', 't')->fields('t', array(
+    'tid'
+  ));
+  $results = db_delete('field_data_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $subquery, 'NOT IN')->execute();
+  $results = db_delete('field_revision_eolapi_taxonomy')->condition('eolapi_taxonomy_tid', $subquery, 'NOT IN')->execute();
+  // Delete the entities that are no longer associated with a taxon
+  $subquery = db_select('field_data_eolapi_taxonomy', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $results = db_select('eolapi', 'e')->fields('e', array(
+    'eid'
+  ))->condition('e.eid', $subquery, 'NOT IN')->execute();
+  foreach ($results as $record) {
+    entity_delete('eolapi', $record->eid);
+  }
+  // Delete the files
+  // SELECT eolapi_image_fid FROM field_data_eolapi_image WHERE entity_id NOT IN (SELECT eid FROM eolapi);
+  $subquery = db_select('eolapi', 'e')->fields('e', array(
+    'eid'
+  ));
+  $results = db_select('field_data_eolapi_image', 'f')->fields('f', array(
+    'eolapi_image_fid'
+  ))->condition('entity_id', $subquery, 'NOT IN')->execute();
+  foreach ($results as $record) {
+    entity_delete('file', $record->eolapi_image_fid);
+  }
+  $subquery = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ));
+  db_delete('field_data_eolapi_image')->condition('eolapi_image_fid', $subquery, 'NOT IN')->execute();
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function eolapi_cron()
+{
+  eolapi_taxonomy_term_delete();
+  // Delete the files that EOL creates but failed to delete.
+  $fids = db_select('file_managed', 'f')->condition('uid', 0)->fields('f', array(
+    'fid'
+  ))->where("filename REGEXP 'file[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]'")->execute()->fetchCol();
+  file_delete_multiple($fids);
+}
+//---- VIEW -------------------------------------------------------------------
+/**
+ * Implementation of hook_theme().
+ */
+function eolapi_theme()
+{
+  $info = eolapi_entity_info();
+  $theme = array();
+  module_load_include('theme.inc', 'eolapi');
+  foreach ($info['eolapi']['bundles'] as $bundle_key => $bundle_info) {
+    foreach ($info['eolapi']['view modes'] as $view_mode => $view_mode_info) {
+      $theme_name = "eolapi_{$bundle_key}_{$view_mode}";
+      $theme[$theme_name] = array(
+        'variables' => array(
+          'entity' => array()
+        ),
+        'file' => 'eolapi.theme.inc'
+      );
+      if (!function_exists("theme_{$theme_name}")) {
+        // This function doesn't exist, we should use a default.
+        if (function_exists("theme_eolapi_{$bundle_key}")) {
+          $theme[$theme_name]['function'] = "theme_eolapi_{$bundle_key}";
+        } else {
+          $theme[$theme_name]['function'] = "theme_eolapi";
+        }
+      }
+    }
+  }
+  return $theme;
+}
+
+/**
+ * Implementation of hook_entity_view().
+ */
+function eolapi_entity_view($entity, $type, $view_mode, $langcode)
+{
+  if ($type == 'eolapi') {
+    $entity->content = array(
+      'content' => array(
+        '#markup' => theme("{$type}_{$entity->type}_{$view_mode}", array(
+          'entity' => $entity
+        ))
+      )
+    );
+  }
+}
+//---- SAVE -------------------------------------------------------------------
+/**
+ * Save the entity.
+ */
+function eolapi_save($entity)
+{
+  // We only save the entity if the source is NOT this site.  This is a total
+  // kludge, but currently the easiest way of doing this.
+  $transaction = db_transaction();
+  $data = unserialize($entity->data);
+  if (isset($data->source)) {
+    $this_site = url('', array(
+      'asbolute' => true
+    ));
+    $strlen_this_site = strlen($this_site);
+    if (substr($data->source, 0, $strlen_this_site) == $this_site) {      // We don't save this, as this site and the other are one and the same.
+      return false;
+    }
+  }
+  try {
+    if (!empty($entity->eid) && !isset($entity->original)) {
+      $entity->original = entity_load_unchanged('eolapi', $entity->eid);
+    }
+    field_attach_presave('eolapi', $entity);
+    if (!isset($entity->is_new)) {
+      $entity->is_new = empty($entity->eid);
+    }
+    if (empty($entity->created)) {
+      $entity->created = REQUEST_TIME;
+    }
+    $entity->changed = REQUEST_TIME;
+    $entity->timestamp = REQUEST_TIME;
+    if (empty($eolapi->created)) {
+      $eolapi->created = REQUEST_TIME;
+    }
+    $eolapi->changed = REQUEST_TIME;
+    $eolapi->timestamp = REQUEST_TIME;
+    $update_eolapi = true;
+    module_invoke_all('eolapi_presave', $entity);
+    module_invoke_all('entity_presave', $entity, 'eolapi');
+    if ($entity->is_new || !empty($entity->revision)) {
+      if (!isset($entity->log)) {
+        $entity->log = '';
+      }
+    } elseif (!isset($entity->log) || $entity->log === '') {
+      unset($entity->log);
+    }
+    if (!$entity->is_new && !empty($entity->revision) && $entity->erid) {
+      $entity->old_erid = $entity->erid;
+      unset($entity->erid);
+    }
+    if ($entity->is_new) {
+      drupal_write_record('eolapi', $entity);
+      _eolapi_save_revision($entity);
+      field_attach_insert('eolapi', $entity);
+      $op = 'insert';
+    } else {
+      drupal_write_record('eolapi', $entity, 'eid');
+      if (!empty($entity->revision)) {
+        _eolapi_save_revision($entity);
+      } else {
+        _eolapi_save_revision($entity, 'erid');
+        field_attach_update('eolapi', $entity);
+        $update_eolapi = false;
+      }
+      $op = 'update';
+    }
+    if ($update_eolapi) {
+      db_update('eolapi')->fields(array(
+        'erid' => $entity->erid
+      ))->condition('eid', $entity->eid)->execute();
+    }
+    module_invoke_all('eolapi_' . $op, $entity);
+    module_invoke_all('entity_' . $op, $entity, 'eolapi');
+    $delete = $op == 'update';
+    unset($entity->is_new);
+    unset($entity->original);
+    entity_get_controller('eolapi')->resetCache(array(
+      $entity->eid
+    ));
+    db_ignore_slave();
+  } catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('eolapi', $e);
+    throw $e;
+  }
+}
+
+/**
+ * Helper function to save a revision with the uid of the current user.
+ *
+ * The resulting revision ID is available afterward in $eolapi->erid.
+ */
+function _eolapi_save_revision($eolapi, $update = null)
+{
+  if (isset($update)) {
+    drupal_write_record('eolapi_revision', $eolapi, $update);
+  } else {
+    drupal_write_record('eolapi_revision', $eolapi);
+  }
+}

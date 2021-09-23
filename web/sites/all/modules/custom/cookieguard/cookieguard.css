@@ -1,0 +1,10 @@
+#cookieGuardLink {
+  display: none;
+}
+
+#cookieGuardMsg {
+  position: fixed !important;
+/*  top: auto !important;
+  border-bottom: none !important;
+  border-top: 2px solid #5c5c5c !important; */
+}

@@ -1,0 +1,73 @@
+<?php
+
+function exif_custom_schema(){
+  $schema['exif_custom_maps'] = array(
+    'description' => 'Stores a list of custom field maps for exif_custom module.',
+    'fields' => array(
+      'mid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Mapping identifier')
+      ),
+      'name' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+        'desciption' => t("The name of the mapping.")
+      )
+    ),
+    'unique keys' => array(
+      'mid' => array(
+        'mid'
+      )
+    )
+  );
+  $schema['exif_custom_mapped_fields'] = array(
+    'description' => 'Stores mappings of field for exif_custom module.',
+    'fields' => array(
+      'mid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('The ID of the mapping being saved.')
+      ),
+      'exif_field' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+        'desciption' => t("The EXIF field to save the mapping of.")
+      ),
+      'exif_example' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+        'desciption' => t("The EXIF field to save the mapping of.")
+      ),
+      'img_field' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+        'desciption' => t("The image field to map to.")
+      )
+    )
+  );
+  $schema['exif_custom_users'] = array(
+    'description' => 'Stores indivdual user\'s default mapping',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('User\'s uid.')
+      ),
+      'mid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t('Default mid of user.')
+      )
+    )
+  );
+  return $schema;
+}

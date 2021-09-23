@@ -1,0 +1,97 @@
+<?php
+
+/**
+ * Adds the gbif overlay to the gm3 maps.
+ *
+ * Implements hook_gm3_libraries_alter().
+ */
+function eol_gbif_maps_gm3_libraries_alter(&$libraries){
+  // We add special data to map on taxonomy term pages only.
+  if(($term = menu_get_object('taxonomy_term', 2)) != FALSE){
+    // Now we need to calculate the GBIF taxon id for this term name, and then
+    // add the gbif library to the map.
+    // First we check to see if we've loaded this term before, and if so, we
+    // use that data.
+    $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol(1);
+    if(count($col)){
+      $gbifId = array_pop($col);
+    }else{
+      $url = url(
+        'http://api.gbif.org/v1/species',
+        [ 'query' =>
+          ['name' => $term->name]
+        ]
+      );
+      $request = drupal_http_request($url, array(
+        'timeout' => 3
+      ));
+      if($request->code == 200){
+        $json = json_decode($request->data, TRUE);
+        if($json && !empty($json['results'][0]['nubKey'])){
+          $gbifId = $json['results'][0]['nubKey'];
+          db_insert('eol_gbif_maps_tid_map')->fields(array(
+            'tid' => $term->tid,
+            'taxon_id' => "$gbifId"
+          ))->execute();
+        }
+      }else {
+        trigger_error(E_USER_WARNING, 'Request to GBIF species API failed in eol_gbif_maps');
+      }
+    }
+
+    $libraries['eol_gbif_maps_overlay'] = array(
+      'module' => 'eol_gbif_maps',
+      'taxon_id' => $gbifId
+    );
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_term_update().
+ */
+function eol_gbif_maps_taxonomy_term_update($term){
+  db_delete('eol_gbif_maps_tid_map')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Implementation of hook_taxonomy_term_delete($term).
+ */
+function eol_gbif_maps_taxonomy_term_delete($term){
+  eol_gbif_maps_taxonomy_term_update($term);
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function eol_gbif_maps_library(){
+  return array(
+    'eol_gbif_maps_overlay' => array(
+      'title' => t('GBIF taxon data overlay'),
+      'website' => 'http://eol.org/',
+      'version' => '1',
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'eol_gbif_maps') . "/js/eol_gbif_maps.js"
+        ),
+        array(
+          'data' => array(
+            'gm3' => array(
+              'settings' => array(
+                'eol_gbif_maps' => array(
+                  'tile_host' => 'http://api.gbif.org'
+                )
+              )
+            )
+          ),
+          'type' => 'setting'
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        )
+      )
+    )
+  );
+}

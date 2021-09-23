@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * hook_requirements
+ */
+function remote_issue_tab_requirements($phase){
+  if($phase == 'runtime'){
+    $no_provider= count(module_implements('issue_tab_settings')) == 0;
+
+    return array(
+      'remote_issue_tab' => array(
+        'title' => 'Remote Issues Tab',
+        'value' => $no_provider ? t('Requires provider module') : t('Correctly configured'),
+        'description' => $no_provider ? t('Remote Issues Tab needs another module to implement hook_issue_tab_settings, for example Scratchpads Issues Block. Make sure a compatible module is enabled.') : '',
+        'severity' => $no_provider ? REQUIREMENT_WARNING : REQUIREMENT_OK
+      )
+    );
+  }
+  return array();
+}
+
+/**
+ * Move to using hook instead of specific variables
+ */
+function remote_issue_tab_update_7002() {
+  // Delete variables no longer used
+  variable_del('remote_issue_tab_feed');
+  variable_del('remote_issue_tab_uwho_client_key');
+  variable_del('remote_issue_tab_uwho_url');
+  variable_del('remote_issue_tab_redirect_path');
+  variable_del('remote_issue_tab_footer');
+
+  // We no longer cache the block
+  db_drop_table('cache_remote_issue_tab');
+}

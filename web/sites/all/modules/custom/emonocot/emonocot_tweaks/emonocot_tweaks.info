@@ -1,0 +1,22 @@
+name = eMonocot tweaks
+description = Tweaks a Scratchpad into an eMonocot Scratchpad
+core = 7.x
+package="eMonocot"
+
+dependencies[] = scratchpads_tweaks
+dependencies[] = exif_custom
+dependencies[] = scratchpads_audubon_core
+
+dependencies[] = emonocot_biblio
+dependencies[] = emonocot_blocks
+dependencies[] = emonocot_citation
+dependencies[] = emonocot_itis
+dependencies[] = emonocot_media
+dependencies[] = emonocot_spm
+dependencies[] = emonocot_views
+dependencies[] = emonocot_dwca
+dependencies[] = emonocot_tcs
+dependencies[] = taxon_stats
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_tweaks

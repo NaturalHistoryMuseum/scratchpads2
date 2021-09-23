@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Installation routines for the Twitter Pull module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function twitter_pull_schema() {
+  $schema['cache_pulled_tweets'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_pulled_tweets']['description'] = 'Cache table for the tweets pulled by Twitter Pull module';
+  return $schema;
+}
+
+/**
+ * Implements hook_requirements().
+ *
+ * Report on whether we're using the authenticated api or not.
+ */
+function twitter_pull_requirements($phase) {
+  if ($phase == 'runtime') {
+     // Check for the twitter module.
+    if (!module_exists('twitter')) {
+      return array(
+        'twittter_pull_auth' => array(
+          'title' => t('Twitter Pull Authentication'),
+          'description' => t('Twitter Pull requires the !module to use the new Twitter API.  The twitter API you are currently using will cease to function in the near future.  See !link.', 
+                              array(
+                                '!link' => l('new twitter api information', 'https://dev.twitter.com/blog/changes-coming-to-twitter-api'),
+                                '!module' => l('Twitter module', 'http://drupal.org/project/twitter'),
+                              )
+                          ),
+          'value' => t('Using Unauthenticated API'),
+          'severity' => REQUIREMENT_WARNING,
+        ),
+      );
+    }
+    // Load the twitter module.
+    module_load_include('inc', 'twitter');
+    
+    $twitter = twitter_connect();
+    if (!$twitter) {
+      return array(
+        'twittter_pull_auth' => array(
+          'title' => t('Twitter Pull Authentication'),
+          'description' => t('The twitter module does not have any authorized accounts.  You must authorize at least one account in order for twitter pull to be able to authenticate with Twitter.  Go to !link to add an account.', array('!link' => l('the Twitter module accounts page', 'admin/config/services/twitter'))),
+          'value' => t('Using Unauthenticated API'),
+          'severity' => REQUIREMENT_WARNING,
+        ),
+      );
+    }
+
+    return array(
+      'twittter_pull_auth' => array(
+        'title' => t('Twitter Pull Authentication'),
+        'description' => t('Twitter pull is using the Twitter module to authenticate requests with Twitter.'),
+        'value' => t('Using Twitter Module Authentication'),
+        'severity' => REQUIREMENT_OK,
+      ),
+    );
+  }
+  return array();
+}
+
+function twitter_pull__update_7101() {
+  cache_clear_all('cache_pulled_tweets');
+}
+
+/**
+ * Enable twitter.
+ */
+function twitter_pull_update_7202() {
+  if (!module_enable(array('twitter'))) {
+    throw new DrupalUpdateException('Unable to enable new dependency twitter');
+  }
+}

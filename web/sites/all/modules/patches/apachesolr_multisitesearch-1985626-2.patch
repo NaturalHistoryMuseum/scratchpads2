@@ -1,0 +1,22 @@
+diff --git a/apachesolr_multisitesearch.index.inc b/apachesolr_multisitesearch.index.inc
+index d4ad666..1f93da4 100644
+--- a/apachesolr_multisitesearch.index.inc
++++ b/apachesolr_multisitesearch.index.inc
+@@ -65,7 +65,7 @@ function apachesolr_multisitesearch_retrieve_metadata() {
+   try {
+     // Get the $solr object
+     $solr = apachesolr_get_solr();
+-    $params['qt'] = 'standard';
++    $params['defType'] = 'lucene';
+     $params['fl'] = '*';
+     $response = $solr->search('entity_type:multisite.meta', $params);
+     foreach ($response->response->docs as $doc) {
+@@ -137,7 +137,7 @@ function apachesolr_multisitesearch_get_site_hashes() {
+   try {
+     // Get the $solr object
+     $solr = apachesolr_get_solr();
+-    $params['qt'] = 'standard';
++    $params['defType'] = 'lucene';
+     $params['fl'] = '*';
+     $params['facet'] = 'true';
+     $params['facet.field'][] = 'hash';

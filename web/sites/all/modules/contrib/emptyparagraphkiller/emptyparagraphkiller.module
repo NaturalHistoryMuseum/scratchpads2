@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * Empty paragraph killer: because users are sometimes overzealous
+ * with the return key.
+ */
+
+/**
+ * Implements hook_filter_info().
+ */
+function emptyparagraphkiller_filter_info() {
+  $filters['emptyparagraphkiller'] = array(
+    'title' => t('Empty paragraph filter'),
+    'description' => t('When entering more than one carriage return, only the first will be honored.'),
+    'prepare callback' => '_emptyparagraphkiller_prepare',
+    'process callback' => '_emptyparagraphkiller_process',
+    'tips callback' => '_emptyparagraphkiller_tips',
+  );
+  return $filters;
+}
+
+/**
+ * Prepare callback for the emptyparagraphkiller filter.
+ */
+function _emptyparagraphkiller_prepare($text, $filter) {
+  return preg_replace('#<p[^>]*>(\s|&nbsp;?)*</p>#', '[empty-para]', $text);
+}
+
+/**
+ * Process callback for the emptyparagraphkiller filter.
+ */
+function _emptyparagraphkiller_process($text, $filter) {
+  return str_replace('[empty-para]', '', $text);
+}
+
+/**
+ * Tips callback for emptyparagraphkiller
+ */
+function _emptyparagraphkiller_tips($filter, $format, $long) {
+  if ($long) {
+    return t('Your typing habits may include hitting the return key twice when completing a paragraph. This site will accomodate your habit, and ensure the content is in keeping with the the stylistic formatting of the site\'s theme.');
+  }
+  else {
+    return t('Empty paragraph killer - multiple returns will not break the site\'s style.');
+  }
+}

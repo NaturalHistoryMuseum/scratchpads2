@@ -1,0 +1,69 @@
+<?php
+
+function scratchpads_front_enable(){
+  variable_set('site_frontpage', 'scratchpads-front');
+  scratchpads_front_update_7001();
+}
+
+function scratchpads_front_disable(){
+  variable_set('site_frontpage', 'node');
+}
+
+/**
+ * Add "data" as an allowable URI.
+ */
+function scratchpads_front_update_7001(){
+  $allowed_protocols = variable_get('filter_allowed_protocols', array(
+    'ftp',
+    'http',
+    'https',
+    'irc',
+    'mailto',
+    'news',
+    'nntp',
+    'rtsp',
+    'sftp',
+    'ssh',
+    'tel',
+    'telnet',
+    'webcal'
+  ));
+  if(!in_array('data', $allowed_protocols)){
+    $allowed_protocols[] = 'data';
+    variable_set('filter_allowed_protocols', $allowed_protocols);
+  }
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_front_update_7002(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_front');
+  foreach(scratchpads_front_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
+
+/**
+ * Alter the front_page_welcome_message so that it is an array.
+ */
+function scratchpads_front_update_7003(){
+  $welcome_message = variable_get('front_page_welcome_message', '');
+  if(!is_array($welcome_message)){
+    variable_set('front_page_welcome_message', array(
+      'value' => $welcome_message
+    ));
+  }
+}

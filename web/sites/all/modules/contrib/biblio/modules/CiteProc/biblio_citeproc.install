@@ -1,0 +1,384 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function biblio_citeproc_install() {
+  biblio_citeproc_install_default_styles();
+  _save_csl_maps();
+}
+
+/**
+ *
+ */
+function biblio_citeproc_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  if ($phase == 'install') {
+
+    if (function_exists('mb_strtoupper')) {
+      $mbs_severity = REQUIREMENT_OK;
+      $mbs_desc = $t('PHP "Multibyte String" extension is enabled');
+    }
+    else {
+      $mbs_severity = REQUIREMENT_ERROR;
+      $mbs_desc = $t('Your PHP installation does not have the "Multibyte String" extension enabled, Biblio - CiteProc requires the Multibyte String extension');
+    }
+    $requirements['mbs'] = array(
+      'title' => $t('PHP Multibyte String'),
+      'severity' => $mbs_severity,
+      'description' => $mbs_desc,
+    );
+  }
+  return $requirements;
+}
+
+/**
+ *
+ */
+function biblio_citeproc_uninstall() {
+  if (db_table_exists('biblio_type_maps')) {
+    db_delete('biblio_type_maps')
+      ->condition('format', 'csl')
+      ->execute();
+  }
+  if ($file = variable_get('biblio_citeproc_styles_zip_file', NULL)) {
+    file_usage_delete($file, 'biblio_citeproc');
+    file_delete($file);
+  }
+  cache_clear_all('biblio_citeproc_styles', 'cache');
+  variable_del('biblio_citeproc_styles_zip_file');
+  variable_del('biblio_citeproc_style');
+}
+
+/**
+ *
+ */
+function biblio_citeproc_schema() {
+  $schema['biblio_citeproc_styles'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'filename' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'parent' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+      ),
+      'summary' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'csl' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+      ),
+      'sha1' => array(
+        'type' => 'varchar',
+        'length' => 40,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'changed' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+
+/**
+ *
+ */
+function biblio_citeproc_install_default_styles() {
+  $record = array();
+  $dir = drupal_get_path('module', 'biblio_citeproc') . '/style';
+  $files = file_scan_directory($dir, '/..*.csl$/');
+
+  foreach ($files as $file) {
+    $csl = file_get_contents($file->uri);
+    $name = basename($file->filename);
+    biblio_citeproc_install_style($name, $csl);
+  }
+}
+
+/**
+ *
+ */
+function biblio_citeproc_update_default_styles() {
+  biblio_citeproc_install_default_styles();
+}
+
+/**
+ *
+ */
+function _get_csl_type_map() {
+  $map['type_map'] = serialize(
+        array(
+          'article'                 => '',
+          'article-magazine'        => 106,
+          'article-newspaper'       => 105,
+          'article-journal'         => 102,
+          'bill'                    => 117,
+          'book'                    => 100,
+          'broadcast'               => 111,
+          'chapter'                 => 101,
+          'entry'                   => '',
+          'entry-dictionary'        => '',
+          'entry-encyclopedia'      => '',
+          'figure'                  => '',
+          'graphic'                 => '',
+          'interview'               => '',
+          'legislation'             => 118,
+          'legal_case'              => 128,
+          'manuscript'              => 121,
+          'map'                     => 122,
+          'motion_picture'          => 110,
+          'musical_score'           => '',
+          'pamphlet'                => '',
+          'paper-conference'        => 103,
+          'patent'                  => 119,
+          'post'                    => '',
+          'post-weblog'             => '',
+          'personal\_communication' => 120,
+          'report'                  => 109,
+          'review'                  => '',
+          'review-book'             => '',
+          'song'                    => '',
+          'speech'                  => '',
+          'thesis'                  => 108,
+          'treaty'                  => '',
+          'webpage'                 => 107,
+        )
+  );
+  $map['format'] = 'csl';
+  return $map;
+}
+
+/**
+ *
+ */
+function _get_csl_type_names() {
+  $map['type_names'] = serialize(
+        array(
+          'article'                 => '',
+          'article-magazine'        => "Magazine Article",
+          'article-newspaper'       => "Newspaper Article",
+          'article-journal'         => "Journal Article",
+          'bill'                    => 'Bill',
+          'book'                    => "Book",
+          'broadcast'               => 'Broadcast',
+          'chapter'                 => "Book Section",
+          'entry'                   => '',
+          'entry-dictionary'        => '',
+          'entry-encyclopedia'      => '',
+          'figure'                  => '',
+          'graphic'                 => '',
+          'interview'               => '',
+          'legislation'             => 'Legislation',
+          'legal_case'              => 'Legal Ruling',
+          'manuscript'              => 'Manuscript',
+          'map'                     => 'Map',
+          'motion_picture'          => "Film or Broadcast",
+          'musical_score'           => '',
+          'pamphlet'                => '',
+          'paper-conference'        => "Conference Paper",
+          'patent'                  => "Patent",
+          'post'                    => '',
+          'post-weblog'             => '',
+          'personal\_communication' => 'Personal Communication',
+          'report'                  => "Report",
+          'review'                  => '',
+          'review-book'             => '',
+          'song'                    => '',
+          'speech'                  => '',
+          'thesis'                  => "Thesis",
+          'treaty'                  => '',
+          'webpage'                 => "Web Page",
+        )
+  );
+
+  $map['format'] = 'csl';
+  return $map;
+}
+
+/**
+ *
+ */
+function _get_csl_field_map() {
+  $map['field_map'] = serialize(
+        array(
+          'title'                       => 'title',
+          'container-title'             => 'biblio_secondary_title',
+          'collection-title'            => 'biblio_secondary_title',
+          'original-title'              => 'biblio_alternate_title',
+          'publisher'                   => 'biblio_publisher',
+          'publisher-place'             => 'biblio_place_published',
+          'original-publisher'          => '',
+          'original-publisher-place'    => '',
+          'archive'                     => '',
+          'archive-place'               => '',
+          'authority'                   => '',
+          'archive_location'            => '',
+          'event'                       => 'biblio_secondary_title',
+          'event-place'                 => 'biblio_place_published',
+          'page'                        => 'biblio_pages',
+          'page-first'                  => '',
+          'locator'                     => '',
+          'version'                     => 'biblio_edition',
+          'volume'                      => 'biblio_volume',
+          'number-of-volumes'           => 'biblio_number_of_volumes',
+          'number-of-pages'             => '',
+          'issue'                       => 'biblio_issue',
+          'chapter-number'              => 'biblio_section',
+          'medium'                      => '',
+          'status'                      => '',
+          'edition'                     => 'biblio_edition',
+          'section'                     => 'biblio_section',
+          'genre'                       => '',
+          'note'                        => 'biblio_notes',
+          'annote'                      => '',
+          'abstract'                    => 'biblio_abst_e',
+          'keyword'                     => 'biblio_keywords',
+          'number'                      => 'biblio_number',
+          'references'                  => '',
+          'URL'                         => 'biblio_url',
+          'DOI'                         => 'biblio_doi',
+          'ISBN'                        => 'biblio_isbn',
+          'call-number'                 => 'biblio_call_number',
+          'citation-number'             => '',
+          'citation-label'              => 'biblio_citekey',
+          'first-reference-note-number' => '',
+          'year-suffix'                 => '',
+          'jurisdiction'                => '',
+
+        // Date Variables'.
+          'issued'                      => 'biblio_year',
+          'event'                       => 'biblio_date',
+          'accessed'                    => 'biblio_access_date',
+          'container'                   => 'biblio_date',
+          'original-date'               => 'biblio_date',
+
+        // Name Variables'.
+          'author'                      => 'biblio_contributors:1',
+          'editor'                      => 'biblio_contributors:2',
+          'translator'                  => 'biblio_contributors:3',
+          'recipient'                   => '',
+          'interviewer'                 => 'biblio_contributors:1',
+          'publisher'                   => 'biblio_publisher',
+          'composer'                    => 'biblio_contributors:1',
+          'original-publisher'          => '',
+          'original-author'             => '',
+          'container-author'            => '',
+          'collection-editor'           => '',
+        )
+        );
+  $map['format'] = 'csl';
+  return $map;
+}
+
+/**
+ *
+ */
+function _save_csl_maps() {
+  $typemap = _get_csl_type_map();
+  $typenames = _get_csl_type_names();
+  $fieldmap = _get_csl_field_map();
+  $maps = array_merge($typemap, $typenames, $fieldmap);
+  biblio_save_map($maps);
+}
+
+/**
+ *
+ */
+function _reset_csl_map($type = NULL) {
+  $count = db_query("SELECT COUNT(*) FROM {biblio_type_maps} WHERE format='csl'")->fetchField();
+  // Update.
+  if ($count && $type) {
+    $function = '_get_csl_' . $type;
+    if (!function_exists($function)) {
+      return;
+    }
+    $map = $function();
+    db_update('biblio_type_maps')
+      ->fields($map)
+      ->condition('format', 'csl')
+      ->execute();
+  }
+  // Install.
+  else {
+    db_delete('biblio_type_maps')
+      ->condition('format', 'csl')
+      ->execute();
+    _save_csl_maps();
+  }
+}
+
+/**
+ * Adds CSL field and type maps to biblio_type_maps table.
+ */
+function biblio_citeproc_update_7001() {
+  _reset_csl_map();
+}
+
+/**
+ * Updates the default CSL styles.
+ */
+function biblio_citeproc_update_7002() {
+  biblio_citeproc_update_default_styles();
+}
+
+/**
+ * Adds "changed" and "updated" columns.
+ */
+function biblio_citeproc_update_7003() {
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('biblio_citeproc_styles', 'changed', $spec);
+  db_add_field('biblio_citeproc_styles', 'updated', $spec);
+}
+
+/**
+ * Corrects an error in the field_map.
+ */
+function biblio_citeproc_update_7004() {
+  $map = biblio_get_map('field_map', 'csl');
+  if ($map['accessed'] == 'biblio_accessed') {
+    $map['accessed'] = 'biblio_access_date';
+    biblio_set_map('field_map', 'csl', $map);
+  }
+}

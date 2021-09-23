@@ -1,0 +1,11 @@
+div.publication_html_format_header {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #EEE;
+  border-bottom: 1px solid #AAA;
+}
+
+div.publication_html_format_header p {
+  margin: 10px 10px 0 10px;
+}

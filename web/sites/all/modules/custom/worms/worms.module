@@ -1,0 +1,465 @@
+<?php
+
+/**
+ * Implementation of hook_menu().
+ */
+function worms_menu(){
+  return array(
+    'admin/structure/taxonomy/worms-import' => array(
+      'title' => 'WoRMS Import',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'worms_import_form'
+      ),
+      'access arguments' => array(
+        'administer taxonomy'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_silver().
+ */
+function worms_silver(){
+  return array(
+    array(
+      'type' => 'Taxonomy',
+      'name' => 'WoRMS web service',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'create page content' // FIXME
+      ),
+      'form_id' => 'worms_import_form'
+    )
+  );
+}
+
+/**
+ * Callback to produce the import form for worms.
+ */
+function worms_import_form($form, &$form_state){
+  // Create a soap client to ensure that the service is up.
+  $worms_service_status = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+    'connection_timeout' => 3
+  ));
+  $vocabularies = taxonomy_get_vocabularies();
+  $taxonomies = array(
+    '- SELECT VOCABULARY -'
+  );
+  foreach($vocabularies as $vid => $vocabulary){
+    $taxonomies[$vid] = $vocabulary->name;
+  }
+  return array(
+    '#action' => url('admin/structure/taxonomy/worms-import'),
+    '#submit' => array(
+      'worms_import_form_submit'
+    ),
+    'worms' => array(
+      '#type' => 'fieldset',
+      '#title' => 'WoRMS',
+      '#description' => 'Import a classification directly from WoRMS',
+      '#collapsed' => FALSE,
+      '#collapsible' => FALSE,
+      'worms-status' => array(
+        '#weight' => -10,
+        '#type' => 'markup',
+        '#markup' => $worms_service_status ? '<div class="messages status"><h2 class="element-invisible">Status message</h2>The WoRMS service appears to be running.</div>' : '<div class="messages error"><h2 class="element-invisible">Status message</h2>The WoRMS service does not appear to be running.  Please try again later.</div>'
+      ),
+      'taxonomy_vid' => array(
+        '#type' => 'select',
+        '#title' => t('Taxonomy'),
+        '#options' => $taxonomies,
+        '#weight' => -90,
+        '#required' => TRUE
+      ),
+      'worms-name' => array(
+        '#weight' => -5,
+        '#type' => 'textfield',
+        '#title' => t('Enter the root term of your classification, e.g. Phthiraptera, Insecta, Aves'),
+        '#attributes' => array(
+          'onkeypress' => 'if(event.keyCode == 13){return false;}else{return true}'
+        )
+      ),
+      'worms-search' => array(
+        '#weight' => 0,
+        '#type' => 'button',
+        '#value' => 'Search WoRMS',
+        '#title' => 'Search WoRMS',
+        '#disabled' => $worms_service_status ? FALSE : TRUE,
+        '#ajax' => array(
+          'callback' => 'worms_classifications_js',
+          'event' => 'click',
+          'wrapper' => 'worms-import-full'
+        ),
+        '#validate' => array(
+          'worms_validate'
+        )
+      ),
+      'import-full' => array(
+        '#weight' => 5,
+        '#markup' => '<div id="worms-import-full" style="clear:both"><input name="worms-import-id" style="display:none"/></div>'
+      ),
+      'submit-worms' => array(
+        '#weight' => 10,
+        '#disabled' => $worms_service_status ? FALSE : TRUE,
+        '#type' => 'submit',
+        '#title' => t('Import from WoRMS'),
+        '#value' => t('Import from WoRMS'),
+        '#submit' => array(
+          'worms_submit'
+        ),
+        '#validate' => array(
+          'worms_validate'
+        ),
+        '#states' => array(
+          'invisible' => array(
+            ':input[name="worms-import-id"]' => array(
+              'value' => ''
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_drupal_goto_alter().
+ */
+function worms_drupal_goto_alter(&$path, &$options, &$http_response_code){
+  if($path == 'batch'){
+    $batch = batch_get();
+    if($batch['source_url'] == 'admin/structure/taxonomy/worms-import'){
+      $options['query']['render'] = 'overlay';
+    }
+  }
+}
+
+/**
+ * Importer
+ */
+function worms_batch_importer($id, $vid, &$context){
+  if(!isset($context['sandbox']['progress'])){
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = 7; // FIXME - It's not possible to know the number of children for a term. Perhaps we should request WoRMS add that feature.
+    $context['sandbox']['start_time'] = time();
+    $context['sandbox']['ids'] = array(
+      $id => 0
+    );
+    $context['sandbox']['map'] = array();
+    $context['sandbox']['total'] = 0;
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    $context['sandbox']['vid'] = $vid;
+    $context['sandbox']['vmn'] = $vocabulary->machine_name;
+    $_SESSION['tcsdc_import_vid'] = $vid;
+  }
+  static $client = FALSE;
+  if(!$client){
+    $client = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+      'connection_timeout' => 3
+    ));
+  }
+  $keys = array_keys($context['sandbox']['ids']);
+  $importable_found = FALSE;
+  $attempt = 0;
+  while(!$importable_found && $attempt < (count($keys) + 1)){
+    $id = array_shift($keys);
+    $parent = $context['sandbox']['ids'][$id];
+    unset($context['sandbox']['ids'][$id]);
+    // Save the record
+    $record = FALSE;
+    $sub_attempt = 0;
+    while($record === FALSE && $sub_attempt < 5){
+      try{
+        $record = $client->getAphiaRecordByID($id);
+      }
+      catch(Exception $e){
+        drupal_set_message(t('Unable to download the record for @id.  The following error message was provided: @error', array(
+          '@id' => $id,
+          '@error' => $e->getMessage()
+        )), 'error', FALSE);
+      }
+      $sub_attempt++;
+    }
+    // Check if this name is valid.  If it isn't, we NEED the name it points to
+    if($record && $record->valid_AphiaID != $record->AphiaID){
+      // Check we have saved this term already.  If we have, we can carry on, if
+      // not, we add this id back on to the list.
+      if(isset($context['sandbox']['map'][$record->valid_AphiaID])){
+        $parent = $context['sandbox']['map'][$record->valid_AphiaID];
+        $importable_found = TRUE;
+      }else{
+        // Not yet saved, add it back to the list.
+        $context['sandbox']['ids'][$record->AphiaID] = $record->valid_AphiaID;
+      }
+    }else{
+      $importable_found = TRUE;
+    }
+    $attempt++;
+  }
+  if(!$importable_found){
+    $context['finished'] = 1;
+    return;
+  }
+  // BS 10/2/2021 - Bug fix: Retrieving vernacular names throws 500 Internal Server Error
+  // Get the vernaculars for this ID.
+  // $vernaculars = FALSE;
+  // $sub_attempt = 0;
+  // while($vernaculars === FALSE && $sub_attempt < 5){
+  //   try{
+  //     $vernaculars = $client->getAphiaVernacularsByID($id);
+  //   }
+  //   catch(Exception $e){
+  //     ;
+  //   }
+  //   $sub_attempt++;
+  // }
+  // // As we sadly don't support saving a vernacular name's language, we just pick
+  // // the english ones.
+  // $vernacular_names = array();
+  // include_once ('sites/all/libraries/ISO639.php');
+  // if(class_exists('Text_LanguageDetect_ISO639')){
+  //   if($vernaculars){
+  //     foreach($vernaculars as $vernacular){
+  //       $code = Text_LanguageDetect_ISO639::nameToCode2(Text_LanguageDetect_ISO639::code3ToName($vernacular->language_code));
+  //       if($code){
+  //         $vernacular_names[] = array(
+  //           'code' => $code,
+  //           'name' => $vernacular->vernacular
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
+  $term = array(
+    'vid' => $context['sandbox']['vid'],
+    'name' => $record->scientificname,
+    'vocabulary_machine_name' => $context['sandbox']['vmn'],
+    'description' => $record->citation,
+    'parent' => array(
+      $parent
+    ),
+    'field_authors' => array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $record->authority
+        )
+      )
+    ),
+    'field_rank' => array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $record->rank
+        )
+      )
+    ),
+    'field_usage' => array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $record->status == 'accepted' ? 'valid' : 'invalid'
+        )
+      )
+    )
+  );
+  // Check to see if we have imported this ID to this Vocabulary before, and if
+  // we have, we update the tid associated.
+  if(($tid = db_select('worms', 'w')->fields('w', array(
+    'tid'
+  ))->condition('vid', $context['sandbox']['vid'])->condition('wid', $id)->execute()->fetchField()) != FALSE){
+    $term['tid'] = $tid;
+  }
+  if($record->status != 'accepted'){
+    $term['field_aan_' . $context['sandbox']['vid']] = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $parent
+        )
+      )
+    );
+  }
+  $name_parts = explode(" ", preg_replace('/[\(\)]/', '', trim($record->scientificname)));
+  $part_index = 1;
+  foreach($name_parts as $name_part){
+    $term['field_unit_name' . $part_index] = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $name_part
+        )
+      )
+    );
+    $part_index++;
+  }
+  $term = (object)$term;
+  taxonomy_term_save($term);
+  // Save the id to the worms table.
+  db_merge('worms')->key(array(
+    'vid' => $term->vid,
+    'wid' => $id
+  ))->fields(array(
+    'vid' => $term->vid,
+    'tid' => $term->tid,
+    'wid' => $id
+  ))->execute();
+  foreach($vernacular_names as $vernacular_name){
+    // Save the vernacular names.
+    $entity = entity_create('field_collection_item', array(
+      'field_name' => 'field_vernacular_name_collection'
+    ));
+    $entity->field_vernacular_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $vernacular_name['name']
+        )
+      )
+    );
+    $entity->field_language = array(
+      LANGUAGE_NONE => array(
+        array(
+          'value' => $vernacular_name['code']
+        )
+      )
+    );
+    $entity->setHostEntity('taxonomy_term', $term, LANGUAGE_NONE, TRUE);
+    $term = $entity->hostEntity();
+    $entity->save(TRUE);
+  }
+  taxonomy_term_save($term);
+  $context['sandbox']['map'][$record->AphiaID] = $term->tid;
+  $context['sandbox']['total']++;
+  $reached_last_child = FALSE;
+  $offset = 1;
+  while(!$reached_last_child){
+    try{
+      $children = $client->getAphiaChildrenByID($id, $offset);
+    }
+    catch(Exception $e){
+      ;
+    }
+    if($children){
+      foreach($children as $child){
+        $context['sandbox']['ids'][$child->AphiaID] = $term->tid;
+      }
+    }else{
+      $reached_last_child = TRUE;
+    }
+    if(count($children) != 50){
+      $reached_last_child = TRUE;
+    }
+    $offset += 50;
+  }
+  if(count($context['sandbox']['ids'])){
+    $context['message'] = t('Saved %numnames names in %time', array(
+      '%numnames' => $context['sandbox']['total'],
+      '%time' => format_interval(time() - $context['sandbox']['start_time'])
+    ));
+    $context['finished'] = 0.95;
+  }else{
+    $context['finished'] = 1;
+  }
+}
+
+/**
+ * Callback function when pressing "Import from WoRMS"
+ */
+function worms_submit($form, $form_state){
+  // Validation doesn't appear to work, so we instead piss people off and
+  // do it here.
+  if(!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid'] || !isset($form_state['values']['worms-import-id']) || !$form_state['values']['worms-import-id']){
+    drupal_set_message('Please ensure you select a source and destination vocabulary.', 'error');
+    drupal_goto('admin/import');
+  }
+  // Added for D7 to prevent errors on submission/testing.
+  $batch = array(
+    'operations' => array(
+      array(
+        'worms_batch_importer',
+        array(
+          $form_state['values']['worms-import-id'],
+          $form_state['values']['taxonomy_vid']
+        )
+      )
+    ),
+    'finished' => 'tcsdc_finished_batch',
+    'title' => t('Importing'),
+    // We use a single multi-pass operation, so the default
+    // 'Remaining x of y operations' message will be confusing here.
+    'error_message' => t('The import has encountered an error.')
+  );
+  // Update the vocabulary to state that we've downloaded from WoRMS.
+  $vocabulary = taxonomy_vocabulary_load($form_state['values']['taxonomy_vid']);
+  $vocabulary->description = trim($vocabulary->description . ' ' . t('(Imported from WoRMS)'));
+  taxonomy_vocabulary_save($vocabulary);
+  batch_set($batch);
+}
+
+/**
+ * Validate the form
+ */
+function worms_validate($form, &$form_state){
+  // Lets just check that the worms-import-id is set in #post, and that it is
+  // numeric (is this likely to change Patrick?).
+  if(!isset($form_state['values']['taxonomy_vid']) || !$form_state['values']['taxonomy_vid']){
+    form_set_error('taxonomy_vid', t('Please select a vocabulary first.'));
+  }
+  if(!(isset($form_state['values']['worms-import-id']) && count(explode("|", $form_state['values']['worms-import-id'])) == 2)){
+    form_set_error('worms-import-id', t('Please ensure you select a classification to import.'));
+  }
+}
+
+/**
+ * Helper function to convert a nested WoRMS classification to a string.
+ */
+function _worms_de_nest($record){
+  return $record->child ? trim($record->scientificname . ' > ' . _worms_de_nest($record->child)) : '';
+}
+
+/**
+ * Callback for the ajax
+ */
+function worms_classifications_js($form, $form_state){
+  $client = new SoapClient('http://www.marinespecies.org/aphia.php?p=soap&wsdl=1', array(
+    'connection_timeout' => 3
+  ));
+  $records = $client->getAphiaRecords($_POST['worms-name'], TRUE, FALSE, FALSE, 0);
+  if($records){
+    foreach($records as $record){
+      if($record->status != 'deleted'){
+        $classification = $client->getAphiaClassificationByID($record->AphiaID);
+        $options[$record->AphiaID] = _worms_de_nest($classification) . ' <a href="' . $record->url . '" target="_blank">' . $record->scientificname . '</a>';
+      }
+    }
+  }
+  $form['worms']['worms-import-id'] = array(
+    '#weight' => 5,
+    '#name' => 'worms-import-id',
+    '#type' => 'radios',
+    '#title' => t('Import from Classification'),
+    '#default_value' => '',
+    '#options' => $options,
+    '#parents' => array(
+      'worms-import-id'
+    ),
+    '#prefix' => '<div id="worms-import-full" style="clear:both">',
+    '#suffix' => '</div>'
+  );
+  form_set_cache($form['#build_id'], $form, $form_state);
+  // The following few lines of code are clearly not right. I shouldn't have
+  // to manually set the '#name' for each 'radio' element within the radios
+  // element. Ah well, it works!
+  $form_to_return = form_process_radios($form['worms']['worms-import-id']);
+  $children = element_children($form_to_return);
+  foreach($children as $key){
+    $form_to_return[$key]['#name'] = 'worms-import-id';
+  }
+  $output = drupal_render($form_to_return);
+  if(count($options) == 1){
+    // Odd bug with #states that seems to stop what I've written above from
+    // working.
+    // It may well be the case that what I've written shouldn't work, but this
+    // is a work around.
+    $output .= '<input id="edit-worms-import-id-randomgibberish" class="form-radio" type="radio" value="randomgibberish" name="worms-import-id" style="display:none;">';
+  }
+  drupal_get_messages();
+  return $output;
+}

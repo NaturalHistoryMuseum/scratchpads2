@@ -1,0 +1,20 @@
+<?php
+require DRUPAL_ROOT . '/modules/taxonomy/' . basename(__FILE__);
+
+/**
+class TaxonomyWebTestCase extends DrupalWebTestCase {
+class TaxonomyVocabularyFunctionalTest extends TaxonomyWebTestCase {
+class TaxonomyVocabularyTestCase extends TaxonomyWebTestCase {
+class TaxonomyTermFunctionTestCase extends TaxonomyWebTestCase {
+class TaxonomyLegacyTestCase extends TaxonomyWebTestCase {
+class TaxonomyTermTestCase extends TaxonomyWebTestCase {
+class TaxonomyRSSTestCase extends TaxonomyWebTestCase {
+class TaxonomyTermIndexTestCase extends TaxonomyWebTestCase {
+class TaxonomyLoadMultipleTestCase extends TaxonomyWebTestCase {
+class TaxonomyHooksTestCase extends TaxonomyWebTestCase {
+class TaxonomyTermFieldTestCase extends TaxonomyWebTestCase {
+class TaxonomyTermFieldMultipleVocabularyTestCase extends TaxonomyWebTestCase {
+class TaxonomyTokenReplaceTestCase extends TaxonomyWebTestCase {
+class TaxonomyThemeTestCase extends TaxonomyWebTestCase {
+class TaxonomyEFQTestCase extends TaxonomyWebTestCase {
+*/

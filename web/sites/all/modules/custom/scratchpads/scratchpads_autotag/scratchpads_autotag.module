@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_autotag_node_type_insert($info){
+  drupal_register_shutdown_function('_scratchpads_autotag_save_defaults_for_node_type', $info->type);
+}
+
+/**
+ * Implements hook_node_type_update().
+ */
+function scratchpads_autotag_node_type_update($info){
+  drupal_register_shutdown_function('_scratchpads_autotag_save_defaults_for_node_type', $info->type);
+}
+
+/**
+ * Helper function for install and hook_node_type_insert().
+ */
+function _scratchpads_autotag_save_defaults_for_node_type($node_type){
+  return;
+  $instances = field_info_instances('node', $node_type);
+  if(isset($instances['field_taxonomic_name']) && !variable_get("tagtag_replace_$node_type", FALSE)){
+    variable_set("tagtag_replace_$node_type", variable_get("tagtag_replace_$node_type", 1));
+    variable_set("tagtag_field_$node_type", 'field_taxonomic_name');
+    variable_set("tagtag_ui_$node_type", 'tag_on_save');
+    $value = array(
+      'autotag'
+    );
+    if($node_type == 'spm'){
+      $value = array();
+    }
+    variable_set("tagtag_search_$node_type", $value);
+    $search_fields = array();
+    foreach($instances as $key => $instance){
+      if(in_array($instance['widget']['module'], array(
+        'taxonomy',
+        'text',
+        'options'
+      )) && $key != 'field_taxonomic_name'){
+        $search_fields[] = $key;
+      }
+    }
+    variable_set("tagtag_search_fields_$node_type", $search_fields);
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary){
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+    $biological_vids = variable_get('biological_vids', array());
+    $vids = array();
+    foreach($biological_vids as $vid => $value){
+      if($value){
+        $vids[] = $vid;
+      }
+    }
+    $vids[] = $vocabulary->vid;
+    // Set the variables for all the node types.
+    $node_info = entity_get_info('node');
+    foreach($node_info['bundles'] as $node_type => $values){
+      variable_set('autotag_vids_' . $node_type, $vids);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_update().
+ */
+function scratchpads_autotag_taxonomy_vocabulary_update($vocabulary){
+  scratchpads_autotag_taxonomy_vocabulary_insert($vocabulary);
+}

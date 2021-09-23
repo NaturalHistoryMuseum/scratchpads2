@@ -1,0 +1,922 @@
+<?php
+
+/**
+ * FIXME - Remove the horrible deltas added by the facetapi module, and replace
+ * them with the improved code in the scratchpads_media_gallery module.
+ */
+/**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_biblio_search_menu_alter(&$items){
+  $items['biblio']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['biblio']['weight'] = 1;
+  $items['biblio']['type'] = MENU_NORMAL_ITEM;
+  $items['biblio/import']['type'] = MENU_CALLBACK;
+  unset($items['biblio/authors'], $items['biblio/keywords']);
+}
+
+/**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_biblio_search_apache_solr_default_sorts_alter(&$default_sorts){
+  $new_sorts = array(
+    'tus_biblio_year' => array(
+      'title' => t('Year'),
+      'default' => 'desc'
+    )
+  );
+  for($i = 1; $i < 10; $i++){
+    $new_sorts['tus_biblio_author_lastname_' . $i] = array(
+      'title' => t('Author !index last name', array(
+        '!index' => $i
+      )),
+      'default' => 'asc'
+    );
+    $new_sorts['tus_biblio_author_name_' . $i] = array(
+      'title' => t('Author !index full name', array(
+        '!index' => $i
+      )),
+      'default' => 'asc'
+    );
+  }
+  $default_sorts = array_merge($new_sorts, $default_sorts);
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_biblio_search_scratchpads_solr_info(){
+  return array(
+    'biblio' => array(
+      'theme' => 'scratchpads_biblio_search',
+      'empty' => 'scratchpads_biblio_search_empty'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_biblio_search_apache_solr_sortstring_alter(&$sortstring){
+  if(arg(0) == 'biblio'){
+    // Here we teak the $sortstring to reflect what is set in the $_GET array.
+    $order = isset($_GET['order']) ? $_GET['order'] : t('Authors');
+    switch($order){
+      case t('Year'):
+        $sortstring = 'tus_biblio_year ' . (isset($_GET['sort']) ? $_GET['sort'] : 'desc');
+        break;
+      case t('Authors'):
+        $sortstring = array();
+        for($i = 1; $i < 10; $i++){
+          $sortstring[] = 'tus_biblio_author_lastname_' . $i . ' ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+          $sortstring[] = 'tus_biblio_author_name_' . $i . ' ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        }
+        $sortstring[] = 'tus_biblio_year ' . ((isset($_GET['sort']) && $_GET['sort'] == 'desc') ? 'asc' : 'desc');
+        $sortstring = implode(',', $sortstring);
+        break;
+      case t('Title'):
+        $sortstring = 'sort_label ' . (isset($_GET['sort']) ? $_GET['sort'] : 'asc');
+        break;
+    }
+    // This also gives us an opportunity to tweak the facets if we've been linked
+    // to by the biblio module.
+    if(isset($_GET['f'])){
+      if(isset($_GET['f']['author'])){
+        $_GET['f'] = array(
+          'im_biblio_contributor:' . $_GET['f']['author']
+        );
+      }elseif(isset($_GET['f']['keyword'])){
+        $_GET['f'] = array(
+          'im_biblio_keyword:' . $_GET['f']['keyword']
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_biblio_search_facetapi_facet_info($searcher_info){
+  // Facets are usually associated with the type of content stored in the index.
+  if(isset($searcher_info['types']['node'])){return array(
+      'im_biblio_contributor' => array(
+        'name' => 'im_biblio_contributor',
+        'label' => t('Author'),
+        'description' => t('Biblio: Author'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_contributor'
+        )
+      ),
+      'im_biblio_keyword' => array(
+        'name' => 'im_biblio_keyword',
+        'label' => t('Journal keyword'),
+        'description' => t('Biblio: Keyword'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_keyword'
+        )
+      ),
+      'tus_biblio_year' => array(
+        'name' => 'tus_biblio_year',
+        'label' => t('Publication year'),
+        'description' => t('Biblio: Publication year'),
+        'query types' => array(
+          'term'
+        )
+      ),
+      'im_biblio_secondary_title' => array(
+        'name' => 'im_biblio_secondary_title',
+        'label' => t('Journal'),
+        'description' => t('Biblio: Secondary title'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_secondary_title'
+        )
+      ),
+      'tus_biblio_type' => array(
+        'name' => 'tus_biblio_type',
+        'label' => t('Publication type'),
+        'description' => t('Biblio: Type'),
+        'query types' => array(
+          'term'
+        ),
+        'map callback' => 'scratchpads_biblio_search_map_callback',
+        'map options' => array(
+          'biblio_type'
+        )
+      )
+    );}
+  return array();
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_biblio_search_theme(){
+  return array(
+    'scratchpads_biblio_search' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_biblio_search.theme.inc'
+    ),
+    'scratchpads_biblio_search_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_biblio_search.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_biblio_search_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'biblio_search_page';
+  $context->description = t('Biblio search page');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'biblio*' => 'biblio*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        'scratchpads_biblio_search-search_export' => array(
+          'module' => 'scratchpads_biblio_search',
+          'delta' => 'search_export',
+          'region' => 'sidebar',
+          'weight' => '-28'
+        )
+      )
+    )
+  );
+  $map = facetapi_get_delta_map();
+  $order = array(
+    'im_biblio_contributor' => '1',
+    'im_biblio_contributor_global' => '2',
+    'tus_biblio_year' => '3',
+    'tus_biblio_year_global' => '4',
+    'tus_biblio_type' => '5',
+    'tus_biblio_type_global' => '6',
+    'im_biblio_keyword' => '7',
+    'im_biblio_keyword_global' => '8',
+    'im_biblio_secondary_title' => '9',
+    'im_biblio_secondary_title_global' => '10'
+  );
+  foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $key => $facet){
+    if(isset($order[$key])){
+      $weight = $order[$key];
+    }else{
+      $weight = 20;
+    }
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => $weight
+      );
+    }
+  }
+  foreach(scratchpads_solr_facetapi_default_facet_settings() as $facet){
+    if($facet->facet == 'bundle'){
+      continue;
+    }
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => 30
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['biblio_search_page'] = $context;
+  return $export;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_biblio_search_block_view_alter(&$data, $block){
+  // Remove the login block from the batch and admin/biblio_search_export pages
+  if($block->module == 'user' && $block->delta == 'login' && (arg(1) == 'biblio_search_export' || arg(0) == 'batch')){
+    $data = array();
+    return;
+  }
+  if($block->module == 'facetapi'){
+    if($data['subject'] == 'Filter by author:'){
+      if($block->context == 'media_gallery_page_facets'){
+        $data['subject'] = 'Contributor';
+      }else{
+        $data['subject'] = 'Filter by contributor:';
+      }
+    }
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_biblio_search_facetapi_facet_info(array(
+      'types' => array(
+        'node' => TRUE
+      )
+    ));
+    foreach(scratchpads_biblio_search_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        if($facet->facet == 'im_biblio_contributor'){
+          if(@isset($data['content']['im_biblio_contributor']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['im_biblio_contributor']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_contributor_form', 'im_biblio_contributor', t('Enter author name...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }elseif($facet->facet == 'tus_biblio_year'){
+          if(@isset($data['content']['tus_biblio_year']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['tus_biblio_year']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_biblio_search_facet_tus_biblio_year_form', 'tus_biblio_year', t('Enter year...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }elseif($facet->facet == 'im_biblio_secondary_title'){
+          if(@isset($data['content']['im_biblio_secondary_title']['#items']) && @isset($data['content']['#settings']->settings['soft_limit']) && count($data['content']['im_biblio_secondary_title']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_secondary_title_form', 'im_biblio_secondary_title', t('Enter journal...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }elseif($facet->facet == 'im_biblio_keyword'){
+          if(@isset($data['content']['#settings']->settings['soft_limit']) && @isset($data['content']['im_biblio_keyword']['#items']) && count($data['content']['im_biblio_keyword']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_biblio_search_facet_im_biblio_secondary_title_form', 'im_biblio_keyword', t('Enter keyword...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_forms().
+ */
+function scratchpads_biblio_search_forms(){
+  return array(
+    'scratchpads_biblio_search_facet_im_biblio_contributor_form' => array(
+      'callback' => 'scratchpads_biblio_search_facet_form',
+      'callback arguments' => array()
+    ),
+    'scratchpads_biblio_search_facet_tus_biblio_year_form' => array(
+      'callback' => 'scratchpads_biblio_search_facet_form',
+      'callback arguments' => array()
+    ),
+    'scratchpads_biblio_search_facet_im_biblio_secondary_title_form' => array(
+      'callback' => 'scratchpads_biblio_search_facet_form',
+      'callback arguments' => array()
+    ),
+    'scratchpads_biblio_search_facet_im_biblio_keyword_form' => array(
+      'callback' => 'scratchpads_biblio_search_facet_form',
+      'callback arguments' => array()
+    )
+  );
+}
+
+/**
+ * Simple form for the facets
+ */
+function scratchpads_biblio_search_facet_form($form, &$form_state, $form_id, $placeholder){
+  return array(
+    $form_id => array(
+      '#type' => 'textfield',
+      '#title' => t('Search facet'),
+      '#title_display' => 'invisible',
+      '#size' => 15,
+      '#default_value' => '',
+      '#autocomplete_path' => 'biblio_search_facet_autocomplete/' . $form_id,
+      '#attributes' => array(
+        'title' => t('Enter the terms you wish to search for, select it, and press return.'),
+        'style' => 'width:100%',
+        'placeholder' => $placeholder
+      )
+    ),
+    'type' => array(
+      '#value' => $form_id,
+      '#type' => 'value'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Search'),
+        '#attributes' => array(
+          'style' => 'display:none;'
+        )
+      )
+    ),
+    '#submit' => array(
+      'scratchpads_biblio_search_facet_form_submit'
+    )
+  );
+}
+
+/**
+ * Submit function for the facets.
+ */
+function scratchpads_biblio_search_facet_form_submit($form, &$form_state){
+  $get = $_GET;
+  unset($get['q']);
+  switch($form_state['values']['type']){
+    case 'im_biblio_contributor':
+      $row = db_select('biblio_contributor_data', 'b')->fields('b', array(
+        'cid'
+      ))->condition('name', $form_state['values']['im_biblio_contributor'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_biblio_contributor:' . $row['cid'];
+      break;
+    case 'im_biblio_secondary_title':
+      $row = db_select('biblio_secondary_title', 'b')->fields('b', array(
+        'bstid'
+      ))->condition('secondary_title', $form_state['values']['im_biblio_secondary_title'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_biblio_secondary_title:' . $row['bstid'];
+      break;
+    case 'tus_biblio_year':
+      $get['f'][] = 'tus_biblio_year:' . $form_state['values']['tus_biblio_year'];
+      break;
+    case 'im_biblio_keyword':
+      $row = db_select('biblio_keyword_data', 'b')->fields('b', array(
+        'kid'
+      ))->condition('word', $form_state['values']['im_biblio_keyword'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_biblio_keyword:' . $row['kid'];
+      break;
+  }
+  drupal_goto($_GET['q'], array(
+    'query' => $get
+  ));
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_biblio_search_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_biblio_search_facetapi_default_facet_settings(){
+  $facets = array();
+  foreach(scratchpads_biblio_search_facetapi_facet_info(array(
+    'types' => array(
+      'node' => TRUE
+    )
+  )) as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'display' => -49,
+        'count' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr::' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = '';
+    $facet->facet = $facet_id;
+    $facet->enabled = FALSE;
+    $facet->settings = array(
+      'operator' => 'and',
+      'hard_limit' => '255',
+      'dependencies' => array(),
+      'facet_mincount' => 1,
+      'facet_missing' => 0,
+      'flatten' => 0,
+      'query_type' => 'term'
+    );
+    $facets[$facet_id . '_global'] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Map keys to values
+ */
+function scratchpads_biblio_search_map_callback($values, $options){
+  if(count($values)){
+    switch($options[0]){
+      case 'biblio_type':
+        $result = db_select('biblio_types', 'b')->fields('b', array(
+          'tid',
+          'name'
+        ))->condition('tid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['tid']] = $record['name'];
+        }
+        return $map;
+      case 'biblio_contributor':
+        $results = db_select('biblio_contributor_data', 'b')->fields('b')->execute()->fetchAll();
+        $map = array();
+        foreach($results as $row){
+          $map[$row->cid] = $row->literal || !$row->lastname ? $row->name : ($row->prefix ? $row->prefix . ' ' : '') . $row->lastname . ($row->suffix ? ', ' . $row->suffix : '') . ($row->initials || $row->firstname ? ', ' . mb_substr($row->firstname, 0, 1) . $row->initials : '');
+        }
+        return $map;
+      case 'biblio_secondary_title':
+        $result = db_select('biblio_secondary_title', 'b')->fields('b')->condition('bstid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['bstid']] = $record['secondary_title'];
+        }
+        return $map;
+      case 'biblio_keyword':
+        $result = db_select('biblio_keyword_data', 'b')->fields('b')->condition('kid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['kid']] = $record['word'];
+        }
+        return $map;
+    }
+  }else{
+    return array();
+  }
+}
+
+/**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_biblio_search_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'node' && $entity->type == 'biblio'){
+    foreach($entity as $key => $value){
+      if(substr($key, 0, 7) == 'biblio_'){
+        switch($key){
+          case 'biblio_secondary_title':
+            $value = trim($value);
+            if ($value == "") {
+              break;
+            }
+            // We insert this text into the 'biblio_secondary_title' table, and
+            // use the tsid instead.
+            $results = db_select('biblio_secondary_title', 'b')->fields('b')->condition('secondary_title', $value)->execute()->fetch();
+            if($results){
+              $bstid = $results->bstid;
+            }else{
+              $record = array(
+                'secondary_title' => $value
+              );
+              drupal_write_record('biblio_secondary_title', $record);
+              $bstid = $record['bstid'];
+            }
+            $document->addField('im_biblio_secondary_title', $bstid);
+            break;
+          default:
+            if(is_string($value)){
+              if($key == 'biblio_section' && is_numeric($value)){
+                $document->setField("fss_$key", $value);
+              }
+              $document->setField("tus_$key", $value);
+            }else if(is_array($value)){
+              switch($key){
+                case 'biblio_contributors':
+                  $i = 0;
+                  foreach($value as $contributor){
+                    $i++;
+                    if($i < 10){
+                      $document->setField('tus_biblio_author_lastname_' . $i, $contributor['lastname']);
+                      $document->setField('tus_biblio_author_name_' . $i, $contributor['name']);
+                    }
+                    $document->addField('im_biblio_contributor', $contributor['cid']);
+                  }
+                  break;
+                case 'biblio_keywords':
+                  foreach($value as $kid => $value){
+                    $document->addField('im_biblio_keyword', $kid);
+                  }
+                  break;
+              }
+            }
+            break;
+        }
+      }
+    }
+    $style = biblio_get_style();
+    $base = variable_get('biblio_base', 'biblio');
+    $document->content .= strip_tags(theme('biblio_long', array(
+      'node' => $entity,
+      'base' => $base,
+      'style_name' => $style
+    )));
+    $document->teaser .= strip_tags(theme('biblio_style', array(
+      'node' => $entity,
+      'base' => $base,
+      'style_name' => $style
+    )));
+  }
+}
+
+/**
+ * Implements hook_menu
+ */
+function scratchpads_biblio_search_menu(){
+  return array(
+    'admin/biblio_search_export' => array(
+      'title' => 'Export',
+      'type' => MENU_CALLBACK,
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'show export links'
+      ),
+      'page callback' => '_scratchpads_biblio_search_export'
+    ),
+    'biblio_search_export' => array(
+      'title' => 'Export',
+      'type' => MENU_CALLBACK,
+      'access callback' => 'user_access',
+      'access arguments' => array(
+        'show export links'
+      ),
+      'page callback' => '_scratchpads_biblio_search_export'
+    ),
+    'scratchpads-biblio-search-send-file' => array(
+      'title' => 'Download Biblio Export',
+      'page callback' => '_scratchpads_biblio_search_export_get_file',
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK
+    ),
+    'biblio_search_facet_autocomplete' => array(
+      'title' => 'Autocomplete',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array(
+        'search content'
+      ),
+      'page callback' => 'scratchpads_biblio_search_facet_autocomplete'
+    )
+  );
+}
+
+/**
+ * Autocomplete callback
+ */
+function scratchpads_biblio_search_facet_autocomplete($type, $search){
+  $matches = array();
+  switch($type){
+    case 'im_biblio_contributor':
+      $condition = db_or()->condition('name', "$search%", 'LIKE')->condition('lastname', "$search%", 'LIKE');
+      $query = db_select('biblio_contributor_data', 'b')->fields('b', array(
+        'name',
+        'name'
+      ));
+      $query->innerJoin('biblio_contributor', 'c', 'c.cid = b.cid');
+      $query->groupBy('name');
+      $query->orderBy('lastname');
+      $query->condition($condition)->range(0, 10);
+      $matches = $query->execute()->fetchAllKeyed();
+      break;
+    case 'tus_biblio_year':
+      $matches = db_select('biblio', 'b')->fields('b', array(
+        'biblio_year',
+        'biblio_year'
+      ))->condition('biblio_year', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+    case 'im_biblio_secondary_title':
+      $matches = db_select('biblio_secondary_title', 'b')->fields('b', array(
+        'secondary_title',
+        'secondary_title'
+      ))->condition('secondary_title', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+    case 'im_biblio_keyword':
+      $matches = db_select('biblio_keyword_data', 'b')->fields('b', array(
+        'word',
+        'word'
+      ))->condition('word', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+  }
+  drupal_json_output($matches);
+}
+
+/**
+ * Implements hook_block_info
+ */
+function scratchpads_biblio_search_block_info(){
+  return array(
+    'search_export' => array(
+      'info' => t('Display links to export biblio content filtered with Solr facets'),
+      'cache' => DRUPAL_NO_CACHE
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view
+ */
+function scratchpads_biblio_search_block_view($delta = ''){
+  switch($delta){
+    case 'search_export':
+      $export_links = module_invoke_all('biblio_export_link', NULL, array());
+      $final_links = array();
+      $is_node = ((arg(0) == 'node') && arg(1));
+      if(!$is_node){
+        $query = drupal_get_query_parameters();
+        $info = t('Export selection as');
+      }else{
+        $query = NULL;
+        $info = t('Export entry as');
+      }
+      global $pager_total;
+      if($pager_total[0] > 1){
+        unset($export_links['biblio_rtf']);
+      }
+      foreach($export_links as $link){
+        $options = array(
+          'query' => $query,
+          'attributes' => $link['attributes']
+        );
+        if($pager_total[0] > 1){
+          $href = str_replace('biblio/export', 'admin/biblio_search_export', $link['href']);
+        }else{
+          $href = str_replace('biblio/export', 'biblio_search_export', $link['href']);
+        }
+        if($is_node){
+          $href = preg_replace('/\/?$/', '/' . arg(1), $href);
+        }
+        $final_links[] = l($link['title'], $href, $options);
+      }
+      return array(
+        'subject' => '',
+        'content' => array(
+          'info' => array(
+            '#prefix' => '<div class="biblio-links-info">',
+            '#markup' => $info,
+            '#suffix' => '</div>'
+          ),
+          'links' => array(
+            '#items' => $final_links,
+            '#theme' => 'item_list'
+          )
+        )
+      );
+      break;
+  }
+}
+
+/**
+ * Batch function for exporting more than one page of biblio results.
+ */
+function _scratchpads_biblio_search_batch_export($format, $conditions, $search_page, $total_pages, &$context){
+  if(!isset($context['sandbox']['total_pages'])){
+    // Set the total pages from the variable passed.
+    $context['sandbox']['total_pages'] = $total_pages;
+    // Create a temporary file for writing the data to.
+    $context['sandbox']['output_file'] = drupal_tempnam('temporary://', 'scratchpads_biblio_search');
+    // Set the output file in the $_SESSION variable so that we can redirect to
+    // it once we're finished.
+    $_SESSION['scratchpads_biblio_search_file_path'] = $context['sandbox']['output_file'];
+    // Set the page
+    $context['sandbox']['page'] = 0;
+    // Set the headers for setting when the file is delivered.
+    switch($format){
+      case 'ris':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/x-endnote-refer';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Drupal-Biblio.ris"';
+        break;
+      case 'xml':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/xml; charset=utf-8';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Biblio-EndNote.xml"';
+        break;
+      case 'tagged':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/x-endnote-refer';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Drupal-Biblio.enw"';
+        break;
+      case 'bibtex':
+        $_SESSION['scratchpads_biblio_search_content_type'] = 'application/text; charset=utf-8';
+        $_SESSION['scratchpads_biblio_search_content_disposition'] = 'attachment; filename="Biblio-Bibtex.bib"';
+        break;
+    }
+  }
+  $_GET['page'] = $context['sandbox']['page'];
+  $context['sandbox']['page']++;
+  $results = apachesolr_search_search_results('', $conditions, $search_page);
+  // Is this include line definitely required?
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  $nids = array();
+  foreach($results as $row){
+    $nids[] = $row['fields']['entity_id'];
+  }
+  $nodes = node_load_multiple($nids);
+  $output = '';
+  foreach($nodes as $node){
+    switch($format){
+      case 'ris':
+        $output .= _biblio_ris_export($node);
+        break;
+      case 'xml':
+        module_load_include('inc', 'biblio_xml', 'endnote8_export');
+        if($_GET['page'] == 0){
+          $output = _endnote8_XML_export('', 'begin');
+        }
+        $output .= _endnote8_XML_export($node);
+        break;
+      case 'tagged':
+        $output .= _biblio_tagged_export($node);
+        break;
+      case 'bibtex':
+        $output .= _biblio_bibtex_export($node);
+        break;
+    }
+  }
+  if($context['sandbox']['page'] == $context['sandbox']['total_pages']){
+    if($format == 'xml'){
+      $output .= _endnote8_XML_export('', 'end');
+    }
+    $context['message'] = '<p class="ok">' . t('You may close the overlay once the file download starts.') . '</p>';
+  }
+  file_put_contents(drupal_realpath($context['sandbox']['output_file']), $output, FILE_APPEND);
+  $context['finished'] = $context['sandbox']['page'] / $context['sandbox']['total_pages'];
+}
+
+/**
+ * Redirect to get the file, or give a warning if we failed.
+ */
+function _scratchpads_biblio_search_batch_send_file($success, $results, $operations){
+  if($success){
+    drupal_goto('scratchpads-biblio-search-send-file');
+  }else{
+    drupal_set_message(t('Unable to export bibliography'), 'error');
+    drupal_goto('biblio');
+  }
+}
+
+/**
+ * 
+ */
+function _scratchpads_biblio_search_export_get_file(){
+  // The path of the output file should be saved to a session.
+  if(isset($_SESSION['scratchpads_biblio_search_file_path'])){
+    // We should have the file path in the $results array, so we will output it
+    // to the browser.
+    drupal_add_http_header('Content-Type', $_SESSION['scratchpads_biblio_search_content_type']);
+    drupal_add_http_header('Content-Disposition', $_SESSION['scratchpads_biblio_search_content_disposition']);
+    drupal_add_http_header('Cache-Control', 'max-age=0');
+    readfile($_SESSION['scratchpads_biblio_search_file_path']);
+    // delete the file
+    drupal_unlink($_SESSION['scratchpads_biblio_search_file_path']);
+    unset($_SESSION['scratchpads_biblio_search_file_path']);
+    exit();
+  }else{
+    drupal_set_message(t('Unable to export bibliography'), 'error');
+    drupal_goto('biblio');
+  }
+}
+
+/**
+ * Export filtered biblio entries
+ */
+function _scratchpads_biblio_search_export($format = "tagged", $nid = NULL, $popup = FALSE){
+  $nids = array();
+  if($nid){
+    $nids[] = $nid;
+  }else{
+    $search_page = apachesolr_search_page_load('biblio_search');
+    $search_page->search_path = str_replace('%', '', $search_page->search_path);
+    $conditions = apachesolr_search_conditions_default($search_page);
+    $results = apachesolr_search_search_results('', $conditions, $search_page);
+    global $pager_total;
+    if($pager_total[0] > 1 && $format != 'rtf'){
+      // We set a batch if we have more than 1 page of results to return.
+      batch_set(array(
+        'operations' => array(
+          array(
+            '_scratchpads_biblio_search_batch_export',
+            array(
+              $format,
+              $conditions,
+              $search_page,
+              $pager_total[0]
+            )
+          )
+        ),
+        'finished' => '_scratchpads_biblio_search_batch_send_file',
+        'title' => t('Exporting biblio')
+      ));
+      batch_process();
+    }
+    if($format == 'rtf'){
+      drupal_set_message(t('We are only able to export the first 100 records in RTF format'), 'warning');
+    }
+    foreach($results as $row){
+      $nids[] = $row['fields']['entity_id'];
+    }
+  }
+  if(empty($nids)){return;}
+  module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_invoke('biblio_' . $format, 'biblio_export', $nids);
+  // Not ideal, but as long as poormanscron is enabled, it is best to leave early.
+  exit();
+}
+
+/**
+ * Batch function for populating a file with the biblio export in.
+ */

@@ -1,0 +1,22 @@
+.oauth-common-left-panel {
+  float: left;
+  width: 50%;
+}
+
+.oauth-common-right-panel {
+  float: right;
+  width: 49.9%;
+}
+
+.oauth-common-auth-level {
+  border-bottom: 1px solid #999999;
+  margin-bottom: 1em;
+}
+
+.oauth-common-auth-level > div .form-item:first-child {
+  margin-top: 0;
+}
+
+.oauth-common-auth-level .clear {
+  clear: both;
+}

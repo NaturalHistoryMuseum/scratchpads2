@@ -1,0 +1,247 @@
+<?php
+
+/**
+ * Implementation of hook_theme.
+ */
+function media_multiselect_theme() {
+  return array(
+    'media_multiselect_empty_field' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function media_multiselect_field_widget_info() {
+  $media_widgets = media_field_widget_info();
+  return array(
+    'media_multiselect' => array(
+      'label' => t('Media multiselect'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
+    ) + $media_widgets['media_generic']
+  );
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function media_multiselect_field_widget_settings_form($field, $instance) {
+  return media_field_widget_settings_form($field, $instance);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function media_multiselect_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $form['#entity'] = $element['#entity'];
+
+  // We cheat and alter the widget-type to the normal media widget
+  $instance['widget']['type'] = 'media_generic';
+  $instance['widget']['module'] = 'media';
+
+  if ($field['cardinality'] == 1) {
+    return field_default_form(
+      $element['#entity_type'],
+      $element['#entity'],
+      $field,
+      $instance,
+      $langcode,
+      $items,
+      $form,
+      $form_state
+    );
+  }
+
+  // Then ask the Field API to generate that widget
+  $element += field_multiple_value_form($field, $instance, $langcode, $items, $form, $form_state);
+
+  // If we have a != 1, != unlimited field, we have a fixed amount of values
+  // which we can't ajaxify the 'add-more' button of, as it does not have a
+  // 'add-more' button. So abort untill we've found a way around this.
+  if ($field['cardinality'] != FIELD_CARDINALITY_UNLIMITED) {
+    return $element;
+  }
+
+  // Copy over the media-options
+  $element['#media_options'] = $element[0]['#media_options'];
+  $element['#media_options']['global']['multiselect'] = TRUE;
+
+  // Remove the last element (the empty element used to add new items)
+  unset($element[$element['#max_delta']]);
+  $element['#max_delta'] -= 1;
+
+  // If we now no longer has any items, change the theme to not get the
+  // empty table
+  if ($element['#max_delta'] < 0) {
+    $element['add_more']['#value'] = t('Select Media');
+    $element['#theme'] = 'media_multiselect_empty_field';
+  } else {
+    $element['add_more']['#value'] = t('Add Media');
+  }
+  
+  // Add our JS
+  $element['#attached'] = array(
+    'js' => array(
+      drupal_get_path('module', 'media_multiselect') . '/media_multiselect.js',
+    ),
+  );
+
+  // Attach the browser JS (this is normally done by the media-elements,
+  // but on empty nodes, there arent any media-elements, as we unset the
+  // empty placeholder)
+  module_load_include('inc', 'media', 'includes/media.browser');
+  media_attach_browser_js($element);
+
+  $element['#after_build'][] = 'media_multiselect_add_js_settings';
+  
+  // Change the AJAX info for the add-more button.
+  $element['add_more']['#ajax']['event'] = 'media_select';
+  $element['add_more']['#ajax']['callback'] = 'media_multiselect_add_more_callback';
+  $element['add_more']['#submit'][0] = 'media_multiselect_add_more_submit';
+  
+  return $element;
+}
+
+/**
+ * Element-process callback. See @media_multiselect_field_widget_form
+ */
+function media_multiselect_add_js_settings($element) {
+  static $processed = array();
+  
+  // Add the media-options so the add-more button has the correct options for
+  // opening the dialog.
+  // We use a static variable to prevent we add the settings more than once
+  $id = $element['add_more']['#id'];
+  if (empty($processed[$id])) {
+    drupal_add_js(array(
+      'media' => array(
+        'multi_select' => array(
+          'elements' => array(
+            $id => $element['#media_options'],
+          ),
+        ),
+      ),
+    ), 'setting');
+    $processed[$id] = TRUE;
+  }
+  
+  return $element;
+}
+
+/**
+ * Theme callback for empty multiselect media-fields
+ */
+function theme_media_multiselect_empty_field($vars) {
+  $element = $vars['element'];
+  
+  $attributes['class'] = array('form-item');
+  if (!empty($element['#type'])) {
+    $attributes['class'][] = 'form-type-' . strtr($element['#type'], '_', '-');
+  }
+  if (!empty($element['#name'])) {
+    $attributes['class'][] = 'form-item-' . strtr($element['#name'], array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
+  }
+  // Add a class for disabled elements to facilitate cross-browser styling.
+  if (!empty($element['#attributes']['disabled'])) {
+    $attributes['class'][] = 'form-disabled';
+  }
+  $output = '<div' . drupal_attributes($attributes) . '>' . "\n";
+  $output .= theme('form_element_label', $element);
+  $output .= '<div class="description">' . $element['#description'] . "</div>\n";
+  $output .= '<div class="clearfix">' . drupal_render($element['add_more']) . '</div>';
+  $output .= "</div>\n";
+  
+  return $output;
+}
+
+/**
+ * AJAX callback. See @media_multiselect_field_widget_form
+ */
+function media_multiselect_add_more_callback($form, $form_state) {
+  $button = $form_state['triggering_element'];
+
+  // Go one level up in the form, to the widgets container.
+  $elements = drupal_array_get_nested_value($form, array_slice($button['#array_parents'], 0, -1));
+
+  // Find the fids that was just added
+  $selected_fids = $form_state['input']['media_multiselect_fids'];
+
+  // Run through the elements in the form and add the 'ajax-new-content'
+  // wrapper around the new files
+  $children = element_children($elements);
+  foreach ($children AS $child) {
+    $element = &$elements[$child];
+    if (!empty($element['#value']['fid']) && in_array($element['#value']['fid'], $selected_fids)) {
+      $element['#prefix'] = '<div class="ajax-new-content">';
+      $element['#suffix'] = '</div>';
+    }
+  }
+  return $elements;
+}
+
+/**
+ * AJAX add-more button #submit. See @media_multiselect_field_widget_form
+ */
+function media_multiselect_add_more_submit($form, &$form_state) {
+  $button = $form_state['triggering_element'];
+
+  // Go one level up in the form, to the widgets container.
+  $element = drupal_array_get_nested_value($form, array_slice($button['#array_parents'], 0, -1));
+  $value = drupal_array_get_nested_value($form_state['values'], array_slice($button['#array_parents'], 0, -1));
+  
+  // Some convinient short-hand variables
+  $field_name = $element['#field_name'];
+  $langcode = $element['#language'];
+  $parents = $element['#field_parents'];
+  $field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
+  
+  // Remove the 'add more' value, because its not a file.
+  unset($value['add_more']);
+  
+  // Filter the existing values so only fid > 0 remains.
+  $value = array_filter($value, '_media_multiselect_filter_empty_value');
+  // Sort according to weight.
+  _field_sort_items($field_state['field'], $value);
+  
+  // Find the highest weight, so we know where to continue from.
+  $max_weight = empty($value) ? -1 : end(end($value));
+  
+  if (!empty($form_state['input']['media_multiselect_fids'])) {
+    // Add the selected fids to the list of values
+    foreach ($form_state['input']['media_multiselect_fids'] AS $fid) {
+      $value[] = array(
+        'fid' => $fid,
+        '_weight' => ++$max_weight,
+        );
+    }
+  }
+
+  // Update the Field State to the new amount of items
+  $field_state['items_count'] = count($value);
+  field_form_set_state($parents, $field_name, $langcode, $form_state, $field_state);
+  
+  // Update the Form State to make it seem like it received the new files as an input.
+  drupal_array_set_nested_value($form_state['input'], array_slice($button['#array_parents'], 0, -1), $value);
+  
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Helper function to remove empty file values (fid=0)
+ */
+function _media_multiselect_filter_empty_value($value) {
+  return !empty($value['fid']);
+}
+
+/**
+ * Implements hook_field_validate()
+ */
+function media_multiselect_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  media_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, $errors);
+}
+

@@ -1,0 +1,76 @@
+.scratchpads_messages {
+  padding: 0 50px !important;
+  margin: 0;
+  background-color: #f5f5b5;
+  color: #000;
+}
+
+.scratchpads_messages.notoolbar {
+  border-bottom: solid 1px black;
+}
+
+div.toolbar-drawer {
+  box-shadow: 0 3px 5px #000000;
+}
+
+.scratchpads_messages .item-list {
+  background-color: inherit !important;
+}
+
+.scratchpads_messages .item-list li {
+  float: none !important;
+  list-style-type: disc !important;
+  padding: 2px 0 !important;
+}
+
+.scratchpads_messages .item-list li:first-child {
+  padding-top: 8px !important;
+}
+
+.scratchpads_messages .item-list li:last-child {
+  padding-bottom: 6px !important;
+}
+
+.scratchpads_messages .item-list li a {
+  float: none !important;
+  font-size: 100% !important;
+  color: #0062A0 !important;
+  text-decoration:underline !important;
+}
+
+.scratchpads_messages form {
+  float: right;
+}
+
+.scratchpads_messages form .form-submit {
+  background-image: url('cross.png');
+}
+
+.scratchpads_messages .ajax-progress {
+  display: none !important;
+}
+
+.scratchpads_messages.tips {
+  position: absolute;
+  display: none;
+  border: solid 1px black;
+  z-index: 700;
+  top: -200px;
+  background-color: white;
+  padding: 10px !important;
+  opacity: 0.95;
+  filter: alpha(opacity = 95);
+  border-radius: 3px;
+  -moz-box-shadow: 0 3px 20px #000;
+  -webkit-box-shadow: 0 3px 20px #000;
+  box-shadow: 0 3px 20px #000;
+  filter: progid:DXImageTransform.Microsoft.Shadow(color=#000000,
+    direction='180', strength='10' );
+  -ms-filter:
+    "progid:DXImageTransform.Microsoft.Shadow(color=#000000, direction='180', strength='10')";
+}
+
+.scratchpads_messages.tips h2 {
+  font-weight: 700;
+  text-decoration: underline;
+}

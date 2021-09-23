@@ -1,0 +1,193 @@
+diff --git a/sites/all/modules/contrib/media/js/media.js b/sites/all/modules/contrib/media/js/media.js
+index 2151eef..9463def 100644
+--- a/sites/all/modules/contrib/media/js/media.js
++++ b/sites/all/modules/contrib/media/js/media.js
+@@ -35,7 +35,7 @@ Drupal.behaviors.mediaElement = {
+       }
+ 
+       // When someone clicks the link to pick media (or clicks on an existing thumbnail)
+-      $('.launcher', this).bind('click', function () {
++      $('.launcher', this).bind('click', function (e) {
+         // Launch the browser, providing the following callback function
+         // @TODO: This should not be an anomyous function.
+         Drupal.media.popups.mediaBrowser(function (mediaFiles) {
+@@ -49,17 +49,17 @@ Drupal.behaviors.mediaElement = {
+           // Set the preview field HTML.
+           previewField.html(mediaFile.preview);
+         }, globalOptions);
+-        return false;
++        e.preventDefault();
+       });
+ 
+       // When someone clicks the Remove button.
+-      $('.remove', this).bind('click', function () {
++      $('.remove', this).bind('click', function (e) {
+         // Set the value of the filefield fid (hidden) and trigger change.
+         fidField.val(0);
+         fidField.trigger('change');
+         // Set the preview field HTML.
+         previewField.html('');
+-        return false;
++        e.preventDefault();
+       });
+ 
+       // Show or hide the edit/remove buttons if the field has a file or not.
+diff --git a/sites/all/modules/contrib/media/js/plugins/media.views.js b/sites/all/modules/contrib/media/js/plugins/media.views.js
+index 95b673b..fb277bd 100644
+--- a/sites/all/modules/contrib/media/js/plugins/media.views.js
++++ b/sites/all/modules/contrib/media/js/plugins/media.views.js
+@@ -7,6 +7,7 @@
+ 
+ (function ($) {
+ 
++namespace('Drupal.media.browser.views');
+ Drupal.behaviors.mediaViews = {
+   attach: function (context, settings) {
+ 
+@@ -14,35 +15,94 @@ Drupal.behaviors.mediaViews = {
+     $('.view-content ul.media-list-thumbnails a').click(function() {
+       return false;
+     });
++    // We loop through the views listed in Drupal.settings.media.browser.views
++    // and set them up individually.
++    var views_ids = Object.keys(Drupal.settings.media.browser.views);
++    for( var i = 0; i < views_ids.length; i++) {
++      var views_id = views_ids[i];
++      for ( var j= 0; j < Drupal.settings.media.browser.views[views_id].length; j++) {
++        var views_display_id = Drupal.settings.media.browser.views[views_id][j]
++          , view = $('.view-id-' + views_id + '.view-display-id-' + views_display_id);
++        if (view.length) {
++          Drupal.media.browser.views.setup(view)
++        }
++      }
++    }
++    // We want to be able to reset state on tab-changes, so we bind on the
++    // 'select' event on the tabset
++    $('#media-browser-tabset').tabs({
++      select: function(e, ui) {
++        var view = $('.view', ui.panel);
++        if (view.length) {
++          Drupal.media.browser.views.select(view);
++        }
++      }
++    })
++  }
++}
+ 
+-    // Catch the click on a media item
+-    $('.view-content .media-item').bind('click', function () {
+-      // Remove all currently selected files
+-      $('.view-content .media-item').removeClass('selected');
+-      // Set the current item to active
+-      $(this).addClass('selected');
+-      // Add this FID to the array of selected files
+-      var fid = $(this).closest('a[data-fid]').data('fid');
++/**
++ * Event-function that is called with a view, when the tab containing that
++ * view is selected.
++ */
++Drupal.media.browser.views.select = function(view) {
++  // Reset the list of selected files
++  Drupal.media.browser.selectMedia([]);
+ 
+-      // Because the files are added using drupal_add_js() and due to the fact
+-      // that drupal_get_js() runs a drupal_array_merge_deep() which re-numbers
+-      // numeric key values, we have to search in Drupal.settings.media.files
+-      // for the matching file ID rather than referencing it directly.
+-      var selectedFiles = new Array();
+-      for (index in Drupal.settings.media.files) {
+-        if (Drupal.settings.media.files[index].fid == fid) {
+-          selectedFiles.push(Drupal.settings.media.files[index]);
++  // Reset all 'selected'-status.
++  $('.view-content .media-item', view).removeClass('selected');
++}
+ 
+-          // If multiple tabs contains the same file, it will be present in the
+-          // files-array multiple times, so we break out early so we don't have
+-          // it in the selectedFiles array multiple times.
+-          // This would interfer with multi-selection, so...
+-          break;
++/**
++ * Setup function. Called once for every Media Browser view.
++ *
++ * Sets up event-handlers for selecting items in the view.
++ */
++Drupal.media.browser.views.setup = function(view) {
++  // Catch the click on a media item
++  $('.view-content .media-item', view).bind('click', function () {
++    var fid = $(this).closest('a[data-fid]').data('fid')
++      , selectedFiles = new Array();
++    // Remove all currently selected files
++    $('.view-content .media-item', view).removeClass('selected');
++    // Mark it as selected
++    $(this).addClass('selected');
++    // Multiselect!
++    if (Drupal.settings.media.browser.params.multiselect) {
++      // Loop through the already selected files
++      for (index in Drupal.media.browser.selectedMedia) {
++        var currentFid = Drupal.media.browser.selectedMedia[index].fid;
++        // If the current file exists in the list of already selected
++        // files, we deselect instead of selecting
++        if (currentFid == fid) {
++          $(this).removeClass('selected')
++          fid = NaN; // If we change the fid, the later matching won't
++                     // add it back again because it can't find it.
++        // The previously selected file wasn't clicked, so we retain it
++        // as an active file
++        } else {
++          // Add to list of already selected files
++          selectedFiles.push(Drupal.media.browser.selectedMedia[index])
++          // Mark it as selected
++          $('.view-content *[data-fid=' + currentFid + '] .media-item', view).addClass('selected');
+         }
+       }
+-      Drupal.media.browser.selectMedia(selectedFiles);
+-    });
+-  }
++    }
++    // Because the files are added using drupal_add_js() and due to the fact
++    // that drupal_get_js() runs a drupal_array_merge_deep() which re-numbers
++    // numeric key values, we have to search in Drupal.settings.media.files
++    // for the matching file ID rather than referencing it directly.
++    for (index in Drupal.settings.media.files) {
++      if (Drupal.settings.media.files[index].fid == fid) {
++        selectedFiles.push(Drupal.settings.media.files[index]);
++        // If multiple tabs contains the same file, it will be present in the
++        // files-array multiple times, so we break out early so we don't have
++        // it in the selectedFiles array multiple times.
++        // This would interfer with multi-selection, so...
++        break;
++      }
++    }
++    Drupal.media.browser.selectMedia(selectedFiles);
++  });
+ }
+-
+-}(jQuery));
++}(jQuery));
+\ No newline at end of file
+diff --git a/sites/all/modules/contrib/media/media.views.inc b/sites/all/modules/contrib/media/media.views.inc
+index 58fd75e..f9d913c 100644
+--- a/sites/all/modules/contrib/media/media.views.inc
++++ b/sites/all/modules/contrib/media/media.views.inc
+@@ -70,6 +70,20 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
+   // Add the files to JS so that they are accessible inside the browser
+   drupal_add_js(array('media' => array('files' => array_values($files))), 'setting');
+ 
++  // Add the browser parameters to the settings and that this display exists
++  drupal_add_js(array(
++    'media' => array(
++      'browser' => array(
++        'params' => media_get_browser_params(),
++        'views' => array(
++          $vars['view']->name => array(
++            $vars['view']->current_display
++          ),
++        ),
++      ),
++    ),
++  ), 'setting');
++
+   // Add classes and wrappers from the style plugin.
+   $handler  = $vars['view']->style_plugin;
+ 

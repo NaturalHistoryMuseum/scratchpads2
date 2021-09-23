@@ -1,0 +1,103 @@
+/* $Id*/
+CHANGELOG for field_group for Drupal 7
+
+Field Group origin/7.x-1.x, 2017-11-04
+--------------------------------------
+- Tests fail after new 'administer fields' permission.
+- Update CHANGELOG.txt to 7.x-1.5 Release.
+- Revert "Issue #2646106 by jribeiro: Update CHANGELOG.txt to 7.x-1.5 Release".
+- Update CHANGELOG.txt to 7.x-1.5 Release.
+- Fix whitespace between "&" and parameters for some functions.
+- Avoid bad code pattern (that is picked up by security scanners) when getting hash.
+- Should #array_parents be updated in field_group_fields_nest()?.
+- "Show" appears in horizontal tab title if node form submitted through ajax.
+- CSS breaks i18n string translation interface.
+- "uncaught exception: Syntax error, unrecognized expression: #" after 7.x-1.4 update.
+- PHP7 - Uniform Variable Syntax updates are causing exported field_groups to not have names.
+
+Field_group 7.x-1.5
+    o Added extra formatting on html element attributes.
+    o Fixed bug on automatic ID generation in javascript.
+    o Issue #2511960 by rrfegade: spelling errors in D7.
+    o Issue #2194279 by Georgique: Export translatables (label and descriptions) in Features.
+    o Issue #2386335 by Dubs: Integer Group Array Keys can create empty node forms.
+    o Issue #2269133 by sammuell: Accordion is always closed when using jQuery update module.
+    o Issue #2258939 by Snipon: Fixed Change to preventDefault on multipage controls.
+    o Issue #2173937 by jantoine, omerida | Bernieman: Fixed Accordion Element has fixed height in HTML.
+    o Issue #2311789 by eelkeblok: Fixed Group is incorrectly determined to be empty with nested form elements.
+    o Issue #2272003 by karolrybak | Kwb: Fixed Fieldgroup no longer renders after using more than one 'HTML Element' on the same level.
+    o Issue #2309219 by czigor: Fixed Proper CTools exportable loading.
+    o Issue #2283245 by stefan.r | jrb: Fixed New id functionality breaks tests and CSS on existing field groups.
+    o Issue #2295133 by boyan.borisov, interX: Fixed field_group_update_7007 error.
+    o Remove field_group.css, the css is not needed anymore.
+    o Fix horiziontal tabs when used as standalone element.
+
+Field_group 7.x-1.4
+    o Issue #2129805 by RaF: Incorrect markup when open div & custom classes provided.
+    o Issue #2037731 by maximpodorov, Zach Harkey: Remove id attribute from HTML elements.
+    o Issue #2099505 by borisson_ | Maks: Warning: Invalid argument supplied for foreach() in field_group_build_entity_groups() (line 1894 ..sites/all/modules/field_group.
+    o Issue #2102397 by thebruce: Field Group 7006 update fails with "Cannot use string offset as an array in  /field_group/field_group.install on line 318.
+    o Issue #2122733 by Alan D.: Remove test module from admin listing.
+    o Issue #2212431 by tim.plunkett: Field groups that contain only elements that use #markup are hidden.
+    o Issue #2175731 by tobiasb, daggerhart: HTML produced by module is broken.
+    o Issue #2190425 by tobiasb: Fix attach behavior.
+    o Issue #1911530 by tobiasb, Simon Georges: Remove useless files[] directive from .info files.
+    o Issue #1358430 by oushen, tobiasb | FriedJam: JS "Error: uncaught exception: Syntax error, unrecognized expression:".
+    o Issue #2104391 by mike_san: Package descriptions.
+    o Issue #2189777 by gmercer: Exporting a feature with field groups sometimes leads to $field_group->data being set to an empty string.
+    o Issue #2168689 by Paul B: Beïng should be being.
+    o Issue #2037731 by rreiss, maximpodorov, Zach Harkey: Make id attribute optional. Current installations will default get the old ids
+    o Issue #2173351 by axe312: Add a label to html-element wrappers.
+    o Issue #1954056 by klonos: Proper capitalization in the project name.
+    o Issue #2224547 by sdrycroft: Fixed field_group_info_groups() clears all CTools caches when it should only clear the field_group caches.
+    o Issue #2099505 by joelpittet, borisson_ | Maks: Fixed Warning: Invalid argument supplied for foreach() in field_group_build_entity_groups() (line 1894 ..sites/all/modules/field_group.
+    o Issue #2223269 by barraponto: Fixed Don't filter and translate empty strings.
+
+Field_group 7.x-1.3
+    o Issue #2077695 by FreekVR | ChoY: Fixed field group entity display bug after update.
+    o Issue #2078201 by DeFr, eneko1907 | cmriley: Fixed Started getting a ton of notices.
+    o Issue #2085137 by ar-jan: Fixed Collapse speed no longer works with field_group() 1.2
+    o Issue #2085225 by dtarc: Fixed Featurized Field Groups no longer have classes since marked optional.
+    o Issue #2080645 by bassthiam: Fixed Warning: Illegal string offset 'label' in field_group_unpack() line 1682 of field_group()/field_group().module.
+    o Issue #1942676 by Harlor | El Bandito: Added Change the text 'Mark group for required fields.'.
+    o Issue #1358430 by FriedJam: Fixed JS 'Error: uncaught exception: Syntax error, unrecognized expression:".
+    o Issue #2084999 by activelink: Fixed Empty field groups aren't being suppressed since move to 7.x-1.2.
+    o Issue #1557258 by Mark Trapp | Chris Gillis: Fixed Existing field groups disappear and Add Field Group UI is disabled when no fields are available.
+    o Issue #2000110 by bigjim: Fixed Comments on field_group_read_groups() wrong
+    o Issue #1169146 by ankur, Nephele | jeffrey.dalton: Fixed upgrade from 7.x-1.0-rc2 to 7.x-1.0 deletes all field_groups().
+    o Vertical tabs always appear when children elements have no access
+    o #1966624 Feature 7.x-2.0-beta2 defines fields in a new way
+    o #2090415 Make horizontal tabs not dependent on form.js. Also change drupal_add_x to #attached
+    o
+
+Field_group 7.x-1.0-rc2
+    o Ran through coder, minor.
+    o Issue #1033036 by Stalski, swentel: Create a field_group.api.php.
+    o Made the summary descriptions more human readable.
+    o Issue #1086450: Cannot see red star on some field groups even required fields are set to 1.
+    o #1072292 by shadow_jh, stalski: Using on user settings page but need to hid on registration page.
+    o #1092360 by dww: Move field_group_update_7000 functionality to hook_install().
+    o #1061228 Rewrite the field_group_field_group_is_empty function.
+    o Added ID's to fieldgroups.
+    o Removed unused field_group.admin.inc + menu item. Required asterix moving to field_group setting.
+    o #1045526 by stalski: Make formatter options more user-friendly and logical.
+    o #1041880 by robertgarrigos: duplicated entries in field_group table.
+    o #1043834 by amsri: Field Group module just does not work with profiles 2.
+
+Field_group 7.x-1.0-rc1
+    o #1006464 Change #groups to #fieldgroups because of name collapsing with form_process_fieldset
+    o #1024184 fix collapsible when mode is set to open
+    o #1020278 by mori: Update fails.
+    o #1020116 by mikegfx: Confusing verbage across group types.
+    o #1018012 by mikegfx: Adding required asterisk to group tabs that have required fields.
+    o #960916 fixed reference warnings.
+    o No label anymore with div>open.
+    o #969258 Added check for fields and extra_fields.
+    o #960916 Fixed notice on for reference on group in field_group_settings.
+    o #961106 Fixed notice on entity type and bundle check.
+    o #962072 by mori: Improve CSS for horizontal tabs & accordion.
+    o Changed Fieldgroup API: defaults and instance_settings are now merged.
+    o Changed save action so everything is gathered during form_state to
+      postpone saving until the save button is hit.
+    o Changed some important variable name, so it makes more sense and easier to read.
+    o Add basic crud functions.

@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function eol_gbif_maps_schema(){
+  return array(
+    'eol_gbif_maps_tid_map' => array(
+      'description' => 'Simply stores the mapping between a taxonomic name and a GBIF taxon ID.',
+      'fields' => array(
+        'tid' => array(
+          'description' => 'Taxonomy ID.',
+          'type' => 'int',
+          'not null' => true
+        ),
+        'taxon_id' => array(
+          'description' => 'GBIF taxon ID.',
+          'type' => 'int',
+          'not null' => true
+        )
+      ),
+      'primary key' => array(
+        'tid'
+      )
+    )
+  );
+}

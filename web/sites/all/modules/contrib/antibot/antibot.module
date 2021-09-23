@@ -1,0 +1,198 @@
+<?php
+
+/**
+ * @file
+ * Attempt to prevent robotic form submissions and spam.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function antibot_menu() {
+  $items = array();
+  $items['antibot'] = array(
+    'title' => 'Submission failed',
+    'page callback' => 'antibot_landing_page',
+    'access callback' => TRUE,
+    'file' => 'antibot.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/system/antibot'] = array(
+    'title' => 'Antibot',
+    'description' => 'Configure Antibot form protection.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('antibot_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'antibot.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function antibot_theme() {
+  $theme = array();
+  $theme['antibot_no_js'] = array(
+    'variables' => array(
+      'message' => NULL,
+    ),
+    'template' => 'templates/antibot-no-js',
+  );
+  return $theme;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function antibot_form_alter(&$form, &$form_state, $form_id) {
+  // Track if this form is antibot-enabled.
+  $enabled = FALSE;
+
+  // See if this form should have antibot protection.
+  if (drupal_match_path($form_id, antibot_active_form_ids())) {
+    // Add antibot protection.
+    antibot_protect_form($form);
+
+    // Mark as enabled.
+    $enabled = TRUE;
+  }
+
+  // Check if we should display the form ID.
+  if (variable_get('antibot_show_form_ids', FALSE)) {
+    // Check if the user has permission to view the form ID.
+    if (user_access('administer site configuration')) {
+      // Display the form ID and status.
+      drupal_set_message("{$form_id}: " . ($enabled ? t('active') : t('inactive')));
+    }
+  }
+}
+
+/**
+ * Helper function to enable Antibot protection for a given form.
+ *
+ * @param array &$form
+ *   The form to enable Antibot protection on.
+ */
+function antibot_protect_form(array &$form) {
+  // Ensure the form has an ID set.
+  if (!empty($form['#form_id'])) {
+    // Generate a key for this form.
+    $key = md5($form['#form_id']);
+
+    // Store the key in the form.
+    $form['#antibot_key'] = $key;
+
+    // Add a hidden value which will receive the key via JS.
+    // The point of this is to add an additonal layer of protection for remotely
+    // POSTed forms. Since the key will not be present in that scenario, the
+    // remote post will fail.
+    $form['antibot_key'] = array(
+      '#type' => 'hidden',
+      '#value' => '',
+    );
+
+    // Add validation for the key.
+    $form['#validate'][] = 'antibot_form_validation';
+  }
+
+  // Add a pre-render to activate antibot.
+  $form['#pre_render'][] = 'antibot_form_pre_render';
+}
+
+/**
+ * Determine the form IDs that should contain Antibot protection.
+ *
+ * @return string
+ *   A list of form IDs that can contain wildcard (*) characters. The
+ *   form IDs are separated by newline characters.
+ */
+function antibot_active_form_ids() {
+  // See if we have IDs set.
+  if (!($ids = variable_get('antibot_form_ids', NULL))) {
+    // Provide default IDs.
+    $ids = implode("\n", array(
+      'comment_node_*',
+      'user_login',
+      'user_login_block',
+      'user_pass',
+      'user_register_form',
+      'contact_site_form',
+    ));
+  }
+
+  return $ids;
+}
+
+/**
+ * Pre-render callback on forms that have Antibot protection.
+ *
+ * @see antibot_protect_form()
+ */
+function antibot_form_pre_render($form) {
+  // Attach the needed JavaScript to re-enable this form.
+  $form['antibot'] = array(
+    '#attached' => array(
+      'js' => array(
+        array(
+          'type' => 'setting',
+          'data' => array(
+            'antibot' => array(
+              'forms' => array(
+                $form['#id'] => array(
+                  'action' => $form['#action'],
+                  'key' => !empty($form['#antibot_key']) ? $form['#antibot_key'] : NULL,
+                ),
+              ),
+            ),
+          ),
+        ),
+        drupal_get_path('module', 'antibot') . '/js/antibot.js',
+      ),
+    ),
+  );
+
+  // Change the action so the submission does not go through.
+  $form['#action'] = base_path() . 'antibot';
+
+  // Add a class to the form.
+  $form['#attributes']['class'][] = 'antibot';
+
+  // Provide a message in the event that the user does not have JavaScript.
+  $no_js = array(
+    '#theme' => 'antibot_no_js',
+    '#weight' => -500,
+    '#message' => t('You must have JavaScript enabled to use this form.'),
+  );
+  $no_js = drupal_render($no_js);
+
+  // Inject the message in to the form.
+  if (!isset($form['#prefix'])) {
+    $form['#prefix'] = '';
+  }
+  $form['#prefix'] = $no_js . $form['#prefix'];
+
+  return $form;
+}
+
+/**
+ * Validation to Antibot-protected forms.
+ *
+ * @see antibot_protect_form()
+ */
+function antibot_form_validation($form, &$form_state) {
+  // Check if a key was provided in the form.
+  if (!empty($form['#antibot_key'])) {
+    // Views exposed forms will initially load and submit without the key.
+    if (($form['#form_id'] == 'views_exposed_form') && empty($form_state['input']['antibot_key'])) {
+      // We must allow this.
+      return;
+    }
+
+    // Validate the key.
+    if (empty($form_state['input']['antibot_key']) || ($form['#antibot_key'] != $form_state['input']['antibot_key'])) {
+      // Prevent the form from submitting.
+      form_set_error('', t('Submission failed. Please reload the page and try again.'));
+    }
+  }
+}

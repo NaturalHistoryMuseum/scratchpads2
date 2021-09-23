@@ -1,0 +1,101 @@
+.advanced-help-topic pre {
+  background: #f1f1f1;
+  border: 1px solid #ccc;
+  display: block;
+  margin: 1em;
+  padding: .4em;
+}
+
+.advanced-help-topic pre.readme {
+  background: white;
+  border: none;
+  margin: 0em;
+  padding: .4em;
+}
+
+.advanced-help-topic h3,
+.advanced-help-topic h4,
+.advanced-help-topic h5,
+.advanced-help-topic h6,
+.advanced-help-topic dt {
+  font-weight: bold;
+}
+
+.advanced-help-topic li h3,
+.advanced-help-topic li h4,
+.advanced-help-topic li h5,
+.advanced-help-topic li h6 {
+  font-weight: normal;
+}
+
+.attribution {
+  font-size: 0.8em;
+  color: #aaa;
+}
+
+.help-left {
+  display: block;
+  float: left; /* LTR */
+  text-align: left;
+  width: 42%;
+}
+
+.help-up {
+  display: block;
+  float: left; /* LTR */
+  margin: 0 5%;
+  text-align: center;
+  width: 10%;
+}
+
+.help-up-noleft {
+  display: block;
+  float: left; /* LTR */
+  margin: 0 5%;
+  text-align: right;
+  width: 42%;
+}
+
+.help-right {
+  display: block;
+  float: right;
+  text-align: right;
+  width: 42%;
+}
+
+.help-box {
+  margin: .5em;
+}
+
+.help-block {
+  display: block;
+  clear: both;
+}
+
+.help-img-left {
+  margin-right: 1.5em;
+  border: solid 1px #ccc;
+}
+
+.ta-center {
+  margin: 1em;
+  text-align: center;
+}
+
+.help-img-center {
+  margin-left: auto;
+  margin-right: auto;
+  border: solid 1px #ccc;
+}
+
+.help-navigation {
+  border-top: 1px dotted #ccc;
+}
+
+.help-previous {
+  float: left;
+}
+
+.help-next {
+  float: right;
+}

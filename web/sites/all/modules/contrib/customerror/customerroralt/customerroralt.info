@@ -1,0 +1,13 @@
+name = Custom error alternate for authenticated
+description = Enables the creation of an "insufficient permissions" page for authenticated users, as distinct from "please log in" for anonymous users.<br /><small>Machine name: customerroralt</small>
+core = 7.x
+configure = admin/config/system/customerror
+files[] = customerroralt.test
+dependencies[] = customerror
+
+; Information added by Drupal.org packaging script on 2015-03-18
+version = "7.x-1.4"
+core = "7.x"
+project = "customerror"
+datestamp = "1426666083"
+

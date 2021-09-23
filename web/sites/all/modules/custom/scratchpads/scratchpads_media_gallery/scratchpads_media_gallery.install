@@ -1,0 +1,567 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_media_gallery_install(){
+  db_insert('apachesolr_search_page')->fields(array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)',
+        '-im_field_weight:100'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '56',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  ))->execute();
+  // Ensure we're indexing the requried files
+  foreach(array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'image'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'video'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'audio'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
+    )
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
+  }
+  $vocabularies = array(
+    'image_keywords' => array(
+      'name' => 'Image keywords',
+      'machine_name' => 'image_keywords',
+      'description' => 'Keywords',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'rdf_mapping' => array(
+        'rdftype' => array(
+          0 => 'skos:ConceptScheme'
+        ),
+        'name' => array(
+          'predicates' => array(
+            0 => 'dc:title'
+          )
+        ),
+        'description' => array(
+          'predicates' => array(
+            0 => 'rdfs:comment'
+          )
+        )
+      )
+    ),
+    'imaging_technique' => array(
+      'name' => 'Imaging technique',
+      'machine_name' => 'imaging_technique',
+      'description' => 'Describes the method or equipment used to produce the image.',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'rdf_mapping' => array(
+        'rdftype' => array(
+          0 => 'skos:ConceptScheme'
+        ),
+        'name' => array(
+          'predicates' => array(
+            0 => 'dc:title'
+          )
+        ),
+        'description' => array(
+          'predicates' => array(
+            0 => 'rdfs:comment'
+          )
+        )
+      )
+    ),
+    'preparation_technique' => array(
+      'name' => 'Preparation technique',
+      'machine_name' => 'preparation_technique',
+      'description' => 'Describe how the specimen was prepared for imaging.',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'rdf_mapping' => array(
+        'rdftype' => array(
+          0 => 'skos:ConceptScheme'
+        ),
+        'name' => array(
+          'predicates' => array(
+            0 => 'dc:title'
+          )
+        ),
+        'description' => array(
+          'predicates' => array(
+            0 => 'rdfs:comment'
+          )
+        )
+      )
+    )
+  );
+  foreach($vocabularies as $vocabulary){
+    $vocabulary = (object)$vocabulary;
+    taxonomy_vocabulary_save($vocabulary);
+  }
+  $terms = array(
+    array(
+      'name' => 'Photograph',
+      'description' => 'Captured with a regular camera.'
+    ),
+    array(
+      'name' => 'Illustration',
+      'description' => 'Figurative, hand drawn or computer rendered.'
+    ),
+    array(
+      'name' => 'Light Micrograph',
+      'description' => 'Captured through a regular microscope.'
+    ),
+    array(
+      'name' => 'Scan',
+      'description' => 'A scan of a printed image/diagram/text'
+    ),
+    array(
+      'name' => 'Scanning Electron Micrograph',
+      'description' => 'Captured through a Scanning Electron Microscope.'
+    ),
+    array(
+      'name' => 'Transmission Electron Micrograph',
+      'description' => 'Captured through a Transmission Electron Microscope.'
+    ),
+    array(
+      'name' => 'Other',
+      'description' => 'None of the above.'
+    )
+  );
+  $vocabulary = taxonomy_vocabulary_machine_name_load('imaging_technique');
+  foreach($terms as $term){
+    $term = (object)$term;
+    $term->vid = $vocabulary->vid;
+    taxonomy_term_save($term);
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function scratchpads_media_gallery_uninstall(){
+  db_delete('apachesolr_search_page')->condition('page_id', 'media_gallery')->execute();
+}
+
+/**
+ * Page media field should not be required
+ */
+function scratchpads_media_gallery_update_7001(){
+  $instance = field_read_instance('node', 'field_media', 'page');
+  $instance['required'] = 0;
+  field_update_instance($instance);
+  return 'Updated page media field';
+}
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function scratchpads_media_gallery_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'scratchpads_media_gallery')->execute();
+}
+
+/**
+ * Update the page instance of the field_media field to alter its display. 
+ */
+function scratchpads_media_gallery_update_7003(){
+  $field_instance = field_info_instance('node', 'field_media', 'page');
+  $field_instance['display'] = array(
+    'default' => array(
+      'label' => 'above',
+      'module' => 'file_entity',
+      'settings' => array(
+        'file_view_mode' => 'file_styles_square_thumbnail'
+      ),
+      'type' => 'file_rendered',
+      'weight' => '12'
+    ),
+    'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 1
+    ),
+    'teaser' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0
+    )
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Update the field_description field so that it uses formatted text.
+ */
+function scratchpads_media_gallery_update_7004(){
+  $bundles = array(
+    'audio',
+    'image',
+    'video'
+  );
+  foreach($bundles as $bundle){
+    $field_instance = field_info_instance('file', 'field_description', $bundle);
+    $field_instance['settings']['text_processing'] = 1;
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Update the page and media gallery instance of the field_media field to alter
+ * the widget it uses. 
+ */
+function scratchpads_media_gallery_update_7005(){
+  foreach(array(
+    'page',
+    'media_gallery'
+  ) as $bundle){
+    $field_instance = field_info_instance('node', 'field_media', $bundle);
+    $field_instance['widget'] = array(
+      'active' => 1,
+      'module' => 'media_multiselect',
+      'settings' => array(
+        'allowed_schemes' => array(),
+        'allowed_types' => array(
+          'audio' => 'audio',
+          'default' => 0,
+          'image' => 'image',
+          'video' => 'video'
+        ),
+        'browser_plugins' => array(
+          'media_default--media_browser_1' => 0,
+          'media_default--media_browser_my_files' => 0,
+          'upload' => 0
+        ),
+        'progress_indicator' => 'throbber'
+      ),
+      'type' => 'media_multiselect',
+      'weight' => '-3'
+    );
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Update the image instance of the field_taxonomic_name field to set it to
+ * display in the colorbox style.
+ */
+function scratchpads_media_gallery_update_7006(){
+  $field_instance = field_info_instance('file', 'field_taxonomic_name', 'image');
+  $field_instance['display']['file_styles_colorbox'] = array(
+    'label' => 'above',
+    'module' => 'taxonomy',
+    'settings' => array(),
+    'type' => 'taxonomy_term_reference_plain',
+    'weight' => 0
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Add weight field to image files
+ */
+function scratchpads_media_gallery_update_7007(){
+  module_load_include('inc', 'features', 'features.export');
+  features_include();
+  field_features_rebuild('scratchpads_media_gallery');
+}
+
+/**
+ * Set the site's default licence on media fields.
+ */
+function scratchpads_media_gallery_update_7008(){
+  // Update all instances of field_cc_licence.
+  $info = field_info_field('field_cc_licence');
+  foreach($info['bundles'] as $entity => $bundles){
+    foreach($bundles as $bundle){
+      $instance = field_info_instance($entity, 'field_cc_licence', $bundle);
+      $instance['default_value'][0]['licence'] = variable_get('creative_commons_block_licence_type', CC_BY);
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * scratchpads_media_gallery_update_7009 was renamed to ...7016.
+ */
+/**
+ * Display the label for the Licence field.
+ */
+function scratchpads_media_gallery_update_7010(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  field_update_instance($fields['file-image-field_keywords']['field_instance']);
+  field_update_instance($fields['file-image-field_cc_licence']['field_instance']);
+  field_update_instance($fields['file-video-field_cc_licence']['field_instance']);
+  field_update_instance($fields['file-audio-field_cc_licence']['field_instance']);
+}
+
+/**
+ * Display the creator field in the colorbox.
+ */
+function scratchpads_media_gallery_update_7011(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  field_update_instance($fields['file-image-field_creator']['field_instance']);
+}
+
+/**
+ * Update the media gallery search page settings to allow the custom filter.
+ */
+function scratchpads_media_gallery_update_7012(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '50',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  ))->key(array(
+    'page_id' => 'media_gallery'
+  ))->execute();
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_media_gallery_update_7013(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  foreach(scratchpads_media_gallery_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
+
+/**
+ *  Update the settings to show 56 images per page
+ */
+function scratchpads_media_gallery_update_7014(){
+  $search_page = array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '56',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  );
+  apachesolr_search_page_save($search_page);
+}
+
+/**
+ * Also index the text and application file types.
+ */
+function scratchpads_media_gallery_update_7015(){
+  foreach(array(
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'application'
+    ),
+    array(
+      'env_id' => 'solr',
+      'entity_type' => 'file',
+      'bundle' => 'text'
+    )
+  ) as $value){
+    db_merge('apachesolr_index_bundles')->key($value)->fields($value)->execute();
+  }
+}
+
+/**
+ * Update the extensions allowed.
+ */
+function scratchpads_media_gallery_update_7016(){
+  $media = field_info_field('field_media');
+  foreach($media['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle_name){
+      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
+      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Update field field_media descriptions
+ */
+function scratchpads_media_gallery_update_7017(){
+  module_load_include('features.field.inc', 'scratchpads_media_gallery');
+  $fields = scratchpads_media_gallery_field_default_fields();
+  if(field_info_instance('node', 'field_media', 'media_gallery')){
+    field_update_instance($fields['node-media_gallery-field_media']['field_instance']);
+  }
+  if(field_info_instance('node', 'field_media', 'page')){
+    field_update_instance($fields['node-page-field_media']['field_instance']);
+  }
+}
+
+/**
+ * Add default value of "0" to all image entities.
+ */
+function scratchpads_media_gallery_update_7018(){
+  $select_data = db_select('file_managed', 'f');
+  $select_data->addExpression("'file'", 'entity_type');
+  $select_data->addExpression("'image'", 'bundle');
+  $select_data->addExpression(0, 'deleted');
+  $select_data->addExpression('fid', 'entity_id');
+  $select_data->addExpression('fid', 'revision_id');
+  $select_data->addExpression("'" . LANGUAGE_NONE . "'", 'language');
+  $select_data->addExpression(0, 'delta');
+  $select_data->addExpression(0, 'field_weight_value');
+  $select_revision = clone $select_data;
+  // field_data_field_weight query
+  $subquery = db_select('field_data_field_weight', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $select_data->condition('fid', $subquery, 'NOT IN');
+  db_insert('field_data_field_weight')->from($select_data)->execute();
+  // field_data_field_weight query
+  $subquery = db_select('field_revision_field_weight', 'f')->fields('f', array(
+    'entity_id'
+  ));
+  $select_revision->condition('fid', $subquery, 'NOT IN');
+  db_insert('field_revision_field_weight')->from($select_revision)->execute();
+}
+
+/**
+ * Hide images with weight 100 from the media gallery page.
+ */
+function scratchpads_media_gallery_update_7019(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'media_gallery',
+    'label' => t('Media gallery'),
+    'description' => 'Search the site\'s media.',
+    'search_path' => 'gallery',
+    'env_id' => 'solr',
+    'page_title' => t('Media gallery'),
+    'settings' => serialize(array(
+      'fq' => array(
+        'entity_type:file',
+        'bundle:(image OR video OR audio)',
+        '-im_field_weight:100'
+      ),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'custom',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '56',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0
+    ))
+  ))->key(array(
+    'page_id' => 'media_gallery'
+  ))->execute();
+}
+
+/**
+ * Remove the allowed_scheme options from the field_media field 
+ */
+function scratchpads_media_gallery_update_7020(){
+  foreach(array(
+    'page',
+    'media_gallery'
+  ) as $bundle){
+    $field_instance = field_info_instance('node', 'field_media', $bundle);
+    if($field_instance){
+      $field_instance['widget']['settings']['allowed_schemes'] = array();
+      field_update_instance($field_instance);
+    }
+  }
+}
+
+/**
+ * Update the extensions allowed to include tif.
+ */
+function scratchpads_media_gallery_update_7021(){
+  $media = field_info_field('field_media');
+  foreach($media['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle_name){
+      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
+      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Update the extensions allowed to include fas.
+ */
+function scratchpads_media_gallery_update_7022(){
+  $media = field_info_field('field_media');
+  foreach($media['bundles'] as $entity_type => $bundles){
+    foreach($bundles as $bundle_name){
+      $instance = field_info_instance($entity_type, 'field_media', $bundle_name);
+      $instance['settings']['file_extensions'] = FIELD_MEDIA_FILE_EXTENSIONS;
+      field_update_instance($instance);
+    }
+  }
+}

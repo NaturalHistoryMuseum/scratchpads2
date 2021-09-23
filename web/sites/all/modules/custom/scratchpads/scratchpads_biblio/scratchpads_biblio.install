@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Set the title for blank titled biblio nodes.
+ */
+function scratchpads_biblio_update_7001(){
+  $blank = t('[TITLE BLANK]');
+  db_query("UPDATE {node_revision} SET title = :title WHERE title = '' AND nid IN (SELECT nid FROM {node} WHERE type = 'biblio')", array(
+    ':title' => $blank
+  ));
+  db_update('node')->fields(array(
+    'title' => $blank
+  ))->condition('type', 'biblio')->condition('title', '')->execute();
+}
+
+/**
+ * Set the field_file field to allow extra extensions (images).
+ */
+function scratchpads_biblio_update_7002(){
+  $field_instance = field_info_instance('node', 'field_file', 'biblio');
+  $field_instance['settings']['file_extensions'] = 'txt pdf doc png jpg gif';
+  field_update_instance($field_instance);
+}
+
+/**
+ * Set the field_file field to allow extra extensions (images).
+ */
+function scratchpads_biblio_update_7003(){
+  module_load_include('features.field.inc', 'scratchpads_biblio');
+  $fields = scratchpads_biblio_field_default_fields();
+  field_update_instance($fields['node-biblio-field_file']['field_instance']);
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_biblio_update_7004(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_biblio');
+  foreach(scratchpads_biblio_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
+
+/**
+ * Remove the allowed_scheme options from the field_file field
+ */
+function scratchpads_biblio_update_7005(){
+  $field_instance = field_info_instance('node', 'field_file', 'biblio');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}

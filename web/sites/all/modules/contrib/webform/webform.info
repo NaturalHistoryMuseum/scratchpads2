@@ -1,0 +1,47 @@
+; $Id: $
+name = Webform
+description = Enables the creation of forms and questionnaires.
+core = 7.x
+package = Webform
+configure = admin/config/content/webform
+php = 5.3
+dependencies[] = ctools
+dependencies[] = views
+test_dependencies[] = token
+
+; Files that contain classes:
+files[] = includes/webform.webformconditionals.inc
+
+files[] = includes/exporters/webform_exporter_delimited.inc
+files[] = includes/exporters/webform_exporter_excel_delimited.inc
+files[] = includes/exporters/webform_exporter_excel_xlsx.inc
+files[] = includes/exporters/webform_exporter.inc
+
+files[] = views/webform_handler_field_form_body.inc
+files[] = views/webform_handler_field_is_draft.inc
+files[] = views/webform_handler_field_node_link_edit.inc
+files[] = views/webform_handler_field_node_link_results.inc
+files[] = views/webform_handler_field_submission_count.inc
+files[] = views/webform_handler_field_submission_data.inc
+files[] = views/webform_handler_field_submission_link.inc
+files[] = views/webform_handler_field_webform_status.inc
+files[] = views/webform_handler_filter_is_draft.inc
+files[] = views/webform_handler_filter_submission_data.inc
+files[] = views/webform_handler_filter_webform_status.inc
+files[] = views/webform_handler_area_result_pager.inc
+files[] = views/webform_plugin_row_submission_view.inc
+files[] = views/webform_handler_relationship_submission_data.inc
+files[] = views/webform.views.inc
+
+files[] = tests/components.test
+files[] = tests/conditionals.test
+files[] = tests/permissions.test
+files[] = tests/submission.test
+files[] = tests/webform.test
+
+; Information added by Drupal.org packaging script on 2015-03-26
+version = "7.x-4.7"
+core = "7.x"
+project = "webform"
+datestamp = "1427387585"
+

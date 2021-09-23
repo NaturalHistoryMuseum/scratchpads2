@@ -1,0 +1,55 @@
+<?php
+
+class ScratchpadsWidthAndHeightTestCase extends DrupalUnitTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Width And Height (Unit Tests)',
+      'description' => 'Tests scratchpads width and height theme_image() function',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Test the theme function with various data
+   */
+  function testWidthAndHeight(){
+    require_once('./' . drupal_get_path('module', 'scratchpads_width_and_height') . '/scratchpads_width_and_height.module');
+    global $base_url;
+    $height = rand(1, 1000);
+    $width = rand(1, 1000);
+    $title = $this->randomName();
+    $alt = $this->randomName();
+    $path = 'some_path/some_image.jpg';
+    $variables = array(
+      'path' => $path,
+      'width' => $width,
+      'height' => $height,
+      'alt' => $alt,
+      'attributes' => array()
+    );
+    $formatted_image_tag = scratchpads_width_and_height_theme_image($variables);
+    $expected_result = '<img src="' . $base_url . '/' . $path . '" width="' . $width . '" height="' . $height . '" alt="' . $alt . '" />';
+    $this->assertEqual($formatted_image_tag, $expected_result, 'Returns expected result when width and height are set, without title');
+    $variables2 = array(
+      'path' => $path,
+      'width' => $width,
+      'height' => $height,
+      'alt' => $alt,
+      'title' => $title,
+      'attributes' => array()
+    );
+    $formatted_image_tag2 = scratchpads_width_and_height_theme_image($variables2);
+    $expected_result2 = '<img src="' . $base_url . '/' . $path . '" width="' . $width . '" height="' . $height . '" alt="' . $alt . '" title="' . $title . '" />';
+    $this->assertEqual($formatted_image_tag2, $expected_result2, 'Returns expected result when width and height are set, with title');
+    // test without height and width
+    $variables3 = array(
+      'path' => $path,
+      'alt' => $alt,
+      'attributes' => array()
+    );
+    $formatted_image_tag3 = scratchpads_width_and_height_theme_image($variables3);
+    $expected_result3 = '<img src="' . $base_url . '/' . $path . '" alt="' . $alt . '" />';
+    $this->assertEqual($formatted_image_tag3, $expected_result3, 'Returns expected result when width and height and title not set');
+  }
+}

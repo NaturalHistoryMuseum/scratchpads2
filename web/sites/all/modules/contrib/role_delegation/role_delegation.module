@@ -1,0 +1,401 @@
+<?php
+
+/**
+ * @file
+ *
+ * This module allows site administrators to grant some roles the authority to
+ * change roles assigned to users, without them needing the 'administer access
+ * control' permission.
+ *
+ * It provides its own tab in the user profile so that roles can be changed
+ * without needing access to the user edit form.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function role_delegation_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#role_delegation':
+      $output = '<p>' . t('This module allows site administrators to grant some roles the authority to assign selected roles to users, without them needing the <em>administer permissions</em> permission.') . '</p>';
+      $output .= '<p>' . t('It provides its own tab in the user profile so that roles can be assigned without needing access to the user edit form.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function role_delegation_theme() {
+  return array(
+    'role_delegation_delegate_roles_action_form' => array(
+      'render element' => 'form',
+    ),
+  );
+};
+
+/**
+ * Implements hook_permission().
+ */
+function role_delegation_permission() {
+  $roles = _role_delegation_roles();
+  $perms['assign all roles'] = array(
+    'title' => t('Assign all roles'),
+    'restrict access' => TRUE,
+  );
+  foreach ($roles as $rid => $role) {
+    $perms["assign $role role"] = array(
+      'title' => t('Assign %role role', array('%role' => $role)),
+    );
+  }
+  return $perms;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function role_delegation_menu() {
+  $items['user/%user/roles'] = array(
+    'title' => 'Roles',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('role_delegation_roles_form', 1),
+    'access callback' => 'role_delegation_access',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Helper function to create the role options.
+ */
+function _role_delegation_add_roles_to_form(&$form, $account) {
+  $roles_current = $account->roles;
+
+  $roles_delegate = array();
+  $roles = _role_delegation_roles();
+  foreach ($roles as $rid => $role) {
+    if (user_access('assign all roles') || user_access("assign $role role")) {
+      $roles_delegate[$rid] = isset($form['account']['roles']['#options'][$rid]) ? $form['account']['roles']['#options'][$rid] : $role;
+    }
+  }
+
+  if (empty($roles_delegate)) {
+    // No role can be assigned.
+    return;
+  }
+
+  if (!isset($form['account'])) {
+    $form['account'] = array(
+      '#type' => 'value',
+      '#value' => $account,
+    );
+  }
+
+  // Generate the form items.
+  $form['account']['roles_change'] = array(
+    '#type' => 'checkboxes',
+    '#title' => isset($form['account']['roles']['#title']) ? $form['account']['roles']['#title'] : t('Roles'),
+    '#options' => $roles_delegate,
+    '#default_value' => array_keys(array_intersect_key($roles_current, $roles_delegate)),
+    '#description' => isset($form['account']['roles']['#description']) ? $form['account']['roles']['#description'] : t('Change roles assigned to user.'),
+  );
+}
+
+/**
+ * Provides a form for assigning roles to the current user.
+ */
+function role_delegation_roles_form($form, $form_state, $account) {
+  _role_delegation_add_roles_to_form($form, $account);
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Saves the roles assigned to the account given in the form.
+ */
+function role_delegation_roles_form_submit($form, &$form_state) {
+  if (is_array($form_state['values']['roles_change']) && isset($form_state['values']['account']->uid)) {
+    $uid = (int)$form_state['values']['account']->uid;
+    role_delegation_save(array($uid), $form_state['values']['roles_change']);
+    drupal_set_message(t('The roles have been updated.'));
+  }
+}
+
+function role_delegation_save($uids, $roles_change) {
+  $rolenames = user_roles(TRUE);
+  foreach ($roles_change as $rid => $value) {
+    if (!empty($value)) {
+      // Use the role name for changed roles.
+      $roles_change[$rid] = $rolenames[$rid];
+    }
+  }
+
+  $accounts = user_load_multiple($uids);
+  foreach ($accounts as $account) {
+    $roles_current = $account->roles;
+    $roles = array_filter($roles_change + $roles_current);
+    user_save($account, array('roles' => $roles));
+  }
+}
+
+/**
+ * Access callback for menu hook.
+ */
+function role_delegation_access() {
+  // Check access to user profile page.
+  if (!user_access('access user profiles')) {
+    return FALSE;
+  }
+  // Check if they can edit users. In that case, the Roles tab is not needed.
+  if (user_access('administer users')) {
+    return FALSE;
+  }
+  // Check access to role assignment page.
+  if (user_access('administer permissions')) {
+    return TRUE;
+  }
+  $perms = array_keys(role_delegation_permission());
+  foreach ($perms as $perm) {
+    if (user_access($perm)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns all existing roles, except anonymous and authenticated user.
+ */
+function _role_delegation_roles() {
+  $roles = user_roles(TRUE);
+  unset($roles[DRUPAL_AUTHENTICATED_RID]);
+  // Do not allow to delegate users to administator role. Let's keep this
+  // privilege to users with 'Administer permissions' permission only.
+  unset($roles[variable_get('user_admin_role', 0)]);
+  return $roles;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function role_delegation_form_alter(&$form, $form_state, $form_id) {
+  // Only add role delegation options to:
+  // * Registration tab of account registration form
+  // * Account editing tab of account editing form
+  // These are normally the only tabs present on those forms, but other tabs may be added
+  // by other modules, e.g. profile editing tabs by Profile 2.
+  if (!(   ($form_id == 'user_register_form' && $form['#user_category'] == 'register')
+        || ($form_id == 'user_profile_form'  && $form['#user_category'] == 'account' ) )) {
+    return;
+  }
+  if (user_access('administer permissions')) {
+    return;
+  }
+
+  $account = $form['#user'];
+  _role_delegation_add_roles_to_form($form, $account);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_admin_role().
+ */
+function role_delegation_form_user_admin_role_alter(&$form, $form_state) {
+  $form['#submit'][] = 'role_delegation_form_user_admin_role_submit';
+}
+
+/**
+ * Submit function for the user_admin_role form:
+ * When a role is renamed, renames the "assign role" permission for that role.
+ * We can't use hook_user_role_update() for this, because it doesn't have
+ * access to the old role name.
+ */
+function role_delegation_form_user_admin_role_submit($form, $form_state) {
+  $op = $form_state['values']['op'];
+  if ($op != t('Save role')) {
+    return;
+  }
+  $oldrole = $form_state['build_info']['args'][0]->name;
+  $newrole = $form_state['values']['name'];
+  if ($oldrole == $newrole) {
+    return;
+  }
+  db_update('role_permission')
+  ->condition('permission', "assign $oldrole role")
+  ->fields(array('permission' => "assign $newrole role"))
+  ->execute();
+}
+
+/**
+ * Implements hook_user_role_delete().
+ * When a role is deleted, deletes the "assign role" permission for that role.
+ */
+function role_delegation_user_role_delete($role) {
+  db_delete('role_permission')
+  ->condition('permission', "assign {$role->name} role")
+  ->execute();  
+}
+
+/**
+ * Implements hook_user_presave().
+ */
+function role_delegation_user_presave(&$edit, $account, $category) {
+  if (isset($edit['roles_change'])) {
+    $edit['roles'] = array_filter($edit['roles_change'] + $edit['roles']);
+    unset($edit['roles_change']);
+  }
+}
+
+/**
+ * Implements hook_user_operations().
+ */
+function role_delegation_user_operations($form = array(), $form_state = array()) {
+  // Only provide role add/remove operations when user can't assign permissions
+  // without Role Delegation.
+  if (user_access('administer permissions')) {
+    return;
+  }
+
+  // Provide add/remove operations for delegated roles.
+  $add_roles = array();
+  $remove_roles = array();
+  foreach (_role_delegation_roles() as $rid => $role) {
+    if (user_access('assign all roles') || user_access("assign $role role")) {
+      $add_roles['role_delegation_add_role-' . $rid]['label'] = t('Add role: !role', array('!role' => $role));
+      $remove_roles['role_delegation_remove_role-' . $rid]['label'] = t('Remove role: !role', array('!role' => $role));
+    }
+  }
+  $operations = $add_roles + $remove_roles;
+
+  // If the form has been posted, insert the proper data for role editing.
+  if (!empty($form_state['submitted'])) {
+    $operation_rid = explode('-', $form_state['values']['operation']);
+    $operation = $operation_rid[0];
+    if ($operation == 'role_delegation_add_role' || $operation == 'role_delegation_remove_role') {
+      if (array_key_exists($form_state['values']['operation'], $operations)) {
+        $rid = $operation_rid[1];
+        $operations[$form_state['values']['operation']] += array(
+          // use the standard add_role and remove_role operations:
+          'callback' => 'user_multiple_role_edit',
+          'callback arguments' => array(str_replace('role_delegation_', '', $operation), $rid),
+        );
+      }
+      else {
+        watchdog('security', 'Detected malicious attempt to alter protected user fields.', array(), WATCHDOG_WARNING);
+        return;
+      }
+    }
+  }
+
+  return $operations;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_admin_account().
+ * 
+ * In the user bulk update form, separates out the role delegation operations
+ * and groups and relabels them under 'Add a role' and 'Remove a role' optgroups.
+ */
+function role_delegation_form_user_admin_account_alter(&$form, $form_state, $form_id) {
+  $options = $form['options']['operation']['#options'];
+  $roles = _role_delegation_roles();
+  $add_roles = array();
+  $remove_roles = array();
+  foreach ($options as $option => $label) {
+    $operation_rid = explode('-', $option);
+    $operation = $operation_rid[0];
+    if ($operation == 'role_delegation_add_role') {
+      $rid = $operation_rid[1];
+      $add_roles[$option] = $roles[$rid];
+      unset($options[$option]);
+    }
+    elseif ($operation == 'role_delegation_remove_role') {
+      $rid = $operation_rid[1];
+      $remove_roles[$option] = $roles[$rid];
+      unset($options[$option]);
+    }
+  }
+  if (count($add_roles)) {
+    $form['options']['operation']['#options'] = $options + array(
+      t('Add a role to the selected users') => $add_roles,
+      t('Remove a role from the selected users') => $remove_roles,
+    );
+  }
+}
+
+
+/**
+ * Implements hook_action_info().
+ */
+function role_delegation_action_info() {
+  return array(
+    'role_delegation_delegate_roles_action' => array(
+      'type' => 'user',
+      'label' => t('Delegate roles'),
+      'configurable' => TRUE,
+      'triggers' => array(),
+    ),
+  );
+}
+
+function role_delegation_delegate_roles_action_form($context) {
+  $form['#tree'] = TRUE;
+  $form['#theme'] = 'role_delegation_delegate_roles_action_form';
+  foreach (_role_delegation_roles() as $rid => $role_name) {
+    $form['role_change'][$rid] = array(
+      '#type' => 'select',
+      '#title' => check_plain($role_name),
+      '#default_value' => isset($context['roles_change'][$rid]) ? $context['roles_change'][$rid] : -1,
+      '#options' => array(
+        -1 => t('Do not change'),
+        1 => t('Add this role'),
+        0 => t('Remove this role'),
+      ),
+    );
+  }
+  return $form;
+}
+
+function theme_role_delegation_delegate_roles_action_form($variables) {
+  $form = $variables['form'];
+
+  $rows = array();
+  $header = array(
+    t('Role'),
+    t('Operation'),
+  );
+  foreach (element_children($form['role_change']) as $key) {
+    $role = $form['role_change'][$key]['#title'];
+    unset($form['role_change'][$key]['#title']);
+    $operation = drupal_render($form['role_change'][$key]);
+    $row = array(
+      array('data' => $role),
+      array('data' => $operation),
+    );
+    $rows[] = $row;
+  }
+  $output = drupal_render($form['actions_label']);
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'role-delegation-table')));
+  $output .= drupal_render_children($form);
+  return $output;
+}
+
+function role_delegation_delegate_roles_action_submit($form, $form_state) {
+  $roles_change = array();
+  foreach ($form_state['values']['role_change'] as $rid => $value) {
+    if ($value > -1) {
+      $roles_change[$rid] = $value;
+    }
+  }
+
+  return array('roles_change' => $roles_change);
+}
+
+function role_delegation_delegate_roles_action(&$user, $context) {
+  $roles_current = $user->roles;
+  $roles_change = $context['roles_change'];
+  role_delegation_save(array($user->uid), $roles_change);
+}

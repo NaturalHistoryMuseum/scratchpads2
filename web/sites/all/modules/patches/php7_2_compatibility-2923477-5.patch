@@ -1,0 +1,29 @@
+--- a/ui/ui.plugins.inc	2017-11-15 15:23:38.474142310 +0530
++++ b/ui/ui.plugins.inc	2017-11-14 23:52:46.273778697 +0530
+@@ -17,7 +17,7 @@
+     $this->conditions = $this->rule->conditionContainer();
+   }
+ 
+-  public function form(&$form, &$form_state, $options = array()) {
++  public function form(&$form, &$form_state, $options = array(), $iterator = NULL) {
+     $form_state['rules_element'] = $this->rule;
+     $label = $this->element->label();
+     // Automatically add a counter to unlabelled rules.
+@@ -84,7 +84,7 @@
+  */
+ class RulesReactionRuleUI extends RulesRuleUI {
+ 
+-  public function form(&$form, &$form_state, $options = array()) {
++  public function form(&$form, &$form_state, $options = array(), $iterator = NULL) {
+     $form['events'] = array(
+       '#type' => 'container',
+       '#weight' => -10,
+@@ -193,7 +193,7 @@
+  */
+ class RulesLoopUI extends RulesActionContainerUI {
+ 
+-  public function form(&$form, &$form_state, $options = array()) {
++  public function form(&$form, &$form_state, $options = array(), $iterator = NULL) {
+     parent::form($form, $form_state, $options);
+     $settings = $this->element->settings;
+ 

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the My collection feature.
+ */
+
+include_once('my_collection.features.inc');

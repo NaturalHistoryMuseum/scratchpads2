@@ -1,0 +1,47 @@
+diff --git a/tests/context.conditions.test b/tests/context.conditions.test
+index e2cee73..a55276b 100644
+--- a/tests/context.conditions.test
++++ b/tests/context.conditions.test
+@@ -36,13 +36,6 @@ class ContextConditionUserTest extends DrupalWebTestCase {
+     $this->assertTrue($saved, "Context 'testcontext' saved.");
+   }
+ 
+-  function tearDown() {
+-    parent::tearDown();
+-    context_delete($this->context);
+-    user_delete($this->user1->uid);
+-    user_delete($this->user2->uid);
+-  }
+-
+   function test() {
+     // User 1 triggers the context.
+     $this->drupalLogin($this->user1);
+@@ -82,14 +75,6 @@ class ContextConditionUserPageTest extends DrupalWebTestCase {
+     $this->assertTrue($saved, "Context 'testcontext' saved.");
+   }
+ 
+-  function tearDown() {
+-    parent::tearDown();
+-    context_delete($this->context);
+-    $edit = array();
+-    user_delete($this->user1->uid);
+-    user_delete($this->user2->uid);
+-  }
+-
+   function test() {
+     // Viewing any user profile triggers context.
+     $this->drupalLogin($this->user1);
+@@ -157,13 +142,6 @@ class ContextConditionNodeTaxonomyTest extends DrupalWebTestCase {
+     $this->assertTrue($saved, "Context 'testcontext' saved.");
+   }
+ 
+-  function tearDown() {
+-    parent::tearDown();
+-    context_delete($this->context);
+-    taxonomy_term_delete($this->terms['apples']->tid);
+-    taxonomy_term_delete($this->terms['oranges']->tid);
+-  }
+-
+   function test() {
+     // Apples does trigger the context.
+     $edit = array(

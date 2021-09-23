@@ -1,0 +1,11 @@
+name = Tree Widget
+description = An expanding/collapsing tree widget for selecting terms in a taxonomy term reference field
+core = 7.x
+package = Other
+
+dependencies[] = taxonomy
+dependencies[] = options
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = tree_widget

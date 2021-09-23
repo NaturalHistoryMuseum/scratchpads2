@@ -1,0 +1,246 @@
+# $Id: potx.pot,v 1.1.4.7 2009/04/04 09:14:49 hass Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  potx-cli.php,v 1.1.2.6.4.4 2008/10/13 21:55:18 goba
+#  potx.inc,v 1.1.2.17.2.7.2.19 2009/04/02 11:01:54 goba
+#  potx.info,v 1.1.2.3.2.2.2.1 2009/04/02 11:05:29 goba
+#  potx.install,v 1.1.2.1 2008/09/25 06:49:33 goba
+#  potx.module,v 1.1.2.12.2.2.2.10 2009/03/13 10:13:14 goba
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-04-04 11:11+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: potx-cli.php:110
+msgid "Double quoted test string"
+msgstr ""
+
+#: potx-cli.php:111
+msgid "Test string with %variable"
+msgstr ""
+
+#: potx-cli.php:111
+msgid "variable replacement"
+msgstr ""
+
+#: potx-cli.php:112
+msgid "Single qouted test string"
+msgstr ""
+
+#: potx-cli.php:113
+msgid "Special\ncharacters"
+msgstr ""
+
+#: potx-cli.php:114
+msgid "Special\\ncharacters"
+msgstr ""
+
+#: potx-cli.php:116
+msgid "Embedded $variable"
+msgstr ""
+
+#: potx-cli.php:117
+msgid "more $special characters"
+msgstr ""
+
+#: potx-cli.php:118
+msgid "even more \\$special characters"
+msgstr ""
+
+#: potx-cli.php:119
+msgid "Mixed 'quote' \"marks\""
+msgstr ""
+
+#: potx-cli.php:120
+msgid "Mixed \"quote\" 'marks'"
+msgstr ""
+
+#: potx-cli.php:121;122
+msgid "Some repeating text"
+msgstr ""
+
+#: potx-cli.php:127
+msgid "Test string with @complex %variables !smile"
+msgstr ""
+
+#: potx-cli.php:127
+msgid "variables"
+msgstr ""
+
+#: potx-cli.php:136
+msgid "Help called"
+msgstr ""
+
+#: potx-cli.php:137
+msgid "This is some help"
+msgstr ""
+
+#: potx-cli.php:124;125
+msgid "one day"
+msgid_plural "@count days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: potx.inc:624
+msgid "At %excerpt in %file on line %line."
+msgstr ""
+
+#: potx.inc:627
+msgid "In %file on line %line."
+msgstr ""
+
+#: potx.inc:632
+msgid "At %excerpt in %file."
+msgstr ""
+
+#: potx.inc:635
+msgid "In %file."
+msgstr ""
+
+#: potx.inc:643
+msgid "Read more at @url"
+msgstr ""
+
+#: potx.inc:643
+msgid "Read more at <a href=\"@url\">@url</a>"
+msgstr ""
+
+#: potx.inc:702
+msgid "The first parameter to @function() should be a literal string. There should be no variables, concatenation, constants or other non-literal strings there."
+msgstr ""
+
+#: potx.inc:739
+msgid "The first two watchdog() parameters should be literal strings. There should be no variables, concatenation, constants or even a t() call there."
+msgstr ""
+
+#: potx.inc:794
+msgid "In format_plural(), the singular and plural strings should be literal strings. There should be no variables, concatenation, constants or even a t() call there."
+msgstr ""
+
+#: potx.inc:840
+msgid "%hook should have an array of literal string permission names."
+msgstr ""
+
+#: potx.inc:904
+msgid "Invalid menu %element definition found in %hook. Title and description keys of the menu array should be literal strings."
+msgstr ""
+
+#: potx.inc:1125
+msgid "Drupal.t() calls should have a single literal string as their first parameter."
+msgstr ""
+
+#: potx.inc:1125
+msgid "The singular and plural string parameters on Drupal.formatPlural() calls should be literal strings, plural containing a @count placeholder."
+msgstr ""
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr ""
+
+#: potx.info:0
+msgid "Provides a web interface and an API to extract translatable text from the sources of installed components."
+msgstr ""
+
+#: potx.info:0
+msgid "Multilanguage"
+msgstr ""
+
+#: (duplicate) potx.install:22 
+msgid "PHP tokenizer for Translation template extractor"
+msgstr ""
+
+#: (duplicate) potx.install:23 
+msgid "Available"
+msgstr ""
+
+#: (duplicate) potx.install:23 
+msgid "Not available"
+msgstr ""
+
+#: (duplicate) potx.install:26 
+msgid "The <a href=\"@tokenizer\">PHP tokenizer functions</a> are required."
+msgstr ""
+
+#: potx.module:20
+msgid "This page allows you to generate translation templates for module and theme files. Select the module or theme you wish to generate a template file for. A single Gettext Portable Object (Template) file is generated, so you can easily save it and start translation."
+msgstr ""
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr ""
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr ""
+
+#: potx.module:62
+msgid "Template language"
+msgstr ""
+
+#: potx.module:65
+msgid "Export a language independent or language dependent (plural forms, language team name, etc.) template."
+msgstr ""
+
+#: potx.module:69
+msgid "Include translations"
+msgstr ""
+
+#: potx.module:70
+msgid "Include translations of strings in the file generated. Not applicable for language independent templates."
+msgstr ""
+
+#: potx.module:76;29
+msgid "Extract"
+msgstr ""
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr ""
+
+#: potx.module:188
+msgid "Extract from %name in the %directory directory"
+msgstr ""
+
+#: potx.module:189
+msgid "Generates output from all files found in this directory."
+msgstr ""
+
+#: potx.module:204
+msgid "Extract from all in directory \"@directory\""
+msgstr ""
+
+#: potx.module:205
+msgid "To extract from a single component in this directory, choose the desired entry in the fieldset below."
+msgstr ""
+
+#: potx.module:214
+msgid "Directory \"@directory\""
+msgstr ""
+
+#: potx.module:235
+msgid "Extract from %name"
+msgstr ""
+
+#: potx.module:236
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr ""
+
+#: potx.module:306
+msgid "Interface text translatability"
+msgstr ""
+
+#: potx.module:350
+msgid "Read the documentation"
+msgstr ""
+

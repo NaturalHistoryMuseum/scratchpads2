@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<archive xmlns="http://rs.tdwg.org/dwc/text/">
+  <core encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+    <files>
+      <location>classification.txt</location>
+    </files>
+    <id index="0" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/scientificName" />
+    <field index="2" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus" />
+    <field index="3" term="http://rs.tdwg.org/dwc/terms/taxonRank" />
+    <field index="4" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship" />
+    <field index="5" term="http://rs.tdwg.org/dwc/terms/namePublishedIn" />
+    <field index="6" term="http://rs.tdwg.org/dwc/terms/namePublishedInID" />
+    <field index="7" term="http://rs.tdwg.org/dwc/terms/parentNameUsageID" />
+    <field index="8" term="http://rs.tdwg.org/dwc/terms/nomenclaturalStatus" />
+    <field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsageID" /> 
+  </core>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/TypesAndSpecimen">
+    <files>
+      <location>specimen.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/typeStatus" />
+    <field index="2" term="http://rs.tdwg.org/dwc/terms/institutionCode" />
+    <field index="3" term="http://rs.tdwg.org/dwc/terms/collectionCode" />
+    <field index="4" term="http://rs.tdwg.org/dwc/terms/catalogNumber" />
+    <field index="5" term="http://rs.tdwg.org/dwc/terms/decimalLatitude" />
+    <field index="6" term="http://rs.tdwg.org/dwc/terms/decimalLongitude" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Reference">
+    <files>
+      <location>reference.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="3" term="http://purl.org/ontology/bibo/doi" />
+    <field index="4" term="http://purl.org/ontology/bibo/isbn" />
+    <field index="5" term="http://purl.org/ontology/bibo/issn" />
+    <field index="6" term="http://purl.org/dc/terms/bibliographicCitation" />
+    <field index="7" term="http://purl.org/dc/terms/title" />
+    <field index="8" term="http://purl.org/dc/terms/creator" />
+    <field index="9" term="http://purl.org/dc/terms/identifier" />
+    <field index="10" term="http://purl.org/dc/terms/subject" />
+    <field index="11" term="http://purl.org/dc/terms/language" />
+    <field index="12" term="http://purl.org/dc/terms/type" />
+    <field index="13" term="http://purl.org/dc/terms/date" />
+    <field index="14" term="http://purl.org/dc/terms/created" />
+    <field index="15" term="http://purl.org/dc/terms/modified" />
+    <field index="17" term="http://purl.org/dc/terms/relation" />
+    <field index="18" term="http://purl.org/dc/terms/source" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/reference/Reference">
+    <files>
+      <location>reference.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://purl.org/dc/terms/identifier" />
+    <field index="3" term="http://purl.org/ontology/bibo/doi" />
+    <field index="6" term="http://eol.org/schema/reference/full_reference" />
+    <field index="7" term="http://eol.org/schema/reference/primaryTitle" />
+    <field index="11" term="http://purl.org/dc/terms/language" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Distribution">
+    <files>
+      <location>distribution.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/locationID" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Image">
+    <files>
+      <location>image.txt</location>
+    </files>
+    <coreid index="1" />
+   <field index="2" term="http://purl.org/dc/terms/identifier"/>
+   <field index="3" term="http://purl.org/dc/terms/format"/>
+   <field index="4" term="http://purl.org/dc/terms/license"/>
+   <field index="5" term="http://purl.org/dc/terms/title"/>
+   <field index="8" term="http://purl.org/dc/terms/source"/>
+   <field index="9" term="http://purl.org/dc/terms/rights" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/media/Document">
+    <files>
+      <location>image.txt</location>
+    </files>
+    <coreid index="1" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/taxonID" />
+    <field index="2" term="http://rs.tdwg.org/ac/terms/accessURI" />
+    <field index="0" term="http://purl.org/dc/terms/identifier" />
+    <field index="5" term="http://purl.org/dc/terms/title" />
+    <field index="3" term="http://purl.org/dc/terms/format" />
+    <field index="4" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
+    <field index="6" term="http://eol.org/schema/agent/agentID" />
+    <field index="7" term="http://purl.org/dc/terms/type" />
+    <field index="8" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Description">
+    <files>
+      <location>description.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://purl.org/dc/terms/type" />
+    <field index="2" term="http://purl.org/dc/terms/description" />
+    <field index="3" term="http://purl.org/dc/terms/rights" />
+    <field index="4" term="http://purl.org/dc/terms/references" />
+    <field index="5" term="http://purl.org/dc/terms/source" />
+    <field index="7" term="http://purl.org/dc/terms/language" />
+    <field index="12" term="http://purl.org/dc/terms/license" />
+    <field index="13" term="http://purl.org/dc/terms/identifier" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/media/Document">
+    <files>
+      <location>description.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="0" term="http://rs.tdwg.org/dwc/terms/taxonID" />
+    <field index="2" term="http://purl.org/dc/terms/description" />
+    <field index="4" term="http://rs.tdwg.org/ac/terms/furtherInformationURL" />
+    <field index="6" term="http://ns.adobe.com/xap/1.0/rights/Owner" />
+    <field index="7" term="http://purl.org/dc/terms/language" />
+    <field index="8" term="http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm" />
+    <field index="9" term="http://purl.org/dc/terms/format" />
+    <field index="10" term="http://purl.org/dc/terms/type" />
+    <field index="11" term="http://eol.org/schema/agent/agentID" />
+    <field index="12" term="http://ns.adobe.com/xap/1.0/rights/UsageTerms" />
+    <field index="13" term="http://purl.org/dc/terms/identifier" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/VernacularName">
+    <files>
+      <location>vernacular_names.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName" />
+    <field index="2" term="http://purl.org/dc/terms/language" />
+    <field index="3" term="http://rs.tdwg.org/dwc/terms/locality" />
+    <field index="4" term="http://rs.tdwg.org/dwc/terms/taxonRemarks" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://eol.org/schema/agent/Agent">
+    <files>
+      <location>eol_agents.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="0" term="http://purl.org/dc/terms/identifier" />
+    <field index="1" term="http://xmlns.com/foaf/spec/#term_familyName" />
+    <field index="2" term="http://xmlns.com/foaf/spec/#term_firstName" />
+    <field index="3" term="http://xmlns.com/foaf/spec/#term_name" />
+    <field index="4" term="http://eol.org/schema/agent/organization" />
+    <field index="5" term="http://xmlns.com/foaf/spec/#term_accountName" />
+  </extension>
+  <extension encoding="UTF-8" linesTerminatedBy="\r\n" fieldsTerminatedBy="," fieldsEnclosedBy="&quot;" ignoreHeaderLines="0" rowType="http://www.w3.org/ns/oa#Annotationt">
+    <files>
+      <location>comment.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="0" term="http://purl.org/dc/terms/identifier" />
+    <field index="1" term="http://www.w3.org/ns/oa#hasTarget" />
+    <field index="3" term="http://purl.org/dc/terms/title" />
+    <field index="4" term="http://www.w3.org/ns/oa#hasBody" />
+    <field index="5" term="http://purl.org/dc/terms/created" />
+    <field index="6" term="http://purl.org/dc/terms/modified" />
+  </extension>
+</archive>

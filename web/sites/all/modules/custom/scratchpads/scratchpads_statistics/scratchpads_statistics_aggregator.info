@@ -1,0 +1,9 @@
+core = "7.x"
+name = "Scratchpads Statistics Aggregator"
+description = "Using the GBIF Registry, this will aggregate the statistics from all of the Scratchpads."
+package = "Scratchpads"
+dependencies[] = scratchpads_statistics
+dependencies[] = gbif_registry
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_statistics_aggregator

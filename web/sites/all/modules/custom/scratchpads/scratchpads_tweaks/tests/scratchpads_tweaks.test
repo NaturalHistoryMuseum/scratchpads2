@@ -1,0 +1,214 @@
+<?php
+// Set the max execution time to 20 minutes.  This may seem like a long time,
+// but the scratchpads_tweaks module does take a long time to install.
+ini_set('max_execution_time', '1200');
+
+/**
+ * @file
+ * 
+ * Scratchpads Tweaks tests.  This enables us to test components on a "FULL"
+ * Scratchpad.
+ */
+class ScratchpadsTweaksTestCase extends DrupalWebTestCase{
+
+  protected $test_user;
+
+  protected $maintainer;
+
+  protected $profile = 'scratchpad_2';
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Tweaks',
+      'description' => 'Enable all of the modules associated with a Scratchpad to see where errors occur.',
+      'group' => 'Scratchpads',
+      'dependencies' => array(
+        'scratchpads_tweaks'
+      )
+    );
+  }
+
+  /**
+   * Overrides DrupalWebTestCase setup()
+   * Enable modules and create users with specific permissions.
+   */
+  function setUp(){
+    $modules = func_get_args();
+    if(isset($modules[0]) && is_array($modules[0])){
+      $modules = $modules[0];
+    }
+    // include the code for tweaks setup
+    include DRUPAL_ROOT . '/' . drupal_get_path('module', 'scratchpads_tweaks') . "/tests/scratchpads_tweaks.inc";
+    $to_disable = array();
+    $to_disable[] = 'captcha';
+    module_disable($to_disable);
+    variable_set('honeypot_time_limit', 0);
+    // Create users.
+    $default_permissions = module_invoke_all('scratchpads_default_permissions');
+    // Maintainer
+    $maintainer_permissions = $default_permissions['maintainer'];
+    $maintainer_permissions[] = 'access content';
+    $maintainer_permissions[] = 'view the administration theme';
+    $maintainer_permissions[] = 'access content overview';
+    $maintainer_permissions[] = 'access form flows';
+    $maintainer_permissions[] = 'access dashboard';
+    $maintainer_permissions[] = 'delete all file';
+    $maintainer_permissions[] = 'edit all file';
+    $this->maintainer = $this->drupalCreateUser($maintainer_permissions);
+    legal_save_accept(1, 1, 'en', $this->maintainer->uid);
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content'
+    ));
+    $this->scratchpads_tweaks_legal_save($this->test_user->uid);
+  }
+
+  /**
+   * Overrides DrupalWebTestCase drupallogin().
+   * @see DrupalWebTestCase::drupalLogin()
+   */
+  protected function drupalLogin(stdClass $account){
+    if($this->loggedInUser){
+      $this->drupalLogout();
+    }
+    $edit = array(
+      'name' => $account->name,
+      'pass' => $account->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+    // override is here
+    $pass = $this->assertNoText('Sorry, unrecognized username or password', 'User successfully logged in');
+    if($pass){
+      $this->loggedInUser = $account;
+    }
+  }
+
+  public function getAdminPermissions(){
+    return array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'administer comments',
+      'administer front page'
+    );
+  }
+
+  public function machine_name($human_name){
+    $machine_readable = strtolower($human_name);
+    $machine_readable = preg_replace('@[^a-z0-9_]+@', '_', $machine_readable);
+    return $machine_readable;
+  }
+
+  /**
+   *  Modified version of drupalPost.
+   *  Allows you to assert that a post will fail
+   */
+  protected function drupalAssertPostFail($path, $edit, $submit, array $options = array(), array $headers = array(), $form_html_id = NULL, $extra_post = NULL){
+    $submit_matches = FALSE;
+    $ajax = is_array($submit);
+    if(isset($path)){
+      $this->drupalGet($path, $options);
+    }
+    if($this->parse()){
+      $edit_save = $edit;
+      // Let's iterate over all the forms.
+      $xpath = "//form";
+      if(!empty($form_html_id)){
+        $xpath .= "[@id='" . $form_html_id . "']";
+      }
+      $forms = $this->xpath($xpath);
+      foreach($forms as $form){
+        // We try to set the fields of this form as specified in $edit.
+        $edit = $edit_save;
+        $post = array();
+        $upload = array();
+        $submit_matches = $this->handleForm($post, $edit, $upload, $ajax ? NULL : $submit, $form);
+        $action = isset($form['action']) ? $this->getAbsoluteUrl((string)$form['action']) : $this->getUrl();
+        if($ajax){
+          $action = $this->getAbsoluteUrl(!empty($submit['path']) ? $submit['path'] : 'system/ajax');
+          // Ajax callbacks verify the triggering element if necessary, so while
+          // we may eventually want extra code that verifies it in the
+          // handleForm() function, it's not currently a requirement.
+          $submit_matches = TRUE;
+        }
+        // We post only if we managed to handle every field in edit and the
+        // submit button matches.
+        if(!$edit && ($submit_matches || !isset($submit))){
+          $post_array = $post;
+          if($upload){
+            // TODO: cURL handles file uploads for us, but the implementation
+            // is broken. This is a less than elegant workaround. Alternatives
+            // are being explored at #253506.
+            foreach($upload as $key => $file){
+              $file = drupal_realpath($file);
+              if($file && is_file($file)){
+                $post[$key] = '@' . $file;
+              }
+            }
+          }else{
+            foreach($post as $key => $value){
+              // Encode according to application/x-www-form-urlencoded
+              // Both names and values needs to be urlencoded, according to
+              // http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1
+              $post[$key] = urlencode($key) . '=' . urlencode($value);
+            }
+            $post = implode('&', $post) . $extra_post;
+          }
+          $out = $this->curlExec(array(
+            CURLOPT_URL => $action,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => $post,
+            CURLOPT_HTTPHEADER => $headers
+          ));
+          // Ensure that any changes to variables in the other thread are picked up.
+          $this->refreshVariables();
+          // Replace original page output with new output from redirected page(s).
+          if($new = $this->checkForMetaRefresh()){
+            $out = $new;
+          }
+          $this->verbose('POST request to: ' . $path . '<hr />Ending URL: ' . $this->getUrl() . '<hr />Fields: ' . highlight_string('<?php ' . var_export($post_array, TRUE), TRUE) . '<hr />' . $out);
+          $this->fail('Post request successful when fail asserted');
+          return $out;
+        }
+      }
+      // We have not found a form which contained all fields of $edit.
+      foreach($edit as $name => $value){
+        $this->pass(t('Fail asserted - failed to set field @name to @value', array(
+          '@name' => $name,
+          '@value' => $value
+        )));
+      }
+      if(!$ajax && isset($submit)){
+        $this->assertTrue($submit_matches, t('Found the @submit button', array(
+          '@submit' => $submit
+        )));
+      }
+      //$this->pass(t('Found the requested form fields at @path', array('@path' => $path)));
+    }
+  }
+
+  /**
+   * We set the legal_accepted on the user so that login passes.
+   */
+  function scratchpads_tweaks_legal_save($uid){
+    legal_save_accept(1, 1, 'en', $uid);
+  }
+
+  /**
+   * We temporarily override this function to remove views handler debug errors, mainly caused by legal module
+   */
+  public function errorHandler($severity, $message, $file = NULL, $line = NULL){
+    if(strpos($message, 'Missing handler') === FALSE){
+      parent::errorHandler($severity, $message, $file, $line);
+    }
+    return TRUE;
+  }
+}

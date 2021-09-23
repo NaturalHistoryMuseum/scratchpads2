@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads colour tests.
+*/
+class ScratchpadsColourTestCase extends ScratchpadsTweaksTestCase{
+
+  protected $test_user;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Colour',
+      'description' => 'Tests the scratchpads colour module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_colour';
+    parent::setUp($modules);
+    //  Create users.
+    $this->test_user = $this->drupalCreateUser(array(
+      'access content',
+      'access administration pages',
+      'administer site configuration',
+      'administer users',
+      'administer permissions',
+      'administer content types',
+      'administer nodes',
+      'bypass node access',
+      'access overlay',
+      'access content overview',
+      'view the administration theme',
+      'access all views',
+      'scratchpads colour'
+    ));
+    // We set the legal_accepted on the user so that login passes.
+    parent::scratchpads_tweaks_legal_save($this->test_user->uid);
+  }
+
+  /**
+   * Tests block_info() for the scratchpads colour module.
+   */
+  public function testBlockInfo(){
+    $info = module_invoke('scratchpads_colour', 'block_info');
+    $this->assertEqual(1, count($info), t('Module defines a block'));
+    $this->assertTrue(isset($info['colour_switcher']), t('colour_switcher block exists.'));
+  }
+
+  /**
+   * Tests block_view() for the scratchpads colour module.
+   */
+  public function testBlockView(){
+    $data = module_invoke('scratchpads_colour', 'block_view', 'colour_switcher');
+    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
+  }
+
+  /**
+   * Tests that the colour block shows up where it should
+   */
+  public function testScratchpadsColourShowsUp(){
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('');
+    $this->assertRaw('block-scratchpads-colour-colour-switcher', 'Colour block appears on front page');
+  }
+
+  /**
+   * Test that we can change the colour with the form on the front page
+   * (We actually check that a css class has been added and that the variable is set)
+   */
+  public function testColourChange(){
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('');
+    $this->assertRaw('block-scratchpads-colour-colour-switcher', 'Colour block appears on front page');
+    // We set the colour using the form
+    $edit = array();
+    $edit['colour'] = '1F3661';
+    $expected_css_class = 'scratchpad-colour-1F3661';
+    $this->assertNoRaw($expected_css_class, 'Custom colour css class not found on page before form submit');
+    $this->drupalPost(NULL, $edit, t('Save'));
+    // Test that the css class appears on the page
+    $this->assertRaw($expected_css_class, 'Custom colour css class found on page after form submit');
+    // Test that the variable is set
+    $new_color = variable_get('scratchpads_colour', '');
+    $this->assertTrue($new_color == '1F3661', 'Colour variable correctly set');
+  }
+}

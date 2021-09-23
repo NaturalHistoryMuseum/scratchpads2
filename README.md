@@ -59,3 +59,24 @@ maintained Scratchpad, or a local one. Support should be requested using the
 ## Docker
 
 cat ../wallace.sql | docker exec -i scratchpads.apache drush sql-cli
+
+
+## Troubleshooting
+
+problem:
+Error like: 'docker not found' or 'Docker command can't connect to Docker daemon'
+
+solution:
+
+1 - add your user to the docker group:
+sudo usermod -aG docker $(whoami)
+
+2 - reload user group assignments in your current terminal shell where you are trting to run docker
+(this saves having to open a new shell or avoid logging out and back in)
+su - $USER
+
+credit:
+1 - https://stackoverflow.com/a/33782459
+2 - https://superuser.com/a/345051
+
+

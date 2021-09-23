@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads events tests.
+*/
+class ScratchpadsEventsTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Events',
+      'description' => "Tests the creation and viewing of events",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    $modules[] = 'scratchpads_events';
+    parent::setUp($modules);
+  }
+
+  /**
+   * A wrapper for all tests
+   */
+  function testWrapper(){
+    $this->verifyEventsBasic();
+    $this->verifyCreateAndViewEvent();
+  }
+
+  /**
+   *  Test that event menu item exists
+   */
+  function verifyEventsBasic(){
+    $this->drupalLogin($this->maintainer);
+    $this->drupalGet('event');
+    $this->assertResponse(200);
+    $this->assertText('Events', "'Events' present on events page");
+    $this->assertRaw('view-event-calendar', 'Events calendar view present on events page');
+  }
+
+  /**
+   * Create an event using the UI and see if it shows up on the events page
+   */
+  function verifyCreateAndViewEvent(){
+    $this->drupalLogin($this->maintainer);
+    $this->drupalGet('node/add/event');
+    $edit = array();
+    $title = $this->randomName(8);
+    $edit['title'] = $title;
+    $edit['body[und][0][value]'] = $this->randomName(16);
+    $nextWeek = time() + (7 * 24 * 60 * 60);
+    $weekafternext = $nextWeek + (7 * 24 * 60 * 60);
+    $date = date("Y-m-d", $nextWeek);
+    $date2 = date("Y-m-d", $weekafternext);
+    $edit['field_event_date[und][0][value][date]'] = $date;
+    $edit['field_event_date[und][0][value][time]'] = '10:30';
+    $edit['field_event_date[und][0][value2][date]'] = $date2;
+    $edit['field_event_date[und][0][value2][time]'] = '14:30';
+    $edit['status'] = true;
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText('Event ' . $title . ' has been created.', 'Test event has been created');
+    // test that the event appears on the events page
+    $this->drupalGet('event');
+    $this->assertText($title, "Event found on events page");
+    // test that a non admin user can view the event
+    $this->drupalLogin($this->test_user);
+    $this->drupalGet('event');
+    $this->assertText($title, "Event found on events page");
+  }
+}
+
+
+
+

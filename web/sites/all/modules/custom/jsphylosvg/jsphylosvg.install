@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function jsphylosvg_schema(){
+  module_load_include('install', 'system');
+  $system_schema = system_schema();
+  $schema = array();
+  $schema['cache_jsphylosvg'] = $system_schema['cache'];
+  $schema['cache_jsphylosvg']['description'] = 'Cache NeXML.';
+  return $schema;
+}

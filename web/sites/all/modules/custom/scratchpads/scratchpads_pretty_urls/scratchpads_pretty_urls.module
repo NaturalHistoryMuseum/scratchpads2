@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_pretty_urls_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      // Pathauto permission
+      'administer pathauto',
+      // Core Drupal path module permission
+      'administer url aliases'
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter().
+ */
+function scratchpads_pretty_urls_scratchpads_hands_off_urls_alter(&$urls){
+  $urls[] = 'admin/config/search/path/settings';
+  $urls[] = 'admin/config/search/path/patterns';
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_pretty_urls_cron(){
+  // Ensure we don't have any redirect loops.
+  $query = db_select('redirect', 'r')->fields('r', array(
+    'rid'
+  ))->distinct();
+  $query->innerJoin('url_alias', 'u', 'u.source = r.redirect AND u.alias = r.source');
+  $rids = $query->execute()->fetchCol();
+  if(count($rids)){
+    db_delete('redirect')->condition('rid', $rids)->execute();
+  }
+}

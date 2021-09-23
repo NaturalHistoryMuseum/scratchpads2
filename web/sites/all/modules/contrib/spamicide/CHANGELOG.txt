@@ -1,0 +1,47 @@
+ Spamicide-7.x-1.x July 2013
+ ===========================
+ answer to issue #1762484 adding the ability to use global custom message
+ fix for issues #1787774, #1942834 and #1979930 of wrong destination
+ fix for issues #1795524 and #1317366 moved spamicide menu items to config/people
+ 
+
+Spamicide-7.x-1.x May 2011
+==========================
+-Ported to D7
+-installation creates spamicide directory and adds fee_me.css
+-uninstallation removes the directory
+ 
+Spamicide-6.x-1.5 Nov 2010
+==========================
+
+Bug fixes 
+-Attemping a  fix for Issue #969094 and #923646
+-- creating dev and 1.5 branches 
+
+Spamicide-6.x-1.4 Sep 2010
+==========================
+
+Bug fixes 
+-Added fix for Issue #465100 ("recoverable fatal error" with fix)
+-- Changed $language to $language->language to properly handle that object
+
+-Added fix for Issue #744560 (Installation does not create required directory and CSS is saved in the wrong path)
+-- Added file_directory_path to better to conform to Drupal coding standards and work in multisite configuration
+-- Replaced $css_file with $path
+-- Moved the requirments hook to the install file where it belongs
+-- Replaced $_ENV['REMOTE_ADDR'] with ip_address() to accomodate being behind a proxy
+
+-For now, to answer issue #722014 (Spamicide seems to install and configure OK but doesn't prevent spam in any form!!!!)
+-- I've commented out the prerender routine until I can find a good fix for this
+
+-Changed the css rule to "top : 999em;" from "display: none;" for now stiil looking to offer options for this.
+
+Features
+-Added number of attempts to status report page
+
+
+News
+=======================
+This is an interim release, it fixes as many bugs as possible.
+I plan on a 2.0 version that will be far more flexible/adaptable to
+make it easier for site admins to detect and deter spam.

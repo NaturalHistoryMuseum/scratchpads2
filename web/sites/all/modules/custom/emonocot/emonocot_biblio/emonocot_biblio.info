@@ -1,0 +1,17 @@
+name = "eMonocot Biblio tweaks"
+description = "Allows automatic creation of bible nodes from WCM protologues."
+core = "7.x"
+package = "eMonocot"
+php = "5.2.4"
+dependencies[] = "biblio"
+dependencies[] = "ctools"
+dependencies[] = "emonocot_ipni"
+dependencies[] = "features"
+dependencies[] = "feeds"
+dependencies[] = "node_reference"
+features[field][] = "node-biblio-field_containing_work"
+files[] = "ProtologueNodeProcessor.inc"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_biblio

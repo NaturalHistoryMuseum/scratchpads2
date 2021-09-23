@@ -1,0 +1,98 @@
+@CHARSET "UTF-8";
+
+#slickgrid div.slick-headerrow {
+  display: none;
+}
+
+#slickgrid .slick-cell.l0,
+#slickgrid .slick-header-column{
+   text-align: left;
+}
+
+#slickgrid .slick-cell,
+#slickgrid .character{
+  text-align: center;
+}
+
+.character-editor-inline .bt-content,
+.character-editor-header .bt-content{
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.bt-content h2{
+  margin: 0;
+}
+
+.bt-content span.character-type{
+  color: #999;
+  margin-bottom: 3px;
+  font-size: 0.9em;  
+}
+
+.character-editor-inline span{
+  display: block;
+}
+
+.field-name-field-char-image img{
+  border: 1px solid #444;
+}
+
+
+.character-editor-inline span.state-delta,
+.bt-content .field-collection-container .field-label{
+  color: #4CC6FF;
+  padding-right: 6px;
+  width: 12px;
+  display: inline-block;
+}
+
+
+/* CHARACTER FORM*/
+
+#field-char-proj-groups-values tr td div.field-name-field-char-image{
+  float: right;
+  width: 150px;
+}
+
+/* BT header */
+
+#character-editor-state-form .form-textarea-wrapper{
+  margin: 0 0 0 15px;
+}
+
+#character-editor-state-form input{
+  margin: 30px auto 0 auto;
+  display: block;
+}
+
+.field-collection-container,
+.field-collection-view{
+  border: none;
+  margin: 0!important;
+}
+
+.field-collection-container div.field-label{
+  display: block;
+  float: left;
+}
+
+.field-collection-view .entity-field-collection-item,
+.field-collection-container div{
+  display: inline;
+  width: auto;
+}
+
+.field-collection-view .entity-field-collection-item,
+.field-collection-container div.character-editor-state-image{
+  display: block;
+}
+
+.character-editor div.l0{
+  background: #F6F6F6;
+}
+
+.character-editor .odd div.l0{
+  background: #EAEFF6!important;
+}

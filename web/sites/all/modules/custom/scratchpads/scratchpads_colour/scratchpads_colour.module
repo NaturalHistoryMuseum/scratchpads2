@@ -1,0 +1,308 @@
+<?php
+/*********************************************************************************************
+ * 
+ * CONSTANTS
+ * 
+ ********************************************************************************************/
+define('SCRATCHPADS_DEFAULT_COLOUR', '047DB8');
+
+/*********************************************************************************************
+ * 
+ * CORE HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_colour_block_info(){
+  // This example comes from node.module.
+  $blocks['colour_switcher'] = array(
+    'info' => t('Colour switcher'),
+    'region' => 'slide_bottom',
+    'theme' => 'scratchpads',
+    'status' => 1
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_colour_block_view($delta = ''){
+  $path = drupal_get_path('module', 'scratchpads_colour');
+  $block = array();
+  switch($delta){
+    case 'colour_switcher':
+      if(user_access('scratchpads colour')){
+        $path = drupal_get_path('module', 'scratchpads_colour');
+        $image = theme('image', array(
+          'path' => $path . '/images/colour-picker.png',
+          'alt' => 'Colours',
+          'title' => 'Colours'
+        ));
+        $block['content'] = array(
+          '#prefix' => '<div class="scratchpads-slide-toggle-container">',
+          '#suffix' => '</div>',
+          'link' => array(
+            '#markup' => l($image, '/', array(
+              'attributes' => array(
+                'class' => array(
+                  'scratchpads-slide-toggle'
+                )
+              ),
+              'html' => true
+            ))
+          ),
+          'body' => array(
+            '#prefix' => '<div class="scratchpads-slide-toggle-body">',
+            '#suffix' => '</div>',
+            'form' => drupal_get_form('scratchpads_colour_form')
+          ),
+          '#attached' => array(
+            'css' => array(
+              $path . '/css/scratchpads_colour.css'
+            ),
+            'js' => array(
+              $path . '/js/scratchpads_colour.js'
+            )
+          )
+        );
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_colour_theme($existing, $type, $theme, $path){
+  return array(
+    'scratchpads_colour_block' => array(
+      'variables' => array(
+        'colour' => null
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function scratchpads_colour_permission(){
+  return array(
+    'scratchpads colour' => array(
+      'title' => t('Change colour scheme'),
+      'description' => t('Allows user to change the colour scheme of their scratchpads site.')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions().
+ */
+function scratchpads_colour_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'scratchpads colour'
+    )
+  );
+}
+
+/**
+ * Callback to get the CSS.
+ */
+function scratchpads_colour_add_dynamic_css(){
+  $css_file = variable_get('scratchpads_colour_css_file', FALSE);
+  if($css_file && file_exists($css_file)){return drupal_add_css($css_file);}
+  $css = array();
+  foreach(scratchpads_colour_get_colours() as $colour){
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .section-header{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-content h2 a{ color: #FFFFFF;}'; // required or link in h2 gets hidden by background color
+    $css[] = 'body.scratchpad-colour-' . $colour . ' a{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' h1{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' #region-sidebar ul.menu ul li{ color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-bg-colour{ background-color: #' . $colour . ';}';
+    $css[] = 'body.scratchpad-colour-' . $colour . ' .sp-colour{ background-color: #' . $colour . ';}';
+  }
+  $css = implode(PHP_EOL, $css);
+  $filename = 'css_' . drupal_hash_base64($css) . '.css';
+  $csspath = 'public://css';
+  $uri = $csspath . '/' . $filename;
+  file_prepare_directory($csspath, FILE_CREATE_DIRECTORY);
+  if(!file_exists($uri) && !file_unmanaged_save_data($css, $uri, FILE_EXISTS_REPLACE)){return FALSE;}
+  variable_set('scratchpads_colour_css_file', $uri);
+  return drupal_add_css($uri);
+}
+
+/*********************************************************************************************
+ * 
+ * THEME SETTINGS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_form_system_theme_settings_alter()
+ */
+function scratchpads_colour_form_system_theme_settings_alter(&$form, &$form_state){
+  $path = drupal_get_path('module', 'scratchpads_colour');
+  $form['#attached'] = array(
+    'css' => array(
+      $path . '/css/scratchpads_colour.css'
+    )
+  );
+  $form['alpha_settings']['colour'] = array(
+    '#type' => 'fieldset',
+    '#title' => t("Colour")
+  );
+  $colours = scratchpads_colour_default_colours();
+  $colours['custom'] = t("Custom");
+  $form['alpha_settings']['colour']['colour'] = array(
+    '#type' => 'radios',
+    '#options' => $colours,
+    '#default_value' => variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR),
+    '#title' => t('Colour'),
+    '#pre_render' => array(
+      'scratchpads_colour_radios_pre_render'
+    )
+  );
+  $form['alpha_settings']['colour']['custom_colour'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom colour'),
+    '#default_value' => variable_get('scratchpads_custom_colour'),
+    '#size' => 6,
+    '#maxlength' => 6,
+    '#field_prefix' => '#',
+    '#states' => array(
+      // Hide the settings when the cancel notify checkbox is disabled.
+      'visible' => array(
+        'input[name="colour"]' => array(
+          'value' => 'custom'
+        )
+      )
+    ),
+    '#element_validate' => array(
+      'scratchpads_colour_validate_custom_colour'
+    )
+  );
+  $form['#submit'][] = 'scratchpads_colour_form_system_theme_settings_submit';
+}
+
+function scratchpads_colour_validate_custom_colour($element, &$form_state, $form){
+  if($form_state['values']['colour'] == 'custom' && empty($element['#value'])){
+    form_error($element, t('This field is required if custom colour is selected.'));
+  }
+  // If custom colour is not empty, validate the hex value
+  if(!empty($element['#value']) && !preg_match('/[a-f0-9]{6}$/i', $element['#value'])){
+    form_error($element, t('This is not a valid hexadecimal colour value.'));
+  }
+}
+
+function scratchpads_colour_form_system_theme_settings_submit($form, $form_state){
+  variable_set('scratchpads_colour', $form_state['values']['colour']);
+  variable_set('scratchpads_custom_colour', $form_state['values']['custom_colour']);
+  variable_del('scratchpads_colour_css_file');
+}
+
+/*********************************************************************************************
+ * 
+ * COLOUR CHANGE FORM
+ * 
+ ********************************************************************************************/
+/**
+ * Colour form
+ */
+function scratchpads_colour_form($form, $form_state){
+  $colours = scratchpads_colour_get_colours();
+  $form['colour'] = array(
+    '#type' => 'radios',
+    '#options' => $colours,
+    '#default_value' => variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR),
+    '#pre_render' => array(
+      'scratchpads_colour_radios_pre_render'
+    ),
+    '#weight' => 3 // Reverse weight for floating
+  );
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#weight' => 2
+  );
+  $form['#attributes']['class'] = 'clearfix';
+  return $form;
+}
+
+/**
+ * Colour form submit
+ * Change the colour variable
+ */
+function scratchpads_colour_form_submit($form, $form_state){
+  variable_set('scratchpads_colour', $form_state['values']['colour']);
+}
+
+/**
+ * Form prerender radios
+ */
+function scratchpads_colour_radios_pre_render(&$element){
+  foreach(element_children($element) as $colour){
+    if($colour != 'custom'){
+      $element[$colour]['#suffix'] = theme('scratchpads_colour_block', array(
+        'colour' => $colour
+      ));
+    }
+  }
+  return $element;
+}
+
+/*********************************************************************************************
+ * 
+ * THEME & PREPROCESS FUNCTIONS
+ * 
+ ********************************************************************************************/
+function theme_scratchpads_colour_block($variables){
+  return '<span id="' . $variables['colour'] . '" href="#" style="background-color:#' . $variables['colour'] . '" class="scratchpad-color-option"></span>';
+}
+
+function scratchpads_colour_preprocess_html(&$vars){
+  if(path_is_admin($_GET['q'])){return;}
+  scratchpads_colour_add_dynamic_css();
+  $colour = variable_get('scratchpads_colour', SCRATCHPADS_DEFAULT_COLOUR);
+  if($colour == 'custom'){
+    $colour = variable_get('scratchpads_custom_colour');
+  }
+  $vars['classes_array'][] = 'scratchpad-colour-' . $colour;
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+function scratchpads_colour_default_colours(){
+  $default_colours = array(
+    '353535',
+    '1F3661',
+    '154D8C',
+    '047DB8',
+    '2FA7C3',
+    '134823',
+    '5F8B3D',
+    '67A53D',
+    'A5C033',
+    '7C1227',
+    'B72932',
+    'E47C25',
+    'E9B61E',
+    '57508E'
+  );
+  // Use values for keys
+  return array_combine($default_colours, $default_colours);
+}
+
+function scratchpads_colour_get_colours(){
+  $colours = scratchpads_colour_default_colours();
+  if($custom_colour = variable_get('scratchpads_custom_colour')){
+    $colours[$custom_colour] = $custom_colour;
+  }
+  return $colours;
+}

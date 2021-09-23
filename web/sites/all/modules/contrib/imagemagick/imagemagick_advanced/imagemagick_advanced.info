@@ -1,0 +1,11 @@
+name = ImageMagick Advanced
+description = Provides advanced ImageMagick effects and options.
+core = 7.x
+dependencies[] = imagemagick
+
+; Information added by drupal.org packaging script on 2013-03-02
+version = "7.x-1.0"
+core = "7.x"
+project = "imagemagick"
+datestamp = "1362244511"
+

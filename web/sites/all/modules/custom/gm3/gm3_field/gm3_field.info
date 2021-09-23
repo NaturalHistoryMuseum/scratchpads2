@@ -1,0 +1,14 @@
+name = Javascript Map Fields :: Fields
+description = Provides a number of different fields for entering Geographical data via a map.
+core = 7.x
+package = Maps
+dependencies[] = gm3
+dependencies[] = field
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "gm3"
+datestamp = "1380581008"

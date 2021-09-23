@@ -1,0 +1,14 @@
+name = "Scratchpads biblio"
+description = "Scratchpads biblio features"
+core = "7.x"
+package = "Scratchpads"
+dependencies[] = "features"
+dependencies[] = "field_group"
+dependencies[] = "field_sql_storage"
+dependencies[] = "file"
+features[field][] = "node-biblio-field_file"
+features[field_group][] = "node-biblio-default-group_container"
+files[] = scratchpads_biblio.test
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_biblio

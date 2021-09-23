@@ -1,0 +1,1962 @@
+<?php
+
+/**
+ * @file
+ *   Webform module install/schema hooks.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function webform_schema() {
+  $schema = array();
+
+  $schema['webform'] = array(
+    'description' => 'Table for storing additional properties for webform nodes.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'next_serial' => array(
+        'description' => 'The serial number to give to the next submission to this webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'confirmation' => array(
+        'description' => 'The confirmation message or URL displayed to the user after submitting a form.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'confirmation_format' => array(
+        'description' => 'The {filter_format}.format of the confirmation message.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'redirect_url' => array(
+        'description' => 'The URL a user is redirected to after submitting a form.',
+        'type' => 'varchar',
+        'length' => 2048,
+        'default' => '<confirmation>',
+      ),
+      'status' => array(
+        'description' => 'Boolean value of a webform for open (1) or closed (0).',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'block' => array(
+         'description' => 'Boolean value for whether this form be available as a block.',
+         'type' => 'int',
+         'size' => 'tiny',
+         'not null' => TRUE,
+         'default' => 0,
+      ),
+      'allow_draft' => array(
+         'description' => 'Boolean value for whether submissions to this form be saved as a draft.',
+         'type' => 'int',
+         'size' => 'tiny',
+         'not null' => TRUE,
+         'default' => 0,
+      ),
+      'auto_save' => array(
+         'description' => 'Boolean value for whether submissions to this form should be auto-saved between pages.',
+         'type' => 'int',
+         'size' => 'tiny',
+         'not null' => TRUE,
+         'default' => 0,
+      ),
+      'submit_notice' => array(
+        'description' => 'Boolean value for whether to show or hide the previous submissions notification.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'submit_text' => array(
+        'description' => 'The title of the submit button on the form.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'submit_limit' => array(
+        'description' => 'The number of submissions a single user is allowed to submit within an interval. -1 is unlimited.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => -1,
+      ),
+      'submit_interval' => array(
+        'description' => 'The amount of time in seconds that must pass before a user can submit another submission within the set limit.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => -1,
+      ),
+      'total_submit_limit' => array(
+        'description' => 'The total number of submissions allowed within an interval. -1 is unlimited.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => -1,
+      ),
+      'total_submit_interval' => array(
+        'description' => 'The amount of time in seconds that must pass before another submission can be submitted within the set limit.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => -1,
+      ),
+      'progressbar_bar' => array(
+        'description' => 'Boolean value indicating if the bar should be shown as part of the progress bar.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'progressbar_page_number' => array(
+        'description' => 'Boolean value indicating if the page number should be shown as part of the progress bar.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'progressbar_percent' => array(
+        'description' => 'Boolean value indicating if the percentage complete should be shown as part of the progress bar.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'progressbar_pagebreak_labels' => array(
+        'description' => 'Boolean value indicating if the pagebreak labels should be included as part of the progress bar.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'progressbar_include_confirmation' => array(
+        'description' => 'Boolean value indicating if the confirmation page should count as a page in the progress bar.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'progressbar_label_first' => array(
+        'description' => 'Label for the first page of the progress bar.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'progressbar_label_confirmation' => array(
+        'description' => 'Label for the last page of the progress bar.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'preview' => array(
+        'description' => 'Boolean value indicating if this form includes a page for previewing the submission.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'preview_next_button_label' => array(
+        'description' => 'The text for the button that will proceed to the preview page.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'preview_prev_button_label' => array(
+        'description' => 'The text for the button to go backwards from the preview page.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'preview_title' => array(
+        'description' => 'The title of the preview page, as used by the progress bar.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'preview_message' => array(
+        'description' => 'Text shown on the preview page of the form.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'preview_message_format' => array(
+        'description' => 'The {filter_format}.format of the preview page message.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'preview_excluded_components' => array(
+        'description' => 'Comma-separated list of component IDs that should not be included in this form\'s confirmation page.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+
+  $schema['webform_component'] = array(
+    'description' => 'Stores information about components for webform nodes.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'cid' => array(
+        'description' => 'The identifier for this component within this node, starts at 0 for each node.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'pid' => array(
+        'description' => 'If this component has a parent fieldset, the cid of that component.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'form_key' => array(
+        'description' => 'When the form is displayed and processed, this key can be used to reference the results.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'name' => array(
+        'description' => 'The label for this component.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The field type of this component (textfield, select, hidden, etc.).',
+        'type' => 'varchar',
+        'length' => 16,
+      ),
+      'value' => array(
+        'description' => 'The default value of the component when displayed to the end-user.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'extra' => array(
+        'description' => 'Additional information unique to the display or processing of this component.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'required' => array(
+        'description' => 'Boolean flag for if this component is required.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight' => array(
+        'description' => 'Determines the position of this component in the form.',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'cid'),
+  );
+
+  $schema['webform_conditional'] = array(
+    'description' => 'Holds information about conditional logic.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rgid' => array(
+        'description' => 'The rule group identifier for this group of rules.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'andor' => array(
+        'description' => 'Whether to AND or OR the actions in this group. All actions within the same crid should have the same andor value.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'action' => array(
+        'description' => 'The action to be performed on the target. Typically "show" or "hide" for targets of type "component", and "send" for targets of type "email".',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'target_type' => array(
+        'description' => 'The type of target to be affected. Either "component" or "email". Indicates what type of ID the "target" column contains.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'target' => array(
+        'description' => 'The ID of the target to be affected. Typically a component ID.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'weight' => array(
+        'description' => 'Determines the position of this conditional compared to others.',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'rgid'),
+  );
+
+  $schema['webform_conditional_rules'] = array(
+    'description' => 'Holds information about conditional logic.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rgid' => array(
+        'description' => 'The rule group identifier for this group of rules.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rid' => array(
+        'description' => 'The rule identifier for this conditional rule.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'source_type' => array(
+        'description' => 'The type of source on which the conditional is based. Currently always "component". Indicates what type of ID the "source" column contains.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'source' => array(
+        'description' => 'The component ID being used in this condition.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'operator' => array(
+        'description' => 'Which operator (equal, contains, starts with, etc.) should be used for this comparison between the source and value?',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'value' => array(
+        'description' => 'The value to be compared with source.',
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('nid', 'rgid', 'rid'),
+  );
+
+  $schema['webform_emails'] = array(
+    'description' => 'Holds information regarding e-mails that should be sent upon submitting a webform',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'eid' => array(
+        'description' => 'The e-mail identifier for this row\'s settings.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'email' => array(
+        'description' => 'The e-mail address that will be sent to upon submission. This may be an e-mail address, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'subject' => array(
+        'description' => 'The e-mail subject that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'from_name' => array(
+        'description' => 'The e-mail "from" name that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'from_address' => array(
+        'description' => 'The e-mail "from" e-mail address that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'template' => array(
+        'description' => 'A template that will be used for the sent e-mail. This may be a string or the special key "default", which will use the template provided by the theming layer.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'excluded_components' => array(
+        'description' => 'A list of components that will not be included in the [submission:values] token. A list of CIDs separated by commas.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'html' => array(
+        'description' => 'Determines if the e-mail will be sent in an HTML format. Requires Mime Mail module.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'attachments' => array(
+        'description' => 'Determines if the e-mail will include file attachments. Requires Mime Mail module.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'extra' => array(
+        'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid', 'eid'),
+  );
+
+  $schema['webform_roles'] = array(
+    'description' => 'Holds access information regarding which roles are allowed to submit which webform nodes. Does not prevent access to the webform node entirely, use the {node_access} table for that purpose.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rid' => array(
+        'description' => 'The role identifier.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'rid'),
+  );
+
+  $schema['webform_submissions'] = array(
+    'description' => 'Holds general information about submissions outside of field values.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The unique identifier for this submission.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'serial' => array(
+        'description' => 'The serial number of this submission.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of the user that completed this submission.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'is_draft' => array(
+         'description' => 'Is this a draft of the submission?',
+         'type' => 'int',
+         'size' => 'tiny',
+         'not null' => TRUE,
+         'default' => 0,
+      ),
+      'submitted' => array(
+        'description' => 'Timestamp of when the form was submitted.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'remote_addr' => array(
+        'description' => 'The IP address of the user that submitted the form.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+    ),
+    'primary key' => array('sid'),
+    'unique keys' => array(
+      'sid_nid' => array('sid', 'nid'),
+      'nid_serial' => array('nid', 'serial'),
+    ),
+    'indexes' => array(
+      'nid_uid_sid' => array('nid', 'uid', 'sid'),
+      'nid_sid' => array('nid', 'sid'),
+    ),
+  );
+
+  $schema['webform_submitted_data'] = array(
+    'description' => 'Stores all submitted field data for webform submissions.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'sid' => array(
+        'description' => 'The unique identifier for this submission.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'cid' => array(
+        'description' => 'The identifier for this component within this node, starts at 0 for each node.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'no' => array(
+        'description' => 'Usually this value is 0, but if a field has multiple values (such as a time or date), it may require multiple rows in the database.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '0',
+      ),
+      'data' => array(
+        'description' => 'The submitted value of this field, may be serialized for some components.',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid', 'sid', 'cid', 'no'),
+    'indexes' => array(
+      'nid' => array('nid'),
+      'sid_nid' => array('sid', 'nid'),
+      // For all but MS SQL Server databases, 64-character index is created on the data column after the schema is installed.
+    ),
+  );
+
+  $schema['webform_last_download'] = array(
+   'description' => 'Stores last submission number per user download.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+       'description' => 'The user identifier.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+     'sid' => array(
+        'description' => 'The last downloaded submission number.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+     'requested' => array(
+        'description' => 'Timestamp of last download request.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'uid'),
+  );
+
+  return $schema;
+}
+
+
+/**
+ * Implements hook_requirements().
+ */
+function webform_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  // Ensure cURL exists if SimpleTest hasn't checked it already.
+  if (!class_exists('ZipArchive')) {
+    $requirements['webform_zip'] = array(
+      'title' => $t('Zip archive support'),
+      'value' => $t('Missing'),
+      'severity' => REQUIREMENT_WARNING,
+      'description' => $t('PHP does not have the zip archive extension available. Webform module requires zip support for exporting submissions to Microsoft Excel.'),
+    );
+  }
+  // Though the .info file specifies PHP version as well, this will prevent
+  // users from upgrading from 3.x if their PHP version is too old.
+  if (version_compare(phpversion(), '5.3') < 0) {
+    $requirements['webform_php'] = array(
+      'title' => $t('Webform PHP requirements'),
+      'value' => phpversion(),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => $t('Webform requires PHP 5.3 or higher.'),
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_install().
+ */
+function webform_install() {
+  module_load_include('inc', 'node', 'content_types');
+  db_update('system')
+    ->condition('name', 'webform')
+    ->condition('type', 'module')
+    ->fields(array('weight' => -1))
+    ->execute();
+
+  // Optionally create the default webform type.
+  if (variable_get('webform_install_create_content_type', TRUE)) {
+    $webform_type = array(
+      'type' => 'webform',
+      'name' => st('Webform'),
+      'base' => 'node_content',
+      'description' => st('Create a new form or questionnaire accessible to users. Submission results and statistics are recorded and accessible to privileged users.'),
+      'custom' => TRUE,
+      'modified' => TRUE,
+      'locked' => FALSE,
+    );
+    $webform_type = node_type_set_defaults($webform_type);
+    node_type_save($webform_type);
+    if (variable_get('webform_install_add_body_field', FALSE)) {
+      node_add_body_field($webform_type);
+    }
+    // Enable webform components by default on Webform nodes.
+    variable_set('webform_node_webform', TRUE);
+    // Disable comments by default on Webform nodes.
+    variable_set('comment_webform', '0');
+  }
+
+  // Note: MS SQL Server does not support size-limited indexes and the column
+  // type (text) is too big to fit inside index size limits.
+  if (!db_index_exists('webform_submitted_data', 'data') && db_driver() != 'sqlsrv') {
+    db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function webform_uninstall() {
+  // Unset webform variables.
+  variable_del('webform_blocks');
+  variable_del('webform_tracking_mode');
+  variable_del('webform_allowed_tags');
+  variable_del('webform_email_address_format');
+  variable_del('webform_default_from_name');
+  variable_del('webform_default_from_address');
+  variable_del('webform_default_subject');
+  variable_del('webform_email_replyto');
+  variable_del('webform_email_html_capable');
+  variable_del('webform_default_format');
+  variable_del('webform_format_override');
+  variable_del('webform_email_select_max');
+  variable_del('webform_node_types_primary');
+  variable_del('webform_export_format');
+  variable_del('webform_csv_delimiter');
+  variable_del('webform_export_wordwrap');
+  variable_del('webform_excel_legacy_exporter');
+  variable_del('webform_progressbar_style');
+  variable_del('webform_progressbar_label_first');
+  variable_del('webform_progressbar_label_confirmation');
+  variable_del('webform_table');
+  variable_del('webform_submission_access_control');
+  variable_del('webform_update_batch_size');
+  variable_del('webform_disabled_components');
+
+  foreach (node_type_get_names() as $type => $name) {
+    variable_del('webform_node_' . $type);
+  }
+
+  $component_list = array();
+  $path = drupal_get_path('module', 'webform') . '/components';
+  $files = file_scan_directory($path, '/^.*\.inc$/');
+  foreach ($files as $filename => $file) {
+    variable_del('webform_enable_' . $file->name, 1);
+  }
+
+  // Delete uploaded files.
+  $filepath = file_build_uri('webform');
+  file_unmanaged_delete_recursive($filepath);
+
+  // Delete the content type "webform" if:
+  //   a) there are no existing nodes of type webform and
+  //   b) no additional fields have been defined for node type webform, beyond
+  //      the default body field.
+  $query = new EntityFieldQuery();
+  $results = $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'webform')
+    ->range(0,1)
+    ->execute();
+  $instances = field_info_instances('node', 'webform');
+  unset($instances['body']);
+  if (!$results && !$instances) {
+    node_type_delete('webform');
+    drupal_flush_all_caches();
+  }
+
+}
+
+/**
+ * Set the minimum upgrade version.
+ *
+ * Currently you cannot upgrade from 2.x in Drupal 6 to 3.x in Drupal 7. However
+ * there are no database changes between the 3.x versions, so no update is
+ * needed at all to move from 3.x in Drupal 6 to Drupal 7.
+ */
+function webform_update_last_removed() {
+  return 6313;
+}
+
+/**
+ * Allow the confirmation format column to have a NULL value.
+ */
+function webform_update_7301() {
+  // These changes are modeled after user_update_7010().
+  db_change_field('webform', 'confirmation_format', 'confirmation_format', array(
+    'description' => 'The {filter_format}.format of the confirmation message.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+  ));
+  db_update('webform')
+    ->fields(array('confirmation_format' => NULL))
+    ->condition('confirmation', '')
+    ->condition('confirmation_format', 0)
+    ->execute();
+  $existing_formats = db_query("SELECT format FROM {filter_format}")->fetchCol();
+  $default_format = variable_get('filter_default_format', 1);
+
+  // Since Webform may be updated separately from Drupal core, not all format
+  // names may be numbers when running this update.
+  $numeric_formats = array();
+  foreach ($existing_formats as $format_name) {
+    if (is_numeric($format_name)) {
+      $numeric_formats[] = (int) $format_name;
+    }
+  }
+
+  $query = db_update('webform')
+    ->fields(array('confirmation_format' => $default_format))
+    ->isNotNull('confirmation_format');
+
+  if (!empty($numeric_formats)) {
+    $query->condition('confirmation_format', $numeric_formats, 'NOT IN');
+  }
+
+  $query->execute();
+}
+
+/**
+ * Add columns for e-mail HTML and attachment settings.
+ */
+function webform_update_7302() {
+  if (!db_field_exists('webform_emails', 'html')) {
+    db_add_field('webform_emails', 'html', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0, 'not null' => TRUE));
+    db_add_field('webform_emails', 'attachments', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0, 'not null' => TRUE));
+  }
+}
+
+/**
+ * Set the default for the "submit_notice" column to 1.
+ */
+function webform_update_7303() {
+  db_change_field('webform', 'submit_notice', 'submit_notice', array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 1));
+}
+
+/**
+ * Add field for block feature and redirection setting.
+ */
+function webform_update_7304() {
+  if (!db_field_exists('webform', 'block')) {
+    db_add_field('webform', 'block', array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0));
+    db_change_field('webform', 'redirect_url', 'redirect_url', array('type' => 'varchar', 'length' => 255, 'default' => '<confirmation>'));
+    db_update('webform')
+      ->fields(array('redirect_url' => 'confirmation'))
+      ->condition('redirect_url', '')
+      ->execute();
+  }
+}
+
+/**
+ * Set additional_validate and additional_submit columns to allow NULL.
+ */
+function webform_update_7305() {
+  if (db_field_exists('webform', 'additional_validate')) {
+    db_change_field('webform', 'additional_validate', 'additional_validate', array('type' => 'text', 'not null' => FALSE));
+    db_change_field('webform', 'additional_submit', 'additional_submit', array('type' => 'text', 'not null' => FALSE));
+  }
+}
+
+/**
+ * Add column for webform status (open or closed).
+ */
+function webform_update_7306() {
+  if (!db_field_exists('webform', 'status')) {
+    db_add_field('webform', 'status', array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 1));
+  }
+}
+
+/**
+ * Update the confirmation_format column for default text format changes.
+ */
+function webform_update_7307() {
+  // Update removed and moved to webform_update_7301().
+  // See http://drupal.org/node/976102.
+}
+
+/**
+ * Update the confirmation_format column to allow it to store strings.
+ */
+function webform_update_7308() {
+  db_change_field('webform', 'confirmation_format', 'confirmation_format', array(
+    'description' => 'The {filter_format}.format of the confirmation message.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+  ));
+}
+
+/**
+ * Add the ability to auto-save as draft between pages.
+ */
+function webform_update_7309() {
+  if (!db_field_exists('webform', 'auto_save')) {
+    db_add_field('webform', 'auto_save', array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0));
+  }
+}
+
+/**
+ * Remove orphaned and unnecessary rows in the webform table.
+ */
+function webform_update_7310() {
+  $result = db_query("SELECT nid FROM {webform} WHERE
+    nid NOT IN
+    (SELECT DISTINCT(w1.nid) FROM {webform} w1 INNER JOIN {webform_component} wc ON w1.nid = wc.nid)
+    AND nid NOT IN
+    (SELECT w2.nid FROM {webform} w2 INNER JOIN {node} n ON w2.nid = n.nid WHERE n.type = 'webform')"
+  );
+  $empty_nids = array();
+  foreach ($result as $row) {
+    $empty_nids[] = $row->nid;
+  }
+  if (!empty($empty_nids)) {
+    db_delete('webform')->condition('nid', $empty_nids, 'IN')->execute();
+  }
+}
+
+/**
+ * Add an index for nid_uid_sid to webform_submissions.
+ */
+function webform_update_7311() {
+  if (!db_index_exists('webform_submissions', 'nid_uid_sid')) {
+    db_add_index('webform_submissions', 'nid_uid_sid', array('nid', 'uid', 'sid'));
+  }
+}
+
+/**
+ * Remove unused Webform variables.
+ */
+function webform_update_7312() {
+  variable_del('node_types');
+  variable_del('components');
+}
+
+/**
+ * Convert the Date component start and end year options to start and end date.
+ */
+function webform_update_7313() {
+  $result = db_select('webform_component', 'wc', array('fetch' => PDO::FETCH_ASSOC))
+    ->fields('wc')
+    ->condition('type', 'date')
+    ->execute();
+  foreach ($result as $component) {
+    $component['extra'] = unserialize($component['extra']);
+    if (!isset($component['extra']['start_date']) && !isset($component['end_date'])) {
+      foreach (array('year_start' => 'start_date', 'year_end' => 'end_date') as $key => $replacement) {
+        $value = isset($component['extra'][$key]) ? trim($component['extra'][$key]) : '';
+        // Relative years.
+        if (preg_match('/[-+][ ]*[0-9]+/', $value)) {
+          $component['extra'][$replacement] = ($value == 1) ? ($value . ' year') : ($value . ' years');
+        }
+        // Absolute years.
+        elseif (is_numeric($value)) {
+          $component['extra'][$replacement] = 'Dec 31 ' . $value;
+        }
+        unset($component['extra'][$key]);
+      }
+      $component['extra'] = serialize($component['extra']);
+      drupal_write_record('webform_component', $component, array('nid', 'cid'));
+    }
+  }
+}
+
+/**
+ * Add webform_last_download table to store last downloaded sid per user.
+ */
+function webform_update_7314() {
+  // Safety check to prevent recreating the webform_last_download table.
+  if (db_table_exists('webform_last_download')) {
+    return;
+  }
+
+  $schema['webform_last_download'] = array(
+    'description' => 'Stores last submission number per user download.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'The user identifier.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'sid' => array(
+        'description' => 'The last downloaded submission number.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'uid'),
+  );
+  db_create_table('webform_last_download', $schema['webform_last_download']);
+}
+
+/**
+ * Add column for timestamp of last requested CSV download.
+ */
+function webform_update_7315() {
+  if (!db_field_exists('webform_last_download', 'requested')) {
+    db_add_field('webform_last_download', 'requested', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,));
+  }
+}
+
+/**
+ * Add additional columns for total submission limit.
+ */
+function webform_update_7316() {
+  if (!db_field_exists('webform', 'total_submit_limit')) {
+    db_add_field('webform', 'total_submit_limit', array('type' => 'int', 'not null' => TRUE, 'default' => -1));
+  }
+
+  if (!db_field_exists('webform', 'total_submit_interval')) {
+    db_add_field('webform', 'total_submit_interval', array('type' => 'int', 'not null' => TRUE, 'default' => -1));
+  }
+}
+
+/**
+ * Add an index for 'nid_sid' to webform_submissions.
+ */
+function webform_update_7317() {
+  // Even though we already have an index 'nid_uid_sid', adding the index for
+  // 'nid_sid' saves us a tablesort on the node/x/webform-results page.
+  if (!db_index_exists('webform_submissions', 'nid_sid')) {
+    db_add_index('webform_submissions', 'nid_sid', array('nid', 'sid'));
+  }
+}
+
+/**
+ * Upgrade file components to support the new AJAX-upload element.
+ */
+function webform_update_7318() {
+  $result = db_select('webform_component', 'wc', array('fetch' => PDO::FETCH_ASSOC))
+    ->fields('wc')
+    ->condition('type', 'file')
+    ->execute();
+  foreach ($result as $component) {
+    $component['extra'] = unserialize($component['extra']);
+    if (!isset($component['extra']['directory'])) {
+      $component['extra']['directory'] = $component['extra']['savelocation'];
+      $component['extra']['scheme'] = file_default_scheme();
+      $component['extra']['filtering']['size'] = $component['extra']['filtering']['size'] . ' KB';
+      unset($component['extra']['savelocation']);
+      $component['extra'] = serialize($component['extra']);
+      drupal_write_record('webform_component', $component, array('nid', 'cid'));
+    }
+  }
+
+  return t('File components updated to support AJAX uploading.');
+}
+
+/**
+ * Add file usage entries for all files uploaded through Webform.
+ */
+function webform_update_7319(&$sandbox) {
+  if (!isset($sandbox['progress'])) {
+    // Initialize batch update information.
+    $sandbox['progress'] = 0;
+    $sandbox['last_fid_processed'] = -1;
+    $sandbox['max'] = db_select('file_managed')
+      ->condition('uri', '%' . db_like('://webform/') . '%', 'LIKE')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+  }
+
+  // Process all files attached to a given revision during the same batch.
+  $limit = webform_variable_get('webform_update_batch_size');
+  $files = db_select('file_managed', 'f')
+    ->fields('f')
+    ->condition('uri', '%' . db_like('://webform/') . '%', 'LIKE')
+    ->condition('fid', $sandbox['last_fid_processed'], '>')
+    ->orderBy('fid', 'ASC')
+    ->range(0, $limit)
+    ->execute()
+    ->fetchAllAssoc('fid', PDO::FETCH_ASSOC);
+
+  // Determine each submission with which a file is associated.
+  if (!empty($files)) {
+    foreach ($files as $fid => $file) {
+      $file = (object) $file;
+      $sids = db_query('SELECT wsd.sid FROM {webform_component} wc INNER JOIN {webform_submitted_data} wsd ON wc.nid = wsd.nid AND wc.type = :file WHERE data = :fid', array(':file' => 'file', ':fid' => $file->fid))->fetchAllAssoc('sid', PDO::FETCH_ASSOC);
+      foreach ($sids as $sid => $row) {
+        // We use a db_merge() instead of file_usage_add() to prevent problems
+        // in the event this update was run twice. No file provided by Webform
+        // should ever be in use more than once at this point.
+        db_merge('file_usage')
+          ->key(array(
+            'fid' => $file->fid,
+            'type' => 'submission',
+            'module' => 'webform',
+            'id' => $sid,
+          ))
+          ->fields(array(
+            'count' => 1,
+          ))
+          ->execute();
+      }
+
+      // Update our progress information for the batch update.
+      $sandbox['progress']++;
+      $sandbox['last_fid_processed'] = $file->fid;
+    }
+  }
+
+  // If less than limit was processed, the update process is finished.
+  if (count($files) < $limit || $sandbox['progress'] == $sandbox['max']) {
+    $finished = TRUE;
+  }
+
+  // If there's no max value then there's nothing to update and we're finished.
+  if (empty($sandbox['max']) || isset($finished)) {
+    return t('Webform file entries created in the file_usage table.');
+  }
+  else {
+    // Indicate our current progress to the batch update system.
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}
+
+/**
+ * Mark files uploaded through Webform that report active usage permanent.
+ */
+function webform_update_7320() {
+  db_query("UPDATE {file_managed} SET status = 1 WHERE fid IN (SELECT fid FROM {file_usage} WHERE module = :module_name)", array(':module_name' => 'webform'));
+}
+
+/**
+ * Rewrite token replacement system to use D7 tokens.
+ *
+ * If needed, please download and install the Token module from drupal.org.
+ * Otherwise some tokens will not be rendered.
+ */
+function webform_update_7401(&$sandbox) {
+  // Define replacements.
+  $patterns = array(
+    '%username',
+    '%useremail',
+    '%uid',
+    '%date',
+    '%ip_address',
+    '%site',
+    '%nid',
+    '%title',
+    '%email_values',
+    '%submission_url',
+    '%sid',
+    '%server[REQUEST_URI]',
+    '][', // Used to convert nested arrays of %value and %email.
+  );
+  $replacements = array(
+    '[current-user:name]',
+    '[current-user:mail]',
+    '[current-user:uid]',
+    '[submission:date:long]',
+    '[current-user:ip-address]',
+    '[site:name]',
+    '[node:nid]',
+    '[node:title]',
+    '[submission:values]',
+    '[submission:url]',
+    '[submission:sid]',
+    '[current-page:url]',
+    ':', // Replace "][" with ":" for %value and %email.
+  );
+  $dpatterns = array(
+    '/%get\[([^\]]+)\]/m',
+    '/%email\[([^% \n\r\t]+)?\]/m',
+    '/%value\[([^% \n\r\t]+)?\]/m',
+    '/%profile\[([^\]]+)\]/m',
+  );
+  $dreplacements = array(
+    '[current-page:query:$1]',
+    '[submission:values:$1]',
+    '[submission:values:$1:nolabel]',
+    '[current-user:$1]',
+  );
+
+  $limit = webform_variable_get('webform_update_batch_size');
+  $processed_count = _webform_update_7401_batch($sandbox, $patterns, $replacements, $dpatterns, $dreplacements, $limit);
+
+  // If less than limit was processed, the update process is finished.
+  if ($processed_count < $limit || $sandbox['progress'] == $sandbox['max']) {
+    $finished = TRUE;
+  }
+
+  // If there's no max value then there's nothing to update and we're finished.
+  if (empty($sandbox['max']) || isset($finished)) {
+    $message = t('Your existing webforms have been upgraded to use the global Drupal 7 token system.');
+    if (!module_exists('token')) {
+      $message .= ' <strong>' . t('Please download and install the <a href="http://drupal.org/project/token" target="_blank">Token module</a>. Otherwise some tokens will not be rendered.') . '</strong>';
+    }
+    return $message;
+  }
+  else {
+    // Indicate our current progress to the batch update system.
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}
+
+/**
+ * Utility function to update all the locations that use tokens.
+ */
+function _webform_update_7401_batch(&$sandbox, $patterns, $replacements, $dpatterns, $dreplacements, $limit) {
+  // Set up the initial batch process.
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_nid_processed'] = -1;
+    $sandbox['max'] = db_select('webform')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+
+    // Update tokens in variables.
+    $variables = array(
+      'webform_default_subject',
+      'webform_default_from_name',
+      'webform_default_from_address',
+    );
+    foreach ($variables as $variable) {
+      $value = variable_get($variable, NULL);
+      if ($value !== NULL) {
+        $value = str_replace($patterns, $replacements, $value);
+        $value = preg_replace($dpatterns, $dreplacements, $value);
+        variable_set($variable, $value);
+      }
+    }
+  }
+
+  $webforms = db_select('webform', 'w')
+    ->fields('w')
+    ->condition('nid', $sandbox['last_nid_processed'], '>')
+    ->orderBy('nid', 'ASC')
+    ->range(0, $limit)
+    ->execute()
+    ->fetchAllAssoc('nid', PDO::FETCH_ASSOC);
+
+  foreach ($webforms as $nid => $webform) {
+    // Update the webform record itself.
+    $original = $webform;
+    $parts = array(
+      'confirmation',
+      'redirect_url',
+    );
+    foreach ($parts as $part) {
+      $webform[$part] = str_replace($patterns, $replacements, $webform[$part]);
+      $webform[$part] = preg_replace($dpatterns, $dreplacements, $webform[$part]);
+    }
+    if ($webform != $original) {
+      drupal_write_record('webform', $webform, array('nid'));
+    }
+
+    // Update tokens in component configurations.
+    $result = db_select('webform_component', 'wc', array('fetch' => PDO::FETCH_ASSOC))
+      ->fields('wc')
+      ->condition('wc.nid', $nid)
+      ->execute();
+    foreach ($result as $component) {
+      $original_extra = $component['extra'];
+      $original_value = $component['value'];
+      $component['extra'] = unserialize($component['extra']);
+      if (isset($component['extra']['description'])) {
+        $description = str_replace($patterns, $replacements, $component['extra']['description']);
+        $description = preg_replace($dpatterns, $dreplacements, $description);
+        $component['extra']['description'] = $description;
+      }
+      $component['extra'] = serialize($component['extra']);
+      $value = str_replace($patterns, $replacements, $component['value']);
+      $value = preg_replace($dpatterns, $dreplacements, $value);
+      $component['value'] = $value;
+      if ($component['extra'] != $original_extra || $component['value'] != $original_value) {
+        drupal_write_record('webform_component', $component, array('nid', 'cid'));
+      }
+    }
+
+    // Update tokens in e-mail configurations.
+    $result = db_select('webform_emails', 'we', array('fetch' => PDO::FETCH_ASSOC))
+      ->fields('we')
+      ->condition('we.nid', $nid)
+      ->execute();
+    foreach ($result as $email) {
+      $parts = array(
+        'template',
+        'subject',
+        'from_name',
+      );
+      $original = $email;
+      foreach ($parts as $part) {
+        $email[$part] = str_replace($patterns, $replacements, $email[$part]);
+        $email[$part] = preg_replace($dpatterns, $dreplacements, $email[$part]);
+      }
+      if ($email != $original) {
+        drupal_write_record('webform_emails', $email, array('nid', 'eid'));
+      }
+    }
+
+    // Update the last processed NID.
+    $sandbox['last_nid_processed'] = $nid;
+    $sandbox['progress']++;
+  }
+  return count($webforms);
+}
+
+/**
+ * Add the webform_conditional database table.
+ */
+function webform_update_7402() {
+  // Sanity checks.
+  if (db_table_exists('webform_conditional')) {
+    // Both tables exist, so these are Webform-core provided tables.
+    if (db_table_exists('webform_conditional_rules')) {
+      return;
+    }
+    // Webform Conditional module was installed previously but not uninstalled.
+    else {
+      throw new DrupalUpdateException(t('The "Webform Conditional" module has previously been installed on your site. Either uninstall the module or drop the database table "webform_conditional".'));
+    }
+  }
+
+  $schema['webform_conditional'] = array(
+    'description' => 'Holds information about conditional logic.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rgid' => array(
+        'description' => 'The rule group identifier for this group of rules.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'andor' => array(
+        'description' => 'Whether to AND or OR the actions in this group. All actions within the same crid should have the same andor value.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'action' => array(
+        'description' => 'The action to be performed on the target. Typically "show" or "hide" for targets of type "component", and "send" for targets of type "email".',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'target_type' => array(
+        'description' => 'The type of target to be affected. Either "component" or "email". Indicates what type of ID the "target" column contains.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'target' => array(
+        'description' => 'The ID of the target to be affected. Typically a component ID.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'weight' => array(
+        'description' => 'Determines the position of this conditional compared to others.',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'rgid'),
+  );
+
+  $schema['webform_conditional_rules'] = array(
+    'description' => 'Holds information about conditional logic.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier of a webform.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rgid' => array(
+        'description' => 'The rule group identifier for this group of rules.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rid' => array(
+        'description' => 'The rule identifier for this conditional rule.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'source_type' => array(
+        'description' => 'The type of source on which the conditional is based. Currently always "component". Indicates what type of ID the "source" column contains.',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'source' => array(
+        'description' => 'The component ID being used in this condition.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'operator' => array(
+        'description' => 'Which operator (equal, contains, starts with, etc.) should be used for this comparison between the source and value?',
+        'type' => 'varchar',
+        'length' => 128,
+      ),
+      'value' => array(
+        'description' => 'The value to be compared with source.',
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('nid', 'rgid', 'rid'),
+  );
+
+  db_create_table('webform_conditional', $schema['webform_conditional']);
+  db_create_table('webform_conditional_rules', $schema['webform_conditional_rules']);
+  // Rebuild schema so that webform_update_7403() can use drupal_write_record().
+  if (db_table_exists('system') && db_field_exists('system', 'status')) {
+    drupal_get_schema(NULL, TRUE);
+  }
+}
+
+/**
+ * Convert per-component conditionals to new more flexible conditional system.
+ */
+function webform_update_7403(&$sandbox) {
+  // Set up the initial batch process.
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['last_nid_processed'] = -1;
+    $sandbox['converted_count'] = 0;
+    $sandbox['max'] = db_select('webform')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+  }
+
+  $limit = webform_variable_get('webform_update_batch_size');
+  $webforms = db_select('webform', 'w')
+    ->fields('w')
+    ->condition('nid', $sandbox['last_nid_processed'], '>')
+    ->orderBy('nid', 'ASC')
+    ->range(0, $limit)
+    ->execute()
+    ->fetchAllAssoc('nid', PDO::FETCH_ASSOC);
+
+  foreach ($webforms as $nid => $webform) {
+    // Update tokens in component configurations.
+    $result = db_select('webform_component', 'wc', array('fetch' => PDO::FETCH_ASSOC))
+      ->fields('wc')
+      ->condition('wc.nid', $nid)
+      ->execute();
+    $rgid = 0;
+    foreach ($result as $component) {
+      // For each component, check if it has conditional properties that need
+      // to be removed and/or migrated. Because these properties may be in any
+      // order, copy the original extra array for comparison.
+      $component['extra'] = unserialize($component['extra']);
+      $original_extra = $component['extra'];
+
+      // Remove conditional properties if present.
+      if (isset($component['extra']['conditional_component'])) {
+        unset($component['extra']['conditional_component']);
+      }
+      if (isset($component['extra']['conditional_operator'])) {
+        unset($component['extra']['conditional_operator']);
+      }
+      if (isset($component['extra']['conditional_values'])) {
+        unset($component['extra']['conditional_values']);
+
+        // If the component has conditional values specified, that indicates
+        // that this component was conditionally shown. Convert it to a new
+        // conditional with multiple rules if needed.
+        if (strlen(trim($original_extra['conditional_values'])) && !empty($original_extra['conditional_operator']) && !empty($original_extra['conditional_component'])) {
+          $conditional_values = explode("\n", $original_extra['conditional_values']);
+          $rules = array();
+          $rule = array(
+            'nid' => $nid,
+            'rgid' => $rgid,
+            'rid' => NULL,
+            'source_type' => 'component',
+            'source' => $original_extra['conditional_component'],
+            'operator' => 'equal',
+            'value' => NULL,
+          );
+          foreach ($conditional_values as $value) {
+            $value = trim($value);
+            if ($value) {
+              $new_rule = $rule;
+              $new_rule['rid'] = count($rules);
+              $new_rule['value'] = $value;
+              $rules[] = $new_rule;
+            }
+          }
+          if (count($rules)) {
+            $conditional = array(
+              'nid' => $nid,
+              'rgid' => $rgid,
+              'andor' => 'or',
+              'action' => ($original_extra['conditional_operator'] === '=') ? 'show' : 'hide',
+              'target_type' => 'component',
+              'target' => $component['cid'],
+              'weight' => 0,
+            );
+            drupal_write_record('webform_conditional', $conditional);
+            foreach ($rules as $rule) {
+              drupal_write_record('webform_conditional_rules', $rule);
+            }
+            $sandbox['converted_count']++;
+            $rgid++;
+          }
+        }
+      }
+
+      // Update the component with the conditional properties removed.
+      if ($component['extra'] != $original_extra) {
+        $component['extra'] = serialize($component['extra']);
+        drupal_write_record('webform_component', $component, array('nid', 'cid'));
+      }
+    }
+
+    // Update the last processed NID.
+    $sandbox['last_nid_processed'] = $nid;
+    $sandbox['progress']++;
+  }
+
+  // If less than limit was processed, the update process is finished.
+  if (count($webforms) < $limit || $sandbox['progress'] == $sandbox['max']) {
+    $finished = TRUE;
+  }
+
+  // If there's no max value then there's nothing to update and we're finished.
+  if (empty($sandbox['max']) || isset($finished)) {
+    return t('@count webforms using conditionals updated to the new conditional system.', array('@count' => $sandbox['converted_count']));
+  }
+  else {
+    // Indicate our current progress to the batch update system.
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}
+
+/**
+ * Remove files left over from deleted submissions. Such files are now deleted
+ * automatically.
+ */
+function webform_update_7404() {
+  module_load_include('inc', 'webform', 'components/file');
+  $fids = db_query('SELECT fid FROM {file_usage} WHERE module = \'webform\' AND type = \'submission\' AND NOT id IN(SELECT sid FROM {webform_submissions})')->fetchCol();
+  foreach ($fids as $fid) {
+    _webform_delete_file(NULL, array($fid));
+  }
+}
+
+/**
+ * Add an "extra" column to the e-mail table for for non-queryable options.
+ */
+function webform_update_7405() {
+  $schema = array(
+    'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
+    'type' => 'text',
+    'not null' => TRUE,
+    'initial' => '',
+  );
+  if (!db_field_exists('webform_emails', 'extra')) {
+    db_add_field('webform_emails', 'extra', $schema);
+  }
+}
+
+/**
+ * Convert the "webform_use_cookies" setting to "webform_tracking_mode".
+ */
+function webform_update_7406() {
+  // Previously, we only had "strict" and "ip_address" checking. Using cookies
+  // meant cookies in addition to IP address.
+  $use_cookies = variable_get('webform_use_cookies');
+  if (isset($use_cookies)) {
+    variable_set('webform_tracking_mode', $use_cookies ? 'strict' : 'ip_address');
+    variable_del('webform_use_cookies');
+  }
+}
+
+/**
+ * Remove orphaned conditional rules.
+ */
+function webform_update_7407() {
+  // Delete entire conditions for deleted components that were the target.
+  // This query is complicated by database compatibility since we're joining two
+  // non-matching columns. See http://drupal.org/node/2026891.
+  $result = db_query("SELECT rg.* FROM {webform_conditional} rg LEFT JOIN {webform_component} c ON rg.nid = c.nid AND rg.target_type = 'component' AND rg.target = RTRIM(CAST(c.cid AS CHAR(10))) WHERE c.cid IS NULL");
+  foreach ($result as $row) {
+    db_delete('webform_conditional')
+      ->condition('nid', $row->nid)
+      ->condition('rgid', $row->rgid)
+      ->execute();
+    db_delete('webform_conditional_rules')
+      ->condition('nid', $row->nid)
+      ->condition('rgid', $row->rgid)
+      ->execute();
+  }
+  // Delete conditional rules for deleted components that were the source.
+  $result = db_query("SELECT r.* FROM {webform_conditional_rules} r LEFT JOIN {webform_component} c ON r.nid = c.nid AND r.source_type = 'component' AND r.source = c.cid WHERE c.cid IS NULL");
+  foreach ($result as $row) {
+    db_delete('webform_conditional_rules')
+      ->condition('nid', $row->nid)
+      ->condition('rgid', $row->rgid)
+      ->condition('rid', $row->rid)
+      ->execute();
+  }
+  // Delete any conditions that no longer have any rules left in them.
+  $result = db_query("SELECT rg.* FROM {webform_conditional} rg LEFT JOIN {webform_conditional_rules} r ON rg.nid = r.nid AND rg.rgid = r.rgid WHERE r.rgid IS NULL");
+  foreach ($result as $row) {
+    db_delete('webform_conditional')
+      ->condition('nid', $row->nid)
+      ->condition('rgid', $row->rgid)
+      ->execute();
+  }
+}
+
+/**
+ * Rename the "mandatory" column to "required".
+ */
+function webform_update_7408() {
+  $spec = array(
+    'description' => 'Boolean flag for if this component is required.',
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  if (!db_field_exists('webform_component', 'required')) {
+    db_change_field('webform_component', 'mandatory', 'required', $spec);
+  }
+}
+
+/**
+ * Add progress bar columns to the webform table.
+ */
+function webform_update_7409() {
+  if (!db_field_exists('webform', 'progressbar_bar')) {
+    $int_schema = array(
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    $varchar_schema = array(
+      'type' => 'varchar',
+      'length' => 255,
+    );
+
+    $int_schema['description'] = 'Boolean value indicating if the bar should be shown as part of the progress bar.';
+    db_add_field('webform', 'progressbar_bar', $int_schema);
+
+    $int_schema['description'] = 'Boolean value indicating if the page number should be shown as part of the progress bar.';
+    db_add_field('webform', 'progressbar_page_number', $int_schema);
+
+    $int_schema['description'] = 'Boolean value indicating if the percentage complete should be shown as part of the progress bar.';
+    db_add_field('webform', 'progressbar_percent', $int_schema);
+
+    $int_schema['description'] = 'Boolean value indicating if the pagebreak labels should be included as part of the progress bar.';
+    db_add_field('webform', 'progressbar_pagebreak_labels', $int_schema);
+
+    $int_schema['description'] = 'Boolean value indicating if the confirmation page should count as a page in the progress bar.';
+    db_add_field('webform', 'progressbar_include_confirmation', $int_schema);
+
+    $varchar_schema['description'] = 'Label for the first page of the progress bar.';
+    db_add_field('webform', 'progressbar_label_first', $varchar_schema);
+
+    $varchar_schema['description'] = 'Label for the last page of the progress bar.';
+    db_add_field('webform', 'progressbar_label_confirmation', $varchar_schema);
+
+    return t('New webform columns added.');
+  }
+}
+
+/**
+ * Remove the "teaser" column from the "webform" table.
+ */
+function webform_update_7410() {
+  if (db_field_exists('webform', 'teaser')) {
+    db_drop_field('webform', 'teaser');
+    return t('Removed "teaser" column. All forms that had the "Show complete form in teaser" option disabled will now show forms in their teasers. Use view modes to hide the form if desired.');
+  }
+}
+
+/**
+ * Remove [submission:values:x] token use of :nolabel and add :withlabel.
+ */
+function webform_update_7411(&$sandbox) {
+  // Define replacements.
+  $patterns = array();
+  $replacements = array();
+  $dpatterns = array(
+    '/\[submission:values(:(?!nolabel)[a-z_]+)+\]/m',
+    '/\[submission:values(:([a-z_:]+))?:nolabel\]/m',
+  );
+  $dreplacements = array(
+    '[submission:values$1:withlabel]',
+    '[submission:values$1]',
+  );
+
+  $limit = webform_variable_get('webform_update_batch_size');
+  $processed_count = _webform_update_7401_batch($sandbox, $patterns, $replacements, $dpatterns, $dreplacements, $limit);
+
+  // If less than limit was processed, the update process is finished.
+  if ($processed_count < $limit || $sandbox['progress'] == $sandbox['max']) {
+    $finished = TRUE;
+  }
+
+  // If there's no max value then there's nothing to update and we're finished.
+  if (empty($sandbox['max']) || isset($finished)) {
+    return t('Replaced tokens using [submission:values:x] with [submission:values:x:withlabel].');
+  }
+  else {
+    // Indicate our current progress to the batch update system.
+    $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+  }
+}
+
+/**
+ * Split webform_node_types as content type specific.
+ */
+function webform_update_7412() {
+  $types = variable_get('webform_node_types', array('webform'));
+  foreach ($types as $type) {
+    variable_set('webform_node_' . $type, TRUE);
+  }
+  variable_del('webform_node_types');
+}
+
+/**
+ * Add preview page columns to the webform table.
+ */
+function webform_update_7413() {
+  if (!db_field_exists('webform', 'preview')) {
+    $int_schema = array(
+      'type' => 'int',
+      'size' => 'tiny',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    $varchar_schema = array(
+      'type' => 'varchar',
+      'length' => 255,
+    );
+    $text_schema = array(
+      'type' => 'text',
+      'not null' => TRUE,
+      'initial' => '',
+    );
+
+    $int_schema['description'] = 'Boolean value indicating if this form includes a page for previewing the submission.';
+    db_add_field('webform', 'preview', $int_schema);
+
+    $varchar_schema['description'] = 'The text for the button that will proceed to the preview page.';
+    db_add_field('webform', 'preview_next_button_label', $varchar_schema);
+
+    $varchar_schema['description'] = 'The text for the button to go backwards from the preview page.';
+    db_add_field('webform', 'preview_prev_button_label', $varchar_schema);
+
+    $varchar_schema['description'] = 'The title of the preview page, as used by the progress bar.';
+    db_add_field('webform', 'preview_title', $varchar_schema);
+
+    $text_schema['description'] = 'Text shown on the preview page of the form.';
+    db_add_field('webform', 'preview_message', $text_schema);
+
+    $varchar_schema['description'] = 'The {filter_format}.format of the preview page message.';
+    db_add_field('webform', 'preview_message_format', $varchar_schema);
+
+    $text_schema['description'] = 'Comma-separated list of component IDs that should not be included in this form\'s confirmation page.';
+    db_add_field('webform', 'preview_excluded_components', $text_schema);
+
+    return t('New webform columns added.');
+  }
+}
+
+/**
+ * Change email subject, from_name and from_address fields to type 'TEXT'.
+ */
+function webform_update_7414() {
+  $schema = array(
+    'subject' => array(
+      'description' => 'The e-mail subject that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+      'type' => 'text',
+      'not null' => FALSE,
+    ),
+    'from_name' => array(
+      'description' => 'The e-mail "from" name that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+      'type' => 'text',
+      'not null' => FALSE,
+    ),
+    'from_address' => array(
+      'description' => 'The e-mail "from" e-mail address that will be used. This may be a string, the special key "default" or a numeric value. If a numeric value is used, the value of a component will be substituted on submission.',
+      'type' => 'text',
+      'not null' => FALSE,
+    ),
+  );
+
+  db_change_field('webform_emails', 'subject', 'subject', $schema['subject']);
+  db_change_field('webform_emails', 'from_name', 'from_name', $schema['from_name']);
+  db_change_field('webform_emails', 'from_address', 'from_address', $schema['from_address']);
+
+  return t('Custom email columns successfully changed.');
+}
+
+/**
+ * Increase length of webform.redirect_url.
+ */
+function webform_update_7415() {
+  $spec = array(
+    'description' => 'The URL a user is redirected to after submitting a form.',
+    'type' => 'varchar',
+    'length' => 2048,
+    'default' => '<confirmation>',
+  );
+  db_change_field('webform', 'redirect_url', 'redirect_url', $spec);
+}
+
+/**
+ * Add columns for serial numbered submissions. Add serial numbers to existing submissions.
+ */
+function webform_update_7416() {
+  // SQL database implementations vary in how DDL statements are handled within
+  // transactions. Since this update routine should be run in maintenance mode
+  // without concurrent transactions, no DDL statements are executed within a
+  // transaction.
+
+  // Add next_serial column to webform.
+  $spec = array(
+    'description' => 'The serial number to give to the next submission to this webform.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 1,
+  );
+  if (!db_field_exists('webform', 'next_serial')) {
+    db_add_field('webform', 'next_serial', $spec);
+  }
+
+  // Add serial column to webform_submissions.
+  $spec = array(
+    'description' => 'The serial number of this submission.',
+    'type' => 'int',
+    'unsigned' => TRUE,
+  );
+  if (!db_field_exists('webform_submissions', 'serial')) {
+    db_add_field('webform_submissions', 'serial', $spec);
+  }
+
+  // Begin a transaction for updating the serial numbers. The transaction will
+  // commit when $txn is unset or goesout-of-scope.
+  $txn = db_transaction();
+
+  // Delete stray entries from the Webform tables before adding serial numbers.
+  db_query("DELETE FROM {webform_submissions} WHERE nid NOT IN (SELECT nid FROM {webform})");
+  db_query("DELETE FROM {webform_submitted_data} WHERE nid NOT IN (SELECT nid FROM {webform})");
+
+
+  // Add serial numbers to all submissions.
+
+  // Repeat for every Webform.
+  $nids = db_select('webform', 'w')
+    ->fields('w', array('nid'))
+    ->execute();
+  while ($nid = $nids->fetchColumn()) {
+    $serial = 1;
+    // Repeat for every submission in this Webform.
+    $sids = db_select('webform_submissions', 'ws')
+      ->forUpdate()
+      ->fields('ws', array('sid'))
+      ->condition('nid', $nid)
+      ->orderBy('sid')
+      ->execute();
+    while ($sid = $sids->fetchColumn()) {
+      // Set the serial number.
+      db_update('webform_submissions')
+        ->fields(array('serial' => $serial))
+        ->condition('nid', $nid)
+        ->condition('sid', $sid)
+        ->execute();
+      $serial++;
+    }
+    // Set the next serial number.
+    db_update('webform')
+      ->fields(array('next_serial' => $serial))
+      ->condition('nid', $nid)
+      ->execute();
+  }
+  // Commit the transaction
+  unset ($txn);
+
+  // Now that every submission has a serial number, make serial numbers required.
+  $spec['not null'] = TRUE;
+  $keys = array();
+  // Create a unique index if it does not already exist.
+  if (!db_index_exists('webform_submissions', 'nid_serial')) {
+    $keys = array(
+      'unique keys' => array(
+        'nid_serial' => array('nid', 'serial'),
+      ),
+    );
+  }
+  db_change_field('webform_submissions', 'serial', 'serial', $spec, $keys);
+
+  return t('Columns for serial numbered submissions successfully added. Serial numbers added to existing submissions.');
+}
+
+/**
+ * Change webform_component.name to text to allow for longer labels.
+ */
+function webform_update_7417() {
+  db_change_field('webform_component', 'name', 'name', array('type' => 'text', 'not null' => TRUE));
+}
+
+/**
+ * Upgrade the "extra" column in the e-mail table to be consistent with a new
+ * webform installation.
+ *
+ * In version 7.x-4.0-rc6 and earlier, the extra field was added with 'not null'
+ * FALSE, cause the schema module to report in mismatch. While functionally this
+ * causes no problem, this update removes the schema module's warning.
+ */
+function webform_update_7418() {
+  // While there should never be any NULL values in the extra field, change them to '' to be safe.
+  db_update('webform_emails')
+    ->fields(array('extra' => ''))
+    ->isNull('extra')
+    ->execute();
+  // Pass a complete field specification to db_change_field for cross-database compatiblity.
+  $spec = array(
+    'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
+    'type' => 'text',
+    'not null' => TRUE,
+  );
+  db_change_field('webform_emails', 'extra', 'extra', $spec);
+}
+
+
+/**
+ * Add an index on submitted data.
+ */
+function webform_update_7419() {
+  // Note: MS SQL Server does not support size-limited indexes and the column
+  // type (text) is too big to fit inside index size limits.
+  if (!db_index_exists('webform_submitted_data', 'data') && db_driver() != 'sqlsrv') {
+    db_add_index('webform_submitted_data', 'data', array(array('data', 64)));
+  }
+}
+
+/**
+ * Extend access to the WEBFORM tab to anyone who can access the node's EDIT tab.
+ */
+function webform_update_7420() {
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit webform components'));
+}
+
+/**
+ * Set the administrator option for an HTML-capable mail system to the current automatically-detected option.
+ */
+function webform_update_7421() {
+  $capable = array_reduce(array('mandrill', 'mimemail', 'htmlmail'),
+                          function($carry, $module) { return $carry || module_exists($module); },
+                          FALSE);
+  variable_set('webform_email_html_capable', $capable);
+  return $capable
+            ? t('An HTML-capable module is installed. The option to send HTML e-mail is enabled. ')
+            : t('No commonly-known HTML capable module is installed. The option to send HTML e-mail is disabled.');
+}
+
+/**
+ * Remove the administrator option "Include webform forms in search index" and rely on the Search Index view mode instead.
+ */
+function webform_update_7422() {
+  variable_del('webform_search_index');
+  return module_exists('search')
+          ? t('Webform forms will now be included in the search index only if the Webform "field" is displayed in the "Search index" view mode.')
+          : NULL;
+}
+

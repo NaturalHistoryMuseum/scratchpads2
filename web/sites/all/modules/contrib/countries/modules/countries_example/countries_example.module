@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * @file
+ * Provides examples for the Countries module.
+ *
+ * This is also used during testing to test the FAPI country element.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function countries_example_menu() {
+  $items = array();
+
+  $items['countries-example'] = array(
+    'title' => 'Countries example page',
+    'description' => 'Demonstrate countries API',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('countries_example'),
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback; example countries form.
+ */
+function countries_example($form, &$form_state) {
+  $form['countries_example_default_core'] = array(
+    '#markup' => t('<h3>Core Drupal Examples</h3><p>These examples use Drupals internal api with no external dependencies. They all use a FAPI <em>select</em> element</p>'),
+  );
+  include_once DRUPAL_ROOT . '/includes/iso.inc';
+  $form['countries_example_default_core_1'] = array(
+    '#type' => 'select',
+    '#title' => t('Select a country'),
+    '#default_value' => variable_get('countries_example_default_core_1', ''),
+    '#options' => array('' => t('Please select a country')) + _country_get_predefined_list(),
+    '#description' => t('This example is based on the unaltered Drupals core country list.'),
+  );
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+  $form['countries_example_default_core_2'] = array(
+    '#type' => 'select',
+    '#title' => t('Select a country'),
+    '#default_value' => variable_get('countries_example_default_core_2', ''),
+    '#options' => array('' => t('Please select a country')) + country_get_list(),
+    '#description' => t('This example is based on the <em>altered</em> Drupals core country list. Countries updated with the Countries module will be updated here too.'),
+  );
+
+  $form['countries_example_default_select'] = array(
+    '#markup' => t('<h3>FAPI Select Element</h3><p>These examples use a FAPI <em>select</em> element and various countries module lists.</p>'),
+  );
+
+  // Loads a list of countries that are enabled.
+  $enabled_country_list = countries_get_countries('name', array('enabled' => COUNTRIES_ENABLED));
+
+  $form['countries_example_default_country_1'] = array(
+    '#type' => 'select',
+    '#title' => t('Select a country'),
+    '#default_value' => variable_get('countries_example_default_country_1', ''),
+    '#options' => array('' => t('Please select a country')) + $enabled_country_list,
+    '#description' => t('This example is based on the countries module enabled country list.'),
+  );
+
+  $form['countries_example_default_country_2'] = array(
+    '#type' => 'select',
+    '#title' => t('Select countries'),
+    '#default_value' => variable_get('countries_example_default_country_2', array()),
+    '#options' => $enabled_country_list,
+    '#multiple' => TRUE,
+    '#description' => t('This example is based on the countries module enabled country list.'),
+  );
+
+  $eu_countries = countries_filter($enabled_country_list, array(
+    'continents' => array('EU')));
+  $form['countries_example_default_country_3'] = array(
+    '#type' => 'select',
+    '#title' => t('Select European countries'),
+    '#default_value' => variable_get('countries_example_default_country_3', array()),
+    '#options' => $eu_countries,
+    '#multiple' => TRUE,
+    '#size' => 5,
+    '#description' => t('This example is based on the countries module enabled country list, filtered by continent.'),
+  );
+
+  $form['countries_example_default_countries'] = array(
+    '#markup' => t('<h3>FAPI Country Element</h3><p>These examples use a FAPI <em>country</em> element and various countries module lists.</p>'),
+  );
+
+  $form['countries_example_default_country_4'] = array(
+    '#type' => 'country',
+    '#title' => 'Select a country (country element)',
+    '#default_value' => variable_get('countries_example_default_country_4', ''),
+    '#description' => t('This example uses the <em>country</em> elements default country list, enabled (default) countries filter.'),
+  );
+
+  $form['countries_example_default_country_5'] = array(
+    '#type' => 'country',
+    '#title' => t('Select countries (country element)'),
+    '#default_value' => variable_get('countries_example_default_country_5', ''),
+    '#multiple' => TRUE,
+    '#size' => 5,
+    '#description' => t('This example uses the <em>country</em> elements default country list, enabled (default) countries filter.'),
+  );
+
+  $form['countries_example_default_country_6'] = array(
+    '#type' => 'country',
+    '#title' => t('Select European countries (country element)'),
+    '#size' => 5,
+    '#multiple' => TRUE,
+    '#default_value' => variable_get('countries_example_default_country_6', ''),
+    '#filters' => array(
+      'continents' => array('EU'),
+    ),
+    '#description' => t('This example uses the <em>country</em> elements country list with enabled (default) and continent filters applied.'),
+  );
+
+  $form['countries_example_default_country_7'] = array(
+    '#type' => 'country',
+    '#title' => t('Select one to three countries in America (country element)'),
+    '#size' => 8,
+    '#required' => TRUE,
+    '#cardinality' => 3,
+    '#multiple' => TRUE,
+    '#default_value' => variable_get('countries_example_default_country_7', ''),
+    '#filters' => array(
+      'continents' => array('NA', 'SA'),
+    ),
+    '#description' => t('This example uses the <em>country</em> elements country list with enabled (default) and continent filters applied.'),
+  );
+
+  $form['countries_example_default_country_8'] = array(
+    '#type' => 'country',
+    '#title' => t('Select a disabled country'),
+    '#default_value' => variable_get('countries_example_default_country_8', ''),
+    // This is core Drupal 7 functionality.
+    '#empty_option' => t('-- None selected --'),
+    '#filters' => array(
+      'enabled' => COUNTRIES_DISABLED,
+    ),
+    '#description' => t('This example uses the <em>country</em> elements country list with the enabled filter restricting to only show <em>disabled</em> countries.'),
+  );
+
+  $form = system_settings_form($form);
+  $form['actions']['submit']['#value'] = t('Save');
+  return $form;
+}

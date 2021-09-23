@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Installation functions for Relation Endpoint field type module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function relation_endpoint_field_schema() {
+  $columns = array(
+    'entity_type' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+      'description' => 'Entity_type of this relation end-point.',
+    ),
+    'entity_id' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'Entity_id of this relation end-point.',
+    ),
+    'r_index' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'The index of this row in this relation. The highest index in the relation is stored as "arity" in the relation table.',
+    ),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => array(
+      'relation' => array('entity_type', 'entity_id', 'r_index'),
+    ),
+  );
+}

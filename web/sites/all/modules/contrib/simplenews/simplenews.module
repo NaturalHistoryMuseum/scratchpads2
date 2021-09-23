@@ -1,0 +1,2940 @@
+<?php
+/**
+ * @file
+ * Simplenews node handling, sent email, newsletter block and general hooks
+ */
+
+/**
+ * NEWSLETTER MAIL PRIORITY
+ */
+define('SIMPLENEWS_PRIORITY_NONE', 0);
+define('SIMPLENEWS_PRIORITY_HIGHEST', 1);
+define('SIMPLENEWS_PRIORITY_HIGH', 2);
+define('SIMPLENEWS_PRIORITY_NORMAL', 3);
+define('SIMPLENEWS_PRIORITY_LOW', 4);
+define('SIMPLENEWS_PRIORITY_LOWEST', 5);
+
+/**
+ * NEWSLETTER SEND COMMAND
+ */
+define('SIMPLENEWS_COMMAND_SEND_TEST', 0);
+define('SIMPLENEWS_COMMAND_SEND_NOW', 1);
+define('SIMPLENEWS_COMMAND_SEND_PUBLISH', 3);
+
+/**
+ * NEWSLETTER SUBSCRIPTION STATUS
+ */
+define('SIMPLENEWS_SUBSCRIPTION_STATUS_SUBSCRIBED', 1);
+define('SIMPLENEWS_SUBSCRIPTION_STATUS_UNCONFIRMED', 2);
+define('SIMPLENEWS_SUBSCRIPTION_STATUS_UNSUBSCRIBED', 0);
+
+/**
+ * NEWSLETTER SENT STATUS
+ */
+define('SIMPLENEWS_STATUS_SEND_NOT', 0);
+define('SIMPLENEWS_STATUS_SEND_PENDING', 1);
+define('SIMPLENEWS_STATUS_SEND_READY', 2);
+define('SIMPLENEWS_STATUS_SEND_PUBLISH', 3);
+
+/**
+ * MAIL SPOOL SENT STATUS
+ */
+define('SIMPLENEWS_SPOOL_HOLD', 0);
+define('SIMPLENEWS_SPOOL_PENDING', 1);
+define('SIMPLENEWS_SPOOL_DONE', 2);
+define('SIMPLENEWS_SPOOL_IN_PROGRESS', 3);
+
+/**
+ * AFTER EACH 100 NEWSLETTERS
+ * simplenews_mail_spool() CHECKS IF LIMITS ARE EXCEEDED
+ */
+define('SIMPLENEWS_SEND_CHECK_INTERVAL', 100);
+
+/**
+ * AT 80% OF PHP MAX EXECUTION TIME EMAIL SENDING IS INTERRUPTED
+ */
+define('SIMPLENEWS_SEND_TIME_LIMIT', 0.8);
+
+/**
+ * SUBSCRIPTION STATUS
+ */
+define('SIMPLENEWS_SUBSCRIPTION_INACTIVE', 0);
+define('SIMPLENEWS_SUBSCRIPTION_ACTIVE', 1);
+
+define('SIMPLENEWS_OPT_INOUT_HIDDEN', 'hidden');
+define('SIMPLENEWS_OPT_INOUT_SINGLE', 'single');
+define('SIMPLENEWS_OPT_INOUT_DOUBLE', 'double');
+
+/**
+ * Used when sending an unlimited amount of mails from the spool.
+ */
+define('SIMPLENEWS_UNLIMITED', -1);
+
+/**
+ * Implements hook_permission().
+ *
+ * @todo Change sort order where required: http://drupal.org/node/224333#sorting_permissions
+ */
+function simplenews_permission() {
+  return array(
+    'administer newsletters' => array(
+      'title' => t('Administer newsletters'),
+    ),
+    'administer simplenews subscriptions' => array(
+      'title' => t('Administer simplenews subscriptions'),
+    ),
+    'administer simplenews settings' => array(
+      'title' => t('Administer simplenews settings'),
+    ),
+    'send newsletter' => array(
+      'title' => t('Send newsletter'),
+    ),
+    'subscribe to newsletters' => array(
+      'title' => t('Subscribe to newsletters'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ *
+ * @todo move this to a specific form theme function ?
+ */
+function simplenews_init() {
+  drupal_add_css(drupal_get_path('module', 'simplenews') . '/simplenews.css', array('every_page' => TRUE));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function simplenews_menu() {
+  $items['admin/content/simplenews'] = array(
+    'title' => 'Newsletters',
+    'description' => 'List newsletters and newsletter sent status.',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_newsletter_issues'),
+    'access arguments' => array('administer newsletters'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+  $items['admin/config/services/simplenews'] = array(
+    'title' => 'Newsletters',
+    'description' => 'Configure your sites newsletters.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_categories'),
+    'access arguments' => array('administer newsletters'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+
+
+  $items['admin/config/services/simplenews/categories'] = array(
+    'title' => 'Newsletters',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/config/services/simplenews/categories/%simplenews_category/edit'] = array(
+    'title' => 'Newsletters',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_category_form', 5),
+    'access arguments' => array('administer newsletters'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+  $items['admin/config/services/simplenews/categories/%simplenews_category/delete'] = array(
+    'title' => 'Newsletters',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_category_delete', 5),
+    'access arguments' => array('administer newsletters'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+  $items['admin/config/services/simplenews/add'] = array(
+    'title' => 'Add newsletter category',
+    'type' => MENU_LOCAL_ACTION,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_category_form'),
+    'access arguments' => array('administer newsletters'),
+    'file' => 'includes/simplenews.admin.inc',
+    'weight' => -9,
+  );
+
+  $items['admin/content/simplenews/subscriptions/delete'] = array(
+    'title' => 'Delete',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscription_multiple_delete_confirm'),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+  $items['admin/people/simplenews'] = array(
+    'title' => 'Newsletter subscriptions',
+    'description' => 'Newsletter subscription management.',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_admin_subscription'),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.admin.inc',
+  );
+  $items['admin/people/simplenews/users/edit/%'] = array(
+    'title' => 'Subscriptions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscriptions_admin_form', 5),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.subscription.inc',
+  );
+  $items['admin/people/simplenews/import'] = array(
+    'title' => 'Mass subscribe',
+    'type' => MENU_LOCAL_ACTION,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscription_list_add'),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.admin.inc',
+    'weight' => 8,
+  );
+  $items['admin/people/simplenews/unsubscribe'] = array(
+    'title' => 'Mass unsubscribe',
+    'type' => MENU_LOCAL_ACTION,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscription_list_remove'),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.admin.inc',
+    'weight' => 9,
+  );
+  $items['admin/people/simplenews/export'] = array(
+    'title' => 'Export',
+    'type' => MENU_LOCAL_ACTION,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscription_list_export'),
+    'access arguments' => array('administer simplenews subscriptions'),
+    'file' => 'includes/simplenews.admin.inc',
+    'weight' => 10,
+  );
+  $items['admin/config/services/simplenews/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Simplenews settings.',
+    'page callback' => 'drupal_get_form',
+    'weight' => 20,
+    'page arguments' => array('simplenews_admin_settings_newsletter'),
+    'access arguments' => array('administer simplenews settings'),
+    'file' => 'includes/simplenews.admin.inc',
+    'file path' => drupal_get_path('module', 'simplenews'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/config/services/simplenews/settings/newsletter'] = array(
+    'title' => 'Newsletter',
+    'weight' => -15,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/services/simplenews/settings/subscription'] = array(
+    'title' => 'Subscription',
+    'description' => 'Subscription settings, opt-in/out confirmation email text.',
+    'page callback' => 'drupal_get_form',
+    'weight' => -10,
+    'page arguments' => array('simplenews_admin_settings_subscription'),
+    'access arguments' => array('administer simplenews settings'),
+    'file' => 'includes/simplenews.admin.inc',
+    'file path' => drupal_get_path('module', 'simplenews'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/config/services/simplenews/settings/mail'] = array(
+    'title' => 'Send mail',
+    'description' => 'Send mail, cron and debug options.',
+    'page callback' => 'drupal_get_form',
+    'weight' => -5,
+    'page arguments' => array('simplenews_admin_settings_mail'),
+    'access arguments' => array('administer simplenews settings'),
+    'file' => 'includes/simplenews.admin.inc',
+    'file path' => drupal_get_path('module', 'simplenews'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['newsletter/confirm'] = array(
+    'title' => 'Confirm newsletter subscriptions',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'simplenews_confirm_subscription',
+    'access arguments' => array('subscribe to newsletters'),
+    'file' => 'includes/simplenews.subscription.inc',
+  );
+
+  $items['newsletter/subscriptions'] = array(
+    'title' => 'Your newsletter subscriptions',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simplenews_subscriptions_page_form'),
+    'access arguments' => array('subscribe to newsletters'),
+    'file' => 'includes/simplenews.subscription.inc',
+  );
+
+  $items['node/%node/simplenews'] = array(
+    'title' => 'Newsletter',
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'simplenews_node_tab_access',
+    'access arguments' => array(1),
+    'page callback' => 'simplenews_node_tab_page',
+    'page arguments' => array(1),
+    'context' => MENU_LOCAL_TASK,
+    'file' => 'includes/simplenews.admin.inc',
+    'weight' => 2,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function simplenews_admin_paths() {
+  $paths = array(
+    'node/*/simplenews' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function simplenews_node_type_delete($info) {
+  drupal_static_reset('simplenews_get_content_types');
+}
+
+/**
+ * Implements hook_node_type_update().
+ */
+function simplenews_node_type_update($info) {
+  drupal_static_reset('simplenews_get_content_types');
+  if (simplenews_check_node_types($info->type)) {
+    simplenews_add_term_field($info);
+  }
+  else {
+    // Don't remove the field. This leads to data loss.
+    // simplenews_remove_term_field($info);
+  }
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function simplenews_node_type_insert($info) {
+  // Avoid using simplenews_check_node_type() because the node type cache
+  // has not been cleared yet.
+  if (variable_get('simplenews_content_type_' . $info->type, FALSE)) {
+    simplenews_add_term_field($info);
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function simplenews_node_view($node, $view_mode) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+
+  // Only do token replacements for view modes other than the our own email view
+  // modes. Token replacements for them will happen later on.
+  if (strpos($view_mode, 'email_') !== FALSE) {
+    return;
+  }
+
+  // Build up content, add as much as there is.
+  $context = array(
+    'node' => $node,
+  );
+
+  if ($newsletter = simplenews_newsletter_load($node->nid)) {
+    if ($category = simplenews_category_load($newsletter->tid)) {
+      $context['category'] = $category;
+    }
+  }
+
+  // If the current user is a subscriber, extend context.
+  if ($GLOBALS['user']->uid > 0 && $subscriber = simplenews_subscriber_load_by_mail($GLOBALS['user']->mail)) {
+    $context['simplenews_subscriber'] = $subscriber;
+  }
+
+  // Loop over all render array elements.
+  foreach (element_children($node->content) as $key) {
+    $element = &$node->content[$key];
+    // Make sure this is a field.
+    if (!isset($element['#field_type'])) {
+      continue;
+    }
+    // Loop over all field values.
+    foreach (element_children($element) as $field_key) {
+      $item = &$element[$field_key];
+      // Only fields which result in simple markup elements are supported for
+      // token replacements for now.
+      if (isset($item['#markup'])) {
+        $item['#markup'] = token_replace($item['#markup'], $context, array());
+      }
+    }
+  }
+}
+
+/**
+ * Get simplenews category term values from a node object.
+ *
+ * @ingroup issue
+ */
+function simplenews_get_term_values($node) {
+  $category_field = simplenews_get_category_field($node->type);
+  $taxonomy = $node->{$category_field['field_name']};
+  if (isset($taxonomy[$node->language])) {
+    return $taxonomy[$node->language];
+  }
+
+  $term = current($taxonomy);
+  return ($term) ? $term : FALSE;
+}
+
+/**
+ * Implements hook_node_validate().
+ */
+function simplenews_node_validate($node, $form) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+  // Check if a taxonomy term field is present in the node.
+  $field = simplenews_get_category_field($node->type);
+  if (!$field) {
+    form_set_error('', t('No newsletter category field is configured. Check ... @todo'));
+  }
+  else {
+    // Check if a newsletter category term is selected.
+    $terms = simplenews_get_term_values($node);
+    if (!$terms) {
+      form_set_error($field['field_name'], t('A newsletter category term is required.'));
+      watchdog('simplenews', '@todo ... newsletter taxonomy is required, change settings.', array(), WATCHDOG_ERROR);
+    }
+    elseif (count($terms) > 1) {
+      form_set_error($field['field_name'], t('Only one newsletter category term is allowed.'));
+      watchdog('simplenews', '@todo ... newsletter taxonomy must be single value, change settings.', array(), WATCHDOG_ERROR);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function simplenews_node_presave($node) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+
+  if (!empty($node->nid) && !isset($node->simplenews)) {
+    $node->simplenews = simplenews_newsletter_load($node->nid);
+  }
+  if (empty($node->simplenews)) {
+    $newsletter = (object) simplenews_newsletter_defaults($node);
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function simplenews_node_insert($node) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+
+  $node->simplenews = (object) simplenews_newsletter_defaults($node);
+  simplenews_newsletter_save($node->simplenews);
+}
+
+/**
+ * Return default newsletter.
+ */
+function simplenews_newsletter_defaults($node = NULL) {
+  $newsletter = array(
+    'nid' => NULL,
+    'tid' => NULL,
+    'status' => SIMPLENEWS_STATUS_SEND_NOT,
+    'sent_subscriber_count' => 0,
+  );
+
+  if ($node) {
+    $newsletter['nid'] = isset($node->nid) ? $node->nid : NULL;
+    $terms = simplenews_get_term_values($node);
+    $newsletter['tid'] = $terms[0]['tid'];
+  }
+
+  return $newsletter;
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function simplenews_node_update($node) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+
+  $node->simplenews = simplenews_newsletter_load($node->nid);
+  if (!$node->simplenews) {
+    $node->simplenews = (object) simplenews_newsletter_defaults($node);
+  }
+  else {
+    // Update tid.
+    $terms = simplenews_get_term_values($node);
+    $node->simplenews->tid = $terms[0]['tid'];
+  }
+
+  // Check if the newsletter is set to send on publish and needs to be send.
+  if ($node->simplenews->status == SIMPLENEWS_STATUS_SEND_PUBLISH && $node->status == NODE_PUBLISHED) {
+    module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+    simplenews_add_node_to_spool($node);
+  }
+  else {
+    // simplenews_update_sent_status() already saves the node, only need to do
+    // it when not sending.
+    simplenews_newsletter_save($node->simplenews);
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function simplenews_node_delete($node) {
+  if (!simplenews_check_node_types($node->type)) {
+    return;
+  }
+  simplenews_newsletter_delete($node);
+  // Check if pending emails of this newsletter issue exist and delete these too.
+  module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+  $count = simplenews_delete_spool(array('nid' => $node->nid));
+  if ($count) {
+    drupal_set_message(t('Newsletter %title was deleted but had @count pending emails. They can no longer be sent.', array(
+        '%title' => $node->title,
+        '@count' => $count,
+      )), 'warning');
+    watchdog('simplenews', 'Newsletter %title deleted with @count pending emails. Emails can no longer be sent.', array(
+      '%title' => $node->title,
+      '@count' => $count,
+      ), WATCHDOG_ALERT);
+  }
+  drupal_set_message(t('Newsletter %title was deleted.', array('%title' => $node->title)));
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function simplenews_node_load($nodes, $types) {
+  // We only support Simplenews enabled content types.
+  if (!simplenews_check_node_types($types)) {
+    return;
+  }
+
+  $newsletters = simplenews_newsletter_load_multiple(array_keys($nodes));
+  foreach ($nodes as $nid => $node) {
+    // We can have multiple nodes where not all of them are simplenews enabled
+    // content type. So we need to check for each individual node is it
+    // simplenews enabled.
+    if (!simplenews_check_node_types($node->type)) {
+      continue;
+    }
+
+    // Make sure every $node has valid newsletter data as object
+    $newsletter = array();
+    if (isset($newsletters[$nid])) {
+      $newsletter = $newsletters[$nid];
+    }
+    if (!$newsletter) {
+      $newsletter = (object) simplenews_newsletter_defaults($node);
+    }
+    $nodes[$nid]->simplenews = $newsletter;
+  }
+}
+
+/**
+ * Check if content type(s) is enabled for use as Simplenews newsletter.
+ *
+ * @param $types
+ *   Array of content types or single content type string.
+ * @return boolean
+ *   TRUE if at least one of $types is enabled for Simplenews.
+ *
+ * @ingroup issue
+ */
+function simplenews_check_node_types($types) {
+  if (!is_array($types)) {
+    $types = array($types);
+  }
+  if ($sn_types = simplenews_get_content_types()) {
+    foreach ($types as $type) {
+      if (in_array($type, $sn_types)) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Get all node types supported by Simplenews.
+ *
+ * @return
+ *   Array of node-types which can be used a simplenews newsletter issue.
+ *
+ * @ingroup issue
+ */
+function simplenews_get_content_types() {
+  $simplenews_types = &drupal_static(__FUNCTION__, array());
+
+  if (!$simplenews_types) {
+    foreach (node_type_get_types() as $name => $type) {
+      if (variable_get('simplenews_content_type_' . $name, FALSE)) {
+        $simplenews_types[] = $name;
+      }
+    }
+  }
+  return $simplenews_types;
+}
+
+/**
+ * Add the taxonomy term field for the newsletter category.
+ *
+ * @param $type
+ *   A node type object.
+ *
+ * @ingroup issue
+ */
+function simplenews_add_term_field($type) {
+  $field_name = variable_get('simplenews_category_field', 'field_simplenews_term');
+  $field = field_info_field($field_name);
+  $instance = field_info_instance('node', $field_name, $type->type);
+  if (empty($field)) {
+    $field = array(
+      'field_name' => $field_name,
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      //'entity_types' => array(),
+      'translatable' => TRUE,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'parent' => 0,
+            'vocabulary' => 'newsletter',
+          ),
+        ),
+      ),
+    );
+    $field = field_create_field($field);
+  }
+  if (empty($instance)) {
+    $instance = array(
+      'label' => t('Newsletter category'),
+      'field_name' => $field_name,
+      'bundle' => $type->type,
+      'entity_type' => 'node',
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'options_buttons',
+      ),
+      //'settings' => array(),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'taxonomy_term_reference_link',
+        ),
+        'teaser' => array(
+          'label' => 'hidden',
+          'type' => 'hidden',
+        ),
+        'email_plain' => array(
+          'label' => 'hidden',
+          'type' => 'hidden',
+        ),
+        'email_html' => array(
+          'label' => 'hidden',
+          'type' => 'hidden',
+        ),
+        'email_textalt' => array(
+          'label' => 'hidden',
+          'type' => 'hidden',
+        ),
+      ),
+    );
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Remove the taxonomy term field for the newsletter category.
+ *
+ * @param $type
+ *   A node type object.
+ *
+ * @ingroup issue
+ */
+function simplenews_remove_term_field($type) {
+  $field_name = variable_get('simplenews_category_field', 'field_simplenews_term');
+  $instance = field_info_instance('node', $field_name, $type->type);
+  if ($instance) {
+    field_delete_instance($instance);
+  }
+}
+
+/**
+ * Get the fieldname(s) from a content type that hold the newsletter category term.
+ *
+ * @param $bundle_name
+ *   The content type of which to return the field.
+ * @return field definition
+ *   Field name of the field containing the newsletter category term.
+ *   FALSE if no field is selected.
+ *
+ * @ingroup issue
+ */
+function simplenews_get_category_field($bundle_name) {
+  $fields_info = field_info_fields();
+  $field_name = variable_get('simplenews_category_field', 'field_simplenews_term');
+  $instances = field_info_instances('node', $bundle_name);
+  if (isset($instances[$field_name])) {
+    return $fields_info[$field_name];
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add checkbox to the content type form to use the content type as newsletter.
+ */
+function simplenews_form_node_type_form_alter(&$form, $form_state) {
+  // Add option to use content type as simplenews newsletter.
+  $form['workflow']['simplenews_content_type'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use as simplenews newsletter'),
+    '#default_value' => variable_get('simplenews_content_type_' . $form['#node_type']->type, 0),
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add a warning message to taxonomy term delete form.
+ */
+function simplenews_form_taxonomy_form_term_alter(&$form, $form_state) {
+  if (isset($form_state['confirm_delete']) && $form_state['confirm_delete']) {
+    if ($form['#term']->vocabulary_machine_name == 'newsletter') {
+      $category = simplenews_category_load($form['#term']->tid);
+      $form['description']['#markup'] = '<p>' . t('This taxonomy term is part of simplenews newsletter category %category_name. Deleting this term will delete the newsletter category and <strong>all subscriptions to category %category_name</strong>. This action cannot be undone.', array('%category_name' => _simplenews_newsletter_name($category))) . '</p>' . $form['description']['#markup'];
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ *
+ * Delete simplenews category if taxonomy term is delete.
+ */
+function simplenews_taxonomy_term_delete($term) {
+  // A simplenews newsletter category can not exist without the associated
+  // taxonomy term. So we delete the category. simplenews_category_delete()
+  // will also delete the subscriptions to the category.
+  if ($term->vocabulary_machine_name == 'newsletter') {
+    // Make sure we only try to delete if not already deleted.
+    if (($category = simplenews_category_load($term->tid)) !== FALSE) {
+      // Add name and description from $term object.
+      $category->name = $term->name;
+      $category->description = $term->description;
+      simplenews_category_delete($category);
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function simplenews_form_alter(&$form, &$form_state, $form_id) {
+  // Add Simplenews settings to simplenews newsletter node form.
+  if (!empty($form['#node_edit_form'])) {
+    if (in_array($form['type']['#value'], simplenews_get_content_types())) {
+      _simplenews_node_form($form, $form_state);
+    }
+  }
+}
+
+/**
+ * @todo
+ */
+function _simplenews_node_form(&$form, $form_state) {
+
+  // Display warning if the node is currently being sent.
+  if (!empty($form['#node']->nid)) {
+    $newsletter = simplenews_newsletter_load($form['#node']->nid);
+    if ($newsletter && $newsletter->status == SIMPLENEWS_STATUS_SEND_PENDING) {
+      drupal_set_message(t('This newsletter issue is currently being sent. Any changes will be reflected in the e-mails which have not been sent yet.'), 'warning');
+    }
+  }
+
+  if (module_exists('token')) {
+    $form['simplenews_token_help'] = array(
+      '#title' => t('Replacement patterns'),
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#description' => t('These tokens can be used in all text fields except subject and will be replaced on-screen and in the email.'),
+    );
+
+    $form['simplenews_token_help']['browser'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('simplenews-category', 'simplenews-subscriber', 'node'),
+    );
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function simplenews_entity_info_alter(&$info) {
+  // Add the 'Plain', 'HTML' and 'Text alternative' view mode for nodes in email.
+  $info['node']['view modes'] += array(
+    'email_plain' => array(
+      'label' => t('Email: Plain'),
+      'custom settings' => FALSE,
+    ),
+    'email_html' => array(
+      'label' => t('Email: HTML'),
+      'custom settings' => FALSE,
+    ),
+    'email_textalt' => array(
+      'label' => t('Email: HTML text alternative'),
+      'custom settings' => FALSE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function simplenews_cron() {
+  module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+  simplenews_mail_spool(variable_get('simplenews_throttle', 20));
+  simplenews_clear_spool();
+  // Update sent status for newsletter admin panel.
+  simplenews_send_status_update();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add simplenews subscription fields to user register form.
+ * @todo mode this function to another place in the module.
+ */
+function simplenews_form_user_register_form_alter(&$form, &$form_state) {
+  $options = $default_value = $hidden = array();
+
+  // Determine the lists to which a user can choose to subscribe.
+  // Determine to which other list a user is automatically subscribed.
+
+  foreach (simplenews_categories_load_multiple() as $list) {
+    $subscribe_new_account = $list->new_account;
+    $opt_inout_method = $list->opt_inout;
+    if (($subscribe_new_account == 'on' || $subscribe_new_account == 'off') && ($opt_inout_method == 'single' || $opt_inout_method == 'double')) {
+      $options[$list->tid] = check_plain(_simplenews_newsletter_name($list));
+      if ($subscribe_new_account == 'on') {
+        $default_value[] = $list->tid;
+      }
+    }
+    else {
+      if ($subscribe_new_account == 'silent' || ($subscribe_new_account == 'on' && $opt_inout_method == SIMPLENEWS_OPT_INOUT_HIDDEN)) {
+        $hidden[] = $list->tid;
+      }
+    }
+  }
+
+  if (count($options)) {
+    // @todo Change this text: use less words;
+    $form['simplenews'] = array(
+      '#type' => 'fieldset',
+      '#description' => t('Select the newsletter(s) to which you wish to subscribe.'),
+      '#weight' => 5,
+    );
+    $form['simplenews']['newsletters'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $options,
+      '#default_value' => $default_value,
+    );
+  }
+  if (count($hidden)) {
+    $form['simplenews_hidden'] = array(
+      '#type' => 'hidden',
+      '#value' => implode(',', $hidden),
+    );
+  }
+}
+
+/**
+ * Implements hook_user_insert().
+ *
+ * Update uid and preferred language when the new account was already subscribed.
+ */
+function simplenews_user_insert(&$edit, $account, $category) {
+  // Use the email address to check if new account is already subscribed.
+  $subscriber = simplenews_subscriber_load_by_mail($edit['mail']);
+  // If the user is subscribed, we update the subscriber with uid and language.
+  if ($subscriber) {
+    $subscriber->uid = $edit['uid'];
+    $subscriber->language = $edit['language'];
+    $subscriber->activated = 1;
+    simplenews_subscriber_save($subscriber);
+  }
+
+  // Process subscription check boxes.
+  if (isset($edit['newsletters'])) {
+    $nl_tids = array_keys(array_filter($edit['newsletters']));
+    if (!empty($nl_tids)) {
+      $newsletters = simplenews_categories_load_multiple($nl_tids, array('show_all' => TRUE));
+      foreach ($newsletters as $newsletter) {
+        simplenews_subscribe_user($account->mail, $newsletter->tid, FALSE, 'website', $edit['language']);
+        drupal_set_message(t('You have been subscribed to %newsletter.', array('%newsletter' => _simplenews_newsletter_name($newsletter))));
+      }
+    }
+  }
+
+  // Process hidden (automatic) subscriptions.
+  if (isset($edit['simplenews_hidden'])) {
+    foreach (explode(',', $edit['simplenews_hidden']) as $tid) {
+      simplenews_subscribe_user($account->mail, $tid, FALSE, 'automatically', $edit['language']);
+    }
+    unset($edit['simplenews_hidden']);
+  }
+
+  // set inactive if not created by an administrator.
+  // @todo This needs a cleaner API.
+  if (!user_access('administer users')) {
+    // this user will be activated on first login (see simplenews_user_login)
+    $query = db_update('simplenews_subscriber')
+      ->fields(array('activated' => SIMPLENEWS_SUBSCRIPTION_INACTIVE))
+      ->condition('uid', $account->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ *
+ * Subscribe user to a newsletter as per registration form.
+ */
+function simplenews_user_login(&$edit, $account) {
+  // Subscriptions of users that did sign up by themselves have to be
+  // activated first at their first login (-> account::access = 0)
+  if ($account->access == 0) {
+    $query = db_update('simplenews_subscriber')
+      ->fields(array('activated' => SIMPLENEWS_SUBSCRIPTION_ACTIVE))
+      ->condition('uid', $account->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_user_presave().
+ *
+ * User data (mail, status, language) is synchronized with subscriber.
+ * This function handles existing user account, simplenews_user_insert takes
+ * care of new accounts.
+ * @see simplenews_user_insert()
+ */
+function simplenews_user_presave(&$edit, $account, $category) {
+  switch ($category) {
+    case 'account':
+      // We only process existing accounts.
+      if (!empty($account->uid)) {
+        $subscriber = simplenews_subscriber_load_by_uid($account->uid);
+        if ($subscriber) {
+          // Update mail, status and language if they are changed.
+          if (isset($edit['mail'])) {
+            $subscriber->mail = $edit['mail'];
+          }
+          if (isset($edit['status']) && variable_get('simplenews_sync_account', TRUE)) {
+            $subscriber->activated = $edit['status'];
+          }
+          if (isset($edit['language'])) {
+            $subscriber->language = $edit['language'];
+          }
+          simplenews_subscriber_save($subscriber);
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function simplenews_user_cancel($edit, $account, $method) {
+  // Deactivate subscriber when account is disabled via cancel user.
+
+  if ($account) {
+    $query = db_update('simplenews_subscriber')
+      ->fields(array('activated' => SIMPLENEWS_SUBSCRIPTION_INACTIVE))
+      ->condition('uid', $account->uid)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function simplenews_user_delete($account) {
+  // Delete subscription when account is removed.
+  $subscriber = simplenews_subscriber_load_by_mail($account->mail);
+  if ($subscriber) {
+    simplenews_subscriber_delete($subscriber);
+  }
+}
+
+/**
+ * Implements hook_user_categories().
+ */
+function simplenews_user_categories() {
+  $output[] = array(
+    'name' => 'simplenews',
+    'title' => t('Newsletters'),
+    'weight' => 10,
+    'access callback' => 'simplenews_subscription_edit_access',
+  );
+  return $output;
+}
+
+/**
+ * Access callback for user newsletter editing.
+ */
+function simplenews_subscription_edit_access($account) {
+  global $user;
+  // Disallow anonymous.
+  if (!$account || $account->uid == 0) {
+    return FALSE;
+  }
+  // Allow edit own subscription.
+  if ($user->uid == $account->uid) {
+    if (user_access('subscribe to newsletters', $account)) {
+      return TRUE;
+    }
+  }
+  // Allow administrator to edit account's subscription.
+  if (user_access('administer users')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add simplenews subscription management form to account category 'Newsletters'
+ */
+function simplenews_form_user_profile_form_alter(&$form, &$form_state) {
+  if ($form['#user_category'] == 'simplenews') {
+    $subscription = simplenews_subscriber_load_by_mail($form['#user']->mail);
+    module_load_include('inc', 'simplenews', 'includes/simplenews.subscription');
+    simplenews_subscriptions_account_form($form, $form_state, $subscription);
+    $form['subscriptions']['#title'] = t('Newsletter subscriptions');
+    unset($form['update'], $form['subscriptions']['mail']);
+  }
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function simplenews_user_view($account, $build_mode) {
+  global $user;
+  if ($user->uid == $account->uid || user_access('administer users')) {
+    $account->content['simplenews'] = array(
+      '#type' => 'user_profile_category',
+      '#title' => t('Newsletters'),
+    );
+    // Collect newsletter to which the current user is subscribed.
+    // 'hidden' newsletters are not listed.
+    $newsletters = simplenews_category_get_visible();
+    $subscription = simplenews_subscriber_load_by_mail($account->mail);
+
+    foreach ($newsletters as $newsletter) {
+      if (isset($subscription->newsletter_subscription[$newsletter->tid]) && $subscription->newsletter_subscription[$newsletter->tid]->status == TRUE) {
+        $links[] = l(_simplenews_newsletter_name($newsletter), 'taxonomy/term/' . $newsletter->tid);
+      }
+    }
+    if (isset($links)) {
+      // @todo replace with theme('links', $links) to form a list of newsletters?
+      $links = implode(', ', $links);
+    }
+    else {
+      $links = t('None');
+    }
+
+    // When a user has no permission to subscribe and is not subscribed
+    // we do not display the 'no subscriptions' message.
+    if (user_access('subscribe to newsletters') || $links != t('None')) {
+      $account->content['simplenews']['subscriptions'] = array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Subscribed to'),
+        '#markup' => $links,
+      );
+    }
+    if (user_access('subscribe to newsletters')) {
+      $account->content['simplenews']['my_newsletters'] = array(
+        '#type' => 'user_profile_item',
+        '#title' => '',
+        '#markup' => t('Manage <a href="!url">subscriptions</a>', array('!url' => url('user/' . $account->uid . '/edit/simplenews'))),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function simplenews_block_info() {
+  $blocks = array();
+
+  // Special block for multi
+  $blocks[0] = array(
+    'info' => t('Newsletter: Multi Subscription'),
+  );
+
+  // Only list a block if the newsletter is not 'hidden' and marked to provide a block.
+  foreach (simplenews_categories_load_multiple(array(), array('block' => '1', 'show_all' => FALSE)) as $category) {
+    //@todo 1. without form -> by role; 2. with form -> user caching with refresh on subscribe/unsubscribe (option as setting) or no caching
+    $blocks[$category->tid] = array(
+      'info' => t('Newsletter: @title', array('@title' => _simplenews_newsletter_name($category))),
+      // @todo Use block's own settings?
+      'cache' => variable_get('simplenews_block_f_' . $category->tid, 1) ? DRUPAL_NO_CACHE : DRUPAL_CACHE_PER_ROLE,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function simplenews_block_configure($delta = '') {
+  // Special block for multi
+  if ($delta == 0) {
+    $form['simplenews_block_multiple']['simplenews_block_m_multiple'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Block message'),
+      '#size' => 60,
+      '#maxlength' => 255,
+      // @todo: clean localization / i18n needed
+      '#default_value' => variable_get('simplenews_block_m_multiple', t('Select the newsletter(s) to which you want to subscribe or unsubscribe.')),
+    );
+  }
+  else {
+    $form['simplenews_block_' . $delta]['simplenews_block_m_' . $delta] = array(
+      '#type' => 'textfield',
+      '#title' => t('Block message'),
+      '#size' => 60,
+      '#maxlength' => 255,
+      '#default_value' => variable_get('simplenews_block_m_' . $delta, t('Stay informed on our latest news!')),
+    );
+    $form['simplenews_block_' . $delta]['simplenews_block_f_' . $delta] = array(
+      '#type' => 'radios',
+      '#title' => t('Subscription interface'),
+      '#options' => array('1' => t('Subscription form'), '0' => t('Link to form')),
+      '#description' => t("Note: this requires permission 'subscribe to newsletters'."),
+      '#default_value' => variable_get('simplenews_block_f_' . $delta, 1),
+    );
+    $form['simplenews_block_' . $delta]['simplenews_block_l_' . $delta] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display link to previous issues'),
+      '#return_value' => 1,
+      '#default_value' => variable_get('simplenews_block_l_' . $delta, 1),
+    );
+    $form['simplenews_block_' . $delta]['simplenews_block_i_status_' . $delta] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display previous issues'),
+      '#return_value' => 1,
+      '#default_value' => variable_get('simplenews_block_i_status_' . $delta, 0),
+    );
+    $form['simplenews_block_' . $delta]['simplenews_block_i_' . $delta] = array(
+      '#type' => 'select',
+      '#title' => t('Number of issues to display'),
+      '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+      '#default_value' => variable_get('simplenews_block_i_' . $delta, 5),
+    );
+    $form['simplenews_block_' . $delta]['simplenews_block_r_' . $delta] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display RSS-feed icon'),
+      '#return_value' => 1,
+      '#default_value' => variable_get('simplenews_block_r_' . $delta, 1),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function simplenews_block_save($delta = '', $edit = array()) {
+  if ($delta == 0) {
+    variable_set('simplenews_block_m_multiple', $edit['simplenews_block_m_multiple']);
+  }
+  else {
+    variable_set('simplenews_block_m_' . $delta, $edit['simplenews_block_m_' . $delta]);
+    variable_set('simplenews_block_f_' . $delta, $edit['simplenews_block_f_' . $delta]);
+    variable_set('simplenews_block_l_' . $delta, $edit['simplenews_block_l_' . $delta]);
+    variable_set('simplenews_block_i_status_' . $delta, $edit['simplenews_block_i_status_' . $delta]);
+    variable_set('simplenews_block_i_' . $delta, $edit['simplenews_block_i_' . $delta]);
+    variable_set('simplenews_block_r_' . $delta, $edit['simplenews_block_r_' . $delta]);
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function simplenews_block_view($delta = '') {
+  // Special block for multi
+  if ($delta == 0) {
+    if (user_access('subscribe to newsletters')) {
+      module_load_include('inc', 'simplenews', 'includes/simplenews.subscription');
+      // render block only if permitted
+      $block = array(
+        'subject' => t('Newsletters'),
+        'content' => theme('simplenews_multi_block'),
+      );
+      return $block;
+    }
+    return NULL;
+  }
+  else {
+    $newsletters = simplenews_categories_load_multiple(array(), array('block' => '1', 'show_all' => FALSE));
+
+    // Only display a block if $delta is a valid newsletter term id.
+    if (in_array($delta, array_keys($newsletters))) {
+      // $delta is validated, the block can be displayed.
+      $block = array(
+        'subject' => check_plain(_simplenews_newsletter_name($newsletters[$delta])),
+        'content' => theme(array('simplenews_block__' . $delta, 'simplenews_block'), array('tid' => $delta)),
+      );
+      return $block;
+    }
+  }
+}
+
+/**
+ * Implements hook_forms().
+ *
+ * All form blocks are build using simplenews_block_form().
+ * hook_forms() is required to provide unique form id for each block form.
+ */
+function simplenews_forms($form_id, $args) {
+  $forms = array();
+  $match = preg_match('/simplenews_block_form_(\d+)/', $form_id, $matches);
+  if ($match) {
+    module_load_include('inc', 'simplenews', 'includes/simplenews.subscription');
+    $forms['simplenews_block_form_' . $matches[1]] = array(
+      'callback' => 'simplenews_block_form',
+      'callback arguments' => array($matches[1]),
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Load a user or creates a dummy anonymous user.
+ *
+ * @return
+ *   A user object if a user with that mail address exists, otherwise an object
+ *   with the properties mail and uid (set to 0).
+ *
+ * @ingroup subscriber
+ */
+function simplenews_load_user_by_mail($mail) {
+  $account = user_load_by_mail($mail);
+  if ($account === FALSE) {
+    // Construct anonymous user since we don't have a user that matches that e-mail.
+    $account = new stdClass();
+    $account->uid = 0;
+    $account->mail = $mail;
+  }
+  return $account;
+}
+
+/**
+ * Subscribe a user to a newsletter or send a confirmation mail.
+ *
+ * The $confirm parameter determines the action:
+ *   FALSE = The user is subscribed
+ *   TRUE  = User receives an email to verify the address and complete the subscription
+ * A new subscription account is created when the user is subscribed to the first newsletter
+ *
+ * @param string $mail
+ *   The email address to subscribe to the newsletter.
+ * @param integer $tid
+ *   The term ID of the newsletter.
+ * @param boolean $confirm
+ *   TRUE = send confirmation mail; FALSE = subscribe immediate to the newsletter
+ * @param string $preferred_language
+ *   The language code (i.e. 'en', 'nl') of the user preferred language.
+ *   Use '' for the site default language.
+ *   Use NULL for the language of the current page.
+ * @param string $source
+ *   Indication for source of subscription. Simplenews uses these sources:
+ *    website: via any website form (with or without confirmation email)
+ *    mass subscribe: mass admin UI
+ *    mass unsubscribe: mass admin UI
+ *    action: Drupal actions
+ *
+ * @ingroup subscription
+ */
+function simplenews_subscribe_user($mail, $tid, $confirm = TRUE, $source = 'unknown', $preferred_language = NULL) {
+  global $language;
+
+  // Get current subscriptions if any.
+  $subscriber = simplenews_subscriber_load_by_mail($mail);
+
+  // If user is not subscribed to ANY newsletter, create a subscription account
+  if (!$subscriber) {
+    // To subscribe a user:
+    //   - Fetch the users uid.
+    //   - Determine the user preferred language.
+    //   - Add the user to the database.
+    //   - Get the full subscription object based on the mail address.
+    // Note that step 3 gets subscription data based on mail address because the uid can be 0 (for anonymous users)
+    $account = simplenews_load_user_by_mail($mail);
+
+    // If the site is multilingual:
+    //  - Anonymous users are subscribed with their preferred language
+    //    equal to the language of the current page.
+    //  - Registered users will be subscribed with their default language as
+    //    set in their account settings.
+    // By default the preferred language is not set.
+    if (variable_get('language_count', 1) > 1) {
+      if ($account->uid) {
+        $preferred_language = $account->language;
+      }
+      else {
+        $preferred_language = isset($preferred_language) ? $preferred_language : $language->language;
+      }
+    }
+    else {
+      $preferred_language = '';
+    }
+
+    $subscriber = new stdClass();
+    $subscriber->mail = $mail;
+    $subscriber->uid = $account->uid;
+    $subscriber->language = $preferred_language;
+    $subscriber->activated = 1;
+    simplenews_subscriber_save($subscriber);
+  }
+
+  if ($confirm) {
+    // Create an unconfirmed subscription object if it doesn't exist yet.
+    if (!isset($subscriber->tids[$tid])) {
+      $subscription = new stdClass();
+      $subscription->snid = $subscriber->snid;
+      $subscription->tid = $tid;
+      $subscription->status = SIMPLENEWS_SUBSCRIPTION_STATUS_UNCONFIRMED;
+      $subscription->timestamp = REQUEST_TIME;
+      $subscription->source = $source;
+      simplenews_subscription_save($subscription);
+      $subscriber->newsletter_subscription[$tid] = $subscription;
+    }
+
+    simplenews_confirmation_send('subscribe', $subscriber, simplenews_category_load($tid));
+  }
+  elseif (!isset($subscriber->tids[$tid])) {
+    // Subscribe the user if not already subscribed.
+    // @todo rewrite if subscription object is loaded in $subscriber->tids[$tid]
+    $subscription = new stdClass();
+    $subscription->snid = $subscriber->snid;
+    $subscription->tid = $tid;
+    $subscription->status = SIMPLENEWS_SUBSCRIPTION_STATUS_SUBSCRIBED;
+    $subscription->timestamp = REQUEST_TIME;
+    $subscription->source = $source;
+    simplenews_subscription_save($subscription);
+    $subscriber->newsletter_subscription[$tid] = $subscription;
+    $subscriber->tids[$tid] = $tid;
+
+    module_invoke_all('simplenews_subscribe_user', $subscriber, $subscription);
+  }
+  return TRUE;
+}
+
+/**
+ * Unsubscribe a user from a mailing list or send a confirmation mail.
+ *
+ * The $confirm parameter determines the action:
+ *   FALSE = The user is unsubscribed
+ *   TRUE  = User receives an email to verify the address and complete the subscription cancellation
+ *
+ * @param $mail
+ *   The email address to unsubscribe from the mailing list.
+ * @param $tid
+ *   The term ID of the list.
+ * @param $confirm
+ *   If TRUE, send a confirmation mail; if FALSE, unsubscribe immediately.
+ * @param $source
+ *   Indicates the unsubscribe source. Simplenews uses these sources:
+ *   - website: Via any website form (with or without confirmation email).
+ *   - mass subscribe: Mass admin UI.
+ *   - mass unsubscribe: Mass admin UI.
+ *   - action: Drupal actions.
+ *
+ * @ingroup subscription
+ */
+function simplenews_unsubscribe_user($mail, $tid, $confirm = TRUE, $source = 'unknown') {
+  $subscriber = simplenews_subscriber_load_by_mail($mail);
+
+  // The unlikely case that a user is unsubscribed from a non existing mailing list is logged
+  if (!$category = simplenews_category_load($tid)) {
+    watchdog('simplenews', 'Attempt to unsubscribe from non existing mailing list ID %id', array('%id' => $tid), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  if ($confirm) {
+    // Make sure the mail address is set.
+    if (empty($subscriber)) {
+      $subscriber = new stdClass();
+      $subscriber->mail = $mail;
+    }
+    simplenews_confirmation_send('unsubscribe', $subscriber, simplenews_category_load($tid));
+  }
+  elseif (isset($subscriber->tids[$tid])) {
+    // Unsubscribe the user from the mailing list.
+    $subscriber->newsletter_subscription[$tid]->status = SIMPLENEWS_SUBSCRIPTION_STATUS_UNSUBSCRIBED;
+    $subscriber->newsletter_subscription[$tid]->timestamp = REQUEST_TIME;
+    $subscriber->newsletter_subscription[$tid]->source = $source;
+    simplenews_subscription_save($subscriber->newsletter_subscription[$tid]);
+    unset($subscriber->tids[$tid]);
+
+    // Clear eventually existing mail spool rows for this subscriber.
+    module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+    simplenews_delete_spool(array('snid' => $subscriber->snid, 'tid' => $tid));
+
+    module_invoke_all('simplenews_unsubscribe_user', $subscriber, $subscriber->newsletter_subscription[$tid]);
+  }
+  return TRUE;
+}
+
+/**
+ * Check if the email address is subscribed to the given mailing list.
+ *
+ * @param string $mail
+ *   The email address to be checkd.
+ * @param integer $tid
+ *   The mailing list id.
+ *
+ * @return boolean
+ *   TRUE if the email address is subscribed; otherwise false.
+ *
+ * @ingroup subscription
+ *
+ * @todo Caching should be done in simplenews_load_user_by_mail().
+ */
+function simplenews_user_is_subscribed($mail, $tid) {
+  $subscribed = &drupal_static(__FUNCTION__, array());
+
+  if (!isset($subscribed[$mail][$tid])) {
+    $subscriber = simplenews_subscriber_load_by_mail($mail);
+    // Check that a subscriber was found, he is active and subscribed to the
+    // requested tid.
+    $subscribed[$mail][$tid] = $subscriber && $subscriber->activated && isset($subscriber->tids[$tid]);
+  }
+  return $subscribed[$mail][$tid];
+}
+
+/**
+ * Returns a list of active subscriptions for a given newsletter category.
+ *
+ * WARNING: Use with caution - this might return a huge list
+ *
+ * @param $tid
+ *   The newsletter category term id.
+ *
+ * @return
+ *   An array keyed by the mail address, containing another array with the keys
+ *   mail, uid, language, snid and status.
+ *
+ * @ingroup subscription
+ */
+function simplenews_get_subscriptions_by_list($tid) {
+  $query = db_select('simplenews_subscriber', 'sn');
+  $query->innerJoin('simplenews_subscription', 'ss', 'ss.snid = sn.snid');
+  $query->fields('sn', array('mail', 'uid', 'language', 'snid'))
+    ->fields('ss', array('status'))
+    ->condition('sn.activated', 1)
+    ->condition('ss.tid', $tid)
+    ->condition('ss.status', SIMPLENEWS_SUBSCRIPTION_STATUS_SUBSCRIBED);
+  return $query->execute()->fetchAllAssoc('mail');
+}
+
+/**
+ * Update subscriber objects in the database.
+ *
+ * @param $conditions
+ *   Array of selection conditions. e.g. array('tid' => 5, 'snid' => 12).
+ * @param $data
+ *   Associative array of database fields to be updated.
+ *
+ * @todo Replace with simplenews_subscription_save() ?
+ *
+ * @ingroup subscription
+ */
+function simplenews_subscription_update($conditions = array(), $data) {
+  $query = db_update('simplenews_subscription');
+  foreach ($conditions as $key => $condition) {
+    $query->condition($key, $condition);
+  }
+  $query->fields($data);
+  $query->execute();
+}
+
+/**
+ * Save a subscription.
+ *
+ * @ingroup subscription
+ */
+function simplenews_subscription_save($subscription) {
+  db_merge('simplenews_subscription')
+    ->key(array('tid' => $subscription->tid))
+    ->key(array('snid' => $subscription->snid))
+    ->fields(array(
+      'snid' => $subscription->snid,
+      'tid' => $subscription->tid,
+      'status' => $subscription->status,
+      'timestamp' => $subscription->timestamp,
+      'source' => $subscription->source,
+    ))
+    ->execute();
+}
+
+/**
+ * Delete subscriptions.
+ *
+ * @param $conditions
+ *   An associative array of conditions matching the records to be delete.
+ *   Example: array('tid' => 5, 'snid' => 12)
+ *   Delete the subscription of subscriber 12 to newsletter tid 5.
+ *
+ * @ingroup subscription
+ */
+function simplenews_subscription_delete($conditions = array()) {
+  $query = db_delete('simplenews_subscription');
+  foreach ($conditions as $key => $condition) {
+    $query->condition($key, $condition);
+  }
+  $query->execute();
+}
+
+/**
+ * Load a simplenews newsletter subscriber object.
+ *
+ * @param $snid
+ *   Simplenews subscriber ID.
+ * @return
+ *   Newsletter subscriber object, FALSE if subscriber does not exist.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_load($snid, $reset = FALSE) {
+  $subscribers = simplenews_subscriber_load_multiple(array($snid), $reset);
+  return $subscribers ? reset($subscribers) : FALSE;
+}
+
+/**
+ * Load a simplenews newsletter subscriber object.
+ *
+ * @param $mail
+ *   Subscriber e-mail address.
+ * @return
+ *   Newsletter subscriber object, FALSE if subscriber does not exist.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_load_by_mail($mail) {
+  $subscribers = simplenews_subscriber_load_multiple(array(), array('mail' => $mail));
+  return $subscribers ? reset($subscribers) : FALSE;
+}
+
+/**
+ * Load a simplenews newsletter subscriber object.
+ *
+ * @param $uid
+ *   Subscriber user id.
+ * @return
+ *   Newsletter subscriber object, FALSE if subscriber does not exist.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_load_by_uid($uid) {
+  $subscribers = simplenews_subscriber_load_multiple(array(), array('uid' => $uid));
+  return $subscribers ? reset($subscribers) : FALSE;
+}
+
+/**
+ * Load a simplenews subscriber using the hash.
+ *
+ * @param $hash
+ *   A hash generated by simplenews_generate_hash().
+ *
+ * @return
+ *   Simplenews subscriber object, FALSE if the hash is invalid or the
+ *   corresponding subscriber does not exist.
+ */
+function simplenews_subscriber_load_by_hash($hash) {
+  // Attempt to detect invalid format.
+  if (!preg_match('/.{10}[0-9]+t[0-9]+/', $hash)) {
+    return FALSE;
+  }
+
+  $md5 = drupal_substr($hash, 0, 10);
+
+  list($snid, $tid) = explode('t', drupal_substr($hash, 10));
+
+  $subscriber = simplenews_subscriber_load($snid);
+  if (!$subscriber) {
+    return FALSE;
+  }
+
+  // Check the hash if the comparison fails, return a not found error.
+  if ($md5 != drupal_substr(md5($subscriber->mail . simplenews_private_key()), 0, 10)) {
+    return FALSE;
+  }
+  return $subscriber;
+}
+
+/**
+ * Loads simplenews subscriber objects.
+ *
+ * @param $snids
+ *   (Optional) Array of subscriber ID's.
+ * @param $conditions
+ *   (Optional) Array of query conditions.
+ * @param $reset
+ *   Reset the static cache.
+ *
+ * @return
+ *   Array of subscriber objects that match the given ID's/conditions.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_load_multiple($snids = array(), $conditions = array(), $reset = FALSE) {
+  $subscribers = &drupal_static(__FUNCTION__, array());
+
+  // Only cache if we load all records from the database.
+  // @todo Caching could be improved.
+  if (!$subscribers || $snids || $conditions || $reset) {
+    $subscribers = array();
+    $query = db_select('simplenews_subscriber', 'ss')
+      ->fields('ss');
+    if ($snids) {
+      $query->condition('snid', $snids);
+    }
+    if ($conditions) {
+      foreach ($conditions as $key => $condition) {
+        $query->condition($key, $condition);
+      }
+    }
+
+    $subscribers = $query->execute()->fetchAllAssoc('snid');
+    if (!empty($subscribers)) {
+      // Initialize default values and unserialize.
+      foreach ($subscribers as $subscriber) {
+        $subscriber->changes = unserialize($subscriber->changes);
+        $subscriber->tids = array();
+      }
+
+      $query = db_select('simplenews_subscription', 'ss')
+        ->fields('ss')
+        ->condition('snid', array_keys($subscribers));
+
+      foreach ($query->execute() as $subscription) {
+        if ($subscription->status == SIMPLENEWS_SUBSCRIPTION_STATUS_SUBSCRIBED) {
+          $subscribers[$subscription->snid]->tids[$subscription->tid] = $subscription->tid;
+        }
+        $subscribers[$subscription->snid]->newsletter_subscription[$subscription->tid] = $subscription;
+      }
+    }
+  }
+  return $subscribers;
+}
+
+/**
+ * Store subscriber object in the database.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_save(&$subscriber) {
+  if (!empty($subscriber->snid)) {
+    db_update('simplenews_subscriber')
+      ->condition('snid', $subscriber->snid)
+      ->fields(array(
+        'snid' => $subscriber->snid,
+        'activated' => (int) $subscriber->activated,
+        'mail' => $subscriber->mail,
+        'uid' => $subscriber->uid,
+        'language' => $subscriber->language,
+        'changes' => serialize(isset($subscriber->changes) ? $subscriber->changes : array()),
+      ))
+      ->execute();
+    module_invoke_all('simplenews_subscriber_update', $subscriber);
+  }
+  elseif (empty($subscriber->snid)) {
+    $query = db_insert('simplenews_subscriber')
+      ->fields(array(
+      'activated' => $subscriber->activated,
+      'mail' => $subscriber->mail,
+      'uid' => $subscriber->uid,
+      'language' => $subscriber->language,
+      'changes' => serialize(isset($subscriber->changes) ? $subscriber->changes : array()),
+      'created' => REQUEST_TIME,
+      ));
+    $last_insert_id = $query->execute();
+    if ($last_insert_id !== FALSE) {
+      $subscriber->snid = $last_insert_id;
+      module_invoke_all('simplenews_subscriber_insert', $subscriber);
+    }
+  }
+}
+
+/**
+ * Delete subscriber and corresponding subscriptions from the database.
+ *
+ * @param $snid
+ *   Simplenews subscriber object.
+ *
+ * @ingroup subscriber
+ */
+function simplenews_subscriber_delete(stdClass $subscriber) {
+  simplenews_subscription_delete(array('snid' => $subscriber->snid));
+  db_delete('simplenews_subscriber')
+    ->condition('snid', $subscriber->snid)
+    ->execute();
+  module_invoke_all('simplenews_subscriber_delete', $subscriber);
+}
+
+/**
+ * Create a list of recent newsletters issues.
+ *
+ * @param integer $tid
+ *   The newsletter category id.
+ * @param integer $count
+ *   The number of newsletters.
+ *
+ * @ingroup issue
+ *
+ * @todo Replace this list by a View.
+ */
+function simplenews_recent_newsletters($tid, $count = 5) {
+  $titles = '';
+  $query = db_select('node', 'n');
+  $query->innerJoin('simplenews_newsletter', 'sn', 'n.nid = sn.nid');
+  $query->fields('n', array('nid', 'title'))
+    ->condition('sn.tid', $tid)
+    ->condition('n.status', NODE_PUBLISHED)
+    ->condition('sn.status', SIMPLENEWS_STATUS_SEND_NOT, '<>')
+    ->orderBy('n.created', 'DESC')
+    ->range(0, $count);
+  $titles = array();
+  foreach ($query->execute() as $item) {
+    $titles[$item->nid]['data'] = l($item->title, 'node/' . $item->nid);
+  }
+  return $titles;
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * Send simplenews mails using drupal mail API.
+ *
+ * @param $key
+ *   Must be one of: node, test, subscribe, unsubscribe.
+ * @param $message
+ *   The message array, containing at least the following keys:
+ *   - from
+ *   - headers: An array containing at least a 'From' key.
+ *   - language: The preferred message language.
+ * @param array $params
+ *   The parameter array, containing the following keys:
+ *   - simplenews_source: An implementation of SimplenewsSourceInterface which
+ *     provides the necessary information to build the newsletter mail.
+ *  @see drupal_mail()
+ */
+function simplenews_mail($key, &$message, $params) {
+  module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+
+  switch ($key) {
+    case 'node':
+    case 'test':
+      simplenews_build_newsletter_mail($message, $params['simplenews_source']);
+      break;
+    case 'subscribe':
+      simplenews_build_subscribe_mail($message, $params);
+      break;
+      break;
+    case 'subscribe_combined':
+      simplenews_build_combined_mail($message, $params);
+      break;
+    case 'unsubscribe':
+      simplenews_build_unsubscribe_mail($message, $params);
+      break;
+  }
+
+  // Debug message to check for outgoing emails messages.
+  // Debug message of node and test emails is set in simplenews_mail_mail().
+  if (variable_get('simplenews_debug', FALSE) && $key != 'node' && $key != 'test') {
+    watchdog('simplenews', 'Outgoing email. Message type: %type<br />Subject: %subject<br />Recipient: %to', array('%type' => $key, '%to' => $message['to'], '%subject' => $message['subject']), WATCHDOG_DEBUG);
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function simplenews_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'simplenews') . '/includes/views'
+  );
+}
+
+/**
+ * Get a simplenews newsletter category object.
+ *
+ * @param $tid
+ *   Simplenews category ID.
+ * @return
+ *   Newsletter category object.
+ *   FALSE if category does not exist
+ *
+ * @ingroup newsletter
+ */
+function simplenews_category_load($tid, $reset = FALSE) {
+  if (!is_numeric($tid)) {
+    return FALSE;
+  }
+  $categories = simplenews_categories_load_multiple(array($tid), $reset);
+  return $categories ? $categories[$tid] : FALSE;
+}
+
+/**
+ * Get list of simplenews categories with translated names.
+ *
+ * @return
+ *   array of category names. Translated if required.
+ *
+ * @ingroup newsletter.
+ */
+function simplenews_category_list() {
+  $categories = simplenews_categories_load_multiple();
+  $cats = array();
+  foreach ($categories as $key => $category) {
+    $cats[$key] = check_plain(_simplenews_newsletter_name($category));
+  }
+  return $cats;
+}
+
+/**
+ * @todo
+ *
+ * @ingroup newsletter
+ */
+function simplenews_categories_load_multiple($tids = array(), $conditions = array(), $reset = FALSE) {
+  $categories = &drupal_static(__FUNCTION__, array());
+
+  // Only cache if we load all records from the database. This could be improved.
+  if (!$categories || $tids || $conditions || $reset) {
+    $categories = array();
+    $query = db_select('simplenews_category', 'sc');
+    // This function might be called when the corresponding taxonomy term was
+    // already deleted.
+    $query->leftJoin('taxonomy_term_data', 't', 't.tid = sc.tid');
+    $query->fields('sc')
+      ->fields('t', array('name', 'description', 'weight', 'vid'))
+      ->orderBy('t.weight', 'ASC');
+    if ($tids) {
+      $query->condition('sc.tid', $tids);
+    }
+    if ($conditions) {
+      foreach ($conditions as $key => $condition) {
+        if ($key == 'show_all') {
+          if (!$condition) {
+            $query->condition('opt_inout', SIMPLENEWS_OPT_INOUT_HIDDEN, '<>');
+          }
+        }
+        else {
+          $query->condition($key, $condition);
+        }
+      }
+    }
+
+    $categories = $query->execute()->fetchAllAssoc('tid');
+  }
+  return $categories;
+}
+
+/**
+ * Store newsletter category in the database.
+ *
+ * @param $category
+ *   Newsletter category object
+ *
+ * @ingroup newsletter
+ */
+function simplenews_category_save($category) {
+  db_merge('simplenews_category')
+    ->key(array('tid' => $category->tid))
+    ->fields(array(
+      'tid' => $category->tid,
+      'format' => $category->format,
+      'priority' => $category->priority,
+      'receipt' => $category->receipt,
+      'from_name' => $category->from_name,
+      'from_address' => $category->from_address,
+      'email_subject' => $category->email_subject,
+      'hyperlinks' => $category->hyperlinks,
+      'new_account' => $category->new_account,
+      'opt_inout' => $category->opt_inout,
+      'block' => $category->block,
+    ))
+    ->execute();
+  module_invoke_all('simplenews_category_update', $category);
+}
+
+/**
+ * Delete newsletter category from the database.
+ *
+ * @param $category
+ *   Simplenews category object or category ID.
+ *
+ * @ingroup newsletter
+ */
+function simplenews_category_delete($category) {
+  if (!is_object($category)) {
+    $category = simplenews_category_load($category);
+  }
+
+  if ($category) {
+    db_delete('simplenews_category')
+      ->condition('tid', $category->tid)
+      ->execute();
+
+    // Delete subscriptions
+    simplenews_subscription_delete(array('tid' => $category->tid));
+    drupal_set_message(t('All subscriptions to newsletter %newsletter have been deleted.', array('%newsletter' => _simplenews_newsletter_name($category))));
+
+    // Delete subscription block
+    db_delete('block')
+      ->condition('module', 'simplenews')
+      ->condition('delta', $category->tid)
+      ->execute();
+
+    module_invoke_all('simplenews_category_delete', $category);
+  }
+}
+
+/**
+ * Loads all visible newsletter categories.
+ *
+ * Does not include categories with the opt-out/opt-in setting set to hidden.
+ *
+ * @ingroup newsletter
+ */
+function simplenews_category_get_visible() {
+  $categories = &drupal_static(__FUNCTION__, NULL);
+
+  if (!isset($categories)) {
+    $categories = simplenews_categories_load_multiple(array(), array('show_all' => FALSE));
+  }
+  return $categories;
+}
+
+/**
+ * @todo
+ *
+ * @ingroup issue
+ */
+function simplenews_newsletter_load($nid, $reset = FALSE) {
+  $conditions = array();
+  $newsletters = simplenews_newsletter_load_multiple(array($nid), $conditions, $reset);
+  return $newsletters ? reset($newsletters) : FALSE;
+}
+
+/**
+ * @todo
+ *
+ * @ingroup issue
+ */
+function simplenews_newsletter_load_multiple($nids = array(), $conditions = array(), $reset = FALSE) {
+  $newsletters = &drupal_static(__FUNCTION__, array());
+
+  // We only cache if all records are loaded from the database,
+  // unless reset is forced.
+  if (!$newsletters || $nids || $conditions || $reset) {
+    $newsletters = array();
+    $query = db_select('simplenews_newsletter', 'sn');
+    $query->innerJoin('taxonomy_term_data', 't', 't.tid = sn.tid');
+    $query->fields('sn')
+      ->fields('t', array('name', 'description', 'weight'))
+      ->orderBy('t.weight', 'ASC');
+    if ($nids) {
+      $query->condition('nid', $nids);
+    }
+    if ($conditions) {
+      foreach ($conditions as $key => $condition) {
+        $query->condition($key, $condition);
+      }
+    }
+
+    $newsletters = $query->execute()->fetchAllAssoc('nid');
+  }
+  return $newsletters;
+}
+
+/**
+ * Store newsletter object in the database.
+ *
+ * @param $newsletter
+ *   Simplenews newsletter object.
+ *
+ * @ingroup issue
+ */
+function simplenews_newsletter_save($newsletter) {
+  db_merge('simplenews_newsletter')
+    ->key(array('nid' => $newsletter->nid))
+    ->fields(array(
+      'tid' => $newsletter->tid,
+      'status' => $newsletter->status,
+    ))
+    ->execute();
+}
+
+/**
+ * Delete simplenews newsletter from the database.
+ *
+ * @param $newsletter
+ *   Simplenews newsletter object or nid.
+ *
+ * @ingroup issue
+ */
+function simplenews_newsletter_delete($newsletter) {
+  if (!is_object($newsletter)) {
+    $newsletter = simplenews_newsletter_load($newsletter);
+  }
+
+  if ($newsletter) {
+    db_delete('simplenews_newsletter')
+      ->condition('nid', $newsletter->nid)
+      ->execute();
+  }
+}
+
+/**
+ * Create a 32 character identifier.
+ */
+function simplenews_private_key() {
+  $key = variable_get('simplenews_private_key', FALSE);
+  if (!$key) {
+    //  This will create a 32 character identifier (a 128 bit hex number) that is extremely difficult to predict
+    $key = md5(uniqid(rand()));
+    variable_set('simplenews_private_key', $key);
+  }
+  return $key;
+}
+
+/**
+ * Implements hook_help().
+ *
+ * @todo Rewrite help text to match the new terminology, the new data architecture, the new admin pages, the news node-form interface.
+ */
+function simplenews_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#simplenews':
+      $help = "<p>" . t('Simplenews publishes and sends newsletters to lists of subscribers. Both anonymous and authenticated users can opt-in to different mailing lists.') . "</p>\n";
+      $help .= "<p>" . t('Simplenews uses nodes for <strong>newsletter issues</strong>. Newsletter issues are grouped by a <strong>newsletter taxonomy term</strong>. Node type and vocabulary are selectable. A newsletter is send to all email addresses which are subscribed to the newsletter. Newsletter issues can be sent only once. Large mailings should be sent by cron to balance the mailserver load.') . "</p>\n";
+      $help .= "<p>" . t('Simplenews adds elements to the newsletter node add/edit form to manage newsletter format and sending of the newsletter issue. A newsletter issue can be sent for test before sending officially.') . "</p>\n";
+      $help .= "<p>" . t('Both anonymous and authenticated users can <strong>opt-in and opt-out</strong> to a newsletter. A confirmation message is sent to anonymous users when they (un)subscribe. Users can (un)subscribe using a form and a block. A <strong>subscription block</strong> is available for each newsletter offering a subscription form, a link to recent newsletters and RSS feed. Email addresses can also be imported and exported via the subscription administration pages.') . "</p>\n";
+      $help .= "<h2>" . t('Configuration') . "</h2>\n";
+      $help .= '<ul>';
+      if (user_access('administer permissions')) {
+        $help .= '<li>' . l(t('Configure permissions'), 'admin/people/permissions', array('fragment' => 'module-simplenews')) . "</li>\n";
+      }
+      if (user_access('administer simplenews settings')) {
+        $help .= '<li>' . l(t('Configure Simplenews'), 'admin/config/services/simplenews/settings') . "</li>\n";
+      }
+      if (user_access('administer blocks')) {
+        $help .= '<li>' . t('Enable a newsletter <a href="@admin_blocks">subscription block</a>.', array('@admin_blocks' => url('admin/structure/block'))) . "</li>\n";
+      }
+      if (user_access('administer simplenews settings')) {
+        $help .= '<li>' . t('Manage your <a href="@newsletters">newsletters</a>, <a href="@sent">sent newsletters</a> and <a href="@subscriptions">subscriptions</a>.', array('@newsletters' => url('admin/config/services/simplenews'), '@sent' => url('admin/content/simplenews'), '@subscriptions' => url('admin/people/simplenews'))) . "</li>\n";
+      }
+      $help .= '</ul>';
+
+      $help .= "<p>" . t('For more information, see the online handbook entry for <a href="@handbook">Simplenews</a>.', array('@handbook', 'http://drupal.org/node/197057')) . "</p>\n";
+      return $help;
+    case 'node/add/simplenews':
+      $help = '<ul>';
+      $help .= '<li>' . t('Add this newsletter issue to a newsletter by selecting a newsletter from the select list. To send this newsletter issue, first save the node, then use the "Newsletter" tab.') . "</li>\n";
+      if (user_access('administer simplenews settings')) {
+        $help .= '<li>' . t('Set default send options at <a href="@configuration">Administration > Configuration > Web services > Newsletters</a>.', array('@configuration' => url('admin/config/services/simplenews'))) . "</li>\n";
+      }
+      if (user_access('administer newsletters')) {
+        $help .= '<li>' . t('Set newsletter specific options at <a href="@configuration">Administration > Content > Newsletters</a>.', array('@configuration' => url('admin/content/simplenews'))) . "</li>\n";
+      }
+      $help .= '</ul>';
+      return $help;
+    case 'admin/config/services/simplenews/newsletter':
+      $help = '<ul>';
+      $help .= '<li>' . t('These settings are default to all newsletters. Newsletter specific settings can be found at the <a href="@page">newsletter\'s settings page</a>.', array('@page' => url('admin/config/services/simplenews'))) . "</li>\n";
+      $help .= '<li>' . t('Install <a href="!mime_mail_url">Mime Mail</a> or <a href="!html_mail_url">HTML Mail</a> to send HTML emails or emails with attachments (both plain text and HTML).', array('!mime_mail_url' => 'http://drupal.org/project/mimemail', '!html_mail_url' => 'http://drupal.org/project/htmlmail')) . "</li>\n";
+      $help .= '</ul>';
+      return $help;
+    case 'admin/config/services/simplenews':
+      $help = '<p>' . t('Newsletter allow you to send periodic e-mails to subscribers. See <a href="!manage_subscribers">Newsletter subscriptions</a> for a listing of the subscribers', array('!manage_subscribers' => url('admin/people/simplenews')));
+      return $help;
+    case 'admin/config/services/simplenews/add':
+      $help = '<p>' . t('You can create different newsletters (or subjects) to categorize your news (e.g. Cats news, Dogs news, ...).') . "</p>\n";
+      return $help;
+    case 'admin/structure/types/manage/simplenews/display':
+      $help = '<p>' . t("'Plain' display settings apply to the content of emails send in plain text format. 'HTML' display settings apply to both HTML and plain text alternative content of emails send in HTML format.") . "</p>\n";
+      return $help;
+  }
+}
+
+/**
+ * Helper function to translate a newsletter name if required.
+ *
+ * @param object $newsletter
+ *   Newsletter category object, typically from simplenews_category_load().
+ *   Contains at least the following properties:
+ *   - tid: The newsletter category id.
+ *   - name: The newsletter name.
+ * @param string $langcode
+ *   (optional) The language code.  Defaults to $GLOBALS['language'].
+ *
+ * @return string
+ *   The translated newsletter name.
+ */
+function _simplenews_newsletter_name($newsletter, $langcode = NULL) {
+  if (module_exists('i18n_taxonomy')) {
+    return i18n_taxonomy_term_name($newsletter, $langcode);
+  }
+  return $newsletter->name;
+}
+
+/**
+ * Helper function to translate a newsletter description if required.
+ *
+ * @param object $newsletter
+ *   Newsletter category object, typically from simplenews_category_load().
+ *   Contains at least the following properties:
+ *   - tid: The newsletter category id.
+ *   - name: The newsletter name.
+ * @param string $langcode
+ *   (optional) The language code.  Defaults to $GLOBALS['language'].
+ *
+ * @return string
+ *   The translated newsletter name.
+ */
+function _simplenews_newsletter_description($newsletter, $langcode = NULL) {
+  if (module_exists('i18n_taxonomy')) {
+    return i18n_string(array('taxonomy', 'term', $newsletter->tid, 'description'), $newsletter->description, array('langcode' => $langcode));
+  }
+  return $newsletter->description;
+}
+
+/**
+ * Generate the hash key used for subscribe/unsubscribe link.
+ */
+function simplenews_generate_hash($mail, $snid, $tid) {
+  return drupal_substr(md5($mail . simplenews_private_key()), 0, 10) . $snid . 't' . $tid;
+}
+
+/**
+ * Returns simplenews format options.
+ */
+function simplenews_format_options() {
+  return array(
+    'plain' => t('Plain'),
+    'html' => t('HTML'),
+  );
+}
+
+/**
+ * Implements hook_variable_info().
+ */
+function simplenews_variable_info($options) {
+  $variable['simplenews_confirm_subscribe_subject'] = array(
+    'title' => t('Simplenews confirmation subject'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_subscribe_unsubscribed'] = array(
+    'title' => t('Simplenews subscription confirmation body'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_subscribe_subscribed'] = array(
+    'title' => t('Simplenews subscribed confirmation body (already subscribed)'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_unsubscribe_subscribed'] = array(
+    'title' => t('Simplenews unsubscription confirmation body'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_unsubscribe_unsubscribed'] = array(
+    'title' => t('Simplenews unsubscription confirmation body (not subscribed)'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_subject'] = array(
+    'title' => t('Simplenews combined confirmation subject'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_body'] = array(
+    'title' => t('Simplenews combined confirmation body'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_body_unchanged'] = array(
+    'title' => t('Simplenews combined confirmation body when there are no changes.'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_line_subscribe_unsubscribed'] = array(
+    'title' => t('Simplenews combined confirmation subscribe line'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_line_subscribe_subscribed'] = array(
+    'title' => t('Simplenews combined confirmation already subscribed line'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_line_unsubscribe_subscribed'] = array(
+    'title' => t('Simplenews combined confirmation unsubscribe line'),
+    'localize' => TRUE,
+  );
+  $variable['simplenews_confirm_combined_line_unsubscribe_unsubscribed'] = array(
+    'title' => t('Simplenews combined confirmation not subscribed line'),
+    'localize' => TRUE,
+  );
+  return $variable;
+}
+
+/**
+ * Generate default and custom subscription confirmation email text.
+ *
+ * @param string $key
+ *   Text identification key.
+ *
+ * @return
+ *   Invitation text.
+ *
+ */
+function simplenews_subscription_confirmation_text($key) {
+  $text = variable_get('simplenews_confirm_' . $key, FALSE);
+  // If administrator did not change the text, the variable is empty.
+  // We get the default here.
+  if (!$text) {
+    switch ($key) {
+      case 'subscribe_unsubscribed':
+        $text = t("We have received a request to subscribe [simplenews-subscriber:mail] to the [simplenews-category:name] newsletter on [site:name] website at [site:url]. To confirm please use the link below.\n\n[simplenews-subscriber:subscribe-url]");
+        break;
+      case 'subscribe_subscribed':
+        $text = t("We have received a request to subscribe [simplenews-subscriber:mail] to the [simplenews-category:name]  newsletter on [site:name] website at [site:url]. However, this email is already subscribed to this newsletter. If you intended to unsubscribe please visit our site: [site:url]");
+        break;
+      case 'unsubscribe_subscribed':
+        $text = t("We have received a request to remove the [simplenews-subscriber:mail] from the [simplenews-category:name] mailing list on [site:name] website at [site:url]. To confirm please use the link below.\n\n[simplenews-subscriber:unsubscribe-url]");
+        break;
+      case 'unsubscribe_unsubscribed':
+        $text = t("We have received a request to remove the [simplenews-subscriber:mail] from the [simplenews-category:name] mailing list on [site:name] website at [site:url]. However, this email is not subscribed to this mailing list. If you intended to subscribe please visit our site at [site:url]");
+        break;
+      case 'subscribe_subject':
+        $text = t("Confirmation for [simplenews-category:name] from [site:name]");
+        break;
+      case 'combined_subject':
+        $text = t('Confirmation for [site:name]');
+        break;
+      case 'combined_body':
+        $text = t("We have received a request for the following subscription changes for [simplenews-subscriber:mail] at [site:url]:\n\n[changes-list]\n\nTo confirm please use the link below.\n\n[simplenews-subscriber:combined-url]");
+        break;
+      case 'combined_body_unchanged':
+        $text = t("We have received a request for the following subscription changes for [simplenews-subscriber:mail] at [site:url]:\n\n[changes-list]\n\nNo confirmation necessary because all requested changes equal the current state.");
+        break;
+      case 'combined_line_subscribe_unsubscribed';
+        $text = t('Subscribe to [simplenews-category:name]');
+        break;
+      case 'combined_line_subscribe_subscribed';
+        $text = t('Already subscribed to [simplenews-category:name]');
+        break;
+      case 'combined_line_unsubscribe_subscribed';
+        $text = t('Unsubscribe from [simplenews-category:name]');
+        break;
+      case 'combined_line_unsubscribe_unsubscribed';
+        $text = t('Already unsubscribed from [simplenews-category:name]');
+        break;
+    }
+  }
+  return $text;
+}
+
+/**
+ * Get defaults for the simplenews node form.
+ */
+function _simplenews_get_node_form_defaults() {
+  $defaults = array(
+    'tid' => '0',
+    'status' => SIMPLENEWS_STATUS_SEND_NOT,
+  );
+  return $defaults;
+}
+
+/**
+ * Implements hook_theme().
+ *
+ */
+function simplenews_theme() {
+  $path = drupal_get_path('module', 'simplenews');
+
+  return array(
+    'simplenews_multi_block' => array(
+      'template' => 'simplenews-multi-block',
+      'arguments' => array(),
+      'path' => $path . '/theme',
+    ),
+    'simplenews_admin_categories' => array(
+      'render element' => 'form',
+    ),
+    'simplenews_block' => array(
+      'render element' => 'tid',
+      'template' => 'simplenews-block',
+      'pattern' => 'simplenews_block__',
+      'path' => $path . '/theme',
+    ),
+    'simplenews_status' => array(
+      'file' => 'simplenews.admin.inc',
+      'path' => $path . '/includes',
+      'variables' => array(
+        'source' => NULL,
+        'status' => NULL,
+      ),
+    ),
+    'simplenews_newsletter_body' => array(
+      'variables' => array(
+        'build' => NULL,
+        'category' => NULL,
+        'language' => NULL,
+      ),
+      'path' => $path . '/theme',
+      'mail theme' => TRUE,
+      'template' => 'simplenews-newsletter-body',
+      'pattern' => 'simplenews-newsletter-body__',
+    ),
+    'simplenews_newsletter_footer' => array(
+      'variables' => array(
+        'build' => NULL,
+        'category' => NULL,
+        'context' => NULL,
+        'key' => NULL,
+        'language' => NULL,
+      ),
+      'path' => $path . '/theme',
+      'mail theme' => TRUE,
+      'template' => 'simplenews-newsletter-footer',
+      'pattern' => 'simplenews-newsletter-footer__',
+    ),
+    'simplenews_filter_form' => array(
+      'render element' => 'form',
+      'file' => 'simplenews.admin.inc',
+      'path' => $path . '/includes',
+    ),
+    'simplenews_field' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Process variables to format the simplenews block.
+ *
+ * Collect data and apply access restrictions.
+ *
+ * @see simplenews-block.tpl.php
+ *
+ * @ingroup theming
+ */
+function template_preprocess_simplenews_block(&$variables) {
+  global $user;
+  $tid = $variables['tid'];
+  $category = simplenews_category_load($tid);
+
+  // Set default values in case of missing permission.
+  $variables['form'] = '';
+  $variables['subscription_link'] = '';
+  $variables['newsletter_link'] = '';
+  $variables['issue_list'] = '';
+  $variables['rssfeed'] = '';
+
+  // Block content variables
+  $variables['message'] = check_plain(variable_get('simplenews_block_m_' . $tid, t('Stay informed on our latest news!')));
+  if (user_access('subscribe to newsletters')) {
+    module_load_include('inc', 'simplenews', 'simplenews.subscription');
+    $variables['form'] = drupal_get_form('simplenews_block_form_' . $tid);
+    $variables['subscription_link'] = l(t('Manage my subscriptions'), 'newsletter/subscriptions');
+  }
+  // @todo replace path
+  $variables['newsletter_link'] = l(t('Previous issues'), 'taxonomy/term/' . $tid);
+  $recent = simplenews_recent_newsletters($tid, variable_get('simplenews_block_i_' . $tid, 5));
+  $variables['issue_list'] = '';
+  if ($recent) {
+    $variables['issue_list'] = theme('item_list', array('items' => $recent, 'title' => t('Previous issues'), 'type' => 'ul'));
+  }
+  $variables['rssfeed'] = theme('feed_icon', array('url' => 'taxonomy/term/' . $tid . '/feed', 'title' => t('@newsletter feed', array('@newsletter' => _simplenews_newsletter_name($category)))));
+
+  // Block content control variables
+  $variables['use_form'] = variable_get('simplenews_block_f_' . $tid, 1);
+  $variables['use_issue_link'] = variable_get('simplenews_block_l_' . $tid, 1);
+  $variables['use_issue_list'] = variable_get('simplenews_block_i_status_' . $tid, 0);
+  $variables['use_rss'] = variable_get('simplenews_block_r_' . $tid, 1);
+
+  // Additional variables
+  $variables['subscribed'] = empty($user->uid) ? FALSE : (simplenews_user_is_subscribed($user->mail, $tid) == TRUE);
+  $variables['user'] = !empty($user->uid);
+}
+
+/**
+ * Process variables for the multi subscription block.
+ *
+ * $variables are empty:
+ *
+ * @see simplenews-multi-block.tpl.php
+ *
+ * @ingroup theming
+ */
+function template_preprocess_simplenews_multi_block(&$variables) {
+  // Block content variables
+  $variables['message'] = check_plain(variable_get('simplenews_block_m_multiple', t('Select the newsletter(s) to which you want to subscribe or unsubscribe.')));
+  $variables['form'] = drupal_get_form('simplenews_subscriptions_multi_block_form');
+}
+
+/**
+ * @todo
+ *
+ * @see template_preprocess_field()
+ * @see theme_simplenews_field()
+ */
+function template_preprocess_simplenews_field(&$variables, $hook) {
+  $element = $variables['element'];
+
+  $variables['label_hidden'] = ($element['#label_display'] == 'hidden');
+  $variables['label'] = $variables['label_hidden'] ? NULL : check_plain($element['#title']);
+
+  $variables['items'] = array();
+  foreach ($element['#items'] as $delta => $item) {
+    if (!empty($element[$delta])) {
+      $variables['items'][$delta] = $element[$delta];
+    }
+  }
+
+  $variables['view_mode'] = $variables['element']['#view_mode'];
+
+  // Add specific suggestions that can override the default implementation.
+  $variables['theme_hook_suggestions'] = array(
+    'simplenews_field__' . $element['#field_name'],
+    'simplenews_field__' . $element['#view_mode'],
+    'simplenews_field__' . $element['#field_name'] . '__' . $element['#view_mode'],
+  );
+}
+
+/**
+ * @todo
+ *
+ * @see theme_field()
+ *
+ * @ingroup theming
+ */
+// @todo make simplenews_field.tpl.php
+function theme_simplenews_field($variables) {
+  $output = '';
+  switch ($variables['view_mode']) {
+    case 'email_plain':
+    case 'email_textalt':
+      // Render the label, if it's not hidden.
+      if (!$variables['label_hidden']) {
+        $output .= $variables['label'] . ":\n";
+      }
+
+      // Render the items.
+      foreach ($variables['items'] as $item) {
+        $output .= drupal_render($item) . "\n";
+      }
+
+      // Add an extra line break at the end of the field.
+      $output .= "\n";
+      break;
+    case 'email_html':
+    default:
+      // Render the label, if it's not hidden.
+      if (!$variables['label_hidden']) {
+        $output .= '<div class="field-label">' . $variables['label'] . ':&nbsp;</div>';
+      }
+
+      // Render the items.
+      $output .= '<div class="field-items">';
+      foreach ($variables['items'] as $delta => $item) {
+        $classes = 'field-item ' . ($delta % 2 ? 'odd' : 'even');
+        $output .= '<div class="' . $classes . '">' . drupal_render($item) . '</div>';
+      }
+      $output .= '</div>';
+
+      // Render the top-level DIV.
+      $output = '<div class="clearfix">' . $output . '</div>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Process variables to format the simplenews newsletter body.
+ *
+ * @see simplenews-newsletter-body.tpl.php
+ *
+ * @ingroup theming
+ */
+function template_preprocess_simplenews_newsletter_body(&$variables) {
+  // We don't want to include links and comments in the email.
+  unset($variables['build']['links']);
+  unset($variables['build']['comments']);
+
+  $theme = function_exists('mailsystem_get_mail_theme') ? mailsystem_get_mail_theme() : path_to_theme();
+  $variables['simplenews_theme'] = drupal_get_path('theme', $theme);
+
+  $variables['title'] = check_plain($variables['build']['#node']->title);
+  $variables['language'] = $variables['build']["#language"];
+  $variables['view_mode'] = $variables['build']['#view_mode'];
+
+  // Add specific suggestions that can override the default implementation.
+  $variables['theme_hook_suggestions'] = array(
+    'simplenews_newsletter_body__' . $variables['category']->tid,
+    'simplenews_newsletter_body__' . $variables['build']['#view_mode'],
+    'simplenews_newsletter_body__' . $variables['category']->tid . '__' . $variables['build']['#view_mode'],
+  );
+}
+
+/**
+ * Process variables to format the simplenews newsletter footer.
+ *
+ * @see simplenews-newsletter-footer.tpl.php
+ *
+ * @ingroup theming
+ */
+function template_preprocess_simplenews_newsletter_footer(&$variables) {
+  // We don't want to include links and comments in the email.
+  unset($variables['build']['links']);
+  unset($variables['build']['comments']);
+
+  $theme = function_exists('mailsystem_get_mail_theme') ? mailsystem_get_mail_theme() : path_to_theme();
+  $variables['simplenews_theme'] = drupal_get_path('theme', $theme);
+
+  $variables['unsubscribe_text'] = t('Unsubscribe from this newsletter', array(), array('langcode' => $variables['language']));
+  $variables['test_message'] = t('This is a test version of the newsletter.', array(), array('langcode' => $variables['language']));
+
+  $variables['view_mode'] = $variables['build']['#view_mode'];
+
+  // Add specific suggestions that can override the default implementation.
+  $variables['theme_hook_suggestions'] = array(
+    'simplenews_newsletter_footer__' . $variables['category']->tid,
+    'simplenews_newsletter_footer__' . $variables['build']['#view_mode'],
+    'simplenews_newsletter_footer__' . $variables['category']->tid . '__' . $variables['build']['#view_mode'],
+  );
+
+  // Do not display the unsubscribe link by default for hidden categories.
+  $variables['opt_out_hidden'] = $variables['category']->opt_inout == 'hidden';
+}
+
+/**
+ * Access callback; Acces to Newsletter tab page.
+ */
+function simplenews_node_tab_access($node) {
+  return simplenews_check_node_types($node->type) && user_access('send newsletter');
+}
+
+/**
+ * Update the sent status of a node.
+ *
+ * If the node part of a translation set, all corresponding translations are
+ * updated as well.
+ *
+ * @param $node
+ *   The node object to be updated.
+ * @param $status
+ *   The new status, defaults to SIMPLENEWS_STATUS_SEND_PENDING.
+ *
+ * @ingroup newsletter
+ */
+function simplenews_newsletter_update_sent_status($node, $status = SIMPLENEWS_STATUS_SEND_PENDING) {
+  // When this node is selected for translation, all translation of this node
+  // will be sent too.
+  if (module_exists('translation') && translation_supported_type($node->type) && $node->tnid > 0) {
+    if ($translations = translation_node_get_translations($node->tnid)) {
+      foreach ($translations as $translation) {
+        $newsletter = simplenews_newsletter_load($translation->nid);
+        if (!$newsletter) {
+          $node = node_load($translation->nid);
+          $newsletter = (object) simplenews_newsletter_defaults($node);
+        }
+        $newsletter->status = SIMPLENEWS_STATUS_SEND_PENDING;
+        simplenews_newsletter_save($newsletter);
+      }
+    }
+  }
+
+  if (!empty($node->simplenews)) {
+    $newsletter = $node->simplenews;
+  }
+  else {
+    $newsletter = simplenews_newsletter_load($node->nid);
+  }
+  if (!$newsletter) {
+    $newsletter = (object) simplenews_newsletter_defaults($node);
+  }
+  $newsletter->status = $status;
+  simplenews_newsletter_save($newsletter);
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function simplenews_field_extra_fields() {
+  $return['user']['user'] = array(
+    'display' => array(
+      'simplenews' => array(
+        'label' => 'Newsletters',
+        'description' => t('Newsletter subscriptions of the user'),
+        'weight' => 5,
+      ),
+    ),
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_node_access().
+ *
+ * Don't allow deletion when a newsletter is pending
+ */
+function simplenews_node_access($node, $op, $account) {
+  if ($op == 'delete') {
+    // Check if a newsletter is pending
+    $query = db_select('simplenews_newsletter', 'n');
+    $query->fields('n', array('status'));
+    $query->condition('n.nid', $node->nid);
+    $result = $query->execute();
+    if ($result->rowCount()) {
+      $status = $result->fetch();
+      if ($status->status == SIMPLENEWS_STATUS_SEND_PENDING) {
+        drupal_set_message(t('You can\'t delete this newsletter because it has not been sent to all its subscribers.'), 'warning');
+        return NODE_ACCESS_DENY;
+      }
+    }
+  }
+  return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_cronapi().
+ *
+ * As initiated by elysia_cron.
+ * http://drupal.org/project/elysia_cron
+ * */
+function simplenews_cronapi($op) {
+
+  switch ($op) {
+    case 'list':
+      return array(
+        'simplenews_cron' => t('Process simplenews mail spool'),
+      );
+    case 'rule':
+      return '5 * * * *';
+    case 'execute':
+      break;
+  }
+}
+
+/**
+ * Returns TRUE if the newsletter category requires double opt in.
+ *
+ * @ingroup newsletter
+ */
+function simplenews_require_double_opt_in($tid, $account) {
+  global $user;
+  // If email belongs to the current registered user, don't send confirmation.
+  // Other addresses receive a confirmation if double opt-in is selected.
+  if (!empty($account->uid) && !empty($user->uid) && $account->uid == $user->uid) {
+    return FALSE;
+  }
+  else {
+    $category = simplenews_category_load($tid);
+    return $category->opt_inout == 'double';
+  }
+}
+
+/**
+ * Returns the available simplenews sources.
+ *
+ * @ingroup source
+ */
+function simplenews_get_source_caches() {
+  $sources = module_invoke_all('simplenews_source_cache_info');
+  drupal_alter('simplenews_source_cache_info', $sources);
+  return $sources;
+}
+
+/**
+ * Implements hook_simplenews_source_cache_info().
+ *
+ * @ingroup source
+ */
+function simplenews_simplenews_source_cache_info() {
+  return array(
+    'SimplenewsSourceCacheNone' => array(
+      'label' => t('No caching'),
+      'description' => t('This allows to theme each newsletter separately.'),
+    ),
+    'SimplenewsSourceCacheBuild' => array(
+      'label' => t('Cached content source'),
+      'description' => t('This caches the rendered content to be sent for multiple recipients. It is not possible to use subscriber specific theming but tokens can be used for personalization.'),
+    ),
+  );
+}
+
+/**
+ * Impersonates another user.
+ *
+ * Each time this function is called, the active user is saved and $new_user
+ * becomes the active user. Multiple calls to this function can be nested,
+ * and session saving will be disabled until all impersonation attempts have
+ * been reverted using user_revert_user().
+ *
+ * @todo: This function is a backport of http://drupal.org/node/287292. Switch
+ * to that once available.
+ *
+ * @param $new_user
+ *   User to impersonate, either a UID or a user object.
+ *
+ * @return
+ *   Current user object.
+ *
+ * @see simplenews_revert_user()
+ */
+function simplenews_impersonate_user($new_user = NULL) {
+  global $user;
+  $user_original = &drupal_static(__FUNCTION__);
+
+  if (!isset($new_user)) {
+    if (isset($user_original) && !empty($user_original)) {
+      // Restore the previous user from the stack.
+      $user = array_pop($user_original);
+
+      // Re-enable session saving if we are no longer impersonating a user.
+      if (empty($user_original)) {
+        drupal_save_session(TRUE);
+      }
+    }
+  }
+  else {
+    // Push the original user onto the stack and prevent session saving.
+    $user_original[] = $user;
+    drupal_save_session(FALSE);
+
+    if (is_numeric($new_user)) {
+      $user = user_load($new_user);
+    }
+    else {
+      $user = is_object($new_user) ? $new_user : (object) $new_user;
+    }
+  }
+
+  return $user;
+}
+
+/**
+ * Reverts to the previous user after impersonating.
+ *
+ * @return
+ *   Current user.
+ *
+ * @see simplenews_impersonate_user()
+ */
+function simplenews_revert_user() {
+  return simplenews_impersonate_user();
+}
+
+/**
+ * Starts combining confirmation mails.
+ *
+ * If combining mails is enabled, it is mandatory to call
+ * simplenews_send_combined_confirmation() after all subscription changes have
+ * been applied or no mails will be sent.
+ *
+ * @param $collect
+ *   TRUE to start combining mail conformations, FALSE to disable it.
+ *
+ * @return
+ *   TRUE if combining has been started, FALSE otherwise.
+ */
+function simplenews_confirmation_combine($collect = NULL) {
+  $static_collect = &drupal_static(__FUNCTION__, FALSE);
+  if (isset($collect)) {
+    $static_collect = $collect;
+  }
+  return $static_collect;
+}
+
+/**
+ * Add a mail confirmation or fetch them.
+ *
+ * @param $action
+ *   (Optional) The confirmation type, either subscribe or unsubscribe.
+ * @param $subscriber
+ *   (Optional) The subscriber object.
+ * @param $category
+ *   (Optional) The newsletter category object.
+ *
+ * @return
+ *   If no arguments are passed in, an array of current confirmations, keyed by
+ *   subscriber id, the value is an array with the keys action and tid.
+ */
+function simplenews_confirmation_add_combined($action = NULL, $subscriber = NULL, $category = NULL) {
+  $group = &drupal_static(__FUNCTION__, array());
+  if (!empty($action)) {
+    $group[$subscriber->mail][$category->tid] = $action;
+  }
+  else {
+    return $group;
+  }
+}
+
+/**
+ * Send collected confirmations.
+ *
+ * Depending on the settings, always sends a combined confirmation,
+ * only when there are multiple changes for a subscriber or never.
+ *
+ * Calling this functions also resets the combine flag so that later
+ * confirmations are sent separately. simplenews_combine_confirmations() needs
+ * to be called again to re-enable combining.
+ *
+ * @return
+ *   TRUE if any confirmation mails have been sent.
+ *
+ * @todo This function currently does not return information about which
+ *       subscriber received a confirmation.
+ */
+function simplenews_confirmation_send_combined() {
+  global $language;
+
+  // Disable combining for further confirmations.
+  simplenews_confirmation_combine(FALSE);
+  $group = simplenews_confirmation_add_combined();
+  foreach ($group as $mail => $changes) {
+    module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+    $params['from'] = _simplenews_set_from();
+    $subscriber = simplenews_subscriber_load_by_mail($mail);
+    if (!$subscriber) {
+      $subscriber = new stdClass();
+      $subscriber->mail = $mail;
+      $subscriber->language = $language->language;
+      $subscriber->tids = array();
+    }
+    $params['context']['simplenews_subscriber'] = $subscriber;
+    // Send multiple if there is more than one change for this subscriber
+    // single otherwise.
+    $use_combined = variable_get('simplenews_use_combined', 'multiple');
+    if ((count($changes) > 1 && $use_combined != 'never') || $use_combined == 'always') {
+      $params['context']['changes'] = $changes;
+      $key = 'subscribe_combined';
+      drupal_mail('simplenews', $key, $subscriber->mail, $subscriber->language, $params, $params['from']['address']);
+    }
+    else {
+      foreach ($changes as $tid => $key) {
+        $params['context']['category'] = simplenews_category_load($tid);
+        drupal_mail('simplenews', $key, $subscriber->mail, $subscriber->language, $params, $params['from']['address']);
+      }
+    }
+
+    // Save the changes in the subscriber if there is a real subscriber object.
+    if (!empty($subscriber->snid)) {
+      $subscriber->changes = $changes;
+      simplenews_subscriber_save($subscriber);
+    }
+  }
+  return !empty($group);
+}
+
+/**
+ * Send a confirmation mail.
+ *
+ * Either sends a mail immediatly or collects them for a combined mail.
+ *
+ * @param $action
+ *   The confirmation type, either subscribe or unsubscribe.
+ * @param $subscriber
+ *   The subscriber object.
+ * @param $category
+ *   The newsletter category object.
+ */
+function simplenews_confirmation_send($action, $subscriber, $category) {
+  // Check if confirmation should be sent immediatly or grouped.
+  if (simplenews_confirmation_combine()) {
+    simplenews_confirmation_add_combined($action, $subscriber, $category);
+  }
+  else {
+    // Send confirmation email to user to complete (un)subscription.
+    // Confirmation mail is in the user preferred language which is by default the
+    // language_default().
+    module_load_include('inc', 'simplenews', 'includes/simplenews.mail');
+    $params['from'] = _simplenews_set_from();
+    $params['context']['category'] = $category;
+    $params['context']['simplenews_subscriber'] = $subscriber;
+    drupal_mail('simplenews', $action, $subscriber->mail, $subscriber->language, $params, $params['from']['address']);
+  }
+}
+
+/**
+ * Converts an array of subscription changes into descriptions.
+ *
+ * @param $subscriber
+ *   Simplenews subscriber object.
+ * @param $changes
+ *   (Optional) Array of changes, each is an array with the keys action and tid.
+ *   Defaults to $subscriber->changes, which contains the currently saved
+ *   changes for the subscriber. No-op changes are removed from this array.
+ * @param $langcode
+ *   (Optional) Specify the language of the description strings, defaults to the
+ *   current language.
+ *
+ * @return
+ *   Array of description strings describing the changes.
+ */
+function simplenews_confirmation_get_changes_list($subscriber, &$changes = NULL, $langcode = NULL) {
+  if (empty($langcode)) {
+    global $language;
+    $langcode = $language->language;
+  }
+
+  if (empty($changes)) {
+    $changes = $subscriber->changes;
+  }
+
+  $changes_list = array();
+  foreach ($changes as $tid => $action) {
+    $subscribed = simplenews_user_is_subscribed($subscriber->mail, $tid);
+
+    // Get text for each possible combination.
+    if ($action == 'subscribe' && !$subscribed) {
+      $line = simplenews_subscription_confirmation_text('combined_line_subscribe_unsubscribed', $langcode);
+    }
+    elseif ($action == 'subscribe' && $subscribed) {
+      $line = simplenews_subscription_confirmation_text('combined_line_subscribe_subscribed', $langcode);
+    }
+    elseif ($action == 'unsubscribe' && !$subscribed) {
+      $line = simplenews_subscription_confirmation_text('combined_line_unsubscribe_unsubscribed', $langcode);
+    }
+    elseif ($action == 'unsubscribe' && $subscribed) {
+      $line = simplenews_subscription_confirmation_text('combined_line_unsubscribe_subscribed', $langcode);
+    }
+    $category_context = array(
+      'simplenews_subscriber' => $subscriber,
+      'category' => simplenews_category_load($tid),
+    );
+    $changes_list[$tid] = token_replace($line, $category_context, array('sanitize' => FALSE));
+  }
+  return $changes_list;
+}

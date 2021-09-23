@@ -1,0 +1,12 @@
+name = "Entity UI"
+description = "Provides a generic UI for creating & editing entities"
+core = 7.x
+dependencies[] = entity
+package = Scratchpads
+files[] = classes/EntityUI.inc
+files[] = classes/EntityUIController.inc
+files[] = classes/EntityUIEntityController.inc
+files[] = classes/EntityUITypeController.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = entity_ui

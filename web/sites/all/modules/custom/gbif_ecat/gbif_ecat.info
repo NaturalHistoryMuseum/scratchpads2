@@ -1,0 +1,8 @@
+name = GBIF Checklist Bank
+description = "Import a classication via GBIF's Checklist Bank service (Note, this service may be removed soon)."
+package = "Data provider"
+dependencies[] = tcsdc
+core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = gbif_ecat

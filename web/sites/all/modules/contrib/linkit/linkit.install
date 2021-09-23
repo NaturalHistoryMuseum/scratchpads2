@@ -1,0 +1,236 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Linkit module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function linkit_schema() {
+  $schema = array();
+
+  $schema['linkit_profiles'] = array(
+    'description' => 'Base table holding Linkit profiles.',
+    'export' => array(
+      'key' => 'name',
+      'key name' => 'Name',
+      'primary key' => 'pid',
+      'identifier' => 'linkit_profile',
+      'status' => 'linkit_profiles_status',
+      'load callback' => 'linkit_profile_load',
+      'load all callback' => 'linkit_profile_load_all',
+      'save callback' => 'linkit_profile_save',
+      'bulk export' => TRUE,
+      'api' => array(
+        'owner' => 'linkit',
+        'api' => 'linkit_profiles',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'pid' => array(
+        'description' => 'Serial id for this profile.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'no export' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Machine-readable name for this profile.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'admin_title' => array(
+        'description' => 'Administrative title for this profile.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array with settings.',
+      ),
+      'role_rids' => array(
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array with role rids that is assign to this profile.',
+      ),
+      'weight' => array(
+        'description' => 'Profile weight.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('pid'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function linkit_install() {
+  // Only show message if not in install mode.
+  if (!is_array($GLOBALS['install_state'])) {
+    // Linkit is installed, inform the user about that they should create a Linkit
+    // profile.
+    drupal_set_message(st('Linkit is successfully installed, you will have to
+      create a profile in order to use Linkit. Create your profile here !link',
+      array('!link' => l('admin/config/content/linkit', 'admin/config/content/linkit'))));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function linkit_uninstall() {
+  variable_del('linkit_profiles_status');
+}
+
+/**
+ * Create the {linkit_profiles} table if it not exists.
+ */
+function linkit_update_7200() {
+  if (!db_table_exists('linkit_profiles')) {
+    // Call the schema function to reduce the lines of code here.
+    $schema = linkit_schema();
+    // Create the table.
+    db_create_table('linkit_profiles', $schema['linkit_profiles']);
+    return st('The table {linkit_profiles} was successfully created.');
+  }
+}
+
+/**
+ * Delete old linkit settings.
+ */
+function linkit_update_7201() {
+  // Delete old settings if any.
+  $num_deleted = db_delete('variable')
+  ->condition('name', array('linkit_node', 'linkit_term'), 'IN')
+  ->execute();
+
+  // No old settings deleted
+  if (!$num_deleted) {
+    return st("No old Linkit settings were deleted.");
+  }
+  else {
+    return st("Old Linkit settings were deleted.");
+  }
+}
+
+/**
+ * Update settings name as of the new plugin system using ctools and entity
+ * support.
+ */
+function linkit_update_7202() {
+    // Get old profiles.
+  $old_profiles = db_query("SELECT * FROM {linkit_profiles}");
+  foreach ($old_profiles as $profile) {
+    $data = unserialize($profile->data);
+
+    // Rename the plugins
+    $data['plugins']['entity:node'] = $data['plugins']['node'];
+    $data['plugins']['entity:user'] = $data['plugins']['user'];
+    $data['plugins']['entity:file'] = $data['plugins']['file'];
+    $data['plugins']['entity:taxonomy_term'] = $data['plugins']['taxonomy'];
+
+    // Remove the old plugins.
+    unset($data['plugins']['node']);
+    unset($data['plugins']['file']);
+    unset($data['plugins']['taxonomy']);
+    unset($data['plugins']['user']);
+
+    // Update the node settings.
+    $data['entity:node'] = $data['node'];
+    $data['entity:node']['bundles'] = $data['node']['content_types'];
+    $data['entity:node']['group_by_bundle'] = $data['node']['group_by_content_type'];
+    unset($data['entity:node']['content_types']);
+    unset($data['entity:node']['group_by_content_type']);
+    // Remove the old node settings.
+    unset($data['node']);
+
+    // Update the term settings.
+    $data['entity:taxonomy_term'] = $data['taxonomy'];
+    $data['entity:taxonomy_term']['group_by_bundle'] = $data['taxonomy']['group_by_vocabulary'];
+    unset($data['entity:taxonomy_term']['group_by_vocabulary']);
+    // Remove the old taxonomy settings.
+    unset($data['taxonomy']);
+
+    // Update the user settings.
+    $data['entity:user'] = $data['user'];
+    // Remove the old user settings.
+    unset($data['user']);
+
+    // Update the file settings.
+    $data['entity:file'] = $data['file'];
+    // Remove the old file settings.
+    unset($data['file']);
+
+    // New values, add them by default if they are not set.
+    $deafult = array(
+      'bundles' => array(),
+      'group_by_bundle' => 0,
+    );
+
+    if (isset($data['entity:node'])) {
+      $data['entity:node'] += $deafult;
+    }
+    if (isset($data['entity:taxonomy_term'])) {
+      $data['entity:taxonomy_term'] += $deafult;
+    }
+    if (isset($data['entity:file'])) {
+      $data['entity:file'] += $deafult;
+    }
+    if (isset($data['entity:user'])) {
+      $data['entity:user'] += $deafult;
+    }
+
+    $profile->data = serialize($data);
+
+    // Do the update.
+    db_update('linkit_profiles')
+    ->fields(array(
+      'data' => $profile->data,
+    ))
+    ->condition('pid', $profile->pid)
+    ->execute();
+  }
+}
+
+/**
+ * Change column type for linkit_profiles.data and linkit_profiles.role_rids
+ * to use blob and serialize instead of big text.
+ */
+function linkit_update_7203() {
+  db_change_field('linkit_profiles', 'data', 'data',
+    array(
+      'type' => 'blob',
+      'size' => 'big',
+      'not null' => TRUE,
+      'serialize' => TRUE,
+      'description' => 'A serialized array with settings.',
+    )
+  );
+  db_change_field('linkit_profiles', 'role_rids', 'role_rids',
+    array(
+      'type' => 'blob',
+      'size' => 'big',
+      'not null' => TRUE,
+      'serialize' => TRUE,
+      'description' => 'A serialized array with role rids that is assign to this profile.',
+    )
+  );
+}

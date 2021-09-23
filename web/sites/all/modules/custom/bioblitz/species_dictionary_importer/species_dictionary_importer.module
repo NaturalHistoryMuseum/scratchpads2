@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Species Dictionary Importer feature.
+ */
+
+include_once('species_dictionary_importer.features.inc');

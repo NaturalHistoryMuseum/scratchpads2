@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * Lexicon module
+ * 
+ * Implements hook_scratchpads_default_permissions().
+ */
+function lexicon_scratchpads_default_permissions(){
+  return array(
+    'maintainer' => array(
+      'administer lexicon'
+    ),
+    'anonymous user' => array(
+      'access lexicon'
+    )
+  );
+}
+
+/**
+ * Implements hook_theme_registry_alter
+ */
+function scratchpads_lexicon_theme_registry_alter(&$theme_registry){
+  unset($theme_registry['lexicon_overview_item']['template']);
+  //unset($theme_registry['lexicon_overview_item']['theme path']);
+  $theme_registry['lexicon_overview_item']['render element'] = 'term';
+  $theme_registry['lexicon_overview_item']['path'] = drupal_get_path('module', 'scratchpads_lexicon');
+  $theme_registry['lexicon_overview_item']['type'] = 'module';
+  $theme_registry['lexicon_overview_item']['file'] = 'scratchpads_lexicon.theme.inc';
+  $theme_registry['lexicon_overview_item']['function'] = 'theme_scratchpads_lexicon_overview_item';
+  $theme_registry['lexicon_overview_item']['includes'][] = $theme_registry['lexicon_overview_item']['path'] . '/' . $theme_registry['lexicon_overview_item']['file'];
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * 
+ * Stop users altering the lexicon settings too much.  A consistent look across
+ * all Scratchpads is certainly a good thing.
+ */
+function scratchpads_lexicon_form_lexicon_general_settings_form_alter(&$form, &$form_state, $form_id){
+  // Allow Scratchpad team to make tweaks!
+  global $user;
+  if($user->uid == 1){return;}
+  foreach($form['general']['lexicon_vids']['#options'] as $vid => $vocabulary_name){
+    if(in_array($vocabulary_name, array(
+      t('Image keywords'),
+      t('Imaging technique'),
+      t('Preparation technique')
+    ))){
+      unset($form['general']['lexicon_vids']['#options'][$vid]);
+    }
+  }
+  $on = array(
+    '#type' => 'value',
+    '#value' => 1
+  );
+  $off = array(
+    '#type' => 'value',
+    '#value' => 0
+  );
+  $form['lexicon_page']['lexicon_page_per_letter'] = $on;
+  $form['lexicon_page']['lexicon_separate_letters'] = $on;
+  $form['lexicon_page']['lexicon_allow_no_description'] = $off;
+  $form['lexicon_page']['lexicon_show_edit'] = $on;
+  $form['lexicon_page']['lexicon_show_search'] = $off;
+  $form['lexicon_page']['lexicon_go_to_top_link'] = $off;
+  $form['lexicon_page']['lexicon_go_to_top_link_fragment'] = $off;
+  $form['lexicon_page']['lexicon_link_related']['#description'] = t('Do you want terms that are related to link to each other?');
+  // If the module is enabled, why would this not be?
+  $form['mark_terms']['lexicon_mark_terms']['#default_value'] = variable_get('lexicon_mark_terms', 1);
+  unset($form['mark_terms']['#description']);
+  // Try to encourage the "Left substring" match type.
+  $form['mark_terms']['match']['lexicon_match']['#default_value'] = 'b';
+  // Always case insensitive.
+  $form['mark_terms']['match']['lexicon_case'] = $off;
+  // Always case insensitive.
+  $form['mark_terms']['match']['lexicon_replace_all'] = $off;
+  // Use the template file.
+  $form['mark_terms']['indicator'] = array(
+    'lexicon_disable_indicator' => array(
+      '#type' => 'value',
+      '#value' => FALSE
+    ),
+    'lexicon_term_class' => array(
+      '#type' => 'value',
+      '#value' => 'lexicon-term'
+    ),
+    'lexicon_click_option' => $on,
+    'lexicon_link' => array(
+      '#type' => 'value',
+      '#value' => 'normal'
+    ),
+    'lexicon_superscript' => array(
+      '#type' => 'value',
+      '#value' => 'i'
+    ),
+    'lexicon_icon' => array(
+      '#type' => 'value',
+      '#value' => 'sites/all/modules/contrib/lexicon/imgs/lexicon.gif'
+    ),
+    'lexicon_replace' => array(
+      '#type' => 'value',
+      '#value' => 'template'
+    )
+  );
+}

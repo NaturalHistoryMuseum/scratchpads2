@@ -1,0 +1,3249 @@
+<?php
+
+/**
+ * @file
+ * Enable users to create and manage groups with roles and permissions.
+ */
+
+// Load all Field module hooks for Organic groups.
+require(drupal_get_path('module', 'og') . '/og.field.inc');
+
+define('OG_REQUIRED_CTOOLS_API', '2.0-alpha');
+
+/**
+ * Minimum CTools API version for organic groups migrate plugins.
+ */
+define('OG_MIGRATE_REQUIRED_CTOOLS_API', '2.0-alpha');
+
+/**
+ * Define active group content states.
+ *
+ * When a user has this membership state they are considered to be of
+ * "member" role.
+ */
+define('OG_STATE_ACTIVE', 1);
+
+/**
+ * Define pending group content states. The user is subscribed to the group
+ * but isn't an active member yet.
+ *
+ * When a user has this membership state they are considered to be of
+ * "non-member" role.
+ */
+define('OG_STATE_PENDING', 2);
+
+/**
+ * Define blocked group content states. The user is rejected from the group.
+ *
+ * When a user has this membership state they are denided access to any
+ * group related action. This state, however, does not prevent user to
+ * access a group or group content node.
+ */
+define('OG_STATE_BLOCKED', 3);
+
+/**
+ * Group audience field.
+ */
+define('OG_AUDIENCE_FIELD', 'group_audience');
+
+/**
+ * Group audience widget.
+ */
+define('OG_AUDIENCE_WIDGET', 'group_audience');
+
+/**
+ * Group audience widget.
+ */
+define('OG_AUDIENCE_AUTOCOMPLETE_WIDGET', 'group_audience_autocomplete');
+
+/**
+ * Group field.
+ */
+define('OG_GROUP_FIELD', 'group_group');
+
+/**
+ * Group default roles and permissions field.
+ */
+define('OG_DEFAULT_ACCESS_FIELD', 'og_roles_permissions');
+
+/**
+ * The role name of group non-members.
+ */
+define('OG_ANONYMOUS_ROLE', 'non-member');
+
+/**
+ * The role name of group member.
+ */
+define('OG_AUTHENTICATED_ROLE', 'member');
+
+/**
+ * The role name of group administrator.
+ */
+define('OG_ADMINISTRATOR_ROLE', 'administrator member');
+
+/**
+ * The default group membership type that is the bundle of group membership.
+ */
+define('OG_MEMBERSHIP_TYPE_DEFAULT', 'og_membership_type_default');
+
+/**
+ * The name of the user's request field in the default group membership type.
+ */
+define('OG_MEMBERSHIP_REQUEST_FIELD', 'og_membership_request');
+
+/**
+ * Implements hook_help().
+ */
+function og_help($path, $arg) {
+  // Provide messages for og-migrate module.
+  if ($path != 'admin/config/group/group-migrate' && $path != 'batch' && strpos($path, '#') === FALSE
+      && user_access('access administration pages') && og_needs_migrate()) {
+    if ($path == 'admin/reports/status') {
+      $message = t('Organic groups or one of its modules needs to migrate data.');
+    }
+    else {
+      if (module_exists('og_migrate')) {
+        $message = t('Organic groups or one of its modules needs to <a href="@url">migrate data</a>. After a successful execution you can disable it.', array('@url' => url('admin/config/group/group-migrate')));
+      }
+      else {
+        $message = t('Organic groups or one of its modules needs you to enable Organic groups migrate module.');
+      }
+    }
+    drupal_set_message($message, 'error');
+  }
+
+  switch ($path) {
+    case 'admin/help#og':
+      $path = drupal_get_path('module', 'og');
+      $output  = '<p>' . t("Read the <a href='@url'>README.txt</a> file in the Organic groups module directory.", array('@url' => "/$path/README.txt")) . '</p>';
+      $output .= '<p>' . t("Information about Organic Groups can also be found on the module's<a href='@og'>documentation page</a>.", array('@og' => 'http://drupal.org/documentation/modules/og')) . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function og_entity_info() {
+  $items['group'] = array(
+    'label' => t('OG group'),
+    'entity class' => 'OgGroup',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'og',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'gid',
+      'label' => 'label',
+    ),
+    'views controller class' => 'OgViewsController',
+    'metadata controller class' => 'OgMetadataController',
+    'module' => 'og',
+    'access callback' => 'og_group_entity_access',
+  );
+
+  $items['og_membership_type'] = array(
+    'label' => t('OG membership type'),
+    'controller class' => 'EntityAPIControllerExportable',
+    'entity class' => 'OgMembershipType',
+    'base table' => 'og_membership_type',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'description',
+      'name' => 'name',
+    ),
+    'exportable' => TRUE,
+    'export' => array(
+      'default hook' => 'default_og_membership_type',
+    ),
+    'bundle of' => 'og_membership',
+    'module' => 'og',
+    'metadata controller class' => 'EntityDefaultMetadataController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'access callback' => 'og_membership_type_access',
+  );
+
+  if (class_exists('OgMembershipTypeUIController')) {
+    $items['og_membership_type'] += array(
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        // TODO: This path doesn't exist before OG-ui.
+        'path' => 'admin/config/group/group-membership',
+        'file' => 'includes/og.admin.inc',
+        'controller class' => 'OgMembershipTypeUIController',
+      ),
+    );
+  }
+
+  $items['og_membership'] = array(
+    'label' => t('OG membership'),
+    'entity class' => 'OgMembership',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'og_membership',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      // The message has no label.
+      'label' => FALSE,
+      'bundle' => 'type',
+    ),
+    'bundles' => array(),
+    'bundle keys' => array(
+      'bundle' => 'name',
+    ),
+    'module' => 'og',
+    'metadata controller class' => 'OgMembershipMetadataController',
+    'views controller class' => 'OgMembershipViewsController',
+    'access callback' => 'og_membership_access',
+  );
+
+  // Add bundle info but bypass entity_load() as we cannot use it here.
+  if (db_table_exists('og_membership_type')) {
+    $memberships = db_select('og_membership_type', 'g')
+      ->fields('g')
+      ->execute()
+      ->fetchAllAssoc('name');
+
+    foreach ($memberships as $type_name => $type) {
+      $items['og_membership']['bundles'][$type_name] = array(
+        //@todo do we need a short label too?
+        'label' => $type->name,
+        'admin' => array(
+          'path' => 'admin/config/group/group-membership/manage/%og_membership_type',
+          'real path' => 'admin/config/group/group-membership/manage/' . $type->name,
+          'bundle argument' => 5,
+          'access arguments' => array('administer group'),
+        ),
+      );
+    }
+  }
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_entity_property_info().
+ *
+ * - Add group metadata for every fieldable entity that is a group type.
+ * - Add group-membership metadata for every fieldable entity that is a group
+ *   content type.
+ */
+function og_entity_property_info() {
+  $info = array();
+  foreach (og_get_all_group_content_entity() as $entity_type => $name) {
+    $info[$entity_type]['properties']['og_membership'] = array(
+      'label' => t("Group memberships"),
+      'type' => 'list<og_membership>',
+      'description' => t("A list of all group memberships of the @name entity.", array('@name' => $name)),
+      'getter callback' => 'og_get_properties',
+    );
+  }
+
+  foreach (og_get_all_group_entity() as $entity_type => $name) {
+    $info[$entity_type]['properties']['group'] = array(
+      'label' => t("Group"),
+      'type' => 'group',
+      'description' => t("The group associated with the @name entity.", array('@name' => $name)),
+      'getter callback' => 'og_get_properties',
+    );
+  }
+
+  return $info;
+}
+
+/**
+ * Property getter callback.
+ *
+ * @see OgMetadataController
+ * @see OgMembershipMetadataController
+ * @see og_entity_property_info()
+ */
+function og_get_properties($entity, array $options, $name, $type) {
+  switch ($name) {
+    case 'manager':
+      return ($account = $entity->user()) ? $account : NULL;
+
+    case 'members':
+      $return = array();
+      if (!empty($entity->gid)) {
+        $query = new EntityFieldQuery();
+        $query
+          ->entityCondition('entity_type', 'user')
+          ->fieldCondition(OG_AUDIENCE_FIELD, 'gid', $entity->gid, '=');
+
+        $result = $query->execute();
+        if (!empty($result['user'])) {
+          $return = array_keys($result['user']);
+        }
+      }
+      return $return;
+
+    case 'og_membership':
+      list($id) = entity_extract_ids($type, $entity);
+      $query = new EntityFieldQuery();
+      $result = $query
+        ->entityCondition('entity_type', 'og_membership')
+        ->propertyCondition('entity_type', $type, '=')
+        ->propertyCondition('etid', $id, '=')
+        ->execute();
+
+      return !empty($result['og_membership']) ? array_keys($result['og_membership']) : array();
+
+    case 'url':
+      $group = $entity;
+      $entity_from_group = $group->getEntity();
+      $return = entity_uri($group->entity_type, $entity_from_group);
+      return url($return['path'], $return['options'] + $options);
+
+    case 'group':
+      list($id) = entity_extract_ids($type, $entity);
+      $group = og_get_group($type, $id);
+      return $group ? $group : NULL;
+  }
+}
+
+/**
+ * Getter callback to load the 'entity' property for groups or memberships.
+ */
+function og_entity_getter($object) {
+  // We have to return the entity wrapped.
+  return entity_metadata_wrapper($object->entity_type, $object->etid);
+}
+
+/**
+ * Entity property info setter callback to set the "entity" property for groups and memberships.
+ *
+ * As the property is of type entity, the value will be passed as a wrapped
+ * entity.
+ */
+function og_entity_setter($object, $property_name, $wrapper) {
+  $object->entity_type = $wrapper->type();
+  $object->etid = $wrapper->getIdentifier();
+}
+
+/**
+ * Implements hook_default_og_membership_type().
+ */
+function og_default_og_membership_type() {
+  $items = array();
+  $items['og_membership_type_default'] = entity_import('og_membership_type', '{
+    "name" : "og_membership_type_default",
+    "description" : "Default",
+    "rdf_mapping" : []
+  }');
+  return $items;
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function og_menu() {
+  $items = array();
+  $items['group/autocomplete'] = array(
+    'title' => 'group autocomplete',
+    'page callback' => 'og_field_audience_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function og_modules_enabled($modules) {
+  // Reset this cache first, since Drush can call this function multiple times
+  // before all modules are available.
+  drupal_static_reset('og_get_permissions');
+  entity_get_info(NULL, TRUE);
+  foreach ($modules as $module) {
+    // Add default roles and permissions, if existing and not set yet.
+    og_set_global_access_module($module);
+  }
+}
+
+/**
+ * Implements hook_modules_uninstalled().
+ */
+function og_modules_uninstalled($modules) {
+  // Delete module's permissions.
+  og_permissions_delete_by_module($modules);
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory().
+ */
+function og_ctools_plugin_directory($module, $plugin) {
+  // Safety: go away if CTools is not at an appropriate version.
+  if (!module_invoke('ctools', 'api_version', OG_REQUIRED_CTOOLS_API)) {
+    return;
+  }
+
+  if ($module == 'ctools' || $module == 'og_migrate') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function og_permission() {
+  return array(
+    'administer group' =>  array(
+      'title' => t('Administer Organic groups permissions'),
+      'description' => t('Administer all groups and permissions.'),
+    ),
+  );
+}
+
+/**
+ * Implement hook_og_permission().
+ */
+function og_og_permission() {
+  // Generate standard node permissions for all applicable node types.
+  $perms = array();
+
+  $perms['update group'] = array(
+    'title' => t('Edit group'),
+    'description' => t('Edit the group. Note: This permission controls only node entity type groups.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+  $perms['administer group'] = array(
+    'title' => t('Administer group'),
+    'description' => t('Manage group members and content in the group.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+    'restrict access' => TRUE,
+  );
+
+  foreach (node_permissions_get_configured_types() as $type) {
+    $perms = array_merge($perms, og_list_permissions($type));
+  }
+
+  return $perms;
+}
+
+
+/**
+ * Implement hook_og_default_roles()
+ */
+function og_og_default_roles() {
+  return array(OG_ADMINISTRATOR_ROLE);
+}
+
+/**
+ * Implement hook_node_access()
+ */
+function og_node_access($node, $op, $account) {
+  $type = is_string($node) ? $node : (is_array($node) ? $node['type'] : $node->type);
+  if (in_array($op, array('update', 'delete'))) {
+    $access = og_user_access_entity('administer group', 'node', $node, $account);
+
+    if (is_null($access)) {
+      // The node isn't in an OG context, so no need to keep testing.
+      return NODE_ACCESS_IGNORE;
+    }
+    else {
+      $access = $access ||
+        // Any content.
+        og_user_access_entity("$op any $type content", 'node', $node, $account) ||
+        // Own content.
+        (og_user_access_entity("$op own $type content", 'node', $node, $account) && $account->uid == $node->uid);
+    }
+
+    if (!$access && $op == 'update' && og_get_group('node', $node->nid)) {
+      // The node is a group, so check "update group" permission.
+      $access = og_user_access_entity('update group', 'node', $node, $account);
+    }
+
+    if ($access) {
+      return NODE_ACCESS_ALLOW;
+    }
+
+    // Check if OG should explicitly deny access or not.
+    return variable_get('og_node_access_strict', TRUE) ? NODE_ACCESS_DENY : NODE_ACCESS_IGNORE;
+  }
+
+  return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function og_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'og') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function og_entity_presave($entity, $type) {
+  if ($diff = og_entity_presave_group_audience_diff($entity, $type)) {
+    foreach (array('insert', 'update', 'delete') as $op) {
+      if (!empty($diff[$op])) {
+        foreach ($diff[$op] as $item) {
+          $item += array(
+            'state' => OG_STATE_ACTIVE,
+            'created' => time(),
+            'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+            'membership fields' => array(),
+          );
+          $values = array(
+            'entity type' => $type,
+            'entity' => $entity,
+            // The group might be deleted already, and since we don't bulk
+            // delete in such a case, we can't be sure it's there, so we just
+            // pass the group ID.
+            'gid' => $item['gid'],
+            'state' => $item['state'],
+            'membership type' => $item['membership type'],
+            'membership fields' => $item['membership fields'],
+            'created' => $item['created'],
+          );
+          call_user_func('og_membership_' . $op . '_on_entity_presave', $values);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function og_entity_insert($entity, $type) {
+  if (!empty($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])) {
+    // Create group membership for each group the new entity belongs to.
+    list($id) = entity_extract_ids($type, $entity);
+    foreach ($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE] as $item) {
+      $item += array('membership type' => '', 'membership fields' => array());
+      $group_membership = og_membership_create($item['gid'], $type, $id, array('membership type' => $item['membership type'], 'membership fields' => $item['membership fields']));
+      $group_membership->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ *
+ * Delete group membership of deleted entity.
+ */
+function og_entity_delete($entity, $type) {
+  if (!empty($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])) {
+    list($id) = entity_extract_ids($type, $entity);
+    foreach ($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE] as $item) {
+      // If the group is already deleted, all the group memberships were already
+      // deleted.
+      if ($group_membership = og_get_group_membership($item['gid'], $type, $id)) {
+        $group_membership->delete();
+      }
+    }
+  }
+}
+
+/**
+ * Create a new group membership on entity presave.
+ *
+ * @see og_entity_presave().
+ */
+function og_membership_insert_on_entity_presave($values = array()) {
+  // Create a new group membership entity.
+  list($id) = entity_extract_ids($values['entity type'], $values['entity']);
+  $group_membership = og_membership_create($values['gid'], $values['entity type'], $id, array('state' => $values['state'], 'membership type' => $values['membership type'], 'membership fields' => $values['membership fields']));
+  $group_membership->save();
+}
+
+/**
+ * Update an existing group membership on entity presave.
+ *
+ * @see og_entity_presave().
+ */
+function og_membership_update_on_entity_presave($values = array()) {
+  // Update group membership entity.
+  list($id) = entity_extract_ids($values['entity type'], $values['entity']);
+  $group_membership = og_get_group_membership($values['gid'], $values['entity type'], $id);
+
+  // Just make sure we the group membership.
+  if (!$group_membership) {
+    return;
+  }
+
+  // We know the state changed.
+  // see og_entity_presave_group_audience_diff().
+  $group_membership->state = $values['state'];
+  $group_membership->save();
+}
+
+/**
+ * Delete an existing group membership on entity presave.
+ *
+ * @see og_entity_presave().
+ */
+function og_membership_delete_on_entity_presave($values = array()) {
+  // Delete group membership entity.
+  list($id) = entity_extract_ids($values['entity type'], $values['entity']);
+  // If the group is already deleted, all the group memberships were already
+  // deleted.
+  if ($group_membership = og_get_group_membership($values['gid'], $values['entity type'], $id)) {
+    $group_membership->delete();
+  }
+}
+
+
+/**
+ * Implements hook_og_membership_insert().
+ */
+function og_og_membership_insert($membership) {
+  if ($membership->entity_type == 'user' && module_exists('rules')) {
+    rules_invoke_event('og_user_insert', $membership, entity_metadata_wrapper('user', $membership->etid));
+  }
+}
+
+/**
+ * Implements hook_og_membership_update().
+ */
+function og_og_membership_update($membership) {
+  if ($membership->entity_type == 'user' && module_exists('rules')) {
+    if ($membership->original->state != OG_STATE_ACTIVE && $membership->state == OG_STATE_ACTIVE) {
+      rules_invoke_event('og_user_approved', $membership, entity_metadata_wrapper('user', $membership->etid));
+    }
+    if ($membership->original->state != OG_STATE_BLOCKED && $membership->state == OG_STATE_BLOCKED) {
+      rules_invoke_event('og_user_blocked', $membership, entity_metadata_wrapper('user', $membership->etid));
+    }
+  }
+}
+
+/**
+ * Implements hook_og_membership_delete().
+ */
+function og_og_membership_delete($membership) {
+  if ($membership->entity_type == 'user' && module_exists('rules')) {
+    rules_invoke_event('og_user_delete', $membership, entity_metadata_wrapper('user', $membership->etid));
+  }
+}
+
+/**
+ * Get the difference in group audience for a presaved entity.
+ *
+ * @param $entity
+ *   The presaved entity (i.e. with "original" key holding the unchanged
+ *   entity).
+ * @param $type
+ *   The entity type.
+ *
+ * @return
+ *   Array with all the differences, or an empty array if none found.
+ */
+function og_entity_presave_group_audience_diff($entity, $type) {
+  if (empty($entity->original) || empty($entity->{OG_AUDIENCE_FIELD})) {
+    return;
+  }
+
+  $return = array('insert' => array(), 'update' => array(), 'delete' => array());
+  $new_gids = array ();
+  $original_gids = array();
+
+  $wrapper = entity_metadata_wrapper($type, $entity);
+  $group_memberships = array();
+  foreach ($wrapper->og_membership->value() as $group_membership) {
+    $group_memberships[$group_membership->gid] = $group_membership;
+  }
+
+  if (isset($entity->{OG_AUDIENCE_FIELD}) && isset($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE])){
+    foreach ($entity->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE] as $item) {
+      $gid = $item['gid'];
+
+      if (empty($group_memberships[$gid])) {
+        // Empty group, assign default values.
+        $item += array('state' => OG_STATE_ACTIVE, 'created' => time());
+      }
+      elseif (empty($item['state']) && empty($item['created'])) {
+        $item['state'] = $group_memberships[$gid]->state;
+        $item['created'] = $group_memberships[$gid]->created;
+      }
+
+      $new_gids[$gid] = $item;
+    }
+  }
+
+  // Instead of checking $entity->original, we get the group membership. This
+  // will allow egde cases, such as settings the group-audience field widget to
+  // accpet only a single group, but later, subscribing a user to another group
+  // via og_group(). By checking the group membership directly, we make sure we
+  // have all the real membership, not only the ones captured on group-audience
+  // field.
+  foreach ($wrapper->og_membership->value() as $group_membership) {
+    $gid = $group_membership->gid;
+    $item = array(
+      'gid' => $group_membership->gid,
+      'state' => $group_membership->state,
+      'created' => $group_membership->created,
+    );
+    $original_gids[$gid] = $item;
+    if (empty($new_gids[$gid])) {
+      $return['delete'][] = $item;
+    }
+  }
+
+  // Check if the membership is new, or updating an existing one.
+  foreach ($new_gids as $gid => $item) {
+    if (empty($original_gids[$gid])) {
+      $return['insert'][] = $item;
+    }
+    elseif ($item['state'] != $original_gids[$gid]['state']) {
+      // This is an existing group. Update the group only if the state has
+      // changed.
+      $return['update'][] = $item;
+    }
+  }
+  return $return;
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add own validation handler to form that might have fields. We don't add it
+ * via hook_field_attach_form() since it's to early, and we might override the
+ * default validation handler. @see drupal_prepare_form().
+ */
+function og_form_alter(&$form, $form_state, $form_id) {
+  if (!empty($form[OG_AUDIENCE_FIELD])) {
+    $form['#validate'][] = 'og_field_widget_form_validate';
+  }
+}
+
+/**
+ * Implements hook_og_fields_info().
+ */
+function og_og_fields_info() {
+  $items[OG_GROUP_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Determine if this should be a group.'),
+    'field' => array(
+      'field_name' => OG_GROUP_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(0 => 'Not a group', 1 => 'Group'),
+        'allowed_values_function' => '',
+      ),
+    ),
+    'instance' => array(
+      'label' => t('Group'),
+      'description' => t('Determine if this is an OG group.'),
+      'display_label' => 1,
+      'widget' => array(
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_onoff',
+        'weight' => 0,
+      ),
+      'default_value' => array(0 => array('value' => 1)),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'type' => 'og_group_subscribe',
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'type' => 'og_group_subscribe',
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+  );
+
+
+  $items[OG_DEFAULT_ACCESS_FIELD] = array(
+    'type' => array('group'),
+    'description' => t('Determine if group should use default roles and permissions.'),
+    'field' => array(
+      'field_name' => OG_DEFAULT_ACCESS_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'settings' => array('allowed_values' => array(0 => 'Use default roles and permissions', 1 => 'Override default roles and permissions'), 'allowed_values_function' => ''),
+    ),
+    'instance' => array(
+      'label' => t('Group roles and permissions'),
+      'widget_type' => 'options_select',
+      'required' => TRUE,
+      // Use default role and permissions as default value.
+      'default_value' => array(0 => array('value' => 0)),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'type' => 'list_default',
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'type' => 'list_default',
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+  );
+
+  $items[OG_AUDIENCE_FIELD] = array(
+    'type' => array('group content'),
+    'description' => t('Determine to which groups this group content is assigned to.'),
+    'field' => array(
+      'field_name' => OG_AUDIENCE_FIELD,
+      'no_ui' => TRUE,
+      'type' => 'group',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    ),
+    'instance' => array(
+      'label' => t('Groups audience'),
+      'widget_type' => OG_AUDIENCE_FIELD,
+      'default_value_function' => 'og_field_audience_default_value',
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'type' => 'og_list_default',
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'type' => 'og_list_default',
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_node_update().
+ *
+ * Check if author of node changed and if so susbscribe the new user.
+ * Keep the previous author subscribed to the group.
+ */
+function og_node_update($node) {
+  if ($node->uid != $node->original->uid && $group = og_get_group('node', $node->nid)) {
+    $account = user_load($node->uid);
+    $values = array('entity' => $account);
+    og_group($group->gid, $values);
+  }
+}
+
+/**
+* Implement hook_node_type_delete().
+*
+* We immediately delete those variables as they are only used to indicate a
+* content type should be a group or a group content. However, the actual
+* indication for it is in the field API. This is just a workaround, specifically
+* for the node entity, to allow users to define groups via the "content type"
+* page.
+*/
+function og_node_type_delete($info) {
+  variable_del('og_group_type_' . $info->type);
+  variable_del('og_group_content_type_' . $info->type);
+}
+
+/**
+* Implement hook_node_type_insert().
+*/
+function og_node_type_insert($info) {
+  og_node_type_save($info->type);
+}
+
+/**
+* Implement hook_node_type_update().
+*/
+function og_node_type_update($info) {
+  og_node_type_save($info->type);
+}
+
+/**
+ * Implements hook_ctools_context_convert_list_alter().
+ *
+ * Add our own converter list to the entity:group context provided by CTools.
+ */
+function og_ctools_context_convert_list_alter(&$plugin, &$converters) {
+  if (!empty($plugin['context name']) && $plugin['context name'] == 'group') {
+    // Add group converter list.
+    $converters = $converters + array(
+      'gid' => t('Group ID'),
+      'entity_type' => t('Entity type'),
+      'entity_id' => t('Entity ID'),
+      'label' => t('Group label'),
+    );
+  }
+}
+
+/**
+ * Implements hook_ctools_context_converter_alter().
+ *
+ * Converter function for CTools context entity:group.
+ */
+function og_ctools_context_converter_alter($context, $converter, &$value) {
+  if (!empty($context->type[0]) && $context->type[0] == 'entity:group' && !empty($context->data)) {
+    switch ($converter) {
+      case 'gid':
+        $value = $context->data->gid;
+        break;
+      case 'entity_type':
+        $value = $context->data->entity_type;
+        break;
+      case 'entity_id':
+        $value = $context->data->etid;
+        break;
+      case 'label':
+        $value = $context->data->label;
+    }
+  }
+}
+
+/**
+ * Provide a separate Exception so it can be caught separately.
+ */
+class OgException extends Exception { }
+
+/**
+ * A class used for group membership types.
+ */
+class OgMembershipType extends Entity {
+
+  public $name;
+  public $description = '';
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'og_membership_type');
+  }
+}
+
+/**
+ * Creates a new membership type.
+ *
+ * If a message type already exists, an exception will be thrown.
+ *
+ * @return OgMembershipType
+ *   Returns a new OG membership type object.
+ */
+function og_membership_type_create($name, $values = array()) {
+  // Make sure the message type doesn't already exist, to prevent duplicate key
+  // error.
+  if (og_membership_type_load($name)) {
+    throw new OgException('Group membership type ' . check_plain($name) . ' already exists.');
+  }
+  $values['name'] = $name;
+  return entity_create('og_membership_type', $values);
+}
+
+/**
+ * Message type loader.
+ *
+ * @param $type_name
+ *   (optional) The name for this message type. If no type is given all existing
+ *   types are returned.
+ *
+ * @return MessageType
+ *   Returns a fully-loaded message type definition if a type name is passed.
+ *   Else an array containing all types is returned.
+ */
+function og_membership_type_load($name = NULL) {
+  // Replace dashes with underscores so this can be used as menu argument
+  // loader too.
+  $types = entity_load_multiple_by_name('og_membership_type', isset($name) ? array(strtr($name, array('-' => '_'))) : FALSE);
+  if (isset($name)) {
+    return isset($types[$name]) ? $types[$name] : FALSE;
+  }
+  return $types;
+}
+
+/**
+ * Inserts or updates a message object into the database.
+ *
+ * @param $og_membership
+ *   The message object to be inserted.
+ *
+ * @return
+ *   Failure to write a record will return FALSE. Otherwise SAVED_NEW or
+ *   SAVED_UPDATED is returned depending on the operation performed.
+ */
+function og_membership_type_save($og_membership) {
+  return entity_save('og_membership_type', $og_membership);
+}
+
+/**
+ * Deletes an existing message.
+ *
+ * @param $og_membership
+ *   The message object to be deleted.
+ */
+function og_membership_type_delete($og_membership) {
+  return entity_delete('og_membership_type', $og_membership);
+}
+
+/**
+ * Access callback for the group membership entity.
+ */
+function og_membership_type_access($op, $entity, $account = NULL, $entity_type = 'og_membership') {
+  // No-end user needs access to this entity, so restrict it to admins.
+  return user_access('administer group');
+}
+
+/**
+ * Main class for Group membership entities provided by Entity API.
+ */
+class OgMembership extends Entity {
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, 'og_membership');
+  }
+
+  public function save() {
+    parent::save();
+    og_group_membership_invalidate_cache();
+  }
+
+  public function delete() {
+    parent::delete();
+    og_group_membership_invalidate_cache();
+  }
+
+  /**
+   * Return the group assocaited with the group membership.
+   */
+  public function group() {
+    return og_load($this->gid);
+  }
+
+  /**
+   * Gets the associated OG membership type.
+   *
+   * @return OgMembershipType
+   */
+  public function type() {
+    return og_membership_type_load($this->name);
+  }
+}
+
+/**
+ * Reset static cache related to group membership.
+ */
+function og_group_membership_invalidate_cache() {
+  $caches = array(
+    'og_get_entity_groups',
+    'og_get_group_membership',
+  );
+
+  foreach ($caches as $cache) {
+    drupal_static_reset($cache);
+  }
+}
+
+/**
+ * Creates a new OG membership.
+ *
+ * If a group membership already exists, an exception will be thrown.
+ *
+ * @param $gid
+ *   The group ID
+ * @param $entity_type
+ *   The entity type of the group content.
+ * @param $etid
+ *   The entity ID of the group content.
+ * @param $values
+ *   Optional; Array of fields values to be attached to the OG membership, that will be processed using their
+ *   entity-metadata wrapper
+ *
+ * @return OgMembership
+ *   Returns a new OG membership object.
+ *
+ * @see entity_property_values_create_entity()
+ */
+function og_membership_create($gid, $entity_type, $etid, $values = array()) {
+  // Make sure the group membership doesn't already exist.
+  if (og_get_group_membership($gid, $entity_type, $etid)) {
+    $group = og_label($gid);
+    throw new OgException('OG membership for entity ' . check_plain($entity_type) . ' with ID ' . check_plain($etid) . ' for group ID ' . $gid . ' (' . $group . ') already exists.');
+  }
+  $values['entity_type'] = $entity_type;
+  $values['etid'] = $etid;
+  $values['gid'] = $gid;
+
+  // Process the values as it might arrived from og_group().
+  if (!empty($values['membership type'])) {
+    $values['name'] = $values['membership type'];
+    unset($values['membership type']);
+  }
+
+  if (!empty($values['membership fields'])) {
+    foreach ($values['membership fields'] as $field_name => $value) {
+      $values[$field_name] = $value;
+    }
+    unset($values['membership fields']);
+  }
+
+  $values += array(
+    'type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+    'state' => OG_STATE_ACTIVE,
+    'created' => time(),
+  );
+
+  $return = entity_create('og_membership', $values);
+  return $return;
+}
+
+/**
+ * Group membership loader.
+ *
+ * @param $name
+ *   (optional) The name for this group membership. If no type is given all existing
+ *   types are returned.
+ *
+ * @return OgMembership
+ *   Returns a fully-loaded group membership definition if a type name is passed.
+ *   Else an array containing all types is returned.
+ */
+function og_membership_load($id) {
+  $result = entity_load('og_membership', array($id));
+  return $result ? reset($result) : FALSE;
+}
+
+/**
+ * Load multiple group membership entities based on certain conditions.
+ *
+ * @param $gids
+ *   An array of group membership IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   An array of group entities, indexed by group ID.
+ */
+function og_membership_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('og_membership', $ids, $conditions, $reset);
+}
+
+/**
+ * Get the group membership entity by User ID and group ID.
+ *
+ * @param $uid
+ *   User ID.
+ * @param $gid
+ *   Group ID.
+ *
+ * @return
+ *   The OgMembership object if found, or FALSE.
+ */
+function og_get_group_membership($gid, $entity_type, $etid) {
+  $return = &drupal_static(__FUNCTION__, array());
+  $identifier = $gid . ':' . $entity_type . ':' . $etid;
+  if (!isset($return[$identifier])) {
+    $query = new EntityFieldQuery();
+    $result = $query
+      ->entityCondition('entity_type', 'og_membership')
+      ->propertyCondition('entity_type', $entity_type, '=')
+      ->propertyCondition('etid', $etid, '=')
+      ->propertyCondition('gid', $gid, '=')
+      ->execute();
+    if (!empty($result['og_membership'])) {
+      $key = key($result['og_membership']);
+      $return[$identifier] = og_membership_load($key);
+    }
+  }
+  return !empty($return[$identifier]) ? $return[$identifier] : FALSE;
+}
+
+/**
+ * Inserts or updates a group membership object into the database.
+ *
+ * @param $membership
+ *   The group membership entity to be inserted.
+ *
+ * @return
+ *   Failure to write a record will return FALSE. Otherwise SAVED_NEW or
+ *   SAVED_UPDATED is returned depending on the operation performed.
+ */
+function og_membership_save($membership) {
+  return entity_save('og_membership', $membership);
+}
+
+/**
+ * Delete an existing group membership.
+ *
+ * @param $membership
+ *   The group membership entity to be deleted.
+ */
+function og_membership_delete($id) {
+  return og_membership_delete_multiple(array($id));
+}
+
+function og_membership_delete_multiple($ids = array()) {
+  return entity_delete_multiple('og_membership', $ids);
+}
+
+/**
+ * Delete all group memberships by group ID.
+ */
+function og_membership_delete_by_gid($gid) {
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'og_membership')
+    ->propertyCondition('gid', $gid, '=')
+    ->execute();
+  if (!empty($result['og_membership'])) {
+    og_membership_delete_multiple(array_keys($result['og_membership']));
+  }
+}
+
+/**
+ * Access callback for the group membership entity.
+ */
+function og_membership_access($op, $entity, $account = NULL, $entity_type = 'og_membership') {
+  // No-end user needs access to this entity, so restrict it to admins.
+  return user_access('administer group');
+}
+
+/**
+ * Return a loaded group entity if exists or create a new one.
+ *
+ * This is a wrapper function around og_load() that allows passing the group's
+ * entity type and entity ID, and the correct group will be loaded accordingly.
+ * If no group exists and $create option is set to TRUE, then a new group entity
+ * will be created.
+ *
+ * @param $etid
+ *   The group content ID.
+ * @param $entity_type
+ *   The group entity type. "node" is the default value. Pass "group" if
+ *   content ID is equal to the group unique ID.
+ * @param $create
+ *   Optional; If no existing group is found, create a new one. Defaults to
+ *   FALSE.
+ * @param $states
+ *   Array of states the group must be in. Values can be OG_STATE_ACTIVE,
+ *   OG_STATE_PENDING or OG_STATE_BLOCKED. Defaults to OG_STATE_ACTIVE.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   The group entity if found, or an empty array.
+ */
+function og_get_group($entity_type, $etid, $create = FALSE, $states = array(OG_STATE_ACTIVE), $reset = FALSE) {
+  $group = FALSE;
+  if ($gids = og_get_group_ids($entity_type, array($etid), $states, $reset)) {
+    // We don't use the entity ID directly, as it might change. For example, if
+    // a node is a translation of another node that is a group, we need to load
+    // the other node. og_get_group_ids() returns the correct entity ID as the
+    // key, so we will use that.
+    $correct_etid = key($gids);
+    $group = og_load($gids[$correct_etid], $reset);
+  }
+  elseif ($create) {
+    $group = og_create_group(array('entity_type' => $entity_type, 'etid' => $etid));
+  }
+  return $group;
+}
+
+
+/**
+ * Callback to create a new OG group.
+ */
+function og_create_group($values = array()) {
+  if ($entity = entity_load($values['entity_type'], array($values['etid']))) {
+    $entity = current($entity);
+    // Add default values.
+    $values += array(
+      'state' => OG_STATE_ACTIVE,
+      'created' => time(),
+      'label' => og_entity_label($values['entity_type'], $entity),
+    );
+
+    return entity_create('group', $values);
+  }
+  // Entity couldn't be loaded.
+  return FALSE;
+}
+
+/**
+ * Main class for Group entities provided by Entity API.
+ */
+class OgGroup extends Entity {
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, 'group');
+  }
+
+  public function save() {
+    parent::save();
+    og_invalidate_cache();
+  }
+
+  public function delete() {
+    $gid = $this->gid;
+    // Delete group memberships.
+    og_membership_delete_by_gid($this->gid);
+
+    parent::delete();
+    og_invalidate_cache(array($gid));
+
+    // Delete roles and permissions.
+    og_delete_user_roles_by_group($gid, NULL, TRUE);
+  }
+
+  /**
+   * Return TRUE if user has access to 'view', 'update' or 'delete' the entity
+   * that is the group. Otherwise return FALSE.
+   *
+   * This function currently only checks access if the entity type is a node.
+   *
+   * @param $op
+   *   The operation to be performed on the node. Possible values are:
+   *   - "view"
+   *   - "update"
+   *   - "delete"
+   * @param $account
+   *   Optional, a user object representing the user for whom the operation is
+   *   to be performed. Determines access for a user other than the current user.
+   *
+   * @return
+   *   TRUE if the operation may be performed, FALSE otherwise.
+   */
+  public function access($op = 'view', $account = NULL) {
+    $access = entity_access($op, $this->entity_type, $this->getEntity(), $account);
+    if (!isset($access)) {
+      // If no access information is available, default to grant access.
+      return TRUE;
+    }
+    return $access;
+  }
+
+  /**
+   * Return the entity the group is related to.
+   */
+  public function getEntity() {
+    $entity = entity_load($this->entity_type, array($this->etid));
+    $entity = reset($entity);
+    return $entity;
+  }
+
+  /**
+   * Returns the group manager if exists or FALSE if entity has no User ID
+   * assigned with it.
+   */
+  public function user() {
+    $entity = $this->getEntity();
+    if (isset($entity->uid)) {
+      return user_load($entity->uid);
+    }
+
+    return FALSE;
+  }
+}
+
+/**
+ * Determines access for a group entity.
+ */
+function og_group_entity_access($op, $group = NULL, $account = NULL) {
+  if (isset($group)) {
+    return $group->access($op, $account);
+  }
+  return user_access('administer group');
+}
+
+/**
+ * Load multiple Group entities based on certain conditions.
+ *
+ * @param $gids
+ *   An array of group entity IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   An array of group entities, indexed by group ID.
+ */
+function og_load_multiple($gids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('group', $gids, $conditions, $reset);
+}
+
+/**
+ * Load an Group entity from the database.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $reset
+ *   Whether to reset the node_load_multiple cache.
+ *
+ * @return
+ *   A fully-populated group entity, or FALSE if none found.
+ */
+function og_load($gid, $reset = FALSE) {
+  $group = og_load_multiple(array($gid), array(), $reset);
+  return $group? reset($group) : FALSE;
+}
+
+/**
+ * Invalidate cache.
+ *
+ * @param $gids
+ *   Array with group IDs that their cache should be invalidated.
+ */
+function og_invalidate_cache($gids = array()) {
+  // Reset static cache.
+  $caches = array(
+    'og_user_access',
+    'og_get_group_ids',
+    'og_field_audience_options',
+    'og_role_permissions',
+    'og_field_formatter_view',
+    'og_get_permissions',
+  );
+
+  foreach ($caches as $cache) {
+    drupal_static_reset($cache);
+  }
+  // Invalidate group membersihp cache.
+  og_group_membership_invalidate_cache();
+
+  // Let other Group modules know we invalidate cache.
+  module_invoke_all('og_invalidate_cache', $gids);
+}
+
+/**
+ * Get group IDs by the entity type and entity IDs.
+ *
+ * @param $entity_type
+ *   The group entity type. Defaults to "group", that will return the group ID.
+ * @param $etids
+ *   Array with the entity IDs that should be loaded. If FALSE, all groups IDs
+ *   that belong to the entity will be returned.
+ * @param $states
+ *   Array of states the group must be in. Values can be OG_STATE_ACTIVE,
+ *   OG_STATE_PENDING or OG_STATE_BLOCKED. Defaults to OG_STATE_ACTIVE.
+ * @param $soft_reset
+ *   A boolean indicating that the internal cache should be "soft" reset (i.e.
+ *   only the cached values of the specific entity type). For a "hard" reset use
+ *   @code
+ *     drupal_static_reset('og_get_group_ids');
+ *   @endcode
+ *
+ * @return
+ *   Array keyed with the entity ID and the group ID as the value.
+ */
+function og_get_group_ids($entity_type = 'group', $etids = FALSE, $states = array(OG_STATE_ACTIVE), $soft_reset = FALSE) {
+  $gids = &drupal_static(__FUNCTION__, array());
+
+  if ($soft_reset || empty($gids[$entity_type]) || (!empty($gids['__info'][$entity_type]['states'])) && array_diff($gids['__info'][$entity_type]['states'], $states)) {
+    $gids[$entity_type] = array();
+    // Make sure the cached values are according to the states we are looking
+    // for.
+    $gids['__info'][$entity_type]['states'] = $states;
+    $gids['__info'][$entity_type]['query all'] = FALSE;
+  }
+
+  $query_etids = $etids;
+
+  // Check we don't already have the group IDs, and if we have them, return them
+  // for the cache.
+  if (!empty($gids[$entity_type])) {
+    if ($query_etids !== FALSE) {
+      $query_etids = array_diff($query_etids, array_flip($gids[$entity_type]));
+
+      if (!$query_etids) {
+        return array_intersect_key($gids[$entity_type], drupal_map_assoc($etids));
+      }
+    }
+  }
+
+  // Check if we need to query all group enteties, and if this was already
+  // cached.
+  if ($query_etids === FALSE && $gids['__info'][$entity_type]['query all']) {
+    return $gids[$entity_type];
+  }
+
+  // Don't query if we have already queried all.
+  if (empty($gids['__info'][$entity_type]['query all'])) {
+
+    if (!empty($query_etids) && $entity_type == 'node' && module_exists('translation')) {
+      // If a node is a translation of another node that is a group, we should
+      // mark it as a group as-well.
+      $query = db_select('node', 'node');
+      $query->fields('node', array('tnid', 'tnid'))
+      ->condition('nid', $query_etids, 'IN');
+
+      // Add the real group node IDs to the entity IDs that will be queried
+      // against the {og} table.
+      if ($result = $query->execute()->fetchAllKeyed()) {
+        $query_etids = array_merge($query_etids, $result);
+        // Add it to the original IDs, as they are needed to later on intersect
+        // with the results from the cache.
+        $etids = array_merge($etids, $result);
+      }
+    }
+
+    // We can't use EntityFieldQuery as it return only the group ID, but in
+    // order to cache the results we need to maintain a relation between the
+    // entity ID and the group ID.
+    $query = db_select('og', 'og');
+
+    if ($entity_type == 'group') {
+      $query->fields('og', array('gid', 'gid'));
+      if (!empty($query_etids)) {
+        $query->condition('gid', $query_etids, 'IN');
+      }
+    }
+    else {
+      $query->fields('og', array('etid', 'gid'));
+      $query->condition('entity_type', $entity_type);
+
+      if (!empty($query_etids)) {
+        $query->condition('etid', $query_etids, 'IN');
+      }
+    }
+
+    if (!empty($states)) {
+      $query->condition('state', $states, 'IN');
+    }
+
+    $gids[$entity_type] += $query->execute()->fetchAllKeyed();
+  }
+
+  // Make sure we return only the ids we were asked for, or if no specific IDs
+  // were asked, then return all of them.
+  if ($query_etids !== FALSE) {
+    $return = array_intersect_key($gids[$entity_type], drupal_map_assoc($etids));
+  }
+  else {
+    $return = $gids[$entity_type];
+    // Let the cache know we queried all IDs of this entity type.
+    $gids['__info'][$entity_type]['query all'] = TRUE;
+  }
+
+  return $return;
+}
+
+/**
+ * Return all existing groups with a certain state.
+ *
+ * @param $states
+ *   Array of states the group must be in.
+ * @param $options
+ *   - return query: If TRUE the return value will be the $query object.
+ *     Defaults to FALSE.
+ *   - count: If TRUE the function will return the total numer of groups in the desired
+ *     states. Defaults to FALSE.
+ */
+function og_get_all_group($states = array(OG_STATE_ACTIVE), $options = array()) {
+  // Initialize values.
+  $options += array('count' => FALSE, 'return query' => FALSE);
+  $return = array();
+  $query = db_select('og', 'og');
+  $query->addMetaData('id', 'og_get_all_group');
+  $query->fields('og', array('gid'));
+  if (!empty($states)) {
+    // Get only the groups with the correct state.
+    $query->condition('state', $states, 'IN');
+  }
+
+  if ($options['return query']) {
+    // Return the query itself.
+    $return = $query;
+  }
+  elseif ($options['count']) {
+    // Return the total number of groups found.
+    $return = $query->countQuery()->execute()->fetchField();
+  }
+  else {
+    // Return the group IDs.
+    $result = $query->execute()->fetchAll();
+
+    foreach ($result as $value) {
+      $return[$value->gid] = $value->gid;
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Set an association (e.g. subscribe) an entity to a group.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $values
+ *   Array with the information to pass along, until it is processed in
+ *   og_entity_presave(). Keys are:
+ *   - "entity type": Optional; The entity type (e.g. "node" or "user").
+ *     Defaults to 'user'
+ *   - "entity" :Optional; The entity to set the association. Defaults to the
+ *     current user if the $entity_type property is set to 'user'.
+ *   - "state": Optional; The state of the association. Can be:
+ *     - OG_STATE_ACTIVE
+ *     - OG_STATE_PENDING
+ *     - OG_STATE_BLOCKED
+ *   - "save": Optional; TRUE if fields value should be saved. Defaults to TRUE.
+ *   - "force reload": Optional; Determine if og_load_entity() should be used on
+ *     the passed entity. This can be used when you pass an entity that has been
+ *     saved yet to the database, but you want to assign it groups. Defaults to TRUE.
+ *     // TODO: Adds docs on rest of keys.
+ *
+ * @return
+ *   The entity with the fields updated.
+ */
+function og_group($gid, $values = array()) {
+  // Set default values.
+  $values += array(
+    'entity type' => 'user',
+    'entity' => FALSE,
+    'state' => OG_STATE_ACTIVE,
+    'save' => TRUE,
+    'force reload' => TRUE,
+    'membership type' => OG_MEMBERSHIP_TYPE_DEFAULT,
+    'membership fields' => array(),
+    'created' => time(),
+  );
+
+  $entity_type = $values['entity type'];
+  $entity = $values['entity'];
+  $state = $values['state'];
+  $save = $values['save'];
+
+  if ($entity_type == 'user' && empty($entity)) {
+    global $user;
+    $entity = clone $user;
+  }
+  if ($values['force reload']) {
+    $entity = og_load_entity($entity_type, $entity);
+  }
+  $property = OG_AUDIENCE_FIELD;
+  // Check the audience field exists in the entity.
+  if (in_array($entity_type, array_keys(og_get_all_group_content_entity()))) {
+    $wrapper = &$entity->{$property}[LANGUAGE_NONE];
+
+    list($id) = entity_extract_ids($entity_type, $entity);
+    // Check if the entity is new or an existing one.
+    // TODO: make sure is_new is on all entity types.
+    $op = empty($entity->is_new) ? 'update' : 'insert';
+
+    if ($op == 'insert') {
+      $field_values = array(
+        'gid' => $gid,
+        'state' => $state,
+        'created' => $values['created'],
+        'membership type' => $values['membership type'],
+        'membership fields' => $values['membership fields'],
+      );
+      $wrapper[] = $field_values;
+    }
+    else {
+      $existing_key = FALSE;
+      if (!empty($wrapper)) {
+        foreach ($wrapper as $key => $value) {
+          if ($gid == $value['gid']) {
+            $existing_key = $key;
+            break;
+          }
+        }
+      }
+
+      if ($existing_key === FALSE) {
+        // Update field with new value.
+        $field_values = array(
+          'gid' => $gid,
+          // This values won't be saved, just passed along.
+          // @see og_entity_presave().
+          'state' => $state,
+          'membership type' => $values['membership type'],
+          'membership fields' => $values['membership fields'],
+        );
+        $entity->{$property}[LANGUAGE_NONE][] = $field_values;
+      }
+      else {
+        $group_membership = og_get_group_membership($wrapper[$existing_key]['gid'], $entity_type, $id);
+        if ($group_membership->state != $state || $group_membership->type != $values['membership type']) {
+          $wrapper[$existing_key]['state'] = $state;
+          // This value won't be saved in the field, just passed along and
+          // processed later on.
+          // @see og_entity_insert()
+          // @see og_og_entity_insert()
+          $wrapper[$existing_key] += array(
+            'membership type' => $values['membership type'],
+            'membership fields' => $values['membership fields'],
+          );
+        }
+        else {
+          // Nothing changed, so no need to save.
+          $save = FALSE;
+        }
+      }
+    }
+
+    if ($save) {
+      // Make sure a group isn't created for this entity. This is used for cases
+      // that a user object can be a group, however we don't want
+      // og_field_crud_group() to actually make it a group when the field
+      // attachers are invoked.
+      $entity->og_skip_group_create = TRUE;
+
+      entity_save($entity_type, $entity);
+      og_invalidate_cache();
+      // Unset our temporary property.
+      unset($entity->og_skip_group_create);
+    }
+  }
+  return $entity;
+}
+
+/**
+ * Delete an association (e.g. unsubscribe) of an entity to a group.
+ *
+ * @param $entity_type
+ *   The entity type (e.g. "node" or "user").
+ * @param $entity
+ *   The entity to set the association.
+ * @param $save
+ *   Optioanl; TRUE if fields value shoudl be saved. Defaults to TRUE.
+ *
+ * @return
+ *   The entity with the fields updated.
+ */
+function og_ungroup($gid, $entity_type, $entity, $save = TRUE) {
+  $entity = og_load_entity($entity_type, $entity);
+  $property = OG_AUDIENCE_FIELD;
+
+  if (!empty($entity->{$property})) {
+    $wrapper = &$entity->{$property}[LANGUAGE_NONE];
+
+    $existing_key = FALSE;
+    if (!empty($wrapper)) {
+      foreach ($wrapper as $key => $value) {
+        if ($gid == $value['gid']) {
+          $existing_key = $key;
+          break;
+        }
+      }
+    }
+    if ($existing_key !== FALSE) {
+      unset($wrapper[$existing_key]);
+
+      if ($save) {
+        entity_save($entity_type, $entity);
+        og_invalidate_cache();
+
+        // Group might be deleted, so don't try to remove roles that don't
+        // exist.
+        $group = og_load($gid);
+        if ($entity_type == 'user' && $group) {
+          foreach (og_get_user_roles($gid, $entity->uid) as $rid) {
+            og_role_revoke($gid, $entity->uid, $rid);
+          }
+        }
+      }
+    }
+  }
+  return $entity;
+}
+
+/**
+ * Determine whether a user has a given privilege.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $string
+ *   The permission, such as "administer nodes", being checked for.
+ * @param $account
+ *   (optional) The account to check, if not given use currently lgroupged in
+ *   user.
+ * @param $skip_hook
+ *   If TRUE and the variable 'og_user_access_invoke_alter' is set to TRUE, then
+ *   a a module_invoke_all command will not be triggered. This can be used by
+ *   modules implementing hook_og_user_access_alter() that still want to use
+ *   og_user_access(), but without causing a recursion.
+ *
+ * @return
+ *   Boolean TRUE if the current user has the requested permission.
+ *
+ * All permission checks in OG should go through this function. This
+ * way, we guarantee consistent behavior, and ensure that the superuser
+ * can perform all actions.
+ */
+function og_user_access($gid, $string, $account = NULL, $skip_alter = FALSE) {
+  if (variable_get('og_skip_access', FALSE)) {
+    // User access should always return TRUE, as Group is requested to
+    // skip any access check.
+    return TRUE;
+  }
+
+  global $user;
+  $perm = &drupal_static(__FUNCTION__, array());
+  // Mark the group ID and permissions that invoked an alter.
+  $perm_alter = &drupal_static(__FUNCTION__ . '_alter', array());
+
+  if (empty($account)) {
+    $account = clone $user;
+  }
+
+  // User #1 has all privileges.
+  if ($account->uid == 1) {
+    return TRUE;
+  }
+
+  // Administer Group permission.
+  if (user_access('administer group', $account)) {
+    return TRUE;
+  }
+
+  if (!($group = og_load($gid))) {
+    // Not a group.
+    return FALSE;
+  }
+
+  // Group manager has all privileges (if variable is TRUE).
+  if (variable_get('og_group_manager_full_access', TRUE)) {
+    $entity = current(entity_load($group->entity_type, array($group->etid)));
+    if (!empty($entity->uid) && $entity->uid == $account->uid) {
+      return TRUE;
+    }
+  }
+
+  // To reduce the number of SQL queries, we cache the user's permissions
+  // in a static variable.
+  if (!isset($perm[$gid][$account->uid])) {
+    $roles = og_get_user_roles($gid, $account->uid);
+    $role_permissions = og_role_permissions($roles);
+
+    $perms = array();
+    foreach ($role_permissions as $one_role) {
+      $perms += $one_role;
+      $perm[$gid][$account->uid] = $perms;
+    }
+  }
+
+  if (!$skip_alter && empty($perm_alter[$gid][$account->uid][$string])) {
+    // Let modules alter the permissions. since $perm is static we create a
+    // clone of it.
+    $temp_perm = $perm[$gid][$account->uid];
+    $context = array('string' => $string, 'group' => $group, 'account' => $account);
+    drupal_alter('og_user_access', $temp_perm, $context);
+
+    // Re-assing the altered permissions.
+    $perm[$gid][$account->uid] = $temp_perm;
+
+    // Make sure alter isn't called for the same permissions.
+    $perm_alter[$gid][$account->uid][$string] = TRUE;
+  }
+
+  return !empty($perm[$gid][$account->uid][$string]);
+}
+
+/**
+ * Check if a user has access to a permission on a certain entity context.
+ *
+ * @param $perm
+ *   The organic groups permission.
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity object.
+ * @param $account
+ *   (optional) The user object. If empty the current user will be used.
+ *
+ * @return
+ *   Returns TRUE if the user has access to the permission, otherwise FALSE, or
+ *   if the entity is not in OG context, function will return NULL. This allows
+ *   a distinction between FALSE - no access, and NULL - no access but no OG
+ *   context found.
+ */
+function og_user_access_entity($perm, $entity_type, $entity, $account = NULL) {
+  if (empty($account)) {
+    global $user;
+    $account = clone $user;
+  }
+
+  // Quick check for user ID 1.
+  if ($account->uid == 1) {
+    return TRUE;
+  }
+
+  // Set the default for the case there is not a group or a group content.
+  $result = NULL;
+
+  if (empty($entity)) {
+    // $entity might be NULL, so return early.
+    // @see field_access().
+    return $result;
+  }
+
+  list($id, $vid, $bundle_name) = entity_extract_ids($entity_type, $entity);
+
+  if (empty($id)) {
+    // Entity isn't saved yet.
+    return $result;
+  }
+
+  $is_group = og_is_group_type($entity_type, $bundle_name);
+  $is_group_content = og_is_group_content_type($entity_type, $bundle_name);
+
+  // Check if entity is an active group.
+  $group = og_get_group($entity_type, $id);
+  if ($is_group && $group) {
+    if (og_user_access($group->gid, $perm, $account)) {
+      return TRUE;
+    }
+    else {
+      // An entity can be a group and group content in the same time. The group
+      // didn't return TRUE, but the user still might have access to the
+      // permission in group content context.
+      $result = FALSE;
+    }
+  }
+
+  if ($is_group_content && $gids = og_get_entity_groups($entity_type, $entity)) {
+    foreach ($gids as $gid) {
+      if (og_user_access($gid, $perm, $account)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  // Either the user didn't have permission, or the entity might be a
+  // disabled group or an orphaned group content.
+  return $result;
+}
+
+/**
+ * Add group and group content fields to new content types.
+ *
+ * @param $bundle_name
+ *   The content type name.
+ */
+function og_node_type_save($bundle_name) {
+  if (variable_get('og_group_type_' . $bundle_name, 'omitted') == 'group') {
+    og_create_field(OG_GROUP_FIELD, 'node', $bundle_name);
+    // Delete the variable, as we will rely on the presence of th field.
+    variable_del('og_group_type_' . $bundle_name);
+  }
+  if (variable_get('og_group_content_type_' . $bundle_name, 'omitted') == 'og_content') {
+    og_create_field(OG_AUDIENCE_FIELD, 'node', $bundle_name);
+    // Delete the variable, as we will rely on the presence of th field.
+    variable_del('og_group_content_type_' . $bundle_name);
+  }
+}
+
+
+/**
+ * Get the groups a content is associated with.
+ *
+ * @param $entity_type
+ *   The entity type (e.g. "node" or "user"). Defaults to 'user'
+ * @param $entity
+ *   Optional; The entity can be a user, node or any fieldable entity. If empty
+ *   the current user will be used.
+ * @param $states
+ *   Optional; Array with the state to return. If empty groups of all state will
+ *   return.
+ * @return
+ *  An array with the group IDs, or an empty array.
+ */
+function og_get_entity_groups($entity_type = 'user', $entity = NULL, $states = array(OG_STATE_ACTIVE)) {
+  $groups = &drupal_static(__FUNCTION__, array());
+
+  if ($entity_type == 'user' && empty($entity)) {
+    global $user;
+    $entity = clone $user;
+  }
+  // Get the entity ID.
+  list($id) = entity_extract_ids($entity_type, $entity);
+
+  // Make sure the cached values are according to the states we are looking
+  // for.
+  // We break down the checks for easier readbility of the code.
+  $cache = TRUE;
+  if (!isset($groups[$entity_type][$id])) {
+    // The value doesn't exist.
+    $cache = FALSE;
+  }
+
+  if ($cache && empty($groups['__info'][$entity_type][$id]['states'])) {
+    // The states are not registered.
+    $cache = FALSE;
+  }
+
+  if ($cache && count($groups['__info'][$entity_type][$id]['states']) != count($states)) {
+    // The registered states are not the equal.
+    $cache = FALSE;
+  }
+
+  if ($cache && array_diff($groups['__info'][$entity_type][$id]['states'], $states)) {
+    // Same number of states but they are not the equal.
+    $cache = FALSE;
+  }
+
+  if ($cache) {
+    return $groups[$entity_type][$id];
+  }
+
+  $entity = og_load_entity($entity_type, $entity);
+  $groups = array();
+  $groups['__info'][$entity_type][$id]['states'] = $states;
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'og_membership')
+    ->propertyCondition('entity_type', $entity_type, '=')
+    ->propertyCondition('etid', $id, '=')
+    ->propertyCondition('state', $states, 'IN')
+    ->execute();
+  if (!empty($result['og_membership'])) {
+    // Get the group ID from the group membership.
+    $group_memberships = og_membership_load_multiple(array_keys($result['og_membership']));
+    foreach ($group_memberships as $group_membership) {
+      $groups[$entity_type][$id][$group_membership->gid] = $group_membership->gid;
+    }
+  }
+
+  return !empty($groups[$entity_type][$id]) ? $groups[$entity_type][$id] : array();
+}
+
+/**
+ * Return the group type (i.e. "group" or "group_content") of an entity.
+ *
+ * @param $bundle_name
+ *   The bundle name to be checked.
+ * @param $entity_type
+ *   The entity type.
+ * @param $type
+ *   The group usage type. Must be "group" or "group content".
+ *
+ * @return
+ *   The group type or an "omitted" if node type doesn't participate in
+ *   Group.
+ */
+function og_get_group_type($entity_type, $bundle_name, $type = 'group') {
+  if ($type == 'group') {
+    return (bool)field_info_instance($entity_type, OG_GROUP_FIELD, $bundle_name);
+  }
+  elseif ($type == 'group content') {
+    return (bool)field_info_instance($entity_type, OG_AUDIENCE_FIELD, $bundle_name);
+  }
+}
+
+/**
+ * Return TRUE if the entity type is a "group" type.
+ *
+ * This is a wrapper function around og_get_group_type().
+ *
+ * @param $node_type
+ *   The node type to be checked.
+ */
+function og_is_group_type($entity_type, $bundle_name) {
+  return og_get_group_type($entity_type, $bundle_name);
+}
+
+/**
+ * Return TRUE if the entity type is a "group content" type.
+ *
+ * This is a wrapper function around og_get_group_type().
+ *
+ * @param $node_type
+ *   The node type to be checked.
+ */
+function og_is_group_content_type($entity_type, $bundle_name) {
+  return og_get_group_type($entity_type, $bundle_name, 'group content');
+}
+
+/**
+ * Return all the enteties that are a group.
+ *
+ * @return
+ *   Array keyed with the entity type machine name and the entity human readable
+ *   name as the value, or an empty array if no entities are defined as group.
+ */
+function og_get_all_group_entity() {
+  $return = array();
+
+  foreach (entity_get_info() as $entity_type => $entity_value) {
+    if (!empty($entity_value['fieldable'])) {
+      foreach ($entity_value['bundles'] as $bundle => $bundle_value) {
+        if (og_is_group_type($entity_type, $bundle)) {
+          $return[$entity_type] = check_plain($entity_value['label']);
+          // At least one bundle of the entity can be a group, so break.
+          break;
+        }
+      }
+    }
+  }
+  return $return;
+}
+
+/**
+ * Return all the enteties that are a group content.
+ *
+ * @return
+ *   Array keyed with the entity type machine name and the entity human readable
+ *   name as the value, or an empty array if no enteties are defined as group
+ *   content.
+ */
+function og_get_all_group_content_entity() {
+  $return = array();
+
+  foreach (entity_get_info() as $entity_type => $entity_value) {
+    if (!empty($entity_value['fieldable'])) {
+      foreach ($entity_value['bundles'] as $bundle => $bundle_value) {
+        if (og_is_group_content_type($entity_type, $bundle)) {
+          $return[$entity_type] = check_plain($entity_value['label']);
+          // At least one bundle of the entity can be a group, so break.
+          break;
+        }
+      }
+    }
+  }
+  return $return;
+}
+
+/**
+ * Return TRUE if entity belongs to a group.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity object. If empty the current user will be used.
+ * @param $states
+ *   Optional; Array with the state to return. If empty groups of all state will
+ *   return.
+ *
+ * @return
+ *   TRUE if the entity (e.g. the user) belongs to a group and is not pending or
+ *   blocked.
+ */
+function og_is_member($gid, $entity_type = 'user', $entity = NULL, $states = array(OG_STATE_ACTIVE)) {
+  if ($entity_type == 'user' && empty($entity)) {
+    global $user;
+    $entity = clone $user;
+  }
+  $entity = og_load_entity($entity_type, $entity);
+  $groups = og_get_entity_groups($entity_type, $entity, $states);
+  return in_array($gid, $groups);
+}
+
+/**
+ * Wrapper of og_user_access(); Gets entity ID instead of group ID.
+ *
+ * Can be used as a menu access callback.
+ *
+ * @param $perm
+ *   The permissions name.
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity object.
+ * @param $account
+ *   Optioanl; The user related to the action. For example if the operation is
+ *   "subscribe" then the account will be the subscribing user.
+ *
+ * @return
+ *   TRUE if access is allowed, otherise FALSE.
+ */
+function og_user_access_by_entity($perm, $entity_type = NULL, $etid = NULL, $account = NULL) {
+  if (empty($account)) {
+    global $user;
+    $account = clone $user;
+  }
+
+  if ($group = og_get_group($entity_type, $etid)) {
+    return og_user_access($group->gid, $perm, $account);
+  }
+  return FALSE;
+}
+
+/**
+ * Get the state of an entity in a group.
+ *
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity object.
+ * @param $gid
+ *   The group ID.
+ * @return
+ *   The state value, or FALSE is entity is not associated with group.
+ */
+function og_get_entity_state($gid, $entity_type, $entity) {
+  $state = FALSE;
+
+  $entity = og_load_entity($entity_type, $entity);
+  $property = OG_AUDIENCE_FIELD;
+
+  $wrapper = &$entity->{$property}[LANGUAGE_NONE];
+
+  if (!empty($wrapper)) {
+    foreach ($wrapper as $key => $value) {
+      if ($value['gid'] == $gid) {
+        $state = $value['state'];
+        break;
+      }
+    }
+  }
+  return $state;
+}
+
+/**
+ * Check if group should use default roles and permissions.
+ *
+ * @param $gid
+ *   The group ID.
+ * @return
+ *   TRUE if group should use default roles and permissions.
+ */
+function og_is_group_default_access($gid) {
+  $return = TRUE;
+  if (($group = og_load($gid)) && $entity = $group->getEntity()) {
+    $property = OG_DEFAULT_ACCESS_FIELD;
+
+    if (!empty($entity->{$property}[LANGUAGE_NONE]) && $wrapper = $entity->{$property}[LANGUAGE_NONE]) {
+      $return = empty($wrapper[0]['value']);
+    }
+  }
+
+  return $return;
+}
+
+
+/**
+ * Select groups if they were passed in the URL.
+ *
+ * You can pass a URL in in the form of
+ * node/add/post?gids_group[]=1,2,3&gids_node[]=4,5,6
+ * Note that gids_ is the prefix followed by the entity type (e.g. "node",
+ * "user") or "group" to indicate the passed values are group ID.
+ */
+function og_get_context_by_url() {
+  $return = array();
+  foreach (array_keys(entity_get_info()) as $entity_type) {
+    $etids =  !empty($_GET['gids_' . $entity_type][0]) ? explode(',', $_GET['gids_' . $entity_type][0]) : array();
+    if ($etids) {
+      $return = array_merge($return, og_get_group_ids($entity_type, $etids));
+    }
+  }
+  return $return;
+}
+
+/**
+ * Get labels out of a list of group IDs.
+ *
+ * @param $gids
+ *   The group IDs.
+ * @param $sanitize
+ *   TRUE if the label should be sanitzied using filter_xss(). Defaults to
+ *   TRUE.
+ *
+ * @return
+ *   Array keyed with the group ID, and the entity label as the value, or else
+ *   the group ID with the entity type and entity ID.
+ */
+function og_label_multiple($gids = array(), $sanitize = TRUE) {
+  $labels = array();
+  $groups = og_load_multiple($gids);
+  foreach ($groups as $group) {
+    if (!empty($group->label)) {
+      $labels[$group->gid] = $sanitize ? filter_xss($group->label) : $group->label;
+    }
+    else {
+      $entity = entity_get_info($group->entity_type);
+      $param = array(
+        '@gid' => $group->gid,
+        '@entity' => $entity['label'],
+        '@etid' => $group->etid,
+      );
+      $labels[$group->gid] = t('Group @gid - @entity ID @etid', $param);
+    }
+  }
+  return $labels;
+}
+
+/**
+ * Wrapper function; Get the label of a single group.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $sanitize
+ *   TRUE if the label should be sanitzied using check_plain(). Defaults to
+ *   TRUE.
+ *
+ * @return
+ *   The label of the group if found, or else the group ID with the entity type
+ *   and entity ID, sanitized.
+ */
+function og_label($gid, $sanitize = TRUE) {
+  $labels = og_label_multiple(array($gid), $sanitize);
+  return $labels[$gid];
+}
+
+
+/**
+ * Determine the permissions for one or more roles.
+ *
+ * @param $roles
+ *   An array whose keys are the role IDs of interest.
+ *
+ * @return
+ *   An array indexed by role ID. Each value is an array whose keys are the
+ *   permission strings for the given role ID.
+ */
+function og_role_permissions($roles = array()) {
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  $role_permissions = $fetch = array();
+
+  if ($roles) {
+    foreach ($roles as $rid => $name) {
+      if (isset($cache[$rid])) {
+        $role_permissions[$rid] = $cache[$rid];
+      }
+      else {
+        // Add this rid to the list of those needing to be fetched.
+        $fetch[] = $rid;
+        // Prepare in case no permissions are returned.
+        $cache[$rid] = array();
+      }
+    }
+
+    if ($fetch) {
+      // Get from the database permissions that were not in the static variable.
+      // Only role IDs with at least one permission assigned will return rows.
+      $result = db_query("SELECT rid, permission FROM {og_role_permission} WHERE rid IN (:fetch)", array(':fetch' => $fetch));
+
+      foreach ($result as $row) {
+        $cache[$row->rid][$row->permission] = TRUE;
+      }
+      foreach ($fetch as $rid) {
+        // For every rid, we know we at least assigned an empty array.
+        $role_permissions[$rid] = $cache[$rid];
+      }
+    }
+  }
+
+  return $role_permissions;
+}
+
+/**
+ * Retrieve an array of roles matching specified conditions.
+ *
+ * @param $gid
+ *   The group node ID.
+ * @param $permission
+ *   Optional; A string containing a permission. If set, only roles containing
+ *   that permission are returned.
+ * @param $force_group
+ *   Optioanl; If TRUE then the roles of the group will be retrieved by the
+ *   group ID, even if the group is set to have default roles and permissions.
+ *   The group might be set to "Default access" but infact there are inactive
+ *   group roles. Thus, we are forcing the function to return the overriden
+ *   roles. see og_delete_user_roles_by_group().
+ *
+ * @return
+ *   An associative array with the role id as the key and the role name as
+ *   value. The anonymous and authenticated deault roles are on the top of the
+ *   array.
+ */
+function og_roles($gid = 0, $permission = NULL, $force_group = FALSE) {
+  $roles = array();
+
+  // Check if overriden access exists.
+  if (!$force_group) {
+    $gid = og_is_group_default_access($gid) ? 0 : $gid;
+  }
+
+  if (!empty($permission)) {
+    $roles = db_query("SELECT r.rid, r.name FROM {og_role} r INNER JOIN {og_role_permission} p ON r.rid = p.rid WHERE p.permission = :permission AND r.gid = :gid ORDER BY r.name", array(':permission' => $permission, ':gid' => $gid))->fetchAllKeyed();
+  }
+  else {
+    $roles = db_query("SELECT rid, name FROM {og_role} WHERE gid = :gid ORDER BY rid", array(':gid' => $gid))->fetchAllKeyed();
+  }
+
+  return  $roles;
+}
+
+/**
+ * Get global roles - roles that belong to non-existent group ID 0.
+ *
+ * @return
+ *   A keyed array with role Id as key and role name as value.
+ */
+function og_get_global_roles() {
+  return og_roles();
+}
+
+/**
+ * Get arary of default roles, keyed by their declaring module.
+ */
+function og_get_default_roles($include = TRUE) {
+  $roles = array();
+  foreach (module_implements('og_default_roles') as $module) {
+    $roles[$module] = module_invoke($module, 'og_default_roles');
+  }
+
+  // Allow other modules to alter the defult roles, excpet of the anonymous and
+  // authenticated.
+  drupal_alter('og_default_roles', $roles);
+
+  if ($include) {
+    $roles += array('og' => array());
+    array_unshift($roles['og'], OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE);
+  }
+
+  return $roles;
+}
+
+/**
+ * Add default roles and permissions of a module to the global permissions.
+ *
+ * This function is called whenever a module is enabled. Calling this function
+ * directly will re-assign permissions to thier default roles.
+ *
+ * @param $module
+ *   The module name.
+ * @return
+ *   Array with the global roles, as new records might have been added.
+ */
+function og_set_global_access_module($module) {
+  $default_roles = og_get_default_roles();
+  $global_roles = og_get_global_roles();
+  $permissions = og_get_permissions();
+
+  // The roles that should be added.
+  $roles_to_add = array();
+
+  if (empty($global_roles)) {
+    // Add all the roles, there are no roles defined yet. This is probably
+    // becuase OG is only being installed.
+    $roles_to_add = reset($default_roles);
+  }
+  elseif (!empty($default_roles[$module])) {
+    // Diff the roles that should be added with the ones already defined as
+    // global roles.
+    $roles_to_add = array_diff($default_roles[$module], $global_roles);
+  }
+
+  // Add a new global role.
+  if (!empty($roles_to_add)) {
+    foreach ($roles_to_add as $name) {
+      $role = og_create_global_role($name);
+      $global_roles[$role->rid] = $name;
+    }
+  }
+
+  // If there are permissions defined, make sure they were not applied already,
+  // as it might happen if a module was disabled and re-enabled.
+  $perms_to_add = array();
+  $perms_to_add_by_rid = array();
+
+  foreach ($permissions as $key => $value) {
+    if ($value['module'] == $module) {
+      $perms_to_add[$key] = $value;
+    }
+  }
+
+  if ($perms_to_add) {
+    // Get the assigned permissions of the global roles.
+    $global_roles_perms = og_role_permissions($global_roles);
+
+    // Get the roles keyed by thier name.
+    $global_roles_flip = array_flip($global_roles);
+    foreach ($perms_to_add as $key => $value) {
+      if (!empty($value['default role'])) {
+        // Don't try to assign permissions that are already assigned.
+        foreach ($value['default role'] as $role) {
+          $rid = $global_roles_flip[$role];
+          if (empty($global_roles_perms[$rid][$key])) {
+            // Get the  permissions to be added in the form:
+            // array(
+            //   '1' => array( // '1' is the role ID.
+            //     'perm_foo' => 'perm_foo',
+            //     'perm_bar' => 'perm_bar',
+            //    ),
+            // );
+            $perms_to_add_by_rid[$rid][$key] = $key;
+          }
+        }
+      }
+    }
+  }
+
+  if ($perms_to_add_by_rid) {
+    foreach ($perms_to_add_by_rid as $rid => $perms) {
+      // Assign the permissions to the roles.
+      og_role_change_permissions($rid, $perms);
+    }
+  }
+
+  return $global_roles;
+}
+
+/**
+ * Add a new global role - a role associated to group ID 0.
+ *
+ * @param $name
+ *   The role name.
+ * @return
+ *   The role object populated iwth the role ID.
+ */
+function og_create_global_role($name) {
+  $role = new stdClass;
+  $role->name = $name;
+  $role->gid = 0;
+
+  og_role_save($role);
+  return $role;
+}
+
+/**
+ * Get all roles of a user in a certain group.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $uid
+ *   The user ID.
+ * @param $include
+ *   Optional; If TRUE also anonymous or authenticated role ID will be returned.
+ *   Defaults to TRUE.
+ *
+ * @return
+ *   Array with the role IDs of the user.
+ */
+function og_get_user_roles($gid, $uid = NULL, $include = TRUE) {
+  $roles = array();
+
+  if (empty($uid)) {
+    global $user;
+    $uid = $user->uid;
+  }
+
+  if ($include) {
+    // Check if overriden access exists.
+    $query_gid = og_is_group_default_access($gid) ? 0 : $gid;
+
+    $group_roles = og_roles($query_gid);
+    $account = user_load($uid);
+
+    $name = og_is_member($gid, 'user', $account) ? OG_AUTHENTICATED_ROLE : OG_ANONYMOUS_ROLE;
+    $rid = array_search($name, $group_roles);
+    $roles[$rid] = $rid;
+  }
+
+  $roles = $roles + db_query("SELECT rid, rid FROM {og_users_roles} WHERE uid = :uid AND gid = :gid", array(':uid' => $uid, ':gid' => $gid))->fetchAllKeyed();
+
+  return $roles;
+}
+
+/**
+ * Get all the users with certain roles in a group.
+ *
+ * @param $gid
+ *   The group unique ID.
+ * @param $roles
+ *   Array with the role IDs to query.
+ */
+function og_get_users_by_roles($gid, $rids = array()) {
+  $query = db_select('og_users_roles', 'og_users_roles');
+  return $query->fields('og_users_roles', array('uid'))
+    ->condition('gid', $gid)
+    ->condition('rid', $rids, 'IN')
+    ->execute()
+    ->fetchAll();
+}
+
+
+/**
+ * Fetch a user role from database.
+ *
+ * @param $role
+ *   An integer with the role ID.
+ * @return
+ *   A fully-loaded role object if a role with the given name or ID
+ *   exists, FALSE otherwise.
+ */
+function og_role_load($rid) {
+  return db_select('og_role', 'r')
+    ->fields('r')
+    ->condition('rid', $rid)
+    ->execute()
+    ->fetchObject();
+}
+/**
+ * Save a user role to the database.
+ *
+ * @param $role
+ *   A role object to modify or add. If $role->rid is not specified, a new
+ *   role will be created.
+ * @return
+ *   Status constant indicating if role was created or updated.
+ *   Failure to write the user role record will return FALSE. Otherwise.
+ *   SAVED_NEW or SAVED_UPDATED is returned depending on the operation
+ *   performed.
+ */
+function og_role_save($role) {
+  if ($role->name) {
+    // Prevent leading and trailing spaces in role names.
+    $role->name = trim($role->name);
+  }
+  if (!empty($role->rid) && $role->name) {
+    $status = drupal_write_record('og_role', $role, 'rid');
+    module_invoke_all('og_role_update', $role);
+  }
+  else {
+    $status = drupal_write_record('og_role', $role);
+    module_invoke_all('og_role_insert', $role);
+  }
+
+  og_invalidate_cache();
+
+  return $status;
+}
+
+/**
+ * Delete a user role from database.
+ *
+ * @param $role
+ *   An integer with the role ID.
+ */
+function og_role_delete($rid) {
+  $role = og_role_load($rid);
+
+  db_delete('og_role')
+    ->condition('rid', $rid)
+    ->execute();
+  db_delete('og_role_permission')
+    ->condition('rid', $rid)
+    ->execute();
+  // Update the users who have this role set.
+  db_delete('og_users_roles')
+    ->condition('rid', $rid)
+    ->execute();
+
+  module_invoke_all('og_role_delete', $role);
+
+  og_invalidate_cache();
+}
+
+/**
+ * Delete all roles belonging to a group.
+ *
+ * @param $gid
+ *   The group ID.
+ */
+function og_delete_user_roles_by_group($gid) {
+  // Check if group has overriden roles defined.
+  if ($roles = og_roles($gid, NULL, TRUE)) {
+    foreach ($roles as $rid => $name) {
+      og_role_delete($rid);
+    }
+  }
+}
+
+/**
+ * Get the role names of role IDs.
+ *
+ * @param $rids
+ *   Array with role IDs.
+ * @return
+ *  Array keyed by the role ID, and the role name as the value.
+ */
+function og_get_user_roles_name($rids = array()) {
+  return db_query("SELECT rid, name FROM {og_role} WHERE rid IN (:rids)", array(':rids' => $rids))->fetchAllKeyed();
+}
+
+
+/**
+ * Delete all permissions defined by a module.
+ *
+ * @see og_modules_uninstalled()
+ *
+ * @param $module
+ *   Array with the modules name.
+ */
+function og_permissions_delete_by_module($modules = array()) {
+   db_delete('og_role_permission')
+     ->condition('module', $modules, 'IN')
+     ->execute();
+}
+
+/**
+ * Create new roles, based on the default roles and permissions.
+ *
+ * @param $gid
+ *   The group ID.
+ * @return
+ *   The newly created roles keyed by role ID and role name as the value. Or
+ *   FALSE if no roles were created.
+ */
+function og_roles_override($gid) {
+  // Check if roles aren't already overriden. We can't use
+  // og_is_group_default_access() as the field is already set, so we
+  // check to see if there are new roles in the database and compare
+  // them with the default roles.
+  // TODO: We can add a key to the $group object that will indicate this
+  // if performance will be poor.
+
+  if ($roles = og_roles($gid, NULL, TRUE)) {
+    return;
+  }
+
+  $rids = array();
+  // Make sure roles doesn't exist already by looking for a row with the group
+  // ID in {og_role} table.
+  $perms = og_get_global_permissions();
+
+  foreach (og_get_global_roles() as $rid => $name) {
+    $role = new stdClass;
+    $role->name = $name;
+    $role->gid = $gid;
+
+    og_role_save($role);
+    $rids[$role->rid] = $role->name;
+    og_role_change_permissions($role->rid, $perms[$rid]);
+
+    // Remap roles.
+    $query = db_update('og_users_roles')
+      ->fields(array('rid' => $role->rid))
+      ->condition('rid', $rid)
+      ->condition('gid', $gid)
+      ->execute();
+  }
+
+  return $rids;
+}
+
+/**
+ * Grant a group role to a user.
+ *
+ * @param $uid
+ *   The user ID.
+ * @param $rid
+ *   The role ID.
+ */
+function og_role_grant($gid, $uid, $rid) {
+  // Get the existiong user roles.
+  $user_roles = og_get_user_roles($gid, $uid);
+  if (!in_array($rid, $user_roles)) {
+    $role = new stdClass();
+    $role->uid = $uid;
+    $role->rid = $rid;
+    $role->gid = $gid;
+
+    drupal_write_record('og_users_roles', $role);
+    module_invoke_all('og_role_grant', $gid, $uid, $rid);
+  }
+}
+
+/**
+ * Revoke a group role from a user.
+ *
+ * @param $uid
+ *   The user ID.
+ * @param $rid
+ *   The role ID.
+ */
+function og_role_revoke($gid, $uid, $rid) {
+  // Get the existiong user roles.
+  $user_roles = og_get_user_roles($gid, $uid);
+  if (in_array($rid, $user_roles)) {
+
+    db_delete('og_users_roles')
+      ->condition('uid', $uid)
+      ->condition('rid', $rid)
+      ->condition('gid', $gid)
+      ->execute();
+    module_invoke_all('og_role_revoke', $gid, $uid, $rid);
+  }
+}
+
+/**
+ * Change permissions for a user role.
+ *
+ * This function may be used to grant and revoke multiple permissions at once.
+ * For example, when a form exposes checkboxes to configure permissions for a
+ * role, the submitted values may be directly passed on in a form submit
+ * handler.
+ *
+ * @param $rid
+ *   The ID of a group user role to alter.
+ * @param $permissions
+ *   An array of permissions, where the key holds the permission name and the
+ *   value is an integer or boolean that determines whether to grant or revoke
+ *   the permission:
+ *   @code
+ *     array(
+ *       'edit group' => 0,
+ *       'administer group' => 1,
+ *     )
+ *   @endcode
+ *   Existing permissions are not changed, unless specified in $permissions.
+ *
+ * @see og_role_grant_permissions()
+ * @see og_role_revoke_permissions()
+ */
+function og_role_change_permissions($rid, array $permissions = array()) {
+  // Grant new permissions for the role.
+  $grant = array_filter($permissions);
+  if (!empty($grant)) {
+    og_role_grant_permissions($rid, array_keys($grant));
+  }
+  // Revoke permissions for the role.
+  $revoke = array_diff_assoc($permissions, $grant);
+  if (!empty($revoke)) {
+    og_role_revoke_permissions($rid, array_keys($revoke));
+  }
+}
+
+/**
+ * Grant permissions to a user role.
+ *
+ * @param $rid
+ *   The ID of a user role to alter.
+ * @param $permissions
+ *   A list of permission names to grant.
+ *
+ * @see user_role_change_permissions()
+ * @see user_role_revoke_permissions()
+ */
+function og_role_grant_permissions($rid, array $permissions = array()) {
+  $modules = array();
+  foreach (og_get_permissions() as $name => $value) {
+    $modules[$name] = $value['module'];
+  }
+  // Grant new permissions for the role.
+  foreach ($permissions as $name) {
+    // Prevent WSOD, if the permission name is wrong, and we can't find its
+    // module.
+    if (!empty($modules[$name])) {
+      db_merge('og_role_permission')
+        ->key(array(
+          'rid' => $rid,
+          'permission' => $name,
+          'module' => $modules[$name],
+        ))
+        ->execute();
+    }
+  }
+  og_invalidate_cache();
+}
+
+/**
+ * Revoke permissions from a user role.
+ *
+ * @param $rid
+ *   The ID of a user role to alter.
+ * @param $permissions
+ *   A list of permission names to revoke.
+ *
+ * @see user_role_change_permissions()
+ * @see user_role_grant_permissions()
+ */
+function og_role_revoke_permissions($rid, array $permissions = array()) {
+  // Revoke permissions for the role.
+  db_delete('og_role_permission')
+    ->condition('rid', $rid)
+    ->condition('permission', $permissions, 'IN')
+    ->execute();
+
+  og_invalidate_cache();
+}
+
+
+/**
+ * Get all permissions defined by implementing modules.
+ *
+ * @return
+ *  Array keyed with the permissions name and the value of the permissions.
+ *  TODO: Write the values.
+ */
+function og_get_permissions() {
+  $perms = &drupal_static(__FUNCTION__, array());
+  if (!empty($perms)) {
+    return $perms;
+  }
+
+  foreach (module_implements('og_permission') as $module) {
+    if ($permissions = module_invoke($module, 'og_permission')) {
+      foreach ($permissions as $key => $perm) {
+        $permissions[$key] += array(
+          // Initialize the roles key, if other modules haven't set it
+          // explicetly. This means the permissions can apply to anonymous and
+          // authenticated members as-well.
+          'roles' => array(OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE),
+          'default role' => array(),
+          'module' => $module,
+        );
+      }
+      $perms = array_merge($perms, $permissions);
+    }
+  }
+
+  // Allow other modules to alter the permissions.
+  drupal_alter('og_permission', $perms);
+
+  return $perms;
+}
+
+/**
+ * Get global permissions.
+ *
+ * @return
+ *   Array keyed with the anonymous, authenticated and administror and the
+ *   permissions that should be enabled by default.
+ */
+function og_get_global_permissions() {
+  $roles = og_get_global_roles();
+
+  $perms = og_role_permissions($roles);
+  return $perms;
+}
+
+/**
+ * Get all the modules fields that can be assigned to fieldable enteties.
+ */
+function og_fields_info($field_name = NULL) {
+  $return = &drupal_static(__FUNCTION__, array());
+
+  if (empty($return)) {
+    foreach (module_implements('og_fields_info') as $module) {
+      if ($fields = module_invoke($module, 'og_fields_info')) {
+        foreach ($fields as $key => $field) {
+          // Add default values.
+          $field += array(
+            'entity type' => array(),
+            'disable on node translate' => TRUE,
+          );
+
+          // Add the module information.
+          $return[$key] = array_merge($field, array('module' => $module));
+        }
+      }
+    }
+
+    // Allow other modules to alter the field info.
+    drupal_alter('og_fields_info', $return);
+  }
+
+  return empty($field_name) ? $return : $return[$field_name];
+}
+
+/**
+ * Check to see if a token value matches the specified node.
+ */
+function og_check_token($token, $seed) {
+  return drupal_get_token($seed) == $token;
+}
+
+/**
+ * Set breadcrumbs according to a given group.
+ *
+ * @param $entity_type
+ *   The entity type.
+ * @param $etid
+ *   The entity ID.
+ * @param $path
+ *   Optional; The path to append to the breadcrumb.
+ */
+function og_set_breadcrumb($entity_type, $etid, $path = array()) {
+  if ($entity = entity_load($entity_type, array($etid))) {
+    $entity = reset($entity);
+    $label = og_entity_label($entity_type, $entity);
+    $uri = entity_uri($entity_type, $entity);
+    drupal_set_breadcrumb(array_merge(array(l(t('Home'), '<front>')), array(l($label, $uri['path'])), $path)) ;
+  }
+}
+
+/**
+ * Create an organic groups field in a bundle.
+ *
+ * @param $field_name
+ *   The field name
+ * @param $entity_type
+ *   The entity type
+ * @param $bundle
+ *   The bundle name.
+ */
+function og_create_field($field_name, $entity_type, $bundle) {
+  // Don't allow creating a group field on a group entity type.
+  if ($entity_type == 'group' && $field_name == OG_GROUP_FIELD) {
+    throw new Exception('Cannot add group field to a group entity.');
+  }
+
+  if ($group_field = og_fields_info($field_name)) {
+    $field = field_info_field($field_name);
+    if (empty($field)) {
+      $field = field_create_field($group_field['field']);
+    }
+
+    $instance = field_info_instance($entity_type, $field_name, $bundle);
+    if (empty($instance)) {
+      $instance = $group_field['instance'];
+      $instance += array(
+        'field_name' => $field_name,
+        'bundle' => $bundle,
+        'entity_type' => $entity_type,
+      );
+
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Return a re-loaded entity with its fields.
+ *
+ * This is needed for example if a user account is passed, as global $user is
+ * only a partial user entity, or only a partial entity object was sent.
+ *
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity.
+ */
+function og_load_entity($entity_type, $entity) {
+  list($id) = entity_extract_ids($entity_type, $entity);
+  $entity = entity_load($entity_type, array($id));
+  return reset($entity);
+}
+
+/**
+ * Return a loaded entity from group.
+ *
+ * If you already have the group object you can use $group->getEntity() instead.
+ *
+ * @param $gid
+ *   The group ID.
+ */
+function og_load_entity_from_group($gid) {
+  if ($group = og_load($gid)) {
+    return $group->getEntity();
+  }
+
+  return FALSE;
+}
+
+/**
+ * Return the states a group can be in.
+ */
+function og_group_states() {
+  return array(
+    OG_STATE_ACTIVE => t('Active'),
+    OG_STATE_PENDING => t('Pending'),
+  );
+}
+
+/**
+ * Return the states a group content can be in.
+ */
+function og_group_content_states() {
+  return array(
+    OG_STATE_ACTIVE => t('Active'),
+    OG_STATE_PENDING => t('Pending'),
+    OG_STATE_BLOCKED => t('Blocked'),
+  );
+}
+
+/**
+ * Return a list of fieldable entities.
+ *
+ * @return
+ *  Array keyed with the entity machine name and the saniztized human name as
+ *  the value.
+ */
+function og_get_fieldable_entity_list() {
+  $return = array();
+  foreach (entity_get_info() as $name => $info) {
+    if (!empty($info['fieldable'])) {
+      $return[$name] = check_plain($info['label']);
+    }
+  }
+  return $return;
+}
+
+
+/**
+ * Wrapper function for entity_label() to return some text if label isn't found.
+ *
+ * @param $entity_type
+ *   The entity type.
+ * @param $entity
+ *   The entity object.
+ */
+function og_entity_label($entity_type, $entity) {
+  $label = '';
+  if (!empty($entity)) {
+    $label = entity_label($entity_type, $entity);
+    if (!$label) {
+      list($id) = entity_extract_ids($entity_type, $entity);
+      $label = t('Entity @entity_type ID @id', array('@entity_type' => $entity_type, '@id' => $id));
+    }
+  }
+  return $label;
+}
+
+/**
+ * Helper function to generate standard node permission list for a given type.
+ *
+ * @param $type
+ *   The machine-readable name of the node type.
+ * @return array
+ *   An array of permission names and descriptions.
+ */
+function og_list_permissions($type) {
+  $perms = array();
+
+  // Check type is of group content.
+  if (og_is_group_content_type('node', $type)) {
+    $info = node_type_get_type($type);
+    $type = check_plain($info->type);
+
+    // Build standard list of node permissions for this type.
+    $perms = array(
+      "update own $type content" => array(
+        'title' => t('Edit own %type_name content', array('%type_name' => $info->name)),
+      ),
+      "update any $type content" => array(
+        'title' => t('Edit any %type_name content', array('%type_name' => $info->name)),
+      ),
+      "delete own $type content" => array(
+        'title' => t('Delete own %type_name content', array('%type_name' => $info->name)),
+      ),
+      "delete any $type content" => array(
+        'title' => t('Delete any %type_name content', array('%type_name' => $info->name)),
+      ),
+    );
+
+    // Add default permissions.
+    foreach ($perms as $key => $value) {
+      $perms[$key]['default role'] = array(OG_AUTHENTICATED_ROLE);
+    }
+  }
+  return $perms;
+}
+
+/**
+ * Return a form element with crafted links to create nodes for a given group.
+ *
+ * @param $gid
+ *   The group ID.
+ * @param $destination
+ *   Optional; The destiantion after a node is created. Defaults to the
+ *   destination passed in the URL if exists, otherwise back to the current
+ *   page.
+ * @param $types
+ *   Optional; An array of type names. Restrict the created links to the given
+ *   types.
+ */
+function og_node_create_links($gid, $destination = '', $types = NULL) {
+  $group = og_get_group('group', $gid);
+  if (!$group) {
+    return;
+  }
+
+  $types = isset($types) ? $types : array_keys(node_type_get_types());
+  foreach ($types as $type_name) {
+    if (og_is_group_content_type('node', $type_name) && node_access('create', $type_name)) {
+      $names[$type_name] = node_type_get_name($type_name);
+    }
+  }
+
+  if (empty($names)) {
+    return;
+  }
+
+  // Sort names.
+  asort($names);
+
+  // Build links.
+  $options  = array(
+    'query' => array(
+      'gids_' . $group->entity_type . '[]' => $group->etid,
+    ) + drupal_get_destination(),
+  );
+
+  $items = array();
+  foreach ($names as $type => $name) {
+    // theme_item_list's 'data' items isn't a render element, so use l().
+    // http://drupal.org/node/891112
+    $items[] = array('data' => l($name, 'node/add/' . str_replace('_', '-', $type), $options));
+  }
+
+  $element = array();
+  $element['og_node_create_links'] = array(
+    '#theme' => 'item_list',
+    '#items' => $items,
+  );
+
+  return $element;
+}
+
+/**
+ * Flag / unflag the node access grants for rebuilding, or read the current
+ * value of the flag.
+ *
+ * When the flag is set, a message is displayed to users with 'access
+ * administration pages' permission, pointing to the 'og-migrate' confirm form
+ * in the og-migrate module.
+ *
+ * @param $migrate
+ *   (Optional) The boolean value to be written.
+  * @return
+ *   (If no value was provided for $migrate) The current value of the flag.
+ */
+function og_needs_migrate($migrate = NULL) {
+  if (!isset($migrate)) {
+    return variable_get('og_needs_migrate', FALSE);
+  }
+  elseif ($migrate) {
+    variable_set('og_needs_migrate', TRUE);
+  }
+  else {
+    variable_del('og_needs_migrate');
+  }
+}
+
+/**
+ * Get the group IDs of all the groups a user is an approved member of.
+ *
+ * @param $account
+ *   Optional; The user object to fetch group memberships for. Defaults to the
+ *   acting user.
+ *
+ * @return
+ *   An array with the group IDs or an empty array.
+ */
+function og_get_groups_by_user($account = NULL) {
+  if (empty($account)) {
+    global $user;
+    $account = $user;
+  }
+
+  $gids = array();
+
+  // Get all active OG membership that belong to the user.
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'og_membership')
+    ->propertyCondition('entity_type', 'user')
+    ->propertyCondition('etid', $account->uid)
+    ->propertyCondition('state', OG_STATE_ACTIVE)
+    ->execute();
+
+  if (!empty($result['og_membership'])) {
+    $memberships = og_membership_load_multiple(array_keys($result['og_membership']));
+    foreach ($memberships as &$membership) {
+      $gids[] = $membership->gid;
+    }
+  }
+
+  return $gids;
+}

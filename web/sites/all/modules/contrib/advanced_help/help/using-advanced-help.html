@@ -1,0 +1,146 @@
+<p>The <strong>Advanced help</strong> module provides a framework that
+allows module and theme developers integrate help texts in a Drupal
+site.  Although the advanced help does not provide general help by
+itself, it provides a powerful and easy framework that modules and
+themes may use to provide their own help.</p>
+
+<p>Modules and themes utilizing <strong>Advanced help</strong> should
+create a subdirectory named <code>help</code> inside their own main
+directory. Place the file
+<em>MODULENAME</em>.help.ini (resp. <em>THEMENAME</em>.help.ini) in this subdirectory.
+formatted similar to the following example:</p>
+
+<pre>
+[about-php]
+title = About PHP
+file = about-php
+weight = -10
+
+[history]
+title = History of PHP
+parent = about-php
+
+[usage]
+title = Usage of PHP
+weight = 1
+
+[security] 
+title = Security of PHP
+weight = 2
+
+[syntax]
+title = PHP syntax
+parent = usage
+</pre>
+
+<p>This file defines five help topics (inside the square brackets, and
+some settings for them.
+See: <a href="&topic:advanced_help/ini-file&">Advanced help .ini file format</a> for
+a list of defined settings.</p>
+
+
+<p>All topics are addressed by the module or theme providing the
+topic, and by the topic id. To produce a themed link to popup
+about a topic, use the a format similar to the following example:</p>
+
+<!-- D6
+<pre>
+$output = theme('advanced_help_topic', 'help_example', 'about-php');
+$output .= '&nbsp;' . t('Click the help icon!');
+</pre>
+-->
+
+<!-- D7 -->
+<pre>
+$output = theme('advanced_help_topic', array(
+  'module' => 'help_example',
+  'topic' => 'about-php',
+));
+$output .= '&nbsp;' . t('Click the help icon!');
+</pre>
+
+<p>This produces the following output:</p>
+
+<pre>
+&lt;a class="advanced-help-link" title="About PHP"
+  onclick="var w=window.open(this.href, 'advanced_help_window',
+  'width=500,height=500,scrollbars,resizable');
+  w.focus(); return false;"
+  href="/help/help_example/about-php?popup=1"&gt;
+&lt;span&gt;Help&lt;/span&gt;
+&lt;/a&gt;
+ Click the help icon!
+&lt;/div&gt;
+</pre>
+
+<p>This produces a clickable help icon like the one shown below:</p>
+
+<div class="ta-center">
+<img class="help-img-center" alt="clickable icon" src="&path&click_icon.png" width="180" height="90" border="0" />
+</div>
+
+<p>Inside your help file, you may link to other help topics using this format:</p>
+<pre>
+&lt;a href="&amp;topic:module/topic&amp;"&gt;topic&lt;/a&gt;
+</pre>
+<p>This format will ensure the popup status remains consistent when
+switching between links.</p>
+
+<p>To reference items within the help directory, such as images you
+wish to embed  within the help text, use:</p>
+<pre>
+&lt;img src="&amp;path&amp;example.png"/&gt;
+&lt;img src="&amp;trans_path&amp;example.png"/&gt;
+</pre>
+
+<p>The latter is to refer to a translated version of the image if it differs from the original.</p>
+
+<p>To reference any normal path in the site, use:</p>
+<pre>
+&lt;a href="&amp;base_url&amp;admin/settings/site-configuration"&gt;anchor text&lt;/a&gt;
+</pre>
+
+<p><strong>NOTE: </strong> In previous versions <strong>Advanced
+help</strong> did not require the &amp;'s to be wrapped around
+<code>topic:</code>, <code>path</code>, and <code>base_url</code>.
+This is currently still supported, but may be removed in a future
+version.  By adding the &amp;'s these tokens are now not limited
+to <code>href=""</code> and <code>src=""</code> parameters.</p>
+
+<h2 id="access-control">Access control</h2>
+
+<p>When this module is installed, users with the
+<code>view advanced help index</code>
+permission can access the advanced help index by going to
+<em>Administer &rarr; Advanced Help</em>
+(<code>admin/advanced_help</code>). Additional permissions
+<code>view advanced help topic</code>  and
+<code>view advanced help popup</code>
+enable users to access the actual help pages and popups.</p>
+
+<p>The help texts are stored as plain .html-files and can, unless
+protected, be accessed by anyone who knows their URL.  To protect
+them, place the following four lines in a file named
+<code>.htaccess</code> in project's <code>help</code> directory:</p>
+
+<pre>
+&lt;Files *\.html&gt;
+Order Allow,Deny
+Deny from all
+&lt;/Files&gt;
+</pre>
+
+<p>It as the responsibility of the project author to make sure this
+type of protection is in place if the project's author has help files
+that merits protection from direct access.</p>
+
+<p>See also this tracker in the project's issue queue:  
+<a href="https://www.drupal.org/node/1980936">#1980936 Typing complete path to .html help files in module bypasses user permissions</a>.</p>
+
+<h2 id="search">Search</h2>
+
+<p>If the core <strong>Search</strong> module is enabled, the contents
+of the advanced help framework will be indexed on cron. If you enable
+new modules or themes and wish to immediately index their help text,
+navigate to <em>Administration → Reports → Status report</em> and click the link
+“run cron manually”.</p>

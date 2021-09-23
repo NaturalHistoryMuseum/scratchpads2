@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function relation_migrate_test_install() {
+    field_info_cache_clear();
+    // Node reference field
+    $field = array(
+      'field_name' => 'field_node',
+      'type' => 'node_reference',
+      'cardinality' => 1,
+      'settings' => array(
+        'referenceable_types' => array('article' => 'article', 'page' => 0),
+      ),
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'field_name' => 'field_node',
+      'entity_type' => 'node',
+      'label' => 'Node reference',
+      'bundle' => 'article',
+    );
+    field_create_instance($instance);
+
+    // User reference field
+    $field = array(
+      'field_name' => 'field_user',
+      'type' => 'user_reference',
+      'cardinality' => 1,
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'field_name' => 'field_user',
+      'entity_type' => 'node',
+      'label' => 'User reference',
+      'bundle' => 'article',
+    );
+    field_create_instance($instance);
+
+    // Entity reference field
+    $field = array(
+      'field_name' => 'field_entity',
+      'type' => 'entityreference',
+      'cardinality' => 1,
+      'settings' => array(
+        'target_type' => 'node',
+        'handler' => 'base',
+        'handler_settings' => array(
+          'target_bundles' => array('article' => 'article'),
+        ),
+      ),
+    );
+    field_create_field($field);
+
+    $instance = array(
+      'field_name' => 'field_entity',
+      'entity_type' => 'node',
+      'label' => 'Entity reference',
+      'bundle' => 'article',
+    );
+    field_create_instance($instance);
+}

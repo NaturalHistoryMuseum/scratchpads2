@@ -1,0 +1,126 @@
+diff --git a/tests/simplenews.test b/tests/simplenews.test
+index 1a5ac80..2c4750b 100644
+--- a/tests/simplenews.test
++++ b/tests/simplenews.test
+@@ -170,19 +170,19 @@ class SimplenewsSubscribeTestCase extends SimplenewsTestCase {
+   /**
+    * Implement getInfo().
+    */
+-  function getInfo() {
++  public static function getInfo() {
+     return array(
+-      'name' => t('Subscribe and unsubscribe users'),
+-      'description' => t('(un)subscription of anonymous and authenticated users. Subscription via block, subscription page and account page'),
+-      'group' => t('Simplenews'),
++      'name' => 'Subscribe and unsubscribe users',
++      'description' => '(un)subscription of anonymous and authenticated users. Subscription via block, subscription page and account page',
++      'group' => 'Simplenews',
+     );
+   }
+ 
+   /**
+    * Overrides SimplenewsTestCase::setUp().
+    */
+-  public function setUp() {
+-    parent::setUp(array('block'));
++  public function setUp($modules = array()) {
++    parent::setUp(array_merge(array('block'), $modules));
+     // Include simplenews.subscription.inc for simplenews_mask_mail().
+     module_load_include('inc', 'simplenews', 'includes/simplenews.subscription');
+   }
+@@ -984,19 +984,19 @@ class SimpleNewsAdministrationTestCase extends SimplenewsTestCase {
+   /**
+    * Implement getInfo().
+    */
+-  function getInfo() {
++  public static function getInfo() {
+     return array(
+-      'name' => t('Simplenews administration'),
+-      'description' => t('Managing of newsletter categories and content types.'),
+-      'group' => t('Simplenews'),
++      'name' => 'Simplenews administration',
++      'description' => 'Managing of newsletter categories and content types.',
++      'group' => 'Simplenews',
+     );
+   }
+ 
+   /**
+    * Overrides SimplenewsTestCase::setUp().
+    */
+-  public function setUp() {
+-    parent::setUp(array('block'));
++  public function setUp($modules = array()) {
++    parent::setUp(array_merge(array('block'), $modules));
+   }
+ 
+   /**
+@@ -1610,17 +1610,17 @@ class SimpleNewsI18nTestCase extends SimplenewsTestCase {
+   /**
+    * Implementation of getInfo().
+    */
+-  function getInfo() {
++  public static function getInfo() {
+     return array(
+-      'name' => t('Simplenews I18n'),
+-      'description' => t('Translation of newsletter categories'),
+-      'group' => t('Simplenews'),
++      'name' => 'Simplenews I18n',
++      'description' => 'Translation of newsletter categories',
++      'group' => 'Simplenews',
+       'dependencies' => array('i18n_taxonomy', 'variable'),
+     );
+   }
+ 
+-  function setUp() {
+-    parent::setUp(array('locale', 'i18n', 'variable', 'i18n_string', 'i18n_taxonomy', 'translation', 'i18n_translation'));
++  public function setUp($modules = array()) {
++    parent::setUp(array_merge(array('locale', 'i18n', 'variable', 'i18n_string', 'i18n_taxonomy', 'translation', 'i18n_translation'), $modules));
+     $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'access administration pages', 'administer filters', 'administer taxonomy', 'translate interface', 'subscribe to newsletters', 'administer site configuration', 'translate content', 'administer simplenews subscriptions', 'send newsletter'));
+     $this->drupalLogin($this->admin_user);
+     $this->setUpLanguages();
+@@ -1996,16 +1996,16 @@ class SimplenewsSendTestCase extends SimplenewsTestCase {
+   /**
+    * Implementation of getInfo().
+    */
+-  function getInfo() {
++  public static function getInfo() {
+     return array(
+-      'name' => t('Sending newsletters'),
+-      'description' => t('Creating and sending of newsletters, different send processes (with/without cron, send on publish)'),
+-      'group' => t('Simplenews'),
++      'name' => 'Sending newsletters',
++      'description' => 'Creating and sending of newsletters, different send processes (with/without cron, send on publish)',
++      'group' => 'Simplenews',
+     );
+   }
+ 
+-  function setUp() {
+-    parent::setUp();
++  function setUp($modules = array()) {
++    parent::setUp($modules);
+ 
+     $this->user = $this->drupalCreateUser(array('administer newsletters', 'send newsletter', 'administer nodes', 'administer simplenews subscriptions', 'create simplenews content', 'edit any simplenews content', 'view own unpublished content', 'delete any simplenews content'));
+     $this->drupalLogin($this->user);
+@@ -2518,16 +2518,16 @@ class SimplenewsSourceTestCase extends SimplenewsTestCase {
+   /**
+    * Implementation of getInfo().
+    */
+-  function getInfo() {
++  public static function getInfo() {
+     return array(
+-      'name' => t('Source tests'),
+-      'description' => t('Tests for the new source interfaces and concepts.'),
+-      'group' => t('Simplenews'),
++      'name' => 'Source tests',
++      'description' => 'Tests for the new source interfaces and concepts.',
++      'group' => 'Simplenews',
+     );
+   }
+ 
+-  function setUp() {
+-    parent::setUp();
++  function setUp($modules = array()) {
++    parent::setUp($modules);
+ 
+     // Create the filtered_html text format.
+     $filtered_html_format = array(

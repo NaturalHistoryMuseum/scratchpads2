@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Date Repeat module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function date_repeat_install() {
+  // Make sure this module loads after date_api.
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'date_repeat'");
+}

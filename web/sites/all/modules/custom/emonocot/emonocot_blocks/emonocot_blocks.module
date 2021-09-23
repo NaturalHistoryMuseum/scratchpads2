@@ -1,0 +1,253 @@
+<?php
+/**
+ * Provides some custom blocks for the eMonocot project (note that some other blocks
+ * are created by the module emonocot_views).
+ *
+ * eMonocot Footer Logos (replaces Scratchpads Footer Logos)
+ *
+ * eMonocot Typification overview
+ * Show type specimens or type taxa on species pages
+ *
+ * Hybrid Children
+ * Provides functionality to show how species participate in named hybrids
+ * on species pages
+ */
+define('EMONOCOT_THEME_NAME', 'scratchpads_em');
+
+/**
+ * Implements hook_block_info().
+ *
+ * @return $blocks
+ * A Drupal blocks array
+ */
+function emonocot_blocks_block_info(){
+  $blocks['footer_logos'] = array(
+    'info' => t('eMonocot footer logos'),
+    'region' => 'footer',
+    'weight' => 2,
+    'theme' => EMONOCOT_THEME_NAME,
+    'status' => 1
+  );
+  $blocks['typification_overview'] = array(
+    'info' => t('eMonocot Typification Overview'),
+    'weight' => 2,
+    'theme' => EMONOCOT_THEME_NAME,
+    'status' => 0
+  );
+  $blocks['hybrid_children'] = array(
+    'info' => t('Hybrid children'),
+    'weight' => 3,
+    'theme' => EMONOCOT_THEME_NAME,
+    'status' => 0
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_info_alter().
+ *
+ * @param $blocks
+ * @param $theme
+ * @param $code_blocks
+ */
+function emonocot_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
+  switch($theme){
+    case EMONOCOT_THEME_NAME:
+      //Get rid of those pesky Scratchpads footer logos
+      $blocks['scratchpads_blocks']['footer_logos']['status'] = 0;
+      break;
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * @return $block
+ * A Drupal block
+ */
+function emonocot_blocks_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'footer_logos':
+      $block = emonocot_blocks_block_view_footer();
+      break;
+    case 'typification_overview':
+      $block = emonocot_blocks_block_view_typification();
+      break;
+    case 'hybrid_children':
+      $block = emonocot_blocks_block_view_hybrids();
+      break;
+  }
+  return $block;
+}
+
+/**
+ *
+ * eMonocot footer block
+ *
+ * @return $block
+ * A Drupal block
+ */
+function emonocot_blocks_block_view_footer(){
+  global $base_url;
+  $options = array(
+    'html' => true,
+    'absolute' => true
+  );
+  $links = array(
+    l(theme('image', array(
+      'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/emonocot_nobyline.png',
+      'alt' => 'eMonocot logo',
+      'title' => 'eMonocot'
+    )), 'http://e-monocot.org/', $options),
+    l(theme('image', array(
+      'path' => drupal_get_path('module', 'scratchpads_blocks') . '/images/scratchpads.png',
+      'alt' => 'Scratchpads logo',
+      'title' => 'Scratchpads ' . SCRATCHPADS_VERSION
+    )), 'http://scratchpads.org/', $options)
+  );
+  //Nolinoideae site has extra logos
+  if(strstr($base_url, 'nolinoideae.e-monocot.org') != FALSE){
+    $links[] = l(theme('image', array(
+      'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/LogoOB.png',
+      'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
+      'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
+    )), 'http://www.ogrod.edu.pl/info_eng.php', $options);
+    $links[] = l(theme('image', array(
+      'path' => drupal_get_path('module', 'emonocot_blocks') . '/images/UAM.png',
+      'alt' => 'Hortus Botanicus, Universitatis Posnaniensis logo',
+      'title' => 'Hortus Botanicus, Universitatis Posnaniensis'
+    )), 'http://amu.edu.pl/', $options);
+  }
+  drupal_alter('footer_logos', $links);
+  $block['content'] = array(
+    '#theme' => 'item_list',
+    '#items' => $links
+  );
+  return $block;
+}
+
+/**
+ *
+ * eMonocot Typification block
+ *
+ * @return $block
+ * A Druapl block
+ */
+function emonocot_blocks_block_view_typification(){
+  global $_GET;
+  $args = explode('/', $_GET['q']);
+  if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
+    $term = (array)taxonomy_term_load($args[2]);
+    $vocab = taxonomy_vocabulary_load($term['vid']);
+    $type_taxon_field = 'field_type_taxon_' . $vocab->vid;
+    unset($vocab);
+    //Type taxon
+    if(sizeof($term[$type_taxon_field]) > 0){
+      $type_term = taxonomy_term_load($term[$type_taxon_field]['und'][0]['tid']);
+      $type_taxon = '<strong>Type taxon:</strong> ' . l($type_term->name, 'taxonomy/term/' . $type_term->tid) . '<br/><br/>';
+    }
+    ;
+    //Type specimens
+    //TODO: Drupalise this sql (or, better, use view from emonocot_views)
+    $sql = "SELECT field_institution_code_value, n.nid, field_type_status_value  FROM node n INNER JOIN field_data_field_type_status ts ON n.nid = ts.entity_id INNER JOIN field_data_field_institution_code i ON n.nid = i.entity_id LEFT JOIN taxonomy_index t ON n.nid = t.nid WHERE n.type = 'specimen_observation' AND t.tid = :tid AND ts.field_type_status_value IN ('holotype','isotype','lectotype','neotype','paralectotype','paratype','syntype')";
+    $types = db_query($sql, array(
+      ':tid' => $args[2]
+    ));
+    $type_specimens = NULL;
+    foreach($types as $type){
+      $type_specimens .= l($type->field_type_status_value . ' (' . $type->field_institution_code_value . ')', 'node/' . $type->nid) . '<br/>';
+    }
+    if(!is_null($type_specimens)){
+      $type_specimens = '<strong>Type specimens:</strong><br/>' . $type_specimens . '<br/>';
+    }
+    //Type references
+    if(sizeof($term['field_type_ref']) > 0){
+      $type_references = '<strong>Typification references:</strong><br/>';
+      foreach($term['field_type_ref']['und'] as $key => $nid){
+        //Get the reference data
+        $result = db_query("SELECT biblio_sort_title, biblio_year FROM biblio WHERE nid = :nid", array(
+          ':nid' => $nid
+        ));
+        $result = $result->fetchObject();
+        $type_references .= '<a href="node/' . $nid . '">(' . $result->biblio_year . ') ' . $result->biblio_sort_title . '</a><br/>';
+      }
+    }
+    $block['subject'] = t('Typification');
+    if(isset($type_taxon)){
+      $block['content'] = $type_taxon;
+    }
+    if(isset($type_specimens)){
+      if(isset($block['content'])){
+        $block['content'] .= $type_specimens;
+      }else{
+        $block['content'] = $type_specimens;
+      }
+    }
+    if(isset($type_references)){
+      if(isset($block['content'])){
+        $block['content'] .= $type_references;
+      }else{
+        $block['content'] = $type_references;
+      }
+    }
+  }
+  return $block;
+}
+
+/**
+ *
+ * eMonocot hybrids block
+ *
+ * @return $block
+ * A Druapl block
+ */
+function emonocot_blocks_block_view_hybrids(){
+  global $_GET;
+  $args = explode('/', $_GET['q']);
+  if($args[0] == 'taxonomy' && $args[1] == 'term' && is_int((int)$args[2])){
+    $term = (array)taxonomy_term_load($args[2]);
+    $vocab = taxonomy_vocabulary_load($term['vid']);
+    $hybrid_table = 'field_data_field_hp_' . $vocab->vid;
+    $hybrid_field = 'field_hp_' . $vocab->vid . '_tid';
+    unset($vocab);
+    $block['subject'] = t('Hybrid relations');
+    //Get entity_id of taxa this is a hybrid parent of
+    $sql = "SELECT hp.entity_id FROM " . $hybrid_table . " hp WHERE " . $hybrid_field . " = :tid";
+    $results = db_query($sql, array(
+      ':tid' => $args[2]
+    ));
+    $formula = NULL;
+    //Get the hybrid....
+    foreach($results as $result){
+      $sql = "SELECT name FROM taxonomy_term_data WHERE tid = :tid";
+      $name = db_query($sql, array(
+        ':tid' => $result->entity_id
+      ));
+      $hybrid = $name->fetchObject()->name;
+      //...and the parent taxa
+      $sql = "SELECT tid, name FROM " . $hybrid_table . " INNER JOIN taxonomy_term_data ON " . $hybrid_field . " = tid WHERE entity_id = :eid ORDER BY delta";
+      $parents = db_query($sql, array(
+        ':eid' => $result->entity_id
+      ));
+      $first_parent = TRUE;
+      foreach($parents as $parent){
+        if($parent->tid == $args[2]){
+          $parent->name = '<strong>' . $parent->name . '</strong>';
+        }
+        if($first_parent == TRUE){
+          $parents_text = l($parent->name, 'taxonomy/term/' . $parent->tid, array(
+            'html' => TRUE
+          ));
+        }else{
+          $parents_text .= ' x ' . l($parent->name, 'taxonomy/term/' . $parent->tid, array(
+            'html' => TRUE
+          ));
+        }
+        $first_parent = FALSE;
+      }
+      $block['content'] = $parents_text . ' = ' . l($hybrid, 'taxonomy/term/' . $result->entity_id) . '</a><br/>';
+    }
+  }
+  return $block;
+}

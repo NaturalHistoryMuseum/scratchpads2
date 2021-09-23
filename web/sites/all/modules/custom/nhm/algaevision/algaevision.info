@@ -1,0 +1,5 @@
+core = "7.x"
+description = "AlgaeVision customisations."
+name = "AlgaeVision"
+package = "NHM"
+project = algaevision

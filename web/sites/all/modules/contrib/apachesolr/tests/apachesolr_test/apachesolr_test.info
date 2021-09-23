@@ -1,0 +1,13 @@
+name = Apache Solr helper module for tests
+description = Support module for apachesolr module testing.
+package = Search Toolkit
+core = 7.x
+hidden = TRUE
+dependencies[] = apachesolr
+
+; Information added by drupal.org packaging script on 2013-07-26
+version = "7.x-1.4"
+core = "7.x"
+project = "apachesolr"
+datestamp = "1374808867"
+

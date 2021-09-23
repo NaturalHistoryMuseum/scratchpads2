@@ -1,0 +1,12 @@
+name = Apache Solr Indexer for Taxonomy
+description = Indexer for reading taxonomy entity types into a solr core.
+dependencies[] = apachesolr
+package = Search Toolkit
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-03-08
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "apachesolr_term"
+datestamp = "1331208178"
+

@@ -1,0 +1,5 @@
+name = eMonocot Scratchpad 2 migrate
+description = Install an eMonocot Scratchpad 2 migration site
+core = 7.x
+dependencies[] = emonocot_tweaks
+files[] = emonocot_2_migrate.profile

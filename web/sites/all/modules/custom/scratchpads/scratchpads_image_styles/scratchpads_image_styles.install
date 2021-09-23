@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * Install the imagecache_coloractions module which is now required by this
+ * module.
+ */
+function scratchpads_image_styles_update_7001(){
+  module_enable(array(
+    'imagecache_coloractions'
+  ));
+}
+
+/**
+ * Replace the imagecache_coloractions module with the convert_image_format
+ * module.
+ */
+function scratchpads_image_styles_update_7002(){
+  module_disable(array(
+    'imagecache_coloractions'
+  ));
+  module_enable(array(
+    'convert_image_format'
+  ));
+}

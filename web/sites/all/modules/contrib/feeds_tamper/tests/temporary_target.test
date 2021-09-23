@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * Tests blank sources and temporary targets.
+ */
+class FeedsTamperTemporaryTargetTestCase extends FeedsTamperWebTestHelper {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Temporary targets and blank sources',
+      'description' => 'Tests for adding temporary targets and blank sources.',
+      'group' => 'Feeds Tamper',
+    );
+  }
+
+  /**
+   * Tests adding temporary targets.
+   */
+  public function testAddTemporaryTargets() {
+    $importer_name = $this->randomName();
+    $importer_id = drupal_strtolower($importer_name);
+    // Set up an importer.
+    $this->createImporterConfiguration($importer_name, $importer_id);
+
+    // Add three temporary targets.
+    $this->addMappings($importer_id, array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'Temporary target 1',
+      ),
+      1 => array(
+        'source' => 'guid',
+        'target' => 'Temporary target 2',
+      ),
+      2 => array(
+        'source' => 'description',
+        'target' => 'Temporary target 3',
+      ),
+    ));
+
+    // Assert that all targets are displayed in the UI.
+    $this->assertText('Temporary target 1');
+    $this->assertText('Temporary target 2');
+    $this->assertText('Temporary target 3');
+  }
+
+  /**
+   * Tests adding blank sources.
+   */
+  public function testAddBlankSources() {
+    $importer_name = $this->randomName();
+    $importer_id = drupal_strtolower($importer_name);
+    // Set up an importer.
+    $this->createImporterConfiguration($importer_name, $importer_id);
+
+    // Add three blank sources.
+    $this->addMappings($importer_id, array(
+      0 => array(
+        'source' => 'Blank source 1',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'Blank source 2',
+        'target' => 'guid',
+      ),
+      2 => array(
+        'source' => 'Blank source 3',
+        'target' => 'body',
+      ),
+    ));
+
+    // Assert that all sources are displayed in the UI.
+    $this->assertText('Blank source 1');
+    $this->assertText('Blank source 2');
+    $this->assertText('Blank source 3');
+  }
+
+}

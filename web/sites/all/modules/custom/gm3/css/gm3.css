@@ -1,0 +1,152 @@
+.gm3_fieldset{
+ padding:0 !important;
+}
+.gm3_fieldset .form-item{
+  margin:10px 0 0 0 !important;
+  width:100%;
+}
+.gm3_fieldset .form-item select{
+  margin:0 !important;
+  padding:0;
+  width:100%;
+}
+.gm3_message{
+ position:absolute;
+ top:0px;
+ left:10px;
+ right:10px;
+ text-align:center;
+ z-index:1000;
+ padding:10px;
+}
+.gm3_infobubble p{
+ padding:0;
+ margin:0;
+}
+.gm3_infobubble span.views-label{
+  font-weight: bold;
+  float: left;
+}
+.gm3_infobubble div.field-content {
+  margin-left: 100px;
+}
+.gm3-container{
+  /* Create a new stacking context so the controls with high
+     z-indexes don't show through the admin overlay panel */
+  transform: translate(0,0);
+  padding:0;
+  margin:0;
+}
+.gm3-tools{
+ margin-top:30px;
+ width:100px;
+ padding:0;
+ float:left;
+ /*overflow:hidden;*/
+ border-radius: 4px 0 0 4px;
+}
+
+.gm3-tools-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.gm3-tools-button:hover {
+  text-decoration: underline;
+}
+
+.gm3-tools ul{
+ padding:0 !important;
+ margin:0 !important;
+}
+.gm3-tools>ul>li{
+ padding:0 0 0 3px !important;
+ margin:0 !important;
+ list-style:none;
+ position: relative;
+ color: black;
+ font-family: Arial,sans-serif;
+ -moz-user-select: none;
+ -webkit-user-select: none;
+ font-size: 12px;
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(243, 243, 243)), to(rgb(254, 254, 254)));
+ background: -moz-linear-gradient(center top , rgb(243, 243, 243), rgb(254, 254, 254)) repeat scroll 0% 0% transparent;
+ padding: 0pt 6px;
+ border-width: 1px 0 0 1px;
+ border-style:solid;
+ border-color:rgb(103, 138, 199);
+ vertical-align:middle;
+}
+.gm3-tools>ul>li.gm3-clicked p{
+ color:white;
+ font-weight:900;
+}
+.gm3-tools>ul>li.gm3-clicked{
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(109, 138, 204)), to(rgb(123, 152, 217)));
+ background: -moz-linear-gradient(center top , rgb(109, 138, 204), rgb(123, 152, 217)) repeat scroll 0% 0% transparent;
+}
+.gm3-tools>ul>li.gm3-clicked:hover{
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(123, 152, 217)), to(rgb(109, 138, 204)));
+ background: -moz-linear-gradient(center top , rgb(123, 152, 217), rgb(109, 138, 204)) repeat scroll 0% 0% transparent;
+}
+.gm3-tools>ul>li:hover{
+ background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(254, 254, 254)), to(rgb(243, 243, 243)));
+ background: -moz-linear-gradient(center top , rgb(254, 254, 254), rgb(243, 243, 243)) repeat scroll 0% 0% transparent;
+}
+.gm3-tools>ul>li:last-child{
+ border-bottom-width:1px;
+ border-bottom-left-radius: 5px;
+}
+.gm3-tools>ul>li:first-child{
+ border-top-left-radius: 5px;
+}
+.gm3-tools>ul>li div p{
+ margin:0;
+ padding:5px 0;
+}
+.gm3-tools>ul>li:hover{
+ cursor:pointer;
+}
+.gm3-map-wrapper{
+ border-radius: 5px;
+ overflow:hidden;
+ position:relative;
+}
+.gm3-map-wrapper, .gm3-tools{
+ box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
+ -webkit-box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 3px;
+}
+
+/* Set cursor to pointer any time one of the plotting tools is active */
+.gm3-tool-active {
+  cursor: pointer;
+}
+
+/* Annoying that leaflet uses links instead of buttons for zoom controls,
+   because they get styled by the Omega and Scratchpads_colour modules.
+   Override that here. */
+.gm3-container .leaflet-control a{
+  text-decoration: none;
+  color: currentColor;
+}
+
+/* Styles for the tabs on the Point popups if the Point's content is an array */
+.gm3-info-tab {
+  border: 1px solid grey;
+  background: none;
+  border-radius: 5px 5px 0px 0px;
+  color: grey;
+}
+
+.gm3-info-tab-active {
+  border-bottom: none;
+  font-weight: bold;
+  color: black;
+}
+
+.gm3-gbif-tile {
+  opacity: .45 !important;
+}

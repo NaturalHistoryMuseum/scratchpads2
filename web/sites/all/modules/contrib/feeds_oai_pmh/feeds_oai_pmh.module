@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * Implementation of hook_feed_plugins().
+ */
+function feeds_oai_pmh_feeds_plugins() {
+  $info = array();
+  $info['FeedsOAIHTTPFetcher'] = array(
+    'name' => 'HTTP OAI-PMH Fetcher',
+    'description' => 'Download content from an OAI-PMH repository.',
+    'help' => 'Queries an OAI-PMH endpoint of an online repository for data, starting after the last-imported record.',
+    'handler' => array(
+      'parent' => 'FeedsHTTPFetcher', // This is the key name, not the class name.
+      'class' => 'FeedsOAIHTTPFetcher',
+      'file' => 'FeedsOAIHTTPFetcher.inc',
+      'path' => drupal_get_path('module', 'feeds_oai_pmh'),
+    ),
+  );
+  $info['FeedsOAIParser'] = array(
+    'name' => 'OAI parser',
+    'description' => 'Parse Dublin Core (oai_dc) metadata from OAI-PMH repositories.',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsOAIParser',
+      'file' => 'FeedsOAIParser.inc',
+      'path' => drupal_get_path('module', 'feeds_oai_pmh'),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Return a "drupalized" hierarchic options form element for the sets in a repository.
+ */
+function feeds_oai_pmh_sets_options($sets) {
+  $options = array('*' => t('[all sets]'));
+  if (is_array($sets)) {
+    ksort($sets);
+    $last_depth = 0;
+    foreach ($sets as $set_spec => $set_data) {
+      $levels = explode(':', $set_spec);
+      $label = str_repeat('--', sizeof($levels)-1) . $set_data['name'];
+      $options[$set_spec] = "[$set_spec] $label";
+    }
+  }
+  return $options;
+}
+
+/**
+ * Callback function for AJAX setSpec element in form.
+ */
+function feeds_oai_pmh_ajax_callback($form, $form_state) {
+  require_once(drupal_get_path('module', 'feeds_oai_pmh') . '/feeds_oai_pmh.inc');
+
+  // Validate the repository.
+  $oai_source_url = $form_state['values']['feeds']['FeedsOAIHTTPFetcher']['source'];
+  
+  $result = feeds_oai_pmh_identify($oai_source_url);
+
+  if ($result['status'] == 0) {
+    // OAI-PMH Identify verb returned OK.
+    // Change the form's set element.
+    $form['feeds']['FeedsOAIHTTPFetcher']['set']['#options'] = feeds_oai_pmh_sets_options($result['repository']['sets']);
+    $set = $form_state['values']['feeds']['FeedsOAIHTTPFetcher']['set'];
+    if ($set) {
+      $form['feeds']['FeedsOAIHTTPFetcher']['set']['#default_value'] = $set;
+    }
+    if (isset($result['repository']['earliest_timestamp']) && $result['repository']['earliest_timestamp'] > 0) {
+      $date = format_date((int)$result['repository']['earliest_timestamp'], 'custom', 'M d, Y');
+      $form['feeds']['FeedsOAIHTTPFetcher']['dates']['#description'] = t('Note: earliest record reported by repository is @date',
+          array('@date' => $date));
+    }
+  }
+  else {
+    // Empty sets.
+    $form['feeds']['FeedsOAIHTTPFetcher']['set']['#options'] = feeds_oai_pmh_sets_options(array());
+    $form['feeds']['FeedsOAIHTTPFetcher']['dates']['#description'] = '';
+    drupal_set_message($result['output'], 'error');
+  }
+  return $form['feeds']['FeedsOAIHTTPFetcher'];
+}
+
+/**
+ * Generate a status message for the current status of this repository/set.
+ */
+function feeds_oai_pmh_current_status_msg($source, $set) {
+  // If applicable, add status line indicating current status.
+  $resumption_token = variable_get('feeds_oai:resumptionToken:' . $set . ':' . $source, NULL);
+  $from_timestamp = variable_get('feeds_oai:from:' . $set . ':' . $source, NULL);
+  $msg = '';
+  if ($resumption_token) {
+    $msg = t('The next import attempt from this repository/set will continue importing records, since a resumptionToken was returned by the repository during the last attempt.');
+  }
+  elseif ($from_timestamp > 0) {
+    $msg = t('The next import attempt from this repository/set will only import any records created after @date, since all available records have been fetched by the last import attempt(s).',
+        array('@date' => format_date((int)$from_timestamp, 'medium')));
+  }
+  return $msg;
+}

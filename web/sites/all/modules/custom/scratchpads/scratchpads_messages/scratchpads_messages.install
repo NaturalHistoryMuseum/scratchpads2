@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function scratchpads_messages_schema(){
+  return array(
+    'scratchpads_messages_message' => array(
+      'fields' => array(
+        'mid' => array(
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'message' => array(
+          'type' => 'text',
+          'not null' => TRUE
+        ),
+        'created' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'expire' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'type' => array(
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 1
+        )
+      ),
+      'primary key' => array(
+        'mid'
+      ),
+      'indexes' => array(
+        'scratchpads_messages_message_created' => array(
+          'created'
+        )
+      )
+    ),
+    'scratchpads_messages_roles' => array(
+      'fields' => array(
+        'mid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'rid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'rid',
+        'mid'
+      ),
+      'indexes' => array(
+        'scratchpads_messages_roles_index_mid' => array(
+          'mid'
+        )
+      )
+    ),
+    'scratchpads_messages_viewed' => array(
+      'fields' => array(
+        'uid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'mid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'uid',
+        'mid'
+      )
+    ),
+    'scratchpads_messages_user_settings' => array(
+      'fields' => array(
+        'uid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'setting' => array(
+          'type' => 'blob',
+          'not null' => TRUE,
+          'serialize' => TRUE
+        )
+      ),
+      'primary key' => array(
+        'uid'
+      )
+    )
+  );
+}
+
+/**
+ * Add the scratchpads_messages_roles table.
+ */
+function scratchpads_messages_update_7001(){
+  $schema = scratchpads_messages_schema();
+  db_create_table('scratchpads_messages_roles', $schema['scratchpads_messages_roles']);
+}
+
+/**
+ * Add an index on the mid column to the scratchpads_messages_roles table.
+ */
+function scratchpads_messages_update_7002(){
+  if(!db_index_exists('scratchpads_messages_roles', 'scratchpads_messages_roles_index_mid')){
+    db_add_index('scratchpads_messages_roles', 'scratchpads_messages_roles_index_mid', array(
+      'mid'
+    ));
+  }
+}
+
+/**
+ * Clear `roles` and `viewed` records that don't have an associated message
+ */
+function scratchpads_messages_update_7003() {
+  $tables = array('roles', 'viewed');
+
+  foreach($tables as $t) {
+    $table_name = 'scratchpads_messages_' . $t;
+
+    $query = db_select($table_name, $t);
+    $query->fields($t, array('mid'));
+    $query->leftJoin('scratchpads_messages_message', 'm', $t.'.mid = m.mid');
+    $query->isNull('m.mid');
+    $result = $query->execute()->fetchAll();
+
+    if(count($result)){
+        $mids = array();
+        foreach($result as $row) {
+          $mids[] = $row->mid;
+        }
+        db_delete($table_name)->condition('mid', $mids)->execute();
+    }
+  }
+}
+

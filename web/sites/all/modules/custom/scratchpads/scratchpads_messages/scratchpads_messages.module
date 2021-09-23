@@ -1,0 +1,458 @@
+<?php
+// Define two simple constants for inserting/retrieving data from the database.
+define('SCRATCHPADS_MESSAGES_ALERT', 1);
+define('SCRATCHPADS_MESSAGES_TIP', 2);
+define('SCRATCHPADS_MESSAGES_GLOBAL', 3);
+
+/**
+ * Implements hook_user_login().
+ */
+function scratchpads_messages_user_login(&$edit, $account){
+  // Check whether or not the user wants to see tips.  Tips are shown ONLY on
+  // login and then disappear.
+  global $user;
+  if(empty($user->scratchpads_messages_hide_tips)){
+    $_SESSION['scratchpads_messages_tips'] = TRUE;
+  }
+  // Permanently hide any messages we saw when anon and that we hid.
+  if(isset($_SESSION['scratchpads_messages_hidden_msgs'])){
+    foreach($_SESSION['scratchpads_messages_hidden_msgs'] as $mid){
+      scratchpads_messages_seen_msg_submit(NULL, array(
+        'values' => array(
+          'uid' => $user->uid,
+          'mid' => $mid
+        )
+      ));
+    }
+    unset($_SESSION['scratchpads_messages_hidden_msgs']);
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function scratchpads_messages_theme_registry_alter(&$theme_registry){
+  $theme_registry['toolbar']['path'] = drupal_get_path('module', 'scratchpads_messages');
+  $theme_registry['toolbar']['theme path'] = $theme_registry['toolbar']['path'];
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function scratchpads_messages_user_load($users){
+  $results = db_select('scratchpads_messages_user_settings', 's')->fields('s')->condition('uid', array_keys($users))->execute();
+  foreach($results as $record){
+    foreach(unserialize($record->setting) as $key => $value){
+      $users[$record->uid]->{$key} = $value;
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function scratchpads_user_delete($account){
+  db_delete('scratchpads_messages_user_settings')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function scratchpads_messages_user_insert(&$edit, $account, $category){
+  db_merge('scratchpads_messages_user_settings')->key(array(
+    'uid' => $account->uid
+  ))->fields(array(
+    'uid' => $account->uid,
+    'setting' => serialize(array(
+      'scratchpads_messages_hide_tips' => empty($edit['scratchpads_messages_hide_tips']) ? 0 : 1
+    ))
+  ))->execute();
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function scratchpads_messages_user_update(&$edit, $account, $category){
+  return scratchpads_messages_user_insert($edit, $account, $category);
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function scratchpads_messages_user_delete($account){
+  db_delete('scratchpads_messages_viewed')->condition('uid', $account->uid)->execute();
+  db_delete('scratchpads_messages_user_settings')->condition('uid', $account->uid)->execute();
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ *
+ * The "Edit" user form.  This needs to be able to handle both login and
+ * loginless changes.
+ */
+function scratchpads_messages_form_user_profile_form_alter(&$form, &$form_state){
+  if($form['#user']->uid && empty($form['#user']->stub_user) && !arg(3)){
+    $form['messages'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Scratchpads messages'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      'scratchpads_messages_hide_tips' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Hide Scratchpads tips'),
+        '#default_value' => !empty($form['#user']->scratchpads_messages_hide_tips) ? 1 : 0
+      ),
+      'scratchpads_messages_reset_tips' => array(
+        '#prefix' => '<div class="form-item" style="margin-top:10px">',
+        '#suffix' => '<label class="option" style="display:block;clear:both">' . t('Reset the "viewed" status of all messages related to this account.  All tips will be shown again on login, and all current status messages will be shown immediately.') . '</label></div>',
+        '#type' => 'submit',
+        '#value' => t('Reset messages'),
+        '#submit' => array(
+          'scratchpads_messages_reset_user'
+        ),
+        '#limit_validation_errors' => array()
+      )
+    );
+  }
+}
+
+/**
+ * Reset the viewed status of all messages related to a specific user.
+ */
+function scratchpads_messages_reset_user($form, &$form_state){
+  if(@isset($form_state['complete form']['#user']->uid)){
+    db_delete('scratchpads_messages_viewed')->condition('uid', $form_state['complete form']['#user']->uid)->execute();
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function scratchpads_messages_permission(){
+  return array(
+    'view scratchpads messages' => array(
+      'title' => t('View Scratchpads messages')
+    ),
+    'administer scratchpads messages' => array(
+      'title' => t('Administer Scratchpads messages')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permissions
+ */
+function scratchpads_messages_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'view scratchpads messages'
+    )
+  );
+}
+
+/**
+ * Get the messages.
+ */
+function scratchpads_messages_get_messages(){
+  if(!user_access('view scratchpads messages')){return FALSE;}
+  global $user;
+  $user = user_load($user->uid);
+  $query = db_select('scratchpads_messages_message', 'm');
+  // Add in checks about Expire, Created,
+  $query->condition('created', time(), '<');
+  $or = db_or()->condition('expire', time(), '>')->condition('expire', 0);
+  $query->condition($or);
+  // Join to the roles table to ensure we only display messages this user can
+  // see.
+  $query->innerJoin('scratchpads_messages_roles', 'r', 'm.mid = r.mid');
+  // Select specific fields
+  $query->fields('m');
+  // Add a check for whether this user has already seen
+  // the message.
+  $subquery = db_select('scratchpads_messages_viewed', 'v')->fields('v', array(
+    'mid'
+  ))->condition('uid', $user->uid);
+  $query->condition('m.mid', $subquery, 'NOT IN');
+  // Select roles (and the everyone role "0").
+  $query->condition('rid', array_merge(array(
+    0
+  ), array_keys($user->roles)));
+  // If we are anonymous, or hid messages as anonymous, we hide them too
+  if(!empty($_SESSION['scratchpads_messages_hidden_msgs'])){
+    $query->condition('m.mid', $_SESSION['scratchpads_messages_hidden_msgs'], 'NOT IN');
+  }
+  // Don't get tips if this user does not want to see them.
+  if(!empty($user->scratchpads_messages_hide_tips)){
+    $query->condition('type', SCRATCHPADS_MESSAGES_TIP, '!=');
+  }
+  // Get only distinct results
+  $query->distinct(TRUE);
+  $results = $query->execute();
+  $msgs = array();
+  foreach($results as $result){
+    if(empty($msgs[$result->type])){
+      $msgs[$result->type] = array();
+    }
+    $msgs[$result->type][] = (array)$result;
+  }
+  return $msgs;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function scratchpads_messages_theme($existing, $type, $theme, $path){
+  return array(
+    'scratchpads_messages_list_messages' => array(
+      'render element' => 'scratchpads_messages_list',
+      'file' => 'scratchpads_messages.admin.inc'
+    ),
+    'scratchpads_messages_message' => array(
+      'variables' => array(
+        'msg' => array(),
+        'user' => NULL
+      )
+    )
+  );
+}
+
+/**
+ * Theme function for a single message.  This adds the link to hide the message
+ */
+function theme_scratchpads_messages_message($vars){
+  $render = array(
+    'form' => drupal_get_form('scratchpads_messages_seen_msg', $vars['msg'], $vars['user']),
+    'markup' => array(
+      '#markup' => (($vars['msg']['type'] == SCRATCHPADS_MESSAGES_TIP) ? '<h2>' . t('Scratchpads Tip') . '</h2>' : '') . $vars['msg']['message']
+    )
+  );
+  return drupal_render($render);
+}
+
+/**
+ * Form to mark a single message as "seen".
+ */
+function scratchpads_messages_seen_msg($form, $form_state, $msg, $user){
+  return array(
+    'mid' => array(
+      '#type' => 'hidden',
+      '#value' => $msg['mid']
+    ),
+    'uid' => array(
+      '#type' => 'hidden',
+      '#value' => $user->uid
+    ),
+    'seen_button' => array(
+      '#type' => 'image_button',
+      '#src' => drupal_get_path('module', 'scratchpads_messages') . '/css/close.png',
+      '#attributes' => array(
+        'alt' => '',
+        'title' => t('Hide permanently')
+      ),
+      '#ajax' => array(
+        'callback' => 'scratchpads_messages_seen_msg_submit',
+        'wrapper' => 'msg-' . $msg['mid']
+      )
+    )
+  );
+}
+
+/**
+ * Submit function for the above form.
+ */
+function scratchpads_messages_seen_msg_submit($form, $form_state){
+  if($form_state['values']['uid']){
+    db_merge('scratchpads_messages_viewed')->key(array(
+      'uid' => $form_state['values']['uid'],
+      'mid' => $form_state['values']['mid']
+    ))->fields(array(
+      'uid' => $form_state['values']['uid'],
+      'mid' => $form_state['values']['mid']
+    ))->execute();
+  }else{
+    // An anonymous user is hiding a message.  We simply save the fact that the
+    // message is hidden in the session data.
+    if(!isset($_SESSION['scratchpads_messages_hidden_msgs'])){
+      $_SESSION['scratchpads_messages_hidden_msgs'] = array();
+    }
+    $_SESSION['scratchpads_messages_hidden_msgs'][] = $form_state['values']['mid'];
+  }
+  // Ajaxing, we need to return magic!
+  if(arg(0) == 'system'){return array(
+      '#type' => 'ajax',
+      '#commands' => array(
+        ajax_command_remove('#msg-' . $form_state['values']['mid']),
+        ajax_command_prepend(NULL, theme('status_messages')),
+        ajax_command_invoke('body', 'body_resize_toolbar')
+      )
+    );}
+}
+
+/**
+ * Implements hook_page_alter().
+ *
+ * Adds the messages depending on the type of message, and whether or not the
+ * user actually wants to see the message.
+ */
+function scratchpads_messages_page_alter(&$page){
+  global $user;
+  $messages = scratchpads_messages_get_messages();
+  $alerts = array();
+
+  if(!empty($messages[SCRATCHPADS_MESSAGES_ALERT])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_ALERT]);
+  }
+
+  if(!empty($messages[SCRATCHPADS_MESSAGES_GLOBAL])) {
+    $alerts = array_merge($alerts, $messages[SCRATCHPADS_MESSAGES_GLOBAL]);
+  }
+
+  if(!empty($alerts)){
+    $msgs = array();
+    foreach($alerts as $msg){
+      $msgs[] = array(
+        'data' => theme('scratchpads_messages_message', array(
+          'msg' => $msg,
+          'user' => $user
+        )),
+        'id' => "msg-{$msg['mid']}"
+      );
+    }
+    $block = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+        )
+      ),
+      '#theme' => 'item_list',
+      '#items' => $msgs
+    );
+    if(user_access('access toolbar')){
+      $page['page_top']['toolbar']['extra_messages'] = $block;
+    }else{
+      $block += array(
+        '#prefix' => '<div class="scratchpads_messages notoolbar">',
+        '#suffix' => '</div>',
+        '#weight' => -1000
+      );
+      $page['page_top']['extra_messages'] = $block;
+    }
+  }
+  if(!empty($messages[SCRATCHPADS_MESSAGES_TIP]) && !empty($_SESSION['scratchpads_messages_tips'])){
+    // We select a random message from the tips.
+    $key = rand(0, count($messages[SCRATCHPADS_MESSAGES_TIP]) - 1);
+    $page['page_top']['tips'] = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/css/scratchpads_messages.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'scratchpads_messages') . '/js/scratchpads_messages.js'
+        )
+      ),
+      '#prefix' => '<div class="scratchpads_messages tips">',
+      '#suffix' => '</div>',
+      '#markup' => theme('scratchpads_messages_message', array(
+        'msg' => $messages[SCRATCHPADS_MESSAGES_TIP][$key],
+        'user' => $user
+      ))
+    );
+    unset($_SESSION['scratchpads_messages_tips']);
+  }
+}
+
+/**
+ * Simple function to give an array of message types.
+ */
+function scratchpads_messages_types($key = FALSE){
+  $types = array(
+    SCRATCHPADS_MESSAGES_ALERT => t('Status'),
+    SCRATCHPADS_MESSAGES_TIP => t('Tip')
+  );
+  if($key){
+    // Don't show Global as an available type,
+    // but display its name if specifically asked about it.
+    $types[SCRATCHPADS_MESSAGES_GLOBAL] = t('Global');
+    return $types[$key];
+  }
+  return $types;
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_messages_menu(){
+  return array(
+    'admin/config/system/scratchpads-messages' => array(
+      'title' => 'Scratchpads messages',
+      'description' => 'Add/view/delete Scratchpads status messages and Scratchpads tips.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_messages_list_form'
+      ),
+      'access arguments' => array(
+        'administer scratchpads messages'
+      ),
+      'file' => 'scratchpads_messages.admin.inc'
+    ),
+    'admin/config/system/scratchpads-messages/list' => array(
+      'title' => 'List',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10
+    ),
+    'admin/config/system/scratchpads-messages/add' => array(
+      'title' => 'Add',
+      'description' => 'Add a Scratchpads message or tip',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_messages_add_form'
+      ),
+      'access arguments' => array(
+        'administer scratchpads messages'
+      ),
+      'file' => 'scratchpads_messages.admin.inc',
+      'type' => MENU_LOCAL_TASK
+    )
+  );
+}
+
+/**
+ * Converts an array of role names to an array of role IDs.
+ */
+function _scratchpads_messages_role_names_to_ids($roles){
+  $rids = array();
+  if(!is_array($roles) || !count($roles)){
+    $rids[] = 0;
+  }else{
+    $results = db_select('role', 'r')->fields('r', array(
+      'rid'
+    ))->condition('name', $roles)->execute();
+    foreach($results as $row){
+      $rids[] = $row->rid;
+    }
+    if(!count($rids)){
+      $rids[] = 0;
+    }
+  }
+  return $rids;
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Delete expired messages
+ */
+function scratchpads_messages_cron(){
+  // Delete expired messages
+  db_delete('scratchpads_messages_message')->condition('expire', time(), '<')->condition('expire', 0, '!=')->execute();
+
+  // Delete associated records
+  $subquery = db_select('scratchpads_messages_message', 's')->fields('s', array(
+    'mid'
+  ));
+  db_delete('scratchpads_messages_viewed')->condition('mid', $subquery, 'NOT IN')->execute();
+  db_delete('scratchpads_messages_roles')->condition('mid', $subquery, 'NOT IN')->execute();
+}

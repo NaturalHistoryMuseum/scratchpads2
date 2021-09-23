@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ */
+function slickgrid_requirements($phase){
+  $requirements = array();
+  if($phase == 'runtime'){
+    $t = get_t();
+    $slickgrid_library = drupal_get_library('slickgrid', 'slickgrid');
+    foreach($slickgrid_library['js'] as $path => $js){
+      if(!file_exists($path)){
+        $requirements['slickgrid'] = array(
+          'severity' => REQUIREMENT_ERROR,
+          'title' => $slickgrid_library['title'],
+          'value' => $t('Missing'),
+          'description' => $t('The slickgrid library isn\'t available so this module will not work. Please download slickgrid %version from !website.', array(
+            '!website' => l($slickgrid_library['website'], $slickgrid_library['website']),
+            '%version' => $slickgrid_library['version']
+          ))
+        );
+        break;
+      }
+    }
+    if(!isset($requirements['slickgrid'])){
+      $requirements['slickgrid'] = array(
+        'severity' => REQUIREMENT_OK,
+        'title' => $slickgrid_library['title'],
+        'value' => $slickgrid_library['version']
+      );
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function slickgrid_schema(){
+  $schema['slickgrid'] = array(
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The users UID.'
+      ),
+      'view_name' => array(
+        'type' => 'varchar',
+        'length' => '32',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'The unique name of the view. May only be alphanumeric characters plus underscores.'
+      ),
+      'display_id' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'An identifier for this display; usually generated from the display_plugin, so should be something like page or page_1 or block_2, etc.'
+      ),
+      'settings' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'description' => 'A serialized array of view settings.'
+      )
+    ),
+    'primary key' => array(
+      'uid',
+      'view_name',
+      'display_id'
+    ),
+    'foreign keys' => array(
+      'id' => array(
+        'table' => 'views_display',
+        'columns' => array(
+          'id' => 'display_id'
+        )
+      ),
+      'name' => array(
+        'table' => 'views_view',
+        'columns' => array(
+          'name' => 'view_name'
+        )
+      )
+    )
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install()
+ */
+function slickgrid_install(){
+  variable_set('jquery_update_jquery_version', '1.8');
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function slickgrid_update_7200(){
+  variable_set('jquery_update_jquery_version', '1.8');
+}
+
+/**
+ * Add display_id as a primary key to the schema to allow different settings per views display
+ */
+function slickgrid_update_7201(){
+  db_drop_primary_key('slickgrid');
+  db_add_primary_key('slickgrid', array(
+    'uid',
+    'view_name',
+    'display_id'
+  ));
+}

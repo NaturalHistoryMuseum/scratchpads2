@@ -1,0 +1,866 @@
+<?php
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function scratchpads_taxonomic_name_field_field_formatter_info(){
+  return array(
+    'taxon_name' => array(
+      'label' => t('Formatted taxon name'),
+      'description' => t('Displays a formatted taxon name.'),
+      'field types' => array(
+        'taxonomy_term_reference'
+      )
+    ));
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ */
+function scratchpads_taxonomic_name_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch ($display['type']) {
+    case 'taxon_name':
+      foreach ($items as $delta => $item) {
+        $term = taxonomy_term_load($item['tid']);
+        $displaylang = isset($term->field_rank[$langcode]) ? $langcode : isset($term->field_rank) ? array_keys($term->field_rank)[0] : 'und';
+        $italics = FALSE;
+        if (isset($term->field_rank[$displaylang][0]['value'])) {
+          if ($term->field_rank[$displaylang][0]['value'] == "Genus") {
+            $italics =  TRUE;
+          }
+          if ($term->field_rank[$displaylang][0]['value'] == "Subgenus") {
+            $italics = TRUE;
+            $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
+          }
+          if ($term->field_rank[$displaylang][0]['value'] == "Species") {
+            $italics = TRUE;
+            if (isset($term->field_unit_name3[$displaylang][0]['value'])) {
+              $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
+            }
+          }
+          if ($term->field_rank[$displaylang][0]['value'] == "Subspecies") {
+            $italics = TRUE;
+            if (isset($term->field_unit_name4[$displaylang][0]['value'])) {
+              $term->field_unit_name2[$displaylang][0]['value'] = '('.$term->field_unit_name2[$displaylang][0]['value'].')';
+            }
+          }
+        }
+        $element[$delta] = array(
+        '#markup' => l(
+                       ($italics ? "<em>" : "")
+                       . $term->field_unit_name1[$displaylang][0]['value']
+                       . (isset($term->field_unit_name2[$displaylang][0]['value']) ? ' '.$term->field_unit_name2[$displaylang][0]['value'] : '')
+                       . (isset($term->field_unit_name3[$displaylang][0]['value']) ? ' '.$term->field_unit_name3[$displaylang][0]['value'] : '')
+                       . (isset($term->field_unit_name4[$displaylang][0]['value']) ? ' '.$term->field_unit_name4[$displaylang][0]['value'] : '')
+                       . ($italics ? "</em>" : ""),
+                       "taxonomy/term/".$term->tid
+                     )
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Alter the taxonomy/autocomplete function so that we can add the vocabulary
+ * name to the end of the term string "term (vocabulary)" when multiple
+ * vocabularies are present.
+ *
+ * @param unknown_type $items
+ */
+function scratchpads_taxonomic_name_field_menu_alter(&$items){
+  $items['taxonomy/autocomplete'] = array(
+    'title' => 'Autocomplete taxonomy',
+    'page callback' => 'scratchpads_taxonomic_name_field_autocomplete',
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_taxonomic_name_field_module_implements_alter(&$imps, $hook){
+  if($hook == 'feeds_processor_targets_alter'){
+    $this_modules_hook = $imps['scratchpads_taxonomic_name_field'];
+    unset($imps['scratchpads_taxonomic_name_field']);
+    $imps['scratchpads_taxonomic_name_field'] = $this_modules_hook;
+  }
+}
+
+/**
+ * Implements hook_field_widget_info_alter().
+ */
+function scratchpads_taxonomic_name_field_field_widget_info_alter(&$info){
+  $info['taxonomy_autocomplete']['module'] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
+ * Replace the widget functions from the taxonomy module.
+ */
+/**
+ * Implements hook_field_widget_error().
+ */
+function scratchpads_taxonomic_name_field_field_widget_error($element, $error, $form, &$form_state){
+  return taxonomy_field_widget_error($element, $error, $form, $form_state);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function scratchpads_taxonomic_name_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $tags = array();
+  foreach($items as $item){
+    $tags[$item['tid']] = isset($item['taxonomy_term']) ? $item['taxonomy_term'] : taxonomy_term_load($item['tid']);
+  }
+  $element += array(
+    '#type' => 'textfield',
+    '#default_value' => scratchpads_taxonomic_name_field_implode_tags($tags),
+    '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $field['field_name'],
+    '#size' => $instance['widget']['settings']['size'],
+    '#maxlength' => 1024,
+    '#element_validate' => array(
+      'scratchpads_taxonomic_name_field_autocomplete_validate'
+    )
+  );
+  return $element;
+}
+
+/**
+ * Implodes a list of tags of a certain vocabulary into a string.
+ *
+ * This function includes "[VID]".
+ */
+function scratchpads_taxonomic_name_field_implode_tags($tags, $vid = NULL){
+  $typed_tags = array();
+  foreach($tags as $tag){
+    // Extract terms belonging to the vocabulary in question.
+    if(!isset($vid) || $tag->vid == $vid){
+      // Make sure we have a completed loaded taxonomy term.
+      if(isset($tag->name)){
+        $tag->name .= ' [' . $tag->tid . ']';
+        // Commas and quotes in tag names are special cases, so encode 'em.
+        if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
+          $typed_tags[] = '"' . str_replace('"', '""', $tag->name) . '"';
+        }else{
+          $typed_tags[] = $tag->name;
+        }
+      }
+    }
+  }
+  return implode(', ', $typed_tags);
+}
+
+/**
+ * Form element validate handler for taxonomy term autocomplete element.
+ */
+function scratchpads_taxonomic_name_field_autocomplete_validate($element, &$form_state){
+  // Autocomplete widgets do not send their tids in the form, so we must detect
+  // them here and process them independently.
+  $value = array();
+  if($tags = $element['#value']){
+    // Collect candidate vocabularies.
+    $field = field_widget_field($element, $form_state);
+    $vocabularies = array();
+    foreach($field['settings']['allowed_values'] as $tree){
+      if($vocabulary = taxonomy_vocabulary_machine_name_load($tree['vocabulary'])){
+        $vocabularies[$vocabulary->vid] = $vocabulary;
+      }
+    }
+    // Translate term names into actual terms.
+    $typed_terms = drupal_explode_tags($tags);
+    foreach($typed_terms as $typed_term){
+      // See if the term exists in the chosen vocabulary and return the tid;
+      // otherwise, create a new 'autocreate' term for insert/update.
+      preg_match('/([^\[]*)\[([0-9]*)\]/', trim($typed_term), $matches);
+      if(count($matches) >= 3){
+        $possibilities = array(
+          taxonomy_term_load($matches[2])
+        );
+      }else{
+        $possibilities = taxonomy_term_load_multiple(array(), array(
+          'name' => trim($typed_term),
+          'vid' => array_keys($vocabularies)
+        ));
+      }
+      if($possibilities){
+        foreach($possibilities as $term){
+          $value[] = (array)$term;
+        }
+      }else{
+        foreach($vocabularies as $vocabulary){
+          if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+            drupal_set_message(t('Biological terms must be added using the classification editor.'), 'error', FALSE);
+          }else{
+            $term = array(
+              'tid' => 'autocreate',
+              'vid' => $vocabulary->vid,
+              'name' => $typed_term,
+              'vocabulary_machine_name' => $vocabulary->machine_name
+            );
+            $value[] = (array)$term;
+          }
+        }
+      }
+    }
+  }
+  form_set_value($element, $value, $form_state);
+}
+
+/**
+ * Implements hook_tag_field_types_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_field_types_alter(&$field_types){
+  $field_types[] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
+ * Implements hook_tag_populate_field_types_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_populate_field_types_alter(&$field_types){
+  $field_types[] = 'scratchpads_taxonomic_name_field';
+}
+
+/**
+ * Implements hook_tag_widget_map_alter()
+ */
+function scratchpads_taxonomic_name_field_tag_widget_map_alter(&$maps){
+  $maps['scratchpads_taxonomic_name_field'] = 'taxonomy';
+}
+
+/**
+ * Almost identical to the original function, but with added brackets,
+ * vocabulary name and tweak to return exact matches first.
+ */
+function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed = ''){
+  // If the request has a '/' in the search text, then the menu system will have
+  // split it into multiple arguments, recover the intended $tags_typed.
+  $args = func_get_args();
+  // Shift off the $field_name argument.
+  array_shift($args);
+  $tags_typed = implode('/', $args);
+  // Make sure the field exists and is a taxonomy field.
+  if(!($field = field_info_field($field_name)) || $field['type'] !== 'taxonomy_term_reference'){
+    // Error string. The JavaScript handler will realize this is not JSON and
+    // will display it as debugging information.
+    print t('Taxonomy field @field_name not found.', array(
+      '@field_name' => $field_name
+    ));
+    exit();
+  }
+  // we need at least one vocabulary associated with the field to filter the results. If there aren't any, error
+  if (empty($field['settings']['allowed_values'])) {
+    print t('Taxonomy field @field_name must have at least one associated vocabulary.', ['@field_name' => $field_name]);
+    exit();
+  }
+  // The user enters a comma-separated list of tags. We only autocomplete the
+  // last tag.
+  $tags_typed = drupal_explode_tags($tags_typed);
+  $tag_last = drupal_strtolower(array_pop($tags_typed));
+  $matches = array();
+  if($tag_last != ''){
+    // Part of the criteria for the query come from the field's own settings.
+    $vids = array();
+    $vocabularies = taxonomy_vocabulary_get_names();
+    foreach($field['settings']['allowed_values'] as $tree){
+      $vids[] = $vocabularies[$tree['vocabulary']]->vid;
+    }
+    $query = db_select('taxonomy_term_data', 't');
+    $query->addTag('translatable');
+    $query->addTag('term_access');
+    $query->join('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+    $query->innerJoin('taxonomy_term_hierarchy', 'h', 'h.tid = t.tid');
+    $query->addField('v', 'name', 'vocab_name');
+    // Do not select already entered terms.
+    if(!empty($tags_typed)){
+      $query->condition('t.name', $tags_typed, 'NOT IN');
+    }
+    // Select rows that match by term name.
+    $query->fields('t', array(
+      'tid',
+      'name',
+      'vid'
+    ))->condition('t.vid', $vids);
+    // Clone the query to give three different queries, and union them together.
+    // This gives us the sort order we want.
+    // 1. TERM
+    // 2. TERM%
+    // 3. %TERM%
+    $query_no_prefix_or_suffix = clone $query;
+    $query_no_prefix = clone $query;
+    $query_no_prefix_or_suffix->condition('t.name', db_like($tag_last), 'LIKE')->range(0, 10);
+    $query_no_prefix->condition('t.name', db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    $query->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10);
+    // Union the three queries.
+    $query_no_prefix_or_suffix->union($query_no_prefix);
+    $query_no_prefix_or_suffix->union($query);
+    // Execute, and fetch!
+    // Note, the range is included four times to keep the size of the results
+    // to a minimum.
+    $tags_return = $query_no_prefix_or_suffix->range(0, 10)->execute()->fetchAll();
+    $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
+    $term_matches = array();
+    foreach($tags_return as $tag){
+      $n = $tag->name . ' [' . $tag->tid . ']';
+      // Term names containing commas or quotes must be wrapped in quotes.
+      if(strpos($tag->name, ',') !== FALSE || strpos($tag->name, '"') !== FALSE){
+        $n = '"' . str_replace('"', '""', $tag->name) . '"';
+      }
+      // Get all parents
+      $parents = taxonomy_get_parents_all($tag->tid);
+      $parents = array_reverse($parents);
+      $parent_names = array();
+      foreach($parents as $parent){
+        $authors = '';
+        $lang = field_language('taxonomy_term', $parent, 'field_authors');
+        if(!@empty($parent->field_authors[$lang][0]['value'])){
+          $authors = " {$parent->field_authors[$lang][0]['value']}";
+        }
+        $parent_names[] = check_plain($parent->name . $authors);
+      }
+      $link_text = implode(" &raquo; ", $parent_names);
+      $term_matches[$prefix . $n] = (count($field['settings']['allowed_values']) > 1) ? $link_text . ' (' . check_plain($tag->vocab_name) . ')' : $link_text;
+    }
+  }
+  drupal_json_output($term_matches);
+}
+// -- Update the field functions ----------------------------------------------
+/**
+ * Implementation of hook_taxonomy_vocabulary_insert().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_insert($vocabulary){
+  if(isset($vocabulary->biological_classification) && $vocabulary->biological_classification){
+    // We have a biological classification. We need to update the field.
+    scratchpads_taxonomic_name_field_update_field($vocabulary);
+  }
+}
+
+/**
+ * Update the taxonomy name field
+ */
+function scratchpads_taxonomic_name_field_update_field($vocabulary){
+  field_cache_clear(TRUE);
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  $field['settings']['allowed_values'][] = array(
+    'parent' => 0,
+    'vocabulary' => $vocabulary->machine_name
+  );
+  field_update_field($field);
+}
+
+/**
+ * Implementation of hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_taxonomic_name_field_taxonomy_vocabulary_delete($vocabulary){
+  // We have a biological classification. We need to update the field.
+  $field = field_info_field('field_taxonomic_name');
+  $update = FALSE;
+  foreach($field['settings']['allowed_values'] as $key => $value){
+    if($value['vocabulary'] == $vocabulary->machine_name){
+      $update = TRUE;
+      unset($field['settings']['allowed_values'][$key]);
+      if(!count($field['settings']['allowed_values'])){
+        $field['settings']['allowed_values'][0] = array(
+          'parent' => 0,
+          'vocabulary' => '__temporary__'
+        );
+      }
+      break;
+    }
+  }
+  if($update){
+    $field['settings']['allowed_values'] = array_values($field['settings']['allowed_values']);
+    field_update_field($field);
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ *
+ * FIXME - This should not be required. Unfortunately I have been unable to
+ * track down why some taxonomic name fields are not always associated with the
+ * correct vocabularies. This will put a giant fucking plaster over the issue.
+ */
+function scratchpads_taxonomic_name_field_cron(){
+  $field = field_info_field('field_taxonomic_name');
+  $bio_vids = variable_get('biological_vids', array());
+  $i = 0;
+  $field['settings']['allowed_values'] = array();
+  foreach($bio_vids as $vid => $value){
+    $voc = taxonomy_vocabulary_load($vid);
+    if($voc){
+      $field['settings']['allowed_values'][$i] = array(
+        'parent' => 0,
+        'vocabulary' => $voc->machine_name
+      );
+      $i++;
+    }
+  }
+  if(!count($field['settings']['allowed_values'])){
+    $field['settings']['allowed_values'][0] = array(
+      'parent' => 0,
+      'vocabulary' => '__temporary__'
+    );
+  }
+  field_update_field($field);
+}
+// -- End of Update the field functions-----------------------------------------
+/**
+ * Implements hook_form_alter()
+ */
+function scratchpads_taxonomic_name_field_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['field_taxonomic_name'])){
+    $field = field_info_field('field_taxonomic_name');
+    if(count($field['settings']['allowed_values']) && $field['settings']['allowed_values'][0]['vocabulary'] != '__temporary__'){
+      // We check the number of terms per vocabulary. If any has a single term,
+      // we return before the field is removed.
+      foreach($field['settings']['allowed_values'] as $vocabulary){
+        $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary['vocabulary']);
+        if(count(taxonomy_get_tree($vocabulary->vid, 0, 1, FALSE))){return;}
+      }
+    }
+    unset($form['field_taxonomic_name']);
+  }
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function scratchpads_taxonomic_name_field_field_widget_form_alter(&$element, &$form_state, $context){
+  if($context['instance']['widget']['type'] == 'taxonomy_autocomplete'){
+    // Set the max length to a much higher value than 1024 (why the fuck is it
+    // set to 1024 anyway?)
+    $element['#maxlength'] = 1000000;
+  }
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_taxonomic_name_field_facetapi_facet_info($searcher_info = FALSE){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_field_taxonomic_name' => array(
+      'name' => 'im_field_taxonomic_name',
+      'label' => t('Taxonomic name'),
+      'description' => t('Taxonomic name'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'tid' => array(
+      'name' => 'tid',
+      'label' => t('Terms'),
+      'description' => t('Terms'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'scratchpads_taxonomic_name_facetapi_map_taxonomy_terms'
+    )
+  );
+}
+
+/**
+ * Map callback for taxonomy terms.
+ */
+function scratchpads_taxonomic_name_facetapi_map_taxonomy_terms(array $values){
+  $map = array();
+  $terms = taxonomy_term_load_multiple($values);
+  $biological_vids = variable_get('biological_vids', array());
+  foreach($terms as $term){
+    if(empty($biological_vids[$term->vid])){
+      $map[$term->tid] = $term->name;
+    }else{
+      $map[$term->tid] = '---HIDE THIS TERM---';
+    }
+  }
+  return $map;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_taxonomic_name_field_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_taxonomic_name_field_facetapi_facet_info();
+    foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        if($facet->facet == 'im_field_taxonomic_name' && isset($data['content']['im_field_taxonomic_name']['#items'])){
+          if(count($data['content']['im_field_taxonomic_name']['#items']) > $data['content']['#settings']->settings['soft_limit']){
+            $form = drupal_get_form('scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form', 'im_field_taxonomic_name', t('Enter taxonomic name...'));
+            $data['content']['search_box'] = array(
+              '#markup' => drupal_render($form),
+              '#weight' => -100
+            );
+          }
+        }elseif(@isset($data['content']['tid']['#items']) && $facet->facet == 'tid'){
+          foreach($data['content']['tid']['#items'] as $key => $data2){
+            if(strpos($data2['data'], '---HIDE THIS TERM---')){
+              unset($data['content']['tid']['#items'][$key]);
+            }
+          }
+          if(!count($data['content']['tid']['#items'])){
+            $data['content'] = array();
+          }
+        }
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_forms().
+ */
+function scratchpads_taxonomic_name_field_forms(){
+  return array(
+    'scratchpads_taxonomic_name_field_facet_im_field_taxonomic_name_form' => array(
+      'callback' => 'scratchpads_taxonomic_name_field_facet_form',
+      'callback arguments' => array()
+    )
+  );
+}
+
+/**
+ * Simple form for the facets
+ */
+function scratchpads_taxonomic_name_field_facet_form($form, &$form_state, $form_id, $placeholder){
+  return array(
+    $form_id => array(
+      '#type' => 'textfield',
+      '#title' => t('Search facet'),
+      '#title_display' => 'invisible',
+      '#size' => 15,
+      '#default_value' => '',
+      '#autocomplete_path' => 'taxonomic_name_search_facet_autocomplete/' . $form_id,
+      '#attributes' => array(
+        'title' => t('Enter the terms you wish to search for, select it, and press return.'),
+        'style' => 'width:100%',
+        'placeholder' => $placeholder
+      )
+    ),
+    'type' => array(
+      '#value' => $form_id,
+      '#type' => 'value'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Search'),
+        '#attributes' => array(
+          'style' => 'display:none;'
+        )
+      )
+    ),
+    '#submit' => array(
+      'scratchpads_taxonomic_name_field_facet_form_submit'
+    )
+  );
+}
+
+/**
+ * Submit function for the facets.
+ */
+function scratchpads_taxonomic_name_field_facet_form_submit($form, &$form_state){
+  $get = $_GET;
+  unset($get['q']);
+  switch($form_state['values']['type']){
+    case 'im_field_taxonomic_name':
+      $row = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'tid'
+      ))->condition('name', $form_state['values']['im_field_taxonomic_name'])->execute()->fetchAssoc();
+      $get['f'][] = 'im_field_taxonomic_name:' . $row['tid'];
+      break;
+  }
+  drupal_goto($_GET['q'], array(
+    'query' => $get
+  ));
+}
+
+/**
+ * Implements hook_menu
+ */
+function scratchpads_taxonomic_name_field_menu(){
+  return array(
+    'taxonomic_name_search_facet_autocomplete' => array(
+      'title' => 'Autocomplete',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array(
+        'search content'
+      ),
+      'page callback' => 'scratchpads_taxonomic_name_field_facet_autocomplete'
+    )
+  );
+}
+
+/**
+ * Autocomplete callback
+ */
+function scratchpads_taxonomic_name_field_facet_autocomplete($type, $search){
+  $matches = array();
+  switch($type){
+    case 'im_field_taxonomic_name':
+      $matches = db_select('taxonomy_term_data', 't')->fields('t', array(
+        'name',
+        'name'
+      ))->condition('name', "$search%", 'LIKE')->range(0, 10)->execute()->fetchAllKeyed();
+      break;
+  }
+  drupal_json_output($matches);
+}
+
+/**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_taxonomic_name_field_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'taxonomy_term'){
+    $document->addField('access__all', 0);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_taxonomic_name_field_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_taxonomic_name_field_facetapi_default_facet_settings(){
+  $facets = scratchpads_taxonomic_name_field_facetapi_facet_info(FALSE);
+  foreach($facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'display' => -49,
+        'count' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr::' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = '';
+    $facet->facet = $facet_id;
+    $facet->enabled = FALSE;
+    $facet->settings = array(
+      'operator' => 'and',
+      'hard_limit' => '200',
+      'dependencies' => array(),
+      'facet_mincount' => 1,
+      'facet_missing' => 0,
+      'flatten' => 0,
+      'query_type' => 'term'
+    );
+    $facets[$facet_id . '_global'] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_taxonomic_name_field_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'taxonomic_name_facet';
+  $context->description = t('Taxonomic name field on a search page.');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'gallery*' => 'gallery*',
+        'biblio*' => 'biblio*',
+        'search*' => 'search*',
+        'group*' => 'group*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  module_load_include('block.inc', 'facetapi');
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_taxonomic_name_field_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['taxonomic_name_facet'] = $context;
+  return $export;
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function scratchpads_taxonomic_name_field_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    // Reference to a taxonomy term, unless it's on a taxonomy_term entity type,
+    // in which case it's its own name. Doing the callback in that case would
+    // create a duplicate of the term if it's not been saved yet.
+    if($info['type'] == 'taxonomy_term_reference' && $entity_type != 'taxonomy_term'){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'scratchpads_taxonomic_name_field_feeds_set_target',
+        'description' => t('The @label field of the node.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Checks whether a term identified by name and vocabulary exists.
+ * Creates a
+ * new term if it does not exist.
+ *
+ * @param $name A
+ * term name.
+ * @param $vid A
+ * vocabulary id.
+ *
+ * @return A term id.
+ */
+function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_term = FALSE){
+  $name = trim($name);
+  if(!function_exists('taxonomy_term_lookup_term')){
+
+    /**
+     * This function used to be defined by the feeds module, but they have
+     * removed it.
+     */
+    function taxonomy_term_lookup_term($name, $vid){
+      return db_select('taxonomy_term_data', 'td')->fields('td', array(
+        'tid',
+        'name'
+      ))->condition('name', $name)->condition('vid', $vid)->execute()->fetchObject();
+    }
+  }
+  $term = taxonomy_term_lookup_term($name, $vid);
+  if(empty($term)){
+    if(!$create_term){return FALSE;}
+    $term = new stdClass();
+    $term->name = $name;
+    $term->vid = $vid;
+    taxonomy_term_save($term);
+    return $term->tid;
+  }
+  return $term->tid;
+}
+
+/**
+ * Callback for processing a feeds item.
+ */
+function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $target, $terms){
+  if(empty($terms)){return;}
+  // Handle non-multiple values.
+  if(!is_array($terms)){
+    $terms = array(
+      $terms
+    );
+  }
+  $info = field_info_field($target);
+  $vocabularies = array();
+  foreach($info['settings']['allowed_values'] as $vocab_data){
+    $vocabularies[] = taxonomy_vocabulary_machine_name_load($vocab_data['vocabulary']);
+  }
+  $i = 0;
+  $entity->$target = isset($entity->$target) ? $entity->$target : array();
+  foreach($vocabularies as $vocabulary){
+    foreach($terms as $term){
+      $tid = 0;
+      if($term instanceof FeedsTermElement){
+        $tid = $term->tid;
+      }elseif(is_numeric($term)){
+        $tid = $term;
+      }elseif(is_string($term)){
+        $tid = scratchpads_taxonomic_name_field_term_check_term($term, $vocabulary->vid, count($vocabularies) === 1);
+        if(!$tid){
+          continue;
+        }
+      }
+      if($tid){
+        $entity->{$target}['und'][$i]['tid'] = $tid;
+      }
+      if($info['cardinality'] == 1){
+        break;
+      }
+      $i++;
+    }
+  }
+}

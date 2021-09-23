@@ -1,0 +1,13 @@
+diff --git a/relation.module b/relation.module
+index 654573f..2e8579d 100644
+--- relation.module
++++ relation.module
+@@ -556,6 +556,8 @@ function relation_construct($type, $endpoints, $account = NULL) {
+   }
+   $relation = new stdClass();
+   $relation->is_new = TRUE;
++  $relation->created = time();
++  $relation->changed = time();
+   $relation->relation_type = $type;
+   $relation->uid = $account->uid;
+   $relation->endpoints[LANGUAGE_NONE] = $endpoints;

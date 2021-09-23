@@ -1,0 +1,96 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Lexicon module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function lexicon_requirements($phase) {
+  $requirements = array();
+
+  // Check that php is compiled with ctype support.
+  $requirements['ctype'] = array(
+    'title' => st('Character type functions (ctype)'),
+  );
+  if (function_exists('ctype_alnum')) {
+    $requirements['ctype']['value'] = st('Enabled');
+    $requirements['ctype']['severity'] = REQUIREMENT_OK;
+  }
+  else {
+    $requirements['ctype']['value'] = st('Disabled');
+    $requirements['ctype']['description'] = st('The Lexicon module requires that you configure PHP with --enable-ctype.');
+    $requirements['ctype']['severity'] = REQUIREMENT_ERROR;
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_uninstall().
+ * There are no tables, so we delete all variables and clear the filter cache.
+ * It is left to the user to remove any vocabularies that are no longer needed.
+ */
+function lexicon_uninstall() {
+  $vids = variable_get('lexicon_vids', array());
+
+  // Delete the settings for each Lexicon vocabulary.
+  foreach ($vids as $vid) {
+    variable_del('lexicon_page_enabled_' . $vid);
+    variable_del('lexicon_path_' . $vid);
+    variable_del('lexicon_title_' . $vid);
+    variable_del('lexicon_introduction_' . $vid);
+    variable_del('lexicon_related_terms_field_' . $vid);
+    variable_del('lexicon_synonyms_field_' . $vid);
+    variable_del('lexicon_image_field_' . $vid);
+  }
+
+  // Delete the rest of the variables.
+  variable_del('lexicon_vids');
+  variable_del('lexicon_disable_indicator');
+  variable_del('lexicon_click_option');
+  variable_del('lexicon_show_edit');
+  variable_del('lexicon_show_search');
+  variable_del('lexicon_go_to_top_link');
+  variable_del('lexicon_go_to_top_link_fragment');
+  variable_del('lexicon_local_links_scroll');
+  variable_del('lexicon_page_per_letter');
+  variable_del('lexicon_page_show_all');
+  variable_del('lexicon_separate_letters');
+  variable_del('lexicon_allow_no_description');
+  variable_del('lexicon_show_description');
+  variable_del('lexicon_link_to_term_page');
+  variable_del('lexicon_link_related');
+  variable_del('lexicon_term_class');
+  variable_del('lexicon_mark_terms');
+  variable_del('lexicon_match');
+  variable_del('lexicon_case');
+  variable_del('lexicon_replace_all');
+  variable_del('lexicon_blocking_tags');
+  variable_del('lexicon_link');
+  variable_del('lexicon_replace');
+  variable_del('lexicon_superscript');
+  variable_del('lexicon_icon');
+  variable_del('lexicon_alphabet');
+  variable_del('lexicon_digits');
+  variable_del('lexicon_suppress_unused');
+  variable_del('lexicon_alphabar_separator');
+  variable_del('lexicon_alphabar_instruction');
+  variable_del('lexicon_block_lexicon_random_term_link');
+  variable_del('lexicon_block_lexicon_random_term_step');
+  variable_del('lexicon_block_lexicon_random_term_interval');
+  variable_del('lexicon_block_lexicon_random_term_vids');
+  variable_del('lexicon_block_lexicon_random_term_last');
+  variable_del('lexicon_block_lexicon_random_term_tid');
+  variable_del('lexicon_block_lexicon_random_term_trim');
+  variable_del('lexicon_block_lexicon_random_term_trim_length');
+  variable_del('lexicon_block_lexicon_random_term_trim_ellipsis');
+  variable_del('lexicon_block_lexicon_random_term_read_more_link');
+  variable_del('lexicon_block_lexicon_random_term_read_more_link_text');
+
+  // Let's make sure the filter cache is cleared.
+  cache_clear_all(NULL, 'cache_filter');
+
+  drupal_set_message(t('The Lexicon module has been uninstalled. You will still need to decide what to do with vocabularies that were used.'), 'warning');
+}

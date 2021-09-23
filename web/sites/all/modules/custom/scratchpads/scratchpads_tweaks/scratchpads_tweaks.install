@@ -1,0 +1,1820 @@
+<?php
+
+function scratchpads_tweaks_install()
+{
+  // Drop the primary key from the file_display table.
+  scratchpads_tweaks_update_7046();
+  // Unset all 'status' and 'warning' messages.
+  $messages = drupal_get_messages();
+  if (isset($messages['error']) && is_array($messages['error'])) {
+    foreach ($messages['error'] as $message) {
+      drupal_set_message($message, 'error');
+    }
+    unset($messages['error']);
+  }
+  foreach ($messages as $type => $more_messages) {
+    foreach ($more_messages as $message) {
+      watchdog('scratchpads_tweaks_install', $message);
+    }
+  }
+  // In order for testing to work, we need to go no further at this point so
+  // that the minimal_install() function does not barf.
+  $backtrace = debug_backtrace();
+  if (count($backtrace) > 4) {
+    if (isset($backtrace[4]['file'])) {
+      $backtrace = explode('/', $backtrace[4]['file']);
+      if (array_pop($backtrace) == 'scratchpads_tweaks.test') {
+        return;
+      }
+    }
+  }
+  // Install the filters.
+  scratchpads_tweaks_install_help_install_filters();
+  // Set the default theme to be "scratchpads".
+  variable_set('theme_default', 'scratchpads');
+  // Disable default theme.
+  theme_disable(array(
+    'bartik'
+  ));
+  // Enable scratchpads theme.
+  theme_enable(array(
+    'scratchpads'
+  ));
+  // Setup linkit.
+  scratchpads_tweaks_update_7008();
+  // Setup the CKEditor module
+  scratchpads_tweaks_update_7014();
+  // Set the comment_notify content types.
+  scratchpads_tweaks_update_7032();
+  // Enable some standard blocks.
+  $values = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'slide_top',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'slide_top',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'slide_top',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'menu_block',
+      'delta' => 'scratchpads_pages-1',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'creative_commons',
+      'delta' => 'creative_commons',
+      'theme' => 'scratchpads',
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'footer',
+      'pages' => '',
+      'cache' => -1
+    ),
+    // Admin theme blocks
+    array(
+      'module' => 'scratchpads_help',
+      'delta' => 'scratchpads_help',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1
+    ),
+    // Dashboard blocks
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'online',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'scratchpads_setup',
+      'delta' => 'scratchpads_setup',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'active',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'forum',
+      'delta' => 'new',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_inactive',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1
+    ),
+    array(
+      'module' => 'comment',
+      'delta' => 'recent',
+      'theme' => 'scratchpads_admin',
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1
+    )
+  );
+  foreach ($values as $record) {
+    db_merge('block')->key(array(
+      'module' => $record['module'],
+      'delta' => $record['delta'],
+      'theme' => $record['theme']
+    ))->fields($record)->execute();
+  }
+  // Insert default pre-defined node types into the database. For a complete
+  // list of available node type attributes, refer to the node type API
+  // documentation at: http://api.drupal.org/api/HEAD/function/hook_node_info.
+  $type = array(
+    'type' => 'page',
+    'name' => st('Page'),
+    'base' => 'node_content',
+    'description' => st("Use <em>basic pages</em> for your static content, such as an 'About us' page."),
+    'custom' => 1,
+    'modified' => 1,
+    'locked' => 0
+  );
+  $type = node_type_set_defaults($type);
+  node_type_save($type);
+  scratchpads_tweaks_add_body_field($type);
+  // Set weight of body fieldasfasf
+  // Insert default pre-defined RDF mapping into the database.
+  rdf_mapping_save(array(
+    'type' => 'node',
+    'bundle' => 'page',
+    'mapping' => array(
+      'rdftype' => array(
+        'foaf:Document'
+      )
+    )
+  ));
+  variable_set('shortcut_max_slots', 100);
+  variable_set('node_options_page', array(
+    'status',
+    'revision'
+  ));
+  variable_set('comment_page', COMMENT_NODE_HIDDEN);
+  variable_set('node_submitted_page', true);
+  // Enable user picture support and set the default to a square thumbnail
+  // option.
+  variable_set('user_pictures', '1');
+  variable_set('user_picture_dimensions', '1024x1024');
+  variable_set('user_picture_file_size', '800');
+  variable_set('user_picture_style', 'square_thumbnail');
+  // Allow visitor account creation with administrative approval.
+  variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
+  // Create a Home link in the main menu.
+  $item = array(
+    'link_title' => st('Home'),
+    'link_path' => '<front>',
+    'menu_name' => 'main-menu'
+  );
+  menu_link_save($item);
+  // Update the menu router information.
+  menu_rebuild();
+  variable_set('admin_theme', 'scratchpads_admin');
+  variable_set('node_admin_theme', '1');
+  /*
+   * Additional Scratchpad settings:
+   */
+  // Date API stuff
+  variable_set('site_default_country', 'GB');
+  variable_set('date_default_timezone', 'Europe/London');
+  variable_set('date_first_day', '1');
+  variable_set('date_format_long', 'l, F j, Y - H:i');
+  variable_set('date_format_medium', 'D, Y-m-d H:i');
+  variable_set('date_format_short', 'Y-m-d H:i');
+  // Apache Solr settings
+  variable_set('apachesolr_default_environment', 'solr');
+  variable_set('search_default_module', 'apachesolr_search');
+  variable_set('search_active_modules', array(
+    'apachesolr_search' => 'apachesolr_search',
+    'node' => 0,
+    'user' => 0
+  ));
+  // Delete all shortcut links - we'll allow users to edit these.
+  menu_delete_links('shortcut-set-1');
+  // Set the image toolkit as imagemagick.
+  variable_set('image_toolkit', 'imagemagick');
+  variable_set('imagemagick_convert', 'convert');
+  // Set the comment form defaults.
+  foreach (node_type_get_names() as $type => $name) {
+    if ($type != 'forum') {
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    }
+  }
+  // Set the jQuery settings
+  variable_set('jquery_update_jquery_version', '1.8');
+  // Prevent optimize from running on Solr.
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
+  // Allow insecure derivatives
+  variable_set('image_allow_insecure_derivatives', true);
+  // Enable the subpermissions module which has lay dormant for many many months
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments',
+    'view revisions' => 'view revisions'
+  ));
+  // Set the advagg module settings
+  scratchpads_tweaks_update_7081();
+  // Ensure we do not send out update emails to our users.
+  variable_del('update_notify_emails');
+  // Increase the length of the biblio_keywords field
+  scratchpads_tweaks_update_7089();
+  // Incase the webform module is installed, we set that it uses the old table
+  // views for results.
+  variable_set('webform_table', true);
+
+  // Install extra modules only used on standard scratchpads.
+  if (variable_get('standard_scratchpad', true)) {
+    scratchpads_tweaks_install_standard_scratchpad_modules();
+  }
+}
+
+/**
+ * Install standard only additional modules
+ */
+function scratchpads_tweaks_install_standard_scratchpad_modules()
+{
+
+  // List of modules that should only be installed if this is a
+  // Standard scratchpad; by default, they won't be installed on
+  // standalone and dockerised scratchpads
+  $standard_only_scratchpad_modules = array(
+    'scratchpads_twitter',
+    'scratchpads_issues_block'
+  );
+  module_enable($standard_only_scratchpad_modules);
+}
+
+/**
+ * Helper script to install/update filters.
+ */
+function scratchpads_tweaks_install_help_install_filters()
+{
+  // Add text formats.
+  $filtered_html_format = array(
+    'format' => 'filtered_html',
+    'name' => 'Filtered HTML',
+    'weight' => 0,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1,
+        'settings' => array(
+          'allowed_html' => '<span> <div> <iframe> <hr> <i> <a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <table> <thead> <tbody> <tr> <th> <td> <caption> <img> <video> <pre> <p> <sub> <sup> <br> <h1> <h2> <h3> <h4> <h5> <h6> <u>',
+          'filter_html_help' => 0,
+          'filter_html_nofollow' => 0
+        )
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
+        'status' => 1
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
+      'biblio_filter_reference' => array(
+        'weight' => 10,
+        'status' => 1
+      ),
+      'media_filter' => array(
+        'weight' => 11,
+        'status' => 1
+      ),
+      'emptyparagraphkiller' => array(
+        'weight' => 12,
+        'status' => 1
+      ),
+      'entityfilter' => array(
+        'weight' => 13,
+        'status' => 1
+      ),
+      'twitter_filter_filter' => array(
+        'weight' => 1000,
+        'status' => 1
+      )
+    )
+  );
+  $filtered_html_format = (object)$filtered_html_format;
+  filter_format_save($filtered_html_format);
+  unset($filtered_html_format->filters['twitter_filter_filter']);
+  $filtered_html_format->format = 'comment_filtered_html';
+  $filtered_html_format->name = 'Comment Filtered HTML';
+  $filtered_html_format->weight = 1;
+  filter_format_save($filtered_html_format);
+  if (module_exists('scratchpads_lexicon')) {
+    module_load_include('install', 'scratchpads_lexicon');
+    scratchpads_lexicon_install();
+  }
+}
+
+/**
+ * Update the weight of the page body field
+ */
+function scratchpads_tweaks_update_7001()
+{
+  $instance = field_read_instance('node', 'body', 'page');
+  foreach (array_keys($instance['display']) as $display) {
+    $instance['display'][$display]['weight'] = 0;
+  }
+  field_update_instance($instance);
+  return 'Updated page body field';
+}
+
+/**
+ * Enable femail if forum is enabled.
+ */
+function scratchpads_tweaks_update_7002()
+{
+  if (module_exists('forum')) {
+    module_enable(array(
+      'femail'
+    ));
+  }
+}
+
+/**
+ * Update WYSIWYG and filter formats. scratchpads_tweaks_update_7003 - Removed.
+ * No longer required.
+ */
+/**
+ * Set the default for all comment forms to be on a separate page. 7004 removed
+ * due to an error.
+ */
+function scratchpads_tweaks_update_7005()
+{
+  foreach (node_type_get_names() as $type => $name) {
+    if ($type != 'forum') {
+      variable_set('comment_form_location_' . $type, COMMENT_FORM_SEPARATE_PAGE);
+    }
+  }
+}
+
+/**
+ * Set the site's default country.
+ */
+function scratchpads_tweaks_update_7006()
+{
+  variable_set('site_default_country', 'GB');
+}
+
+/**
+ * Install the scratchpads_lexicon module if the lexicon module is installed.
+ */
+function scratchpads_tweaks_update_7007()
+{
+  if (module_exists('lexicon')) {
+    module_enable(array(
+      'scratchpads_lexicon'
+    ));
+  }
+}
+
+/**
+ * Install the linkit module and set the settings.
+ */
+function scratchpads_tweaks_update_7008()
+{
+  module_enable(array(
+    'linkit'
+  ));
+  db_merge('linkit_profiles')->key(array(
+    'name' => 'default'
+  ))->fields(array(
+    'name' => 'default',
+    'admin_title' => st('Default'),
+    'data' => serialize(array(
+      'plugins' => array(
+        'taxonomy' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'user' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'node' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'file' => array(
+          'weight' => '0',
+          'enabled' => 1
+        ),
+        'external' => array(
+          'weight' => '0',
+          'enabled' => 1
+        )
+      ),
+      'node' => array(
+        'result_description' => 'by [node:author] · [node:created:short]',
+        'content_types' => array(
+          'biblio' => 0,
+          'media_gallery' => 0,
+          'page' => 0,
+          'spm' => 0
+        ),
+        'include_unpublished' => 0,
+        'group_by_content_type' => 1
+      ),
+      'user' => array(
+        'result_description' => ''
+      ),
+      'taxonomy' => array(
+        'result_description' => '[term:vocabulary]',
+        'group_by_vocabulary' => 0
+      ),
+      'file' => array(
+        'result_description' => '[file:mime] · [file:size]',
+        'show_scheme' => 0,
+        'group_by_scheme' => 0,
+        'image_extra_info' => array(
+          'thumbnail' => 'thumbnail',
+          'dimensions' => 'dimensions'
+        )
+      ),
+      'autocomplete' => array(
+        'charLimit' => 3,
+        'wait' => 250,
+        'remoteTimeout' => 5000
+      ),
+      'attributes' => array(
+        'rel' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'class' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'accesskey' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'id' => array(
+          'weight' => '0',
+          'enabled' => 0
+        ),
+        'title' => array(
+          'weight' => '0',
+          'enabled' => 0
+        )
+      )
+    )),
+    'role_rids' => serialize(array(
+      2 => 1
+    )),
+    'weight' => -10
+  ))->execute();
+}
+
+/**
+ * REMOVED 7011 - REPLACED BY 7026. REMOVED 7012 - REPLACED BY 7026.
+ */
+/**
+ * Disable the wysiwyg module and enable the ckeditor module. Updated to 7014 to
+ * set the forcePasteAsPlainText option. NOTE. IF THIS FUNCTION NAME IS CHANGED,
+ * IT MUST BE CHANGED IN THE INSTALL FUNCTION ABOVE.
+ */
+function scratchpads_tweaks_update_7014()
+{
+  // This function gets reused when the settings for the CKEditor are altered,
+  // and also during install. We therefore only uninstall/install if required.
+  if (module_exists('wysiwyg')) {
+    module_disable(array(
+      'wysiwyg'
+    ));
+    drupal_uninstall_modules(array(
+      'wysiwyg'
+    ));
+  }
+  if (!module_exists('ckeditor')) {
+    module_enable(array(
+      'ckeditor'
+    ));
+  }
+  db_delete('ckeditor_settings')->condition('name', 'CKEditor Global Profile', '!=')->execute();
+  $default_settings = array(
+    'filters' => array(
+      'filter_html' => 1
+    ),
+    'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+    Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
+    'toolbar' => '[
+    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'JustifyLeft\',\'JustifyCenter\',\'JustifyRight\',\'JustifyBlock\'],
+    [\'NumberedList\',\'BulletedList\',\'-\',\'Subscript\',\'Superscript\',\'Blockquote\'],
+    [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
+    \'/\',
+    [\'SelectAll\',\'Cut\',\'Copy\',\'Paste\',\'PasteText\',\'PasteFromWord\'],
+    [\'SpellChecker\',\'Scayt\'],
+    [\'Undo\',\'Redo\',\'Find\',\'Replace\',\'-\',\'RemoveFormat\'],
+    [\'Media\',\'Table\',\'HorizontalRule\',\'SpecialChar\',\'DrupalBreak\'],
+    [\'Maximize\']
+]',
+    'expand' => 't',
+    'width' => '100%',
+    'lang' => 'en',
+    'auto_lang' => 't',
+    'language_direction' => 'default',
+    'enter_mode' => 'p',
+    'shift_enter_mode' => 'br',
+    'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
+    'custom_formatting' => 'f',
+    'formatting' => array(
+      'custom_formatting_options' => array(
+        'indent' => 'indent',
+        'breakBeforeOpen' => 'breakBeforeOpen',
+        'breakAfterOpen' => 'breakAfterOpen',
+        'breakAfterClose' => 'breakAfterClose',
+        'breakBeforeClose' => 0,
+        'pre_indent' => 0
+      )
+    ),
+    'css_mode' => 'none',
+    'css_path' => '',
+    'css_style' => 'theme',
+    'styles_path' => '',
+    'filebrowser' => 'none',
+    'filebrowser_image' => '',
+    'filebrowser_flash' => '',
+    'UserFilesPath' => '%b%f/',
+    'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
+    'forcePasteAsPlainText' => 't',
+    'html_entities' => 't',
+    'scayt_autoStartup' => 'f',
+    'theme_config_js' => 'f',
+    'js_conf' => '',
+    'loadPlugins' => array(
+      'scratchpads_backend_tweaks' => array(
+        'name' => 'scratchpads_backend_tweaks',
+        'desc' => 'Ensure that image width/height/align are set as attributes, not as styles when using the image editor',
+        'path' => '%base_path%sites/all/modules/custom/scratchpads/scratchpads_backend/ckeditor/',
+        'buttons' => false
+      ),
+      'counter' => array(
+        'name' => 'counter',
+        'desc' => 'Plugin to count symbols, symbols without blanks and words',
+        'path' => '%plugin_dir%counter/',
+        'buttons' => false,
+        'default' => 'f'
+      ),
+      'drupalbreaks' => array(
+        'name' => 'drupalbreaks',
+        'desc' => 'Plugin for inserting Drupal teaser and page breaks.',
+        'path' => '%plugin_dir%drupalbreaks/',
+        'buttons' => array(
+          'DrupalBreak' => array(
+            'label' => 'DrupalBreak',
+            'icon' => 'images/drupalbreak.png'
+          )
+        ),
+        'default' => 't'
+      ),
+      'entityfilter' => array(
+        'name' => 'entityfilter',
+        'desc' => 'Allows the referencing of properties on entities',
+        'path' => '%base_path%sites/all/modules/custom/entityfilter/ckeditor/',
+        'buttons' => false
+      ),
+      'linkit' => array(
+        'name' => 'linkit',
+        'desc' => 'Support for Linkit module',
+        'path' => '%base_path%sites/all/modules/contrib/linkit/editors/ckeditor/',
+        'buttons' => array(
+          'linkit' => array(
+            'label' => 'Linkit',
+            'icon' => 'linkit.png'
+          )
+        )
+      ),
+      'media' => array(
+        'name' => 'media',
+        'desc' => 'Plugin for inserting images from Drupal media module',
+        'path' => '%plugin_dir%media/',
+        'buttons' => array(
+          'Media' => array(
+            'label' => 'Media',
+            'icon' => 'images/icon.gif'
+          )
+        ),
+        'default' => 'f'
+      ),
+      'tableresize' => array(
+        'name' => 'tableresize',
+        'desc' => 'Table Resize plugin',
+        'path' => '%editor_path%plugins/tableresize/',
+        'buttons' => false,
+        'default' => 't'
+      )
+    )
+  );
+  $limited_settings = array(
+    'filters' => array(
+      'filter_html' => 1
+    ),
+    'ss' => '2',
+    'default' => 't',
+    'show_toggle' => 't',
+    'skin' => 'kama',
+    'uicolor' => 'default',
+    'uicolor_textarea' => '<p>
+    Click the <strong>UI Color Picker</strong> button to set your color preferences.</p>
+',
+    'uicolor_user' => 'default',
+    'toolbar' => '[
+    [\'Bold\',\'Italic\',\'Underline\'],
+    [\'NumberedList\',\'BulletedList\'],
+    [\'Undo\',\'Redo\'],
+    [\'SelectAll\',\'Cut\',\'Copy\',\'Paste\',\'PasteText\',\'PasteFromWord\'],
+    [\'Link\',\'Unlink\',\'linkit\',\'Anchor\'],
+    [\'Media\']
+]',
+    'expand' => 't',
+    'width' => '100%',
+    'lang' => 'en',
+    'auto_lang' => 't',
+    'language_direction' => 'default',
+    'enter_mode' => 'p',
+    'shift_enter_mode' => 'br',
+    'font_format' => 'p;div;pre;address;h2;h3;h4;h5;h6',
+    'custom_formatting' => 'f',
+    'formatting' => array(
+      'custom_formatting_options' => array(
+        'indent' => 'indent',
+        'breakBeforeOpen' => 'breakBeforeOpen',
+        'breakAfterOpen' => 'breakAfterOpen',
+        'breakAfterClose' => 'breakAfterClose',
+        'breakBeforeClose' => 0,
+        'pre_indent' => 0
+      )
+    ),
+    'css_mode' => 'none',
+    'css_path' => '',
+    'css_style' => 'theme',
+    'styles_path' => '',
+    'filebrowser' => 'none',
+    'filebrowser_image' => '',
+    'filebrowser_flash' => '',
+    'UserFilesPath' => '%b%f/',
+    'UserFilesAbsolutePath' => '%d%b%f/',
+    'ckeditor_load_method' => 'ckeditor.js',
+    'ckeditor_load_time_out' => '0',
+    'forcePasteAsPlainText' => 't',
+    'html_entities' => 't',
+    'scayt_autoStartup' => 't',
+    'theme_config_js' => 'f',
+    'js_conf' => '',
+    'loadPlugins' => array(
+      'entityfilter' => array(
+        'name' => 'entityfilter',
+        'desc' => 'Allows the referencing of properties on entities',
+        'path' => '%base_path%sites/all/modules/custom/entityfilter/ckeditor/',
+        'buttons' => false
+      ),
+      'linkit' => array(
+        'name' => 'linkit',
+        'desc' => 'Support for Linkit module',
+        'path' => '%base_path%sites/all/modules/contrib/linkit/editors/ckeditor/',
+        'buttons' => array(
+          'linkit' => array(
+            'label' => 'Linkit',
+            'icon' => 'linkit.png'
+          )
+        )
+      ),
+      'media' => array(
+        'name' => 'media',
+        'desc' => 'Plugin for inserting images from Drupal media module',
+        'path' => '%plugin_dir%media/',
+        'buttons' => array(
+          'Media' => array(
+            'label' => 'Media',
+            'icon' => 'images/icon.gif'
+          )
+        ),
+        'default' => 'f'
+      )
+    )
+  );
+  // Insert the settings.
+  $query = db_insert('ckeditor_settings')->fields(array(
+    'name',
+    'settings'
+  ));
+  $query->values(array(
+    'name' => 'Default',
+    'settings' => serialize($default_settings)
+  ));
+  $query->values(array(
+    'name' => 'Limited',
+    'settings' => serialize($limited_settings)
+  ));
+  $query->execute();
+  // Associate profiles with formats.
+  db_delete('ckeditor_input_format')->execute();
+  $query = db_insert('ckeditor_input_format')->fields(array(
+    'name',
+    'format'
+  ));
+  $query->values(array(
+    'name' => 'Default',
+    'format' => 'filtered_html'
+  ));
+  $query->values(array(
+    'name' => 'Limited',
+    'format' => 'comment_filtered_html'
+  ));
+  $query->execute();
+}
+
+/**
+ * REMOVED 7015 - REPLACED BY 7026.
+ */
+/**
+ * Install the Scratchpads cleanup module
+ */
+function scratchpads_tweaks_update_7016()
+{
+  module_enable(array(
+    'scratchpads_cleanup'
+  ));
+}
+
+/**
+ * REMOVED 7018 - REPLACED BY 7026.
+ */
+/**
+ * Fix the date/time formats across all Scratchpads - no flexibility.
+ */
+function scratchpads_tweaks_update_7019()
+{
+  variable_set('date_format_long', 'l, F j, Y - g:ia');
+  variable_set('date_format_medium', 'Y-m-d H:i');
+  variable_set('date_format_short', 'Y-m-d');
+}
+
+/**
+ * REMOVED 7020 - REPLACED BY 7026.
+ */
+/**
+ * Update field_quick_delete field to long blob
+ */
+function scratchpads_tweaks_update_7021()
+{
+  if (db_table_exists('field_quick_delete')) {
+    db_change_field('field_quick_delete', 'entity', 'entity', array(
+      'type' => 'blob',
+      'not null' => true,
+      'serialize' => true,
+      'size' => 'big'
+    ));
+  }
+}
+
+/**
+ * Set the image toolkit as ImageMagick.
+ */
+function scratchpads_tweaks_update_7022()
+{
+  variable_set('image_toolkit', 'imagemagick');
+}
+
+/**
+ * Set the convert path because the imagemagick module wants us to (WTF!)
+ */
+function scratchpads_tweaks_update_7023()
+{
+  variable_set('imagemagick_convert', 'convert');
+}
+
+/**
+ * Set the maximum number of shortcut links to 100.
+ */
+function scratchpads_tweaks_update_7024()
+{
+  variable_set('shortcut_max_slots', 100);
+}
+
+/**
+ * Display the node submission information for a page.
+ */
+function scratchpads_tweaks_update_7025()
+{
+  variable_set('node_submitted_page', true);
+}
+
+/**
+ * Enable the twitter script module. Removed - the module has been removed from
+ * Scratchpads
+ */
+/**
+ * Add the twitter script filter. Removed - the module has been removed from
+ * Scratchpads
+ */
+/**
+ * Add h1, h2 and div tags.
+ */
+function scratchpads_tweaks_update_7028()
+{
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Ensure scratchpads_forum is enabled if forum is enabled
+ */
+function scratchpads_tweaks_update_7029()
+{
+  if (module_exists('forum')) {
+    module_enable(array(
+      'scratchpads_forum'
+    ));
+  }
+}
+
+/**
+ * Turn on revisions for page nodes.
+ */
+function scratchpads_tweaks_update_7030()
+{
+  $entity_info = entity_get_info('node');
+  foreach (array_keys($entity_info['bundles']) as $bundle) {
+    $options = variable_get('node_options_' . $bundle, array());
+    foreach ($options as $value) {
+      if ($value == 'revision') {
+        continue 2;
+      }
+    }
+    $options[] = 'revision';
+    variable_set('node_options_' . $bundle, $options);
+  }
+}
+
+/**
+ * Enable comment_notify for ALL content types. DO NOT RENAME THIS FUNCTION
+ * WITHOUT UPDATING THE CALL ABOVE.
+ */
+function scratchpads_tweaks_update_7032()
+{
+  $array_node_types = array();
+  foreach (node_type_get_names() as $type => $name) {
+    $array_node_types[$type] = $type;
+  }
+  variable_set('comment_notify_node_types', $array_node_types);
+  variable_set('comment_notify_node_notify_default_mailalert', 1);
+}
+
+/**
+ * Turn on revisions for page nodes, and also enable "published".
+ */
+function scratchpads_tweaks_update_7033()
+{
+  $entity_info = entity_get_info('node');
+  foreach (array_keys($entity_info['bundles']) as $bundle) {
+    $options = variable_get('node_options_' . $bundle, array());
+    foreach ($options as $value) {
+      if ($value == 'status') {
+        continue 2;
+      }
+    }
+    $options[] = 'status';
+    variable_set('node_options_' . $bundle, $options);
+  }
+}
+
+/**
+ * Add <span> tags
+ */
+function scratchpads_tweaks_update_7034()
+{
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Add HTMLPurifier module. Removed code as could result in an error if run on a
+ * site once the htmlpurifier module has been removed.
+ */
+function scratchpads_tweaks_update_7036()
+{
+}
+
+/**
+ * Restore old filters.
+ */
+function scratchpads_tweaks_update_7038()
+{
+  module_enable(array(
+    'emptyparagraphkiller'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
+  module_disable(array(
+    'htmlpurifier'
+  ));
+  drupal_uninstall_modules(array(
+    'htmlpurifier'
+  ));
+}
+
+/**
+ * Set the "body" field to be weight "0". Set the "field_taxonomic_name" field
+ * to be weight "-3".
+ */
+function scratchpads_tweaks_update_7039()
+{
+  // Update the weight of all "body" instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'body')->execute();
+  foreach ($results as $row) {
+    $instance = field_info_instance($row->entity_type, 'body', $row->bundle);
+    $instance['widget']['weight'] = 1;
+    field_update_instance($instance);
+  }
+  // Update the weight of all "field_taxonomic_name" instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'field_taxonomic_name')->execute();
+  foreach ($results as $row) {
+    $instance = field_info_instance($row->entity_type, 'field_taxonomic_name', $row->bundle);
+    $instance['widget']['weight'] = -3;
+    field_update_instance($instance);
+  }
+  // Update the weight of all "field_media" instances.
+  $results = db_select('field_config_instance', 'f')->fields('f', array(
+    'entity_type',
+    'bundle'
+  ))->condition('field_name', 'field_media')->execute();
+  foreach ($results as $row) {
+    $instance = field_info_instance($row->entity_type, 'field_media', $row->bundle);
+    $instance['widget']['weight'] = 2;
+    field_update_instance($instance);
+  }
+}
+
+/**
+ * Uninstall the hide_submit module.
+ */
+function scratchpads_tweaks_update_7040()
+{
+  drupal_uninstall_modules(array(
+    'hide_submit'
+  ));
+}
+
+/**
+ * Fix the CKEditor
+ */
+function scratchpads_tweaks_update_7041()
+{
+  module_load_include('install', 'ckeditor');
+  ckeditor_update_7005();
+}
+
+/**
+ * Set the apachesolr cron limit.
+ */
+function scratchpads_tweaks_update_7042()
+{
+  variable_set('apachesolr_cron_limit', 50);
+}
+
+/**
+ * Disable autogrow for the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7043()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Drop the primary key from the file_display table. Renamed from from
+ * scratchpads_tweaks_update_7044.
+ */
+function scratchpads_tweaks_update_7046()
+{
+  db_drop_primary_key('file_display');
+}
+
+/**
+ * Enable the scratchpads_pretty_urls module if the pathauto module is enabled.
+ */
+function scratchpads_tweaks_update_7047()
+{
+  if (module_exists('pathauto')) {
+    module_enable(array(
+      'scratchpads_pretty_urls'
+    ));
+  }
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7049()
+{
+  variable_set('jquery_update_jquery_version', '1.8');
+}
+
+/**
+ * Set the jQuery update settings.
+ */
+function scratchpads_tweaks_update_7050()
+{
+  variable_del('scratchpad_last_reported');
+}
+
+/**
+ * Allow insecure derivatives
+ */
+function scratchpads_tweaks_update_7051()
+{
+  variable_set('image_allow_insecure_derivatives', true);
+}
+
+/**
+ * Enable the scratchpads_blog module if blog is enabled.
+ */
+function scratchpads_tweaks_update_7052()
+{
+  if (module_exists('blog')) {
+    module_enable(array(
+      'scratchpads_blog'
+    ));
+  }
+}
+
+/**
+ * Ensure the Simplenews categories have been properly initialised.
+ */
+function scratchpads_tweaks_update_7053()
+{
+  if (module_exists('simplenews')) {
+    module_load_include('install', 'simplenews');
+    _simplenews_init_simplenews_category();
+  }
+}
+
+/**
+ * Disable the Hashcash module.
+ */
+function scratchpads_tweaks_update_7054()
+{
+  $uninstall = array(
+    'hashcash'
+  );
+  module_disable($uninstall);
+  drupal_uninstall_modules($uninstall);
+}
+
+/**
+ * Disable pathauto and redirect if the Pretty URLs tool has been disabled.
+ */
+function scratchpads_tweaks_update_7055()
+{
+  if (!module_exists('scratchpads_pretty_urls')) {
+    module_disable(array(
+      'redirect',
+      'pathauto'
+    ));
+  }
+}
+
+/**
+ * Prevent optimize from running on Solr (fix of update 7048 which has been
+ * removed).
+ */
+function scratchpads_tweaks_update_7056()
+{
+  variable_set('apachesolr_optimize_interval', PHP_INT_MAX);
+}
+
+/**
+ * We disable the mollom module first, to ensure that the update runs as
+ * expected.
+ */
+function scratchpads_tweaks_update_7057()
+{
+  module_disable(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+  module_enable(array(
+    'scratchpads_security'
+  ));
+}
+
+/**
+ * Disable/uninstall the scratchpads_mollom module and install the
+ * scratchpads_security module.
+ */
+function scratchpads_tweaks_update_7058(&$sandbox)
+{
+  if (!isset($sandbox['cids'])) {
+    // Get a list of all the comments that have been authored by anonymous, and
+    // that have not been approved.
+    $query = db_select('comment', 'c')->fields('c', array(
+      'cid'
+    ))->condition('uid', 0)->condition('status', 0);
+    $query->innerJoin('field_data_comment_body', 'b', 'c.cid = b.entity_id');
+    $query->condition('comment_body_value', '%http%', 'LIKE');
+    $sandbox['cids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['cids']);
+    if (!$sandbox['max']) {
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while ($i < 10 && count($sandbox['cids'])) {
+    comment_delete(array_pop($sandbox['cids']));
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['cids'])) / $sandbox['max'];
+}
+
+/**
+ * Unlock the body field.
+ */
+function scratchpads_tweaks_update_7059()
+{
+  db_update('field_config')->fields(array(
+    'locked' => 0
+  ))->condition('field_name', 'body')->execute();
+}
+
+/**
+ * Enable the width/height/align img attribute plugin.
+ */
+function scratchpads_tweaks_update_7060()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Use the Imagemagick Identify patch
+ */
+function scratchpads_tweaks_update_7061()
+{
+  variable_set('imagemagick_use_identify', true);
+}
+
+/**
+ * Uninstall mollom and scratchpads_mollom
+ */
+function scratchpads_tweaks_update_7062()
+{
+  drupal_uninstall_modules(array(
+    'scratchpads_mollom',
+    'mollom'
+  ));
+}
+
+/**
+ * Enable the setting of the biblio file attachments permission.
+ */
+function scratchpads_tweaks_update_7064()
+{
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links'
+  ));
+}
+
+/**
+ * Update nodes to ensure they don't have duplicate UUID and V-UUIDs.
+ */
+function scratchpads_tweaks_update_7065(&$sandbox)
+{
+  if (!isset($sandbox['nids'])) {
+    $query = db_select('node', 'lft');
+    $query->fields('lft', array(
+      'nid'
+    ));
+    $query->innerJoin('node', 'rgt', 'lft.uuid = rgt.uuid AND lft.nid > rgt.nid');
+    $query->distinct();
+    $sandbox['nids'] = $query->execute()->fetchCol();
+    $sandbox['max'] = count($sandbox['nids']);
+    if (!$sandbox['max']) {
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while ($i < 10 && count($sandbox['nids'])) {
+    $node = node_load(array_pop($sandbox['nids']));
+    $old_uuid = $node->uuid;
+    unset($node->uuid);
+    unset($node->vuuid);
+    node_save($node);
+    db_update('feeds_item')->fields(array(
+      'guid' => $node->uuid
+    ))->condition('guid', $old_uuid)->condition('entity_id', $node->nid)->execute();
+  }
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['nids'])) / $sandbox['max'];
+}
+
+/**
+ * Update the filters to ensure the new twitter filter is in there.
+ */
+function scratchpads_tweaks_update_7066()
+{
+  module_disable(array(
+    'twitterscript'
+  ));
+  module_enable(array(
+    'twitter_filter'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Delete empty fields from entities that were imported via Feeds.
+ */
+function scratchpads_tweaks_update_7067(&$sandbox)
+{
+  if (!isset($sandbox['entities'])) {
+    $sandbox['entities'] = db_select('feeds_item', 'f')->fields('f', array(
+      'entity_id',
+      'entity_type'
+    ))->execute()->fetchAll();
+    $sandbox['max'] = count($sandbox['entities']);
+    // If we have no entites or too many (more than 5000), we skip this update.
+    if (!$sandbox['max'] || count($sandbox['entities'] > 5000)) {
+      $sandbox['#finished'] = 1;
+      return;
+    }
+  }
+  $i = 0;
+  while ($i < 10 && count($sandbox['entities'])) {
+    $info = array_pop($sandbox['entities']);
+    $entity = entity_load($info->entity_type, array(
+      $info->entity_id
+    ));
+    foreach ($entity[$info->entity_id] as $key => $value) {
+      if (is_array($value)) {
+        if (($lang = field_language($info->entity_type, $entity[$info->entity_id], $key)) != false) {
+          if ((@isset($value[$lang][0]['value']) && trim($value[$lang][0]['value']) == '')) {
+            try {
+              db_delete('field_data_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->execute();
+              $entity_info = entity_get_info($info->entity_type);
+              $revision_id = $info->entity_id;
+              if ($entity_info['entity keys']['revision']) {
+                $revision_id = $entity->{$entity_info['entity keys']['revision']};
+              }
+              db_delete('field_revision_' . $key)->condition('language', $lang)->condition('entity_type', $info->entity_type)->condition('entity_id', $info->entity_id)->condition('revision_id', $revision_id)->execute();
+            } catch (Exception $e) {;
+            }
+          }
+        }
+      }
+    }
+    $i++;
+  }
+  drupal_set_message(count($sandbox['entities']) . "/" . $sandbox['max']);
+  $sandbox['#finished'] = $sandbox['progress'] = ($sandbox['max'] - count($sandbox['entities'])) / $sandbox['max'];
+}
+
+/**
+ * Allow site maintainers to alter whether or not anonymous users can post
+ * comments.
+ */
+function scratchpads_tweaks_update_7068()
+{
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments'
+  ));
+}
+
+/**
+ * Remove boost, and install varnish, setting varnish settings along the way.
+ */
+function scratchpads_tweaks_update_7070()
+{
+  module_disable(array(
+    'boost'
+  ));
+  module_enable(array(
+    'varnish'
+  ));
+}
+
+/**
+ * Enable and set the settings for ajaxblocks
+ */
+function scratchpads_tweaks_update_7072()
+{
+  module_enable(array(
+    'ajaxblocks'
+  ));
+  $vids = db_select('taxonomy_vocabulary', 'v')->fields('v', array(
+    'vid'
+  ))->execute()->fetchCol();
+  foreach ($vids as $vid) {
+    db_merge('ajaxblocks')->key(array(
+      'block_id' => 'tinytax-' . $vid
+    ))->fields(array(
+      'block_id' => 'tinytax-' . $vid,
+      'is_ajax' => 1,
+      'loader_picture' => 5,
+      'is_late' => 0,
+      'delay' => 0,
+      'include_noscript' => 0,
+      'cached_roles' => '1 2 3 4 5',
+      'uncached_roles' => '1 2 3 4 5'
+    ))->execute();
+  }
+}
+
+/**
+ * Add the flag which states whether or not the T&Cs have been altered.
+ */
+function scratchpads_tweaks_update_7073()
+{
+  $legal = legal_get_conditions();
+  if ($legal['version'] > 1 || $legal['revision'] > 1) {
+    variable_set('scratchpads_legal_has_changed', true);
+  }
+}
+
+/**
+ * Clear the caches so that the tweaks to the token theme functions are found.
+ */
+function scratchpads_tweaks_update_7075()
+{
+  system_rebuild_theme_data();
+  drupal_flush_all_caches();
+}
+
+/**
+ * Don't use a CDN, as we have fixed an issue with jQuery UI that is only
+ * available when serving locally.
+ */
+function scratchpads_tweaks_update_7077()
+{
+  variable_del('jquery_update_jquery_cdn');
+}
+
+/**
+ * Don't set the error reporting level. We use aegir's global includes file to
+ * set this, so now dev machines can easily set their own value too.
+ */
+function scratchpads_tweaks_update_7078()
+{
+  variable_del('error_level');
+  module_disable(array(
+    'dblog'
+  ));
+  drupal_uninstall_modules(array(
+    'dblog'
+  ));
+  module_enable(array(
+    'syslog'
+  ));
+}
+
+/**
+ * Uninstall Google Scholar module (Google broke it). Enable the Taxonomy
+ * revisions modules.
+ */
+function scratchpads_tweaks_update_7079()
+{
+  module_disable(array(
+    'googlescholar'
+  ));
+  drupal_uninstall_modules(array(
+    'googlescholar'
+  ));
+  module_enable(array(
+    'scratchpads_show_taxa_revisions'
+  ));
+}
+
+/**
+ * Enable the advagg modules.
+ */
+function scratchpads_tweaks_update_7080()
+{
+  module_enable(array(
+    'advagg',
+    'advagg_css_compress',
+    'advagg_js_compress'
+  ));
+}
+
+/**
+ * Set the settings for the advagg module.
+ */
+function scratchpads_tweaks_update_7081()
+{
+  variable_set('advagg_enabled', true);
+  variable_set('advagg_gzip', true);
+  variable_set('advagg_core_groups', false);
+  variable_set('advagg_use_httprl', false);
+  variable_set('advagg_cache_level', 3);
+  variable_set('advagg_combine_css_media', 1);
+  variable_set('advagg_ie_css_selector_limiter', 1);
+  variable_set('advagg_ie_css_selector_limiter_value', 4095);
+  variable_set('advagg_css_fix_type', 1);
+  variable_set('advagg_js_fix_type', 1);
+  variable_set('advagg_css_compressor', 1);
+  variable_set('advagg_css_inline_compressor', 1);
+  variable_set('advagg_css_inline_compress_if_not_cacheable', 1);
+  variable_set('advagg_js_compressor', 1);
+  variable_set('advagg_js_inline_compressor', 1);
+  variable_set('advagg_js_inline_compress_if_not_cacheable', 1);
+  variable_set('advagg_js_compress_packer', 1);
+  variable_set('advagg_use_httprl', 1);
+  variable_set('drupal_http_request_function', 'httprl_override_core');
+}
+
+/**
+ * Delete variables related to the emailing of inactive sites.
+ */
+function scratchpads_tweaks_update_7082()
+{
+  variable_del('scratchpads_tweaks_site_active');
+  variable_del('scratchpads_tweaks_account_notify');
+  variable_del('scratchpads_tweaks_site_active_check_time');
+}
+
+/**
+ * Disable the advagg_css_compress and advagg_js_compress modules - they appear
+ * to seriously affect the "cold start" times of a Scratchpad.
+ */
+function scratchpads_tweaks_update_7083()
+{
+  foreach (array(
+    'advagg_css_compressor',
+    'advagg_css_inline_compressor',
+    'advagg_css_inline_compress_if_not_cacheable',
+    'advagg_js_compressor',
+    'advagg_js_inline_compressor',
+    'advagg_js_inline_compress_if_not_cacheable',
+    'advagg_js_compress_packer'
+  ) as $variable_del) {
+    variable_del($variable_del);
+  }
+  $uninstall = array(
+    'advagg_css_compress',
+    'advagg_js_compress'
+  );
+  module_disable($uninstall);
+  drupal_uninstall_modules($uninstall);
+}
+
+/**
+ * Disable SCAYT from loading automatically on load of the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7084()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Add the entityfilter filter
+ */
+function scratchpads_tweaks_update_7085()
+{
+  module_enable(array(
+    'entityfilter'
+  ));
+  scratchpads_tweaks_install_help_install_filters();
+}
+
+/**
+ * Enable the "Format" button within the WYSIWYG editor.
+ */
+function scratchpads_tweaks_update_7086()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Add the entityfilter CKEditor plugin, and also update the settings for the
+ * latest version of CKEditor.
+ */
+function scratchpads_tweaks_update_7087()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Flush ALL image styles as we're now stripping all metadata from resizes (to
+ * help reduce file sizes)
+ */
+function scratchpads_tweaks_update_7088()
+{
+  // When enabling, we flush the cropped thumbnails and images.
+  $styles = image_styles();
+  foreach ($styles as $style) {
+    image_style_flush($style);
+  }
+}
+
+/**
+ * Increase the length of the biblio_keywords field
+ */
+function scratchpads_tweaks_update_7089()
+{
+  db_update('biblio_fields')->fields(array(
+    'maxsize' => 65535
+  ))->condition('name', 'biblio_keywords')->execute();
+}
+
+/**
+ * Add the entityfilter CKEditor plugin, and also update the settings for the
+ * latest version of CKEditor.
+ */
+function scratchpads_tweaks_update_7090()
+{
+  scratchpads_tweaks_update_7014();
+}
+
+/**
+ * Update all file and image field types to allow linking to all schemes.
+ */
+function scratchpads_tweaks_update_7091()
+{
+  foreach (db_select('field_config', 'f')->fields('f', array(
+    'field_name'
+  ))->condition('type', array(
+    'file',
+    'image'
+  ))->execute()->fetchCol() as $field_name) {
+    foreach (db_select('field_config_instance', 'f')->fields('f', array(
+      'entity_type',
+      'bundle'
+    ))->condition('field_name', $field_name)->execute() as $row) {
+      $instance = field_info_instance($row->entity_type, $field_name, $row->bundle);
+      if (!empty($instance['widget']['settings']['allowed_schemes'])) {
+        $instance['widget']['settings']['allowed_schemes'] = array();
+        field_update_instance($instance);
+      }
+    }
+  }
+}
+
+/**
+ * New webform module tries to use views and fails. Set that it should use the
+ * old table method.
+ */
+function scratchpads_tweaks_update_7092()
+{
+  variable_set('webform_table', true);
+}
+
+/**
+ * Update all field data tables deleting values that are not associated with the
+ * current revision.
+ */
+function scratchpads_tweaks_update_7093()
+{
+  $subquery = db_select('node', 'n')->fields('n', array(
+    'vid'
+  ));
+  foreach (field_info_fields() as $field) {
+    $table_name = 'field_data_' . $field['field_name'];
+    if (db_table_exists($table_name)) {
+      db_delete($table_name)->condition('entity_type', 'node')->condition('revision_id', $subquery, 'NOT IN')->execute();
+    }
+  }
+}
+
+/**
+ * Use httprl for advagg building.
+ */
+function scratchpads_tweaks_update_7094()
+{
+  scratchpads_tweaks_update_7081();
+}
+
+/**
+ * Allow a site to hide the revisions tab
+ */
+function scratchpads_tweaks_update_7095()
+{
+  variable_set('subpermissions_config', array(
+    'show download links' => 'show download links',
+    'post comments' => 'post comments',
+    'view revisions' => 'view revisions'
+  ));
+}
+
+/**
+ * Disable the EOL module Enable the scratchpads_col module
+ */
+function scratchpads_tweaks_update_7096()
+{
+  drupal_flush_all_caches();
+  module_disable(array(
+    'eol'
+  ));
+  drupal_uninstall_modules(array(
+    'eol'
+  ));
+  module_enable(array(
+    'scratchpads_col'
+  ));
+}
+
+/**
+ * Remove reference to cc-mirror, default to i.creativecommons.org
+ */
+function scratchpads_tweaks_update_7097()
+{
+  variable_del('creative_commons_image_uri');
+}
+
+/**
+ * Disable GBIF registry client module & grant maintainers administer field permissions
+ */
+function scratchpads_tweaks_update_7098()
+{
+  drupal_flush_all_caches();
+  module_disable(array(
+    'scratchpads_gbif_registry_client'
+  ));
+  $permissions = array('administer fields');
+  $role = user_role_load_by_name('maintainer');
+  user_role_grant_permissions($role->rid, $permissions);
+}
+
+/**
+ * Grant maintainers GBIF registry client config permissions
+ */
+function scratchpads_tweaks_update_7099()
+{
+  drupal_flush_all_caches();
+  // If module is enabled, allow mainters config rights
+  if (module_exists('scratchpads_gbif_registry_client')) {
+    $permissions = array('configure scratchpads gbif registry client');
+    $role = user_role_load_by_name('maintainer');
+    user_role_grant_permissions($role->rid, $permissions);
+  }
+}
+
+/**
+ * Disable the scratchpads_col module
+ */
+function scratchpads_tweaks_update_7100()
+{
+  global $base_url;
+  if($base_url == 'http://classifications.scratchpads.org') {
+    return;
+  }
+
+  drupal_flush_all_caches();
+  module_disable(array(
+    'scratchpads_col'
+  ));
+  drupal_uninstall_modules(array(
+    'scratchpads_col'
+  ));
+}
+
+/**
+ * Allow html5 video in WYSIWYG fields
+ *
+ * @return void
+ */
+function scratchpads_tweaks_update_7101(){
+  $format = filter_format_load('filtered_html');
+
+  $filters = filter_list_format($format->format);
+
+  $format->filters = array_map(function($f){ return (array) $f; }, $filters);
+
+  $filter_html = $format->filters['filter_html'];
+
+  if(strpos($filter_html['settings']['allowed_html'], '<video>') == false){
+    $format->filters['filter_html']['settings']['allowed_html'].=' <video>';
+
+    filter_format_save($format);
+  }
+}

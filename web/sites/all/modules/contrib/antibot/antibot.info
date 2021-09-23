@@ -1,0 +1,10 @@
+name = Antibot
+description = Prevent forms from being submitted without JavaScript enabled
+core = 7.x
+configure = admin/config/system/antibot
+
+; Information added by Drupal.org packaging script on 2018-06-11
+version = "7.x-1.2"
+core = "7.x"
+project = "antibot"
+datestamp = "1528676285"

@@ -1,0 +1,332 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Role Delegation module.
+ */
+
+/**
+ * Base class for Role Delegation tests.
+ */
+class RoleDelegationTestCase extends DrupalWebTestCase {
+
+  protected $rid_high, $rid_low, $user_high, $user_low;
+  
+  /**
+   * Assign or remove one role to/from one user.
+   *
+   * The logged in user must have the "administer users"
+   * permission in order for this function to succeed.
+   *
+   * @param $rid
+   *   The role id of the role to assign or remove.
+   * @param $user
+   *   The user object of the user to assign/remove the role to.
+   * @param $assign
+   *   TRUE (the default) to assign the role, or
+   *   FALSE to remove it.
+   *   
+   * @return
+   *   TRUE or FALSE depending on whether the role was 
+   *   successfully assigned or removed.
+   */
+  protected function assignRoleToUser($rid, $user, $assign = TRUE) {
+    $this->drupalGet("user/{$user->uid}/edit");
+    if (count($this->xpath("//input[@name='roles[$rid]']"))) {
+      $name = "roles[$rid]";
+    }
+    elseif (count($this->xpath("//input[@name='roles_change[$rid]']"))) {
+      $name = "roles_change[$rid]";
+    }
+    else {
+      return FALSE;
+    }
+    $this->drupalPost(NULL, array($name => $assign), t('Save'));
+    
+    $elements = $this->xpath("//input[@name='$name']");
+    return isset($elements[0]) && ($assign XOR empty($elements[0]['checked']));
+  }
+  
+  /**
+   * Assign or remove one permission to/from one role, and assert
+   * that the result succeeded.
+   *
+   * @param $permission
+   *   The name of the permission to assign or remove.
+   * @param $rid
+   *   The role id of the role to assign/remove the permission to/from.
+   * @param $assign
+   *   TRUE (the default) to assign the permission, or
+   *   FALSE to remove it.
+   *
+   * @return
+   *   TRUE or FALSE depending on whether the permission was
+   *   successfully assigned or removed.
+   */
+  protected function assignPermissionToRole($permission, $rid, $assign = TRUE) {
+    $name = "{$rid}[{$permission}]";
+    $this->drupalPost("admin/people/permissions/$rid", array($name => $assign), t('Save permissions'));
+    $elements = $this->xpath("//input[@name='$name']");
+    $this->assertTrue(
+      isset($elements[0]) && ($assign XOR empty($elements[0]['checked'])),
+      ($assign ? 'Assign' : 'Remove') . ' permission "' . $permission . '" ' . ($assign ? 'to' : 'from') . " role $rid."
+    );
+  }
+  
+  public function setUp() {
+
+    // Enable modules
+    parent::setUp('role_delegation');
+
+    // Create roles
+    $this->rid_high = $this->drupalCreateRole(array(), 'high');
+    $this->rid_low  = $this->drupalCreateRole(array(), 'low' );
+    
+    // Create users
+    $this->user_high = $this->drupalCreateUser(array('administer users'));
+    $this->user_low  = $this->drupalCreateUser(array('administer users'));
+
+    // Create privileged user and log in
+    $this->drupalLogin($this->drupalCreateUser(array('administer users', 'administer permissions')));
+    
+    // Assign permissions to roles
+    $this->assignPermissionToRole('assign low role', $this->rid_high);  // 'high' can assign 'low'
+    
+    // Assign roles to users
+    $this->assertTrue(
+      $this->assignRoleToUser($this->rid_high, $this->user_high),
+      'Assign high role to high user'
+    );
+  }
+}
+
+/**
+ * Functional tests for permissions.
+ */
+class RoleDelegationPermissionsTestCase extends RoleDelegationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Permissions'),
+      'description' => t('Check that role assignment permissions are enforced.'),
+      'group' => t('Role Delegation'),
+    );
+  }
+
+  /**
+   * Check that high role can assign low role.
+   */
+  public function testHighLow() {
+    $this->drupalLogin($this->user_high);
+    $this->assertTrue(
+      $this->assignRoleToUser($this->rid_low, $this->user_low),  // could be any user
+      t('!role1 role can assign !role2 role.', array('!role1' => 'High', '!role2' => 'low')),
+      t('Role Delegation')
+    );
+  }
+
+  /**
+   * Check that high role can't assign high role.
+   */
+  public function testHighHigh() {
+    $this->drupalLogin($this->user_high);
+    // Just check that no option is presented to the user.
+    $this->assertFalse(
+      $this->assignRoleToUser($this->rid_high, $this->user_high),  // could be any user
+      t("!role1 role can't assign !role2 role.", array('!role1' => 'High', '!role2' => 'high')),
+      t('Role Delegation')
+    );
+  }
+  
+  /**
+   * Check that roles can't be assigned by forgery.
+   */
+  public function testRoleForgery() {
+    $this->drupalLogin($this->user_high);
+
+    // Have the nefarious high user forge an option to assign the high role...
+    $this->drupalGet("user/{$this->user_low->uid}/edit");
+    $name = "roles_change[{$this->rid_low}]";
+    $input = $this->xpath("//input[@name='$name']");
+    $dome = dom_import_simplexml($input[0]);
+    $dome->setAttribute('value', $this->rid_high);
+
+    // ... then submit the form, and check that he didn't get the role.
+    $this->drupalPost(NULL, array($name => TRUE), t('Save'));
+    $this->assertRaw(
+      t('An illegal choice has been detected. Please contact the site administrator.'),
+      t('Role assignment forgery is blocked.') . ' (#1)',
+      t('Role Delegation')
+    );
+    $this->assertFieldByName(
+      $name,
+      $this->rid_low,
+      t('Role assignment forgery is blocked.') . ' (#2)',
+      t('Role Delegation')
+    );
+  }
+}
+
+/**
+ * Functional tests for operations.
+ */
+class RoleDelegationOperationsTestCase extends RoleDelegationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Operations'),
+      'description' => t('Check that role assignment bulk operations are available and work as intended.'),
+      'group' => t('Role Delegation'),
+    );
+  }
+
+  /**
+   * Check that the right combination of Add and Remove role
+   * operations is present in the user bulk update form.
+   */
+  public function testOperationsExist() {
+
+    $this->drupalLogin($this->user_high);
+    $this->drupalGet('admin/people');
+
+    $this->assertFieldByXPath(
+      '//select[@name="operation"]//option',
+      "role_delegation_add_role-{$this->rid_low}",
+      t("!user user can use Add !role role operation.", array('!user' => 'High', '!role' => 'low')),
+      t('Role Delegation')
+    );
+    $this->assertFieldByXPath(
+      '//select[@name="operation"]//option',
+      "role_delegation_remove_role-{$this->rid_low}",
+      t("!user user can use Remove !role role operation.", array('!user' => 'High', '!role' => 'low')),
+      t('Role Delegation')
+    );
+    $this->assertNoFieldByXPath(
+      '//select[@name="operation"]//option',
+      "role_delegation_add_role-{$this->rid_high}",
+      t("!user user can't use Add !role role operation.", array('!user' => 'High', '!role' => 'high')),
+      t('Role Delegation')
+    );
+    $this->assertNoFieldByXPath(
+      '//select[@name="operation"]//option',
+      "role_delegation_remove_role-{$this->rid_high}",
+      t("!user user can't use Remove !role role operation.", array('!user' => 'High', '!role' => 'high')),
+      t('Role Delegation')
+    );
+  }
+
+  /**
+   * Check that Add and Remove role operations work as intended.
+   */
+  public function testOperationsWork() {
+
+    $uids_to_test = array($this->user_high->uid, $this->user_low->uid);
+    $edit = array();
+    foreach ($uids_to_test as $uid) {
+      $edit["accounts[$uid]"] = TRUE;
+    }
+
+    $this->drupalLogin($this->user_high);
+    $this->drupalGet('admin/people');
+
+    // Add low role
+    $edit['operation'] = "role_delegation_add_role-{$this->rid_low}";
+    $this->drupalPost(NULL, $edit, t('Update'));
+    foreach ($uids_to_test as $uid) {
+      $this->assertFieldByXPath(
+        "//tbody/tr[$uid]/td[4]//li",
+        'low',
+        t('!user user assigned !role role to user !uid.',  array('!user' => 'High', '!role' => 'low', '!uid' => $uid)),
+        t('Role Delegation')
+      );
+    }
+
+    // Remove low role
+    $edit['operation'] = "role_delegation_remove_role-{$this->rid_low}";
+    $this->drupalPost(NULL, $edit, t('Update'));
+    foreach ($uids_to_test as $uid) {
+      $this->assertNoFieldByXPath(
+        "//tbody/tr[$uid]/td[4]//li",
+        'low',
+        t('!user user removed !role role from user !uid.', array('!user' => 'High', '!role' => 'low', '!uid' => $uid)),
+        t('Role Delegation')
+      );
+    }
+  }
+
+  /**
+   * Check that operations can't be forged.
+   */
+  public function testOperationsForgery() {
+    $this->drupalLogin($this->user_high);
+    $this->drupalGet('admin/people');
+    
+    // Forge an operation to add the high role...
+    $option = $this->xpath("//select[@name='operation']//option[@value='role_delegation_add_role-{$this->rid_low}']");
+    if (count($option)==0) {
+      return;
+    }
+    $dome = dom_import_simplexml($option[0]);
+    $dome->setAttribute('value', "role_delegation_add_role-{$this->rid_high}");
+    
+    // ... then submit the form, and check that it wasn't granted.
+    $edit = array(
+      "accounts[{$this->user_low->uid}]" => TRUE,
+      "operation" => "role_delegation_add_role-{$this->rid_high}",
+    );
+    $this->drupalPost(NULL, $edit, t('Update'));
+    $this->assertRaw(
+      t('An illegal choice has been detected. Please contact the site administrator.'),
+      t('Role assignment forgery is blocked.') . ' (#1)',
+      t('Role Delegation')
+    );
+    $this->assertNoFieldByXPath(
+      "//tbody/tr[{$this->user_high->uid}]/td[4]//li",
+      'high',
+      t('Role assignment forgery is blocked.') . ' (#2)',
+      t('Role Delegation')
+    );
+  }
+  
+}
+
+
+/**
+ * Functional tests for editing roles.
+ */
+class RoleDelegationRoleEditingTestCase extends RoleDelegationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Role editing'),
+      'description' => t('Check that role assignment permissions are updated correctly when roles are renamed or deleted.'),
+      'group' => t('Role Delegation'),
+    );
+  }
+
+  /**
+   * Rename a role, and check that users that had permission to assign
+   * the old role now have permission to assign the new one.
+   */
+  public function testRenameRole() {
+    $this->drupalPost("admin/people/permissions/roles/edit/{$this->rid_low}", array('name' => 'new low'), t('Save role'));
+    $this->drupalGet('admin/people/permissions');
+    $this->assertFieldChecked(
+      "edit-{$this->rid_high}-assign-new-low-role",
+      t('Permissions are updated when role is renamed.'),
+      t('Role Delegation')
+    );
+  }
+
+  /**
+   * Delete a role, then create a new one with the same name.
+   * Check that no users have permission to assign the new role.
+   */
+  public function testDeleteRole() {
+    $this->drupalPost("admin/people/permissions/roles/delete/{$this->rid_low}", NULL, t('Delete'));
+    $this->drupalPost('admin/people/permissions/roles', array('name' => 'low'), t('Add role'));
+    $this->drupalGet('admin/people/permissions');
+    $this->assertNoFieldChecked(
+      "edit-{$this->rid_high}-assign-low-role",
+      t('Permissions are updated when role is deleted.'),
+      t('Role Delegation')
+    );
+  }
+}

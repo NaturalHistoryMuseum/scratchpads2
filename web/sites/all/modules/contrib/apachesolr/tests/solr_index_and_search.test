@@ -1,0 +1,354 @@
+<?php
+
+abstract class AbstractDrupalSolrOnlineWebTestCase extends DrupalWebTestCase {
+
+  protected $solr;
+
+  protected $solr_available = FALSE; // workaround for drupal.org test bot
+
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    // Install modules needed for this test. This could have been passed in as
+    // either a single array argument or a variable number of string arguments.
+    $modules = func_get_args();
+    if (isset($modules[0]) && is_array($modules[0])) {
+      $modules = $modules[0];
+    }
+    $modules[] = 'apachesolr';
+    $modules[] = 'apachesolr_search';
+    $modules[] = 'search';
+
+    parent::setUp($modules);
+  }
+
+  function setUpSolr() {
+    // Load the default server.
+    $env_id = apachesolr_default_environment();
+    $environment = apachesolr_environment_load($env_id);
+    $this->base_solr_url = $environment['url'];
+
+    // Because we are in a clean environment, this will always be the default
+    // http://localhost:8983/solr
+    $this->core_admin_url = "{$this->base_solr_url}/admin/cores";
+
+    // The core admin url will give a valid response if the
+    // Solr server is running locally.
+    if ($this->coreAdminAvailable()) {
+
+      // We will use a core named after the simpletest prefix.
+      $environment['url'] .= '/' . $this->databasePrefix;
+
+      $filesdir = file_directory_temp();
+      // Create our Solr core directory.
+      drupal_mkdir("{$filesdir}/solr", 0777, TRUE);
+      // Our temporary core is located here.
+      $instancedir = realpath($filesdir . "/solr");
+
+      // use the Solr version confs where appropriate.
+      $version = $this->getSolrVersion();
+      if (isset($version) && $version == 3) {
+        $conf_path = dirname(__FILE__) . '/../solr-conf/solr-3.x/*';
+      }
+      elseif (isset($version) && $version == 4) {
+        $conf_path = dirname(__FILE__) . '/../solr-conf/solr-4.x/*';
+      }
+      else {
+        $conf_path = dirname(__FILE__) . '/../solr-conf/solr-1.4/*';
+      }
+
+      $patterns = array(
+        $conf_path,
+        dirname(__FILE__) . '/conf/*',
+      );
+
+      // Copy all files in solr-conf dir to our temporary solr core.
+      drupal_mkdir("{$instancedir}/conf", 0777, TRUE);
+      foreach ($patterns as $pattern) {
+        foreach (glob($pattern) as $conf_file) {
+          copy($conf_file, "$instancedir/conf/" . basename($conf_file));
+        }
+      }
+
+      $contents = file_get_contents("$instancedir/conf/solrconfig.xml");
+
+      // Change the autoCommit time down to 1 second.
+      // @todo - use solrcore.properties file for 3.x.
+      file_put_contents("$instancedir/conf/solrconfig.xml", preg_replace('@<maxTime>[0-9]+</maxTime>@', '<maxTime>1000</maxTime>', $contents));
+
+      // hard chmod -R because it seems drupal dirs are too restricted in a
+      // testing environment
+      system("chmod -R 777 {$instancedir}");
+
+      $query['name'] = $this->databasePrefix;
+      $query['instanceDir'] = $instancedir;
+      $created = $this->coreAdmin('CREATE', $query);
+
+      if ($created && apachesolr_server_status($environment['url'])) {
+        $this->instancedir = $instancedir;
+        $this->solr_url = $environment['url'];
+        apachesolr_environment_save($environment);
+        $this->solr = apachesolr_get_solr($env_id);
+        $this->solr_available = TRUE;
+        $this->checkCoreStatus($this->databasePrefix);
+      }
+    }
+    // Workaround for drupal.org test bot.
+    // The tests succeed but further tests will not run because $this->solr_available is FALSE.
+    if (!$this->solr_available) {
+      $this->pass(t('Warning : The solr instance could not be found. Please enable a multicore one on http://localhost:8983/solr'));
+    }
+  }
+
+  protected function coreAdminAvailable() {
+    $url = url($this->core_admin_url, array('query' => array('action' => 'STATUS')));
+    $options['timeout'] = 2;
+    $result = drupal_http_request($url, $options);
+    return ($result->code == 200 && empty($result->error));
+  }
+
+  protected function getSolrVersion() {
+    $status = $this->coreAdmin('STATUS');
+    foreach($status['status'] as $core_id => $core) {
+      $solr = new DrupalApacheSolrService($this->base_solr_url . '/' . $core_id);
+      $version = $solr->getSolrVersion();
+      if (!empty($version)) {
+        return $version;
+      }
+      else {
+        return "1";
+      }
+    }
+  }
+
+  /**
+   * Helper function to invoke core admin actions.
+   */
+  protected function coreAdmin($action, $query = array()) {
+    $query['action'] = $action;
+    $query['wt'] = 'json';
+    $url = url($this->core_admin_url, array('query' => $query));
+    $options['timeout'] = 2;
+    $result = drupal_http_request($url, $options);
+
+    if ($result->code == 200) {
+      return json_decode($result->data, TRUE);
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Helper function to verify that the expected core exists.
+   */
+  protected function checkCoreStatus($core_name) {
+    $response = $this->coreAdmin('STATUS', array('core' => $core_name));
+    $this->assertTrue(isset($response['status'][$core_name]['index']), 'Found Solr test core index status');
+  }
+
+  function tearDown() {
+    // Workaround for drupal.org test bot
+    if ($this->solr_available) {
+      // Unload the Solr core & delete all files
+      $query = array(
+        'core' => $this->databasePrefix,
+        'deleteIndex' => 'true',
+        'deleteDataDir' => 'true',
+        'deleteInstanceDir' => 'true'
+      );
+      // This is currently broken due to
+      // https://issues.apache.org/jira/browse/SOLR-3586
+      $this->coreAdmin('UNLOAD', $query);
+
+    }
+    parent::tearDown();
+  }
+}
+
+
+class DrupalSolrOnlineWebTestCase extends AbstractDrupalSolrOnlineWebTestCase {
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    parent::setUp();
+    parent::setUpSolr();
+  }
+}
+
+
+class DrupalSolrMatchTestCase extends DrupalSolrOnlineWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Solr Index Data and test live queries',
+      'description' => 'Indexes content and queries it.',
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  /**
+   * Test search indexing.
+   */
+  function testMatching() {
+    if ($this->solr_available) { // workaround for drupal.org test bot
+      $this->assertTrue($this->solr->ping(), "The Server could be Pinged");
+      $response = $this->solr->search("*:*", array());
+      $response = $response->response;
+      $this->assertEqual($response->numFound, 0, "There should not be any documents in the index");
+      $this->populateIndex(7);
+      $response = $this->solr->search("*:*", array());
+      $response = $response->response;
+      $this->assertEqual($response->numFound, 7, "There should be 7 documents in the index");
+      $this->_testQueries();
+    }
+  }
+
+  /**
+   * Set up a small index of items to test against.
+   */
+  protected function populateIndex($count) {
+
+    variable_set('minimum_word_size', 3);
+    for ($i = 1; $i <= $count; ++$i) {
+      $documents[] = $this->buildDocument(array('entity_id' => $i, 'content' => $this->getText($i)));
+    }
+    $this->solr->addDocuments($documents);
+    $this->solr->commit();
+  }
+
+  protected function buildDocument($values = array()) {
+    $document = new ApacheSolrDocument();
+    if (!isset($values['entity_type'])) {
+       $values['entity_type'] = 'fake.';
+    }
+    $document->id = apachesolr_document_id($values['entity_id'], $values['entity_type']);
+    foreach ($values as $key => $value) {
+      $document->$key = $value;
+    }
+    return $document;
+  }
+
+  /**
+   * Helper method for generating snippets of content.
+   *
+   * Generated items to test against:
+   *   1  ipsum
+   *   2  dolore sit
+   *   3  sit am ut
+   *   4  am ut enim am
+   *   5  ut enim am minim veniam
+   *   6  enim am minim veniam es cillum
+   *   7  am minim veniam es cillum dolore eu
+   */
+  function getText($n) {
+    // Start over after 7.
+    $n = $n % 7;
+    $words = explode(' ', "Ipsum dolore sit am. Ut enim am minim veniam. Es cillum dolore eu.");
+    return implode(' ', array_slice($words, $n - 1, $n));
+  }
+
+  /**
+   * Run predefine queries looking for indexed terms.
+   */
+  function _testQueries() {
+    /*
+      Note: OR queries that include short words in OR groups are only accepted
+      if the ORed terms are ANDed with at least one long word in the rest of the query.
+
+      e.g. enim dolore OR ut = enim (dolore OR ut) = (enim dolor) OR (enim ut) -> good
+      e.g. dolore OR ut = (dolore) OR (ut) -> bad
+
+      This is a design limitation to avoid full table scans.
+
+      APACHESOLR NOTE: These are not all in lucene syntax... @TODO.  Still works for text searching
+    */
+    $queries = array(
+      // Simple AND queries.
+      'ipsum' => array(1),
+      'enim' => array(4, 5, 6),
+      'xxxxx' => array(),
+      // Mixed queries.
+      '"minim am veniam es" OR "dolore sit"' => array(2),
+      '"minim am veniam es" OR "sit dolore"' => array(),
+      '"am minim veniam es" -eu' => array(6),
+      '"am minim veniam" -"cillum dolore"' => array(5, 6),
+    );
+    $broken = array(
+      'enim minim' => array(5, 6),
+      'enim xxxxx' => array(),
+      'dolore eu' => array(7),
+      'dolore xx' => array(),
+      'ut minim' => array(5),
+      'xx minim' => array(),
+      'enim veniam am minim ut' => array(5),
+      // Simple OR queries.
+      'dolore OR ipsum' => array(1, 2, 7),
+      'dolore OR xxxxx' => array(2, 7),
+      'dolore OR ipsum OR enim' => array(1, 2, 4, 5, 6, 7),
+      'minim dolore OR ipsum OR enim' => array(5, 6, 7),
+      'xxxxx dolore OR ipsum' => array(),
+      // Negative queries.
+      'dolore -sit' => array(7),
+      'dolore -eu' => array(2),
+      'dolore -xxxxx' => array(2, 7),
+      'dolore -xx' => array(2, 7),
+      // Phrase queries.
+      '"dolore sit"' => array(2),
+      '"sit dolore"' => array(),
+      '"am minim veniam es"' => array(6, 7),
+      '"minim am veniam es"' => array(),
+      'xxxxx "minim am veniam es" OR dolore' => array(),
+      'xx "minim am veniam es" OR dolore' => array(),
+      // Mixed queries.
+      '"am minim veniam es" OR dolore' => array(2, 6, 7),
+      '"am minim veniam" -"dolore cillum"' => array(5, 6, 7),
+    );
+    foreach ($queries as $query => $results) {
+      $response = $this->solr->search($query, array());
+      $this->_testQueryMatching($query, $response->response->docs, $results);
+      //@TODO: We might get to this later
+      #$this->_testQueryScores($query, $response->responses->docs, $results);
+    }
+  }
+
+  /**
+   * Test the matching abilities of the engine.
+   *
+   * Verify if a query produces the correct results.
+   */
+  function _testQueryMatching($query, $set, $results) {
+    // Get result IDs.
+    $found = array();
+    foreach ($set as $item) {
+      $found[] = $item->entity_id;
+    }
+    // Compare $results and $found.
+    sort($found);
+    sort($results);
+    $this->assertEqual($found, $results, strtr("Query matching '$query' found: @found expected: @expected", array('@found' => implode(',', $found), '@expected' => implode(',', $results))));
+  }
+
+  /**
+   * Test the scoring abilities of the engine.
+   *
+   * Verify if a query produces normalized, monotonous scores.
+   */
+  function _testQueryScores($query, $set, $results) {
+    // Get result scores.
+    $scores = array();
+    foreach ($set as $item) {
+      $scores[] = $item->score;
+    }
+
+    // Check order.
+    $sorted = $scores;
+    sort($sorted);
+    $this->assertEqual($scores, array_reverse($sorted), "Query order '$query'");
+
+    // Check range.
+    $this->assertEqual(!count($scores) || (min($scores) > 0.0 && max($scores) <= 1.0001), TRUE, "Query scoring '$query'");
+  }
+
+}

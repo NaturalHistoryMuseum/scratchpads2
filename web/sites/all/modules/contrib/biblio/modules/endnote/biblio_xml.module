@@ -1,0 +1,173 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function biblio_xml_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_xml') . '/views',
+  );
+}
+
+/**
+ * Add the xml option to the option list of the biblio_import_form
+ * the key is the module name use by module_invoke to call hook_biblio_import
+ * module_invoke('biblio_xml', 'biblio_import',...)
+ */
+function biblio_xml_biblio_import_options() {
+  return array('biblio_xml' => t('EndNote XML'));
+}
+
+/**
+ *
+ */
+function biblio_xml_biblio_mapper_options() {
+  return array(
+    'endnote7' => array(
+      'title' => t('EndNote 7 XML'),
+      'export' => TRUE,
+    ),
+    'endnote8' => array(
+      'title' => t('EndNote X3 XML'),
+      'export' => TRUE,
+    ),
+  );
+}
+
+/**
+ *
+ */
+function biblio_xml_biblio_export_options() {
+  return array('xml' => t('EndNote XML'));
+}
+
+/**
+ *
+ */
+function biblio_xml_node_view($node, $view_mode) {
+  if ($node->type == 'biblio') {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $links = biblio_xml_biblio_export_link($node->nid);
+        $node->content['links']['biblio_xml'] = array(
+          '#links' => $links,
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+/**
+ * Creates a link to export a node (or view) in xml format.
+ *
+ * @param $base
+ *   this is the base url (defaults to /biblio)
+ * @param $nid
+ *   the node id, if NULL then the current view is exported
+ *
+ * @return a link (<a href=...>xml</a>)
+ */
+function biblio_xml_biblio_export_link($nid = NULL, $filter = array()) {
+  $show_link = variable_get('biblio_export_links', array('xml' => TRUE));
+  if (!isset($show_link['xml']) || empty($show_link['xml']) || !biblio_access('export')) {
+    return array();
+  }
+  $base = variable_get('biblio_base', 'biblio');
+
+  $link = array();
+  $link['attributes']['title'] = t("Click to download the EndNote XML formatted file");
+  $link['attributes'] += array('rel' => 'nofollow');
+
+  $link['href'] = "$base/export/xml";
+  if (!empty($nid)) {
+    $link['href'] .= '/' . $nid;
+  }
+  $link['title'] = t('EndNote XML');
+
+  // Add any filters which may be on the current page.
+  if (empty($nid) && !empty($filter)) {
+    $link['query'] = $filter;
+  }
+  return array('biblio_xml' => $link);
+}
+
+/**
+ *
+ */
+function biblio_xml_node_delete($node) {
+  if ($node->type != 'biblio') {
+    return;
+  }
+  db_delete('biblio_xml')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ *
+ */
+function biblio_xml_node_insert($node) {
+  if ($node->type != 'biblio' || !isset($node->biblio_xml_md5)) {
+    return;
+  }
+  drupal_write_record('biblio_xml', $node);
+}
+
+/**
+ *
+ */
+function biblio_xml_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
+  module_load_include('inc', 'biblio_xml', 'endnote_xml_parser');
+
+  $nids = array();
+  $dups = array();
+
+  $parser = new EndNoteXMLParser();
+
+  list($nids, $dups) = $parser->parse($file, $terms, $batch, $session_id);
+
+  return array($nids, $dups);
+}
+
+/**
+ *
+ */
+function biblio_xml_biblio_export($nids) {
+  module_load_include('inc', 'biblio_xml', 'endnote8_export');
+  drupal_add_http_header('Content-type', 'application/xml; charset=utf-8');
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="Biblio-EndNote.xml"');
+
+  print _endnote8_XML_export('', 'begin');
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
+    // $node = node_load($nid, FALSE, TRUE);.
+    if (variable_get('biblio_hide_bibtex_braces', 0)) {
+      $node->title = biblio_remove_brace($node->title);
+    }
+    print _endnote8_XML_export($node);
+  }
+
+  print _endnote8_XML_export('', 'end');
+}
+
+/**
+ *
+ */
+function biblio_xml_endnote8_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_xml', 'biblio_xml');
+  _reset_endnote_xml_map('endnote8', $type);
+}
+
+/**
+ *
+ */
+function biblio_xml_endnote7_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_xml', 'biblio_xml');
+  _reset_endnote_xml_map('endnote7', $type);
+}

@@ -1,0 +1,104 @@
+# translation of el.po to Greek
+# Greek translation of potx.module
+# $Id: el.po,v 1.1.4.3 2008/08/26 13:46:21 goofyx Exp $
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  potx.module,v 1.1.2.9 2007/05/02 12:56:31 ray007
+#  potx.info,v 1.1.2.3 2007/03/27 19:40:09 goba
+#
+# Vasileios Lourdas <lourdas_v@yahoo.gr>, 2007.
+# Vasileios Lourdas <vasilis@lourdas.name>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: el\n"
+"POT-Creation-Date: 2008-07-28 18:49+0200\n"
+"PO-Revision-Date: 2008-08-26 16:45+0300\n"
+"Last-Translator: Vasileios Lourdas <vasilis@lourdas.name>\n"
+"Language-Team: Greek <el@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: potx.module:20
+msgid "This page allows you to generate translation templates for module and theme files. Select the module or theme you wish to generate a template file for. A single Gettext Portable Object (Template) file is generated, so you can easily save it and start translation."
+msgstr "Η σελίδα επιτρέπει τη δημιουργία αρχείων-πρότυπα μεταφράσεων για τα αρχεία των μονάδων και των θεματικών παραλλαγών. Επιλέξτε τη μονάδα ή θεματική παραλλαγή για την οποία θέλετε να δημιουργήσετε το αρχείο-πρότυπο. Ένα μοναδικό αρχείο Gettext Portable Object Template δημιουργείται, ώστε να μπορείτε να το αποθηκεύσετε και να ξεκινήσετε τη μετάφραση."
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr "Πρότυπο ανεξαρτήτου γλώσσας"
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr "Αρχείο-πρότυπο για τις γλώσσες !langname"
+
+#: potx.module:62
+msgid "Template language"
+msgstr "Γλώσσα προτύπου"
+
+#: potx.module:65
+msgid "Export a language independent or language dependent (plural forms, language team name, etc.) template."
+msgstr "Εξαγωγή προτύπου ανεξάρτητου γλώσσας ή σχετιζόμενου με γλώσσα (όροι στην πληθυντική, όνομα ομάδας γλώσσας, κτλ.)."
+
+#: potx.module:69
+msgid "Include translations"
+msgstr "Συμπερίληψη των μεταφράσεων"
+
+#: potx.module:70
+msgid "Include translations of strings in the file generated. Not applicable for language independent templates."
+msgstr "Να συμπεριληφθούν οι μεταφράσεις των φράσεων στο αρχείο που θα δημιουργηθεί. Δεν ισχύει για πρότυπα ανεξαρτήτου γλώσσας."
+
+#: potx.module:76;29
+msgid "Extract"
+msgstr "Εξαγωγή"
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr "Πρέπει να επιλέξετε ένα συστατικό για εξαγωγή."
+
+#: potx.module:185
+msgid "Extract from %name in the %directory directory"
+msgstr "Εξαγωγή από το %name στον κατάλογο %directory"
+
+#: potx.module:186
+msgid "Generates output from all files found in this directory."
+msgstr "Δημιουργεί έξοδο από όλα τα αρχεία που υπάρχουν στον κατάλογο."
+
+#: potx.module:201
+msgid "Extract from all in directory \"@directory\""
+msgstr "Εξαγωγή από όλα τα συστατικά στον κατάλογο \"@directory\""
+
+#: potx.module:202
+msgid "To extract from a single component in this directory, choose the desired entry in the fieldset below."
+msgstr "Για την εξαγωγή ενός μόνο συστατικού σε αυτό τον κατάλογο, επιλέξτε το όνομα του επιθυμητού συστατικού στο πεδίο παρακάτω."
+
+#: potx.module:211
+msgid "Directory \"@directory\""
+msgstr "Κατάλογος \"@directory\""
+
+#: potx.module:232
+msgid "Extract from %name"
+msgstr "Εξαγωγή από το %name"
+
+#: potx.module:233
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr "Εξαγωγή από αρχεία με ονόματα %pattern στον κατάλογο %directory."
+
+#: potx.module:303
+msgid "Interface text translatability"
+msgstr "Δυνατότητα μετάφρασης του κειμένου διεπαφής"
+
+#: potx.module:0
+msgid "potx"
+msgstr "potx"
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr "Εργαλείο εξαγωγής προτύπων μετάφρασης"
+
+#: potx.info:0
+msgid "Provides a web interface and an API to extract translatable text from the sources of installed components."
+msgstr "Παρέχει μια διεπαφή ιστοσελίδας και ένα API για την εξαγωγή μεταφράσιμων αρχείων από τον πηγαίο κώδικα των εγκατεστημένων συστατικών."
+

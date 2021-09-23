@@ -1,0 +1,15 @@
+name = "Forum"
+description = "Provides discussion forums."
+configure = admin/structure/forum
+core = "7.x"
+dependencies[] = "forum"
+dependencies[] = "context"
+dependencies[] = "ctools"
+features[context][] = "forum_node"
+features[ctools][] = "context:context:3"
+package = Forum
+tool = true
+php = "5.2.4"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_forum

@@ -1,0 +1,9 @@
+name = Taxonomy statistics
+description = "Displays statistics for terms and whole classifications on the species pages."
+dependencies[] = taxonomy
+dependencies[] = simple_google_charts
+core = 7.x
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = taxonomystatistics
+tool = true

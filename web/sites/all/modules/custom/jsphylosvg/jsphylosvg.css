@@ -1,0 +1,12 @@
+.jsphylosvg.rectangular-constrain{
+  max-height:500px;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.jsphylosvg-data{
+  display:none;
+  margin:10px 0;
+}
+.jsphylosvg-save{
+  text-align:right;
+}

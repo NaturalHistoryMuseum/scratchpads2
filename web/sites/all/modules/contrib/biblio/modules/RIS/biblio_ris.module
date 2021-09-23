@@ -1,0 +1,601 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function biblio_ris_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'biblio_ris') . '/views',
+  );
+}
+
+/**
+ * Add the ris option to the option list of the biblio_import_form
+ * the key is the module name use by module_invoke to call hook_biblio_import
+ * module_invoke('biblio_ris', 'biblio_import',...)
+ */
+function biblio_ris_biblio_import_options() {
+  return array('biblio_ris' => t('RIS'));
+}
+
+/**
+ *
+ */
+function biblio_ris_biblio_mapper_options() {
+  return array(
+    'ris' => array(
+      'title' => t('RIS'),
+      'export' => TRUE,
+    ),
+  );
+}
+
+/**
+ *
+ */
+function biblio_ris_biblio_export_options() {
+  return array('ris' => t('RIS'));
+}
+
+/**
+ *
+ */
+function biblio_ris_form_biblio_node_form_alter(&$form, &$form_state) {
+  global $user;
+  if (!$form_state['submitted'] && !isset($form_state['values']) && !isset($form['#node']->nid)) {
+    if (!$form_state['submitted']) {
+      $form['biblio_ris_paste'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Paste RIS Record'),
+        '#weight' => -20,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form['biblio_ris_paste']['paste_data_ris'] = array(
+        '#type' => 'textarea',
+        '#title' => t('RIS'),
+        '#required' => FALSE,
+        '#default_value' => isset($form_state['values']['paste_data_ris']) ? $form_state['values']['paste_data_ris'] : '',
+        '#description' => t('Paste a RIS entry here'),
+        '#size' => 60,
+        '#weight' => -4,
+      );
+      $form['biblio_ris_paste']['paste_submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Populate using RIS'),
+        '#submit' => array('biblio_ris_form_biblio_node_form_submit'),
+      );
+    }
+  }
+  $biblio_ris_id = (isset($form_state['values']['biblio_ris_id'])) ? $form_state['values']['biblio_ris_id'] : '';
+  $biblio_ris_md5 = (isset($form_state['values']['biblio_ris_md5'])) ? $form_state['values']['biblio_ris_md5'] : '';
+  $form['biblio_ris_id'] = array('#type' => 'value', '#value' => $biblio_ris_id);
+  $form['biblio_ris_md5'] = array('#type' => 'value', '#value' => $biblio_ris_md5);
+}
+
+/**
+ *
+ */
+function biblio_ris_form_biblio_node_form_submit($form, &$form_state) {
+  global $user;
+  $node_data = array();
+  $dups = array();
+
+  if (strlen($form_state['values']['paste_data_ris'])) {
+    $node_data = _biblio_ris_import_string($form_state['values']['paste_data_ris']);
+  }
+  if (!empty($node_data) && is_object($node_data)) {
+    $form_state['values'] = array_merge($form_state['values'], (array) $node_data);
+    $form_state['input']['biblio_type'] = $form_state['biblio_type'] = $node_data->biblio_type;
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Creates a link to export a node (or view) in ris format.
+ *
+ * @param $base
+ *   this is the base url (defaults to /biblio)
+ * @param $nid
+ *   the node id, if NULL then the current view is exported
+ *
+ * @return a link (<a href=...>ris</a>)
+ */
+function biblio_ris_biblio_export_link($nid = NULL, $filter = array()) {
+  $show_link = variable_get('biblio_export_links', array('ris' => TRUE));
+  if (!isset($show_link['ris']) || empty($show_link['ris']) || !biblio_access('export')) {
+    return array();
+  }
+  $base = variable_get('biblio_base', 'biblio');
+
+  if (module_exists('popups') && !empty($nid)) {
+    $link = array(
+      'attributes' => array(
+        'class' => 'popups',
+        'title' => t("Click to get the RIS output"),
+      ),
+    );
+  }
+  else {
+    $link = array(
+      'attributes' => array(
+        'title' => t("Click to download the RIS formatted file"),
+      ),
+    );
+  }
+
+  $link['attributes'] += array('rel' => 'nofollow');
+
+  $link['href'] = "$base/export/ris/$nid";
+  $link['title'] = t('RIS');
+
+  // Add any filters which may be on the current page.
+  if (empty($nid) && !empty($filter)) {
+    $link['query'] = $filter;
+  }
+
+  return array('biblio_ris' => $link);
+}
+
+/**
+ *
+ */
+function biblio_ris_node_delete($node) {
+  if ($node->type != 'biblio') {
+    return;
+  }
+  db_delete('biblio_ris')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ *
+ */
+function biblio_ris_node_insert($node) {
+  if (isset($node->biblio_ris_md5)) {
+    drupal_write_record('biblio_ris', $node);
+  }
+}
+
+/**
+ *
+ */
+function biblio_ris_node_view($node, $view_mode) {
+  if ($node->type == 'biblio') {
+    switch ($view_mode) {
+      case 'full':
+      case 'teaser':
+        $links = biblio_ris_biblio_export_link($node->nid);
+        $node->content['links']['biblio_ris'] = array(
+          '#links' => $links,
+          '#attributes' => array('class' => array('links', 'inline')),
+        );
+    }
+  }
+}
+
+/**
+ *
+ */
+function biblio_ris_biblio_import($file, $terms = array(), $batch = FALSE, $session_id = NULL, $save = TRUE, $string = FALSE) {
+  $nids = array();
+  $dups = array();
+  list($nids, $dups) = _biblio_ris_import($file, $terms, $batch, $session_id);
+
+  return array($nids, $dups);
+}
+
+/**
+ *
+ */
+function biblio_ris_biblio_export($nids) {
+
+  if (module_exists('popups') && $nid) {
+    $popup = TRUE;
+  }
+  else {
+    $popup = FALSE;
+    drupal_add_http_header('Content-type', 'application/x-endnote-refer');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="Drupal-Biblio.ris"');
+  }
+
+  $nodes = node_load_multiple($nids, array(), TRUE);
+  foreach ($nodes as $node) {
+    if (variable_get('biblio_hide_bibtex_braces', 0)) {
+      $node->title = biblio_remove_brace($node->title);
+    }
+
+    if (!$popup) {
+      print _biblio_ris_export($node);
+    }
+    else {
+      $popup_data .= _biblio_ris_export($node);
+    }
+  }
+  if ($popup && !empty($popup_data)) {
+    return '<pre>' . $popup_data . '</pre>';
+  }
+
+}
+
+/**
+ *
+ */
+function _biblio_ris_import_string($string) {
+  $tag = '';
+  $node = new stdClass();
+  $unmapped = array();
+
+  $lines = preg_split('/[\r\n]/', $string, -1, PREG_SPLIT_NO_EMPTY);
+  foreach ($lines as $line) {
+    $line_len = strlen($line);
+    if ($line_len > 3) {
+      // There could be some unprintables at the beginning of the line so fine the location of the %.
+      $start = strpos($line, '  -');
+      if ($start !== FALSE) {
+        $tag = drupal_substr($line, $start - 2, 2);
+        $data = trim(drupal_substr($line, $start + 3));
+      }
+      else {
+        $data = $line;
+      }
+    }
+    // If this is not a blank line.
+    if ($line_len > 3 && !empty($tag)) {
+      if ($tag == 'ER') {
+        if (!empty($node)) {
+          $node->biblio_ris_md5 = md5(serialize($node));
+          if (empty($node->title)) {
+            $node->title = t("Untitled");
+          }
+          if (!($dup = biblio_ris_check_md5($node->biblio_ris_md5))) {
+            return $node;
+          }
+          else {
+            $message = t('The RIS node that you are trying to paste into the form already exists in the database, see !url', array('!url' => l('node/' . $dup, 'node/' . $dup)));
+            form_set_error('paste_data_ris', $message);
+            return;
+          }
+        }
+      }
+      else {
+        _biblio_ris_parse_line($tag, $data, $node, $unmapped);
+      }
+    }
+  } // end while
+  if (!empty($unmapped)) {
+    $ignored_tags = array_unique($unmapped);
+    $message = t("The following elements were ignored because they do not map to any biblio fields:") . ' ';
+    $message .= implode(', ', $ignored_tags);
+    if (user_access('administer biblio')) {
+      $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
+    }
+    drupal_set_message($message, 'warning');
+  }
+}
+
+/**
+ *
+ */
+function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
+  ini_set('auto_detect_line_endings', TRUE);
+  if (!($fp = fopen($file->uri, "r"))) {
+    drupal_set_message(t("Could not open RIS input file for reading."), 'error');
+    return;
+  }
+
+  $tag = '';
+  $nids = array();
+  $dups = array();
+  $unmapped = array();
+  $node = new stdClass();
+
+  while (!feof($fp)) {
+    $line = fgets($fp);
+    // Remove any character other than: carriage return, line feed, tab, or ANSI/ASCII character codes 32-255.
+    $line = preg_replace('/[^\r\n\t\x20-\xFF]/', '', $line);
+    $line_len = strlen($line);
+    if ($line_len > 3) {
+      // There could be some unprintables at the beginning of the line so fine the location of the %.
+      $start = strpos($line, '  -');
+      if ($start !== FALSE) {
+        $tag = drupal_substr($line, $start - 2, 2);
+        $data = trim(drupal_substr($line, $start + 3));
+      }
+      else {
+        $data = $line;
+      }
+    }
+    // If this is not a blank line.
+    if ($line_len > 3 && !empty($tag)) {
+      if ($tag == 'ER') {
+        if (!empty($node)) {
+          $node->biblio_ris_md5 = md5(serialize($node));
+          if (empty($node->title)) {
+            $node->title = t("Untitled");
+          }
+          if (!($dup = biblio_ris_check_md5($node->biblio_ris_md5))) {
+            biblio_save_node($node, $terms, $batch, $session_id);
+            if (!empty($node->nid)) {
+              $nids[] = $node->nid;
+            }
+          }
+          else {
+            $dups[] = $dup;
+          }
+        }
+
+        $node = new stdClass();
+        $node->biblio_contributors = array();
+      }
+      else {
+        _biblio_ris_parse_line($tag, $data, $node, $unmapped);
+      }
+
+    }
+  } // end while
+
+  fclose($fp);
+
+  if (!empty($unmapped)) {
+    $ignored_tags = array_unique($unmapped);
+    $message = t('The following elements were ignored because they do not map to any biblio fields:') . ' ';
+    $message .= implode(', ', $ignored_tags);
+    if (user_access('administer biblio')) {
+      $message .= '. ' . t('Click !url if you wish to check the field mapping', array('!url' => l(t('here'), 'admin/config/content/biblio/iomap/edit/ris')));
+    }
+    drupal_set_message($message, 'warning');
+  }
+
+  return array($nids, $dups);
+}
+
+/**
+ *
+ */
+function _biblio_ris_parse_line($tag, $data, $node, &$unmapped) {
+  switch ($tag) {
+    case 'TY':
+      $node->biblio_type = _biblio_ris_type_map($data);
+      break;
+
+    case 'A1':
+    case 'AU':
+      $node->biblio_contributors[] = array(
+        'name' => $data,
+        'auth_category' => 1,
+        'auth_type' => _biblio_get_auth_type(1, $node->biblio_type),
+      );
+      break;
+
+    case 'DA':
+      if (!isset($node->biblio_year) || empty($node->biblio_year)) {
+        $node->biblio_year = ($end = strpos($data, "/")) ? substr($data, 0, $end) : $data;
+      }
+      $node->biblio_date = $data;
+      break;
+
+    case 'Y1':
+    case 'PY':
+      if (!isset($node->biblio_year) || empty($node->biblio_year)) {
+        $node->biblio_year = ($end = strpos($data, "/")) ? substr($data, 0, $end) : $data;
+      }
+      if (!isset($node->biblio_date) || empty($node->biblio_date)) {
+        $node->biblio_date = $data;
+      }
+      break;
+
+    case 'A2':
+    case 'ED':
+      $node->biblio_contributors[] = array(
+        'name' => $data,
+        'auth_category' => 2,
+        'auth_type' => _biblio_get_auth_type(2, $node->biblio_type),
+      );
+      break;
+
+    case 'KW':
+      $node->biblio_keywords[] = $data;
+      break;
+
+    case 'SP':
+    case 'EP':
+      if (!isset($node->biblio_pages)) {
+        $node->biblio_pages = '';
+      }
+      $node->biblio_pages .= ($tag == "SP") ? $data : " - " . $data;
+      break;
+
+    case 'A3':
+      $node->biblio_contributors[] = array(
+        'name' => $data,
+        'auth_category' => 5,
+        'auth_type' => _biblio_get_auth_type(5, $node->biblio_type),
+      );
+      break;
+
+    case 'BT':
+      if ($node->biblio_type == 100) {
+        $node->title = $data;
+      }
+      else {
+        $node->biblio_secondary_title = $data;
+      }
+      break;
+
+    default:
+      if ($field = _biblio_ris_field_map($tag)) {
+        if (!isset($node->$field)) {
+          $node->$field = '';
+        }
+        $node->$field .= $data;
+      }
+      else {
+        if (!in_array($tag, $unmapped)) {
+          $unmapped[] = $tag;
+        }
+      }
+  }
+}
+
+/**
+ *
+ */
+function _biblio_ris_export($node) {
+  $reverse = TRUE;
+  $ris = "";
+  $ris .= "TY  - " . _biblio_ris_type_map($node->biblio_type, $reverse) . "\r\n";
+  if (!empty($node->title)) {
+    $ris .= "T1  - " . trim($node->title) . "\r\n";
+  }
+  switch ($node->biblio_type) {
+    case 100:
+    case 101:
+    case 103:
+    case 104:
+    case 105:
+    case 108:
+    case 119:
+      if (!empty($node->biblio_secondary_title)) {
+        $ris .= "T2  - " . trim($node->biblio_secondary_title) . "\r\n";
+      }
+      break;
+
+    case 102:
+      if (!empty($node->biblio_secondary_title)) {
+        $ris .= "JF  - " . trim($node->biblio_secondary_title) . "\r\n";
+      }
+      unset($node->biblio_secondary_title);
+      break;
+
+    // Journal.
+  }
+  if (isset($node->biblio_year) && $node->biblio_year < 9998) {
+    $ris .= "Y1  - " . trim($node->biblio_year) . "\r\n";
+  }
+
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 1) as $auth) {
+    $ris .= "A1  - " . trim($auth['name']) . "\r\n";
+  }
+  foreach (biblio_get_contributor_category($node->biblio_contributors, 2) as $auth) {
+    $ris .= "ED  - " . trim($auth['name']) . "\r\n";
+  }
+
+  $kw_array = array();
+  if (!empty($node->terms)) {
+    foreach ($node->terms as $term) {
+      $kw_array[] = $term->name;
+    }
+  }
+  if (!empty($node->biblio_keywords)) {
+    foreach ($node->biblio_keywords as $term) {
+      $kw_array[] = $term;
+    }
+  }
+  if (!empty($kw_array)) {
+    $kw_array = array_unique($kw_array);
+    foreach ($kw_array as $term) {
+      $ris .= "KW  - " . trim($term) . "\r\n";
+    }
+  }
+  $abst = "";
+  if (!empty($node->biblio_abst_e)) {
+    $abst .= trim($node->biblio_abst_e);
+  }
+  if ($abst) {
+    $search = array("/\r/", "/\n/");
+    $replace = " ";
+    $abst = preg_replace($search, $replace, $abst);
+    $ris .= "AB  - " . $abst . "\r\n";
+  }
+  $skip_fields = array('biblio_year', 'biblio_abst_e', 'biblio_abst_f', 'biblio_type');
+  $fields = drupal_schema_fields_sql('biblio');
+  $fields = array_diff($fields, $skip_fields);
+  foreach ($fields as $field) {
+    if (!empty($node->$field)) {
+      $ris .= _biblio_ris_format_entry($field, $node->$field);
+    }
+  }
+  $ris .= "ER  - \r\n\r\n";
+  return $ris;
+}
+
+/**
+ *
+ */
+function _biblio_ris_format_entry($key, $value) {
+  $reverse = TRUE;
+  $tag = _biblio_ris_field_map($key, $reverse);
+  if (!empty($tag)) {
+    return "$tag  - " . trim($value) . "\r\n";
+  }
+
+}
+
+/**
+ *
+ */
+function _biblio_ris_type_map($type, $reverse = FALSE) {
+  static $map = array();
+  if (empty($map)) {
+    $map = biblio_get_map('type_map', 'ris');
+  }
+
+  if ($reverse) {
+    // Return the biblio type or 129 (Misc) if type not found.
+    return ($tag = array_search($type, $map)) ? $tag : 'Generic';
+  }
+  // Return the biblio type or 129 (Misc) if type not found.
+  return (isset($map[$type])) ? $map[$type] : 129;
+}
+
+/**
+ *
+ */
+function _biblio_ris_field_map($field, $reverse = FALSE) {
+  static $fmap = array();
+  if (empty($fmap)) {
+    $fmap = biblio_get_map('field_map', 'ris');
+  }
+  if ($reverse) {
+    return ($tag = array_search($field, $fmap)) ? $tag : '';
+
+  }
+  return (!empty($fmap[$field])) ? $fmap[$field] : '';
+
+}
+
+/**
+ *
+ */
+function biblio_ris_ris_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_ris', 'biblio_ris');
+  _reset_ris_map($type);
+}
+
+/**
+ *
+ */
+function biblio_ris_check_md5($md5) {
+  static $ris_md5s = array();
+  if (empty($ris_md5s)) {
+    $result = db_query("SELECT * FROM {biblio_ris} ");
+    foreach ($result as $row) {
+      $ris_md5s[$row->biblio_ris_md5] = $row->nid;
+    }
+  }
+  if (isset($ris_md5s[$md5])) {
+    return $ris_md5s[$md5];
+  }
+  else {
+    // Gaurd against duplicates in the same import.
+    $ris_md5s[$md5] = TRUE;
+    return;
+  }
+}

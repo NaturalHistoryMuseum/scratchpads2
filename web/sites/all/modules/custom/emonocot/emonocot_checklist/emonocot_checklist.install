@@ -1,0 +1,21 @@
+<?php
+/**
+ * Ensure views use the right keys as vocabularies are changed to use GBIF vocabularies
+ */
+function emonocot_checklist_update_7000(){
+  $view = views_get_view('checklist_types');
+  if($view && $view->vid){
+    // If the view has an id, it's been modified and saved in database. We must modify the database
+    // version too.
+    $view->display['default']->display_options['filters']['field_type_status_value']['value'] = array(
+      'holotype' => 'holotype',
+      'isotype' => 'isotype',
+      'lectotype' => 'lectotype',
+      'neotype' => 'neotype',
+      'paralectotype' => 'paralectotype',
+      'paratype' => 'paratype',
+      'syntype' => 'syntype'
+    );
+    $view->save();
+  }
+}

@@ -1,0 +1,264 @@
+/* MAIN TUI ELEMENT */
+#tui{
+ position:relative;
+ font-size:90%;
+ line-height:150%;
+}
+#help{
+ /* HIDE HELP */	
+ display:none;
+}
+
+.tui-form-display{
+ font-weight:700;
+}
+
+#tui-tree-container, #tui-form-container, #tui-name-live{
+ padding:3px;
+ border:solid 1px #eee;
+ margin:5px;
+ text-align:justify;
+ color:black;
+ background-color:white;
+ position:relative;
+ top:20px;
+}
+#tui-form-container{	
+ font-size:90% !important;	
+}
+#tui-form-container .form-item{
+ padding: 2px 0;
+}
+#tui-form-container input{
+ max-width:98%;
+ width:98%;
+}
+#tui-form-container input.form-submit{
+ width:auto;
+}
+#tui-form-container .horizontal-tabs-panes fieldset{
+ margin:0;
+ padding:0;
+}
+#tui-name-editing{
+ position:absolute;
+ top:-10px;
+ right:0;
+ text-align:right;
+}
+
+/* TREE */
+
+.tui-has-children.tui-closed>div>span{
+ background-image:url('images/plus.gif');
+}
+.tui-has-children.tui-open>div>span{
+ background-image:url('images/minus.gif');
+}
+.tui-no-children>div>span{
+ background-image:url('images/leaf.gif');	
+}
+.tui-has-children.tui-load>div>span{
+ background-image:url('images/load.gif');	
+}
+#tui-tree span{
+ background-repeat:no-repeat;
+ background-position:50% 50%;
+ padding-left:20px;
+ width:16px;
+ height:16px;
+ cursor:pointer;
+}
+#tui-tree a.edit-term-link{
+ /*background:none;*/
+ display:none;
+ margin-right:2px;
+}
+#tui-tree a.edit-term-link.view{
+ margin-right:10px;
+}
+#tui-tree-subcontainer li {
+ margin: 3px 0 0 0;
+ padding: 0;
+}
+#tui-tree-subcontainer li div  {
+ background-color:#f5f5ff;
+ padding:0;
+ margin:0;
+ cursor:move;
+ border:solid 1px #f3f3f3;
+}
+#tui-tree-subcontainer li div.tui-highlight{
+ background-color:#ffff83;
+}
+.placeholder {
+ background-color: #cfcfcf;
+}
+.ui-nestedSortable-error {
+ background:#fbe3e4;
+ color:#8a1f11;
+}
+#tui-tree ol{
+ margin: 0 0 0 25px;
+ padding: 0;
+ list-style-type: none;
+}
+#tui-tree-subcontainer>ol{
+ margin:5px;
+}
+#tui-tree, #tui-form{
+ margin:0;
+ padding:0;
+ width:50%;
+}
+#tui-form{
+ float:right;
+}
+#tui-tree{
+ float:left;
+}
+
+/* FORM */
+
+.ui-tabs-panel > fieldset, #tui-tree-container, #tui-form-container, #tui-link-box, #tui-name-live{
+ -moz-box-shadow: 2px 2px 2px #999;
+ -webkit-box-shadow: 2px 2px 2px #999;
+ box-shadow: 2px 2px 2px #999;
+}
+
+/* TERM BEING EDITED */
+#tui-name-live{
+ text-align:right;
+}
+#tui-name-live h2, #tui-name-live h3{
+ margin:0;
+ padding:5px;
+}
+#tui-name-live h3{
+  font-weight:400;
+  color:#aaa;
+}
+
+/* LINK BOX */
+#tui-link-box{
+ position:absolute;
+ display:none;
+ border:solid 1px #999;
+ background-color:white;
+ color:black;
+ text-align:left;
+}
+#tui-link-box p{
+ margin:5px !important;
+}
+#tui-link-box textarea{
+ width:400px;
+ height:50px;
+ font-size:80%;
+}
+#tui-tree-container{
+ padding:0;
+}
+
+
+
+
+/* TREE FORM */
+#tui-tree-form{
+ border-bottom:solid 1px #eee;
+ display:none;
+ padding:8px;
+}
+#tui-tree-form input{
+ padding:5px;
+ margin:5px 3px 0 0;
+}
+input.button-no{
+ padding:2px 10px 2px 25px !important;
+}
+#tui-tree-form input.form-autocomplete{
+ padding:2px;
+}
+
+
+
+/* TREE LINKS */
+#tui-tree-links{
+ text-align:right;
+ border-bottom:solid 1px #eee;
+ padding:3px 3px 0 0;
+}
+#tui-tree-links p{
+ margin:0;
+}
+#tui-tree-links #dialog{
+ display:none;
+}
+.ui-dialog{
+ border:solid 1px #999 !important;
+ font-size:90% !important;
+}
+
+/* SEARCH */
+.form-item-tui-search-input{
+ display:inline;
+}
+.form-item-tui-search-input input{
+ width:80%;
+}
+#edit-tui-search-input-button, #edit-tui-cancel-input-button{
+ border:none;
+ background-repeat:no-repeat;
+ background-position:50% 50% !important;
+ width:20px !important;
+ margin:0 !important;
+ padding:0 !important;
+ background-color:white;
+ color:transparent;
+ float:none !important;
+}
+#edit-tui-search-input-button{
+ background-image:url('images/find.png');
+}
+#edit-tui-cancel-input-button{
+ background-image:url('images/cancel.png');
+}
+#tui-search-form, #tui-search-form .form-item, #tui-search-form .form-submit{
+ padding:0 !important;
+ margin:0 !important;
+}
+#tui-search-form .form-item-tui-search-input{
+ border:none !important;
+}
+.tui-form #autocomplete{
+ font-size:90%;
+ width:500px !important;
+ text-align:left;
+ background-color:white;
+ color:black;
+ z-index:1000;
+}
+/* AJAX */
+#tui-tree .progress-disabled,#tui-tree .ajax-progress,#tui-tree .throbber,#tui-tree .edit-term-link{
+ float:right !important;
+}
+#tui-tree .ajax-progress-throbber{
+ background-color: transparent !important;
+ border:none;
+}
+#tui-tree-form .progress-disabled{
+ float:none !important;
+}
+#tui-tree-links .throbber, #tui-tree-links .ajax-progress{
+ float:left !important;
+}
+.ajax-progress .throbber {
+ background-color: transparent !important;  
+ background: transparent url(images/throbber.gif) no-repeat 0px -18px;
+ float:left; /* LTR */
+ border:none !important;
+ height:15px;
+ margin:0 !important;
+ width:13px;
+ padding:0 1px !important;
+}

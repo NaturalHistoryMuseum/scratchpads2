@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function scratchpads_help_schema(){
+  return array(
+    'scratchpads_help' => array(
+      'description' => '',
+      'fields' => array(
+        'path' => array(
+          'description' => '',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'page' => array(
+          'description' => '',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'title' => array(
+          'description' => '',
+          'type' => 'varchar',
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        array(
+          'path',
+          166
+        ),
+        array(
+          'page',
+          166
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Install the scratchpads_help table.
+ */
+function scratchpads_help_update_7001(){
+  $schema = scratchpads_help_schema();
+  db_create_table('scratchpads_help', $schema['scratchpads_help']);
+}

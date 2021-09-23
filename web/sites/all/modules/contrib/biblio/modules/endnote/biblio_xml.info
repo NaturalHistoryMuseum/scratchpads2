@@ -1,0 +1,12 @@
+name = Biblio - EndNote XML
+description = Provides EndNote XML file import and export to the Biblio module.
+core = 7.x
+package = Biblio
+dependencies[] = biblio
+files[] = endnote_xml_parser.inc
+
+; Information added by Drupal.org packaging script on 2020-09-08
+version = "7.x-1.4"
+core = "7.x"
+project = "biblio"
+datestamp = "1599573145"

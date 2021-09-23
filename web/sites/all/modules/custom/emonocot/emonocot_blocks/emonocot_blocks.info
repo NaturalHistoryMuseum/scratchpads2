@@ -1,0 +1,10 @@
+name = eMonocot blocks
+description = Custom blocks for the eMonocots theme.
+package = "eMonocot"
+core = 7.x
+
+dependencies[] = emonocot_views
+dependencies[] = darwincore
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_blocks

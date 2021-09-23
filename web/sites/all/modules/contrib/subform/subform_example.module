@@ -1,0 +1,438 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function subform_example_menu() {
+  $items['subform_example'] = array(
+    'title' => t('Subform Example'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subform_example_wrapperform1'),
+    'access callback' => TRUE,
+  );
+
+  $items['subform-example/multiple-nodes'] = array(
+    'title' => t('Subform Example - Multiple Node Forms'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subform_example_multiple_nodes'),
+    'access callback' => 'node_access',
+    'access arguments' => array('create', 'article'),
+  );
+
+  $items['subform-example/batch'] = array(
+    'title' => t('Subform Example - Batch'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('subform_example_batch_wrapperform'),
+    'access callback' => TRUE
+  );
+  return $items;
+}
+
+/**
+ * Form builder; Wrapper form.
+ */
+function subform_example_wrapperform1($form, &$form_state) {
+  $form['foo'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Foo (wrapper form)'),
+  );
+
+  $form['subform1'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Subform 1'),
+  );
+  $form['subform1']['subform1'] = array(
+    '#type' => 'subform',
+    '#subform_id' => 'subform_example_subform1',
+    '#subform_arguments' => array($form['subform1']['#title']),
+    //'#limit_validation_errors' => TRUE,
+    //'#submit' => array('subform_submit_all', 'subform_example_wrapperform1_submit'),
+    '#required' => FALSE,
+  );
+
+  $form['subform2'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Subform 2'),
+  );
+  $form['subform2']['subform2'] = array(
+    '#type' => 'subform',
+    '#subform_id' => 'subform_example_subform1',
+    '#subform_arguments' => array($form['subform2']['#title']),
+    //'#disabled' => TRUE,
+    '#required' => FALSE,
+  );
+
+  $form['select_id'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['select_id']) ? $form_state['values']['select_id'] : drupal_html_id('ajax_selected_color')
+  );
+  $select_id = drupal_html_id('select');
+  $form['select'] = array(
+    '#type' => 'select',
+    '#title' => t('Select (wrapper form)'),
+    '#options' => array(
+      'red' => 'red',
+      'green' => 'green',
+      'blue' => 'blue'),
+    '#ajax' => array(
+      'callback' => 'subform_example_simple_form_select_callback',
+      'wrapper' => $select_id,
+    ),
+    '#prefix' => '<div id="' . $select_id . '">',
+    '#suffix' => '<div id="' . $form['select_id']['#value'] . '">No color yet selected</div></div>',
+  );
+
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit wrapper form'),
+    '#weight' => 40,
+  );
+
+  $form['#submit'][] = 'subform_submit_all';
+  $form['#submit'][] = 'subform_example_wrapperform1_submit';
+
+  return $form;
+}
+
+/**
+ * AJAX callback triggered by select.
+ */
+function subform_example_simple_form_select_callback($form, $form_state) {
+  $commands = array();
+  $commands[] = ajax_command_html('#' . $form_state['values']['select_id'], $form_state['values']['select']);
+  $commands[] = ajax_command_data('#' . $form_state['values']['select_id'], 'form_state_value_select', $form_state['values']['select']);
+  $commands[] = ajax_command_prepend(NULL, theme('status_messages'));
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function subform_example_wrapperform1_validate($form, &$form_state) {
+  drupal_set_message(t('Wrapper form has been validated.'));
+}
+
+function subform_example_wrapperform1_submit($form, &$form_state) {
+  drupal_set_message(t('Wrapper form has been submitted.'));
+}
+
+/**
+ * Form builder; Subform 1.
+ */
+function subform_example_subform1($form, &$form_state, $title) {
+  $form['title'] = array(
+    '#type' => 'value',
+    '#value' => $title
+  );
+
+  $form['bar'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bar (subform 1)'),
+    '#required' => TRUE,
+  );
+
+  $form['trigger_error'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Trigger error (subform 1)'),
+  );
+
+  $form['select_id'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['select_id']) ? $form_state['values']['select_id'] : drupal_html_id('ajax_selected_color')
+  );
+  $select_id = drupal_html_id('select');
+  $form['select'] = array(
+    '#type' => 'select',
+    '#title' => t('Select (subform 1)'),
+    '#options' => array(
+      'red' => 'red',
+      'green' => 'green',
+      'blue' => 'blue'),
+    '#ajax' => array(
+      'callback' => 'subform_example_simple_form_select_callback',
+      'wrapper' => $select_id,
+    ),
+    '#prefix' => '<div id="' . $select_id . '">',
+    '#suffix' => '<div id="' . $form['select_id']['#value'] . '">No color yet selected</div></div>',
+  );
+
+  $form['subform1'] = array(
+    '#type' => 'subform',
+    '#subform_id' => 'subform_example_subform2',
+    '#subform_arguments' => array($title . ' - ' . t('Subform1'))
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit subform 1'),
+    '#weight' => 40,
+  );
+
+  return $form;
+}
+
+/**
+ * Validate handler; Subform 1.
+ */
+function subform_example_subform1_validate($form, &$form_state) {
+  drupal_set_message(t('%title has been validated.', array('%title' => $form_state['values']['title'])));
+
+  if ($form_state['values']['trigger_error']) {
+    form_error($form['bar'], 'Test error.');
+  }
+}
+
+/**
+ * Submit handler; Subform 1.
+ */
+function subform_example_subform1_submit($form, &$form_state) {
+  subform_submit_all($form, $form_state);
+
+  drupal_set_message(t('%title has been submitted.', array('%title' => $form_state['values']['title'])));
+}
+
+/**
+ * Form builder; Subform 2.
+ */
+function subform_example_subform2($form, &$form_state, $title) {
+  $form['title'] = array(
+    '#type' => 'value',
+    '#value' => $title
+  );
+
+  $form['bar'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bar (subform 2)'),
+  );
+
+  $form['trigger_error'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Trigger error (subform 2)'),
+  );
+
+  $form['select_id'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['select_id']) ? $form_state['values']['select_id'] : drupal_html_id('ajax_selected_color')
+  );
+  $select_id = drupal_html_id('select');
+  $form['select'] = array(
+    '#type' => 'select',
+    '#title' => t('Select (subform 2)'),
+    '#options' => array(
+      'red' => 'red',
+      'green' => 'green',
+      'blue' => 'blue'),
+    '#ajax' => array(
+      'callback' => 'subform_example_simple_form_select_callback',
+      'wrapper' => $select_id,
+    ),
+    '#prefix' => '<div id="' . $select_id . '">',
+    '#suffix' => '<div id="' . $form['select_id']['#value'] . '">No color yet selected</div></div>',
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit subform 2'),
+    '#weight' => 40,
+  );
+  $form['actions']['validate'] = array(
+    '#type' => 'submit',
+    '#value' => t('Validate subform 2 - 2nd validator'),
+    '#weight' => 40,
+    '#submit' => array('subform_example_subform2_validate2'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validate handler; Subform 2.
+ */
+function subform_example_subform2_validate($form, &$form_state) {
+  drupal_set_message(t('%title has been validated.', array('%title' => $form_state['values']['title'])));
+
+  if ($form_state['values']['trigger_error']) {
+    form_error($form['bar'], 'Test error.');
+  }
+}
+
+/**
+ * Validate handler; Subform 2 second validation.
+ */
+function subform_example_subform2_validate2($form, &$form_state) {
+  drupal_set_message(t('%title has been submitted for rebuild only.', array('%title' => $form_state['values']['title'])));
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Submit handler; Subform 2.
+ */
+function subform_example_subform2_submit($form, &$form_state) {
+  drupal_set_message(t('%title has been submitted.', array('%title' => $form_state['values']['title'])));
+}
+
+
+/**
+ * Form builder; Multiple nodes.
+ */
+function subform_example_multiple_nodes($form, &$form_state) {
+  global $user;
+
+  $node = (object) array('uid' => $user->uid, 'name' => (isset($user->name) ? $user->name : ''), 'type' => 'article', 'language' => LANGUAGE_NONE);
+
+
+  $form['nodes'] = array(
+    '#tree' => TRUE,
+  );
+  for ($i = 0; $i < 2; $i++) {
+    $subform_state = &subform_get_state('subform-nodes-' . $i, $form_state);
+
+    $form['nodes'][$i] = array(
+      '#type' => 'subform',
+      '#subform_id' => 'node_form',
+      '#subform_file' => array('module' => 'node', 'name' => 'node.pages'),
+      '#subform_arguments' => array(clone $node),
+      '#subform_default_triggering_element' => array('actions', 'submit'),
+      '#required' => FALSE,
+      //'#limit_validation_errors' => TRUE,
+
+      /*'#process' => array('subform_element_process', 'form_process_fieldset'),
+      '#theme_wrappers' => array('subform', 'fieldset'),
+      '#title' => t('Article !n !r', array('!n' => $i+1, '!r' => !empty($subform_state['rebuild']) ? '(Rebuild)' : '')),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,*/
+    );
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save all'),
+    '#weight' => 40,
+    '#subform_triggering_element' => array(
+      'node_form' => array('actions', 'submit'),
+    ),
+    '#submit' => array('subform_submit_all'),
+  );
+  $form['actions']['preview'] = array(
+    '#type' => 'submit',
+    '#value' => t('Preview all'),
+    '#weight' => 40,
+    '#subform_triggering_element' => array(
+      'node_form' => array('actions', 'preview'),
+    ),
+    '#submit' => array('subform_submit_all'),
+  );
+
+  return $form;
+}
+
+/**
+ * Form builder; Batch wrapper form.
+ */
+function subform_example_batch_wrapperform($form, &$form_state) {
+  $form['foo'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Foo (wrapper form)'),
+  );
+
+  $form['subform1'] = array(
+    '#type' => 'subform',
+    '#subform_id' => 'subform_example_batch_subform',
+    //'#limit_validation_errors' => TRUE,
+    //'#submit' => array('subform_submit_all', 'subform_example_wrapperform1_submit'),
+    '#required' => FALSE,
+  );
+
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit wrapper form'),
+    '#weight' => 40,
+  );
+
+  $form['#submit'][] = 'subform_submit_all';
+  $form['#submit'][] = 'subform_example_batch_wrapperform_submit';
+  $form['#submit'][] = 'subform_example_batch_wrapperform_submit2';
+
+  return $form;
+}
+
+function subform_example_batch_wrapperform_submit($form, &$form_state) {
+  drupal_set_message(t('Wrapper form has been submitted.'));
+
+  $batch = array(
+    'operations' => array(
+      array('subform_example_batch_wrapper_operation', array())
+    ),
+    'title' => t('Processing wrapper batch'),
+    'progress_message' => t('Processing wrapper batch'),
+    'finished' => 'subform_example_batch_wrapper_finished',
+  );
+  batch_set($batch);
+}
+
+function subform_example_batch_wrapper_operation() {
+  sleep(1);
+  drupal_set_message(t('Wrapper batch operation has been executed.'));
+}
+
+function subform_example_batch_wrapper_finished() {
+  drupal_set_message(t('Wrapper batch operations have been executed.'));
+}
+
+function subform_example_batch_wrapperform_submit2($form, &$form_state) {
+  drupal_set_message(t('Wrapper form has been submitted 2.'));
+}
+
+/**
+ * Form builder; Batch subform.
+ */
+function subform_example_batch_subform($form, &$form_state) {
+  $form['foo'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Foo (subform)'),
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit subform'),
+    '#weight' => 40,
+  );
+
+
+  $form['#submit'][] = 'subform_example_batch_subform_submit';
+  $form['#submit'][] = 'subform_example_batch_subform_submit2';
+
+  return $form;
+}
+
+function subform_example_batch_subform_submit($form, &$form_state) {
+  drupal_set_message(t('Subform has been submitted.'));
+
+  $batch = array(
+    'operations' => array(
+      array('subform_example_batch_subform_operation', array())
+    ),
+    'title' => t('Processing subform batch'),
+    'progress_message' => t('Processing subform batch'),
+    'finished' => 'subform_example_batch_subform_finished',
+  );
+  batch_set($batch);
+}
+
+function subform_example_batch_subform_operation() {
+  sleep(1);
+  drupal_set_message(t('Subform batch operation has been executed.'));
+}
+
+function subform_example_batch_subform_finished() {
+  drupal_set_message(t('Subform batch operations have been executed.'));
+}
+
+function subform_example_batch_subform_submit2($form, &$form_state) {
+  drupal_set_message('Subform submit after batch received its own form state correctly', $form_state['subform_name'] == 'subform-subform1' ? 'status' : 'error');
+}

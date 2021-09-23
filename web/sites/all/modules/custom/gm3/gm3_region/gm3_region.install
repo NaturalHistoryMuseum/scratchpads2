@@ -1,0 +1,314 @@
+<?php
+
+/**
+ * FIXME - Add a hook requirements to check for the GEOS extension.
+ */
+/**
+ * Implementats hook_install().
+ */
+function gm3_region_install(){
+  // Ensure that Memcache isn't used for the cache_gm3_polygon bin
+  gm3_region_update_7007();
+  // Load the data into the tables.
+  $sandbox = array(
+    '#finished' => 0
+  );
+  while($sandbox['#finished'] < 1){
+    gm3_region_update_7009($sandbox);
+  }
+  // Tweak the data a little
+  gm3_region_update_7011();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function gm3_region_schema(){
+  return array(
+    'cache_gm3_polygon' => drupal_get_schema_unprocessed('system', 'cache'),
+    'gm3_region_data' => array(
+      'description' => 'Stores the Polygon data for TDWG4 Regions',
+      'fields' => array(
+        'name' => array(
+          'description' => "Level name",
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 64
+        ),
+        'continent' => array(
+          'description' => "Continent",
+          'type' => 'varchar',
+          'length' => 20,
+          'default' => ''
+        ),
+        'iso_code' => array(
+          'description' => "ISO Code",
+          'type' => 'varchar',
+          'length' => 2,
+          'default' => ''
+        ),
+        'level_5_code' => array(
+          'description' => 'Unofficial Level 5 code.  Can be used for Watson vice counties or similar.',
+          'type' => 'varchar',
+          'length' => 5,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'level_4_code' => array(
+          'description' => "Level 4 code",
+          'type' => 'varchar',
+          'length' => 2,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'level_3_code' => array(
+          'description' => "Level 3 code",
+          'type' => 'varchar',
+          'length' => 3,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'level_2_code' => array(
+          'description' => "Level 2 id",
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'level_1_code' => array(
+          'description' => "Level 1 id",
+          'type' => 'int',
+          'not null' => TRUE,
+          'size' => 'tiny',
+          'default' => 0
+        ),
+        'polygons' => array(
+          'description' => "Polygons",
+          'type' => 'text',
+          'not null' => TRUE,
+          'size' => 'medium'
+        ),
+        'mysql_polygons' => array(
+          'description' => 'MySQL GEO extension',
+          'mysql_type' => 'MULTIPOLYGON'
+        )
+      ),
+      'primary key' => array(
+        'level_5_code',
+        'level_4_code',
+        'level_3_code',
+        'level_2_code',
+        'level_1_code'
+      ),
+      'indexes' => array(
+        'iso_code' => array(
+          'iso_code'
+        ),
+        'level_1_code' => array(
+          'level_1_code'
+        ),
+        'level_2_code' => array(
+          'level_2_code'
+        ),
+        'level_3_code' => array(
+          'level_3_code'
+        ),
+        'level_4_code' => array(
+          'level_4_code'
+        ),
+        'level_5_code' => array(
+          'level_5_code'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Add the mysql_polygons column.
+ */
+function gm3_region_update_7001(){
+  db_add_field('gm3_region_data', 'mysql_polygons', array(
+    'description' => 'MySQL GEO extension',
+    'mysql_type' => 'MULTIPOLYGON'
+  ));
+  // Finally, we set the shape data.  This query is MySQL specific.
+  db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+}
+
+/**
+ * Remove the binary_polygons field.
+ */
+function gm3_region_update_7002(){
+  db_drop_field('gm3_region_data', 'binary_polygons');
+}
+
+/**
+ * Update all gm3_region tables to update entries like ':::ITA-IT' to
+ * '1:13:ITA:ITA-IT'
+ * 
+ * NOTE, this update really should have been in the gm3_region_field table, but
+ * given this module is a requirement of that one, it doesn't really matter.
+ */
+function gm3_region_update_7004(){
+  $results = db_select('gm3_region_data', 'g')->fields('g', array(
+    'level_1_code',
+    'level_2_code',
+    'level_3_code',
+    'level_4_code'
+  ))->execute();
+  $updates = array();
+  foreach($results as $row){
+    if($row->level_4_code){
+      $updates[':::' . $row->level_3_code . '-' . $row->level_4_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code . ':' . $row->level_3_code . '-' . $row->level_4_code;
+    }else if($row->level_3_code){
+      $updates['::' . $row->level_3_code] = $row->level_1_code . ':' . $row->level_2_code . ':' . $row->level_3_code;
+    }else if($row->level_2_code){
+      $updates[':' . $row->level_2_code] = $row->level_1_code . ':' . $row->level_2_code;
+    }
+  }
+  foreach(field_info_fields() as $id => $field){
+    if($field['type'] == 'gm3_region' || ($field['type'] == 'gm3_combination' && isset($field['columns']['region_id']))){
+      // Update both field_data_N and field_revision_N
+      foreach(array(
+        'data',
+        'revision'
+      ) as $table){
+        $table = "field_{$table}_{$id}";
+        $column = "{$id}_region_id";
+        foreach($updates as $old_value => $new_value){
+          db_update($table)->fields(array(
+            $column => $new_value
+          ))->condition($column, $old_value)->execute();
+        }
+      }
+    }
+  }
+  // Finally
+  cache_clear_all();
+}
+
+/**
+ * Force the use of the database cache for cache_gm3_polygon
+ */
+function gm3_region_update_7007(){
+  variable_set('cache_class_cache_gm3_polygon', 'DrupalDatabaseCache');
+}
+
+/**
+ * Add the level_5_code column
+ */
+function gm3_region_update_7008(){
+  try{
+    // Because we use a cheeky view for the gm3_region_data table, it is not
+    // possible to use db_field_exists(), so instead we try to select the column
+    // and catch the error, which will mean the column doesn't exist.
+    db_select('gm3_region_data', 'g')->fields('g', array(
+      'level_5_code'
+    ))->range(0, 1)->execute();
+  }
+  catch(Exception $e){
+    db_add_field('gm3_region_data', 'level_5_code', array(
+      'description' => 'Unofficial Level 5 code.  Can be used for Watson vice counties or similar.',
+      'type' => 'varchar',
+      'length' => 5,
+      'not null' => TRUE,
+      'default' => ''
+    ));
+    db_drop_primary_key('gm3_region_data');
+    db_add_primary_key('gm3_region_data', array(
+      'level_5_code',
+      'level_4_code',
+      'level_3_code',
+      'level_2_code',
+      'level_1_code'
+    ));
+  }
+}
+
+/**
+ * Load the data.
+ */
+function gm3_region_update_7009(&$sandbox){
+  global $databases;
+  if(isset($databases['gm3'])){
+    $sandbox['#finished'] = 1;
+    return;
+  }
+  if(db_select('gm3_region_data', 'g')->countQuery()->execute()->fetchField() < 1151){
+    // If this is being run on Quartz, then it is highly likely that the data has
+    // been loaded already.  We get a count of the cache table to check.
+    $path = drupal_get_path('module', 'gm3_region') . '/region_data/sql_files/';
+    if(empty($sandbox['files_to_load'])){
+      // Check if we should continue or not
+      if(db_query('SELECT COUNT(*) FROM {cache_gm3_polygon}')->fetchField() == 1151){
+        $sandbox['#finished'] = TRUE;
+        return;
+      }
+      // Empty the two tables first.
+      db_delete('cache_gm3_polygon')->execute();
+      db_delete('gm3_region_data')->execute();
+      $sandbox['files_to_load'] = scandir($path);
+      $sandbox['total_files'] = count($sandbox['files_to_load']);
+    }
+    $i = 0;
+    while($i < 10 && count($sandbox['files_to_load'])){
+      $file = array_pop($sandbox['files_to_load']);
+      if(is_file($path . $file)){
+        $gz = gzopen($path . $file, 'r');
+        db_query(gzread($gz, 7000000));
+        gzclose($gz);
+      }
+      $i++;
+    }
+    if(!count($sandbox['files_to_load'])){
+      db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'LBRACE', :lbrace)", array(
+        ':lbrace' => '{'
+      ))->execute();
+      db_update('cache_gm3_polygon')->expression('data', "REPLACE(data, 'RBRACE', :rbrace)", array(
+        ':rbrace' => '}'
+      ))->execute();
+      // Finally, we set the shape data.  This query is MySQL specific.
+      db_query('UPDATE {gm3_region_data} SET mysql_polygons = POLYGONFROMTEXT(polygons)');
+      $sandbox['#finished'] = 1;
+    }else{
+      drupal_set_message(t('!remaining of !total files loaded into the GM3 Region tables', array(
+        '!remaining' => count($sandbox['files_to_load']),
+        '!total' => $sandbox['total_files']
+      )));
+      $sandbox['#finished'] = $sandbox['progress'] = count($sandbox['files_to_load']) / $sandbox['total_files'];
+    }
+  }else{
+    $sandbox['#finished'] = 1;
+  }
+}
+
+/**
+ * Add indexes to the tables
+ */
+function gm3_region_update_7010(){
+  $schema = gm3_region_schema();
+  foreach($schema['gm3_region_data']['indexes'] as $name => $fields){
+    try{
+      db_add_index('gm3_region_data', $name, $fields);
+    }
+    catch(Exception $e){
+      // Do nothing, the index probably already exists.
+      ;
+    }
+  }
+}
+
+/**
+ * Set the Level-4 "OO" regions to be level 5 regions, which will make the
+ * querying much easier.
+ * Add the iso_code to VC regions.
+ */
+function gm3_region_update_7011(){
+  db_update('gm3_region_data')->fields(array(
+    'level_5_code' => '00'
+  ))->condition('level_5_code', '')->condition('level_4_code', '', '!=')->condition('level_3_code', 'GRB', '!=')->execute();
+  db_update('gm3_region_data')->fields(array(
+    'iso_code' => 'UK'
+  ))->condition('level_5_code', '00', '!=')->condition('level_5_code', '', '!=')->execute();
+}

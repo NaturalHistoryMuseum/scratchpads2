@@ -1,0 +1,90 @@
+/**
+ * Styles to render a tweet as it is shown at Twitter.com.
+ *
+ * Thanks @makangus.
+ */
+div.view-tweets ul{
+  list-style-type: none;
+  padding: 0px;
+}
+
+.twitter-status{
+  background: #ffffff;
+  color: #333333;
+  padding: 10px 10px 0;
+  margin-bottom: 2px;
+  font-size: 1.077em;
+  line-height: 1.42857142857143em;
+}
+
+.twitter-status .timestamp{
+  float: right;
+  color: #999999;
+  font-size: 0.85714285714286em;
+}
+
+.twitter-status .name-handle{
+  margin-left: 60px;
+}
+
+.twitter-status .text{
+  margin-left: 60px;
+}
+
+.twitter-status .name-handle .name, .twitter-status .name-handle .handle{
+  display: inline;
+}
+
+.twitter-status .name-handle .name a{
+  font-weight: bold;
+  margin-right: 5px;
+  color: #333333;
+}
+
+.twitter-status .name-handle .handle a{
+  color: #999999;
+  font-size: 0.85714285714286em;
+}
+
+.twitter-status .avatar{
+  float: left;
+}
+
+.twitter-status .avatar img{
+  border-radius: 3px;
+}
+
+.twitter-status a {
+  color: #30a9ff;
+}
+
+.twitter-status a:hover {
+  text-decoration: underline;
+}
+
+.twitter-status .actions{
+  text-align: right;
+  font-size: 0.85714285714286em;
+  padding: 0;
+  margin: 0;
+  visibility: hidden;
+}
+
+.twitter-status:hover .actions{
+  visibility: visible;
+}
+
+.twitter-status .actions li{
+  display: inline-block;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.twitter-status .actions a{
+  display: inline-block;
+  line-height: 16px;
+  margin-left: 10px;
+  vertical-align: top;
+  color: #999999;
+}

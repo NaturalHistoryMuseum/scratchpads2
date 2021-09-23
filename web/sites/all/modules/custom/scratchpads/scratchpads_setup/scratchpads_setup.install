@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function scratchpads_setup_install(){
+  // Set the scratchpads_setup to first step - this will increment through each of the steps
+  variable_set('scratchpads_setup', 0);
+}

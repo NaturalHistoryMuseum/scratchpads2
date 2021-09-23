@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implement hook_citethispage_info
+ */
+function citethispage_webcite_citethispage_info(){
+  return array(
+    'citethispage_webcite' => array(
+      'archive' => array(
+        'title' => t('WebCite'),
+        'description' => t('Archives pages for citation using WebCite, !url', array(
+          '!url' => l('http://www.webcitation.org', 'http://www.webcitation.org')
+        )),
+        'callback' => 'citethispage_webcite_archive'
+      )
+    )
+  );
+}
+
+/**
+ * citethispage_webcite_archive
+ * 
+ * Callback for archiving using the webcite backend
+ */
+function citethispage_webcite_archive($path, $results){
+  $arguments = array(
+    'url' => url($path, array(
+      'absolute' => TRUE
+    ))
+  );
+  if(!empty($results['title'])){
+    $arguments['title'] = implode(' ', $results['title']);
+  }
+  if(!empty($results['authors'])){
+    $arguments['author'] = implode(';', $results['authors']);
+  }
+  if(!empty($results['date'])){
+    $date = reset(array_keys($results['date']));
+    $arguments['date'] = date('%Y-%m-%d', $date);
+  }
+  if(!empty($results['terms'])){
+    $arguments['subject'] = implode(';', $results['terms']);
+  }
+  drupal_goto(url('http://www.webcitation.org/archive', array(
+    'query' => $arguments,
+    'abosulte' => TRUE
+  )));
+}

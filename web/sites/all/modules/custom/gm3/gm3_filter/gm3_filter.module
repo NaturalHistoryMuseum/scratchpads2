@@ -1,0 +1,118 @@
+<?php
+
+/**
+ * Enables a user to embed a Leaflet map within filtered text simply by adding
+ *
+ * [map]
+ *
+ * {gm3_json_specification}
+ *
+ * [/map]
+ */
+/**
+ * Implementation of hook_menu().
+ */
+function gm3_filter_menu(){
+  return array(
+    'gm3_filter' => array(
+      'title' => 'Interactive Map filter helper',
+      'description' => 'Generate the code required to embed an interactive map within a webpage.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'gm3_filter_helper_form'
+      ),
+      'access arguments' => array(
+        'access gm3_filter form'
+      ),
+      'file' => 'gm3_filter.form.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function gm3_filter_permission(){
+  return array(
+    'access gm3_filter form' => array(
+      'title' => 'Access GM3 filter form'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_library().
+ */
+function gm3_filter_library(){
+  return array(
+    'filter_helper' => array(
+      'title' => t('Filter helper code'),
+      'website' => '',
+      'version' => 1,
+      'js' => array(
+        array(
+          'data' => drupal_get_path('module', 'gm3_filter') . "/js/gm3_filter.js"
+        )
+      ),
+      'dependencies' => array(
+        array(
+          'gm3',
+          'gm3'
+        ),
+        array(
+          'gm3',
+          'gm3.point'
+        ),
+        array(
+          'gm3',
+          'gm3.polygon'
+        ),
+        array(
+          'gm3',
+          'gm3.polyline'
+        ),
+        array(
+          'gm3',
+          'gm3.rectangle'
+        ),
+        array(
+          'gm3_region',
+          'region'
+        ),
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_filter_info().
+ */
+function gm3_filter_filter_info(){
+  return array(
+    'gm3_filter_google_map' => array(
+      'title' => 'Interactive Map',
+      'description' => 'Embed a map into any formatted text on your site',
+      'process callback' => 'gm3_filter_map_process',
+      'cache' => FALSE,
+      'weight' => 0
+    )
+  );
+}
+
+/**
+ * Callbacks as defined in hook_filter_info.
+ */
+function gm3_filter_map_process($text, $filter, $format, $langcode, $cache, $cache_id){
+  // Search for [map]...[/map] (optional google_ prefix for backwards compat)
+  preg_match_all('|\[(?:google_)?map\](.*)\[/(?:google_)?map\]|i', $text, $matches);
+  foreach($matches[0] as $key => $match_text){
+    // Decode middle!
+    if($map = json_decode(trim($matches[1][$key]), TRUE)){
+      $text = str_replace($match_text, theme('gm3_map', $map), $text);
+    }else{
+      // Failed to decode the JSON, give an error message instead.
+      $text = str_replace($match_text, '<p class="error">' . t('The map configuration you have provided is invalid.') . '</p>', $text);
+    }
+  }
+  return $text;
+}

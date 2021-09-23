@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Implements hook_install()
+ */
+function dwca_export_install(){
+  // Garbage collect all vde views that are older than two hours.  This will
+  // greatly reduce the chance of us getting a huge site database like what
+  // happened on the zingi site.
+  // FIXME - This may no longer be required as we are no longer using the batch
+  // functions to create the views data.
+  variable_set('views_data_export_gc_expires', 7200);
+  variable_set('views_data_export_gc_chunk', -1);
+}
+
+/**
+ * Set the variables for already installed sites.
+ */
+function dwca_export_update_7001(){
+  variable_set('views_data_export_gc_expires', 7200);
+  variable_set('views_data_export_gc_chunk', -1);
+}
+
+/**
+ * Delete the variables.
+ */
+function dwca_export_update_7002(){
+  db_delete('variable')->condition('name', 'dwca_%', 'LIKE')->execute();
+}
+
+/**
+ * Rebuild the archive after update
+ */
+function dwca_export_update_7003(){
+  dwca_export_set_to_rebuild();
+}
+
+function dwca_export_set_to_rebuild() {
+  // Delete the Zip file and any existing CSV files.
+  file_unmanaged_delete('public://dwca.zip');
+  file_unmanaged_delete_recursive('public://dwca');
+  // Set the variables to force a rebuild.
+  variable_del('dwca_export_zip_build_time');
+  variable_set('dwca_export_rebuild', TRUE);
+}

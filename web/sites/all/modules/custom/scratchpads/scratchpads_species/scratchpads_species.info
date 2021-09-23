@@ -1,0 +1,14 @@
+core = "7.x"
+description = "Scratchpads species pages"
+name = "Species"
+package = "Scratchpads"
+dependencies[] = itis_term
+dependencies[] = tinytax
+dependencies[] = context
+dependencies[] = scratchpads_blocks
+dependencies[] = convert_image_format
+
+files[] = views/scratchpads_species_views_handler_field_taxonomy.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_species

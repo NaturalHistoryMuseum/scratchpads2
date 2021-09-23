@@ -1,0 +1,87 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright 2009 NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  auto_nodetitle.module,v 1.20.2.5 2009/04/21 08:52:10 fago
+#  auto_nodetitle.info: n/a
+#
+msgid ""
+msgstr "Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-10-13 21:02+0200\n"
+"PO-Revision-Date: 2009-10-13 21:14+0100\n"
+"Last-Translator: Thomas Zahreddin <tz@it-arts.org>\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: auto_nodetitle.module:88
+msgid "@type @node-id"
+msgstr "@type @node-id"
+
+#: auto_nodetitle.module:91
+msgid "@type"
+msgstr "@type"
+
+#: auto_nodetitle.module:103
+msgid "Update automatic nodetitles"
+msgstr "Aktualisieren der automatisch erzeugten Titel"
+
+#: auto_nodetitle.module:151
+msgid "Automatic title generation"
+msgstr "Automatische Erzeugung von Titeln"
+
+#: auto_nodetitle.module:160
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+#: auto_nodetitle.module:161
+msgid "Automatically generate the title and hide the title field"
+msgstr "Das original Titelfeld verbergen und den Titel automatisch erzeugen"
+
+#: auto_nodetitle.module:162
+msgid "Automatically generate the title if the title field is left empty"
+msgstr "Den Titel automatisch erzeugen, wenn das Titelfeld leer ist."
+
+#: auto_nodetitle.module:168
+msgid "Leave blank for using the per default generated title. Otherwise this string will be used as title."
+msgstr "Leer lassen und den automatisch erzeugten Titel verwenden. Andernfalls würde dieser Text als Titel verwendet."
+
+#: auto_nodetitle.module:170
+msgid "Use the syntax [token] if you want to insert a replacement pattern."
+msgstr "Verwenden Sie die Syntax [token], um einen Platzhalter einzufügen."
+
+#: auto_nodetitle.module:174
+msgid "Pattern for the title"
+msgstr "Muster für den Titel"
+
+#: auto_nodetitle.module:182
+msgid "Replacement patterns"
+msgstr "Muster für den Ersatz von [token]"
+
+#: auto_nodetitle.module:186
+msgid "Prefer raw-text replacements for text to avoid problems with HTML entities!"
+msgstr "Direkter Ersatz von Text wird bevorzugt, um mögliche HTML-Fehler zu vermeiden."
+
+#: auto_nodetitle.module:195
+msgid "Evaluate PHP in pattern."
+msgstr "Muster mit PHP-code auswerten."
+
+#: auto_nodetitle.module:196
+msgid "Put PHP code above that returns your string, but make sure you surround code in &lt;?php and ?&gt;. Note that $node is available and can be used by your code."
+msgstr "Fügen Sie PHP code ein, der einen Text zurück gibt, achten Sie darauf, dass der code in &lt;?php und ?&gt; eingeschlossen ist. Beachten Sie, dass $node zur Verfügung steht und von Ihren Code verwendet werden kann."
+
+#: auto_nodetitle.module:17
+msgid "use PHP for title patterns"
+msgstr "PHP für Titelersetzung verwenden"
+
+#: auto_nodetitle.info:0
+msgid "Automatic Nodetitles"
+msgstr "Automatic Nodetitles"
+
+#: auto_nodetitle.info:0
+msgid "Allows hiding of the content title field and automatic title creation."
+msgstr "Ermöglicht das Verbergen des Titelfeldes und der automatischen Erzeugung von Titeln."
+

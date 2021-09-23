@@ -1,0 +1,448 @@
+<?php
+
+/**
+ * Implementation of hook_menu()
+ */
+function taxon_stats_menu(){
+  $items = array();
+  $items['taxonomy/term/%taxonomy_term/stats'] = array(
+    'title' => 'Stats',
+    'page callback' => 'taxon_stats_view',
+    'page arguments' => array(
+      2
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 24,
+    'file' => 'taxonomy.pages.inc',
+    'file path' => drupal_get_path('module', 'taxonomy')
+  );
+  $items['taxon_stats'] = array(
+    'title' => 'Statistics',
+    'page callback' => 'taxon_stats_overall',
+    'access callback' => true,
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['taxon_stats/overview'] = array(
+    'title' => 'Statistics',
+    'page callback' => 'taxon_stats_overall',
+    'access callback' => true,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0
+  );
+  $items['taxon_stats/biblio'] = array(
+    'title' => 'Publication Statistics',
+    'page callback' => 'taxon_stats_overall_pubs',
+    'access callback' => true,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1
+  );
+  if(taxon_stats_has_protologues()){
+    $items['taxon_stats/protologues'] = array(
+      'title' => 'Protologue Statsistics',
+      'page callback' => 'taxon_stats_overall_protologues',
+      'access callback' => true,
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 2
+    );
+  }
+  return $items;
+}
+
+/**
+ * 
+ * Provides the statistics summary page
+ * 
+ * @return $output
+ * HTML page
+ */
+function taxon_stats_overall(){
+  $content = array();
+  //Content by content type
+  $sql = 'SELECT t.name AS type, COUNT(nid) AS Total FROM node n INNER JOIN node_type t ON n.type = t.type GROUP BY t.type';
+  $data = db_query($sql)->fetchAllKeyed();
+  $data = taxon_stats_processs_data('Author', 'Publications', $data, 'PieChart');
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t('Content by content type'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
+  //Content by author
+  $sql = 'SELECT u.name as Name, COUNT(nid) as Total FROM node n INNER JOIN users u on n.uid = u.uid';
+  $data = db_query($sql)->fetchAllKeyed();
+  $data = taxon_stats_processs_data('User', 'Content', $data, 'PieChart');
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t('New content by user'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
+  return $content;
+}
+
+/**
+ * 
+ * Provides the publication statistics page (Biblio)
+ * 
+ * @return $output
+ * HTML
+ */
+function taxon_stats_overall_pubs(){
+  $content = array();
+  //Some of these charts only apply to eMonocot sites
+  $has_protologues = taxon_stats_has_protologues();
+  //Publications by year
+  $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY biblio_year";
+  $data = db_query($sql)->fetchAllKeyed();
+  $data = taxon_stats_processs_data('Year', 'Publications', $data, 'ColumnChart');
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'ColumnChart',
+      '#data' => $data,
+      '#title' => t('Publications by year'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
+  //Protologues by year (i.e. New names by year)
+  if($has_protologues){
+    $sql = "SELECT b.biblio_year AS year, COUNT(b.biblio_year) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY biblio_year";
+    $data = db_query($sql)->fetchAllKeyed();
+    $data = taxon_stats_processs_data('Year', 'New names', $data, 'ColumnChart');
+    if($data){
+      $content[] = array(
+        '#theme' => 'simple_google_chart',
+        '#type' => 'ColumnChart',
+        '#data' => $data,
+        '#title' => t('New names published by year'),
+        '#options' => array(
+          'is3D' => TRUE,
+          'height' => 400
+        )
+      );
+    }
+  }
+  //Publications by author
+  $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name != 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY c.cid";
+  $data = db_query($sql)->fetchAllAssoc('Name');
+  $data = taxon_stats_processs_data('Author', 'Publications', $data, 'PieChart');
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t('Publications by author'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
+  if($has_protologues){
+    //Protologues by author (i.e. New names by author)
+    $sql = "SELECT d.name AS Name, COUNT(c.nid) as Total FROM biblio_contributor c INNER JOIN biblio_contributor_data d ON c.cid = d.cid INNER JOIN biblio b on b.nid = c.nid INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND b.biblio_year > 0 AND b.biblio_year < 9000 GROUP BY c.cid";
+    $data = db_query($sql)->fetchAllAssoc('Name');
+    $data = taxon_stats_processs_data('Author', 'New names', $data, 'PieChart');
+    if($data){
+      $content[] = array(
+        '#theme' => 'simple_google_chart',
+        '#type' => 'PieChart',
+        '#data' => $data,
+        '#title' => t('Publications by author'),
+        '#options' => array(
+          'is3D' => TRUE,
+          'height' => 400
+        )
+      );
+    }
+  }
+  return $content;
+}
+
+function taxon_stats_overall_protologues(){
+  $content = array();
+  $data = array();
+  $data[] = array(
+    'With link to original literature',
+    'Without link to original literature'
+  );
+  //Number of protologues
+  $sql = "SELECT COUNT(*) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue'";
+  $total = db_query($sql)->fetchObject();
+  $total = $total->count;
+  $sql = "SELECT COUNT(*) AS count FROM biblio b INNER JOIN biblio_types t ON b.biblio_type = t.tid WHERE t.name = 'Botanical Protologue' AND biblio_url != ''";
+  $with_url = db_query($sql)->fetchObject();
+  $with_url = $with_url->count;
+  $missing = $total - $with_url;
+  $data[] = array(
+    $with_url,
+    $missing
+  );
+  if($data){
+    $content[] = array(
+      '#theme' => 'simple_google_chart',
+      '#type' => 'PieChart',
+      '#data' => $data,
+      '#title' => t('Protologues with links to original literature'),
+      '#options' => array(
+        'is3D' => TRUE,
+        'height' => 400
+      )
+    );
+  }
+  return $content;
+}
+
+/**
+ * 
+ * Provides the Stats tab on species pages
+ * 
+ * @param $term
+ * A taxonomy term
+ * 
+ * @return $output
+ * HTML
+ */
+function taxon_stats_view($term){
+  if($plugin = context_get_plugin('condition', 'taxonomy_term')){
+    $plugin->execute($term, 'view');
+  }
+  $options = array(
+    'height' => 20,
+    'enableInteractivity' => TRUE,
+    'width' => 20,
+    'height' => 20,
+    'legend' => array(
+      'position' => 'none'
+    ),
+    'slices' => array(
+      0 => array(
+        'color' => 'grey'
+      ),
+      1 => array(
+        'color' => 'white'
+      )
+    ),
+    'pieSliceBorderColor' => 'grey',
+    'pieSliceText' => 'none'
+  );
+  //Get data for this taxon
+  $content_counts = taxon_stats_get_taxon_data($term);
+  //Get data for all taxa
+  $overall_content_counts = taxon_stats_get_overall_data($term);
+  $content = array();
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => '<table id="taxon_stats_table">' . '<thead>' . '<tr>' . '<td></td>' . '<td >Descriptions</td>' . '<td >Media</td>' . '<td >Specimens/Observations</td>' . '<td>References</td>' . '</tr>' . '</thead>' . '<tr>' . '<td>' . $term->name . '</td>' . '<td>' . $content_counts['Descriptions'] . '</td>' . '<td >' . $content_counts['Images'] . '</td>' . '<td >' . $content_counts['Specimens/Observations'] . '</td>' . '<td >' . $content_counts['References'] . '</td>' . '</tr>' . '<tr>' . '<td>' . 'Fraction of all taxa with content' . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Descriptions']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Descriptions']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Descriptions'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Images']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Images']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Images'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['Images']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['Specimens/Observations']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['Specimens/Observations'] . '/' . $overall_content_counts['Total'] . '</td>' . '<td>'
+  );
+  $content[] = array(
+    '#theme' => 'simple_google_chart',
+    '#type' => 'PieChart',
+    '#data' => array(
+      array(
+        'Filter',
+        'Type'
+      ),
+      array(
+        'With',
+        (int)$overall_content_counts['References']
+      ),
+      array(
+        'Total',
+        (int)$overall_content_counts['Total'] - (int)$overall_content_counts['References']
+      )
+    ),
+    '#options' => $options
+  );
+  $content[] = array(
+    '#type' => 'markup',
+    '#markup' => $overall_content_counts['References'] . '/' . $overall_content_counts['Total'] . '</td>' . '</tr>' . '</table>'
+  );
+  return $content;
+}
+
+/**
+ * Implements hook_views_api()
+ */
+function taxon_stats_views_api(){
+  $path = drupal_get_path('module', 'taxon_stats');
+  return array(
+    'api' => '3',
+    'path' => $path
+  );
+}
+
+function taxon_stats_get_taxon_data($term){
+  $return = array();
+  $view = views_get_view('taxon_stats');
+  $displays = $view->display;
+  unset($view);
+  foreach($displays as $id => $display){
+    if($id != 'default'){
+      $view = views_get_view('taxon_stats');
+      $view->set_arguments(array(
+        $term->tid
+      ));
+      $view->set_display($display->id);
+      $view->pre_execute();
+      $view->execute();
+      $return[$display->display_title] = $view->result[0]->taxonomy_term_data_name;
+      unset($view);
+    }
+  }
+  return $return;
+}
+
+function taxon_stats_get_overall_data($term){
+  $return = array();
+  $sql = "SELECT COUNT(*) AS 'Total' FROM taxonomy_term_data WHERE vid = :vid";
+  $result = db_query($sql, array(
+    ':vid' => $term->vid
+  ))->fetchAll();
+  $return['Total'] = $result[0]->Total;
+  $sql = "SELECT COUNT(DISTINCT(t.tid)) AS 'Total' FROM taxonomy_term_data t " . "INNER JOIN taxonomy_index i ON t.tid = i.tid " . "INNER JOIN node n ON n.nid = i.nid " . "WHERE t.vid = :vid AND n.type = :type";
+  $types = array(
+    'Descriptions' => 'spm',
+    'Specimens/Observations' => 'specimen_observation',
+    'References' => 'biblio',
+    'Images' => 'media_gallery'
+  );
+  foreach($types as $key => $value){
+    $result = db_query($sql, array(
+      ':vid' => $term->vid,
+      ':type' => $value
+    ))->fetchAll();
+    $return[$key] = $result[0]->Total;
+  }
+  return $return;
+}
+
+function taxon_stats_has_protologues(){
+  $sql = "SELECT COUNT(tid) AS count_bp FROM biblio_types WHERE name = 'Botanical Protologue'";
+  $result = db_query($sql)->fetchAll();
+  switch($result[0]->count_bp){
+    case 1:
+      return TRUE;
+    default:
+      return FALSE;
+  }
+}
+/*
+ * Process a keyed array from an SQL query an turn into a data array for simple_google_charts
+ */
+function taxon_stats_processs_data($col1_title, $col2_title, $array, $type = 'PieChart'){
+  $return = array();
+  $return[] = array(
+    $col1_title,
+    $col2_title
+  );
+  switch($type){
+    case 'BarChart':
+    case 'ColumnChart':
+      foreach($array as $key => $value){
+        $return[] = array(
+          (int)$key,
+          (int)$value
+        );
+      }
+      break;
+    case 'PieChart':
+    default:
+      foreach($array as $key => $value){
+        $return[] = array(
+          (string)$key,
+          (int)$value
+        );
+      }
+  }
+  if(count($return) > 1){
+    return $return;
+  }else{
+    return FALSE;
+  }
+}

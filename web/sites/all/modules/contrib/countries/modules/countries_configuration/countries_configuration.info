@@ -1,0 +1,12 @@
+name = Countries configuration
+description = A configuration utility module to assist storing country specific data.
+package = Fields
+version = VERSION
+core = 7.x
+
+; Information added by Drupal.org packaging script on 2014-08-31
+version = "7.x-2.3"
+core = "7.x"
+project = "countries"
+datestamp = "1409450929"
+

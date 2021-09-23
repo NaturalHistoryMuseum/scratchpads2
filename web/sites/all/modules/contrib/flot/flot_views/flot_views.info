@@ -1,0 +1,23 @@
+name = Flot Views
+description = Provides views support for the Flot module.
+core = 7.x
+package = Charts
+
+dependencies[] = flot
+dependencies[] = views
+dependencies[] = views_decorator
+
+files[] = flot_views.module
+files[] = views/flot_handler_field_datapoint.inc
+files[] = views/flot_views_plugin_style.inc
+files[] = views/flot_fields_views_plugin_style.inc
+files[] = views/flot_views.views.inc
+files[] = views/flot_views_plugin_summary_style.inc
+
+
+; Information added by drupal.org packaging script on 2012-05-30
+version = "7.x-1.0"
+core = "7.x"
+project = "flot"
+datestamp = "1338361272"
+

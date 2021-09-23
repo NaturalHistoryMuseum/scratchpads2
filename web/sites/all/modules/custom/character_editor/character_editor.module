@@ -1,0 +1,1349 @@
+<?php
+include_once ('character_editor.features.inc');
+/*********************************************************************************************
+ * 
+ * CONSTANTS
+ * 
+ ********************************************************************************************/
+define('PROJECT_CHARACTER_RELATION_TYPE', 'character');
+define('DNA_CHARACTERS', 'ATGC');
+
+/*********************************************************************************************
+ * 
+ * CORE HOOKS
+ * 
+ ********************************************************************************************/
+/** 
+ * Implements hook_menu(). 
+ */
+function character_editor_menu(){
+  return array(
+    'character_editor/get/data/%' => array(
+      'page callback' => 'character_editor_get_data',
+      'page arguments' => array(
+        3
+      ),
+      'access arguments' => array(
+        'access content'
+      ),
+      'type' => MENU_CALLBACK,
+      'file' => 'character_editor.getdata.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function character_editor_help($path, $arg){
+  if($path == 'admin/help#character-editor'){return t('Scratchpads charcter editor.');}
+}
+
+/**
+ * Implement hook_permission().
+ */
+function character_editor_permission(){
+  return array(
+    'create character editor' => array(
+      'title' => t('Create character editor'),
+      'description' => t('Create character editor projects.')
+    ),
+    'view character editor' => array(
+      'title' => t('View character editor'),
+      'description' => t('View character editor projects.')
+    ),
+    'edit character editor' => array(
+      'title' => t('Update character editor'),
+      'description' => t('Update character editor projects.')
+    ),
+    'delete character editor' => array(
+      'title' => t('Delete character editor'),
+      'description' => t('Delete character editor projects.')
+    )
+  );
+}
+
+/**
+ * Implements hook_scratchpads_default_permission().
+ * 
+ * If this module is released to drupal.org, this hook could be moved to a 
+ * separate file, or it could be moved to a scratchpads_* module.
+ */
+function character_editor_scratchpads_default_permissions(){
+  return array(
+    'anonymous user' => array(
+      'view character editor'
+    ),
+    'contributor' => array(
+      'create character editor',
+      'edit character editor',
+      'delete character editor'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function character_editor_theme(){
+  $path = drupal_get_path('module', 'character_editor');
+  return array(
+    'field__field_char_states' => array(
+      'render element' => 'element'
+    ),
+    'character_editor_character' => array(
+      'render element' => 'elements',
+      'template' => 'character-entity',
+      'path' => $path . '/theme'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function character_editor_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  // Character edit form has the local tasks for the relation entity which is confusing
+  // So change the local tasks to those used by the character project 
+  if(isset($router_item['map'][0]) && $router_item['map'][0] == 'character' && isset($router_item['map'][1]) && isset($_GET['project'])){
+    $entity = $router_item['map'][1];
+    $tabs = array();
+    $local_tasks = character_editor_get_local_tasks($_GET['project']);
+    foreach($local_tasks as $path => $local_task){
+      $tab = array(
+        '#theme' => 'menu_local_task',
+        '#link' => $local_task
+      );
+      if($path == 'character-editor-project/%/characters'){
+        $tab['#active'] = true;
+      }
+      $tabs[] = $tab;
+    }
+    $data['tabs'] = array(
+      array(
+        'count' => count($tabs),
+        'output' => $tabs
+      )
+    );
+  }
+}
+
+function character_editor_get_local_tasks($project_id){
+  $local_tasks = array();
+  $result = db_select('menu_router', NULL, array(
+    'fetch' => PDO::FETCH_ASSOC
+  ))->fields('menu_router')->condition('tab_parent', 'character-editor-project/%')->condition('context', MENU_CONTEXT_INLINE, '<>')->orderBy('weight')->orderBy('title')->execute();
+  $map = array(
+    'character',
+    $project_id
+  );
+  foreach($result as $item){
+    _menu_translate($item, $map, TRUE);
+    $local_tasks[$item['path']] = $item;
+  }
+  return $local_tasks;
+}
+
+/*********************************************************************************************
+ * 
+ * VIEWS HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function character_editor_views_api(){
+  $path = drupal_get_path('module', 'character_editor');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views'
+  );
+}
+
+/**
+ * Implementation of hook_views_pre_view
+ * This does the bulk of the work preparing the character project for vieing in a grid
+ */
+function character_editor_views_pre_view(&$view, $display_id, &$args){
+  // Is this a slickgrid? Is there an argument ?
+  if($view->display_handler->get_option('style_plugin') != 'character_editor'){return;}
+  if(!count($args)){return;}
+  $view->characters = array();
+  $style_options = $view->display_handler->get_option('style_options');
+  // Always turn on tabs
+  $style_options['tabs'] = true;
+  // Editing entity type will always be relation
+  $style_options['entity_type'] = 'relation';
+  if(arg(2) != 'edit' && (arg(0) != 'slickgrid' && arg(1) != 'callback')){
+    // Turn off all the edit controls
+    $style_options['enableColumnResize'] = false;
+    $style_options['enableColumnReorder'] = false;
+    $style_options['autoEdit'] = false;
+    $style_options['select_columns'] = false;
+    $style_options['add'] = array();
+    $editable = false;
+  }elseif(user_access('edit character editor')){
+    $editable = true;
+    $style_options['editable'] = TRUE;
+    $style_options['enableCellNavigation'] = TRUE;
+  }else{
+    drupal_access_denied();
+    drupal_exit();
+  }
+  // The project ID will always be passed in as the first argument
+  $project = character_editor_entity_load_single('character_editor_project', reset($args), true);
+  $project_w = entity_metadata_wrapper('character_editor_project', $project);
+  foreach($project_w->relation_character_character_editor_character as $group_w){
+    $column_number = 1;
+    $character_group_has_column = FALSE;
+    foreach($group_w->relation_character_character_editor_character as $character_w){
+      if($character_w->getBundle() == 'group'){
+        continue;
+      }
+      $character_group_has_column = TRUE;
+      $column_id = 'character_' . $character_w->getIdentifier();
+      $field = array(
+        'id' => $column_id,
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'label' => $column_number,
+        'hide_empty' => 0
+      );
+      $view->add_item('page', 'field', 'views', 'character_field', $field, $column_id);
+      $style_options['columns'][$column_id] = array(
+        'tab' => $group_w->label(),
+        'width' => 35,
+        'filter' => '',
+        'headerCssClass' => 'character character-type-' . $character_w->getBundle() . ' ' . $column_id
+      );
+      $entity_info = $character_w->entityInfo();
+      $style_options['columns'][$column_id]['data']['bt'] = t('<h2>!label</h2><span class="character-type">!type</span>', array(
+        '!type' => $entity_info['bundles'][$character_w->getBundle()]['label'],
+        '!label' => $character_w->label()
+      ));
+      // Render the character node - this is used for the header tooltips
+      $controller = entity_get_controller($character_w->type());
+      $content = $controller->view(array(
+        $character_w->getIdentifier() => clone $character_w->value()
+      ));
+      $style_options['columns'][$column_id]['data']['char'] = drupal_render($content);
+      switch($character_w->getBundle()){
+        case 'text':
+        case 'dna':
+          $editor = 'ModalCharacter';
+          break;
+        case 'numeric':
+          $editor = 'InlineCharacter';
+          if($character_w->field_char_unit->value()){
+            $style_options['columns'][$column_id]['data']['bt'] .= t('<span>!unit</span>', array(
+              '!unit' => $character_w->field_char_unit->value()
+            ));
+          }
+          break;
+        case 'controlled':
+          $editor = 'InlineCharacter';
+          $value_to_delta = array();
+          if($character_w->field_char_states->count() > 0){
+            $conj = '';
+            foreach($character_w->field_char_states as $state_delta => $state_w){
+              $style_options['columns'][$column_id]['data']['bt'] .= $conj . t('<span class="state-delta">@delta</span>@state', array(
+                '@delta' => $state_delta,
+                '@state' => $state_w->field_char_state_label->value()
+              ));
+              $conj = '<br/>';
+              $value_to_delta[$state_w->getIdentifier()] = $state_delta;
+            }
+          }else{
+            $style_options['columns'][$column_id]['data']['bt'] .= t('There are no states for this character');
+          }
+          break;
+      }
+      $style_options['columns'][$column_id]['data']['charType'] = $character_w->getBundle();
+      // Only add the editor if it's editable
+      if($editable){
+        $style_options['columns'][$column_id]['editor'] = $editor;
+      }
+      // Fill in the data for this character
+      $relation_items = field_get_items($character_w->type(), $character_w->value(), 'field_characters');
+      foreach($character_w->relation_character_state_taxonomy_term as $term_delta => $term_w){
+        $relation = relation_load($relation_items[$term_delta]['relation_id']);
+        $language = field_language('relation', $relation, 'field_character_state_data');
+        if(isset($relation->field_character_state_data[$language][0]['safe_value'])){
+          // If this is a controlled character, we want to use the delta, not the value
+          $safe_value = $relation->field_character_state_data[$language][0]['safe_value'];
+          if($character_w->getBundle() == 'controlled' && is_array($value_to_delta)){
+            foreach($value_to_delta as $value => $value_delta){
+              $safe_value = str_replace($value, $value_delta, $safe_value);
+            }
+          }
+          $view->characters[$term_w->getIdentifier()][$column_id] = $safe_value;
+        }
+      }
+      $column_number++;
+    }
+    if(!$character_group_has_column && (arg(2) == 'edit' || (arg(0) == 'slickgrid' && arg(1) == 'callback'))){
+      $column_id = 'character_group_' . $group_w->getIdentifier();
+      $field = array(
+        'id' => $column_id,
+        'relationship' => 'none',
+        'group_type' => 'group',
+        'label' => '',
+        'hide_empty' => 0
+      );
+      $view->add_item('page', 'field', 'views', 'nothing', $field, $column_id);
+      $style_options['columns'][$column_id] = array(
+        'tab' => $group_w->label(),
+        'headerCssClass' => 'character ' . $column_id
+      );
+      $style_options['columns'][$column_id]['data'] = array(
+        'char' => t('This group is empty. You need to add characters to the group.')
+      );
+    }
+  }
+  $view->display_handler->set_option('style_options', $style_options);
+}
+
+/*********************************************************************************************
+ * 
+ * FIELD HOOKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_field_widget_info().
+ */
+function character_editor_field_widget_info(){
+  return array(
+    'characters' => array(
+      'label' => t('Characters'),
+      'field types' => array(
+        'relation'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ * Define the actual field input element
+ */
+function character_editor_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'character_editor') . '/css/character-editor.css'
+  );
+  if(isset($_GET['project'])){
+    $project_id = $_GET['project'];
+  }elseif(isset($form_state['entity']->id)){
+    $project_id = $form_state['entity']->id;
+  }else{
+    $project_id = null;
+  }
+  if(isset($items[$delta]['endpoints'])){
+    list($entity_type, $entity_id) = explode(':', reset($items[$delta]['endpoints']));
+    // We don't want character projects here
+    if($entity_type != 'character_editor_project'){
+      $character_entity = entity_load($entity_type, array(
+        $entity_id
+      ));
+      $element['character'] = array(
+        '#type' => 'item',
+        '#title' => $character_entity[$entity_id]->label(),
+        '#suffix' => l('Edit', 'character-editor-character/' . $entity_id . '/edit', array(
+          'attributes' => array(
+            'class' => 'character-editor-edit-link'
+          ),
+          'query' => array(
+            'destination' => request_uri(),
+            'project' => $project_id
+          )
+        ))
+      );
+      $form['#after_build'][] = 'character_editor_field_widget_form_after_build';
+      return $element;
+    }
+  }
+}
+
+function character_editor_field_widget_form_after_build($form){
+  foreach(element_children($form['field_characters']) as $language){
+    unset($form['field_characters'][$language]['add_more']);
+  }
+  return $form;
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function character_editor_form_alter(&$form, &$form_state, $form_id){
+  switch($form_id){
+    case 'entity_admin_entity_form':
+      switch($form['#entity_type']){
+        case 'character_editor_character':
+          // Is this an add link from slickgrid
+          if(!isset($form_state['character_project_id'])){
+            if($form_state['entity']->is_new){
+              $form_state['character_project_id'] = arg(5);
+            }else{
+              $form_state['character_project_id'] = $_GET['project'];
+            }
+          }
+          if($form_state['entity']->type != 'group'){
+            $groups = character_editor_get_groups($form_state['character_project_id']);
+            if(count($groups)){
+              $default_group = NULL;
+              if(empty($form_state['entity']->is_new)){
+                $group_entity = character_editor_get_group($form_state['entity']->id);
+                if($group_entity){
+                  $default_group = $group_entity->id;
+                }
+              }
+              if(empty($default_group)){
+                $default_group = reset(array_keys($groups));
+              }
+              // Get the actual title weight - the one in the form gets over-written later
+              $extra_fields = field_info_extra_fields('character_editor_character', $form_state['entity']->type, 'form');
+              if(isset($extra_fields['title']['weight'])){
+                $title_weight = $extra_fields['title']['weight'];
+              }else{
+                $title_weight = $form['title']['#weight'];
+              }
+              $form['group'] = array(
+                '#type' => 'select',
+                '#title' => t('Group'),
+                '#options' => $groups,
+                '#description' => t('Which group would you like to add this character to?'),
+                '#required' => true,
+                '#default_value' => $default_group,
+                '#nane' => 'group',
+                '#weight' => $title_weight + 0.5
+              );
+            }else{
+              form_set_error('group', t("Sorry, you need to create a group before adding any other character"));
+            }
+          }
+          if($form_state['entity']->is_new){
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+          }else{
+            $destination = drupal_get_destination();
+            $form['actions']['back'] = array(
+              '#type' => 'submit',
+              '#value' => t('Back'),
+              '#submit' => array()
+            );
+            // The tabs have been changed so there's no longer delete - add delete button
+            $form['actions']['delete'] = array(
+              '#type' => 'submit',
+              '#value' => t('Delete'),
+              '#submit' => array(
+                'character_editor_character_delete_submit'
+              )
+            );
+            $form['actions']['submit']['#submit'][] = 'character_editor_character_form_submit';
+            $form['actions']['submit']['#update'] = TRUE;
+          }
+          $form['#after_build'][] = 'character_editor_character_form_after_build';
+          break;
+        case 'character_editor_project':
+          // Do not do anything for character project creation
+          if($form['#entity']->is_new){return;}
+          // Character editor project form is broken up into edit characters (relations field)
+          // And settings
+          if(arg(2) == 'settings'){
+            // Hide the characters on the settings form
+            $form['field_characters']['#attributes']['class'][] = 'element-hidden';
+            $form['title']['#title'] = t('Title');
+          }else{
+            // Hide all other fields on the edit characters form
+            foreach(array(
+              'title',
+              'field_char_proj_description',
+              'field_taxonomic_name'
+            ) as $key){
+              $form[$key]['#prefix'] = '<div class="element-hidden">';
+              $form[$key]['#suffix'] = '</div>';
+            }
+          }
+          break;
+      }
+      break;
+    case 'entity_admin_entity_delete_form':
+      $form['actions']['cancel']['#href'] = 'character-editor-project/' . $_GET['project'] . '/characters';
+      break;
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * ENTITY HOOKS & CALLBACKS
+ * 
+ ********************************************************************************************/
+/**
+ * Implement hook_entity_info().
+ *
+ */
+function character_editor_entity_info(){
+  // Character projects
+  $return['character_editor_project'] = array(
+    'label' => t('Character project'),
+    // The entity class and controller class extend the classes provided by the Entity API
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'character_editor_project',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'bundle' => 'type',
+      'label' => 'title'
+    ),
+    // Bundles are defined by the publication types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ),
+    'access callback' => 'character_editor_entity_access',
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'path' => 'admin/content/character-editor/projects',
+      'controller class' => 'CharacterProjectEntityController'
+    ),
+    'views controller class' => 'CharacterProjectViewsController'
+  );
+  // The entity that holds information about the entity types	  
+  $return['character_editor_project_type'] = array(
+    'label' => t('Character project type'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'character_editor_project_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'character_editor_project',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label'
+    ),
+    'access callback' => 'character_editor_entity_access',
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'path' => 'admin/structure/character-editor/project',
+      'controller class' => 'EntityAdminTypeController'
+    )
+  );
+  $return['character_editor_character'] = array(
+    'label' => t('Character'),
+    // The entity class and controller class extend the classes provided by the Entity API
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'character_editor_character',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'bundle' => 'type',
+      'label' => 'title'
+    ),
+    // Bundles are defined by the publication types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ),
+    'access callback' => 'character_editor_entity_access',
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'path' => 'admin/content/character-editor/characters',
+      'controller class' => 'EntityAdminEntityController',
+      'access' => false
+    ),
+    'creation callback' => null
+  );
+  // The entity that holds information about the entity types	  
+  $return['character_editor_character_type'] = array(
+    'label' => t('Character type'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'character_editor_character_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'character_editor_character',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label'
+    ),
+    'access callback' => 'character_editor_entity_access',
+    'module' => 'character_editor',
+    'admin ui' => array(
+      'path' => 'admin/structure/character-editor/character',
+      'controller class' => 'EntityAdminTypeController'
+    )
+  );
+  return $return;
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function character_editor_entity_property_info_alter(&$info){
+  $properties = &$info['character_editor_project']['properties'];
+  $properties['created'] = array(
+    'label' => t("Date created"),
+    'type' => 'date',
+    'description' => t("The date the character project was created."),
+    'schema field' => 'created'
+  );
+  $properties['changed'] = array(
+    'label' => t("Date changed"),
+    'type' => 'date',
+    'description' => t("The date the character project was updated."),
+    'schema field' => 'created'
+  );
+  $properties['uid'] = array(
+    'label' => t("Author"),
+    'type' => 'user',
+    'setter callback' => 'entity_property_verbatim_set',
+    'description' => t("The author of the character project."),
+    'schema field' => 'uid'
+  );
+}
+
+/**
+ * Entity access callback
+ */
+function character_editor_entity_access($op){
+  switch($op){
+    case 'access':
+      $op = 'view';
+      break;
+    case 'update':
+    case 'settings':
+    case 'characters':
+      $op = 'edit';
+      break;
+  }
+  $permission = $op . ' character editor';
+  return user_access($permission);
+}
+
+/**
+ * Clone of entity_load_single, but with an optional reset
+ */
+function character_editor_entity_load_single($entity_type, $id, $reset = false){
+  $entities = entity_load($entity_type, array(
+    $id
+  ), array(), $reset);
+  return reset($entities);
+}
+
+/**
+ * Entity delete
+ * Delete all the character groups & characters 
+ */
+function character_editor_entity_delete($entity, $type){
+  switch($type){
+    case 'character_editor_project':
+    case 'character_editor_character':
+      if(!empty($entity->field_characaters)){
+        foreach($entity->field_characters as $language => $values){
+          if(empty($values)){
+            continue;
+          }
+          $characters = array();
+          foreach($values as $field_character){
+            foreach($field_character['endpoints'] as $endpoint){
+              list($entity_type, $entity_id) = explode(':', $endpoint);
+              $characters[] = $entity_id;
+            }
+          }
+          entity_delete_multiple('character_editor_character', $characters);
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_insert
+ * Create a default group for charcater projects
+ */
+function character_editor_entity_insert($entity, $type){
+  global $user;
+  if($type == 'character_editor_project'){
+    // Create the group entity
+    $group = entity_create('character_editor_character', array(
+      'type' => 'group',
+      'is_new' => 1,
+      'title' => t('Default'),
+      'uid' => $user->uid,
+      'name' => $user->name
+    ));
+    // Save group
+    entity_save('character_editor_character', $group);
+    // And relate group to the character project
+    character_editor_create_relation($entity, $group);
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * MENU CALLBACKS
+ * 
+ ********************************************************************************************/
+/**
+ * View a character project entity
+ */
+function character_editor_project_view($entity){
+  $path = drupal_get_path('module', 'character_editor');
+  $name = character_editor_get_default_view();
+  $display_id = 'default';
+  $args = array(
+    $entity->id
+  );
+  // Load the view and render it.
+  if(($view = views_get_view($name)) != FALSE){
+    $build = array(
+      '#type' => 'markup',
+      '#markup' => $view->execute_display($display_id, $args),
+      '#attached' => array(
+        'js' => array(
+          $path . '/js/character-editor.js'
+        ),
+        'css' => array(
+          $path . '/css/character-editor.css'
+        )
+      )
+    );
+  }
+  // Override the JS setting set by the slickgrid module.
+  drupal_add_js(array(
+    'slickgrid' => array(
+      'get_data_callback_url' => url('character_editor/get/data/' . $entity->id . '/', array(
+        'absolute' => TRUE
+      ))
+    )
+  ), 'setting');
+  // views_get_view overwites the title so need to reset it here 
+  drupal_set_title($entity->label());
+  return $build;
+}
+
+/*********************************************************************************************
+ * 
+ * FORM FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Additional form submit handler for new characters. This is called after entity_admin_entity_form_submit
+ */
+function character_editor_character_form_submit(&$form, &$form_state){
+  if(empty($form_state['triggering_element']['#update'])){
+    try{
+      if(isset($form_state['entity'])){
+        $character_entity = $form_state['entity'];
+        switch($character_entity->type){
+          case 'group':
+            $parent_entity = entity_load_single('character_editor_project', $form_state['character_project_id']);
+            drupal_set_message(t("Created new character group @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+          default:
+            $parent_entity = entity_load_single('character_editor_character', $form_state['values']['group']);
+            drupal_set_message(t("Created new character @label", array(
+              '@label' => $character_entity->label()
+            )));
+            break;
+        }
+        character_editor_create_relation($parent_entity, $character_entity);
+      }else{
+        throw new Exception('The character could not be created.');
+      }
+    }
+    catch(Exception $e){
+      form_set_error('error', t('Sorry, the character could not be created - please close this form & try again. If the problem happens again, please contact the scratchpads team.'));
+    }
+    drupal_set_message(t("%type character added", array(
+      "%type" => ucfirst($character_entity->type)
+    )));
+    unset($form_state['redirect']);
+  }else if(isset($form_state['entity'])){
+    $character_entity = $form_state['entity'];
+    if($character_entity->type != 'group'){
+      $existing_group = character_editor_get_group($character_entity->id);
+      $new_group = entity_load_single('character_editor_character', $form_state['values']['group']);
+      if($existing_group->id != $new_group->id){
+        // Delete the existing group relation
+        $query = relation_query('character_editor_character', $character_entity->id)->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE)->related('character_editor_character', $existing_group->id);
+        $result = $query->execute();
+        if(count($result)){
+          $r = reset($result);
+          relation_delete($r->rid);
+        }
+        // And create a new one
+        character_editor_create_relation($new_group, $character_entity);
+      }
+    }
+  }
+}
+
+/**
+ * Handle submission of character form delete button
+ * @param array $form
+ * @param array $form_state
+ */
+function character_editor_character_delete_submit($form, &$form_state){
+  unset($_GET['destination']);
+  drupal_static_reset('drupal_get_destination');
+  drupal_get_destination();
+  // Cannot use  $form_state['redirect'] as the query params get mangled
+  drupal_goto('character/' . $form_state['entity']->id . '/delete', array(
+    'query' => array(
+      'project' => $_GET['project']
+    )
+  ));
+}
+
+function character_editor_character_form_after_build(&$form, &$form_state){
+  // Bug fix: subform destroys the $_POST array so slickgrid doesn't know when form has validated
+  // Manually set it here
+  if(empty($_POST)){
+    $form['#validated'] = true;
+  }
+  return $form;
+}
+
+/**
+ * 
+ * Create a relation between two entities
+ * Invoked from character_editor_add_character_form_submit()
+ * @param string $relation_type
+ * @param entity obj $parent_entity
+ * @param entity obj $character_entity
+ */
+function character_editor_create_relation($parent_entity, $character_entity){
+  $entity_keys = array(
+    array(
+      'entity_type' => $parent_entity->entityType(),
+      'entity_id' => $parent_entity->identifier(),
+      'r_index' => 0
+    ),
+    array(
+      'entity_type' => $character_entity->entityType(),
+      'entity_id' => $character_entity->identifier(),
+      'r_index' => 1
+    )
+  );
+  $relation = relation_create(PROJECT_CHARACTER_RELATION_TYPE, $entity_keys);
+  relation_save($relation);
+}
+
+/*********************************************************************************************
+ * 
+ * MODULE FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Get the default view name
+ * TODO - hook into views default
+ */
+function character_editor_get_default_view(){
+  module_load_include('inc', 'character_editor', 'views/character_editor.views_default');
+  return key(character_editor_views_default_views());
+}
+
+/**
+ * Get a list of all character types
+ */
+function character_editor_get_character_types(){
+  $character_types = array();
+  foreach($entities = entity_admin_get_entities('character_editor_character_type') as $type => $entity){
+    $character_types[$type] = $entity->label();
+  }
+  return $character_types;
+}
+
+/**
+ * Get a list of all character groups in a character project
+ */
+function character_editor_get_groups($character_project_id){
+  $groups = array();
+  $query = relation_query('character_editor_project', $character_project_id);
+  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
+  $results = $query->execute();
+  $group_ids = array();
+  foreach($results as $result){
+    $relation = relation_load($result->rid);
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
+      if($endpoint['entity_type'] == 'character_editor_character'){
+        $group_ids[] = $endpoint['entity_id'];
+      }
+    }
+  }
+  $group_entities = entity_load('character_editor_character', $group_ids);
+  foreach($group_entities as $group_entity_id => $group_entity){
+    $groups[$group_entity_id] = $group_entity->label();
+  }
+  return $groups;
+}
+
+/**
+ * Get the character group of a given character
+ */
+function character_editor_get_group($character_id){
+  $query = relation_query('character_editor_character', $character_id);
+  $query->entityCondition('bundle', PROJECT_CHARACTER_RELATION_TYPE);
+  $results = $query->execute();
+  foreach($results as $result){
+    $relation = relation_load($result->rid);
+    $language = field_language('relation', $relation, 'endpoints');
+    foreach($relation->endpoints[$language] as $endpoint){
+      if($endpoint['entity_type'] != 'character_editor_character'){
+        continue;
+      }
+      $entity = reset(entity_load('character_editor_character', array(
+        $endpoint['entity_id']
+      )));
+      if($entity->type == 'group'){return $entity;}
+    }
+  }
+  return NULL;
+}
+
+/*********************************************************************************************
+ * 
+ * CTOOLS PLUGIN INTEGRATION
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function character_editor_ctools_plugin_api($module, $api){
+  if($module == 'slickgrid'){return array(
+      'version' => 1
+    );}
+  if($module == "relation" && $api == "relation_type_default"){return array(
+      "version" => "1"
+    );}
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory() to let the system know
+ * we implement task and task_handler plugins.
+ */
+function character_editor_ctools_plugin_directory($module, $plugin){
+  if($module == 'slickgrid'){return 'plugins/' . $plugin . 's';}
+}
+
+/*********************************************************************************************
+ * 
+ * SLICKGRID PROCESSOR & CALLBACK FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * Implement hook_slickgrid_entity_add
+ *
+ * Ensure we reset the columns when characters are modified
+ */
+function character_editor_slickgrid_add_entity($entity_type, $bundle, $arguments, $entity){
+  // If we are adding a new character (and we know the project id), then
+  // provide the rebuild-columns too.
+  $result = array();
+  if($entity_type == 'character_editor_character' && count($arguments)){
+    $project_entity_id = reset($arguments);
+    $view = views_get_view(character_editor_get_default_view());
+    if($view){
+      $view->execute_display('defaut', array(
+        $project_entity_id
+      ));
+      $result['columns'] = slickgrid_encode_columns($view->columns);
+    }
+  }
+  return $result;
+}
+
+/**
+ * Slickgrid process function
+ * Retrieve form / process a modal character form (text & DNA)
+ * @param object $editor
+ */
+function character_editor_state_form_process($editor){
+  // Include the ctools stuff
+  ctools_include('modal');
+  ctools_include('ajax');
+  $form_state['values'] = $_POST;
+  // Additional form_state settings required for ctools modal forms
+  $editor->entity_info = entity_get_info($editor->entity_type);
+  list(, $character_entity_id) = explode('_', $editor->field_id);
+  $character_entity = entity_load_single('character_editor_character', $character_entity_id);
+  $form_state['title'] = t("Editing %label (!type)", array(
+    '%label' => $character_entity->label(),
+    '!type' => $form_state['values']['character_type']
+  ));
+  $form_state['ajax'] = true;
+  // Pass the editor object into the form_state
+  $form_state['editor'] = $editor;
+  $output = ctools_modal_form_wrapper($editor->plugin['form_id'], $form_state);
+  if(!empty($form_state['executed'])){ // Form has succesfully completed  	
+    // We're going to exit the process, so get editor result manually
+    $result = $form_state['editor']->get_result();
+    slickgrid_callback_add_messages($result);
+    // Build a ctools ajax output array
+    $output = array(
+      array(
+        'command' => 'slickgrid',
+        'response' => array(
+          'result' => $result
+        )
+      )
+    );
+  }
+  print ajax_render($output);
+  exit();
+}
+
+/**
+ * Slickgrid process function
+ * Retrieve form / process an inline character form (numeric & controlled)
+ * @param object $editor
+ */
+function character_editor_inline_cell_process($editor){
+  $_POST['op'] = t('Save');
+  $entity = current($editor->entities);
+  // The language in use in the slickgrid is the language that would be chosen by
+  // field_language(...). This is not strictly equivalent, though in our case
+  // will work as expected.
+  $field = field_info_field('field_characater_state_data');
+  $available_languages = field_available_languages('relation', $field);
+  $suggestions = _field_language_suggestion($available_languages, field_valid_language(NULL, FALSE), 'field_character_states');
+  $language = reset($suggestions);
+  $_POST['field_character_state_data'][$language] = array(
+    array(
+      'value' => $_POST['value']
+    )
+  );
+  $form_state['programmed'] = true;
+  // Additional form_state settings required for ctools modal forms
+  $editor->entity_info = entity_get_info($editor->entity_type);
+  $form_state['values'] = $_POST;
+  $form_state['editor'] = $editor;
+  // Form isn't being displayed - so no rendering or redirecting
+  $form_state['re_render'] = true;
+  $form_state['no_redirect'] = true;
+  // Build & submit the form
+  drupal_build_form($editor->plugin['form_id'], $form_state);
+}
+
+/**
+ * Slickgrid state form
+ * Used for inline & modal states
+ */
+function character_editor_state_form($form, &$form_state){
+  $form = array();
+  $form_state['character_id'] = str_replace('character_', '', $_POST['field_id']);
+  $form_state['field_id'] = $_POST['field_id'];
+  $form_state['tid'] = reset($form_state['values']['entity_ids']);
+  $form_state['relation'] = character_editor_get_state_relation($form_state['tid'], $form_state['character_id']);
+  field_attach_form('relation', $form_state['relation'], $form, $form_state);
+  foreach(element_children($form['field_character_state_data']) as $language){
+    unset($form['field_character_state_data'][$language][0]['value']['#title']);
+  }
+  unset($form['endpoints']);
+  // Ensure values passed in from the slickgrid are persistent across the form rebuild
+  foreach(array(
+    'field_name',
+    'field_id',
+    'view',
+    'display_id',
+    'plugin',
+    'revision',
+    'entity_type',
+    'entity_ids',
+    'id',
+    'character_type'
+  ) as $element_name){
+    if(is_array($form_state['values'][$element_name])){ // entity ids will be passed as an array
+      foreach($form_state['values'][$element_name] as $element_value){
+        $form[$element_name][] = array(
+          '#type' => 'hidden',
+          '#value' => $element_value,
+          '#parents' => array(
+            $element_name,
+            ''
+          ) // Make these items into an array
+        );
+      }
+    }else{
+      $form[$element_name] = array(
+        '#type' => 'hidden',
+        '#value' => $form_state['values'][$element_name]
+      );
+    }
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#weight' => 100
+  );
+  $form['#submit'] = array(
+    'character_editor_state_form_submit'
+  );
+  return $form;
+}
+
+/**
+ * Slickgrid state form validate
+ */
+function character_editor_state_form_validate($form, &$form_state){
+  $editor = &$form_state['editor'];
+  $id = $form_state['values']['id'];
+  foreach(element_children($form_state['values']['field_character_state_data']) as $language){
+    switch($form_state['values']['character_type']){
+      case 'controlled':
+        // Is the state field not empty - then validate it
+        if(is_string($form_state['values']['field_character_state_data'][$language][0]['value']) && $form_state['values']['field_character_state_data'][$language][0]['value'] != '?' && $form_state['values']['field_character_state_data'][$language][0]['value'] != '-'){
+          $character = entity_load_single('character_editor_character', $form_state['character_id']);
+          if(!count($character->field_char_states[$language])){
+            $err = t("There are no states for this character");
+            break;
+          }
+          if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '+')){
+            $states = explode('+', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else if(strpos($form_state['values']['field_character_state_data'][$language][0]['value'], '/')){
+            $states = explode('/', $form_state['values']['field_character_state_data'][$language][0]['value']);
+          }else{
+            $states = array(
+              $form_state['values']['field_character_state_data'][$language][0]['value']
+            );
+          }
+          if(array_diff($states, array_keys($character->field_char_states[$language]))){
+            $err = t('Illegal state selected');
+          }else{
+            // Change the values from the delta to the field ID prior to saving
+            foreach($states as $state){
+              $form_state['values']['field_character_state_data'][$language][0]['value'] = & str_replace($state, $character->field_char_states[$language][$state]['value'], $form_state['values']['field_character_state_data'][$language][0]['value']);
+            }
+          }
+        }
+        break;
+      case 'numeric':
+        if(!empty($form_state['values']['field_character_state_data'][$language][0]['value']) && !is_numeric($form_state['values']['field_character_state_data'][$language][0]['value'])){
+          $err = t('Character state needs to be a numeric value.');
+        }
+        break;
+      case 'dna':
+        $dna = $form_state['values']['field_character_state_data'][$language][0]['value'];
+        preg_match('/[' . DNA_CHARACTERS . ']*/i', $dna, $matches);
+        if($matches[0] != $dna){
+          $err = t("Only the DNA characters %dna_chars are allowed", array(
+            '%dna_chars' => DNA_CHARACTERS
+          ));
+        }
+        break;
+    }
+  }
+  if(isset($err)){
+    $editor->errors[$id] = $err;
+    form_set_error('field_character_state_data', $err);
+  }
+}
+
+/**
+ * Get the character state (relation) beween a taxa & a character
+ */
+function character_editor_get_state_relation($tid, $character_id){
+  $query = relation_query('taxonomy_term', $tid);
+  $query->entityCondition('bundle', 'character_state');
+  $query->related('character_editor_character', $character_id);
+  $results = $query->execute();
+  $result = reset($results);
+  if(empty($result)){
+    $relation = new stdClass();
+    $relation->relation_type = 'character_state';
+  }else{
+    $relation = relation_load($result->rid);
+  }
+  return $relation;
+}
+
+/**
+ * Slickgrid state form submit
+ */
+function character_editor_state_form_submit($form, &$form_state){
+  $editor = &$form_state['editor'];
+  try{
+    // If we just created a dummy relation for the field form, add endpoints etc.,
+    if(!isset($form_state['relation']->rid)){
+      $entity_keys = array();
+      $entity_keys[] = array(
+        'entity_type' => 'taxonomy_term',
+        'entity_id' => $form_state['tid'],
+        'r_index' => 0
+      );
+      $entity_keys[] = array(
+        'entity_type' => 'character_editor_character',
+        'entity_id' => $form_state['character_id'],
+        'r_index' => 1
+      );
+      $relation = relation_create('character_state', $entity_keys);
+    }else{
+      $relation = $form_state['relation'];
+    }
+    entity_form_submit_build_entity('relation', $relation, $form, $form_state);
+    relation_save($relation);
+    // Return input value, not values value as this may have been changed.
+    $language = field_language('relation', $relation, 'field_character_state_data');
+    $editor->updated[$form_state['values']['id']]['value'] = $form_state['input']['field_character_state_data'][$language][0]['value'];
+  }
+  // ERROR: Entity save callback has thrown an exception
+  catch(Exception $e){
+    // Add entity to the editor's error array
+    $editor->set_error($form_state['tid'], t('Error trying to update entity'), 'submit');
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * THEME & PREPROCESS FUNCTIONS
+ * 
+ ********************************************************************************************/
+/**
+ * hook_preprocess_entity
+ * Add the character type
+ * @param array $variables
+ */
+function character_editor_preprocess_entity(&$variables){
+  switch($variables['entity_type']){
+    case 'character_editor_character':
+      $entity_info = $variables['elements']['#entity']->entityInfo();
+      $variables['character_type'] = $entity_info['bundles'][$variables['elements']['#bundle']]['label'];
+      break;
+  }
+}
+
+/**
+ * hook_preprocess_slickgrid
+ * Add JS & we always want a tabs div
+ * @param array $variables
+ */
+function character_editor_preprocess_views_view_slickgrid(&$variables){
+  if($variables['view']->display_handler->get_option('style_plugin') == 'character_editor'){
+    $path = drupal_get_path('module', 'slickgrid');
+    drupal_add_css($path . '/css/slickgrid.controls.css');
+    drupal_add_js($path . '/js/controls/slickgrid.tabs.js');
+    // Ensure there is the tab container
+    $variables['tabs'] = '<div id="slickgrid-tabs"></div>';
+    $variables['class'] .= ' character-editor';
+  }
+}
+
+/**
+ * theme_field
+ * The the char field - this is used in tooltip display
+ * @param array $variables
+ */
+function theme_field__field_char_states(&$variables){
+  $output = '';
+  foreach($variables['items'] as $delta => $item){
+    $classes = 'field-item';
+    if(isset($item['#markup'])){
+      $output .= $item['#markup'];
+    }else if(isset($item['#theme']) && $item['#theme'] == 'image_formatter'){
+      $output .= '<div class="character-editor-state-image">' . drupal_render($item) . '</div>';
+    }else{
+      $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $delta . ':&nbsp;</div>';
+      $output .= drupal_render($item);
+    }
+  }
+  return $output;
+}
+
+function character_editor_preprocess_slickgrid_control__add(&$variables){
+  // Make a copy and reset
+  $add_links = $variables['add_links'];
+  $variables['add_links'] = array();
+  // Reorder the characters (reversed cos they're floated)
+  foreach(array(
+    'character_editor_character/dna',
+    'character_editor_character/numeric',
+    'character_editor_character/text',
+    'character_editor_character/controlled',
+    'character_editor_character/group'
+  ) as $character){
+    if(isset($add_links[$character])){
+      $variables['add_links'][] = $add_links[$character];
+    }
+  }
+}
+
+/*********************************************************************************************
+ * 
+ * EXPORT
+ * 
+ ********************************************************************************************/
+/**
+ * Preprocess xml output template.
+ */
+function template_preprocess_views_data_export_sdd(&$vars){
+  // Compute the root XML node, using the base table, and appending an 's' if needed.
+  //  $root_node = $vars['view']->base_table;
+  //  if (rtrim($root_node, 's') == $root_node) {
+  //    $root_node .= 's';
+  //  }
+  //  $vars['root_node'] = _views_data_export_xml_tag_clean($root_node);
+}
+
+/*********************************************************************************************
+ * 
+ * IMPORT
+ * 
+ ********************************************************************************************/
+/**
+ * Implementation of hook_silver().
+ * 
+ * * type
+ * * name
+ * * access arguments
+ * * file
+ * * form_id
+ */
+function character_editor_silver(){
+  // Here we tell ourselves about the Feeds module forms, and suck like.
+  return array(
+    array(
+      'type' => 'Character data',
+      'name' => 'Nexus file import',
+      //'access callback' => 'user_access',
+      'access arguments' => array(
+        'create character editor'
+      ),
+      'form_id' => 'character_editor_nexus_import_form'
+    )
+  );
+}
+
+function character_editor_nexus_import_form($form, $form_state){
+  drupal_set_message(t("Sorry, the character editor import is not currently working."), 'warning');
+  $form['title'] = array(
+    '#title' => t('Title'),
+    '#type' => 'textfield',
+    '#required' => true
+  );
+  $form['description'] = array(
+    '#title' => t('Description'),
+    '#type' => 'textarea'
+  );
+  $form['submit'] = array(
+    '#disabled' => TRUE,
+    '#type' => 'submit',
+    '#value' => t('Import')
+  );
+  // We need a URL that the form can be accessed from here.  This will also need
+  // adding to the menu.
+  $form['#action'] = '/admin/import';
+  return $form;
+}
+
+function character_editor_nexus_import_form_submit($form, $form_state){}
+
+
+

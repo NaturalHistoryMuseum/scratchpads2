@@ -1,0 +1,19 @@
+Role Delegation 7.x-1.1, 2011-06-20
+-----------------------------------
+#1119192 by Andrew Schulman: fix Role Delegation tab in user profile appears as an action, not a tab.
+#1180600 by jyee: fix overwrites role attributes in forms.
+#1185796 by Andrew Schulman: fix Role delegation options appear in every profile edit form with Profile 2.
+#1193868 by Andrew Schulman: fix Unsanitized output in role_delegation_delegate_roles_action_form().
+
+Role Delegation 7.x-1.0, 2010-12-21
+-----------------------------------
+#170543 by Andrew Schulman: Rename or delete 'assign role' permissions when roles are renamed or deleted.
+#811932 by Pasqualle: Use 'restrict access' parameter for labeling unsafe permissions.
+Fix wrong assertion in RoleDelegationRoleEditingTestCase::testRenameRole() in role_delegation.test.
+
+Role Delegation 7.x-1.0-beta1, 2010-12-07
+-----------------------------------------
+#660640 by Pasqualle: Port to D7; add "Delegate roles" action.
+#598840 by Andrew Schulman: Add batch add and remove role operations.
+#983574 by Andrew Schulman: Add simple tests for D7.
+#946506 by spam38: Fix htmlspecialchars warning on admin/people* pages in drupal 7.x.

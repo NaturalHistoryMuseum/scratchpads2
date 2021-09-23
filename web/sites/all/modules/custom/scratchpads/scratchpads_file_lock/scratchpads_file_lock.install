@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_install().
+ * 
+ * Set up default values for file_lock
+ * Add file lock entry to all existing files
+ */
+function scratchpads_file_lock_enable(){
+  // variables used by file_lock module
+  variable_set('file_lock_mode', 'all');
+  variable_set('file_lock_hook', 'all');
+  // lock existing files
+  $or = db_or()->condition('module', 'file_lock')->condition('type', 'eolapi');
+  $subquery = db_select('file_usage', 'f')->fields('f', array(
+    'fid'
+  ))->condition($or);
+  $fids = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('fid', $subquery, 'NOT IN')->condition('status', '0', '>')->execute()->fetchAll(PDO::FETCH_COLUMN);
+  if(count($fids)){
+    // Finally, do the insert.
+    $query = db_insert('file_usage')->fields(array(
+      'fid',
+      'module',
+      'type',
+      'id',
+      'count'
+    ));
+    foreach($fids as $fid){
+      $query->values(array(
+        'fid' => $fid,
+        'module' => 'file_lock',
+        'type' => 'module',
+        'id' => 0,
+        'count' => 1
+      ));
+    }
+    $query->execute();
+  }
+}

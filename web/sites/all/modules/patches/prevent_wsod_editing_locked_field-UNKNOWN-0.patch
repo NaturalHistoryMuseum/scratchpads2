@@ -1,0 +1,13 @@
+diff --git a/entityconnect.module b/entityconnect.module
+index a68c799..3e844ea 100644
+--- a/entityconnect.module
++++ b/entityconnect.module
+@@ -171,7 +171,7 @@ function entityconnect_form_alter(&$form, &$form_state, $form_id) {
+       $instance = $form['#instance'];
+       $field = $form['#field'];
+       $additions = module_invoke('entityconnect', 'field_instance_settings_form', $field, $instance);
+-      if (is_array($additions)) {
++      if (is_array($additions) && isset($form['instance'])) {
+         $form['instance'] += $additions;
+       }
+     }

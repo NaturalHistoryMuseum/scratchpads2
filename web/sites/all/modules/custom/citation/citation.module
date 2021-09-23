@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ *
+ * This is the module file for the citation module.
+ * 
+ * The module defines it own hook which is used to add additional data to a
+ * citation for a page.  This is mainly used so that the externally loaded
+ * content can add its own citations.  The hook is called "hook_citation"
+ * 
+ * hook_citation(&$citations = array(), &$javascript = FALSE)
+ */
+/**
+ * Implementation of hook_menu
+ */
+function citation_menu(){
+  return array(
+    'citations' => array(
+      'title' => '',
+      'page callback' => 'citation_get_files',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array(
+        'access content'
+      )
+    )
+  );
+}
+
+/**
+ * Return files (simply makes URLs nice - Hmmm, there must be a better way of
+ * doing this)
+ */
+function citation_get_files(){
+  $file_name = arg(1);
+  if(arg(2)){
+    $file_name .= "/" . arg(2);
+  }else{
+    $file_name .= ".html";
+  }
+  $file_name = drupal_realpath("public://citations/$file_name");
+  $file = fopen($file_name, "rb");
+  fpassthru($file);
+  exit();
+}

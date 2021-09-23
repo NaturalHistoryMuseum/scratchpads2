@@ -1,0 +1,22 @@
+.scratchpads-search-block-input .form-type-radios{
+  padding-top: 10px;
+}
+
+.scratchpads-search-block-input .form-type-radios .form-type-radio{
+  display: inline!important;
+  margin: 0 20px 0 0!important;  
+}
+
+.scratchpads-search-block-input .form-type-radios .form-type-radio label{
+  color: #fff; 
+  cursor: pointer;
+}
+
+#autocomplete{
+  border: 1px solid #ACACAC;
+}
+
+#autocomplete ul li{
+  padding: 2px 4px;
+  cursor: pointer;  
+}

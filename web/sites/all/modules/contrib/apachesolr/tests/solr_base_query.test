@@ -1,0 +1,214 @@
+<?php
+
+/**
+ * Unit tests for query object methods.
+ */
+class SolrBaseQueryTests extends DrupalUnitTestCase {
+  public static function getInfo() {
+        return array(
+      'name' => 'SolrBaseQuery Unit tests',
+      'description' => 'Unit Tests for queries.',
+      'group' => 'ApacheSolr',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.module';
+    require_once dirname(dirname(realpath(__FILE__))) . '/apachesolr.interface.inc';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Solr_Base_Query.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/Drupal_Apache_Solr_Service.php';
+    require_once dirname(dirname(realpath(__FILE__))) . '/tests/Dummy_Solr.php';
+  }
+
+  /**
+   * Helper function to simulate the auto loading and other non-needed functions
+   * that otherwise require a database
+   * @see apachesolr_drupal_query().
+   * @return SolrBaseQuery
+   */
+  private function _apachesolr_drupal_query($name, $params = array(), $solrsort = '', $base_path = '', $solr = NULL) {
+    if (empty($solr)) {
+      $solr = new DummySolr(NULL);
+    }
+    return new SolrBaseQuery($name, $solr, $params, $solrsort, $base_path);
+  }
+
+  private function _apachesolr_drupal_subquery($operator = 'OR') {
+    return new SolrFilterSubQuery($operator);
+  }
+
+  /**
+   * Test ordering of parsed filter positions.
+   *
+   * Regression test for http://drupal.org/node/891962
+   */
+  function testParseFilters() {
+    $fq = array('tid:3', 'sort_label:hello', 'tid:11', 'tid:1', 'tid:12', 'label:hello');
+    // Setup dummy Solr object.
+    $query = $this->_apachesolr_drupal_query("apachesolr_tests", array('q' => 'mykeys', 'fq' => $fq), 'sort_label asc', 'search/test');
+    // Check sortsort
+    $this->assertEqual(array('solrsort' => 'sort_label asc'), $query->getSolrsortUrlQuery());
+    $query->setSolrsort('sort_name', 'desc');
+    $this->assertEqual(array('solrsort' => 'sort_name desc'), $query->getSolrsortUrlQuery());
+    $query->setSolrsort('score', 'desc');
+    $this->assertEqual(array(), $query->getSolrsortUrlQuery());
+    // Check getPath() functionality
+    $this->assertEqual('search/test/mykeys', $query->getPath());
+    $this->assertEqual('search/test/newkeys', $query->getPath('newkeys'));
+    // Check hasFilter functionality
+    $this->assertFalse($query->hasFilter('label', 'Jello'), "hasFilter('label', 'Jello') is FALSE");
+    $this->assertTrue($query->hasFilter('label', 'hello'), "hasFilter('label', 'hello') is TRUE");
+    $this->assertTrue($query->hasFilter('label', 'hello', FALSE), "hasFilter('label', 'hello', FALSE) is TRUE");
+    $this->assertFalse($query->hasFilter('label', 'hello', TRUE), "hasFilter('label', 'hello', TRUE) is FALSE");
+    $filters = $query->getFilters();
+    $this->assertEqual(count($filters), 6, count($filters) . ' filters found, expected 6 filters');
+    // Check positions of filters
+    foreach ($fq as $idx => $filter) {
+      $this->assertEqual($filter, $query->makeFilterQuery($filters[$idx]));
+    }
+    // Check that the query string is re-assembled correctly
+    $this->assertEqual($fq, $query->getParam('fq'));
+    $this->assertEqual('mykeys', $query->getParam('q'));
+    $query->removeFilter('tid', '11');
+    $filters = $query->getFilters();
+    $this->assertEqual(count($filters), 5, count($filters) . ' filters found, expected 5 filters');
+    $this->assertEqual(array('tid:3', 'sort_label:hello', 'tid:1', 'tid:12', 'label:hello'), $query->getParam('fq'));
+    $query->removeFilter('tid');
+    $filters = $query->getFilters();
+    $this->assertEqual(count($filters), 2, count($filters) . ' filters found, expected 2 filters');
+    $this->assertEqual(array('sort_label:hello', 'label:hello'), $query->getParam('fq'));
+
+    $subquery = $this->_apachesolr_drupal_subquery();
+    $subquery->addFilter('access__all', 0);
+    $subquery->addFilter('hash', 'randomhash');
+    $query->addFilterSubQuery($subquery);
+    $this->assertEqual(count($query->getParam('fq')), 3, count($query->getParam('fq')) . ' fq params found, expected 3 after adding subquery');
+    $this->assertEqual(array('sort_label:hello', 'label:hello', '(access__all:0 OR hash:randomhash' . ')'), $query->getParam('fq'));
+  }
+
+  function testAddParams() {
+    $examples = array();
+    $examples['{!cache=false}inStock:true'] = array(
+      '#local' => 'cache=false',
+      '#exclude' => FALSE,
+      '#name' => 'inStock',
+      '#value' => 'true',
+    );
+    $examples['{!frange l=1 u=4 cache=false}sqrt(popularity)'] = array(
+      '#local' => 'frange l=1 u=4 cache=false',
+      '#exclude' => FALSE,
+      '#name' => NULL,
+      '#value' => 'sqrt(popularity)',
+    );
+    $examples['{!cache=false cost=5}inStock:true'] = array(
+      '#local' => 'cache=false cost=5',
+      '#exclude' => FALSE,
+      '#name' => 'inStock',
+      '#value' => 'true',
+    );
+    $examples['{!tag=impala}model:Impala'] = array(
+      '#local' => 'tag=impala',
+      '#exclude' => FALSE,
+      '#name' => 'model',
+      '#value' => 'Impala',
+    );
+    $examples['{!anything that appears to be local}'] = array(
+      '#local' => 'anything that appears to be local',
+      '#exclude' => FALSE,
+      '#name' => NULL,
+      '#value' => NULL,
+    );
+    $examples['bundle:(article OR page)'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'bundle',
+      '#value' => '(article OR page)',
+    );
+    $examples['-bundle:(article OR page)'] = array(
+      '#local' => NULL,
+      '#exclude' => TRUE,
+      '#name' => 'bundle',
+      '#value' => '(article OR page)',
+    );
+    $examples['-{!anything that appears to be local}'] = array(
+      '#local' => 'anything that appears to be local',
+      '#exclude' => TRUE,
+      '#name' => NULL,
+      '#value' => NULL,
+    );
+    $examples['title:"double words"'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'title',
+      '#value' => '"double words"',
+    );
+    $examples['field_date:[1970-12-31T23:59:59Z TO NOW]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'field_date',
+      '#value' => '[1970-12-31T23:59:59Z TO NOW]',
+    );
+
+    $query = $this->_apachesolr_drupal_query("apachesolr_tests");
+    foreach ($examples as $fq => $example) {
+      $name = (!empty($example['#name'])) ? $example['#name'] : '_QUERY_';
+      $value = (!empty($example['#value'])) ? $example['#value'] : '_VALUE_';
+      $filter = $name . ':' . $value;
+      // Check if filter is seen as a valid one
+      $message = t('Filter (@fq) is Valid', array('@fq' => $filter));
+      $this->assertTrue($query->validFilterValue($filter), $message);
+
+      $query->addParam('fq', $fq);
+      // Check if filter was added
+      $message = t('hasFilter(@name, @value) is True', array('@name' => $example['#name'], '@value' => $example['#value']));
+      $this->assertTrue($query->hasFilter($example['#name'], $example['#value'], $example['#exclude']), $message);
+      $filters = $query->getFilters();
+      $filter = reset($filters);
+      $message = t('The filter "@fq" was added with all the given properties', array('@fq' => $fq));
+      $this->assertTrue(!array_diff($example, $filter), $message);
+      $query->removeFilter($example['#name']);
+      $message = t('The filter "@fq" was correctly removed', array('@fq' => $fq));
+      $this->assertFalse($query->hasFilter($example['#name'], $example['#value'], $example['#exclude']), $message);
+      // Since we cannot remove filters without names yet we have to clear the whole fq array
+      $query->removeParam('fq');
+      // Check the ones without the name also
+    }
+
+    // Check for invalid combinations
+    $bad_examples['wrong name:"double words"'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'wrong name',
+      '#value' => '"double words"',
+    );
+    $bad_examples['field_date:[1970-12-31 TO NOW]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'field_date',
+      '#value' => '[1970-12-31 TO NOW]',
+    );
+    $bad_examples['bundle:((article OR page)]'] = array(
+      '#local' => NULL,
+      '#exclude' => FALSE,
+      '#name' => 'bundle',
+      '#value' => '((article OR page)]',
+    );
+
+    foreach ($bad_examples as $fq => $example) {
+      $name = (!empty($example['#name'])) ? $example['#name'] : '_QUERY_';
+      $value = (!empty($example['#value'])) ? $example['#value'] : '_VALUE_';
+      $filter = $name . ':' . $value;
+      // Check if filter is seen as a valid one
+      $message = t('Filter (@fq) is not Valid', array('@fq' => $filter));
+      $this->assertFalse($query->validFilterValue($filter), $message);
+    }
+    // Check parameter normalization.
+    $query->addParam('spellcheck', TRUE);
+    $this->assertTrue($query->getParam('spellcheck') === 'true', "TRUE normalized to string 'true'");
+    $query->replaceParam('spellcheck', FALSE);
+    $this->assertTrue($query->getParam('spellcheck') === 'false', "FALSE normalized to string 'false'");
+    $query->addParam('fl', array(' x ', TRUE));
+    $this->assertTrue($query->getParam('fl') === array('x', 'true'), "Array of params all normalized");
+  }
+}

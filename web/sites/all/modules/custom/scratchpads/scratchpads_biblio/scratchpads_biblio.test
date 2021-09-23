@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+*
+* Scratchpads biblio tests.
+*/
+class ScratchpadsBiblioTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Biblio',
+      'description' => "Tests for the addition of 'field_file' field and 'citation' field formatter",
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+  }
+
+  /**
+   *  Test that the field_file field has been added
+   */
+  function testBiblioFields(){
+    $this->drupalLogin($this->maintainer);
+    $this->drupalGet('admin/structure/types/manage/biblio/fields');
+    $this->assertResponse(200);
+    $this->assertText('field_file', 'field_file field present on biblio page');
+  }
+
+  /**
+   *  Create a new node reference field and set format to citation
+   */
+  function testCitation(){
+    $this->drupalLogin($this->maintainer);
+    $this->drupalGet('admin/structure/types/manage/page/fields');
+    $edit = array();
+    $my_field = $this->machine_name($this->randomName());
+    $edit['fields[_add_new_field][label]'] = $my_field;
+    $edit['fields[_add_new_field][field_name]'] = $my_field;
+    $edit['fields[_add_new_field][type]'] = 'node_reference';
+    $edit['fields[_add_new_field][widget_type]'] = 'node_reference_autocomplete';
+    $this->drupalPost(NULL, $edit, 'Save');
+    // next page of form
+    $edit2 = array();
+    $edit2['field[settings][referenceable_types][biblio]'] = true;
+    $this->drupalPost(NULL, $edit2, 'Save field settings');
+    // next page of form
+    $edit3 = array();
+    $this->drupalPost(NULL, $edit3, 'Save settings');
+    $this->assertText('Saved', 'Save confirmation message displayed');
+    // manage fields
+    $this->drupalGet('admin/structure/types/manage/page/display');
+    $this->assertRaw('Citation', "'Citation' found on page");
+    $edit4 = array();
+    // This is the citation option
+    $edit4['fields[field_' . $my_field . '][type]'] = 'scratchpads_biblio_biblio_ref';
+    $this->drupalPost(NULL, $edit4, 'Save');
+    // Test that this option has been saved
+    $this->assertText('Your settings have been saved.');
+    $id = 'edit-fields-field-' . $my_field . '-type';
+    $this->assertOptionSelected($id, 'scratchpads_biblio_biblio_ref', 'Citation option seleced');
+  }
+}
+
+
+
+

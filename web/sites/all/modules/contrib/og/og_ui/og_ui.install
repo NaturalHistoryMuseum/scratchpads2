@@ -1,0 +1,20 @@
+<?php
+
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Organic groups UI module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function og_ui_uninstall() {
+  variable_del('og_ui_global_roles');
+}
+
+/**
+ * Removed -- Upgrade from Organic groups 6 to 7, moved to og-migrate.
+ */
+function og_ui_update_7000(&$sandbox) {
+}

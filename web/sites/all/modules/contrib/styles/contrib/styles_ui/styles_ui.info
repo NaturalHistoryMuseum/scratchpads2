@@ -1,0 +1,14 @@
+
+name = Styles UI
+description = Allows administration of the Styles modules.
+package = Styles
+core = 7.x
+files[] = styles_ui.admin.inc
+dependencies[] = styles
+
+; Information added by drupal.org packaging script on 2011-09-12
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "styles"
+datestamp = "1315787000"
+

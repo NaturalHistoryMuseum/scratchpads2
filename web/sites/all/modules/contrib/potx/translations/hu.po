@@ -1,0 +1,147 @@
+# Hungarian translation of potx (6.x-2.2)
+# Copyright (c) 2009 by the Hungarian translation team
+# Generated from files:
+#  potx.install,v 1.1.2.1 2008/09/25 06:49:33 goba
+#  potx.info,v 1.1.2.3.2.2 2007/11/12 20:19:06 goba
+#  potx.module,v 1.1.2.12.2.2.2.7 2008/09/26 10:52:11 goba
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: potx (6.x-2.2)\n"
+"POT-Creation-Date: 2009-06-25 18:21+0200\n"
+"PO-Revision-Date: 2009-06-23 10:48+0200\n"
+"Last-Translator: Balogh Zoltán\n"
+"Language-Team: Hungarian http://forditas.mindworks.hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: potx.install:23
+msgid "Not available"
+msgstr "Nem elérhető"
+
+#: potx.info:0
+msgid "Translation template extractor"
+msgstr "Translation template extractor"
+
+#: potx.module:20
+msgid ""
+"This page allows you to generate translation templates for module and "
+"theme files. Select the module or theme you wish to generate a "
+"template file for. A single Gettext Portable Object (Template) file is "
+"generated, so you can easily save it and start translation."
+msgstr ""
+"Ez az oldal lehetővé teszi sablonok készítését a modulok és a "
+"sminkek számára. Az összetevő kiválasztása után egy <em>Gettext "
+"Portable Object</em> (sablon) szövegfájl készül, amely könnyű "
+"érthetősége és szerkeszthetősége révén bátorít a "
+"fordításra."
+
+#: potx.module:52
+msgid "Language independent template"
+msgstr "Nyelvfüggetlen sablon"
+
+#: potx.module:58
+msgid "Template file for !langname translations"
+msgstr "!langname fordításhoz tartozó sablon"
+
+#: potx.module:62
+msgid "Template language"
+msgstr "Sablon nyelve"
+
+#: potx.module:65
+msgid ""
+"Export a language independent or language dependent (plural forms, "
+"language team name, etc.) template."
+msgstr ""
+"Nyelvfüggetlen, vagy nyelvfüggő (többes számok, fordítási "
+"csapat neve, stb.) sablon exportálása."
+
+#: potx.module:69
+msgid "Include translations"
+msgstr "Fordításokkal együtt"
+
+#: potx.module:70
+msgid ""
+"Include translations of strings in the file generated. Not applicable "
+"for language independent templates."
+msgstr ""
+"A már lefordított karaktersorozatok belekerülnek az "
+"előállítandó fájlba. Nyelvfüggetlen sablonok esetén nincs "
+"jelentősége."
+
+#: potx.module:29,76
+msgid "Extract"
+msgstr "Kinyerés"
+
+#: potx.module:87
+msgid "You should select a component to export."
+msgstr "Az exporthoz ki kell választani egy összetevőt."
+
+#: potx.module:185
+msgid "Extract from %name in the %directory directory"
+msgstr "%directory könyvtárban levő %name összetevő kinyerése"
+
+#: potx.module:186
+msgid "Generates output from all files found in this directory."
+msgstr "Sablon előállítása a könyvtárban található összes fájlból."
+
+#: potx.module:201
+msgid "Extract from all in directory \"@directory\""
+msgstr "Kinyerés a könyvtár összes fájlából: „@directory”"
+
+#: potx.module:202
+msgid ""
+"To extract from a single component in this directory, choose the "
+"desired entry in the fieldset below."
+msgstr ""
+"Az egyetlen összetevőből történő kinyeréshez az alábbi "
+"mezőcsoportból kell kiválasztani a kívánt elemet."
+
+#: potx.module:211
+msgid "Directory \"@directory\""
+msgstr "„@directory” könyvtár"
+
+#: potx.module:232
+msgid "Extract from %name"
+msgstr "Kinyerés az összetevőből: %name"
+
+#: potx.module:233
+msgid "Extract from files named %pattern in the %directory directory."
+msgstr ""
+"%directory könyvtárban található, %pattern mintára illeszkedő "
+"fájlok kinyerése"
+
+#: potx.module:303
+msgid "Interface text translatability"
+msgstr "Kezelőfelületi szövegek fordíthatósága"
+
+#: potx.module:0
+msgid "potx"
+msgstr "potx"
+
+#: potx.install:22
+msgid "PHP tokenizer for Translation template extractor"
+msgstr ""
+"PHP vezérjelkészítő a <em>Translation template extractor</em> "
+"számára"
+
+#: potx.install:23
+msgid "Available"
+msgstr "Elérhető"
+
+#: potx.install:26
+msgid "The <a href=\"@tokenizer\">PHP tokenizer functions</a> are required."
+msgstr ""
+"A <a href=\"@tokenizer\">PHP vezérjelkészítő függvényei</a> "
+"szükségesek."
+
+#: potx.info:0
+msgid ""
+"Provides a web interface and an API to extract translatable text from "
+"the sources of installed components."
+msgstr ""
+"A telepített összetevőkből a fordítható szövegek kinyeréséhez "
+"egy webes felületet és egy API-t nyújt."
+

@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ *
+ * Thanks to the geofield module for a large portion (ALL) of this code.
+ *
+ * FIXME - This should actually be moved to the gm3_region module, although it
+ * should probably be used in this module too.
+ */
+function gm3_requirements($phase){
+  module_load_include('module', 'gm3');
+  $geophp = gm3_load_geophp();
+  if($geophp){
+    try{
+      $geophp_version = geoPHP::version();
+    }
+    catch(Exception $e){
+      $geophp_version = 0;
+    }
+    if($geophp_version >= 1.2){
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('GeoPHP Library'),
+          'severity' => REQUIREMENT_OK,
+          'value' => $geophp_version
+        )
+      );
+    }elseif($geophp_version >= 0.3){
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('GeoPHP Library'),
+          'severity' => REQUIREMENT_INFO,
+          'value' => $geophp_version,
+          'description' => t('GeoPHP library was found, but you are running an old version. The version you are running is compatible, but it is not current, possibly leading to problems.')
+        )
+      );
+    }else{
+      return array(
+        'gm3_geophp' => array(
+          'title' => t('GeoPHP Library'),
+          'severity' => REQUIREMENT_ERROR,
+          'value' => $geophp_version,
+          'description' => t('GeoPHP library was found, but you are running an old version. This will lead to problems when working with GM3. Please download %link and update.', array(
+            '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
+          ))
+        )
+      );
+    }
+  }else{
+    return array(
+      'gm3_geophp' => array(
+        'title' => t('GeoPHP Library'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('GeoPHP library was not found. This will lead to problems when working with GM3. Please download from %link and install.', array(
+          '%link' => 'https://github.com/downloads/phayes/geoPHP/geoPHP.tar.gz'
+        ))
+      )
+    );
+  }
+}
+
+/**
+ * Clear unused settings
+ */
+function gm3_update_7004(){
+  $gm3_settings = variable_get('gm3_default_settings', FALSE);
+
+  $allowed_fields = array(
+    'width',
+    'height',
+    'center',
+    'zoom',
+    'maxZoom',
+    'minZoom'
+  );
+
+  if($gm3_settings != FALSE) {
+    $new_settings = array();
+
+    foreach($allowed_fields as $field){
+      $new_settings[$field] = $gm3_settings[$field];
+    }
+
+    variable_set('gm3_default_settings', $new_settings);
+  }
+}

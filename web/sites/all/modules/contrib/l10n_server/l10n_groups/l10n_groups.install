@@ -1,0 +1,122 @@
+<?php
+/**
+ * @file
+ *   Localization groups installation, update and uninstallation.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function l10n_groups_install() {
+  // Set up blocks for this module.
+  $theme_key = variable_get('theme_default', 'bartik');
+  $blocks = array(10 => 'info');
+  $module = 'l10n_groups';
+  foreach ($blocks as $weight => $delta) {
+    // Update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+
+  // Add a body field.
+  node_types_rebuild();
+  $types = node_type_get_types();
+  node_add_body_field($types['l10n_group']);
+
+  // Define l10n_group content as groups.
+  variable_set('og_group_type_l10n_group', TRUE);
+  og_create_field(OG_GROUP_FIELD, 'node', 'l10n_group');
+}
+
+/**
+ * Implements hook_schema().
+ *
+ * With this module, the translations are maintained by communities,
+ * who share a common space based on organic groups. We need to store
+ * their language association.
+ */
+function l10n_groups_schema() {
+  $schema = array();
+  $schema['l10n_groups_group'] = array(
+    'description' => 'Organic groups mapper for the localization server. Each language team is a group.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'References {node}.nid, pointing to the organic group node for this translation group.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'disp-width' => '11',
+      ),
+      'language' => array(
+        'description' => 'References {language}.language, pointing to the language of this translation group.',
+        'type' => 'varchar',
+        'length' => '12',
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'l10n_groups_group_nid' => array('nid'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function l10n_groups_update_last_removed() {
+  return 6000;
+}
+
+/**
+ * Set up the new groups block.
+ */
+function l10n_groups_update_6001() {
+  // Set up blocks for this module.
+  $theme_key = variable_get('theme_default', 'bartik');
+  $blocks = array(10 => 'info');
+  $module = 'l10n_groups';
+  foreach ($blocks as $weight => $delta) {
+    // Insert or update all instances of this block even if we just added it.
+    db_merge('block')
+      ->key(array(
+          'module' => $module,
+          'delta'  => $delta,
+        ))
+      ->insertFields(array(
+          'module' => $module,
+          'delta'  => $delta,
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+          'region' => 'sidebar_second',
+          'theme'  => $theme_key,
+          'pages'  => '',
+        ))
+      ->updateFields(array(
+          'cache'  => -1,
+          'status' => 1,
+          'weight' => $weight,
+        ))
+      ->execute();
+  }
+  return t('TODO Add a descriptive string here to show in the UI. l10n_groups_update_6001()');
+}

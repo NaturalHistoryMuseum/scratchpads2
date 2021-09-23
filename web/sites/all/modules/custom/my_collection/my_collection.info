@@ -1,0 +1,17 @@
+name = "Favourites"
+description = "Enables the flagging of content as a 'favourite'"
+core = "7.x"
+package = "Scratchpads"
+dependencies[] = "ctools"
+dependencies[] = "flag"
+dependencies[] = "flag"
+dependencies[] = "flag_terms"
+dependencies[] = "views"
+features[ctools][] = "views:views_default:3.0"
+features[flag][] = "collection"
+features[flag][] = "collections_term"
+features[views_view][] = "my_favorites"
+features[views_view][] = "my_favorites_terms"
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = my_collection

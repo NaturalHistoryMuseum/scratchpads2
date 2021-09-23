@@ -1,0 +1,688 @@
+<?php
+// DEFINE the file extensions that we allow.
+DEFINE('FIELD_MEDIA_FILE_EXTENSIONS', 'svg tif tiff jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv wmv ico xml nex phy nhx zip gz kmz fas wav');
+include_once ('scratchpads_media_gallery.features.inc');
+
+/**
+ * Implements hook_query_media_browser_alter().
+ */
+function scratchpads_media_gallery_query_media_browser_alter($query){
+  // We're not actually altering the query here, we are instead altering $_GET
+  // so that the extensions are included in upper case too.
+  if(isset($_GET['file_extensions'])){
+    $_GET['file_extensions'] = strtolower($_GET['file_extensions']) . ' ' . strtoupper($_GET['file_extensions']);
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function scratchpads_media_gallery_menu_alter(&$items){
+  $items['gallery']['menu_name'] = PRIMARY_MENU_NAME;
+  $items['gallery']['weight'] = 1;
+  $items['gallery']['type'] = MENU_NORMAL_ITEM;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_media_gallery_form_file_entity_edit_alter(&$form, &$form_state, $form_id){
+  if(isset($form['field_weight'])){
+    $form['field_weight'][LANGUAGE_NONE]['#description'] = t('Note, setting a file to weight "100" will hide it completely from ALL media gallery pages.');
+  }
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_media_gallery_scratchpads_solr_info(){
+  return array(
+    'gallery' => array(
+      'theme' => 'scratchpads_media_gallery',
+      'empty' => 'scratchpads_media_gallery_empty'
+    )
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_media_gallery_form_node_delete_confirm_alter(&$form, &$form_state, $form_id){
+  if($form['#node']->type == 'media_gallery'){
+    $form['description']['#markup'] .= '<br/>' . t('Note, media attached to this gallery will not be deleted.');
+  }
+}
+
+/**
+ * Implements hook_file_load()
+ */
+function scratchpads_media_gallery_file_load($files){
+  foreach($files as $key => $file){
+    if(isset($file->type) && $file->type == 'image'){
+      $files[$key]->title = $file->filename;
+    }
+  }
+}
+
+/**
+ * Implements hook_file_pre_save()
+ */
+function scratchpads_media_gallery_file_presave($file){
+  if(isset($_GET['field_taxonomic_name']) && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    $file->field_taxonomic_name = array(
+      LANGUAGE_NONE => array(
+        array(
+          'tid' => $term->tid
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function scratchpads_media_gallery_form_file_entity_add_upload_alter(&$form, &$form_state, $form_id){
+  if($_GET['field_taxonomic_name'] && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    // We add a submit function that will alter the redirect to take us back to
+    // where we want to go!
+    $form['#submit'][] = 'scratchpads_media_gallery_file_entity_add_upload_submit';
+  }
+}
+
+/**
+ * Submit function as defined in the above form alter. This redirects us to
+ * where we need to go!
+ */
+function scratchpads_media_gallery_file_entity_add_upload_submit($form, &$form_state){
+  // We add a submit function that will alter the redirect to take us back to
+  // where we want to go!
+  if($_GET['field_taxonomic_name'] && is_numeric($_GET['field_taxonomic_name']) && ($term = taxonomy_term_load($_GET['field_taxonomic_name'])) != FALSE){
+    if($form_state['file']){
+      $form_state['redirect'] = array(
+        'file/' . $form_state['file']->fid . '/edit',
+        array(
+          'query' => array(
+            'destination' => 'taxonomy/term/' . $term->tid . '/media'
+          )
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Check to see if we're viewing a single gallery
+ */
+function scratchpads_media_gallery_is_gallery_node(){
+  if(isset($_GET['f']) && is_array($_GET['f'])){
+    foreach($_GET['f'] as $value){
+      if(substr($value, 0, 23) == 'im_field_smg_galleries:' && is_numeric(substr($value, 23))){return substr($value, 23);}
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function scratchpads_media_gallery_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == 'facetapi'){return array(
+      'version' => 1
+    );}
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+  if($module == "file_entity" && $api == "file_default_displays"){return array(
+      "version" => "1"
+    );}
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_media_gallery_facetapi_default_facet_settings(){
+  $facets = array();
+  $media_gallery_facets = scratchpads_media_gallery_facetapi_facet_info();
+  $media_gallery_facets['author'] = array(
+    'name' => 'tus_type_name',
+    'label' => t('Media: Type'),
+    'description' => t('Media: Type'),
+    'query types' => array(
+      'term'
+    )
+  );
+  foreach($media_gallery_facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'display' => -49,
+        'count' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr::' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = '';
+    $facet->facet = $facet_id;
+    $facet->enabled = FALSE;
+    $facet->settings = array(
+      'operator' => 'and',
+      'hard_limit' => '200',
+      'dependencies' => array(),
+      'facet_mincount' => 1,
+      'facet_missing' => 0,
+      'flatten' => 0,
+      'query_type' => 'term'
+    );
+    $facets[$facet_id . '_global'] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Implements hook_views_default_views_alter
+ */
+function scratchpads_media_gallery_views_default_views_alter(&$views){
+  if(isset($views['media_default'])){
+    foreach(array(
+      'default',
+      'media_browser_1',
+      'media_browser_my_files'
+    ) as $display_id){
+      if(module_exists('eolapi')){
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['id'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['table'] = 'file_managed';
+        $views['media_default']->display[$display_id]->display_options['relationships']['reverse_eolapi_image_eolapi']['field'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['id'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['table'] = 'field_data_eolapi_image';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['field'] = 'eolapi_image_fid';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['relationship'] = 'reverse_eolapi_image_eolapi';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['operator'] = 'empty';
+        $views['media_default']->display[$display_id]->display_options['filters']['eolapi_image_fid']['value']['value'] = '0';
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_media_gallery_block_view_alter(&$data, $block){
+  switch($block->module){
+    case 'facetapi':
+      $map = facetapi_get_delta_map();
+      $facet_info = scratchpads_media_gallery_facetapi_facet_info();
+      foreach(scratchpads_media_gallery_facetapi_default_facet_settings() as $facet){
+        $delta = array_search($facet->name, $map);
+        if($delta == $block->delta && isset($facet_info[$facet->facet])){
+          $data['subject'] = $facet_info[$facet->facet]['label'];
+          break;
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function scratchpads_media_gallery_contextual_links_view_alter(&$element, $items){
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))){
+    if(@isset($element['#contextual_links']['block'][1][1]) && in_array($element['#contextual_links']['block'][1][1], array(
+      'species_media-block',
+      'species_slideshow-block'
+    )) && user_access('create file')){
+      $element['#links']['add-file'] = array(
+        'title' => t('Add file'),
+        'href' => 'file/add',
+        'query' => array(
+          'field_taxonomic_name' => arg(2)
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_media_gallery_theme(){
+  return array(
+    'scratchpads_media_gallery' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_media_gallery.theme.inc'
+    ),
+    'scratchpads_media_gallery_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_media_gallery.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_node_view_alter().
+ */
+function scratchpads_media_gallery_node_view($node, $view_mode, $langcode){
+  if($node->type == 'media_gallery' && arg(0) == 'node' && $view_mode != 'search_index' && is_numeric(arg(1)) && !arg(2)){
+    drupal_goto('gallery', array(
+      'query' => array(
+        'f' => array(
+          'im_field_smg_galleries:' . $node->nid
+        )
+      )
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_page_alter().
+ *
+ * FIXME - We need to check for the presence of a facet filter.
+ */
+function scratchpads_media_gallery_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($router_item['path'] == 'gallery' && $nid = scratchpads_media_gallery_is_gallery_node()){
+    // Add a tab linking to node/add to all pages.
+    if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $nid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this gallery')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_node_insert().
+ */
+function scratchpads_media_gallery_node_insert($node){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
+    // We edit the file entities to add this node id to their respective field.
+    $new_fids = array();
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
+      $new_fids[$values['fid']] = $values['fid'];
+    }
+    $files = entity_load('file', $new_fids);
+    foreach($files as $file){
+      // Adding
+      $lang = field_language('file', $file, 'field_media');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
+      }
+      $file->field_smg_galleries[$lang][] = array(
+        'nid' => $node->nid
+      );
+      entity_save('file', $file);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apachesolr_index_document_build($document, $entity, $entity_type, $env_id)
+ */
+function scratchpads_media_gallery_apachesolr_index_document_build(ApacheSolrDocument $document, $entity, $entity_type, $env_id){
+  if($entity_type == 'file'){
+    if(@isset($entity->field_smg_galleries[LANGUAGE_NONE])){
+      $nids_added = array();
+      foreach($entity->field_smg_galleries[LANGUAGE_NONE] as $value){
+        // We load the media gallery node, and try to find where this file is
+        // in the list.
+        $media_gallery_node = node_load($value['nid']);
+        if(!empty($media_gallery_node->field_media[LANGUAGE_NONE]) && (is_array($media_gallery_node->field_media[LANGUAGE_NONE]) || is_object($media_gallery_node->field_media[LANGUAGE_NONE]))){
+          foreach($media_gallery_node->field_media[LANGUAGE_NONE] as $delta => $mgn_value){
+            if($mgn_value['fid'] == $entity->fid && empty($nids_added[$value['nid']])){
+              // Keep a record of adding this NID. This is because it is actually
+              // possible to associate a file with a single gallery more than
+              // once - clearly a bug that needs fixing elsewhere, but we should
+              // still handle the error.
+              $nids_added[$value['nid']] = TRUE;
+              // We try to find the gallery nodes that this file is associated with, and
+              // then save a sortable field for each one.
+              $document->addField('iss_scratchpads_media_gallery_delta_for_nid_' . $value['nid'], $delta);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_sortstring_alter()
+ */
+function scratchpads_media_gallery_apache_solr_sortstring_alter(&$sortstring){
+  if(arg(0) == 'gallery'){
+    $sorted_by_media_gallery = FALSE;
+    if(isset($_GET['f'])){
+      foreach($_GET['f'] as $value){
+        $value = explode(':', $value);
+        if($value[0] == 'im_field_smg_galleries'){
+          $sorted_by_media_gallery = TRUE;
+          $sortstring = 'iss_scratchpads_media_gallery_delta_for_nid_' . $value[1] . ' asc';
+        }
+      }
+    }
+    if(!$sorted_by_media_gallery){
+      $sortstring = 'is_field_weight asc';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_apache_solr_default_sorts_alter()
+ */
+function scratchpads_media_gallery_apache_solr_default_sorts_alter(&$default_sorts){
+  $results = db_select('node', 'n')->fields('n', array(
+    'nid'
+  ))->condition('type', 'media_gallery')->execute();
+  $additional_sorts = array(
+    'is_field_weight' => array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    )
+  );
+  foreach($results as $row){
+    $additional_sorts['iss_scratchpads_media_gallery_delta_for_nid_' . $row->nid] = array(
+      'title' => t('Image order'),
+      'default' => 'asc'
+    );
+  }
+  $default_sorts = array_merge($additional_sorts, $default_sorts);
+}
+
+/**
+ * Implementation of hook_node_update().
+ */
+function scratchpads_media_gallery_node_update($node){
+  if(isset($node->field_media) && $node->type == 'media_gallery'){
+    // We edit the file entities to add this node id to their respective field.
+    // We simply get a list of fids that currently have this node associated, and
+    // remove the ones that have been removed, and add ones that have been added.
+    $results = db_select('field_data_field_smg_galleries', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('field_smg_galleries_nid', $node->nid)->execute();
+    $current_fids = array();
+    while($row = $results->fetch()){
+      $current_fids[$row->entity_id] = $row->entity_id;
+    }
+    $new_fids = array();
+    $lang = field_language('node', $node, 'field_media');
+    foreach($node->field_media[$lang] as $delta => $values){
+      $new_fids[$values['fid']] = $values['fid'];
+    }
+    $fids_to_add = array_diff_key($new_fids, $current_fids);
+    $fids_to_remove = array_diff_key($current_fids, $new_fids);
+    $files = entity_load('file', $fids_to_add);
+    foreach($files as $file){
+      // Adding
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      if(!isset($file->field_smg_galleries[$lang])){
+        $file->field_smg_galleries[$lang] = array();
+      }
+      $file->field_smg_galleries[$lang][] = array(
+        'nid' => $node->nid
+      );
+      entity_save('file', $file);
+    }
+    $files = entity_load('file', $fids_to_remove);
+    foreach($files as $file){
+      // Removing
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      foreach($file->field_smg_galleries[$lang] as $delta => $value){
+        if($value['nid'] == $node->nid){
+          unset($file->field_smg_galleries[$lang][$delta]);
+        }
+      }
+      entity_save('file', $file);
+    }
+    // We're updating a media gallery node.  We therefore mark each file associated
+    // with the node as needing reindexing.
+    $table = apachesolr_get_indexer_table('file');
+    if($new_fids){
+      db_update($table)->fields(array(
+        'changed' => REQUEST_TIME
+      ))->condition('entity_id', $new_fids)->condition('entity_type', 'file')->execute();
+    }
+    // We set the last successfully indexed file based on the request time.
+    $query = db_select($table);
+    $query->addExpression('MAX(entity_id)', 'max_entity_id');
+    $last_entity_id = $query->condition('entity_type', 'file')->condition('changed', REQUEST_TIME, '<')->execute()->fetchField();
+    $env_id = apachesolr_default_environment();
+    $env = apachesolr_environment_load($env_id);
+    $env['conf']['apachesolr_index_last']['file']['last_entity_id'] = $last_entity_id ? $last_entity_id : 0;
+    apachesolr_environment_save($env);
+    apachesolr_environments_clear_cache();
+    // Warn the user that changing the order may take a while to be processed.
+    drupal_set_message('Note, changes to the order of images in a gallery will be processed on the next cron run.', 'warning');
+  }
+}
+
+/**
+ * Implements hook_node_delete()
+ */
+function scratchpads_media_gallery_node_delete($node){
+  if($node->type == 'media_gallery'){
+    // We edit the file entities to add this node id to their respective field.
+    // We simply get a list of fids that currently have this node associated, and
+    // remove the ones that have been removed, and add ones that have been added.
+    $results = db_select('field_data_field_smg_galleries', 'f')->fields('f', array(
+      'entity_id'
+    ))->condition('field_smg_galleries_nid', $node->nid)->execute();
+    $current_fids = array();
+    while(($row = $results->fetch()) != FALSE){
+      $current_fids[$row->entity_id] = $row->entity_id;
+    }
+    $files = entity_load('file', $current_fids);
+    foreach($files as $file){
+      // Removing
+      $lang = field_language('file', $file, 'field_smg_galleries');
+      foreach($file->field_smg_galleries[$lang] as $delta => $value){
+        if($value['nid'] == $node->nid){
+          unset($file->field_smg_galleries[$lang][$delta]);
+        }
+      }
+      entity_save('file', $file);
+    }
+    // We're updating a media gallery node.  We therefore mark each file associated
+    // with the node as needing reindexing.
+    $table = apachesolr_get_indexer_table('file');
+    db_update($table)->fields(array(
+      'changed' => REQUEST_TIME
+    ))->condition('entity_id', $current_fids)->condition('entity_type', 'file')->execute();
+    // We set the last successfully indexed file based on the request time.
+    $query = db_select($table);
+    $query->addExpression('MAX(entity_id)', 'max_entity_id');
+    $last_entity_id = $query->condition('entity_type', 'file')->condition('changed', REQUEST_TIME, '<')->execute()->fetchField();
+    $env_id = apachesolr_default_environment();
+    $env = apachesolr_environment_load($env_id);
+    $env['conf']['apachesolr_index_last']['file']['last_entity_id'] = $last_entity_id ? $last_entity_id : 0;
+    apachesolr_environment_save($env);
+    apachesolr_environments_clear_cache();
+  }
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_media_gallery_facetapi_facet_info($searcher_info = FALSE){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_field_smg_galleries' => array(
+      'name' => 'im_field_smg_galleries',
+      'label' => t('Gallery'),
+      'description' => t('Gallery'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'scratchpads_media_gallery_map_callback',
+      'map options' => array(
+        'im_field_smg_galleries'
+      )
+    ),
+    'im_field_cc_licence' => array(
+      'name' => 'im_field_cc_licence',
+      'label' => t('Licence'),
+      'description' => t('Licence'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'creative_commons_get_licence_types',
+      'map options' => NULL
+    ),
+    'tus_type_name' => array(
+      'name' => 'tus_type_name',
+      'label' => t('Media type'),
+      'description' => t('Media type'),
+      'query types' => array(
+        'term'
+      )
+    ),
+    'ss_field_creator' => array(
+      'name' => 'ss_field_creator',
+      'label' => t('Creator'),
+      'description' => t('Creator'),
+      'query types' => array(
+        'term'
+      )
+    ),
+    'im_field_imaging_technique' => array(
+      'name' => 'im_field_imaging_technique',
+      'label' => t('Imaging technique'),
+      'description' => t('Imaging technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_keywords' => array(
+      'name' => 'im_field_keywords',
+      'label' => t('Image keywords'),
+      'description' => t('Image keywords'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    ),
+    'im_field_preparation_technique' => array(
+      'name' => 'im_field_preparation_technique',
+      'label' => t('Preparation technique'),
+      'description' => t('Preparation technique'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'facetapi_map_taxonomy_terms'
+    )
+  );
+}
+
+/**
+ * Implements hook_media_wysiwyg_allowed_view_modes_alter() to prevent a large
+ * list of media formats on the WYSIWYG editor.
+ */
+function scratchpads_media_gallery_media_wysiwyg_allowed_view_modes_alter(&$view_modes, $file){
+  // file_styles_large, file_styles_medium, file_styles_original, file_styles_square_thumbnail, file_styles_thumbnail
+  $new_view_modes = array();
+  foreach(array(
+    'file_styles_original',
+    'file_styles_large',
+    'file_styles_medium',
+    'file_styles_thumbnail',
+    'file_styles_square_thumbnail'
+  ) as $key){
+    $new_view_modes[$key] = $view_modes[$key];
+  }
+  $view_modes = $new_view_modes;
+}
+
+/**
+ * Nah, we don't need any documentation here, of course not!
+ */
+function scratchpads_media_gallery_apachesolr_field_mappings_alter(&$mappings, $entity_type){
+  // Enable indexing for text fields
+  $mappings['text'] = array(
+    'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
+    'map callback' => '',
+    'index_type' => 'string',
+    'facets' => TRUE,
+    'facet missing allowed' => TRUE,
+    'dependency plugins' => array(
+      'bundle',
+      'role'
+    ),
+    'hierarchy callback' => FALSE,
+    'name_callback' => '',
+    'facet mincount allowed' => FALSE,
+    // Field API allows any field to be multi-valued.
+    // If we set this to false we are able to sort
+    'multiple' => FALSE
+  );
+}
+
+/**
+ * Map callback
+ */
+function scratchpads_media_gallery_map_callback($values, $options){
+  if(count($values)){
+    switch($options[0]){
+      case 'im_field_smg_galleries':
+        $result = db_select('node', 'n')->fields('n', array(
+          'nid',
+          'title'
+        ))->condition('nid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['nid']] = $record['title'];
+        }
+        return $map;
+    }
+  }else{
+    return array();
+  }
+}

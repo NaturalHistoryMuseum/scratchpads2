@@ -1,0 +1,184 @@
+<?php
+
+/**
+ * Implements hook_init().
+ * 
+ * Cookies can not be set during hook_page_build, so we do that here. 
+ */
+function cookieguard_init(){
+  global $user;
+  // We need to load the full user object to ensure the cookieguard settings are
+  // there.
+  $user = user_load($user->uid);
+  if(empty($_COOKIE['cookieguard_initialised'])){
+    if(!empty($user->cookieguard)){
+      // The user has clicked the "Alow/Block" before, but the cookies are not
+      // set.
+      setcookie('cookieguard_initialised', 1);
+      setcookie('cookieguard_allowedCookies', $user->cookieguard['allowed']);
+      setcookie('cookieguard_disallowedCookies', $user->cookieguard['disallowed']);
+    }
+  }else{
+    // Add a check here to see if the cookie settings have changed.
+    if(empty($user->cookieguard) || (isset($_COOKIE['cookieguard_disallowedCookies']) && $_COOKIE['cookieguard_disallowedCookies'] != $user->cookieguard['disallowed']) || (isset($_COOKIE['cookieguard_allowedCookies']) && $_COOKIE['cookieguard_allowedCookies'] != $user->cookieguard['allowed'])){
+      cookieguard_save_settings();
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function cookieguard_module_implements_alter(&$imps, $hook){
+  if($hook == 'library_alter'){
+    $move = $imps['cookieguard'];
+    unset($imps['cookieguard']);
+    $imps['cookieguard'] = $move;
+  }
+}
+
+/**
+ * Implements hook_library_alter().
+ */
+function cookieguard_library_alter(&$libraries, $module){
+  if($module != 'system'){return;}
+  $libraries['jquery.cookie']['js']['misc/jquery.cookie.js']['data'] = drupal_get_path('module', 'cookieguard') . '/jquery.cookie.js';
+  $libraries['jquery.cookie']['version'] = '1.3.1';
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function cookieguard_page_build(&$page){
+  if(!(module_exists('overlay') && overlay_get_mode() != 'parent')){
+    $cookies = cookieguard_get_cookies();
+    $page['content']['cookieguard'] = array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'cookieguard') . '/cookieguard.css'
+        ),
+        'js' => array(
+          drupal_get_path('module', 'cookieguard') . '/jqueryCookieGuard.1.0.1.js',
+          drupal_get_path('module', 'cookieguard') . '/cookieguard.js',
+          array(
+            'data' => array(
+              'cookieguard' => $cookies
+            ),
+            'type' => 'setting'
+          )
+        )
+      )
+    );
+  }
+}
+
+/**
+ * Simple function to return an array of cookies
+ */
+function cookieguard_get_cookies(){
+  $cookies = array();
+  foreach(module_implements('cookies') as $module){
+    $cookies += call_user_func($module . '_cookies');
+  }
+  drupal_alter('cookies', $cookies);
+  return $cookies;
+}
+
+/**
+ * Implements hook_cookies
+ */
+function cookieguard_cookies(){
+  return array(
+    'DRUPAL_UID' => array(
+      'name' => 'Essential Drupal cookies',
+      'keys' => 'DRUPAL_UID,has_js,Drupal.toolbar.collapsed,Drupal.tableDrag.showWeight',
+      'description' => t('Essential Drupal cookies required for the smooth running of your site.'),
+      'essential' => TRUE
+    )
+  );
+}
+
+/**
+ * Implements hook_cookies_alter
+ * 
+ * Alter the core Drupal cookie to add the session cookie.
+ */
+function cookieguard_cookies_alter(&$cookies){
+  $cookies['DRUPAL_UID']['keys'] .= ',' . session_name();
+}
+
+/**
+ * Implements hook_user_load().
+ */
+function cookieguard_user_load($users){
+  $results = db_select('cookieguard_user_settings', 'c')->fields('c')->condition('uid', array_keys($users))->execute();
+  foreach($results as $row){
+    $users[$row->uid]->cookieguard = array(
+      'allowed' => $row->allowed,
+      'disallowed' => $row->disallowed
+    );
+  }
+}
+
+/**
+ * Save a users cookie settings.
+ */
+function cookieguard_save_settings(){
+  global $user;
+  if($user->uid){
+    db_merge('cookieguard_user_settings')->key(array(
+      'uid' => $user->uid
+    ))->fields(array(
+      'uid' => $user->uid,
+      'allowed' => $_COOKIE['cookieguard_allowedCookies'] ? $_COOKIE['cookieguard_allowedCookies'] : '',
+      'disallowed' => $_COOKIE['cookieguard_disallowedCookies'] ? $_COOKIE['cookieguard_disallowedCookies'] : ''
+    ))->execute();
+    // Load the user object, to ensure that the cache is reset.
+    $user = entity_load('user', array(
+      $user->uid
+    ), array(), TRUE);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////
+/**
+ * Other modules!
+ * 
+ * Ideally, these should not be here, but until this module picks up popularity
+ * and the voice of the masses can be heard, I will have to maintain them here.
+ */
+/**
+ * Google Analytics module.
+ * 
+ * Implements hook_cookies_alter().
+ */
+function googleanalytics_cookies(){
+  return array(
+    'googleanalytics' => array(
+      'name' => t('Google Analytics'),
+      'keys' => '__utma,__utmb,__utmc,__utmz,__utmv',
+      'description' => t('These cookies are used to collect information about how visitors use our site. We use the information to compile reports and to help us improve the site. The cookies collect information in an anonymous form, including the number of visitors to the site, where visitors have come to the site from and the pages they visited.'),
+      'essential' => FALSE
+    )
+  );
+}
+
+/**
+ * Devel module
+ */
+function devel_cookies(){
+  return array(
+    'ZDEDebuggerPresent' => array(
+      'name' => t('Zend Debugger'),
+      'keys' => 'ZDEDebuggerPresent',
+      'description' => t('A flag set by the server to let the ZendToolbar know that the debugger is present on the server.'),
+      'essential' => FALSE
+    )
+  );
+}
+
+/**
+ * Ctools module
+ */
+function ctools_cookies_alter(&$cookies){
+  $cookies['DRUPAL_UID']['keys'] .= ',ctools-collapsible-state';
+}

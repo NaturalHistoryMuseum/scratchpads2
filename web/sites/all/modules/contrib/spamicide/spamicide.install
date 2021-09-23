@@ -1,0 +1,158 @@
+<?php
+
+/**
+ * @file
+ * This module provides yet another tool to eliminate spam.
+ *
+ * @ingroup spamicide
+ *
+ * Author:  Wes Roepken aka lipcpro < wes at lipcpro dot com >
+ * Date:    05/01/2011
+ */
+
+/**
+ * Implements hook_requirements().
+ * @todo add creation of spamicide directory here
+ */
+function spamicide_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  if ($phase == 'runtime' || $phase == 'install') {
+    $path = 'public://' . variable_get('spamicide_dir', 'spamicide'); //was file_default_scheme()
+    if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
+      if (!is_dir($path)) {
+        $requirements['spamicide_directory'] = array(
+          'title' => $t('Spamicide Directory'),
+          'value' => $t('%p is not a directory or is not readable by the webserver.', array('%p' => $path)),
+          'severity' => REQUIREMENT_ERROR,
+        );
+      }
+      elseif (!is_writable($path)) {
+        $requirements['spamicide_directory'] = array(
+          'title' => $t('Spamicide Directory'),
+          'value' => $t('%p is not writeable by the webserver.', array('%p' => $path)),
+          'severity' => REQUIREMENT_ERROR,
+        );
+      }
+      else {
+        $requirements['spamicide_directory'] = array(
+          'title' => $t('Spamicide Directory'),
+          'value' => $t('An unknown error occured.'),
+          'description' => $t('An unknown error occured trying to verify %p is a directory and is writable.', array('%p' => $path)),
+          'severity' => REQUIREMENT_ERROR,
+        );
+      }
+    }
+
+    $requirements['spamicide_attempt_counter'] = array(
+      'title' => $t('Spamicide'),
+      'value' => $t('Already blocked @counter form submissions', array('@counter' => variable_get('spamicide_attempt_counter', 0))),
+      'severity' => REQUIREMENT_INFO,
+    );
+  }
+  return $requirements;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function spamicide_schema() {
+  $schema['spamicide'] = array(
+    'fields' => array(
+      'form_id' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'form_field' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => 'feed_me',
+      ),
+      'enabled' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'removable' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('form_id'),
+  );
+    return $schema;
+}
+
+/**
+ * Implements hook_install().
+ * Create the tables
+ * required for the spamicide module
+ */
+function spamicide_install() {
+  // insert some defaults and lock them
+  module_load_include('inc', 'spamicide');
+  $form_ids = array('contact_site_form', 'contact_personal_form', 'user_register_form',
+   'user_pass', 'user_login', 'user_login_block', 'forum_node_form'
+  );
+  foreach (node_type_get_names() as $type => $name) {
+    $form_ids[] = 'comment_node_' . $type . '_form';
+  }
+  foreach ($form_ids as $form_id) {
+    db_insert('spamicide')
+      ->fields(array(
+        'form_id' => $form_id,
+        'enabled' => 1,
+        'removable' => 0,
+      ))
+      ->execute();
+  }
+  variable_set('spamicide_administration_mode', TRUE);
+  variable_set('spamicide_attempt_counter', 0);
+  variable_set('spamicide_dir', 'spamicide');
+  variable_set('spamicide_log_attempts', TRUE);
+  _spamicide_set_css_file('feed_me', 'create');
+  drupal_set_message(st('The installation of the spamicide table and some default entries was successful.'), 'status');
+  drupal_set_message(st('You can now <a href="@spamicide_admin">configure the Spamicide module</a> for your site.',
+      array('@spamicide_admin' => url('admin/config/spamicide'))), 'status');
+}
+
+/**
+ * Implements hook_uninstall().
+ * Delete the tables
+ * required for the spamicide module
+ */
+function spamicide_uninstall() {
+  // Remove directory and generated files.
+  file_unmanaged_delete_recursive('public://' . variable_get('spamicide_dir', 'spamicide'));
+  db_delete('variable')->condition('name', 'spamicide_%', 'LIKE')->execute();
+  cache_clear_all('variables', 'cache');
+}
+
+/**
+ * 7000 -   Adds spamicide_dir to variables table making it configurable
+ */
+function spamicide_update_7000() {
+  $ret = array();
+  if (is_null(variable_get('spamicide_dir'))) {
+    variable_set('spamicide_dir', 'spamicide');
+  }
+  return $ret;
+}
+
+/**
+ * 7001 -   Adds spamicide_description to variables table making it configurable
+ */
+function spamicide_update_7001() {
+  $ret = array();
+  if (is_null(variable_get('spamicide_description'))) {
+    variable_set('spamicide_description', 'To prevent automated spam submissions leave this field empty.');
+  }
+  return $ret;
+}

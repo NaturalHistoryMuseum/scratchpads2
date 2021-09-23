@@ -1,0 +1,186 @@
+<?php
+
+function scratchpads_ecorelation_default_types(){
+  // Add default relationship types
+  $default_relation_types = array(
+    array(
+      'relation_type' => 'host_parasite',
+      'label' => t('HostOf'),
+      'reverse_label' => t('ParasiteOf'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'preysUpon_preyedUponBy',
+      'label' => t('PreysUpon'),
+      'reverse_label' => t('PreyedUponBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'dispersedSeedOf_seedsDispersedBy',
+      'label' => t('DispersedSeedOf'),
+      'reverse_label' => t('SeedsDispersedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'resinExtractedBy_extractsResinFrom',
+      'label' => t('ResinExtractedBy'),
+      'reverse_label' => t('ExtractsResinFrom'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'flowerVisitedBy_visitedFlowerOf',
+      'label' => t('FlowerVisitedBy'),
+      'reverse_label' => t('VisitedFlowerOf'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'nestedIn_usedAsNestBy',
+      'label' => t('NestedIn'),
+      'reverse_label' => t('UsedAsNestBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    ),
+    array(
+      'relation_type' => 'pathogenOf_infectedBy',
+      'label' => t('PathogenOf'),
+      'reverse_label' => t('InfectedBy'),
+      'directional' => TRUE,
+      'transitive' => FALSE,
+      'r_unique' => FALSE,
+      'min_arity' => 2,
+      'max_arity' => 2,
+      'source_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      ),
+      'target_bundles' => array(
+        0 => 'node:*',
+        1 => 'taxonomy_term:*'
+      )
+    )
+  );
+  return $default_relation_types;
+}
+
+/**
+ * Implements hook_enable().
+ * This is used when the module is turned on via the tools selection method
+ */
+function scratchpads_ecorelation_types_enable(){
+  // Do nothing for now - the Phthiraptera site already has this module enabled
+  // although we need to enable it again as it has been renamed.
+  return;
+  $default_relation_types = scratchpads_ecorelation_default_types();
+  foreach($default_relation_types as $default_relation_type){
+    if(!relation_get_types($default_relation_type)){
+      relation_type_save($default_relation_type);
+    }
+  }
+}
+
+/**
+ * Implements hook_disable().
+ * As this is disabled via tools it is as if it is uninstalled
+ * so delete the types and associated data
+ */
+function scratchpads_ecorelation_types_disable(){
+  _scratchpads_ecorelation_delete_default_types();
+}
+
+function _scratchpads_ecorelation_delete_default_types(){
+  $default_relation_types = scratchpads_ecorelation_default_types();
+  /* delete relationships and relation types */
+  $query = new EntityFieldQuery();
+  $results = $query->entityCondition('entity_type', 'relation')->propertyCondition('relation_type', $default_relation_types, 'IN')->execute();
+  if($results){
+    $rids = array_keys($results['relation']);
+    relation_delete_multiple($rids);
+  }
+  $relation_types = relation_get_types();
+  foreach($default_relation_types as $default_relation_type){
+    if(array_key_exists($default_relation_type['relation_type'], $relation_types)){
+      if(field_read_instance('relation', 'endpoints', $default_relation_type['relation_type'])){
+        $default_instance = array(
+          'field_name' => 'endpoints',
+          'entity_type' => 'relation',
+          'bundle' => $default_relation_type['relation_type']
+        );
+        field_delete_instance($default_instance, FALSE);
+      }
+      relation_type_delete($default_relation_type['relation_type']);
+    }
+  }
+  field_purge_batch(1000);
+  entity_info_cache_clear();
+}

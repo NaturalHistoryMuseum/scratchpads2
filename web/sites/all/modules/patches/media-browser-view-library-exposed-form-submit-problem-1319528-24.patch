@@ -1,0 +1,13 @@
+diff --git a/js/plugins/media.views.js b/js/plugins/media.views.js
+index b5024b3..4df886f 100644
+--- a/js/plugins/media.views.js
++++ b/js/plugins/media.views.js
+@@ -12,7 +12,7 @@ Drupal.behaviors.mediaViews = {
+   attach: function (context, settings) {
+ 
+     // Make sure when pressing enter on text inputs, the form isn't submitted
+-    $('.ctools-auto-submit-full-form .views-exposed-form input:text, input:text.ctools-auto-submit', context)
++    $('.ctools-auto-submit-full-form .views-exposed-form input:text, input:text.ctools-auto-submit, .views-exposed-form input:text', context)
+       .filter(':not(.ctools-auto-submit-exclude)')
+       .bind('keydown keyup', function (e) {
+         if(e.keyCode === 13) {

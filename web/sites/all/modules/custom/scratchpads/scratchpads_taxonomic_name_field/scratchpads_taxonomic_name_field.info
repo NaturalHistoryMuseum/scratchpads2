@@ -1,0 +1,10 @@
+name = Taxonomic name field
+description = Create a single default taxonomic name field that can be used across all entities for linking to a taxonomic name.
+package = "Scratchpads"
+core = 7.x
+dependencies[] = biblio
+dependencies[] = facetapi
+dependencies[] = taxonomy_formatter
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_taxonomic_name_field

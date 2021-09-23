@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_install_tasks()
+ * 
+ * We add a simple install task that allows users to specify that this site is
+ * not a standard Drupal site.
+ */
+function scratchpad_2_install_tasks(&$install_state){
+  # If this is a dockerised scratchpad, do not show the option
+  # to select if this is a standard scratchpad, we know it's not
+  if(!variable_get('dockerised_scratchpad', FALSE)){
+    return array(
+      'scratchpad_2_standard_scratchpad' => array(
+        'display_name' => 'Standard Scratchpad',
+        'display' => TRUE,
+        'type' => 'form'
+      )
+    );
+  }
+}
+
+/**
+ * 
+ */
+function scratchpad_2_standard_scratchpad(){
+  return array(
+    'standard_scratchpad' => array(
+      '#type' => 'checkbox',
+      '#default_value' => 1,
+      '#title' => 'Standard Scratchpad',
+      '#description' => 'Uncheck this box if you are installing a Scratchpad on your own server.'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => st('Save and continue'),
+        '#weight' => 15
+      )
+    )
+  );
+}
+
+/**
+ * Form submission handler for scratchpad_2_standard_scratchpad().
+ */
+function scratchpad_2_standard_scratchpad_submit($form, &$form_state){
+  if(isset($form_state['values']['standard_scratchpad']) && !$form_state['values']['standard_scratchpad']){
+    variable_set('standard_scratchpad', FALSE);
+  }
+}

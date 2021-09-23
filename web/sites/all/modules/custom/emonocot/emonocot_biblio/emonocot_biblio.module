@@ -1,0 +1,545 @@
+<?php
+
+/**
+ * Module to provide extensions to bibliography functionality for the eMonocot
+ * project.
+ * 
+ * Extends biblio module by creating a new type of article: Botanical Protologue
+ * 
+ * Can generate Botanical Protologue Biblio nodes automatically from taxonomy terms
+ * imported using the World Checklist of Monocots webservice
+ */
+/**
+ * Implements hook_taxonomy_term_insert().
+ * 
+ * If this term is in a biological vocabulary and automatic generation of protologue
+ * entries is enabled create a new Botanical Protologue Biblio node from the protologue
+ * string
+ * 
+ * @param $term
+ * The term being inserted
+ */
+function emonocot_biblio_taxonomy_term_insert($term){
+  if(array_key_exists($term->vid, variable_get('biological_vids', array())) && variable_get('em_biblio_autogen', FALSE)){
+    if(isset($term->field_reference['und'][0]['nid'])){
+      $biblio_node = emonocot_biblio_create_biblio_from_protologue($term);
+      if(is_object($biblio_node)){
+        $term->field_reference['und'][0]['nid'] = $biblio_node->nid;
+        taxonomy_term_save($term);
+      }
+    }
+  }
+}
+
+/**
+ * 
+ * Function to create a Botanical Protologue Biblio node from a term
+ * 
+ * @param $term
+ * The taxonomy term to create a biblio node from
+ */
+function emonocot_biblio_create_biblio_from_protologue($term){
+  if(is_int($term)){
+    $term = taxonomy_term_load($term);
+  }
+  if(isset($term->tid)){
+    $data_array = emonocot_biblio_get_protologue_data($term);
+    if ($data_array == FALSE){return FALSE;}
+    $data_array['term_data'] = array(
+      'tid' => $term->tid
+    );
+    $data_array['title'] = 'Original publication of ' . $term->name;
+    return emonocot_biblio_create_node($data_array);
+  }
+  return FALSE; //TODO: Return something meaningful
+}
+
+/**
+ * 
+ * Collect and process data needed to create the Botanical Protologue Biblio node
+ * for this term. Parses data from the term itself and attempts to get further
+ * information from IPNI (International Plant Names Index)
+ * 
+ * @param $term
+ * The taxonomy term we are gathering protologue data about
+ */
+function emonocot_biblio_get_protologue_data($term){
+  if (!isset($term->field_itis_em_other_ref['und'][0]['value'])){ return FALSE; }
+  $protologue = $term->field_itis_em_other_ref['und'][0]['value'];
+  $return = array();
+  $return['author_string'] = $term->field_authors['und'][0]['value'];
+  $return['authors'] = emonocot_bilbio_process_term_author_string($return['author_string']);
+  $return['short_title'] = emonocot_biblio_get_short_title($protologue, $return['author_string']);
+  $return['year'] = emonocot_biblio_get_year($protologue);
+  $return['volume'] = emonocot_biblio_get_volume($protologue);
+  $return['start_page'] = emonocot_biblio_get_start_page($protologue);
+  emonocot_biblio_add_ipni_data($return);
+  emonocot_biblio_get_biblio_type($return);
+  return $return;
+}
+
+function emonocot_biblio_get_short_title($reference, $author_string){
+  $reference = substr($reference, strlen($author_string) + 1);
+  $reference = substr($reference, 0, strpos($reference, ':'));
+  $reference = substr($reference, 0, strrpos($reference, ' '));
+  $reference = trim($reference);
+  return $reference;
+}
+
+function emonocot_biblio_get_year($protologue){
+  $year = substr($protologue, strrpos($protologue, '(') + 1, 4);
+  return $year;
+}
+
+function emonocot_biblio_get_volume($protologue){
+  $volume = substr($protologue, 0, strpos($protologue, ':'));
+  $volume = substr($volume, strrpos($volume, ' '), 100);
+  $volume = trim($volume);
+  return $volume;
+}
+
+function emonocot_biblio_get_start_page($protologue){
+  $protologue = substr($protologue, strpos($protologue, ':') + 1);
+  $start_page = substr($protologue, 0, strpos($protologue, '(') - strpos($protologue, ':') - 1);
+  $start_page = trim($start_page);
+  return $start_page;
+}
+
+function emonocot_bilbio_process_term_author_string($author_string){
+  //If there is an author is parentheses that's the only part of the string we should return for biblio
+  if(strstr($author_string, '(')){
+    $start = 0;
+    $end = strpos($author_string, '(');
+    $author_string = substr($author_string, $start, $end - $start);
+  }
+  //If the taxon author string has 'ex' or 'in' in the title discard unwanted authors
+  if(strstr($author_string, ' in ')){
+    $author_string = substr($author_string, 0, strpos($author_string, ' in '));
+  }
+  if(strstr($author_string, ' ex ')){
+    $author_string = substr($author_string, strpos($author_string, ' ex ') + 4);
+  }
+  //Separate authors into array
+  $authors = explode('&', $author_string);
+  array_walk($authors, 'emonocot_biblio_array_trim');
+  return $authors;
+}
+
+/**
+ * 
+ * Calling this function from array_walk() allows us to remove unwanted whitespace
+ * (and maybe other things later)
+ */
+function emonocot_biblio_array_trim(&$value){
+  $value = trim($value);
+}
+
+/**
+ * 
+ * Tries to expand the abbreviated author and title strings from a botanical protologue
+ * using the IPNI webservice
+ * 
+ * @param $data
+ * Data array from emonocot_biblio_get_protologue_data()
+ */
+function emonocot_biblio_add_ipni_data(&$data){
+  $ipni_pub_matches = emonocot_ipni_publication_short($data['short_title']);
+  $match_found = FALSE;
+  foreach($ipni_pub_matches as $short_title => $title){
+    if($data['short_title'] == $short_title){
+      //TODO: Put the title somewhere (alt title)
+      $match_found = TRUE;
+      break;
+    }
+  }
+  for($i = 0; $i < count($data['authors']); $i++){
+    $ipni_auth_matches = emonocot_ipni_author_short($data['authors'][$i]);
+    $match_found = FALSE;
+    foreach($ipni_auth_matches as $abbreviation => $full_name){
+      if($data['authors'][$i] == $abbreviation){
+        $data['authors'][$i] = $full_name;
+        $match_found = TRUE;
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * 
+ * The 'Botanical Protologue' Biblio type is created when this module is installed. This function
+ * retrieves the associated numeric id for this type.
+ * 
+ * @param $data
+ * Data array from emonocot_biblio_get_protologue_data()
+ */
+function emonocot_biblio_get_biblio_type(&$data){
+  $sql = "SELECT tid FROM biblio_types WHERE name = 'Botanical Protologue'";
+  $result = db_query($sql);
+  foreach($result as $tid){
+    $data['biblio_type'] = $tid->tid;
+  }
+}
+
+/**
+ * 
+ * Creates a new Biblio node from the supplied data
+ * 
+ * @param $data
+ * Data array from emonocot_biblio_get_protologue_data()
+ * 
+ * @return $node
+ * The node we have just created
+ */
+function emonocot_biblio_create_node($data){
+  $node = new stdClass();
+  $node->type = 'biblio';
+  $node->biblio_type = $data['biblio_type'];
+  node_object_prepare($node);
+  $node->title = $data['title'];
+  $node->biblio_short_title = $data['short_title'];
+  $node->biblio_year = $data['year'];
+  $node->biblio_section = $data['start_page'];
+  $node->biblio_volume = $data['volume'];
+  foreach($data['authors'] as $author){
+    $node->biblio_contributors[] = array(
+      'name' => $author,
+      'auth_category' => 1
+    );
+  }
+  $node->field_taxonomic_name['und'][0] = $data['term_data'];
+  require_once drupal_get_path('module', 'biblio') . '/includes/biblio.contributors.inc';
+  node_save($node);
+  biblio_insert_contributors($node);
+  return $node;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function emonocot_biblio_menu(){
+  $items = array();
+  $items['admin/config/emonocot/protologues'] = array(
+    'title' => 'Configure protologue generation',
+    'description' => 'Configure generation of Botanical Protologues and imports of URLS from Excel files',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'emonocot_biblio_autogenerate_admin_form'
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['admin/config/emonocot/protologues/generate'] = array(
+    'title' => 'Generate missing',
+    'description' => 'Generate biblio nodes from WCM protologues',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'emonocot_biblio_batch_protologues_form'
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK
+  );
+  $items['admin/config/emonocot/protologues/settings'] = array(
+    'title' => 'Configure',
+    'description' => 'Configure generation of Botanical Protologues',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'emonocot_biblio_autogenerate_admin_form'
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_DEFAULT_LOCAL_TASK
+  );
+  $items['admin/config/emonocot/protologues/excel'] = array(
+    'title' => 'Import',
+    'description' => 'Import from specialiased eMonocot Excel file',
+    'page callback' => 'drupal_goto',
+    'page arguments' => array(
+      'import/emonocot_protologue'
+    ),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK
+  );
+  return $items;
+}
+
+/**
+ * 
+ * Form for choosing whether Botanical Protologues are automatically created on
+ * taxonomy term creation
+ */
+function emonocot_biblio_autogenerate_admin_form(){
+  $form['autogen'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Autogenerate Botanical Protologue biblio nodes on term creation and taxonomy import'),
+    '#default_value' => variable_get('em_biblio_autogen', TRUE)
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save'
+  );
+  $form['#submit'][] = 'emonocot_biblio_autogenerate_admin_form_submit';
+  return $form;
+}
+
+function emonocot_biblio_autogenerate_admin_form_submit($form, &$form_state){
+  variable_set('em_biblio_autogen', $form_state['values']['autogen']);
+}
+
+/**
+ * 
+ * For for choosing options when performing batch creation of Botanical Protologues
+ * 
+ * @return $form
+ * A form array
+ */
+function emonocot_biblio_batch_protologues_form(){
+  $form['description'] = array(
+    '#type' => 'markup',
+    '#markup' => t('Create missing Botanical Protologue microcitations for the taxonomy selected below.')
+  );
+  $biological_vids = variable_get('biological_vids', array());
+  $values = array();
+  foreach($biological_vids as $biological_vid => $type){
+    if($type == 2){
+      $values[$biological_vid] = taxonomy_vocabulary_load($biological_vid)->name;
+    }
+  }
+  $form['vocabulary'] = array(
+    '#type' => 'select',
+    '#title' => t('Select taxonomy'),
+    '#options' => $values
+  );
+  $form['delete_first'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete all currently associated Botanical Protologues first (use with care)'),
+    '#default_value' => FALSE
+  );
+  $form['generate_new'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Generate missing Botanical Protologue biblio nodes'),
+    '#description' => t('Use with the delete all function to generate new nodes for all terms'),
+    '#default_value' => TRUE
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Go'
+  );
+  if(count($biological_vids) == 0){
+    $form['submit']['#disabled'] = TRUE;
+  }
+  $form['#submit'][] = 'emonocot_biblio_batch_protologues_form_submit';
+  return $form;
+}
+
+function emonocot_biblio_batch_protologues_form_submit($form, &$form_state){
+  $function = 'emonocot_biblio_batch_protologues';
+  $batch = $function($form_state['values']['vocabulary'], $form_state['values']['generate_new'], $form_state['values']['delete_first']);
+  batch_set($batch);
+}
+
+/**
+ * 
+ * Batch creation of Botanical Protologue Biblio nodes from taxonomy terms
+ * 
+ * @param $vid
+ * vid of vocabulary to create Botanical Prtologues for
+ * 
+ * @param $generate_new
+ * If TRUE generates new Botanical Protologue nodes for the vocabulary
+ * Set to FALSE to only delete nodes
+ * 
+ * @param $delete_first
+ * Delete Botanical Protologue Biblio nodes associated with the vocabulary if TRUE
+ * 
+ * @return $batch
+ * A Drupal batch array
+ */
+function emonocot_biblio_batch_protologues($vid, $generate_new = TRUE, $delete_first = FALSE){
+  $vocabulary = taxonomy_vocabulary_load($vid);
+  $operations = array();
+  //First delete nodes if required
+  if($delete_first){
+    $result = db_query('SELECT field_reference_nid FROM {field_data_field_reference} r INNER JOIN {taxonomy_term_data} t ON  r.entity_id = t.tid AND t.vid = :vid', array(
+      ':vid' => $vid
+    ));
+    $data = $result->fetchCol();
+    foreach($data as $nid){
+      $operations[] = array(
+        'node_delete',
+        array(
+          $nid
+        )
+      );
+    }
+  }
+  //Then make new
+  if($generate_new){
+    $result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(
+      ':vid' => $vid
+    ));
+    $data = $result->fetchCol();
+    $num_operations = count($data);
+    foreach($data as $op => $tid){
+      $operations[] = array(
+        'emonocot_biblio_batch_protologues_process',
+        array(
+          $tid
+        )
+      );
+    }
+  }
+  $batch = array(
+    'operations' => $operations,
+    'finished' => 'emonocot_biblio_batch_protologues_finished',
+    'title' => 'Generate missing Botanical Protologues for ' . $vocabulary->name
+  );
+  return $batch;
+}
+
+/**
+ * 
+ * Process batch specified by emonocot_biblio_batch_protologues().
+ * 
+ * @param unknown_type $tid
+ * @param unknown_type $context
+ */
+function emonocot_biblio_batch_protologues_process($tid, &$context){
+  $term = taxonomy_term_load($tid);
+  if(empty($context['sandbox'])){
+    $context['sandbox'] = array();
+    $context['sandbox']['progress'] = 0;
+    $result = db_query('SELECT t.tid FROM {taxonomy_term_data} t WHERE t.vid = :vid', array(
+      ':vid' => $term->vid
+    ));
+    $data = $result->fetchCol();
+    $context['sandbox']['max'] = count($data);
+  }
+  $biblio_node = emonocot_biblio_create_biblio_from_protologue($term);
+  if(is_object($biblio_node)){
+    $term->field_reference['und'][0]['nid'] = $biblio_node->nid;
+    taxonomy_term_save($term);
+  }
+  $context['sandbox']['progress']++;
+  $context['message'] = check_plain($node->title);
+  // Inform the batch engine that we are not finished,
+  // and provide an estimation of the completion level we reached.
+  if(is_object($biblio_node)){
+    $context['finished'] = TRUE;
+  }
+}
+
+/**
+ * 
+ * Completion function for emonocot_biblio_batch_protologues().
+ * 
+ * @param unknown_type $success
+ * @param unknown_type $results
+ * @param unknown_type $operations
+ */
+function emonocot_biblio_batch_protologues_finished($success, $results, $operations){
+  if($success){
+    drupal_set_message(t('Finished!'));
+  }else{
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+  }
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ * 
+ * @return $info
+ * An information array about custom feeds importers
+ */
+function emonocot_biblio_feeds_plugins(){
+  $path = drupal_get_path('module', 'emonocot_biblio');
+  $info = array();
+  $info['ProtologueNodeProcessor'] = array(
+    'name' => 'Botanical Protologue processor',
+    'description' => 'Update Botanical Protologues with URLs',
+    'help' => 'Specific to the eMonocot project.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'ProtologueNodeProcessor',
+      'file' => 'ProtologueNodeProcessor.inc',
+      'path' => $path
+    )
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function emonocot_biblio_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "feeds" && $api == "feeds_importer_default"){return array(
+      "version" => "1"
+    );}
+}
+
+/**
+ * Implements hook_feeds_importer_default().
+ * 
+ * @return $export
+ * A custom feeds importer
+ */
+function emonocot_biblio_feeds_importer_default(){
+  $export = array();
+  $feeds_importer = new stdClass();
+  $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
+  $feeds_importer->api_version = 1;
+  $feeds_importer->id = 'emonocot_protologue';
+  $feeds_importer->config = array(
+    'name' => 'eMonocot Protologue',
+    'description' => '',
+    'fetcher' => array(
+      'plugin_key' => 'FeedsFileFetcher',
+      'config' => array(
+        'allowed_extensions' => 'xls',
+        'direct' => 0
+      )
+    ),
+    'parser' => array(
+      'plugin_key' => 'FeedsExcelParser',
+      'config' => array(
+        'no_headers' => 0,
+        'all_worksheets' => 0
+      )
+    ),
+    'processor' => array(
+      'plugin_key' => 'ProtologueNodeProcessor',
+      'config' => array(
+        'content_type' => 'biblio',
+        'expire' => -1,
+        'author' => 0,
+        'mappings' => array(
+          0 => array(
+            'source' => 'URL',
+            'target' => 'biblio_url',
+            'unique' => FALSE
+          )
+        ),
+        'update_existing' => 0,
+        'input_format' => NULL
+      )
+    ),
+    'content_type' => '',
+    'update' => 0,
+    'import_period' => 1800,
+    'expire_period' => 3600,
+    'import_on_create' => TRUE,
+    'process_in_background' => FALSE
+  );
+  $export['emonocot_protologue'] = $feeds_importer;
+  return $export;
+}
+
+function emonocot_biblio_form_alter(&$form, &$form_state, $form_id){
+  global $base_url;
+  if ($form_id == 'feeds_import_form'  && $form['#importer_id'] == 'emonocot_protologue') {
+  	$text = '<div class="help"><p><a href="'. $base_url .'/'. drupal_get_path('module', 'emonocot_biblio') .'/protologue_template.xls" target="_blank" class="overlay-exclude">Excel template file</a> for this import.</p></div>';
+  	$form['feeds']['FeedsExcelParser']['help']['text']['#markup'] = $text;
+  }
+}

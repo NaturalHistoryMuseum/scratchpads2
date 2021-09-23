@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function oboe_schema(){
+  return array(
+    'cache_oboe_output' => drupal_get_schema_unprocessed('system', 'cache'),
+    'oboe' => array(
+      'fields' => array(
+        'oid' => array(
+          'description' => 'Primary key',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'uid' => array(
+          'description' => '{user}.uid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'fid' => array(
+          'description' => '{file_managed}.fid',
+          'type' => 'int',
+          'unsigned' => TRUE
+        ),
+        'label' => array(
+          'description' => 'The label for this OBOE job.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE
+        ),
+        'description' => array(
+          'description' => 'The description for this OBOE job.',
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'data' => array(
+          'description' => 'The response data for this OBOE job.',
+          'type' => 'blob',
+          'not null' => TRUE,
+          'size' => 'big',
+          'translatable' => TRUE,
+          'serialize' => TRUE
+        ),
+        'type' => array(
+          'description' => 'The type of this OBOE job.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'default' => ''
+        ),
+        'created' => array(
+          'description' => 'The Unix timestamp when the data item was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when the data item was most recently updated.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0
+        )
+      ),
+      'primary key' => array(
+        'oid'
+      )
+    )
+  );
+}
+
+/**
+ * Add the cache table.
+ */
+function oboe_update_7001(){
+  $schema = oboe_schema();
+  db_create_table('cache_oboe_output', $schema['cache_oboe_output']);
+}

@@ -1,0 +1,7 @@
+core = "7.x"
+name = "ReFindit Widget"
+description = "Displays ReFindit search results within a taxonomy term page."
+package = "Widgets"
+dependencies[] = scratchpads_species
+dependencies[] = ajaxblocks
+tool=true

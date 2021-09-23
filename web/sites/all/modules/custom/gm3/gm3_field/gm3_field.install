@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implementation of hook_field_schema($field).
+ */
+function gm3_field_field_schema($field){
+  switch($field['type']){
+    case 'gm3_point':
+      return array(
+        'columns' => array(
+          'latitude' => array(
+            'type' => 'float',
+            'not null' => TRUE,
+            'size' => 'big'
+          ),
+          'longitude' => array(
+            'type' => 'float',
+            'not null' => TRUE,
+            'size' => 'big'
+          )
+        ),
+        'indexes' => array(
+          'latitude' => array(
+            'latitude'
+          ),
+          'longitude' => array(
+            'longitude'
+          )
+        )
+      );
+    case 'gm3_polygon':
+      return array(
+        'columns' => array(
+          'polygon' => array(
+            'type' => 'text',
+            'size' => 'medium',
+            'not null' => TRUE
+          )
+        )
+      );
+    case 'gm3_rectangle':
+      return array(
+        'columns' => array(
+          'rectangle' => array(
+            'type' => 'text',
+            'size' => 'medium',
+            'not null' => TRUE
+          )
+        )
+      );
+    case 'gm3_polyline':
+      return array(
+        'columns' => array(
+          'polyline' => array(
+            'type' => 'text',
+            'size' => 'medium',
+            'not null' => TRUE
+          )
+        )
+      );
+    case 'gm3_combination':
+      // This field is fucking stupid; the field structure contains
+      // space for each different possible type of field, but because
+      // each field can only contain one value only one section of the
+      // field can be used at a time! So we have to use the gm3_type field
+      // to tell the code which part of the field to look in.
+
+      // If the region module is installed, we'll start with that schema!
+      $schema = array();
+      if(module_exists('gm3_region_field')){
+        module_load_include('install', 'gm3_region_field');
+        $schema = gm3_region_field_field_schema(array(
+          'type' => 'gm3_region'
+        ));
+      }
+      $schema = array_merge_recursive($schema, gm3_field_field_schema(array(
+        'type' => 'gm3_point'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_polygon'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_polyline'
+      )), gm3_field_field_schema(array(
+        'type' => 'gm3_rectangle'
+      )));
+      foreach($schema['columns'] as $column_name => $x){
+        if(isset($schema['columns'][$column_name]['not null'])){
+          unset($schema['columns'][$column_name]['not null']);
+        }
+      }
+      // Finally, set the type column
+      $schema = array_merge_recursive($schema, array(
+        'columns' => array(
+          'gm3_type' => array(
+            'type' => 'varchar', // Give flexibilty in case another module extends this.
+            'length' => 32
+          )
+        ),
+        'indexes' => array(
+          'gm3_type' => array(
+            'gm3_type'
+          )
+        )
+      ));
+      return $schema;
+      break;
+  }
+}

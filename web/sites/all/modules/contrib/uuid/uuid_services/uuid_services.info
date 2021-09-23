@@ -1,0 +1,8 @@
+name = UUID Services
+description = Provides integration with the Services module, like exposing a UUID entity resource.
+core = 7.x
+package = Services - resources
+
+dependencies[] = services
+dependencies[] = uuid
+dependencies[] = entity

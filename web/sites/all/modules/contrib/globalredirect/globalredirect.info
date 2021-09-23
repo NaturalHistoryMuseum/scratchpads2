@@ -1,0 +1,13 @@
+name = Global Redirect
+description = "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+package = Path management
+core = 7.x
+files[] = globalredirect.test
+configure = admin/config/system/globalredirect
+
+; Information added by drupal.org packaging script on 2012-06-15
+version = "7.x-1.5"
+core = "7.x"
+project = "globalredirect"
+datestamp = "1339748779"
+

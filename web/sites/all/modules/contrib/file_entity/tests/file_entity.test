@@ -1,0 +1,235 @@
+<?php
+
+/**
+ * @file
+ * Test integration for the file_entity module.
+ */
+
+class FileEntityTestHelper extends DrupalWebTestCase {
+  protected $files = array();
+
+  function setUp($modules = array()) {
+    $modules[] = 'file_entity';
+    parent::setUp($modules);
+
+    $this->setUpFiles();
+  }
+
+  function setUpFiles() {
+    $types = array('text', 'image');
+    foreach ($types as $type) {
+      foreach ($this->drupalGetTestFiles($type) as $file) {
+        $this->files[$type][] = file_save($file);
+      }
+    }
+  }
+}
+
+class FileEntityUnitTestCase extends FileEntityTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'File entity unit tests',
+      'description' => 'Test basic file entity funcitonality.',
+      'group' => 'File entity',
+    );
+  }
+
+  /**
+   * Regression tests for core issue http://drupal.org/node/1239376.
+   */
+  function testMimeTypeMappings() {
+    $tests = array(
+      'public://test.ogg' => 'audio/ogg',
+      'public://test.mkv' => 'video/x-m4v',
+      'public://test.mka' => 'audio/x-matroska',
+      'public://test.mkv' => 'video/x-matroska',
+      'public://test.webp' => 'image/webp',
+    );
+    foreach ($tests as $input => $expected) {
+      $this->assertEqual(file_get_mimetype($input), $expected);
+    }
+  }
+
+  function testFileEntity() {
+    $file = reset($this->files['text']);
+
+    // Test entity ID, revision ID, and bundle.
+    $ids = entity_extract_ids('file', $file);
+    $this->assertIdentical($ids, array($file->fid, NULL, 'text'));
+
+    // Test the entity URI callback.
+    $uri = entity_uri('file', $file);
+    $this->assertEqual($uri['path'], "file/{$file->fid}");
+  }
+
+  function testImageDimensions() {
+    $images_dimensions = array();
+    $text_fids = array();
+    // Test hook_file_insert().
+    // Files have been saved as part of setup (in FileEntityTestHelper::setUpFiles).
+    foreach ($this->files['image'] as $file) {
+      $images_dimensions[$file->fid] = $file->image_dimensions;
+      $this->assertTrue(isset($file->image_dimensions), 'Image dimensions retrieved on file_save() for an image file.');
+    }
+    foreach ($this->files['text'] as $file) {
+      $text_fids[] = $file->fid;
+      $this->assertFalse(isset($file->image_dimensions), 'No image dimensions retrieved on file_save() for an text file.');
+    }
+
+    // Test hook_file_load().
+    // Clear the cache and load fresh files objects to test file_load behavior.
+    entity_get_controller('file')->resetCache();
+    foreach (file_load_multiple(array_keys($images_dimensions)) as $file) {
+      $this->assertTrue(isset($file->image_dimensions), 'Image dimensions retrieved on file_load() for an image file.');
+      $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'], 'Loaded image height is equal to saved image height.');
+      $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'], 'Loaded image width is equal to saved image width.');
+    }
+    foreach (file_load_multiple($text_fids) as $file) {
+      $this->assertFalse(isset($file->image_dimensions), 'No image dimensions retrieved on file_load() for an text file.');
+    }
+
+    // Test hook_file_update().
+    // Load the first image file and resize it.
+    $file = file_load(reset(array_keys($images_dimensions)));
+    $image = image_load($file->uri);
+    image_resize($image, $file->image_dimensions['width'] / 2, $file->image_dimensions['height'] / 2);
+    image_save($image);
+    file_save($file);
+    $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'] / 2, 'Image file height updated by file_save().');
+    $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'] / 2, 'Image file width updated by file_save().');
+    // Clear the cache and reload the file.
+    entity_get_controller('file')->resetCache();
+    $file = file_load($file->fid);
+    $this->assertEqual($file->image_dimensions['height'], $images_dimensions[$file->fid]['height'] / 2, 'Updated image height retrieved by file_load().');
+    $this->assertEqual($file->image_dimensions['width'], $images_dimensions[$file->fid]['width'] / 2, 'Updated image width retrieved by file_load().');
+
+    //Test hook_file_delete().
+    file_delete($file, TRUE);
+    $this->assertFalse(db_query('SELECT COUNT(*) FROM {image_dimensions} WHERE fid = :fid', array(':fid' => 'fid'))->fetchField(), 'Row deleted in {file_dimensions} on file_delete().');
+  }
+}
+
+class FileEntityReplaceTestCase extends FileEntityTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'File replacement',
+      'description' => 'Test file replace functionality.',
+      'group' => 'File entity',
+    );
+  }
+
+  /**
+   * @todo Test image dimensions for an image field are reset when a file is replaced.
+   * @todo Test image styles are cleared when an image is updated.
+   */
+  function testReplaceFile() {
+    // Select the first text test file to use.
+    $file = reset($this->files['text']);
+
+    // Create a user with file edit permissions.
+    $user = $this->drupalCreateUser(array('edit file'));
+    $this->drupalLogin($user);
+
+    // Test that the Upload widget appears for a local file.
+    $this->drupalGet('file/' . $file->fid . '/edit');
+    $this->assertFieldByName('files[replace_upload]');
+
+    // Test that file saves without uploading a file.
+    $this->drupalPost(NULL, array(), t('Save'));
+    $this->assertText(t('Text @file has been updated.', array('@file' => $file->filename)), 'File was updated without file upload.');
+
+    // Get the next text file to use as a replacement.
+    $original = clone $file;
+    $replacement = next($this->files['text']);
+
+    // Test that the file saves when uploading a replacement file.
+    $edit = array();
+    $edit['files[replace_upload]'] = drupal_realpath($replacement->uri);
+    $this->drupalPost('file/' . $file->fid . '/edit', $edit, t('Save'));
+    $this->assertText(t('Text @file has been updated.', array('@file' => $file->filename)), 'File was updated with file upload.');
+
+    // Re-load the file from the database.
+    $file = file_load($file->fid);
+
+    // Test how file properties changed after the file has been replaced.
+    $this->assertEqual($file->filename, $original->filename, 'Updated file name did not change.');
+    $this->assertNotEqual($file->filesize, $original->filesize, 'Updated file size changed from previous file.');
+    $this->assertEqual($file->filesize, $replacement->filesize, 'Updated file size matches uploaded file.');
+    $this->assertEqual(file_get_contents($replacement->uri), file_get_contents($file->uri), 'Updated file contents matches uploaded file.');
+
+    // Get an image file.
+    $image = reset($this->files['image']);
+    $edit['files[replace_upload]'] = drupal_realpath($image->uri);
+
+    // Test that validation works by uploading a non-text file as a replacement.
+    $this->drupalPost('file/' . $file->fid . '/edit', $edit, t('Save'));
+    $this->assertRaw(t('The specified file %file could not be uploaded. Only files with the following extensions are allowed:', array('%file' => $image->filename)), 'File validation works, upload failed correctly.');
+
+    // Create a non-local file record.
+    $file2 = new stdClass();
+    $file2->uri = 'oembed://' . $this->randomName();
+    $file2->filename = drupal_basename($file2->uri);
+    $file2->filemime = 'image/oembed';
+    $file2->type = 'image';
+    $file2->uid = 1;
+    $file2->timestamp = REQUEST_TIME;
+    $file2->filesize = 0;
+    $file2->status = 0;
+    // Write the record directly rather than calling file_save() so we don't
+    // invoke the hooks.
+    $this->assertTrue(drupal_write_record('file_managed', $file2), 'Non-local file was added to the database.');
+
+    // Test that Upload widget does not appear for non-local file.
+    $this->drupalGet('file/' . $file2->fid . '/edit');
+    $this->assertNoFieldByName('files[replace_upload]');
+  }
+}
+
+class FileEntityTokenTestCase extends FileEntityTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'File entity tokens',
+      'description' => 'Test the file entity tokens.',
+      'group' => 'File entity',
+    );
+  }
+
+  function testFileEntityTokens() {
+    $tokens = array(
+      'type' => 'Text',
+      'type:name' => 'Text',
+      'type:machine-name' => 'text',
+      'type:count' => count($this->files['text']),
+    );
+    $this->assertTokens('file', array('file' => $this->files['text'][0]), $tokens);
+
+    $tokens = array(
+      'type' => 'Image',
+      'type:name' => 'Image',
+      'type:machine-name' => 'image',
+      'type:count' => count($this->files['image']),
+    );
+    $this->assertTokens('file', array('file' => $this->files['image'][0]), $tokens);
+  }
+
+  function assertTokens($type, array $data, array $tokens, array $options = array()) {
+    $token_input = drupal_map_assoc(array_keys($tokens));
+    $values = token_generate($type, $token_input, $data, $options);
+    foreach ($tokens as $token => $expected) {
+      if (!isset($expected)) {
+        $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+      }
+      elseif (!isset($values[$token])) {
+        $this->fail(t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+      }
+      elseif (!empty($options['regex'])) {
+        $this->assertTrue(preg_match('/^' . $expected . '$/', $values[$token]), t("Token value for [@type:@token] was '@actual', matching regular expression pattern '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+      }
+      else {
+        $this->assertIdentical($values[$token], $expected, t("Token value for [@type:@token] was '@actual', expected value '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+      }
+    }
+
+    return $values;
+  }
+}

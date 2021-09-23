@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implements hook_library().
+ */
+function simple_google_charts_library(){
+  return array(
+    'google_charts' => array(
+      'title' => t('Google Charts API'),
+      'website' => 'https://developers.google.com/chart/',
+      'version' => '2',
+      'js' => array(
+        array(
+          'data' => 'https://www.google.com/jsapi',
+          'type' => 'external'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simple_google_charts_theme($existing, $type, $theme, $path){
+  return array(
+    'simple_google_chart' => array(
+      'variables' => array(
+        'data' => array(),
+        'type' => 'BarChart',
+        'options' => array(),
+        'title' => '',
+        'subtitle' => ''
+      ),
+      'file' => 'simple_google_charts.theme.inc'
+    ),
+    'simple_google_material_chart' => array(
+      'variables' => array(
+        'data' => array(),
+        'type' => 'BarChart',
+        'options' => array(),
+        'title' => '',
+        'subtitle' => ''
+      ),
+      'file' => 'simple_google_charts.theme.inc'
+    )
+  );
+}

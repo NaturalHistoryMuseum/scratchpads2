@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Update field types and views
+ * 
+ */
+function pensoft_publication_update_7000(){
+  /* NO-OP */
+}
+
+/**
+ * Update fields
+ */
+function pensoft_publication_update_7002(){
+  // We can't really keep the data from that field, just delete it
+  field_delete_field('field_publication_treatment_name');
+}
+
+/**
+ * Modify pensoft publication type to match the new pensoft schema
+ */
+function pensoft_publication_update_7003(){
+  // Change 'Redescription' to 'Redescription or species observation'
+  $field = field_info_field('field_publication_treat_type');
+  if($field){
+    $field['settings']['allowed_values'] = array(
+      'New taxon' => 'New taxon',
+      'Redescription or species observation' => 'Redescription or species observation'
+    );
+    // We can't use field_update_field as it won't change a field with existing data
+    $data = $field;
+    unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+    unset($data['bundles']);
+    $field['data'] = $data;
+    $primary_key = array(
+      'id'
+    );
+    drupal_write_record('field_config', $field, $primary_key);
+    field_cache_clear(TRUE);
+  }
+  $efq = new EntityFieldQuery();
+  $efq->entityCondition('entity_type', 'relation');
+  $efq->entityCondition('bundle', 'publication_treatments');
+  $efq->fieldCondition('field_publication_treat_type', 'value', 'Redescription');
+  $entities = $efq->execute();
+  if(!empty($entities['relation'])){
+    foreach(array_keys($entities['relation']) as $eid){
+      $entity = entity_load_single('relation', $eid);
+      $lang = field_language('relation', $entity, 'field_publication_treat_type');
+      foreach($entity->field_publication_treat_type[$lang] as $k => $v){
+        $entity->field_publication_treat_type[$lang][$k]['value'] = 'Redescription or species observation';
+      }
+      entity_save('relation', $entity);
+    }
+  }
+  // Remove the 'systematics' field
+  $field = field_info_field('field_publication_systematics');
+  if($field){
+    field_delete_field('field_publication_systematics');
+  }
+}
+
+/**
+ * - Modify pensoft publication type to match the new pensoft schema,
+ * - Rename Pensoft publication to Taxonomic paper (Pensoft Writing Tool)
+ * - Hide endpoints when displaying publication treatment
+ */
+function pensoft_publication_update_7004(){
+  // Remove the 'results' field
+  $field = field_info_field('field_publication_results');
+  if($field){
+    field_delete_field('field_publication_results');
+  }
+  // Rename paper type
+  db_update('publication_type')->fields(array(
+    'label' => "Taxonomic paper (Pensoft Writing Tool)"
+  ))->condition('type', 'pensoft')->execute();
+  // Hide the endpoints field for treatments
+  $field_instance = field_info_instance('relation', 'endpoints', 'publication_treatments');
+  if($field_instance){
+    $field_instance['display']['default'] = array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => '1'
+    );
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Allow other file types for the supplementary files
+ */
+function pensoft_publication_update_7005(){
+  $field_instance = field_info_instance('publication', 'field_pensoft_files', 'pensoft');
+  if($field_instance){
+    $field_instance['settings']['file_extensions'] = 'txt jpg png gif xls xlsx doc docx pdf xml svg wav mp3 avi mpg';
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Remove the allowed_scheme options from the field_publication_figure_figure
+ * field
+ */
+function pensoft_publication_update_7006(){
+  $field_instance = field_info_instance('field_collection_item', 'field_publication_figure_figure', 'field_publication_figures');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+  $field_instance = field_info_instance('publication', 'field_pensoft_files', 'pensoft');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}

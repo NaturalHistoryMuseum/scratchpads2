@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * 
+ * The lifeform module.
+ */
+/**
+ * Implementation of hook_init().
+ */
+function liveform_init(){
+  websockets_add();
+  drupal_add_js(drupal_get_path('module', 'liveform') . '/js/liveform.js');
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function liveform_form_alter(&$form, &$form_state, $form_id){
+  if(in_array($form_id, variable_get('liveform_forms', array(
+    'page_node_form'
+  )))){
+    $no_user_msg = t('There are no other users online');
+    $form['liveform'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('LiveForm'),
+      '#collapsed' => FALSE,
+      '#collapsible' => TRUE,
+      '#weight' => -1000,
+      'liveform-checkbox' => array(
+        '#id' => 'liveform-checkbox',
+        '#title' => t('Check the box to work collaboratively on this page with the following users:'),
+        '#type' => 'checkbox',
+        '#prefix' => '<div id="liveform">',
+        '#suffix' => '<p id="liveform-users">'.$no_user_msg.'</p></div>'
+      )
+    );
+    global $user;
+    $form['#attached']['js'][] = array(
+      'data' => array(
+        'liveform' => array(
+          'user' => "{$user->uid}:{$user->name}",
+          'no_user_msg' => $no_user_msg
+        )
+      ),
+      'type' => 'setting'
+    );
+  }
+}

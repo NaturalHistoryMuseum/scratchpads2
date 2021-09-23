@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_lexicon_install(){
+  db_merge('filter')->key(array(
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'format' => 'filtered_html'
+  ))->fields(array(
+    'format' => 'filtered_html',
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'weight' => 50,
+    'status' => 1,
+    'settings' => serialize(array())
+  ))->execute();
+  db_merge('filter')->key(array(
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'format' => 'comment_filtered_html'
+  ))->fields(array(
+    'format' => 'comment_filtered_html',
+    'module' => 'lexicon',
+    'name' => 'filter_lexicon',
+    'weight' => 50,
+    'status' => 1,
+    'settings' => serialize(array())
+  ))->execute();
+  variable_set('lexicon_match', 'b');
+}
+
+/**
+ * Implements hook_disable()
+ */
+function scratchpads_lexicon_disable(){
+  drupal_register_shutdown_function('module_disable', array(
+    'lexicon'
+  ));
+}
+
+/**
+ * Run the install again, as the enabled status of the filter will have been
+ * removed.
+ */
+function scratchpads_lexicon_update_7001(){
+  scratchpads_lexicon_install();
+}
+
+/**
+ * Set the match type for Lexicon to whole words only.
+ */
+function scratchpads_lexicon_update_7002(){
+  variable_set('lexicon_match', 'b');
+}

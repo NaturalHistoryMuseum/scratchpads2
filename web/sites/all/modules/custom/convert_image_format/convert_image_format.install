@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * Uninstall the imagecache_actions module if no other modules require it.
+ */
+function convert_image_format_update_7001(){
+  $module_list = array(
+    'imagecache_actions'
+  );
+  $module_data = system_rebuild_module_data();
+  $module_list = array_flip(array_values($module_list));
+  $profile = drupal_get_profile();
+  while(list($module) = each($module_list)){
+    if(!isset($module_data[$module]) || !$module_data[$module]->status){
+      unset($module_list[$module]);
+      continue;
+    }
+    $module_list[$module] = $module_data[$module]->sort;
+    foreach($module_data[$module]->required_by as $dependent => $dependent_data){
+      if(!isset($module_list[$dependent]) && $dependent != $profile){
+        $module_list[$dependent] = 0;
+      }
+    }
+  }
+  asort($module_list);
+  $module_list = array_keys($module_list);
+  if(count($module_list) == 1){
+    module_disable($module_list, FALSE);
+    drupal_uninstall_modules($module_list, FALSE);
+  }
+}

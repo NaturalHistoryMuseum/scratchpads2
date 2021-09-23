@@ -1,0 +1,154 @@
+@CHARSET "UTF-8";
+.field-name-field-publication-title {
+  font-family: Georgia,"Times New Roman",Times,serif;
+  font-size: 2em;
+  margin-left: 120px;
+}
+
+.publication-group .field-publication-background .field-items,
+.publication-group .field-name-field-publication-abstract .field-label,
+.publication-group .field-name-field-publication-keywords .field-label {
+  color: #888888;
+}
+
+.publication-group{
+  margin-bottom: 30px;
+  background: #fff url('../images/bg.gif') repeat-y bottom left;
+  position: relative;
+  min-height: 300px;
+}
+
+.publication-group label{
+  display: block;
+  -webkit-transform:rotate(270deg);
+	-moz-transform:rotate(270deg);
+	-o-transform: rotate(270deg);
+	height: 200px;
+	width: 200px;
+	text-transform: uppercase;
+  position: absolute;
+  top: 30px;
+  text-align: right;
+  left: 30px;
+}
+
+.publication-group .item-list {
+  border-top: 1px solid #D6D6D6;
+  width: 80px;
+}
+
+.publication-group .item-list ul{
+  position: absolute;
+  bottom: 30px;
+  left: 30px;  
+}
+
+.publication-group .item-list ul,
+.publication-group .item-list ul li{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+
+
+.publication-group .field{
+  margin-left: 120px;
+  margin-bottom: 8px;
+  font-family: Georgia,"Times New Roman",Times,serif;
+  position: relative;
+  z-index: 100;
+}
+
+.publication-group .field-publication-secondary .field-items {
+  margin-left: 20px;
+}
+
+.publication-group .field .field{
+  margin-left: 0;
+}
+
+.publication-group .field-label{
+  font-size: 1.2em;
+  font-weight: bold;
+  /*padding-top: 10px;*/
+  margin-bottom: 0.4em;
+}
+
+.publication-group .field-type-relation-select .field-items .field-label {
+  font-size: 1em;
+}
+
+.publication-group .field-type-relation-select ul li {
+  list-style: none;
+}
+
+.publication-group .field-type-relation-select ul li .field-label,
+.publication-group .field-type-relation-select .relation-select-field-prefix > .field .field-label,
+.publication-group .field-type-relation-select .relation-select-field-suffix .field-label {
+  float: left;
+  margin-left: 20px;
+  margin-bottom: 0;
+}
+
+.publication-group .field-type-relation-select ul li .field-items,
+.publication-group .field-type-relation-select .relation-select-field-prefix > .field .field-items,
+.publication-group .field-type-relation-select .relation-select-field-suffix .field-items {
+  margin-left: 40px;
+}
+
+.publication-group .field .field .field-label{
+  font-size: 1em;
+}
+
+.publication-group .field-name-field-publication-title{
+  font-size: 1.6em;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.publication-group table td {
+  background: #EEE;
+  border: 1px solid #888;
+
+}
+
+.publication-group table th {
+  font-weight: bold;
+  background: #DDD;
+  border: 1px solid #888;
+}
+
+.publication-group div.field-name-field-publication-figure-figure {
+  float: left;
+  margin-bottom: 8px;
+}
+
+.publication-group .field div.field-name-field-publication-figure-desc {
+  margin-left: 240px;
+}
+
+.publication-group .field-collection-view .field-label {
+  width: auto;
+}
+
+.publication-group .field-collection-view-final {
+  border-bottom: 1px dotted #D3D7D9;
+}
+
+reference-citation,
+fig-citation,
+tbls-citation {
+  background: #DDD;
+  border: 1px dashed #AAA;
+}
+
+div.publication-group div.group-publication-systematics div.field-label:nth-child(n+2) {
+  border-top: 1px dotted #D3D7D9;
+}
+
+div.publication-group div.group-publication-systematics > div.field > div.field-label {
+  font-size: 1.5em;
+}

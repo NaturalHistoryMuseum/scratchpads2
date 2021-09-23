@@ -1,0 +1,29 @@
+.tree_widget li{
+ list-style-type:none;
+}
+.tree_widget input{
+ margin:0 5px;
+}
+.tree_widget label{
+	display:inline !important;
+}
+.tree_widget ul{
+	padding:0 0 0 15px;
+}
+.options_tree_plus{
+ padding:0;
+ background-repeat:no-repeat;
+ background-position:50% 80%;
+}
+.options_tree_plus.plus,.options_tree_plus.minus{
+ cursor:pointer;
+}
+.options_tree_plus.plus{
+ background-image:url('../images/plus.gif');
+}
+.options_tree_plus.minus{
+ background-image:url('../images/minus.gif');
+}
+.options_tree_plus.leaf{
+ background-image:url('../images/leaf.gif');
+}

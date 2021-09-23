@@ -1,0 +1,108 @@
+<?php
+
+function emonocot_ipni_menu(){
+  $items['ipnipublication'] = array(
+    'title' => t('IPNI publication autocomplete'),
+    'page callback' => 'emonocot_ipni_autocomplete_publication',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK
+  );
+  $items['ipnishortpub'] = array(
+    'title' => t('IPNI publication autocomplete'),
+    'page callback' => 'emonocot_ipni_autocomplete_publication_short',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+function emonocot_ipni_autocomplete_publication($string){
+  $ipni_matches = emonocot_ipni_get_publication_data($string);
+  $return_matches = array();
+  foreach($ipni_matches as $result){
+    if(isset($result[3])){
+      $return_matches[$result[3]] = $result[3];
+    }
+  }
+  print drupal_json_output($return_matches);
+}
+
+function emonocot_ipni_autocomplete_publication_short($string){
+  $ipni_matches = emonocot_ipni_get_publication_data_short($string);
+  $return_matches = array();
+  foreach($ipni_matches as $result){
+    $return_matches[$result[2]] = $result[2] . ' | ' . $result[3];
+  }
+  print drupal_json_output($return_matches);
+}
+//This function can be called by other modules to get publication title from short title
+function emonocot_ipni_publication_short($string){
+  $return_matches = array();
+  $ipni_matches = emonocot_ipni_get_publication_data_short($string);
+  foreach($ipni_matches as $result){
+    $return_matches[$result[2]] = $result[3];
+  }
+  return $return_matches;
+}
+
+function emonocot_ipni_author_short($string){
+  $ipni_matches = emonocot_ipni_get_author_data($string);
+  foreach($ipni_matches as $result){
+    $return_matches[$result[5]] = $result[2];
+  }
+  return $return_matches;
+}
+
+function emonocot_ipni_get_author_data($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advAuthorSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
+  return $ipni_matches;
+}
+
+function emonocot_ipni_get_publication_data($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_title=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
+  return $ipni_matches;
+}
+
+function emonocot_ipni_get_publication_data_short($string){
+  $ipni_result = file_get_contents('http://www.ipni.org/ipni/advPublicationSearch.do?find_abbreviation=' . str_replace(' ', '+', $string) . '&output_format=delimited');
+  $ipni_matches = emonocot_ipni_process_return($ipni_result);
+  return $ipni_matches;
+}
+
+function emonocot_ipni_process_return($file){
+  $ipni_result = explode("\n", $file);
+  $i = 0;
+  $ipni_matches = array();
+  foreach($ipni_result as $result){
+    $i++;
+    $ipni_matches[] = explode('%', $result);
+    if($i > 10){
+      break;
+    }
+  }
+  array_shift($ipni_matches);
+  array_walk($ipni_matches, 'emonocot_ipni_clean');
+  return $ipni_matches;
+}
+
+function emonocot_ipni_clean(&$value){
+  if(is_array($value)){
+    array_walk($value, 'emonocot_ipni_clean');
+  }else{
+    if(substr($value, 0, 1) == '>'){
+      $value = substr($value, 1);
+    }
+  }
+}
+
+function emonocot_ipni_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == 'biblio_node_form'){
+    $form['biblio_tabs'][2]['biblio_secondary_title']['#autocomplete_path'] = 'ipnipublication';
+    $form['biblio_tabs'][8]['biblio_alternate_title']['#autocomplete_path'] = 'ipnipublication';
+    $form['biblio_tabs'][8]['biblio_original_publication']['#autocomplete_path'] = 'ipnipublication';
+    $form['biblio_tabs'][8]['biblio_short_title']['#autocomplete_path'] = 'ipnishortpub';
+    $form['title']['#autocomplete_path'] = 'ipnipublication';
+  }
+}

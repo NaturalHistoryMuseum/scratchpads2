@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function iucn_block_info(){
+  return array(
+    'default' => array(
+      'info' => t('IUCN Species Page Block'),
+      'cache' => DRUPAL_CACHE_PER_PAGE,
+      'pages' => 'taxonomy/term/*/descriptions',
+      'visibility' => BLOCK_VISIBILITY_LISTED,
+      'status' => 1,
+      'region' => 'content',
+      'weight' => 101
+    )
+  );
+}
+
+/**
+ * Implements hook_flush_caches()
+ */
+function iucn_flush_caches(){
+  if(function_exists('varnish_purge')){
+    varnish_purge(_varnish_get_host(), 'ajaxblocks');
+  }
+  return array(
+    'cache_iucn'
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function iucn_block_view($delta = ''){
+  $content = array(
+    'subject' => t('IUCN'),
+    'content' => array(
+      '#attached' => array(
+        'css' => array(
+          drupal_get_path('module', 'iucn') . '/css/iucn.css'
+        )
+      ),
+      '#markup' => '<p>' . t('Unable to fetch data from IUCN.') . '</p>'
+    )
+  );
+  // We load the term from the menu
+  $term = menu_get_object('taxonomy_term', 2);
+  if($term){
+    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+      $cache = cache_get($term->tid, 'cache_iucn');
+      if($cache->data){
+        $content['content']['#markup'] = $cache->data;
+      }else{
+        $request = drupal_http_request('http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js', array(
+          'timeout' => '3.0'
+        ));
+        if($request->code == 200 && ($json = json_decode($request->data)) !== FALSE){
+          if(count($json) && strtolower($json[0]->scientific_name) == strtolower($term->name)){
+            $request = drupal_http_request('http://api.iucnredlist.org/details/' . $json[0]->species_id . '/0.js', array(
+              'timeout' => '3.0'
+            ));
+            if($request->code == 200){
+              $content['content']['#markup'] = str_replace('<h1', '<h3', $request->data);
+              $content['content']['#markup'] = str_replace('</h1', '</h3', $content['content']['#markup']);
+              $content['content']['#markup'] = str_replace('<h2', '<h4', $content['content']['#markup']);
+              $content['content']['#markup'] = str_replace('</h2', '</h4', $content['content']['#markup']);
+              cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
+            }else{
+              $content['content']['#markup'] = t('There was an error downloading the information for %term_name', array(
+                '$term_name' => $term->name
+              ));
+            }
+          }else{
+            $content['content']['#markup'] = t('The IUCN does not hold any information for %term_name', array(
+              '%term_name' => $term->name
+            ));
+            cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
+          }
+        }
+      }
+    }
+  }
+  return $content;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function iucn_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if($form['module']['#value'] == 'iucn'){
+    // Prevent editing of this block.
+    if(!user_access('scratchpad team')){
+      drupal_set_message(t('You may not edit the IUCN block'));
+      drupal_goto();
+    }
+  }
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function iucn_contextual_links_view_alter(&$element, $items){
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'iucn' && !user_access('scratchpad team')){
+    $element = array();
+  }
+}

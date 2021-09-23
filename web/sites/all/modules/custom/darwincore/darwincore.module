@@ -1,0 +1,283 @@
+<?php
+include_once ('darwincore.features.inc');
+
+/**
+ * Implementation of hook_views_api
+ */
+function darwincore_views_api(){
+  return array(
+    'api' => '3'
+  );
+}
+
+/**
+ * Implements hook_block_info()
+ */
+function darwincore_block_info(){
+  return array(
+    'geocat' => array(
+      'info' => t('GeoCAT'),
+      'cache' => DRUPAL_CACHE_PER_PAGE
+    )
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function darwincore_block_view($delta = 'geocat'){
+  switch($delta){
+    case 'geocat':
+      // Check we have results first.
+      $query = db_select('field_data_field_taxonomic_name', 'f');
+      $query->innerJoin('node', 'sn', 'f.revision_id = sn.vid');
+      $query->innerJoin('field_data_field_location', 'l', 'sn.vid = l.revision_id');
+      $query->innerJoin('node', 'ln', 'ln.nid = l.field_location_nid');
+      $query->innerJoin('field_data_field_map', 'm', 'ln.vid = m.revision_id');
+      $query->condition('sn.type', 'specimen_observation');
+      $query->condition('ln.type', 'location');
+      $query->condition('field_map_latitude', '', '!=');
+      $query->condition('field_taxonomic_name_tid', arg(2));
+      $query = $query->countQuery();
+      if($query->execute()->fetchField()){return array(
+          'subject' => '',
+          'content' => array(
+            'link' => array(
+              '#markup' => '<p style="text-align:right">' . l(t('Import into GeoCAT'), 'http://geocat.kew.org/editor?geocat_url=' . url('', array(
+                'absolute' => TRUE
+              )) . 'taxonomy/term/' . arg(2) . '/geocat.csv', array(
+                'attributes' => array(
+                  'target' => '_blank',
+                  'title' => t('Import all georeferenced specimen data for this taxon into GeoCAT')
+                )
+              )) . '</p>'
+            )
+          )
+        );}
+  }
+  return array();
+}
+
+/**
+ * Implements hook_context_default_contexts_alter()
+ */
+function darwincore_context_default_contexts_alter(&$contexts){
+  $contexts['species_specimens']->reactions['block']['blocks']['darwincore-geocat'] = array(
+    'module' => 'darwincore',
+    'delta' => 'geocat',
+    'region' => 'content',
+    'weight' => 1
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function darwincore_form_specimen_observation_node_form_alter(&$form, &$form_state, $form_id){
+  if(!isset($form['#validate'])){
+    $form['#validate'] = array();
+  }
+  $form['#validate'][] = 'darwincore_specimen_observation_node_form_validate';
+  // Add a submit function so that we can add taxonomic names to images that
+  // are attached to the specimen.
+  $form['#submit'][] = 'darwincore_specimen_observation_node_form_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function darwincore_form_location_node_form_alter(&$form, &$form_state, $form_id){
+  if(!isset($form['#validate'])){
+    $form['#validate'] = array();
+  }
+  $form['#validate'][] = 'darwincore_location_node_form_validate';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Remove 'darwincore_link_to_ncbi' option for all fields except 'field_genbank_number'
+ */
+function darwincore_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id){
+  foreach($form['fields'] as $name => $details){
+    $match = 0;
+    if(is_array($details)){
+      $match = isset($details['format']['type']['#options']['darwincore_link_to_ncbi']);
+    }
+    if(($name != 'field_genbank_number') && ($match)){
+      unset($form['fields'][$name]['format']['type']['#options']['darwincore_link_to_ncbi']);
+    }
+  }
+}
+
+/**
+ * Submit function for the specimen/observation form.
+ */
+function darwincore_specimen_observation_node_form_submit($form, &$form_state){
+  if(@isset($form_state['values']['field_taxonomic_name'][LANGUAGE_NONE][0]['tid']) && @isset($form_state['values']['field_media'][LANGUAGE_NONE][0]['fid'])){
+    $send_message = FALSE;
+    foreach($form_state['values']['field_media'][LANGUAGE_NONE] as $file){
+      if($file['fid'] && ($file = file_load($file['fid'])) != FALSE){
+        if(!count($file->field_taxonomic_name)){
+          $file->field_taxonomic_name[LANGUAGE_NONE] = array();
+        }
+        foreach($form_state['values']['field_taxonomic_name'][LANGUAGE_NONE] as $term){
+          $add_term = TRUE;
+          foreach($file->field_taxonomic_name[LANGUAGE_NONE] as $delta => $value){
+            if($value['tid'] == $term['tid']){
+              $add_term = FALSE;
+              break;
+            }
+          }
+          if($add_term){
+            $file->field_taxonomic_name[LANGUAGE_NONE][] = array(
+              'tid' => $term['tid']
+            );
+            $send_message = TRUE;
+          }
+        }
+        file_save($file);
+      }
+    }
+    if($send_message){
+      drupal_set_message(t('Any additional terms added to this specimen/observation, have been added to attached images.'));
+    }
+  }
+}
+
+/**
+ * Validate function to ensure that the IDs for this specimen are unique.
+ */
+function darwincore_specimen_observation_node_form_validate($form, &$form_state){
+  // Check if we already have a specimen with this combination of IDs.  
+  $query = db_select('field_data_field_collection_code','col');
+  $query->innerJoin('field_data_field_catalogue_number','cat', 'col.entity_type = cat.entity_type AND col.entity_id = cat.entity_id');
+  $query->innerJoin('field_data_field_institution_code','ins', 'col.entity_type = ins.entity_type AND col.entity_id = ins.entity_id');
+  $query->condition('col.field_collection_code_value', $form_state['values']['field_collection_code'][field_language('node', $form_state['node'], 'field_collection_code')][0]['value']);
+  $query->condition('cat.field_catalogue_number_value',$form_state['values']['field_catalogue_number'][field_language('node', $form_state['node'], 'field_catalogue_number')][0]['value']);
+  $query->condition('ins.field_institution_code_value',$form_state['values']['field_institution_code'][field_language('node', $form_state['node'], 'field_institution_code')][0]['value']);
+  $query->condition('col.entity_id', (isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0), '!=');
+  $query = $query->countQuery();
+  if($query->execute()->fetchField()){
+    // A match. Set an error.
+    form_set_error('field_catalogue_number', t('The "Institution code/Collection code/Catalogue number" combination is not unique.'));
+    // The following is one almightly cludge!
+    form_set_error('field_collection_code', 'REMOVETHISMESSAGE');
+    form_set_error('field_institution_code', 'REMOVETHISMESSAGE');
+    $messages = drupal_get_messages('error');
+    foreach($messages['error'] as $value){
+      if($value != 'REMOVETHISMESSAGE'){
+        drupal_set_message($value, 'error');
+      }
+    }
+  }
+  // Check that the field_collector_copy and field_identified_by_copy fields are
+  // empty.
+  foreach(array(
+    'field_collector_copy',
+    'field_identified_by_copy'
+  ) as $field_name){
+    if(!empty($form_state['values'][$field_name][LANGUAGE_NONE][0]['value'])){
+      $field_label = explode('_', $field_name);
+      array_pop($field_label);
+      array_shift($field_label);
+      $field_label = ucwords(implode(' ', $field_label));
+      form_set_error($field_name, t('You must empty the "@field_name (COPY)" field, populating the "@field_name" field instead.', array(
+        '@field_name' => $field_label
+      )));
+    }
+  }
+}
+
+/**
+ * Validate function to ensure that the location title is unique.
+ */
+function darwincore_location_node_form_validate($form, &$form_state){
+  $count = db_query("SELECT COUNT(*) FROM {node} WHERE title = :value AND type = 'location' AND nid != :nid", array(
+    ':value' => $form_state['values']['title'],
+    ':nid' => isset($form_state['values']['nid']) ? $form_state['values']['nid'] : 0
+  ))->fetchCol();
+  if(array_pop($count)){
+    form_set_error('title', t('The title field for a location must be unique.'));
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function darwincore_field_formatter_info(){
+  return array(
+    'darwincore_link_to_ncbi' => array(
+      'label' => t('Link to NCBI'),
+      'description' => t('Creates links to the NCBI website'),
+      'field types' => array(
+        'text'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function darwincore_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $element = array();
+  switch($display['type']){
+    case 'darwincore_link_to_ncbi':
+      foreach($items as $delta => $item){
+        $element[$delta] = array(
+          '#type' => 'markup',
+          '#markup' => _darwincore_add_ncbi_links($item['value'])
+        );
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ *  Helper function.
+ *  Converts a string of comma separated values into a string of comma separated links.
+ */
+function _darwincore_add_ncbi_links($values){
+  $genbank_id_array = explode(',', $values);
+  $link_array = array();
+  foreach($genbank_id_array as $genbank_id){
+    $genbank_id = trim($genbank_id);
+    $link_array[] = l($genbank_id, "http://www.ncbi.nlm.nih.gov/nuccore/" . $genbank_id);
+  }
+  return implode(', ', $link_array);
+}
+
+/**
+ * If this is the first node to be created, we clear the views cache.
+ */
+function darwincore_node_insert($node){
+  if($node->type == 'specimen_observation'){
+    if(db_select('node', 'n')->condition('type', 'specimen_observation')->countQuery()->execute()->fetchField() == 1){
+      drupal_register_shutdown_function('drupal_flush_all_caches');
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete()
+ * 
+ * If this is the last node to be deleted, we clear the views cache.
+ */
+function darwincore_node_delete($node){
+  darwincore_node_insert($node);
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function darwincore_tools_pre_disable(){
+  return array(
+    'can_disable' => (db_select('node', 'n')->condition('n.type', array(
+      'location',
+      'specimen_observation'
+    ))->countQuery()->execute()->fetchField() ? 0 : 1),
+    'cannot_disable_message' => 'You cannot disable Darwincore while there is still data in Specimen/Observation or Location content types.',
+    'disable_message' => 'Specimen/Observation and Location content types will be removed.'
+  );
+}

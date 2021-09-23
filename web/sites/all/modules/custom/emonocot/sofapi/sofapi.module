@@ -1,0 +1,155 @@
+<?php
+DEFINE('SOFAPI_URL', 'http://orchid.unibas.ch/sp_interface.php');
+
+function sofapi_menu(){
+  $items['sofapi'] = array(
+    'title' => 'SOFAPI Callback',
+    'description' => 'Endpoint to enable dynamic creation of SOFAPI content.',
+    'page callback' => 'sofapi_callback',
+    'file' => 'sofapi.ajax.inc',
+    'access arguments' => array(
+      'access content'
+    ),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+function sofapi_eolapi_callbacks(){
+  return array(
+    'sof_images' => 'sofapi_search'
+  );
+}
+
+function sofapi_search($tid, $age = 604800){ // Seconds in one week.
+  $term = taxonomy_term_load($tid);
+  if($term){
+    //SOF webservice requires Genus and/or species
+    switch($term->field_rank['und'][0]['value']){
+      case 'Species':
+        if(isset($term->field_unit_name3['und'])){
+          $species = $term->field_unit_name3['und'][0]['value'];
+        }else{
+          $species = $term->field_unit_name2['und'][0]['value'];
+        }
+      case 'Genus':
+        $genus = $term->field_unit_name1['und'][0]['value'];
+        break;
+      default:
+        $genus = $term->field_unit_name1['und'][0]['value'];
+        if(isset($term->field_unit_name3['und'])){
+          $species = $term->field_unit_name3['und'][0]['value'];
+        }else{
+          $species = $term->field_unit_name2['und'][0]['value'];
+        }
+    }
+    $modifier = '?genus=' . $genus;
+    if(isset($species)){
+      $modifier .= '&species=' . $species;
+    }
+    $search_results = simplexml_load_file(SOFAPI_URL . $modifier);
+    if($search_results){
+      foreach($search_results->ORCHID as $result){
+        $page = sofapi_process_data_object($result, $tid);
+      }
+      return $search_results;
+    }
+  }
+  return FALSE;
+}
+
+function sofapi_process_data_object($data_object, $tid, $age = 604800){
+  $data_object->identifier = 'SOF_' . $data_object->BARCODE;
+  $row = db_select('eolapi', 'e')->condition('label', $data_object->identifier)->fields('e')->orderBy('changed', 'DESC')->execute()->fetch();
+  if($row){
+    $eolapi = entity_load_single('eolapi', $row->eid);
+  }else{
+    // New eolapi data object
+    $eolapi = new stdClass();
+  }
+  //We're putting SOF content into the EOL entity type
+  $eolapi->type = 'stillimage'; //We only get still images from the SOF
+  $eolapi->trusted = 1; //These guys know what they're doing
+  $eolapi->license = $data_object->license = $data_object->COLLECTOR . ' via Swiss Orchid Foundation. All rights reserved.';
+  //$eolapi->rating = '';
+  $eolapi->label = $data_object->identifier;
+  //$data_object->agents[$data_object->COLLECTOR]->full_name = $data_object->COLLECTOR;
+  //$data_object->agents[$data_object->COLLECTOR]->role = 'Photograher';
+  $data_object->mediaURL = $data_object->MLINK;
+  $eolapi->data = $data = serialize(json_decode(json_encode($data_object))); //can't serialize built in objects
+  $eolapi->eolapi_taxonomy = array(
+    'und' => array(
+      array(
+        'tid' => $tid
+      )
+    )
+  );
+  $eolapi->source = 'SOF';
+  entity_save('eolapi', $eolapi);
+  // Check to see if this is an stillimage type, and if so, download the image
+  // for it.
+  if($eolapi->type == 'stillimage' && (!isset($eolapi->eolapi_image) || !count($eolapi->eolapi_image))){
+    // Download the original image so that we can perform image_styles magic on
+    // it.
+    $data = unserialize($eolapi->data);
+    $file = file_save_data(@file_get_contents($data->MLINK));
+    if(!$file->filesize){
+      // We failed to download a file.  We should therefore delete this file, and
+      // continue with the EOL preview.
+      file_delete($file);
+      $file = file_save_data(@file_get_contents($data->TLINK));
+    }
+    $toolkit = image_get_toolkit();
+    $image = new stdClass();
+    $image->source = $file->uri;
+    $image->toolkit = $toolkit;
+    $details = image_toolkit_invoke('get_info', $image);
+    $file = file_move($file, 'public://eolapi/' . $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'], FILE_EXISTS_REPLACE);
+    $file->title = '';
+    $file->alt = '';
+    $file->width = $details['width'];
+    $file->height = $details['height'];
+    $file->filename = $eolapi->eid . '-' . $eolapi->erid . '.' . $details['extension'];
+    file_save($file);
+    $eolapi->eolapi_image = array(
+      'und' => array(
+        (array)$file
+      )
+    );
+    entity_save('eolapi', $eolapi);
+  }
+  return $eolapi;
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function sofapi_views_api(){
+  return array(
+    'api' => '3',
+    'path' => drupal_get_path('module', 'sofapi') . '/views'
+  );
+}
+
+function sofapi_context_load_alter(&$context){
+  if($context->name === 'species_media' && isset($context->reactions['block'])){
+    $context->reactions['block']['blocks']['views-sof_images-block'] = array(
+      'module' => 'views',
+      'delta' => 'sof_images-block',
+      'region' => 'content',
+      'weight' => '-10'
+    );
+  }
+}
+
+function sofapi_footer_logos_alter(&$links){
+  $options = array(
+    'html' => true,
+    'absolute' => true
+  );
+  $links[] = l(theme('image', array(
+    'path' => drupal_get_path('module', 'sofapi') . '/images/sof_logo2.gif',
+    'alt' => 'Swiss Orchid Foundation logo',
+    'title' => 'Swiss Orchid Foundation'
+  )), 'http://orchid.unibas.ch', $options);
+}

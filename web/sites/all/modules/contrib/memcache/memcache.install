@@ -1,0 +1,204 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the memcache module.
+ */
+
+define('MEMCACHE_PECL_RECOMMENDED', '3.0.6');
+define('MEMCACHED_PECL_RECOMMENDED', '2.0.1');
+
+/**
+ * Implements hook_enable().
+ */
+function memcache_enable() {
+  $error = FALSE;
+  $warning = FALSE;
+  $severity = 'status';
+  $memcache = extension_loaded('memcache');
+  $memcached = extension_loaded('memcached');
+  if (!$memcache && !$memcached) {
+    $error = TRUE;
+  }
+  if (!function_exists('dmemcache_object')) {
+    // dmemcache.inc isn't loaded.
+    $error = TRUE;
+  }
+  else {
+    if (!_memcache_version_valid()) {
+      $warning = TRUE;
+    }
+    // Make a test connection to all configured memcache servers.
+    $memcache_servers = variable_get('memcache_servers', array('127.0.0.1:11211' => 'default'));
+    $memcache = dmemcache_instance();
+    foreach ($memcache_servers as $server => $bin) {
+      if (dmemcache_connect($memcache, $server, FALSE) === FALSE) {
+        $error = TRUE;
+      }
+      else {
+        dmemcache_close($memcache);
+      }
+    }
+  }
+
+  if ($error) {
+    $severity = 'error';
+  }
+  elseif ($warning) {
+    $severity = 'warning';
+  }
+
+  if ($error || $warning) {
+    drupal_set_message(t('There are problems with your Memcache configuration. Please review %readme and visit the Drupal admin !status page for more information.', array('%readme' => 'README.txt', '!status' => l(t('status report'), 'admin/reports/status'))), $severity);
+  }
+
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function memcache_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  $memcache = extension_loaded('memcache');
+  $memcached = extension_loaded('memcached');
+
+  if ($phase == 'install' || $phase == 'runtime') {
+    $requirements['memcache_extension']['title'] = $t('Memcache');
+    if (!$memcache && !$memcached) {
+      $requirements['memcache_extension']['severity'] = REQUIREMENT_ERROR;
+      $requirements['memcache_extension']['value'] = $t('Required PHP extension not found. Install the <a href="http://php.net/manual/en/book.memcache.php">memcache</a> (recommended) or <a href="http://php.net/manual/en/book.memcached.php">memcached</a> extension.');
+    }
+    else {
+      $requirements['memcache_extension']['value'] = $t('PHP %extension Extension', array('%extension' => $memcache ? $t('Memcache') : $t('Memcached')));
+    }
+  }
+  if ($phase == 'runtime') {
+    $errors = array();
+    $warnings = array();
+
+    if (!$memcache && !$memcached) {
+      $errors[] = $t('Required PHP extension not found. Install the <a href="http://php.net/manual/en/book.memcache.php">memcache</a> (recommended) or <a href="http://php.net/manual/en/book.memcached.php">memcached</a> extension.');
+    }
+
+    if (!function_exists('dmemcache_set')) {
+      // dmemcache.inc isn't loaded.
+      $errors[] = $t('Failed to load required file %dmemcache.', array('%dmemcache' => drupal_get_path('module', 'memcache') . '/' . 'dmemcache.inc'));
+      $requirements['memcache_extension']['value'] = $t('Unknown');
+    }
+    else {
+      $extension = dmemcache_extension();
+      if ($extension == 'Memcache') {
+        $version = phpversion('memcache');
+        $recommended = MEMCACHE_PECL_RECOMMENDED;
+      }
+      elseif ($extension == 'Memcached') {
+        $version = phpversion('memcached');
+        $recommended = MEMCACHED_PECL_RECOMMENDED;
+      }
+      if (!$version) {
+        $version = $t('Unknown');
+      }
+      $requirements['memcache_extension']['value'] = $version . _memcache_statistics_link();
+
+      if (!_memcache_version_valid()) {
+        $warnings[] = $t('PECL !extension version %version is unsupported. Please update to %recommended or newer.', array(
+          '!extension' => $extension,
+          '%version' => $version,
+          '%recommended' => $recommended,
+        ));
+      }
+
+      // Make a test connection to all configured memcache servers.
+      $memcache_servers = variable_get('memcache_servers', array('127.0.0.1:11211' => 'default'));
+      $memcache = dmemcache_instance();
+      foreach ($memcache_servers as $server => $bin) {
+        if (dmemcache_connect($memcache, $server, FALSE) === FALSE) {
+          $errors[] = $t('Failed to connect to memcached server instance at %server.', array('%server' => $server));
+        }
+        else {
+          dmemcache_close($memcache);
+        }
+      }
+
+      // Set up a temporary bin to see if we can store a value and then
+      // successfully retreive it.
+      try {
+        $cid = 'memcache_requirements_test';
+        $value = 'OK';
+        // Temporarily store a test value in memcache.
+        cache_set($cid, $value);
+        // Retreive the test value from memcache.
+        $data = cache_get($cid);
+        if (!isset($data->data) || $data->data !== $value) {
+          $errors[] = $t('Failed to store to then retrieve data from memcache.');
+        }
+        else {
+          // Test a delete as well.
+          cache_clear_all($cid, 'cache');
+        }
+      }
+      catch (Exception $e) {
+        // An unexpected exception occurred.
+        $errors[] = $t('Unexpected failure when testing memcache configuration.');
+      }
+      // Core's lock implementation can cause worse performance together with
+      // stampede protection. Plus, long keys will be truncated resulting in
+      // dropped locks.
+      if (variable_get('memcache_stampede_protection', FALSE) && strpos(variable_get('lock_inc', 'includes/lock.inc'), 'includes/lock.inc') !== FALSE) {
+        $warnings[] = $t('Drupal\'s core lock implementation (%core) is not supported by memcache stampede protection. Enable the memcache lock implementation (%memcache) or disable memcache stampede protection.', array('%core' => 'includes/lock.inc', '%memcache' => drupal_get_path('module', 'memcache') . "/memcache-lock.inc"));
+      }
+    }
+
+    if (!empty($errors)) {
+      // Error takes precedence over warning, stack together errors and
+      // warnings and display as error messages.
+      $errors = array_merge($errors, $warnings);
+      unset($warnings);
+      $requirements['memcache_extension']['severity'] = REQUIREMENT_ERROR;
+      $requirements['memcache_extension']['description'] = $t('There is a problem with your memcache configuration, check the Drupal logs for additional errors. Please review %readme for help resolving the following !issue: !errors', array('%readme' => drupal_get_path('module', 'memcache') . '/' . 'README.txt', '!issue' => format_plural(count($errors), 'issue', 'issues'), '!errors' => '<ul><li>' . implode('<li>', $errors)));
+    }
+    elseif (!empty($warnings)) {
+      $requirements['memcache_extension']['severity'] = REQUIREMENT_WARNING;
+      $requirements['memcache_extension']['description'] = $t('There is a problem with your memcache configuration. Please review %readme for help resolving the following !issue: !warnings', array('%readme' => drupal_get_path('module', 'memcache') . '/' . 'README.txt', '!issue' => format_plural(count($warnings), 'issue', 'issues'), '!warnings' => '<ul><li>' . implode('<li>', $warnings)));
+    }
+    else {
+      $requirements['memcache_extension']['severity'] = REQUIREMENT_OK;
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Add "(more information)" link after memcache version if memcache_admin
+ * module is enabled and user has access to memcache statistics.
+ */
+function _memcache_statistics_link() {
+  $t = get_t();
+  if (module_exists('memcache_admin') && user_access('access memcache statistics')) {
+    return ' (' . l($t('more information'), 'admin/reports/memcache') . ')';
+  }
+  else {
+    return '';
+  }
+}
+
+/**
+ * Validate whether the current PECL version is supported.
+ */
+function _memcache_version_valid() {
+  $extension = dmemcache_extension();
+  if ($extension == 'Memcache') {
+    return version_compare(phpversion('memcache'), MEMCACHE_PECL_RECOMMENDED, '>=');
+  }
+  elseif ($extension == 'Memcached') {
+    return version_compare(phpversion('memcached'), MEMCACHED_PECL_RECOMMENDED, '>=');
+  }
+}
+
+/**
+ * Remove the memcache_widlcard_flushes variable since its structure has changed.
+ */
+function memcache_update_7000() {
+  variable_del('memcache_wildcard_flushes');
+}

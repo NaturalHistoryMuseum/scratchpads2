@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_statistics_aggregator_cron(){
+  module_load_include('cron.inc', 'scratchpads_statistics_aggregator');
+  _scratchpads_statistics_aggregator_cron();
+}

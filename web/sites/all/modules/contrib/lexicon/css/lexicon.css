@@ -1,0 +1,35 @@
+abbr.lexicon-indicator,
+acronym.lexicon-indicator,
+sup.lexicon-indicator,
+span.lexicon-indicator,
+a.lexicon-indicator,
+a.lexicon-icon,
+dfn.lexicon-indicator,
+img.lexicon-indicator {
+  cursor: help;
+}
+span.lexicon-term {
+  text-decoration: none;
+  border-bottom: 1px dotted;
+  cursor: help;
+}
+
+a.lexicon-term {
+  text-decoration: none;
+  border-bottom: 1px dotted #080;
+  color: #080;
+  cursor: help;
+}
+.lexicon-links {
+  text-align: center;
+  background-color: #eeeeff;
+  color: #888888;
+}
+.lexicon-links a {
+  font-size: 140%;
+  text-transform: uppercase;
+}
+.lexicon-extralinks a{
+  background-color: #cccccc;
+  font-size: 0.6em;
+}

@@ -1,0 +1,570 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function darwincore_install(){
+  // Clear the errors.
+  drupal_get_messages('warning');
+}
+
+/**
+ * Implements hook_enable().
+ * 
+ * Re-enable any content types or views that might have been disabled previously
+ */
+function darwincore_enable(){
+  // Enable/re-enable all the features of this module.
+  $feature = features_get_features('darwincore');
+  $components = array_keys($feature->info['features']);
+  features_revert(array(
+    'darwincore' => $components
+  ));
+}
+
+/**
+ * Implements hook_disable().
+ * 
+ * Remove content types defined by this module
+ * 
+ */
+function darwincore_disable(){
+  // If there is no data, remove the fields and content type. Normal users
+  // should not reach this point if there is content as the Tools module will
+  // prevent the module being turned off.
+  if(!db_select('node', 'n')->condition('n.type', array(
+    'location',
+    'specimen_observation'
+  ))->countQuery()->execute()->fetchField()){
+    node_type_delete('location');
+    variable_del('node_preview_location');
+    node_type_delete('specimen_observation');
+    variable_del('node_preview_specimen_observation');
+  }
+}
+
+/**
+ * Change the input format for the date collected field.
+ */
+function darwincore_update_7001(){
+  $field_instance = field_info_instance('node', 'field_date_collected', 'specimen_observation');
+  $field_instance['widget']['settings']['input_format'] = 'Y/m/d - H:i:s';
+  field_update_instance($field_instance);
+}
+
+/**
+ * Change the node_type table to reflect the bug in features.
+ */
+function darwincore_update_7002(){
+  db_update('node_type')->fields(array(
+    'base' => ''
+  ))->condition('module', 'darwincore')->execute();
+}
+
+/**
+ * Update the specimen/observation instance of the field_media field to alter
+ * its display.
+ */
+function darwincore_update_7003(){
+  $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  $field_instance['display'] = array(
+    'default' => array(
+      'label' => 'above',
+      'module' => 'file_entity',
+      'settings' => array(
+        'file_view_mode' => 'file_styles_square_thumbnail'
+      ),
+      'type' => 'file_rendered',
+      'weight' => '12'
+    ),
+    'linked_node' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 1
+    ),
+    'teaser' => array(
+      'label' => 'above',
+      'settings' => array(),
+      'type' => 'hidden',
+      'weight' => 0
+    )
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Update the specimen/observation instance of the field_media field to alter
+ * the widget it uses.
+ */
+function darwincore_update_7004(){
+  $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  $field_instance['widget'] = array(
+    'active' => 1,
+    'module' => 'media_multiselect',
+    'settings' => array(
+      'allowed_schemes' => array(),
+      'allowed_types' => array(
+        'audio' => 'audio',
+        'default' => 0,
+        'image' => 'image',
+        'video' => 'video'
+      ),
+      'browser_plugins' => array(
+        'media_default--media_browser_1' => 0,
+        'media_default--media_browser_my_files' => 0,
+        'upload' => 0
+      ),
+      'progress_indicator' => 'throbber'
+    ),
+    'type' => 'media_multiselect',
+    'weight' => '-3'
+  );
+  field_update_instance($field_instance);
+}
+
+/**
+ * Update the user_reference fields so that they can actually be used!
+ */
+function darwincore_update_7005(){
+  foreach(array(
+    'field_collector',
+    'field_identified_by'
+  ) as $field_name){
+    $field = field_info_field($field_name);
+    if($field){
+      $field['settings'] = array(
+        'referenceable_roles' => array(),
+        'referenceable_status' => array(),
+        'view' => array(
+          'view_name' => 'users_references',
+          'display_name' => 'references_1',
+          'args' => array()
+        )
+      );
+      field_update_field($field);
+    }
+  }
+}
+
+/**
+ * Set the collector field to be 1:n
+ */
+function darwincore_update_7006(){
+  $field = field_info_field('field_collector');
+  if($field){
+    $field['cardinality'] = -1;
+    field_update_field($field);
+  }
+}
+
+/**
+ * Update the user_reference fields for newly created sites since update 7005
+ */
+function darwincore_update_7007(){
+  foreach(array(
+    'field_collector',
+    'field_identified_by'
+  ) as $field_name){
+    $field = field_info_field($field_name);
+    if($field){
+      $field['settings'] = array(
+        'referenceable_roles' => array(),
+        'referenceable_status' => array(),
+        'view' => array(
+          'view_name' => 'users_references',
+          'display_name' => 'references_1',
+          'args' => array()
+        )
+      );
+      field_update_field($field);
+    }
+  }
+}
+
+/**
+ * Update the display of the field_country field.
+ */
+function darwincore_update_7010(){
+  // Update the display of the field_country field.
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  foreach($fields as $key => $field){
+    if(substr($key, 0, 13) == 'node-location'){
+      if(field_info_field($field['field_instance']['field_name'])){
+        field_update_instance($field['field_instance']);
+      }
+    }
+  }
+}
+
+/**
+ * Update the Widget used by the user reference fields
+ * (field_identified_by and field_collector)
+ */
+function darwincore_update_7011(){
+  $user_fields = array(
+    'field_collector',
+    'field_identified_by'
+  );
+  foreach($user_fields as $user_field){
+    $info = field_info_field($user_field);
+    // If the field doesn't exist, or isn't a user_reference (if the maintainers have changed it), skip it
+    if(!$info || $info['type'] != 'user_reference'){
+      continue;
+    }
+    $field_instance = field_info_instance('node', $user_field, 'specimen_observation');
+    // If the field instance doesn't exist, or isn't using the widget we'd expect it to use
+    // (if the maintainers have changed it), skip it
+    if(!$field_instance || $field_instance['widget']['module'] != 'options' || $field_instance['widget']['type'] != 'options_select'){
+      continue;
+    }
+    $field_instance['widget']['module'] = 'user_reference';
+    $field_instance['widget']['type'] = 'user_reference_autocomplete';
+    $field_instance['widget']['settings'] = array(
+      'autocomplete_match' => 'contains',
+      'autocomplete_path' => 'user_reference/autocomplete',
+      'size' => '60'
+    );
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Update the specimen/observation instance of the field_genbank_number field.
+ */
+function darwincore_update_7012(){
+  $field_instance = field_info_instance('node', 'field_genbank_number', 'specimen_observation');
+  if($field_instance){
+    $field_instance['label'] = 'GenBank number(s)';
+    $field_instance['description'] = t('Enter a comma separated list of numbers. For example: FN554775, FR694013');
+    $field_instance['display']['default']['type'] = 'darwincore_link_to_ncbi';
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * Ensure all fields exist, and lock them!
+ */
+function darwincore_update_7013(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'darwincore');
+  foreach(darwincore_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}
+
+/**
+ * Update the display of the Collector and Identified-By fields.
+ */
+function darwincore_update_7014(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-specimen_observation-field_collector']['field_instance']);
+  field_update_instance($fields['node-specimen_observation-field_identified_by']['field_instance']);
+}
+
+/**
+ * Alter the Remarks field so that the text is processed and it uses the WYSIWYG
+ * editor
+ */
+function darwincore_update_7015(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-specimen_observation-field_remarks']['field_instance']);
+}
+
+/**
+ * Update to the token module requires a change to our ANT pattern.
+ */
+function darwincore_update_7016(){
+  variable_set('ant_pattern_specimen_observation', '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]');
+}
+
+/**
+ * Tweak the entityconnectpreview display of the location node.
+ */
+function darwincore_update_7017(){
+  module_load_include('features.field.inc', 'darwincore');
+  $fields = darwincore_field_default_fields();
+  field_update_instance($fields['node-location-field_map']['field_instance']);
+}
+
+/**
+ * Update field field_media description
+ */
+function darwincore_update_7018(){
+  if(field_info_instance('node', 'field_media', 'specimen_observation')){
+    module_load_include('features.field.inc', 'darwincore');
+    $fields = darwincore_field_default_fields();
+    field_update_instance($fields['node-specimen_observation-field_media']['field_instance']);
+  }
+}
+
+/**
+ * Fix an issue with migration that resulted in Collector and Identifier fields
+ * being created as text fields, and not user reference fields.
+ */
+function darwincore_update_7019(){
+  // First check if we need to do this update by counting the number of rows
+  // from the field_config table (0, 1 or 2) that have module = 'text' and 
+  // field_name of field_collector or field_identified_by
+  $condition = db_or()->condition('field_name', 'field_collector')->condition('field_name', 'field_identified_by');
+  $rows = db_select('field_config', 'f')->condition($condition)->condition('module', 'text')->fields('f', array(
+    'field_name'
+  ))->execute()->fetchCol();
+  if(count($rows)){
+    foreach($rows as $field_name){
+      // We need to do the update.  We create a new field for copying the data
+      // across, then delete the old field, and create the correct fields.  Note,
+      // this update does not copy the data across to the new field, that is for
+      // the user to do.  We will not allow nodes to be saved with data in these
+      // new fields, so they will eventually be deleted.
+      $current_field = field_info_field($field_name);
+      $current_field['field_name'] .= '_copy';
+      if(!field_info_field($current_field['field_name'])){
+        field_create_field($current_field);
+      }
+      $current_field_instance = field_info_instance('node', $field_name, 'specimen_observation');
+      $current_field_instance['field_name'] .= '_copy';
+      $current_field_instance['label'] .= ' (COPY)';
+      $current_field_instance['description'] .= ' This field must be EMPTY before this node can be saved.';
+      $current_field_instance['widget']['module'] = 'text';
+      $current_field_instance['widget']['type'] = 'text_textfield';
+      $current_field_instance['display'] = array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'text_default',
+          'weight' => 5,
+          'settings' => array(),
+          'module' => 'text'
+        )
+      );
+      unset($current_field_instance['widget']['settings']['autocomplete_match']);
+      unset($current_field_instance['widget']['settings']['autocomplete_path']);
+      if(!field_info_instance('node', $current_field_instance['field_name'], 'specimen_observation')){
+        field_create_instance($current_field_instance);
+      }
+      // Now we copy the data, using a simple SQL query.
+      foreach(array(
+        'field_revision_',
+        'field_data_'
+      ) as $table){
+        // If this query fails, then the update must fail.  We do not want to
+        // get to a point where we've created a new field, not copied the data
+        // across, and then deleted the old field.
+        $select_query = db_select($table . $field_name, 's')->fields('s');
+        $schema = drupal_get_schema($table . $field_name . '_copy');
+        $query = db_insert($table . $field_name . '_copy')->fields(array_keys($schema['fields']))->from($select_query);
+        $query->execute();
+      }
+      // Next we delete the old version of the field and all of its instances, and
+      // then we create the new user_reference version of the field.
+      field_delete_field($field_name);
+      // Purge the deleted field
+      module_load_include('crud.inc', 'field');
+      field_purge_batch(10000);
+      // Finally, create the new version of the field.
+      module_load_include('features.field.inc', 'darwincore');
+      $fields = darwincore_field_default_fields();
+      field_create_field($fields['node-specimen_observation-' . $field_name]['field_config']);
+      field_create_instance($fields['node-specimen_observation-' . $field_name]['field_instance']);
+    }
+    // Finally, we flush all caches
+    drupal_flush_all_caches();
+  }
+}
+
+/**
+ * Prepare for switch to GBIF names
+ *
+ * We are going to update fields on (potentially) all entities, so we won't be using
+ * the entity API but changing the database directly to avoid timeouts.
+ */
+function darwincore_update_7020(){
+  module_enable(array(
+    'scratchpads_vocabularies'
+  ));
+  module_load_include('features.field.inc', 'darwincore');
+  $definitions = darwincore_field_default_fields();
+  // See #3185 for the map
+  $map = array(
+    'field_basis_of_record' => array(
+      'Fossil Specimen' => 'FossilSpecimen',
+      'Human Observation' => 'HumanObservation',
+      'Living Specimen' => 'LivingSpecimen',
+      'Preserved Specimen' => 'PreservedSpecimen',
+      'Machine Observation' => 'MachineObservation',
+      'Moving Image' => 'MachineObservation',
+      'Other Specimen' => 'PreservedSpecimen',
+      'Sound Recording' => 'MachineObservation',
+      'Still Image' => 'MachineObservation',
+      'Frozen specimen' => 'PreservedSpecimen',
+      'Pinned Specimen' => 'PreservedSpecimen',
+      'Specimen in vial' => 'PreservedSpecimen',
+      'Specimen in vial (70% ethanol)' => 'PreservedSpecimen',
+      'Specimen in vial + genital' => 'PreservedSpecimen'
+    ),
+    'field_type_status' => array(
+      'Holotype' => 'holotype',
+      'Isotype' => 'isotype',
+      'Lectotype' => 'lectotype',
+      'Neotype' => 'neotype',
+      'Nontype' => NULL,
+      'nontype' => NULL,
+      'Not Provided' => NULL,
+      'Paralectotype' => 'paralectotype',
+      'paraLectotype' => 'paralectotype',
+      'Paratype' => 'paratype',
+      'Syntype' => 'syntype',
+      'Syntypes of T. pacificum wilsoni' => 'syntype',
+      'Type status' => NULL,
+      'Neotype' => 'neotype',
+      'Not a Type' => 'notatype',
+      'female' => NULL,
+      '1 ex. holotype on slide 80/49 at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '1 ex., holotype on slide 23/9 inside finger-like air bubbles but recognizable, 1 ex. on 23/10, 1 ex. on 23/8 and 1 ex. on 23/11 in poor condition, 1 ex. on 23/7, useful, at Berlese Acaroteca, Cascine del Riccio, Firenze, Italy' => 'holotype',
+      '3 females' => NULL,
+      '3 specimens' => NULL,
+      'des adultes des deux sexes (les mâles étant aussi nombreux que les femelles), les 3 sortes de nymphes et un exemplaire de la larve.' => NULL,
+      'des adultes, les 3 sortes de nymphes et la larve. Les adultes étaient peu nombreux, et je n\'ai pu en examiner que 9 (8 femelles et 1 mâle)' => NULL,
+      'female — Holotype and 2 females — paratypes' => NULL,
+      'holotype as Alicus oblongus on a slide' => 'holotype',
+      'holotype on slide N1952109' => 'holotype',
+      'holotype on slide no. 20.02/7560' => 'holotype',
+      'Holotype specimen # 2 of Protacarus crani Hirst, 1923' => 'holotype',
+      'lost' => NULL,
+      'male — Holotype, male — paratype, female — paratype and I paratype tritonymph' => 'type',
+      'Material estudiado: Holotipo fem. (28 -X-81); 9 paratipos: 4 fem. (7-VIII-81; 28-X-81); 2 deutoninfas (7-VIII-81; 14-III-82) y 3 tritoninfas (20-XI-81; 14-III-82).' => 'type',
+      'not stated' => NULL
+    )
+  );
+  $stats = array(
+    '@rev_deleted' => 0,
+    '@data_deleted' => 0,
+    '@rev_updated' => 0,
+    '@data_updated' => 0
+  );
+  foreach($map as $field_name => $map){
+    // Change the field definition
+    $field = field_info_field($field_name);
+    $field['settings']['allowed_values'] = $definitions['node-specimen_observation-' . $field_name]['field_config']['settings']['allowed_values'];
+    $data = $field;
+    unset($data['columns'], $data['field_name'], $data['type'], $data['locked'], $data['module'], $data['cardinality'], $data['active'], $data['deleted']);
+    unset($data['bundles']);
+    $field['data'] = $data;
+    $primary_key = array(
+      'id'
+    );
+    drupal_write_record('field_config', $field, $primary_key);
+    //field_cache_clear(TRUE);
+    //module_invoke_all('field_update_field', $new_field, $field_info['field'], field_has_data($new_field));
+    // Update values
+    foreach($map as $old => $new){
+      $data_table = "{field_data_" . $field_name . "}";
+      $revision_table = "{field_revision_" . $field_name . "}";
+      $field_value = $field_name . "_value";
+      if($new === NULL){
+        $result = db_query("
+          DELETE r.* FROM $revision_table r
+          INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
+          WHERE BINARY r.$field_value = :old
+        ", array(
+          ':old' => $old
+        ));
+        $stats['@rev_deleted'] += $result->rowCount();
+        $result = db_query("
+          DELETE FROM $data_table
+          WHERE BINARY $field_value = :old
+        ", array(
+          ':old' => $old
+        ));
+        $stats['@data_deleted'] += $result->rowCount();
+      }else{
+        $result = db_query("
+        UPDATE $revision_table r
+        INNER JOIN $data_table d ON d.entity_id = r.entity_id AND d.revision_id = r.revision_id
+        SET r.$field_value = :new
+        WHERE BINARY r.$field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        $stats['@rev_updated'] += $result->rowCount();
+        db_query("
+        UPDATE $data_table
+        SET $field_value = :new
+        WHERE BINARY $field_value = :old
+     ", array(
+          ':new' => $new,
+          ':old' => $old
+        ));
+        $stats['@data_updated'] += $result->rowCount();
+      }
+    }
+  }
+  watchdog('darwincore', "Vocbularies update statistics. Number of field revisions that were deleted: @rev_deleted ; Number of field entries that were deleted: @data_deleted ; Number of of field revisions that were updated: @rev_updated ; Number of field entries that were updated: @data_updated", $stats);
+  // We've worked on the database directly, so ensure everything is cleaned up.
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable the auto_entitylabel module
+ */
+function darwincore_update_7021(){
+  darwincore_update_7015();
+  module_enable(array(
+    'auto_entitylabel'
+  ));
+  module_disable(array(
+    'auto_nodetitle'
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'auto_nodetitle'
+  ), FALSE);
+}
+
+/**
+ * Remove the allowed_scheme options from the field_example_of_handwriting field
+ */
+function darwincore_update_7022(){
+  $field_instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  if($field_instance){
+    $field_instance['widget']['settings']['allowed_schemes'] = array();
+    field_update_instance($field_instance);
+  }
+}
+
+/**
+ * The field_media field should not be required (it appears it doesn't fail when
+ * not populated, but does alter the UI)
+ */
+function darwincore_update_7023(){
+  $instance = field_info_instance('node', 'field_media', 'specimen_observation');
+  if($instance){
+    $instance['required'] = 0;
+    field_update_instance($instance);
+  }
+}
+
+/**
+ * Update gm3 settings
+ */
+function darwincore_update_7024(){
+  if(field_info_instance('node', 'field_map', 'location')){
+    module_load_include('features.field.inc', 'darwincore');
+    $fields = darwincore_field_default_fields();
+    field_update_instance($fields['node-location-field_map']['field_instance']);
+  }
+}

@@ -1,0 +1,3 @@
+<?php
+
+include_once('og_example.features.inc');

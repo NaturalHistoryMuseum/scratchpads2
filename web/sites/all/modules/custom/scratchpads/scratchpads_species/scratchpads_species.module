@@ -1,0 +1,1385 @@
+<?php
+
+/*********************************************************************************************
+ *
+ * HOOKS
+ *
+ ********************************************************************************************/
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_species_menu(){
+  $weight = 1;
+
+  $tabs = scratchpads_species_get_tabs();
+  // The default tab will be displayed under taxonomy/term/%taxonomy_term/view path
+  // So a new menu item is not necessary
+
+  foreach($tabs as $tab => $label){
+
+    $items['taxonomy/term/%taxonomy_term/' . $tab] = array(
+      'title' => $label,
+      'page callback' => 'scratchpads_species_term_page',
+      'page arguments' => array(
+        2,
+        3
+      ),
+      'access callback' => 'scratchpads_species_access_callback',
+      'access arguments' => array(
+        2,
+        $tab
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => $weight++,
+      'file' => 'taxonomy.pages.inc',
+      'file path' => drupal_get_path('module', 'taxonomy')
+    );
+  }
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_species_menu_alter(&$items){
+  $items['taxonomy/term/%taxonomy_term/view']['title callback'] = 'scratchpads_species_title_callback';
+  $items['taxonomy/term/%taxonomy_term/view']['title arguments'] = array(
+    2
+  );
+  $items['taxonomy/term/%taxonomy_term']['access callback'] = 'scratchpads_species_access_callback';
+  $items['taxonomy/term/%taxonomy_term']['access arguments'] = array(2, 'default');
+  $items['taxonomy/term/%taxonomy_term']['page callback'] = 'scratchpads_species_term_page';
+  $items['taxonomy/term/%taxonomy_term']['page arguments'] = array(2, 'default');
+
+  $items['taxonomy/term/%taxonomy_term/edit']['context'] = MENU_CONTEXT_INLINE;
+  if(array_key_exists('taxonomy/term/%taxonomy_term/devel', $items)){
+    $items['taxonomy/term/%taxonomy_term/devel']['context'] = MENU_CONTEXT_INLINE;
+  }
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_hidden_views_alter()
+ */
+function scratchpads_species_scratchpads_hands_off_hidden_views_alter(&$view_ids){
+  $view_ids = array_merge($view_ids, array(
+    'species_nomenclature',
+    'species_overview_map'
+  ));
+}
+
+/**
+ *
+ * Implementation of hook_theme
+ */
+function scratchpads_species_theme(){
+  return array(
+    'scratchpads_species_name' => array(
+      'variables' => array(
+        'term' => NULL
+      )
+    ),
+    'scratchpads_species_tab_display_element' => array(
+      'render element' => 'element',
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/theme',
+      'file' => 'theme.inc',
+    ),
+  );
+}
+
+/**
+ *
+ * Implementation of hook_entity_info_alter
+ */
+function scratchpads_species_entity_info_alter(&$info){
+  foreach(array_keys($info) as $entity_type){
+    // Add the 'species page' view mode.
+    if(!empty($info[$entity_type]['view modes'])){
+      $info[$entity_type]['view modes']['species'] = array(
+        'label' => t('Species page'),
+        'custom settings' => FALSE
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_species_module_implements_alter(&$implementations, $hook){
+  if(in_array($hook, array(
+    'form_taxonomy_form_vocabulary_alter',
+    'form_alter',
+    'menu',
+    'menu_alter'
+  )) && isset($implementations['scratchpads_species'])){
+    $group = $implementations['scratchpads_species'];
+    unset($implementations['scratchpads_species']);
+    $implementations['scratchpads_species'] = $group;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id){
+  // A little clunky here, as this module does not depend on the
+  // scratchpads_simple_taxonomy_page module that is providing the fieldset that
+  // we are adding to.
+
+  $show_syns = variable_get('scratchpads_species_display_synonyms', array());
+  $vid = $form['#vocabulary']->vid;
+
+  if(!isset($form_state['confirm_delete'])){
+    $form['simple_taxonomy_display']['show_synonym_data'] = array(
+      '#title' => t('Display data from synonyms.'),
+      '#description' => t('Check this box to include data from synonyms on valid taxon name pages.'),
+      '#type' => 'checkbox',
+      '#weight' => 1,
+      '#default_value' => empty($show_syns[$vid]) ? 0 : 1,
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="biological_classification"]' => array(
+            'value' => ''
+          )
+        )
+      )
+    );
+
+    // create a settings section for the species tab display options
+    $form['scratchpads_species_display'] = array(
+      // this is required to ensure the #states bit works for this fieldset, without this id it
+      // mysteriously doesn't (https://www.drupal.org/project/drupal/issues/767212#comment-11270515)
+      '#id' => 'scratchpads_species_display',
+      '#type' => 'fieldset',
+      '#title' => t('Species page tab display options'),
+      '#description' => t('Modify which species tabs by default are shown for this vocabulary.'),
+       // weight it at 3 so that it shows below the 2 weight the simple_taxonomy_display section has
+      '#weight' => 3,
+      '#states' => array(
+        // this fieldset should be invisible if the vocabulary is not a biological classification or
+        // if the "use_scratchpads_species_pages" setting is unchecked
+        'invisible' => array(
+          array(':input[name="biological_classification"]' => array('value' => '')),
+          'OR',
+          array(':input[name="use_scratchpads_species_pages"]' => array('checked' => false))
+        )
+        ),
+      '#theme' => 'scratchpads_species_tab_display_element'
+    );
+
+
+    $weight = 1;
+
+    $ordered_tabs = array();
+    if($vid){
+      $ordered_tabs = scratchpads_species_get_ordered_core_tabs($vid);
+    } else {
+      $ordered_tabs = scratchpads_species_get_core_tabs();
+    }
+
+    $active_tabs = array_keys(scratchpads_species_get_active_tabs($vid));
+
+
+    // loop through each of the default tabs, creating a checkbox for each
+    foreach ($ordered_tabs as $tab=>$tab_name) {
+      if(isset($active_tabs)){
+        $weight = array_search($tab, $active_tabs);
+        $current_value = !($weight === FALSE);
+      }else{
+        $weight++;
+        $current_value = 1;
+      }
+
+      // actually add the checkbox
+      $form['scratchpads_species_display'][$tab] = array(
+        '#title' => t("{$tab_name}"),
+        '#description' => t("Check this box to display the {$tab_name} tab on Scratchpads species pages. Most users should leave this box checked."),
+        '#type' => 'checkbox',
+        '#default_value' => $current_value,
+      );
+      //Add the weight element for each tab
+      $form['scratchpads_species_display'][$tab][$tab . '_weight'] = array(
+        '#type' => 'weight',
+        '#default_value' => $weight,
+        '#delta' => 10,
+        '#attributes' => array('class' => array('item-row-weight')),
+      );
+    }
+
+    $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+
+    // create a settings section for the species tab display options
+    $form['gbif_map_display'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('GBIF maps display'),
+      '#weight' => 10,
+      '#description' => t("Check this box to always display GBIF map titles, even when there isn't any other map content."),
+    );
+
+    $form['gbif_map_display']['always_display_gbif_map_tiles'] = array(
+      '#title' => t("Always display GBIF map tiles"),
+      '#type' => 'checkbox',
+      '#default_value' => $gbif_map_display[$vid],
+      '#enabled' => module_exists('eol_gbif_maps') ? 1 : 0
+    );
+
+    $form['#validate'][] = 'scratchpads_species_form_taxonomy_form_vocabulary_validate';
+    $form['#submit'][] = 'scratchpads_species_form_taxonomy_form_vocabulary_submit';
+  }
+}
+
+
+function scratchpads_species_form_taxonomy_form_vocabulary_validate($form, $form_state)
+{
+  foreach (array_keys(scratchpads_species_get_core_tabs()) as $tab) {
+    if ($form_state['values'][$tab]) {
+      return TRUE;
+    }
+  }
+  form_set_error('scratchpads_species_display', t("Please select at least one species page tab to display."));
+}
+
+/**
+ * Get an array of enabled tabs for a given vocabulary
+ * @param int $vid The vocabulary id
+ * @param $default The default value to return if tab list is not set, defaults to "null"
+ * @return Array List of strings representing species tabs
+ */
+function _scratchpads_species_get_enabled_tabs($vid, $default=null){
+  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', []);
+  if (!isset($enabled_species_tabs[$vid])) {
+    return $default;
+  }
+
+  $tabs = [];
+  foreach($enabled_species_tabs[$vid] as $key=>$value) {
+    if(is_int($key)) {
+      $tabs[] = $value;
+    } else if($value == 1) {
+      $tabs[] = $key;
+    }
+  }
+
+  return $tabs;
+}
+
+/**
+ * Set the array of enabled tabs for a given vocabulary
+ * @param int $vid The vocabulary id
+ * @param Array $tabs List of strings representing species tabs
+ */
+function _scratchpads_species_set_enabled_tabs($vid, $tabs = []){
+  $enabled_species_tabs = variable_get('scratchpads_species_enabled_tabs', []);
+
+  if(is_null($tabs)) {
+    unset($enabled_species_tabs[$vid]);
+  } else {
+    foreach($tabs as $key=>$value) {
+      if(!is_int($key) || !is_string($value)) {
+        throw new TypeError('Tabs must be an array of tab names only. Received '.print_r($tabs, true));
+        return;
+      }
+    }
+    $enabled_species_tabs[$vid] = $tabs;
+  }
+
+  variable_set('scratchpads_species_enabled_tabs', $enabled_species_tabs);
+}
+
+function scratchpads_species_form_taxonomy_form_vocabulary_submit($form, $form_state){
+  $vid = $form_state['vocabulary']->vid;
+  $tab_values = array();
+  foreach (array_keys(scratchpads_species_get_core_tabs()) as $tab) {
+    if($form_state['values'][$tab]){
+      $tab_values[] = array(
+        'tab' => $tab,
+        'weight' => $form_state['values'][$tab . '_weight']
+      );
+    }
+  }
+
+  usort($tab_values, function ($a, $b) {
+    return $a['weight'] <=> $b['weight'];
+  });
+
+  $ordered_tabs = array_column($tab_values, 'tab');
+
+  // save the data
+  _scratchpads_species_set_enabled_tabs($vid, $ordered_tabs);
+
+  $show_syns = variable_get('scratchpads_species_display_synonyms', array());
+  if(!empty($form_state['values']['show_synonym_data'])){
+    $show_syns[$vid] = $vid;
+  }elseif(isset($show_syns[$vid])){
+    unset($show_syns[$vid]);
+  }
+
+  variable_set('scratchpads_species_display_synonyms', $show_syns);
+
+  // Update scratchpads_species_gbif_map_display
+  $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+  $always_display_gbif_map_tiles = $form_state['values']['always_display_gbif_map_tiles'];
+  $gbif_map_display[$vid] = $always_display_gbif_map_tiles;
+  variable_set('scratchpads_species_gbif_map_display', $gbif_map_display);
+
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function scratchpads_species_contextual_links_view_alter(&$element, $items){
+  // Add another class to all contextual link lists to facilitate custom
+  // styling.
+  //$element['#attributes']['class'][] = 'custom-class';
+  if(@isset($element['#contextual_links']['block'][1][0]) && $element['#contextual_links']['block'][1][0] == 'tinytax' && user_access('administer taxonomy')){
+    $vocabulary = taxonomy_vocabulary_load($element['#contextual_links']['block'][1][1]);
+    if($vocabulary){
+      $element['#links']['vocabulary-configure'] = array(
+        'title' => t('Configure vocabulary'),
+        'href' => 'admin/structure/taxonomy/' . $vocabulary->machine_name . '/edit',
+        'query' => drupal_get_destination()
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_load().
+ */
+function scratchpads_species_taxonomy_vocabulary_load($vocabularies){
+  $show_syns = variable_get('scratchpads_species_display_synonyms', array());
+  foreach(array_keys($vocabularies) as $vid){
+    $vocabularies[$vid]->show_synonym_data = FALSE;
+  }
+  foreach($show_syns as $vid => $show){
+    if(isset($vocabularies[$vid]) && $show){
+      $vocabularies[$vid]->show_synonym_data = $vid;
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ */
+function scratchpads_species_taxonomy_vocabulary_delete($vocabulary){
+  // clear out the data from our "scratchpads_species_enabled_tabs" variable (if needed)
+  _scratchpads_species_set_enabled_tabs($vocabulary->vid, null);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function scratchpads_species_form_node_type_form_alter(&$form, &$form_state){
+  $type = $form['#node_type']->type;
+  $form_state['var'] = 'species_page_' . $type . '_tab';
+  $tab = scratchpads_species_variable_get($form_state['var']);
+  $defaults = scratchpads_species_variable_defaults();
+  // If i have specified defaults for this node type, don't allow user to change it
+  $disabled = (isset($defaults[$form_state['var']]) ? true : false);
+  $form['display']['species_page_display'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display on species pages.'),
+    '#default_value' => ($tab ? 1 : 0),
+    '#description' => t('Do you want to display this content on the species page?'),
+    '#disabled' => $disabled
+  );
+  $tabs = scratchpads_species_get_tabs();
+  if(isset($tabs[$type])){
+    unset($tabs[$type]);
+  }
+  $form['display']['tabs'] = array(
+    '#type' => 'radios',
+    '#title' => t('Tabs'),
+    '#default_value' => $tab,
+    '#options' => array_merge(array(
+      'own' => t('Own tab')
+    ), $tabs),
+    '#description' => t('In which tab on the species pages do you want to display this content type?'),
+    '#states' => array(
+      'invisible' => array(
+        'input[name="species_page_display"]' => array(
+          'checked' => FALSE
+        )
+      )
+    ),
+    '#disabled' => $disabled
+  );
+  $form['#validate'][] = 'scratchpads_species_node_type_form_validate';
+  $form['#submit'][] = 'scratchpads_species_node_type_form_submit';
+}
+
+function scratchpads_species_node_type_form_validate($form, $form_state){
+  if($form_state['values']['species_page_display'] && empty($form_state['values']['tabs'])){
+    form_set_error('tabs', t("Please select where on the species page you want this content type to display."));
+  }
+}
+
+function scratchpads_species_node_type_form_submit($form, $form_state){
+  if($form_state['values']['species_page_display'] && !empty($form_state['values']['tabs'])){
+    variable_set($form_state['var'], $form_state['values']['tabs']);
+  }else{
+    variable_del($form_state['var']);
+  }
+  ctools_include('export');
+  ctools_export_load_object_reset('views_view');
+  views_flush_caches();
+  drupal_flush_all_caches();
+}
+
+/**
+ * Implements hook_taxonomy_term_insert().
+ */
+function scratchpads_species_taxonomy_term_insert($term){
+  // Get the number of terms in the taxonomy_term_data table with this vid.  If
+  // less than 2, then we clear the context cache.
+  $row = db_query('SELECT COUNT(*) FROM {taxonomy_term_data} WHERE vid = :vid', array(
+    ':vid' => $term->vid
+  ))->fetchAssoc();
+  if(array_pop($row) < 2){
+    cache_clear_all('context', 'cache');
+  }
+}
+
+/**
+ * Implementation of hook_preprocess_html().
+ */
+function scratchpads_species_preprocess_html(&$vars)
+{
+  if($vars['page']['#tag'] == 'species-page'){
+    $vars['head_title'] = $vars['page']['title'];
+
+    if (!empty($vars['page']['subtitle']) && $vars['page']['subtitle'] != '&nbsp;') {
+      $vars['head_title']  .= ' [' . $vars['page']['subtitle'] . ']';
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * MENU CALLBACKS
+ *
+ ********************************************************************************************/
+function scratchpads_species_title_callback($term){
+  if(scratchpads_species_term_is_biological_classification($term)){
+    $tabs = scratchpads_species_get_tabs();
+    $default_tab = scratchpads_species_get_default_tab($term->vid);
+    return $tabs[$default_tab];
+  }else{
+    return t("View");
+  }
+}
+
+/**
+ *
+ * Access callback for species page
+ * Hide tabs on non-species pages & if there's no content
+ * @param array $term
+ * @param string - tab $op
+ */
+function scratchpads_species_access_callback($term = array(), $op = 'default'){
+  if(scratchpads_species_term_is_biological_classification($term)){
+
+    $active_tabs = array_keys(scratchpads_species_get_active_tabs($term->vid));
+
+    $default_tab = scratchpads_species_get_default_tab($term->vid);
+
+    if ($op == 'default') {
+      $op = $default_tab;
+    }else if($op == $default_tab){
+      // We do not want to show the $tab if it's selected to be the default tab
+      return false;
+    }else if (!in_array($op, $active_tabs)){
+      // determine whether the tab should be shown using the user configured options
+      return false;
+    }
+
+
+
+    // Always show these tabs
+    if(in_array($op, array(
+      'overview',
+      'descriptions',
+      'media'
+    )) || scratchpads_blocks_show_placeholders()){
+      return user_access('access content');
+    }else{ // Check if there is content before displaying these tabs
+      // FIXME: temporarily disable this functionality. See #860
+      return user_access('access content');
+      // $context = 'species_' . $op;
+      // if(count($views = scratchpads_species_get_context_views($context))){
+      //   foreach($views as $view_name){
+      //     if($view = views_get_view($view_name)){
+      //       $view->execute();
+      //       if(count($view->result)){return user_access('access content');}
+      //     }
+      //   }
+      // }
+      // return false;
+    }
+  }else{
+    return false;
+  }
+}
+
+function scratchpads_species_term_page($term, $op = 'default'){
+  if ($op == 'default') {
+    $op = scratchpads_species_get_default_tab($term->vid);
+  }
+  // We check first whether we actually want to use the Scratchpads species pages
+  // or Solr, or just the simple Drupal core page.
+  $simple_vids = variable_get('scratchpads_simple_taxonomy_page_vids', array());
+  if(isset($simple_vids[$term->vid]) && !$simple_vids[$term->vid]){
+    drupal_goto('simpletaxonomy/term/' . arg(2));
+  }
+  if(scratchpads_species_term_is_biological_classification($term)){
+
+    $path = drupal_get_path('module', 'scratchpads_species');
+    drupal_add_css($path . '/css/scratchpads_species.css');
+    // Copied from context_entity_prepare_view()
+    // Trigger the taxonomy viewing condition
+    if($plugin = context_get_plugin('condition', 'taxonomy_term')){
+      $plugin->execute($term, 'view');
+    }
+    // Trigger the species tab condition
+    if($plugin = context_get_plugin('condition', 'species')){
+      $plugin->execute($op);
+    }
+    $name = theme('scratchpads_species_name', array(
+      'term' => $term
+    ));
+    $subtitle = '&nbsp;';
+    $lang = field_language('taxonomy_term', $term, 'field_authors');
+    if(isset($term->field_authors[$lang][0]['safe_value'])){
+      $subtitle = $term->field_authors[$lang][0]['safe_value'] . ' ';
+    }
+    $lang = field_language('taxonomy_term', $term, 'field_usage');
+
+    if(isset($term->field_usage[$lang][0]['value']) && ($term->field_usage[$lang][0]['value'] == 'invalid' || $term->field_usage[$lang][0]['value'] == 'unaccepted')){
+      $subtitle .= '[' . ucfirst($term->field_usage[$lang][0]['value']) . ']';
+    }
+
+    drupal_set_title($term->name . ' - ' . $subtitle);
+
+    // Return a blank page contextual links
+    $build = array(
+      '#theme' => 'page',
+      '#type' => 'page',
+      '#tag' => 'species-page',
+      'content' => array(
+        ''
+      ),
+      'title' => $name,
+      'subtitle' => $subtitle,
+      '#contextual_links' => array(
+        'taxonomy' => array(
+          'taxonomy',
+          array(
+            'term',
+            $term->tid
+          )
+        )
+      )
+    );
+  }else{
+    // Instead, we redirect to the search page with a facet selected for this
+    // term we're attempting to display.
+    // Note, we don't redirect lexicon terms.
+    $term = menu_get_object('taxonomy_term', 2);
+    $lexicon_vids = variable_get('lexicon_vids', array());
+    if($term && !in_array($term->vid, $lexicon_vids)){
+      drupal_goto('nontaxonomy/term/' . arg(2));
+    }
+    module_load_include('pages.inc', 'taxonomy');
+    $build = taxonomy_term_page($term);
+  }
+
+  return $build;
+}
+
+/*********************************************************************************************
+ *
+ * VIEWS
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_views_api
+ */
+function scratchpads_species_views_api(){
+  $path = drupal_get_path('module', 'scratchpads_species');
+  return array(
+    'api' => '3',
+    'path' => $path . '/views',
+    'template path' => $path . '/theme'
+  );
+}
+
+function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
+  $view_name_parts = explode('_', $view->name);
+  if($view_name_parts[0] == 'species'){
+    switch($view->name){
+      case 'species_nomenclature':
+      case 'species_description':
+        // Do nothing, these views never want the children adding.
+        break;
+      case 'species_media':
+      case 'species_slideshow':
+      case 'species_biblio':
+      case 'species_specimen_observation':
+      case 'species_map':
+        // Add children to media, literature, map and specimen views
+        if(!count($args)){
+          $args[0] = _scratchpads_species_get_descendant_tids(arg(2));
+        }
+        break;
+      default:
+        // We get the vocabulary for this term.
+        $term = menu_get_object('taxonomy_term', 2);
+        if($term){
+          $vocabulary = taxonomy_vocabulary_load($term->vid);
+          if($vocabulary->show_synonym_data){
+            $children = taxonomy_get_children($term->tid);
+            $tids = array(
+              arg(2)
+            );
+            foreach($children as $child){
+              // Check if it's invalid/notaccepted
+              $wrapper = entity_metadata_wrapper('taxonomy_term', $child);
+              if(in_array($wrapper->field_usage->value(), array(
+                'invalid',
+                'not accepted'
+              ))){
+                $tids[] = $child->tid;
+              }
+            }
+            $args[0] = implode('+', $tids);
+          }
+        }
+    }
+  }
+}
+
+/**
+ * Get a list of TIDs descendant of the passed tid as a string suitable for
+ * using by views for the arguments of a view.
+ *
+ * Note, we need to set a limit due to a potential bug with views (possibly due
+ * to a memory error due to the length of the arguments string).
+ */
+function _scratchpads_species_get_descendant_tids($tid){
+  $tids = array(
+    $tid
+  );
+  for($i = 0; $i < count($tids); $i++){
+    $results = db_select('taxonomy_term_hierarchy', 't')->condition('parent', $tids[$i])->fields('t', array(
+      'tid'
+    ))->execute()->fetchCol();
+    $tids = array_merge($tids, $results);
+    if(count($tids) > 50){
+      break;
+    }
+  }
+  $total = count($tids);
+  if($total > 50){
+    for($i = 50; $i < $total; $i++){
+      unset($tids[$i]);
+    }
+  }
+  return implode('+', $tids);
+}
+
+/**
+ * Implements hook_slickgrid_view_arguments_alter().
+ */
+function scratchpads_species_slickgrid_view_arguments_alter(&$arguments, $view){
+  if(isset($arguments[0])){
+    // We get the vocabulary for this term.
+    $term = taxonomy_term_load($arguments[0]);
+    if($term){
+      $vocabulary = taxonomy_vocabulary_load($term->vid);
+      if($vocabulary->show_synonym_data){
+        $children = taxonomy_get_children($term->tid);
+        $tids = array(
+          $arguments[0]
+        );
+        foreach($children as $child){
+          // Check if it's invalid/notaccepted
+          $wrapper = entity_metadata_wrapper('taxonomy_term', $child);
+          if(in_array($wrapper->field_usage->value(), array(
+            'invalid',
+            'not accepted'
+          ))){
+            $tids[] = $child->tid;
+          }
+        }
+        $arguments[0] = implode('+', $tids);
+      }
+      switch($view->name){
+        case 'species_specimen_observation':
+          // Add children to media, literature and specimen views
+          $arguments[0] = _scratchpads_species_get_descendant_tids($term->tid);
+          break;
+      }
+    }
+  }
+}
+
+/*********************************************************************************************
+ *
+ * THEME & PREPROCESS FUNCTIONS
+ *
+ ********************************************************************************************/
+/**
+ * Preprocessor for theme('block').
+ * Add in edit links for species pages blocks
+ */
+function scratchpads_species_preprocess_block(&$vars){
+  if(isset($vars['block']->context) && $vars['block']->context == 'species_overview' && $vars['block']->module == 'views'){
+    unset($vars['title_suffix']['contextual_links']['#contextual_links']['block']);
+  }
+}
+
+function scratchpads_species_preprocess_views_view(&$vars){
+  switch($vars['view']->name){
+    case 'species_nomenclature':
+      if(!scratchpads_blocks_show_placeholders()){
+        // If species slideshow is empty, expand this block
+        if(($view = views_get_view('species_slideshow')) != FALSE){
+          $view->args = array(
+            _scratchpads_species_get_descendant_tids(arg(2))
+          );
+          $view->execute();
+          if(!count($view->result)){
+            foreach($vars['classes_array'] as $id => $class_string){
+              if(strpos($class_string, 'grid-4') !== FALSE){
+                $vars['classes_array'][$id] = str_replace('grid-4', '', $class_string);
+              }
+            }
+          }
+        }
+      }
+      break;
+    case 'species_media':
+      $path = drupal_get_path('module', 'scratchpads_species');
+      drupal_add_js($path . '/js/scratchpads_species.js');
+      break;
+    case 'species_specimens_overview':
+      if($vars['view']->current_display == 'block'){
+        // Fix bug with view title still showing if there are 0 specimens
+        if($vars['view']->result[0]->nid == 0){
+          // Get rid of the result and rows
+          $vars['view']->result = array();
+          $vars['rows'] = null;
+          // Empty text will be missing, so build it now
+          if(scratchpads_blocks_show_placeholders() && $link = scratchpads_blocks_views_add_link($vars['view'], arg(2))){
+            $vars['empty'] = $link;
+          }else{
+            $vars['empty'] = '';
+          }
+        }
+      }
+      break;
+    case 'species_map':
+    case 'species_overview_map':
+
+      // If we have no records to display, we still want to display the map if:
+      // a) GBIF module is enabled, and b) user has selected to do so
+      if(!$view->result && module_exists('eol_gbif_maps')){
+        // Get active term for menu item
+        $term = menu_get_object('taxonomy_term', 2);
+        $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
+        // Does the user want to always display GBIF taxon maps
+        if($gbif_map_display[$term->vid]){
+          // Then display the map, which will come with the GBIF tiles
+          $view = $vars['view'];
+          $view->result = array(array());
+          $vars['rows'] = $view->style_plugin->render($view->result);
+        }
+      }
+      break;
+  }
+}
+
+function scratchpads_species_preprocess_views_view_field(&$vars){
+  if($vars['view']->name == 'species_nomenclature'){
+    if($vars['field']->table == 'taxonomy_term_data' && $vars['field']->field == 'name'){
+      $name = $vars['row']->{$vars['field']->field_alias};
+      if(isset($vars['field']->aliases['tid'])){
+        $tid_field = $vars['field']->aliases['tid'];
+        if(isset($vars['row']->{$tid_field})){
+          $term = taxonomy_term_load($vars['row']->{$tid_field});
+          $formatted_name = theme('scratchpads_species_name', array(
+            'term' => $term
+          ));
+          $vars['output'] = str_replace($name, $formatted_name, $vars['output']);
+        }
+      }
+    }
+  }
+}
+//function scratchpads_species_preprocess_views_view_fields(&$vars){
+//  if($vars['view']->name == 'species_nomenclature'){
+//    $invalid_fields = array(
+//      'field_aan_4' => true,
+//      'name_3' => true
+//    );
+//    if(isset($vars['view']->field['field_usage']) && $vars['view']->field['field_usage']->original_value == 'invalid' || $vars['view']->field['field_usage']->original_value == 'unaccepted'){
+//      $func = 'array_intersect_key';
+//    }else{
+//      $func = 'array_diff_key';
+//    }
+//    $vars['fields'] = $func($vars['fields'], $invalid_fields);
+//  }
+//}
+function theme_scratchpads_species_name($vars){
+  // FIXME - the unit_indicators are not being displayed on all ranks if they
+  // are present.
+  $term = $vars['term'];
+  // Give the default name as the term name, we will try and overwite this below
+  $name = $term->name;
+  $lang = field_language('taxonomy_term', $term, 'field_rank');
+  $rank = (isset($term->field_rank[$lang][0]['value']) ? strtolower($term->field_rank[$lang][0]['value']) : null);
+  $lang = field_language('taxonomy_term', $term, 'field_unit_name1');
+  $unit1 = (isset($term->field_unit_name1[$lang][0]['value']) ? $term->field_unit_name1[$lang][0]['value'] : null);
+  $lang = field_language('taxonomy_term', $term, 'field_unit_name2');
+  $unit2 = (isset($term->field_unit_name2[$lang][0]['value']) ? $term->field_unit_name2[$lang][0]['value'] : null);
+  $lang = field_language('taxonomy_term', $term, 'field_unit_name3');
+  $unit3 = (isset($term->field_unit_name3[$lang][0]['value']) ? $term->field_unit_name3[$lang][0]['value'] : null);
+  $lang = field_language('taxonomy_term', $term, 'field_unit_name4');
+  $unit4 = (isset($term->field_unit_name4[$lang][0]['value']) ? $term->field_unit_name4[$lang][0]['value'] : null);
+  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator1');
+  $unit_ind1 = (!empty($term->field_unit_indicator1[$lang][0]['value']) ? $term->field_unit_indicator1[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator2');
+  $unit_ind2 = (!empty($term->field_unit_indicator2[$lang][0]['value']) ? $term->field_unit_indicator2[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator3');
+  $unit_ind3 = (!empty($term->field_unit_indicator3[$lang][0]['value']) ? $term->field_unit_indicator3[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  $lang = field_language('taxonomy_term', $term, 'field_unit_indicator4');
+  $unit_ind4 = (!empty($term->field_unit_indicator4[$lang][0]['value']) ? $term->field_unit_indicator4[$lang][0]['value'] . (in_array($term->field_unit_indicator1[$lang][0]['value'], array(
+    '×',
+    'x'
+  )) ? '' : ' ') : '');
+  switch($rank){
+    case 'genus':
+      if($unit1){
+        $name = t('!ind1<em>!unit1</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1
+        ));
+      }
+      break;
+    case 'subgenus':
+      if($unit1 && $unit2){
+        $name = t('<em>!unit1</em> (<em>!unit2</em>)', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2
+        ));
+      }elseif($unit1){
+        $name = t('<em>!unit1</em>', array(
+          '!unit1' => $unit1
+        ));
+      }
+      break;
+    case 'series':
+    case 'subseries':
+    case 'section':
+    case 'subsection':
+      if($unit2 && $unit1){
+        $name = t('!ind1<em>!unit1</em> !ind2<em>!unit2</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1,
+          '!unit2' => $unit2,
+          '!ind2' => $unit_ind2
+        ));
+      }elseif($unit1){
+        $name = t('!ind1<em>!unit1</em>', array(
+          '!unit1' => $unit1,
+          '!ind1' => $unit_ind1
+        ));
+      }
+      break;
+    case 'species':
+      // This species has a subgenus (in brackets)
+      if($unit1 && $unit2 && $unit3){
+        $name = t('!ind1<em>!unit1</em> (!ind2<em>!unit2</em>) !ind3<em>!unit3</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!ind1' => $unit_ind1,
+          '!ind2' => $unit_ind2,
+          '!ind3' => $unit_ind3
+        ));
+      }elseif($unit1 && $unit2){
+        $name = t('!ind1<em>!unit1</em> !ind2<em>!unit2</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!ind1' => $unit_ind1,
+          '!ind2' => $unit_ind2
+        ));
+      }
+      break;
+    case 'variety':
+      if($unit1 && $unit2 && $unit3 && $unit4){
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2<em>!unit2</em> !unit_ind3<em>!unit3</em> !unit_ind4<em>!unit4</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!unit4' => $unit4,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3,
+          '!unit_ind4' => $unit_ind4
+        ));
+      }elseif($unit1 && $unit2 && $unit3){
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2<em>!unit2</em> !unit_ind3<em>!unit3</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3
+        ));
+      }
+      break;
+    case 'subspecies':
+    case 'subvariety':
+    case 'form':
+    case 'subform':
+      if($unit1 && $unit2 && $unit3 && $unit4){
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2(<em>!unit2</em>) !unit_ind3<em>!unit3</em> !unit_ind4<em>!unit4</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!unit4' => $unit4,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3,
+          '!unit_ind4' => $unit_ind4
+        ));
+      }elseif($unit1 && $unit2 && $unit3){
+        $name = t('!unit_ind1<em>!unit1</em> !unit_ind2<em>!unit2</em> !unit_ind3<em>!unit3</em>', array(
+          '!unit1' => $unit1,
+          '!unit2' => $unit2,
+          '!unit3' => $unit3,
+          '!unit_ind1' => $unit_ind1,
+          '!unit_ind2' => $unit_ind2,
+          '!unit_ind3' => $unit_ind3
+        ));
+      }
+      break;
+  }
+  return $name;
+}
+
+/*********************************************************************************************
+ *
+ * CONTEXT
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_ctools_plugin_type().
+ */
+function scratchpads_species_ctools_plugin_type(){
+  return array(
+    'plugins' => array(
+      'cache' => TRUE,
+      'use hooks' => TRUE,
+      'classes' => array(
+        'handler'
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function scratchpads_species_ctools_plugin_api(){
+  list($module, $api) = func_get_args();
+  if($module == "context" && $api == "context"){return array(
+      "version" => "3"
+    );}
+}
+
+/**
+ * CTools plugin API hook for Context. Note that a proper entry in
+ * hook_ctools_plugin_api() must exist for this hook to be called.
+ */
+function scratchpads_species_context_plugins(){
+  $plugins = array();
+  $plugins['scratchpads_species_context_condition'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'scratchpads_species') . '/plugins',
+      'file' => 'scratchpads_species_context_condition.inc',
+      'class' => 'scratchpads_species_context_condition',
+      'parent' => 'context_condition'
+    )
+  );
+  return $plugins;
+}
+
+/**
+ * Implementation of hook_context_registry().
+ * Register the context plugins
+ */
+function scratchpads_species_context_registry(){
+  return array(
+    'conditions' => array(
+      'species' => array(
+        'title' => t('Species page'),
+        'plugin' => 'scratchpads_species_context_condition'
+      )
+    )
+  );
+}
+
+/*********************************************************************************************
+ *
+ * MODULE FUNCTIONS
+ *
+ ********************************************************************************************/
+/**
+ * Check if a term is a biological classification
+ */
+function scratchpads_species_term_is_biological_classification($term){
+  global $conf;
+  if(property_exists($term, 'field_unit_name1')){return isset($conf['biological_vids'][$term->vid]);}
+  return false;
+}
+
+/**
+ * Return a list of node types to display on the species page
+ * If tab is specified, only return items for that tab
+ * @return Array An associative array of node type display names, keyed by the type.
+ */
+function scratchpads_species_get_species_node_types($tab = NULL){
+  $node_types = array();
+  $node_info = node_type_get_names();
+  foreach(array_keys($node_info) as $type){
+    if($node_type_species_tab = scratchpads_species_variable_get('species_page_' . $type . '_tab')){
+      if(is_null($tab) || $tab == $node_type_species_tab){
+        $node_types[$type] = $node_info[$type];
+      }
+    }
+  }
+  return $node_types;
+}
+
+/**
+ * Return a list of default species tabs
+ */
+function scratchpads_species_get_core_tabs(){
+  $tabs = array(
+    'overview' => t('Overview'),
+    'descriptions' => t('Descriptions'),
+    'media' => t('Media'),
+    'literature' => t('Literature'),
+    'maps' => t('Maps'),
+
+    'specimens' => t('Specimens')
+  );
+  drupal_alter('scratchpads_species_tabs', $tabs);
+  return $tabs;
+}
+
+/**
+ * Return a list of species tabs
+ * @return Array An associative array of species tab display names, keyed by the tab keyname.
+ */
+function scratchpads_species_get_tabs(){
+  return array_merge(scratchpads_species_get_core_tabs(), scratchpads_species_get_species_node_types('own'));
+}
+
+/**
+ * Return a list of species tabs, ordered by the order of enabled_tabs variable
+ * @return Array associative array of tab display text, keyed by tab name
+ */
+function scratchpads_species_get_ordered_core_tabs($vid){
+  $enabled_tab_keys = _scratchpads_species_get_enabled_tabs($vid, []);
+  // tabname=>display text
+  $core_tabs = scratchpads_species_get_core_tabs();
+
+  $ordered_tab_keys = array_merge($enabled_tab_keys, array_diff(array_keys($core_tabs), $enabled_tab_keys));
+  $ordered_tabs = array();
+  foreach ($ordered_tab_keys as $ordered_tab_key){
+    $ordered_tabs[$ordered_tab_key] = $core_tabs[$ordered_tab_key];
+  }
+  //tabname=>display text
+  return $ordered_tabs;
+}
+
+/**
+ * Return a list of species tabs - core tabs plus node type tabs
+ * @return Array associative array of tab display text, keyed by tab name
+ */
+function scratchpads_species_get_ordered_tabs($vid){
+  return array_merge(scratchpads_species_get_ordered_core_tabs($vid), scratchpads_species_get_species_node_types('own'));
+}
+
+/**
+ * List of active tabs for this vocabulary
+ */
+function scratchpads_species_get_active_tabs($vid)
+{
+  $active_tabs = array();
+  // retrieve the tab settings for the vocabulary this term belongs to
+  $vocabulary_tab_keys = _scratchpads_species_get_enabled_tabs($vid);
+
+  $tabs = scratchpads_species_get_core_tabs();
+
+  if(is_null($vocabulary_tab_keys)){
+    $active_tabs = $tabs;
+  }else{
+    foreach ($vocabulary_tab_keys as $vocabulary_tab) {
+      $active_tabs[$vocabulary_tab] = $tabs[$vocabulary_tab];
+    }
+  }
+
+  return array_merge(
+    $active_tabs,
+    // If a node type is selected to display on species pages, it's always active
+    scratchpads_species_get_species_node_types('own')
+  );
+}
+
+/**
+ * Get the default species page tab
+ */
+function scratchpads_species_get_default_tab($vid)
+{
+  // The first active tab is the default one
+  $active_tabs = scratchpads_species_get_active_tabs($vid);
+  return key($active_tabs);
+}
+
+function scratchpads_species_get_context_views($context){
+  $views = array();
+  foreach(scratchpads_species_get_all_views() as $view){
+    if(!empty($view->context)){
+      if($view->context == $context){
+        $views[] = $view->name;
+      }
+    }
+  }
+  return $views;
+}
+
+/**
+ *
+ * Get a list of all views
+ * Can't use views_get_all_views() as it's indexed & sorted by name
+ * Use the view definition order to provide block weight
+ */
+function scratchpads_species_get_all_views(){
+  views_module_include('views_default');
+  static $views = array();
+  if(!count($views)){
+    $views = module_invoke_all('views_default_views');
+  }
+  return $views;
+}
+
+/**
+ *
+ * Usort comparison function for ordering field groups
+ * @param object $a
+ * @param object $b
+ */
+function scratchpads_species_usort_comparison($a, $b){
+  if($a->weight == $b->weight){
+    return 0;
+  }else{
+    return $a->weight > $b->weight ? 1 : -1;
+  }
+}
+
+/**
+ *
+ * Helper function for variable_get
+ * @param string $name
+ */
+function scratchpads_species_variable_get($name){
+  $default = scratchpads_species_variable_defaults($name);
+  return variable_get($name, $default);
+}
+
+/**
+ *
+ * Helper function for variable defaults
+ * @param string $name
+ */
+function scratchpads_species_variable_defaults($name = NULL){
+  static $defaults;
+  if(!isset($defaults)){
+    $defaults = array(
+      'species_page_spm_tab' => 'descriptions',
+      'species_page_biblio_tab' => 'literature',
+      'species_page_specimen_observation_tab' => 'specimens',
+      'species_page_location_tab' => 'maps'
+    );
+  }
+  if(!isset($name)){
+    return $defaults;
+  }else{
+    return (isset($defaults[$name]) ? $defaults[$name] : NULL);
+  }
+}
+
+/*********************************************************************************************
+ *
+ * IMAGE STYLES
+ *
+ ********************************************************************************************/
+/**
+ * Implementation of hook_styles_default_styles().
+ */
+function scratchpads_species_styles_default_styles(){
+  $styles = array();
+  // Exported style: species_slideshow_large
+  $styles['file']['styles']['species_slideshow_large'] = array(
+    'label' => 'species_slideshow_large',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_large'
+        )
+      ),
+      'default' => array(
+        'species_slideshow_large' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  // Exported style: species_slideshow_thumbnail
+  $styles['file']['styles']['species_slideshow_thumbnail'] = array(
+    'label' => 'species_slideshow_thumbnail',
+    'description' => '',
+    'preset_info' => array(
+      'image' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original',
+          'preset' => 'species_slideshow_thumbnail'
+        )
+      ),
+      'default' => array(
+        'species_slideshow_thumbnail' => array(
+          'default preset' => 'original'
+        )
+      )
+    )
+  );
+  return $styles;
+}
+
+/**
+ * Implements hook_styles_default_presets_alter().
+ */
+function scratchpads_species_styles_default_presets_alter(&$presets){
+  $styles = styles_default_styles();
+  if($styles['file']['styles']['species_slideshow_large']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_large'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_large'] = array(
+      'default preset' => 'original'
+    );
+  }
+  if($styles['file']['styles']['species_slideshow_thumbnail']['storage'] == STYLES_STORAGE_DEFAULT){
+    $presets['file']['containers']['image']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original',
+      'preset' => 'species_slideshow_thumbnail'
+    );
+    $presets['file']['containers']['audio']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['video']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+    $presets['file']['containers']['default']['styles']['species_slideshow_thumbnail'] = array(
+      'default preset' => 'original'
+    );
+  }
+}
+
+/**
+ * Implementation of hook_image_default_styles().
+ */
+function scratchpads_species_image_default_styles(){
+  return array(
+    'species_slideshow_large' => array(
+      'name' => 'species_slideshow_large',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '284',
+            'height' => '211'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    ),
+    'species_slideshow_thumbnail' => array(
+      'name' => 'species_slideshow_thumbnail',
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => '92',
+            'height' => '69'
+          ),
+          'weight' => '1'
+        ),
+        array(
+          'name' => 'convert_image_format',
+          'data' => array(
+            'format' => 'image/jpeg',
+            'quality' => '80'
+          ),
+          'weight' => '1'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements callback_entity_info_uri().
+ */
+function scratchpads_species_term_uri($term) {
+  if (scratchpads_species_term_is_biological_classification($term)) {
+    return array(
+      'path' => 'taxonomy/term/' . $term->tid,
+    );
+  }
+  else {
+    return array(
+      'path' => 'nontaxonomy/term/' . $term->tid,
+    );
+  }
+}

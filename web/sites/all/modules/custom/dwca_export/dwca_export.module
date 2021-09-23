@@ -1,0 +1,365 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function dwca_export_menu(){
+  return array(
+    /*'admin/config/system/dwca_export' => array(
+      'title' => 'Darwin Core Archive export',
+      'description' => t('Create a DarwinCore Archive of this scratchpad.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'dwca_export_config_form'
+      ),
+      'access arguments' => array(
+        'access DwC-A export settings'
+      ),
+      'file' => 'dwca_export.admin.inc',
+      'type' => MENU_NORMAL_ITEM
+    ),*/
+    'dwca.zip' => array(
+      'page callback' => 'dwca_export_deliver_archive',
+      'access arguments' => array(
+        'access content'
+      ),
+      'file' => 'dwca_export.admin.inc',
+      'type' => MENU_CALLBACK
+    )
+  );
+}
+
+/**
+ * Implementation of hook_views_pre_build()
+ * 
+ * Try to ensure that we're always using th
+ */
+function dwca_export_views_default_views_alter(&$views){
+  foreach($views as $id => $view){
+    if($view->tag != 'no-batch'){
+      foreach(array_keys($view->display) as $display_name){
+        if($display_name == 'views_data_export_1'){
+          $handler = & $views[$id]->display['views_data_export_1']->handler;
+          $handler->display->display_options['use_batch'] = 'batch';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implemenation of hook_views_pre_view
+ *
+ * Ensure the right biblio style is selected
+ */
+function dwca_export_views_pre_view(&$view, &$display_id, &$args){
+  if(($view->name == 'dwca_export_reference' || $view->name == 'dwca_export_classification') && $display_id == 'views_data_export_1'){
+    if(module_exists('biblio_citeproc')){
+      $style = variable_get('dwca_biblio_citeproc_style', '_use_default');
+      if($style == '_use_default'){
+        $style = variable_get('biblio_citeproc_style', 'ieee.csl');
+      }
+    }else{
+      $style = variable_get('dwca_biblio_style', '_use_default');
+      if($style == '_use_default'){
+        $style = variable_get('biblio_style', 'cse');
+      }
+    }
+    if(!empty($view->display[$display_id]->handler->handlers['field']['citation'])){
+      // If we have a handler object, we should set the option there
+      $view->display[$display_id]->handler->handlers['field']['citation']->options['style_name'] = $style;
+    }else if(!empty($view->display[$display_id]->handler->options['fields']['citation'])){
+      // Otherwise if this option is defined for this display, set it there
+      $view->display[$display_id]->handler->options['fields']['citation']['style_name'] = $style;
+    }else if(!empty($view->display['default']->handler->options['fields']['citation'])){
+      // Otherwise set it on the master display
+      $view->display['default']->handler->options['fields']['citation']['style_name'] = $style;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_views_api()
+ *
+ * drupal will load dwca_export.views_default.inc when this hook is implemented
+ */
+function dwca_export_views_api(){
+  return array(
+    'api' => 3.0
+  );
+}
+
+/**
+ * Implements hook_dwca_export_module()
+ */
+function dwca_export_dwca_export(){
+  return TRUE;
+}
+
+/**
+ * 
+ * Implements hook_cron().
+ */
+function dwca_export_cron(){
+  // Only rebuild the archive if we need to, and if the last time we rebuilt it
+  // was more than three days ago.
+  if(variable_get('dwca_export_rebuild', FALSE) && (variable_get('dwca_export_zip_build_time', 0) + 259200) < time()){
+    module_load_include('cron.inc', 'dwca_export');
+    if(_dwca_export_cron()){
+      _dwca_export_cron_create_zip();
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_insert()
+ */
+function dwca_export_entity_insert($entity, $type){
+  switch($type){
+    case 'taxonomy_term':
+      $biological_vids = variable_get('biological_vids', array());
+      if(isset($biological_vids[$entity->vid]) && $biological_vids[$entity->vid]){
+        variable_set('dwca_export_rebuild', TRUE);
+      }
+      break;
+    case 'node':
+      if($entity->type == 'spm' || $entity->type == 'biblio' || $entity->type == 'specimen_observation'){
+        variable_set('dwca_export_rebuild', TRUE);
+      }
+  }
+}
+
+/**
+ * Implements hook_entity_delete()
+ */
+function dwca_export_entity_delete($entity, $type){
+  dwca_export_entity_insert($entity, $type);
+}
+
+/**
+ * Implements hook_entity_update()
+ */
+function dwca_export_entity_update($entity, $type){
+  dwca_export_entity_insert($entity, $type);
+}
+
+/**
+ * Implements hook_permission()
+ */
+function dwca_export_permission(){
+  return array(
+    'administer dwca-export' => array(
+      'title' => t('Access dwca-export'),
+      'description' => t('Allows user to access DwC-A export configuration page and execute export of the DwC-A data.')
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function dwca_export_field_formatter_info(){
+  return array(
+    'taxon_status' => array(
+      'label' => t('Taxon Status'),
+      'description' => t('GBIF compliant taxon status for DwC-A.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'name_status' => array(
+      'label' => t('Name Status'),
+      'description' => t('GBIF compliant name status for DwC-A.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'aan_formatter' => array(
+      'label' => t('aan'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    ),
+    'parent_formatter' => array(
+      'label' => t('pn'),
+      'description' => t('Returns empty for not accepted names.'),
+      'field types' => array(
+        'list_text'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function dwca_export_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  $markup = '';
+  $reason_map_taxonomic = array(
+    'synonym' => 'synonym',
+    'homotypic (nomenclatural) synonym' => 'homotypicSynonym',
+    'heterotypic (taxonomic) synonym' => 'heterotypicSynonym',
+    'homonym (illegitimate)' => '',
+    'superfluous renaming (illegitimate)' => '',
+    'rejected name' => '',
+    'invalidly published, nomen nudum' => '',
+    'invalidly published, other' => '',
+    'misapplied' => 'misapplied',
+    'pro parte' => 'proParteSynonym',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => '',
+    'other' => '',
+    'junior synonym' => 'heterotypicSynonym',
+    'objective synonym' => 'homotypicSynonym',
+    'subjective synonym' => 'heterotypicSynonym',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => '',
+    'homonym & junior synonym' => 'heterotypicSynonym',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => '',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => '',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => '',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => 'proParteSynonym',
+    'other' => '',
+    'nomen dubium' => ''
+  );
+  $reason_map_nomenclature = array(
+    'synonym' => '',
+    'homotypic (nomenclatural) synonym' => '',
+    'heterotypic (taxonomic) synonym' => '',
+    'homonym (illegitimate)' => 'illegitimum',
+    'superfluous renaming (illegitimate)' => 'superfluum',
+    'rejected name' => 'rejiciendum',
+    'invalidly published, nomen nudum' => 'nudum',
+    'invalidly published, other' => 'invalidum',
+    'misapplied' => '',
+    'pro parte' => '',
+    'horticultural' => '',
+    'database artifact' => '',
+    'orthographic variant (misspelling)' => 'orthographia',
+    'other' => '',
+    'junior synonym' => '',
+    'objective synonym' => '',
+    'subjective synonym' => '',
+    'original name/combination' => '',
+    'subsequent name/combination' => '',
+    'junior homonym' => 'illegitimum',
+    'homonym & junior synonym' => 'illegitimum',
+    'unavailable, database artifact' => '',
+    'unavailable, literature misspelling' => 'orthographia',
+    'unavailable, incorrect original spelling' => '',
+    'unavailable, suppressed by ruling' => '',
+    'unavailable, nomen nudum' => 'nudum',
+    'unavailable, other' => '',
+    'unjustified emendation' => '',
+    'unnecessary replacement' => 'superfluum',
+    'nomen oblitum' => '',
+    'misapplied' => '',
+    'pro parte' => '',
+    'other' => '',
+    'nomen dubium' => 'dubium'
+  );
+  switch($display['type']){
+    case 'taxon_status':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = 'accepted';
+        }else{
+          if(isset($reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']])){
+            $markup = $reason_map_taxonomic[$entity->field_unacceptability_reason['und'][0]['value']];
+          }else{
+            $markup = 'synonym';
+          }
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'name_status':
+      $markup = $reason_map_nomenclature[$entity->field_unacceptability_reason['und'][0]['value']];
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'aan_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $markup = '';
+        }else{
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if(is_array($parents)){
+            $parent = array_pop($parents);
+            $parent = $parent->uuid;
+          }
+          $markup = $parent;
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+    case 'parent_formatter':
+      $element = array();
+      $markup = '';
+      if(isset($entity->field_usage['und'][0]['value'])){
+        if($entity->field_usage['und'][0]['value'] == 'accepted' || $entity->field_usage['und'][0]['value'] == 'valid'){
+          $parent = '';
+          $parents = taxonomy_get_parents($entity->tid);
+          if(is_array($parents)){
+            $parent = array_pop($parents);
+            $parent = $parent->uuid;
+          }
+          $markup = $parent;
+        }else{
+          $markup = '';
+        }
+      }
+      $element[] = array(
+        '#markup' => $markup
+      );
+      return $element;
+      break;
+  }
+}
+
+/**
+ * Implement hook_views_data_alter
+ *
+ */
+function dwca_export_views_data_alter(&$data){
+  // Add a handler to display a file's DCMI type
+  $data['file_managed']['dcmitype'] = array(
+    'title' => t('DCMI file type'),
+    'help' => t('The Darwin Core Metadata Initiative type of the file.'),
+    'real field' => 'uri',
+    'field' => array(
+      'handler' => 'views_handler_field_file_filedcmitype',
+      'click sortable' => FALSE
+    )
+  );
+  return $data;
+}

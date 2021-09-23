@@ -1,0 +1,51 @@
+name = Organic groups
+description = "API to allow associating content with groups."
+package = "Organic groups"
+dependencies[] = text
+dependencies[] = entity
+dependencies[] = list
+dependencies[] = options
+core = 7.x
+version = VERSION
+files[] = og.module
+files[] = og.admin.inc
+files[] = includes/og.views.inc
+files[] = og.rules.inc
+
+; Test files.
+files[] = og.test
+files[] = tests/upgrade/og.upgrade.test
+
+; Views plugins
+files[] = includes/views/og_plugin_argument_validate_group.inc
+files[] = includes/views/og_plugin_argument_default_user_groups.inc
+
+; Views fields
+files[] = includes/views/og_handler_field_group_member_count.inc
+files[] = includes/views/og_handler_field_group_audience_state.inc
+files[] = includes/views/og_handler_field_prerender_list.inc
+files[] = includes/views/og_handler_field_user_roles.inc
+files[] = includes/views/og_handler_field_group_permissions.inc
+
+; Views filters
+files[] = includes/views/og_handler_filter_group_state.inc
+files[] = includes/views/og_handler_filter_group_audience_state.inc
+files[] = includes/views/og_handler_filter_group_roles.inc
+
+; Views relationships
+files[] = includes/views/og_handler_relationship.inc
+
+; Views arguments
+files[] = includes/views/og_handler_argument_group_audience_gid.inc
+
+; Entity API controllers.
+files[] = includes/og.admin.inc
+files[] = includes/og.info.inc
+files[] = includes/og.views.inc
+
+; Information added by drupal.org packaging script on 2012-09-26
+version = "7.x-1.5"
+core = "7.x"
+project = "og"
+datestamp = "1348684475"
+

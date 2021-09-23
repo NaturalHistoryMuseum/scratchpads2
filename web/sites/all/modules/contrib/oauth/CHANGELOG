@@ -1,0 +1,84 @@
+OAuth 7.x-3.2, 2013-24-01
+------------------------------
+Issue #1987350 by juampy: Fixed Warnings when authorizing a consumer via the user interface.
+Issue #1907970 by John Franklin: Fixed patch files snuck into the repository.
+Issue #1809068 by kylebrowning, MrMaksimize, Deciphered: Fixed Cannot leave callback formfield blank even though it is not required.
+Issue #1976504 by rj, Pancho and Nick_vh: Fixed Notice: Undefined index: Auth in OAuthUtil::get_headers()
+Issue #1310984 by aadityawalawalkar | basht: Fixed PDOException with PostgreSQL when viewing page /user/1 if OAuth Provider UI in on.
+
+OAuth 7.x-3.1, 2013-2-3
+------------------------------
+#1529166 by barraponto: implement hook_requirements() to check that cURL library is available.
+#1535764 by bojanz: Signature selection in includes/DrupalOAuthServer.inc is broken.
+#1133778 by eojthebrave | JGonzalez: Added Permissions to remove Authorization tab from user profile page.
+#1809068 by kylebrowning, MrMaksimize: Fixed Cannot set custom callback for iOS application.
+
+OAuth 7.x-3.0, 2012-2-8
+------------------------------
+#1378078 by jobeirne: Make Authorizations editable.
+#1412226 by jobeirne, sun: allow for deletion of authentications.
+#54136 by sun: fix cancel button for authentication delete form.
+#1412258 by jobeirne: authentication_options fix
+
+OAuth 7.x-3.0-alpha2, 2011-10-25
+------------------------------
+#1155760 by deviantintegral, voxpelli: Catching more exceptions, eg. when the consumer key is incorrect
+#1199360 by Sepehr Lajevardi, voxpelli: Fixed E_NOTICE in OAuth request context loader
+#1199346 by Sepehr Lajevardi: Fixed E_NOTICE in oauth_common_form_consumer_submit()
+#1134444 by grendzy, voxpelli: Warn if Autoload 2.x isn't used
+#1141658 by grendzy, voxpelli: Clear Autoload cache on install
+#1201166 by voxpelli: Fixed error on deletion of accounts
+
+OAuth 7.x-3.0-alpha1, 2011-06-21
+------------------------------
+by voxpelli: Initial port to Drupal 7
+
+OAuth 6.x-3.0-beta4, 2011-04-06
+------------------------------
+by voxpelli: Better coding style
+#1002482 by voxpelli: Large database refactoring focused on basing relations on internal id numbers
+by voxpelli: Improved nonces, nonces can now be longer and too long nonces will throw errors
+by voxpelli: Removed consumer UI as it became complicated with new DB and there's no apparent need for it
+by voxpelli: Updated to use Autoload 6.x-2.0:s D7 backport for specifying included classes
+by voxpelli: Don't show key/secret on consumer adding
+#1017220 by voxpelli: Deactivated body_hash-checking when Inpustream isn't installed
+#1024812 by voxpelli: Fix for deleting consumer
+#857584 by voxpelli: Make SHA1 the default signature method in client
+
+OAuth 6.x-3.0-beta3, 2010-11-05
+------------------------------
+by voxpelli: Fixed user consumer listing
+by hugowetterberg: Fixed handling of empty and 'oob' callback urls.
+by SimmeLj, voxpelli: Added removal of old non-used nonces on cron
+#899506 by nicholasThompson, ezra-g: Fixed missing class in oauth_common_autoload_info()
+by voxpelli: Fixed bug assigning context to OAuthServer
+by voxpelli: Code cleanup
+by voxpelli: Made inputstream a suggestion instead of a dependency
+by voxpelli: Made ctools an optional recommendation instead of a dependency
+by voxpelli: Changed to use API-version in ctools exports
+
+OAuth 6.x-3.0-beta2, 2010-07-18
+------------------------------
+by voxpelli: Fixed non-used default access endpoint in client
+by voxpelli: Updated the OAuth library
+#749920 by twom, voxpelli: Fixed character limits for tokens, secrets and keys
+#849832 by Jose Reyero, voxpelli: Fixed use of signatureMethod() in client
+by voxpelli: Added possibility to provide default signature method
+by voxpelli: Fixed the saving of a token when a provider reuses it
+by voxpelli: Added support for authentication realms
+by voxpelli: Changed token requests to use POST method as default
+by voxpelli: Added the possibility of defining endpoints as full URL:s
+by voxpelli: Added OAuth 1.0a support in the client
+by voxpelli: Added possibility to provide a default authentication realm
+#849832 by Jose Reyero: Fixed proper visibility for DrupalOAuthClient properties/methods
+#835824 by Schnitzel, voxpelli: Changed OAuthSignatureMethod_HMAC_SHA1 to OAuthSignatureMethod_HMAC
+by voxpelli: Changed the class for the plaintext signature method in autoload
+by voxpelli: Refactored some DrupalOAuthClient functions for consistency and flexibility
+#846744 by alex_b, voxpelli: Fixed notice when deleting user
+#846734 by alex_b: Fixed undefined variable: provider_consumer
+#773264 by toemaz: Fixed absolute url as destination in _oauth_common_authorize()
+#743638 by toemaz, voxpelli: Fixed failed upgrade oauth_common_update_6100
+
+OAuth 6.x-3.0-beta1, 2010-05-20
+------------------------------
+by Hugo Wetterberg: First release under the project name "OAuth"

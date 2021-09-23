@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ * 
+ * Scratchpads Blocks tests.  
+ * Tests components on a "FULL" Scratchpad.
+ */
+class ScratchpadsBlockTestCase extends ScratchpadsTweaksTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'Scratchpads Blocks',
+      'description' => 'Tests the blocks defined in scratchpads blocks module',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  /**
+   * Enable modules and create users with specific permissions.
+   */
+  public function setUp(){
+    parent::setUp();
+  }
+
+  /**
+   * Wrapper for other tests to speed up test run
+   */
+  function testWrapper(){
+    $this->drupalLogin($this->maintainer);
+    $node_path = $this->createPageNode();
+    $this->drupalLogin($this->test_user);
+    $this->validateTestBlockInfo();
+    $this->validateTestBlockView();
+    $this->validateTestShowsUpFront();
+    $this->validateTestShowsUpNodePage($node_path);
+  }
+
+  /**
+   * Tests block_info() for the scratchpads blocks module. 
+   */
+  function validateTestBlockInfo(){
+    $info = module_invoke('scratchpads_blocks', 'block_info');
+    $this->assertEqual(3, count($info), t('Module defines 3 blocks'));
+    $this->assertTrue(isset($info['footer_menu']), t('footer_menu exists.'));
+    $this->assertTrue(isset($info['footer_logos']), t('footer_logos exists.'));
+    // This block perhaps shouldn't be defined in this module, but it is...
+    $this->assertTrue(isset($info['signpost']), t('signpost exists.'));
+  }
+
+  /**
+   * Tests block_view() for the scratchpads blocks module.
+   */
+  function validateTestBlockView(){
+    $data = module_invoke('scratchpads_blocks', 'block_view', 'footer_menu');
+    $this->assertTrue(is_array($data), t('Block returns renderable array.'));
+    $data2 = module_invoke('scratchpads_blocks', 'block_view', 'footer_logos');
+    $this->assertTrue(is_array($data2), t('Block returns renderable array.'));
+  }
+
+  /**
+   * Tests that the scratchpads_blocks blocks appear on the home page
+   */
+  function validateTestShowsUpFront(){
+    $this->drupalGet('');
+    $this->assertRaw('block-scratchpads-blocks-footer-menu', 'Footer menu block displayed on front page');
+    $this->assertRaw('block-scratchpads-blocks-footer-logos', 'Footer logos block displayed on front page');
+    $this->checkForLogos();
+  }
+
+  /**
+   * Tests that the scratchpads_blocks blocks appear on a node page
+   */
+  function validateTestShowsUpNodePage($path){
+    $this->drupalGet($path);
+    $this->assertRaw('block-scratchpads-blocks-footer-menu', 'Footer menu block displayed on node page');
+    $this->assertRaw('block-scratchpads-blocks-footer-logos', 'Footer logos block displayed on node page');
+    $this->checkForLogos();
+  }
+
+  /**
+   *  Creates a simple page node and returns the path to that page
+   */
+  protected function createPageNode(){
+    $page_node = $this->drupalCreateNode(array(
+      'type' => 'page'
+    ));
+    $path = 'node/' . $page_node->nid;
+    return $path;
+  }
+
+  /**
+   * We use image alt attribute to check whether images are being displayed
+   */
+  protected function checkForLogos(){
+    $logo_alts = array(
+      'ViBRANT logo',
+      'ViBRANT logo',
+      'Scratchpads logo'
+    );
+    foreach($logo_alts as $logo_alt){
+      $this->assertRaw($logo_alt, $logo_alt . ' present in html');
+      // If the alt tags are showing it means the image has not loaded
+      $this->assertNoText($logo_alt, $logo_alt . ' alt tags not displayed on page');
+    }
+  }
+}

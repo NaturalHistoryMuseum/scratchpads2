@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_sharethis_node_type_insert(){
+  drupal_register_shutdown_function('_scratchpads_sharethis_shutdown');
+}
+
+/**
+ * Implements hook_node_type_delete().
+ */
+function scratchpads_sharethis_node_type_delete(){
+  drupal_register_shutdown_function('_scratchpads_sharethis_shutdown');
+}
+
+/**
+ * Shutdown function that updates the node types for the sharethis widget.
+ */
+function _scratchpads_sharethis_shutdown(){
+  $entity_info = entity_get_info('node');
+  variable_set('sharethis_node_option', implode(',', array_keys($entity_info['bundles'])));
+}

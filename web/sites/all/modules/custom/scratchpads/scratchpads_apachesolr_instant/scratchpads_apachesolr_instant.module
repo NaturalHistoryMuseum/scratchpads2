@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Implementation of hook_entity_insert().
+ */
+function scratchpads_apachesolr_instant_entity_insert($entity, $type){
+  // If this is a biological classification & there is a menu item for it, rebuild the menu to check it's still useful
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = 1;
+    drupal_register_shutdown_function('scratchpads_apachesolr_instant_shutdown');
+  }else{
+    $shutdown_registered++;
+  }
+}
+
+/**
+ * Implementation of hook_entity_delete().
+ */
+function scratchpads_apachesolr_instant_entity_delete($entity, $type){
+  scratchpads_apachesolr_instant_entity_insert($entity, $type);
+}
+
+/**
+ * Implementation of hook_entity_insert().
+ */
+function scratchpads_apachesolr_instant_entity_update($entity, $type){
+  scratchpads_apachesolr_instant_entity_insert($entity, $type);
+}
+
+/**
+ * Shutdown function called by the entity insert or entity update.
+ */
+function scratchpads_apachesolr_instant_shutdown(){
+  global $conf;
+  $limit = drupal_static('scratchpads_apachesolr_instant_entity_insert');
+  $max_limit = variable_get('apachesolr_cron_limit', 50);
+  if($limit > $max_limit){
+    $limit = $max_limit;
+  }
+  module_load_include('index.inc', 'apachesolr');
+  $env_id = apachesolr_default_environment();
+  $environment = apachesolr_environment_load($env_id);
+  $status = apachesolr_index_status($environment["env_id"]);
+  if($status['remaining']){
+    apachesolr_index_entities($env_id, $limit);
+  }
+}

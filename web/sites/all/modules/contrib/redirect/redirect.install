@@ -1,0 +1,358 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the redirect module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redirect_schema() {
+  $schema['redirect'] = array(
+    'description' => 'Stores information on redirects.',
+    'fields' => array(
+      'rid'  => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique redirect ID.',
+      ),
+      'hash' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'description' => 'A unique hash based on source, source_options, and language.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The redirect type; if value is 'redirect' it is a normal redirect handled by the module.",
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {users}.uid of the user who created the redirect.',
+      ),
+      'source' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The source path to redirect from.',
+      ),
+      'source_options' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of source options.',
+      ),
+      'redirect' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The destination path to redirect to.',
+      ),
+      'redirect_options' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of redirect options.',
+      ),
+      'language' => array(
+        'description' => 'The language this redirect is for; if blank, the alias will be used for unknown languages.',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => 'und',
+      ),
+      'status_code' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'description' => 'The HTTP status code to use for the redirect.',
+      ),
+      'count' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The number of times the redirect has been used.',
+      ),
+      'access' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The timestamp of when the redirect was last accessed.'
+      ),
+    ),
+    'primary key' => array('rid'),
+    'unique keys' => array(
+      'hash' => array('hash'),
+    ),
+    'indexes' => array(
+      'expires' => array('type', 'access'),
+      'source_language' => array('source', 'language'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function redirect_install() {
+  // If the path redirect table exists, then set the schema to run the
+  // migration update function.
+  if (db_table_exists('path_redirect')) {
+    drupal_set_installed_schema_version('redirect', 6999);
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redirect_uninstall() {
+  drupal_load('module', 'redirect');
+  $variables = array_keys(redirect_variables());
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}
+
+/**
+ * Add the {redirect}.count field.
+ */
+function redirect_update_1() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The number of times the redirect has been used.',
+  );
+  db_add_field('redirect', 'count', $field);
+}
+
+/**
+ * Add the {redirect}.uid field.
+ */
+function redirect_update_2() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The {users}.uid of the user who created the redirect.',
+  );
+  db_add_field('redirect', 'uid', $field);
+  db_update('redirect')
+    ->fields(array('uid' => 1))
+    ->execute();
+}
+
+/**
+ * Enable bootstrap status for the module.
+ */
+function redirect_update_3() {
+  db_update('system')
+    ->fields(array('bootstrap' => 1))
+    ->condition('type', 'module')
+    ->condition('name', 'redirect')
+    ->execute();
+}
+
+/**
+ * Change empty redirect types to 'redirect'.
+ */
+function redirect_update_4() {
+  db_update('redirect')
+    ->fields(array('type' => 'redirect'))
+    ->condition('type', '')
+    ->execute();
+}
+
+/**
+ * Rename {redirect}.last_used to {redirect}.access.
+ */
+function redirect_update_5() {
+  if (db_field_exists('redirect', 'last_used')) {
+    db_drop_index('redirect', 'expires');
+    db_change_field('redirect', 'last_used', 'access', array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => 'The timestamp of when the redirect was last accessed.',
+    ));
+    db_add_index('redirect', 'expires', array('type', 'access'));
+  }
+}
+
+/**
+ * Add an index on the source and language columns in the redirect table.
+ */
+function redirect_update_6() {
+  if (!db_index_exists('redirect', 'source_language')) {
+    db_add_index('redirect', 'source_language', array('source', 'language'));
+  }
+}
+
+/**
+ * Migrate data and variables from the Drupal 6 path_redirect module.
+ */
+function redirect_update_7000(&$sandbox) {
+  if (!isset($sandbox['progress']) && db_table_exists('path_redirect')) {
+    $sandbox['progress'] = 0;
+    $sandbox['current_rid'] = 0;
+    $sandbox['max'] = db_query('SELECT COUNT(rid) FROM {path_redirect}')->fetchField();
+    $sandbox['skipped'] = array();
+  }
+
+  if (empty($sandbox['max'])) {
+    $sandbox['#finished'] = 1;
+    return t('No redirects to migrate.');
+  }
+
+  // Ensure the redirect module is loaded since we need to use its functions.
+  drupal_load('module', 'redirect');
+
+  $query = db_query_range("SELECT * FROM {path_redirect} WHERE rid > :rid ORDER BY rid", 0, 25, array(':rid' => $sandbox['current_rid']));
+  foreach ($query as $old_redirect) {
+    $redirect = _redirect_migrate_path_redirect_redirect($old_redirect);
+
+    if (empty($redirect->success)) {
+      $sandbox['skipped'][$old_redirect->rid] = t('RID @rid: @from to @to', array(
+        '@rid' => $old_redirect->rid,
+        '@from' => redirect_url($redirect->source, $redirect->source_options),
+        '@to' => redirect_url($redirect->redirect, $redirect->redirect_options),
+      ));
+    }
+    $sandbox['progress']++;
+    $sandbox['current_rid'] = $old_redirect->rid;
+  }
+
+  $sandbox['#finished'] = $sandbox['progress'] / $sandbox['max'];
+
+  if ($sandbox['#finished'] >= 1) {
+    // Once finished, drop the old table.
+    db_drop_table('path_redirect');
+
+    // Migrate variables.
+    _redirect_migrate_path_redirect_variables();
+
+    // Remove the path_redirect entry from the system table.
+    db_delete('system')
+      ->condition('name', 'path_redirect')
+      ->execute();
+
+    // Show a message about how many redirects were migrated, and how many
+    // were skipped.
+    $skipped = count($sandbox['skipped']);
+    $migrated = $sandbox['progress'] - $skipped;
+    // @todo The following strings should be using t().
+    $return = "Migrated $migrated redirects.";
+    if (!empty($sandbox['skipped'])) {
+      $return .= " The following $skipped redirects were not migrated since there were already existing redirects for the path and language combination:" . theme('item_list', array('items' => $sandbox['skipped']));
+    }
+    return $return;
+  }
+}
+
+/**
+ * Migrate a path redirect redirect to a redirect redirect.
+ */
+function _redirect_migrate_path_redirect_redirect($old_redirect) {
+  $redirect = new stdClass();
+  redirect_object_prepare($redirect);
+
+  $source_parsed = redirect_parse_url($old_redirect->source);
+  $redirect->source = $source_parsed['url'];
+  if (!empty($source_parsed['query'])) {
+    $redirect->source_options['query'] = $source_parsed['query'];
+  }
+
+  $redirect_parsed = redirect_parse_url($old_redirect->redirect) + array('query' => drupal_get_query_array($old_redirect->query), 'fragment' => $old_redirect->fragment);
+  $redirect->redirect = $redirect_parsed['url'];
+  if (!empty($redirect_parsed['query'])) {
+    $redirect->redirect_options['query'] = $redirect_parsed['query'];
+  }
+  if (!empty($redirect_parsed['fragment'])) {
+    $redirect->redirect_options['fragment'] = $redirect_parsed['fragment'];
+  }
+  if (!empty($redirect_parsed['https'])) {
+    $redirect->redirect_options['https'] = TRUE;
+  }
+
+  // Make sure empty language codes get migrated to use the new constant.
+  $redirect->language = empty($old_redirect->language) ? LANGUAGE_NONE : $old_redirect->language;
+
+  // Default status codes get a value of 0.
+  if ($old_redirect->type != variable_get('redirect_default_status_code', 301)) {
+    $redirect->status_code = (int) $old_redirect->type;
+  }
+
+  redirect_hash($redirect);
+  if (redirect_load_by_hash($redirect->hash)) {
+    // If a redirect with the same hash already exists, then it needs to be
+    // skipped.
+    $redirect->success = FALSE;
+  }
+  else {
+    // Add the redirect to the database.
+    db_insert('redirect')
+      ->fields(array(
+        'hash' => $redirect->hash,
+        'type' => 'redirect',
+        'uid' => 1,
+        'source' => $redirect->source,
+        'source_options' => serialize($redirect->source_options),
+        'redirect' => $redirect->redirect,
+        'redirect_options' => serialize($redirect->redirect_options),
+        'language' => $redirect->language,
+        'status_code' => $redirect->status_code,
+        'count' => 0,
+        'access' => $old_redirect->last_used,
+      ))
+      ->execute();
+
+    // Migrating this redirect succeeded.
+    $redirect->success = TRUE;
+  }
+
+  return $redirect;
+}
+
+/**
+ * Migrate path redirect variables to redirect variables.
+ */
+function _redirect_migrate_path_redirect_variables() {
+  // Port path_redirect variables.
+  $variables = array(
+    'path_redirect_default_status' => 'redirect_default_status_code',
+    'path_redirect_purge_inactive' => 'redirect_purge_inactive',
+    'path_redirect_retain_query_string' => 'redirect_passthrough_querystring',
+    'path_redirect_auto_redirect' => 'redirect_auto_redirect',
+    'path_redirect_redirect_warning' => 'redirect_warning',
+    'path_redirect_allow_bypass' => NULL,
+  );
+  foreach ($variables as $old_variable => $new_variable) {
+    if (!empty($new_variable)) {
+      $old_value = variable_get($old_variable);
+      $new_value = variable_get($new_variable);
+
+      // Only if the old variable exists, and the new variable hasn't been set
+      // yet, do we set the new variable with the old value.
+      if (isset($old_value) && !isset($new_value)) {
+        variable_set($new_variable, $old_value);
+      }
+    }
+
+    // Delete the old path redirect variable.
+    variable_del($old_variable);
+  }
+}

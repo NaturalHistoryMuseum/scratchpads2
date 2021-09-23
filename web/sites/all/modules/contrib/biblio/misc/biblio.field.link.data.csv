@@ -1,0 +1,54 @@
+fid,title,hint, common, autocomplete, required, weight, visible,field name,type,width,maxlength,vtab
+1,Authors,,1,1,1,1,1,biblio_authors,contrib_widget,60,255,1
+2,Secondary Authors,,1,1,1,2,1,biblio_secondary_authors,contrib_widget,60,255,1
+3,Tertiary Authors,,1,1,1,3,1,biblio_tertiary_authors,contrib_widget,60,255,1
+4,Subsidiary Authors,,1,1,1,4,1,biblio_subsidiary_authors,contrib_widget,60,255,1
+5,Corporate Authors,,1,1,1,5,1,biblio_corp_authors,contrib_widget,60,255,1
+6,Secondary Title,,0,0,0,12,0,biblio_secondary_title,textfield,60,255,2
+7,Tertiary Title,,0,0,0,13,0,biblio_tertiary_title,textfield,60,255,8
+8,Accession Number,,1,0,0,151,1,biblio_accession_number,textfield,24,128,4
+9,ISBN Number,,1,0,0,150,1,biblio_isbn,textfield,24,128,4
+10,Call Number,,1,0,0,152,1,biblio_call_number,textfield,24,128,4
+11,Other Numbers,,1,0,0,153,1,biblio_other_number,textfield,10,128,4
+12,Other Author Affiliations,,0,0,0,24,0,biblio_other_author_affiliations,textfield,60,255,9
+13,Publisher,,0,0,0,19,0,biblio_publisher,textfield,60,255,3
+14,Place Published,,0,0,0,20,0,biblio_place_published,textfield,60,255,3
+15,Year of Publication,"Enter YYYY, Submitted or In Press",1,0,1,-45,1,biblio_year,textfield,4,20,2
+16,Edition,,0,0,0,15,0,biblio_edition,textfield,60,255,2
+17,Volume,,0,0,0,14,0,biblio_volume,textfield,10,128,2
+18,Number,,0,0,0,16,0,biblio_number,textfield,10,128,2
+19,Pagination,,0,0,0,17,0,biblio_pages,textfield,24,128,2
+20,Date Published,(mm/yyyy),0,0,0,18,0,biblio_date,textfield,16,16,2
+21,Publication Language,,0,0,0,23,0,biblio_lang,textfield,24,24,2
+22,Abstract,,1,0,0,155,1,biblio_abst_e,text_format,60,65535,1
+23,French Abstract,,0,0,0,156,0,biblio_abst_f,text_format,60,65535,9
+24,Keywords,,1,1,0,154,0,biblio_keywords,textfield,60,65535,6
+25,Type of Work,Masters Thesis,0,0,0,22,0,biblio_type_of_work,textfield,60,255,2
+26,URL,,1,0,0,158,1,biblio_url,textfield,60,255,5
+27,Notes,,0,0,0,157,0,biblio_notes,text_format,60,65535,7
+28,Issue,,0,0,0,15,0,biblio_issue,textfield,10,128,2
+29,Reseach Notes,,0,0,0,160,0,biblio_research_notes,text_format,60,65535,7
+30,Custom 1,,0,0,0,161,0,biblio_custom1,text_format,60,65535,9
+31,Custom 2,,0,0,0,162,0,biblio_custom2,text_format,60,65535,9
+32,Custom 3,,0,0,0,163,0,biblio_custom3,text_format,60,65535,9
+33,Custom 4,,0,0,0,164,0,biblio_custom4,text_format,60,65535,9
+34,Custom 5,,0,0,0,165,0,biblio_custom5,text_format,60,65535,9
+35,Custom 6,,0,0,0,167,0,biblio_custom6,text_format,60,65535,9
+36,Custom 7,,0,0,0,168,0,biblio_custom7,text_format,60,65535,9
+37,Number of Volumes,,0,0,0,15,0,biblio_number_of_volumes,textfield,10,128,2
+38,Short Title,,0,0,0,169,0,biblio_short_title,textfield,60,255,8
+39,Alternate Title,,0,0,0,170,0,biblio_alternate_title,textfield,60,255,8
+40,Translated Title,,0,0,0,170,0,biblio_translated_title,textfield,60,255,8
+41,Original Publication,,0,0,0,171,0,biblio_original_publication,textfield,60,255,8
+42,Reprint Edition,,0,0,0,172,0,biblio_reprint_edition,textfield,120,255,2
+43,Section,,0,0,0,15,0,biblio_section,textfield,10,128,2
+44,Citation Key,,0,0,0,175,0,biblio_citekey,textfield,16,255,4
+45,COinS Data,This will be automatically generated,0,0,0,176,0,biblio_coins,text_format,60,65535,9
+46,ISSN Number,,0,0,0,150,0,biblio_issn,textfield,24,128,4
+47,DOI,,1,0,0,159,1,biblio_doi,textfield,60,255,5
+48,Author Address,,0,0,0,178,0,biblio_auth_address,text_format,60,65535,9
+49,Remote Database Name,,0,0,0,176,0,biblio_remote_db_name,textfield,60,255,9
+50,Remote Database Provider,,0,0,0,177,0,biblio_remote_db_provider,textfield,60,255,9
+51,Label,,0,0,0,178,0,biblio_label,textfield,60,255,9
+52,Access Date,,0,0,0,179,0,biblio_access_date,textfield,60,255,9
+53,Refereed Designation,,0,0,0,180,0,biblio_refereed,select,0,128,9

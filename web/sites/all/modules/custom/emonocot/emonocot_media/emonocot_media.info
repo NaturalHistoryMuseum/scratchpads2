@@ -1,0 +1,12 @@
+name = "emonocot_media"
+description = "Expands the media content type"
+core = "7.x"
+package = "eMonocot"
+dependencies[] = "features"
+dependencies[] = "field_sql_storage"
+dependencies[] = "text"
+features[field][] = "node-media_gallery-field_rights_holder"
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = emonocot_media

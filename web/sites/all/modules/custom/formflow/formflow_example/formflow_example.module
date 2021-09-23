@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Implementation of hook_default_flows().
+ */
+function formflow_example_default_flows(){
+  return array(
+    'example_flow' => array(
+      'title' => t('Example flow'),
+      'name' => 'example_flow',
+      'description' => t('An example flow using ctools plugin.'),
+      'path' => 'formflow/example',
+      'show_trail' => 1,
+      'show_back' => 1,
+      'show_cancel' => 1,
+      'steps' => array(
+        array(
+          'form_id' => 'ctools_ajax_sample_start',
+          'title' => 'Ctools example'
+        ),
+        array(
+          'form_id' => 'page_node_form',
+          'title' => 'Page',
+          'path' => 'node/add/page'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_formflow_alter().
+ */
+function formflow_example_formflow_alter(&$flow, &$form_state){
+  // Ctools ajax sample expects a cache object so add one here
+  if($flow['name'] == 'example_flow'){
+    $form_state['object'] = ctools_ajax_sample_cache_get($flow['name']);
+  }
+}

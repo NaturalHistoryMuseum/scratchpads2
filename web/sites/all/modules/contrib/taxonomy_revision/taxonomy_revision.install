@@ -1,0 +1,188 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the taxonomy revision module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function taxonomy_revision_schema() {
+  $schema = array();
+
+  $schema['taxonomy_term_data_revision'] = array(
+    'description' => 'Stores term information.',
+    'fields' => array(
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unique term ID.',
+      ),
+      'revision_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key: The revision id for the taxonomy terms.',
+      ),
+      'log' => array(
+        'description' => 'The log entry explaining the changes in this version.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+      ),
+      'timestamp' => array(
+        'description' => 'A Unix timestamp indicating when this version was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => 'User id storing the user who created the revision.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {taxonomy_vocabulary}.vid of the vocabulary to which the term is assigned.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The term name.',
+        'translatable' => TRUE,
+      ),
+      'description' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'description' => 'A description of the term.',
+        'translatable' => TRUE,
+      ),
+      'format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The {filter_format}.format of the description.',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The weight of this term in relation to other terms.',
+      ),
+    ),
+    'primary key' => array('revision_id'),
+    'foreign keys' => array(
+      'vocabulary' => array(
+        'table' => 'taxonomy_vocabulary',
+        'columns' => array('vid' => 'vid'),
+      ),
+      'taxonomy_term_data' => array(
+        'table' => 'taxonomy_term_data',
+        'columns' => array('tid' => 'tid'),
+      ),
+    ),
+    'indexes' => array(
+      'taxonomy_tree' => array('vid', 'weight', 'name'),
+      'vid_name' => array('vid', 'name'),
+      'name' => array('name'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function taxonomy_revision_schema_alter(&$schema) {
+  $schema['taxonomy_term_data']['fields']['revision_id'] = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The revision id for the current version of a taxonomy term.',
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function taxonomy_revision_install() {
+  $schema = array();
+  taxonomy_revision_schema_alter($schema);
+  // Altering the {taxonomy_term_data} table.
+  $spec = $schema['taxonomy_term_data']['fields']['revision_id'];
+  $indexes_new = array();
+
+  // If another module had added a {taxonomy_term_data}.revision_id field,
+  // then change it to the expected specification. Otherwise, add the field.
+  if (db_field_exists('taxonomy_term_data', 'revision_id')) {
+    // db_change_field() will fail if any records have type=NULL, so update
+    // them to the new default value.
+    db_update('taxonomy_term_data')->fields(array('revision_id' => $spec['default']))->isNull('revision_id')->execute();
+
+    // Indexes using a field being changed must be dropped prior to calling
+    // db_change_field(). However, the database API doesn't provide a way to do
+    // this without knowing what the old indexes are. Therefore, it is the
+    // responsibility of the module that added them to drop them prior to
+    // allowing this module to be installed.
+    db_change_field('taxonomy_term_data', 'revision_id', 'revision_id', $spec, $indexes_new);
+  }
+  else {
+    db_add_field('taxonomy_term_data', 'revision_id', $spec, $indexes_new);
+  }
+
+  $query = db_select('taxonomy_term_data', 'ttd');
+  $query->addExpression('MAX(tid)', 'max_tid');
+  $max_tid = $query->execute()->fetchField();
+
+  // If we have taxonomy terms already in the {taxonomy_term_data} table we must
+  // create the current revisions for them.
+  if ($max_tid) {
+    $fields = array('tid', 'vid', 'name', 'description', 'format', 'weight');
+    $terms = db_select('taxonomy_term_data', 'ttd')
+      ->fields('ttd', $fields)
+      ->condition('tid', 0, '>')
+      ->orderBy('tid', 'ASC')
+      ->execute()->fetchAllAssoc('tid', PDO::FETCH_ASSOC);
+
+    foreach ($terms as $term) {
+      $term['log'] = 'Initial revision created by the taxonomy revision module on install.';
+      $revision_id = db_insert('taxonomy_term_data_revision')
+        ->fields($term)
+        ->execute();
+      db_update('taxonomy_term_data')
+        ->fields(array('revision_id' => $revision_id))
+        ->condition('tid', $term['tid'])
+        ->execute();
+    }
+  }
+
+  if (!db_index_exists('taxonomy_term_data', 'revision_id')) {
+    db_add_unique_key('taxonomy_term_data', 'revision_id', array('revision_id'));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function taxonomy_revision_uninstall() {
+  // Delete the unique key from the 'taxonomy_term_data' table.
+  db_drop_unique_key('taxonomy_term_data', 'revision_id');
+  // Delete the {revision_id} column from the {taxonomy_term_data} table.
+  db_drop_field('taxonomy_term_data', 'revision_id');
+
+  foreach (taxonomy_get_vocabularies() as $vid => $vocabulary) {
+    variable_del("taxonomy_revision_by_default[{$vid}]");
+  }
+}

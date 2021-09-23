@@ -1,0 +1,181 @@
+<?php
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function blockexpose_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  $settings = variable_get('blockexpose_settings_' . $form['module']['#value'] . '_' . $form['delta']['#value'], array(
+    'show' => 0,
+    'side' => 'right',
+    'event' => 'click'
+  ));
+  $form['blockexpose'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tabify the block'),
+    '#group' => 'visibility',
+    'display_as_tab' => array(
+      '#type' => 'checkbox',
+      '#default_value' => $settings['show'],
+      '#description' => t('Tick the box to display this block as a tab hidden at the edge of a page'),
+      '#title' => t('Display as tab')
+    ),
+    'display_as_tab_side' => array(
+      '#type' => 'select',
+      '#default_value' => $settings['side'],
+      '#description' => t('What side of the page should the tab be displayed on?'),
+      '#title' => t('Side'),
+      '#options' => array(
+        'left' => t('Left'),
+        'right' => t('Right')
+      )
+    ),
+    'display_as_tab_event' => array(
+      '#type' => 'select',
+      '#default_value' => $settings['event'],
+      '#description' => t('On what event should the tab be displayed?'),
+      '#title' => t('Event'),
+      '#options' => array(
+        'click' => t('Click'),
+        'hover' => t('Hover')
+      )
+    )
+  );
+  $blockexpose_submit = array(
+    'blockexpose_block_admin_configure_form_submit'
+  );
+  $form['#submit'] = is_array($form['#submit']) ? array_merge($form['#submit'], $blockexpose_submit) : $blockexpose_submit;
+}
+
+/**
+ * Submit function for saving the above settings.
+ */
+function blockexpose_block_admin_configure_form_submit($form, &$form_state){
+  if(isset($form_state['values']['display_as_tab'], $form_state['values']['display_as_tab_side'], $form_state['values']['display_as_tab_event'])){
+    variable_set('blockexpose_settings_' . $form_state['values']['module'] . '_' . $form_state['values']['delta'], array(
+      'show' => $form_state['values']['display_as_tab'],
+      'side' => $form_state['values']['display_as_tab_side'],
+      'event' => $form_state['values']['display_as_tab_event']
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function blockexpose_theme($existing, $type, $theme, $path){
+  return array(
+    'blockexpose' => array(
+      'variables' => array(
+        'block' => array(),
+        'settings' => array(
+          'side' => 'right',
+          'show' => 1,
+          'event' => 'click'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function blockexpose_block_view_alter(&$data, $block){
+  // Are we changing this block?
+  $settings = variable_get('blockexpose_settings_' . $block->module . '_' . $block->delta, array(
+    'show' => 0
+  ));
+  // We try to check for the has_js variable, but if we're using a reverse proxy
+  // we may not be able to, so we simply continue.
+  if($settings['show'] && (variable_get('reverse_proxy', FALSE) || (isset($_COOKIE['has_js']) && $_COOKIE['has_js']))){
+    // We actually save the $data array for use later in the hook_footer
+    // function.  This prevents an empty block from appearing in the side bar
+    // (depending on theme).
+    $blockexpose = &drupal_static('blockexpose', array());
+    $data_copy = $data;
+    if(empty($data_copy['subject'])){
+      $data_copy['subject'] = $block->title;
+    }
+    $blockexpose[] = array(
+      'data' => $data_copy,
+      'block' => $block,
+      'settings' => $settings
+    );
+    // Unset content to prevent this block from being displayed.
+    $data['content'] = '';
+  }
+}
+
+/**
+ * Implements hook_block_info_alter().
+ * 
+ * FIXME - This is not ideal, as it means that blocks exposed using this module
+ * are no longer cached.  If the block is intensive to create, it will need to
+ * be created on EVERY page - NOT GOOD.
+ */
+function blockexpose_block_info_alter(&$blocks, $theme, $code_blocks){
+  foreach($blocks as $module => $modules_blocks){
+    foreach($modules_blocks as $delta => $block){
+      $settings = variable_get('blockexpose_settings_' . $module . '_' . $delta, array(
+        'show' => 0,
+        'side' => 'right',
+        'event' => 'click'
+      ));
+      if($settings['show']){
+        // Disable caching for this block, as otherwise we'll screw things up.
+        $blocks[$module][$delta]['cache'] = DRUPAL_NO_CACHE;
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_page_alter()
+ * 
+ * Note, this adds blocks to the content region, as we can be certain that
+ * the content region will be present in all themes.
+ * 
+ * FIXME - This function should mimic what occurs in _block_render_blocks, but
+ * gets our own cache of blocks.
+ */
+function blockexpose_page_alter(&$page){
+  $blockexpose = &drupal_static('blockexpose', array());
+  foreach($blockexpose as $block){
+    $data = $block['data'];
+    $page['content']['blockexpose'][]['#markup'] = theme('blockexpose', array(
+      'block' => $data,
+      'settings' => $block['settings']
+    ));
+  }
+}
+
+/**
+ * Theme function to add JS
+ */
+function theme_blockexpose($variables){
+  drupal_add_js(drupal_get_path('module', 'blockexpose') . '/js/blockexpose.js');
+  drupal_add_css(drupal_get_path('module', 'blockexpose') . '/css/blockexpose.css');
+  if(isset($variables['block']['content']) && isset($variables['block']['subject'])){
+    // Get the number of this tab for the side.
+    $side_number = &drupal_static('blockexpose_' . $variables['settings']['side'], 0);
+    $side_number++;
+    drupal_static('blockexpose_' . $variables['settings']['side'], $side_number);
+    $subject = $variables['block']['subject'];
+    if(is_array($variables['block']['content'])){
+      $block_html = drupal_render($variables['block']['content']);
+    }else{
+      $block_html = $variables['block']['content'];
+    }
+    return '<div class="blockexpose ' . $variables['settings']['side'] . ' side-number-' . $side_number . '">
+    <div class="content">
+      <div class="open-close ' . $variables['settings']['event'] . '">
+        <p' . ($variables['settings']['event'] == 'click' ? ' title="Click"' : '') . '>' . $subject . '</p>
+      </div>
+      <div class="subcontent">
+      	' . $block_html . '
+      </div>
+    </div>
+  </div>';
+  }
+  return '';
+}

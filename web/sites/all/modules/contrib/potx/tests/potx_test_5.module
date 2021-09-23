@@ -1,0 +1,60 @@
+<?php
+// $Id: potx_test_5.module,v 1.1.4.4 2011/01/26 12:16:06 goba Exp $
+
+/**
+ * @file
+ *   File used purely to test the parser in potx.
+ */
+
+/**
+ * Implementation of hook_menu()
+ */
+function potx_test_5_menu($may_cache) {
+  $items = array();
+  if ($may_cache) {
+    $items[] = array('path' =>
+      'node/add/blog',
+      'title' => t('Test menu item in 5'),
+      'description' => t('This is a test menu item in 5'),
+      'access' => user_access('access content'),
+      'callback' => 'potx_test_5_page',
+    );
+    $items[] = array('path' =>
+      'test-empty-t',
+      'title' => t(''),
+    );
+  }
+  return $items;
+}
+
+function potx_test_5_page() {
+  t('This is a test string.');
+  format_plural($count, '1 test string', '@count test strings');
+  watchdog('test watchdog type', 'My watchdog message');
+
+  st('Installer only test string');
+  $t('Dynamic callback test string');
+
+  t('Test string in context', array(), array('context' => 'Test context'));
+  t('');
+
+  st('Installer string in context', array(), array('context' => 'Installer context'));
+  $t('Dynamic string in context', array(), array('context' => 'Dynamic context'));
+}
+
+function potx_test_5_perm() {
+  return array('test potx permission', 'one more test potx permission', '');
+}
+
+function potx_test_5_permission() {
+  return array(
+    'test potx permission' => array(
+     'title' => t('Test potx permission'),
+     'description' => t('Test potx permission description'),
+    ),
+    'one more test potx permission' => array(
+     'title' => t('One more test potx permission'),
+     'description' => t('One more test potx permission description'),
+    ),
+  );
+}

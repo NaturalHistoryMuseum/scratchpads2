@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * Add the homepage field.
+ */
+function scratchpads_user_update_7001(){
+  module_load_include('features.field.inc', 'scratchpads_user');
+  $fields = scratchpads_user_field_default_fields();
+  field_create_field($fields['user-user-field_homepage']['field_config']);
+  field_create_instance($fields['user-user-field_homepage']['field_instance']);
+}
+
+/**
+ * Ensure existing stub users have an empty password
+ */
+function scratchpads_user_update_7002(){
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')->propertyCondition('status', 0)->propertyCondition('uid', 0, '<>')->propertyCondition('uid', 1, '<>');
+  $result = $query->execute();
+  if(is_array($result['user'])){
+    $users = user_load_multiple(array_keys($result['user']));
+    foreach($users as $user){
+      if(preg_match('/^[0-9a-zA-Z.]{13}$/', $user->name)){
+        $user->pass = '';
+        user_save($user);
+      }
+    }
+  }
+}
+
+/**
+ * Allow "Other" to work for the Title field.
+ */
+function scratchpads_user_update_7003(){
+  $row = db_select('field_config', 'f')->fields('f', array(
+    'id'
+  ))->condition('field_name', 'field_user_title')->execute()->fetchCol(0);
+  if(is_array($row) && $row[0]){
+    db_update('field_config')->fields(array(
+      'data' => serialize(array(
+        'entity_types' => array(),
+        'foreigh keys' => array(),
+        'indexes' => array(
+          'value' => array(
+            'value'
+          )
+        ),
+        'settings' => array(
+          'allowed_values' => array(),
+          'allowed_values_function' => '',
+          'profile2_private' => FALSE
+        ),
+        'translatable' => '0',
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => '1'
+        ),
+        'id' => $row[0]
+      ))
+    ))->condition('id', $row[0])->execute();
+  }
+  cache_clear_all();
+}
+
+/**
+ * Set an email for "no login" people.
+ */
+function scratchpads_user_update_7004(){
+  global $base_url;
+  $url = parse_url($base_url);
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid'
+  ))->condition('uid', '0', '>')->condition('mail', '')->execute();
+  foreach($results as $row){
+    db_update('users')->fields(array(
+      'mail' => uniqid('', TRUE) . '@' . $url['host']
+    ))->condition('uid', $row->uid)->execute();
+  }
+}
+
+/**
+ * Update stub users to set their username to be their full name.
+ */
+function scratchpads_user_update_7005(){
+  $results = db_select('users', 'u')->fields('u', array(
+    'uid',
+    'name'
+  ))->condition('uid', '1', '>')->condition('pass', '')->execute();
+  foreach($results as $row){
+    $user = user_load($row->uid);
+    // Set the name
+    $name = '';
+    foreach(array(
+      'field_user_title',
+      'field_user_given_names',
+      'field_user_family_name'
+    ) as $field_name){
+      $lang = field_language('user', $user, $field_name);
+      if(@isset($user->{$field_name}[$lang][0]['value'])){
+        $name = $name . ' ' . $user->{$field_name}[$lang][0]['value'];
+      }
+      $name = trim($name);
+    }
+    if($row->name != $name){
+      // Check this name does not exist, else we add a number to the end.
+      $results = db_select('users', 'u')->fields('u', array(
+        'name'
+      ))->condition('name', "$name%", 'LIKE')->condition('uid', $user->uid, '!=')->execute();
+      $matches = array();
+      foreach($results as $row){
+        $matches[] = $row->name;
+      }
+      $index = 1;
+      $new_name = $name;
+      while(in_array($new_name, $matches)){
+        $new_name = "$name $index";
+        $index++;
+      }
+      $user->name = $new_name;
+      user_save($user);
+    }
+  }
+}
+
+/**
+ * Update all stub users to be inactive (following a previous update, editing
+ * a stub user could have activated their account).
+ */
+function scratchpads_user_update_7006(){
+  db_update('users')->fields(array(
+    'status' => 0
+  ))->condition('pass', '')->condition('uid', 1, '>')->execute();
+}
+
+/**
+ * Update user 1 (Scratchpads Team) to be active.
+ */
+function scratchpads_user_update_7007(){
+  $u1 = user_load(1);
+  $u1->status = 1;
+  user_save($u1);
+}
+
+/**
+ * Ensure users haven't deleted any fields.
+ */
+function scratchpads_user_update_7008(){
+  $fields_to_lock = array();
+  module_load_include('features.field.inc', 'scratchpads_user');
+  foreach(scratchpads_user_field_default_fields() as $field){
+    $fields_to_lock[] = $field['field_config']['field_name'];
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    try{
+      field_create_instance($field['field_instance']);
+    }
+    catch(Exception $e){
+    }
+  }
+  db_update('field_config')->fields(array(
+    'locked' => 1
+  ))->condition('field_name', $fields_to_lock)->execute();
+}

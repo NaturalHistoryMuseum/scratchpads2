@@ -1,0 +1,256 @@
+<?php
+
+/**
+ * @file
+ * 
+ */
+/**
+ * Implementation of hook_init().
+ */
+function websockets_init($return = FALSE){
+  // Ensure the WebSockets server is running.  There may be a more efficient
+  // way of checking for the presence of the server than this.
+  // As multisite installs can have different "tmp" folders, and will almost
+  // certainly have different files folders, the best place to keep the PID
+  // file is in the same folder as the module.  We will fall back to using the
+  // DRUPAL_ROOT or "/tmp" folders if we're unable to write to this location
+  $path = drupal_get_path('module', 'websockets');
+  $pid = websockets_get_pid($path);
+  if($pid){
+    if(websockets_check_process($pid)){
+      // Process is running.
+      return;
+    }else{
+      // Process is no longer running.  Lets add a warning that we probably
+      // crashed.
+      watchdog('WebSockets', 'WebSockets server (%pid) has crashed. Restarting.', array(
+        '%pid' => trim($pid)
+      ), WATCHDOG_ERROR);
+    }
+  }
+  // Process isn't running, lets create the process, and make a note of its PID
+  $pid = trim(shell_exec("nohup php -q $path/websockets.server.php > /dev/null & echo $!"));
+  if($pid){
+    // Write the PID to the file
+    if(!@file_put_contents("$path/websockets.pid", $pid)){
+      if(!@file_put_contents(DRUPAL_ROOT . "/websockets.pid", $pid)){
+        if(!@file_put_contents("/tmp/websockets.pid", $pid)){
+          // Failed to write the PID.  This will result in us attempting to create
+          // a new server on every page request - NOT GOOD.
+          watchdog('WebSockets', 'Unable to record the PID of the WebSockets server', array(), WATCHDOG_ERROR);
+        }
+      }
+    }
+  }else{
+    // Failed to start the server.
+    watchdog('WebSockets', 'Default WebSockets server failed to start', array(), WATCHDOG_ERROR);
+  }
+  if($return){
+    return $pid;
+  }
+}
+
+/**
+ * Function for use by other modules that would like to make use of the basic
+ * websockets API.
+ * 
+ * A P I
+ * 
+ * 
+ */
+function websockets_add(){
+  // Only add websockets once per page.
+  static $added = 0;
+  if($added){
+    if($added == 1){
+      return FALSE;
+    }else{
+      return TRUE;
+    }
+  }
+  // We also need to tell the WebSockets server how to connect to the database.
+  // We do this by writing the database details to a random file in the files
+  // folder of the site.  The path to this file is then handed to the socket
+  // server.  
+  global $databases;
+  global $base_url;
+  global $user;
+  $file_path = variable_get('websockets_database_settings_file_path', FALSE);
+  $host = parse_url($base_url, PHP_URL_HOST);
+  if(!$file_path || file_get_contents($file_path) != serialize($databases)){
+    if(!$file_path){
+      // We don't have a file, we need to create one.
+      $file_path = drupal_tempnam(file_directory_temp(), 'websockets-' . $host . '-');
+      if(!$file_path){
+        watchdog('WebSockets', 'Unable to create database settings file in "%tempfolder"', array(
+          '%tempfolder' => file_directory_temp()
+        ));
+        $added = 1;
+        return FALSE;
+      }
+      variable_set('websockets_database_settings_file_path', $file_path);
+    }
+    file_put_contents($file_path, serialize($databases));
+  }
+  // Note, the order of the following JS files is very important!
+  drupal_add_js(drupal_get_path('module', 'websockets') . '/web-socket-js/swfobject.js');
+  drupal_add_js(drupal_get_path('module', 'websockets') . '/web-socket-js/web_socket.js');
+  drupal_add_js(drupal_get_path('module', 'websockets') . '/js/websockets.js');
+  drupal_add_js(array(
+    'websockets' => array(
+      'filepath' => $file_path,
+      'swfurl' => url('/', array(
+        'absolute' => TRUE
+      )) . drupal_get_path('module', 'websockets') . '/web-socket-js/WebSocketMain.swf',
+      'host' => $host,
+      'port' => variable_get('websockets_port', 8080),
+      'user' => serialize($user)
+    )
+  ), 'setting');
+  $added = 2;
+  return TRUE;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function websockets_menu(){
+  return array(
+    'admin/config/services/websockets' => array(
+      'title' => 'WebSockets',
+      'description' => t('Check the status of the WebSockets server, and also change key settings'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'websockets_configuration'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      )
+    )
+  );
+}
+
+/**
+ * Callback for the test page
+ */
+function websockets_configuration(){
+  //websockets_add();
+  $pid = websockets_get_pid(drupal_get_path('module', 'websockets'));
+  $process_status = 'STOPPED';
+  if($pid){
+    if(websockets_check_process($pid)){
+      $process_status = 'RUNNING';
+    }
+  }
+  $rows = array(
+    array(
+      $pid,
+      $process_status
+    )
+  );
+  return system_settings_form(array(
+    'websockets-server-status' => array(
+      '#type' => 'fieldset',
+      '#title' => 'WebSockets server status',
+      '#collapsed' => FALSE,
+      '#collapsible' => TRUE,
+      'markup' => array(
+        '#markup' => theme('table', array(
+          'header' => array(
+            'PID',
+            'Status'
+          ),
+          'rows' => $rows
+        ))
+      ),
+      'restart-server' => array(
+        '#type' => 'submit',
+        '#value' => t('Restart server')
+      )
+    ),
+    '#submit' => array(
+      'websockets_configuration_submit'
+    )
+  ));
+}
+
+/**
+ * Submit for above function
+ */
+function websockets_configuration_submit(&$form, &$form_state){
+  // Save the settings.
+  // Restart the server if required.
+  switch($form_state['values']['op']){
+    default:
+    case $form_state['values']['submit']:
+      // Save the settings to a configuration file, and also reload the server.
+      
+    case $form_state['values']['restart-server']:
+      // Restart the server.
+      $pid = websockets_get_pid(drupal_get_path('module', 'websockets'));
+      if(!exec("kill -9 $pid")){
+        drupal_set_message(t('Killed WebSockets server process %pid', array('%pid' => $pid)));
+      } else {
+        drupal_set_message(t('Failed to kill WebSockets server process %pid', array('%pid' => $pid)));        
+      }
+      $pid = websockets_init(TRUE);
+      if($pid){
+        drupal_set_message(t('Started WebSockets server process %pid', array('%pid' => $pid)));        
+      } else {
+        drupal_set_message(t('Failed to start WebSockets server'));        
+      }
+  }
+}
+
+/**
+ * Get the PID from the file
+ */
+function websockets_get_pid($path){
+  @$pid = file_get_contents("$path/websockets.pid");
+  if(!$pid){
+    @$pid = file_get_contents(DRUPAL_ROOT . '/websockets.pid');
+  }
+  if(!$pid){
+    @$pid = file_get_contents('/tmp/websockets.pid');
+  }
+  return $pid;
+}
+
+/**
+ * Check if process exists on Linux type OS
+ * 
+ * http://www.blrf.net/howto/25_PHP__How_to_check_if_PID_exists_on_Linux_.html
+ *
+ * @param int $pid Process ID
+ * @param string $name Process name, null for no process name matching
+ * @return bool
+ */
+function websockets_check_process($pid, $name = null){
+  // form the filename to search for
+  $file = '/proc/' . (int)$pid . '/cmdline';
+  $fp = false;
+  if(file_exists($file))
+    $fp = @fopen($file, 'r');
+     // if file does not exist or cannot be opened, return false
+  if(!$fp)
+    return false;
+  $buf = fgets($fp);
+  // if we failed to read from file, return false
+  if($buf === false){return false;}
+  if($name !== null){
+    // this code will also check if name matches
+    $cmd = basename($buf);
+    if(preg_match('/' . $name . '.*/', $cmd)){
+      fclose($fp);
+      return true;
+    }else{
+      // process was found, but name did not match
+      fclose($fp);
+      return false;
+    }
+  }else{
+    // process found, name is null, return true
+    fclose($fp);
+    return true;
+  }
+}

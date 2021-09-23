@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_simple_taxonomy_page_install(){
+  db_insert('apachesolr_search_page')->fields(array(
+    'page_id' => 'simple_taxonomy',
+    'label' => t('Simple taxonomy page'),
+    'description' => 'Browse the content associated with a taxonomy term.',
+    'search_path' => 'nontaxonomy/term/%',
+    'env_id' => 'solr',
+    'page_title' => '%value',
+    'settings' => serialize(array(
+      'fq' => array(),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'tid',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '10',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->execute();
+}
+
+/**
+ * Change the URL of the search page from term/% to nontaxonomy/term/%
+ */
+function scratchpads_simple_taxonomy_page_update_7001(){
+  db_update('apachesolr_search_page')->fields(array(
+    'search_path' => 'nontaxonomy/term/%'
+  ))->condition('search_path', 'term/%')->execute();
+}
+
+/**
+ * Change the URL of the search page from term/% to nontaxonomy/term/%
+ */
+function scratchpads_simple_taxonomy_page_update_7002(){
+  $none_bio = variable_get('none_biological_vids', array());
+  $bio = variable_get('biological_vids', array());
+  $rebuild_menu = FALSE;
+  foreach($none_bio as $key => $value){
+    if($value && isset($bio[$key]) && $bio[$key]){
+      $none_bio[$key] = 0;
+      $rebuild_menu = TRUE;
+    }
+  }
+  if($rebuild_menu){
+    variable_set('none_biological_vids', $none_bio);
+    menu_rebuild();
+  }
+}
+
+/**
+ * Clean up the 'none_biological_vids','scratchpads_simple_taxonomy_page_vids',
+ * and 'biological_vids' variables.
+ */
+function scratchpads_simple_taxonomy_page_update_7003(){
+  foreach(array(
+    'none_biological_vids',
+    'scratchpads_simple_taxonomy_page_vids',
+    'biological_vids'
+  ) as $variable_name){
+    $values = variable_get($variable_name, array());
+    foreach($values as $vid => $value){
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      if(!$vocabulary){
+        unset($values[$vid]);
+      }
+    }
+    variable_set($variable_name, $values);
+  }
+}
+
+/**
+ * Set the search page.
+ */
+function scratchpads_simple_taxonomy_page_update_7004(){
+  db_merge('apachesolr_search_page')->fields(array(
+    'page_id' => 'simple_taxonomy',
+    'label' => t('Simple taxonomy page'),
+    'description' => 'Browse the content associated with a taxonomy term.',
+    'search_path' => 'nontaxonomy/term/%',
+    'env_id' => 'solr',
+    'page_title' => '%value',
+    'settings' => serialize(array(
+      'fq' => array(),
+      'apachesolr_search_custom_enable' => 1,
+      'apachesolr_search_search_type' => 'tid',
+      'apachesolr_search_search_box' => 0,
+      'apachesolr_search_per_page' => '10',
+      'apachesolr_search_browse' => 'results',
+      'apachesolr_search_spellcheck' => 0,
+      'apachesolr_search_allow_user_input' => 0
+    ))
+  ))->key(array(
+    'page_id' => 'simple_taxonomy'
+  ))->execute();
+}

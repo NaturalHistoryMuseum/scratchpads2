@@ -1,0 +1,181 @@
+@CHARSET "UTF-8";
+
+/* Slideshow */
+.view-front-page-slideshow {
+  background: #fff;
+}
+
+.view-front-page-slideshow .views-slideshow-pager-field-item img {
+  margin-right: 1px;
+  margin-bottom: 1px;
+}
+
+#views_slideshow_pager_field_item_bottom_front_page_slideshow-default_3 img
+  {
+  margin-right: 0 !important;
+}
+
+.view-front-page-slideshow #views_slideshow_pager_field_item_bottom_home_page_slideshow-block_1_3 img
+  {
+  margin-bottom: 0;
+}
+
+.view-front-page-slideshow .views_slideshow_cycle_main {
+  float: left;
+  position: relative;
+  margin-right: 1px;
+  margin-bottom: 1px;
+}
+
+.view-front-page-slideshow .views-field-filename {
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  padding: 10px 0;
+  color: #fff;
+}
+
+.view-front-page-slideshow  #slideshow-transparency {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  height: 61px;
+  z-index: 10;
+  display: none;
+}
+
+.view-front-page-slideshow  #slideshow-transparency.title_only {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  height: 40px;
+  z-index: 10;
+}
+
+.view-front-page-slideshow  #slideshow-content {
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  background: none;
+  height: 48px;
+  z-index: 100;
+  color: #fff;
+  display: none;
+}
+.views-slideshow-cycle-main-frame-row-item:hover #slideshow-content,.views-slideshow-cycle-main-frame-row-item:hover #slideshow-transparency{
+  display:block;
+}
+
+.view-front-page-slideshow  #slideshow-content.title_only {
+  height: 30px;
+}
+
+.view-front-page-slideshow  #slideshow-content h3 {
+  font-size: 1.4em;
+  margin: 2px 0 2px;
+  padding-left: 10px;
+}
+
+.view-front-page-slideshow  #slideshow-content.title_only h3 {
+  margin: 7px 0 2px;
+  padding-left: 10px;
+}
+
+.view-front-page-slideshow  #slideshow-content div {
+  padding-left: 10px;
+}
+
+.view-front-page-slideshow  #slideshow-content span.creator {
+  padding-right: 25px;
+  padding-left: 0px;
+}
+
+body #region-content .view-front-page-slideshow  #slideshow-content span.licence
+  {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+body #region-content .caption span {
+  padding-left: 10px;
+}
+
+.view-front-page-slideshow .views-field-filename span {
+  padding: 0 10px;
+  display: block;
+}
+
+/* Slideshow controls */
+.views-slideshow-pager-field-item {
+  float: left;
+}
+
+.views-slideshow-controls-bottom {
+  min-width: 620px;
+}
+/* Reduce padding on node links */
+.node-links {
+  padding-top: 0 !important;
+}
+/* Large text block */
+.view-front-page-content li {
+  margin: 0 !important;
+}
+
+.view-front-page-content li h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+/* Small blocks */
+.view-front-page-blocks li {
+  margin: 2px 0 10px 10px !important;
+}
+
+.view-front-page-blocks li p {
+  margin: 5px 0;
+}
+
+.view-front-page-blocks li h1,.view-front-page-blocks li h2 {
+  display: none;
+}
+
+/* Responsive */
+.responsive-layout-normal .views_slideshow_cycle_main .slideshow_large>a>img,.responsive-layout-normal .views-slideshow-cycle-main-frame,.responsive-layout-normal .views-slideshow-cycle-main-frame-row,.responsive-layout-narrow .views_slideshow_cycle_main .slideshow_large>a>img,.responsive-layout-narrow .views-slideshow-cycle-main-frame,.responsive-layout-narrow .views-slideshow-cycle-main-frame-row
+  {
+  width: 492px !important;
+  height: 375px !important;
+}
+
+.responsive-layout-narrow .views_slideshow_pager_field_item img,.responsive-layout-normal .views_slideshow_pager_field_item img
+  {
+  width: 126px !important;
+  height: 93px !important;
+}
+
+/* Remove styles restricting the size of the slider thumbnails*/
+.view-front-page-slideshow .views-slideshow-pager-fields img {
+  max-width: none;
+  max-height: none;
+}
+
+/* Remove styles affecting the position of the slider thumbnails*/
+.view-front-page-slideshow .views-slideshow-pager-fields div {
+  display: initial;
+  padding-left: initial;
+}
+
+/* Use an outline instead of border for the active thumbnail, as outline doesn't affect layout */
+.view-front-page-slideshow .views-slideshow-pager-fields .active img {
+  outline: 3px solid black;
+  outline-offset: -3px;
+  border: none;
+}
+
+/* Item list fix */
+.page-scratchpads-front .block-system ul {
+  margin-left: 30px;
+}

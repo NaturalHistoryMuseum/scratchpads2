@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/biblio/biblio.module b/sites/all/modules/contrib/biblio/biblio.module
+index 4d53147..24010a3 100644
+--- a/sites/all/modules/contrib/biblio/biblio.module
++++ b/sites/all/modules/contrib/biblio/biblio.module
+@@ -1619,6 +1619,8 @@ function biblio_update($node) {
+   _biblio_prepare_submit($node);
+   biblio_update_contributors($node);
+   biblio_update_keywords($node);
++  $contributors = biblio_load_contributors($node->vid);
++  $node->biblio_contributors = $contributors[$node->vid];
+   $node->biblio_coins = biblio_coins($node);
+
+   // Update the node in the database:

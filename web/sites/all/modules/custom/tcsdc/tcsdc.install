@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function tcsdc_schema(){
+  return array(
+    'tcsdc_data' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'name' => array(
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'bid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'vid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'parent' => array(
+          'type' => 'varchar',
+          'length' => 255
+        ),
+        'data' => array(
+          'type' => 'text'
+        )
+      ),
+      'unique keys' => array(
+        'tcsdc_data_unique_id_and_bid' => array(
+          'id',
+          'bid'
+        )
+      ),
+      'indexes' => array(
+        'tcsdc_data_parent_index' => array(
+          'parent'
+        ),
+        'tcsdc_data_bid_index' => array(
+          'bid'
+        ),
+        'tcsdc_data_name_index' => array(
+          'name'
+        )
+      )
+    ),
+    'tcsdc_ids' => array(
+      'fields' => array(
+        'tid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE
+        ),
+        'id' => array(
+          'type' => 'varchar',
+          'length' => 255
+        )
+      ),
+      'primary key' => array(
+        'tid'
+      ),
+      'indexes' => array(
+        'tcsdc_ids_id' => array(
+          'id'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Alter the tcsdc_data table - the id field does not need to be the primary key,
+ * although it does need to be unique.
+ */
+function tcsdc_update_7001(){
+  db_drop_primary_key('tcsdc_data');
+  db_add_unique_key('tcsdc_data', 'tcsdc_data_unique_id_and_bid', array(
+    'id',
+    'bid'
+  ));
+}

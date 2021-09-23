@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function scratchpads_contact_form_contact_site_form_alter(&$form, &$form_state){
+  $cid = arg(3);
+  if(!$cid && arg(0) == 'contact'){
+    $cid = arg(1);
+  }
+  $categories = scratchpads_contact_get_categories();
+  // Use the contact form category as the title
+  $form_state['title'] = $categories[$cid]->category;
+  switch($categories[$cid]->category){
+    // If this is an abuse form, add some extra fields
+    case 'Report abuse':
+      $form['report'] = array(
+        '#type' => 'select',
+        '#title' => t('What would you like to report?'),
+        '#options' => scratchpads_contact_abuse_types(),
+        '#weight' => -10,
+        '#required' => true
+      );
+      $form['url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('URL'),
+        '#size' => 60,
+        '#weight' => -9,
+        '#default_value' => $_SERVER["HTTP_REFERER"],
+        '#disabled' => true
+      );
+      $form['subject']['#default_value'] = t('Report abuse');
+      $form['message']['#title'] = t('Details');
+      break;
+    case 'Contact us':
+      $form['help'] = array(
+        '#weight' => -1000,
+        '#markup' => '<div style="border:solid 1px #BBEE77; padding:8px;background-color:#F8FFF0">
+          <p style="padding:0;margin:0"><strong>' . t('Your message will be sent to the site\'s maintainer.') . '</strong></p>
+        </div>'
+      );
+  }
+  $form['cid'] = array(
+    '#type' => 'hidden',
+    '#value' => $cid
+  );
+  $form['#validate'][] = 'scratchpads_contact_contact_site_form_validate';
+}
+
+function scratchpads_contact_contact_site_form_validate(&$form, $form_state){
+  // We don;t want the error messages - red borders are enough
+  drupal_get_messages();
+}
+
+function scratchpads_contact_mail_alter(&$message){
+  // Always replace "site-email-address@scratchpads.org" in the "to" line to the
+  // site's email address.
+  $message['to'] = str_replace('site-email-address@scratchpads.org', variable_get('site_mail', ''), $message['to']);
+  if(isset($message['params']['report'])){
+    $abuse_types = scratchpads_contact_abuse_types();
+    $type = $message['params']['report'];
+    $message['body'][1] = t('Reporting !type', array(
+      '!type' => strtolower($abuse_types[$type])
+    ));
+    $message['body'][2] = t('On page !url', array(
+      '!url' => $message['params']['url']
+    ));
+    $message['body'][3] = $message['params']['message'];
+  }
+  // Remove the modal_forms/ajax text from links.
+  foreach($message['body'] as $line => $text){
+    $message['body'][$line] = str_replace('/modal_forms/ajax', '', $text);
+  }
+}
+
+function scratchpads_contact_abuse_types(){
+  return array(
+    t('A violation of Intellectual Property or Copyright'),
+    t('A violation of the Scratchpad Terms and Conditions'),
+    t('A Spam or Phishing event'),
+    t('Other Concerns')
+  );
+}
+
+function scratchpads_contact_get_categories(){
+  $query = db_select('contact', 'c');
+  $query->fields('c', array(
+    'cid',
+    'category'
+  ));
+  $result = $query->execute();
+  return $result->fetchAllAssoc('cid');
+}

@@ -1,0 +1,19 @@
+diff --git a/feeds.module b/feeds.module
+index 361cfc2..bb97224 100644
+--- a/feeds.module
++++ b/feeds.module
+@@ -1027,12 +1027,9 @@ function feeds_alter($type, &$data) {
+   array_shift($additional_args);
+   array_shift($additional_args);
+   $args = array_merge($args, $additional_args);
+-
+   $hook = $type . '_alter';
+-  foreach (module_list() as $module) {
+-    if (module_hook($module, $hook)) {
+-      call_user_func_array($module . '_' . $hook, $args);
+-    }
++  foreach (module_implements($hook) as $module) {
++    call_user_func_array($module . '_' . $hook, $args);
+   }
+ }
+ 

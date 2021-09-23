@@ -1,0 +1,11 @@
+name = ShareThis
+description = Add the <a href="http://sharethis.com/">ShareThis</a> widget to nodes on your site.
+core = 7.x
+package = Sharing
+tool=true
+dependencies[] = sharethis
+stylesheets[screen][] = css/scratchpads_sharethis.css
+
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_sharethis

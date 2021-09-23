@@ -1,0 +1,9 @@
+name = GBIF taxon distribution maps.
+description = "Adds an overlay to a Google map on a taxon page which pulls data from a service provided by GBIF."
+package = "Data provider"
+core = 7.x
+dependencies[] = gm3
+tool=true
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = eol_gbif_maps

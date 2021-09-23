@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Install the feeds_file_processor module.
+ */
+function silver_update_7001(){
+  module_enable(array(
+    'feeds_file_processor'
+  ));
+}
+
+/**
+ * Install the feeds_term_reference module.
+ */
+function silver_update_7003(){
+  module_enable(array(
+    'feeds_term_reference'
+  ));
+}
+
+/**
+ * Install the media_feeds module.
+ */
+function silver_update_7004(){
+  module_enable(array(
+    'media_feeds'
+  ));
+}
+
+/**
+ * Install the media_feeds module.
+ */
+function silver_update_7005(){
+  module_enable(array(
+    'media_internet'
+  ));
+}

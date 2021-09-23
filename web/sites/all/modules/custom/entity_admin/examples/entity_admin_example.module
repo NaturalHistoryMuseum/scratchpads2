@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * Implementation of hook_entity_info().
+ */
+function entity_admin_example_entity_info(){
+  $return['entity_admin_example'] = array(
+    'label' => t('Entity Admin Example'), 
+    'controller class' => 'EntityAPIController', 
+    'entity class' => 'Entity', 
+    'base table' => 'entity_admin_example', 
+    'fieldable' => TRUE, 
+    'entity keys' => array(
+      'id' => 'id', 
+      'bundle' => 'type', 
+      'label' => 'label'
+    ), 
+    'bundles' => array(), 
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type'
+    ), 
+    'module' => 'entity_admin_example', 
+    'admin ui' => array(
+      'path' => 'admin/content/entity-admin-example', 
+      'controller class' => 'EntityAdminEntityController'
+    ), 
+    'access callback' => 'entity_admin_example_access', 
+  );
+  // The entity that holds information about the entity types   
+  $return['entity_admin_example_type'] = array(
+    'label' => t('Entity admin example type'), 
+    'controller class' => 'EntityAPIControllerExportable', 
+    'entity class' => 'Entity', 
+    'base table' => 'entity_admin_example_type', 
+    'fieldable' => FALSE, 
+    'bundle of' => 'entity_admin_example', 
+    'exportable' => TRUE, 
+    'entity keys' => array(
+      'id' => 'id', 
+      'name' => 'type', 
+      'label' => 'label'
+    ), 
+    'access callback' => 'entity_admin_example_access', 
+    'module' => 'entity_admin_example', 
+    'admin ui' => array(
+      'path' => 'admin/structure/entity-admin-example', 
+      'controller class' => 'EntityAdminTypeController'
+    )
+  );
+  return $return;
+}
+
+function entity_admin_example_access(){
+	return true;
+}

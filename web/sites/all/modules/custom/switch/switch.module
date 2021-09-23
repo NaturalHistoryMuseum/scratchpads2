@@ -1,0 +1,130 @@
+<?php
+
+/*********************************************************************************************
+ * 
+ * FIELD DEFINITION
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_field_widget_info().
+ */
+function switch_field_widget_info(){
+  return array(
+    'switch' => array(
+      'label' => t('Switch'),
+      'field types' => array(
+        'list_boolean'
+      ),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function switch_field_widget_settings_form($field, $instance){
+  $form = array();
+  $form['display_label'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use field label instead of the "On value" as label'),
+    '#default_value' => $instance['widget']['settings']['display_label'],
+    '#weight' => -1
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function switch_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element){
+  // Abstract over the actual field columns, to allow different field types to
+  // reuse those widgets.
+  $value_key = key($field['columns']);
+  $type = str_replace('options_', '', $instance['widget']['type']);
+  $multiple = $field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED;
+  $required = $element['#required'];
+  $has_value = isset($items[0][$value_key]);
+  $properties = _options_properties($type, $multiple, $required, $has_value);
+  // Prepare the list of options.
+  $options = _options_get_options($field, $instance, $properties);
+  // Put current field values in shape.
+  $default_value = _options_storage_to_form($items, $options, $value_key, $properties);
+  $keys = array_keys($options);
+  $off_value = array_shift($keys);
+  $on_value = array_shift($keys);
+  $element += array(
+    '#type' => 'switch',
+    '#default_value' => (isset($default_value[0]) && $default_value[0] == $on_value) ? 1 : 0,
+    '#on_value' => $on_value,
+    '#off_value' => $off_value
+  );
+  // Override the title from the incoming $element.
+  $element['#title'] = isset($options[$on_value]) ? $options[$on_value] : '';
+  if($instance['widget']['settings']['display_label']){
+    $element['#title'] = $instance['label'];
+  }
+  $element += array(
+    '#value_key' => $value_key,
+    '#element_validate' => array(
+      'options_field_widget_validate'
+    ),
+    '#properties' => $properties
+  );
+  return $element;
+}
+
+/*********************************************************************************************
+ * 
+ * ELEMENT DEFINITION
+ * 
+ ********************************************************************************************/
+/**
+ * Implements hook_element_info().
+ */
+function switch_element_info(){
+  $path = drupal_get_path('module', 'switch');
+  $types['switch'] = array(
+    '#input' => TRUE,
+    '#return_value' => 1,
+    '#process' => array(
+      'form_process_checkbox',
+      'ajax_process_form'
+    ),
+    '#theme' => 'checkbox',
+    '#theme_wrappers' => array(
+      'form_element'
+    ),
+    '#title_display' => 'after',
+    '#value_callback' => 'switch_value_callback'
+  );
+  $types['switch']['#attached']['js'] = array(
+    $path . '/js/switch.js'
+  );
+  $types['switch']['#attached']['js'][] = array(
+    'data' => array(
+      'switch' => array(
+        'switch_on_container_path' => file_create_url($path . '/images/iphone_switch_container_on.png'),
+        'switch_off_container_path' => file_create_url($path . '/images/iphone_switch_container_off.png'),
+        'switch_path' => file_create_url($path . '/images/iphone_switch.png'),
+        'mouse_over' => 'pointer',
+        'mouse_out' => 'default',
+        'switch_height' => 27,
+        'switch_width' => 94
+      )
+    ),
+    'type' => 'setting'
+  );
+  return $types;
+}
+
+/**
+ * Element value callback.
+ */
+function switch_value_callback($element, $input = FALSE, &$form_state){
+  if($input !== FALSE){
+    if(empty($input)){return 0;}
+  }elseif(!empty($element['#default_value'])){return $element['#default_value'];}
+}

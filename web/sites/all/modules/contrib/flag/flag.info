@@ -1,0 +1,23 @@
+name = Flag
+description = Create customized flags that users can set on content.
+core = 7.x
+package = Flags
+configure = admin/structure/flags
+
+; Files that contain classes.
+files[] = flag.inc
+files[] = flag.rules.inc
+files[] = includes/flag_handler_argument_content_id.inc
+files[] = includes/flag_handler_field_ops.inc
+files[] = includes/flag_handler_filter_flagged.inc
+files[] = includes/flag_handler_sort_flagged.inc
+files[] = includes/flag_handler_relationships.inc
+files[] = includes/flag_plugin_argument_validate_flaggability.inc
+files[] = tests/flag.test
+
+; Information added by Drupal.org packaging script on 2016-05-05
+version = "7.x-2.2+2-dev"
+core = "7.x"
+project = "flag"
+datestamp = "1462485266"
+

@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function jsphylosvg_field_formatter_info(){
+  return array(
+    'jsphylosvg_text_area' => array(
+      'label' => t('Newick/NeXML tree'),
+      'field types' => array(
+        'text_long'
+      ),
+      'settings' => array(
+        'display_type' => 'rectangular'
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function jsphylosvg_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state){
+  return array(
+    'display_type' => array(
+      '#type' => 'select',
+      '#title' => t('Display type'),
+      '#options' => array(
+        'rectangular' => t('Rectangular'),
+        'circular' => t('Circular')
+      ),
+      '#default_value' => $instance['display'][$view_mode]['settings']['display_type']
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function jsphylosvg_field_formatter_settings_summary($field, $instance, $view_mode){
+  if(@isset($instance['display'][$view_mode]['settings']['display_type']) && $instance['display'][$view_mode]['settings']['display_type'] == 'circular'){return t('Circular');}
+  return t('Rectangular');
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function jsphylosvg_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  $path = drupal_get_path('module', 'jsphylosvg');
+  foreach($items as $key => $item){
+    $xml = $item['value'];
+    // We need to convert some input to NeXML.
+    if(substr(strtolower($xml), 0, 6) == '#nexus'){
+      $cid = md5($xml);
+      if(($data = cache_get($cid, 'cache_jsphylosvg')) != FALSE){
+        $xml = $data->data;
+      }else{
+        // Write string to a temporary file
+        $filename = drupal_tempnam(file_directory_temp(), 'jsphylo');
+        file_put_contents($filename, $xml);
+        exec('curl -F "file=@' . $filename . '" http://www.nexml.org/nexml/phylows/nex2xml', $output, $return_status);
+        drupal_unlink($filename);
+        $xml = implode("\n", $output);
+        if($return_status || substr($xml, 0, 10) != '<nex:nexml'){
+          // Failed to process this data, we'll skip it and add a warning message
+          drupal_set_message(t('Unable to parse Nexus data'), 'warning');
+          continue;
+        }
+        cache_set($cid, $xml, 'cache_jsphylosvg');
+      }
+    }
+    // Load the XML so that we can calculate how many nodes we have.
+    $sx = FALSE;
+    try{
+      $sx = new SimpleXMLElement(str_replace('xmlns=', 'ns=', $xml));
+    }
+    catch(Exception $e){
+      ;
+    }
+    if($sx){
+      $datas = $sx->xpath("otus");
+      foreach($datas as $data){
+        $count = $data->count();
+      }
+      $type = $sx->getName();
+    }else{
+      // Probably have a newick tree here!
+      $type = 'newick';
+      $count = count(explode(',', $xml));
+    }
+    $element[$key] = array(
+      '#markup' => '<div class="jsphylosvg ' . check_plain($display['settings']['display_type']) . '" id="' . $instance['field_name'] . '-' . $key . '"><form class="jsphylosvg-data"><textarea rows="10" id="' . $instance['field_name'] . '-' . $key . '-data">'.$item['value'].'</textarea></div>',
+      '#attached' => array(
+        'js' => array(
+          $path . '/library/raphael-min.js',
+          $path . '/library/jsphylosvg.js',
+          $path . '/jsphylosvg.js',
+          array(
+            'data' => array(
+              'jsphylosvg' => array(
+                $instance['field_name'] . '-' . $key => array(
+                  'data' => array(
+                    $type => $xml
+                  ),
+                  'count' => $count,
+                  'type' => $display['settings']['display_type']
+                )
+              )
+            ),
+            'type' => 'setting'
+          )
+        ),
+        'css' => array(
+          $path . '/jsphylosvg.css'
+        )
+      )
+    );
+  }
+  return $element;
+}

@@ -1,0 +1,499 @@
+<?php
+define('CITETHISPAGE_DEFAULT_WARN_LOGGED', 'Please note that you are currently logged in. The snapshot will use the <em>anonymous</em> version of the page.');
+
+/**
+ * Implements hook_menu().
+ */
+function citethispage_menu(){
+  $items = array();
+  // Admin items
+  $items['admin/config/services/citethispage'] = array(
+    'title' => 'Cite this page',
+    'description' => 'Configure the services available to cite pages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'citethispage_settings_form'
+    ),
+    'file' => 'citethispage.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array(
+      'citethispage_admin'
+    )
+  );
+  // Also provide this as a local task, so other modules can easily provide their own
+  // settings pages.
+  $items['admin/config/services/citethispage/main'] = $items['admin/config/services/citethispage'];
+  $items['admin/config/services/citethispage/main']['type'] = MENU_DEFAULT_LOCAL_TASK;
+  return $items;
+}
+
+/**
+ * Implements hook_permission
+ */
+function citethispage_permission(){
+  return array(
+    'citethispage_admin' => array(
+      'title' => t('Administer Cite this Page module')
+    ),
+    'citethispage_cite' => array(
+      'title' => t('Use the Cite this Page module')
+    )
+  );
+}
+
+/**
+ * Implements hook_theme()
+ */
+function citethispage_theme($existing, $type, $theme, $path){
+  $items = array();
+  $items['citethispage_info'] = array(
+    'variables' => array(
+      'results' => array()
+    ),
+    'function' => 'theme_citethispage_info',
+    'path' => drupal_get_path('module', 'citethispage') . '/theme',
+    'file' => 'citethispage.theme.inc'
+  );
+  $items['citethispage_table_drag'] = array(
+    'render element' => 'element',
+    'file' => 'citethispage.theme.inc',
+    'path' => drupal_get_path('module', 'citethispage') . '/theme',
+    'function' => 'theme_citethispage_table_drag'
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_info
+ */
+function citethispage_block_info(){
+  $items = array();
+  $items['citethispage_block'] = array(
+    'info' => t('Cite this page block'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_view
+ *
+ * This only adds a stub - the actual rendering
+ * is done in hook_page_alter because parsers
+ * may need to wait for other blocks to be rendered
+ * in order to gather data (eg. gathering authors
+ * from views using hook_views_post_execute)
+ * and we can't control block rendering order.
+ */
+function citethispage_block_view($delta = ''){
+  // Permission check
+  if(!user_access('citethispage_cite')){return;}
+
+  // Check that anonymous users have access to the node
+  $node = menu_get_object();
+  if (isset($node->nid)) {
+    if (!node_access('view', $node, drupal_anonymous_user())) {
+      return;
+    }
+  }
+
+  return array(
+    'subject' => t('Cite this page'),
+    'content' => array(
+      'citethispage_info' => array(
+        '#markup' => 'Stub. If altered, ensure key citethispage_info remains so it can be replaced'
+      ),
+      'form' => drupal_get_form('citethispage_backend_selection_form')
+    )
+  );
+}
+
+/**
+ * Implement hook_page_alter
+ *
+ * We do the final block rendering here so that we are sure to run after all other
+ * elements have been rendered
+ */
+function citethispage_page_alter(&$page){
+  foreach(element_children($page) as $region){
+    if(is_array($page[$region]) && isset($page[$region]['citethispage_citethispage_block'])){
+      $results = _citethispage_parse_path(current_path(), $page);
+      citethispage_store_parse_result(current_path(), $results);
+      if($results === FALSE && !variable_get('citethispage_showall', 0)){
+        unset($page[$region]['citethispage_citethispage_block']);
+      }else{
+        $content = array(
+          '#theme' => 'citethispage_info',
+          '#results' => $results
+        );
+        // We allow other modules to alter the block's structure, just as long as
+        // we can replace the stub it's fine.
+        $parents = _citethispage_find_nested_parents('citethispage_info', $page[$region]['citethispage_citethispage_block']);
+        if(is_array($parents)){
+          $parents[] = 'citethispage_info';
+          array_unshift($parents, 'citethispage_citethispage_block');
+          array_unshift($parents, $region);
+          drupal_array_set_nested_value($page, $parents, $content);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * _citethispage_find_nested_parents
+ *
+ * Helper function to find nested parents in an array
+ *
+ */
+function _citethispage_find_nested_parents($key, $array){
+  if(isset($array[$key])){
+    return array();
+  }else{
+    foreach($array as $k => $v){
+      if(is_array($v)){
+        $f = _citethispage_find_nested_parents($key, $v);
+        if(is_array($f)){
+          array_unshift($f, $k);
+          return $f;
+        }
+      }
+    }
+    return FALSE;
+  }
+}
+
+/**
+ * citethispage_backend_selection_form
+ * 
+ * Form to select a backend
+ */
+function citethispage_backend_selection_form($form, &$form_state){
+  $handlers = _citethispage_get_archive_handlers();
+  $backends = array();
+  foreach($handlers as $module => $module_info){
+    $backends[$module] = $module_info['title'];
+  }
+  $backend_modules = array_keys($backends);
+  $default = isset($form_state['values']['backend']) ? $form_state['values']['backend'] : reset($backend_modules);
+  if(count($backend_modules) == 0){
+    return;
+  }else if(count($backend_modules) == 1){
+    $form['backend'] = array(
+      '#type' => 'value',
+      '#value' => $default
+    );
+  }else{
+    $form['backend'] = array(
+      '#type' => 'select',
+      '#title' => t('Service to create citation'),
+      '#description' => t('Select which service to use to create a permanent snapshot of the page that can be used for citations.'),
+      '#options' => $backends,
+      '#required' => TRUE,
+      '#default_value' => $default,
+      '#ajax' => array(
+        'callback' => 'citethispage_backend_selection_form_ajax',
+        'wrapper' => 'citethispage_subform',
+        'method' => 'replace',
+        'effect' => 'fade'
+      )
+    );
+    $form['info'] = array(
+      '#prefix' => '<div id="citethispage_subform">',
+      '#suffix' => '</div>',
+      '#markup' => '<span class="citethispage_select_info_title">' . $handlers[$default]['title'] . '</span>: ' . $handlers[$default]['description']
+    );
+  }
+  $form_state['citethispage_backend_handler'] = $default;
+  $form['cite'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create Citation')
+  );
+  global $user;
+  $warn_default = variable_get('citethispage_warn_logged', array(
+    'value' => CITETHISPAGE_DEFAULT_WARN_LOGGED,
+    'format' => 'filtered_html'
+  ));
+  if($user->uid > 0 && $warn_default['value']){
+    $form['warn'] = array(
+      '#type' => 'markup',
+      '#markup' => '<div>' . check_markup($warn_default['value'], $warn_default['format']) . '</div>'
+    );
+  }
+  $form['path'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['path']) ? $form_state['values']['path'] : current_path()
+  );
+  $form['requested_path'] = array(
+    '#type' => 'value',
+    '#value' => isset($form_state['values']['requested_path']) ? $form_state['values']['requested_path'] : $_SERVER['REQUEST_URI']
+  );
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'citethispage') . '/theme/citethispage.css'
+  );
+  return $form;
+}
+
+/**
+ * citethispage_backend_selection_form_ajax
+ */
+function citethispage_backend_selection_form_ajax($form, &$form_state){
+  return $form['info'];
+}
+
+/**
+ * citethispage_backend_selection_form_validate
+ */
+function citethispage_backend_selection_form_validate($form, &$form_state){
+  $backend = $form_state['values']['backend'];
+  $info = module_invoke($backend, 'citethispage_info');
+  if(!$info || empty($info[$backend]['archive']['callback'])){
+    form_set_error('backend', t('This service does not define archiving facilities'));
+  }
+  $form_state['citethispage_info'] = $info[$backend]['archive'];
+}
+
+/**
+ * citethispage_backend_selection_form_submit
+ */
+function citethispage_backend_selection_form_submit($form, &$form_state){
+  $path = $form_state['values']['path'];
+  $results = citethispage_get_parse_result($path);
+  $context = array(
+    'results' => $results,
+    'form_state' => $form_state
+  );
+  $function = $form_state['citethispage_info']['callback'];
+  $function($path, $context);
+  global $user;
+  if($user->uid == 0){
+    // Add a query string to ensure the result page is not cached.
+    $form_state['redirect'] = array(
+      $_GET['q'],
+      array(
+        'query' => array(
+          'citethispage' => substr(md5(rand()), 0, 5)
+        )
+      )
+    );
+  }
+}
+
+/**
+ * citethispage_store_parse_result
+ *
+ * Store the result of the parsing of the given path, for the give user
+ * (or the current one if none is given).
+ *
+ * This will overwrite any previous value.
+ */
+function citethispage_store_parse_result($path, $results, $uid = NULL){
+  global $user;
+  if($uid === NULL){
+    $uid = $user->uid;
+  }
+  $data = array(
+    'path' => $path,
+    'uid' => $uid,
+    'results' => serialize($results)
+  );
+  $q = db_select('citethispage', 'c');
+  $q->addField('c', 'sid', 's');
+  $sid = $q->condition('path', $path)->condition('uid', $uid)->execute()->fetchField();
+  if ($sid){
+    db_update('citethispage')->condition('sid', $sid)->fields($data)->execute();
+  } else {
+    db_insert('citethispage')->fields(array_keys($data), array_values($data))->execute();
+  }
+}
+
+/**
+ * citethispage_get_parse_result
+ *
+ * Get the result of the last parse for the given path and user (or current
+ * user if none is given).
+ *
+ * Returns an empty array if no parse was run for that path/user.
+ */
+function citethispage_get_parse_result($path, $uid = NULL){
+  global $user;
+  if($uid === NULL){
+    $uid = $user->uid;
+  }
+  $q = db_select('citethispage', 'c');
+  $q->addField('c', 'results', 'r');
+  $r = $q->condition('c.uid', $uid)->condition('c.path', $path)->execute()->fetchField();
+  if(!$r){
+    return array();
+  }else{
+    return unserialize($r);
+  }
+}
+
+/**
+ * function _citethispage_find_parsers
+ * 
+ * Return an array of description of parsers
+ * that can handle the given path.
+ * 
+ * This is ordered such that default parsers are last.
+ */
+function _citethispage_find_parsers($path){
+  $parsers = array();
+  $default_parsers = array();
+  $handlers = _citethispage_get_parse_handlers();
+  foreach($handlers as $path_pattern => $modules){
+    $re = '^' . preg_replace('/%\w*/', '[^\/\?]+', preg_quote($path_pattern, '/')) . '$';
+    if(preg_match("/$re/", $path)){
+      foreach($modules as $module => $module_info){
+        if($module_info['default']){
+          $default_parsers[] = $module_info;
+        }else{
+          $parsers[] = $module_info;
+        }
+      }
+    }
+  }
+  return array_merge($parsers, $default_parsers);
+}
+
+/**
+ * _citethispage_parse_path
+ *
+ * Returns the result provided by the parsers that
+ * can parse the given path
+ */
+function _citethispage_parse_path($path, $page){
+  // Find all the parsers than can handle this page
+  $parsers = _citethispage_find_parsers($path);
+  // Get the parsed info
+  $results = FALSE;
+  foreach($parsers as $parser_info){
+    if(empty($parser_info['callback'])){
+      continue;
+    }
+    if($results !== FALSE && !empty($parser_info['default'])){
+      break;
+    }
+    $function = $parser_info['callback'];
+    $r = $function($path, $page);
+    if($r !== FALSE){
+      if($results === FALSE){
+        $results = $r;
+      }else{
+        $results = array_merge_recursive($results, $r);
+      }
+    }
+  }
+  drupal_alter('citethispage_parse', $results);
+  return $results;
+}
+
+/**
+ * _citethispage_get_archive_handlers
+ *
+ * Returns the list of module implement archiving backends
+ * as an array of module name to archive definition.
+ *
+ * If $all is TRUE, then this also returns the handlers
+ * that have been disabled in the configuration.
+ *
+ * The handlers are ordered as per the configuration, and
+ * the status items 'enabled' and 'weight' are added to the
+ * returned definitions
+ */
+function _citethispage_get_archive_handlers($all = FALSE){
+  $handlers = module_invoke_all('citethispage_info');
+  $archive_handlers = array();
+  $archive_handlers_status = variable_get('citethispage_archive_handlers', array());
+  foreach($handlers as $module => $module_info){
+    if(empty($module_info['archive'])){
+      continue;
+    }
+    if(isset($archive_handlers_status[$module])){
+      $status = $archive_handlers_status[$module];
+    }else{
+      $status = array(
+        'enabled' => TRUE,
+        'weight' => 0
+      );
+    }
+    if(!$all && !$status['enabled']){
+      continue;
+    }
+    $archive_handlers[$module] = $status['weight'];
+  }
+  asort($archive_handlers);
+  $result = array();
+  foreach(array_keys($archive_handlers) as $module){
+    $result[$module] = $handlers[$module]['archive'];
+    if(isset($archive_handlers_status[$module])){
+      $result[$module]['enabled'] = $archive_handlers_status[$module]['enabled'];
+      $result[$module]['weight'] = $archive_handlers_status[$module]['weight'];
+    }else{
+      $result[$module]['enabled'] = TRUE;
+      $result[$module]['weight'] = 0;
+    }
+  }
+  return $result;
+}
+
+/**
+ * _citethispage_get_archive_handlers
+ *
+ * Returns the list of module implement parse handlers
+ * as an array of path patterns to an array of module name 
+ * to parse definition.
+ *
+ * If $all is TRUE, then this also returns the handlers
+ * that have been disabled in the configuration.
+ *
+ * The handlers are ordered as per the configuration, and
+ * the status items 'enabled', 'weight' and 'default'
+ * are added to the returned definitions
+ */
+function _citethispage_get_parse_handlers($all = FALSE){
+  $handlers = module_invoke_all('citethispage_info');
+  $parse_handlers = array();
+  $handler_status = variable_get('citethispage_parse_handlers', array());
+  foreach($handlers as $module => $module_info){
+    if(empty($module_info['parse'])){
+      continue;
+    }
+    foreach($module_info['parse'] as $path => $parse_info){
+      if(isset($handler_status[$path][$module])){
+        $status = $handler_status[$path][$module];
+      }else{
+        $status = array(
+          'enabled' => TRUE,
+          'default' => FALSE,
+          'weight' => 0
+        );
+      }
+      if(!$all && !$status['enabled']){
+        continue;
+      }
+      $parse_handlers[$path][$module] = $status['weight'];
+    }
+  }
+  foreach($parse_handlers as $path => $modules){
+    asort($modules);
+    $parse_handlers[$path] = $modules;
+  }
+  $result = array();
+  foreach($parse_handlers as $path => $modules){
+    foreach(array_keys($modules) as $module){
+      $result[$path][$module] = $handlers[$module]['parse'][$path];
+      if(isset($handler_status[$path][$module])){
+        $result[$path][$module]['enabled'] = $handler_status[$path][$module]['enabled'];
+        $result[$path][$module]['weight'] = $handler_status[$path][$module]['weight'];
+        $result[$path][$module]['default'] = $handler_status[$path][$module]['default'];
+      }else{
+        $result[$path][$module]['enabled'] = TRUE;
+        $result[$path][$module]['weight'] = 0;
+        $result[$path][$module]['default'] = FALSE;
+      }
+    }
+  }
+  return $result;
+}

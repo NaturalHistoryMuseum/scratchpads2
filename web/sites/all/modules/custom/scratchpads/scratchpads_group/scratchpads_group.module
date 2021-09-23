@@ -1,0 +1,625 @@
+<?php
+/**
+ * @file
+ * Code for the Group feature.
+ */
+include_once ('scratchpads_group.features.inc');
+
+/**
+ * Implements hook_file_download()
+ */
+function scratchpads_group_file_download($uri){
+  $fid = db_select('file_managed', 'f')->fields('f', array(
+    'fid'
+  ))->condition('uri', $uri)->execute()->fetchField();
+  if($fid){
+    $file = file_load($fid);
+    if($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] != 1){
+      if(isset($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid'])){
+        $group = og_load($file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']);
+        $group = $group->getEntity();
+        switch($file->{OG_CONTENT_ACCESS_FIELD}[LANGUAGE_NONE][0]['value']){
+          case 0:
+            // We're defaulting to the group access.  Check if it is public, or
+            // simply if we have access to the group.
+            if($group->{OG_ACCESS_FIELD}[LANGUAGE_NONE][0]['value'] == 0){return;}
+          case 2:
+            // The file is private, simply do we have access to the group.
+            global $user;
+            $groups = og_get_entity_groups('user', $user);
+            if(isset($groups[$file->{OG_AUDIENCE_FIELD}[LANGUAGE_NONE][0]['gid']])){return;}
+            break;
+        }
+        return -1;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function scratchpads_group_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name){
+  foreach(field_info_instances($entity_type, $bundle_name) as $name => $instance){
+    $info = field_info_field($name);
+    if($info['type'] == 'group' && $name == 'group_audience'){
+      $targets[$name] = array(
+        'name' => check_plain($instance['label']),
+        'callback' => 'scratchpads_group_feeds_set_target',
+        'description' => t('The @label field of the entity.', array(
+          '@label' => $instance['label']
+        ))
+      );
+    }
+  }
+}
+
+/**
+ * Callback for mapping. Here is where the actual mapping happens.
+ *
+ * @todo Do not create new terms for non-autotag fields.
+ */
+function scratchpads_group_feeds_set_target($source, $entity, $target, $values, $mapping = array()){
+  if(!is_array($values)){
+    $values = array(
+      $values
+    );
+  }
+  $ogs_saved = array();
+  foreach($values as $key => $value){
+    if(og_load($value) && !isset($ogs_saved[$value])){
+      $ogs_saved[$value] = $value;
+      $entity->{$target}[LANGUAGE_NONE][$key] = array(
+        'gid' => $value,
+        'state' => 1,
+        'created' => time()
+      );
+    }
+  }
+}
+
+function scratchpads_group_tools_pre_disable(){
+  $tools_settings = array(
+    'can_disable' => TRUE,
+    'disable_message' => t('Disabling this module will result in ALL Groups being removed from your Scratchpad.  This may result in content which was hidden from anonymous users being made visible.')
+  );
+  return $tools_settings;
+}
+
+/**
+ * Implementation of hook_node_type_insert().
+ * 
+ * If a new content type is created, we need to add the field to it.
+ */
+function scratchpads_group_node_type_insert($info){
+  // Load the features.field.inc file so that we can create the necessary fields
+  // and field instances.
+  module_load_include('features.field.inc', 'scratchpads_group');
+  $fields = scratchpads_group_field_default_fields(array(
+    'entity_type' => 'node',
+    'bundle' => $info->type
+  ));
+  foreach($fields as $field){
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
+    }
+    if(!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])){
+      field_create_instance($field['field_instance']);
+    }
+  }
+}
+
+/**
+ * Implements hook_page_alter()
+ */
+function scratchpads_group_page_alter(&$page){
+  if(count($_GET) == 1 && $_GET['q'] == 'group'){
+    // We're on the front page of the "Group content" tab.  We need to show a 
+    // list of all the groups, and also empty some blocks in the sidebar.
+    $number_of_groups = 0;
+    foreach($page['sidebar'] as $key => $value){
+      if($page['sidebar'][$key]['#block']->subject != t('Group')){
+        unset($page['sidebar'][$key]);
+      }else{
+        // The group block - lets check it out to see if we have groups!
+        $number_of_groups = count($page['sidebar'][$key]['content']['im_group_audience']['#items']);
+      }
+      if($number_of_groups){
+        $content = t('Please select a group on the left to filter by.');
+      }else{
+        $content = t('There does not appear to be any content associated with groups on this site.');
+      }
+      $page['content']['system_main']['search_results'] = array(
+        '#markup' => '<p>' . $content . '</p>'
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_meun_alter().
+ */
+function scratchpads_group_menu_alter(&$items){
+  foreach(entity_get_info() as $entity => $value){
+    if($value['fieldable']){
+      $items["$entity/%/group"]['title'] = t('Members');
+    }
+  }
+  unset($items['group/%/group']);
+}
+
+/**
+ * Implements hook_scratchpads_hands_off_urls_alter()
+ */
+function scratchpads_group_scratchpads_hands_off_urls_alter(&$urls){
+  $urls[] = 'admin/config/group';
+}
+
+/**
+ * Implements hook_og_ui_get_group_admin_alter().
+ * 
+ * Remove the "Roles" and "Permissions" menu items from the node/%nid/group
+ * pages.
+ */
+function scratchpads_group_og_ui_get_group_admin_alter(&$data, $gid){
+  unset($data['roles']);
+  unset($data['permissions']);
+  $data = array(
+    'add_people' => $data['add_people'],
+    'bulk_add_people' => array(
+      'title' => t('Bulk add people'),
+      'description' => t('Add multiple group members.'),
+      'href' => 'admin/people/bulk-add-user'
+    ),
+    'people' => $data['people']
+  );
+}
+
+/**
+ * Implement hook_og_default_roles()
+ */
+function scratchpads_group_og_default_roles(){
+  return array(
+    'contributor',
+    'editor'
+  );
+}
+
+/**
+ * Implements hook_flush_caches
+ */
+function scratchpads_group_flush_caches(){
+  _scratchpads_group_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_group_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_group_shutdown');
+  }
+}
+
+/**
+ * The following function sets the og permissions.
+ */
+function scratchpads_group_shutdown(){
+  // editor = 5
+  // contributor = 4
+  // maintainer = 3
+  // authenticated user = 2
+  $default_permissions = module_invoke_all('scratchpads_default_permissions');
+  drupal_alter('scratchpads_default_permissions', $default_permissions);
+  $allowed_permissions = og_get_permissions();
+  foreach(array_keys($allowed_permissions) as $key){
+    $allowed_permissions[$key] = FALSE;
+  }
+  $additional_permissions = array(
+    5 => array(),
+    4 => array(),
+    3 => array(
+      'update group',
+      'approve and deny subscription',
+      'add user'
+    ),
+    2 => array(
+      'unsubscribe'
+    )
+  );
+  foreach(array(
+    5 => 'editor',
+    4 => 'contributor',
+    3 => 'maintainer',
+    2 => 'authenticated user'
+  ) as $rid => $role_name){
+    $permissions = array_merge($default_permissions[$role_name], $additional_permissions[$rid]);
+    $permissions_to_set = $allowed_permissions;
+    foreach($permissions as $key => $permission){
+      if(preg_match('/^edit\ any.*content$/', $permission) || preg_match('/^edit\ own.*content$/', $permission)){
+        $permission = 'update' . substr($permission, 4);
+      }
+      if(isset($allowed_permissions[$permission])){
+        $permissions_to_set[$permission] = $permission;
+      }
+    }
+    og_role_change_permissions($rid, $permissions_to_set);
+  }
+}
+
+/**
+ * Implementation of hook_scratchpads_solr_info().
+ */
+function scratchpads_group_scratchpads_solr_info(){
+  return array(
+    'group' => array(
+      'theme' => 'scratchpads_group',
+      'empty' => 'scratchpads_group_empty'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_context_default_contexts().
+ */
+function scratchpads_group_context_default_contexts(){
+  $export = array();
+  $context = new stdClass();
+  $context->disabled = FALSE;
+  $context->api_version = 3;
+  $context->name = 'group_page_facets';
+  $context->description = t('Group page facets');
+  $context->tag = 'solr';
+  $context->conditions = array(
+    'path' => array(
+      'values' => array(
+        'group*' => 'group*'
+      )
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array()
+    )
+  );
+  $map = facetapi_get_delta_map();
+  foreach(scratchpads_group_facetapi_default_facet_settings() as $facet){
+    $delta = array_search($facet->name, $map);
+    if($delta){
+      $context->reactions['block']['blocks'][] = array(
+        'module' => 'facetapi',
+        'delta' => $delta,
+        'region' => 'sidebar',
+        'weight' => -27
+      );
+    }
+  }
+  $context->condition_mode = 0;
+  $export['group_page_facets'] = $context;
+  return $export;
+}
+
+/**
+ * Implementation of hook_block_view_alter()
+ */
+function scratchpads_group_block_view_alter(&$data, $block){
+  if($block->module == 'facetapi'){
+    $map = facetapi_get_delta_map();
+    $facet_info = scratchpads_group_facetapi_facet_info();
+    foreach(scratchpads_group_facetapi_default_facet_settings() as $facet){
+      $delta = array_search($facet->name, $map);
+      if($delta == $block->delta && isset($facet_info[$facet->facet])){
+        $data['subject'] = $facet_info[$facet->facet]['label'];
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_facetapi_default_facet_settings().
+ */
+function scratchpads_group_facetapi_default_facet_settings(){
+  $facets = array();
+  $group_facets = scratchpads_group_facetapi_facet_info();
+  foreach($group_facets as $facet_id => $facet_values){
+    $facet = new stdClass();
+    $facet->disabled = FALSE;
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr:block:' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = 'block';
+    $facet->facet = $facet_id;
+    $facet->enabled = TRUE;
+    $facet->settings = array(
+      'weight' => 0,
+      'widget' => 'facetapi_links',
+      'filters' => array(),
+      'active_sorts' => array(
+        'active' => 'active',
+        'count' => 'count',
+        'display' => 'display'
+      ),
+      'sort_weight' => array(
+        'active' => -50,
+        'display' => -49,
+        'count' => -48
+      ),
+      'sort_order' => array(
+        'active' => 3,
+        'count' => 3,
+        'display' => 4
+      ),
+      'empty_behavior' => 'text',
+      'empty_text' => array(
+        'value' => t('There are no facets available to filter on.'),
+        'format' => 'filtered_html'
+      ),
+      'soft_limit' => 20,
+      'show_expanded' => 0
+    );
+    $facets[$facet_id] = $facet;
+    $facet = new stdClass();
+    $facet->disabled = FALSE; /* Edit this to true to make a default facet disabled initially */
+    $facet->api_version = 1;
+    $facet->name = 'apachesolr@solr::' . $facet_id;
+    $facet->searcher = 'apachesolr@solr';
+    $facet->realm = '';
+    $facet->facet = $facet_id;
+    $facet->enabled = FALSE;
+    $facet->settings = array(
+      'operator' => 'and',
+      'hard_limit' => '200',
+      'dependencies' => array(),
+      'facet_mincount' => 1,
+      'facet_missing' => 0,
+      'flatten' => 0,
+      'query_type' => 'term'
+    );
+    $facets[$facet_id . '_global'] = $facet;
+  }
+  return $facets;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function scratchpads_group_theme(){
+  return array(
+    'scratchpads_group' => array(
+      'variables' => array(
+        'results' => NULL,
+        'module' => NULL
+      ),
+      'file' => 'scratchpads_group.theme.inc'
+    ),
+    'scratchpads_group_empty' => array(
+      'variables' => array(),
+      'file' => 'scratchpads_group.theme.inc'
+    )
+  );
+}
+
+/**
+ * Implementation of hook_node_view_alter().
+ */
+function scratchpads_group_node_view($node, $view_mode, $langcode){
+  if($node->type == 'group' && arg(0) == 'node' && $view_mode != 'search_index' && is_numeric(arg(1)) && !arg(2)){
+    // Get the gid from the og table.
+    $row = db_select('og', 'g')->fields('g', array(
+      'gid'
+    ))->condition('entity_type', 'node')->condition('etid', $node->nid)->execute()->fetchCol();
+    drupal_goto('group', array(
+      'query' => array(
+        'f' => array(
+          'im_group_audience:' . array_pop($row)
+        )
+      )
+    ));
+  }
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_group_menu(){
+  return array(
+    'group/%/%/admin/people/bulk-add-user' => array(
+      'page callback' => 'drupal_get_form',
+      'title' => 'Bulk add members',
+      'page arguments' => array(
+        'scratchpads_group_add_users',
+        1,
+        2
+      ),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'scratchpads_group.admin.inc',
+      'weight' => 5,
+      'access callback' => 'og_user_access_by_entity',
+      'access arguments' => array(
+        'add user',
+        1,
+        2
+      )
+    )
+  );
+}
+
+/**
+ * Implementation of hook_page_alter().
+ */
+function scratchpads_group_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($router_item['path'] == 'group' && $nid = scratchpads_group_is_group_node()){
+    // Add a tab linking to node/add to all pages.
+    if(node_access('update', node_load($nid))){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('View'),
+          'href' => 'node/' . $nid,
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('View this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $nid . '/edit',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Edit this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 2;
+    }
+    // Add a tab linking to the Members pages
+    if(og_user_access_by_entity('administer group', 'node', $nid)){
+      $data['tabs'][0]['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => array(
+          'title' => t('Members'),
+          'href' => 'node/' . $nid . '/group',
+          'localized_options' => array(
+            'attributes' => array(
+              'title' => t('Add/Edit membership of this group')
+            )
+          )
+        )
+      );
+      $data['tabs'][0]['output'][0]['#active'] = TRUE;
+      $data['tabs'][0]['count'] = 3;
+    }
+  }
+}
+
+/**
+ * Check to see if we're viewing a single group
+ */
+function scratchpads_group_is_group_node(){
+  if(isset($_GET['f']) && is_array($_GET['f'])){
+    foreach($_GET['f'] as $value){
+      if(substr($value, 0, 18) == 'im_group_audience:' && is_numeric(substr($value, 18))){
+        $gid = substr($value, 18);
+        $group = og_load($gid);
+        return $group->etid;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implementation of hook_facetapi_facet_info().
+ */
+function scratchpads_group_facetapi_facet_info($searcher_info = FALSE){
+  // Facets are usually associated with the type of content stored in the index.
+  return array(
+    'im_group_audience' => array(
+      'name' => 'im_group_audience',
+      'label' => t('Group'),
+      'description' => t('Group'),
+      'query types' => array(
+        'term'
+      ),
+      'map callback' => 'og_group_map_callback', // CHECK!
+      'map options' => array(
+        'im_group_audience'
+      )
+    )
+  );
+}
+
+/**
+ * Map callback
+ */
+function scratchpads_group_map_callback($values, $options){
+  if(count($values)){
+    switch($options[0]){
+      case 'im_field_smg_galleries':
+        $result = db_select('node', 'n')->fields('n', array(
+          'nid',
+          'title'
+        ))->condition('nid', $values, 'IN')->execute();
+        $map = array();
+        while($record = $result->fetchAssoc()){
+          $map[$record['nid']] = $record['title'];
+        }
+        return $map;
+    }
+  }else{
+    return array();
+  }
+}
+
+/**
+ * Implement hook_apachesolr_query_prepare
+ *
+ * Sort the results page (chronological descending)
+ * on the Group page.
+ */
+function scratchpads_group_apachesolr_query_prepare($query){
+  if(arg(0) == 'group'){
+    $query->setSolrSort('ds_created', 'desc');
+  }
+}
+
+/**
+ * OG's very own hooks for apachesolr (these could be added as a patch to the
+ * apachesolr module).
+ */
+function og_apachesolr_field_mappings(){
+  return array(
+    // Example for a field API type. See extensive documentation below
+    'group' => array(
+      'indexing_callback' => 'og_group_indexing_callback',
+      'index_type' => 'integer',
+      'map callback' => 'og_group_map_callback',
+      'facets' => TRUE
+    )
+  );
+}
+
+/**
+ * Indexing callback for the above.
+ */
+function og_group_indexing_callback($entity, $field_name, $index_key, $field_info){
+  $fields = array();
+  if(!empty($entity->{$field_name})){
+    $index_key = apachesolr_index_key($field_info);
+    foreach($entity->$field_name as $groups){
+      foreach($groups as $group){
+        if($index_value = (!empty($group['gid'])) ? $group['gid'] : FALSE){
+          $fields[] = array(
+            'key' => $index_key,
+            'value' => $index_value
+          );
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Map callback for the above.
+ */
+function og_group_map_callback($values, $options){
+  $result = db_select('og', 'g')->fields('g', array(
+    'gid',
+    'label'
+  ))->condition('gid', $values, 'IN')->execute();
+  $map = array();
+  while($record = $result->fetchAssoc()){
+    $map[$record['gid']] = $record['label'];
+  }
+  return $map;
+}

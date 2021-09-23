@@ -1,0 +1,46 @@
+diff --git a/sites/all/modules/contrib/imagemagick/imagemagick.module b/sites/all/modules/contrib/imagemagick/imagemagick.module
+index 133dc6e..58b0275 100644
+--- a/sites/all/modules/contrib/imagemagick/imagemagick.module
++++ b/sites/all/modules/contrib/imagemagick/imagemagick.module
+@@ -347,15 +347,37 @@ function image_imagemagick_save(stdClass $image, $destination) {
+  */
+ function image_imagemagick_get_info(stdClass $image) {
+   $details = FALSE;
+-  $data = getimagesize(drupal_realpath($image->source));
++  if(variable_get('imagemagick_use_identify', FALSE)){
++    $identify_path = str_replace('convert', 'identify', variable_get('imagemagick_convert', 'convert'));
++    $output = exec(escapeshellcmd($identify_path) . ' ' . escapeshellarg(drupal_realpath($image->source)));
++    preg_match('/([0-9]*)x([0-9]*)\+[0-9]*\+[0-9]/', $output, $matches);
++    if(count($matches) == 3){
++      $data = array();
++      $data[0] = $matches[1];
++      $data[1] = $matches[2];
++      $data['mime'] = file_get_mimetype($image->source);
++      $mapping = file_mimetype_mapping();
++      $mime_types = array_flip($mapping['mimetypes']);
++      $extensions = array_flip(array_unique($mapping['extensions']));
++      if (isset($mime_types[$data['mime']])) {
++        $data['extension'] = $extensions[$mime_types[$data['mime']]];
++      } else {
++        $data['extension'] = '';
++      }
++    }
++  } else {
++    $data = getimagesize(drupal_realpath($image->source));
++    if ($data) {
++      $extensions = array('1' => 'gif', '2' => 'jpg', '3' => 'png');
++      $data['extension'] = isset($extensions[$data[2]]) ?  $extensions[$data[2]] : '';
++    }
++  }
+ 
+   if (isset($data) && is_array($data)) {
+-    $extensions = array('1' => 'gif', '2' => 'jpg', '3' => 'png');
+-    $extension = isset($extensions[$data[2]]) ?  $extensions[$data[2]] : '';
+     $details = array(
+       'width'     => $data[0],
+       'height'    => $data[1],
+-      'extension' => $extension,
++      'extension' => $data['extension'],
+       'mime_type' => $data['mime'],
+     );
+   }

@@ -1,0 +1,515 @@
+<?php
+
+/**
+ * @file
+ *   Organic groups enabler for localization community.
+ */
+
+// = Core hooks ================================================================
+
+/**
+ * Implements hook_menu().
+ */
+function l10n_groups_menu() {
+  $items['translate/languages/%l10n_community_language/broadcast'] = array(
+    'title' => 'Broadcast',
+    'page callback' => 'l10n_groups_broadcast',
+    'page arguments' => array(2),
+    'access callback' => 'l10n_groups_broadcast_access',
+    'access arguments' => array(2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 200,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function l10n_groups_permission() {
+  return array(
+    // @todo: administer permission not actually used for anything ATM
+    // used to apply to all the node permissions below, but not anymore
+    'administer localization groups' => array(
+      'title' => t('administer localization groups'),
+      'description' => t('TODO Add a description for \'administer localization groups\''),
+    ),
+    'create localization group' => array(
+      'title' => t('create localization group'),
+      'description' => t('TODO Add a description for \'create localization group\''),
+    ),
+    'delete any localization group' => array(
+      'title' => t('delete any localization group'),
+      'description' => t('TODO Add a description for \'delete any localization group\''),
+    ),
+    'delete own localization group' => array(
+      'title' => t('delete own localization group'),
+      'description' => t('TODO Add a description for \'delete own localization group\''),
+    ),
+    'edit any localization group' => array(
+      'title' => t('edit any localization group'),
+      'description' => t('TODO Add a description for \'edit any localization group\''),
+    ),
+    'edit own localization group' => array(
+      'title' => t('edit own localization group'),
+      'description' => t('TODO Add a description for \'edit own localization group\''),
+    ),
+  );
+}
+
+/**
+ * Implements hook_og_permission().
+ */
+function l10n_groups_og_permission() {
+  return array(
+    'browse translations' => array(
+      'title' => t('Browse translations'),
+    ),
+    'export gettext templates and translations' => array(
+      'title' => t('Export gettext templates and translations'),
+    ),
+    'import gettext files' => array(
+      'title' => t('Import gettext files'),
+    ),
+    'moderate own suggestions' => array(
+      'title' => t('Moderate own suggestions'),
+    ),
+    'moderate suggestions from others' => array(
+      'title' => t('Moderate suggestions from others'),
+    ),
+    'start over packages' => array(
+      'title' => t('Start over packages'),
+    ),
+    'submit suggestions' => array(
+      'title' => t('Submit suggestions'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Take care of the one translation group per language limitation.
+ *
+ * @todo
+ *   Figure out how to support formal/informal differences, local language versions and so on.
+ *   These might need to maintain a diff, not a full translation, so we need to think about this.
+ */
+function l10n_groups_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'l10n_group_node_form') {
+    if (empty($form['l10n_group_language']['#value']) && empty($form['l10n_group_language']['#options'])) {
+      drupal_set_message(t("All available languages have groups now. You cannot create another group until a new language is added on the administration interface."), 'error');
+      $form['submit']['#disabled'] = TRUE;
+    }
+    $form['body'][LANGUAGE_NONE][0]['#title'] = t('Welcome message');
+    $form['body'][LANGUAGE_NONE][0]['#description'] = t('Welcome message to display on the group homepage.');
+    $form['body'][LANGUAGE_NONE][0]['#rows'] = 5;
+  }
+}
+
+/**
+ * Implements hook_init().
+ *
+ * Tell organic groups we are on a group page if under a group's area
+ * on the translation pages.
+ */
+function l10n_groups_init() {
+  // Initialize context
+  l10n_groups_set_context();
+
+  // Avoid using menu_get_item() since that would cripple the cache
+  // for menu access checking.
+  if (($item = menu_get_item()) && ($item['path'] == 'node/%') && ($item['page_arguments'][0]->type == 'l10n_group')) {
+    // If on node view page for l10n_group nodes, redirect to our more full featured
+    // version of the group with translation tabs and all.
+    drupal_goto('translate/languages/' . $item['page_arguments'][0]->l10n_group_language);
+  }
+}
+
+/**
+ * Set group context to the group determined by $langcode.
+ */
+function l10n_groups_set_context() {
+  if (user_access('access localization community') && (arg(0) == 'translate') && in_array(arg(1), array('languages', 'details', 'suggestions', 'approve', 'decline')) && ($langcode = arg(2))) {
+    // If under a localization path URL for a language, set context.
+    if (!empty($langcode)) {
+      $groups = l10n_groups_get_groups();
+      // Set group context and ask for og details block.
+      if (isset($groups[$langcode]) && $node = node_load($groups[$langcode])) {
+        return og_context('node', $node);
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function l10n_groups_block_info() {
+  $blocks = array(
+    'info' => array(
+      'info' => t('Localization group information'),
+      'cache' => DRUPAL_NO_CACHE,
+    ),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function l10n_groups_block_view($delta) {
+  global $user;
+  switch ($delta) {
+    case 'info':
+      $arg2 = arg(2);
+      $arg3 = arg(3);
+      if ((arg(0) == 'translate') && (arg(1) == 'languages') && !empty($arg2) && empty($arg3)) {
+        // Only display group details if we have a group context.
+        $context = og_context();
+        $group = entity_load_single($context['group_type'], $context['gid']);
+        if ($context && entity_access('view', 'node', $group)) {
+          // Get the membership informations
+          $og_membership = og_get_membership('node', $group->nid, 'user', $user->uid);
+          if ($og_membership) {
+            if ($og_membership->state == OG_STATE_ACTIVE || user_access('administer nodes')) {
+              if (node_access('update', $group)) {
+                $links['edit_group'] = l(t('Edit group'), "node/$group->nid/edit");
+              }
+              // Get the node creation links
+              foreach (node_type_get_types() as $id => $type) {
+                if (og_is_group_content_type('node', $id)) {
+                  $type_url_str = str_replace('_', '-', $id);
+                  if (node_access('create', $id)) {
+                    $links["create_$id"] = l(t('Create !type', array('!type' => $type->name)), "node/add/$type_url_str", array(
+                      'attributes' => array('title' => t('Add a new !type in this group.', array('!type' => $type->name))),
+                      'query' => array('og_group_ref' => $group->nid),
+                    ));
+                  }
+                }
+              }
+              // Get the number of members
+              $subscribers_count = db_select('og_membership', 'ogm')->condition('state', OG_STATE_ACTIVE)
+                ->condition('type', OG_MEMBERSHIP_TYPE_DEFAULT)->condition('entity_type', 'user')
+                ->condition('gid', $group->nid)->countQuery()->execute()->fetchField();
+              $links['subscribers'] = l(t('!subscribers-count members', array('!subscribers-count' => $subscribers_count)), "group/node/$group->nid/admin/people");
+              // Get the manager
+              $account = user_load($group->uid);
+              $links['manager'] = t('Manager: !name', array('!name' => theme('username', array('account' => $account))));
+              if (og_is_member('node', $group->nid)) {
+                $links['my_membership'] = l(t('Leave this group'), "group/node/$group->nid/unsubscribe");
+              }
+              else {
+                $links['my_membership'] = l(t('Join'), "group/node/$group->nid/subscribe");
+              }
+            }
+            elseif ($og_membership->state == OG_STATE_PENDING) {
+              $links['approval'] = t('Your membership request awaits approval.');
+              $links['delete'] = l(t('Delete request'), "group/node/$group->nid/unsubscribe");
+            }
+          }
+          elseif (!$user->uid) {
+            $options = array('query' => array('destination' => drupal_get_destination()));
+            if (variable_get('user_register', 1) == 0) {
+              $links['must_login'] = t('You must <a href="!login">login</a> in order to post into this group.', array('!login' => url("user/login", $options)));
+            }
+            else {
+              $links['must_login'] = t('You must <a href="!register">register</a> or <a href="!login">login</a> in order to post into this group.', array('!register' => url("user/register", $options), '!login' => url("user/login", $options)));
+            }
+          }
+          else {
+            $links['subscribe'] = l(t('Join'), "group/node/$group->nid/subscribe");
+          }
+
+          // Modify these links by reference
+          drupal_alter('l10n_groups_links', $links, $group);
+
+          $block['content'] = theme('item_list', array('items' => $links, 'type' => 'ul'));
+          $block['subject'] = $group->title;
+          return $block;
+        }
+      }
+  }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function l10n_groups_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'l10n_groups'),
+  );
+}
+
+// = Organic groups node type ==================================================
+
+/**
+ * Implements hook_node_info().
+ *
+ * We expose one node type to tie into the organic groups system, and maintain a
+ * list of localization community related ones.
+ */
+function l10n_groups_node_info() {
+  return array(
+    'l10n_group' => array(
+      'name' => t('Translation group'),
+      'base' => 'l10n_groups',
+      'description' => t('A language community around Drupal project translations.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_insert().
+ */
+function l10n_groups_insert($node) {
+  db_insert('l10n_groups_group')
+    ->fields(array(
+    'nid' => $node->nid,
+    'language' => $node->l10n_group_language,
+  ))
+    ->execute();
+  l10n_community_cache_clear_all();
+}
+
+/**
+ * Implements hook_delete().
+ */
+function l10n_groups_delete(&$node) {
+  db_delete('l10n_groups_group')->condition('nid', $node->nid)->execute();
+  l10n_community_cache_clear_all();
+}
+
+/**
+ * Implements hook_update().
+ */
+function l10n_groups_update($node) {
+  if ($nid = db_query('SELECT nid FROM {l10n_groups_group} WHERE nid = :nid', array(':nid' => $node->nid))->fetchField()) {
+    db_update('l10n_groups_group')
+      ->fields(array('language' => $node->l10n_group_language))
+      ->condition('nid', $node->nid)
+      ->execute();
+  }
+  else {
+    l10n_groups_insert($node);
+  }
+}
+
+/**
+ * Implements hook_load().
+ */
+function l10n_groups_load($nodes) {
+  $q = 'SELECT language AS l10n_group_language FROM {l10n_groups_group} WHERE nid = ?';
+  foreach ($nodes as $nid => &$node) {
+    $node_additions = db_query($q, array($node->nid))->fetchObject();
+    foreach ($node_additions as $property => &$value) {
+      $node->$property = $value;
+    }
+  }
+}
+
+/**
+ * Implements hook_node_access().
+ *
+ * @todo
+ *   Group admins should be able to edit their group nodes. Look into how others do it.
+ */
+function l10n_groups_node_access($node, $op, $account) {
+  switch ($op) {
+
+    case 'view':
+      // Let everyone see localization groups who can access l10n_community.
+      return user_access('access localization community', $account);
+      break;
+
+    case 'create':
+      return user_access('create localization group', $account);
+      break;
+
+    case 'update':
+      // Update $op to 'edit' so we can reuse in permission name.
+      $op = 'edit';
+    // Intentionally no break.
+
+    case 'delete':
+      return user_access($op . ' any localization group', $account) || (user_access($op . ' own localization group', $account) && ($account->uid == $node->uid));
+      break;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_form().
+ */
+function l10n_groups_form($node, &$form_state) {
+  $form = array();
+
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Group name'),
+    '#description' => t('Name of the translation group.'),
+    '#default_value' => isset($node->title) ? $node->title : '',
+    '#weight' => -10,
+    '#required' => TRUE,
+  );
+  $languages = l10n_community_get_languages('name');
+
+  if (!empty($node->l10n_group_language)) {
+    // Already attached to a language, not possible to modify.
+    $form['l10n_group_language_display'] = array(
+      '#type' => 'item',
+      '#title' => t('Language'),
+      '#description' => t('The language managed by this group. This cannot be modified.'),
+      '#markup' => $languages[$node->l10n_group_language],
+      '#weight' => -5,
+    );
+    // Store the language value for hook_update.
+    $form['l10n_group_language'] = array(
+      '#type' => 'hidden',
+      '#value' => $node->l10n_group_language,
+    );
+  }
+  else {
+    // Create a list of languages on the site having no translation group.
+    $groups = db_query('SELECT language FROM {l10n_groups_group}');
+    foreach ($groups as $group) {
+      if ($languages[$group->language]) {
+        unset($languages[$group->language]);
+      }
+    }
+    // Not yet attached to a language.
+    $form['l10n_group_language'] = array(
+      '#type' => 'select',
+      '#title' => t('Language'),
+      '#description' => t('The language managed by this group. Languages not shown here are either not active on the site, or already have a translation group.'),
+      '#options' => $languages,
+      '#weight' => -5,
+      '#required' => TRUE,
+    );
+
+    // Add a message to configure plurals for language.
+    drupal_set_message(t('Remember to configure plurals for the language you mean to create a group for.'), 'warning');
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_l10n_groups_links_alter().
+ *
+ * @todo: move this to a localize.drupal.org specific module
+ */
+function l10n_groups_l10n_groups_links_alter(&$links, $group) {
+  $link = NULL;
+  if (isset($links['my_membership'])) {
+    $link = &$links['my_membership'];
+  }
+  if (isset($links['subscribe'])) {
+    $link = &$links['subscribe'];
+  }
+  if (!empty($link) && (strpos($link, t('Request membership')) || strpos($link, t('Join')))) {
+    $link = l('<span>' . t('Join') . '</span>', "group/node/$group->nid/subscribe",
+      array(
+        'attributes' => array('rel' => 'nofollow', 'class' => array('link-button')),
+        'html' => TRUE,
+        'query' => drupal_get_destination(),
+      )
+    );
+  }
+}
+
+// = API functions =============================================================
+
+/**
+ * Helper function for group listing.
+ *
+ * @return
+ *   List of l10n_group_group objects keyed by language code.
+ */
+function l10n_groups_get_groups() {
+  static $groups = NULL;
+
+  if (!isset($groups)) {
+    $groups = array();
+    $result = db_query('SELECT nid, language FROM {l10n_groups_group}');
+    foreach ($result as $group) {
+      $groups[$group->language] = $group->nid;
+    }
+  }
+
+  return $groups;
+}
+
+/**
+ * List groups a user is a member of to help jump there.
+ */
+function l10n_groups_pick_go() {
+  $groups = og_get_entity_groups();
+  if (!empty($groups)) {
+    $l10n_groups = array();
+    foreach ($groups as $group_type => $group) {
+      foreach ($group as $gid) {
+        $node = entity_load_single($group_type, $gid);
+        if ($node->type == 'l10n_group') {
+          $l10n_groups[$node->l10n_group_language] = l($node->title, 'translate/languages/' . $node->l10n_group_language);
+        }
+      }
+    }
+    if (!empty($l10n_groups)) {
+      return array(
+        '#type' => 'item',
+        '#title' => count($l10n_groups) > 1 ? t('Your groups') : t('Your group'),
+        '#markup' => join(', ', $l10n_groups),
+        '#l10n_groups' => array_keys($l10n_groups),
+      );
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Menu access callback for broadcast proxy tab.
+ */
+function l10n_groups_broadcast_access($langcode) {
+  $groups = l10n_groups_get_groups();
+  if (isset($groups[$langcode])) {
+    //return og_broadcast_access(node_load($groups[$langcode]));
+  }
+  return FALSE;
+}
+
+/**
+ * Menu callback for broadcast proxy tab.
+ */
+function l10n_groups_broadcast($langcode) {
+  $groups = l10n_groups_get_groups();
+  module_load_include('inc', 'og', 'og.pages');
+  return drupal_get_form('og_broadcast_form', node_load($groups[$langcode]));
+}
+
+// = Summary page outputs ======================================================
+
+/**
+ * Implements hook_l10n_community_build_language_page().
+ *
+ * Organic groups group welcome info for language page.
+ */
+function l10n_groups_l10n_community_build_language_page($language) {
+  $groups = l10n_groups_get_groups();
+  $lang_code = $language->language;
+  if (isset($groups[$lang_code]) && node_access('view', $group_node = node_load($groups[$lang_code]))) {
+    if (!empty($group_node->body[LANGUAGE_NONE][0])) {
+      $output = $group_node->body[LANGUAGE_NONE][0]['safe_value'];
+    }
+    else {
+      $output = '';
+    }
+  }
+  else {
+    $output = t('Group not found or not accessible. No information to display.');
+  }
+  return array('#markup' => '<div id="mission" class="og-mission">' . $output . '</div>');
+}

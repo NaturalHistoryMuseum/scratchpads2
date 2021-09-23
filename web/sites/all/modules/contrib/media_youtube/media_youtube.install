@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Media: YouTube module.
+ */
+
+/**
+ * Implement hook_install().
+ */
+function media_youtube_install() {
+  return array();
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function media_youtube_uninstall() {
+  foreach (media_youtube_variable_default() as $variable => $value) {
+    media_youtube_variable_del($variable);
+  }
+  return array(array('success' => TRUE, 'query' => "Deleted all variables in the Media: YouTube namespace."));
+}
+
+/**
+ * Clear style and preset caches.
+ */
+function media_youtube_update_7001() {
+  // We don't do this if we're using version 1 of Styles.
+  if (function_exists('styles_style_flush')) {
+    styles_style_flush();
+  }
+
+  return array();
+}
+
+/**
+ * Add label to Media: YouTube file style.
+ */
+function media_youtube_update_7003() {
+  return array();
+}
+
+/**
+ * Rebuild themes.
+ */
+function media_youtube_update_7004() {
+  drupal_theme_rebuild();
+  return array();
+}
+
+/**
+ * Add a large video preset and medium thumbnail.
+ */
+function media_youtube_update_7005() {
+  return array();
+}
+
+/**
+ * Add a square thumbnail preset.
+ */
+function media_youtube_update_7006() {
+  return array();
+}
+
+/**
+ * Rebuild the registry to locate class files in new location.
+ */
+function media_youtube_update_7007() {
+  registry_rebuild();
+}
+
+/**
+ * Rebuild styles presets to use camelCase.
+ */
+function media_youtube_update_7008() {
+  return array();
+}
+
+/**
+ * Change default styles presets.
+ */
+function media_youtube_update_7009() {
+  return array();
+}
+
+/**
+ * Change default styles presets.
+ */
+function media_youtube_update_7010() {
+  return array();
+}
+
+/**
+ * Add video presets based on Image styles.
+ */
+function media_youtube_update_7011() {
+  return array();
+}
+

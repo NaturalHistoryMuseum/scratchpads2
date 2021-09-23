@@ -1,0 +1,817 @@
+<?php
+
+/**
+ * @file
+ *   Base localization server module.
+ */
+
+/**
+ * Action flag for string addition.
+ */
+define('L10N_SERVER_ACTION_ADD', 1);
+
+/**
+ * Action flag for approval.
+ */
+define('L10N_SERVER_ACTION_APPROVE', 2);
+
+/**
+ * Action flag for denial.
+ */
+define('L10N_SERVER_ACTION_DECLINE', 3);
+
+/**
+ * Action flag for demotes.
+ */
+define('L10N_SERVER_ACTION_DEMOTE', 4);
+
+/**
+ * Action flag for re-additions.
+ */
+define('L10N_SERVER_ACTION_READD', 5);
+
+/**
+ * Action medium flag for unknown sources.
+ */
+define('L10N_SERVER_MEDIUM_UNKNOWN', 0);
+
+/**
+ * Action medium flag for web based actions.
+ */
+define('L10N_SERVER_MEDIUM_WEB', 1);
+
+/**
+ * Action medium flag for web based import.
+ */
+define('L10N_SERVER_MEDIUM_IMPORT', 2);
+
+/**
+ * Action medium flag for remote action.
+ */
+define('L10N_SERVER_MEDIUM_REMOTE', 3);
+
+// = Core hooks ================================================================
+
+/**
+ * Implements hook_help().
+ */
+function l10n_server_help($path, $args) {
+  if ($path == 'admin/l10n_server/connectors') {
+    // Add help to connector configuration.
+    return t('Localization server connectors handle data from different locations, parsing source files to make them available for translation. <a href="@modules">Look at the list of modules</a> where connectors are grouped under the "Localization server connectors" header. Enable at least one connector appropriate for your use.', array('@modules' => url('admin/modules')));
+  }
+
+  if (in_array($path, array('admin/config/language', 'admin/config/language/edit/%')) && !module_exists('l10n_pconfig')) {
+    // Add tip to language management.
+    return t('The <a href="@pconfig">Plural formula configurator</a> module is recommended for plural formula setup.', array('@pconfig' => 'http://drupal.org/project/l10n_pconfig'));
+  }
+
+  if ($path == 'admin/l10n_server/projects') {
+    // Add help to project management.
+    $help = t('Projects are created automatically or manually based on <a href="@connectors">your connector configuration</a>. File system based connectors need scanning to be run but create projects and releases automatically in that process.', array('@connectors' => url('admin/l10n_server/connectors')));
+    $addenabled = l10n_server_get_add_enabled_project_connectors();
+    if (count($addenabled)) {
+      $help .= ' ' . t('Upload based connectors <a href="@addproject">let you add projects</a> and releases manually on the user interface and then upload translatable files under them.', array('@addproject' => url('admin/l10n_server/projects/add')));
+    }
+    else {
+      $help .= ' ' . t('Upload based connectors let you add projects and releases manually on the user interface and then upload translatable files under them.');
+    }
+    return $help;
+  }
+
+  if ($path == 'admin/l10n_server/projects/releases/%') {
+    // Help for release management pages.
+    $project = l10n_server_get_projects(array('uri' => $args[4]));
+    list($connector, $source) = l10n_server_split_connector($project->connector_module);
+    if ($source == 'files') {
+      return t('This project is managed based on files in the file system. The connector will create releases as it finds the files, so it is not possible to add releases manually.');
+    }
+    elseif ($source == 'uploads') {
+      return t('Add releases to be able to upload different versions of your translatable source.');
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function l10n_server_menu() {
+  $items = array();
+
+  // Settings menu items.
+  $items['admin/l10n_server'] = array(
+    'title' => 'Localization server',
+    'description' => 'Configuration options for the localization server.',
+    'page callback' => 'l10n_server_settings_overview',
+    'access arguments' => array('administer localization server'),
+    'position' => 'right',
+    'weight' => -5,
+  );
+  $items['admin/l10n_server/connectors'] = array(
+    'title' => 'Connectors',
+    'description' => 'Enable and configure different data source and data format handlers.',
+    'page callback' => 'l10n_server_connectors_overview',
+    'file' => 'l10n_server.connectors.inc',
+    'access arguments' => array('administer localization server'),
+    'weight' => -20,
+  );
+  $items['admin/l10n_server/connectors/scan'] = array(
+    'title' => 'Scan for new data',
+    'page callback' => 'l10n_server_connector_scan',
+    'file' => 'l10n_server.connectors.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/connectors/config'] = array(
+    'title' => 'Configure a connector',
+    'page callback' => 'l10n_server_connector_configure',
+    'file' => 'l10n_server.connectors.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/l10n_server/projects'] = array(
+    'title' => 'Projects and releases',
+    'description' => 'Manage projects and releases handled by the server.',
+    'page callback' => 'l10n_server_admin_projects',
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'weight' => -10,
+  );
+  $items['admin/l10n_server/projects/overview'] = array(
+    'title' => 'Overview',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -20,
+  );
+  $items['admin/l10n_server/projects/add'] = array(
+    'title' => 'Add project',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_edit_form'),
+    'file' => 'l10n_server.projects.inc',
+    'access callback' => 'l10n_server_admin_projects_add_access',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 5,
+  );
+  $items['admin/l10n_server/projects/cleanup'] = array(
+    'title' => 'Clean up',
+    'page callback' => 'l10n_server_admin_projects_cleanup',
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 10,
+  );
+  $items['admin/l10n_server/projects/edit/%l10n_server_project_admin'] = array(
+    'title' => 'Edit project',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_edit_form', 4),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/delete/%l10n_server_project_admin'] = array(
+    'title' => 'Delete project',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_delete', 4),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/reset/%l10n_server_project_admin'] = array(
+    'title' => 'Enable project',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_reset', 4),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin'] = array(
+    'title' => 'Releases',
+    'page callback' => 'l10n_server_admin_releases',
+    'page arguments' => array(4),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin/list'] = array(
+    'title' => 'List',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -20,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin/add'] = array(
+    'title' => 'Add release',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_release_edit_form', 4),
+    'file' => 'l10n_server.projects.inc',
+    'access callback' => 'l10n_server_admin_projects_add_release_access',
+    'access arguments' => array(4),
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 10,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin/edit/%l10n_server_project_release'] = array(
+    'load arguments' => array('%map'),
+    'title' => 'Edit release',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_release_edit_form', 4, 6),
+    'file' => 'l10n_server.projects.inc',
+    'access callback' => 'l10n_server_admin_projects_add_release_access',
+    'access arguments' => array(4),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin/reset/%l10n_server_project_release'] = array(
+    'load arguments' => array('%map'),
+    'title' => 'Reset release',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_release_reset', 4, 6),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/l10n_server/projects/releases/%l10n_server_project_admin/delete/%l10n_server_project_release'] = array(
+    'load arguments' => array('%map'),
+    'title' => 'Delete release',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('l10n_server_admin_projects_release_delete', 4, 6),
+    'file' => 'l10n_server.projects.inc',
+    'access arguments' => array('administer localization server'),
+    'type' => MENU_CALLBACK,
+  );
+
+
+  // Development helpers.
+  if (module_exists('devel_generate')) {
+    $items['admin/generate/languages'] = array(
+      'title' => 'Generate languages',
+      'description' => 'Generate a given number of languages.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('l10n_server_generate_languages_form'),
+      'access arguments' => array('administer localization server'),
+      'file' => 'l10n_server.devel.inc',
+    );
+    $items['admin/generate/translations'] = array(
+      'title' => 'Generate translations and suggestions',
+      'description' => 'Generate a given number of translations and suggestions.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('l10n_server_generate_translations_form'),
+      'access arguments' => array('administer localization server'),
+      'file' => 'l10n_server.devel.inc',
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Access callback for the page to add a project.
+ */
+function l10n_server_admin_projects_add_access() {
+  if (!user_access('administer localization server')) {
+    // Skip rest of function, if no overall permission.
+    return FALSE;
+  }
+
+  // Return based on whether we have add enabled connectors.
+  $list = l10n_server_get_add_enabled_project_connectors();
+  return (bool) count($list);
+}
+
+/**
+ * Access callback for the page to add a release to a project.
+ */
+function l10n_server_admin_projects_add_release_access($project_uri) {
+  if (!user_access('administer localization server')) {
+    // Skip rest of function, if no overall permission.
+    return FALSE;
+  }
+
+  // Return based on whether the connector for this project is "addable".
+  $list = l10n_server_get_add_enabled_project_connectors();
+  $project = l10n_server_get_projects(array('uri' => $project_uri));
+  return isset($list[$project->connector_module]);
+}
+
+/**
+ * Menu loader for a release. Depends on the project.
+ */
+function l10n_server_project_release_load($release_rid, $map) {
+  $releases = l10n_server_get_releases($map[4], FALSE);
+  if (isset($releases[$release_rid])) {
+    return $release_rid;
+  }
+  return FALSE;
+}
+
+/**
+ * Return list of connectors+sources which support adding projects.
+ */
+function l10n_server_get_add_enabled_project_connectors() {
+  static $addenabled = NULL;
+
+  if (!isset($addenabled)) {
+    $addenabled = array();
+    $connectors = l10n_server_get_connectors();
+    $sources = l10n_server_get_sources();
+    foreach ($sources as $source => $sinfo) {
+      if (!empty($sinfo['add project'])) {
+        foreach ($connectors as $connector => $cinfo) {
+          if (variable_get('l10n_server_connector_' . $connector . '_' . $source . '_enabled', FALSE)) {
+            // Found a connector which has manage projects possibility,
+            // so we could add a project to be managed via the UI.
+            $addenabled[$connector . '_' . $source] = t('@title from @source', array('@title' => $cinfo['title'], '@source' => $sinfo['title']));
+          }
+        }
+      }
+    }
+  }
+
+  return $addenabled;
+}
+
+/**
+ * Return list of all connectors+sources.
+ */
+function l10n_server_get_project_connectors() {
+  static $project_connectors = NULL;
+
+  if (!isset($project_connectors)) {
+    $project_connectors = array();
+    $connectors = l10n_server_get_connectors();
+    $sources = l10n_server_get_sources();
+    foreach ($sources as $source => $sinfo) {
+      foreach ($connectors as $connector => $cinfo) {
+        if (variable_get('l10n_server_connector_' . $connector . '_' . $source . '_enabled', FALSE)) {
+          $project_connectors[$connector . '_' . $source] = t('@title from @source', array('@title' => $cinfo['title'], '@source' => $sinfo['title']));
+        }
+      }
+    }
+  }
+
+  return $project_connectors;
+}
+
+/**
+ * Menu loader function for %l10n_server_project_admin to validate project URI.
+ */
+function l10n_server_project_admin_load($uri) {
+  if (($projects = l10n_server_get_projects(array('all' => TRUE))) && isset($projects[$uri])) {
+    return $uri;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function l10n_server_permission() {
+  return array(
+    'administer localization server' => array(
+      'title' => t('administer localization server'),
+      'description' => t('TODO Add a description for \'administer localization server\''),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function l10n_server_theme($existing, $type, $theme, $path) {
+  return array(
+    // l10n_server.admin.inc
+    'l10n_server_admin_projects_form' => array(
+      'render element' => 'form',
+    ),
+    'l10n_server_admin_releases_form' => array(
+      'render element' => 'form',
+    ),
+    // l10n_server.admin.inc
+    'l10n_server_admin_connectors_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+// = Page callbacks ============================================================
+
+/**
+ * This is the same admin block display function as in system.module.
+ *
+ * We need to write this wrapper code so that the right include file is
+ * loaded to run that function.
+ */
+function l10n_server_settings_overview() {
+  module_load_include('inc', 'system', 'system.admin');
+  return system_admin_menu_block_page();
+}
+
+// = Sources implemented =======================================================
+
+/**
+ * Implements hook_l10n_server_source_info().
+ */
+function l10n_server_l10n_server_source_info() {
+  return array(
+    'files' => array(
+      'title' => t('the file system'),
+      'form' => 'l10n_server_connectors_files_settings_form',
+      'scan' => TRUE,
+      'file' => drupal_get_path('module', 'l10n_server') . '/l10n_server.connectors.inc',
+    ),
+    'uploads' => array(
+      'title' => t('file uploads'),
+      'add project' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function l10n_server_form_l10n_server_admin_projects_release_edit_form_alter(&$form, &$form_state) {
+  list($connector, $source) = l10n_server_split_connector($form['project']['#value']->connector_module);
+  if ($source == 'uploads') {
+    if (!empty($form['previous_release']['#value']->last_parsed)) {
+      $form['last_parsed'] = array(
+        '#type' => 'item',
+        '#title' => t('Source last parsed'),
+        '#markup' => format_date($form['previous_release']['#value']->last_parsed),
+        '#description' => t('To start over this same release with a new source file, <a href="@startover">start over the release</a>, edit and upload a new source file.', array('@startover' => url('admin/l10n_server/projects/releases/' . $form['project']['#value']->uri . '/reset/' . $form['previous_release']['#value']->rid))),
+        '#weight' => 100,
+      );
+    }
+    else {
+      $form['new_source'] = array(
+        '#type' => 'file',
+        '#title' => t('Source file'),
+        '#description' => t('Upload a source file to parse and store translatable strings from for this release.'),
+        '#weight' => 100,
+      );
+      $form['#submit'][] = 'l10n_server_release_file_upload_submit';
+      $form['#attributes']['enctype'] = 'multipart/form-data';
+    }
+  }
+}
+
+/**
+ * Custom submission handler for release editing when upload method is used.
+ */
+function l10n_server_release_file_upload_submit($form, &$form_state) {
+  list($connector, $source) = l10n_server_split_connector($form_state['values']['project']->connector_module);
+  $connectors = l10n_server_get_connectors();
+
+  if (isset($connectors[$connector])) {
+    // Include the connector implementation file if specified.
+    if (!empty($connectors[$connector]['file'])) {
+      include_once DRUPAL_ROOT . '/' . $connectors[$connector]['file'];
+    }
+
+    // Invoke the upload handler defined by the connector.
+    call_user_func($connectors[$connector]['upload handler'], $form, $form_state);
+  }
+}
+
+// = API functions =============================================================
+
+/**
+ * Provides a list of projects from the database, ordered by uri.
+ *
+ * @param $options
+ *   Associative array of options
+ *    - 'uri': Project URI, if requesting information about one project only.
+ *      If not specified, information about all projects is returned.
+ *    - 'pager': Number of projects to return a pager query result with. If
+ *      NULL, no pager is used.
+ *    - 'all': If not specified, unpublished projects are excluded (default).
+ *      If TRUE, even unpublished projects are returned (for admin pages).
+ * @return
+ *   An associative array keyed with project uris.
+ */
+function l10n_server_get_projects($options = array()) {
+  static $projects = array();
+
+  $select= db_select('l10n_server_project', 'p')->fields('p');
+
+  // Consider returning all projects or just published ones.
+  if (empty($options['all'])) $select->condition('status', 1);
+
+  if (isset($options['pager'])) {
+    if (isset($options['initial'])) {
+      $initials = l10n_server_get_project_initials();
+      if (isset($initials[$options['initial']])) {
+        $args = $initials[$options['initial']]['values'];
+        for ($i=0; $i < sizeof($args); $i++) { $arguments[':p_' . $i] = $args[$i]; }
+        $placeholders = implode(',', array_keys($arguments));
+	$select->where("SUBSTRING(title, 1, 1) IN ($placeholders)", $arguments);
+      }
+    }
+
+    // If a pager view was asked for, collect data independently.
+    $select->orderBy('title');
+    $result = $select->extend('PagerDefault')->limit($options['pager'])->execute();
+    $pager_results = $result->fetchAllAssoc('uri');
+
+    // Save project information for later, if someone asks for it by uri.
+    $projects = array_merge($projects, $pager_results);
+
+    return $pager_results;
+  }
+  else {
+    if (isset($options['uri'])) {
+      // A specific project was asked for.
+      if (isset($projects[$options['uri']])) {
+        // Can be served from the local cache.
+        return $projects[$options['uri']];
+      }
+      // Not found in cache, so query and cache before returning.
+      $result = db_query("SELECT * FROM {l10n_server_project} WHERE uri = :uri", array(':uri' => $options['uri']));
+      if ($project = $result->fetchObject()) {
+        $projects[$options['uri']] = $project;
+        return $project;
+      }
+    }
+    else {
+      // A list of *all* projects was asked for.
+      $results = $select->orderBy('uri')->execute();
+      foreach ($results as $project) {
+        $projects[$project->uri] = $project;
+      }
+      return $projects;
+    }
+  }
+}
+
+/**
+ * Build a list of initials of active projects for listings.
+ */
+function l10n_server_get_project_initials() {
+  // Grab the unique initials of all active projects
+  $result = db_query('SELECT DISTINCT(SUBSTR(title, 1, 1)) AS initial FROM {l10n_server_project} WHERE status = :status ORDER BY initial ASC', array(':status' => 1));
+
+  // Create an array of elements, all non-letters are grouped in '#'.
+  $initials = array();
+  foreach ($result as $row) {
+    $initial = $row->initial;
+    if (preg_match('/[A-Za-z]/', $initial)) {
+      $initials[strtolower($initial)] = array(
+        'title' => strtoupper($initial),
+        'values' => array(strtoupper($initial)),
+      );
+    }
+    elseif (!isset($initials[0])) {
+      $initials[0] = array(
+        'title' => '#',
+        'values' => array($initial),
+      );
+    }
+    else {
+      $initials[0]['values'][] = $initial;
+    }
+  }
+  return $initials;
+}
+
+/*
+ * Helper function for sorting project versions.
+ *
+ * @see l10n_server_get_releases()
+ */
+function _l10n_server_version_compare($a, $b) {
+  $a = str_replace('.x-', '.9999-', $a->title);
+  $b = str_replace('.x-', '.9999-', $b->title);
+  if ($a == $b) {
+    return 0;
+  }
+  return version_compare($a, $b, '>') ? -1 : 1;
+}
+
+/**
+ * Get all releases of a project.
+ *
+ * @param $uri
+ *   Project code to look up releases for.
+ * @param $parsed_only
+ *   If TRUE, only releases which already have their tarballs downloaded and
+ *   parsed for translatables are returned. Otherwise all releases recorded in
+ *   the database are returned.
+ * @return
+ *   Array of release objects for project, keyed by release id.
+ */
+function l10n_server_get_releases($uri, $parsed_only = TRUE) {
+  $releases = array();
+  $query = "SELECT r.* FROM {l10n_server_release} r LEFT JOIN {l10n_server_project} p ON r.pid = p.pid WHERE p.uri = :uri ";
+  if ($parsed_only) {
+    $query .= 'AND r.last_parsed > 0 ';
+  }
+  $result = db_query($query, array(':uri' => $uri));
+  $releases = $result->fetchAllAssoc('rid');
+  uasort($releases, '_l10n_server_version_compare');
+  return $releases;
+}
+
+/**
+ * Return information of all connector providers enabled.
+ */
+function l10n_server_get_connectors() {
+  static $connectors = NULL;
+
+  if (!isset($connectors)) {
+    $connectors = module_invoke_all('l10n_server_connector_info');
+  }
+  return $connectors;
+}
+
+/**
+ * Return information of all sources available.
+ */
+function l10n_server_get_sources() {
+  static $sources = NULL;
+
+  if (!isset($sources)) {
+    $sources = module_invoke_all('l10n_server_source_info');
+  }
+  return $sources;
+}
+
+/**
+ * Split a DB connector_module into connector name and source name.
+ */
+function l10n_server_split_connector($connector_module) {
+  $split = explode('_', $connector_module);
+  $source_name = array_pop($split);
+  return array(join('_', $split), $source_name);
+}
+
+/**
+ * Parses a Gettext Portable Object file and saves strings.
+ *
+ * Modified version of Drupal 7's _locale_import_read_po():
+ *   - does not support in-memory import ($op parameter)
+ *   - calls $string_callback() to save string
+ *   - passes on $callback_arguments additionaly to the found string
+ *   - algorithm untouched except using Drupal 7 code to support msgctxt
+ *
+ * @param $file
+ *   Drupal file object corresponding to the PO file to import.
+ * @param $string_callback
+ *   Callback invoked to save a string.
+ * @param $callback_arguments
+ *   Array of arguments to pass on to the callback after the string found.
+ */
+function l10n_server_parse_po($file, $string_callback, $callback_arguments) {
+  include_once DRUPAL_ROOT . '/' . 'includes/locale.inc';
+
+  $fd = fopen(drupal_realpath($file->uri), "rb"); // File will get closed by PHP on return
+  if (!$fd) {
+    _locale_import_message('The Gettext file import failed, because the file %filename could not be read.', $file);
+    return FALSE;
+  }
+
+  $context = "COMMENT"; // Parser context: COMMENT, MSGID, MSGID_PLURAL, MSGSTR and MSGSTR_ARR
+  $current = array(); // Current entry being read
+  $plural  = 0; // Current plural form
+  $lineno  = 0; // Current line
+
+  while (!feof($fd)) {
+    $line = fgets($fd, 10 * 1024); // A line should not be this long
+    if ($lineno == 0) {
+      // The first line might come with a UTF-8 BOM, which should be removed.
+      $line = str_replace("\xEF\xBB\xBF", '', $line);
+    }
+    $lineno++;
+    $line = trim(strtr($line, array("\\\n" => "")));
+
+    if (!strncmp("#", $line, 1)) { // A comment
+      if ($context == "COMMENT") { // Already in comment context: add
+        $current["#"][] = substr($line, 1);
+      }
+      elseif (($context == "MSGSTR") || ($context == "MSGSTR_ARR")) { // End current entry, start a new one
+        call_user_func_array($string_callback, array_merge(array($current), $callback_arguments));
+        $current = array();
+        $current["#"][] = substr($line, 1);
+        $context = "COMMENT";
+      }
+      else { // Parse error
+        _locale_import_message('%filename contains an error: "msgstr" was expected but not found on line %line.', $file, $lineno);
+        return FALSE;
+      }
+    }
+    elseif (!strncmp("msgid_plural", $line, 12)) {
+      if ($context != "MSGID") { // Must be plural form for current entry
+        _locale_import_message('%filename contains an error: "msgid_plural" was expected but not found on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $line = trim(substr($line, 12));
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $current["msgid"] = $current["msgid"] . "\0" . $quoted;
+      $context = "MSGID_PLURAL";
+    }
+    elseif (!strncmp("msgid", $line, 5)) {
+      if ($context == "MSGSTR") { // End current entry, start a new one
+        call_user_func_array($string_callback, array_merge(array($current), $callback_arguments));
+        $current = array();
+      }
+      elseif ($context == "MSGID") { // Already in this context? Parse error
+        _locale_import_message('%filename contains an error: "msgid" is unexpected on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $line = trim(substr($line, 5));
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $current["msgid"] = $quoted;
+      $context = "MSGID";
+    }
+    elseif (!strncmp("msgctxt", $line, 7)) {
+      if ($context == "MSGSTR") { // End current entry, start a new one
+        call_user_func_array($string_callback, array_merge(array($current), $callback_arguments));
+        $current = array();
+      }
+      elseif (!empty($current["msgctxt"])) { // Already in this context? Parse error
+        _locale_import_message('%filename contains an error: "msgctxt" is unexpected on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $line = trim(substr($line, 7));
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $current["msgctxt"] = $quoted;
+      $context = "MSGCTXT";
+    }
+    elseif (!strncmp("msgstr[", $line, 7)) {
+      if (($context != "MSGID") && ($context != "MSGCTXT") && ($context != "MSGID_PLURAL") && ($context != "MSGSTR_ARR")) { // Must come after msgid, msgxtxt, msgid_plural, or msgstr[]
+        _locale_import_message('%filename contains an error: "msgstr[]" is unexpected on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      if (strpos($line, "]") === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $frombracket = strstr($line, "[");
+      $plural = substr($frombracket, 1, strpos($frombracket, "]") - 1);
+      $line = trim(strstr($line, " "));
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $current["msgstr"][$plural] = $quoted;
+      $context = "MSGSTR_ARR";
+    }
+    elseif (!strncmp("msgstr", $line, 6)) {
+      if (($context != "MSGID") && ($context != "MSGCTXT")) { // Should come just after a msgid or msgctxt block
+        _locale_import_message('%filename contains an error: "msgstr" is unexpected on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $line = trim(substr($line, 6));
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      $current["msgstr"] = $quoted;
+      $context = "MSGSTR";
+    }
+    elseif ($line != "") {
+      $quoted = _locale_import_parse_quoted($line);
+      if ($quoted === FALSE) {
+        _locale_import_message('%filename contains a syntax error on line %line.', $file, $lineno);
+        return FALSE;
+      }
+      if (($context == "MSGID") || ($context == "MSGID_PLURAL")) {
+        $current["msgid"] .= $quoted;
+      }
+      elseif ($context == "MSGCTXT") {
+        $current["msgctxt"] .= $quoted;
+      }
+      elseif ($context == "MSGSTR") {
+        $current["msgstr"] .= $quoted;
+      }
+      elseif ($context == "MSGSTR_ARR") {
+        $current["msgstr"][$plural] .= $quoted;
+      }
+      else {
+        _locale_import_message('%filename contains an error: there is an unexpected string on line %line.', $file, $lineno);
+        return FALSE;
+      }
+    }
+  }
+
+  // End of PO file, flush last entry
+  if (!empty($current)) {
+    call_user_func_array($string_callback, array_merge(array($current), $callback_arguments));
+  }
+  elseif ($context != "COMMENT") {
+    _locale_import_message('%filename ended unexpectedly at line %line.', $file, $lineno);
+    return FALSE;
+  }
+
+  return TRUE;
+}

@@ -1,0 +1,45 @@
+div.tweets-pulled-listing ul {
+  list-style: none;
+}
+
+div.tweets-pulled-listing div.tweet-authorphoto {
+  margin: 0 5px 0 0;
+  float: left;
+}
+
+div.tweets-pulled-listing div.tweet-authorphoto img {
+  max-height: 40px;
+  max-width: 40px;
+}
+
+div.tweets-pulled-listing .tweet-author a {
+  font-weight: bold;
+}
+
+div.tweets-pulled-listing  div.tweet-divider {
+  clear: left;
+  border-bottom: 1px solid #efefef;
+  margin: 5px 0 5px 0;
+}
+
+div.tweet-author-wrapper .twitter-follow-button {
+	float:right;
+}
+
+div.tweet-author-wrapper .tweet-author-info {
+	float:left;
+	width:75%;
+	min-width: 175px;
+}
+
+div.tweet-footer {
+	font-size: 0.75em;
+}
+
+div.tweet-footer .tweet-time {
+	float:left;
+}
+
+div.tweet-footer .tweet-actions {
+	float:right;
+}

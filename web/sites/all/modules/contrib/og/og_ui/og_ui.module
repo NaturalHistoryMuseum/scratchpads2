@@ -1,0 +1,706 @@
+<?php
+
+/**
+ * @file
+ * Organic groups UI.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function og_ui_menu() {
+  $items = array();
+  $items['group/%/%/subscribe'] = array(
+    'type' => MENU_CALLBACK,
+    'file' => 'og_ui.pages.inc',
+    'page callback' => 'og_ui_subscribe',
+    'page arguments' => array(1, 2),
+    // Function will take care of permissions, as we want to show "you are
+    // already a member of the group" to group members, however it is not
+    // possible to give authenticated group members the "subscribe" permissions.
+    'access callback' => 'user_is_logged_in',
+
+    // We don't add the group name, as it might be private.
+    'title' => 'Join group'
+  );
+
+  $items['group/%/%/unsubscribe'] = array(
+    'type' => MENU_CALLBACK,
+    'file' => 'og_ui.pages.inc',
+    'page callback' => 'og_ui_unsubscribe',
+    'page arguments' => array(1, 2),
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('unsubscribe', 1, 2),
+    'title' => 'Leave group',
+  );
+
+  $items['group/%/%/admin/people/add-user'] = array(
+    'page callback' => 'drupal_get_form',
+    'title' => 'Add members',
+    'page arguments' => array('og_ui_add_users', 1, 2),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'og_ui.admin.inc',
+    'weight' => 5,
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('add user', 1, 2),
+  );
+
+  // User listing pages.
+  $items['group/%/%/admin/people'] = array(
+    'title arguments' => array('People in group @group', 1, 2),
+    'title callback' => 'og_ui_menu_title_callback',
+    'description' => 'Find and manage group members.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_account', 1, 2),
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('approve and deny subscription', 1, 2),
+    'weight' => -4,
+    'file' => 'og_ui.admin.inc',
+  );
+
+  // Permission administration pages.
+  $items['group/%/%/admin/people/roles'] = array(
+    'title arguments' => array('Roles for group @group', 1, 2),
+    'title callback' => 'og_ui_menu_title_callback',
+    'description' => 'List, edit, or add user roles.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_new_role', 1, 2),
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('administer group', 1, 2),
+    'file' => 'og_ui.admin.inc',
+    'weight' => -9,
+  );
+
+  $items['group/%/%/admin/people/roles/edit'] = array(
+    'title' => 'Edit role',
+    'page arguments' => array('og_ui_user_admin_roles', 1, 2),
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('administer group', 1, 2),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['group/%/%/admin/people/permissions'] = array(
+    'title arguments' => array('Permissions for group @group', 1, 2),
+    'title callback' => 'og_ui_menu_title_callback',
+    'description' => 'Determine access to features by selecting permissions for roles.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_permissions', 1, 2),
+    'access callback' => 'og_user_access_by_entity',
+    'access arguments' => array('administer group', 1, 2),
+    'file' => 'og_ui.admin.inc',
+    'weight' => -8,
+  );
+
+  foreach (entity_get_info() as $entity => $value) {
+    if ($value['fieldable']) {
+      $items["$entity/%/group"] = array(
+        'title' => 'Group',
+        'page callback' => 'og_ui_group_admin_overview',
+        'page arguments' => array($entity, 1),
+        'access callback' => 'og_user_access_by_entity',
+        'access arguments' => array('access administration pages', $entity, 1),
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'og_ui.admin.inc',
+        'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+      );
+    }
+  }
+
+  $items['admin/config/group'] = array(
+    'title' => 'Organic groups',
+    'description' => 'Administer the suite of Organic groups modules.',
+    'position' => 'right',
+    'weight' => -5,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer group'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
+  $items['admin/config/group/settings'] = array(
+    'title' => 'Organic groups settings',
+    'description' => 'Administer the Organic groups settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_settings'),
+    'access arguments' => array('administer group'),
+    'file' => 'og_ui.admin.inc',
+  );
+
+  $items['admin/config/group/permissions'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_global_permissions'),
+    'title' => 'Organic groups global permissions',
+    'access arguments' => array('administer group'),
+    'description' => 'Configure Organic groups global permissions.',
+    'file' => 'og_ui.admin.inc',
+  );
+
+  $items['admin/config/group/roles'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_user_admin_new_role'),
+    'title' => 'Organic groups global roles',
+    'access arguments' => array('administer group'),
+    'description' => 'Configure Organic groups global roles.',
+    'file' => 'og_ui.admin.inc',
+  );
+
+  $items['admin/config/group/roles/edit'] = array(
+    'title' => 'Edit role',
+    'page arguments' => array('og_ui_user_admin_global_roles', '', '', 5),
+    'access arguments' => array('administer group'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/group/fields'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_field_settings'),
+    'title' => 'Organic groups field settings',
+    'access arguments' => array('administer group'),
+    'description' => 'Configure Organic groups fields in bundles.',
+    'file' => 'og_ui.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/group/fields/%/%/%field_ui_menu/delete'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('og_ui_field_delete_form', 6),
+    'load arguments' => array(4, 5, 5, '%map'),
+    'title' => 'Delete',
+    'access arguments' => array('administer group'),
+    'description' => 'Delete an Organic groups field from a bundle.',
+    'file' => 'og_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function og_ui_ctools_plugin_directory($module, $plugin) {
+  // Safety: go away if CTools is not at an appropriate version.
+  if (!module_invoke('ctools', 'api_version', OG_MIGRATE_REQUIRED_CTOOLS_API)) {
+    return;
+  }
+
+  if ($module == 'ctools' || $module == 'og_migrate') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function og_ui_admin_paths() {
+  $paths = array(
+    'node/*/group' => TRUE,
+    'group/*/*/admin/*' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Menu callback; Return the title of a menu item based on the group title.
+ */
+function og_ui_menu_title_callback($title, $entity_type, $etid) {
+  $group = og_get_group($entity_type, $etid);
+  $label = og_label($group->gid);
+  return str_replace('@group', $label, $title);
+}
+
+/**
+ * Implement hook_theme().
+ */
+function og_ui_theme() {
+  return array(
+    'og_ui_user_admin_permissions' => array(
+      'render element' => 'form',
+      'file' => 'og_ui.admin.inc',
+    ),
+    'og_ui_user_admin_new_role' => array(
+      'render element' => 'form',
+      'file' => 'og_ui.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_og_fields_info_alter().
+ *
+ * Change the default formatter of the group field.
+ */
+function og_ui_og_fields_info_alter(&$items) {
+  $items[OG_GROUP_FIELD]['instance']['display']['default']['type'] = 'og_group_subscribe';
+}
+
+
+/**
+ * Implement hook_field_formatter_info().
+ */
+function og_ui_field_formatter_info() {
+  return array(
+    'og_group_subscribe' => array(
+      'label' => t('Group subscription'),
+      'field types' => array('list_boolean'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function og_ui_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  if ($field['field_name'] == OG_GROUP_FIELD && $links = og_ui_subscribe_link($entity_type, $entity)) {
+    $element[0] = $links;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_access().
+ */
+function og_ui_field_access($op, $field, $entity_type, $entity, $account) {
+  global $user;
+
+  if ($field['field_name'] != OG_AUDIENCE_FIELD) {
+    return;
+  }
+
+  if (!$user->uid) {
+    // User is anonymous, and user register might try to add the group-audience
+    // field.
+    return;
+  }
+
+  if ($op != 'edit') {
+    return;
+  }
+
+  if ($entity_type != 'user') {
+    return;
+  }
+
+  if (!user_access('administer group', $account)) {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_og_user_access_alter().
+ *
+ * Add a permission to pending users to unsubscribe form group.
+ */
+function og_ui_og_user_access_alter(&$perms, $context) {
+  if ($context['string'] == 'unsubscribe' && empty($perm['unsubscribe'])) {
+    // Check user's state.
+    $state = og_get_entity_state($context['group']->gid, 'user', $context['account']);
+    if ($state == OG_STATE_PENDING) {
+      // Allow user to unsubscribe.
+      $perms['unsubscribe'] = TRUE;
+    }
+  }
+}
+
+
+/**
+ * Return a subscribe link according to user's permissions.
+ *
+ * @param $entity_type
+ * @param $entity
+ * @param $account
+ * @return unknown_type
+ */
+function og_ui_subscribe_link($entity_type, $entity, $account = NULL) {
+  $return = array();
+
+  if (empty($account)) {
+    global $user;
+    $account = clone($user);
+  }
+
+  list($id) = entity_extract_ids($entity_type, $entity);
+
+  if (($group = og_get_group($entity_type, $id))) {
+    if (!empty($entity->uid) && ($entity->uid == $user->uid)) {
+      // User is the group manager.
+      $return = array(
+        '#type' => 'item',
+        '#markup' => t('You are the group manager'),
+      );
+    }
+    else {
+      // Check if the user is a group member.
+      if (og_is_member($group->gid, 'user', $account, array(OG_STATE_ACTIVE, OG_STATE_PENDING))) {
+        if (og_user_access($group->gid, 'unsubscribe', $account)) {
+          $links['title'] = t('Unsubscribe from group');
+          $links['href'] = "group/$entity_type/$id/unsubscribe";
+        }
+      }
+      else {
+        if (og_is_member($group->gid, 'user', $account, array(OG_STATE_BLOCKED))) {
+          // If user is blocked, they should not be able to apply for
+          // membership.
+          return;
+        }
+
+        if (og_user_access($group->gid, 'subscribe without approval', $account)) {
+          $links['title'] = t('Subscribe to group');
+          $url = "group/$entity_type/$id/subscribe";
+          if ($account->uid) {
+            $links['href'] = $url;
+          }
+          else {
+            $links['href'] = 'user/login';
+            $links['options'] = array('query' => array('destination' => $url));
+          }
+        }
+        elseif (og_user_access($group->gid, 'subscribe')) {
+          $links['title'] = t('Request group membership');
+          $url = "group/$entity_type/$id/subscribe";
+          if ($account->uid) {
+            $links['href'] = $url;
+          }
+          else {
+            $links['href'] = 'user/login';
+            $links['options'] = array('query' => array('destination' => $url));
+          }
+        }
+        else {
+          $return = array(
+            '#type' => 'item',
+            '#markup' => t('This is a closed group. Only a group administrator can add you.'),
+          );
+        }
+
+      }
+
+      if (!empty($links['title'])) {
+        $links += array('options' => array());
+        $return = array(
+          '#type' => 'link',
+          '#title' => $links['title'],
+          '#href' => $links['href'],
+          '#options' => $links['options'],
+        );
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Implement hook_forms().
+ */
+function og_ui_forms() {
+  $forms['og_ui_user_admin_new_role']['callback'] = 'og_ui_user_admin_roles';
+
+  // Form to define the global permissions.
+  $forms['og_ui_user_admin_global_permissions']['callback'] = 'og_ui_user_admin_permissions';
+
+  // Form to define the global roles.
+  $forms['og_ui_user_admin_global_roles']['callback'] = 'og_ui_user_admin_roles';
+
+  return $forms;
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter().
+ */
+function og_ui_form_node_type_form_alter(&$form, &$form_state) {
+  $node_type = $form['#node_type']->type;
+
+  $form['group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Group'),
+    '#collapsible' => TRUE,
+    '#group' => 'additional_settings',
+    '#description' => t('Specify how Group should treat content of this type. Content may behave as a group, as group content, or may not participate in Group at all.'),
+  );
+
+  // Group settings.
+  $url = array(
+    '!url' => l(t('Manage fields'), 'admin/structure/types/manage/' . str_replace('_', '-', $node_type) . '/fields'),
+  );
+  $type = og_is_group_type('node', $node_type) ? 'group' : 'omitted';
+  $disabled = $type != 'omitted';
+
+  $description = t('Set the content type to be a group, that content will be associated with, and will have group members.');
+  if ($disabled) {
+   $description .= '<br/>' . t('To unset the group definition you should delete the "Group type" field via !url.', $url);
+  }
+
+
+  $form['group']['og_group_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Group'),
+    '#default_value' => $type,
+    '#options' => array('omitted' => t('Not a group type'), 'group' => t('Group type')),
+    '#description' => $description,
+    '#disabled' => $disabled,
+  );
+
+  // Group content settings.
+  $type = og_is_group_content_type('node', $node_type) ? 'og_content' : 'omitted';
+  $disabled = $type != 'omitted';
+
+  $description = t('Set the content type to be a group content, that can be associated with groups.');
+  if ($disabled) {
+   $description .= '<br/>' . t('To unset the group content definition you should delete the "Groups audience" field via !url.', $url);
+  }
+
+  $form['group']['og_group_content_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Group content'),
+    '#default_value' =>  $type,
+    '#options' => array('omitted' => t('Not a group content type'), 'og_content' => t('Group content type')),
+    '#description' => $description,
+    '#disabled' => $disabled,
+  );
+}
+
+/**
+ * Implement hook_og_permission().
+ */
+function og_ui_og_permission() {
+  $items = array();
+
+  $items['subscribe'] = array(
+    'title' => t('Subscribe to group'),
+    'description' => t('Allow non-members to request membership to a group (approval required).'),
+    'roles' => array(OG_ANONYMOUS_ROLE),
+    'default role' => array(OG_ANONYMOUS_ROLE),
+  );
+
+  $items['subscribe without approval'] = array(
+    'title' => t('Subscribe to group (no approval required)'),
+    'description' => t('Allow non-members to join a group without an approval from group administrators.'),
+    'roles' => array(OG_ANONYMOUS_ROLE),
+  );
+
+  $items['unsubscribe'] = array(
+    'title' => t('Unsubscribe from group'),
+    'description' => t('Allow members to unsubscribe themselves from a group, removing their membership.'),
+    'roles' => array(OG_AUTHENTICATED_ROLE),
+    'default role' => array(OG_AUTHENTICATED_ROLE),
+  );
+
+  $items['approve and deny subscription'] = array(
+    'title' => t('Approve and deny subscription'),
+    'description' => t('Users may allow or deny another user\'s subscription request.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+
+  $items['add user'] = array(
+    'title' => t('Add user'),
+    'description' => t('Users may add other users to the group without approval.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+
+  $items['access administration pages'] = array(
+    'title' => t('Use the administration pages'),
+    'description' => t('Allow users to see the "Group" tab, and access the administration pages.'),
+    'default role' => array(OG_ADMINISTRATOR_ROLE),
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implement hook_og_user_operations().
+ */
+function og_ui_og_user_operations($form = array(), $form_state = array()) {
+  $gid = $form_state['group']->gid;
+  $operations = array(
+    'unblock' => array(
+      'label' => t('Approve membership of the selected users'),
+      'callback' => 'og_ui_user_operations_approve',
+    ),
+    'deny' => array(
+      'label' => t('Deny membership from the selected users'),
+      'callback' => 'og_ui_user_operations_deny',
+    ),
+    'block' => array(
+      'label' => t('Block membership from the selected users'),
+      'callback' => 'og_ui_user_operations_block',
+    ),
+  );
+
+  if (og_user_access($gid, 'administer group')) {
+    $roles = og_roles($gid);
+
+    $add_roles = array();
+    foreach ($roles as $rid => $name) {
+      if (!in_array($name, array(OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE))) {
+        $add_roles['add_role-' . $rid] = strip_tags($name);
+      }
+    }
+
+    $remove_roles = array();
+    foreach ($roles as $rid => $name) {
+      if (!in_array($name, array(OG_ANONYMOUS_ROLE, OG_AUTHENTICATED_ROLE))) {
+        $remove_roles['remove_role-' . $rid] = strip_tags($name);
+      }
+    }
+
+    if ($add_roles) {
+      $role_operations = array(
+        t('Add a role to the selected users') => array(
+          'label' => $add_roles,
+        ),
+        t('Remove a role from the selected users') => array(
+          'label' => $remove_roles,
+        ),
+      );
+
+      $operations += $role_operations;
+    }
+  }
+
+  // If the form has been posted, we need to insert the proper data for
+  // role editing if necessary.
+  if (!empty($form_state['submitted'])) {
+    $operation_rid = explode('-', $form_state['values']['operation']);
+    $operation = $operation_rid[0];
+    if ($operation == 'add_role' || $operation == 'remove_role') {
+      $rid = $operation_rid[1];
+      if (og_user_access($gid, 'administer group')) {
+        $operations[$form_state['values']['operation']] = array(
+          'callback' => 'og_ui_user_multiple_role_edit',
+          'callback arguments' => array($operation, $rid),
+        );
+      }
+      else {
+        watchdog('security', 'Detected malicious attempt to alter protected user fields.', array(), WATCHDOG_WARNING);
+        return;
+      }
+    }
+  }
+
+  return $operations;
+}
+
+
+/**
+ * Callback function for admin mass approving users.
+ */
+function og_ui_user_operations_approve($gid, $uids) {
+  _group_ui_user_operations_set_state($gid, $uids, OG_STATE_ACTIVE);
+}
+
+/**
+ * Callback function for admin mass blocking users.
+ */
+function og_ui_user_operations_block($gid, $uids) {
+  _group_ui_user_operations_set_state($gid, $uids, OG_STATE_BLOCKED);
+}
+
+
+/**
+ * Set the state of a user in a group.
+ *
+ * @param $gid
+ *   Group ID
+ * @param $uids
+ *   Uset IDs
+ * @param $state
+ *   The state to set the user in the group.
+ */
+function _group_ui_user_operations_set_state($gid, $uids, $state) {
+  $accounts = user_load_multiple($uids);
+  foreach ($accounts as $account) {
+    $values = array('entity' => $account, 'state' => $state);
+    og_group($gid, $values);
+  }
+}
+
+
+/**
+ * Callback function for admin mass denying users.
+ */
+function og_ui_user_operations_deny($gid, $uids) {
+  $accounts = user_load_multiple($uids);
+
+  foreach ($accounts as $account) {
+    og_ungroup($gid, 'user', $account);
+  }
+}
+
+
+/**
+ * Callback function for admin mass adding/ deleting a user role.
+ */
+function og_ui_user_multiple_role_edit($gid, $accounts, $operation, $rid) {
+  switch ($operation) {
+    case 'add_role':
+      $accounts = user_load_multiple($accounts);
+      foreach ($accounts as $account) {
+        og_role_grant($gid, $account->uid, $rid);
+
+      }
+      break;
+    case 'remove_role':
+      $accounts = user_load_multiple($accounts);
+      foreach ($accounts as $account) {
+        og_role_revoke($gid, $account->uid, $rid);
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_og_ui_get_group_admin()
+ */
+function og_ui_og_ui_get_group_admin($gid) {
+  $items = array();
+
+  $default_access = og_is_group_default_access($gid);
+
+  if (og_user_access($gid, 'add user')) {
+    $items['add_people'] = array(
+      'title' => t('Add people'),
+      'description' => t('Add group members.'),
+      // The final URL will be "group/$entity_type/$etid/admin/people/add-user".
+      // @see og_ui_group_admin_overview().
+      'href' => 'admin/people/add-user',
+    );
+  }
+
+  if (og_user_access($gid, 'approve and deny subscription')) {
+    $items['people'] = array(
+      'title' => t('People'),
+      'description' => t('Manage the group members.'),
+      'href' => "admin/people",
+    );
+  }
+
+  $items['roles'] = array(
+    'title' => !$default_access ? t('Roles') : t('Roles (read-only)'),
+    'description' => !$default_access ? t('Manage the group roles.') : t('View the group roles.'),
+    'href' => "admin/people/roles",
+  );
+  $items['permissions'] = array(
+    'title' => !$default_access ? t('Permissions') : t('Permissions (read-only)'),
+    'description' => !$default_access ? t('Manage the group permissions.') : t('View the group permissions.'),
+    'href' => "admin/people/permissions",
+  );
+
+  return $items;
+}
+
+/**
+ * Get all the group admin menu items.
+ */
+function og_ui_get_group_admin($gid) {
+  $data = module_invoke_all('og_ui_get_group_admin', $gid);
+
+  // Allow other modules to alter the menu items.
+  drupal_alter('og_ui_get_group_admin', $data, $gid);
+
+  return $data;
+}

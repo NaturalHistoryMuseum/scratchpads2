@@ -1,0 +1,147 @@
+<?php
+define('SCRATCHPADS_WIKI_URL', 'https://github.com/NaturalHistoryMuseum/scratchpads2/wiki/');
+
+/**
+ * Implements hook_block_info().
+ */
+function scratchpads_help_block_info(){
+  $blocks['scratchpads_help'] = array(
+    'info' => t('Scratchpads help'),
+    'region' => 'footer'
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_help_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'scratchpads_help':
+      if($help = scratchpads_help_get_help()){
+        $block['content'] = $help;
+      }
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function scratchpads_help_add_help($data = NULL){
+  $help = &drupal_static(__FUNCTION__, array());
+  if(isset($data)){
+    $help[] = array(
+      '#type' => 'markup',
+      '#markup' => $data
+    );
+  }
+  return $help;
+}
+
+function scratchpads_help_get_help(){
+  $help = scratchpads_help_add_help();
+  $path = menu_tab_root_path();
+  if(strpos($path, '%')){
+    // We have '%' in the path, we need to convert them to actual strings.
+    $path_parts = explode('/', $path);
+    $index = 0;
+    foreach($path_parts as $path_part){
+      if($path_part == '%'){
+        $path_parts[$index] = arg($index);
+      }
+      $index++;
+    }
+    $path = implode('/', $path_parts);
+  }
+  if($path && db_table_exists('scratchpads_help')){
+    $results = db_select('scratchpads_help', 's')->condition('path', $path)->fields('s', array(
+      'page',
+      'title'
+    ))->execute();
+
+    $links = array();
+    foreach($results as $row){
+      if(!$row->title){
+        $row->title = $row->page;
+      }
+      $links[] = l($row->title, $row->page, array(
+        'attributes' => array(
+          'target' => '_blank'
+        )
+      ));
+    }
+    if(count($links)){
+      $help[] = array(
+        '#markup' => format_plural(count($links), 'Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a> page: !links', 'Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a> pages: !links', array(
+          '!links' => implode(", ", $links)
+        ))
+      );
+    }
+  }
+  return drupal_render($help);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function scratchpads_help_cron(){
+  // We update the list of wiki pages that are relevant to certain paths once a
+  // day (actually a little more than once a day).
+  if(variable_get('scratchpads_help_last_update', 0) < (time() - 100000)){
+    $fetch_path = SCRATCHPADS_WIKI_URL . 'Embeded-help.md';
+    $md = file_get_contents($fetch_path);
+    $lines = preg_split('/[\n\r]+/', $md);
+    $insert = db_insert('scratchpads_help')->fields(array(
+      'path',
+      'page',
+      'title'
+    ));
+    $do_insert = FALSE;
+    $in_body = FALSE;
+
+    foreach($lines as $line){
+      if (!$in_body) {
+        // Don't do anything until we get to the table body,
+        // denoted by the ------|------ line
+        if (preg_match('/^-+\\|-+$/', $line) === 1) {
+          $in_body = TRUE;
+        }
+        continue;
+      }
+
+      # Matches for the table rows, 2 formats:
+      # path/to/page | [Link text](wiki_page_name)
+      # path/to/page | link text and page name
+      if (preg_match('/^\s*([^|]+?)\s*\|\s*(\[([^\]]+)\]\(([^)]+)\)|.*)\s*$/', $line, $matches) !== 1) {
+        continue;
+      }
+
+      list( , $path, $pagetitle, $title, $page) = $matches;
+
+      if (!$page) {
+        $page = rawurlencode(str_replace(' ', '-', $pagetitle));
+      }
+      $page = SCRATCHPADS_WIKI_URL . $page;
+
+      if (!$title) {
+        $title = $pagetitle;
+      }
+
+      $do_insert = TRUE;
+      $insert->values(array(
+        'path' => $path,
+        'page' => $page,
+        'title' => $title
+      ));
+    }
+
+    db_delete('scratchpads_help')->execute();
+    if($do_insert){
+      $insert->execute();
+    }
+    variable_set('scratchpads_help_last_update', time());
+  }
+}

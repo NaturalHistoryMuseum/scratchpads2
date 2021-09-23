@@ -1,0 +1,12 @@
+name = Biblio - MARC
+description = Provides MARC file import to the Biblio module.
+core = 7.x
+package = Biblio
+dependencies[] = biblio
+files[] = php-marc.php
+
+; Information added by Drupal.org packaging script on 2020-09-08
+version = "7.x-1.4"
+core = "7.x"
+project = "biblio"
+datestamp = "1599573145"

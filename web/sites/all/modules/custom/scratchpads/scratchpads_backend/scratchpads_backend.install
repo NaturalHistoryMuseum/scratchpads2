@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Removed scratchpads_backend_update_7001 as the scratchpads_tweaks module
+ * defines the CKEditor settings.
+ */
+/**
+ * Add the scratchpads_views_filter module.
+ */
+function scratchpads_backend_update_7002(){
+  module_enable(array(
+    'scratchpads_views_filter'
+  ));
+}

@@ -1,0 +1,15 @@
+diff --git a/sites/all/modules/contrib/taxonomy_formatter/taxonomy_formatter.module b/sites/all/modules/contrib/taxonomy_formatter/taxonomy_formatter.module
+index 5d56c15..873ae7a 100644
+--- a/sites/all/modules/contrib/taxonomy_formatter/taxonomy_formatter.module
++++ b/sites/all/modules/contrib/taxonomy_formatter/taxonomy_formatter.module
+@@ -157,6 +157,8 @@ function taxonomy_formatter_field_formatter_view($entity_type, $entity, $field,
+   $length = strlen($separator);
+   $formatted = substr($formatted, 0 , -($length));
+   $formatted = $wrapper[0] . $formatted . $wrapper[1];
+-  $element[0]['#markup'] = $formatted;
++  if($formatted){
++    $element[0]['#markup'] = $formatted;
++  }
+   return $element;
+ }
+\ No newline at end of file

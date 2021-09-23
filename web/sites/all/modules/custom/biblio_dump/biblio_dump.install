@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function biblio_dump_install(){
+  // Generate a randomly named file.
+  $filename = 'public://biblio_dump-' . md5(time()) . '.bib';
+  variable_set('biblio_dump_filename', $filename);
+  // Set the module to rebuild immediately, even though we won't have any
+  // content!
+  variable_set('biblio_dump_rebuild', TRUE);
+  // Save a list of NIDs to populate the file with
+  $nids = db_select('node', 'n')->condition('type', 'biblio')->fields('n', array(
+    'nid'
+  ))->execute()->fetchCol();
+  if(!$nids){
+    $nids = array();
+  } else {
+    $nids = drupal_map_assoc($nids);
+  }
+  variable_set('biblio_dump_nids', $nids);
+  file_put_contents($filename, '');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function biblio_dump_uninstall(){
+  variable_del('biblio_dump_filename');
+  variable_del('biblio_dump_rebuild');
+  variable_del('biblio_dump_nids');
+}
+
+/**
+ * Implements hook_schema
+ */
+function biblio_dump_schema(){
+  return array(
+    'biblio_dump' => array(
+      'description' => 'Stores the _biblio_bibtex_export() output for a biblio node',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'Link to {node}.nid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+          'default' => NULL
+        ),
+        'bibtex' => array(
+          'description' => '_biblio_bibtex_export() output',
+          'type' => 'text',
+          'not null' => TRUE,
+          'size' => 'big'
+        )
+      ),
+      'primary key' => array(
+        'nid'
+      )
+    )
+  );
+}
+
+/**
+ * Install the biblio_dump table and mark it as needing populating.
+ */
+function biblio_dump_update_7001(){
+  $schema = biblio_dump_schema();
+  db_create_table('biblio_dump', $schema['biblio_dump']);
+  $original_filename = variable_get('biblio_dump_filename', FALSE);
+  if($original_filename){
+    file_unmanaged_delete($original_filename);
+  }
+  biblio_dump_install();
+}

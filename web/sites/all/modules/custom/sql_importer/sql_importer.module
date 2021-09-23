@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the sql_importer feature.
+ */
+
+include_once('sql_importer.features.inc');

@@ -1,0 +1,13 @@
+name = Permissions subset
+description = Allows an administrator to specify which permissions a user with less privileged status is allowed to change.
+core = 7.x
+files[] = subpermissions.module
+configure = admin/config/people/subpermissions
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+
+; Information added by Drupal.org packaging script on 2015-04-13
+version = "7.x-1.1"
+core = "7.x"
+project = "subpermissions"
+datestamp = "1428923218"

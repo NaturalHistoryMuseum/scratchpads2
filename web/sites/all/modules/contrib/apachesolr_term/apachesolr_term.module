@@ -1,0 +1,143 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *   Indexer for the userhook_apachesolr_entity_info_alter entities for the Apachesolr module.
+ */
+
+function apachesolr_term_apachesolr_entity_info_alter(&$entity_info) {
+  $entity_info['taxonomy_term']['indexable'] = TRUE;
+  $entity_info['taxonomy_term']['status callback'] = 'apachesolr_term_status_callback';
+  $entity_info['taxonomy_term']['document callback'][] = 'apachesolr_term_solr_document';
+  $entity_info['taxonomy_term']['reindex callback'] = 'apachesolr_term_solr_reindex';
+  $entity_info['taxonomy_term']['index_table'] = 'apachesolr_index_entities_term';
+}
+
+/**
+ * Builds the user-specific information for a Solr document.
+ *
+ * @param ApacheSolrDocument $document
+ *   The Solr document we are building up.
+ * @param stdClass $entity
+ *   The entity we are indexing.
+ * @param string $entity_type
+ *   The type of entity we're dealing with.
+ */
+function apachesolr_term_solr_document(ApacheSolrDocument $document, $term, $entity_type) {
+
+  $document->tid = $term->tid;
+
+  // Title is a required field.
+  $document->label = apachesolr_clean_text(format_username($term));
+
+  $term_tree = apachesolr_term_solr_taxonomy_ancestors($term);
+  foreach ($term_tree as $tt => $td) {
+    $document->addField($td['key'], apachesolr_clean_text($td['value']));
+  }
+
+  // Note the conspicuous lack of password hash. :-)
+  $build = taxonomy_term_view($term, 'search_index');
+
+  // Why do we need this?
+  unset($build['#theme']);
+  $text = drupal_render($build);
+
+  $document->content = apachesolr_clean_text($text);
+  //  Generic usecase for future reference. Callbacks can
+  //  allow you to send back multiple documents
+  $documents = array();
+  $documents[] = $document;
+  return $documents;
+
+}
+
+/**
+ * Reindexing callback for ApacheSolr, for taxonomy terms.
+ */
+function apachesolr_term_solr_reindex() {
+
+  $indexer_table = apachesolr_get_indexer_table('taxonomy_term');
+  $transaction = db_transaction();
+  $env_id = apachesolr_default_environment();
+  try {
+    db_delete($indexer_table)
+      ->condition('entity_type', 'taxonomy_term')
+      ->execute();
+
+    $select = db_select('taxonomy_term_data', 't');
+    $select->innerJoin('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+
+    $select->addField('t', 'tid', 'entity_id');
+    $select->addField('v', 'machine_name', 'bundle');
+    $select->addExpression(1, 'status');
+    $select->addExpression("'taxonomy_term'", 'entity_type');
+    $select->addExpression(REQUEST_TIME, 'changed');
+
+    $select->condition('v.machine_name', apachesolr_get_index_bundles($env_id, 'taxonomy_term'), 'IN');
+    if(apachesolr_get_index_bundles($env_id, 'taxonomy_term')){
+      $insert = db_insert($indexer_table)
+        ->fields(array('entity_id', 'bundle', 'status', 'entity_type', 'changed'))
+        ->from($select)
+        ->execute();
+    }
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    //drupal_set_message($e->getMessage(), 'error');
+    watchdog_exception('Apache Solr', $e);
+    return FALSE;
+  }
+
+  return TRUE;
+
+}
+
+function apachesolr_term_solr_taxonomy_ancestors($term) {
+  static $ancestors = array();
+
+  $vocab_names = array();
+  if (!isset($ancestors[$term->tid])) {
+    $ancestors[$term->tid] = taxonomy_get_parents_all($term->tid);
+  }
+  foreach ($ancestors[$term->tid] as $ancestor) {
+    // Index parent term against the field. Note that this happens
+    // regardless of whether the facet is set to show as a hierarchy or not.
+    // We would need a separate field if we were to index terms without any
+    // hierarchy at all.
+
+    $fields[] = array(
+      'key' => 'tid',
+      'value' => $ancestor->tid,
+    );
+    $fields[] = array(
+      'key' => 'im_vid_' . $ancestor->vid,
+      'value' => $ancestor->tid,
+    );
+    $name = apachesolr_clean_text($ancestor->name);
+    $vocab_names[$ancestor->vid][] = $name;
+    // We index each name as a string for cross-site faceting
+    // using the vocab name rather than vid in field construction .
+    $fields[] = array(
+      'key' => 'sm_vid_' . apachesolr_vocab_name($ancestor->vid),
+      'value' => $name,
+    );
+  }
+
+  foreach ($vocab_names as $vid => $names) {
+    $fields[] = array(
+      'key' => 'tm_vid_' . $vid . '_names',
+      'value' => implode(' ', $names),
+    );
+  }
+
+  return $fields;
+
+}
+
+/**
+ * Status callback for ApacheSolr, for terms.
+ */
+function apachesolr_term_status_callback($term, $type) {
+  return TRUE;
+}

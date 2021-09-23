@@ -1,0 +1,233 @@
+<?php
+/**
+ * Implements hook_menu
+ * Include the admin/settings route & page
+ */
+function remote_issue_tab_menu()
+{
+    return array(
+      'admin/config/remote_issue_tab' => array(
+        'title' => 'Remote issue configuration',
+        'description' => "Do stuff.",
+        'page callback' => 'remote_issue_tab_admin',
+        'access arguments' => array('administer'),
+        'file' => 'remote_issue_tab.admin.inc'
+      )
+    );
+}
+
+/**
+ * We have two forms: one for selecting the provider, one for configuring the provider
+ */
+function remote_issue_tab_admin()
+{
+    return array(
+      drupal_get_form('remote_issue_tab_admin_form'),
+      drupal_get_form(remote_issue_tab_get_provider_method('admin_form'))
+    );
+}
+
+/**
+ * Implementation of hook_block_info()
+ * Give the whole block as well as the option to separate create and list as different blocks
+ */
+function remote_issue_tab_block_info()
+{
+    return array(
+      array(
+        'info' => t('Remote issue block')
+      ),
+      'create' => array(
+        'info' => t('Create new issue form')
+      ),
+      'list' => array(
+        'info' => t('List of recent issues')
+      )
+    );
+}
+
+/**
+ * Returns the module name of the first module that implements the given hook for the selected provider
+ */
+function remote_issue_tab_get_provider($fn_name)
+{
+    module_load_include('inc', 'remote_issue_tab', 'remote_issue_tab.github');
+    $provider = variable_get('remote_issue_tab_provider', 'github');
+
+    $modules = module_implements($provider . '_' . $fn_name);
+
+    return $modules[0];
+}
+
+/**
+ * Find the first method that implements the given hook for the selected provider
+ */
+function remote_issue_tab_get_provider_method($fn_name)
+{
+    $module = remote_issue_tab_get_provider($fn_name);
+    $provider = variable_get('remote_issue_tab_provider', 'github');
+
+    return $module . '_' . $provider . '_' . $fn_name;
+}
+
+/**
+ * Invoke the first method that implements the given hook for the selected provider,
+ * passing $args as the arguments
+ */
+function remote_issue_tab_invoke($fn_name, ...$args)
+{
+    module_load_include('inc', 'remote_issue_tab', 'remote_issue_tab.github');
+    $module = remote_issue_tab_get_provider($fn_name);
+    $provider = variable_get('remote_issue_tab_provider', 'github');
+    return module_invoke($module, $provider . '_' . $fn_name, ...$args);
+}
+
+// FIXME: The above three functions are very similar, can we consilidate them better?
+
+/**
+ * Implementation of hook_block_view()
+ */
+function remote_issue_tab_block_view($delta = ''){
+    $provider_module = module_implements('issue_tab_settings')[0];
+
+    $defaults = array(
+      "header" => "",
+      "footer" => "",
+      "scripts" => array(
+        drupal_get_path('module', $provider_module) . "/js/$provider_module.js"
+      ),
+      "external_scripts" => array()
+    );
+    $settings = array_merge($defaults, module_invoke($provider_module, 'issue_tab_settings'));
+
+    switch ($delta) {
+        case 0:
+            $theme = 'remote_issue_tab_block';
+            break;
+        case 'create':
+            $theme = 'remote_issue_tab_create_issue';
+            break;
+        case 'list':
+            $theme = 'remote_issue_tab_list_issues';
+            break;
+    }
+
+    $content = array(
+      'block' => array(
+        '#theme' => $theme,
+        '#header' => $settings['header'],
+        '#footer' => $settings['footer'],
+        '#html_link' => $settings['html_link'],
+        '#provider_module' => $provider_module,
+        '#fetch_url' => $settings['fetch_url'],
+        '#scripts' => $settings['scripts'],
+        '#external_scripts' => $settings['external_scripts'],
+      )
+    );
+
+    return array(
+      'subject' => t('Issues...'),
+      'content' => $content
+    );
+}
+
+/**
+ * hook_theme
+ * Todo: deduplicate some of this
+ */
+function remote_issue_tab_theme($existing, $type, $theme, $path){
+  return array(
+    'remote_issue_tab_block' => array(
+      'variables' => array(
+        'footer' => '',
+        'header' => '',
+        'html_link' => '',
+        'provider_module' => '',
+        'fetch_url' => '',
+        'scripts' => array(),
+        'external_scripts' => array()
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    ),
+    'remote_issue_tab_create_issue' => array(
+      'variables' => array(
+        'footer' => '',
+        'header' => '',
+        'html_link' => '',
+        'provider_module' => '',
+        'fetch_url' => '',
+        'scripts' => array(),
+        'external_scripts' => array()
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    ),
+    'remote_issue_tab_list_issues' => array(
+      'variables' => array(
+        'footer' => '',
+        'header' => '',
+        'html_link' => '',
+        'provider_module' => '',
+        'fetch_url' => '',
+        'scripts' => array(),
+        'external_scripts' => array()
+      ),
+      'file' => 'remote_issue_tab.theme.inc'
+    ));
+}
+
+/**
+ * Form for creating a new issue
+ */
+function remote_issue_tab_create_form($form, &$form_state)
+{
+    $form['issue_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('New issue title'),
+      '#required' => true
+    );
+    $form['issue_body'] = array(
+      '#type' => 'textarea',
+      '#title' => t('New issue description'),
+      '#required' => true
+    );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Create')
+    );
+
+    return $form;
+}
+
+/**
+ * Handler for creating a new issue
+ */
+function remote_issue_tab_create_form_submit($form, &$form_state)
+{
+    if (remote_issue_tab_invoke('create_issue', $form_state['values'])) {
+        drupal_set_message(t('The form has been submitted.'));
+    } else {
+        // Todo: better error reporting
+        drupal_set_message(t('The issue could not be created, try again later.'), 'error');
+    }
+}
+
+
+function remote_issue_tab_library()
+{
+    $path = drupal_get_path('module', 'remote_issue_tab');
+
+    $libraries['remote_issue_tab'] = array(
+        'title' => 'Remote issue tab',
+        'js' => array(
+            $path . '/js/remote_issue_tab.js' => array('group' => JS_THEME),
+        ),
+        'css' => array(
+            $path . '/css/remote_issue_tab.css',
+        ),
+        'dependencies' => array(
+            array('system', 'ui.tabs'),
+        ),
+    );
+
+    return $libraries;
+}

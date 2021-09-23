@@ -1,0 +1,4 @@
+name = Scratchpads Tests Results pages and block
+description = Provides results pages and blocks for viewing test results.
+core = 7.x
+dependencies[] = simpletest

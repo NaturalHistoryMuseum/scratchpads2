@@ -1,0 +1,429 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the twitter module.
+ *
+ */
+
+/**
+ * Implements hook_requirements()
+ */
+function twitter_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  if ($phase == 'runtime') {
+    // Verify that the Twitter Application keys are set.
+    $requirements['twitter_keys'] = array('title' => $t('Twitter Application keys'));
+    $consumer_key = variable_get('twitter_consumer_key', NULL);
+    $consumer_secret = variable_get('twitter_consumer_secret', NULL);
+    if (empty($consumer_key) || empty($consumer_secret)) {
+      $requirements['twitter_keys']['value'] = $t('Missing');
+      $requirements['twitter_keys']['description'] =
+        $t('In order to interact with Twitter, you need to create an application at ' .
+           '<a href="http://dev.twitter.com" target="_blank">http://dev.twitter.com</a> ' .
+           'and set the generated Application keys at the ' .
+           '<a href="/admin/config/services/twitter">Twitter settings page</a>');
+      $requirements['twitter_keys']['severity'] = REQUIREMENT_ERROR;
+    }
+    else {
+      $requirements['twitter_keys']['value'] = $t('Configured');
+      $requirements['twitter_keys']['severity'] = REQUIREMENT_OK;
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function twitter_schema() {
+  $schema['twitter'] = array(
+    'description' => "Stores individual Twitter posts.",
+    'fields' => array(
+      'twitter_id' => array(
+        'description' => "Unique identifier for each {twitter} post.",
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'precision' => 20,
+        'scale' => 0,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'screen_name' => array(
+        'description' => "Screen Name of the {twitter_account} user.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_at' => array(
+        'description' => "Date and time the {twitter} post was created.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_time' => array(
+        'description' => "A duplicate of {twitter}.created_at in UNIX timestamp format.",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'text' => array(
+        'description' => "The text of the {twitter} post.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'source' => array(
+        'description' => "The application that created the {twitter} post.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'in_reply_to_status_id' => array(
+        'description' => "Unique identifier of a status this {twitter} post was replying to.",
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'precision' => 20,
+        'scale' => 0,
+        'not null' => FALSE,
+      ),
+      'in_reply_to_user_id' => array(
+        'description' => "Unique identifier for the {twitter_account} this post was replying to.",
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'precision' => 20,
+        'scale' => 0,
+        'not null' => FALSE,
+      ),
+      'in_reply_to_screen_name' => array(
+        'description' => "Screen name of the {twitter} user this post was replying to.",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'truncated' => array(
+        'description' => "Boolean flag indicating whether the {twitter} status was cut off to fit in the 140 character limit.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array('screen_name' => array('screen_name')),
+    'primary key' => array('twitter_id'),
+  );
+
+  $schema['twitter_account'] = array(
+    'description' => "Stores information on specific Twitter user accounts.",
+    'fields' => array(
+      'twitter_uid' => array(
+        'description' => "The unique identifier of the {twitter_account}.",
+        'type' => 'numeric',
+        'unsigned' => TRUE,
+        'precision' => 20,
+        'scale' => 0,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'host' => array(
+        'description' => 'The host for this account can be a laconi.ca instance',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'screen_name' => array(
+        'description' => "The unique login name of the {twitter_account} user.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'oauth_token' => array(
+        'description' => 'The token_key for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'oauth_token_secret' => array(
+        'description' => 'The token_secret for oauth-based access.',
+        'type' => 'varchar',
+        'length' => 64,
+      ),
+      'name' => array(
+        'description' => "The full name of the {twitter_account} user.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'description' => array(
+        'description' => "The description/biography associated with the {twitter_account}.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'location' => array(
+        'description' => "The location of the {twitter_account}'s owner.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'followers_count' => array(
+        'description' => "The number of users following this {twitter_account}.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'friends_count' => array(
+        'description' => "The number of users this {twitter_account} is following.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'statuses_count' => array(
+        'description' => "The total number of status updates performed by a user, excluding direct messages sent.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'favourites_count' => array(
+        'description' => "The  number of statuses a user has marked as favorite.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'url' => array(
+        'description' => "The url of the {twitter_account}'s home page.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'profile_image_url' => array(
+        'description' => "The url of the {twitter_account}'s profile image.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'protected' => array(
+        'description' => "Boolean flag indicating whether the {twitter_account}'s posts are publicly accessible.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'profile_background_color' => array(
+        'description' => "hex RGB value for a user's background color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_text_color' => array(
+        'description' => "hex RGB value for a user's text color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_link_color' => array(
+        'description' => "hex RGB value for a user's link color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_sidebar_fill_color' => array(
+        'description' => "hex RGB value for a user's sidebar color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_sidebar_border_color' => array(
+        'description' => "hex RGB value for a user's border color",
+        'type' => 'varchar',
+        'length' => 6,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'profile_background_image_url' => array(
+        'description' => "The url of the {twitter_account}'s profile image.",
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'profile_background_tile' => array(
+        'description' => "Boolean indicating if a user's background is tiled.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'verified' => array(
+        'description' => "Indicates if a user is verified.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'created_at' => array(
+        'description' => "Date and time the {twitter_account} was created.",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created_time' => array(
+        'description' => "A duplicate of {twitter_account}.created_at in UNIX timestamp format.",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'utc_offset' => array(
+        'description' => "A duplicate of {twitter_account}.created_at in UNIX timestamp format.",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'import' => array(
+        'description' => "Boolean flag indicating whether the {twitter_user}'s posts should be pulled in by the site.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'mentions' => array(
+        'description' => "Boolean flag indicating whether the {twitter_user}'s mentions should be pulled in by the site.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_refresh' => array(
+        'description' => "A UNIX timestamp marking the date Twitter statuses were last fetched on.",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'is_global' => array(
+        'description' => "Boolean flag indicating if this account is available for global use.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'uid' => array(
+        'description' => "The uid of the user who added this Twitter account.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array('screen_name' => array('screen_name')),
+    'primary key' => array('twitter_uid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function twitter_install() {
+  // Set the weight to 3, making it heavier than Pathauto.
+  db_update('system')
+    ->fields(array(
+        'weight' => 3,
+      ))
+    ->condition('type', 'module')
+    ->condition('name', 'twitter')
+    ->execute();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function twitter_uninstall() {
+  // Remove variables
+  variable_del('twitter_import');
+  variable_del('twitter_expire');
+  variable_del('twitter_consumer_key');
+  variable_del('twitter_consumer_secret');
+  variable_del('twitter_host');
+  variable_del('twitter_signin_button');
+  variable_del('twitter_signin_register');
+  variable_del('twitter_host');
+  variable_del('twitter_api');
+  variable_del('twitter_search');
+  variable_del('twitter_tinyurl');
+}
+
+/**
+ * Removes password field
+ */
+function twitter_update_7300() {
+  db_drop_field('twitter_account', 'password');
+  return t('Password field was removed from Twitter accounts.');
+}
+
+/**
+ * Removes include_retweets field
+ */
+function twitter_update_7301() {
+  if (db_field_exists('twitter_account', 'include_retweets')) {
+    db_drop_field('twitter_account', 'include_retweets');
+    return t('Include Retweets field was removed from Twitter accounts.');
+  }
+}
+
+/**
+ * Adds field mentions to twitter_account table.
+ */
+function twitter_update_7400() {
+  $data = array(
+    'description' => "Boolean flag indicating whether the {twitter_user}'s mentions should be pulled in by the site.",
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('twitter_account', 'mentions', $data);
+}
+
+/**
+ * Drops field uid at twitter_account.
+ *
+ * This update has been set empty afterwards as the field is actually needed.
+ */
+function twitter_update_7401() {}
+
+/**
+ * Makes the import field not enabled by default at twitter_account table.
+ */
+function twitter_update_7402() {
+  $spec = array(
+    'description' => "Boolean flag indicating whether the {twitter_user}'s posts should be pulled in by the site.",
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+
+  db_change_field('twitter_account', 'import', 'import', $spec);
+}
+
+/**
+ * Adds field added_by_uid to twitter_account table.
+ *
+ * This update has been set empty afterwards as the existing field twitter_account.uid is used.
+ */
+function twitter_update_7403() {}
+
+/**
+ * Renames twitter_account.added_by_uid to twitter_account.uid.
+ *
+ * This reverts update 7403.
+ */
+function twitter_update_7500() {
+  if (db_field_exists('twitter_account', 'added_by_uid')) {
+    $spec = array(
+      'description' => "The uid of the user who added this Twitter account.",
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    db_change_field('twitter_account', 'added_by_uid', 'uid', $spec);
+  }
+}

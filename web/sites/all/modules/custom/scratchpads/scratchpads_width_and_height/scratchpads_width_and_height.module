@@ -1,0 +1,147 @@
+<?php
+define('SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS', 5);
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ */
+function scratchpads_width_and_height_theme_registry_alter(&$theme_registry){
+  $theme_registry['image']['function'] = 'scratchpads_width_and_height_theme_image';
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_width_and_height_menu(){
+  return array(
+    'admin/config/media/width-and-height-cache' => array(
+      'title' => 'Width and Height cache',
+      'description' => 'Flush the image width and height cache if you are having issues with the display of your images.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_width_and_height_flush_image_cache_form'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      )
+    )
+  );
+}
+
+/**
+ * Clear the image cache form.
+ */
+function scratchpads_width_and_height_flush_image_cache_form(){
+  return array(
+    'description' => array(
+      '#markup' => '<div class="messages"><p>' . t('Click the "Flush the cache" button below if you are experiencing issues with the aspect ratio of some images on your site.') . '</p></div>'
+    ),
+    'actions' => array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Flush the cache')
+      )
+    ),
+    '#theme' => 'system_settings_form'
+  );
+}
+
+function scratchpads_width_and_height_flush_image_cache_form_submit($form, $form_state){
+  drupal_set_message('Cache flushed');
+  $images = db_select('cache_image_sizes', 'i')->countQuery()->execute()->fetchField();
+  db_delete('cache_image_sizes')->execute();
+  drupal_set_message(t('Flushed @images from the cache', array(
+    '@images' => $images
+  )));
+}
+
+/**
+ * Returns HTML for an image.
+ *
+ * @param $variables
+ * An associative array containing:
+ * - path: Either the path of the image file (relative to base_path()) or a
+ * full URL.
+ * - width: The width of the image (if known).
+ * - height: The height of the image (if known).
+ * - alt: The alternative text for text-based browsers. HTML 4 and XHTML 1.0
+ * always require an alt attribute. The HTML 5 draft allows the alt
+ * attribute to be omitted in some cases. Therefore, this variable defaults
+ * to an empty string, but can be set to NULL for the attribute to be
+ * omitted. Usually, neither omission nor an empty string satisfies
+ * 
+ * accessibility requirements, so it is strongly encouraged for code calling
+ * theme('image') to pass a meaningful value for this variable.
+ * - http://www.w3.org/TR/REC-html40/struct/objects.html#h-13.8
+ * - http://www.w3.org/TR/xhtml1/dtds.html
+ * - http://dev.w3.org/html5/spec/Overview.html#alt
+ * - title: The title text is displayed when the image is hovered in some
+ * popular browsers.
+ * - attributes: Associative array of attributes to be placed in the img tag.
+ */
+function scratchpads_width_and_height_theme_image($variables){
+  if((!isset($variables['width']) || !$variables['width']) || (!isset($variables['height']) || !$variables['height'])){
+    $image_info = cache_get(md5($variables['path']), 'cache_image_sizes');
+    if(!$image_info || is_integer($image_info->data)){
+      // Set $image_info to false in case we fail to load the image.
+      $image_info = FALSE;
+      $failed_downloads = 0;
+      if($image_info && is_integer($image_info->data)){
+        $failed_downloads = $image_info->data;
+      }
+      $image = FALSE;
+      if($failed_downloads <= SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS){
+        if(substr($variables['path'], 0, 4) == 'http'){
+          $context = stream_context_create(array(
+            'http' => array(
+              'timeout' => 3
+            )
+          ));
+          $request = drupal_http_request($variables['path'], array(
+            'timeout' => 3
+          ));
+          if($request->code == 200){
+            $file = file_unmanaged_save_data($request->data, 'temporary://');
+            $path = drupal_realpath($file);
+            if(substr($path, 0, 1) == '/' && file_exists($path) && filesize($path)){
+              $image = image_load($path);
+            }
+            unlink($path);
+          }
+        }else{
+          $image = image_load($variables['path']);
+        }
+      }
+      // We only cache images with a file size (in case the file failed to download).
+      if($image && $image->info && $image->info['file_size']){
+        $image_info = $image->info;
+        cache_set(md5($variables['path']), $image_info, 'cache_image_sizes');
+      }else{
+        // We keep a track of the number of times we have failed to download 
+        // the image.  If we reach SCRATCHPADS_WIDTH_AND_HEIGHT_MAX_FAILED_DOWNLOADS,
+        // we never download the image again.
+        $failed_downloads++;
+        cache_set(md5($variables['path']), $failed_downloads, 'cache_image_sizes');
+      }
+    }else{
+      $image_info = $image_info->data;
+    }
+    if($image_info){
+      $variables['height'] = $image_info['height'];
+      $variables['width'] = $image_info['width'];
+    }
+  }
+  $attributes = $variables['attributes'];
+  $attributes['src'] = file_create_url($variables['path']);
+  foreach(array(
+    'width',
+    'height',
+    'alt',
+    'title'
+  ) as $key){
+    if(isset($variables[$key]) && !isset($attributes[$key])){
+      $attributes[$key] = $variables[$key];
+    }
+  }
+  return '<img' . drupal_attributes($attributes) . ' />';
+}

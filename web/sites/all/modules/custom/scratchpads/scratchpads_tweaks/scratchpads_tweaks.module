@@ -1,0 +1,874 @@
+<?php
+// This line is updated by the "create-aegir-platform" script to reflect the
+// name of the tag or branch that has been checked out. This constant should be
+// used anywhere that we want to display the branch/tag.
+define('SCRATCHPADS_VERSION', 'TAG');
+
+/**
+ * Implements hook_init()
+ */
+function scratchpads_tweaks_init(){
+  // Try to set the locale to UTF8;
+  // C.UTF-8 is not available on Centos yet so include a fallback option
+  setlocale(LC_ALL, 'C.UTF-8', 'en_GB.UTF-8');
+
+  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+    // Check to see if we're trying to view the
+    // admin/appearance/settings/scratchpads
+    // page, and if so we redirect to the general settings page.
+    if(!user_access('scratchpad team')){
+      drupal_goto('admin/appearance/settings');
+    }
+  }
+  $menu_item = menu_get_item();
+  if($menu_item['path'] == 'node/%/edit'){
+    // We clear the cache for this node, to ensure we're editing an uncached
+    // version. FIXME - This is a temporary fix, and should be removed once we
+    // know what is causing incorrect copies of a node to be cached.
+    node_load(arg(1), NULL, FALSE);
+  }
+  // Set the expire/domain/params on the has_js cookie to the same as the
+  // session
+  // cookie to prevent any issues, especially with the "Issues..." block.
+  if(!empty($_COOKIE['has_js'])){
+    $params = session_get_cookie_params();
+    $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
+    setcookie('has_js', 1, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
+  }
+  // Tweak the URL if we're viewing the media browser. Note, this is here to
+  // fix what appears to be a bug!]
+  if(arg(0) == 'media' && arg(1) == 'browser'){
+    unset($_GET['schemes']);
+  }
+  // Update the expire time on the cookie after every request. This may not
+  // actually be necessary.
+  global $user;
+  if($user->uid){
+    $params = session_get_cookie_params();
+    $expire = $params['lifetime'] ? REQUEST_TIME + $params['lifetime'] : 0;
+    setcookie(session_name(), $_COOKIE[session_name()], $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
+  }
+  // Add the CSS for the biblio_init function which we are no longer running.
+  drupal_add_css(drupal_get_path('module', 'biblio') . '/biblio.css');
+  // Alter the exception handler so that we can ignore certain exceptions.
+  // set_exception_handler('scratchpads_tweaks_exception_handler');
+}
+
+/**
+ * Implements hook_registry_files_alter() We remove the FeedsProcessor.inc file
+ * from the feeds module, and add in our own replacement file which
+ */
+function scratchpads_tweaks_registry_files_alter(&$files, $indexed_modules){
+  unset($files[drupal_get_path('module', 'feeds') . '/plugins/FeedsProcessor.inc']);
+  $files[drupal_get_path('module', 'scratchpads_tweaks') . '/FeedsProcessor.inc'] = array(
+    'module' => 'scratchpads_tweaks',
+    'weight' => 0
+  );
+}
+
+/**
+ * Alternative exception handler so that we can ignore "duplicate" errors.
+ */
+function scratchpads_tweaks_exception_handler($exception){
+  if(is_object($exception) && get_class($exception) == 'PDOException' && substr($exception->getCode(), 0, 2) == '23'){
+    return;
+  }
+  _drupal_exception_handler($exception);
+}
+
+/**
+ * Implements hook_node_view_alter(). - Prevent the displaying of the taxonomic
+ * name field on the descriptions tab. - Remove 'sharethis' for linked nodes
+ * (prevents having two shareThis toolbars)
+ */
+function scratchpads_tweaks_node_view_alter(&$build){
+  if(arg(0) == 'taxonomy' && arg(1) == 'term' && arg(3) == 'descriptions' && isset($build['field_taxonomic_name'])){
+    unset($build['field_taxonomic_name']);
+  }
+  if(($build['#view_mode'] == 'linked_node') && (isset($build['sharethis']))){
+    unset($build['sharethis']);
+  }
+}
+
+/**
+ * Implements hook_user_presave()
+ */
+function scratchpads_tweaks_user_presave(&$edit, $account, $category){
+  if($_GET['q'] == 'openid/authenticate'){
+    // If we're logging in via OpenID, we force the site to remember the user.
+    // This is being added because Shoddy Vince threw a stroppy strop, and
+    // insisted that without this feature, the Scratchpads are shitter than a
+    // shitty pile of steaming shit.
+    $edit['data']['remember_me'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_multiselect_form_media_internet_add_alter(&$form, &$form_state, $form_id){
+  media_multiselect_form_file_entity_add_upload_multiple_alter($form, $form_state, $form_id);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_multiselect_form_file_entity_add_upload_multiple_alter(&$form, &$form_state, $form_id){
+  // Add an additional submit function if we're being called from a popup. This
+  // will prevent the redirect from being set to file/[fid]/edit and correctly
+  // show the library tab.
+  $form['#submit'][] = 'media_multiselect_temporary_submit_function';
+}
+
+/**
+ * Callback to ensure that the redirect for the media upload form is correctly
+ * set, and not being fucked up by the media module. Note, this is NOT dynamic,
+ * and is actually pretty shit.
+ */
+function media_multiselect_temporary_submit_function($form, &$form_state){
+  if(isset($_GET['render']) && $_GET['render'] == 'media-popup'){
+    $query = _scratchpads_tweaks_get_media_browser_query();
+    $query['enabledPlugins'] = array(
+      'media_default--media_browser_1' => 'media_default--media_browser_1'
+    );
+    $form_state['redirect'] = array(
+      'media/browser',
+      array(
+        'query' => $query
+      )
+    );
+  }else{
+    $form_state['redirect'] = 'admin/content';
+  }
+}
+
+/**
+ * Simple function to return the options for the media browser page.
+ */
+function _scratchpads_tweaks_get_media_browser_query(){
+  return array(
+    'render' => isset($_GET['render']) ? $_GET['render'] : '',
+    'types' => '',
+    'activePlugins' => '',
+    'enabledPlugins' => '',
+    'schemes' => array(
+      'public' => 'public'
+    ),
+    'file_directory' => '',
+    'file_extensions' => variable_get('upload_extensions_default', FIELD_MEDIA_FILE_EXTENSIONS),
+    'max_filesize' => file_upload_max_size(),
+    'uri_scheme' => 'public',
+    'multiselect' => 'true',
+    'plugins' => 'undefined'
+  );
+}
+
+/**
+ * Implements hook_date_formats()
+ */
+function scratchpads_tweaks_date_formats(){
+  return array(
+    array(
+      'type' => 'short',
+      'format' => 'Y-m-d'
+    ),
+    array(
+      'type' => 'medium',
+      'format' => 'Y-m-d H:i'
+    )
+  );
+}
+
+/**
+ * Implements hook_cron(). This function ensures that all required modules are
+ * enabled.
+ */
+function scratchpads_tweaks_cron(){
+  module_load_include('cron.inc', 'scratchpads_tweaks');
+  _scratchpads_tweaks_cron();
+}
+
+/**
+ * Implements hook_customerror_pre_render() Fix for the customerror module -
+ * Ensure we don't set the customerror_destination if we've tried to view a file
+ * that we could not actually view.
+ */
+function scratchpads_tweaks_customerror_pre_render($code){
+  if(!empty($_SESSION['customerror_destination']) && strpos($_SESSION['customerror_destination'], 'system/files') !== FALSE){
+    unset($_SESSION['customerror_destination']);
+  }
+}
+
+/**
+ * Implements hook_flush_caches
+ */
+function scratchpads_tweaks_flush_caches(){
+  // Rebuild caches
+  _scratchpads_tweaks_register_shutdown();
+}
+
+/**
+ * Helper function to ensure we only register the shutdown function once.
+ */
+function _scratchpads_tweaks_register_shutdown(){
+  $shutdown_registered = &drupal_static(__FUNCTION__);
+  if(!$shutdown_registered){
+    $shutdown_registered = TRUE;
+    drupal_register_shutdown_function('scratchpads_tweaks_shutdown', TRUE);
+  }
+}
+
+/**
+ * Shutdown function used to improve performance.
+ */
+function scratchpads_tweaks_shutdown($reset = FALSE){
+  // Ensure that certain caches are built. This should help speed up cold start
+  // page loads.
+  theme_get_registry();
+  views_get_all_views($reset);
+  context_enabled_contexts($reset);
+  context_get_plugin('condition', 'path', $reset);
+  context_get_plugin('condition', 'language', $reset);
+  context_get_plugin('condition', 'user', $reset);
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function scratchpads_tweaks_node_type_insert($info){
+  // Set the default for all comment forms to be on separate pages.
+  variable_get('comment_form_location_' . $info->type, COMMENT_FORM_SEPARATE_PAGE);
+  $options = variable_get('node_options_' . $info->type, array());
+  foreach($options as $value){
+    if($value == 'revision'){
+      return;
+    }
+  }
+  $options[] = 'revision';
+  variable_set('node_options_' . $info->type, $options);
+  // Add this node type to the comment notify variable
+  $comment_notify_node_types = variable_get('comment_notify_node_types', array());
+  $comment_notify_node_types[$info->type] = $info->type;
+  variable_set('comment_notify_node_types', $comment_notify_node_types);
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ */
+function scratchpads_tweaks_preprocess_comment(&$variables){
+  $variables['classes_array'][] = $variables['zebra'];
+}
+
+/**
+ * Implements hook_preprocess_block
+ */
+function scratchpads_preprocess_block(&$variables){
+  $block = $variables['block'];
+  if(preg_match('/^views-front_page_blocks/', $block->bid)){
+    switch($block->subject){
+      case 'Recent Biblios':
+        $block->subject = t('Recently Added Literature');
+        break;
+      case 'Recent Taxon Descriptions':
+        $block->subject = t('Recently Added Taxon Descriptions');
+        break;
+    }
+  }
+}
+
+/**
+ * Delete tinytax-[vid] from ajaxblocks
+ */
+function scratchpads_tweaks_taxonomy_vocabulary_delete($vocabulary){
+  db_delete('ajaxblocks')->condition('block_id', 'tinytax-' . $vocabulary->vid)->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Insert tinytax-[vid] into ajaxblocks
+ */
+function scratchpads_tweaks_taxonomy_vocabulary_insert($vocabulary){
+  db_merge('ajaxblocks')->key(array(
+    'block_id' => 'tinytax-' . $vocabulary->vid
+  ))->fields(array(
+    'block_id' => 'tinytax-' . $vocabulary->vid,
+    'is_ajax' => 1,
+    'loader_picture' => 5,
+    'is_late' => 0,
+    'delay' => 0,
+    'include_noscript' => 0,
+    'cached_roles' => '1 2 3 4 5',
+    'uncached_roles' => '1 2 3 4 5'
+  ))->execute();
+  if(function_exists('ajaxblocks_update_cache')){
+    ajaxblocks_update_cache();
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter. Prevent the ajaxblock options from being
+ * displayed to our users.
+ */
+function scratchpads_tweaks_form_block_admin_configure_alter(&$form, &$form_state, $form_id){
+  if(!user_access('scratchpad team')){
+    unset($form['visibility']['ajaxblocks']['#type']);
+    foreach(element_children($form['visibility']['ajaxblocks']) as $key){
+      $form['visibility']['ajaxblocks'][$key] = array(
+        '#type' => 'value',
+        '#value' => $form['visibility']['ajaxblocks'][$key]['#default_value']
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function scratchpads_tweaks_form_alter(&$form, &$form_state, $form_id){
+  switch($form_id){
+    case 'taxonomy_form_term':
+      if(isset($form['description'])){
+        $form['description']['#after_build'][] = 'scratchpads_tweaks_taxonomy_description_after_build';
+      }
+      break;
+    case 'system_theme_settings':
+      $form['logo']['resize_logo'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Resize logo.'),
+        '#default_value' => variable_get('resize_logo', 1),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="default_logo"]' => array(
+              'checked' => FALSE
+            )
+          )
+        )
+      );
+      $form['#submit'][] = 'scratchpads_tweaks_form_system_theme_settings_submit';
+    case 'simplenews_admin_settings_newsletter':
+      $form['simplenews_default_options']['simplenews_format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
+    case 'simplenews_admin_category_form':
+      $form['email']['format'] = array(
+        '#type' => 'value',
+        '#value' => 'plain'
+      );
+      break;
+    default:
+      // Only use the "comment_filtered_html" input type for comment bodies!
+      if(substr($form_id, 0, 8) == 'comment_'){
+        if(@isset($form['comment_body'][LANGUAGE_NONE])){
+          $form['comment_body'][LANGUAGE_NONE]['#after_build'][] = 'scratchpads_tweaks_comment_body_after_build';
+        }
+      }else if(substr($form_id, -10) == '_node_form'){
+        // Add the UUID to the title of the page.
+        if($form['nid']['#value']){
+          $extra = '';
+          if($form['type']['#value'] == 'group'){
+            if(($og = og_get_group('node', $form['nid']['#value'])) !== FALSE){
+              $extra = ' : Group ID = ' . $og->gid;
+            }
+          }
+          $guid = db_select('feeds_item', 'f')->fields('f', array(
+            'guid'
+          ))->condition('entity_type', 'node')->condition('entity_id', $form['nid']['#value'])->execute()->fetchField();
+          if(!$guid){
+            $guid = $form['#node']->uuid;
+          }
+          drupal_set_title(drupal_get_title() . ' <span class="uuid" title="NID : GUID">(' . $form['nid']['#value'] . ' : ' . $guid . $extra . ')</span>', PASS_THROUGH);
+        }
+      }
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter()
+ */
+function scratchpads_tweaks_theme_registry_alter(&$reg){
+  // Always display the token table as a popup (quicker page loads, and also
+  // potentially save memory).
+  $reg['token_tree']['variables']['dialog'] = TRUE;
+  $reg['token_tree']['variables']['recursion_limit'] = 2;
+  $reg['filter_guidelines']['function'] = 'theme_scratchpads_tweaks_filter_guidelines';
+  // Alter the theme_field function so that we can add some CSS (this seems
+  // thoroughly backward, but I can't see a better way of doing this).
+  $reg['field']['function'] = 'scratchpads_tweaks_theme_field';
+  $reg['field']['theme path'] = drupal_get_path('module', 'scratchpads_tweaks');
+}
+
+/**
+ * Alt theme_field function
+ */
+function scratchpads_tweaks_theme_field($variables){
+  if(!empty($variables['element']['#field_type']) && in_array($variables['element']['#field_type'], array(
+    'file',
+    'image'
+  )) && ((!empty($variables['items'][0]['#markup']) && strpos($variables['items'][0]['#markup'], '/thumbnail/')) || (!empty($variables['items'][0]['#image_style']) && $variables['items'][0]['#image_style'] == 'thumbnail') || (!empty($variables['items'][0]['#view_mode']) && $variables['items'][0]['#view_mode'] == 'file_styles_square_thumbnail'))){
+    $variables['classes'] .= ' float-media-left clearfix';
+  }
+  return theme_field($variables);
+}
+
+/**
+ * Hide the filter guidelines
+ */
+function theme_scratchpads_tweaks_filter_guidelines($vars){
+  return '';
+}
+
+function scratchpads_tweaks_form_system_theme_settings_submit($form, &$form_state){
+  variable_set('resize_logo', $form_state['values']['resize_logo']);
+}
+
+/**
+ * Implements hook_process_page
+ */
+function scratchpads_tweaks_process_page(&$variables){
+  if($_GET['q'] == 'media/browser'){
+    if(@isset($variables['title_suffix']['add_or_remove_shortcut'])){
+      unset($variables['title_suffix']['add_or_remove_shortcut']);
+    }
+  }
+}
+
+function scratchpads_tweaks_taxonomy_description_after_build($element, &$form_state){
+  if(@isset($element['format']['format'])){
+    foreach($element['#pre_render'] as $key => $value){
+      if($value == 'ckeditor_pre_render_text_format'){
+        unset($element['#pre_render'][$key]);
+      }
+    }
+    $element['format']['format']['#options'] = array(
+      'plain_text' => t('Plain text')
+    );
+  }
+  return $element;
+}
+
+function scratchpads_tweaks_comment_body_after_build($element, &$form_state){
+  scratchpads_tweaks_remove_filtered_html($element);
+  return $element;
+}
+
+function scratchpads_tweaks_remove_filtered_html(&$item){
+  if(is_array($item)){
+    foreach($item as $key => $value){
+      if($key === 'filtered_html'){
+        unset($item[$key]);
+      }else if(is_array($value)){
+        scratchpads_tweaks_remove_filtered_html($item[$key]);
+      }else if($value === 'filtered_html'){
+        $item[$key] = 'comment_filtered_html';
+      }
+    }
+  }
+}
+
+/**
+ * Translate a check plained string. This should add back <em> tags.
+ */
+function scratchpads_tweaks_translate_after_check_plain($string){
+  return strtr($string, array(
+    '[i]' => '<em>',
+    '[em]' => '<em>',
+    '[sup]' => '<sup>',
+    '[sub]' => '<sub>',
+    '[/i]' => '</em>',
+    '[/em]' => '</em>',
+    '[/sup]' => '</sup>',
+    '[/sub]' => '</sub>',
+    '&lt;i&gt;' => '<em>',
+    '&lt;em&gt;' => '<em>',
+    '&lt;sup&gt;' => '<sup>',
+    '&lt;sub&gt;' => '<sub>',
+    '&lt;/i&gt;' => '</em>',
+    '&lt;/em&gt;' => '</em>',
+    '&lt;/sup&gt;' => '</sup>',
+    '&lt;/sub&gt;' => '</sub>'
+  ));
+}
+
+/**
+ * Implements hook_menu()
+ */
+function scratchpads_tweaks_menu(){
+  return array(
+    'admin/config/development/clearcache' => array(
+      'title' => 'Clear caches',
+      'description' => "Clear this site's caches, which may help resolve temporary issues with your site.",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'scratchpads_tweaks_clear_site_cache'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'scratchpads_tweaks.pages.inc',
+      'weight' => -10
+    )
+  );
+}
+
+/**
+ * Implements hook_update_status_alter()
+ */
+function scratchpads_tweaks_update_status_alter(&$projects){
+  $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
+  foreach($projects as $name => $project){
+    $project_path = dirname(drupal_get_filename('module', $name, NULL, FALSE));
+    if(strpos($project_path, 'sites/all/modules/custom') !== FALSE){
+      $projects[$name]['info']['version'] = $version;
+      $projects[$name]['existing_version'] = $version;
+      $projects[$name]['latest_version'] = $version;
+      $projects[$name]['recommended'] = $version;
+      $projects[$name]['status'] = UPDATE_CURRENT;
+    }
+    if($projects[$name]['status'] != UPDATE_CURRENT){
+      $projects[$name]['status'] = UPDATE_CURRENT;
+    }
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_tweaks_menu_alter(&$items){
+  $items['admin/appearance']['page callback'] = 'scratchpads_tweaks_redirect';
+  if(isset($items['node/%node/clone'])){
+    $items['node/%node/clone']['title'] = t('Clone');
+    $items['node/%node/clone']['type'] = MENU_LOCAL_TASK;
+  }
+
+  if(isset($items['admin/structure/auto-label'])){
+      unset($items['admin/structure/auto-label']);
+  }
+}
+
+/**
+ * Simple callback to redirect non-Scratchpads Team users from admin/appearance
+ * to admin/appearance/settings.
+ */
+function scratchpads_tweaks_redirect(){
+  global $user;
+  if($user->uid > 1){
+    drupal_goto('admin/appearance/settings');
+  }else{
+    return system_themes_page();
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function scratchpads_tweaks_module_implements_alter(&$implementations, $hook){
+  // Move to the end
+  if(in_array($hook, array(
+    'form_block_admin_configure_alter',
+    'user_presave'
+  )) && isset($implementations[$hook])){
+    $move = $implementations['scratchpads_tweaks'];
+    unset($implementations['scratchpads_tweaks']);
+    $implementations['scratchpads_tweaks'] = $move;
+  }
+  // Remove the hook_requirements from the httprl and advagg modules. They're
+  // both a little stupid, and DO NOT need to run every time an admin page is
+  // loaded.
+  if($hook == 'requirements' && variable_get('scratchpads_remove_requirements', TRUE)){
+    unset($implementations['httprl'], $implementations['advagg'], $implementations['varnish'], $implementations['update'], $implementations['apachesolr']);
+  }
+  // Remove hook_init from the Biblio module. It's very rude, and does not need
+  // to be run. It also stupidly adds a CSS file, which we'll possibly need to
+  // do instead (not that CSS should be added by hook_init).
+  if($hook == 'init'){
+    unset($implementations['biblio']);
+  }
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function scratchpads_tweaks_schema_alter(&$schema){
+  // We remove the primary key from the dile_display table due to an problem
+  // somewhere that is resulting in an attempt to insert duplicate entries in
+  // the file_display table.
+  unset($schema['file_display']['primary key']);
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function scratchpads_tweaks_mail_alter(&$message){
+  if($message['id'] == 'install_welcome-admin'){
+    // The scratchpad admin is always id 2
+    $sp_admin = user_load(2);
+    if ($sp_admin) {
+      $message['to'] = $sp_admin->mail;
+    }
+    $message['from'] = '"Scratchpads Team" <no-reply@scratchpads.org>';
+    $message['headers']['From'] = $message['from'];
+    $message['headers']['Sender'] = $message['from'];
+    $message['headers']['Return-Path'] = $message['from'];
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function scratchpads_tweaks_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['account']) && isset($form['account']['roles'])){
+    $form['account']['roles']['#description'] = theme('item_list', array(
+      'items' => array(
+        'Authenticated user: Able to create and edit own forum posts',
+        'Contributor: Able to create content and edit own content',
+        'Editor: Able to create and edit own content, and also edit other people\'s content',
+        'Maintainer: Like editor, but also has administration privileges'
+      )
+    ));
+  }
+}
+
+/**
+ * Implements hook_imagemagick_arguments_alter() We add "-strip" to the
+ * imagemagick arguments to strip out all metadata and therefore greatly reduce
+ * file sizes particularly of thumbnails.
+ */
+function scratchpads_tweaks_imagemagick_arguments_alter(&$args, $context){
+  $args['strip'] = '-strip';
+}
+
+/**
+ * Alter default views defined by other modules.
+ */
+function scratchpads_tweaks_views_default_views_alter(&$views){
+  if(isset($views['feeds_log'])){
+    unset($views['feeds_log']);
+  }
+  foreach(array_keys($views) as $view_id){
+    // Don't cache VBO or Slickgrid views. Note, this relies on the
+    // Scratchpads Team naming convention for Slickgrid and VBO views, so may
+    // break if users create their own views.
+    if(strpos($view_id, '_vbo_') || strpos($view_id, 'publication_') === 0 || strpos($view_id, 'species_') === 0 || strpos($view_id, 'media_') === 0 || strpos($view_id, 'eol_')){
+      continue;
+    }
+    if($views[$view_id]->display['default']->display_options['style_plugin'] == 'slickgrid'){
+      continue;
+    }
+    foreach(array_keys($views[$view_id]->display) as $display_id){
+      $views[$view_id]->display[$display_id]->display_options['cache'] = array(
+        'type' => 'time',
+        'results_lifespan' => -1,
+        'results_lifespan_custom' => 0,
+        'output_lifespan' => 300,
+        'output_lifespan_custom' => 0
+      );
+    }
+  }
+}
+
+function scratchpads_tweaks_form_user_register_form_alter(&$form, &$form_state, $form_id){
+  scratchpads_tweaks_form_user_profile_form_alter($form, $form_state, $form_id);
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function scratchpads_tweaks_system_info_alter(&$info, $file, $type){
+  switch($file->name){
+    case 'scratchpads_tweaks':
+      // Unset the dependencies of the scratchpads module so that other modules
+      // can be disabled (e.g. EOL taxon page data).
+      unset($info['dependencies']);
+      break;
+    case 'webform':
+      $info['tool'] = TRUE;
+      $info['name'] = 'Webforms';
+      $info['description'] = 'Enables the creation of simple online forms. Useful for questionnaires, conference signup, polls, and much more.';
+      break;
+    case 'context_ui':
+      $info['tool'] = true;
+      $info['name'] = 'Context layouts';
+      $info['description'] = 'Advanced layout tools.';
+      break;
+    case 'views_ui':
+      $info['tool'] = TRUE;
+      $info['name'] = 'Views';
+      $info['description'] = 'Allows you to create custom reports or views of the data held on your Scratchpad';
+      $info['dependencies'][] = 'views_date_format_sql';
+      break;
+    case 'rules':
+      $info['dependencies'][] = 'trigger';
+    case 'bigmenu':
+    case 'rules_admin':
+    case 'simplenews':
+    case 'googleanalytics':
+    case 'tracker':
+      $info['tool'] = TRUE;
+      break;
+  }
+}
+
+/**
+ * Add default body field to a node type. Clone of node_add_body_field() but
+ * with weight setting added
+ *
+ * @param $type A
+ *          node type object.
+ * @param $label The
+ *          label for the body instance.
+ * @return Body field instance.
+ */
+function scratchpads_tweaks_add_body_field($type, $label = 'Body', $weight = 0){
+  // Add or remove the body field, as needed.
+  $field = field_info_field('body');
+  $instance = field_info_instance('node', 'body', $type->type);
+  if(empty($field)){
+    $field = array(
+      'field_name' => 'body',
+      'type' => 'text_with_summary',
+      'entity_types' => array(
+        'node'
+      )
+    );
+    $field = field_create_field($field);
+  }
+  if(empty($instance)){
+    $instance = array(
+      'field_name' => 'body',
+      'entity_type' => 'node',
+      'bundle' => $type->type,
+      'label' => $label,
+      'widget' => array(
+        'type' => 'text_textarea_with_summary',
+        'weight' => 1
+      ),
+      'settings' => array(
+        'display_summary' => TRUE
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'text_default',
+          'weight' => $weight
+        ),
+        'teaser' => array(
+          'label' => 'hidden',
+          'type' => 'text_summary_or_trimmed',
+          'weight' => $weight
+        )
+      )
+    );
+    $instance = field_create_instance($instance);
+  }
+  return $instance;
+}
+
+/**
+ * Implements hook_apache_solr_sortstring_alter().
+ */
+function scratchpads_tweaks_apache_solr_sortstring_alter(&$sortstring, $params){
+  if(!trim($params['q']) && !$sortstring){
+    // Set the default sort string to display newest items first.
+    $sortstring = 'ds_created desc';
+  }
+}
+
+/**
+ * Implements hook_field_widget_info_alter()
+ */
+function scratchpads_tweaks_field_widget_info_alter(&$info){
+  unset($info['image_image']);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter(). Adds individual descriptions to
+ * publishing options checkboxes and removes generic description
+ */
+function scratchpads_tweaks_form_node_type_form_alter(&$form, &$form_state){
+  // replace the element with its expanded items
+  $form['workflow']['node_options']['revision']['#description'] = t("Revisions let you track differences between multiple versions of a node. When enabled, all previous versions of a node will be visible under a new 'Revisions' tab in. Users will be able to view older versions of this node and editors will be able to revert the node to an older version.");
+  $form['workflow']['node_options']['status']['#description'] = t('Select to make content visible to all users. If not selected content will only be visible through the administration menu.');
+  $form['workflow']['node_options']['promote']['#description'] = t('Select to have content appearing on the front page of the site.');
+  $form['workflow']['node_options']['sticky']['#description'] = t('Select to always have the content ordered on top of all lists that it appears in.');
+  $form['workflow']['node_options']['#description'] = '';
+}
+
+/**
+ * Implementation hook_file_mimetype_mapping_alter
+ */
+function scratchpads_tweaks_file_mimetype_mapping_alter(&$mapping){
+  $mapping['mimetypes']['nexus'] = 'text/plain';
+  $mapping['extensions']['nex'] = 'nexus';
+  $mapping['mimetypes']['phylip'] = 'text/plain';
+  $mapping['extensions']['phy'] = 'phylip';
+  $mapping['mimetypes']['new-hampshire extended'] = 'text/plain';
+  $mapping['extensions']['nhx'] = 'new-hampshire extended';
+}
+
+/**
+ * Implements hook_preprocess_HOOK
+ *
+ * Disable the utf8mb4 error/warning so users don't complain before we update the databases
+ * FIXME: This is a stop-gap and can be removed after all database tables are using utf8mb4
+ */
+function scratchpads_tweaks_preprocess_status_report(&$variables) {
+  // Get the result of the charset check
+  $charset_requirements = _system_check_db_utf8mb4_requirements('runtime');
+
+  // Only replace text if the requirement fails; we want to show the default once we've upgraded
+  if (!empty($charset_requirements) && ($charset_requirements['severity'] != REQUIREMENT_OK)) {
+    $charset_requirements['description'] = 'Scratchpads databases will be converted to utf8mb4 in the near future.';
+    $charset_requirements['severity'] = REQUIREMENT_INFO;
+
+    $requirements = &$variables['requirements'];
+
+    // Requirements are an ordered array (numerical index), so search by title value and replace
+    foreach($requirements as $ix => $requirement) {
+      if ($requirement['title'] == $charset_requirements['title']) {
+        $requirements[$ix] = $charset_requirements;
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_post_build()
+ */
+function scratchpads_tweaks_views_post_build(&$view) {
+  // if a view has an override title set, use that instead of the build title (e.g. 'Recent %s')
+  // Useful for custom blocks
+  if (isset($view->title)){
+    $view->build_info['title'] = $view->title;
+  }
+}
+
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ *
+ * This adds an import link to each vocabulary on the taxaonomy admin view allowing users to navigate directly from the
+ * admin view to the taxonomy import page for the given vocabulary.
+ */
+function scratchpads_tweaks_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state) {
+  foreach (element_children($form) as $key) {
+    # get a reference to the child we're going to work on
+    $child = &$form[$key];
+    # the key will be the vocabulary id if the child is a vocabulary so check that as well as whether the other keys
+    # we require exist
+    if (is_numeric($key) && array_key_exists('#vocabulary', $child) && array_key_exists('#opkeys', $child)) {
+      $child['import'] = array(
+        '#type' => 'link',
+        '#title' => t('Import'),
+        # link to xls importer by default to match other import admin view shortcut links (might be because the xls feed
+        # importer is always available whereas the csv one is optional?)
+        '#href' => 'import/taxonomy_importer_' . $child['#vocabulary']->machine_name . '_xls'
+      );
+      $child['#opkeys'][] = 'import';
+    }
+  }
+}

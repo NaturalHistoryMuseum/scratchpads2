@@ -1,0 +1,926 @@
+<?php
+
+/**
+ * @file
+ * Extends Drupal file entities to be fieldable and viewable.
+ */
+
+/**
+ * The default list of file extensions allowed by file_save_upload().
+ *
+ * Adds support for docx, xlsx, pptx and ppsx.
+ */
+define('FILE_DEFAULT_ALLOWED_EXTENSIONS', 'jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp');
+
+/**
+ * As part of extending Drupal core's file entity API, this module adds some
+ * functions to the 'file' namespace. For organization, those are kept in the
+ * 'file_entity.file_api.inc' file.
+ */
+require_once dirname(__FILE__) . '/file_entity.file_api.inc';
+
+// @todo Remove when http://drupal.org/node/977052 is fixed.
+require_once dirname(__FILE__) . '/file_entity.field.inc';
+
+/**
+ * Implements hook_hook_info().
+ */
+function file_entity_hook_info() {
+  $hooks = array(
+    'file_operation_info',
+    'file_operation_info_alter',
+    'file_type_info',
+    'file_type_info_alter',
+    'file_formatter_info',
+    'file_formatter_info_alter',
+    'file_view',
+    'file_view_alter',
+    'file_displays_alter',
+  );
+
+  return array_fill_keys($hooks, array('group' => 'file'));
+}
+
+/**
+ * Implements hook_hook_info_alter().
+ *
+ * Add support for existing core hooks to be located in modulename.file.inc.
+ */
+function file_entity_hook_info_alter(&$info) {
+  $hooks = array(
+    // File API hooks
+    'file_copy',
+    'file_move',
+    'file_validate',
+    // File access
+    'file_download',
+    'file_download_access',
+    'file_download_access_alter',
+    // File entity hooks
+    'file_load',
+    'file_presave',
+    'file_insert',
+    'file_update',
+    'file_delete',
+    // Miscellanious hooks
+    'file_mimetype_mapping_alter',
+    'file_url_alter',
+  );
+  $info += array_fill_keys($hooks, array('group' => 'file'));
+}
+
+/**
+ * Implements hook_help().
+ */
+function file_entity_help($path, $arg) {
+  switch ($path) {
+    case 'admin/structure/file-types':
+      $output = '<p>' . t('When a file is uploaded to this website, it is assigned one of the following types, based on what kind of file it is.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Access callback for files.
+ */
+function file_entity_access($op) {
+  return (user_access('administer files') || user_access($op . ' file'));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function file_entity_menu() {
+  // File Configuration
+  // @todo Move this back to admin/config/media/file-types in Drupal 8 if
+  // MENU_MAX_DEPTH is increased to a value higher than 9.
+  $items['admin/structure/file-types'] = array(
+    'title' => 'File types',
+    'description' => 'Manage settings for the type of files used on your site.',
+    'page callback' => 'file_entity_list_types_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'file_entity.admin.inc',
+  );
+  $items['admin/structure/file-types/manage/%'] = array(
+    'title' => 'Manage file types',
+    'description' => 'Manage settings for the type of files used on your site.',
+  );
+  $items['admin/content/file'] = array(
+    'title' => 'Files',
+    'description' => 'Manage files used on your site.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_entity_admin_files'),
+    'access arguments' => array('administer files'),
+    'type' => MENU_LOCAL_TASK | MENU_NORMAL_ITEM,
+    'file' => 'file_entity.admin.inc',
+  );
+  $items['admin/content/file/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  // general view, edit, delete for files
+  $items['file/add'] = array(
+    'title' => 'Add file',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_entity_add_upload', array()),
+    'access arguments' => array('administer files'),
+    'file' => 'file_entity.pages.inc',
+  );
+  if (module_exists('plupload') && module_exists('multiform')) {
+    $items['file/add']['page arguments'] = array('file_entity_add_upload_multiple');
+  }
+  $items['file/add/upload'] = array(
+    'title' => 'Upload',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['file/%file'] = array(
+    'title callback' => 'entity_label',
+    'title arguments' => array('file', 1),
+    // The page callback also invokes drupal_set_title() in case
+    // the menu router's title is overridden by a menu link.
+    'page callback' => 'file_entity_view_page',
+    'page arguments' => array(1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('view'),
+    'file' => 'file_entity.pages.inc',
+  );
+  $items['file/%file/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['file/%file/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_entity_edit', 1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('edit'),
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'file_entity.pages.inc',
+  );
+  $items['file/%file/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments'  => array('file_delete_form', 1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('edit'),
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'file_entity.pages.inc',
+  );
+
+  // Attach a "Manage file display" tab to each file type in the same way that
+  // Field UI attaches "Manage fields" and "Manage display" tabs. Note that
+  // Field UI does not have to be enabled; we're just using the same IA pattern
+  // here for attaching the "Manage file display" page.
+  $entity_info = entity_get_info('file');
+  foreach ($entity_info['bundles'] as $file_type => $bundle_info) {
+    if (isset($bundle_info['admin'])) {
+      // Get the base path and access.
+      $path = $bundle_info['admin']['path'];
+      $access = array_intersect_key($bundle_info['admin'], drupal_map_assoc(array('access callback', 'access arguments')));
+      $access += array(
+        'access callback' => 'user_access',
+        'access arguments' => array('administer site configuration'),
+      );
+
+      // The file type must be passed to the page callbacks. It might be
+      // configured as a wildcard (multiple file types sharing the same menu
+      // router path).
+      $file_type_argument = isset($bundle_info['admin']['bundle argument']) ? $bundle_info['admin']['bundle argument'] : $file_type;
+
+      // Add the 'Manage file display' tab.
+      $items["$path/file-display"] = array(
+        'title' => 'Manage file display',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('file_entity_file_display_form', $file_type_argument, 'default'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 3,
+        'file' => 'file_entity.admin.inc',
+      ) + $access;
+
+      // Add a secondary tab for each view mode.
+      $weight = 0;
+      $view_modes = array('default' => array('label' => t('Default'))) + $entity_info['view modes'];
+      foreach ($view_modes as $view_mode => $view_mode_info) {
+        $items["$path/file-display/$view_mode"] = array(
+          'title' => $view_mode_info['label'],
+          'page arguments' => array('file_entity_file_display_form', $file_type_argument, $view_mode),
+          'type' => ($view_mode == 'default' ? MENU_DEFAULT_LOCAL_TASK : MENU_LOCAL_TASK),
+          'weight' => ($view_mode == 'default' ? -10 : $weight++),
+          'file' => 'file_entity.admin.inc',
+          // View modes for which the 'custom settings' flag isn't TRUE are
+          // disabled via this access callback. This needs to extend, rather
+          // than override normal $access rules.
+          'access callback' => '_file_entity_view_mode_menu_access',
+          'access arguments' => array_merge(array($file_type_argument, $view_mode, $access['access callback']), $access['access arguments']),
+        );
+      }
+    }
+  }
+
+  // Optional devel module integration
+  if (module_exists('devel')) {
+    $items['file/%file/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('file', 1),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'devel.pages.inc',
+      'file path' => drupal_get_path('module', 'devel'),
+      'weight' => 100,
+    );
+    $items['file/%file/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['file/%file/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_render_object',
+      'page arguments' => array('file', 1),
+      'access arguments' => array('access devel information'),
+      'file' => 'devel.pages.inc',
+      'file path' => drupal_get_path('module', 'devel'),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 100,
+    );
+    if (module_exists('token')) {
+      $items['file/%file/devel/token'] = array(
+        'title' => 'Tokens',
+        'page callback' => 'token_devel_token_object',
+        'page arguments' => array('file', 1),
+        'access arguments' => array('access devel information'),
+        'type' => MENU_LOCAL_TASK,
+        'file' => 'token.pages.inc',
+        'file path' => drupal_get_path('module', 'token'),
+        'weight' => 5,
+      );
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function file_entity_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link to 'file/add' on 'admin/content/file' page.
+  if ($root_path == 'admin/content/file') {
+    $item = menu_get_item('file/add');
+    if (!empty($item['access'])) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+        '#weight' => $item['weight'],
+      );
+    }
+  }
+}
+
+/**
+ * Implement hook_permission().
+ */
+function file_entity_permission() {
+  return array(
+    'administer files' => array(
+      'title' => t('Administer files'),
+      'description' => t('Add, edit or delete files and administer settings.'),
+    ),
+    'view file' => array(
+      'title' => t('View file'),
+      'description' => t('View all files.'),
+    ),
+    'edit file' => array(
+      'title' => t('Edit file'),
+      'description' => t('Edit all files.'),
+    ),
+  );
+}
+/**
+ * Implements hook_admin_paths().
+ */
+function file_entity_admin_paths() {
+  $paths = array(
+    'file/add' => TRUE,
+    'file/add/*' => TRUE,
+    'file/*/edit' => TRUE,
+    'file/*/delete' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function file_entity_theme() {
+  return array(
+    'file_entity' => array(
+      'render element' => 'elements',
+      'template' => 'file_entity',
+    ),
+    'file_entity_file_type_overview' => array(
+      'variables' => array('label' => NULL, 'description' => NULL),
+      'file' => 'file_entity.admin.inc',
+    ),
+    'file_entity_file_display_order' => array(
+      'render element' => 'element',
+      'file' => 'file_entity.admin.inc',
+    ),
+    'file_entity_file_link' => array(
+      'variables' => array('file' => NULL, 'icon_directory' => NULL),
+      'file' => 'file_entity.theme.inc',
+    )
+  );
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * Extends the core file entity to be fieldable. Modules can define file types
+ * via hook_file_type_info(). For each defined type, create a bundle, so that
+ * fields can be configured per file type.
+ */
+function file_entity_entity_info_alter(&$entity_info) {
+  $entity_info['file']['fieldable'] = TRUE;
+  $entity_info['file']['entity keys']['bundle'] = 'type';
+  $entity_info['file']['bundles'] = array();
+  $entity_info['file']['uri callback'] = 'file_entity_uri';
+  $entity_info['file']['view modes']['full'] = array(
+    'label' => t('Full'),
+    'custom settings' => FALSE,
+  );
+  foreach (file_info_file_types() as $type => $info) {
+    $info += array(
+      // Provide a default administration path for Field UI, but not if 'admin'
+      // has been explicitly set to NULL.
+      'admin' => array(
+        'path' => 'admin/structure/file-types/manage/%',
+        'real path' => 'admin/structure/file-types/manage/' . $type,
+        'bundle argument' => 4,
+      ),
+    );
+    $entity_info['file']['bundles'][$type] = array_intersect_key($info, drupal_map_assoc(array('label', 'admin')));
+  }
+
+  // Ensure some of the Entity API callbacks are supported.
+  $entity_info['file']['creation callback'] = 'entity_metadata_create_object';
+  $entity_info['file']['view callback'] = 'file_view_multiple';
+  $entity_info['file']['edit callback'] = 'file_entity_metadata_form_file';
+}
+
+/**
+ * Implements hook_entity_property_info().
+ */
+function file_entity_entity_property_info() {
+  $info['file']['properties']['type'] = array(
+    'label' => t('File type'),
+    'type' => 'token',
+    'description' => t('The type of the file.'),
+    'setter callback' => 'entity_property_verbatim_set',
+    'setter permission' => 'administer files',
+    'options list' => 'file_type_get_names',
+    'required' => TRUE,
+    'schema field' => 'type',
+  );
+
+  return $info;
+}
+
+/**
+ * URI callback for file entities.
+ */
+function file_entity_uri($file) {
+  $uri['path'] = 'file/' . $file->fid;
+  return $uri;
+}
+
+/**
+ * Entity API callback to get the form of a file entity.
+ */
+function file_entity_metadata_form_file($file) {
+  // Pre-populate the form-state with the right form include.
+  $form_state['build_info']['args'] = array($file);
+  form_load_include($form_state, 'inc', 'file_entity', 'file_entity.pages');
+  return drupal_build_form('file_entity_edit', $form_state);
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ *
+ * Adds 'file' as an extra field, so that its display and form component can be
+ * weighted relative to the fields that are added to file entity bundles.
+ */
+function file_entity_field_extra_fields() {
+  $info = array();
+
+  foreach (file_type_get_names() as $type => $name) {
+    $info['file'][$type]['form']['filename'] = array(
+      'label' => t('File name'),
+      'description' => t('File name'),
+      'weight' => -10,
+    );
+    $info['file'][$type]['form']['preview'] = array(
+      'label' => t('File'),
+      'description' => t('File preview'),
+      'weight' => -5,
+    );
+    $info['file'][$type]['display']['file'] = array(
+      'label' => t('File'),
+      'description' => t('File display'),
+      'weight' => 0,
+    );
+  }
+
+  return $info;
+}
+
+/**
+ * Implements hook_file_formatter_info().
+ */
+function file_entity_file_formatter_info() {
+  $formatters = array();
+
+  // Allow file field formatters to be reused for displaying the file entity's
+  // file pseudo-field.
+  foreach (field_info_formatter_types() as $field_formatter_type => $field_formatter_info) {
+    if (in_array('file', $field_formatter_info['field types'])) {
+      $formatters['file_field_' . $field_formatter_type] = array(
+        'label' => $field_formatter_info['label'],
+        'view callback' => 'file_entity_file_formatter_file_field_view',
+      );
+      if (!empty($field_formatter_info['settings'])) {
+        $formatters['file_field_' . $field_formatter_type] += array(
+          'default settings' => $field_formatter_info['settings'],
+          'settings callback' => 'file_entity_file_formatter_file_field_settings',
+        );
+      }
+    }
+  }
+
+  // Add a simple file formatter for displaying an image in a chosen style.
+  if (module_exists('image')) {
+    $formatters['file_image'] = array(
+      'label' => t('Image'),
+      'default settings' => array('image_style' => ''),
+      'view callback' => 'file_entity_file_formatter_file_image_view',
+      'settings callback' => 'file_entity_file_formatter_file_image_settings',
+    );
+  }
+
+  return $formatters;
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_view().
+ *
+ * This function provides a bridge to the field formatter API, so that file
+ * field formatters can be reused for displaying the file entity's file
+ * pseudo-field.
+ */
+function file_entity_file_formatter_file_field_view($file, $display, $langcode) {
+  if (strpos($display['type'], 'file_field_') === 0) {
+    $field_formatter_type = substr($display['type'], strlen('file_field_'));
+    $field_formatter_info = field_info_formatter_types($field_formatter_type);
+    if (isset($field_formatter_info['module'])) {
+      // Set $display['type'] to what hook_field_formatter_*() expects.
+      $display['type'] = $field_formatter_type;
+
+      // Set $items to what file field formatters expect. See file_field_load(),
+      // and note that, here, $file is already a fully loaded entity.
+      $items = array((array) $file);
+
+      // Invoke hook_field_formatter_prepare_view() and
+      // hook_field_formatter_view(). Note that we are reusing field formatter
+      // functions, but we are not displaying a Field API field, so we set
+      // $field and $instance accordingly, and do not invoke
+      // hook_field_prepare_view(). This assumes that the formatter functions do
+      // not rely on $field or $instance. A module that implements formatter
+      // functions that rely on $field or $instance (and therefore, can only be
+      // used for real fields) can prevent this formatter from being used on the
+      // pseudo-field by removing it within hook_file_formatter_info_alter().
+      $field = $instance = NULL;
+      if (($function = ($field_formatter_info['module'] . '_field_formatter_prepare_view')) && function_exists($function)) {
+        $fid = $file->fid;
+        // hook_field_formatter_prepare_view() alters $items by reference.
+        $grouped_items = array($fid => &$items);
+        $function('file', array($fid => $file), $field, array($fid => $instance), $langcode, $grouped_items, array($fid => $display));
+      }
+      if (($function = ($field_formatter_info['module'] . '_field_formatter_view')) && function_exists($function)) {
+        $element = $function('file', $file, $field, $instance, $langcode, $items, $display);
+        // We passed the file as $items[0], so return the corresponding element.
+        if (isset($element[0])) {
+          return $element[0];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_settings().
+ *
+ * This function provides a bridge to the field formatter API, so that file
+ * field formatters can be reused for displaying the file entity's file
+ * pseudo-field.
+ */
+function file_entity_file_formatter_file_field_settings($form, &$form_state, $settings, $formatter_type, $file_type, $view_mode) {
+  if (strpos($formatter_type, 'file_field_') === 0) {
+    $field_formatter_type = substr($formatter_type, strlen('file_field_'));
+    $field_formatter_info = field_info_formatter_types($field_formatter_type);
+
+    // Invoke hook_field_formatter_settings_form(). We are reusing field
+    // formatter functions, but we are not working with a Field API field, so
+    // set $field accordingly. Unfortunately, the API is for $settings to be
+    // transfered via the $instance parameter, so we must mock it.
+    if (isset($field_formatter_info['module']) && ($function = ($field_formatter_info['module'] . '_field_formatter_settings_form')) && function_exists($function)) {
+      $field = NULL;
+      $mock_instance['display'][$view_mode] = array(
+        'type' => $field_formatter_type,
+        'settings' => $settings,
+      );
+      return $function($field, $mock_instance, $view_mode, $form, $form_state);
+    }
+  }
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_view().
+ *
+ * Returns a drupal_render() array to display an image of the chosen style.
+ *
+ * This formatter is only capable of displaying local images. If the passed in
+ * file is either not local or not an image, nothing is returned, so that
+ * file_view_file() can try another formatter.
+ */
+function file_entity_file_formatter_file_image_view($file, $display, $langcode) {
+  // Prevent PHP notices when trying to read empty files.
+  // @see http://drupal.org/node/681042
+  if (!$file->filesize) {
+    return;
+  }
+
+  // Do not bother proceeding if this file does not have an image mime type.
+  if (strpos($file->filemime, 'image/') !== 0) {
+    return;
+  }
+
+  if (isset($file->image_dimensions)) {
+    if (!empty($display['settings']['image_style'])) {
+      $element = array(
+        '#theme' => 'image_style',
+        '#style_name' => $display['settings']['image_style'],
+        '#path' => $file->uri,
+        '#width' => $file->image_dimensions['width'],
+        '#height' => $file->image_dimensions['height'],
+      );
+    }
+    else {
+      $element = array(
+        '#theme' => 'image',
+        '#path' => $file->uri,
+        '#width' => $file->image_dimensions['width'],
+        '#height' => $file->image_dimensions['height'],
+      );
+    }
+    return $element;
+  }
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_settings().
+ *
+ * Returns form elements for configuring the 'file_image' formatter.
+ */
+function file_entity_file_formatter_file_image_settings($form, &$form_state, $settings) {
+  $element = array();
+  $element['image_style'] = array(
+    '#title' => t('Image style'),
+    '#type' => 'select',
+    '#options' => image_style_options(FALSE),
+    '#default_value' => $settings['image_style'],
+    '#empty_option' => t('None (original image)'),
+  );
+  return $element;
+}
+
+/**
+ * Menu access callback for the 'view mode file display settings' pages.
+ *
+ * Based on _field_ui_view_mode_menu_access(), but the Field UI module might not
+ * be enabled.
+ */
+function _file_entity_view_mode_menu_access($file_type, $view_mode, $access_callback) {
+  // Deny access if the view mode isn't configured to use custom display
+  // settings.
+  $view_mode_settings = field_view_mode_settings('file', $file_type);
+  $visibility = ($view_mode == 'default') || !empty($view_mode_settings[$view_mode]['custom_settings']);
+  if (!$visibility) {
+    return FALSE;
+  }
+
+  // Otherwise, continue to an $access_callback check.
+  $args = array_slice(func_get_args(), 3);
+  $callback = empty($access_callback) ? 0 : trim($access_callback);
+  if (is_numeric($callback)) {
+    return (bool) $callback;
+  }
+  elseif (function_exists($access_callback)) {
+    return call_user_func_array($access_callback, $args);
+  }
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function file_entity_modules_enabled($modules) {
+  file_info_cache_clear();
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function file_entity_modules_disabled($modules) {
+  file_info_cache_clear();
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function file_entity_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Returns whether the current page is the full page view of the passed-in file.
+ *
+ * @param $file
+ *   A file object.
+ */
+function file_is_page($file) {
+  $page_file = menu_get_object('file', 1);
+  return (!empty($page_file) ? $page_file->fid == $file->fid : FALSE);
+}
+
+/**
+ * Process variables for file_entity.tpl.php
+ *
+ * The $variables array contains the following arguments:
+ * - $file
+ * - $view_mode
+ *
+ * @see file_entity.tpl.php
+ */
+function template_preprocess_file_entity(&$variables) {
+  $view_mode = $variables['view_mode'] = $variables['elements']['#view_mode'];
+  $variables['file'] = $variables['elements']['#file'];
+  $file = $variables['file'];
+
+  $variables['date']      = format_date($file->timestamp);
+  $account = user_load($file->uid);
+  $variables['name']      = theme('username', array('account' => $account));
+
+  // @todo Use entity_uri once http://drupal.org/node/1057242 is fixed.
+  //$uri = entity_uri('file', $file);
+  //$variables['file_url']  = url($uri['path'], $uri['options']);
+  $variables['file_url'] = file_create_url($file->uri);
+  $label = entity_label('file', $file);
+  $variables['label']     = check_plain($label);
+  $variables['page']      = $view_mode == 'full' && file_is_page($file);
+
+  // Hide the file name from being displayed until we can figure out a better
+  // way to control this. We cannot simply not output the title since
+  // contextual links require $title_suffix to be output in the template.
+  // @see http://drupal.org/node/1245266
+  if (!$variables['page']) {
+    $variables['title_attributes_array']['class'][] = 'element-invisible';
+  }
+
+  // Flatten the file object's member fields.
+  $variables = array_merge((array) $file, $variables);
+
+  // Helpful $content variable for templates.
+  $variables += array('content' => array());
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  // Make the field variables available with the appropriate language.
+  field_attach_preprocess('file', $file, $variables['content'], $variables);
+
+  // Display post information only on certain file types.
+  if (variable_get('file_submitted_' . $file->type, FALSE)) {
+    $variables['display_submitted'] = TRUE;
+    $variables['submitted'] = t('Uploaded by !username on !datetime', array('!username' => $variables['name'], '!datetime' => $variables['date']));
+    $variables['user_picture'] = theme_get_setting('toggle_file_user_picture') ? theme('user_picture', array('account' => $account)) : '';
+  }
+  else {
+    $variables['display_submitted'] = FALSE;
+    $variables['submitted'] = '';
+    $variables['user_picture'] = '';
+  }
+
+  // Gather file classes.
+  $variables['classes_array'][] = drupal_html_class('file-' . $file->type);
+  $variables['classes_array'][] = drupal_html_class('file-' . $file->filemime);
+  if ($file->status != FILE_STATUS_PERMANENT) {
+    $variables['classes_array'][] = 'file-temporary';
+  }
+
+  // Change the 'file-entity' class into 'file'
+  if ($variables['classes_array'][0] == 'file-entity') {
+    $variables['classes_array'][0] = 'file';
+  }
+
+  // Clean up name so there are no underscores.
+  $variables['theme_hook_suggestions'][] = 'file__' . $file->type;
+  $variables['theme_hook_suggestions'][] = 'file__' . $file->type . '__' . $view_mode;
+  $variables['theme_hook_suggestions'][] = 'file__' . str_replace(array('/', '-'), array('__', '_'), $file->filemime);
+  $variables['theme_hook_suggestions'][] = 'file__' . str_replace(array('/', '-'), array('__', '_'), $file->filemime) . '__' . $view_mode;
+  $variables['theme_hook_suggestions'][] = 'file__' . $file->fid;
+  $variables['theme_hook_suggestions'][] = 'file__' . $file->fid . '__' . $view_mode;
+}
+
+/**
+ * Returns the file type name of the passed file or file type string.
+ *
+ * @param $file
+ *   A file object or string that indicates the file type to return.
+ *
+ * @return
+ *   The file type name or FALSE if the file type is not found.
+ */
+function file_type_get_name($file) {
+  $type = is_object($file) ? $file->type : $file;
+  $info = entity_get_info('file');
+  return isset($info['bundles'][$type]['label']) ? $info['bundles'][$type]['label'] : FALSE;
+}
+
+/**
+ * Returns a list of available file type names.
+ *
+ * @return
+ *   An array of file type names, keyed by the type.
+ */
+function file_type_get_names() {
+  $names = &drupal_static(__FUNCTION__);
+
+  if (!isset($names)) {
+    $info = entity_get_info('file');
+    foreach ($info['bundles'] as $bundle => $bundle_info) {
+      $names[$bundle] = $bundle_info['label'];
+    }
+  }
+
+  return $names;
+}
+
+/**
+ * Return an array of available view modes for file entities.
+ */
+function file_entity_view_mode_labels() {
+  $labels = &drupal_static(__FUNCTION__);
+
+  if (!isset($options)) {
+    $entity_info = entity_get_info('file');
+    $labels = array('default' => t('Default'));
+    foreach ($entity_info['view modes'] as $machine_name => $mode) {
+      $labels[$machine_name] = $mode['label'];
+    }
+  }
+
+  return $labels;
+}
+
+/**
+ * Return the label for a specific file entity view mode.
+ */
+function file_entity_view_mode_label($view_mode, $default = FALSE) {
+  $labels = file_entity_view_mode_labels();
+  return isset($labels[$view_mode]) ? $labels[$view_mode] : $default;
+}
+
+/**
+ * Return information about all bulk file operations.
+ *
+ * @see hook_file_operation_info()
+ * @see hook_file_operation_info_alter()
+ *
+ * @todo Add real caching to this function?
+ */
+function file_entity_get_file_operation_info() {
+  $info = &drupal_static(__FUNCTION__);
+
+  if (!isset($info)) {
+    $info = module_invoke_all('file_operation_info');
+
+    // Support the deprecated hooks.
+    // @todo Remove after 2.0 release.
+    $info = drupal_array_merge_deep(module_invoke_all('file_operations_info'), $info);
+    drupal_alter('file_entity_file_operations', $old_info);
+
+    drupal_alter('file_operation_info_alter', $info);
+  }
+
+  return $info;
+}
+
+/**
+ * File operation to show a confirm form for file deletion.
+ *
+ * @param array $files
+ *   An array of file_ids to delete.
+ * @return type
+ */
+function file_entity_multiple_delete_confirm_operation($fids) {
+  // This function is a form generation function.
+  $form = array();
+  $form_state = array();
+  // Set the submit handler explicitly because this form is being built
+  // under a different form_id.
+  $form['#submit'] = array();
+  $form['#submit'][] = 'file_multiple_delete_form_submit';
+  $files = file_load_multiple($fids);
+  return file_multiple_delete_form($form, $form_state, $files);
+}
+
+/**
+ * Helper function to get a list of hidden stream wrappers.
+ *
+ * This is used in several places to filter queries for media so that files in
+ * temporary:// don't show up.
+ */
+function file_entity_get_hidden_stream_wrappers() {
+  return array_diff_key(file_get_stream_wrappers(STREAM_WRAPPERS_ALL), file_get_stream_wrappers(STREAM_WRAPPERS_VISIBLE));
+}
+
+/**
+ * Clear the field cache for any entities referencing a specific file.
+ *
+ * @param object $file
+ *   A file object.
+ */
+function file_entity_invalidate_field_caches($file) {
+  $entity_types = &drupal_static(__FUNCTION__);
+
+  // Gather the list of entity types which support field caching.
+  if (!isset($entity_types)) {
+    $entity_types = array();
+    foreach (entity_get_info() as $entity_type => $entity_info) {
+      if (!empty($entity_info['fieldable']) && !empty($entity_info['field cache'])) {
+        $entity_types[] = $entity_type;
+      }
+    }
+  }
+
+  // If no entity types support field caching, then there is no work to be done.
+  if (empty($entity_types)) {
+    return;
+  }
+
+  $records = db_query("SELECT DISTINCT type, id FROM {file_usage} WHERE fid = :fid AND type IN (:types) AND id > 0", array(':fid' => $file->fid, ':types' => $entity_types))->fetchAll();
+  if (!empty($records)) {
+    $cids = array();
+    foreach ($records as $record) {
+      $cids[] = 'field:' . $record->type . ':' . $record->id;
+    }
+    cache_clear_all($cids, 'cache_field');
+  }
+}
+
+/**
+ * Check if a file entity is considered local or not.
+ *
+ * @param object $file
+ *   A file entity object from file_load().
+ *
+ * @return
+ *   TRUE if the file is using a local stream wrapper, or FALSE otherwise.
+ */
+function file_entity_file_is_local($file) {
+  $scheme = file_uri_scheme($file->uri);
+  $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL);
+  return !empty($wrappers[$scheme]) && empty($wrappers[$scheme]['remote']);
+}
+
+/**
+ * Pre-render callback for adding validation descriptions to file upload fields.
+ */
+function file_entity_upload_validators_pre_render($element) {
+  if (!empty($element['#upload_validators'])) {
+    if (!isset($element['#description'])) {
+      $element['#description'] = '';
+    }
+    if ($element['#description'] !== FALSE) {
+      $element['#description'] = theme('file_upload_help', array('description' => $element['#description'], 'upload_validators' => $element['#upload_validators']));
+    }
+  }
+  return $element;
+}

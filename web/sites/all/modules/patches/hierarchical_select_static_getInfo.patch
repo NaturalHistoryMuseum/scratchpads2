@@ -1,0 +1,13 @@
+diff --git a/tests/internals.test b/tests/internals.test
+index 0e2e758..dc09b3c 100644
+--- a/tests/internals.test
++++ b/tests/internals.test
+@@ -82,7 +82,7 @@ class HierarchicalSelectInternals extends DrupalWebTestCase {
+   /**
+    * Implementation of getInfo().
+    */
+-  public function getInfo() {
++  public static function getInfo() {
+     return array(
+       'name'        => 'Internals',
+       'description' => 'Checks whether all internals are working: the

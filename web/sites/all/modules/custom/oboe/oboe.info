@@ -1,0 +1,8 @@
+name = "'O'xford e-research centre 'B'atch 'O'peration 'E'ngine"
+description = "Interfaces with the ViBRANT OBOE service, allowing users to submit jobs.  Only enable this module if you require it."
+core = 7.x
+files[] = includes/OBOE.class.inc
+files[] = includes/OBOEService.class.inc
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = oboe

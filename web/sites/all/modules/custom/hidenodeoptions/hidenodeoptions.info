@@ -1,0 +1,10 @@
+name = Hide node options
+description = Collapses the node options at the bottom of a node form into an "Advanced options" button.
+core = 7.x
+files[] = hidenodeoptions.module
+scripts[] = js/hidenodeoptions.js
+stylesheets[all][] = css/hidenodeoptions.css
+package = Scratchpads
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = hidenodeoptions

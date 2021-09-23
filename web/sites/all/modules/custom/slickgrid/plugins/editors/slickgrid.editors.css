@@ -1,0 +1,7 @@
+@CHARSET "UTF-8";
+
+/* CSS for slickgrid editors */
+
+.ctools-slickgrid-modal-content .node-form .fieldset-wrapper{
+  margin-top: 30px;
+}

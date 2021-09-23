@@ -1,0 +1,440 @@
+<?php
+
+/**
+ * Implements hook_biblio_autocomplete_info().
+ * 
+ * @return $fields
+ *   An array of Biblio fields with associated autocomplete data.
+ *   Format: 
+ *     'biblio_field_to_autocomplete' => array('function' => 'autocomplete_callback_function')
+ */
+function biblio_zoobank_biblio_autocomplete_info(){
+	$fields = array(
+	  'biblio_secondary_title' => array('module' => 'biblio_zoobank', 'function' => 'biblio_zoobank_autocomplete_publication'),
+	  'biblio_alternate_title' => array('module' => 'biblio_zoobank', 'function' => 'biblio_zoobank_autocomplete_publication'),
+	  'biblio_original_publication' => array('module' => 'biblio_zoobank', 'function' => 'biblio_zoobank_autocomplete_publication'),
+	  'title' => array('module' => 'biblio_zoobank', 'function' => 'biblio_zoobank_autocomplete_publication'),
+	  'biblio_authors' => array('module' => 'biblio_zoobank', 'function' => 'biblio_zoobank_autocomplete_author_short'),
+	);
+	return $fields;
+}
+
+/**
+ * 
+ * Gets a list of potential publication matches for the autocomplete
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $return_matches
+ *   An array of autocomplete results for use in biblio_autocomple_json().
+ *   Format: 
+ *     array(
+ *       'key' => 'value to put in biblio field', 
+ *       'description' => 'can be the same as key or contain extra information to help use decide', 
+ *       'provider' => 'source of the autocmplete information',
+ *     )
+ */
+function biblio_zoobank_autocomplete_publication($string){
+  $zoobank_matches = biblio_zoobank_get_publication_data($string);
+  $return_matches = array();
+  foreach($zoobank_matches as $result => $data){
+    $return_matches[] = array(
+      'key' => strip_tags($data->title),
+      'description' => $data->label,
+      'provider' => 'ZooBank',
+    );
+  }
+  return $return_matches;
+}
+
+/**
+ * 
+ * Function to get publication data from ZooBank
+ * 
+ * @param $string
+ *   Text string to try and match
+ *   
+ * @return $zoobank_result
+ *   An array of data objects from ZooBank
+ */
+function biblio_zoobank_get_publication_data($string){
+  $zoobank_result = file_get_contents('http://test.zoobank.org/References.json?term=' . urlencode($string));
+  $zoobank_result = json_decode($zoobank_result);
+  
+  return $zoobank_result;
+}
+
+
+//Code below here relates to ZooBank biblio import function (not yet implemented)
+//
+//
+
+/**
+ * Implemets hook_menu().
+ * 
+ * @return $items
+ *   Array of menu_items
+ */
+function biblio_zoobank_menu(){
+	$items['biblio_autocomplete/zoobank_import'] = array(
+  	  'title' => t('ZooBank import lookup'),
+  	  'page callback' => 'biblio_zoobank_import_lookup',
+  	  'access callback' => TRUE,
+  	  'type' => MENU_CALLBACK,
+  	);
+  	return $items;
+}
+
+function biblio_zoobank_import_lookup($string){
+  $matches = biblio_zoobank_get_publication_data($string);
+  $return_matches = array();
+  $i = 0;
+  foreach ($matches as $result => $data){
+  	$i++;
+  	$return_matches[$data->referenceuuid] = $data->label; 
+  	if ($i >=10){
+  		break;
+  	}
+  }
+  print drupal_json_output($return_matches);
+}
+
+
+function biblio_zoobank_form_biblio_node_form_alter(&$form, &$form_state, $form_id) {
+  if ((!isset($form_state['biblio_type']) || empty($form_state['biblio_type'])) && !isset($form_state['node']->nid)) {
+    $form['biblio_zoobank_lookup'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('ZooBank Lookup'),
+        '#weight' => -20,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+    );
+
+    $form['biblio_zoobank_lookup']['referenceuuid'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Lookup reference'),
+        '#required' => TRUE,
+        '#default_value' => '',
+        '#description' => t('Search for a publication in ZooBank'),
+        '#size' => 60,
+        '#maxlength' => 255,
+        '#weight' => -4,
+        '#autocomplete_path' => 'biblio_autocomplete/zoobank_import',
+    );
+    $form['biblio_zoobank_lookup']['zoobank_submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Populate from ZooBank'),
+        '#submit' => array('biblio_zoobank_form_biblio_node_form_submit')
+    );
+  }
+}
+
+function biblio_zoobank_form_biblio_node_form_submit($form, &$form_state){
+  $url = 'http://test.zoobank.org/References.json/427D7953-E8FC-41E8-BEA7-8AE644E6DE77';
+  $url = temp_zoobank_example();
+  $data = file_get_contents($url);
+  $data = json_decode($data);
+  
+  
+  //TODO: Fails here as ZooBank JSON is invalid
+  $i =0;
+  drupal_set_message('Node (would have been) created', 'status');
+}
+
+function temp_zoobank_example(){
+	$json='[
+    {
+        "columns": [
+            "pkid",
+            "uuid",
+            "referencetype",
+            "authors",
+            "year",
+            "numericyear",
+            "fulltitle",
+            "volume",
+            "number",
+            "edition",
+            "publisher",
+            "placepublished",
+            "pagination",
+            "startpage",
+            "endpage",
+            "startdateof",
+            "enddateof",
+            "startdateon",
+            "enddateon",
+            "datepublished",
+            "language",
+            "languageid",
+            "parentreferenceid",
+            "parentreferenceuuid",
+            "parentreference",
+            "formattedparentreference",
+            "typework",
+            "formatted",
+            "cleandisplay",
+            "citationdetails"
+        ],
+        "data": [
+            [
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                "Journal Article",
+                "Randall, John E. & Richard L. Pyle.",
+                "2001",
+                2001,
+                "Four new serranid fishes of the anthiine genus <i>Pseudanthias</i> from the South Pacific",
+                "49",
+                "1",
+                "",
+                "",
+                "",
+                "19-34",
+                "",
+                "",
+                "2001-01-01",
+                "2001-12-31",
+                "2001-01-01",
+                "2001-12-31",
+                "",
+                "English",
+                19691433,
+                19703683,
+                "0089FB37-AA19-41B8-8622-011CCA4EF778",
+                "Raffles Bulletin of Zoology",
+                "<I>Raffles Bulletin of Zoology</I>",
+                "",
+                "Randall, John E. & Richard L. Pyle.  2001. Four new serranid fishes of the anthiine genus <i>Pseudanthias</i> from the South Pacific. <I>Raffles Bulletin of Zoology</I> <B>49</B>(1): 19-34.",
+                "Randall, John E. & Richard L. Pyle.  2001. Four new serranid fishes of the anthiine genus Pseudanthias from the South Pacific. Raffles Bulletin of Zoology 49(1): 19-34.",
+                "<I>Raffles Bulletin of Zoology</I> <B>49</B>(1): 19-34."
+            ]
+        ]
+    },
+    {
+        "columns": [
+            "pkid",
+            "uuid",
+            "protonymid",
+            "protonymuuid",
+            "rankgroup",
+            "taxonnamerankid",
+            "referenceid",
+            "referenceuuid",
+            "originalreferenceid",
+            "originalreferenceuuid",
+            "startpage",
+            "illustration",
+            "validusageid",
+            "validusageuuid",
+            "parentusageid",
+            "parentusageuuid",
+            "parentname",
+            "originalparentusageid",
+            "originalparentusageuuid",
+            "genderid",
+            "isfossil",
+            "types",
+            "typelocality",
+            "authors",
+            "year",
+            "namestring",
+            "scientificname",
+            "cleandisplay",
+            "formatteddisplay",
+            "formattedprotonym",
+            "usageauthors",
+            "usageyear",
+            "cleanprotonym",
+            "isprotonym"
+        ],
+        "data": [
+            [
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                20231068,
+                "F77E4029-F731-4B62-829E-A050365DF383",
+                "Genus",
+                60,
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                19714690,
+                "FDA2DE2F-54D6-43AE-9FB0-733138334F18",
+                "",
+                "",
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                0,
+                "00000000-0000-0000-0000-000000000000",
+                "",
+                0,
+                "00000000-0000-0000-0000-000000000000",
+                1,
+                0,
+                "",
+                "",
+                "Bleeker",
+                "1871",
+                "Pseudanthias",
+                "<em>Pseudanthias</em> Bleeker in Bleeker 1871",
+                "Pseudanthias Bleeker in Bleeker 1871",
+                "<em>Pseudanthias</em> Bleeker in Bleeker 1871",
+                "<em>Pseudanthias</em> Bleeker in Bleeker 1871",
+                "Randall & Pyle",
+                "2001",
+                "Pseudanthias Bleeker in Bleeker 1871",
+                0
+            ],
+            [
+                20130879,
+                "6EA8BB2A-A57B-47C1-953E-042D8CD8E0E2",
+                20130879,
+                "6EA8BB2A-A57B-47C1-953E-042D8CD8E0E2",
+                "Species",
+                70,
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                "20",
+                "Figs. 1-4",
+                20130879,
+                "6EA8BB2A-A57B-47C1-953E-042D8CD8E0E2",
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                "Pseudanthias",
+                20231068,
+                "F77E4029-F731-4B62-829E-A050365DF383",
+                0,
+                0,
+                "",
+                "",
+                "Randall & Pyle",
+                "2001",
+                "carlsoni",
+                "<em>Pseudanthias</em> <em>carlsoni</em> Randall & Pyle 2001",
+                "Pseudanthias carlsoni Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>carlsoni</em> Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>carlsoni</em> Randall & Pyle 2001",
+                "Randall & Pyle",
+                "2001",
+                "carlsoni Randall & Pyle 2001 (as a species of Pseudanthias)",
+                1
+            ],
+            [
+                20428317,
+                "07DAC21C-21CE-42E9-B835-686B03E98E81",
+                20428317,
+                "07DAC21C-21CE-42E9-B835-686B03E98E81",
+                "Species",
+                70,
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                "23",
+                "Figs. 5-8",
+                20428317,
+                "07DAC21C-21CE-42E9-B835-686B03E98E81",
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                "Pseudanthias",
+                20231068,
+                "F77E4029-F731-4B62-829E-A050365DF383",
+                0,
+                0,
+                "",
+                "",
+                "Randall & Pyle",
+                "2001",
+                "flavicauda",
+                "<em>Pseudanthias</em> <em>flavicauda</em> Randall & Pyle 2001",
+                "Pseudanthias flavicauda Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>flavicauda</em> Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>flavicauda</em> Randall & Pyle 2001",
+                "Randall & Pyle",
+                "2001",
+                "flavicauda Randall & Pyle 2001 (as a species of Pseudanthias)",
+                1
+            ],
+            [
+                20070742,
+                "BB0F5636-525B-4B1F-BDAD-E4C4FA7EB03B",
+                20070742,
+                "BB0F5636-525B-4B1F-BDAD-E4C4FA7EB03B",
+                "Species",
+                70,
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                "25",
+                "Figs. 9-11",
+                20070742,
+                "BB0F5636-525B-4B1F-BDAD-E4C4FA7EB03B",
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                "Pseudanthias",
+                20231068,
+                "F77E4029-F731-4B62-829E-A050365DF383",
+                0,
+                0,
+                "",
+                "",
+                "Randall & Pyle",
+                "2001",
+                "hiva",
+                "<em>Pseudanthias</em> <em>hiva</em> Randall & Pyle 2001",
+                "Pseudanthias hiva Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>hiva</em> Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>hiva</em> Randall & Pyle 2001",
+                "Randall & Pyle",
+                "2001",
+                "hiva Randall & Pyle 2001 (as a species of Pseudanthias)",
+                1
+            ],
+            [
+                20230739,
+                "C7D36E15-93A9-43CD-A1FE-D734B676D66D",
+                20230739,
+                "C7D36E15-93A9-43CD-A1FE-D734B676D66D",
+                "Species",
+                70,
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                19692512,
+                "427D7953-E8FC-41E8-BEA7-8AE644E6DE77",
+                "28",
+                "Fig. 12",
+                20230739,
+                "C7D36E15-93A9-43CD-A1FE-D734B676D66D",
+                20195759,
+                "B1FBF746-782B-4AE8-9817-F4E3B8C03FFF",
+                "Pseudanthias",
+                20231068,
+                "F77E4029-F731-4B62-829E-A050365DF383",
+                0,
+                0,
+                "",
+                "",
+                "Randall & Pyle",
+                "2001",
+                "privitera",
+                "<em>Pseudanthias</em> <em>privitera</em> Randall & Pyle 2001",
+                "Pseudanthias privitera Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>privitera</em> Randall & Pyle 2001",
+                "<em>Pseudanthias</em> <em>privitera</em> Randall & Pyle 2001",
+                "Randall & Pyle",
+                "2001",
+                "privitera Randall & Pyle 2001 (as a species of Pseudanthias)",
+                1
+            ]
+        ]
+    }
+]';
+	
+	$json = preg_replace('/\s+/', '', $json);
+	
+	return $json;
+}

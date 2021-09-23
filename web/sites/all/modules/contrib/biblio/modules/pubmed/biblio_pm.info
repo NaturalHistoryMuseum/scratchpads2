@@ -1,0 +1,13 @@
+name = Biblio - PubMed
+description = Provides PubMed import and search to the Biblio module.
+core = 7.x
+package = Biblio
+dependencies[] = biblio
+files[] = EntrezClient.php
+files[] = EntrezPubmedArticle.php
+
+; Information added by Drupal.org packaging script on 2020-09-08
+version = "7.x-1.4"
+core = "7.x"
+project = "biblio"
+datestamp = "1599573145"

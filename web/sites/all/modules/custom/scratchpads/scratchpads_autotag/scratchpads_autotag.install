@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function scratchpads_autotag_install(){
+  $node_entity_info = entity_get_info('node');
+  foreach($node_entity_info['bundles'] as $node_type => $value){
+    drupal_register_shutdown_function('_scratchpads_autotag_save_defaults_for_node_type', $node_type);
+  }
+}

@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the profile module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function profile2_install() {
+  // Add an initial profile type, but only if installed manually. In case the
+  // module is installed via an installation profile, skip that.
+  if (!drupal_installation_attempted()) {
+    $type = entity_create('profile2_type', array(
+      'type' => 'main',
+      'label' => t('Main profile'),
+      'weight' => 0,
+      'data' => array('registration' => TRUE, 'use_page' => TRUE),
+    ));
+    $type->save();
+    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
+    drupal_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function profile2_schema() {
+  $schema['profile'] = array(
+    'description' => 'Stores profile items.',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique profile item ID.',
+      ),
+      'type' => array(
+        'description' => 'The {profile_type}.type of this profile.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The {users}.uid of the associated user.",
+      ),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'uid' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+      'type' => array(
+        'table' => 'profile_type',
+        'columns' => array('type' => 'type'),
+      ),
+    ),
+    'primary key' => array('pid'),
+  );
+
+  $schema['profile_type'] = array(
+    'description' => 'Stores information about all defined profile types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique profile type ID.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this profile type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this profile type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this profile type in relation to others.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this profile type.',
+      ),
+    ) + entity_exportable_schema_fields(),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Add in the exportable entity db columns as required by the entity API.
+ */
+function profile2_update_7100() {
+  db_add_field('profile_type', 'status', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => ENTITY_CUSTOM,
+    'size' => 'tiny',
+    'description' => 'The exportable status of the entity.',
+  ));
+  db_add_field('profile_type', 'module', array(
+    'description' => 'The name of the providing module if the entity has been defined in code.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+  ));
+}

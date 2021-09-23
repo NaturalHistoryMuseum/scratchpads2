@@ -1,0 +1,32 @@
+div.hidenodeoptions-add-or-remove-shortcuts {
+  padding-top: 5px;
+}
+div.hidenodeoptions-add-or-remove-shortcuts a span.icon {
+  display: block;
+  width: 12px;
+  background: transparent url(shortcut.png) no-repeat scroll 0 0;
+  height: 12px;
+  float: left;
+  margin-left:8px;
+}
+div.hidenodeoptions-add-or-remove-shortcuts a span.text {
+  float: left;
+  padding-left:10px;
+  display: none;
+}
+div.hidenodeoptions-add-or-remove-shortcuts a:focus span.text,
+div.hidenodeoptions-add-or-remove-shortcuts a:hover span.text {
+  font-size: 10px;
+  line-height: 12px;
+  color: #fff;
+  background-color: #5f605b;
+  display: block;
+  padding-right: 6px;
+  cursor: pointer;
+  -moz-border-radius-bottomright: 5px;
+  -moz-border-radius-topright: 5px;
+  -webkit-border-bottom-right-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
+}

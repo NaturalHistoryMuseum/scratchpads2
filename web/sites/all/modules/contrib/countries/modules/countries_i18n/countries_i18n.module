@@ -1,0 +1,167 @@
+<?php
+
+/**
+ * @file
+ * Provides translation for countries module.
+ */
+
+/**
+ * Implements hook_entity_info_alter().
+ * Override the label callback.
+ */
+function countries_i18n_entity_info_alter(&$info) {
+  $info['country']['label callback'] = 'countries_i18n_country_entity_label';
+}
+
+/**
+ * Providing a hook_entity_info() 'label callback' to ensure modules that
+ * use entity_label() get the correct localized country name.
+ */
+function countries_i18n_country_entity_label($country, $entity_type) {
+  return countries_i18n_translate($country->iso2, 'name', $country->name, i18n_language_interface()->language);
+}
+
+/**
+ * Implements hook_i18n_string_info().
+ */
+function countries_i18n_i18n_string_info() {
+  $groups['countries'] = array(
+    'title' => t('Countries'),
+    'description' => t('Country names for localization.'),
+    'format' => FALSE,
+    'list' => TRUE,
+    'refresh callback' => 'countries_i18n_string_refresh',
+  );
+  return $groups;
+}
+
+/**
+ * Implements hook_i18n_object_info().
+ */
+function countries_i18n_i18n_object_info() {
+  $info['country'] = array(
+    'title' => t('Country'),
+    'entity' => 'country',
+    'key' => 'iso2',
+    'placeholders' => array(
+      '%country' => 'iso2',
+    ),
+    'edit path' => 'admin/config/regional/countries/%country',
+    'translate tab' => 'admin/config/regional/countries/%country/translate',
+    'list callback' => 'countries_get_countries',
+    // Metadata for string translation.
+    'string translation' => array(
+      'textgroup' => 'countries',
+      'type' => 'country',
+      'properties' => array(
+        'name' => t('Name'),
+        'official_name' => t('Official name'),
+      ),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_country_update().
+ *
+ * This hooks into other modules that the countries module integrates with.
+ */
+function countries_i18n_country_update($country) {
+  if (isset($country->original->iso2) && $country->original->iso2 != $country->iso2) {
+    i18n_string_update_context("countries:$country->original_iso2:*", "countries:$country->iso2:*");
+  }
+  i18n_string_object_update('country', $country);
+}
+
+/**
+ * Implements hook_country_insert().
+ *
+ * This hooks into other modules that the countries module integrates with.
+ */
+function countries_i18n_country_insert($country) {
+  i18n_string_object_update('country', $country);
+}
+
+/**
+ * Implements hook_country_delete().
+ */
+function countries_i18n_country_delete($info) {
+  i18n_string_object_remove('country', $info);
+}
+
+/**
+ * i18n_string callback for refreshing all strings.
+ */
+function countries_i18n_string_refresh() {
+  // Direct db calls to avoid potential calls to countries_translate().
+  $result = countries_get_countries();
+  foreach ($result as $country) {
+    i18n_string_object_update('country', $country);
+  }
+  return TRUE;
+}
+
+/**
+ * Helper function to help integrate with the i18n_strings module.
+ *
+ * @param string $iso2
+ *   The country iso2 code
+ * @param string $property
+ *   The property to be translated
+ * @param string $string
+ *   The raw db value for the given property
+ * @param string $langcode
+ *   Optional language code to override the page requested one.
+ * @param string $type
+ *   Base group, defaults to 'countries'.
+ */
+function countries_i18n_translate($iso2, $property, $string, $langcode = NULL, $type = 'country') {
+  $key = 'countries:' . $type . ':' . $iso2 . ':' . $property;
+  return i18n_string($key, $string, array('langcode' => $langcode));
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function countries_i18n_field_formatter_info() {
+  return array(
+    'country_default_i18n' => array(
+      'label' => t('Default translated'),
+      'field types' => array('country'),
+    ),
+    'country_official_i18n' => array(
+      'label' => t('Official name translated'),
+      'field types' => array('country'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function countries_i18n_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+
+  switch ($display['type']) {
+    case 'country_default_i18n':
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#markup' => check_plain(countries_i18n_translate($item['iso2'], 'name', $item['safe_value'])),
+        );
+      }
+      break;
+
+    case 'country_official_i18n':
+      foreach ($items as $delta => $item) {
+        $official_name = isset($item['country']->official_name) ? $item['country']->official_name : $item['safe_value'];
+        $element[$delta] = array(
+          '#markup' => check_plain(countries_i18n_translate($item['iso2'], 'official_name', $official_name)),
+        );
+      }
+      break;
+  }
+
+  return $element;
+}

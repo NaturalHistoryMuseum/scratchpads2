@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ */
+function feeds_xls_requirements($phase){
+  $requirements = array(
+    'phpexcel' => array(
+      'title' => t('PHPExcel Library'),
+      'severity' => REQUIREMENT_OK,
+      'value' => t('Not found')
+    )
+  );
+  $file = _feeds_xls_load_phpexcel();
+  if(!$file){
+    $requirements['phpexcel']['severity'] = REQUIREMENT_ERROR;
+    $requirements['phpexcel']['description'] = t('Please download and install the PHPExcel Library into a location that the Libraries module can find or into the feeds_xls module folder.  Note, you must rename the folder "PHPExcel".', array(
+      '!phpexcel_library' => l('PHPExcel library', 'http://phpexcel.codeplex.com/')
+    ));
+  }
+  if($requirements['phpexcel']['severity'] == REQUIREMENT_OK && $phase != 'install'){
+    // Get the version from the file
+    $phpexcel_file_contents = file_get_contents($file);
+    $matches = array();
+    preg_match('/\*\ \@version\ *.*/', strtolower($phpexcel_file_contents), $matches);
+    if(count($matches)){
+      $matches = explode('version', $matches[0]);
+      $requirements['phpexcel']['value'] = trim($matches[1]);
+    }else{
+      $requirements['phpexcel']['value'] = 'Unknown version';
+    }
+  }
+  return $requirements;
+}
+
+function _feeds_xls_load_phpexcel(){
+  static $path = FALSE;
+  if(!$path){
+    if(function_exists('libraries_get_path') && ($path = libraries_get_path('PHPExcel')) != FALSE){
+      if(file_exists("$path/Classes/PHPExcel/IOFactory.php")){
+        $path = "$path/Classes/PHPExcel/IOFactory.php";
+      }elseif(file_exists("$path/PHPExcel/IOFactory.php")){
+        $path = "$path/PHPExcel/IOFactory.php";
+      }
+    }else{
+      $path_guess = drupal_get_path('module', 'feeds_xls');
+      $path_guess2 = $path_guess . '/PHPExcel/PHPExcel/IOFactory.php';
+      $path_guess = $path_guess . '/PHPExcel/Classes/PHPExcel/IOFactory.php';
+      if(file_exists($path_guess)){
+        $path = $path_guess;
+      }elseif(file_exists($path_guess2)){
+        $path = $path_guess2;
+      }
+    }
+    if($path){
+      require_once $path;
+    }
+  }
+  return $path;
+}
+
+/**
+ * Delete any item from the feeds_item table which has an empty GUID
+ */
+function feeds_xls_update_7001(){
+  // Delete any instances from feeds_item with blank GUIDs.
+  db_delete('feeds_item')->condition('guid', '')->execute();
+}

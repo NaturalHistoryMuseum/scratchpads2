@@ -1,0 +1,221 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+function emonocot_views_views_api(){
+  $path = drupal_get_path('module', 'emonocot_views');
+  return array(
+    'api' => '3',
+    'path' => $path
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function emonocot_views_field_formatter_info(){
+  return array(
+    'url_icon' => array(
+      'label' => t('URL icon'),
+      'description' => t('Displays a URL as an icon.'),
+      'field types' => array(
+        'node_reference'
+      )
+    ),
+    'biblio_ref' => array(
+      'label' => t('Bibliographic reference'),
+      'description' => t('Properly formatted biblio entry'),
+      'field types' => array(
+        'node_reference'
+      )
+    )
+  );
+}
+
+function emonocot_views_wcm_ref(){
+  /* Field: Taxonomy term: WCM Protologue Reference */
+  $new_field = array();
+  $new_field['id'] = 'field_itis_em_other_ref';
+  $new_field['table'] = 'field_data_field_itis_em_other_ref';
+  $new_field['field'] = 'field_itis_em_other_ref';
+  $new_field['label'] = 'Original Publication';
+  $new_field['exclude'] = TRUE;
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = 1;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+function emonocot_views_url_icon(){
+  /* Field: Taxonomy term: Reference */
+  $new_field = array();
+  $new_field['id'] = 'field_reference';
+  $new_field['table'] = 'field_data_field_reference';
+  $new_field['field'] = 'field_reference';
+  $new_field['label'] = '';
+  $new_field['alter']['alter_text'] = 0;
+  $new_field['alter']['make_link'] = 0;
+  $new_field['alter']['absolute'] = 0;
+  $new_field['alter']['external'] = 0;
+  $new_field['alter']['replace_spaces'] = 0;
+  $new_field['alter']['trim_whitespace'] = 0;
+  $new_field['alter']['nl2br'] = 0;
+  $new_field['alter']['word_boundary'] = 1;
+  $new_field['alter']['ellipsis'] = 1;
+  $new_field['alter']['more_link'] = 0;
+  $new_field['alter']['strip_tags'] = 0;
+  $new_field['alter']['trim'] = 0;
+  $new_field['alter']['html'] = 0;
+  $new_field['element_label_colon'] = FALSE;
+  $new_field['element_default_classes'] = 1;
+  $new_field['hide_empty'] = 0;
+  $new_field['empty_zero'] = 0;
+  $new_field['hide_alter_empty'] = 1;
+  $new_field['type'] = 'url_icon';
+  $new_field['field_api_classes'] = 0;
+  return $new_field;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ * 
+ * For a node_reference that links to a Biblio node returns a link to the URL field as either a predefined image
+ * or the favicon of the site that is linked to.
+ * 
+ * For all node types returns link to attached files as an image 
+ */
+function emonocot_views_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display){
+  GLOBAL $base_url;
+  switch($display['type']){
+    case 'biblio_ref':
+      $element = array();
+      $settings = $display['settings'];
+      $formatter = $display['type'];
+      foreach($items as $delta => $item){
+        $node = node_load($item['nid'], NULL, FALSE);
+        if($node->type == 'biblio'){
+          $authors = '';
+          foreach($node->biblio_contributors as $author){
+            $authors .= $author['name'] . ', ';
+          }
+          if(isset($node->field_emonocot_acknowledgement)){
+            $closing = '<br/>' . $node->field_emonocot_acknowledgement['und'][0]['value'];
+          }else{
+            $closing = '';
+          }
+          $element[] = array(
+            '#markup' => l($authors . ' ' . $node->biblio_year . '. ' . $node->title, 'node/' . $node->nid) . $closing
+          );
+        }
+      }
+      return $element;
+    case 'url_icon':
+      $element = array();
+      $settings = $display['settings'];
+      $formatter = $display['type'];
+      foreach($items as $delta => $item){
+        $node = node_load($item['nid'], NULL, FALSE);
+        $links = array(); //Used to store paths for all urls and file attachments
+        if($node->type == 'biblio'){
+          if(isset($node->biblio_url) && $node->biblio_url != '' && $node->biblio_url != NULL){
+            $links[] = array(
+              'type' => 'url',
+              'url' => $node->biblio_url
+            );
+          }
+        }
+        if(isset($node->field_file['und'])){
+          foreach($node->field_file['und'] as $file){
+            $links[] = array(
+              'type' => 'file',
+              'url' => file_create_url($file['uri'])
+            );
+          }
+        }
+        $icon_path = $base_url . '/' . drupal_get_path('module', 'emonocot_views') . '/icons/';
+        $known_sites = array(
+          'biodiversitylibrary.org' => array(
+            'title' => 'Biodiversity Heritage Library',
+            'icon' => $icon_path . 'bhl.ico',
+            'host' => 'biodiversitylibrary.org'
+          ),
+          'gallica.bnf.fr' => array(
+            'title' => 'Gallica digital library',
+            'icon' => $icon_path . 'gallica.ico',
+            'host' => 'gallica.bnf.fr'
+          ),
+          'archive.org' => array(
+            'title' => 'Internet Archive',
+            'icon' => $icon_path . 'internet_archive.ico',
+            'host' => 'archive.org'
+          ),
+          'botanicus.org' => array(
+            'title' => 'Botanicus Digital Library',
+            'icon' => $icon_path . 'botanicus.ico',
+            'host' => 'botanicus.org'
+          ),
+          '.pdf' => array(
+            'title' => 'PDF',
+            'icon' => $icon_path . 'pdf.png'
+          )
+        );
+        foreach($links as $link){
+          $match_found = FALSE;
+          foreach($known_sites as $match => $info){
+            if(stristr($link['url'], $match)){
+              $match_found = TRUE;
+              if(!isset($info['host'])){
+                $parse = parse_url($link['url']);
+                $info['host'] = $parse['host'];
+              }
+              $element[] = array(
+                '#markup' => '<a href="node/'.$node->nid.'">' . $node->title . '</a>&nbsp;<a title="' . $info['title'] . ' (' . $info['host'] . ')' . '" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
+              );
+              break;
+            }
+          }
+          if(!$match_found){
+            switch($link['type']){
+              case 'url':
+                $parse = parse_url($link['url']);
+                $doc = new DOMDocument();
+                $doc->strictErrorChecking = FALSE;
+                $doc->loadHTML(file_get_contents('http://' . $parse['host']));
+                $xml = simplexml_import_dom($doc);
+                if($xml){
+                  $arr = $xml->xpath('//link[@rel="shortcut icon"]');
+                  $info['icon'] = 'http://' . $parse['host'] . $arr[0]['href'];
+                  $info['host'] = $parse['host'];
+                }
+                break;
+              case 'file':
+                $info['icon'] = $icon_path . 'default.png';
+                $info['host'] = $base_url;
+                break;
+            }
+            $element[] = array(
+              '#markup' => '<a title="(' . $info['host'] . ')" href="' . $link['url'] . '"><img height="16px" width="16px" src="' . $info['icon'] . '"/></a>'
+            );
+          }
+        }
+      }
+      return $element;
+  }
+}

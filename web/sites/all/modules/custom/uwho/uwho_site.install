@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * hook_install
+ */
+function uwho_site_install(){
+  variable_set('uwho_site_key', md5(url() . time()));
+}
+
+/**
+ * hook_uninstall
+ */
+function uwho_site_uninstall(){
+  variable_del('uwho_site_key');
+  drupal_set_message('Note, if reinstalling the UWho Site module, you\'ll have a new UWho Site key');
+}
+
+/**
+ * hook_requirements
+ */
+function uwho_site_requirements($phase){
+  switch($phase){
+    case 'install':
+      return array(
+        'mcrypt' => array(
+          'title' => 'PHP Mcrypt',
+          'description' => 'PHP MCrypt module (<a href="http://www.php.net/manual/en/book.mcrypt.php">http://www.php.net/manual/en/book.mcrypt.php</a>) installation status',
+          'severity' => function_exists('mcrypt_module_open') ? REQUIREMENT_OK : REQUIREMENT_ERROR
+        )
+      );
+    case 'runtime':
+      $key = variable_get('uwho_site_key', FALSE);
+      return array(
+        'uwho_site_key' => array(
+          'title' => 'UWho Site Key',
+          'value' => $key ? "Key: $key" : '',
+          'description' => $key ? '' : t('Please reinstall this module.'),
+          'severity' => $key ? REQUIREMENT_OK : REQUIREMENT_WARNING
+        )
+      );
+  }
+}
+
+/**
+ * hook_schema
+ */
+function uwho_site_schema(){
+  return array(
+    'uwho' => array(
+      'fields' => array(
+        'guid' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => true
+        ),
+        'uid' => array(
+          'type' => 'int',
+          'not null' => true
+        ),
+        'data' => array(
+          'type' => 'text',
+          'size' => 'medium'
+        )
+      ),
+      'primary key' => array(
+        'guid'
+      ),
+      'indexes' => array(
+        'uwho_guid_index' => array(
+          'guid'
+        )
+      )
+    )
+  );
+}
+
+/**
+ * Update the primary key to be the guid, so that a single user can be
+ * associated with many users from other sites.
+ */
+function uwho_site_update_6101(){
+  // Change the primary key
+  return array(
+    update_sql('ALTER TABLE {uwho} DROP PRIMARY KEY , ADD PRIMARY KEY (guid)')
+  );
+}

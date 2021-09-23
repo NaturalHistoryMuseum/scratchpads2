@@ -1,0 +1,222 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ *
+ */
+function biblio_citeproc_menu() {
+  global $user;
+  $items = array();
+  $items['admin/config/content/biblio/citeproc'] = array(
+    'title'             => 'CiteProc',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('biblio_citeproc_style_manager_form'),
+    'access arguments'  => array('administer biblio'),
+    'file'              => 'biblio_citeproc.admin.inc',
+    'type'              => MENU_LOCAL_TASK,
+    'weight'            => 12,
+  );
+  $items['admin/config/content/biblio/citeproc/styles'] = array(
+    'title'             => 'CiteProc Style Manager',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('biblio_citeproc_style_manager_form'),
+    'access arguments'  => array('administer biblio'),
+    'file'              => 'biblio_citeproc.admin.inc',
+    'type'              => MENU_DEFAULT_LOCAL_TASK,
+    'weight'            => 12,
+  );
+  $items['admin/config/content/biblio/citeproc/styles/%/edit'] = array(
+    'title'             => 'CiteProc Style Editor',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('biblio_citeproc_csl_editor', 6),
+    'access arguments'  => array('administer biblio'),
+    'file'              => 'biblio_citeproc.admin.inc',
+    'type'              => MENU_CALLBACK,
+    'weight'            => 12,
+  );
+  $items['admin/config/content/biblio/citeproc/map'] = array(
+    'title'             => 'CSL Field Mapper',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('biblio_admin_io_mapper_form', 'csl', FALSE),
+    'access arguments'  => array('administer biblio'),
+    'file'              => '../../includes/biblio.admin.inc',
+    'type'              => MENU_LOCAL_TASK,
+    'weight'            => 12,
+  );
+  return $items;
+}
+
+/**
+ *
+ */
+function biblio_citeproc_theme() {
+  return array(
+    'biblio_citeproc_style' => array(
+      'file' => 'biblio_citeproc.module',
+      'variables' => array(
+        'node' => '',
+        'style_name' => 'cse',
+      ),
+    ),
+    'biblio_citeproc_style_manager_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_biblio_map_alter().
+ */
+function biblio_citeproc_biblio_map_alter(&$map, $type, $format) {
+  if ($type == 'field_map' && $format == 'csl') {
+    $map = array_merge($map, array(
+      'author'                      => 'biblio_contributors:1',
+      'editor'                      => 'biblio_contributors:2',
+      'translator'                  => 'biblio_contributors:3',
+      'recipient'                   => ':',
+      'interviewer'                 => ':',
+      'composer'                    => ':',
+    ));
+  }
+}
+
+/**
+ *
+ */
+function biblio_citeproc_theme_registry_alter(&$theme_registry) {
+  $theme_registry['biblio_style'] = $theme_registry['biblio_citeproc_style'];
+}
+
+/**
+ *
+ */
+function biblio_citeproc_load_csl($csl_id) {
+  $csl_file_contents = '';
+  // Try to convert old style names to csl...
+  if (strpos($csl_id, '.csl') === FALSE) {
+    if (in_array($csl_id, array('ama', 'apa', 'cse', 'ieee', 'mla', 'vancouver'))) {
+      $csl_id .= '.csl';
+    }
+    elseif ($csl_id == 'chicago') {
+      $csl_id = 'chicago-fullnote-bibliography.csl';
+    }
+    else {
+      $csl_id = '';
+      $message = t('An invalid style "@style" was selected, please check your "CiteProc" style settings.', array('@style' => $csl_id));
+      drupal_set_message($message, 'error');
+    }
+  }
+  if (!empty($csl_id)) {
+    $csl = db_query('SELECT parent,csl FROM {biblio_citeproc_styles} WHERE filename = :id', array(':id' => $csl_id))->fetchObject();
+    if (!isset($csl->csl)) {
+      drupal_set_message(t('Biblio-CiteProc could not fetch the style file: @csl_id from the database. Check your CiteProc settings.', array('@csl_id' => $csl_id)), 'error');
+      return;
+    }
+    if (!empty($csl->parent)) {
+      $csl_file_contents = db_query("SELECT csl FROM {biblio_citeproc_styles} WHERE id = :id", array(':id' => $csl->parent))->fetchField();
+
+    }
+    else {
+      $csl_file_contents = $csl->csl;
+    }
+  }
+  return $csl_file_contents;
+}
+
+/**
+ *
+ */
+function theme_biblio_citeproc_style($variables) {
+  static $citeproc;
+  global $language;
+  $cached = NULL;
+  $node = $variables['node'];
+  $style = isset($variables['style_name']) ? $variables['style_name'] : NULL;
+
+  module_load_include('inc', 'biblio_citeproc', 'CSL');
+
+  if (!$citeproc) {
+    $csl_id = ($style) ? $style : biblio_get_style();
+    if ($csl_file_contents = biblio_citeproc_load_csl($csl_id)) {
+      // $cslid = $csl_file_name . '-' . $language->language;
+      //    $cached = cache_get($cslid, 'cache_biblio_csl_object');.
+      if (!$cached) {
+        $citeproc = new citeproc($csl_file_contents, $language->language);
+        // cache_set($cslid, $citeproc, 'cache_biblio_csl_object');.
+      }
+      else {
+        $citeproc = $cached->data;
+      }
+    }
+  }
+
+  $output = '';
+  if ($citeproc) {
+    $styled_node = $citeproc->render($node);
+    $coins_data = isset($node->biblio_coins) ? filter_xss($node->biblio_coins, array('span')) : '';
+    $output = $styled_node . $coins_data;
+  }
+
+  return $output;
+}
+
+/**
+ *
+ */
+function biblio_citeproc_csl_map_reset($type = NULL) {
+  module_load_include('install', 'biblio_citeproc', 'biblio_citeproc');
+  _reset_csl_map($type);
+}
+
+/**
+ *
+ */
+function biblio_citeproc_install_style($name, $csl) {
+
+  $xml = simplexml_load_string($csl);
+
+  $parent = '';
+  foreach ($xml->info->link as $link) {
+    $attrs = $link->attributes();
+    if (isset($attrs['rel']) && $attrs['rel'] == 'independent-parent') {
+      $parent = (string) $attrs['href'];
+    }
+  }
+
+  $old_sha1 = NULL;
+
+  $old_sha1 = db_query('SELECT sha1 FROM {biblio_citeproc_styles} WHERE id = :id', array(':id' => (string) $xml->info->id))->fetchField();
+
+  $record = array(
+    'filename' => $name,
+    'parent'   => $parent,
+    'title'    => (string) $xml->info->title,
+    'summary'  => (string) $xml->info->summary,
+    'csl'      => $csl,
+    'sha1'     => sha1($csl),
+    'id'       => (string) $xml->info->id,
+  );
+
+  // Style exists and has not changed.
+  if ($old_sha1 && $old_sha1 == sha1($csl)) {
+    return;
+  }
+  // Update an existing style.
+  elseif ($old_sha1 && $old_sha1 != sha1($csl)) {
+    $query = db_update('biblio_citeproc_styles')
+      ->fields($record)
+      ->condition('id', $record['id']);
+  }
+  // Install new style.
+  elseif (!$old_sha1) {
+    $query = db_insert('biblio_citeproc_styles')
+      ->fields(array('id', 'title', 'filename', 'summary', 'csl', 'sha1'));
+
+    $query->values($record);
+  }
+  $query->execute();
+
+}

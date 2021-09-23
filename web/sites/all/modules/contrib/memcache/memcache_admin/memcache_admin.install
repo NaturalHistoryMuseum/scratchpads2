@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Update functions for memcache_admin.
+ */
+
+/**
+ * Flush caches and rebuild menu to allow new stats pages to appear.
+ */
+function memcache_admin_update_7001() {
+  drupal_flush_all_caches();
+  menu_rebuild();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function memcache_admin_uninstall() {
+  variable_del('show_memcache_statistics');
+}

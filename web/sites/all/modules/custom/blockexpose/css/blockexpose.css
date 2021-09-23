@@ -1,0 +1,110 @@
+/* WHOLE BLOCK */
+.blockexpose{
+ width:395px;	
+ position:fixed;
+ background-color:transparent;
+ padding:0 !important;
+ opacity:0.95;
+ z-index:800;
+}
+.blockexpose.right{
+ right:-375px
+}
+.blockexpose.left{
+	left:-375px;
+}
+.side-number-1{top:40px;}
+.side-number-2{top:170px;}
+.side-number-3{top:300px;}
+.side-number-4{top:430px;}
+.side-number-5{top:560px;}
+.side-number-6{top:690px;}
+.side-number-7{top:820px;}
+.side-number-8{top:950px;}
+.side-number-9{top:1080px;}
+
+/* CLICK TAB */
+.open-close{
+ position:absolute;
+ height:100px;
+ width:20px;
+ border:solid 1px black;
+ padding:10px 0 10px 0;
+ overflow:hidden;
+ z-index:1002;
+ top:30px;
+}
+.blockexpose.right .open-close{
+ float:left;
+ border-right: solid 1px #666666;
+ left:0;
+}
+.blockexpose.left .open-close{
+ float:right;
+ border-left: solid 1px #666666;
+ right:0;
+}
+.open-close:hover{
+ cursor:pointer;
+}
+.open-close p{
+ font-family:arial,sans-serif;	
+ font-size:14px;
+ color:white;
+ border:0px solid red;
+ /* writing-mode:tb-rl;*/
+ -webkit-transform:rotate(90deg);
+ -moz-transform:rotate(90deg);
+ -o-transform: rotate(90deg);
+ white-space:nowrap;
+ display:block;
+ bottom:0;
+ padding:0;
+ margin:0;
+}
+
+/* BLOCK CONTENT */
+.blockexpose .subcontent{
+ min-height:200px;
+ width:368px;
+ border: solid 1px black;
+ padding:5px;
+ top:0;
+ position:absolute;
+}
+.blockexpose.right .subcontent{
+ border-right:none; 
+ right:0;
+ padding-right:0;
+}
+.blockexpose.left .subcontent{
+ border-left:none;
+ left:0;
+ padding-left:0;
+}
+.blockexpose.right .open-close, .blockexpose.right .subcontent, .blockexpose.right .footer{
+ border-radius:5px 0 0 5px;
+}
+.blockexpose.left .open-close, .blockexpose.left .subcontent, .blockexpose.left .footer{
+ border-radius:0 5px 5px 0;
+}
+.blockexpose.right .open-close, .blockexpose.right .subcontent{
+ box-shadow: -3px 3px 3px #333333;
+}
+.blockexpose.left .open-close, .blockexpose.left .subcontent{
+ box-shadow: 3px 3px 3px #333333;
+}
+.open-close, .blockexpose .subcontent{
+ background:none repeat scroll 0 0 #666666
+}
+.blockexpose .subcontent>*{
+ background-color:white;
+ border:solid 1px black;
+ border-left:none;
+}
+.blockexpose.left .subcontent>*{
+ border-left:none;
+}
+.blockexpose.right .subcontent>*{
+ border-right:none;
+}

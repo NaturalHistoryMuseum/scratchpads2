@@ -1,0 +1,18 @@
+name = Advanced help
+description = Provide extended help and documentation.
+core = 7.x
+
+attributions[click_icon][type] = 'asset'
+attributions[click_icon][exception] = '#2460769'
+attributions[click_icon][author] = 'Gisle Hannemyr'
+attributions[click_icon][hide] = TRUE
+attributions[click_icon][title] = 'click_icon.png'
+attributions[click_icon][license] = 'Creative Commons 0'
+attributions[click_icon][license_url] = 'https://creativecommons.org/publicdomain/zero/1.0/'
+
+; Information added by Drupal.org packaging script on 2015-03-27
+version = "7.x-1.2"
+core = "7.x"
+project = "advanced_help"
+datestamp = "1427460482"
+

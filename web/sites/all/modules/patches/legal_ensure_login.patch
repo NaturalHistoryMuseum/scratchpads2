@@ -1,0 +1,17 @@
+diff --git a/sites/all/modules/contrib/legal/legal.module b/sites/all/modules/contrib/legal/legal.module
+index 565b14e..657f01e 100644
+--- a/sites/all/modules/contrib/legal/legal.module
++++ b/sites/all/modules/contrib/legal/legal.module
+@@ -422,10 +422,8 @@ function legal_user_login(&$edit, $account) {
+ 
+   $query = NULL;
+   // Deal with destination from password reset one time login link.
+-  if (isset($_POST['form_id']) && $_POST['form_id'] == 'user_pass_reset') {
+-    $token = drupal_hash_base64(drupal_random_bytes(55));
+-    $_SESSION['pass_reset_' . $uid] = $token;
+-    $query = array('destination' => "user/$uid/edit?pass-reset-token=$token");
++  if (arg(0) == 'user' && arg(1) == 'reset') {
++    $query = array('destination' => "user/$uid/edit");
+   }
+ 
+   if (!empty($_REQUEST['destination'])) {

@@ -1,0 +1,45 @@
+<?php
+/**
+ * @file
+ * Code for the emonocot_spm feature.
+ */
+include_once ('emonocot_spm.features.inc');
+
+function emonocot_spm_node_presave($node){
+  if($node->type == 'spm'){
+    $biblio_nids = array();
+    foreach($node as $key => $value){
+      if(substr($key, 0, 5) == 'field' && substr($key, strlen($key) - 3, 3) == 'ref'){
+        if(isset($value['und'])){
+          foreach($value['und'] as $biblio_node){
+            if(!in_array($biblio_node['nid'], $biblio_nids)){
+              $biblio_nids[] = $biblio_node['nid'];
+            }
+          }
+        }
+      }
+    }
+    if(isset($node->field_taxonomic_name['und'][0]['tid'])){
+      $spm_taxon_tid = $node->field_taxonomic_name['und'][0]['tid'];
+      foreach($biblio_nids as $key => $biblio_nid){
+        $biblio_node = node_load($biblio_nid);
+        $biblio_tids = array();
+        if(isset($biblio_node->field_taxonomic_name['und'][0])){
+          foreach($biblio_node->field_taxonomic_name['und'] as $key => $value){
+            $biblio_tids[] = $value['tid'];
+          }
+        }
+        if(!in_array($spm_taxon_tid, $biblio_tids)){
+          $biblio_tids[] = $spm_taxon_tid;
+          unset($biblio_node->field_taxonomic_name['und']);
+          $i = 0;
+          foreach($biblio_tids as $biblio_tid){
+            $biblio_node->field_taxonomic_name['und'][$i]['tid'] = $biblio_tid;
+            $i++;
+          }
+          node_save($biblio_node);
+        }
+      }
+    }
+  }
+}

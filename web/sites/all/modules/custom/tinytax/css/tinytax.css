@@ -1,0 +1,49 @@
+.block-tinytax {
+  margin-bottom: 1em;
+}
+
+.tinytax ul {
+  padding: 0 !important;
+  margin: 0 0 0 15px !important;
+  background: url(../images/vline.png) repeat-y;
+}
+
+.tinytax li {
+  list-style: none;
+  line-height: 1.2;
+  padding: 2px 0px;
+  margin: 0;
+  vertical-align: middle;
+  background: url(../images/node.png) no-repeat;
+}
+
+.tinytax li.last {
+  background: url(../images/lastnode.png) no-repeat;
+}
+
+.tinytax ul,.tinytax li,.tinytax li.last {
+  background-position: 4px 0;
+}
+
+.tinytax img {
+  padding-right: 5px;
+}
+
+.tinytax-child-count {
+  font-size: 70%;
+  vertical-align: 10%;
+}
+
+.tinytax-bold {
+  text-decoration: none !important;
+  font-weight: 600;
+}
+
+.tinytax .click:hover {
+  cursor: pointer;
+}
+
+.tinytax label {
+  color:#777;
+  font-size: 80%;
+}

@@ -1,0 +1,97 @@
+.view-eol-images .view-content div h2,.view-eol-text .view-content div h2
+  {
+  display: none;
+}
+
+/* Logo */
+.block-eol-text-block .block-inner {
+  background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
+}
+
+.block-eol-text-block .block-inner .content {
+  border-top: 1px solid #ACACAC;
+  margin-top: 55px;
+  padding-top: 10px;
+}
+
+.block-eol-text-block .block-inner .content .content {
+  margin-top: 0;
+  border: none;
+}
+
+.view-eol-images .view-content div h2,.view-eol-text .view-content div h2
+  {
+  display: none;
+}
+
+.eolapi-text .field-label {
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.eolapi-text-data {
+  word-wrap: break-word
+}
+
+.eolapi-text-data ul,.eolapi-text-data ol {
+  margin-left: 30px !important;
+}
+
+.eolapi-text-data ul,.eolapi-text-data ul li {
+  list-style: disc !important;
+}
+
+.eolapi-text-data ol,.eolapi-text-data ol li {
+  list-style: lower-roman;
+}
+
+.eolapi-text-data ul li,.eolapi-text-data ol li {
+  padding: 5px 0 !important;
+}
+
+.eolapi-text-data a[href^='#cite_ref'] {
+  display: none;
+}
+
+.eolapi-text-data strong {
+  font-weight: normal;
+}
+
+.block-eol-text-block .block-inner {
+  background: #fff url('../images/eol-logo.gif') no-repeat 0 45px;
+}
+
+/* Media */
+.view-eol-images div.views-row,.view-eol-videos div.views-row {
+  float: left;
+  margin: 0 10px 10px 0;
+  border: 1px solid #999;
+  list-style: none;
+  background: none;
+}
+
+.view-eol-videos div.views-row .content {
+  width: 100px;
+  height: 100px;
+}
+
+.view-eol-videos div.views-row h2 {
+  display: none;
+}.
+
+/* Theme the small table */
+.eolapi-text-rights {
+  float: right;
+  color: #888;
+  font-size: 0.9em;
+}
+
+.eolapi-text-rights table tr {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.eolapi-text-rights table tr td:first-child {
+  text-align: right;
+  padding-right: 3px !important;
+}

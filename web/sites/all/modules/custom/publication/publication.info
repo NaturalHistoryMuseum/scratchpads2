@@ -1,0 +1,16 @@
+name = Publication
+description = Scratchpad publication
+core = 7.x
+dependencies[] = entity
+dependencies[] = relation_select
+package = Publication
+
+files[] = publication.admin.inc
+files[] = publication_type.admin.inc
+;files[] = theme/theme.inc
+
+
+; Tools
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = publication

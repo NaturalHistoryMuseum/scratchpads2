@@ -1,0 +1,273 @@
+<?php
+include_once ('scratchpads_forum.features.inc');
+
+/**
+ * Specifies the argument that should be used on forum/% links.
+ */
+function forum_forum_to_arg($arg, $map, $index){
+  return 0;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter.
+ *
+ * Hide the forums vocabulary from the taxonomy editor.
+ */
+function scratchpads_forum_form_taxonomy_overview_vocabularies_alter(&$form, &$form_state, $form_id){
+  if($tid = variable_get('forum_nav_vocabulary', FALSE)){
+    unset($form[$tid]);
+  }
+}
+
+/**
+ * Implementation of hook_menu_local_tasks_alter
+ * 
+ * We use this to hide the default forum action links
+ * 
+ */
+function scratchpads_forum_menu_local_tasks_alter(&$data, $router_item, $root_path){
+  if($root_path == 'forum' || $root_path == 'forum/%'){
+    _scratchpads_forum_action_links($data['actions']['output']);
+    $data['actions']['output'] = array();
+  }
+}
+
+/**
+ * Implementation of hook_module_implements_alter
+ * 
+ * Forum adds it's action links in hook_menu_local_tasks_alter
+ * rather than hook_menu_local_tasks, so we must ensure our
+ * hook is called later to get a chance to modify them.
+ * 
+ */
+function scratchpads_forum_module_implements_alter(&$implementations, $hook){
+  if($hook == 'menu_local_tasks_alter'){
+    $forum = $implementations['scratchpads_forum'];
+    unset($implementations['scratchpads_forum']);
+    $implementations['scratchpads_forum'] = $forum;
+  }
+}
+
+/**
+ * Get/set the current action links
+ * 
+ */
+function _scratchpads_forum_action_links($v = NULL){
+  static $links = NULL;
+  if($v !== NULL){
+    $links = $v;
+  }
+  return $links;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_forum_menu_alter(&$items){
+  if(isset($items['forum'])){
+    $items['forum']['menu_name'] = 'main-menu';
+    $items['forum']['weight'] = 1;
+  }
+}
+
+/**
+ * Implementation of hook_block_info
+ * 
+ * Define the scratchpadsforum_tree block which displays
+ * forum action links
+ * 
+ */
+function scratchpads_forum_block_info(){
+  $blocks['scratchpadsforum_tree'] = array(
+    'info' => t('Scratchpads forum tree'),
+    'status' => 0
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view
+ */
+function scratchpads_forum_block_view($delta = ''){
+  global $user;
+  $actions = _scratchpads_forum_action_links();
+  $links = array();
+  foreach($actions as $a){
+    $links[] = theme('menu_local_action', array(
+      'element' => $a
+    ));
+  }
+  return array(
+    'subject' => t('Forums'),
+    'content' => array(
+      'top_links' => array(
+        '#markup' => '<ul class="menu action-links">' . implode('', $links) . '</ul>'
+      ),
+      'tree' => array(
+        '#theme' => 'item_list',
+        '#items' => scratchpads_forum_tree(),
+        '#type' => 'ul'
+      )
+    )
+  );
+}
+
+/**
+ * Helper function.
+ * Reorders the tree, adds the data, and adds a count.
+ */
+function _scratchpads_forum_tree_add_data($branch, $forum_tree, $forum_count_array){
+  $output = array();
+  foreach($branch as $key => $twig){
+    if(is_array($twig)){
+      $twig = _scratchpads_forum_tree_add_data($twig, $forum_tree, $forum_count_array);
+      $output = array(
+        $key => $twig
+      ) + $output;
+    }else{
+      $output = array(
+        $key => $twig
+      ) + $output;
+    }
+    if(count($twig) == 1){
+      if(($forum_tree->forums[$key]->is_container == FALSE) && (!isset($forum_tree->forums[$key]->container))){
+        $f_name = $forum_tree->forums[$key]->name;
+        if($f_name != ''){
+          if((arg(1) == $key) && (arg(0) == 'forum')){
+            $twig2 = array(
+              'data' => $f_name . $forum_count_array[$key]
+            );
+          }else{
+            $twig2 = array(
+              'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+            );
+          }
+          $output = array(
+            $key => $twig2
+          ) + $output;
+        }
+      }
+    }
+  }
+  return $output;
+}
+
+/**
+ * Helper function.
+ * Adds links (if any) to the top level of the tree
+ */
+function _scratchpads_forum_level_one($branches, $forum_tree, $forum_count_array){
+  $output = array();
+  foreach($branches as $key => $branch){
+    if(is_array($branch)){
+      $output[$key] = $branch;
+    }else{
+      $f_name = $forum_tree->forums[$key]->name;
+      if((arg(1) == $key) && (arg(0) == 'forum')){
+        $output[$key] = array(
+          'data' => $f_name . $forum_count_array[$key]
+        );
+      }else{
+        $output[$key] = array(
+          'data' => l($f_name, 'forum/' . $key) . $forum_count_array[$key]
+        );
+      }
+    }
+  }
+  return $output;
+}
+
+/**
+ * Adds a navigation tree to forums
+ */
+function scratchpads_forum_tree(){
+  $items = array();
+  $forum_tree = forum_forum_load();
+  $forum_count_array = array();
+  $forums = $forum_tree->forums;
+  // Query only used for counting
+  foreach($forums as $key => $forum){
+    $query = db_select('node', 'n');
+    $query->fields('n', array(
+      'nid'
+    ));
+    $query->join('forum', 'f', 'n.nid = f.nid');
+    $query->condition('f.tid', $key, '=');
+    $query->condition('n.type', 'forum', '=');
+    $count_query = $query->countQuery();
+    $result = $count_query->execute();
+    $record = $result->fetchCol();
+    $count = $record[0];
+    if(($forum->is_container == TRUE) || (isset($forum->container))){
+      $forum_count_array[$forum->tid] = '';
+    }else{
+      $forum_count_array[$forum->tid] = $count_string = " (" . $count . ")";
+    }
+  }
+  $tree = array();
+  $tids = array_keys($forum_tree->forums);
+  $tids = array_reverse($tids);
+  $tids = drupal_map_assoc($tids);
+  $tree = $tids;
+  foreach($tids as $tid => $value){
+    if($forum_tree->forums[$tid]->parents[0]){
+      if(!is_array($tree[$forum_tree->forums[$tid]->parents[0]])){
+        $tree[$forum_tree->forums[$tid]->parents[0]] = array();
+      }
+      $tree[$forum_tree->forums[$tid]->parents[0]]['children'][$tid] = $tree[$tid];
+      unset($tree[$tid]);
+      $f_id = $forum_tree->forums[$tid]->parents[0];
+      $f_name = $forum_tree->forums[$f_id]->name;
+      // add data for parent items
+      if((arg(1) == $f_id) && (arg(0) == 'forum')){
+        $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = $f_name . $forum_count_array[$f_id];
+      }else{
+        $tree[$forum_tree->forums[$tid]->parents[0]]['data'] = l($f_name, 'forum/' . $f_id) . $forum_count_array[$f_id];
+      }
+    }
+  }
+  // reorder array and add child data
+  $tree = _scratchpads_forum_tree_add_data($tree, $forum_tree, $forum_count_array);
+  // add data if neither parent nor child
+  $tree = _scratchpads_forum_level_one($tree, $forum_tree, $forum_count_array);
+  return $tree;
+}
+
+/**
+ * Implements hook_block_list_alter().
+ */
+function scratchpads_forum_block_list_alter(&$blocks){
+  if(arg(0) == 'forum'){
+    foreach($blocks as $key => $block){
+      if($block->delta == 'scratchpads_pages-1'){
+        unset($blocks[$key]);
+      }
+    }
+  }
+}
+
+/**
+ * Returns the total number of forum nodes
+ */
+function scratchpads_forum_node_count(){
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'forum', '=');
+  return $query->countQuery()->execute()->fetchField();
+}
+
+/**
+ * Implements hook_tools_pre_disable().
+ */
+function scratchpads_forum_tools_pre_disable(){
+  if(scratchpads_forum_node_count() > 0){
+    $can_disable = false;
+  }else{
+    $can_disable = true;
+  }
+  $tools_settings = array(
+    'can_disable' => $can_disable,
+    'cannot_disable_message' => "You cannot disable Forums while there is still data in the 'Forum Topic' content type.",
+    'disable_message' => "The 'forum topic' content type will be removed."
+  );
+  return $tools_settings;
+}

@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * Implements hook_menu_alter().
+ */
+function scratchpads_biblio_autocomplete_tweak_menu_alter(&$items){
+  $items['node_reference/autocomplete/%/%/%']['page callback'] = 'scratchpads_biblio_autocomplete_tweak_node_reference_autocomplete';
+}
+
+/**
+ * Tweaked: node_reference_autocomplete
+ */
+function scratchpads_biblio_autocomplete_tweak_node_reference_autocomplete($entity_type, $bundle, $field_name, $string = ''){
+  $field = field_info_field($field_name);
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $options = array(
+    'string' => $string,
+    'match' => $instance['widget']['settings']['autocomplete_match'],
+    'limit' => 10
+  );
+  $use_biblio = FALSE;
+  foreach($field['settings']['referenceable_types'] as $key => $value){
+    if($value){
+      if($value == 'biblio'){
+        $use_biblio = TRUE;
+      }else{
+        $use_biblio = FALSE;
+        break;
+      }
+    }
+  }
+  if($use_biblio){
+    $references = scratchpads_biblio_autocomplete_tweak_node_reference_potential_references($field, $options);
+  }else{
+    $references = node_reference_potential_references($field, $options);
+  }
+  $matches = array();
+  foreach($references as $id => $row){
+    // Markup is fine in autocompletion results (might happen when rendered
+    // through Views) but we want to remove hyperlinks.
+    $suggestion = preg_replace('/<a href="([^<]*)">([^<]*)<\/a>/', '$2', $row['rendered']);
+    // Add a class wrapper for a few required CSS overrides.
+    $matches[$row['title'] . " [nid:$id]"] = '<div class="reference-autocomplete">' . $suggestion . '</div>';
+  }
+  drupal_json_output($matches);
+}
+
+/**
+ * Tweaked: node_reference_potential_references
+ */
+function scratchpads_biblio_autocomplete_tweak_node_reference_potential_references($field, $options = array()){
+  // Fill in default options.
+  $options += array(
+    'string' => '',
+    'match' => 'contains',
+    'ids' => array(),
+    'limit' => 0
+  );
+  $results = &drupal_static(__FUNCTION__, array());
+  // Create unique id for static cache.
+  $cid = $field['field_name'] . ':' . $options['match'] . ':' . ($options['string'] !== '' ? $options['string'] : implode('-', $options['ids'])) . ':' . $options['limit'];
+  if(!isset($results[$cid])){
+    $references = FALSE;
+    if(module_exists('views') && !empty($field['settings']['view']['view_name'])){
+      $references = _node_reference_potential_references_views($field, $options);
+    }
+    if($references === FALSE){
+      $references = _scratchpads_biblio_autocomplete_tweak_node_reference_potential_references_standard($field, $options);
+    }
+    // Store the results.
+    $results[$cid] = !empty($references) ? $references : array();
+  }
+  return $results[$cid];
+}
+
+/**
+ * Tweaked: _node_reference_potential_references_standard
+ */
+function _scratchpads_biblio_autocomplete_tweak_node_reference_potential_references_standard($field, $options){
+  // Avoid useless work
+  // V. Blagoderov says that 10 references is not enough, so we'll up the limit
+  // to 20.
+  $options['limit'] = 20;
+  if(!count($field['settings']['referenceable_types'])){return array();}
+  $query = db_select('node', 'n');
+  $node_nid_alias = $query->addField('n', 'nid');
+  $node_title_alias = $query->addField('n', 'title', 'node_title');
+  $node_type_alias = $query->addField('n', 'type', 'node_type');
+  $query->join('biblio', 'b', 'b.vid = n.vid');
+  $query->join('biblio_contributor', 'bc', 'bc.vid = b.vid');
+  $query->join('biblio_contributor_data', 'bcd', 'bcd.cid = bc.cid');
+  $biblio_year_alias = $query->addField('b', 'biblio_year', 'year');
+  $biblio_year_alias = $query->addField('b', 'biblio_volume', 'volume');
+  $biblio_author_alias = $query->addField('bcd', 'name', 'author');
+  $query->condition('bc.rank', 0);
+  $query->addTag('node_access')->addMetaData('id', ' _node_reference_potential_references_standard')->addMetaData('field', $field)->addMetaData('options', $options);
+  $query->condition('n.type', 'biblio');
+  if($options['string'] !== ''){
+    preg_match('/([^0-9]*)([0-9]{2,4})/', $options['string'], $matches);
+    if(count($matches) == 3){
+      // Note, we trim $matches[1] as it includes the delimitting space.
+      $condition = db_and()->condition('b.biblio_year', '%' . $matches[2] . '%', 'LIKE')->condition('bcd.name', '%' . trim($matches[1]) . '%', 'LIKE');
+    }else{
+      switch($options['match']){
+        case 'contains':
+          $condition = db_or()->condition('b.biblio_year', '%' . $options['string'] . '%', 'LIKE')->condition('n.title', '%' . $options['string'] . '%', 'LIKE')->condition('bcd.name', '%' . $options['string'] . '%', 'LIKE');
+          break;
+        case 'starts_with':
+          $condition = db_or()->condition('b.biblio_year', $options['string'] . '%', 'LIKE')->condition('n.title', $options['string'] . '%', 'LIKE')->condition('bcd.name', $options['string'] . '%', 'LIKE');
+          break;
+        case 'equals':
+        default: // no match type or incorrect match type: use "="
+          $condition = db_or()->condition('b.biblio_year', $options['string'])->condition('n.title', $options['string'])->condition('bcd.name', $options['string']);
+          break;
+      }
+    }
+  }
+  $query->condition($condition);
+  if($options['ids']){
+    $query->condition('n.nid', $options['ids'], 'IN');
+  }
+  if($options['limit']){
+    $query->range(0, $options['limit']);
+  }
+  $query->orderBy($biblio_author_alias)->orderBy($biblio_year_alias)->orderBy($node_title_alias)->orderBy($node_type_alias);
+  $result = $query->execute()->fetchAll();
+  $references = array();
+  foreach($result as $node){
+    $references[$node->nid] = array(
+      'title' => $node->node_title,
+      'rendered' => check_plain($node->author) . " - " . check_plain($node->year) . " - " . check_plain($node->node_title) . ($node->volume ? " (Vol:{$node->volume})":'')
+    );
+  }
+  return $references;
+}
+  

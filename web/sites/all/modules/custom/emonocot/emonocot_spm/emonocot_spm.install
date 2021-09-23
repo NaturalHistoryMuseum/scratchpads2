@@ -1,0 +1,131 @@
+<?php
+
+function emonocot_spm_install(){
+  module_load_include('field_group.inc', 'emonocot_spm');
+  $em_spm_groups = emonocot_spm_field_group_info();
+  $modes = array(
+    'form',
+    'default'
+  );
+  foreach($em_spm_groups as $em_group){
+    foreach($modes as $mode){
+      $group = field_group_load_field_group($em_group->group_name, 'node', 'spm', $mode);
+      if(is_object($group)){
+        foreach($em_group->data['children'] as $child){
+          if(!in_array($child, $group->children)){
+            $group->children[] = $child;
+          }
+        }
+        field_group_group_save($group);
+      }else{
+        $nom_object = $group;
+      }
+    }
+  }
+  $group = field_group_load_field_group('group_vertical_tabs', 'node', 'spm', 'form');
+  $group->children[] = 'group_spm_em_misc';
+  $group->children[] = 'group_spm_em_taxonomy';
+  field_group_group_save($group);
+}
+
+function emonocot_spm_update_7001(){
+  emonocot_spm_install();
+}
+
+/**
+ * Display fields in correct order when viewed as well as edited
+ */
+function emonocot_spm_update_7002(){
+  module_load_include('field_group.inc', 'emonocot_spm');
+  $em_spm_groups = emonocot_spm_field_group_info();
+  foreach($em_spm_groups as $em_group){
+    $group = field_group_load_field_group($em_group->group_name, 'node', 'spm', 'default');
+    foreach($em_group->data['children'] as $child){
+      if(!in_array($child, $group->children)){
+        $group->children[] = $child;
+      }
+    }
+    field_group_group_save($group);
+  }
+}
+
+/**
+ * Change weights of fields to put them in a nice order
+ */
+function emonocot_spm_update_7003(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+    $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+    $instance['widget']['weight'] = $em_field['field_instance']['widget']['weight'];
+    $instance['display']['default']['weight'] = $em_field['field_instance']['display']['default']['weight'];
+    field_update_instance($instance);
+  }
+}
+
+function emonocot_spm_update_7004(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'node_reference_default'){
+      $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['display']['default']['type'] = 'biblio_ref';
+      field_update_instance($instance);
+  	}
+  	if (isset($em_field['field_instance']['settings']['text_processing'])){
+  	  $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['settings']['text_processing'] = $em_field['field_instance']['settings']['text_processing'];
+      field_update_instance($instance);
+  	}
+  }
+}
+
+function emonocot_spm_update_7005(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'biblio_ref'){
+      $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+      $instance['display']['default']['type'] = 'biblio_ref';
+      $instance['widget']['weight'] = $em_field['field_instance']['widget']['weight'];
+      $instance['display']['default']['weight'] = $em_field['field_instance']['display']['default']['weight'];
+      field_update_instance($instance);
+  	}
+  }
+  $instance = field_read_instance('node', 'field_taxonomic_name', 'spm');
+  $insatnce['display']['default']['weight'] = 1000;
+  field_update_instance($instance);
+}
+
+function emonocot_spm_update_7006(){
+	module_load_include('field_group.inc', 'emonocot_spm');
+	$em_spm_groups = emonocot_spm_field_group_info();
+	foreach ($em_spm_groups as $em_group){
+		$group = field_group_load_field_group($em_group->group_name, 'node', 'spm', $em_group->mode);
+		$group->format_type = $em_group->data['defaultat_type'];
+		field_group_group_save($group);
+	}
+}
+
+function emonocot_spm_update_7007(){
+  //Run again to fix vertical tabs
+  emonocot_spm_update_7006();
+}
+
+function emonocot_spm_update_7801(){
+  module_load_include('features.field.inc', 'emonocot_spm');
+  $em_fields = emonocot_spm_field_default_fields();
+  foreach($em_fields as $em_field){
+  	if ($em_field['field_instance']['display']['default']['type'] == 'biblio_ref'){
+      $field = field_read_field($em_field['field_config']['field_name']);
+      $field['settings']['view']['args'] = array();
+      $field['settings']['view']['display_name'] = '';
+      $field['settings']['view']['view_name'] = '';
+      field_update_field($field);
+  	}
+  }
+  foreach($em_fields as $em_field){
+    $instance = field_read_instance('node', $em_field['field_config']['field_name'], 'spm');
+    $i=0;
+  }
+}

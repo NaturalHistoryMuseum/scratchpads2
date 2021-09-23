@@ -1,0 +1,5 @@
+.insert-from-view-row:hover,
+.insert-from-view-row:hover td {
+  cursor: pointer;
+  background: #FFF4C0;
+}

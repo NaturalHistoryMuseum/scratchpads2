@@ -1,0 +1,16 @@
+name = "Scratchpads Solr search results for content types"
+description = "Allows a user to specify that a content type should use Solr as the way of viewing the content."
+package = "Scratchpads"
+core = 7.x
+dependencies[] = apachesolr (>=1.2)
+dependencies[] = apachesolr_search (>=1.2)
+dependencies[] = apachesolr_access
+dependencies[] = apachesolr_multisitesearch
+dependencies[] = apachesolr_term
+dependencies[] = context
+dependencies[] = facetapi
+dependencies[] = scratchpads_pages
+files[] = ScratchpadsSolrBaseQuery.php
+l10n server = localize.scratchpads.eu
+l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
+project = scratchpads_solr

@@ -1,0 +1,14 @@
+name = Localization server
+description = Base backend module for localization server
+package = "Localization server"
+dependencies[] = locale
+dependencies[] = l10n_pconfig
+core = 7.x
+php = 5
+
+; Information added by drupal.org packaging script on 2013-02-20
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "l10n_server"
+datestamp = "1361365680"
+
