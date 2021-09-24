@@ -63,8 +63,9 @@ function scratchpads_gbif_registry_client_admin_settings() {
     ],
     'scratchpads_gbif_registry_client_taxonomic_coverage' => [
       '#type' => 'textfield', 
+      '#title' => t('Taxonomic scope for DwC-A file'),
       '#default_value' => variable_get('scratchpads_gbif_registry_client_taxonomic_coverage', ''),
-      '#description' => t('Allow  setting of taxonomic scope for DwC-A file.'),
+      '#description' => t('Allow setting of taxonomic scope for DwC-A file.'),
     ]
   ];
 
