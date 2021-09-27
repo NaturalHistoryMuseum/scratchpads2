@@ -219,6 +219,8 @@ function _dwcarchiver_get_eml($dwcarchiver) {
   $ulink = $para->addChild('ulink');
   $ulink->addAttribute('url', 'https:' . $cc_markup['#markup']);
 
+  _dwcarchiver_set_gbif_coverage($dataset);
+
   // For debugging: output the EML
   // $dom = new DOMDocument("1.0");
   // $dom->preserveWhiteSpace = FALSE;
@@ -241,6 +243,21 @@ function _dwcarchiver_get_eml($dwcarchiver) {
    * $dom->getElementsByTagName('dataset')->item(0); $node->appendChild($para);
    * return $dom->saveXML();
    */
+}
+
+function _dwcarchiver_set_gbif_coverage(&$dataset) {
+  $coverageValue 
+    = variable_get('scratchpads_gbif_registry_client_taxonomic_coverage'));
+ 
+  $valueIsSet
+    = !(!isset($coverageValue) || trim($coverageValue) === '');
+
+  if ($valueIsSet) {
+    $coverageParent = $dataset->addChild('coverage');
+    $taxonomicCoverage = $coverageParent->addChild('taxonomicCoverage')
+    $taxonomicCoverage
+      ->addChild('generalTaxonomicCoverage', $coverageValue);
+  }
 }
 
 /**
