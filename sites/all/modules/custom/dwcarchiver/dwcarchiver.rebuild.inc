@@ -247,14 +247,14 @@ function _dwcarchiver_get_eml($dwcarchiver) {
 
 function _dwcarchiver_set_gbif_coverage(&$dataset) {
   $coverageValue 
-    = variable_get('scratchpads_gbif_registry_client_taxonomic_coverage'));
+    = variable_get('scratchpads_gbif_registry_client_taxonomic_coverage');
  
   $valueIsSet
     = !(!isset($coverageValue) || trim($coverageValue) === '');
 
   if ($valueIsSet) {
     $coverageParent = $dataset->addChild('coverage');
-    $taxonomicCoverage = $coverageParent->addChild('taxonomicCoverage')
+    $taxonomicCoverage = $coverageParent->addChild('taxonomicCoverage');
     $taxonomicCoverage
       ->addChild('generalTaxonomicCoverage', $coverageValue);
   }
