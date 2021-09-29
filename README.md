@@ -80,3 +80,30 @@ credit:
 2 - https://superuser.com/a/345051
 
 
+problem:
+
+Importing database dump fails with either or both of the below errors:
+
+
+ERROR 1071 (42000) at line 59: Specified key was too long; max key length is 767 bytes
+SQL client error occurred.
+
+
+ERROR 1709 (HY000) at line 59: Index column size too large. The maximum column size is 767 bytes.
+SQL client error occurred. 
+
+
+solution:
+
+ssh into ddev container, run sql cli, run several commands to configure db to accept the things it was rejecting and erroring on.
+
+steps:
+
+ddev ssh
+mysql -uroot -proot
+GRANT SUPER ON *.* TO 'db'@'localhost' IDENTIFIED BY 'db';
+FLUSH PRIVILEGES;
+SET @@global.innodb_large_prefix = 1;
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+
