@@ -44,7 +44,8 @@ To get a development scratchpad up and running:
 - [Install docker-sync](https://docker-sync.readthedocs.io/en/latest/getting-started/installation.html) (`gem install docker-sync`)
 - Copy .env.template to .env and set some environment values
 - Run `docker-sync start`
-- Run `docker-compose up`
+- Run `docker-compose up -d apache mysql solr`
+  (excludes varnish service - only for production, not supported on local)
 - Go to [`localhost:8080/install.php`](http://localhost:8080/install.php) to start the installation process (make sure you choose the "Scratchpad 2" profile)
 - This repo will be mounted inside the docker, so you will be able to see any changes in real time (-ish)
 
@@ -56,6 +57,6 @@ We offer extensive support to users of the Scratchpads, whether using an NHM
 maintained Scratchpad, or a local one. Support should be requested using the
 "Issues..." tab which is visible when logged in to a Scratchpad.
 
-## Docker
+## To import a database
 
 cat ../wallace.sql | docker exec -i scratchpads.apache drush sql-cli
