@@ -59,3 +59,51 @@ maintained Scratchpad, or a local one. Support should be requested using the
 ## Docker
 
 cat ../wallace.sql | docker exec -i scratchpads.apache drush sql-cli
+
+
+## Troubleshooting
+
+problem:
+Error like: 'docker not found' or 'Docker command can't connect to Docker daemon'
+
+solution:
+
+1 - add your user to the docker group:
+sudo usermod -aG docker $(whoami)
+
+2 - reload user group assignments in your current terminal shell where you are trting to run docker
+(this saves having to open a new shell or avoid logging out and back in)
+su - $USER
+
+credit:
+1 - https://stackoverflow.com/a/33782459
+2 - https://superuser.com/a/345051
+
+
+problem:
+
+Importing database dump fails with either or both of the below errors:
+
+
+ERROR 1071 (42000) at line 59: Specified key was too long; max key length is 767 bytes
+SQL client error occurred.
+
+
+ERROR 1709 (HY000) at line 59: Index column size too large. The maximum column size is 767 bytes.
+SQL client error occurred. 
+
+
+solution:
+
+ssh into ddev container, run sql cli, run several commands to configure db to accept the things it was rejecting and erroring on.
+
+steps:
+
+ddev ssh
+mysql -uroot -proot
+GRANT SUPER ON *.* TO 'db'@'localhost' IDENTIFIED BY 'db';
+FLUSH PRIVILEGES;
+SET @@global.innodb_large_prefix = 1;
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+
