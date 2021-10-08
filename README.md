@@ -45,7 +45,7 @@ We recommend running Scratchpads in production using Docker.
 
 To get a production Scratchpad running on Ubuntu:
 
-- Install [Docker CE](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/
+- Install [Docker CE](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
 - clone the Scratchpads project or [download a release >= 2.9.2](https://github.com/NaturalHistoryMuseum/scratchpads2/releases) from Github
 
@@ -72,13 +72,13 @@ We recommend developing Scratchpads with [DDEV](https://ddev.readthedocs.io/en/s
 A DDEV config file is included with Scratchpads. To start the ddev Scratchpad enviornment, run:
 
 ```
-ddev start
+DDEV start
 ```
 
 After start up, you will need to:
 
 - Run ```install.php``` to start the installation process (make sure you choose the "Scratchpad 2" profile)
-- Change the SOLR
+- Change the SOLR SERVER URL (admin/config/search/apachesolr/settings/solr/edit) to http://127.0.0.1:18983
 
 ### Notes:
 
