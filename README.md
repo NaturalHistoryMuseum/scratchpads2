@@ -69,7 +69,7 @@ We recommend developing Scratchpads with [DDEV](https://ddev.readthedocs.io/en/s
 
 ### Usage:
 
-A DDEV config file is included with Scratchpads. To start the ddev Scratchpad enviornment, run:
+A DDEV config file is included with Scratchpads. To start the DDEV Scratchpad enviornment, run:
 
 ```
 DDEV start
