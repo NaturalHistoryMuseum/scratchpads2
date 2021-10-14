@@ -15,6 +15,9 @@ function scratchpads_species_menu(){
   // The default tab will be displayed under taxonomy/term/%taxonomy_term/view path
   // So a new menu item is not necessary
 
+  global $base_url;
+  $current_path = $base_url . '/' . current_path();
+
   foreach($tabs as $tab => $label){
 
     $items['taxonomy/term/%taxonomy_term/' . $tab] = array(
@@ -477,8 +480,6 @@ function scratchpads_species_title_callback($term){
  * @param string - tab $op
  */
 function scratchpads_species_access_callback($term = array(), $op = 'default'){
-  if(scratchpads_species_term_is_biological_classification($term)){
-
     $active_tabs = array_keys(scratchpads_species_get_active_tabs($term->vid));
 
     $default_tab = scratchpads_species_get_default_tab($term->vid);
@@ -516,9 +517,6 @@ function scratchpads_species_access_callback($term = array(), $op = 'default'){
       // }
       // return false;
     }
-  }else{
-    return false;
-  }
 }
 
 function scratchpads_species_term_page($term, $op = 'default'){
