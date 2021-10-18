@@ -55,6 +55,12 @@ To get a production Scratchpad running on Ubuntu:
 
     ```docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d```
 
+# To turn off warnings
+
+/admin/config/development/logging
+
+Set error messages to display to 'None'.
+
 # Developing Scratchpads
 
 If you want to help develop Scratchpads please don't hesitate to get in touch! You can raise an issue on the [Github issue queue](https://github.com/NaturalHistoryMuseum/scratchpads2/issues), or contact the development team at the Natural History Museum scratchpads@nhm.ac.uk.
