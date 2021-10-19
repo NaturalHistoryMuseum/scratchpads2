@@ -14,6 +14,26 @@ use_dns_when_possible: true
 composer_version: ""
 web_environment: []
 
+hooks:
+  # general ref: https://ddev.readthedocs.io/en/stable/users/extending-commands/#drupal-7-example
+  post-start:
+    # following runs after ddev start:
+    # varnish not used on local personal dev setup, so disable it there
+    # - this disabling of varnish on personal dev is specifically to eliminate the 
+    # "WD varnish: Unable to connect to server socket 127.0.0.1:6082: Connection refused" message
+    # that will show after any drush operation, like drush cc all
+    #
+    # error happened because varnish Docker container has been deliberately omitted on local personal dev setup 
+    # because such cache-based production performance improvement is not required for local personal dev setup
+    - exec: "drush pm-disable varnish -y"
+    - exec: "drush pm-uninstall varnish -y"
+    # if varnish already uninstalled on local personal setup, then an additional messaging saying so will show
+    #
+    # in code reviews be sure to check any Features Recreate (config export) 
+    # that disables it is not present before
+    # pushing code to production
+    # (Drupal 8/9 handles this better with various selective config modules like config split, ignore)
+
 
 # This config.yaml was created with ddev version v1.17.7
 # webimage: drud/ddev-webserver:v1.17.7
