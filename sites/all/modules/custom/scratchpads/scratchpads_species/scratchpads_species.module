@@ -443,13 +443,16 @@ function scratchpads_species_taxonomy_term_insert($term){
 /**
  * Implementation of hook_preprocess_html().
  */
-function scratchpads_species_preprocess_html(&$vars)
-{
-  if($vars['page']['#tag'] == 'species-page'){
-    $vars['head_title'] = $vars['page']['title'];
+function scratchpads_species_preprocess_html(&$vars) {
+  if (array_key_exists('page',$vars)) {
+    if (array_key_exists('#tag', $vars['page'])) {
+      if($vars['page']['#tag'] == 'species-page') {
+        $vars['head_title'] = $vars['page']['title'];
 
-    if (!empty($vars['page']['subtitle']) && $vars['page']['subtitle'] != '&nbsp;') {
-      $vars['head_title']  .= ' [' . $vars['page']['subtitle'] . ']';
+        if (!empty($vars['page']['subtitle']) && $vars['page']['subtitle'] != '&nbsp;') {
+          $vars['head_title']  .= ' [' . $vars['page']['subtitle'] . ']';
+        }
+      }
     }
   }
 }
