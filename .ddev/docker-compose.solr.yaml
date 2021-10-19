@@ -37,7 +37,7 @@ services:
     restart: "no"
     # Solr is served from this port inside the container.
     ports:
-      - 18983
+      - 8983
     # was 8983 - but changed to 18983   
     # (in case of using other setup for this web app that already uses 8983
     # "Unable to listen on required ports, port 8983 is already in use")
@@ -51,7 +51,7 @@ services:
       - VIRTUAL_HOST=$DDEV_HOSTNAME
       # This defines the port the service should be accessible from at
       # sitename.ddev.site.
-      - HTTP_EXPOSE=18983
+      - HTTP_EXPOSE=8983
     volumes:
       # solr core *data* is stored on the 'solrdata' docker volume
       # This mount is optional; without it your search index disappears
