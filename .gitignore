@@ -35,6 +35,7 @@ scratchpads_twitter.ini
 nohup.out
 docker-compose.dev.yml
 
-sites/default/files/advagg_css
-sites/default/files/advagg_js
-sites/default/files/css
+# machine generated files
+sites/default/files/advagg_css/
+sites/default/files/advagg_js/
+sites/default/files/css/
