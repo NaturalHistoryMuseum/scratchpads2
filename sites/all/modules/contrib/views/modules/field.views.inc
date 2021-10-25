@@ -120,6 +120,14 @@ function field_views_field_default_views_data($field) {
   // Build the relationships between the field table and the entity tables.
   foreach ($field['bundles'] as $entity => $bundles) {
     $entity_info = entity_get_info($entity);
+    if (empty($entity_info)) {
+      watchdog('views',
+        'Field %field_name refers to nonexistent entity type %type. You might want to remove this broken field instance. <a href="https://www.drupal.org/node/3200406">See documentation.</a>',
+        array('%field_name' => $field['field_name'], '%type' => $entity),
+        WATCHDOG_WARNING
+      );
+      continue;
+    }
     $groups[$entity] = $entity_info['label'];
 
     // Override Node to Content.

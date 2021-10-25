@@ -36,8 +36,8 @@ class DrupalSolrFilterSubQueryTests extends DrupalUnitTestCase {
     return new SolrBaseQuery($name, $solr, $params, $solrsort, $base_path);
   }
 
-  private function _apachesolr_drupal_subquery($operator = 'OR') {
-    return new SolrFilterSubQuery($operator);
+  private function _apachesolr_drupal_subquery($operator = 'OR', $exclude = FALSE) {
+    return new SolrFilterSubQuery($operator, $exclude);
   }
 
   function testSubQueriesQuery() {
@@ -105,5 +105,25 @@ class DrupalSolrFilterSubQueryTests extends DrupalUnitTestCase {
     $params = $query1->getParam('fq');
     $this->assertEqual($params[0], 'is_uid:10', 'First field value is is_uid:10');
     $this->assertEqual($params[1], '(is_uid:1 AND tid:5)', 'Second field value is (is_uid:1 AND tid:5)');
+
+    // Test excluding a subquery.
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query2 = $this->_apachesolr_drupal_subquery('AND', TRUE);
+    $query2->addFilter('label', 'bar');
+    $query2->addFilter('label', 'baz');
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    $this->assertEqual($params[0], '-(label:bar AND label:baz)', t('The bar and baz label are excluded.'));
+
+    // Test if a field is either empty or has a certain value.
+    $query1 = $this->_apachesolr_drupal_query('DrupalTest');
+    $query2 = $this->_apachesolr_drupal_subquery('AND', TRUE);
+    $query2->addFilter('label', '*');
+    $query2->addFilter('label', 'bar', TRUE);
+    $query1->addFilterSubQuery($query2);
+    $params = $query1->getParam('fq');
+    // This subquery is useful when you want to retrieve empty 
+    // fields for the label property OR should be bar.
+    $this->assertEqual($params[0], '-(label:* AND -label:bar)', t('The label should either be bar or empty.'));
   }
 }

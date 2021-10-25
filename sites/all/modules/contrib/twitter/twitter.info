@@ -7,12 +7,15 @@ files[] = twitter.lib.php
 files[] = tests/core.test
 files[] = tests/input_filters.test
 dependencies[] = oauth_common
-dependencies[] = views
 configure = admin/config/services/twitter
 
-; Information added by drupal.org packaging script on 2013-06-03
-version = "7.x-5.8"
+; Dependencies that are only used with the tests.
+test_dependencies[] = oauth
+test_dependencies[] = views
+
+; Information added by Drupal.org packaging script on 2015-10-05
+version = "7.x-5.11"
 core = "7.x"
 project = "twitter"
-datestamp = "1370303463"
+datestamp = "1444046332"
 

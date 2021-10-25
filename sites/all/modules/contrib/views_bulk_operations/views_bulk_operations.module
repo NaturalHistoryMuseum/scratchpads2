@@ -13,6 +13,7 @@ define('VBO_ACCESS_OP_DELETE',    0x08);
 
 /**
  * Implements hook_action_info().
+ *
  * Registers custom VBO actions as Drupal actions.
  */
 function views_bulk_operations_action_info() {
@@ -20,9 +21,14 @@ function views_bulk_operations_action_info() {
   $files = views_bulk_operations_load_action_includes();
   foreach ($files as $filename) {
     $action_info_fn = 'views_bulk_operations_'. str_replace('.', '_', basename($filename, '.inc')).'_info';
-    $action_info = call_user_func($action_info_fn);
-    if (is_array($action_info)) {
-      $actions += $action_info;
+    if (is_callable($action_info_fn)) {
+      $action_info = call_user_func($action_info_fn);
+      if (is_array($action_info)) {
+        $actions += $action_info;
+      }
+    }
+    else {
+      watchdog('views bulk operations', 'views_bulk_operations_action_info() expects action filenames to have a matching valid callback function named: %function', array('%function' => $action_info_fn), WATCHDOG_WARNING);
     }
   }
 
@@ -41,21 +47,21 @@ function views_bulk_operations_load_action_includes() {
   // The list of VBO actions is fairly static, so it's hardcoded for better
   // performance (hitting the filesystem with file_scan_directory(), and then
   // caching the result has its cost).
-  $path = drupal_get_path('module', 'views_bulk_operations') . '/actions/';
   $files = array(
-    'archive.action.inc',
-    'argument_selector.action.inc',
-    'book.action.inc',
-    'delete.action.inc',
-    'modify.action.inc',
-    'script.action.inc',
-    'user_roles.action.inc',
-    'user_cancel.action.inc',
+    'archive.action',
+    'argument_selector.action',
+    'book.action',
+    'change_owner.action',
+    'delete.action',
+    'modify.action',
+    'script.action',
+    'user_roles.action',
+    'user_cancel.action',
   );
 
   if (!$loaded) {
     foreach ($files as $file) {
-      include_once $path . $file;
+      module_load_include('inc', 'views_bulk_operations', 'actions/' . $file);
     }
     $loaded = TRUE;
   }
@@ -76,8 +82,8 @@ function views_bulk_operations_load_action_includes() {
  */
 function views_bulk_operations_cron() {
   db_delete('queue')
-    ->condition('name', db_like('views_bulk_operations_active_queue_'), 'LIKE')
-    ->condition('created', REQUEST_TIME - 864000, '<')
+    ->condition('name', db_like('views_bulk_operations_active_queue_') . '%', 'LIKE')
+    ->condition('created', REQUEST_TIME - 86400, '<')
     ->execute();
 }
 
@@ -190,7 +196,7 @@ function views_bulk_operations_get_operation_info($operation_id = NULL) {
       $operations += $plugin['list callback']();
     }
 
-    uasort($operations, create_function('$a, $b', 'return strcasecmp($a["label"], $b["label"]);'));
+    uasort($operations, '_views_bulk_operations_sort_operations_by_label');
   }
 
   if (!empty($operation_id)) {
@@ -199,6 +205,16 @@ function views_bulk_operations_get_operation_info($operation_id = NULL) {
   else {
     return $operations;
   }
+}
+
+/**
+ * Sort function used by uasort in views_bulk_operations_get_operation_info().
+ *
+ * A closure would be better suited for this, but closure support was added in
+ * PHP 5.3 and D7 supports 5.2.
+ */
+function _views_bulk_operations_sort_operations_by_label($a, $b) {
+  return strcasecmp($a['label'], $b['label']);
 }
 
 /**
@@ -215,7 +231,12 @@ function views_bulk_operations_get_operation_info($operation_id = NULL) {
 function views_bulk_operations_get_operation($operation_id, $entity_type, $options) {
   $operations = &drupal_static(__FUNCTION__);
 
-  if (!isset($operations[$operation_id])) {
+  // Create a unique hash of the options.
+  $cid = md5(serialize($options));
+
+  // See if there's a cached copy of the operation, including entity type and
+  // options.
+  if (!isset($operations[$operation_id][$entity_type][$cid])) {
     // Intentionally not using views_bulk_operations_get_operation_info() here
     // since it's an expensive function that loads all the operations on the
     // system, despite the fact that we might only need a few.
@@ -224,14 +245,14 @@ function views_bulk_operations_get_operation($operation_id, $entity_type, $optio
     $operation_info = $plugin['list callback']($operation_id);
 
     if ($operation_info) {
-      $operations[$operation_id] = new $plugin['handler']['class']($operation_id, $entity_type, $operation_info, $options);
+      $operations[$operation_id][$entity_type][$cid] = new $plugin['handler']['class']($operation_id, $entity_type, $operation_info, $options);
     }
     else {
-      $operations[$operation_id] = FALSE;
+      $operations[$operation_id][$entity_type][$cid] = FALSE;
     }
   }
 
-  return $operations[$operation_id];
+  return $operations[$operation_id][$entity_type][$cid];
 }
 
 /**
@@ -358,7 +379,7 @@ function views_bulk_operations_form_alter(&$form, &$form_state, $form_id) {
  */
 function views_bulk_operations_views_post_build(&$view) {
   $vbo = _views_bulk_operations_get_field($view);
-  if ($vbo && $vbo->get_selected_operations() < 1) {
+  if ($vbo && count($vbo->get_selected_operations()) < 1) {
     $vbo->options['exclude'] = TRUE;
   }
 }
@@ -420,7 +441,7 @@ function theme_views_bulk_operations_select_all($variables) {
     if ($enable_select_all_pages) {
       $form['select_all']['or'] = array(
         '#type' => 'markup',
-        '#markup' => '<em>OR</em>',
+        '#markup' => '<em>' . t('OR') . '</em>',
       );
       $form['select_all']['all_pages'] = array(
         '#type' => 'checkbox',
@@ -443,6 +464,13 @@ function theme_views_bulk_operations_select_all($variables) {
  */
 function views_bulk_operations_form($form, &$form_state, $vbo) {
   $form['#attached']['js'][] = drupal_get_path('module', 'views_bulk_operations') . '/js/views_bulk_operations.js';
+  $form['#attached']['js'][] = array(
+    'data' => array('vbo' => array(
+      'row_clickable' => $vbo->get_vbo_option('row_clickable'),
+    )),
+    'type' => 'setting',
+  );
+
   $form['#attached']['css'][] = drupal_get_path('module', 'views_bulk_operations') . '/css/views_bulk_operations.css';
   // Wrap the form in a div with specific classes for JS targeting and theming.
   $class = 'vbo-views-form';
@@ -511,7 +539,7 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
     $enable_select_all_pages = FALSE;
     // If the view is paginated, and "select all items on all pages" is
     // enabled, tell that to the theme function.
-    if (count($vbo->view->result) != $vbo->view->total_rows && $vbo->get_vbo_option('enable_select_all_pages')) {
+    if (isset($vbo->view->total_rows) && count($vbo->view->result) != $vbo->view->total_rows && $vbo->get_vbo_option('enable_select_all_pages')) {
       $enable_select_all_pages = TRUE;
     }
     $form['select_all_markup'] = array(
@@ -595,13 +623,22 @@ function views_bulk_operations_confirm_form($form, &$form_state, $view, $output)
   $operation = $form_state['operation'];
   $rows = $form_state['selection'];
   $query = drupal_get_query_parameters($_GET, array('q'));
+  $title = t('Are you sure you want to perform %operation on the selected items?', array('%operation' => $operation->label()));
   $form = confirm_form($form,
-    t('Are you sure you want to perform %operation on the selected items?', array('%operation' => $operation->label())),
+    $title,
     array('path' => $view->get_url(), 'query' => $query),
     theme('views_bulk_operations_confirmation', array('rows' => $rows, 'vbo' => $vbo, 'operation' => $operation, 'select_all_pages' => $form_state['select_all_pages']))
   );
   // Add VBO's submit handler to the Confirm button added by config_form().
   $form['actions']['submit']['#submit'] = array('views_bulk_operations_form_submit');
+
+  // We can't set the View title here as $view is just a copy of the original,
+  // and our settings changes won't "stick" for the first page load of the
+  // confirmation form. We also can't just call drupal_set_title() directly
+  // because our title will be clobbered by the actual View title later. So
+  // let's tuck the title away in the form for use later.
+  // @see views_bulk_operations_preprocess_views_view()
+  $form['#vbo_confirm_form_title'] = $title;
 
   return $form;
 }
@@ -618,17 +655,40 @@ function theme_views_bulk_operations_confirmation($variables) {
   // Load the entities from the current page, and show their titles.
   $entities = _views_bulk_operations_entity_load($entity_type, array_values($rows), $vbo->revision);
   foreach ($entities as $entity) {
-    $items[] = check_plain(_views_bulk_operations_entity_label($entity_type, $entity));
+    $items[] = check_plain(entity_label($entity_type, $entity));
   }
   // All rows on all pages have been selected, so show a count of additional items.
   if ($select_all_pages) {
     $more_count = $vbo->view->total_rows - count($vbo->view->result);
-    $items[] = t('...and <strong>!count</strong> more.', array('!count' => $more_count));
+    $items[] = t('...and %count more.', array('%count' => $more_count));
   }
 
   $count = format_plural(count($entities), 'item', '@count items');
-  $output = theme('item_list', array('items' => $items, 'title' => t('You selected the following <strong>!count</strong>:', array('!count' => $count))));
+  $output = theme('item_list', array('items' => $items, 'title' => t('You selected the following %count:', array('%count' => $count))));
   return $output;
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Hide action links on the configure and confirm pages.
+ */
+function views_bulk_operations_preprocess_page(&$variables) {
+  if (isset($_POST['select_all'], $_POST['operation'])) {
+    $variables['action_links'] = array();
+  }
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function views_bulk_operations_preprocess_views_view($variables) {
+  // If we've stored a title for the confirmation form, retrieve it here and
+  // retitle the View.
+  // @see views_bulk_operations_confirm_form()
+  if (array_key_exists('rows', $variables) && is_array($variables['rows']) && array_key_exists('#vbo_confirm_form_title', $variables['rows'])) {
+    $variables['view']->set_title($variables['rows']['#vbo_confirm_form_title']);
+  }
 }
 
 /**
@@ -731,6 +791,7 @@ function views_bulk_operations_execute($vbo, $operation, $selection, $select_all
   // Determine if the operation needs to be executed directly.
   $aggregate = $operation->aggregate();
   $skip_batching = $vbo->get_vbo_option('skip_batching');
+  $save_view = $vbo->get_vbo_option('save_view_object_when_batching');
   $force_single = $vbo->get_vbo_option('force_single');
   $execute_directly = ($aggregate || $skip_batching || $force_single);
   // Try to load all rows without a batch if needed.
@@ -752,6 +813,10 @@ function views_bulk_operations_execute($vbo, $operation, $selection, $select_all
       'exposed_input' => $vbo->view->get_exposed_input(),
     ),
   );
+  // If defined, save the whole view object.
+  if ($save_view) {
+    $options['view_info']['view'] = $vbo->view;
+  }
   // Create an array of rows in the needed format.
   $rows = array();
   $current = 1;
@@ -798,7 +863,7 @@ function views_bulk_operations_execute($vbo, $operation, $selection, $select_all
 
   // All items on all pages should be selected, add a batch job to gather
   // and enqueue them.
-  if ($select_all_pages && $vbo->view->query->pager->has_more_records()) {
+  if ($select_all_pages && ($vbo->view->query->pager->has_more_records() || $vbo->view->query->pager->get_current_page() > 0)) {
     $total_rows = $vbo->view->total_rows;
 
     $batch['operations'][] = array(
@@ -851,10 +916,18 @@ function views_bulk_operations_adjust_selection($queue_name, $operation, $option
   }
 
   $view_info = $options['view_info'];
-  $view = views_get_view($view_info['name']);
-  $view->set_exposed_input($view_info['exposed_input']);
-  $view->set_arguments($view_info['arguments']);
-  $view->set_display($view_info['display']);
+  if (isset($view_info['view'])) {
+    $view = $view_info['view'];
+    // Because of the offset, we want our view to be re-build and re-executed.
+    $view->built = FALSE;
+    $view->executed = FALSE;
+  }
+  else {
+    $view = views_get_view($view_info['name']);
+    $view->set_exposed_input($view_info['exposed_input']);
+    $view->set_arguments($view_info['arguments']);
+    $view->set_display($view_info['display']);
+  }
   $view->set_offset($context['sandbox']['progress']);
   $view->build();
   $view->execute($view_info['display']);
@@ -864,14 +937,20 @@ function views_bulk_operations_adjust_selection($queue_name, $operation, $option
   }
 
   $vbo = _views_bulk_operations_get_field($view);
+
+  // Call views_handler_field_entity::pre_render() to get the entities.
+  $vbo->pre_render($view->result);
+
   $rows = array();
   foreach ($view->result as $row_index => $result) {
+    // Set the row index.
+    $view->row_index = $row_index;
     $rows[$row_index] = array(
-      'entity_id' => $vbo->get_value($result),
+      'entity_id' => $vbo->get_value($result, $vbo->real_field),
       'views_row' => array(),
       'position' => array(
         'current' => ++$context['sandbox']['progress'],
-        'total' => $view->total_rows,
+        'total' => $context['sandbox']['max'],
       ),
     );
     // Some operations require full selected rows.
@@ -1037,12 +1116,13 @@ function views_bulk_operations_queue_item_process($queue_item_data, &$log = NULL
     }
 
     // If the current entity can't be accessed, skip it and log a notice.
-    if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity, $account)) {
+    $skip_permission_check = $operation->getAdminOption('skip_permission_check');
+    if (!$skip_permission_check && !_views_bulk_operations_entity_access($operation, $entity_type, $entity, $account)) {
       $message = 'Skipped %operation on @type %title due to insufficient permissions.';
       $arguments = array(
         '%operation' => $operation->label(),
         '@type' => $entity_type,
-        '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
+        '%title' => entity_label($entity_type, $entity),
       );
 
       if ($log) {
@@ -1089,12 +1169,22 @@ function views_bulk_operations_direct_adjust(&$selection, $vbo) {
     if ($field_name != $vbo->options['id']) {
       unset($view->field[$field_name]);
     }
+    else {
+      // Get hold of the new VBO field.
+      $new_vbo = $view->field[$field_name];
+    }
   }
 
   $view->execute($vbo->view->current_display);
+
+  // Call views_handler_field_entity::pre_render() to get the entities.
+  $new_vbo->pre_render($view->result);
+
   $results = array();
   foreach ($view->result as $row_index => $result) {
-    $results[$row_index] = $vbo->get_value($result);
+    // Set the row index.
+    $view->row_index = $row_index;
+    $results[$row_index] = $new_vbo->get_value($result, $new_vbo->real_field);
   }
   $selection = $results;
 }
@@ -1122,13 +1212,14 @@ function views_bulk_operations_direct_process($operation, $rows, $options) {
     }
     $entities = _views_bulk_operations_entity_load($entity_type, $entity_ids, $options['revision']);
 
+    $skip_permission_check = $operation->getAdminOption('skip_permission_check');
     // Filter out entities that can't be accessed.
     foreach ($entities as $id => $entity) {
-      if (!_views_bulk_operations_entity_access($operation, $entity_type, $entity)) {
+      if (!$skip_permission_check && !_views_bulk_operations_entity_access($operation, $entity_type, $entity, $user)) {
         $context['results']['log'][] = t('Skipped %operation on @type %title due to insufficient permissions.', array(
           '%operation' => $operation->label(),
           '@type' => $entity_type,
-          '%title' => _views_bulk_operations_entity_label($entity_type, $entity),
+          '%title' => entity_label($entity_type, $entity),
         ));
         unset($entities[$id]);
       }
@@ -1234,29 +1325,6 @@ function _views_bulk_operations_entity_load($entity_type, $ids, $revision = FALS
   }
 
   return $entities;
-}
-
-/**
- * Label function for entities.
- * Core entities don't declare the "label" key, so entity_label() fails,
- * and a fallback is needed. This function provides that fallback.
- */
-function _views_bulk_operations_entity_label($entity_type, $entity) {
-  $label = entity_label($entity_type, $entity);
-  if (!$label) {
-    $entity_info = entity_get_info($entity_type);
-    $id_key = $entity_info['entity keys']['id'];
-    // Many entity types (e.g. "user") have a name which fits the label perfectly.
-    if (isset($entity->name)) {
-      $label = $entity->name;
-    }
-    elseif (isset($entity->{$id_key})) {
-      // Fallback to the id key.
-      $label = $entity->{$id_key};
-    }
-  }
-
-  return $label;
 }
 
 /**

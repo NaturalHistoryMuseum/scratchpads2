@@ -920,3 +920,24 @@ function apachesolr_update_7017() {
     apachesolr_environment_variable_set($env_id, 'apachesolr_last_optimize', $optimized);
   }
 }
+
+/**
+ * Migrate apachesolr_last_optimize into apachesolr_last_optimize_success
+ */
+function apachesolr_update_7018() {
+  // @see: drupal_load()
+  if (!function_exists('apachesolr_environment_variable_set')) {
+    include_once dirname(__FILE__) . '/apachesolr.module';
+  }
+
+  foreach (apachesolr_load_all_environments() as $env_id => $environment) {
+    $value = apachesolr_environment_variable_get($env_id, 'apachesolr_last_optimize', 0);
+    if ($value) {
+      apachesolr_environment_variable_del($env_id, 'apachesolr_last_optimize');
+      apachesolr_environment_variable_set($env_id,
+        'apachesolr_last_optimize_success', $value);
+      apachesolr_environment_variable_set($env_id,
+        'apachesolr_last_optimize_attempt', $value);
+    }
+  }
+}

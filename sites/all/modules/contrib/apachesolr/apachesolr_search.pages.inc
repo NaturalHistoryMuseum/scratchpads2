@@ -14,6 +14,10 @@ function apachesolr_search_custom_page($page_id, $keys = '', $path_replacer = NU
     drupal_set_message(t('This search page cannot be found'), 'error');
     return drupal_not_found();
   }
+  // Activate the page context, if the module is enabled.
+  if ((module_exists('context')) && ($plugin = context_get_plugin('condition', 'apachesolr_page'))) {
+    $plugin->execute($search_page);
+  }
   // Add our replacement value in the conditions array
   if (!empty($path_replacer)) {
     $search_page['settings']['apachesolr_search_path_replacer'] = $path_replacer;
@@ -24,15 +28,15 @@ function apachesolr_search_custom_page($page_id, $keys = '', $path_replacer = NU
   $conditions = apachesolr_search_conditions_default($search_page);
   // Process our keys so they are clean
   $keys = rawurldecode($keys);
-  // Retrieve the results of the search
-  $results = apachesolr_search_search_results($keys, $conditions, $search_page);
   // Initiate our build array
   $build = array();
   // Add a custom search form if required
   if (!empty($search_page['settings']['apachesolr_search_search_box'])) {
     // Adds the search form to the page.
-    $build['search_form'] = drupal_get_form('apachesolr_search_custom_page_search_form', $search_page, $keys);
+    $build['search_form'] = drupal_get_form('apachesolr_search_custom_page_search_form', $search_page, $keys, $conditions);
   }
+  // Retrieve the results of the search
+  $results = apachesolr_search_search_results($keys, $conditions, $search_page);
   // Build our page and allow modification.
   $build_results = apachesolr_search_search_page_custom($results, $search_page, $build);
   return $build_results;
@@ -41,7 +45,7 @@ function apachesolr_search_custom_page($page_id, $keys = '', $path_replacer = NU
 /**
  * Search for placed on user defined search pages.
  */
-function apachesolr_search_custom_page_search_form($form, &$form_state, $search_page, $keys = '') {
+function apachesolr_search_custom_page_search_form($form, &$form_state, $search_page, $keys = '', $conditions = array()) {
   // Loads the core Search CSS file, use the core search module's classes.
   drupal_add_css(drupal_get_path('module', 'search') . '/search.css');
 
@@ -70,15 +74,11 @@ function apachesolr_search_custom_page_search_form($form, &$form_state, $search_
     '#default_value' => json_encode(array_diff_key($_GET, array('q' => 1, 'page' => 1, 'solrsort' => 1, 'retain-filters' => 1))),
   );
 
-  $fq = NULL;
-
-  if (apachesolr_has_searched($search_page['env_id'])) {
-    $query = apachesolr_current_query($search_page['env_id']);
-    // We use the presence of filter query params as a flag for the retain filters checkbox.
-    $fq = $query->getParam('fq');
-  }
-
-  if ($fq || isset($form_state['input']['retain-filters'])) {
+  if (
+    !empty($conditions['fq']) ||
+    !empty($conditions['f']) ||
+    isset($form_state['input']['retain-filters'])
+  ) {
     $form['basic']['retain-filters'] = array(
       '#type' => 'checkbox',
       '#title' => t('Retain current filters'),

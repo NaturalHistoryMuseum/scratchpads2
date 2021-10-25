@@ -1,0 +1,358 @@
+<?php
+
+/**
+ * @file
+ * Contains FeedsCSVParserTestCase.
+ */
+
+/**
+ * Tests the CSV parser using the UI.
+ */
+class FeedsCSVParserTestCase extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'CSV parser functional tests',
+      'description' => 'Tests the CSV parser using the UI.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * Tests parsing a CSV when the mbstring extension is not available.
+   */
+  public function testMbstringExtensionDisabled() {
+    // Set "feeds_use_mbstring" to FALSE to emulate that the mbstring extension
+    // is not loaded.
+    variable_set('feeds_use_mbstring', FALSE);
+
+    // Remove items after parsing because in < PHP 5.4 processing items with
+    // encoding issues leads to test failures because check_plain() can only
+    // handle UTF-8 encoded strings.
+    // @see feeds_tests_feeds_after_parse()
+    variable_set('feeds_tests_feeds_after_parse_empty_items', TRUE);
+
+    // Create node type.
+    $node_type = $this->drupalCreateContentType();
+
+    // Create and configure importer.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setPlugin('csv', 'FeedsFileFetcher');
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('bundle' => $node_type->type));
+    $this->addMappings('csv', array(
+      0 => array(
+        'source' => 'id',
+        'target' => 'guid',
+      ),
+      1 => array(
+        'source' => 'text',
+        'target' => 'title',
+      ),
+    ));
+
+    // Ensure that on the CSV parser settings page a message is shown about that
+    // the mbstring extension is not available.
+    $this->drupalGet('admin/structure/feeds/csv/settings/FeedsCSVParser');
+    $this->assertNoField('encoding');
+    $this->assertText('PHP mbstring extension must be available for character encoding conversion.');
+
+    // Try to import a CSV file that is not UTF-8 encoded. No encoding warning
+    // should be shown, but import should fail.
+    $this->importFile('csv', $this->absolutePath() . '/tests/feeds/encoding_SJIS.csv');
+    $this->assertNoText('Source file is not in UTF-8 encoding.');
+  }
+
+  /**
+   * Tests an encoding failure during parsing a CSV.
+   */
+  public function testEncodingFailure() {
+    // Create node type.
+    $node_type = $this->drupalCreateContentType();
+
+    // Create and configure importer.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setPlugin('csv', 'FeedsFileFetcher');
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array('bundle' => $node_type->type));
+    $this->addMappings('csv', array(
+      0 => array(
+        'source' => 'id',
+        'target' => 'guid',
+      ),
+      1 => array(
+        'source' => 'text',
+        'target' => 'title',
+      ),
+    ));
+
+    // Ensure that on the CSV parser settings page a setting for encoding is
+    // shown.
+    $this->drupalGet('admin/structure/feeds/csv/settings/FeedsCSVParser');
+    $this->assertField('encoding');
+    $this->assertNoText('PHP mbstring extension must be available for character encoding conversion.');
+
+    // Try to import a CSV file that is not UTF-8 encoded. Import should be
+    // halted and an encoding warning should be shown.
+    $this->importFile('csv', $this->absolutePath() . '/tests/feeds/encoding_SJIS.csv');
+    $this->assertNoText('Failed importing 4 nodes.');
+    $this->assertText('Source file is not in UTF-8 encoding.');
+  }
+
+  /**
+   * Tests if a CSV template is generated properly using various settings.
+   *
+   * @see ::getTemplateDataProvider()
+   */
+  public function testGetTemplate() {
+    // Create node type.
+    $node_type = $this->drupalCreateContentType();
+
+    foreach ($this->getTemplateDataProvider() as $key => $testdata) {
+      // Prepend 'csv' to importer machine name as '0' is not a valid machine
+      // name.
+      $key = 'csv' . $key;
+
+      // Create and configure importer.
+      $this->createImporterConfiguration('Content CSV', $key);
+      $this->setPlugin($key, 'FeedsCSVParser');
+      $this->setSettings($key, 'FeedsCSVParser', array(
+        'delimiter' => $testdata['delimiter'],
+      ));
+      $this->setSettings($key, 'FeedsNodeProcessor', array('bundle' => $node_type->type));
+      $this->addMappings($key, $testdata['mapping']);
+
+      // Get CSV template and assert result.
+      $this->drupalGet('import/' . $key . '/template');
+      $this->assertRaw($testdata['expected']);
+
+      // Check texts that are displayed on the import page. These texts in the
+      // content should have gone through to check_plain() so we do that here as
+      // well.
+      $this->drupalGet('import/' . $key);
+      $this->assertText('Import CSV files with one or more of these columns: ' . check_plain($testdata['texts']['columns']) . '.');
+      if (isset($testdata['texts']['unique'])) {
+        $this->assertText(check_plain($testdata['texts']['unique']));
+      }
+      else {
+        $this->assertText(t('No columns are unique. The import will only create new items, no items will be updated.'));
+      }
+    }
+  }
+
+  /**
+   * Data provider for ::testGetTemplate().
+   */
+  protected function getTemplateDataProvider() {
+    return array(
+      // Delimiter ',' test. Source keys containing a ',' should be wrapped in
+      // quotes.
+      array(
+        'delimiter' => ',',
+        'mapping' => array(
+          array(
+            'source' => 'title+;|',
+            'target' => 'title',
+          ),
+          array(
+            'source' => 'alpha, beta + gamma',
+            'target' => 'body',
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => 'title+;|,"alpha, beta + gamma",guid',
+        'texts' => array(
+          'columns' => 'title+;|, "alpha, beta + gamma", guid',
+        ),
+      ),
+
+      // Delimiter ';' test. Source keys containing a ';' should be wrapped in
+      // quotes.
+      array(
+        'delimiter' => ';',
+        'mapping' => array(
+          array(
+            'source' => 'title;)',
+            'target' => 'title',
+          ),
+          array(
+            'source' => 'alpha, beta + gamma',
+            'target' => 'body',
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => '"title;)";alpha, beta + gamma;guid',
+        'texts' => array(
+          'columns' => 'title;), "alpha, beta + gamma", guid',
+        ),
+      ),
+
+      // Delimiter 'TAB' test.
+      array(
+        'delimiter' => 'TAB',
+        'mapping' => array(
+          array(
+            'source' => 'title,;|',
+            'target' => 'title',
+          ),
+          array(
+            'source' => 'alpha, beta + gamma',
+            'target' => 'body',
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => 'title,;|	alpha, beta + gamma	guid',
+        'texts' => array(
+          'columns' => '"title,;|", "alpha, beta + gamma", guid',
+        ),
+      ),
+
+      // Delimiter '|' test. Source keys containing a '|' should be wrapped in
+      // quotes.
+      array(
+        'delimiter' => '|',
+        'mapping' => array(
+          array(
+            'source' => 'title+;,',
+            'target' => 'title',
+          ),
+          array(
+            'source' => 'alpha|beta|gamma',
+            'target' => 'body',
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => 'title+;,|"alpha|beta|gamma"|guid',
+        'texts' => array(
+          'columns' => '"title+;,", alpha|beta|gamma, guid',
+        ),
+      ),
+
+      // Delimiter '+' test. Source keys containing a '+' should be wrapped in
+      // quotes.
+      array(
+        'delimiter' => '+',
+        'mapping' => array(
+          array(
+            'source' => 'title,;|',
+            'target' => 'title',
+          ),
+          array(
+            'source' => 'alpha, beta + gamma',
+            'target' => 'body',
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => 'title,;|+"alpha, beta + gamma"+guid',
+        'texts' => array(
+          'columns' => '"title,;|", "alpha, beta + gamma", guid',
+        ),
+      ),
+
+      // Ensure that when a source key is used multiple times in mapping, the
+      // key is only printed once in the CSV template.
+      array(
+        'delimiter' => ',',
+        'mapping' => array(
+          array(
+            'source' => 'text',
+            'target' => 'title',
+            'unique' => TRUE,
+          ),
+          array(
+            'source' => 'guid',
+            'target' => 'guid',
+            'unique' => TRUE,
+          ),
+          array(
+            'source' => 'date',
+            'target' => 'created',
+          ),
+          array(
+            'source' => 'date',
+            'target' => 'changed',
+          ),
+          array(
+            'source' => 'text',
+            'target' => 'body',
+          ),
+        ),
+        'expected' => 'text,guid,date',
+        'texts' => array(
+          'columns' => 'text, guid, date',
+          'unique' => 'Columns text, guid are mandatory and values in these columns are considered unique',
+        ),
+      ),
+
+      // Special characters. Things like '&' shouldn't be converted to '&amp;'
+      // for example.
+      array(
+        'delimiter' => ',',
+        'mapping' => array(
+          array(
+            'source' => '&',
+            'target' => 'title',
+            'unique' => TRUE,
+          ),
+          array(
+            'source' => 'alpha&beta',
+            'target' => 'body',
+          ),
+          array(
+            'source' => '<created>',
+            'target' => 'created',
+          ),
+          array(
+            'source' => '\'guid\'',
+            'target' => 'guid',
+          ),
+        ),
+        'expected' => '&,alpha&beta,<created>,\'guid\'',
+        'texts' => array(
+          'columns' => '&, alpha&beta, <created>, \'guid\'',
+          'unique' => 'Column & is mandatory and considered unique',
+        ),
+      ),
+
+      // Blank sources (source which name only contains spaces) should not end
+      // up in the template, but a zero should.
+      array(
+        'delimiter' => ',',
+        'mapping' => array(
+          array(
+            'source' => '0',
+            'target' => 'body',
+          ),
+          array(
+            'source' => ' ',
+            'target' => 'guid',
+            'unique' => TRUE,
+          ),
+        ),
+        'expected' => '0',
+        'texts' => array(
+          'columns' => '0',
+        ),
+      ),
+    );
+  }
+
+}

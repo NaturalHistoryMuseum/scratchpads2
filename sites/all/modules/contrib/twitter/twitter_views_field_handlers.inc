@@ -12,8 +12,7 @@ class twitter_views_handler_field_xss extends views_handler_field {
     $options = parent::option_definition();
     $options['link_urls'] = array('default' => TRUE);
     $options['link_usernames'] = array('default' => TRUE);
-    $options['link_hashtags'] = array('default' => FALSE);
-    $options['hashtags_url'] = array('default' => variable_get('twitter_search', TWITTER_SEARCH) . '/search?q=%23');
+    $options['link_hashtags'] = array('default' => TRUE);
     $options['link_attributes'] = array('default' => TRUE);
     return $options;
   }
@@ -35,12 +34,6 @@ class twitter_views_handler_field_xss extends views_handler_field {
       '#type' => 'checkbox',
       '#default_value' => !empty($this->options['link_hashtags']),
     );
-    $form['hashtags_url'] = array(
-      '#type' => 'textfield',
-      '#default_value' => $this->options['hashtags_url'],
-      '#process' => array('ctools_dependent_process'),
-      '#dependency' => array('edit-options-link-hashtags' => array(TRUE)),
-    );
     $form['link_attributes'] = array(
       '#title' => t('Open links in new windows/tabs and add rel="nofollow" attributes.'),
       '#type' => 'checkbox',
@@ -53,27 +46,27 @@ class twitter_views_handler_field_xss extends views_handler_field {
    */
   function render($values) {
     $value = $values->{$this->field_alias};
-    if (!empty($this->options['link_urls'])) {
-      $filter = new stdClass;
-      $filter->settings = array(
-        'filter_url_length' => 496,
-      );
-     $value = _filter_url($value, $filter);
+
+    // Load the options.
+    $usernames = TRUE;
+    if (isset($this->options['link_usernames'])) {
+      $usernames = $this->options['link_usernames'];
     }
-    // Link usernames with their profiles.
-    if (!empty($this->options['link_usernames'])) {
-      $value = _twitter_filter_text($value, '@', variable_get('twitter_host', TWITTER_HOST) . '/');
+    $hashtags = TRUE;
+    if (isset($this->options['link_hashtags'])) {
+      $hashtags = $this->options['link_hashtags'];
     }
-    // Link hashtags.
-    if (!empty($this->options['link_hashtags']) && valid_url($this->options['hashtags_url'])) {
-      $value = _twitter_filter_text($value, '#', url($this->options['hashtags_url']));
+    $attributes = TRUE;
+    if (isset($this->options['link_attributes'])) {
+      $attributes = $this->options['link_attributes'];
     }
-    // Add extra attributes to links.
-    if (!empty($this->options['link_attributes'])) {
-      $value = _twitter_filter_link($value, NULL);
+    $urls = TRUE;
+    if (isset($this->options['link_urls'])) {
+      $urls = $this->options['link_urls'];
     }
-    // Avoid XSS within the message.
-    return filter_xss($value);
+
+    // Offload processing to the shared function.
+    return twitter_filter_message($value, $usernames, $hashtags, $attributes, $urls);
   }
 }
 
@@ -83,7 +76,11 @@ class twitter_views_handler_field_xss extends views_handler_field {
 class twitter_views_handler_field_profile_image extends views_handler_field {
   function render($values) {
     $value = $values->{$this->field_alias};
-    return theme('image', array('path' => $value));
+    $output = theme('image', array('path' => $value, 'width' => 48, 'height' => 48));
+
+    // Convert to a protocol-relative URL so that the same image tag will work
+    // regardless of whether the page is loaded via HTTP or HTTPS.
+    return str_replace('http:', '', $output);
   }
 }
 
@@ -108,9 +105,9 @@ class twitter_views_handler_field_web_intents extends views_handler_field {
 
   function render($values) {
     drupal_add_js('//platform.twitter.com/widgets.js', 'external');
-    return '<span><a href="https://twitter.com/intent/tweet?in_reply_to=' . $values->twitter_id . '">Reply</a></span> ' .
-      '<span><a href="https://twitter.com/intent/retweet?tweet_id=' . $values->twitter_id . '">Retweet</a></span> ' .
-      '<span><a href="https://twitter.com/intent/favorite?tweet_id=' . $values->twitter_id . '">Favorite</a></span>';
+    return '<span><a href="https://twitter.com/intent/tweet?in_reply_to=' . $values->twitter_id . '">' . t('Reply') . '</a></span> ' .
+      '<span><a href="https://twitter.com/intent/retweet?tweet_id=' . $values->twitter_id . '">' . t('Retweet') . '</a></span> ' .
+      '<span><a href="https://twitter.com/intent/favorite?tweet_id=' . $values->twitter_id . '">' . t('Favorite') . '</a></span>';
   }
 }
 
@@ -120,11 +117,40 @@ class twitter_views_handler_field_web_intents extends views_handler_field {
  * @see https://dev.twitter.com/docs/intents#follow-intent
  */
 class twitter_views_handler_field_follow extends views_handler_field {
+
   function query() {}
 
   function render($values) {
-    drupal_add_js('//platform.twitter.com/widgets.js', 'external');
-    return '<span><a href="https://twitter.com/intent/user?screen_name=' . $values->twitter_screen_name . '">Follow</a></span>';
+    // Try to find the screen name.
+    $screen_name = '';
+
+    // If the screen name is available from the view then our work is done.
+    if (!empty($values->twitter_screen_name)) {
+      $screen_name = $values->twitter_screen_name;
+    }
+
+    // If the twitter_id is passed in, look for this tweet and get the screen
+    // name associated with it.
+    elseif (!empty($values->twitter_id)) {
+      $screen_name = db_query("SELECT screen_name FROM {twitter} WHERE twitter_id = :id", array(':id' => $values->twitter_id))->fetchField();
+    }
+
+    // If the created_time is passed in, look for this tweet and get the screen
+    // name associated with it. This may result in multiple values,
+    // unfortunately there aren't too many ways around this so just pick the
+    // first one.
+    elseif (!empty($values->twitter_created_time)) {
+      $screen_name = db_query("SELECT screen_name FROM {twitter} WHERE created_time = :time", array(':time' => $values->twitter_created_time))->fetchField();
+    }
+
+    // Only output something if it was possible to identify the screen name.
+    if (!empty($screen_name)) {
+      drupal_add_js('//platform.twitter.com/widgets.js', 'external');
+      return '<span><a href="https://twitter.com/intent/user?screen_name=' . $screen_name . '">' . t('Follow') . '</a></span>';
+    }
+    else {
+      // Unable to identify the screen name for this tweet.
+    }
   }
 }
 
@@ -143,23 +169,76 @@ class twitter_views_handler_field_formatted_tweet extends views_handler_field {
 
     // Load tweet and author.
     $status = twitter_status_load($values->twitter_id);
-    $author = twitter_account_load($status->screen_name);
-
-    // Format the timestamp.
-    $time_diff = REQUEST_TIME - $values->twitter_created_time;
-
-    // Format the message.
-    $status->time_ago = t('%time ago', array('%time' => format_interval($time_diff, 2)));
-    $filter = new stdClass;
-      $filter->settings = array(
-        'filter_url_length' => 496,
-      );
-    $status->text = _filter_url($status->text, $filter);
+    $author = twitter_account_load($status->screen_name, FALSE);
 
     // Render the tweet.
     return theme('twitter_status', array(
       'status' => $status,
       'author' => $author,
+      'reply' => t('Reply'),
+      'retweet' => t('Retweet'),
+      'favorite' => t('Favorite'),
     ));
+  }
+}
+
+/**
+ * Renders the image attached to a tweet.
+ */
+class twitter_views_handler_field_image extends views_handler_field {
+
+ /**
+   * Default options form.
+   */
+  function option_definition() {
+    $options = parent::option_definition();
+
+    $options['size'] = array('default' => 'thumb');
+
+    return $options;
+  }
+
+  /**
+   * Creates the form item for the options added.
+   */
+  function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+
+    $form['size'] = array(
+      '#type' => 'select',
+      '#title' => t('Image size'),
+      '#default_value' => $this->options['size'],
+      '#options' => array(
+        'thumb'  => t('Thumb'),
+        'small'  => t('Small'),
+        'medium' => t('Medium'),
+        'large'  => t('Large'),
+      ),
+      '#description' => t('Choose an image size from the ones that Twitter has created for this image.'),
+      '#weight' => -10,
+    );
+  }
+
+  /**
+   * Renders the image.
+   */
+  function render($values) {
+    if (!empty($values->twitter_entities) && is_string($values->twitter_entities)) {
+      $entities = unserialize($values->twitter_entities);
+
+      // Loop over the tweet entities and render the image if it is present.
+      if (!empty($entities['media']) && is_array($entities['media'])) {
+        foreach ($entities['media'] as $media) {
+          if (($media['type'] == 'photo') && !empty($media['media_url'])) {
+            $image_path = $GLOBALS['is_https'] ? $media['media_url_https'] : $media['media_url'];
+            $image_path .= ':' . $this->options['size'];
+            return theme('image', array(
+              'path' => $image_path,
+              'attributes' => array('class' => 'tweet-image'),
+            ));
+          }
+        }
+      }
+    }
   }
 }

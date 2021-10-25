@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Implements a base class for Resource Stream Wrappers.
+ */
+
+/**
  * A base class for Resource Stream Wrappers.
  *
  * This class provides a complete stream wrapper implementation. It passes
@@ -16,6 +21,9 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   protected $base_url = NULL;
   private $_DEBUG_MODE = NULL;
 
+  /**
+   * Utility function to return paramenters.
+   */
   public function get_parameters() {
     return $this->parameters;
   }
@@ -27,41 +35,45 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   const S_IFREG = 0100000;
 
   /**
-   * "Template" for stat calls. All elements must be initialized.
-   * @var array
+   * Template for stat calls.
+   *
+   * All elements must be initialized.
    */
   protected $_stat = array(
-    0 => 0, // device number
+    0 => 0, // Device number
     'dev' => 0,
-    1 => 0, // inode number
+    1 => 0, // Inode number
     'ino' => 0,
-    // inode protection mode. file_unmanaged_delete() requires is_file() to
+    // Inode protection mode. file_unmanaged_delete() requires is_file() to
     // return TRUE.
     2 => self::S_IFREG,
     'mode' => self::S_IFREG,
-    3 => 0, // number of links
+    3 => 0, // Number of links.
     'nlink' => 0,
-    4 => 0, // userid of owner
+    4 => 0, // Userid of owner.
     'uid' => 0,
-    5 => 0, // groupid of owner
+    5 => 0, // Groupid of owner.
     'gid' => 0,
-    6 => -1, // device type, if inode device *
+    6 => -1, // Device type, if inode device *
     'rdev' => -1,
-    7 => 0, // size in bytes
+    7 => 0, // Size in bytes.
     'size' => 0,
-    8 => 0, // time of last access (Unix timestamp)
+    8 => 0, // Time of last access (Unix timestamp).
     'atime' => 0,
-    9 => 0, // time of last modification (Unix timestamp)
+    9 => 0, // Time of last modification (Unix timestamp).
     'mtime' => 0,
-    10 => 0, // time of last inode change (Unix timestamp)
+    10 => 0, // Time of last inode change (Unix timestamp).
     'ctime' => 0,
-    11 => -1, // blocksize of filesystem IO
+    11 => -1, // Blocksize of filesystem IO.
     'blksize' => -1,
-    12 => -1, // number of blocks allocated
+    12 => -1, // Number of blocks allocated.
     'blocks' => -1,
   );
 
-  function interpolateUrl() {
+  /**
+   * Handles parameters on the URL string.
+   */
+  public function interpolateUrl() {
     if ($parameters = $this->get_parameters()) {
       return $this->base_url . '?' . http_build_query($parameters);
     }
@@ -75,7 +87,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
    * "youtube://xIpLd0WQKCY" might be
    * "http://www.youtube.com/watch?v=xIpLd0WQKCY".
    *
-   * @return
+   * @return string
    *   Returns a string containing a web accessible URL for the resource.
    */
   public function getExternalUrl() {
@@ -85,18 +97,18 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Base implementation of getMimeType().
    */
-  static function getMimeType($uri, $mapping = NULL) {
+  public static function getMimeType($uri, $mapping = NULL) {
     return 'application/octet-stream';
   }
 
   /**
    * Base implementation of realpath().
    */
-  function realpath() {
+  public function realpath() {
     return $this->getExternalUrl();
   }
 
-   /**
+  /**
    * Stream context resource.
    *
    * @var Resource
@@ -122,7 +134,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Base implementation of setUri().
    */
-  function setUri($uri) {
+  public function setUri($uri) {
     $this->uri = $uri;
     $this->parameters = $this->_parse_url($uri);
   }
@@ -130,21 +142,23 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Base implementation of getUri().
    */
-  function getUri() {
+  public function getUri() {
     return $this->uri;
   }
 
   /**
-   *  Report an error.
-   *  @param $message
-   *    The untranslated string to report.
-   *  @param $options
-   *    An optional array of options to send to t().
-   *  @param $display
-   *    If TRUE, then we display the error to the user.
-   *  @return
-   *    We return FALSE, since we sometimes pass that back from the reporting
-   *    function.
+   * Report an error.
+   *
+   * @param string $message
+   *   The untranslated string to report.
+   * @param array $options
+   *   An optional array of options to send to t().
+   * @param bool $display
+   *   If TRUE, then we display the error to the user.
+   *
+   * @return bool
+   *   We return FALSE, since we sometimes pass that back from the reporting
+   *   function.
    */
   private function _report_error($message, $options = array(), $display = FALSE) {
     watchdog('resource', $message, $options, WATCHDOG_ERROR);
@@ -154,6 +168,9 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
     return FALSE;
   }
 
+  /**
+   * Sets the debug mode.
+   */
   private function _debug($message, $type = 'status') {
     if ($this->_DEBUG_MODE) {
       drupal_set_message($message, $type);
@@ -161,16 +178,18 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   }
 
   /**
-   *  Returns an array of any parameters stored in the URL's path.
-   *  @param $url
-   *    The URL to parse, such as youtube://v/[video-code]/t/[tags+more-tags].
-   *  @return
-   *    An associative array of all the parameters in the path,
-   *    or FALSE if the $url is ill-formed.
+   * Returns an array of any parameters stored in the URL's path.
+   *
+   * @param string $url
+   *   The URL to parse, such as youtube://v/[video-code]/t/[tags+more-tags].
+   *
+   * @return array
+   *   An associative array of all the parameters in the path,
+   *   or FALSE if the $url is ill-formed.
    */
   protected function _parse_url($url) {
     $path = explode('://', $url);
-    $parts = explode('/',  $path[1]);
+    $parts = explode('/', $path[1]);
     $params = array();
     $count = 0;
     $total = count($parts);
@@ -188,16 +207,17 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fopen(), file_get_contents(), file_put_contents() etc.
    *
-   * @param $path
+   * @param string $url
    *   A string containing the path to the file to open.
-   * @param $mode
+   * @param string $mode
    *   The file mode ("r", "wb" etc.).
-   * @param $options
+   * @param bitmask $options
    *   A bit mask of STREAM_USE_PATH and STREAM_REPORT_ERRORS.
-   * @param &$opened_path
+   * @param string &$opened_url
    *   A string containing the path actually opened.
-   * @return
-   *  TRUE if file was opened successfully.
+   *
+   * @return bool
+   *   TRUE if file was opened successfully.
    */
   public function stream_open($url, $mode, $options, &$opened_url) {
     $this->_debug(t('Stream open: %url', array('%url' => $url)));
@@ -215,16 +235,18 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
       return $this->_report_error('Attempted to parse an ill-formed url: %url.', array('%url' => $url), ($options & STREAM_REPORT_ERRORS));
     }
 
-    if ((bool)$this->parameters && ($options & STREAM_USE_PATH)) {
+    if ((bool) $this->parameters && ($options & STREAM_USE_PATH)) {
       $opened_url = $url;
     }
 
     $this->_debug(t('Stream opened: %parameters', array('%parameters' => print_r($this->parameters, TRUE))));
 
-    return (bool)$this->parameters;
+    return (bool) $this->parameters;
   }
 
-  // Undocumented PHP stream wrapper method.
+  /**
+   * Undocumented PHP stream wrapper method.
+   */
   function stream_lock($operation) {
     return FALSE;
   }
@@ -232,10 +254,11 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fread(), file_get_contents() etc.
    *
-   * @param $count
-   *    Maximum number of bytes to be read.
-   * @return
-   *  The string that was read, or FALSE in case of an error.
+   * @param int $count
+   *   Maximum number of bytes to be read.
+   *
+   * @return bool
+   *   The string that was read, or FALSE in case of an error.
    */
   public function stream_read($count) {
     return FALSE;
@@ -244,10 +267,13 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fwrite(), file_put_contents() etc.
    *
-   * @param $data
+   * Since this is a read only stream wrapper this always returns false.
+   *
+   * @param string $data
    *   The string to be written.
-   * @return
-   *   The number of bytes written.
+   *
+   * @return bool
+   *   Returns FALSE.
    */
   public function stream_write($data) {
     return FALSE;
@@ -256,7 +282,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for feof().
    *
-   * @return
+   * @return bool
    *   TRUE if end-of-file has been reached.
    */
   public function stream_eof() {
@@ -266,11 +292,14 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fseek().
    *
-   * @param $offset
+   * @todo document why this returns false.
+   *
+   * @param int $offset
    *   The byte offset to got to.
-   * @param $whence
+   * @param string $whence
    *   SEEK_SET, SEEK_CUR, or SEEK_END.
-   * @return
+   *
+   * @return bool
    *   TRUE on success
    */
   public function stream_seek($offset, $whence) {
@@ -280,7 +309,9 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fflush().
    *
-   * @return
+   * @todo document why this returns false.
+   *
+   * @return bool
    *   TRUE if data was successfully stored (or there was no data to store).
    */
   public function stream_flush() {
@@ -290,7 +321,9 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for ftell().
    *
-   * @return
+   * @todo document why this returns false.
+   *
+   * @return bool
    *   The current offset in bytes from the beginning of file.
    */
   public function stream_tell() {
@@ -300,7 +333,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fstat().
    *
-   * @return
+   * @return array
    *   An array with file status, or FALSE in case of an error - see fstat()
    *   for a description of this array.
    */
@@ -311,104 +344,24 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for fclose().
    *
-   * @return
+   * @todo document why this returns TRUE.
+   *
+   * @return bool
    *   TRUE if stream was successfully closed.
    */
   public function stream_close() {
     return TRUE;
   }
 
-
-  /**
-   * Support for unlink().
-   *
-   * @param $uri
-   *   A string containing the uri to the resource to delete.
-   * @return
-   *   TRUE if resource was successfully deleted.
-   * @see http://php.net/manual/en/streamwrapper.unlink.php
-   */
-//   public function unlink($uri) {
-//     $this->uri = $uri;
-//     return unlink($this->getLocalPath());
-//   }
-
-  /**
-   * Support for rename().
-   *
-   * @param $from_uri,
-   *   The uri to the file to rename.
-   * @param $to_uri
-   *   The new uri for file.
-   * @return
-   *   TRUE if file was successfully renamed.
-   * @see http://php.net/manual/en/streamwrapper.rename.php
-   */
-//   public function rename($from_uri, $to_uri) {
-//     return rename($this->getLocalPath($from_uri), $this->getLocalPath($to_uri));
-//   }
-
-  /**
-   * Support for mkdir().
-   *
-   * @param $uri
-   *   A string containing the URI to the directory to create.
-   * @param $mode
-   *   Permission flags - see mkdir().
-   * @param $options
-   *   A bit mask of STREAM_REPORT_ERRORS and STREAM_MKDIR_RECURSIVE.
-   * @return
-   *   TRUE if directory was successfully created.
-   * @see http://php.net/manual/en/streamwrapper.mkdir.php
-   */
-//   public function mkdir($uri, $mode, $options) {
-//     $this->uri = $uri;
-//     $recursive = (bool)($options & STREAM_MKDIR_RECURSIVE);
-//     if ($recursive) {
-//       // $this->getLocalPath() fails if $uri has multiple levels of directories
-//       // that do not yet exist.
-//       $localpath = $this->getDirectoryPath() . '/' . file_uri_target($uri);
-//     }
-//     else {
-//       $localpath = $this->getLocalPath($uri);
-//     }
-//     if ($options & STREAM_REPORT_ERRORS) {
-//       return mkdir($localpath, $mode, $recursive);
-//     }
-//     else {
-//       return @mkdir($localpath, $mode, $recursive);
-//     }
-//   }
-
-  /**
-   * Support for rmdir().
-   *
-   * @param $uri
-   *   A string containing the URI to the directory to delete.
-   * @param $options
-   *   A bit mask of STREAM_REPORT_ERRORS.
-   * @return
-   *   TRUE if directory was successfully removed.
-   * @see http://php.net/manual/en/streamwrapper.rmdir.php
-   */
-//   public function rmdir($uri, $options) {
-//     $this->uri = $uri;
-//     if ($options & STREAM_REPORT_ERRORS) {
-//       return rmdir($this->getLocalPath());
-//     }
-//     else {
-//       return @rmdir($this->getLocalPath());
-//     }
-//   }
-
   /**
    * Support for stat().
    *
-   * @param $url
+   * @param string $url
    *   A string containing the url to get information about.
-   * @param $flags
+   * @param bitmask $flags
    *   A bit mask of STREAM_URL_STAT_LINK and STREAM_URL_STAT_QUIET.
-   * @return
+   *
+   * @return array
    *   An array with file status, or FALSE in case of an error - see fstat()
    *   for a description of this array.
    */
@@ -419,11 +372,12 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for opendir().
    *
-   * @param $url
+   * @param string $url
    *   A string containing the url to the directory to open.
-   * @param $options
-   *   Unknown (parameter is not documented in PHP Manual).
-   * @return
+   * @param int $options
+   *   Whether or not to enforce safe_mode (0x04).
+   *
+   * @return bool
    *   TRUE on success.
    */
   public function dir_opendir($url, $options) {
@@ -433,7 +387,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for readdir().
    *
-   * @return
+   * @return bool
    *   The next filename, or FALSE if there are no more files in the directory.
    */
   public function dir_readdir() {
@@ -443,7 +397,7 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for rewinddir().
    *
-   * @return
+   * @return bool
    *   TRUE on success.
    */
   public function dir_rewinddir() {
@@ -453,13 +407,18 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
   /**
    * Support for closedir().
    *
-   * @return
+   * @return bool
    *   TRUE on success.
    */
   public function dir_closedir() {
     return FALSE;
   }
 
+  /**
+   * Undocumented.
+   *
+   * @todo document.
+   */
   public function getDirectoryPath() {
     return '';
   }
@@ -470,23 +429,46 @@ abstract class MediaReadOnlyStreamWrapper implements DrupalStreamWrapperInterfac
    * are expected to return FALSE.
    */
 
+  /**
+   * Implements DrupalStreamWrapperInterface::unlink().
+   */
   public function unlink($uri) {
     // Although the remote file itself can't be deleted, return TRUE so that
-    // file_delete() can remove the file record from the database.
+    // file_delete() can remove the file record from the Drupal database.
     return TRUE;
   }
+
+  /**
+   * Implements DrupalStreamWrapperInterface::rename().
+   */
   public function rename($from_uri, $to_uri) {
     return FALSE;
   }
+
+  /**
+   * Implements DrupalStreamWrapperInterface::mkdir().
+   */
   public function mkdir($uri, $mode, $options) {
     return FALSE;
   }
+
+  /**
+   * Implements DrupalStreamWrapperInterface::rmdir().
+   */
   public function rmdir($uri, $options) {
     return FALSE;
   }
+
+  /**
+   * Implements DrupalStreamWrapperInterface::chmod().
+   */
   public function chmod($mode) {
     return FALSE;
   }
+
+  /**
+   * Implements DrupalStreamWrapperInterface::dirname().
+   */
   public function dirname($uri = NULL) {
     return FALSE;
   }

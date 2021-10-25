@@ -48,24 +48,27 @@ class TwitterInputFilterTest extends DrupalWebTestCase {
       'filters[filter_autop][weight]' => 4,
       'filters[filter_htmlcorrector][weight]' => 5,
     );
-    $this->drupalPost('admin/config/content/formats/filtered_html', $edit, t('Save configuration'));
+    $this->drupalPost('admin/config/content/formats/filtered_html', $edit,
+      t('Save configuration'));
     $this->assertText(t('The text format Filtered HTML has been updated.'));
     $this->drupalGet('admin/config/content/formats/filtered_html');
     $this->assertFieldChecked('edit-filters-twitter-username-status',
-                              t('Twitter username input filter has been activated'));
+      t('Twitter username input filter has been activated'));
     $this->assertFieldChecked('edit-filters-twitter-hashtag-status',
-                              t('Twitter hashtag input filter has been activated'));
+      t('Twitter hashtag input filter has been activated'));
 
-    // Create a page so we can evaluate the filters
+    // Create a page so we can evaluate the filters.
     $search = '#drupal';
     $username = '@drupal';
     $edit = array();
     $edit['title'] = t('Test page');
-    $edit['body[und][0][value]'] = t('This is a search over #drupal tag. There is also a link ' .
-      ' to a Twitter account here: @drupal.');
+    $edit['body[und][0][value]'] = t('This is a search over #drupal tag. There is also a link to a Twitter account here: @drupal.');
     $this->drupalPost('node/add/page', $edit, t('Save'));
-    $this->assertText(t('Basic page @title has been created.', array('@title' => $edit['title'])));
-    $this->assertLink($search, 0, t('Twitter search input filter was created successfully.'));
-    $this->assertLink($username, 0, t('Twitter username input filter was created successfully.'));
+    $this->assertText(t('Basic page @title has been created.',
+      array('@title' => $edit['title'])));
+    $this->assertLink($search, 0,
+      t('Twitter search input filter was created successfully.'));
+    $this->assertLink($username, 0,
+      t('Twitter username input filter was created successfully.'));
   }
 }

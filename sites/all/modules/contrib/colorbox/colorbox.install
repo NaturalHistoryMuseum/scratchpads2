@@ -6,6 +6,16 @@
  */
 
 /**
+ * Implements hook_enable().
+ */
+function colorbox_enable() {
+  drupal_set_message(t('Thanks for installing Colorbox'));
+  drupal_set_message(t('You may configure Colorbox by visiting <a href="@url_settings">@url_settings</a>', array(
+    '@url_settings' => url('admin/config/media/colorbox'),
+  )));
+}
+
+/**
  * Implements hook_requirements().
  */
 function colorbox_requirements($phase) {
@@ -13,14 +23,28 @@ function colorbox_requirements($phase) {
 
   if ($phase == 'runtime') {
     $t = get_t();
-    $library_path = colorbox_get_path();
-    $colorbox_version = colorbox_get_version();
+    $library = libraries_detect('colorbox');
+    $error_type = isset($library['error']) ? drupal_ucfirst($library['error']) : '';
+    $error_message = isset($library['error message']) ? $library['error message'] : '';
 
-    if (version_compare($colorbox_version, COLORBOX_MIN_PLUGIN_VERSION, '>=')) {
+    if (empty($library['installed'])) {
+      $requirements['colorbox_plugin'] = array(
+        'title' => $t('Colorbox plugin'),
+        'value' => $t('@e: At least @a', array('@e' => $error_type, '@a' => COLORBOX_MIN_PLUGIN_VERSION)),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('!error You need to download the !colorbox, extract the archive and place the colorbox directory in the %path directory on your server.', array(
+          '!error' => $error_message,
+          '!colorbox' => l($t('Colorbox plugin'),
+          $library['download url']),
+          '%path' => 'sites/all/libraries',
+        )),
+      );
+    }
+    elseif (version_compare($library['version'], COLORBOX_MIN_PLUGIN_VERSION, '>=')) {
       $requirements['colorbox_plugin'] = array(
         'title' => $t('Colorbox plugin'),
         'severity' => REQUIREMENT_OK,
-        'value' => $colorbox_version,
+        'value' => $library['version'],
       );
     }
     else {
@@ -28,7 +52,11 @@ function colorbox_requirements($phase) {
         'title' => $t('Colorbox plugin'),
         'value' => $t('At least @a', array('@a' => COLORBOX_MIN_PLUGIN_VERSION)),
         'severity' => REQUIREMENT_ERROR,
-        'description' => $t('You need to download the !colorbox and extract the entire contents of the archive into the %path folder of your server.', array('!colorbox' => l(t('Colorbox plugin'), 'https://github.com/jackmoore/colorbox/archive/1.x.zip'), '%path' => $library_path)),
+        'description' => $t('You need to download a later version of the !colorbox and replace the old version located in the %path directory on your server.', array(
+          '!colorbox' => l($t('Colorbox plugin'),
+          $library['download url']),
+          '%path' => $library['library path'],
+        )),
       );
     }
   }
@@ -40,7 +68,7 @@ function colorbox_requirements($phase) {
  * Implements hook_uninstall().
  */
 function colorbox_uninstall() {
-  db_query("DELETE FROM {variable} WHERE name LIKE 'colorbox_%'");
+  db_delete('variable')->condition('name', db_like('colorbox_') . '%', 'LIKE')->execute();
 }
 
 /**
@@ -54,8 +82,10 @@ function colorbox_update_7001() {
 }
 
 /**
- * Delete the unused colorbox_title_trim and
- * colorbox_title_trim_length variables.
+ * Implements hook_update_N().
+ *
+ * Delete the unused colorbox_title_trim and colorbox_title_trim_length
+ * variables.
  */
 function colorbox_update_7002() {
   $ret = array();
@@ -69,6 +99,42 @@ function colorbox_update_7002() {
   }
   variable_del('colorbox_title_trim');
   variable_del('colorbox_title_trim_length');
+
+  return $ret;
+}
+
+/**
+ * Delete the unused colorbox_login and colorbox_login_links variables.
+ */
+function colorbox_update_7200() {
+  $ret = array();
+  variable_del('colorbox_login');
+  variable_del('colorbox_login_links');
+
+  return $ret;
+}
+
+/**
+ * Delete the unused colorbox_auto_image_nodes variable.
+ */
+function colorbox_update_7201() {
+  $ret = array();
+  variable_del('colorbox_auto_image_nodes');
+
+  return $ret;
+}
+
+/**
+ * Update the colorbox_compression_type variable.
+ */
+function colorbox_update_7202() {
+  $ret = array();
+  if (variable_get('colorbox_compression_type', 'minified') == 'none') {
+    variable_set('colorbox_compression_type', 'source');
+  }
+  else {
+    variable_set('colorbox_compression_type', 'minified');
+  }
 
   return $ret;
 }

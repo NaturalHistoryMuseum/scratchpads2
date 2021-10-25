@@ -4,6 +4,10 @@
  * Default views for Twitter module.
  */
 function twitter_views_default_views() {
+  if (!variable_get('twitter_use_default_views', TRUE)) {
+    return;
+  }
+
   $view = new view();
   $view->name = 'tweets';
   $view->description = 'Displays Twitter.com status messages for users who have associated Twitter accounts.';
@@ -178,10 +182,6 @@ function twitter_views_default_views() {
   $handler->display->display_options['fields']['name']['table'] = 'twitter_account';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['label'] = '';
-  $handler->display->display_options['fields']['name']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['name']['alter']['path'] = 'https://twitter.com/[screen_name]';
-  $handler->display->display_options['fields']['name']['alter']['absolute'] = TRUE;
-  $handler->display->display_options['fields']['name']['alter']['target'] = '_blank';
   $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
   /* Field: Twitter: Login name */
   $handler->display->display_options['fields']['screen_name']['id'] = 'screen_name';
@@ -304,6 +304,14 @@ function twitter_views_default_views() {
   $handler->display->display_options['fields']['formatted_tweet']['field'] = 'formatted_tweet';
   $handler->display->display_options['fields']['formatted_tweet']['label'] = '';
   $handler->display->display_options['fields']['formatted_tweet']['element_label_colon'] = FALSE;
+  /* Field: Twitter: Image */
+  $handler->display->display_options['fields']['image']['id'] = 'image';
+  $handler->display->display_options['fields']['image']['table'] = 'twitter';
+  $handler->display->display_options['fields']['image']['field'] = 'image';
+  $handler->display->display_options['fields']['image']['label'] = '';
+  $handler->display->display_options['fields']['image']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['image']['hide_empty'] = TRUE;
+  $handler->display->display_options['fields']['image']['size'] = 'small';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   /* Contextual filter: Twitter: Login name */
   $handler->display->display_options['arguments']['screen_name']['id'] = 'screen_name';

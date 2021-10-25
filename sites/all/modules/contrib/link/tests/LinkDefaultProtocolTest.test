@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * Test setting a global protocol, and using it for links when needed.
+ *
+ * Ensure that any links that are created not using an explict protocol (e.g.
+ * a link entered as www.drupal.org, without a http:// or https:// prefix) will
+ * use the globally defined protocol.
+ *
+ * Any links created with an explicit protocol will continue to use that
+ * protocol and will ignore the global setting.
+ */
+class LinkDefaultProtocolTest extends LinkBaseTestClass {
+
+  /**
+   * Get Info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Set default link protocol',
+      'description' => 'Test that an url with a default protocol set.',
+      'group' => 'Link',
+    );
+  }
+
+  /**
+   * A link without a default protocol uses the default (HTTP).
+   */
+  public function testHttpDefaultProtocolOnUrlWithoutDefinedProtocol() {
+    $user = $this->drupalCreateUser($this->permissions);
+    $this->drupalLogin($user);
+
+    $this->createNodeWithLink('www.example.com');
+
+    $this->drupalGet('node/1');
+
+    $this->assertRaw('http://www.example.com');
+  }
+
+  /**
+   * The protocol is set to HTTP by default if a wrong protocol has been set.
+   */
+  public function testHttpDefaultProtocolFromVariableConf() {
+    variable_set('link_default_protocol', 'banana');
+
+    try {
+      link_ensure_valid_default_protocol();
+    }
+    catch (Exception $e) {
+    }
+
+    $protocol = variable_get('link_default_protocol');
+
+    $this->assertEqual($protocol, LINK_HTTP_PROTOCOL);
+  }
+
+  /**
+   * A link with no defined protocol in the URL uses the default (HTTPS).
+   */
+  public function testHttpsDefaultProtocolOnUrlWithoutDefinedProtocol() {
+    $this->setupDefaultProtocol(LINK_HTTPS_PROTOCOL);
+
+    $this->createNodeWithLink('www.example.com');
+
+    $this->drupalGet('node/1');
+
+    $this->assertRaw('https://www.example.com');
+  }
+
+  /**
+   * A link with a defined protocol HTTPS overrides the default HTTP protocol.
+   */
+  public function testHttpDefaultProtocolOnUrlWithDefinedHttpsProtocol() {
+    $this->setupDefaultProtocol(LINK_HTTP_PROTOCOL);
+
+    $this->createNodeWithLink('https://www.example.com');
+
+    $this->drupalGet('node/1');
+
+    $this->assertRaw('https://www.example.com');
+  }
+
+  /**
+   * A link with a defined protocol HTTP overrides the default HTTPS protocol.
+   */
+  public function testHttpsDefaultProtocolOnUrlWithDefinedHttpProtocol() {
+    $this->setupDefaultProtocol(LINK_HTTPS_PROTOCOL);
+
+    $this->createNodeWithLink('http://www.example.com');
+
+    $this->drupalGet('node/1');
+
+    $this->assertRaw('http://www.example.com');
+  }
+
+  /**
+   * Setup the default global link protocol to either HTTP or HTTPS.
+   *
+   * @param string $protocol
+   *   The protocol to use.
+   */
+  private function setupDefaultProtocol($protocol) {
+    $user = $this->drupalCreateUser($this->permissions);
+    $this->drupalLogin($user);
+
+    $this->drupalPost(
+      'admin/config/content/link',
+      array('link_default_protocol' => $protocol),
+      'Save configuration'
+    );
+  }
+
+  /**
+   * Create a page node with a link field.
+   *
+   * @param string $url
+   *   The link URL.
+   *
+   * @return object
+   *   The created node.
+   */
+  private function createNodeWithLink($url) {
+    $link_field = $this->createLinkField('page');
+
+    $settings = array(
+      'title' => 'Basic page link test',
+      $link_field => array(
+        LANGUAGE_NONE => array(
+          array(
+            'title' => 'Field protocol link Test',
+            'url' => $url,
+          ),
+        ),
+      ),
+    );
+
+    return $this->drupalCreateNode($settings);
+  }
+
+}

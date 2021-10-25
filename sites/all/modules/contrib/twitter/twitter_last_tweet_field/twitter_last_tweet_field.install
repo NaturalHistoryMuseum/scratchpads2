@@ -1,0 +1,85 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the twitter_last_tweet_field
+ * module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function twitter_last_tweet_field_field_schema($field) {
+  $columns = array(
+    'twitter_uid' => array(
+      'description' => 'The unique identifier of the {twitter_account}.',
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'size' => 'big',
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+    'empty_message' => array(
+      'description' => 'A message to show if there are no tweets for this account.',
+      'type' => 'varchar',
+      'length' => 140,
+      'not null' => TRUE,
+    ),
+    'hide_extras' => array(
+      'description' => 'Optionally not load the default CSS and JS.',
+      'type' => 'int',
+      'size' => 'tiny',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+  );
+  $indexes = array(
+    'twitter_uid' => array('twitter_uid'),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
+
+/**
+ * Implementations of hook_update_N().
+ */
+
+/**
+ * Change the twitter_uid field to a BIGINT.
+ */
+function twitter_last_tweet_field_update_7500() {
+  // Get the list of fields.
+  $types = array('twitter_last_tweet');
+  $fields = array();
+  foreach (field_info_fields() as $field) {
+    if (in_array($field['type'], $types)) {
+      $fields[] = $field;
+    }
+  }
+
+  if (!empty($fields)) {
+    $spec = array(
+      'description' => 'The unique identifier of the {twitter_account}.',
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'size' => 'big',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+
+    foreach ($fields as $field) {
+      $tables = array(
+        _field_sql_storage_tablename($field), 
+        _field_sql_storage_revision_tablename($field),
+      );
+      foreach ($tables as $table) {
+        $column = $field['field_name'] . '_twitter_uid';
+        db_change_field($table, $column, $column, $spec);
+      }
+    }
+
+    return t('Converted the twitter_uid field to BIGINT.');
+  }
+}

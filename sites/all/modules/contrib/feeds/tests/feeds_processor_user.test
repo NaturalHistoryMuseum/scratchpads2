@@ -2,13 +2,17 @@
 
 /**
  * @file
- * Tests for plugins/FeedsUserProcessor.inc
+ * Tests for plugins/FeedsUserProcessor.inc.
  */
 
 /**
  * Test aggregating a feed as data records.
  */
 class FeedsCSVtoUsersTest extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'CSV import to users',
@@ -18,9 +22,14 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
   }
 
   /**
-   * Test node creation, refreshing/deleting feeds and feed items.
+   * {@inheritdoc}
    */
-  public function test() {
+  public function setUp() {
+    parent::setUp();
+
+    // Include FeedsProcessor.inc to make its constants available.
+    module_load_include('inc', 'feeds', 'plugins/FeedsProcessor');
+
     // Create an importer.
     $this->createImporterConfiguration('User import', 'user_import');
 
@@ -57,7 +66,12 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
       'content_type' => '',
     );
     $this->drupalPost('admin/structure/feeds/user_import/settings', $edit, 'Save');
+  }
 
+  /**
+   * Test user creation, refreshing/deleting feeds and feed items.
+   */
+  public function test() {
     // Create roles and assign one of them to the users to be imported.
     $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
     $admin_rid = $this->drupalCreateRole(array('access content'), 'administrator');
@@ -114,9 +128,945 @@ class FeedsCSVtoUsersTest extends FeedsWebTestCase {
     $this->assertText('Failed importing 2 user');
 
     // Attempt to log in as one of the imported users.
+    $this->feedsLoginUser('Fester', 'fest');
+
+    // Login as admin.
+    $this->drupalLogin($this->admin_user);
+
+    // Import modified CSV file, one (valid) user is missing.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => 2, 'update_non_existent' => 'block'));
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users2.csv');
+    $this->assertText('Blocked 1 user');
+    $this->assertText('Failed importing 2 user');
+
+    // Import the original CSV file again.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Updated 1 user');
+    $this->assertText('Failed importing 2 user');
+  }
+
+  /**
+   * Tests mapping to user ID.
+   */
+  public function testUidTarget() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Add mapping to user ID.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'uid',
+        'target' => 'uid',
+        'unique' => TRUE,
+      ),
+    ));
+
+    // Create account with uid 202. The username and mail address of this account
+    // should be updated.
+    user_save(drupal_anonymous_user(), array(
+      'uid' => 202,
+      'name' => 'Joe',
+      'mail' => 'joe@example.com',
+      'pass' => 'joe',
+      'status' => 1,
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Created 2 users');
+    $this->assertText('Updated 1 user');
+
+    // Assert user ID's.
+    $account = user_load_by_name('Morticia');
+    $this->assertEqual(201, $account->uid, 'Morticia got user ID 201.');
+    $account = user_load_by_name('Gomez');
+    $this->assertEqual(203, $account->uid, 'Gomez got user ID 203.');
+
+    // Assert that the username and mail address of account 202 were changed.
+    $account = user_load(202);
+    $values = array(
+      'name' => array(
+        'expected' => 'Fester',
+        'actual' => $account->name,
+      ),
+      'mail' => array(
+        'expected' => 'fester@example.com',
+        'actual' => $account->mail,
+      ),
+    );
+    $this->assertEqual($values['name']['expected'], $values['name']['actual'], format_string('Username of account 202 changed in @expected (actual: @actual).', array(
+      '@expected' => $values['name']['expected'],
+      '@actual' => $values['name']['actual'],
+    )));
+    $this->assertEqual($values['mail']['expected'], $values['mail']['actual'], format_string('Mail address of account 202 changed in @expected (actual: @actual).', array(
+      '@expected' => $values['mail']['expected'],
+      '@actual' => $values['mail']['actual'],
+    )));
+
+    // Assert that user Joe no longer exists in the system.
+    $this->assertFalse(user_load_by_name('Joe'), 'No user with username Joe exists.');
+    $this->assertFalse(user_load_by_mail('joe@example.com'), 'No user with mail address joe@example.com exists.');
+  }
+
+  /**
+   * Tests if user ID's can be changed using the user ID target.
+   *
+   * Also checks if a clear error is reported when trying to change the
+   * user ID to something that is already in use.
+   */
+  public function testUidUpdating() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Add mapping to user ID, but do not mark target as unique.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'uid',
+        'target' => 'uid',
+      ),
+    ));
+
+    // Create an account which user ID should be updated.
+    user_save(drupal_anonymous_user(), array(
+      'uid' => 54,
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+    ));
+
+    // Create account with uid 202. Importing an other account with uid 202
+    // should fail.
+    user_save(drupal_anonymous_user(), array(
+      'uid' => 202,
+      'name' => 'Joe',
+      'mail' => 'joe@example.com',
+      'pass' => 'joe',
+      'status' => 1,
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Created 1 user');
+    $this->assertText('Updated 1 user');
+    $this->assertText('Failed importing 3 users.');
+    $this->assertText('Could not update user ID to 202 since that ID is already in use.');
+
+    // Assert Morticia's user ID got updated.
+    $account = user_load_by_name('Morticia');
+    $this->assertEqual(201, $account->uid, 'Morticia now got user ID 201.');
+    // Assert that Fester failed to import.
+    $this->assertFalse(user_load_by_name('Fester'), 'The account for Fester was not imported.');
+    // Assert that user 202 did not change.
+    $account = user_load(202);
+    $this->assertEqual('Joe', $account->name, 'The user name of account 202 is still Joe.');
+    $this->assertEqual('joe@example.com', $account->mail, 'The mail address of account 202 is still joe@example.com.');
+  }
+
+  /**
+   * Tests mapping to role without automatically creating new roles.
+   */
+  public function testRoleTargetWithoutRoleCreation() {
+    // Add mapping to role.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+      ),
+    ));
+
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia did not get the editor role and has one role in
+    // total.
+    $account = user_load_by_name('Morticia');
+    $this->assertFalse(in_array('editor', $account->roles), 'Morticia does not have the editor role.');
+    $this->assertEqual(1, count($account->roles), 'Morticia has one role.');
+
+    // Assert that Fester got the manager role and two roles in total.
     $account = user_load_by_name('Fester');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Fester has the manager role.');
+    $this->assertEqual(2, count($account->roles), 'Fester has two roles.');
+
+    // Assert that Gomez got the manager role but not the tester role, since
+    // that role doesn't exist on the system.
+    $account = user_load_by_name('Gomez');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the manager role.');
+    $this->assertFalse(in_array('tester', $account->roles), 'Gomez does not have the tester role.');
+    $this->assertEqual(2, count($account->roles), 'Gomez has two roles.');
+
+    // Assert that Pugsley only has one role.
+    $account = user_load_by_name('Pugsley');
+    $this->assertEqual(1, count($account->roles), 'Pugsley has one role.');
+
+    // Assert that only three roles exist:
+    // - authenticated user
+    // - role from the admin user
+    // - manager
+    $roles = user_roles(TRUE);
+    $this->assertEqual(3, count($roles), 'Only three roles exist.');
+  }
+
+  /**
+   * Tests mapping to role with automatically creating new roles.
+   */
+  public function testRoleTargetWithRoleCreation() {
+    // Add mapping to role.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+        'autocreate' => TRUE,
+      ),
+    ));
+
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia got the editor role and two roles in total.
+    $account = user_load_by_name('Morticia');
+    $this->assertTrue(in_array('editor', $account->roles), 'Morticia has the editor role.');
+    $this->assertEqual(2, count($account->roles), 'Morticia has two roles.');
+
+    // Assert that Fester got the manager role and two roles in total.
+    $account = user_load_by_name('Fester');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Fester has the manager role.');
+    $this->assertEqual(2, count($account->roles), 'Fester has two roles.');
+
+    // Assert that Gomez got the manager, the editor role and three roles in
+    // total.
+    $account = user_load_by_name('Gomez');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the manager role.');
+    $this->assertTrue(in_array('tester', $account->roles), 'Gomez has the tester role.');
+    $this->assertEqual(3, count($account->roles), 'Gomez has three roles.');
+
+    // Assert that Pugsley only has one role.
+    $account = user_load_by_name('Pugsley');
+    $this->assertEqual(1, count($account->roles), 'Pugsley has one role.');
+
+    // Assert that five roles exist:
+    // - authenticated user
+    // - role from the admin user
+    // - manager
+    // - editor
+    // - tester
+    $roles = user_roles(TRUE);
+    $this->assertEqual(5, count($roles), 'Five roles exist.');
+  }
+
+  /**
+   * Tests mapping to role using role ID's.
+   */
+  public function testRoleTargetRids() {
+    // Add mapping to role.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'rids',
+        'target' => 'roles_list',
+        'role_search' => FeedsUserProcessor::ROLE_SEARCH_RID,
+      ),
+    ));
+
+    // Create manager and tester roles.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    $tester_rid = $this->drupalCreateRole(array('access content'), 'tester');
+    // Ensure expected ID's of these roles.
+    $this->assertEqual(4, $manager_rid);
+    $this->assertEqual(5, $tester_rid);
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia did not get the editor role and has one role in
+    // total.
+    $account = user_load_by_name('Morticia');
+    $this->assertFalse(in_array('editor', $account->roles), 'Morticia does not have the editor role.');
+    $this->assertEqual(1, count($account->roles), 'Morticia has one role.');
+
+    // Assert that Fester got the manager role and two roles in total.
+    $account = user_load_by_name('Fester');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Fester has the manager role.');
+    $this->assertEqual(2, count($account->roles), 'Fester has two roles.');
+
+    // Assert that Gomez got the manager and tester roles.
+    $account = user_load_by_name('Gomez');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the manager role.');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the tester role.');
+    $this->assertEqual(3, count($account->roles), 'Gomez has two roles.');
+
+    // Assert that Pugsley only has one role.
+    $account = user_load_by_name('Pugsley');
+    $this->assertEqual(1, count($account->roles), 'Pugsley has one role.');
+
+    // Assert that four roles exist:
+    // - authenticated user
+    // - role from the admin user
+    // - manager
+    // - tester
+    $roles = user_roles(TRUE);
+    $this->assertEqual(4, count($roles), 'Four roles exist.');
+  }
+
+  /**
+   * Tests mapping to role using only allowed roles.
+   */
+  public function testRoleTargetWithAllowedRoles() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+
+    // Add mapping to role.
+    // The manager role may not be assigned to the user by the feed.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+        'allowed_roles' => array(
+          $manager_rid => FALSE,
+          $editor_rid => $editor_rid,
+        ),
+        'autocreate' => TRUE,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia got the editor role and two roles in total.
+    $account = user_load_by_name('Morticia');
+    $this->assertTrue(in_array('editor', $account->roles), 'Morticia has the editor role.');
+    $this->assertEqual(2, count($account->roles), 'Morticia has two roles.');
+
+    // Assert that Fester did not got the manager role, because that role was
+    // not an allowed value.
+    $account = user_load_by_name('Fester');
+    $this->assertFalse(isset($account->roles[$manager_rid]), 'Fester does not have the manager role.');
+    $this->assertEqual(1, count($account->roles), 'Fester has one role.');
+
+    // Assert that Gomez only got the tester role and not the manager role.
+    $account = user_load_by_name('Gomez');
+    $this->assertFalse(isset($account->roles[$manager_rid]), 'Gomez does not have the manager role.');
+    $this->assertTrue(in_array('tester', $account->roles), 'Gomez has the tester role.');
+    $this->assertEqual(2, count($account->roles), 'Gomez has two roles.');
+  }
+
+  /**
+   * Tests that roles can be revoked and that only allowed roles are revoked.
+   */
+  public function testRoleTargetRevokeRoles() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+    // Create tester role.
+    $tester_rid = $this->drupalCreateRole(array('access content'), 'tester');
+
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Add mapping to role.
+    // The manager role may not be revoked, but the editor role may.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+        'allowed_roles' => array(
+          $manager_rid => FALSE,
+          $editor_rid => $editor_rid,
+          $tester_rid => $tester_rid,
+        ),
+      ),
+    ));
+
+    // Create account for Morticia with roles "manager" and "editor". In the
+    // source only "editor" is specified. Morticia should keep both roles.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+      'roles' => array(
+        $manager_rid => $manager_rid,
+        $editor_rid => $editor_rid,
+      ),
+    ));
+    // Create account for Pugsley with roles "manager", "editor" and "tester".
+    // Pugsley has no roles in the source so should only keep the "manager"
+    // role.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Pugsley',
+      'mail' => 'pugsley@example.com',
+      'pass' => 'pugs',
+      'status' => 1,
+      'roles' => array(
+        $manager_rid => $manager_rid,
+        $editor_rid => $editor_rid,
+        $tester_rid => $tester_rid,
+      ),
+    ));
+    // Create account for Gomez and give it the "editor" role. Gomez has roles
+    // "tester" and "manager" in the source, so it should lose the "editor" role
+    // and gain the "tester" role.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Gomez',
+      'mail' => 'gomez@example.com',
+      'pass' => 'gome',
+      'status' => 1,
+      'roles' => array(
+        $editor_rid => $editor_rid,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia kept the manager and editor roles.
+    $account = user_load_by_name('Morticia');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Morticia still has the manager role.');
+    $this->assertTrue(isset($account->roles[$editor_rid]), 'Morticia has the editor role.');
+    $this->assertEqual(3, count($account->roles), 'Morticia has three roles.');
+
+    // Assert that Pugsley only kept the manager role.
+    $account = user_load_by_name('Pugsley');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Pugsley still has the manager role.');
+    $this->assertFalse(isset($account->roles[$editor_rid]), 'Pugsley no longer has the editor role.');
+    $this->assertFalse(isset($account->roles[$tester_rid]), 'Pugsley no longer has the tester role.');
+    $this->assertEqual(2, count($account->roles), 'Pugsley has two roles.');
+
+    // Assert that Gomez lost the editor role, and gained the tester role.
+    $account = user_load_by_name('Gomez');
+    $this->assertFalse(isset($account->roles[$editor_rid]), 'Gomez no longer has the editor role.');
+    $this->assertTrue(isset($account->roles[$tester_rid]), 'Gomez has the tester role.');
+    $this->assertEqual(2, count($account->roles), 'Gomez has two roles.');
+  }
+
+  /**
+   * Tests if no roles are revoked if the option "Revoke roles" is disabled.
+   */
+  public function testRoleTargetNoRevokeRoles() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Add mapping to role. Set option to not revoke roles.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+        'allowed_roles' => array(
+          $manager_rid => FALSE,
+          $editor_rid => $editor_rid,
+        ),
+        'revoke_roles' => FALSE,
+      ),
+    ));
+
+    // Create account for Pugsley with roles "manager" and "editor". Pugsley has
+    // no roles, but roles should not be revoked, so Pugsley should keep all
+    // roles.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Pugsley',
+      'mail' => 'pugsley@example.com',
+      'pass' => 'pugs',
+      'status' => 1,
+      'roles' => array(
+        $manager_rid => $manager_rid,
+        $editor_rid => $editor_rid,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Pugsley kept all roles.
+    $account = user_load_by_name('Pugsley');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Pugsley still has the manager role.');
+    $this->assertTrue(isset($account->roles[$editor_rid]), 'Pugsley still has the editor role.');
+    $this->assertEqual(3, count($account->roles), 'Pugsley has three roles.');
+  }
+
+  /**
+   * Tests if additional roles are assigned when creating or updating users.
+   */
+  public function testAdditionalRolesSetting() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+
+    // Set that the "manager" role should be assigned to every user that is
+    // imported.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      "roles[$manager_rid]" => TRUE,
+      'update_existing' => FEEDS_UPDATE_EXISTING,
+    ));
+
+    // Create account for Gomez and give it the "editor" role. After import
+    // Gomez should have the roles "editor" and "manager".
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Gomez',
+      'mail' => 'gomez@example.com',
+      'pass' => 'gome',
+      'status' => 1,
+      'roles' => array(
+        $editor_rid => $editor_rid,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that every imported user has gained the "manager" role.
+    $user_names = array(
+      'Morticia',
+      'Fester',
+      'Pugsley',
+    );
+    foreach ($user_names as $user_name) {
+      $vars = array(
+        '@user' => $user_name,
+      );
+      // Assert that this user has the "manager" role.
+      $account = user_load_by_name($user_name);
+      $this->assertTrue(isset($account->roles[$manager_rid]), format_string('@user has the manager role.', $vars));
+      $this->assertEqual(2, count($account->roles), format_string('@user has two roles.', $vars));
+    }
+
+    // Assert that Gomez has gained the role "manager" and still has the
+    // "editor" role.
+    $account = user_load_by_name('Gomez');
+    $this->assertTrue(isset($account->roles[$editor_rid]), 'Gomez still has the editor role.');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the manager role.');
+    $this->assertEqual(3, count($account->roles), 'Gomez has three roles.');
+  }
+
+  /**
+   * Tests if additional roles are assigned when also the role mapper is used.
+   */
+  public function testAdditionalRolesSettingWithRoleTarget() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+    // Create tester role.
+    $tester_rid = $this->drupalCreateRole(array('access content'), 'tester');
+
+    // Set that the "manager" role should be assigned to every user that is
+    // imported.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      "roles[$manager_rid]" => TRUE,
+      'update_existing' => FEEDS_UPDATE_EXISTING,
+    ));
+    // Add mapping to role.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'roles',
+        'target' => 'roles_list',
+      ),
+    ));
+
+    // Create account for Morticia with roles "manager" and "tester". In the
+    // source, Morticia does not have the "manager" role, but because on the
+    // user processor settings that is an additional role to add, that role
+    // should not be revoked. The "tester" role, on the other hand, should be
+    // revoked.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+      'roles' => array(
+        $manager_rid => $manager_rid,
+        $tester_rid => $tester_rid,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia kept the "manager" role, lost the "tester" role and
+    // gained the "editor" role.
+    $account = user_load_by_name('Morticia');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Morticia still has the manager role.');
+    $this->assertTrue(isset($account->roles[$editor_rid]), 'Morticia has the editor role.');
+    $this->assertFalse(isset($account->roles[$tester_rid]), 'Morticia no longer has the tester role.');
+    $this->assertEqual(3, count($account->roles), 'Morticia has three roles.');
+
+    // Assert that all other imported users got the "manager" role as well.
+    $user_names = array(
+      'Fester',
+      'Gomez',
+      'Pugsley',
+    );
+    foreach ($user_names as $user_name) {
+      $vars = array(
+        '@user' => $user_name,
+      );
+      // Assert that this user has the "manager" role.
+      $account = user_load_by_name($user_name);
+      $this->assertTrue(isset($account->roles[$manager_rid]), format_string('@user has the manager role.', $vars));
+    }
+  }
+
+  /**
+   * Tests if roles are replaced when replacing users.
+   */
+  public function testAdditionalRolesSettingWhenReplacingUsers() {
+    // Create manager role.
+    $manager_rid = $this->drupalCreateRole(array('access content'), 'manager');
+    // Create editor role.
+    $editor_rid = $this->drupalCreateRole(array('access content'), 'editor');
+
+    // Set that the "manager" role should be assigned to every user that is
+    // imported. Other roles should be revoked.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      "roles[$manager_rid]" => TRUE,
+      'update_existing' => FEEDS_REPLACE_EXISTING,
+    ));
+
+    // Create account for Morticia with no roles. Morticia should gain the
+    // "manager" role.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+    ));
+
+    // Create account for Gomez and give it the "editor" role. After import
+    // Gomez should have lost the role "editor" and gained the role "manager".
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Gomez',
+      'mail' => 'gomez@example.com',
+      'pass' => 'gome',
+      'status' => 1,
+      'roles' => array(
+        $editor_rid => $editor_rid,
+      ),
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Assert that Morticia has gained the role "manager".
+    $account = user_load_by_name('Morticia');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Morticia has the manager role.');
+    $this->assertEqual(2, count($account->roles), 'Morticia has two roles.');
+
+    // Assert that Gomez has gained the role "manager" and but no longer has the
+    // "editor" role.
+    $account = user_load_by_name('Gomez');
+    $this->assertFalse(isset($account->roles[$editor_rid]), 'Gomez no longer has the editor role.');
+    $this->assertTrue(isset($account->roles[$manager_rid]), 'Gomez has the manager role.');
+    $this->assertEqual(2, count($account->roles), 'Gomez has two roles.');
+
+    // Now remove all default roles and import again.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      "roles[$manager_rid]" => FALSE,
+      'skip_hash_check' => TRUE,
+    ));
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users_roles.csv');
+
+    // Reset loaded users cache.
+    entity_get_controller('user')->resetCache();
+
+    // Assert that Morticia no longer has the role "manager".
+    $account = user_load_by_name('Morticia');
+    $this->assertFalse(isset($account->roles[$manager_rid]), 'Morticia no longer has the manager role.');
+    $this->assertEqual(1, count($account->roles), 'Morticia has one role.');
+  }
+
+  /**
+   * Test if users with md5 passwords can login after import.
+   */
+  public function testMD5() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Replace password mapper.
+    $this->removeMappings('user_import', array(
+      3 => array(
+        'source' => 'password',
+        'target' => 'pass',
+      ),
+    ));
+    $this->addMappings('user_import', array(
+      3 => array(
+        'source' => 'password_md5',
+        'target' => 'pass',
+        'pass_encryption' => 'md5',
+      ),
+    ));
+
+    // Create an account for Gomez, to ensure passwords can also be imported for
+    // existing users. Give Gomez a password different from the one that gets
+    // imported to ensure that his password gets updated.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Gomez',
+      'mail' => 'gomez@example.com',
+      'pass' => 'temporary',
+      'status' => 1,
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+
+    // Assert result.
+    $this->assertText('Created 2 users');
+    $this->assertText('Updated 1 user');
+
+    // Try to login as each successful imported user.
+    $this->feedsLoginUser('Morticia', 'mort');
+    $this->feedsLoginUser('Fester', 'fest');
+    $this->feedsLoginUser('Gomez', 'gome');
+  }
+
+  /**
+   * Test if users with sha512 passwords can login after import.
+   */
+  public function testSha512() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Replace password mapper.
+    $this->removeMappings('user_import', array(
+      3 => array(
+        'source' => 'password',
+        'target' => 'pass',
+      ),
+    ));
+    $this->addMappings('user_import', array(
+      3 => array(
+        'source' => 'password_sha512',
+        'target' => 'pass',
+        'pass_encryption' => 'sha512',
+      ),
+    ));
+
+    // Create an account for Gomez, to ensure passwords can also be imported for
+    // existing users. Give Gomez a password different from the one that gets
+    // imported to ensure that his password gets updated.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Gomez',
+      'mail' => 'gomez@example.com',
+      'pass' => 'temporary',
+      'status' => 1,
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+
+    // Assert result.
+    $this->assertText('Created 2 users');
+    $this->assertText('Updated 1 user');
+
+    // Try to login as each successful imported user.
+    $this->feedsLoginUser('Morticia', 'mort');
+    $this->feedsLoginUser('Fester', 'fest');
+    $this->feedsLoginUser('Gomez', 'gome');
+  }
+
+  /**
+   * Tests mapping to timezone.
+   */
+  public function testTimezoneTarget() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsUserProcessor', array('update_existing' => FEEDS_UPDATE_EXISTING));
+
+    // Add mapping to timezone.
+    $this->addMappings('user_import', array(
+      4 => array(
+        'source' => 'timezone',
+        'target' => 'timezone',
+      ),
+    ));
+
+    // Create an account for Fester, to ensure that the timezone can be emptied.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Fester',
+      'mail' => 'fester@example.com',
+      'pass' => 'fest',
+      'status' => 1,
+      'timezone' => 'Europe/Lisbon',
+    ));
+
+    // Import CSV file.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+
+    // Assert that Morticia got the UTC timezone.
+    $account = user_load_by_name('Morticia');
+    $this->assertEqual('UTC', $account->timezone, 'Morticia has the UTC timezone.');
+
+    // Assert that Fester did not get any timezone.
+    $account = user_load_by_name('Fester');
+    $this->assertFalse($account->timezone, 'Fester does not have any timezone');
+
+    // Assert that Gomez doesn't exist after import and appropriate message is
+    // displayed.
+    $account = user_load_by_name('Gomez');
+    $this->assertFalse($account, "Gomez doesn't exist after import.");
+    $this->assertText("Failed importing 'Gomez'. User's timezone is not valid.");
+  }
+
+  /**
+   * Tests if user 1 cannot be deleted using the delete non-existing feature.
+   */
+  public function testUser1ProtectionWhenDeletingNonExistent() {
+    // Set to delete non-existing users.
+    $this->setSettings('user_import', 'FeedsFileFetcher', array());
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      'update_existing' => FEEDS_UPDATE_EXISTING,
+      'update_non_existent' => 'delete',
+    ));
+
+    // Set mail address of user 1 to "fester@example.com". An user with this
+    // mail address is missing in the feed later.
+    $account = user_load(1);
+    $edit['mail'] = 'fester@example.com';
+    user_save($account, $edit);
+
+    // Import the first file, which contains the mail address of user 1.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Updated 1 user');
+    // Ensure the username of user 1 was updated.
+    $account = user_load(1, TRUE);
+    $this->assertEqual('Fester', $account->name);
+
+    // Now import the second file, where the mail address of user 1 is missing.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users2.csv');
+    $this->assertNoText('Removed 1 user');
+
+    // Ensure that user 1 still exists.
+    $account = db_select('users')
+      ->fields('users')
+      ->condition('uid', 1)
+      ->execute()
+      ->fetch();
+    $this->assertTrue(is_object($account), 'User 1 still exists.');
+  }
+
+  /**
+   * Tests if user 1 cannot be deleted using the delete form.
+   */
+  public function testUser1ProtectionWhenDeletingAll() {
+    // Set to update existing users.
+    $this->setSettings('user_import', 'FeedsFileFetcher', array());
+    $this->setSettings('user_import', 'FeedsUserProcessor', array(
+      'update_existing' => FEEDS_UPDATE_EXISTING,
+    ));
+
+    // Set mail address of user 1 to "fester@example.com".
+    $account = user_load(1);
+    $edit['mail'] = 'fester@example.com';
+    user_save($account, $edit);
+
+    // Import a file that contains the mail address of user 1.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/users.csv');
+    $this->assertText('Updated 1 user');
+    // Ensure the username of user 1 was updated.
+    $account = user_load(1, TRUE);
+    $this->assertEqual('Fester', $account->name);
+
+    // Now delete all items. User 1 should not be deleted.
+    $this->drupalPost('import/user_import/delete-items', array(), 'Delete');
+
+    // Ensure that user 1 still exists.
+    $account = db_select('users')
+      ->fields('users')
+      ->condition('uid', 1)
+      ->execute()
+      ->fetch();
+    $this->assertTrue(is_object($account), 'User 1 still exists.');
+
+    // But ensure that the associated feeds item did got deleted.
+    $count = db_select('feeds_item')
+      ->fields('feeds_item')
+      ->condition('entity_type', 'user')
+      ->condition('entity_id', 1)
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(0, $count, 'The feeds item for user 1 was deleted.');
+  }
+
+  /**
+   * Tests if an user with an invalid name is not imported.
+   */
+  public function testInvalidUsername() {
+    // Import a file that contains the mail address of user 1.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/user_validation/invalid-username.csv');
+    $this->assertText('Failed importing 1 user');
+    $this->assertText('The username contains an illegal character.');
+  }
+
+  /**
+   * Tests importing an user which name is already taken.
+   */
+  public function testUserNameAlreadyTaken() {
+    // Create an account.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia2@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+    ));
+
+    // Import a file that contains a username that is already taken.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/user_validation/username-already-taken.csv');
+    $this->assertText('Failed importing 1 user');
+    $this->assertText("The name 'Morticia' is already taken.");
+  }
+
+  /**
+   * Tests importing an user which mail address is already taken.
+   */
+  public function testMailAlreadyTaken() {
+    // Do not mark mail address as unique.
+    $path = 'admin/structure/feeds/user_import/mapping';
+    $this->drupalPostAJAX($path, array(), 'mapping_settings_edit_1');
+    $edit = array("config[1][settings][unique]" => FALSE);
+    $this->drupalPostAJAX(NULL, $edit, 'mapping_settings_update_1');
+    $this->drupalPost(NULL, array(), t('Save'));
+
+    // Create an account.
+    user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia2',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+    ));
+
+    // Import a file that contains a mail address that is already taken.
+    $this->importFile('user_import', $this->absolutePath() . '/tests/feeds/user_validation/username-already-taken.csv');
+    $this->assertText('Failed importing 1 user');
+    $this->assertText("The e-mail address 'morticia@example.com' is already taken.");
+  }
+
+  /**
+   * Log in an imported user.
+   *
+   * @param string $username
+   *   The user's username.
+   * @param string $password
+   *   The user's password.
+   */
+  protected function feedsLoginUser($username, $password) {
+    $account = user_load_by_name($username);
     $this->assertTrue($account, 'Imported user account loaded.');
-    $account->pass_raw = 'fest';
+    $account->pass_raw = $password;
     $this->drupalLogin($account);
   }
+
 }

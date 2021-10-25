@@ -135,6 +135,40 @@ abstract class ViewsTestCase extends DrupalWebTestCase {
     $this->verbose('<pre>Executed view: ' . ((string) $view->build_info['query']) . '</pre>');
   }
 
+  /**
+   * Log in as user 1.
+   */
+  protected function loginUser1() {
+    $password = user_password();
+    // Reset the user 1 password.
+    $account = user_load(1);
+    $edit = array(
+      'pass' => $password,
+    );
+    $account = user_save($account, $edit);
+    $account->pass_raw = $password;
+
+    // Log in as user 1.
+    $this->drupalLogin($account);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function verbose($message, $title = NULL) {
+    // Handle arrays, objects, etc.
+    if (!is_string($message)) {
+      $message = "<pre>\n" . print_r($message, TRUE) . "\n</pre>\n";
+    }
+
+    // Optional title to go before the output.
+    if (!empty($title)) {
+      $title = '<h2>' . check_plain($title) . "</h2>\n";
+    }
+
+    parent::verbose($title . $message);
+  }
+
 }
 
 /**
@@ -145,8 +179,10 @@ abstract class ViewsSqlTest extends ViewsTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
-    parent::setUp('views', 'views_ui');
+  public function setUp(array $modules = array()) {
+    $modules[] = 'views';
+    $modules[] = 'views_ui';
+    parent::setUp($modules);
 
     // Define the schema and views data variable before enabling the test
     // module.
@@ -165,6 +201,24 @@ abstract class ViewsSqlTest extends ViewsTestCase {
     }
     $query->execute();
     $this->checkPermissions(array(), TRUE);
+  }
+
+  /**
+   * Create a term.
+   *
+   * @param int $vid
+   *   The vocabulary ID that the term is to be added to.
+   *
+   * @return object
+   *   A full term object with a random name.
+   */
+  protected function drupalCreateTerm($vid) {
+    $term = new stdClass();
+    $term->name = $this->randomName();
+    $term->description = $this->randomName();
+    $term->vid = $vid;
+    taxonomy_term_save($term);
+    return $term;
   }
 
   /**

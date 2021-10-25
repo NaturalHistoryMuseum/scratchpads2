@@ -24,8 +24,8 @@ function node_views_default_views() {
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Monthly archive';
+  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access content';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -43,16 +43,16 @@ function node_views_default_views() {
   $handler->display->display_options['arguments']['created_year_month']['table'] = 'node';
   $handler->display->display_options['arguments']['created_year_month']['field'] = 'created_year_month';
   $handler->display->display_options['arguments']['created_year_month']['default_action'] = 'summary';
-  $handler->display->display_options['arguments']['created_year_month']['exception']['title_enable'] = 1;
-  $handler->display->display_options['arguments']['created_year_month']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['created_year_month']['exception']['title_enable'] = TRUE;
+  $handler->display->display_options['arguments']['created_year_month']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['created_year_month']['title'] = '%1';
   $handler->display->display_options['arguments']['created_year_month']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['created_year_month']['summary']['sort_order'] = 'desc';
   $handler->display->display_options['arguments']['created_year_month']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['created_year_month']['summary_options']['override'] = TRUE;
   $handler->display->display_options['arguments']['created_year_month']['summary_options']['items_per_page'] = '30';
-  $handler->display->display_options['arguments']['created_year_month']['specify_validation'] = 1;
-  /* Filter criterion: Content: Published */
+  $handler->display->display_options['arguments']['created_year_month']['specify_validation'] = TRUE;
+  /* Filter criterion: Content: Published status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
@@ -72,13 +72,13 @@ function node_views_default_views() {
   $handler->display->display_options['arguments']['created_year_month']['table'] = 'node';
   $handler->display->display_options['arguments']['created_year_month']['field'] = 'created_year_month';
   $handler->display->display_options['arguments']['created_year_month']['default_action'] = 'summary';
-  $handler->display->display_options['arguments']['created_year_month']['exception']['title_enable'] = 1;
-  $handler->display->display_options['arguments']['created_year_month']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['created_year_month']['exception']['title_enable'] = TRUE;
+  $handler->display->display_options['arguments']['created_year_month']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['created_year_month']['title'] = '%1';
   $handler->display->display_options['arguments']['created_year_month']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['created_year_month']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['created_year_month']['summary_options']['items_per_page'] = '30';
-  $handler->display->display_options['arguments']['created_year_month']['specify_validation'] = 1;
+  $handler->display->display_options['arguments']['created_year_month']['specify_validation'] = TRUE;
   $translatables['archive'] = array(
     t('Master'),
     t('Monthly archive'),
@@ -111,8 +111,8 @@ function node_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access content';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -120,8 +120,7 @@ function node_views_default_views() {
   $handler->display->display_options['pager']['type'] = 'full';
   $handler->display->display_options['style_plugin'] = 'default';
   $handler->display->display_options['row_plugin'] = 'node';
-  $handler->display->display_options['row_options']['links'] = 1;
-  /* Sort criterion: Content: Sticky */
+  /* Sort criterion: Content: Sticky status */
   $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
   $handler->display->display_options['sorts']['sticky']['table'] = 'node';
   $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
@@ -131,14 +130,14 @@ function node_views_default_views() {
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Filter criterion: Content: Promoted to front page */
+  /* Filter criterion: Content: Promoted to front page status */
   $handler->display->display_options['filters']['promote']['id'] = 'promote';
   $handler->display->display_options['filters']['promote']['table'] = 'node';
   $handler->display->display_options['filters']['promote']['field'] = 'promote';
   $handler->display->display_options['filters']['promote']['value'] = '1';
   $handler->display->display_options['filters']['promote']['group'] = 0;
   $handler->display->display_options['filters']['promote']['expose']['operator'] = FALSE;
-  /* Filter criterion: Content: Published */
+  /* Filter criterion: Content: Published status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
@@ -194,8 +193,8 @@ function node_views_default_views() {
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['use_ajax'] = TRUE;
+  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access content';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -223,19 +222,20 @@ function node_views_default_views() {
       'separator' => '',
     ),
   );
-  $handler->display->display_options['style_options']['override'] = 1;
-  $handler->display->display_options['style_options']['sticky'] = 0;
+  /* Relationship: Content: Content author */
+  $handler->display->display_options['relationships']['uid']['id'] = 'uid';
+  $handler->display->display_options['relationships']['uid']['table'] = 'node';
+  $handler->display->display_options['relationships']['uid']['field'] = 'uid';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Field: User: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
+  $handler->display->display_options['fields']['name']['relationship'] = 'uid';
   $handler->display->display_options['fields']['name']['label'] = 'Author';
-  $handler->display->display_options['fields']['name']['link_to_user'] = 1;
   /* Field: Content: Updated date */
   $handler->display->display_options['fields']['changed']['id'] = 'changed';
   $handler->display->display_options['fields']['changed']['table'] = 'node';
@@ -247,16 +247,20 @@ function node_views_default_views() {
   $handler->display->display_options['arguments']['title']['table'] = 'node';
   $handler->display->display_options['arguments']['title']['field'] = 'title';
   $handler->display->display_options['arguments']['title']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['title']['exception']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['title']['exception']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['title']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['title']['default_argument_options']['argument'] = 'a';
   $handler->display->display_options['arguments']['title']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['title']['specify_validation'] = 1;
-  $handler->display->display_options['arguments']['title']['glossary'] = 1;
+  $handler->display->display_options['arguments']['title']['specify_validation'] = TRUE;
+  $handler->display->display_options['arguments']['title']['glossary'] = TRUE;
   $handler->display->display_options['arguments']['title']['limit'] = '1';
   $handler->display->display_options['arguments']['title']['case'] = 'upper';
   $handler->display->display_options['arguments']['title']['path_case'] = 'lower';
-  $handler->display->display_options['arguments']['title']['transform_dash'] = 0;
+  /* Filter criterion: Content: Published status */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = '1';
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
@@ -275,24 +279,23 @@ function node_views_default_views() {
   $handler->display->display_options['arguments']['title']['table'] = 'node';
   $handler->display->display_options['arguments']['title']['field'] = 'title';
   $handler->display->display_options['arguments']['title']['default_action'] = 'summary';
-  $handler->display->display_options['arguments']['title']['exception']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['title']['exception']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['title']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['title']['default_argument_options']['argument'] = 'a';
   $handler->display->display_options['arguments']['title']['summary']['format'] = 'unformatted_summary';
   $handler->display->display_options['arguments']['title']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['title']['summary_options']['inline'] = 1;
+  $handler->display->display_options['arguments']['title']['summary_options']['inline'] = TRUE;
   $handler->display->display_options['arguments']['title']['summary_options']['separator'] = ' | ';
-  $handler->display->display_options['arguments']['title']['specify_validation'] = 1;
-  $handler->display->display_options['arguments']['title']['glossary'] = 1;
+  $handler->display->display_options['arguments']['title']['specify_validation'] = TRUE;
+  $handler->display->display_options['arguments']['title']['glossary'] = TRUE;
   $handler->display->display_options['arguments']['title']['limit'] = '1';
   $handler->display->display_options['arguments']['title']['case'] = 'upper';
   $handler->display->display_options['arguments']['title']['path_case'] = 'lower';
-  $handler->display->display_options['arguments']['title']['transform_dash'] = 0;
   $handler->display->display_options['displays'] = array(
     'default' => 'default',
     'page' => 'page',
   );
-  $handler->display->display_options['inherit_arguments'] = 0;
+  $handler->display->display_options['inherit_arguments'] = FALSE;
   $translatables['glossary'] = array(
     t('Master'),
     t('more'),

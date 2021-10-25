@@ -2,13 +2,17 @@
 
 /**
  * @file
- * Test case for taxonomy mapper mappers/taxonomy.inc.
+ * Contains FeedsMapperTaxonomyTestCase.
  */
 
 /**
- * Class for testing Feeds <em>content</em> mapper.
+ * Test case for taxonomy mapper mappers/taxonomy.inc.
  */
 class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Mapper: Taxonomy',
@@ -17,10 +21,13 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     );
   }
 
-  function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
     parent::setUp();
 
-    // Add Tags vocabulary
+    // Add Tags vocabulary.
     $edit = array(
       'name' => 'Tags',
       'machine_name' => 'tags',
@@ -28,8 +35,8 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $this->drupalPost('admin/structure/taxonomy/add', $edit, 'Save');
 
     $edit = array(
-        'name' => 'term1',
-      );
+      'name' => 'term1',
+    );
     $this->drupalPost('admin/structure/taxonomy/tags/add', $edit, t('Save'));
     $this->assertText('Created new term term1.');
 
@@ -49,8 +56,9 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     );
     field_create_field($field);
 
-    // Add term reference field to feed item bundle.
-    $this->instance = array(
+    // Add a term reference field to the "article" node bundle. Tests use this
+    // content type as "feed item": tests imports nodes of this type.
+    $this->article_tags = array(
       'field_name' => 'field_tags',
       'bundle' => 'article',
       'entity_type' => 'node',
@@ -63,10 +71,12 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
         ),
       ),
     );
-    field_create_instance($this->instance);
+    field_create_instance($this->article_tags);
 
-    // Add term reference field to feed node bundle.
-    $this->instance = array(
+    // Add a term reference field to the "page" node bundle. Tests use this
+    // content type as "feed node type": this type is used to attach importers
+    // to.
+    $this->page_tags = array(
       'field_name' => 'field_tags',
       'bundle' => 'page',
       'entity_type' => 'node',
@@ -79,7 +89,7 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
         ),
       ),
     );
-    field_create_instance($this->instance);
+    field_create_instance($this->page_tags);
 
     // Create an importer configuration with basic mapping.
     $this->createImporterConfiguration('Syndication', 'syndication');
@@ -114,9 +124,8 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
   /**
    * Tests inheriting taxonomy from the feed node.
    */
-  function testInheritTaxonomy() {
-
-    // Adjust importer settings
+  public function testInheritTaxonomy() {
+    // Adjust importer settings.
     $this->setSettings('syndication', NULL, array('import_period' => FEEDS_SCHEDULE_NEVER));
     $this->setSettings('syndication', NULL, array('import_on_create' => FALSE));
     $this->assertText('Do not import on submission');
@@ -234,13 +243,16 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $target = 'field_tags';
     $mapping = array(
       'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_ID,
+      'language' => LANGUAGE_NONE,
     );
 
-    taxonomy_feeds_set_target(NULL, $entity, $target, $terms, $mapping);
+    $source = FeedsSource::instance('tmp', 0);
+
+    taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping);
     $this->assertEqual(count($entity->field_tags[LANGUAGE_NONE]), 10);
 
     // Test a second mapping with a bogus term id.
-    taxonomy_feeds_set_target(NULL, $entity, $target, array(1234), $mapping);
+    taxonomy_feeds_set_target($source, $entity, $target, array(1234), $mapping);
     $this->assertEqual(count($entity->field_tags[LANGUAGE_NONE]), 10);
   }
 
@@ -282,20 +294,399 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $target = 'field_tags';
     $mapping = array(
       'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_GUID,
+      'language' => LANGUAGE_NONE,
     );
 
-    taxonomy_feeds_set_target(NULL, $entity, $target, $guids, $mapping);
+    $source = FeedsSource::instance('tmp', 0);
+
+    taxonomy_feeds_set_target($source, $entity, $target, $guids, $mapping);
     $this->assertEqual(count($entity->field_tags[LANGUAGE_NONE]), 10);
     foreach ($entity->field_tags[LANGUAGE_NONE] as $delta => $values) {
       $this->assertEqual($tids[$delta], $values['tid'], 'Correct term id foud.');
     }
 
     // Test a second mapping with a bogus term id.
-    taxonomy_feeds_set_target(NULL, $entity, $target, array(1234), $mapping);
+    taxonomy_feeds_set_target($source, $entity, $target, array(1234), $mapping);
     $this->assertEqual(count($entity->field_tags[LANGUAGE_NONE]), 10);
     foreach ($entity->field_tags[LANGUAGE_NONE] as $delta => $values) {
       $this->assertEqual($tids[$delta], $values['tid'], 'Correct term id foud.');
     }
+  }
+
+  /**
+   * Tests that only term references are added from allowed vocabularies.
+   */
+  public function testAllowedVocabularies() {
+    // Create a second vocabulary.
+    $vocabulary = new stdClass();
+    $vocabulary->name = 'Foo';
+    $vocabulary->machine_name = 'foo';
+    taxonomy_vocabulary_save($vocabulary);
+
+    // Add a term to this vocabulary.
+    $term1 = new stdClass();
+    $term1->name = 'Foo1';
+    $term1->vid = $vocabulary->vid;
+    taxonomy_term_save($term1);
+
+    // Add a term to the tags vocabulary.
+    $term2 = new stdClass();
+    $term2->name = 'Bar1';
+    $term2->vid = 1;
+    taxonomy_term_save($term2);
+
+    FeedsPlugin::loadMappers();
+
+    $entity = new stdClass();
+    $target = 'field_tags';
+    $terms = array(
+      'Foo1',
+      'Bar1',
+    );
+    $mapping = array(
+      'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+      'language' => LANGUAGE_NONE,
+    );
+
+    $source = FeedsSource::instance('tmp', 0);
+
+    taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping);
+
+    // Assert that only the term 'Bar1' was set.
+    $this->assertEqual(count($entity->field_tags[LANGUAGE_NONE]), 1);
+    $this->assertEqual($term2->tid, $entity->field_tags[LANGUAGE_NONE][0]['tid']);
+  }
+
+  /**
+   * Tests how term caching works across multiple term reference fields.
+   *
+   * This specifically verifies that terms added to a vocabulary by one mapping
+   * are available for use by other fields that are mapping to the same
+   * vocabulary.
+   *
+   * @see https://www.drupal.org/project/feeds/issues/3091682
+   */
+  public function testAutoCreateUpdatesAllCaches() {
+    // Create a second term reference field base.
+    $field = array(
+      'field_name' => 'field_tags2',
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'tags',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    );
+    field_create_field($field);
+
+    // Add a second term reference field instance to to feed node bundle.
+    $this->article_tags2 = array(
+      'field_name' => 'field_tags2',
+      'bundle' => 'article',
+      'entity_type' => 'node',
+      'widget' => array(
+        'type' => 'options_select',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'taxonomy_term_reference_link',
+        ),
+      ),
+    );
+    field_create_instance($this->article_tags2);
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'node');
+
+    $this->setSettings('node', NULL, array(
+      'content_type' => '',
+    ));
+
+    $this->setPlugin('node', 'FeedsFileFetcher');
+    $this->setPlugin('node', 'FeedsCSVParser');
+
+    $this->setSettings('node', 'FeedsNodeProcessor', array(
+      'bundle' => 'article',
+      'update_existing' => TRUE,
+    ));
+
+    $this->addMappings('node', array(
+      0 => array(
+        'source' => 'guid',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+      1 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      2 => array(
+        'source' => 'tag1',
+        'target' => 'field_tags',
+        'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+        'autocreate' => TRUE,
+      ),
+      3 => array(
+        'source' => 'tag2',
+        'target' => 'field_tags2',
+        'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+        'autocreate' => TRUE,
+      ),
+    ));
+
+    $this->importFile(
+      'node',
+      $this->absolutePath() . '/tests/feeds/taxonomy_multiple_tag_fields.csv');
+
+    $this->assertText('Created 2 nodes');
+
+    $term_names = array(
+      'Alpha',
+      'Beta',
+      'Kiwi',
+    );
+
+    foreach ($term_names as $term_name) {
+      $loaded_term = taxonomy_get_term_by_name($term_name);
+      $terms[$term_name] = reset($loaded_term);
+    }
+
+    $expected_node_values = array(
+      1 => array(
+        'field_tags' => $terms['Alpha']->tid,
+        'field_tags2' => $terms['Beta']->tid,
+      ),
+      2 => array(
+        'field_tags' => $terms['Kiwi']->tid,
+        'field_tags2' => $terms['Kiwi']->tid,
+      ),
+    );
+
+    foreach ($expected_node_values as $nid => $node_values) {
+      $this->drupalGet("node/{$nid}/edit");
+
+      foreach ($node_values as $field_name => $field_value) {
+        $this->assertFieldByName("{$field_name}[und][]", $field_value);
+      }
+    }
+  }
+
+  /**
+   * Tests if terms can be mapped when term access modules are enabled.
+   */
+  public function testTermAccess() {
+    FeedsPlugin::loadMappers();
+
+    // Set acting user.
+    // @see feeds_tests_query_term_access_alter()
+    variable_set('feeds_tests_term_reference_allowed_user', $this->admin_user->uid);
+
+    // Set to import using cron.
+    $this->setSettings('syndication', NULL, array(
+      'import_period' => 0,
+      'import_on_create' => FALSE,
+      'process_in_background' => TRUE,
+    ));
+
+    // Add target to taxonomy reference field.
+    $this->addMappings('syndication', array(
+      5 => array(
+        'source' => 'tags',
+        'target' => 'field_tags',
+        'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+      ),
+    ));
+
+    // Create a few terms used in developmentseed.rss2.
+    $term1 = new stdClass();
+    $term1->name = 'Drupal';
+    $term1->vid = 1;
+    taxonomy_term_save($term1);
+    $term2 = new stdClass();
+    $term2->name = 'translation';
+    $term2->vid = 1;
+    taxonomy_term_save($term2);
+
+    // Create feed node and initiate import.
+    $nid = $this->createFeedNode('syndication', NULL, 'Syndication');
+
+    // Log out to ensure cron is ran as anonymous user.
+    $this->drupalLogout();
+    // Run cron to run the import and assert 11 created nodes in total.
+    $this->cronRun();
+    $node_count = db_select('node')
+      ->fields('node', array('nid'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(11, $node_count, format_string('There are @expected nodes (actual: @actual).', array(
+      '@expected' => 11,
+      '@actual' => $node_count,
+    )));
+
+    // Assert that node 2 got two terms assigned.
+    $node = node_load(2);
+    $this->assertEqual($term1->tid, $node->field_tags[LANGUAGE_NONE][0]['tid']);
+    $this->assertEqual($term2->tid, $node->field_tags[LANGUAGE_NONE][1]['tid']);
+  }
+
+  /**
+   * Tests importing empty values.
+   */
+  public function testBlankSourceValues() {
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'node');
+    $this->setPlugin('node', 'FeedsFileFetcher');
+    $this->setPlugin('node', 'FeedsCSVParser');
+    $this->setSettings('node', 'FeedsNodeProcessor', array('bundle' => 'article'));
+    $this->setSettings('node', NULL, array('content_type' => ''));
+    $this->addMappings('node', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'tags',
+        'target' => 'field_tags',
+        'term_search' => 0,
+        'autocreate' => 1,
+      ),
+      2 => array(
+        'source' => 'guid',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+    ));
+
+    // Verify that there are 5 nodes total.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/taxonomy_empty_terms.csv');
+    $this->assertText('Created 5 nodes');
+
+    // Make sure only two terms were added.
+    $names = db_query('SELECT name FROM {taxonomy_term_data}')->fetchCol();
+    $this->assertEqual(count($names), 2, 'Found correct number of terms in the database.');
+
+    // Make sure the correct terms were created.
+    $terms = array(
+      'term1',
+      '0',
+    );
+    foreach ($terms as $term_name) {
+      $this->assertTrue(in_array($term_name, $names), 'Correct term created');
+    }
+  }
+
+  /**
+   * Tests that there are no errors when trying to map to an invalid vocabulary.
+   */
+  public function testMissingVocabulary() {
+    $this->addMappings('syndication', array(
+      5 => array(
+        'source' => 'tags',
+        'target' => 'field_tags',
+        'term_search' => 0,
+        'autocreate' => TRUE,
+      ),
+    ));
+
+    // Create an invalid configuration.
+    db_delete('taxonomy_vocabulary')->execute();
+
+    $this->createFeedNode('syndication', NULL, 'Syndication');
+    $this->assertText('Created 10 nodes.');
+  }
+
+  /**
+   * Tests if values are cleared out when an empty value or no value
+   * is provided.
+   */
+  public function testClearOutValues() {
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'node');
+    $this->setSettings('node', NULL, array(
+      'content_type' => '',
+    ));
+    $this->setPlugin('node', 'FeedsFileFetcher');
+    $this->setPlugin('node', 'FeedsCSVParser');
+    $this->setSettings('node', 'FeedsNodeProcessor', array(
+      'bundle' => 'article',
+      'update_existing' => 1,
+    ));
+    $this->addMappings('node', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'alpha',
+        'target' => 'field_tags',
+        'term_search' => 0,
+        'autocreate' => 1,
+      ),
+      2 => array(
+        'source' => 'guid',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+    ));
+
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/content.csv');
+    $this->assertText('Created 2 nodes');
+
+    // Check the imported nodes.
+    $terms1 = taxonomy_get_term_by_name('Lorem');
+    $term1 = reset($terms1);
+    $terms2 = taxonomy_get_term_by_name('Ut wisi');
+    $term2 = reset($terms2);
+    $taxonomy_values = array(
+      1 => $term1->tid,
+      2 => $term2->tid,
+    );
+    for ($i = 1; $i <= 2; $i++) {
+      $this->drupalGet("node/$i/edit");
+      $this->assertFieldByName('field_tags[und][]', $taxonomy_values[$i]);
+    }
+
+    // Import CSV file with empty values.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/content_empty.csv');
+    $this->assertText('Updated 2 nodes');
+
+    // Check if the taxonomy reference field was cleared out for node 1.
+    $this->drupalGet('node/1/edit');
+    $this->assertFieldByName('field_tags[und][]', '_none');
+    $this->drupalGet('node/1');
+    $this->assertNoText('field_tags');
+
+    // Check if zero's didn't cleared out the taxonomy reference field for
+    // node 2.
+    $terms0 = taxonomy_get_term_by_name('0');
+    $term0 = reset($terms0);
+    $this->drupalGet('node/2/edit');
+    $this->assertFieldByName('field_tags[und][]', $term0->tid);
+    $this->drupalGet('node/2');
+    $this->assertText('field_tags');
+
+    // Re-import the first file again and check if the values returned.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/content.csv');
+    $this->assertText('Updated 2 nodes');
+    for ($i = 1; $i <= 2; $i++) {
+      $this->drupalGet("node/$i/edit");
+      $this->assertFieldByName('field_tags[und][]', $taxonomy_values[$i]);
+    }
+
+    // Import CSV file with non-existent values.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/content_non_existent.csv');
+    $this->assertText('Updated 2 nodes');
+
+    // Check if the taxonomy reference field was cleared out for node 1.
+    $this->drupalGet('node/1/edit');
+    $this->assertFieldByName('field_tags[und][]', '_none');
+    $this->drupalGet('node/1');
+    $this->assertNoText('field_tags');
   }
 
   /**
@@ -313,4 +704,5 @@ class FeedsMapperTaxonomyTestCase extends FeedsMapperTestCase {
     $term = check_plain($term);
     $this->assertNoPattern('/<a href="\/.*taxonomy\/term\/[0-9]+">' . $term . '<\/a>/', 'Did not find ' . $term);
   }
+
 }

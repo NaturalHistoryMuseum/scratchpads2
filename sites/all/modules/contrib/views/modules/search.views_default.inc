@@ -23,8 +23,8 @@ function search_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access content';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -34,31 +34,28 @@ function search_views_default_views() {
   $handler->display->display_options['style_plugin'] = 'list';
   $handler->display->display_options['style_options']['type'] = 'ol';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* No results behavior: Global: Text area */
-  $handler->display->display_options['empty']['text']['id'] = 'area';
-  $handler->display->display_options['empty']['text']['table'] = 'views';
-  $handler->display->display_options['empty']['text']['field'] = 'area';
-  $handler->display->display_options['empty']['text']['empty'] = FALSE;
-  $handler->display->display_options['empty']['text']['content'] = 'No backlinks found.';
-  $handler->display->display_options['empty']['text']['format'] = '1';
+  /* No results behavior: Global: Unfiltered text */
+  $handler->display->display_options['empty']['area_text_custom']['id'] = 'area_text_custom';
+  $handler->display->display_options['empty']['area_text_custom']['table'] = 'views';
+  $handler->display->display_options['empty']['area_text_custom']['field'] = 'area_text_custom';
+  $handler->display->display_options['empty']['area_text_custom']['content'] = 'No backlinks found.';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Contextual filter: Search: Links to */
   $handler->display->display_options['arguments']['nid']['id'] = 'nid';
   $handler->display->display_options['arguments']['nid']['table'] = 'search_node_links_to';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
   $handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
-  $handler->display->display_options['arguments']['nid']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['nid']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['nid']['title'] = 'Pages that link to %1';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['nid']['specify_validation'] = 1;
+  $handler->display->display_options['arguments']['nid']['specify_validation'] = TRUE;
   $handler->display->display_options['arguments']['nid']['validate']['type'] = 'node';
-  /* Filter criterion: Content: Published */
+  /* Filter criterion: Content: Published status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
@@ -89,11 +86,11 @@ function search_views_default_views() {
   $handler->display->display_options['arguments']['nid']['table'] = 'search_node_links_to';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
   $handler->display->display_options['arguments']['nid']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['nid']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['nid']['title_enable'] = TRUE;
   $handler->display->display_options['arguments']['nid']['title'] = 'What links here';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'node';
   $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['nid']['specify_validation'] = 1;
+  $handler->display->display_options['arguments']['nid']['specify_validation'] = TRUE;
   $handler->display->display_options['arguments']['nid']['validate']['type'] = 'node';
   $translatables['backlinks'] = array(
     t('Master'),

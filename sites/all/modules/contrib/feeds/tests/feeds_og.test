@@ -1,0 +1,248 @@
+<?php
+
+/**
+ * @file
+ * Contains FeedsOgTest.
+ */
+
+/**
+ * Tests for Organic Groups integration.
+ */
+class FeedsOgTest extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Organic groups integration',
+      'description' => 'Tests for Organic groups integration.',
+      'group' => 'Feeds',
+      'dependencies' => array('og'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array('og'));
+
+    // Add OG group field to the node type 'page'.
+    og_create_field(OG_GROUP_FIELD, 'node', 'page');
+
+    // Add OG audience field to the node's "article" bundle.
+    $og_field = og_fields_info(OG_AUDIENCE_FIELD);
+    $og_field['field']['settings']['target_type'] = 'node';
+    og_create_field(OG_AUDIENCE_FIELD, 'node', 'article', $og_field);
+
+    // Do not use curl as that will result into HTTP requests returning a 404.
+    variable_set('feeds_never_use_curl', TRUE);
+
+    // Create an importer. Do not import on create.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->setSettings('syndication', NULL, array(
+      'import_period' => FEEDS_SCHEDULE_NEVER,
+      'import_on_create' => FALSE,
+    ));
+    $this->setPlugin('syndication', 'FeedsCSVParser');
+    $this->addMappings('syndication',
+      array(
+        0 => array(
+          'source' => 'title',
+          'target' => 'title',
+        ),
+      )
+    );
+
+    // Clear cache to make permission 'create article content' available.
+    drupal_static_reset();
+    drupal_flush_all_caches();
+  }
+
+  /**
+   * Creates a group node.
+   *
+   * @param string $name
+   *   Name of the group.
+   * @param int $owner_uid
+   *   User ID of the owner of the group.
+   *
+   * @return object
+   *   The created group node.
+   */
+  protected function createGroup($name, $owner_uid) {
+    $group = entity_create('node', array(
+      'type' => 'page',
+      'title' => $name,
+      'uid' => $owner_uid,
+    ));
+    $wrapper = entity_metadata_wrapper('node', $group);
+    $wrapper->{OG_GROUP_FIELD}->set(1);
+    $wrapper->save();
+
+    return $group;
+  }
+
+  /**
+   * Sets up stuff for testing with the authorize option turned off.
+   *
+   * Does the following:
+   * - Creates an account;
+   * - Creates two group nodes;
+   * - Adds mapping to og reference.
+   * - Creates a feed node.
+   *
+   * @return object[]
+   *   The two created group nodes.
+   */
+  protected function setUpStuffForTestingOgReferenceWithoutAuthorizing() {
+    // Disable "authorize" option.
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('authorize' => FALSE));
+
+    // Create an account who will own a group.
+    $group_owner = $this->drupalCreateUser();
+
+    // Create two groups.
+    $group1 = $this->createGroup('Lorem', $group_owner->uid);
+    $group2 = $this->createGroup('Ut wisi', $group_owner->uid);
+
+    // Use source 'alpha' as group name.
+    $this->addMappings('syndication',
+      array(
+        1 => array(
+          'source' => 'alpha',
+          'target' => 'og_group_ref:label',
+        ),
+      )
+    );
+
+    // Create a feed node and change author of node.
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content.csv', 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    return array($group1, $group2);
+  }
+
+  /**
+   * Tests importing content for a group using the web UI.
+   */
+  public function testImportOgReferenceWithoutAuthorizing() {
+    list($group1, $group2) = $this->setUpStuffForTestingOgReferenceWithoutAuthorizing();
+
+    // And perform import.
+    $this->drupalPost('node/3/import', NULL, 'Import');
+    $this->assertText('Created 2 nodes');
+
+    // Assert that both nodes were created.
+    $this->assertNodeCount(5);
+    $node1 = node_load(4);
+    $this->assertEqual('Lorem ipsum', $node1->title);
+    $this->assertEqual($group1->nid, $node1->og_group_ref[LANGUAGE_NONE][0]['target_id']);
+    $node2 = node_load(5);
+    $this->assertEqual('Ut wisi enim ad minim veniam', $node2->title);
+    $this->assertEqual($group2->nid, $node2->og_group_ref[LANGUAGE_NONE][0]['target_id']);
+  }
+
+  /**
+   * Tests importing content for a group on cron runs.
+   */
+  public function testImportOgReferenceWithoutAuthorizingOnCron() {
+    $this->setSettings('syndication', NULL, array(
+      'process_in_background' => TRUE,
+    ));
+
+    list($group1, $group2) = $this->setUpStuffForTestingOgReferenceWithoutAuthorizing();
+
+    // Schedule import and run cron.
+    $this->drupalPost('node/3/import', NULL, 'Schedule import');
+    $this->cronRun();
+
+    // Assert that both nodes were created.
+    $this->assertNodeCount(5);
+    $node1 = node_load(4);
+    $this->assertEqual('Lorem ipsum', $node1->title);
+    $this->assertEqual($group1->nid, $node1->og_group_ref[LANGUAGE_NONE][0]['target_id']);
+    $node2 = node_load(5);
+    $this->assertEqual('Ut wisi enim ad minim veniam', $node2->title);
+    $this->assertEqual($group2->nid, $node2->og_group_ref[LANGUAGE_NONE][0]['target_id']);
+  }
+
+  /**
+   * Tests authorizing users importing content for a group.
+   *
+   * With the "authorize" option turned on, an user *must* be a member of the
+   * group in order to import content for that group.
+   */
+  public function testImportOgReferenceWithAuthorizing() {
+    // Enable "authorize" option.
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('authorize' => TRUE));
+
+    // Use source 'alpha' as group name.
+    $this->addMappings('syndication',
+      array(
+        1 => array(
+          'source' => 'author',
+          'target' => 'user_name',
+        ),
+        2 => array(
+          'source' => 'alpha',
+          'target' => 'og_group_ref:label',
+        ),
+      )
+    );
+
+    // Create a role with permission to create content.
+    $rid = $this->drupalCreateRole(array(
+      'access content',
+      'create article content',
+    ));
+
+    // Create two accounts.
+    $morticia = user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+      'roles' => array(
+        $rid => $rid,
+      ),
+    ));
+    $fester = user_save(drupal_anonymous_user(), array(
+      'name' => 'Fester',
+      'mail' => 'fester@example.com',
+      'pass' => 'fester',
+      'status' => 1,
+      'roles' => array(
+        $rid => $rid,
+      ),
+    ));
+
+    // Create two groups and make Fester the owner of both.
+    $group1 = $this->createGroup('Lorem', $fester->uid);
+    $group2 = $this->createGroup('Ut wisi', $fester->uid);
+
+    // Create a feed node and change the author of the node.
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content_author.csv', 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    // And perform import.
+    $this->drupalPost('node/3/import', NULL, 'Import');
+
+    // Assert that only one node was imported. Only the author of the second
+    // item is expected to be allowed to reference the group.
+    $this->assertText('Created 1 node');
+    $this->assertText('Failed importing 1 node');
+    $this->assertText("Field validation errors in item 'Lorem ipsum'");
+    $this->assertText('The referenced group (node: 1) is invalid.');
+  }
+
+}

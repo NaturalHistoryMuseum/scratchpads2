@@ -69,7 +69,7 @@ function captcha_schema() {
       'sid' => array(
         'description' => "Session ID of the user.",
         'type' => 'varchar',
-        'length' => 64,
+        'length' => 128,
         'not null' => TRUE,
         'default' => '',
       ),
@@ -325,4 +325,19 @@ function captcha_update_7000() {
       ->condition('form_id', 'comment_form')
       ->execute();
   }
+}
+
+/**
+ * Increase the Session Id field size.
+ */
+function captcha_update_7001() {
+  $schema = captcha_schema();
+
+  db_change_field('captcha_sessions', 'sid', 'sid', array(
+    'description' => "Session ID of the user.",
+    'type' => 'varchar',
+    'length' => 128,
+    'not null' => TRUE,
+    'default' => '',
+  ));
 }

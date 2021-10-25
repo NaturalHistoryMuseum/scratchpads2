@@ -76,8 +76,8 @@ function views_analyze_format_result($view, $messages) {
  * The 'ok' status should be used to provide information about things
  * that are acceptable. In general analysis isn't interested in 'ok'
  * messages, but instead the 'warning', which is a category for items
- * that may be broken unless the user knows what he or she is doing,
- * and 'error' for items that are definitely broken are much more useful.
+ * that may be broken unless the user knows what they are doing, and
+ * 'error' for items that are definitely broken are much more useful.
  *
  * @param string $message
  *   The message to report.
@@ -105,7 +105,7 @@ function views_ui_views_analyze($view) {
   }
   // You can give a page display the same path as an alias existing in the
   // system, so the alias will not work anymore. Report this to the user,
-  // because he probably wanted something else.
+  // because they probably wanted something else.
   foreach ($view->display as $id => $display) {
     if (empty($display->handler)) {
       continue;
@@ -113,7 +113,7 @@ function views_ui_views_analyze($view) {
     if ($display->handler->has_path() && $path = $display->handler->get_option('path')) {
       $normal_path = drupal_get_normal_path($path);
       if ($path != $normal_path) {
-        $ret[] = views_ui_analysis(t('You have configured display %display with a path which is an path alias as well. This might lead to unwanted effects so better use an internal path.', array('%display' => $display->display_title)), 'warning');
+        $ret[] = views_ui_analysis(t('You have configured display %display with a path which is a path alias as well. This might lead to unwanted effects so you should use an internal path.', array('%display' => $display->display_title)), 'warning');
       }
     }
   }

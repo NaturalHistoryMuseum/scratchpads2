@@ -2,13 +2,17 @@
 
 /**
  * @file
- * Test cases for Feeds mapping configuration form.
+ * Contains FeedsMapperConfigTestCase.
  */
 
 /**
- * Class for testing basic Feeds ajax mapping configurtaion form behavior.
+ * Test cases for Feeds mapping configuration form.
  */
 class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Mapper: Config',
@@ -17,6 +21,9 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp(array('feeds_tests'));
   }
@@ -37,6 +44,8 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
     // Click gear to get form.
     $this->drupalPostAJAX(NULL, array(), 'mapping_settings_edit_0');
 
+    $second_callback_value = $this->randomString();
+
     // Set some settings.
     $edit = array(
       'config[0][settings][checkbox]' => 1,
@@ -44,8 +53,10 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
       'config[0][settings][textarea]' => 'Textarea value: Didery dofffffffffffffffffffffffffffffffffffff',
       'config[0][settings][radios]' => 'option1',
       'config[0][settings][select]' => 'option4',
+      'config[0][settings][second_value]' => $second_callback_value,
     );
     $this->drupalPostAJAX(NULL, $edit, 'mapping_settings_update_0');
+    $this->assertText(t('* Changes made to target configuration are stored temporarily. Click Save to make your changes permanent.'));
 
     // Click Save.
     $this->drupalPost(NULL, array(), t('Save'));
@@ -59,6 +70,7 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
     $this->assertText('Textarea value: Didery dofffffffffffffffffffffffffffffffffffff');
     $this->assertText('Radios value: Option 1');
     $this->assertText('Select value: Another One');
+    $this->assertText(t('Second summary: @value', array('@value' => $second_callback_value)));
 
     // Check that settings are in db.
     $config = unserialize(db_query("SELECT config FROM {feeds_importer} WHERE id='syndication'")->fetchField());
@@ -69,7 +81,7 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
     $this->assertEqual($settings['textarea'], 'Textarea value: Didery dofffffffffffffffffffffffffffffffffffff');
     $this->assertEqual($settings['radios'], 'option1');
     $this->assertEqual($settings['select'], 'option4');
-
+    $this->assertEqual($settings['second_value'], $second_callback_value);
 
     // Check that form validation works.
     // Click gear to get form.
@@ -112,4 +124,5 @@ class FeedsMapperConfigTestCase extends FeedsMapperTestCase {
     $this->assertText('Checkbox inactive.');
     $this->assertText('Second mapping text');
   }
+
 }

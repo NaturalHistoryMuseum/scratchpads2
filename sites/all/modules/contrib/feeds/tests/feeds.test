@@ -11,6 +11,9 @@
 class FeedsWebTestCase extends DrupalWebTestCase {
   protected $profile = 'testing';
 
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     $args = func_get_args();
 
@@ -18,11 +21,11 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     // array of module names to setUp().
     if (isset($args[0])) {
       if (is_array($args[0])) {
-      $modules = $args[0];
-    }
+        $modules = $args[0];
+      }
       else {
-      $modules = $args;
-    }
+        $modules = $args;
+      }
     }
     else {
       $modules = array();
@@ -89,11 +92,15 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $permissions[] = 'administer taxonomy';
     $permissions[] = 'administer users';
     $permissions[] = 'administer feeds';
+    $permissions[] = 'administer filters';
+    $permissions[] = 'administer fields';
 
     // Create an admin user and log in.
     $this->admin_user = $this->drupalCreateUser($permissions);
     $this->drupalLogin($this->admin_user);
 
+    // Create two content types if they don't exist yet.
+    $existing_node_types = node_type_get_names();
     $types = array(
       array(
         'type' => 'page',
@@ -109,6 +116,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       ),
     );
     foreach ($types as $type) {
+      // Check if the content type to add already exists. Other tests which
+      // inherit from FeedsWebTestCase might already have added one of the
+      // content types in one of the modules they have enabled in their startup.
+      if (isset($existing_node_types[$type['type']])) {
+        // Content type already exists. Continue to the next one.
+        continue;
+      }
+
       $this->drupalPost('admin/structure/types/add', $type, 'Save content type');
       $this->assertText("The content type " . $type['name'] . " has been added.");
     }
@@ -125,7 +140,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * Get the absolute directory path of the feeds module.
    */
   public function absolutePath() {
-    return  $this->absolute() . '/' . drupal_get_path('module', 'feeds');
+    return $this->absolute() . '/' . drupal_get_path('module', 'feeds');
   }
 
   /**
@@ -137,8 +152,8 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   public function generateOPML() {
     $path = $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/';
 
-  $output =
-'<?xml version="1.0" encoding="utf-8"?>
+    $output =
+    '<?xml version="1.0" encoding="utf-8"?>
 <opml version="1.1">
 <head>
     <title>Feeds test OPML</title>
@@ -154,7 +169,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 </body>
 </opml>';
 
-    // UTF 8 encode output string and write it to disk
+    // UTF 8 encode output string and write it to disk.
     $output = utf8_encode($output);
     $filename = file_default_scheme() . '://test-opml-' . $this->randomName() . '.opml';
 
@@ -230,10 +245,10 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Create a test feed node. Test user has to have sufficient permissions:
+   * Create a test feed node. Test user has to have sufficient permissions:.
    *
    * * create [type] content
-   * * use feeds
+   * * use feeds.
    *
    * Assumes that page content type has been configured with
    * createImporterConfiguration() as a feed content type.
@@ -248,7 +263,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 
     // If content type not given, retrieve it.
     if (!$content_type) {
-      $result= db_select('feeds_importer', 'f')
+      $result = db_select('feeds_importer', 'f')
         ->condition('f.id', $id, '=')
         ->fields('f', array('config'))
         ->execute();
@@ -340,26 +355,65 @@ class FeedsWebTestCase extends DrupalWebTestCase {
 
     // Check whether feed got recorded in feeds_source table.
     $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {feeds_source} WHERE id = :id AND feed_nid = 0", array(':id' => $id))->fetchField());
-    $source = db_query("SELECT * FROM {feeds_source} WHERE id = :id AND feed_nid = 0",  array(':id' => $id))->fetchObject();
+    $source = db_query("SELECT * FROM {feeds_source} WHERE id = :id AND feed_nid = 0", array(':id' => $id))->fetchObject();
     $config = unserialize($source->config);
     $this->assertEqual($config['FeedsHTTPFetcher']['source'], $feed_url, t('URL in DB correct.'));
 
     // Check whether feed got properly added to scheduler.
     $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_import' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
-    // There must be only one entry for callback 'expire' - no matter what the feed_nid is.
-    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND name = 'feeds_importer_expire' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
+    // Check expire scheduler.
+    if (feeds_importer($id)->processor->expiryTime() == FEEDS_EXPIRE_NEVER) {
+      $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_expire'", array(':id' => $id))->fetchField());
+    }
+    else {
+      $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_expire'", array(':id' => $id))->fetchField());
+    }
   }
 
   /**
    * Import a file through the import form. Assumes FeedsFileFetcher in place.
+   *
+   * @param string $id
+   *   The ID of the importer.
+   * @param string $file
+   *   The absolute path to the file.
+   * @param string $submit
+   *   (optional) The button to press.
+   *   Defaults to the button "Import".
    */
-  public function importFile($id, $file) {
-
+  public function importFile($id, $file, $submit = NULL) {
     $this->assertTrue(file_exists($file), 'Source file exists');
     $edit = array(
       'files[feeds]' => $file,
     );
-    $this->drupalPost('import/' . $id, $edit, 'Import');
+    if (empty($submit)) {
+      $submit = 'Import';
+    }
+    $this->drupalPost('import/' . $id, $edit, $submit);
+  }
+
+  /**
+   * Asserts that the given number of nodes exist.
+   *
+   * @param int $expected_node_count
+   *   The expected number of nodes in the node table.
+   * @param string $message
+   *   (optional) The message to assert.
+   */
+  protected function assertNodeCount($expected_node_count, $message = '') {
+    if (!$message) {
+      $message = '@expected nodes have been created (actual: @count).';
+    }
+
+    $node_count = db_select('node')
+      ->fields('node', array())
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual($expected_node_count, $node_count, format_string($message, array(
+      '@expected' => $expected_node_count,
+      '@count' => $node_count,
+    )));
   }
 
   /**
@@ -379,18 +433,94 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $this->assertEqual($config['processor']['plugin_key'], $processor, 'Correct processor');
   }
 
-   /**
-    * Adds mappings to a given configuration.
-    *
-    * @param string $id
-    *   ID of the importer.
-    * @param array $mappings
-    *   An array of mapping arrays. Each mapping array must have a source and
-    *   an target key and can have a unique key.
-    * @param bool $test_mappings
-    *   (optional) TRUE to automatically test mapping configs. Defaults to TRUE.
-    */
-  public function addMappings($id, $mappings, $test_mappings = TRUE) {
+  /**
+   * Overrides DrupalWebTestCase::assertFieldByXPath().
+   *
+   * The core version has a bug, this is the D8 version.
+   *
+   * @todo Remove once https://drupal.org/node/2105617 lands.
+   */
+  protected function assertFieldByXPath($xpath, $value = NULL, $message = '', $group = 'Other') {
+    $fields = $this->xpath($xpath);
+
+    // If value specified then check array for match.
+    $found = TRUE;
+    if (isset($value)) {
+      $found = FALSE;
+      if ($fields) {
+        foreach ($fields as $field) {
+          if (isset($field['value']) && $field['value'] == $value) {
+            // Input element with correct value.
+            $found = TRUE;
+          }
+          elseif (isset($field->option) || isset($field->optgroup)) {
+            // Select element found.
+            $selected = $this->getSelectedItem($field);
+            if ($selected === FALSE) {
+              // No item selected so use first item.
+              $items = $this->getAllOptions($field);
+              if (!empty($items) && $items[0]['value'] == $value) {
+                $found = TRUE;
+              }
+            }
+            elseif ($selected == $value) {
+              $found = TRUE;
+            }
+          }
+          elseif ((string) $field == $value) {
+            // Text area with correct text.
+            $found = TRUE;
+          }
+        }
+      }
+    }
+    return $this->assertTrue($fields && $found, $message, $group);
+  }
+
+  /**
+   * Asserts that a field in the current page is enabled.
+   *
+   * @param string $name
+   *   Name of field to assert.
+   * @param string $message
+   *   (optional) A message to display with the assertion.
+   *
+   * @return bool
+   *   TRUE on pass, FALSE on fail.
+   */
+  protected function assertFieldEnabled($name, $message = '') {
+    $elements = $this->xpath($this->constructFieldXpath('name', $name));
+    return $this->assertTrue(isset($elements[0]) && empty($elements[0]['disabled']), $message ? $message : t('Field %name is enabled.', array('%name' => $name)), t('Browser'));
+  }
+
+  /**
+   * Asserts that a field in the current page is disabled.
+   *
+   * @param string $name
+   *   Name of field to assert.
+   * @param string $message
+   *   (optional) A message to display with the assertion.
+   *
+   * @return bool
+   *   TRUE on pass, FALSE on fail.
+   */
+  protected function assertFieldDisabled($name, $message = '') {
+    $elements = $this->xpath($this->constructFieldXpath('name', $name));
+    return $this->assertTrue(isset($elements[0]) && !empty($elements[0]['disabled']), $message ? $message : t('Field %name is disabled.', array('%name' => $name)), t('Browser'));
+  }
+
+  /**
+   * Adds mappings to a given configuration.
+   *
+   * @param string $id
+   *   ID of the importer.
+   * @param array $mappings
+   *   An array of mapping arrays. Each mapping array must have a source and
+   *   an target key and can have a unique key.
+   * @param bool $test_mappings
+   *   (optional) TRUE to automatically test mapping configs. Defaults to TRUE.
+   */
+  public function addMappings($id, array $mappings, $test_mappings = TRUE) {
 
     $path = "admin/structure/feeds/$id/mapping";
 
@@ -418,7 +548,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
         // Set some settings.
         $edit = array();
         foreach ($config as $key => $value) {
-          $edit["config[$i][settings][$key]"] = $value;
+          if (is_array($value)) {
+            foreach ($value as $subkey => $subvalue) {
+              $edit["config[$i][settings][$key][$subkey]"] = $subvalue;
+            }
+          }
+          else {
+            $edit["config[$i][settings][$key]"] = $value;
+          }
         }
         $this->drupalPostAJAX(NULL, $edit, 'mapping_settings_update_' . $i);
         $this->drupalPost(NULL, array(), t('Save'));
@@ -434,16 +571,18 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   /**
    * Remove mappings from a given configuration.
    *
+   * @param string $id
+   *   ID of the importer.
    * @param array $mappings
    *   An array of mapping arrays. Each mapping array must have a source and
    *   a target key and can have a unique key.
    * @param bool $test_mappings
    *   (optional) TRUE to automatically test mapping configs. Defaults to TRUE.
    */
-  public function removeMappings($id, $mappings, $test_mappings = TRUE) {
+  public function removeMappings($id, array $mappings, $test_mappings = TRUE) {
     $path = "admin/structure/feeds/$id/mapping";
 
-    $current_mappings = $this->getCurrentMappings($id);
+    $edit = array();
 
     // Iterate through all mappings and remove via the form.
     foreach ($mappings as $i => $mapping) {
@@ -453,17 +592,11 @@ class FeedsWebTestCase extends DrupalWebTestCase {
         $this->assertEqual($current_mapping_key, $i, 'Mapping exists before removal.');
       }
 
-      $remove_mapping = array("remove_flags[$i]" => 1);
-
-      $this->drupalPost($path, $remove_mapping, t('Save'));
-
-      $this->assertText('Your changes have been saved.');
-
-      if ($test_mappings) {
-        $current_mapping_key = $this->mappingExists($id, $i, $mapping['source'], $mapping['target']);
-        $this->assertEqual($current_mapping_key, -1, 'Mapping does not exist after removal.');
-      }
+      $edit["remove_flags[$i]"] = 1;
     }
+
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertText('Your changes have been saved.');
   }
 
   /**
@@ -496,14 +629,14 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    *
    * @param string $id
    *   ID of the importer.
-   * @param integer $i
+   * @param int $i
    *   The key of the mapping.
    * @param string $source
    *   The source field.
    * @param string $target
    *   The target field.
    *
-   * @return integer
+   * @return int
    *   -1 if the mapping doesn't exist, the key of the mapping otherwise.
    */
   public function mappingExists($id, $i, $source, $target) {
@@ -536,13 +669,41 @@ class FeedsWebTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Copies a directory.
+   * Changes the author of a node and asserts the change in the UI.
+   *
+   * @param int $nid
+   *   The ID of the node to change author.
+   * @param object $account
+   *   The new author.
    */
-  public function copyDir($source, $dest) {
+  protected function changeNodeAuthor($nid, $account) {
+    $node = node_load($nid);
+    $node->uid = $account->uid;
+    node_save($node);
+    // Assert that author was in fact changed.
+    $this->drupalGet('node/' . $nid);
+    $this->assertText($account->name);
+  }
+
+  /**
+   * Copies a directory.
+   *
+   * @param string $source
+   *   The path of the source directory, from which files should be copied.
+   * @param string $dest
+   *   The path of the destination directory, where files should be copied to.
+   * @param array $mapping
+   *   (optional) The files to rename in the process.
+   *   To skip files from being copied, map filename to FALSE.
+   */
+  public function copyDir($source, $dest, array $mapping = array()) {
     $result = file_prepare_directory($dest, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
     foreach (@scandir($source) as $file) {
       if (is_file("$source/$file")) {
-        $file = file_unmanaged_copy("$source/$file", "$dest/$file");
+        $new_name = isset($mapping[$file]) ? $mapping[$file] : $file;
+        if ($new_name !== FALSE) {
+          $file = file_unmanaged_copy("$source/$file", "$dest/$new_name");
+        }
       }
     }
   }
@@ -553,11 +714,10 @@ class FeedsWebTestCase extends DrupalWebTestCase {
    * Sets the 'feeds_simplepie_library_dir' variable to the directory where
    * SimplePie is downloaded.
    */
-  function downloadExtractSimplePie($version) {
-    $url = "http://simplepie.org/downloads/simplepie_$version.mini.php";
-    $filename = 'simplepie.mini.php';
+  public function downloadExtractSimplePie($version) {
+    $url = "https://codeload.github.com/simplepie/simplepie/zip/$version";
 
-    // Avoid downloading the file dozens of times
+    // Avoid downloading the file dozens of times.
     $library_dir = DRUPAL_ROOT . '/' . $this->originalFileDirectory . '/simpletest/feeds';
     $simplepie_library_dir = $library_dir . '/simplepie';
 
@@ -565,12 +725,9 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       drupal_mkdir($library_dir);
     }
 
-    if (!file_exists($simplepie_library_dir)) {
-      drupal_mkdir($simplepie_library_dir);
-    }
-
     // Local file name.
-    $local_file = $simplepie_library_dir . '/' . $filename;
+    $local_file = $library_dir . '/simplepie/library/SimplePie.php';
+    $zip_file = $library_dir . '/simplepie.zip';
 
     // Begin single threaded code.
     if (function_exists('sem_get')) {
@@ -578,28 +735,44 @@ class FeedsWebTestCase extends DrupalWebTestCase {
       sem_acquire($semaphore);
     }
 
-    // Download and extact the archive, but only in one thread.
+    // Download the archive, but only in one thread.
     if (!file_exists($local_file)) {
-      $local_file = system_retrieve_file($url, $local_file, FALSE, FILE_EXISTS_REPLACE);
+      if (!file_exists($zip_file)) {
+        $zip_file = system_retrieve_file($url, $zip_file, FALSE, FILE_EXISTS_REPLACE);
+      }
+
+      // Extract the archive.
+      $zip = new ZipArchive();
+      if ($zip->open($zip_file) === TRUE) {
+        $zip->extractTo($library_dir);
+        $zip->close();
+      }
+
+      // Rename directory.
+      rename($library_dir . '/simplepie-' . $version, $simplepie_library_dir);
     }
 
     if (function_exists('sem_get')) {
       sem_release($semaphore);
     }
     // End single threaded code.
-
     // Verify that files were successfully extracted.
     $this->assertTrue(file_exists($local_file), t('@file found.', array('@file' => $local_file)));
 
     // Set the simpletest library directory.
     variable_set('feeds_library_dir', $library_dir);
   }
+
 }
 
 /**
  * Provides a wrapper for DrupalUnitTestCase for Feeds unit testing.
  */
 class FeedsUnitTestHelper extends DrupalUnitTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp();
 
@@ -607,9 +780,16 @@ class FeedsUnitTestHelper extends DrupalUnitTestCase {
     // @todo Allow an array of modules from the child class.
     drupal_load('module', 'feeds');
   }
-}
 
+}
+/**
+ *
+ */
 class FeedsUnitTestCase extends FeedsUnitTestHelper {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Unit tests',
@@ -625,7 +805,7 @@ class FeedsUnitTestCase extends FeedsUnitTestHelper {
    *
    * @todo Remove when http://drupal.org/node/1191252 is fixed.
    */
-  function testFeedsValidURL() {
+  public function testFeedsValidURL() {
     $url_schemes = array('http', 'https', 'ftp', 'feed', 'webcal');
     $valid_absolute_urls = array(
       'example.com',
@@ -671,4 +851,5 @@ class FeedsUnitTestCase extends FeedsUnitTestHelper {
       }
     }
   }
+
 }

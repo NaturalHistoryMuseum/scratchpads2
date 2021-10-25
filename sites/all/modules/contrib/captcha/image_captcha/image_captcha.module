@@ -244,7 +244,7 @@ function image_captcha_captcha($op, $captcha_type = '', $captcha_sid = NULL) {
             'ts' => REQUEST_TIME,
           ),
         );
-        $img_src = check_url(url("image_captcha", $options));
+        $img_src = drupal_strip_dangerous_protocols(url("image_captcha", $options));
         list($width, $height) = _image_captcha_image_size($code);
         $result['form']['captcha_image'] = array(
           '#theme' => 'image',

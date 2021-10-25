@@ -6,11 +6,11 @@
  */
 
 /**
- * Implements hook_feeds_processor_targets_alter().
- *
- * @see FeedsProcessor::getMappingTargets()
+ * Implements hook_feeds_processor_targets().
  */
-function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+function link_feeds_processor_targets($entity_type, $bundle_name) {
+  $targets = array();
+
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     if ($info['type'] == 'link_field') {
@@ -32,45 +32,31 @@ function link_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
       }
     }
   }
+
+  return $targets;
 }
 
 /**
- * Callback for mapping. Here is where the actual mapping happens.
- *
- * When the callback is invoked, $target contains the name of the field the
- * user has decided to map to and $value contains the value of the feed item
- * element the user has picked as a source.
+ * Callback for mapping link fields.
  */
-function link_feeds_set_target($source, $entity, $target, $value) {
-  if (empty($value)) {
-    return;
-  }
+function link_feeds_set_target(FeedsSource $source, $entity, $target, array $values, array $mapping) {
+  $language = $mapping['language'];
 
-  // Handle non-multiple value fields.
-  if (!is_array($value)) {
-    $value = array($value);
-  }
-
-  // Iterate over all values.
   list($field_name, $column) = explode(':', $target);
-  $info = field_info_field($field_name);
 
-  $field = isset($entity->$field_name) ? $entity->$field_name : array();
+  $field = isset($entity->$field_name) ? $entity->$field_name : array($language => array());
   $delta = 0;
 
-  foreach ($value as $v) {
-    if ($info['cardinality'] == $delta) {
-      break;
+  foreach ($values as $value) {
+    if (is_object($value) && ($value instanceof FeedsElement)) {
+      $value = $value->getValue();
     }
 
-    if (is_object($v) && ($v instanceof FeedsElement)) {
-      $v = $v->getValue();
+    if (is_scalar($value)) {
+      $field[$language][$delta][$column] = (string) $value;
     }
-
-    if (is_scalar($v)) {
-      $field['und'][$delta][$column] = $v;
-      $delta++;
-    }
+    $delta++;
   }
+
   $entity->$field_name = $field;
 }

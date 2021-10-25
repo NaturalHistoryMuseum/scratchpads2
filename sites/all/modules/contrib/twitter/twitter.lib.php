@@ -44,10 +44,11 @@ class Twitter {
     }
   }
 
-  public function get_request_token() {
+  public function get_request_token($params = array()) {
+    $oauth_callback = variable_get('twitter_oauth_callback_url', TWITTER_OAUTH_CALLBACK_URL);
     $url = variable_get('twitter_api', TWITTER_API) . '/oauth/request_token';
     try {
-      $params = array('oauth_callback' => url('twitter/oauth', array('absolute' => TRUE)));
+      $params = array_merge($params, array('oauth_callback' => url($oauth_callback, array('absolute' => TRUE))));
       $response = $this->auth_request($url, $params);
     }
     catch (TwitterException $e) {
@@ -109,11 +110,18 @@ class Twitter {
   public function auth_request($url, $params = array(), $method = 'GET') {
     $request = OAuthRequest::from_consumer_and_token($this->consumer, $this->token, $method, $url, $params);
     $request->sign_request($this->signature_method, $this->consumer, $this->token);
-    switch ($method) {
-      case 'GET':
-        return $this->request($request->to_url());
-      case 'POST':
-        return $this->request($request->get_normalized_http_url(), $request->get_parameters(), 'POST');
+
+    try {
+      switch ($method) {
+        case 'GET':
+          return $this->request($request->to_url());
+        case 'POST':
+          return $this->request($request->get_normalized_http_url(), $request->get_parameters(), 'POST');
+      }
+    }
+    catch (TwitterException $e) {
+      watchdog('twitter', '!message', array('!message' => $e->__toString()), WATCHDOG_ERROR);
+      return FALSE;
     }
   }
 
@@ -143,13 +151,28 @@ class Twitter {
       return $response->data;
     }
     else {
+      // Extract response error.
       $error = $response->error;
-      $data = $this->parse_response($response->data);
-      if (isset($data['error'])) {
-        $error = $data['error'];
+      // See if there is an error message in the response's data.
+      // This will be an error message from the Twitter API.
+      if (isset($response->data)) {
+        $data = $this->parse_response($response->data);
+        if (isset($data['error'])) {
+          $error .= "\n" . $data['error'];
+        }
       }
       throw new TwitterException($error);
     }
+  }
+  
+  /**
+   *
+   * @see https://dev.twitter.com/docs/api/1/post/statuses/retweet/%3Aid
+   */
+  public function retweet($tweet_id, $params = array()) {
+    $params = array();
+    $values = $this->call('statuses/retweet/' . $tweet_id, $params, 'POST', TRUE);
+    return new TwitterStatus($values);
   }
 
   /**
@@ -172,12 +195,15 @@ class Twitter {
     return drupal_http_request($url, array('headers' => $headers, 'method' => $method, 'data' => $data));
   }
 
+  /**
+   * @see https://www.drupal.org/node/985544
+   */
   protected function parse_response($response) {
-    // http://drupal.org/node/985544 - json_decode large integer issue
     $length = strlen(PHP_INT_MAX);
-    $response = preg_replace('/"(id|in_reply_to_status_id)":(\d{' . $length . ',})/', '"\1":"\2"', $response);
+    $response = preg_replace('/"(id|in_reply_to_status_id|in_reply_to_user_id)":(\d{' . $length . ',})/', '"\1":"\2"', $response);
     return json_decode($response, TRUE);
   }
+
   /**
    * Creates an API endpoint URL.
    *
@@ -196,12 +222,13 @@ class Twitter {
   /********************************************//**
    * Helpers used to convert responses in objects
    ***********************************************/
+
   /**
-   * Get an array of TwitterStatus objects from an API endpoint
+   * Get an array of TwitterStatus objects from an API endpoint.
    */
   protected function get_statuses($path, $params = array()) {
     $values = $this->call($path, $params, 'GET');
-    // Check on successfull call
+    // Check on successfull call.
     if ($values) {
       $statuses = array();
       foreach ($values as $status) {
@@ -209,9 +236,9 @@ class Twitter {
       }
       return $statuses;
     }
-    // Call might return FALSE , e.g. on failed authentication
+    // Call might return FALSE, e.g. on failed authentication.
     else {
-      // As call allready throws an exception, we can return an empty array to
+      // As call already throws an exception, we can return an empty array to
       // break no code.
       return array();
     }
@@ -1067,23 +1094,19 @@ class Twitter {
   }
 
   /**
-   * Returns a variety of information about the user specified by the
-   * required user_id or screen_name parameter.
+   * Returns a variety of information about the user specified by the required
+   * screen_name parameter.
    *
-   * @param mixed $id
-   *   The numeric id or screen name of a Twitter user.
+   * @param string $screen_name
+   *   The screen name of a Twitter user.
    * @param bool $include_entities
    *   Whether to include entities or not.
+   *
    * @see https://dev.twitter.com/docs/api/1.1/get/users/show
    */
-  public function users_show($id, $include_entities = NULL) {
+  public function users_show($screen_name, $include_entities = NULL) {
     $params = array();
-    if (is_numeric($id)) {
-      $params['user_id'] = $id;
-    }
-    else {
-      $params['screen_name'] = $id;
-    }
+    $params['screen_name'] = $screen_name;
     if ($include_entities !== NULL) {
       $params['include_entities'] = $include_entities;
     }
@@ -1226,7 +1249,7 @@ class Twitter {
     }
     catch (TwitterException $e) {
       watchdog('twitter', '!message', array('!message' => $e->__toString()), WATCHDOG_ERROR);
-      return FALSE;
+      throw $e;
     }
 
     if (!$response) {
@@ -1264,6 +1287,10 @@ class TwitterStatus {
 
   public $user;
 
+  public $entities;
+
+  public $retweeted_status;
+
   /**
    * Constructor for TwitterStatus
    */
@@ -1277,9 +1304,34 @@ class TwitterStatus {
     $this->in_reply_to_status_id = $values['in_reply_to_status_id'];
     $this->in_reply_to_user_id = $values['in_reply_to_user_id'];
     $this->in_reply_to_screen_name = $values['in_reply_to_screen_name'];
+
+    // This is not passed in for the first tweet added while attaching a new
+    // account to the system.
+    if (!empty($values['entities'])) {
+      $this->entities = $values['entities'];
+    }
+
     if (isset($values['user'])) {
       $this->user = new TwitterUser($values['user']);
     }
+
+    // Load full retweeted_status (original tweet) if retweet detected.
+    if (isset($values['retweeted_status'])) {
+      $this->retweeted_status = new TwitterStatus($values['retweeted_status']);
+    }
+  }
+
+  /**
+   * Returns the status URL at Twitter.com
+   *
+   * @return
+   *   String URL or FALSE if no user object is present.
+   */
+  public function getURL() {
+    if (empty($this->user->screen_name)) {
+      return FALSE;
+    }
+    return TWITTER_HOST . '/' . $this->user->screen_name . '/status/' . $this->id;
   }
 }
 

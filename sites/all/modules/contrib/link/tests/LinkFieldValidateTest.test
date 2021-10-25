@@ -1,0 +1,401 @@
+<?php
+
+/**
+ * @file
+ * Link field Validation Tests.
+ */
+
+/**
+ * Link field Validation Tests.
+ */
+class LinkFieldValidateTest extends LinkBaseTestClass {
+
+  /**
+   * Get Info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Link field validation tests',
+      'description' => 'Tests the field validation.',
+      'group' => 'Link',
+    );
+  }
+
+  /**
+   * Create Link.
+   */
+  protected function createLink($url, $title, $attributes = array()) {
+    return array(
+      'url' => $url,
+      'title' => $title,
+      'attributes' => $attributes,
+    );
+  }
+
+  /**
+   * Takes a URL, sees if it can validate that the URL is valid.
+   */
+  protected function linkTestValidateUrl($url) {
+    $field_name = $this->createLinkField();
+
+    $label = $this->randomName();
+    $settings = array(
+      'title' => $label,
+      $field_name => array(
+        LANGUAGE_NONE => array(
+          array(
+            'title' => $label,
+            'url' => $url,
+          ),
+        ),
+      ),
+    );
+
+    $node = $this->drupalCreateNode($settings);
+
+    $this->assertNotNull($node, ' has been created.', 'Node created');
+
+    $this->assertEqual($url, $node->{$field_name}[LANGUAGE_NONE][0]['url']);
+  }
+
+  /**
+   * Validate basic URL.
+   */
+  public function testLinkValidateBasicUrl() {
+    $this->linkTestValidateUrl('http://www.example.com');
+  }
+
+  /**
+   * Test if we're stopped from posting a bad url on default validation.
+   */
+  public function testLinkValidateBadUrlValidateDefault() {
+    $this->web_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer fields',
+      'administer nodes',
+      'administer filters',
+      'access content',
+      'create page content',
+      'access administration pages',
+    ));
+    $this->drupalLogin($this->web_user);
+
+    // Create field.
+    $name = strtolower($this->randomName());
+    $edit = array(
+      'fields[_add_new_field][label]' => $name,
+      'fields[_add_new_field][field_name]' => $name,
+      'fields[_add_new_field][type]' => 'link_field',
+      'fields[_add_new_field][widget_type]' => 'link_field',
+    );
+    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
+    $this->drupalPost(NULL, array(), t('Save field settings'));
+    $this->drupalPost(NULL, array(), t('Save settings'));
+
+    // Is field created?
+    $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
+    node_types_rebuild();
+    menu_rebuild();
+
+    // Create page form.
+    $this->drupalGet('node/add/page');
+    $field_name = 'field_' . $name;
+    $this->assertField('edit-field-' . $name . '-und-0-title', 'Title found');
+    $this->assertField('edit-field-' . $name . '-und-0-url', 'URL found');
+
+    $edit = array(
+      'title' => 'Simple Title',
+      $field_name . '[und][0][url]' => 'edik:naw',
+    );
+
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText(t('The value @value provided for @field is not a valid URL.', array(
+      '@value' => 'edik:naw',
+      '@field' => $name,
+    )));
+  }
+
+  /**
+   * Test if we're stopped from posting a bad url with validation on.
+   */
+  public function testLinkValidateBadUrlValidateOn() {
+    $this->web_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer fields',
+      'administer nodes',
+      'administer filters',
+      'access content',
+      'create page content',
+      'access administration pages',
+    ));
+    $this->drupalLogin($this->web_user);
+
+    // Create field.
+    $name = strtolower($this->randomName());
+    $edit = array(
+      'fields[_add_new_field][label]' => $name,
+      'fields[_add_new_field][field_name]' => $name,
+      'fields[_add_new_field][type]' => 'link_field',
+      'fields[_add_new_field][widget_type]' => 'link_field',
+    );
+    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
+    $this->drupalPost(NULL, array(), t('Save field settings'));
+    $this->drupalPost(NULL, array('instance[settings][validate_url]' => TRUE), t('Save settings'));
+
+    // Is field created?
+    $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
+    node_types_rebuild();
+    menu_rebuild();
+
+    // Create page form.
+    $this->drupalGet('node/add/page');
+    $field_name = 'field_' . $name;
+    $this->assertField('edit-field-' . $name . '-und-0-title', 'Title found');
+    $this->assertField('edit-field-' . $name . '-und-0-url', 'URL found');
+
+    $edit = array(
+      'title' => 'Simple Title',
+      $field_name . '[und][0][url]' => 'edik:naw',
+    );
+
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertText(t('The value @value provided for @field is not a valid URL.', array(
+      '@field' => $name,
+      '@value' => 'edik:naw',
+    )));
+
+  }
+
+  /**
+   * Test if we can post a bad url if the validation is expressly turned off.
+   */
+  public function testLinkValidateBadUrlValidateOff() {
+    $this->web_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer fields',
+      'administer nodes',
+      'administer filters',
+      'access content',
+      'create page content',
+      'access administration pages',
+    ));
+    $this->drupalLogin($this->web_user);
+
+    // Create field.
+    $name = strtolower($this->randomName());
+    $edit = array(
+      'fields[_add_new_field][label]' => $name,
+      'fields[_add_new_field][field_name]' => $name,
+      'fields[_add_new_field][type]' => 'link_field',
+      'fields[_add_new_field][widget_type]' => 'link_field',
+    );
+    $this->drupalPost('admin/structure/types/manage/page/fields', $edit, t('Save'));
+    $this->drupalPost(NULL, array(), t('Save field settings'));
+    $this->drupalPost(NULL, array('instance[settings][validate_url]' => FALSE), t('Save settings'));
+
+    // @codingStandardsIgnoreLine
+    /*$instance_details = db_query("SELECT * FROM {field_config_instance} WHERE field_name = :field_name AND bundle = 'page'", array(':field_name' => 'field_'. $name))->fetchObject();
+    $this->fail('<pre>'. print_r($instance_details, TRUE) .'</pre>');
+    $this->fail('<pre>'. print_r(unserialize($instance_details->data), TRUE) .'</pre>');*/
+
+    // Is field created?
+    $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
+    node_types_rebuild();
+    menu_rebuild();
+
+    // Create page form.
+    $this->drupalGet('node/add/page');
+    $field_name = 'field_' . $name;
+    $this->assertField('edit-field-' . $name . '-und-0-title', 'Title found');
+    $this->assertField('edit-field-' . $name . '-und-0-url', 'URL found');
+
+    $edit = array(
+      'title' => 'Simple Title',
+      $field_name . '[und][0][url]' => 'edik:naw',
+    );
+
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $this->assertNoText(t('The value %value provided for %field is not a valid URL.', array(
+      '%field' => $name,
+      '%value' => 'edik:naw',
+    )));
+  }
+
+  /**
+   * Validate switching between validation status.
+   *
+   * Test if a bad url can sneak through un-filtered if we play with the
+   * validation...
+   *
+   * @todo Enable this, fix any problems that come up.
+   */
+  public function xTestLinkValidateSwitchingBetweenValidationStatus() {
+    $this->acquireContentTypes(1);
+    $this->web_user = $this->drupalCreateUser(array(
+      'administer content types',
+      'administer fields',
+      'administer nodes',
+      'access administration pages',
+      'access content',
+      'create ' . $this->content_types[0]->type . ' content',
+      'edit any ' . $this->content_types[0]->type . ' content',
+    ));
+    $this->drupalLogin($this->web_user);
+    variable_set('node_options_' . $this->content_types[0]->name, array(
+      'status',
+      'promote',
+    ));
+    $field_settings = array(
+      'type' => 'link',
+      'widget_type' => 'link',
+      'type_name' => $this->content_types[0]->name,
+      // <-- This is needed or we have an error.
+      'attributes' => array(),
+      'validate_url' => 0,
+    );
+
+    $field = $this->createField($field_settings, 0);
+
+    $this->acquireNodes(2);
+
+    $this->drupalGet('node/' . $this->nodes[0]->nid);
+
+    $edit = array();
+    $title = $this->randomName();
+    $url = 'javascript:alert("http://example.com/' . $this->randomName() . '")';
+    $edit[$field['field_name'] . '[0][url]'] = $url;
+    $edit[$field['field_name'] . '[0][title]'] = $title;
+
+    $this->drupalPost('node/' . $this->nodes[0]->nid . '/edit', $edit, t('Save'));
+    // $this->pass($this->content);.
+    // @codingStandardsIgnoreLine
+    $this->assertNoText(t('The value %value provided for %field is not a valid URL.', array(
+      // @codingStandardsIgnoreLine
+      '%field' => $name,
+      '%value' => trim($url),
+    )));
+
+    // Make sure we get a new version!
+    $node = node_load($this->nodes[0]->nid, NULL, TRUE);
+    $this->assertEqual($url, $node->{$field['field_name']}[0]['url']);
+
+    $this->drupalGet('node/' . $node->nid);
+    $this->assertNoRaw($url, 'Make sure Javascript does not display.');
+
+    // Turn the array validation back _on_.
+    $edit = array('validate_url' => TRUE);
+    $node_type_link = str_replace('_', '-', $node->type);
+    // @codingStandardsIgnoreLine
+    // $this->drupalGet('admin/content/node-type/'. $node_type_link .'/fields'); ///'. $field['field_name']);
+    // $this->fail($this->content);.
+    $this->drupalPost('admin/content/node-type/' . $node_type_link . '/fields/' . $field['field_name'], $edit, t('Save field settings'));
+
+    $this->drupalGet('node/' . $node->nid);
+    // This actually works because the display_url goes through the core
+    // url() function.  But we should have a test that makes sure it continues
+    // to work.
+    $this->assertNoRaw($url, 'Make sure Javascript does not display.');
+    // $this->fail($this->content);.
+  }
+
+  /**
+   * Validate that '<front>' is a valid url.
+   */
+  public function testLinkFrontUrl() {
+    $this->linkTestValidateUrl('<front>');
+  }
+
+  /**
+   * Validate that an internal url would be accepted.
+   */
+  public function testLinkInternalUrl() {
+    // Create the content first.
+    $node = $this->drupalCreateNode();
+
+    $link = 'node/' . $node->nid;
+    $this->linkTestValidateUrl($link);
+    $type = link_url_type($link);
+    $this->assertEqual(LINK_INTERNAL, $type, 'Test ' . $link . ' is an internal link.');
+  }
+
+  /**
+   * Validate a simple mailto.
+   */
+  public function testLinkMailto() {
+    $this->linkTestValidateUrl('mailto:jcfiala@gmail.com');
+  }
+
+  /**
+   * Check link external https.
+   */
+  public function testLinkExternalHttps() {
+    $this->linkTestValidateUrl('https://www.example.com/');
+  }
+
+  /**
+   * Check link FTP.
+   */
+  public function testLinkFtp() {
+    $this->linkTestValidateUrl('ftp://www.example.com/');
+  }
+
+  /**
+   * Validate a news link to a message group.
+   */
+  public function testLinkNews() {
+    $this->linkTestValidateUrl('news:comp.infosystems.www.misc');
+  }
+
+  /**
+   * Validate a news link to a message id.  Said ID copied off of google groups.
+   */
+  public function testLinkNewsMessage() {
+    $this->linkTestValidateUrl('news:hj0db8$vrm$1@news.eternal-september.org');
+  }
+
+  /**
+   * Lets throw in a lot of umlouts for testing!
+   */
+  public function testUmloutUrl() {
+    $this->linkTestValidateUrl('http://üÜü.exämple.com/nöde');
+  }
+
+  /**
+   * Check umlout mailto.
+   */
+  public function testUmloutMailto() {
+    $this->linkTestValidateUrl('mailto:Üser@exÅmple.com');
+  }
+
+  /**
+   * Check German b in URL, aka Eszett.
+   */
+  public function testGermanEszettUrl() {
+    $this->linkTestValidateUrl('http://www.test.com/ßstuff');
+  }
+
+  /**
+   * Check Spanish ñ in URL.
+   */
+  public function testSpecialEneUrl() {
+    $this->linkTestValidateUrl('http://www.testÑñ.com/');
+  }
+
+  /**
+   * Curly brackets in query.
+   */
+  public function testCurlyBracketsInQuery() {
+    $this->linkTestValidateUrl('http://www.healthyteennetwork.org/index.asp?Type=B_PR&SEC={2AE1D600-4FC6-4B4D-8822-F1D5F072ED7B}&DE={235FD1E7-208D-4363-9854-4E6775EB8A4C}');
+  }
+
+  /**
+   * Here, we're testing that a very long url is stored properly in the db.
+   *
+   * Basically, trying to test http://drupal.org/node/376818
+   */
+  public function testLinkUrlFieldIsBig() {
+    $long_url = 'http://th.wikipedia.org/wiki/%E0%B9%82%E0%B8%A3%E0%B8%87%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99%E0%B9%80%E0%B8%9A%E0%B8%8D%E0%B8%88%E0%B8%A1%E0%B8%A3%E0%B8%B2%E0%B8%8A%E0%B8%B9%E0%B8%97%E0%B8%B4%E0%B8%A8_%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%98%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B8%A3%E0%B8%B2%E0%B8%8A';
+    $this->linkTestValidateUrl($long_url);
+  }
+
+}

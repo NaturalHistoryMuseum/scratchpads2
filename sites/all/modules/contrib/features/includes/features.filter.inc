@@ -1,15 +1,22 @@
 <?php
 
 /**
+ * @file
+ * Features integration on behalf of 'filter' module.
+ */
+
+/**
  * Implements hook_features_api().
  */
 function filter_features_api() {
   return array(
     'filter' => array(
       'name' => t('Text formats'),
+      /* @see \hook_filter_default_formats() */
+      /* @see \hook_filter_default_formats_alter() */
       'default_hook' => 'filter_default_formats',
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
-      'feature_source' => TRUE
+      'feature_source' => TRUE,
     ),
   );
 }
@@ -36,10 +43,10 @@ function filter_features_export($data, &$export, $module_name = '') {
   $filter_info = filter_get_filters();
   foreach ($data as $name) {
     if ($format = features_filter_format_load($name)) {
-      // Add format to exports
+      // Add format to exports.
       $export['features']['filter'][$format->format] = $format->format;
 
-      // Iterate through filters and ensure each filter's module is included as a dependency
+      // Ensure that each filter's module is included as a dependency.
       foreach (array_keys($format->filters) as $name) {
         if (isset($filter_info[$name], $filter_info[$name]['module'])) {
           $module = $filter_info[$name]['module'];
@@ -96,7 +103,13 @@ function filter_features_rebuild($module) {
 }
 
 /**
- * Load a filter format by its name.
+ * Loads a filter format by its name.
+ *
+ * @param string $name
+ *   Filter format name.
+ *
+ * @return \stdClass|false
+ *   The filter format, or FALSE if not found.
  */
 function features_filter_format_load($name) {
   // Use machine name for retrieving the format if available.

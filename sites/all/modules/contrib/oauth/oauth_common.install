@@ -223,10 +223,11 @@ function _oauth_common_provider_consumer_schema() {
         'default'     => '',
       ),
       'callback_url' => array(
-        'description' => 'Callback url.',
+        'description' => 'Callback URL.',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => TRUE,
+        'default'     => '',
       ),
     ),
     'primary key' => array('consumer_key'),
@@ -305,6 +306,12 @@ function _oauth_common_token_schema() {
         'not null'    => TRUE,
         'default'     => 0,
       ),
+      'callback_url' => array(
+        'description' => 'Callback url.',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+      ),
     ),
     'primary key' => array('tid'),
     'indexes' => array(
@@ -378,4 +385,28 @@ function _oauth_common_provider_token_schema() {
       ),
     ),
   );
+}
+
+/**
+ * This was renamed to update 7101 so it would run again.
+ */
+function oauth_common_update_7100() {}
+
+/**
+ * Add callback_url field to {oauth_common_token} table.
+ */
+function oauth_common_update_7101() {
+  // Drop the wrongly created field.
+  if (db_field_exists('oauth_common_token', 'callback_url')) {
+    db_drop_field('oauth_common_token', 'callback_url');
+  }
+
+  $spec = array(
+    'description' => 'Callback URL.',
+    'type'        => 'varchar',
+    'length'      => 255,
+    'not null'    => TRUE,
+    'default'     => '',
+  );
+  db_add_field('oauth_common_token', 'callback_url', $spec);
 }

@@ -17,8 +17,7 @@ function views_bulk_operations_script_action_info() {
 }
 
 function views_bulk_operations_script_action($entity, $context) {
-  //$return = eval($context['script']);
-  $return = FALSE;
+  $return = eval($context['script']);
   if ($return === FALSE) {
     $msg = 'Error in script.';
     $arg = array();

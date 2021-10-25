@@ -1,4 +1,428 @@
-Feeds 7.x 2.0 Alpha 8, 2012-04-22
+Feeds 7.x 2.0 Beta 4, 2017-09-24
+--------------------------------
+
+- Issue #2911282 by MegaChriz: Fixed do not show bundle warning for non-entity
+  processors.
+- Issue #2911281 by MegaChriz: changed messages related to rescheduling imports.
+- Issue #2879005 by MegaChriz, anup.singh: fixed array_flip() notice that
+  occurred when mapping a float value to node author.
+- Issue #1962006 by MegaChriz, gordon, twistor: Added hook
+  hook_feeds_config_defaults() to allow other modules to add extra
+  configuration.
+- Issue #2884308 by ppavels: Fixed import links in admin menu for feed importers
+  that are attached to a content type which name contains underscores.
+- Issue #1360910 by MegaChriz, leendertdb: Added an option for the HTTP Fetcher
+  to disable caching content fetched via HTTP.
+- Issue #2877125 by MegaChriz: Replaced http_request_get() with
+  feeds_http_request() in order to easier implement more options for HTTP
+  requests.
+- Issue #2662892 by MegaChriz: Do not cache downloaded source statically to
+  improve PHP memory usage.
+- Issue #2854548 by MegaChriz: Don't display a warning about "Attach to content
+  type" setting being the same as the node processor's content type when the
+  importer is not attached to a content type.
+- Issue #2854548 by MegaChriz: Added warning when user has the "Attach to
+  content type" setting the same as the node processor's content type.
+- Issue #2445477 by MegaChriz: Added validation for combination of settings that
+  causes the "Process in background" setting to have no effect.
+- Issue #2630694 by MegaChriz, twistor: Run background jobs directly in queue.
+- Issue #2868134 by MegaChriz: Show next time that the source will be imported.
+- Issue #2450365 by MegaChriz, twistor, littledynamo: Fixed importer is not
+  rescheduled for new sources when using attach to node.
+- Issue #2871580 by MegaChriz: Fixed jobs for no longer existing feeds are kept
+  being scheduled.
+- Issue #2871583 by MegaChriz: Fixed feeds jobs are not cleaned up when
+  uninstalling Feeds.
+- Issue #2866377 by permanovd, MegaChriz: Fixed release file handle on
+  exception.
+- Issue #2320781 by MegaChriz: Added validation for feed importer configuration:
+  check for invalid bundle and invalid language.
+- Issue #2839706 by wmostrey, MegaChriz: Allow Feeds Importers to be edited even
+  when disabled.
+- Issue #2867182 by MegaChriz: Added a finishImport() method to FeedsSource to
+  bundle tasks that need to be done at the end of an import.
+- Issue #2867189 by MegaChriz: Added a method to FeedsSource to unlock a feed.
+- Issue #2087091 by MegaChriz: Fixed clear states properly after import.
+- Issue #2829097 by MegaChriz: fixed don't store raw source in feeds_source
+  table.
+- Issue #2863209 by MegaChriz: fixed class 'FeedsHTTPCache' not found in
+  _cache_get_object() during/after performing database updates.
+- Issue #2860047 by skessler, MegaChriz: Fixed link to feeds log page in
+  watchdog call.
+- Issue #2847312 by mikran, MegaChriz: Added entity metadata properties for
+  feeds_item GUID and URL.
+- Issue #2788125 by MegaChriz, PaulDinelle: Added support for i18n_node bundle
+  language settings.
+- Issue #2857935 by MegaChriz: Fixed failing test
+  FeedsMapperMultilingualFieldsTestCase::testChangedLanguageImportForExistingNode().
+- Issue #2854152 by renatog, MegaChriz: Delete feeds variables when uninstalling
+  Feeds.
+- Issue #2851707 by MegaChriz: Added user validation.
+- Issue #2752661 by MegaChriz, geru: build the list of available sources and
+  targets in feeds_ui_mapping_form() instead of in the theme function, so Feeds
+  Tamper can alter the form to fix the bug of temporary targets not showing in
+  the UI.
+- Issue #1037188 by saurabh.tripathi.cs, msti, MegaChriz, twistor: Log
+  exceptions that are thrown when trying to fetch from a HTTP source.
+- Issue #2829096 by MegaChriz: Cache result of HTTP source on file system.
+- Issue #2828605 by David_Rothstein: fixed "The following module has moved
+  within the file system" warning that occurred when downloading or enabling a
+  new module or when enabling a previously installed module that was moved on
+  the file system.
+- Issue #2762339 by MegaChriz: fixed feed node form inherits settings from the
+  standalone importer when switching from standalone to attach to content type.
+- Issue #2839464 by MegaChriz: improved error message for when a download from a
+  url fails.
+- Issue #2379631 by MegaChriz, cboyden, twistor, joelpittet, robhardwick,
+  dsnopek: fixed field_attach_validate() must be called before programmatic
+  entity saves.
+- Issue #2445997 by MegaChriz: fixed do not load all Feeds plugins in
+  feeds_forms() when no Feeds form is requested.
+- Issue #2838283 by MegaChriz: Fixed failing test
+  FeedsMapperDateMultipleTestCase::test().
+- Issue #2834026 by bburg, MegaChriz: Fixed do not add blank column headers in
+  CSV template.
+
+Feeds 7.x 2.0 Beta 3, 2016-11-24
+--------------------------------
+
+- Issue #1870528 by MegaChriz: Added tests for rules event
+  feeds_import_IMPORTER_ID and the rules action feeds_skip_item. Also specified
+  bundle for all feeds_import_IMPORTER_ID events (previously this attribute was
+  only declared for the node processor).
+- Issue #1886230 by MegaChriz, generalredneck: fixed invoking rules events
+  "feeds_before_import" and "feeds_after_import".
+- By MegaChriz: add rules as a test dependency for issue #1886230.
+- Issue #2822831 by MegaChriz: Fixed only delete non-existent when the option is
+  explicitly set to FEEDS_DELETE_NON_EXISTENT.
+- Issue #1171114 by drclaw, MegaChriz, twistor, impara, cgmonroe, Anas_maw,
+  azinck, justanothermark, vinmassaro, rhouse, lwalley, patrik.hultgren,
+  kenpeter, ufku, mahmost: Allow user to choose the method of file handling.
+- Issue #1281496 by twistor, MegaChriz, natew: fixed prepend base url for
+  relative links in entries in atom feeds.
+- By MegaChriz: listed variable module as test dependency as somehow the testbot
+  didn't checkout this module anymore. The variable module is a dependency of
+  the i18n module.
+- Issue #2822679 by MegaChriz: Improved documentation for options --file, --url
+  and --stdin for the Drush command 'feeds-import'.
+- Issue #2790741 by MegaChriz: added timezone option for date:end.
+- Issue #2537926 by maximpodorov, MegaChriz, das-peter: Enhance tokens
+  performance.
+- Issue #2778655 by joelpittet: Renamed $form_status in feeds_ui_overview_form()
+  to $form_state.
+- Issue #2485059 by MegaChriz: Added delete protection for user id 1.
+- Issue #2490782 by MegaChriz, heykarthikwithu: fixed a few comment docblocks.
+- Issue #2771803 by MegaChriz: Added some tests for the CSV template.
+- Issue #1570544 by MegaChriz, gaurav.goyal, AndrewsizZ, hpbruna, arrrgh,
+  vcrkid, firfin: Add UID target to user processor.
+- Issue #2655470 by alan-ps, Louis Delacretaz: Added a timezone target to the
+  user processor.
+- Issue #1143280 by David_Rothstein, MegaChriz, dshields, Matt V., marktheshark:
+  Provide an option to delete the uploaded file after import is done.
+- Issue #2719151 by MegaChriz: Fixed don't retrieve title from feed if feed node
+  does not use the node title field.
+- Issue #608408 by MegaChriz, andypost, queenvictoria, pcambra, twistor,
+  ivanbueno, mparker17, kenorb, agnese.stelce, alan-ps, clemens.tolboom, TommyK,
+  JurriaanRoelofs, ericduran, ShaunDychko, sir_squall, alex_b, markabur, Kasper
+  Souren, eiriksm: Added drush integration for Feeds.
+- Issue #2225019 by twistor: Make FeedsDateTime stringable.
+- Issue #722740 by twistor, mglaman, relaxnow, dooug, willieseabrook,
+  David_Rothstein, jeffschuler, lapek, Matthew Davidson: Feeds Date mapper
+  converts imported dates to GMT unless in UNIX timestamp format.
+- Issue #2730207 by MegaChriz, twistor: Correction for the fix to log items that
+  are not UTF-8-encoded.
+- Issue #2730207 by MegaChriz: Fixed logging failed items that are not
+  UTF-8-encoded.
+- Issue #2735981 by MegaChriz: Fixed failing branch tests due to new "administer
+  fields" permission (see also change record #2483307).
+- Issue #1611554 by MegaChriz, hanoii, webservant316, PascalAnimateur,
+  eugene.ilyin: Added support for importing encrypted passwords.
+- Issue #1894542 by mikran, MegaChriz: Fixed replace roles with
+  "Additional roles" when replacing existing users.
+- By MegaChriz: corrected a few indentations in plugins/FeedsUserProcessor.inc.
+- Issue #1376774 by MegaChriz, PascalAnimateur, dooug, grndlvl, yannickoo,
+  daveparrish, joelpittet, maxplus, twistor: Added mapping target for user
+  roles.
+- Issue #1804674 by Pancho, travismccauley, MegaChriz: Fixed broken link in
+  missing feeds plugin message when the feeds_ui module is disabled.
+- Issue #2704171 by MegaChriz: Fixed parse RSS feeds that contain additional
+  whitespace.
+- Issue #2704825 by alan-ps, MegaChriz: Fixed import Feeds importer overwrote
+  importer existing in code without "Replace existing" option set.
+- Issue #2648304 by MegaChriz, OWast: RSS 2.0: add support for item->source
+  element.
+- Issue #2645074 by MegaChriz, MiroslavBanov: Could not retrieve title from feed
+  - support Title module.
+- Issue #1621602 by MegaChriz, twistor: Fixed 'Could not retrieve title from
+  feed' error message for parsers that cannot provide a title from the source.
+- Issue #1810442 by David_Rothstein, MegaChriz: Corrected wording on importer
+  page when there are no unique fields and when using the CSV parser.
+- Issue #2382245 by MegaChriz, twistor: Added import links to the admin menu.
+- Issue #2690169 by tterranigma, MegaChriz: updated README.txt: documented
+  feeds_library_dir variable and removed no longer relevant parts.
+- Issue #2367829 by MegaChriz, diamondsea: Added descriptions for options for
+  "Update existing" setting.
+
+Feeds 7.x 2.0 Beta 2, 2016-02-21
+--------------------------------
+
+- By MegaChriz: test dependencies should be specified in the main module.info
+  file and be in the form project:module (see also issue 2651854).
+- Issue #2662730 by joachim: 'clear-block' CSS class on admin form should be
+  'clearfix'.
+- Issue #2638722 by MegaChriz: Improve documentation for
+  hook_feeds_processor_targets().
+- Issue #1183440 by twistor, MegaChriz, stefan.r, drclaw, pcambra,
+  olofjohansson, Calystod, colan, svendecabooter, Bobík, Manish Jain,
+  AdamGerthel, mErilainen, kervi, Pocketpain et al: Multilingual Feeds - Make
+  field import language-aware.
+- Issue #1428272 by OnkelTem, eosrei, jtsnow, Jerenus, liquidcms, acouch,
+  derhasi, Niremizov, MegaChriz: Added support of encoding conversions to the
+  CSV Parser.
+- Issue #2644868 by diamondsea: Skip verification of the certificate's name when
+  accepting invalid SSL certificates.
+- Issue #2309471 by Josh Waihi: File Fetcher doesn't obey allowed extensions.
+- Issue #2117535 by gbirch, MegaChriz, cbfannin, batje, id.alan: fixed Undefined
+  variable: original_author in _parser_common_syndication_atom10_parse().
+- Issue #2636342 by AndyF, MegaChriz: Improved documentation of
+  FeedsConfigurable::__get().
+- Issue #2637118 by MegaChriz: Use "plural label" for "label plural" from entity
+  info if available.
+- Issue #2602508 by MegaChriz: Fixed clear out boolean field when an empty value
+  is provided.
+- Issue #1891404 by MegaChriz, twistor, jenlampton: Add a mapper for Updated
+  date (changed).
+- Issue #2147341 by milesw: fixed missing bundle property on entity of type
+  taxonomy_term when replacing existing terms.
+- Issue #2624344 by grahamC, MegaChriz: Import via pushImport() keeps looping /
+  never completes.
+- Issue #2629620 by GuyPaddock, MegaChriz: Fixed template for TSV contains the
+  word "TAB" instead of tabs.
+- Issue #2385601 by GerZah, MegaChriz, Jerenus: Sorting feed importers by
+  readable names.
+- Issue #2619788 by pcambra: Get instance info from the entity instead of from
+  the source for file mappings.
+- By MegaChriz: add entity_translation as a test dependency for issue #1183440.
+- Issue #2529538 by twistor, MegaChriz, stefan.r, drclaw, olofjohansson, Manish
+  Jain, et al: Added generic entity language support.
+- Issue #1950182 by mikran, MegaChriz, twistor: Only update when mapped fields
+  are updated.
+- Issue #2556461 by MegaChriz: Fixed importing two hierarchical vocabularies
+  with overlapping id's.
+- Issue #2584443 by zniki.ru: http_request_create_absolute_url() ignore last
+  path in $base_url.
+- Issue #2533030 by rrfegade, MegaChriz, twistor: Spelling errors in D7.
+- Issue #1393898 by MegaChriz, twistor: Order Log view by flid instead of
+  log_time.
+- Issue #2581135 by Anas_maw, MegaChriz: views integration for feeds source
+  import date.
+- Issue #2584157 by MegaChriz: fixed missing mapping targets in the UI for
+  contrib processors.
+- Issue #2574789 by MegaChriz: Wrong processor settings set in
+  FeedsUIUserInterfaceTestCase::testImporterImport().
+- Issue #2557581 by joelpittet: CSV column names escaped & upload field double
+  escaping.
+- By MegaChriz: add i18n_taxonomy as a test dependency for issue #2529538.
+- Issue #2542416 by twistor, MegaChriz: Allow sources and targets to be marked
+  as deprecated and hide them from the UI.
+- Issue #2530670 by MegaChriz: Filter log in Views by "Message".
+- Issue #2397151 by Pravin Ajaaz: importer UI for CSVs should quote column names
+  that contain commas.
+- Issue #2531858 by twistor: Add a FeedsSource::pushImport() method.
+- Issue #2531706 by twistor: relation "cache_feeds_http" does not exist.
+- Issue #2531828 by twistor: Simplify db queries in FeedsProcessor.
+- Issue #1286298 by fietserwin, Triskelion, MegaChriz, charginghawk, osopolar:
+  Don't create new items, only update existing.
+
+Feeds 7.x 2.0 Beta 1, 2015-07-02
+--------------------------------
+
+- Issue #2038525 by twistor, larsdesigns, DamienMcKenna: SimplePie Plugin
+  Installation Documentation in README.txt.
+- Issue #1449464 by klausi, cbergmann: Own cache Bin for feeds.
+- Issue #2515196 by twistor: Only transliterate downloaded files.
+- Issue #2510788 by twistor: Remove query string from path in FeedsEnclosure.
+- Issue #2514300 by twistor: Fatal error when I try to import feed items.
+- Issue #2511738 by deminy: Incorrect File Inclusion.
+- Issue #2509444 by twistor: Field Feeds Presave Not Importing User Fields.
+- Issue #2509464 by twistor, joelpittet: Feeds module cannot find its parser
+  module due to filesystem restriction.
+- Issue #2509464 by twistor, Max1: Feeds module cannot find its parser module
+  due to filesystem restriction.
+- Issue #2364103 by Luxian, MegaChriz: Feeds error log crashes when log messages
+  are too long.
+- Issue #1953008 by MegaChriz, twistor, klausi: PHP Fatal error:  Nesting level
+  too deep - recursive dependency? in FeedsProcessor.inc on line 199.
+- Issue #1107522 by MegaChriz, twistor, ditcheva, nielsonm, franz, Niklas
+  Fiekas, cthiebault, Uhkis, gcb, mparker17, guillaumev: Framework for expected
+  behavior when importing empty/blank values + text field fix.
+- Issue #2092895 by mikran, MegaChriz, twistor: Block users not included in
+  feed.
+- Issue #2500185 by angel.h, MegaChriz: Error when having an entity without base
+  table.
+- Issue #2496735 by twistor, diarmy: For PHP 5.6.0 and above, Feeds should allow
+  the use of cURL if open_basedir is enabled.
+- Issue #1848498 by twistor: Respect allowed file extensions in file mapper.
+- Issue #2502419 by klausi: Log messages XSS attack vector.
+- Issue #2495145 by twistor, cashwilliams, greggles, klausi: Possible XSS in
+  PuSHSubscriber.inc.
+- Issue #2488036 by MegaChriz, orannezelehcim: Modules that define both an
+  importer and a plugin can not be disabled.
+- Issue #2333029 by twistor, MegaChriz: Extend mapping API to allow for defaults
+  and multiple callbacks.
+- Issue #2497507 by twistor: Pass plugin definition to FeedsPlugin objects.
+- Add test for #2489006.
+- Issue #2489006 by donquixote: Uninitialized array in
+  taxonomy_feeds_set_target().
+- Issue #2497729 by twistor: Implement all methods on FeedsMissingPlugin.
+- Issue #2469219 by MegaChriz, twistor: Remove the Generic Entity Processor.
+- Issue #1058424 by thijsvdanker: Port date mapper patch to d7 version to
+  support dates before 13 Dec 1901.
+- Issue #2427497 by ttaylor249: Fetching feed via SSL through proxy doesn't
+  work.
+- Issue #1978722 by klausi, ultimike: Entity property info for feeds node is
+  broken.
+- Issue #1988970 by msti: FeedsCSV parser - download template should use the
+  default delimiter.
+- Issue #2468401 by jiff: HTTP fetcher does not correctly decode urlencoded
+  basic auth params.
+- Issue #1815070 by twistor, joelpittet: No more mapping for numeric (boolean,
+  decimal, integer, floats, and lists of them) fields.
+- Issue #2339383 by mikran, MegaChriz, joelpittet: Items missing from feeds do
+  not affect item hash even when action is taken based on that.
+- Issue #2333009 by MegaChriz: Add importer validator for Views.
+- Issue #2415283 by MegaChriz: Some tests are not executed by testbot.
+- Issue #1829212 by alan-io1, agupta, MegaChriz, ac: SQLSTATE[42S22]: Column not
+  found: 1054 Unknown column 'feeds_item.entity_type' in 'on clause'.
+- Issue #2419111 by make77, MegaChriz: Configuration option to allow invalid SSL
+  certificates is not used when option "Auto detect feeds" is enabled.
+- Issue #2357981 by MegaChriz: hook_feeds_presave: $entity_id is missing.
+- Issue #2011240 by ressa, Abelito: How to import the description of a file?.
+- Issue #2397219 by joachim, MegaChriz: docs for my_module_mapper_unique() don't
+  match implementation in tests.
+- Issue #2397199 by joachim, MegaChriz: summary line for
+  hook_feeds_processor_targets_alter() docs mentions nodes & is too long.
+- Remove unused code from common_syndication_parser.inc.
+- Issue #1982286 by AdamPS: Recoverable fatal error.
+- Issue #2341407 by vinmassaro, twistor: Fix missing file/image mappings caused
+  by #1080386 by adding :uri to mappings.
+- Issue #2379915 by hydrant-mark, twistor: Taxonomy Mapper: Assumes there will
+  only ever be one matching term.
+- Issue #2387419 by MegaChriz: Auto detect dependencies when putting Feeds
+  importer in a feature.
+- Issue #2363779 by Niremizov, MegaChriz: CSVParser Source form translation fix.
+- Issue #2053355 by ufku, vinmassaro: Notice: Undefined variable: file
+  FeedsParser.inc:388.
+- Issue #2390199 by GuyPaddock: Unhelpful failure upon uploading an empty CSV
+  file.
+- Issue #2308343 by MegaChriz, twistor, joelpittet, kruser: File upload
+  disappears with Bootstrap Theme (abuse of #description in
+  theme_feeds_upload()).
+- Issue #1887632 by joelpittet: Exception: Empty configuration identifier.
+- Issue #2379407 by twistor, MegaChriz: Make module required if plugins are in
+  use.
+- Issue #2248009 by twistor | djdevin: Fixed Remove the population of
+  ->source_config from FeedsPlugin.
+- Issue #2218999 by fietserwin: Fixed Warning: Invalid argument supplied for
+  foreach() in element_children() (line 6420 of includes\common.inc).
+- Issue #2349245 by Niremizov: Fixed error on importing empty csv file with no
+  headers.
+- Issue #2339983 by mikran: Fixed Unpublished nodes message has a wrong
+  format_plural() parameter.
+- Issue #2328605 by ekes, twistor: Fixed Unique item checking:
+  FeedsProcessor::existingEntityId().
+- Issue #2305919 by twistor: Fixed Return 404 when trying to edit a non-existent
+  feed.
+- Issue #1062178 by mansspams, MegaChriz, gmclelland, specky_rum, Dave Reid |
+  iccle: Added configuration option to allow invalid/unverified or (self
+  certified) SSL certificates.
+- Issue #1470530 by stefan.r, GaëlG, mikran, Cottser, gnucifer, MegaChriz,
+  vinmassaro, kostajh, Mithrandir, riho, jaanhoinatski, nrambeck, byronveale,
+  dbassendine, PsycleInteractive, imclean: Added Unpublish/Delete nodes not
+  included in feed.
+- Issue #2305929 by twistor, MegaChriz: Show message that mapping settings must
+  be saved after changes.
+- Issue #2304247 by MegaChriz, undertext | twistor: Update included Feeds Import
+  Feature.
+- Issue #2307379 by twistor: Fixed Add FeedsConfigurable::hasConfigForm().
+- Issue #661606 by MegaChriz, twistor, Cottser, scottrigby, manojbisht_drupal,
+  Mohammed J. Razem, agileadam, emilyf, tmsimont, bradjones1, hairqles,
+  ldavisrobeson, selim13, a.ross, chromix, g089h515r806 | lunk_rat: Added
+  Support unique targets in mappers.
+- Issue #2008168 by JeroenT | scottalan: Update included Feeds News Feature.
+- Issue #2224643 by hanoii, MegaChriz: Added Support for input format
+  configuration on a per-field basis .
+- Issue #1981504 by twistor | Dale Baldwin: Fixed Status Report has a
+  notification to install SimplePie library when SimplePie module isn't even
+  installed.
+- Issue #962912 by twistor, MegaChriz, Peacog, Niklas Fiekas | willmoy: Added
+  Mapping to node summary.
+- Backport assertFieldByXPath fix from 8.x.
+- Issue #2175525 by MegaChriz | Max2505: Added User admin is not authorized to
+  create content type.
+- Issue #2275893 by twistor, dagomar: Fixed Process in background doesn't work
+  on non-periodic imports.
+- Issue #2275893 Add tests for import in background.
+- Add a long csv file where the guids are ordered.
+- Fix FeedsWebTestCase::removeMappings.
+- Issue #1561200 by szt, osopolar: Added Use machine names for better
+  identification of similar field names.
+- Issue #2192819 by twistor, klausi: FeedsHTTPFetcherResult should store the
+  result between batches.
+- Issue #1231332 by klausi, twistor | nyl auster: Periodic import imports only
+  one file per cron.
+- Issue #2192851 by klausi: Hook_feeds_after_import() should have access to
+  exceptions.
+- Issue #2190551 by twistor: Hook_feeds_before_import only executes during form
+  submission.
+- Issue #1852048 by ianthomas_uk: Comments suggest exceptions are ignore, when
+  in fact they are rethrown.
+- Issue #1722180 by pcambra: Clear plugins cache on feeds_cache_clear.
+- Issue #2093651 by twistor: Simplify target callbacks.
+- Issue #1305698 by dman: Additional validation when creating terms - assert the
+  Vocabulary is valid.
+- Issue #1113312 by Niklas Fiekas: Show import page in admin overlay.
+- Issue #2053355 by osopolar: Notice: Undefined variable: file
+  FeedsParser.inc:388.
+- Issue #1537776 by David_Rothstein | RyFo18: Importing a single 21st century
+  year defaults to the current year.
+- Issue #1333266 by dastagg | webchick: Link to feed importers broken when no
+  feed importers exist.
+- Issue #1951736 by twistor, John Morahan: Discovery sometimes fails.
+- Issue #1996240 by msti, MegaChriz: Duplicate fields in CSV template.
+- Issue #930652 by twistor, tristanoneil | alex_b: Expiry batching broken.
+- Issue #1884516 by aaronbauman: Import with taxonomy term mapping fails if term
+  name exceeds db size.
+- Issue #2046335 by twistor, j0rd: Http:// prefix and error 1002.
+- Issue #1485870 by brad.bulger, twistor: Remove custom error reporting for
+  SimplePie.
+- Issue #2178563 by twistor | alibama: Entityform does not seem to work.
+- Issue #2174303 by twistor | bdanin: Feeds importer importer -- context and
+  mapping not working.
+- Issue #1107522 by ditcheva, Uhkis, cthiebault, franz, nielsonm, Niklas Fiekas,
+  twistor, mparker17, Lasac, guillaumev | jptl: Framework for expected behavior
+  when importing empty/blank values + text field fix.
+- Issue #1033202 by jamesdixon, jamsilver, twistor, james.williams, Steven
+  Jones, vordude, j0rd, mErilainen, gmario, rickmanelius, imclean, dasjo,
+  guillaumev, jlyon, gilgabar, elliotttf, mukesh.agarwal17, patcon, wesnick,
+  Bevan, kreynen, Grayside, fago, spotzero: [Meta] Generic entity processor.
+- Issue #2149829 by chilic: Import/Update 0 value to text field.
+- Issue #2150989 by chilic | osopolar: SimpleTest fails: Undefined index:
+  content-type, Notice file: http_request.inc Line: 57.
+- Issue #1984962 by mvd81NL, redsd, twistor: Fixed Use a 0 as mapping source.
+- Issue #1159806 by VladimirAus, bigjim | Slim Pickens: Added proxy support.
+- Issue #1989196 by beeradb: Fixed Never Pass FeedsDateTime objects into
+  date_create().
+- Issue #1222750 by Brandonian, twistor, lyricnz: Added SimplePie 1.3 support.
+- Issue #1080386 by elizzle, twistor, rhouse, AndyF, chadmkidner, retiredpro,
+  slefevre1, moonray, asgorobets, jwmeyerson: Added How to get title and alt
+  fields into your image import for drupal 7 feeds.
+- Use user-supplied id if available on import.
+- Issue #777888 by WorldFallz, liquidcms, firfin, tmsimont | timwood: Followup
+  to importing importers.
+- Fix validation for importing importers.
+
+Feeds 7.x 2.0 Alpha 8, 2013-04-22
 ---------------------------------
 
 - Issue #1555974 by twistor | andyg5000: Fixed Save button should also add field
@@ -149,7 +573,7 @@ Feeds 7.x 2.0 Alpha 6, 2012-10-10
 - Issue #1739704 by axel.rutz: Fixed Node lookup by title in Nodeprocessor does
   not respect nodetype.
 - Issue #1690434 by twistor | jzornig: Fixed Notice: Undefined variable: job in
-  FeedsSource->scheduleClear() (line 319 of sites/all/modules/feeds/includes/FeedsSource.inc).
+  FeedsSource->scheduleClear().
 - Issue #1703074 by theduke: Added Include parser result in
   hook_feeds_presave().
 - Issue #1070604 by Bobík: Added Feed's nid in mappings.
@@ -336,7 +760,8 @@ Feeds 7.x 2.0 Alpha 4, 2011-06-28
   feed is updated.
 - Issue #1048642 by greg.harvey: Check for remove_flags in Feeds UI before using 
   that variable.
-- #967018 jcarlson34, David Goode, alex_b: Mapping to String lists not supported
+- #967018 jcarlson34, David Goode, alex_b: Mapping to String lists not
+  supported.
 
 Feeds 7.x 2.0 Alpha 3, 2011-01-14
 ---------------------------------
@@ -412,7 +837,7 @@ Feeds 7.x 2.0 Alpha 2, 2010-11-02
   FeedsSource::state() has changed.
 - Remove 6.x upgrade hooks.
 - #923318: Fix Fatal error: Call to a member function import() on a non-object
-  occuring on cron.
+  occurring on cron.
 - Clean up basic settings form.
 - Make getConfig() include configuration defaults.
 

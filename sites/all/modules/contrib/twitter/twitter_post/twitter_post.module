@@ -12,7 +12,7 @@ function twitter_post_menu() {
     'title' => 'Post',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('twitter_post_admin_settings'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer twitter'),
     'file' => 'twitter_post.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 3,
@@ -28,20 +28,70 @@ function twitter_post_permission() {
   return array(
     'post to twitter' => array(
       'title' => t('Post a message to Twitter'),
+      'description' => t('This permission is limited to only allowing the user to post using authenticated accounts that they own, they may not post using a "global" account.'),
+    ),
+    'post to twitter with global account' => array(
+      'title' => t('Post a message to Twitter using a global account'),
+      'description' => t('Ordinarily users are only able to post using their own authenticated accounts. This option allows users to also post using someone else\'s account that is marked as being "global". This permission must be given in addition to @post.', array('@post' => t('Post a message to Twitter'))),
     ),
   );
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function twitter_post_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return "plugins/$plugin_type";
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for node_type_form().
+ */
+function twitter_post_form_node_type_form_alter(&$form, $form_state, $form_id) {
+  $type = $form['#node_type']->type;
+  $allowed_types = variable_get('twitter_post_types', array());
+
+  $form['workflow']['twitter_post'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('May be posted to twitter.com'),
+    '#default_value' => !empty($allowed_types[$type]),
+    '#description' => t('There are also <a href="@url">global options</a> that affect this option.', array('@url' => url('admin/config/services/twitter/post'))),
+  );
+
+  $form['#submit'][] = 'twitter_post_form_node_type_form_submit';
+}
+
+/**
+ * FormAPI submission callback for node_type_form().
+ *
+ * @see twitter_post_form_node_type_form_alter().
+ */
+function twitter_post_form_node_type_form_submit($form, $form_state) {
+  $type = $form_state['values']['type'];
+  $allowed_types = variable_get('twitter_post_types', array());
+
+  if (!empty($form_state['values']['twitter_post'])) {
+    $allowed_types[$type] = $type;
+  }
+  else {
+    $allowed_types[$type] = 0;
+  }
+
+  variable_set('twitter_post_types', $allowed_types);
 }
 
 /**
  * Implements hook_form_alter().
  */
 function twitter_post_form_alter(&$form, $form_state, $form_id) {
-  // Alter any node forms.
   if (isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id) {
-    // If we haven't enabled Twitter posting on this node type, nothing to do here.
-    $type = $form['#node']->type;
+    $node = $form['#node'];
+
+    // Fail early if Twitter posting hasn't been on this node type.
     $allowed_types = variable_get('twitter_post_types', array());
-    if (empty($allowed_types[$type])) {
+    if (empty($allowed_types[$node->type])) {
       return;
     }
 
@@ -61,13 +111,32 @@ function twitter_post_form_alter(&$form, $form_state, $form_id) {
     $form['twitter']['post'] = array(
       '#type' => 'checkbox',
       '#title' => t('Announce this post on Twitter'),
-      '#default_value' => variable_get('twitter_post_default_value', 0),
       '#id' => 'twitter-toggle',
     );
     $form['twitter'] += $twitter_form;
     $form['twitter']['status']['#default_value'] = variable_get('twitter_post_default_format', 'New post: !title !url-alias');
-    $form['twitter']['status']['#description'] = t('The given text will be posted to twitter.com. You can use !url, !url-alias, !tinyurl, !title and !user as replacement text.');
+    $form['twitter']['status']['#description'] = t('The given text will be posted to twitter.com. You can use !url, !url-alias, !tinyurl, !title and !user as replacement text. Note that if a URL is being included, the maximum length of the rest of the tweet is 117 characters.');
     $form['twitter']['status']['#maxlength'] = 150;
+
+    // Check the correct option based upon whether the node is published or not.
+    $default = variable_get('twitter_post_default_value', 0);
+    if (!empty($node->nid) && !empty($node->status)) {
+      $default = variable_get('twitter_post_on_update', 0);
+    }
+    $form['twitter']['post']['#default_value'] = $default;
+
+    // Only show the message field and account selector when the "Post" checkbox
+    // is checked.
+    $form['twitter']['status']['#states'] = array(
+      'visible' => array(
+        ':input[name="twitter[post]"]' => array(
+          'checked' => TRUE,
+        ),
+      ),
+    );
+    if ($form['twitter']['account']['#type'] == 'select') {
+      $form['twitter']['account']['#states'] = $form['twitter']['status']['#states'];
+    }
   }
 }
 
@@ -81,8 +150,24 @@ function twitter_post_node_insert($node) {
     module_load_include('inc', 'twitter');
 
     $twitter_account = twitter_account_load($node->twitter['account']);
+
+    global $user;
+    $account = user_load($user->uid);
+    $access_global = user_access('post to twitter with global account', $account);
+
+    // Only allow the tweet to be posted if the Twitter account is either a
+    // global account and the user has access to global accounts, or it is tied
+    // to the current user.
+    if (!(($twitter_account->is_global && $access_global)
+      || $twitter_account->uid == $account->uid)) {
+      return;
+    }
+
+    // Prepare the string replacements for the status message.
     $replacements = array(
-      '!title' => $node->title,
+      // 117 characters is the maximum that can be added to a tweet and still
+      // have a URL, so don't allow the title to be longer than that.
+      '!title' => truncate_utf8($node->title, 117, FALSE, TRUE),
       '!url' => url('node/' . $node->nid, array('absolute' => TRUE, 'alias' => TRUE)),
       '!url-alias' => url('node/' . $node->nid, array('absolute' => TRUE)),
       '!user' => $node->name,
@@ -95,9 +180,19 @@ function twitter_post_node_insert($node) {
     }
 
     $status = strtr($node->twitter['status'], $replacements);
-    if (twitter_set_status($twitter_account, $status)) {
-      drupal_set_message(t('Successfully posted to Twitter'));
+    try {
+      $status = twitter_set_status($twitter_account, $status);
+      drupal_set_message(t('Successfully posted "%node" to Twitter: <a href="@status" target="_blank">@status</a>', array(
+        '@status' => _twitter_status_url($status),
+        '%node' => $node->title,
+      )));
     }
+    catch (TwitterException $e) {
+      drupal_set_message(t('An error occurred when posting to Twitter. Check the system log for details.'), 'error');
+    }
+
+    // Return something useful for module_invoke().
+    return $status;
   }
 }
 
@@ -116,7 +211,8 @@ function twitter_post_node_update($node) {
  */
 function twitter_post_form($account = NULL) {
   if (empty($account)) {
-    $account = user_load($GLOBALS['user']->uid);
+    global $user;
+    $account = user_load($user->uid);
   }
 
   if (!user_access('post to twitter', $account)) {
@@ -124,8 +220,11 @@ function twitter_post_form($account = NULL) {
   }
 
   drupal_add_js(drupal_get_path('module', 'twitter_post') . '/twitter_post.js');
+  $access_global = user_access('post to twitter with global account', $account);
+  $twitter_accounts = twitter_load_authenticated_accounts($account->uid, $access_global);
+
+  // Only show Twitter accounts that are either global or are tied to this user.
   $options = array();
-  $twitter_accounts = twitter_load_authenticated_accounts();
   foreach ($twitter_accounts as $twitter_account) {
     $options[$twitter_account->id] = $twitter_account->screen_name;
   }
@@ -150,8 +249,32 @@ function twitter_post_form($account = NULL) {
       $form['account'] = array(
         '#type' => 'value',
         '#value' => array_pop($options_keys),
+        '#id' => 'twitter-account',
       );
     }
     return $form;
   }
+}
+
+/**
+ * Implementation of hook_field_extra_fields().
+ */
+function twitter_post_field_extra_fields() {
+  $types = variable_get('twitter_post_types', array());
+
+  $extra = array();
+
+  foreach ($types as $type) {
+    $extra['node'][$type] = array(
+      'form' => array(
+        'twitter' => array(
+          'label' => t('Twitter post'),
+          'description' => t('Optionally post to Twitter.'),
+          'weight' => 1,
+        ),
+      ),
+    );
+  }
+
+  return $extra;
 }

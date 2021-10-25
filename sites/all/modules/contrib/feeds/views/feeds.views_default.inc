@@ -110,11 +110,11 @@ function feeds_views_default_views() {
   $handler->display->display_options['fields']['severity']['id'] = 'severity';
   $handler->display->display_options['fields']['severity']['table'] = 'feeds_log';
   $handler->display->display_options['fields']['severity']['field'] = 'severity';
-  /* Sort criterion: Feeds log: Log time */
-  $handler->display->display_options['sorts']['log_time']['id'] = 'log_time';
-  $handler->display->display_options['sorts']['log_time']['table'] = 'feeds_log';
-  $handler->display->display_options['sorts']['log_time']['field'] = 'log_time';
-  $handler->display->display_options['sorts']['log_time']['order'] = 'DESC';
+  /* Sort criterion: Feeds log: Log id */
+  $handler->display->display_options['sorts']['flid']['id'] = 'flid';
+  $handler->display->display_options['sorts']['flid']['table'] = 'feeds_log';
+  $handler->display->display_options['sorts']['flid']['field'] = 'flid';
+  $handler->display->display_options['sorts']['flid']['order'] = 'DESC';
   /* Contextual filter: Feeds log: Importer id */
   $handler->display->display_options['arguments']['id']['id'] = 'id';
   $handler->display->display_options['arguments']['id']['table'] = 'feeds_log';
@@ -125,7 +125,6 @@ function feeds_views_default_views() {
   $handler->display->display_options['arguments']['id']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['id']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['id']['specify_validation'] = TRUE;
-  $handler->display->display_options['arguments']['id']['validate']['fail'] = 'empty';
   $handler->display->display_options['arguments']['id']['limit'] = '0';
   /* Filter criterion: Feeds log: Feed node id */
   $handler->display->display_options['filters']['feed_nid']['id'] = 'feed_nid';
@@ -164,6 +163,8 @@ function feeds_views_default_views() {
   $handler->display->display_options['arguments']['feed_nid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['feed_nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['feed_nid']['summary_options']['items_per_page'] = '25';
+  $handler->display->display_options['arguments']['feed_nid']['specify_validation'] = TRUE;
+  $handler->display->display_options['arguments']['feed_nid']['validate']['type'] = 'feed_nid';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
   /* Filter criterion: Feeds log: Severity */
@@ -175,7 +176,6 @@ function feeds_views_default_views() {
   $handler->display->display_options['filters']['severity']['expose']['label'] = 'Severity';
   $handler->display->display_options['filters']['severity']['expose']['operator'] = 'severity_op';
   $handler->display->display_options['filters']['severity']['expose']['identifier'] = 'severity';
-
   $handler->display->display_options['path'] = 'node/%/log';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Log';
@@ -240,7 +240,6 @@ function feeds_views_default_views() {
   $handler->display->display_options['filters']['severity']['expose']['label'] = 'Severity';
   $handler->display->display_options['filters']['severity']['expose']['operator'] = 'severity_op';
   $handler->display->display_options['filters']['severity']['expose']['identifier'] = 'severity';
-
   $handler->display->display_options['path'] = 'admin/reports/feeds';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Feeds log';
@@ -248,6 +247,33 @@ function feeds_views_default_views() {
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'management';
   $handler->display->display_options['menu']['context'] = 0;
+  $translatables['feeds_log'] = array(
+    t('Defaults'),
+    t('more'),
+    t('Apply'),
+    t('Reset'),
+    t('Sort by'),
+    t('Asc'),
+    t('Desc'),
+    t('Items per page'),
+    t('- All -'),
+    t('Offset'),
+    t('« first'),
+    t('‹ previous'),
+    t('next ›'),
+    t('last »'),
+    t('There are no log messages.'),
+    t('Log time'),
+    t('Request time'),
+    t('Message'),
+    t('Severity'),
+    t('Standalone importer page'),
+    t('Feed node page'),
+    t('All entries'),
+    t('Feeds log'),
+    t('Feed node'),
+    t('Importer'),
+  );
 
   $views[$view->name] = $view;
 

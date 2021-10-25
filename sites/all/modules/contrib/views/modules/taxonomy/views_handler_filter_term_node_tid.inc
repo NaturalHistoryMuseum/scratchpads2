@@ -61,6 +61,7 @@ class views_handler_filter_term_node_tid extends views_handler_filter_many_to_on
     $options['vocabulary'] = array('default' => 0);
     $options['hierarchy'] = array('default' => 0);
     $options['error_message'] = array('default' => TRUE, 'bool' => TRUE);
+    $options['optgroups'] = array('default' => 0);
 
     return $options;
   }
@@ -106,6 +107,14 @@ class views_handler_filter_term_node_tid extends views_handler_filter_many_to_on
       '#default_value' => !empty($this->options['hierarchy']),
       '#dependency' => array('radio:options[type]' => array('select')),
     );
+
+    $form['optgroups'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show groups in dropdown'),
+      '#default_value' => !empty($this->options['optgroups']),
+      '#dependency' => array('radio:options[type]' => array('select')),
+    );
+
   }
 
   /**
@@ -143,22 +152,30 @@ class views_handler_filter_term_node_tid extends views_handler_filter_many_to_on
       }
     }
     else {
+      $options = array();
       if (!empty($this->options['hierarchy']) && $this->options['limit']) {
         $tree = taxonomy_get_tree($vocabulary->vid, 0, NULL, TRUE);
         $options = array();
-
-        if ($tree) {
-          // Translation system needs full entity objects, so we have access to
-          // label.
-          foreach ($tree as $term) {
-            $choice = new stdClass();
-            $choice->option = array($term->tid => str_repeat('-', $term->depth) . entity_label('taxonomy_term', $term));
-            $options[] = $choice;
+        if (!empty($tree)) {
+          if (!empty($this->options['optgroups'])) {
+            foreach ($tree as $term) {
+              $term_name = entity_label('taxonomy_term', $term);
+              if ($term->parents[0] == 0) {
+                $parent_name = $term_name;
+              }
+              else {
+                $options[$parent_name][$term->tid] = str_repeat('-', $term->depth - 1) . $term_name;
+              }
+            }
+          }
+          else {
+            foreach ($tree as $term) {
+              $options[$term->tid] = str_repeat('-', $term->depth) . entity_label('taxonomy_term', $term);
+            }
           }
         }
       }
       else {
-        $options = array();
         $query = db_select('taxonomy_term_data', 'td');
         $query->innerJoin('taxonomy_vocabulary', 'tv', 'td.vid = tv.vid');
         $query->fields('td');

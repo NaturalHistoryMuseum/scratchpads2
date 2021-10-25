@@ -8,6 +8,9 @@
 /**
  * A handler to provide proper displays for dates.
  *
+ * This may be used on table fields that hold either UNIX timestamps or SQL
+ * datetime strings.
+ *
  * @ingroup views_field_handlers
  */
 class views_handler_field_date extends views_handler_field {
@@ -138,12 +141,22 @@ class views_handler_field_date extends views_handler_field {
    */
   public function render($values) {
     $value = $this->get_value($values);
-    $format = $this->options['date_format'];
-    if (in_array($format, $this->supported_date_types())) {
-      $custom_format = $this->options['custom_date_format'];
+
+    if (!is_numeric($value)) {
+      // If the value isn't numeric, assume it's an SQL DATETIME.
+      $value = strtotime($value);
     }
 
     if ($value) {
+      $format = $this->options['date_format'];
+
+      // The custom format can be either a number or a string, depending upon
+      // what format is being used.
+      $custom_format = NULL;
+      if (in_array($format, $this->supported_date_types())) {
+        $custom_format = $this->options['custom_date_format'];
+      }
+
       $timezone = !empty($this->options['timezone']) ? $this->options['timezone'] : NULL;
       // Will be positive for a datetime in the past (ago), and negative for a
       // datetime in the future (hence).
@@ -196,6 +209,7 @@ class views_handler_field_date extends views_handler_field {
           return format_date($value, $format, $custom_format, $timezone);
 
         default:
+          // The custom format is not used in this scenario.
           return format_date($value, $format, '', $timezone);
       }
     }

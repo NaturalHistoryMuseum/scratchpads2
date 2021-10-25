@@ -1,0 +1,12 @@
+name = Twitter Last Tweet Field
+description = Show the last tweet from one of the configured Twitter accounts.
+core = 7.x
+dependencies[] = twitter
+dependencies[] = field
+
+; Information added by Drupal.org packaging script on 2015-10-05
+version = "7.x-5.11"
+core = "7.x"
+project = "twitter"
+datestamp = "1444046332"
+

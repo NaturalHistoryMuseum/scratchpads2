@@ -208,4 +208,78 @@ class CSVExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
 
   }
 
+   /**
+   * Test to ensure that all new line characters are replaced in CSV files when requested.
+   */
+  protected function testReplaceNewLines() {
+    $view = $this->getBasicExportView();
+
+    $display = $view->display['default']->handler;
+
+    $display->override_option('fields', array(
+      'id' => array(
+        'id' => 'id',
+        'table' => 'views_test',
+        'field' => 'id',
+        'relationship' => 'none',
+        'label' => 'ID',
+      ),
+      'name' => array(
+        'id' => 'name',
+        'table' => 'views_test',
+        'field' => 'name',
+        'relationship' => 'none',
+      ),
+      'age' => array(
+        'id' => 'age',
+        'table' => 'views_test',
+        'field' => 'age',
+        'relationship' => 'none',
+      ),
+      'job' => array(
+        'id' => 'job',
+        'table' => 'views_test',
+        'field' => 'job',
+        'relationship' => 'none',
+      ),
+    ));
+
+    $style_options = array(
+      'replace_newlines' => TRUE,
+      'newline_replacement' => ';',
+      'newline_token' => 0,
+    );
+
+    $expected = <<<EOT
+"ID","Name","Age","Job"
+"1","John","25","Singer\r;Songwriter\r;Pianist"
+"2","George","27","Singer;Guitar player;Sitar player"
+"3","Ringo","28","Drummer"
+"4","Paul","26","Songwriter\rBass guitarist"
+"5","Meredith","30","Speaker"
+EOT;
+
+    $message = 'Linefeed characters are replaced.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+
+    // And now replace all kind of newlines.
+    $style_options = array(
+      'replace_newlines' => TRUE,
+      'newline_replacement' => ';',
+      'newline_token' => 1,
+    );
+
+    $expected = '"ID","Name","Age","Job"
+"1","John","25","Singer;Songwriter;Pianist"
+"2","George","27","Singer;Guitar player;Sitar player"
+"3","Ringo","28","Drummer"
+"4","Paul","26","Songwriter;Bass guitarist"
+"5","Meredith","30","Speaker"';
+
+    $message = 'All newline characters are replaced.';
+
+    $this->executeAndCompareGivenView($view, $expected, $message, $style_options);
+  }
+
 }

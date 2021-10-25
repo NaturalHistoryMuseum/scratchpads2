@@ -25,7 +25,7 @@ function hook_apachesolr_default_environment($env_id, $old_env_id) {
  * handles just list fields and taxonomy term reference fields, such as:
  *
  * $mappings['list_text'] = array(
- *   'indexing_callback' => 'apachesolr_fields_list_indexing_callback',
+ *   'indexing_callback' => array('apachesolr_fields_list_indexing_callback'),
  *   'index_type' => 'string',
  *   'map callback' => 'apachesolr_fields_list_display_callback',
  *   'facets' => TRUE,
@@ -53,7 +53,7 @@ function hook_apachesolr_field_mappings() {
   $mappings = array(
     // Example for a field API type. See extensive documentation below
     'number_float' => array(
-      'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
+      'indexing_callback' => array('apachesolr_fields_default_indexing_callback'),
       'index_type' => 'tfloat',
       'facets' => TRUE,
       'query types' => array('term', 'numeric_range'),
@@ -67,7 +67,7 @@ function hook_apachesolr_field_mappings() {
         // REQUIRED FIELDS //
         // Function callback to return the value that will be put in to
         // the solr index
-        'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
+        'indexing_callback' => array('apachesolr_fields_default_indexing_callback'),
 
         // NON REQUIRED FIELDS //
         // See apachesolr_index_key() for the correct type. Defaults string
@@ -125,7 +125,7 @@ function hook_apachesolr_field_mappings() {
 function hook_apachesolr_field_mappings_alter(array &$mappings, $entity_type) {
   // Enable indexing for text fields
   $mappings['text'] = array(
-    'indexing_callback' => 'apachesolr_fields_default_indexing_callback',
+    'indexing_callback' => array('apachesolr_fields_default_indexing_callback'),
     'map callback' => '',
     'index_type' => 'string',
     'facets' => TRUE,
@@ -187,6 +187,10 @@ function hook_apachesolr_field_name_map_alter(array &$map) {
  *
  * @param DrupalSolrQueryInterface $query
  *   An object implementing DrupalSolrQueryInterface. No need for &.
+ *
+ * @see /admin/reports/apachesolr
+ * - This report displays the active solr index fields and can help you
+ *   create Solr filters based on the data currently in your system
  */
 function hook_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
   // I only want to see articles by the admin.
@@ -200,6 +204,22 @@ function hook_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
 
   // Only search titles.
   $query->replaceParam('qf', 'label');
+
+  // Restrict results to a single content type (use machine name).
+  $query->addFilter('bundle', 'my_content_type');
+
+  // Exclude results by setting the third argument of addFilter to TRUE.
+  // This filter will return all content types EXCEPT my_content_type nodes.
+  $query->addFilter('bundle', 'my_content_type', TRUE);
+
+  // Restrict results to several content types (use machine names).
+  // You could also solve this using the SolrFilterSubQuery object and append it
+  // to the original query.
+  $content_types = array(
+    'content_type_1',
+    'content_type_2',
+  );
+  $query->addFilter('bundle', '('. implode(' OR ', $content_types) .')');
 }
 
 /**
@@ -320,7 +340,7 @@ function hook_apachesolr_search_result_alter(ApacheSolrDocument $document, array
 }
 
 /**
- * This is invoked by apachesolr_search.module for the whole resultset returned
+ * This is invoked by apachesolr_search.module for the whole result set returned
  * in a search.
  *
  * @param array $results
@@ -405,7 +425,7 @@ function hook_apachesolr_index_document_build(ApacheSolrDocument $document, $ent
 function hook_apachesolr_index_document_build_ENTITY_TYPE(ApacheSolrDocument $document, $entity, $env_id) {
   // Index field_main_image as a separate field
   if ($entity->type == 'profile') {
-    $user = user_load(array('uid' => $entity->uid));
+    $user = user_load($entity->uid);
     // Hard coded field, not recommended for inexperienced users.
     $document->setMultiValue('sm_field_main_image', $user->picture);
   }
@@ -423,4 +443,16 @@ function hook_apachesolr_index_document_build_ENTITY_TYPE(ApacheSolrDocument $do
  */
 function hook_apachesolr_index_documents_alter(array &$documents, $entity, $entity_type, $env_id) {
   // Do whatever altering you need here
+}
+
+
+/**
+ * Modify the returned spellings suggestions. The environment is available
+ * as an argument so the search query can be retrieved if necessary
+ *
+ * @param array $suggestions
+ * @param string $env_id
+ */
+function hook_apachesolr_suggestions_alter(&$suggestions, $env_id) {
+  // Modify the suggestions here
 }

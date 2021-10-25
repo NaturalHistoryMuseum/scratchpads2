@@ -10,6 +10,7 @@
  * FeedsFileFetcher.
  */
 class FeedsFileFetcherResult extends FeedsFetcherResult {
+
   /**
    * Constructor.
    */
@@ -29,11 +30,10 @@ class FeedsFileFetcherResult extends FeedsFetcherResult {
    * Overrides parent::getFilePath().
    */
   public function getFilePath() {
-    if (!file_exists($this->file_path)) {
-      throw new Exception(t('File @filepath is not accessible.', array('@filepath' => $this->file_path)));
-    }
+    $this->checkFile();
     return $this->sanitizeFile($this->file_path);
   }
+
 }
 
 /**
@@ -72,22 +72,22 @@ class FeedsFileFetcher extends FeedsFetcher {
    * Returns an array of files in a directory.
    *
    * @param string $dir
-   *   A stream wreapper URI that is a directory.
+   *   A stream wrapper URI that is a directory.
    *
    * @return array
    *   An array of stream wrapper URIs pointing to files. The array is empty if
    *   no files could be found. Never contains directories.
    */
   protected function listFiles($dir) {
-    $dir = file_stream_wrapper_uri_normalize($dir);
+    // Seperate out string into array of extensions. Make sure its regex safe.
+    $config = $this->getConfig();
+    $extensions = array_filter(array_map('preg_quote', explode(' ', $config['allowed_extensions'])));
+    $regex = '/\.(' . implode('|', $extensions) . ')$/';
     $files = array();
-    if ($items = @scandir($dir)) {
-      foreach ($items as $item) {
-        if (is_file("$dir/$item") && strpos($item, '.') !== 0) {
-          $files[] = "$dir/$item";
-        }
-      }
+    foreach (file_scan_directory($dir, $regex) as $file) {
+      $files[] = $file->uri;
     }
+
     return $files;
   }
 
@@ -109,7 +109,7 @@ class FeedsFileFetcher extends FeedsFetcher {
         '#type' => 'file',
         '#title' => empty($this->config['direct']) ? t('File') : NULL,
         '#description' => empty($source_config['source']) ? t('Select a file from your local system.') : t('Select a different file from your local system.'),
-        '#theme' => 'feeds_upload',
+        '#theme_wrappers' => array('feeds_upload'),
         '#file_info' => empty($source_config['fid']) ? NULL : file_load($source_config['fid']),
         '#size' => 10,
       );
@@ -164,8 +164,8 @@ class FeedsFileFetcher extends FeedsFetcher {
       if (!$scheme || !in_array($scheme, $this->config['allowed_schemes'])) {
         form_set_error('feeds][FeedsFileFetcher][source', t("The file needs to reside within the site's files directory, its path needs to start with scheme://. Available schemes: @schemes.", array('@schemes' => implode(', ', $this->config['allowed_schemes']))));
       }
-      // Check wether the given path exists.
-      elseif (!file_exists($values['source'])) {
+      // Check whether the given path is readable.
+      elseif (!is_readable($values['source'])) {
         form_set_error('feeds][FeedsFileFetcher][source', t('The specified file or directory does not exist.'));
       }
     }
@@ -213,10 +213,11 @@ class FeedsFileFetcher extends FeedsFetcher {
 
     return array(
       'allowed_extensions' => 'txt csv tsv xml opml',
+      'delete_uploaded_file' => FALSE,
       'direct' => FALSE,
       'directory' => $scheme . '://feeds',
       'allowed_schemes' => $schemes,
-    );
+    ) + parent::configDefaults();
   }
 
   /**
@@ -229,6 +230,19 @@ class FeedsFileFetcher extends FeedsFetcher {
       '#title' => t('Allowed file extensions'),
       '#description' => t('Allowed file extensions for upload.'),
       '#default_value' => $this->config['allowed_extensions'],
+    );
+    $form['delete_uploaded_file'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Immediately delete uploaded file after import'),
+      '#description' => t('Useful if the file contains private information. If not selected, the file will remain on the server, allowing the import to be re-run without having to upload it again. This setting has no effect when the option "@direct" is enabled.', array(
+        '@direct' => t('Supply path to file or directory directly'),
+      )),
+      '#default_value' => $this->config['delete_uploaded_file'],
+      '#states' => array(
+        'disabled' => array(
+          ':input[name="direct"]' => array('checked' => TRUE),
+        ),
+      ),
     );
     $form['direct'] = array(
       '#type' => 'checkbox',
@@ -296,6 +310,20 @@ class FeedsFileFetcher extends FeedsFetcher {
       // Ensure that the upload directory exists.
       if (!file_prepare_directory($values['directory'], FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
         form_set_error('directory', t('The chosen directory does not exist and attempts to create it failed.'));
+      }
+    }
+  }
+
+  /**
+   * Overrides FeedsFetcher::afterImport().
+   */
+  public function afterImport(FeedsSource $source) {
+    // Immediately delete the file after import, if requested.
+    if (!empty($this->config['delete_uploaded_file'])) {
+      $source_config = $source->getConfigFor($this);
+      if (!empty($source_config['fid'])) {
+        $this->deleteFile($source_config['fid'], $source->feed_nid);
+        $source->setConfigFor($this, $this->sourceDefaults());
       }
     }
   }

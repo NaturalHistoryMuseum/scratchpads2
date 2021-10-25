@@ -10,15 +10,19 @@
  *
  * Implements hook_colorbox_settings_alter().
  *
- * @param $settings
- *   An associative array of Colorbox settings. See the
- *   @link http://colorpowered.com/colorbox/ Colorbox documentation @endlink
- *   for the full list of supported parameters.
- * @param $style
+ * @param array $settings
+ *   An associative array of Colorbox settings. See the.
+ * @param string $style
  *   The name of the active style plugin. If $style is 'none', no Colorbox
  *   theme will be loaded.
+ *
+ * @link http://colorpowered.com/colorbox/ Colorbox documentation @endlink
+ *   for the full list of supported parameters.
+ *
+ * @codingStandardsIgnoreStart
  */
 function hook_colorbox_settings_alter(&$settings, &$style) {
+  // @codingStandardsIgnoreEnd.
   // Disable automatic downscaling of images to maxWidth/maxHeight size.
   $settings['scalePhotos'] = FALSE;
 
@@ -28,21 +32,17 @@ function hook_colorbox_settings_alter(&$settings, &$style) {
   }
 }
 
-
 /**
- * Allow other modules to control access to forms opening in Colorbox.
+ * Allows to override activation of Colorbox for the current URL.
  *
- * Implements hook_colorbox_form_access().
- *
- * @param $form_id
- *   The unique string identifying the current form.
+ * @param bool $active
+ *   A boolean indicating whether colorbox should be active for the current
+ *   URL or not.
  */
-function hook_colorbox_form_access($form_id) {
-  $access = FALSE;
-
-  if ($form_id == 'forward_form') {
-    return user_access('access forward');
+function hook_colorbox_active_alter(&$active) {
+  $path = drupal_get_path_alias($_GET['q']);
+  if (drupal_match_path($path, 'admin/config/colorbox_test')) {
+    // Enable colorbox for this URL.
+    $active = TRUE;
   }
-
-  return $access;
 }

@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * @file
+ * Contains ckeditorTest.
+ */
+
+/**
+ * Base class for ckeditor tests.
+ */
+class CkeditorTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Configuration available',
+      'description' => 'Check module is enabled and config available.',
+      'group' => 'ckeditor',
+    );
+  }
+
+  /**
+   * Setup the environment.
+   */
+  public function setUp() {
+    parent::setUp('ckeditor');
+
+    $admin_user = $this->drupalCreateUser(array('administer ckeditor'));
+    $this->drupalLogin($admin_user);
+  }
+
+  /**
+   * Check admin page is available.
+   */
+  public function test() {
+    $this->drupalGet('admin/config/content/ckeditor');
+    $this->assertResponse(200, 'User is allowed to edit the content.');
+  }
+
+}

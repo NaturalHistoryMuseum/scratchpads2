@@ -9,6 +9,10 @@
  * Test Feed configuration.
  */
 class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Feature: Feed',
@@ -18,6 +22,9 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp(array('features', 'views', 'feeds_news'));
   }
@@ -60,7 +67,7 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     $count = db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node' AND guid = '970 at http://developmentseed.org'")->fetchField();
     $this->assertEqual($count, 1, 'Found feed_node_item record.');
 
-    // Remove all items
+    // Remove all items.
     $this->drupalPost("node/$nid/delete-items", array(), 'Delete');
     $this->assertText('Deleted 10 nodes');
 
@@ -84,6 +91,7 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
     $count = db_query("SELECT COUNT(*) FROM {feeds_item} WHERE entity_type = 'node'")->fetchField();
     $this->assertEqual($count, 100, 'Found 100 records in feeds_item.');
   }
+
 }
 
 /**
@@ -91,6 +99,9 @@ class FeedsExamplesFeedTestCase extends FeedsWebTestCase {
  */
 class FeedsExamplesOPMLTestCase extends FeedsWebTestCase {
 
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Feature: OPML import',
@@ -124,4 +135,5 @@ class FeedsExamplesOPMLTestCase extends FeedsWebTestCase {
     $this->drupalPost('node/1/delete-items', array(), 'Delete');
     $this->assertText('Deleted 10 nodes');
   }
+
 }

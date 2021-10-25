@@ -466,10 +466,14 @@ function hook_views_data() {
  *
  * You can add/edit/remove existing tables defined by hook_views_data().
  *
- * This hook should be placed in MODULENAME.views.inc and it will be
- * auto-loaded. MODULENAME.views.inc must be in the directory specified by the
- * 'path' key returned by MODULENAME_views_api(), or the same directory as the
- * .module file, if 'path' is unspecified.
+ * This hook should be placed in MODULENAME.views_default.inc and it will be
+ * auto-loaded. MODULENAME.views_default.inc must be in the directory specified
+ * by the 'path' key returned by MODULENAME_views_api(), or the same directory
+ * as the .module file, if 'path' is unspecified.
+ *
+ * After adding this hook to an existing module, you will need to clear the
+ * Drupal menu cache and the Views cache to have your default views be
+ * recognized.
  *
  * @param array $data
  *   An array of all Views data, passed by reference. See hook_views_data() for
@@ -497,9 +501,9 @@ function hook_views_data_alter(&$data) {
 
   // This example adds a relationship to table {foo}, so that 'foo' views can
   // add this table using a relationship. Because we don't want to write over
-  // the primary key field definition for the {foo}.fid field, we use a dummy
-  // field name as the key.
-  $data['foo']['dummy_name'] = array(
+  // the primary key field definition for the {foo}.fid field, we use a
+  // placeholder field name as the key.
+  $data['foo']['sample_name'] = array(
     'title' => t('Example relationship'),
     'help' => t('Example help'),
     'relationship' => array(
@@ -752,7 +756,7 @@ function hook_views_plugin_option_definition_alter(&$options, $plugin) {
  * Alter existing handler option definitions.
  *
  * This can be used to edit default or add new option definitions to existing
- * handers. The reason for doing this is that only overriding the relevent form
+ * handlers. The reason for doing this is that only overriding the relevent form
  * with hook_form_alter() is insufficent because submitted form values will be
  * ignored if they haven't been declared as an available option.
  *
@@ -787,7 +791,7 @@ function hook_views_handler_option_definition_alter(&$options, $handler) {
  *   - api: (required) The version of the Views API the module implements.
  *   - path: (optional) If includes are stored somewhere other than within the
  *     root module directory, specify its path here.
- *   - template path: (optional) A path where the module has stored it's views
+ *   - template path: (optional) A path where the module has stored its views
  *     template files. When you have specified this key views automatically
  *     uses the template files for the views. You can use the same naming
  *     conventions like for normal views template files.

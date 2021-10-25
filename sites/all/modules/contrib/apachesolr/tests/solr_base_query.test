@@ -47,12 +47,24 @@ class SolrBaseQueryTests extends DrupalUnitTestCase {
     $fq = array('tid:3', 'sort_label:hello', 'tid:11', 'tid:1', 'tid:12', 'label:hello');
     // Setup dummy Solr object.
     $query = $this->_apachesolr_drupal_query("apachesolr_tests", array('q' => 'mykeys', 'fq' => $fq), 'sort_label asc', 'search/test');
-    // Check sortsort
+    // Check setSolrSort().
     $this->assertEqual(array('solrsort' => 'sort_label asc'), $query->getSolrsortUrlQuery());
     $query->setSolrsort('sort_name', 'desc');
     $this->assertEqual(array('solrsort' => 'sort_name desc'), $query->getSolrsortUrlQuery());
     $query->setSolrsort('score', 'desc');
     $this->assertEqual(array(), $query->getSolrsortUrlQuery());
+
+    // We cannot set a sort if the sort was not made available.
+    $query->setSolrsort('geodist()', 'asc');
+    $this->assertNotEqual(array('solrsort' => 'geodist() asc'), $query->getSolrsortUrlQuery(), t('Sort was not applied as it was not available'));
+
+    // Set the sort after it was made available.
+    $query->setAvailableSort('geodist()', array('title' => 'Distance', 'default' => 'asc'));
+    $query->setSolrsort('geodist()', 'asc');
+
+    $this->assertEqual(array('solrsort' => 'geodist() asc'), $query->getSolrsortUrlQuery());
+
+    // Check escaping of the setSolrSort functinality
     // Check getPath() functionality
     $this->assertEqual('search/test/mykeys', $query->getPath());
     $this->assertEqual('search/test/newkeys', $query->getPath('newkeys'));

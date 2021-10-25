@@ -231,7 +231,7 @@ Drupal.behaviors.viewsUiRenderAddViewButton.attach = function (context, settings
     return;
   }
   var $addDisplayDropdown = $('<li class="add"><a href="#"><span class="icon add"></span>' + Drupal.t('Add') + '</a><ul class="action-list" style="display:none;"></ul></li>');
-  var $displayButtons = $menu.nextAll('input.add-display').detach();
+  var $displayButtons = $menu.nextAll('.add-display').detach();
   $displayButtons.appendTo($addDisplayDropdown.find('.action-list')).wrap('<li>')
     .parent().first().addClass('first').end().last().addClass('last');
   // Remove the 'Add ' prefix from the button labels since they're being palced
@@ -254,7 +254,7 @@ Drupal.behaviors.viewsUiRenderAddViewButton.attach = function (context, settings
   });
   // Add a mouseleave handler to close the dropdown when the user mouses
   // away from the item. We use mouseleave instead of mouseout because
-  // the user is going to trigger mouseout when she moves from the trigger
+  // the user is going to trigger mouseout when they move from the trigger
   // link to the sub menu items.
   //
   // We use the 'li.add' selector because the open class on this item will be
@@ -981,11 +981,11 @@ Drupal.viewsUi.resizeModal = function (e, no_shrink) {
   var difference = 0;
   difference += parseInt($scroll.css('padding-top'));
   difference += parseInt($scroll.css('padding-bottom'));
-  difference += $('.views-override').outerHeight(true);
-  difference += $('.views-messages').outerHeight(true);
-  difference += $('#views-ajax-title').outerHeight(true);
-  difference += $('.views-add-form-selected').outerHeight(true);
-  difference += $('.form-buttons', $modal).outerHeight(true);
+  difference += $('.views-override').outerHeight(true) || 0;
+  difference += $('.views-messages').outerHeight(true) || 0;
+  difference += $('#views-ajax-title').outerHeight(true) || 0;
+  difference += $('.views-add-form-selected').outerHeight(true) || 0;
+  difference += $('.form-buttons', $modal).outerHeight(true) || 0;
 
   height = scrollHeight + difference;
 

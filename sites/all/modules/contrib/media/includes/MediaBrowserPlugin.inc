@@ -20,7 +20,7 @@ abstract class MediaBrowserPlugin implements MediaBrowserPluginInterface {
   protected $info;
 
   /**
-   * The parameters for the current media browser from media_get_browser_params().
+   * The parameters for current media browser from media_get_browser_params().
    *
    * @var array
    */
@@ -54,7 +54,8 @@ abstract class MediaBrowserPlugin implements MediaBrowserPluginInterface {
    * This render array will be a jQuery tab in the media browser.
    *
    * Some elements are special:
-   *  - #settings: Drupal.settings.media.browser.$key (where key is the array key).
+   *  - #settings: Drupal.settings.media.browser.$key (where key is the array
+   *    key).
    *  - #callback: If provided, will make the tab an "ajax" tab.
    *  - #title: If provided, will be used as the tab's title. Otherwise the
    *    'title' value from the plugin's hook_media_browser_plugin_info() will
@@ -77,8 +78,9 @@ abstract class MediaBrowserPlugin implements MediaBrowserPluginInterface {
    *   return $build;
    * @endcode
    *
-   * @return
+   * @return array
    *   Renderable array.
    */
   abstract public function view();
+
 }

@@ -16,7 +16,7 @@ class views_handler_field_comment_link_approve extends views_handler_field_comme
    * {@inheritdoc}
    */
   public function access() {
-    //needs permission to administer comments in general
+    // Needs permission to administer comments in general.
     return user_access('administer comments');
   }
 
@@ -32,7 +32,7 @@ class views_handler_field_comment_link_approve extends views_handler_field_comme
     }
 
     $text = !empty($this->options['text']) ? $this->options['text'] : t('approve');
-    $cid =  $this->get_value($values, 'cid');
+    $cid = $this->get_value($values, 'cid');
 
     $this->options['alter']['make_link'] = TRUE;
     $this->options['alter']['path'] = "comment/" . $cid . "/approve";

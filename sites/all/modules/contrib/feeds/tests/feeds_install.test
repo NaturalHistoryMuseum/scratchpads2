@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Tests module installation and uninstallation.
+ */
+class FeedsModuleInstallUninstallWebTest extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Module installation and uninstallation',
+      'description' => '',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * Overrides DrupalWebTestCase::setUp().
+   */
+  public function setUp($modules = array()) {
+    $modules = array_merge(array(
+      'feeds',
+      'feeds_ui',
+    ), $modules);
+    parent::setUp($modules);
+  }
+
+  /**
+   * Uninstalls Feeds.
+   */
+  protected function uninstallFeeds() {
+    module_disable(array('feeds_ui', 'feeds'));
+    drupal_uninstall_modules(array('feeds_ui', 'feeds'));
+
+    // Flush caches.
+    drupal_static_reset();
+    drupal_flush_all_caches();
+
+    // Assert that the modules are uninstalled.
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {system} WHERE type = 'module' AND status = 0 AND name = 'feeds_ui' AND schema_version = -1")->fetchField(), 'Feeds Admin UI is uninstalled.');
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {system} WHERE type = 'module' AND status = 0 AND name = 'feeds' AND schema_version = -1")->fetchField(), 'Feeds is uninstalled.');
+  }
+
+  /**
+   * Test installation and uninstallation.
+   */
+  public function testInstallationAndUninstallation() {
+    $this->assertTrue(module_exists('feeds'));
+    $this->assertTrue(module_exists('feeds_ui'));
+
+    // Ensure the variable 'cache_class_cache_feeds_http' is set.
+    $this->assertEqual('FeedsHTTPCache', variable_get('cache_class_cache_feeds_http'));
+
+    // Uninstall module.
+    $this->uninstallFeeds();
+
+    // Ensure the variable 'cache_class_cache_feeds_http' is removed.
+    $this->assertNull(variable_get('cache_class_cache_feeds_http'), 'The variable "cache_class_cache_feeds_http" is removed.');
+  }
+
+  /**
+   * Tests if scheduled jobs are removed when uninstalling Feeds.
+   */
+  public function testJobsRemovalOnUninstall() {
+    // Create a Feeds importer.
+    $id = 'syndication';
+    $importer = feeds_importer($id);
+    $importer->addConfig(array(
+      'name' => 'Syndication',
+    ));
+    // Set processor config to expire nodes.
+    $importer->processor->addConfig(array(
+      'expire' => 3600,
+    ));
+    $importer->save();
+
+    // Login as admin.
+    $admin = $this->drupalCreateUser(array(
+      'access content',
+      'administer feeds',
+    ));
+    $this->drupalLogin($admin);
+
+    // Import URL.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/developmentseed.rss2',
+    );
+    $this->drupalPost('import/' . $id, $edit, 'Import');
+
+    // Check whether feed got properly added to scheduler.
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_import' AND last <> 0 AND scheduled = 0", array(':id' => $id))->fetchField());
+    // Check expire scheduler.
+    $this->assertEqual(1, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE type = :id AND id = 0 AND name = 'feeds_source_expire'", array(':id' => $id))->fetchField());
+
+    // Now uninstall Feeds.
+    $this->uninstallFeeds();
+
+    // Check that all Feeds jobs are removed from the scheduler.
+    $this->assertEqual(0, db_query("SELECT COUNT(*) FROM {job_schedule} WHERE name LIKE 'feeds_%'")->fetchField());
+  }
+
+}

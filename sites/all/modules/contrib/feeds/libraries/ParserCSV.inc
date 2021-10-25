@@ -17,18 +17,37 @@ class ParserCSVIterator implements Iterator {
   private $currentLine;
   private $currentPos;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __construct($filepath) {
     $this->handle = fopen($filepath, 'r');
     $this->currentLine = NULL;
     $this->currentPos = NULL;
   }
 
-  function __destruct() {
+  /**
+   * {@inheritdoc}
+   */
+  public function __destruct() {
     if ($this->handle) {
       fclose($this->handle);
     }
   }
 
+  /**
+   * Closes the current file.
+   */
+  public function releaseHandler() {
+    if ($this->handle) {
+      fclose($this->handle);
+      $this->handle = NULL;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function rewind($pos = 0) {
     if ($this->handle) {
       fseek($this->handle, $pos);
@@ -36,6 +55,9 @@ class ParserCSVIterator implements Iterator {
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function next() {
     if ($this->handle) {
       $this->currentLine = feof($this->handle) ? NULL : fgets($this->handle);
@@ -44,21 +66,34 @@ class ParserCSVIterator implements Iterator {
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function valid() {
     return isset($this->currentLine);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function current() {
     return $this->currentLine;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function currentPos() {
     return $this->currentPos;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function key() {
     return 'line';
   }
+
 }
 
 /**
@@ -66,6 +101,8 @@ class ParserCSVIterator implements Iterator {
  */
 class ParserCSV {
   private $delimiter;
+  private $fromEncoding;
+  private $toEncoding;
   private $skipFirstLine;
   private $columnNames;
   private $timeout;
@@ -73,9 +110,15 @@ class ParserCSV {
   private $startByte;
   private $lineLimit;
   private $lastLinePos;
+  private $useMbString;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __construct() {
     $this->delimiter = ',';
+    $this->fromEncoding = 'UTF-8';
+    $this->toEncoding = 'UTF-8';
     $this->skipFirstLine = FALSE;
     $this->columnNames = FALSE;
     $this->timeout = FALSE;
@@ -84,6 +127,9 @@ class ParserCSV {
     $this->lineLimit = 0;
     $this->lastLinePos = 0;
     ini_set('auto_detect_line_endings', TRUE);
+    if (extension_loaded('mbstring') && variable_get('feeds_use_mbstring', TRUE)) {
+      $this->useMbString = TRUE;
+    }
   }
 
   /**
@@ -92,6 +138,18 @@ class ParserCSV {
    */
   public function setDelimiter($delimiter) {
     $this->delimiter = $delimiter;
+  }
+
+  /**
+   * Sets the source file encoding.
+   *
+   * By default, the encoding is UTF-8.
+   *
+   * @param string $encoding
+   *   The encoding to set.
+   */
+  public function setEncoding($encoding) {
+    $this->fromEncoding = $encoding;
   }
 
   /**
@@ -151,12 +209,12 @@ class ParserCSV {
   /**
    * Get the byte number where the parser left off after last parse() call.
    *
-   * @return
-   *  0 if all lines or no line has been parsed, the byte position of where a
-   *  timeout or the line limit has been reached otherwise. This position can be
-   *  used to set the start byte for the next iteration after parse() has
-   *  reached the timeout set with setTimeout() or the line limit set with
-   *  setLineLimit().
+   * @return int
+   *   0 if all lines or no line has been parsed, the byte position of where a
+   *   timeout or the line limit has been reached otherwise. This position can be
+   *   used to set the start byte for the next iteration after parse() has
+   *   reached the timeout set with setTimeout() or the line limit set with
+   *   setLineLimit().
    *
    * @see ParserCSV::setStartByte()
    */
@@ -178,11 +236,8 @@ class ParserCSV {
    *
    * @param Iterator $lineIterator
    *   An Iterator object that yields line strings, e.g. ParserCSVIterator.
-   * @param $start
-   *   The byte number from where to start parsing the file.
-   * @param $lines
-   *   The number of lines to parse, 0 for all lines.
-   * @return
+   *
+   * @return array
    *   Two dimensional array that contains the data in the CSV file.
    */
   public function parse(Iterator $lineIterator) {
@@ -197,7 +252,7 @@ class ParserCSV {
     for ($lineIterator->rewind($this->startByte); $lineIterator->valid(); $lineIterator->next()) {
 
       // Make really sure we've got lines without trailing newlines.
-      $line = trim($lineIterator->current(), "\r\n");
+      $line = trim($this->fixEncoding($lineIterator->current()), "\r\n");
 
       // Skip empty lines.
       if (empty($line)) {
@@ -237,7 +292,7 @@ class ParserCSV {
             }
             // Ok, so, on with fetching the next line, as mentioned above.
             $currentField .= "\n";
-            $line = trim($lineIterator->current(), "\r\n");
+            $line = trim($this->fixEncoding($lineIterator->current()), "\r\n");
             $currentIndex = 0;
             continue;
           }
@@ -258,7 +313,8 @@ class ParserCSV {
             $currentIndex = $nextQuoteIndex + 1;
           }
         }
-        else { // $quoted == FALSE
+        // $quoted == FALSE.
+        else {
           // First, let's find out where the next character of interest is.
           $nextQuoteIndex = strpos($line, '"', $currentIndex);
           $nextDelimiterIndex = strpos($line, $this->delimiter, $currentIndex);
@@ -287,7 +343,8 @@ class ParserCSV {
             $currentIndex += $length + 1;
             // Continue with the next field.
           }
-          else { // $line[$nextIndex] == '"'
+          // $line[$nextIndex] == '"'.
+          else {
             $quoted = TRUE;
             $currentField .= substr($line, $currentIndex, $nextIndex - $currentIndex);
             $currentIndex = $nextIndex + 1;
@@ -297,7 +354,6 @@ class ParserCSV {
       }
       // End of CSV parser. We've now got all the fields of the line as strings
       // in the $fields array.
-
       if (empty($this->columnNames)) {
         $row = $fields;
       }
@@ -325,4 +381,39 @@ class ParserCSV {
     }
     return $rows;
   }
+
+  /**
+   * Converts encoding of input data.
+   *
+   * @param string $data
+   *   A chunk of data.
+   *
+   * @return string
+   *   The encoded data.
+   *
+   * @throws ParserCSVEncodingException
+   *   Thrown when a given encoding does not match.
+   */
+  public function fixEncoding($data) {
+    if ($this->useMbString) {
+      if (mb_check_encoding($data, $this->fromEncoding)) {
+        if ($this->toEncoding != $this->fromEncoding) {
+          // Convert encoding. The conversion is to UTF-8 by default to prevent
+          // SQL errors.
+          $data = mb_convert_encoding($data, $this->toEncoding, $this->fromEncoding);
+        }
+      }
+      else {
+        throw new ParserCSVEncodingException(t('Source file is not in %encoding encoding.', array('%encoding' => $this->fromEncoding)));
+      }
+    }
+
+    return $data;
+  }
+
 }
+
+/**
+ * Exception thrown when an encoding error occurs during parsing.
+ */
+class ParserCSVEncodingException extends Exception {}
