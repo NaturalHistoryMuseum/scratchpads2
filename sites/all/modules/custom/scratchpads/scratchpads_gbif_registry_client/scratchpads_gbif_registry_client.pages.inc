@@ -61,6 +61,12 @@ function scratchpads_gbif_registry_client_admin_settings() {
       '#default_value' => variable_get('scratchpads_gbif_registry_client_registration_licence', $default_licence),
       '#description' => t("The licence to use for the DwC-A archive"),
     ],
+    'scratchpads_gbif_registry_client_taxonomic_coverage' => [
+      '#type' => 'textfield', 
+      '#title' => t('Taxonomic scope for DwC-A file'),
+      '#default_value' => variable_get('scratchpads_gbif_registry_client_taxonomic_coverage', ''),
+      '#description' => t('Allow setting of taxonomic scope for DwC-A file.'),
+    ]
   ];
 
   if ($nonBio) {
