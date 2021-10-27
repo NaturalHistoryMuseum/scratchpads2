@@ -6,9 +6,9 @@ function scratchpad_admin_openids()
     'https://vbrant.scratchpads.org/user/57/identity' => 'Ben Scott (https://vbrant.scratchpads.org/user/57/identity)',
     'https://vbrant.scratchpads.org/users/laurence-livermore/openid' => 'Laurence Livermore (https://vbrant.scratchpads.org/users/laurence-livermore/openid)',
     'https://vbrant.scratchpads.org/users/vince-smith/openid' => 'Vince Smith (https://vbrant.scratchpads.org/users/vince-smith/openid)',
-    'https://vbrant.scratchpads.org/users/paul-kiddle/openid' => 'Paul Kiddle (https://vbrant.scratchpads.org/users/paul-kiddle/openid)',
     'https://vbrant.scratchpads.org/users/josh-humphries/openid' => 'Josh Humphries (https://vbrant.scratchpads.org/users/josh-humphries/openid)',
     'https://vbrant.scratchpads.org/users/ginger/openid' => 'Ginger (https://vbrant.scratchpads.org/users/ginger/openid)',
+    'https://vbrant.scratchpads.org/users/robd/openid' => 'Rob Davis (https://vbrant.scratchpads.org/users/robd/openid)',
   );
 }
 
