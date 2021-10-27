@@ -1,0 +1,12 @@
+name = OAuth Authentication
+description = Provides OAuth authentication for the services module
+package = Services - authentication
+dependencies[] = services
+dependencies[] = oauth_common
+core = 7.x
+php = 5.2
+; Information added by Drupal.org packaging script on 2020-06-03
+version = "7.x-3.27"
+core = "7.x"
+project = "services"
+datestamp = "1591213031"

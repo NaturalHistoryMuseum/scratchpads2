@@ -1,0 +1,16 @@
+name = Services Test Resource
+description = Provide test methods to check different situations.
+package = Services
+core = 7.x
+php = 5.x
+
+; This module for tests only.
+hidden = TRUE
+
+dependencies[] = services
+
+; Information added by Drupal.org packaging script on 2020-06-03
+version = "7.x-3.27"
+core = "7.x"
+project = "services"
+datestamp = "1591213031"
