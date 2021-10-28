@@ -89,6 +89,10 @@ function scratchpad_logins()
 function scratchpad_logins_submit()
 {
   global $user;
+  // httprl_override_core is not working since switchting to https behind the firewall
+  // So we set drupal_http_request_function to false, so drupal_http_request is used instead
+  // the value of drupal_http_request_function is assigned to to a temp value, and set back
+  // in scratchpad_do_openid_login()
   $drupal_http_override_function = variable_get('drupal_http_request_function', FALSE);
   if ($drupal_http_override_function) {
     variable_set('drupal_http_request_function', FALSE);
@@ -113,6 +117,8 @@ function scratchpad_do_openid_login($uid)
 {
   $result = openid_complete();
   // Ensure that the Openid returned, is one of the ones we're allowing
+
+  // Change the drupal_http_request_function to original - see scratchpad_logins_submit()
   $drupal_http_request_function_temp = variable_get('drupal_http_request_function_temp', FALSE);
 
   if ($drupal_http_request_function_temp) {
