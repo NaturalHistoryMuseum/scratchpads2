@@ -52,15 +52,17 @@ function scratchpad_logins()
     $boost_warning = '<p>' . t("Note, this page will be cached by Boost.  If you've recently added a new maintainer and they're not in the list below, press Ctrl-F5 (<a href=\"http://en.wikipedia.org/wiki/Wikipedia:Bypass_your_cache#Instructions_for_various_browsers\">or something else</a>)") . '</p>';
   }
   switch ($_SERVER['SERVER_ADDR']) {
-    case '157.140.127.10':
-      $default_value = 'http://vbrant.eu/user/57/identity';
-      break;
     case '157.140.126.27':
-      $default_value = 'http://vbrant.eu/users/vince-smith/openid';
+      $default_value = 'https://vbrant.scratchpads.org/users/vince-smith/openid';
       break;
     default:
-      $default_value = 'https://id.ebaker.me.uk/ed';
+      $default_value = 'https://vbrant.scratchpads.org/user/57/identity';
   }
+
+  $drupal_http_override_function = variable_get('drupal_http_request_function', FALSE);
+  dpm($drupal_http_override_function);
+  dpm(variable_get('drupal_http_request_function_temp', FALSE));
+
   return array(
     'boost_warning' => array(
       '#value' => $boost_warning
@@ -87,6 +89,12 @@ function scratchpad_logins()
 function scratchpad_logins_submit()
 {
   global $user;
+  $drupal_http_override_function = variable_get('drupal_http_request_function', FALSE);
+  if ($drupal_http_override_function) {
+    variable_set('drupal_http_request_function', FALSE);
+    variable_set('drupal_http_request_function_temp', $drupal_http_override_function);
+  }
+
   if (variable_get('site_offline', 0) && !$user->uid) {
     openid_begin($_POST['openid'], url('user', array(
       'absolute' => TRUE,
@@ -105,6 +113,13 @@ function scratchpad_do_openid_login($uid)
 {
   $result = openid_complete();
   // Ensure that the Openid returned, is one of the ones we're allowing
+  $drupal_http_request_function_temp = variable_get('drupal_http_request_function_temp', FALSE);
+
+  if ($drupal_http_request_function_temp) {
+    variable_set('drupal_http_request_function', $drupal_http_request_function_temp);
+    variable_del('drupal_http_request_function_temp');
+  }
+
   $allowed_openids = variable_get('scratchpad_administrator_openids', scratchpad_admin_openids());
   if ($result['status'] == 'success' && isset($allowed_openids[$result['openid.claimed_id']])) {
     global $user;
