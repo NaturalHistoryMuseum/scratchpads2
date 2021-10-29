@@ -3,7 +3,8 @@
 /**
  * Implementation of hook_menu
  */
-function scratchpads_logins_menu(){
+function scratchpads_logins_menu()
+{
   return array(
     'logins' => array(
       'title' => t('Scratchpad login'),
@@ -35,8 +36,26 @@ function scratchpads_logins_menu(){
 /**
  * Implements hook_menu_site_status_alter().
  */
-function scratchpads_logins_menu_site_status_alter(&$menu_site_status, $path){
-  if(arg(0) == 'logins'){
+function scratchpads_logins_menu_site_status_alter(&$menu_site_status, $path)
+{
+  if (arg(0) == 'logins') {
     $menu_site_status = MENU_SITE_ONLINE;
   }
+}
+
+function drupal_http_request_ssl_override($url, array $options = array())
+{
+  global $conf;
+  $conf['drupal_http_request_function'] = NULL;
+
+  $context = stream_context_create(array(
+    'ssl' => array(
+      'verify_peer' => FALSE,
+      'allow_self_signed' => TRUE,
+      'verify_peer_name' => FALSE,
+    )
+  ));
+
+  $options['context'] = $context;
+  return drupal_http_request($url, $options);
 }
