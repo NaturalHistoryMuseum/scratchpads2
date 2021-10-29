@@ -51,6 +51,7 @@ function scratchpad_logins()
   if (module_exists('boost')) {
     $boost_warning = '<p>' . t("Note, this page will be cached by Boost.  If you've recently added a new maintainer and they're not in the list below, press Ctrl-F5 (<a href=\"http://en.wikipedia.org/wiki/Wikipedia:Bypass_your_cache#Instructions_for_various_browsers\">or something else</a>)") . '</p>';
   }
+
   switch ($_SERVER['SERVER_ADDR']) {
     case '157.140.126.27':
       $default_value = 'https://vbrant.scratchpads.org/users/vince-smith/openid';
@@ -58,10 +59,6 @@ function scratchpad_logins()
     default:
       $default_value = 'https://vbrant.scratchpads.org/user/57/identity';
   }
-
-  $drupal_http_override_function = variable_get('drupal_http_request_function', FALSE);
-  dpm($drupal_http_override_function);
-  dpm(variable_get('drupal_http_request_function_temp', FALSE));
 
   return array(
     'boost_warning' => array(
@@ -89,15 +86,9 @@ function scratchpad_logins()
 function scratchpad_logins_submit()
 {
   global $user;
-  // httprl_override_core is not working since switchting to https behind the firewall
-  // So we set drupal_http_request_function to false, so drupal_http_request is used instead
-  // the value of drupal_http_request_function is assigned to to a temp value, and set back
-  // in scratchpad_do_openid_login()
-  $drupal_http_override_function = variable_get('drupal_http_request_function', FALSE);
-  if ($drupal_http_override_function) {
-    variable_set('drupal_http_request_function', FALSE);
-    variable_set('drupal_http_request_function_temp', $drupal_http_override_function);
-  }
+  global $conf;
+  // Use the drupal http request which doesn't validate the SSL certificate of https
+  $conf['drupal_http_request_function'] = 'drupal_http_request_ssl_override';
 
   if (variable_get('site_offline', 0) && !$user->uid) {
     openid_begin($_POST['openid'], url('user', array(
@@ -115,18 +106,13 @@ function scratchpad_logins_submit()
 
 function scratchpad_do_openid_login($uid)
 {
+  global $conf;
+  // Use the drupal http request which doesn't validate the SSL certificate of https
+  $conf['drupal_http_request_function'] = 'drupal_http_request_ssl_override';
+
   $result = openid_complete();
-  // Ensure that the Openid returned, is one of the ones we're allowing
 
-  // Change the drupal_http_request_function to original - see scratchpad_logins_submit()
-  $drupal_http_request_function_temp = variable_get('drupal_http_request_function_temp', FALSE);
-
-  if ($drupal_http_request_function_temp) {
-    variable_set('drupal_http_request_function', $drupal_http_request_function_temp);
-    variable_del('drupal_http_request_function_temp');
-  }
-
-  $allowed_openids = variable_get('scratchpad_administrator_openids', scratchpad_admin_openids());
+  $allowed_openids = scratchpad_admin_openids();
   if ($result['status'] == 'success' && isset($allowed_openids[$result['openid.claimed_id']])) {
     global $user;
     $user = user_load($uid);
