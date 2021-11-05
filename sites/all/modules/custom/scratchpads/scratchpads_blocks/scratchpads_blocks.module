@@ -5,7 +5,8 @@ define('TOGGLE_PLACEHOLDER_SESSION', 'show_placeholder_blocks');
 /**
  * Implements hook_scratchpads_default_permissions
  */
-function scratchpads_blocks_scratchpads_default_permissions(){
+function scratchpads_blocks_scratchpads_default_permissions()
+{
   return array(
     'contributor' => array(
       'toggle placeholder blocks'
@@ -16,7 +17,8 @@ function scratchpads_blocks_scratchpads_default_permissions(){
 /**
  * Implements hook_menu().
  */
-function scratchpads_blocks_menu(){
+function scratchpads_blocks_menu()
+{
   // Add the empty content toggle
   // TODO - Do we need this on any other pages?
   $items['taxonomy/term/%/toggle-placeholder-blocks'] = array(
@@ -38,7 +40,8 @@ function scratchpads_blocks_menu(){
 /**
  * Implementation of hook_permission().
  */
-function scratchpads_blocks_permission(){
+function scratchpads_blocks_permission()
+{
   return array(
     'toggle placeholder blocks' => array(
       'title' => t('Toggle placeholder blocks'),
@@ -50,7 +53,8 @@ function scratchpads_blocks_permission(){
 /**
  * Implements hook_block_info().
  */
-function scratchpads_blocks_block_info(){
+function scratchpads_blocks_block_info()
+{
   $blocks['footer_menu'] = array(
     'info' => t('Scratchpads footer menu'),
     'region' => 'footer',
@@ -79,8 +83,9 @@ function scratchpads_blocks_block_info(){
  * We tweak the rubik theme so that we can assign blocks automatically to the
  * "scratchpads" theme regions without Drupal being fucking stupid.
  */
-function scratchpads_blocks_system_info_alter(&$info, $file, $type){
-  if($file->name == 'rubik'){
+function scratchpads_blocks_system_info_alter(&$info, $file, $type)
+{
+  if ($file->name == 'rubik') {
     $info['regions']['page_top'] = 'Page Top';
     $info['regions']['page_bottom'] = 'Page Bottom';
     $info['regions']['slide_top'] = 'Slide Top';
@@ -102,8 +107,9 @@ function scratchpads_blocks_system_info_alter(&$info, $file, $type){
  * @param string $theme
  * @param array $code_blocks
  */
-function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
-  switch($theme){
+function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks)
+{
+  switch ($theme) {
     case SCRATCHPADS_THEME_NAME:
       // Turn of all the blocks we know we don't want
       $blocks['system']['powered-by']['status'] = 0;
@@ -118,7 +124,8 @@ function scratchpads_blocks_block_info_alter(&$blocks, $theme, $code_blocks){
 /**
  * Implements hook_form_FORM_ID_alter()
  */
-function scratchpads_blocks_form_legal_administration_alter(&$form, &$form_state, $form_id){
+function scratchpads_blocks_form_legal_administration_alter(&$form, &$form_state, $form_id)
+{
   $form['#submit'][] = 'scratchpads_blocks_form_legal_administration_submit';
 }
 
@@ -126,22 +133,24 @@ function scratchpads_blocks_form_legal_administration_alter(&$form, &$form_state
  * Submit for the above alter - we simply set a flag to say that the T&Cs have
  * been altered.
  */
-function scratchpads_blocks_form_legal_administration_submit(){
+function scratchpads_blocks_form_legal_administration_submit()
+{
   variable_set('scratchpads_legal_has_changed', TRUE);
 }
 
 /**
  * Implements hook_block_view().
  */
-function scratchpads_blocks_block_view($delta = ''){
+function scratchpads_blocks_block_view($delta = '')
+{
   $block = array();
-  switch($delta){
+  switch ($delta) {
     case 'footer_menu':
       $tree = menu_tree_page_data('main-menu', 1);
       $link_text = t('Subscribe to RSS of @site_name', array(
         '@site_name' => variable_get('site_name', t('this site'))
       ));
-      if(module_exists('tracker')){
+      if (module_exists('tracker')) {
         $tree[] = array(
           'below' => FALSE,
           'link' => array(
@@ -156,7 +165,7 @@ function scratchpads_blocks_block_view($delta = ''){
           )
         );
       }
-      if(variable_get('scratchpads_legal_has_changed', FALSE)){
+      if (variable_get('scratchpads_legal_has_changed', FALSE)) {
         $tree[] = array(
           'below' => FALSE,
           'link' => array(
@@ -219,7 +228,7 @@ function scratchpads_blocks_block_view($delta = ''){
           'path' => $path . '/images/vbrant.png',
           'alt' => 'ViBRANT logo',
           'title' => 'ViBRANT'
-        )), 'http://vbrant.scratchpads.org/', $options),
+        )), 'https://vbrant.scratchpads.org/', $options),
         l(theme('image', array(
           'path' => $path . '/images/drupal_small.png',
           'alt' => 'Drupal logo',
@@ -243,7 +252,8 @@ function scratchpads_blocks_block_view($delta = ''){
 /**
  * Implements hook_menu_block_blocks().
  */
-function scratchpads_blocks_menu_block_blocks(){
+function scratchpads_blocks_menu_block_blocks()
+{
   // The array key is the block delta used by menu block.
   return array(
     'scratchpads_blocks-1' => array(
@@ -263,12 +273,13 @@ function scratchpads_blocks_menu_block_blocks(){
 /**
  * Implements hook_themes_enabled().
  */
-function scratchpads_blocks_themes_enabled($theme_list){
-  foreach(module_implements('block_info') as $module){
+function scratchpads_blocks_themes_enabled($theme_list)
+{
+  foreach (module_implements('block_info') as $module) {
     $module_blocks = module_invoke($module, 'block_info');
-    foreach($module_blocks as $delta => $block){
-      if(isset($block['theme']) && in_array($block['theme'], $theme_list)){
-        if($db_block = scratchpads_blocks_block_load($module, $delta)){
+    foreach ($module_blocks as $delta => $block) {
+      if (isset($block['theme']) && in_array($block['theme'], $theme_list)) {
+        if ($db_block = scratchpads_blocks_block_load($module, $delta)) {
           $db_block->status = 1;
           $db_block->region = $block['region'];
           drupal_write_record('block', $db_block, array(
@@ -288,11 +299,12 @@ function scratchpads_blocks_themes_enabled($theme_list){
 /**
  * Implements hook_views_pre_view().
  */
-function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
-  if(scratchpads_blocks_show_placeholders() && $display_id == 'block'){
+function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args)
+{
+  if (scratchpads_blocks_show_placeholders() && $display_id == 'block') {
     $filters = $view->get_items('filter');
     // If there's one node type filter set, we know how to create the add link
-    if($link = scratchpads_blocks_views_add_link($view, arg(2))){
+    if ($link = scratchpads_blocks_views_add_link($view, arg(2))) {
       $settings = array(
         'area' => array(
           'id' => 'area',
@@ -311,11 +323,12 @@ function scratchpads_blocks_views_pre_view(&$view, &$display_id, &$args){
  * MENU CALLBACKS
  *
  ********************************************************************************************/
-function scratchpads_blocks_toggle_placeholder($term){
-  if(!scratchpads_blocks_show_placeholders()){
+function scratchpads_blocks_toggle_placeholder($term)
+{
+  if (!scratchpads_blocks_show_placeholders()) {
     $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = TRUE;
     drupal_set_message(t('You have turned on the display of empty blocks.'));
-  }else{
+  } else {
     $_SESSION[TOGGLE_PLACEHOLDER_SESSION] = FALSE;
     drupal_set_message(t('You have turned off the display of empty blocks.'));
   }
@@ -328,7 +341,8 @@ function scratchpads_blocks_toggle_placeholder($term){
  * MODULE FUNCTIONS
  *
  ********************************************************************************************/
-function scratchpads_blocks_block_load($module, $delta){
+function scratchpads_blocks_block_load($module, $delta)
+{
   return db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
     ':module' => $module,
     ':delta' => $delta,
@@ -336,8 +350,11 @@ function scratchpads_blocks_block_load($module, $delta){
   ))->fetchObject();
 }
 
-function scratchpads_blocks_show_placeholders(){
-  if(!isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) || !$_SESSION[TOGGLE_PLACEHOLDER_SESSION]){return false;}
+function scratchpads_blocks_show_placeholders()
+{
+  if (!isset($_SESSION[TOGGLE_PLACEHOLDER_SESSION]) || !$_SESSION[TOGGLE_PLACEHOLDER_SESSION]) {
+    return false;
+  }
   return true;
 }
 
@@ -347,13 +364,14 @@ function scratchpads_blocks_show_placeholders(){
  * @param object $view
  * @param integer $tid
  */
-function scratchpads_blocks_views_add_link($view, $tid){
+function scratchpads_blocks_views_add_link($view, $tid)
+{
   $filters = $view->get_items('filter');
   // If there's one node type filter set, we know how to create the add link
-  if(isset($filters['type']) && count($filters['type']['value']) == 1){
+  if (isset($filters['type']) && count($filters['type']['value']) == 1) {
     $type = array_shift($filters['type']['value']);
     $term = taxonomy_term_load($tid);
-    switch($filters['type']['table']){
+    switch ($filters['type']['table']) {
       case 'node':
         $node_type = node_type_load($type);
         $type_url_str = str_replace('_', '-', $node_type->type);

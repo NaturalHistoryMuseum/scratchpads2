@@ -1,17 +1,19 @@
 <?php
 
-function scratchpad_admin_openids(){
+function scratchpad_admin_openids()
+{
   return array(
-    'http://vbrant.scratchpads.org/user/57/identity' => 'Ben Scott (http://vbrant.scratchpads.org/user/57/identity)',
-    'http://vbrant.scratchpads.org/users/laurence-livermore/openid' => 'Laurence Livermore (http://vbrant.scratchpads.org/users/laurence-livermore/openid)',
-    'http://vbrant.scratchpads.org/users/vince-smith/openid' => 'Vince Smith (http://vbrant.scratchpads.org/users/vince-smith/openid)',
-    'http://vbrant.scratchpads.org/users/paul-kiddle/openid' => 'Paul Kiddle (http://vbrant.scratchpads.org/users/paul-kiddle/openid)',
-    'http://vbrant.scratchpads.org/users/josh-humphries/openid' => 'Josh Humphries (http://vbrant.scratchpads.org/users/josh-humphries/openid)',
-    'http://vbrant.scratchpads.org/users/ginger/openid' => 'Ginger (http://vbrant.scratchpads.org/users/ginger/openid)',
+    'https://vbrant.scratchpads.org/user/57/identity' => 'Ben Scott (https://vbrant.scratchpads.org/user/57/identity)',
+    'https://vbrant.scratchpads.org/users/laurence-livermore/openid' => 'Laurence Livermore (https://vbrant.scratchpads.org/users/laurence-livermore/openid)',
+    'https://vbrant.scratchpads.org/users/vince-smith/openid' => 'Vince Smith (https://vbrant.scratchpads.org/users/vince-smith/openid)',
+    'https://vbrant.scratchpads.org/users/josh-humphries/openid' => 'Josh Humphries (https://vbrant.scratchpads.org/users/josh-humphries/openid)',
+    'https://vbrant.scratchpads.org/users/ginger/openid' => 'Ginger (https://vbrant.scratchpads.org/users/ginger/openid)',
+    'https://vbrant.scratchpads.org/users/robd/openid' => 'Rob Davis (https://vbrant.scratchpads.org/users/robd/openid)',
   );
 }
 
-function scratchpad_logins(){
+function scratchpad_logins()
+{
   $query = db_select('users_roles', 'ur');
   $query->join('users', 'u', 'u.uid = ur.uid');
   $query->join('role', 'r', 'r.rid = ur.rid');
@@ -25,16 +27,16 @@ function scratchpad_logins(){
   $roles = user_roles();
   unset($roles[1]);
   unset($roles[2]);
-  if(variable_get('scratchpad_logins_uid_1', TRUE)){
+  if (variable_get('scratchpad_logins_uid_1', TRUE)) {
     $users = array(
       'Scratchpad Team' => array(
         1 => 'Scratchpad Team [1]'
       )
     );
-  }else{
+  } else {
     $users = array();
   }
-  foreach($results as $row){
+  foreach ($results as $row) {
     $users[$roles[$row->rid]][$row->uid] = $row->name . " [" . $row->uid . "]";
   }
   // db_query('SELECT uid FROM {users_roles} WHERE rid = 5 AND uid >
@@ -46,19 +48,18 @@ function scratchpad_logins(){
   // {users_roles} WHERE rid = 5 AND uid > 1')->fetchAllAssoc());
   // $lowest_maintainer_uid = 2;
   $boost_warning = '';
-  if(module_exists('boost')){
+  if (module_exists('boost')) {
     $boost_warning = '<p>' . t("Note, this page will be cached by Boost.  If you've recently added a new maintainer and they're not in the list below, press Ctrl-F5 (<a href=\"http://en.wikipedia.org/wiki/Wikipedia:Bypass_your_cache#Instructions_for_various_browsers\">or something else</a>)") . '</p>';
   }
-  switch($_SERVER['SERVER_ADDR']){
-    case '157.140.127.10':
-      $default_value = 'http://vbrant.eu/user/57/identity';
-      break;
+
+  switch ($_SERVER['SERVER_ADDR']) {
     case '157.140.126.27':
-      $default_value = 'http://vbrant.eu/users/vince-smith/openid';
+      $default_value = 'https://vbrant.scratchpads.org/users/vince-smith/openid';
       break;
     default:
-      $default_value = 'https://id.ebaker.me.uk/ed';
+      $default_value = 'https://vbrant.scratchpads.org/user/57/identity';
   }
+
   return array(
     'boost_warning' => array(
       '#value' => $boost_warning
@@ -82,30 +83,40 @@ function scratchpad_logins(){
   );
 }
 
-function scratchpad_logins_submit(){
+function scratchpad_logins_submit()
+{
   global $user;
-  if(variable_get('site_offline', 0) && !$user->uid){
+  global $conf;
+  // Use the drupal http request which doesn't validate the SSL certificate of https
+  $conf['drupal_http_request_function'] = 'drupal_http_request_ssl_override';
+
+  if (variable_get('site_offline', 0) && !$user->uid) {
     openid_begin($_POST['openid'], url('user', array(
       'absolute' => TRUE,
       'query' => array(
         'uid' => $_POST['uid']
       )
     )));
-  }else{
+  } else {
     openid_begin($_POST['openid'], url('logins/return/' . $_POST['uid'], array(
       'absolute' => TRUE
     )));
   }
 }
 
-function scratchpad_do_openid_login($uid){
+function scratchpad_do_openid_login($uid)
+{
+  global $conf;
+  // Use the drupal http request which doesn't validate the SSL certificate of https
+  $conf['drupal_http_request_function'] = 'drupal_http_request_ssl_override';
+
   $result = openid_complete();
-  // Ensure that the Openid returned, is one of the ones we're allowing
-  $allowed_openids = variable_get('scratchpad_administrator_openids', scratchpad_admin_openids());
-  if($result['status'] == 'success' && isset($allowed_openids[$result['openid.claimed_id']])){
+
+  $allowed_openids = scratchpad_admin_openids();
+  if ($result['status'] == 'success' && isset($allowed_openids[$result['openid.claimed_id']])) {
     global $user;
     $user = user_load($uid);
-    if(function_exists('boost_init')){
+    if (function_exists('boost_init')) {
       boost_init();
     }
     watchdog('logins', '"@openid" logged in as "@user"', array(
@@ -113,7 +124,7 @@ function scratchpad_do_openid_login($uid){
       '@user' => $user->name
     ));
     drupal_goto();
-  }else{
+  } else {
     watchdog('logins', print_r($result, 1));
     // db_query("DELETE FROM {openid_association} WHERE idp_endpoint_uri =
     // '%s'")
