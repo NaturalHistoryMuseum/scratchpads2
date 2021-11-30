@@ -11,7 +11,8 @@
 - Update openids to fix logins for HTTPS [#6430](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6430)
 
 - Add optional taxonomic scope for gbif dwc-a file [#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6373)
-- Update Drupal to 7.82
+
+- Update Drupal to 7.82 [#6473](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6473)
 
 - Taxonomic scope field for gbif dwc-a file
 [#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6410)
