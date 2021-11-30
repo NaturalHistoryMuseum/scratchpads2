@@ -7,8 +7,14 @@
 
 - Add Services module to provide scratchpad API for machine access to scratchpad public data already on the public site. Preparation for a 'Scratchpads Explorer' [#6426](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6429)
 
+- Add ddev tools defacto standard local personal developer environment for building scratchpads sites on developer's own setup.  [#6408](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6416)
 
 
+- Taxonomic scope field for gbif dwc-a file
+[#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6410)
+
+- Remove warning undef notice warning in scratchpads species
+[#6421](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6422)
 
 ## 2.9.17.1 (2021-05-21)
 
