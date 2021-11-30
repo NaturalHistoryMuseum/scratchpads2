@@ -11,10 +11,8 @@
 - Update openids to fix logins for HTTPS [#6430](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6430)
 
 - Add optional taxonomic scope for gbif dwc-a file [#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6373)
-- Update Drupal to 7.82
 
-- Taxonomic scope field for gbif dwc-a file
-[#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6410)
+- Update Drupal to 7.82 [#6473](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6473)
 
 - Remove warning undef notice warning in scratchpads species
 [#6421](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6422)
