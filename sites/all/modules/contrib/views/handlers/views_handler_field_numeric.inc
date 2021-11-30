@@ -27,8 +27,8 @@ class views_handler_field_numeric extends views_handler_field {
     $options['decimal'] = array('default' => '.', 'translatable' => TRUE);
     $options['separator'] = array('default' => ',', 'translatable' => TRUE);
     $options['format_plural'] = array('default' => FALSE, 'bool' => TRUE);
-    $options['format_plural_singular'] = array('default' => '1');
-    $options['format_plural_plural'] = array('default' => '@count');
+    $options['format_plural_singular'] = array('default' => '1', 'translatable' => TRUE);
+    $options['format_plural_plural'] = array('default' => '@count', 'translatable' => TRUE);
     $options['prefix'] = array('default' => '', 'translatable' => TRUE);
     $options['suffix'] = array('default' => '', 'translatable' => TRUE);
 
@@ -118,6 +118,11 @@ class views_handler_field_numeric extends views_handler_field {
   public function render($values) {
     $value = $this->get_value($values);
 
+    // Output nothing if the value is null.
+    if (is_null($value)) {
+      return '';
+    }
+
     // Hiding should happen before rounding or adding prefix/suffix.
     if ($this->options['hide_empty'] && empty($value) && ($value !== 0 || $this->options['empty_zero'])) {
       return '';
@@ -127,12 +132,13 @@ class views_handler_field_numeric extends views_handler_field {
       $value = number_format($value, $this->options['precision'], $this->options['decimal'], $this->options['separator']);
     }
     else {
-      $remainder = abs($value) - intval(abs($value));
+      $point_position = strpos($value, '.');
+      $remainder = ($point_position === FALSE) ? '' : substr($value, $point_position + 1);
       $value = $value > 0 ? floor($value) : ceil($value);
       $value = number_format($value, 0, '', $this->options['separator']);
       if ($remainder) {
         // The substr may not be locale safe.
-        $value .= $this->options['decimal'] . substr($remainder, 2);
+        $value .= $this->options['decimal'] . $remainder;
       }
     }
 

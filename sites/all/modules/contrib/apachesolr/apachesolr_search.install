@@ -157,10 +157,6 @@ function apachesolr_search_schema() {
  * Implements hook_uninstall().
  */
 function apachesolr_search_uninstall() {
-  $stored = variable_get('apachesolr_index_last', array());
-  unset($stored['apachesolr_search']);
-  variable_set('apachesolr_index_last', $stored);
-
   $active = variable_get('search_active_modules', array('node', 'user'));
   $idx = array_search('apachesolr_search', $active);
   if ($idx !== FALSE) {

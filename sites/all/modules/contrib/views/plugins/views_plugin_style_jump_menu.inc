@@ -65,7 +65,7 @@ class views_plugin_style_jump_menu extends views_plugin_style {
       '#type' => 'checkbox',
       '#title' => t('Hide the "Go" button'),
       '#default_value' => !empty($this->options['hide']),
-      '#description' => t('If hidden, this button will only be hidden for users with javascript and the page will automatically jump when the select is changed.'),
+      '#description' => t('If hidden, this button will only be hidden for users with JavaScript and the page will automatically jump when the select is changed.'),
     );
 
     $form['text'] = array(
@@ -78,7 +78,7 @@ class views_plugin_style_jump_menu extends views_plugin_style {
       '#type' => 'textfield',
       '#title' => t('Selector label'),
       '#default_value' => $this->options['label'],
-      '#description' => t('The text that will appear as the the label of the selector element. If blank no label tag will be used.'),
+      '#description' => t('The text that will appear as the label of the selector element. If blank no label tag will be used.'),
     );
 
     $form['choose'] = array(

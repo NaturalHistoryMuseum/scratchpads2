@@ -7,9 +7,9 @@ dependencies[] = references
 dependencies[] = options
 files[] = node_reference.test
 
-; Information added by drupal.org packaging script on 2013-02-07
-version = "7.x-2.1"
+; Information added by Drupal.org packaging script on 2017-04-18
+version = "7.x-2.2"
 core = "7.x"
 project = "references"
-datestamp = "1360265821"
+datestamp = "1492534745"
 

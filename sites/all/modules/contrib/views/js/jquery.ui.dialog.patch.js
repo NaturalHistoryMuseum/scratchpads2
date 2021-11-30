@@ -10,7 +10,7 @@
  * @see views_ui.module
  * @see js/jquery.ui.dialog.min.js
  *
- * This javascript patch overwrites the $.ui.dialog.overlay.events object to remove
+ * This JavaScript patch overwrites the $.ui.dialog.overlay.events object to remove
  * the mousedown, mouseup and click events from the list of events that are bound
  * in $.ui.dialog.overlay.create
  *

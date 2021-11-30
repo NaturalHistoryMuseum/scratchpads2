@@ -15,10 +15,10 @@ function mediafield_field_info() {
       'description' => t('This field stores a reference to a multimedia asset.'),
       'settings' => array(),
       'instance_settings' => array(
-        'file_extensions' => media_variable_get('file_extensions'),
+        'file_extensions' => variable_get('file_entity_default_allowed_extensions', 'jpg jpeg gif png txt doc docx xls xlsx pdf ppt pptx pps ppsx odt ods odp mp3 mov mp4 m4a m4v mpeg avi ogg oga ogv weba webp webm'),
       ),
       'default_widget' => 'media_generic',
-      'default_formatter' => 'media_large',
+      'default_formatter' => 'media',
       'property_type' => 'field_item_file',
       'property_callbacks' => array('entity_metadata_field_file_callback'),
     ),
@@ -137,7 +137,9 @@ function mediafield_field_formatter_view($entity_type, $entity, $field, $instanc
   }
 
   if (!empty($files)) {
-    $element = file_view_multiple($files, $display['settings']['file_view_mode'], 0, $langcode);
+    $output = file_view_multiple($files, $display['settings']['file_view_mode'], 0, $langcode);
+    // Remove the first level from the output array.
+    $element = reset($output);
   }
 
   return $element;
@@ -308,16 +310,6 @@ function mediafield_field_delete_revision($entity_type, $entity, $field, $instan
     if (file_usage_delete($file, 'mediafield', $entity_type, $id, 1)) {
       $items[$delta] = NULL;
     }
-  }
-}
-
-/**
- * Implements hook_field_instance_update().
- */
-function mediafield_field_update_instance($instance, $prior_instance) {
-  // Clear the filter cache when updating instance settings for a media entity.
-  if ($instance['entity_type'] == 'media') {
-    media_filter_invalidate_caches();
   }
 }
 

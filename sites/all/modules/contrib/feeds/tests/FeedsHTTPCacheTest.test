@@ -1,0 +1,544 @@
+<?php
+
+/**
+ * @coversDefaultClass FeedsHTTPCache
+ * @group feeds
+ */
+class FeedsHTTPCacheTest extends FeedsWebTestCase {
+  /**
+   * Default Feeds cache dir.
+   *
+   * @var string
+   */
+  const FEEDS_CACHE_DIR = 'private://feeds/cache';
+
+  /**
+   * The cache object.
+   *
+   * @var FeedsHTTPCache
+   */
+  protected $cache;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'FeedsHTTPCache class test',
+      'description' => 'Covers class FeedsHTTPCache.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+
+    // Create an instance of FeedsHTTPCache to test with.
+    $this->cache = new FeedsHTTPCache('cache_feeds_http');
+  }
+
+  /**
+   * Creates a dummy HTTP response.
+   *
+   * @param bool $with_data
+   *   (optional) If data should be included.
+   *   Defaults to TRUE.
+   *
+   * @return object
+   *   The created response.
+   */
+  protected function createHttpResponse($with_data = TRUE) {
+    $response = new stdClass();
+    $response->code = 200;
+    $response->headers = array(
+      'content-type' => 'text/plain; charset=utf-8',
+      'x-host' => 'http://www.example.com',
+    );
+    if ($with_data) {
+      $response->data = static::randomString(255);
+    }
+
+    return $response;
+  }
+
+  /**
+   * Creates a cache record, bypassing the API.
+   *
+   * @param string $cid
+   *   (optional) The cache item ID.
+   * @param object $response
+   *   (optional) The response to save.
+   *
+   * @return string
+   *   The cache item ID.
+   */
+  protected function createCacheRecord($cid = NULL, $response = NULL) {
+    if (empty($cid)) {
+      $cid = static::randomName();
+    }
+    if (empty($response)) {
+      $response = $this->createHttpResponse(FALSE);
+      $response->file_path = static::FEEDS_CACHE_DIR . '/' . $cid;
+    }
+
+    $record = new stdClass();
+    $record->cid = $cid;
+    $record->data = serialize($response);
+    $record->expire = CACHE_PERMANENT;
+    $record->created = REQUEST_TIME;
+    $record->serialized = TRUE;
+
+    drupal_write_record('cache_feeds_http', $record);
+
+    return $cid;
+  }
+
+  /**
+   * Creates a cache record using the API.
+   *
+   * @param string $cid
+   *   (optional) The cache item ID.
+   * @param object $response
+   *   (optional) The response to save.
+   *
+   * @return string
+   *   The cache item ID.
+   */
+  protected function createCacheRecordUsingApi($cid = NULL, $response = NULL) {
+    if (empty($cid)) {
+      $cid = static::randomName();
+    }
+    if (empty($response)) {
+      $response = $this->createHttpResponse();
+    }
+    $this->cache->set($cid, $response);
+
+    return $cid;
+  }
+
+  /**
+   * Asserts that an item with a certain ID exists in the feeds cache table.
+   *
+   * @param string $cid
+   *   The cache item ID.
+   */
+  protected function assertCacheItemExists($cid) {
+    $message = format_string('Cache item @cid exists.', array(
+      '@cid' => $cid,
+    ));
+
+    $count = db_select('cache_feeds_http')
+      ->fields('cache_feeds_http', array('cid'))
+      ->condition('cid', $cid)
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(1, $count, $message);
+  }
+
+  /**
+   * Asserts that an item with a certain ID does not exist in the feeds cache
+   * table.
+   *
+   * @param string $cid
+   *   The cache item ID.
+   */
+  protected function assertNoCacheItemExists($cid) {
+    $message = format_string('Cache item @cid does not exist.', array(
+      '@cid' => $cid,
+    ));
+
+    $count = db_select('cache_feeds_http')
+      ->fields('cache_feeds_http', array('cid'))
+      ->condition('cid', $cid)
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(0, $count, $message);
+  }
+
+  /**
+   * Asserts that a cache file with a certain ID exists on the file system.
+   *
+   * @param string $cid
+   *   The cache item ID.
+   */
+  protected function assertCacheFileExists($cid) {
+    $message = format_string('Cache file @cid exists.', array(
+      '@cid' => $cid,
+    ));
+
+    $this->assertTrue(file_exists(static::FEEDS_CACHE_DIR . '/' . $cid), $message);
+  }
+
+  /**
+   * Asserts that a cache file with a certain ID does not exist on the file
+   * system.
+   *
+   * @param string $cid
+   *   The cache item ID.
+   */
+  protected function assertNoCacheFileExists($cid) {
+    $message = format_string('Cache file @cid does not exist.', array(
+      '@cid' => $cid,
+    ));
+
+    $this->assertFalse(file_exists(static::FEEDS_CACHE_DIR . '/' . $cid), $message);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::get().
+   */
+  public function testGet() {
+    $cid = static::randomName();
+    $file_data = static::randomName();
+
+    // Save a file to the cache dir.
+    $dir = static::FEEDS_CACHE_DIR;
+    file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+    file_put_contents(static::FEEDS_CACHE_DIR . '/' . $cid, $file_data);
+
+    // Manually create a record in cache_feeds_http table.
+    $this->createCacheRecord($cid);
+
+    // Assert that the item can be get from cache.
+    $item = $this->cache->get($cid);
+    $this->assertEqual($file_data, $item->data->getFileContents());
+  }
+
+  /**
+   * @covers FeedsHTTPCache::getMultiple().
+   */
+  public function testGetMultiple() {
+    $cid1 = static::randomName();
+    $cid2 = static::randomName();
+    $cid3 = static::randomName();
+
+    $file1 = static::randomName();
+    $file2 = static::randomName();
+    $file3 = static::randomName();
+
+    // Save a few files to the cache dir.
+    $dir = static::FEEDS_CACHE_DIR;
+    file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+    file_put_contents(static::FEEDS_CACHE_DIR . '/' . $cid1, $file1);
+    file_put_contents(static::FEEDS_CACHE_DIR . '/' . $cid2, $file2);
+    file_put_contents(static::FEEDS_CACHE_DIR . '/' . $cid3, $file3);
+
+    // Create a few records in cache_feeds_http table.
+    $this->createCacheRecord($cid1);
+    $this->createCacheRecord($cid2);
+    $this->createCacheRecord($cid3);
+
+    $cids = array(
+      $cid2,
+      $cid3,
+    );
+
+    // Assert that the expected items are get from the cache.
+    $items = $this->cache->getMultiple($cids);
+    $this->assertFalse(isset($items[$cid1]));
+    $this->assertTrue(isset($items[$cid2]));
+    $this->assertTrue(isset($items[$cid3]));
+    $this->assertEqual($file2, $items[$cid2]->data->getFileContents());
+    $this->assertEqual($file3, $items[$cid3]->data->getFileContents());
+  }
+
+  /**
+   * @covers FeedsHTTPCache::set().
+   */
+  public function testSet() {
+    $response = $this->createHttpResponse();
+    $cid = $this->createCacheRecordUsingApi(NULL, $response);
+
+    // Assert that a record was created with the expected data.
+    $record = db_select('cache_feeds_http')
+      ->fields('cache_feeds_http', array())
+      ->condition('cid', $cid)
+      ->execute()
+      ->fetch();
+
+    // Check cache record.
+    $this->assertEqual($cid, $record->cid);
+    $this->assertEqual(CACHE_PERMANENT, $record->expire);
+
+    // Check that the raw data wasn't saved in the cache record.
+    $this->assertFalse(strpos($record->data, $response->data), 'The raw data was not saved in the database.');
+
+    // Check properties.
+    $saved_response = unserialize($record->data);
+    $this->assertTrue($saved_response instanceof FeedsHTTPCacheItem, 'Cached data is instance of class FeedsHTTPCacheItem.');
+    $this->assertEqual($response->headers, $saved_response->headers);
+    $this->assertEqual(static::FEEDS_CACHE_DIR . '/' . $cid, $saved_response->file_path);
+
+    // Assert that a file was created on the file system.
+    $this->assertTrue(file_exists(static::FEEDS_CACHE_DIR . '/' . $cid));
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if a single cached file can get cleaned up.
+   */
+  public function testClear() {
+    // Create a few cache entries.
+    $cid1 = $this->createCacheRecordUsingApi();
+    $cid2 = $this->createCacheRecordUsingApi();
+
+    // Assert that items were created in the database.
+    $this->assertCacheItemExists($cid1);
+    $this->assertCacheItemExists($cid2);
+
+    // Assert that files exist.
+    $this->assertCacheFileExists($cid1);
+    $this->assertCacheFileExists($cid2);
+
+    // Now clear first item.
+    $this->cache->clear($cid1);
+
+    // Assert that item 1 is removed from the database, but item 2 still exists.
+    $this->assertNoCacheItemExists($cid1);
+    $this->assertCacheItemExists($cid2);
+
+    // Assert that file 1 is gone as well, but file 2 still exists.
+    $this->assertNoCacheFileExists($cid1);
+    $this->assertCacheFileExists($cid2);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if multiple cached files can get cleaned up.
+   */
+  public function testClearMultiple() {
+    // Create a few cache entries.
+    $cid1 = $this->createCacheRecordUsingApi();
+    $cid2 = $this->createCacheRecordUsingApi();
+    $cid3 = $this->createCacheRecordUsingApi();
+    $cid4 = $this->createCacheRecordUsingApi();
+
+    // Remove item 2 and 4.
+    $this->cache->clear(array(
+      $cid2,
+      $cid4,
+    ));
+
+    // Assert that some records are removed.
+    $this->assertCacheItemExists($cid1);
+    $this->assertNoCacheItemExists($cid2);
+    $this->assertCacheItemExists($cid3);
+    $this->assertNoCacheItemExists($cid4);
+
+    // Assert that only these files were removed.
+    $this->assertCacheFileExists($cid1);
+    $this->assertNoCacheFileExists($cid2);
+    $this->assertCacheFileExists($cid3);
+    $this->assertNoCacheFileExists($cid4);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if expired cached files can get cleaned up.
+   */
+  public function testClearExpired() {
+    // Create a cache entry that should not expire.
+    $cid_permanent = $this->createCacheRecordUsingApi();
+
+    // Create a cache entry with an expire time in the past.
+    $cid_expire_past = static::randomName();
+    $this->cache->set($cid_expire_past, $this->createHttpResponse(), REQUEST_TIME - 60);
+
+    // Create a cache entry that expires exactly now.
+    $cid_expire_now = static::randomName();
+    $this->cache->set($cid_expire_now, $this->createHttpResponse(), REQUEST_TIME);
+
+    // Create a cache entry that expires in the future.
+    $cid_expire_future = static::randomName();
+    $this->cache->set($cid_expire_future, $this->createHttpResponse(), REQUEST_TIME + 60);
+
+    // Clear all expired cache entries.
+    $this->cache->clear();
+
+    // Assert existence of cache entries.
+    $this->assertCacheItemExists($cid_permanent);
+    $this->assertNoCacheItemExists($cid_expire_past);
+    $this->assertCacheItemExists($cid_expire_now);
+    $this->assertCacheItemExists($cid_expire_future);
+
+    // Assert existence of cache files.
+    $this->assertCacheFileExists($cid_permanent);
+    $this->assertNoCacheFileExists($cid_expire_past);
+    $this->assertCacheFileExists($cid_expire_now);
+    $this->assertCacheFileExists($cid_expire_future);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if expired cached files can get cleaned up using the cache_lifetime
+   * variable.
+   */
+  public function testClearExpiredUsingCacheLifeTime() {
+    variable_set('cache_lifetime', 120);
+
+    // Create a cache entry that should not expire.
+    $cid_permanent = $this->createCacheRecordUsingApi();
+
+    // Create a cache entry with an expire time in the past.
+    $cid_expire_past = static::randomName();
+    $this->cache->set($cid_expire_past, $this->createHttpResponse(), REQUEST_TIME - 60);
+
+    // Create a cache entry that expires exactly now.
+    $cid_expire_now = static::randomName();
+    $this->cache->set($cid_expire_now, $this->createHttpResponse(), REQUEST_TIME);
+
+    // Create a cache entry that expires in the future.
+    $cid_expire_future = static::randomName();
+    $this->cache->set($cid_expire_future, $this->createHttpResponse(), REQUEST_TIME + 60);
+
+    // Call clear. Nothing should be cleared because the last cache flush was
+    // too recently.
+    variable_set('cache_flush_cache_feeds_http', REQUEST_TIME - 90);
+    $this->cache->clear();
+
+    // Ensure all cached files still exist as cache lifetime has not exceeded.
+    $this->assertCacheItemExists($cid_permanent);
+    $this->assertCacheItemExists($cid_expire_past);
+    $this->assertCacheItemExists($cid_expire_now);
+    $this->assertCacheItemExists($cid_expire_future);
+    $this->assertCacheFileExists($cid_permanent);
+    $this->assertCacheFileExists($cid_expire_past);
+    $this->assertCacheFileExists($cid_expire_now);
+    $this->assertCacheFileExists($cid_expire_future);
+
+    // Now do as if cache lifetime has passed.
+    variable_set('cache_flush_cache_feeds_http', REQUEST_TIME - 121);
+    $this->cache->clear();
+
+    // Assert existence of cache entries.
+    $this->assertCacheItemExists($cid_permanent);
+    $this->assertNoCacheItemExists($cid_expire_past);
+    $this->assertCacheItemExists($cid_expire_now);
+    $this->assertCacheItemExists($cid_expire_future);
+
+    // Assert existence of cache files.
+    $this->assertCacheFileExists($cid_permanent);
+    $this->assertNoCacheFileExists($cid_expire_past);
+    $this->assertCacheFileExists($cid_expire_now);
+    $this->assertCacheFileExists($cid_expire_future);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if all cached files can get cleaned up.
+   */
+  public function testClearAll() {
+    // Create a few cache entries.
+    $cid1 = $this->createCacheRecordUsingApi();
+    $cid2 = $this->createCacheRecordUsingApi();
+    $cid3 = $this->createCacheRecordUsingApi();
+
+    // Now clear complete cache.
+    $this->cache->clear('*', TRUE);
+
+    // Assert that cache_feeds_http is empty.
+    $count = db_select('cache_feeds_http')
+      ->fields('cache_feeds_http', array('cid'))
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(0, $count, 'The cache_feeds_http item is empty.');
+
+    // Assert that the feeds cache dir is empty.
+    $empty = (count(glob(static::FEEDS_CACHE_DIR . '/*')) === 0);
+    $this->assertTrue($empty, 'The feeds cache directory is empty.');
+  }
+
+  /**
+   * @covers FeedsHTTPCache::clear().
+   *
+   * Tests if cached files starting with a certain string can get cleaned up.
+   */
+  public function testClearUsingWildcard() {
+    // Create a few cids, where the first few chars of cid1 and cid3 are the
+    // same and cid2 has a completely different string.
+    $cid1 = 'abc123';
+    $cid2 = 'def456';
+    $cid3 = 'abc789';
+    $this->createCacheRecordUsingApi($cid1);
+    $this->createCacheRecordUsingApi($cid2);
+    $this->createCacheRecordUsingApi($cid3);
+
+    // Clear all cache entries that start with 'abc'.
+    $this->cache->clear('abc', TRUE);
+
+    // Assert that all records starting with 'abc' are gone.
+    $this->assertNoCacheItemExists($cid1);
+    $this->assertCacheItemExists($cid2);
+    $this->assertNoCacheItemExists($cid3);
+
+    // Assert that all files in the cache dir starting with 'abc' are gone.
+    $this->assertNoCacheFileExists($cid1);
+    $this->assertCacheFileExists($cid2);
+    $this->assertNoCacheFileExists($cid3);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::isEmpty().
+   */
+  public function testIsEmpty() {
+    // Add a record to the cache_feeds_http table.
+    $this->createCacheRecord();
+
+    // Assert that the cache is not empty.
+    $this->assertFalse($this->cache->isEmpty(), 'The cache is empty.');
+
+    // Truncate the table and assert that the cache class tells us that it is
+    // empty.
+    db_truncate('cache_feeds_http')->execute();
+    $this->assertTrue($this->cache->isEmpty());
+
+    // Add a file to the cache dir, without a entry in the database.
+    $dir = static::FEEDS_CACHE_DIR;
+    file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+    file_put_contents(static::FEEDS_CACHE_DIR . '/abc123', static::randomName());
+    // And assert that the cache class reports that the cache is not empty.
+    $this->assertFalse($this->cache->isEmpty());
+  }
+
+  /**
+   * @covers FeedsHTTPCache::saveFile().
+   */
+  public function testSaveFile() {
+    $cid = static::randomName();
+    $response = $this->createHttpResponse();
+    $this->cache->saveFile($cid, $response);
+    $this->assertCacheFileExists($cid);
+  }
+
+  /**
+   * @covers FeedsHTTPCache::saveFile().
+   *
+   * Tests failing to create cache directory.
+   */
+  public function testSaveFileException() {
+    variable_set('feeds_http_file_cache_dir', 'file://non-writeable-dir/feeds');
+
+    $cid = static::randomName();
+    $response = $this->createHttpResponse();
+    try {
+      $this->cache->saveFile($cid, $response);
+    }
+    catch (Exception $e) {
+    }
+    $this->assertTrue(isset($e), 'An exception is thrown.');
+
+    $this->assertNoCacheFileExists($cid);
+  }
+
+}

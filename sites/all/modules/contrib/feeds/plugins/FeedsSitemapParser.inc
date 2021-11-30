@@ -6,9 +6,10 @@
  */
 
 /**
- * A parser for the Sitemap specification http://www.sitemaps.org/protocol.php
+ * A parser for the Sitemap specification http://www.sitemaps.org/protocol.php.
  */
 class FeedsSitemapParser extends FeedsParser {
+
   /**
    * Implements FeedsParser::parse().
    */
@@ -16,7 +17,7 @@ class FeedsSitemapParser extends FeedsParser {
     // Set time zone to GMT for parsing dates with strtotime().
     $tz = date_default_timezone_get();
     date_default_timezone_set('GMT');
-    // Yes, using a DOM parser is a bit inefficient, but will do for now
+    // Yes, using a DOM parser is a bit inefficient, but will do for now.
     $xml = new SimpleXMLElement($fetcher_result->getRaw());
     $result = new FeedsParserResult();
     foreach ($xml->url as $url) {
@@ -59,4 +60,5 @@ class FeedsSitemapParser extends FeedsParser {
       ),
     ) + parent::getMappingSources();
   }
+
 }

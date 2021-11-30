@@ -2,16 +2,20 @@
 
 /**
  * @file
- * Test case for CCK date multi-field mapper mappers/date.inc.
+ * Contains FeedsMapperDateMultipleTestCase.
  */
 
 /**
- * Class for testing Feeds <em>content</em> mapper.
+ * Test case for CCK date multi-field mapper mappers/date.inc.
  *
  * @todo: Add test method iCal
  * @todo: Add test method for end date
  */
 class FeedsMapperDateMultipleTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Mapper: Date, multi value fields',
@@ -21,6 +25,9 @@ class FeedsMapperDateMultipleTestCase extends FeedsMapperTestCase {
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp(array('date_api', 'date', 'feeds_xpathparser'));
     variable_set('date_default_timezone', 'UTC');
@@ -36,7 +43,7 @@ class FeedsMapperDateMultipleTestCase extends FeedsMapperTestCase {
     $typename = $this->createContentType(array(), array(
       'date' => 'date',
     ));
-    // Make the field hold unlimited values
+    // Make the field hold unlimited values.
     $edit = array(
       'field[cardinality]' => -1,
     );
@@ -101,18 +108,35 @@ class FeedsMapperDateMultipleTestCase extends FeedsMapperTestCase {
         '01/08/2010 - 15:00',
         '01/09/2010 - 15:00',
       ),
+      // Bogus date was filtered out.
       3 => array(
-        '', // Bogus date was filtered out.
+        '',
       ),
       4 => array(
         '01/06/2010 - 14:00',
-      )
+      ),
     );
     foreach ($values as $v => $key) {
       $this->drupalGet("node/$v/edit");
       foreach ($key as $delta => $value) {
-        $this->assertFieldById('edit-field-date-und-' . $delta . '-value-date', $value);
+        $id = 'edit-field-date-und-' . $delta . '-value-date';
+
+        // Find actual value.
+        $xpath = $this->constructFieldXpath('id', $id);
+        $fields = $this->xpath($xpath);
+        $field = reset($fields);
+        $actual = (string) $field['value'];
+
+        // Compose assert message.
+        $message = format_string('Found field by id @id with value @value (actual: @actual).', array(
+          '@id' => $id,
+          '@value' => $value,
+          '@actual' => $actual,
+        ));
+
+        $this->assertFieldById($id, $value, $message);
       }
     }
   }
+
 }

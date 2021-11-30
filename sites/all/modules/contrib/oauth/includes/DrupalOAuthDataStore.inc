@@ -105,9 +105,10 @@ class DrupalOAuthDataStore extends OAuthDataStore {
    */
   function new_request_token($consumer, $callback = NULL) {
     $token = new DrupalOAuthToken(user_password(32), user_password(32), $consumer, array(
-      'type'    => OAUTH_COMMON_TOKEN_TYPE_REQUEST,
-      'uid'     => 0,
-      'expires' => REQUEST_TIME + variable_get('oauth_common_request_token_lifetime', 7200),
+      'type'     => OAUTH_COMMON_TOKEN_TYPE_REQUEST,
+      'uid'      => 0,
+      'expires'  => REQUEST_TIME + variable_get('oauth_common_request_token_lifetime', 7200),
+      'callback_url' => $callback,
     ));
     $token->write();
     return $token;

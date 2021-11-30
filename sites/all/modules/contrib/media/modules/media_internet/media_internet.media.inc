@@ -18,7 +18,7 @@ function media_internet_media_browser_plugin_info() {
 }
 
 /**
- * Implements hook_media_internet_providers();
+ * Implements hook_media_internet_providers().
  *
  * Provides a very basic handler which copies files from remote sources to the
  * local files directory.

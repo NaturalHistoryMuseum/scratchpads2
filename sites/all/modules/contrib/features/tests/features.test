@@ -1,9 +1,22 @@
 <?php
 
 /**
- * User permission component tests for Features
+ * @file
+ * Contains test classes for features module.
+ */
+
+/**
+ * User permission component tests for Features.
  */
 class FeaturesUserTestCase extends DrupalWebTestCase {
+
+  /**
+   * The profile to install as a basis for testing.
+   *
+   * This overrides the property value from the parent class.
+   *
+   * @var string
+   */
   protected $profile = 'testing';
 
   /**
@@ -14,6 +27,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
       'name' => t('Component tests'),
       'description' => t('Run tests for components of Features.') ,
       'group' => t('Features'),
+      'dependencies' => array('views', 'strongarm'),
     );
   }
 
@@ -28,7 +42,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
       'taxonomy',
       'views',
       'features',
-      'features_test'
+      'features_test',
     ));
 
     // Run a features rebuild to ensure our feature is fully installed.
@@ -45,11 +59,17 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     module_load_include('inc', 'features', 'features.export');
 
     $components = array_filter(array(
-      'field' => 'field',
+      /* @see _test_field_instance() */
+      'field_instance' => 'field',
+      /* @see _test_filter() */
       'filter' => 'filter',
+      /* @see _test_image() */
       'image' => 'image',
+      /* @see _test_node() */
       'node' => 'node',
+      /* @see _test_user_permission() */
       'user_permission' => 'user',
+      /* @see _test_views_view() */
       'views_view' => 'views',
     ), 'module_exists');
 
@@ -78,17 +98,36 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
     drupal_flush_all_caches();
     foreach (array_keys($components) as $component) {
-      // Reload so things like Views can clear it's cache
+      // Reload so things like Views can clear it's cache.
       $this->$callback('load');
       $states = features_get_component_states(array('features_test'), FALSE, TRUE);
       $this->assertTrue($states['features_test'][$component] === FEATURES_DEFAULT, t('@component reverted.', array('@component' => $component)));
     }
   }
 
-  protected function _test_field($op = 'load') {
+  /**
+   * Loads or saves an example field instance for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return array|null|void
+   *   If $op === 'load':
+   *     The 'node-features_test-field_features_test' field instance, or NULL if
+   *     the field instance does not exist.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'node-features_test-field_features_test' field instance will be
+   *     modified, setting the label to 'Foo bar'.
+   *
+   * @throws \FieldException
+   *   In field_update_instance().
+   */
+  protected function _test_field_instance($op = 'load') {
     switch ($op) {
       case 'load':
         return field_info_instance('node', 'field_features_test', 'features_test');
+
       case 'override':
         $field_instance = field_info_instance('node', 'field_features_test', 'features_test');
         $field_instance['label'] = 'Foo bar';
@@ -97,6 +136,20 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Loads or saves an example filter format for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return \stdClass|false|void
+   *   If $op === 'load':
+   *     The 'features_test' filter format, or FALSE if it does not exist.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'features_test' filter format will be modified, unsetting the
+   *     filter url.
+   */
   protected function _test_filter($op = 'load') {
     // So... relying on our own API functions to test is pretty lame.
     // But these modules don't have APIs either. So might as well use
@@ -105,6 +158,7 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     switch ($op) {
       case 'load':
         return features_filter_format_load('features_test');
+
       case 'override':
         $format = features_filter_format_load('features_test');
         unset($format->filters['filter_url']);
@@ -113,10 +167,25 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Loads or saves an example image style for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return array|false|void
+   *   If $op === 'load':
+   *     The 'features_test' image style, or FALSE if it does not exist.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'features_test' image style will be modified, changing one of the
+   *     effects.
+   */
   protected function _test_image($op = 'load') {
     switch ($op) {
       case 'load':
         return image_style_load('features_test');
+
       case 'override':
         $style = image_style_load('features_test');
         $style = image_style_save($style);
@@ -128,10 +197,28 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Loads or saves an example node type for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return \stdClass|false|void
+   *   If $op === 'load':
+   *     The 'features_test' node type, or FALSE if it does not exist.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'features_test' node type will be modified, the description will be
+   *     changed to 'Foo bar baz.'.
+   *
+   * @throws \Exception
+   *   In node_type_save().
+   */
   protected function _test_node($op = 'load') {
     switch ($op) {
       case 'load':
         return node_type_get_type('features_test');
+
       case 'override':
         $type = node_type_get_type('features_test');
         $type->description = 'Foo bar baz.';
@@ -141,31 +228,66 @@ class FeaturesUserTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Loads or saves an example view for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return \view|null|void
+   *   If $op === 'load':
+   *     The 'features_test' view, or NULL if it does not exist.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'features_test' view will be modified, setting the title of the
+   *     default display to 'Foo bar'.
+   *
+   * @throws \Exception
+   *   In $view->save().
+   */
   protected function _test_views_view($op = 'load') {
     switch ($op) {
       case 'load':
         return views_get_view('features_test', TRUE);
+
       case 'override':
         $view = views_get_view('features_test', TRUE);
         $view->set_display('default');
         $view->display_handler->override_option('title', 'Foo bar');
         $view->save();
-        // Clear the load cache from above
+        // Clear the load cache from above.
         views_get_view('features_test', TRUE);
         break;
     }
   }
 
+  /**
+   * Loads or saves an example permission role setting for testing.
+   *
+   * @param string $op
+   *   One of 'load' or 'override'.
+   *
+   * @return bool|void
+   *   If $op === 'load':
+   *     TRUE if 'authenticated user' has 'create features_test content'
+   *     permission, FALSE otherwise.
+   *   If $op === 'override':
+   *     No return value (null/void).
+   *     The 'create features_test content' permission will be revoked for the
+   *     'authenticated user' role'.
+   */
   protected function _test_user_permission($op = 'load') {
     switch ($op) {
       case 'load':
         $permissions = user_role_permissions(array(DRUPAL_AUTHENTICATED_RID => 'authenticated user'));
         return !empty($permissions[DRUPAL_AUTHENTICATED_RID]['create features_test content']);
+
       case 'override':
         user_role_change_permissions(DRUPAL_AUTHENTICATED_RID, array('create features_test content' => 0));
         break;
     }
   }
+
 }
 
 /**
@@ -182,9 +304,9 @@ class FeaturesEnableTestCase extends DrupalWebTestCase {
       'name' => t('Features enable tests'),
       'description' => t('Run tests for enabling of features.') ,
       'group' => t('Features'),
+      'dependencies' => array('views', 'strongarm'),
     );
   }
-
 
   /**
    * Run test for features_get_components on enable.
@@ -214,11 +336,12 @@ class FeaturesEnableTestCase extends DrupalWebTestCase {
     features_rebuild();
     $this->assertNotNull(taxonomy_vocabulary_machine_name_load('taxonomy_features_test'), 'Taxonomy vocabulary correctly enabled on enable.');
   }
+
 }
 
 
 /**
- * Tests intergration of ctools for features.
+ * Tests integration of ctools for features.
  */
 class FeaturesCtoolsIntegrationTest extends DrupalWebTestCase {
   protected $profile = 'testing';
@@ -231,6 +354,7 @@ class FeaturesCtoolsIntegrationTest extends DrupalWebTestCase {
       'name' => t('Features Chaos Tools integration'),
       'description' => t('Run tests for ctool integration of features.') ,
       'group' => t('Features'),
+      'dependencies' => array('views', 'strongarm'),
     );
   }
 
@@ -266,6 +390,13 @@ class FeaturesCtoolsIntegrationTest extends DrupalWebTestCase {
       $this->assertFalse(function_exists($function), 'Chaos tools functions for ' . $module . ' do not exist while it is disabled.');
       // Module enable will trigger declaring the new functions.
       module_enable(array($module));
+    }
+
+    // CTools hooks only created when there is an actual feature exportable
+    // enabled.
+    module_enable(array('features_test'));
+
+    foreach ($try as $module) {
       if (module_exists($module)) {
         $function_exists = function_exists($function);
         if ($function_exists) {
@@ -279,4 +410,46 @@ class FeaturesCtoolsIntegrationTest extends DrupalWebTestCase {
       }
     }
   }
+
+}
+
+
+/**
+ * Test detecting modules as features.
+ */
+class FeaturesDetectionTestCase extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Feature Detection tests'),
+      'description' => t('Run tests for detecting items as features.'),
+      'group' => t('Features'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'features',
+    ));
+  }
+
+  /**
+   * Run test.
+   */
+  public function test() {
+    module_load_include('inc', 'features', 'features.export');
+    // First test that features_populate inserts the features api key.
+    $export = features_populate(array(), array(), 'features_test_empty_fake');
+    $this->assertTrue(!empty($export['features']['features_api']) && key($export['features']['features_api']) == 'api:' . FEATURES_API, 'Features API key added to new export.');
+    $this->assertTrue((bool) features_get_features('features_test'), 'Features test recognized as a feature.');
+    $this->assertFalse((bool) features_get_features('features'), 'Features module not recognized as a feature.');
+  }
+
 }

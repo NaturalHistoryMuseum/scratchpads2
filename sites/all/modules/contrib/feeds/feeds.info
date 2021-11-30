@@ -5,7 +5,22 @@ core = 7.x
 dependencies[] = ctools
 dependencies[] = job_scheduler
 
+test_dependencies[] = ctools:ctools (<= 7.x-1.12)
+test_dependencies[] = date:date
+test_dependencies[] = entity_translation:entity_translation
+test_dependencies[] = feeds_xpathparser:feeds_xpathparser
+test_dependencies[] = i18n:i18n_taxonomy
+test_dependencies[] = link:link
+test_dependencies[] = og:og
+test_dependencies[] = rules:rules
+test_dependencies[] = variable:variable
+
+files[] = includes/FeedsAccountSwitcher.inc
+files[] = includes/FeedsAccountSwitcherException.inc
+files[] = includes/FeedsAccountSwitcherInterface.inc
 files[] = includes/FeedsConfigurable.inc
+files[] = includes/FeedsHTTPCache.inc
+files[] = includes/FeedsHTTPCacheItem.inc
 files[] = includes/FeedsImporter.inc
 files[] = includes/FeedsSource.inc
 files[] = libraries/ParserCSV.inc
@@ -30,22 +45,51 @@ files[] = plugins/FeedsUserProcessor.inc
 
 ; Tests
 files[] = tests/feeds.test
+files[] = tests/common_syndication_parser.test
+files[] = tests/feeds_content_type.test
 files[] = tests/feeds_date_time.test
+files[] = tests/feeds_entity.test
+files[] = tests/feeds_hooks.test
 files[] = tests/feeds_mapper_date.test
 files[] = tests/feeds_mapper_date_multiple.test
 files[] = tests/feeds_mapper_field.test
 files[] = tests/feeds_mapper_file.test
+files[] = tests/feeds_mapper_hooks.test
+files[] = tests/feeds_mapper_link.test
+files[] = tests/feeds_mapper_list.test
+files[] = tests/feeds_mapper_multilingual_fields.test
 files[] = tests/feeds_mapper_path.test
 files[] = tests/feeds_mapper_profile.test
+files[] = tests/feeds_mapper_unique.test
 files[] = tests/feeds_mapper.test
 files[] = tests/feeds_mapper_config.test
 files[] = tests/feeds_fetcher_file.test
+files[] = tests/feeds_mapper_format_config.test
+files[] = tests/feeds_fetcher_http.test
+files[] = tests/feeds_i18n.test
+files[] = tests/feeds_i18n_node.test
+files[] = tests/feeds_i18n_taxonomy.test
+files[] = tests/feeds_install.test
+files[] = tests/feeds_og.test
+files[] = tests/feeds_parser_csv.test
+files[] = tests/feeds_parser_sitemap.test
+files[] = tests/feeds_parser_syndication.test
 files[] = tests/feeds_processor_node.test
 files[] = tests/feeds_processor_term.test
 files[] = tests/feeds_processor_user.test
+files[] = tests/feeds_push.test
+files[] = tests/feeds_rules.test
 files[] = tests/feeds_scheduler.test
 files[] = tests/feeds_mapper_link.test
+files[] = tests/feeds_mapper_summary.test
 files[] = tests/feeds_mapper_taxonomy.test
+files[] = tests/feeds_tokens.test
+files[] = tests/FeedsAccountSwitcherTest.test
+files[] = tests/FeedsEnclosureTest.test
+files[] = tests/FeedsFetcherResultTest.test
+files[] = tests/FeedsHTTPCacheTest.test
+files[] = tests/FeedsSourceTest.test
+files[] = tests/http_request.test
 files[] = tests/parser_csv.test
 
 ; Views integration
@@ -55,10 +99,10 @@ files[] = views/feeds_views_handler_field_log_message.inc
 files[] = views/feeds_views_handler_field_severity.inc
 files[] = views/feeds_views_handler_field_source.inc
 files[] = views/feeds_views_handler_filter_severity.inc
+files[] = views/feeds_views_plugin_argument_validate_feed_nid.inc
 
-; Information added by drupal.org packaging script on 2013-04-22
-version = "7.x-2.0-alpha8"
+; Information added by Drupal.org packaging script on 2020-08-13
+version = "7.x-2.0-beta5"
 core = "7.x"
 project = "feeds"
-datestamp = "1366671911"
-
+datestamp = "1597331284"

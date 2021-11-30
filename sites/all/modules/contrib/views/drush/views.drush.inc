@@ -119,10 +119,11 @@ function views_drush_command() {
  * Callback function for views-revert command.
  */
 function views_revert_views() {
+  $args = func_get_args();
+  // The provided views names specified in the command.
+  $viewnames = _convert_csv_to_array($args);
   $views = views_get_all_views();
   $i = 0;
-  // The provided views names specified in the command.
-  $viewnames = _convert_csv_to_array(func_get_args());
 
   // Find all overridden views.
   foreach ($views as $view) {

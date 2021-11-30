@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Uninstall hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function feeds_tests_uninstall() {
+  variable_del('feeds_loaded_nodes');
+  variable_del('feeds_tests_feeds_source_import_queue_time');
+  variable_del('feeds_tests_feeds_after_parse_empty_items');
+  variable_del('feeds_tests_feeds_after_save_sleep');
+  variable_del('feeds_tests_nodes_changed');
+  variable_del('feeds_track_node_loads');
+}

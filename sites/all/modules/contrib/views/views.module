@@ -106,7 +106,7 @@ function views_theme($existing, $type, $theme, $path) {
   );
 
   $variables = array(
-    // For displays, we pass in a dummy array as the first parameter, since
+    // For displays, we pass in a sample array as the first parameter, since
     // $view is an object but the core contextual_preprocess() function only
     // attaches contextual links when the primary theme argument is an array.
     'display' => array('view_array' => array(), 'view' => NULL),
@@ -491,7 +491,7 @@ function views_menu_alter(&$callbacks) {
           // of possible display IDs instead of a single ID.
           $callbacks[$path]['page arguments'][1] = (array) $callbacks[$path]['page arguments'][1];
           $callbacks[$path]['page arguments'][1][] = $display_id;
-          $callbacks[$path]['access arguments'][] = $item['access arguments'][0];
+          $callbacks[$path]['access arguments'] = $item['access arguments'];
           $callbacks[$path]['load arguments'][1] = (array) $callbacks[$path]['load arguments'][1];
           $callbacks[$path]['load arguments'][1][] = $display_id;
         }
@@ -753,6 +753,65 @@ function views_block_info() {
 }
 
 /**
+ * Implements hook_block_configure().
+ */
+function views_block_configure($delta = '') {
+  // If there's no Views UI module there's nothing to link to.
+  if (!module_exists('views_ui')) {
+    return array();
+  }
+
+  // If the user doesn't have access to edit the view then don't bother with
+  // anything else.
+  if (!user_access('administer views')) {
+    return array();
+  }
+
+  // If this is 32, this should be an md5 hash.
+  if (strlen($delta) == 32) {
+    $hashes = variable_get('views_block_hashes', array());
+    if (!empty($hashes[$delta])) {
+      $delta = $hashes[$delta];
+    }
+  }
+
+  // Some added precaution in case the delta is missing values.
+  list($view_name, $display_id) = explode('-', $delta, 2) + array('', '');
+
+  // If the view name or display ID can't be found, there's something wrong.
+  if ($view_name === '' || $display_id === '') {
+    return array();
+  }
+
+  $view = views_get_view($view_name);
+  if (empty($view)) {
+    return array();
+  }
+
+  if (!isset($view->display[$display_id])) {
+    return array();
+  }
+
+  /** @var \views_display $display */
+  $display = $view->display[$display_id];
+
+  $view_label = $view->get_human_name();
+  $display_label = $display->display_title;
+
+  $path = "admin/structure/views/view/$view_name/edit/$display_id";
+
+  return array(
+    'fieldset' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Configure this views display'),
+      'content' => array(
+        '#markup' => l($view_label . ' - ' . $display_label, $path),
+      ),
+    ),
+  );
+}
+
+/**
  * Implements hook_block_view().
  */
 function views_block_view($delta) {
@@ -909,7 +968,7 @@ function views_add_contextual_links(&$render_element, $location, $view, $display
     // contextual links that are intended to be displayed in the requested
     // location.
     $plugin = views_fetch_plugin_data('display', $view->display[$display_id]->display_plugin);
-    // If contextual links locations are not set, provide a sane default. (To
+    // If contextual links locations are not set, provide a simple default. (To
     // avoid displaying any contextual links at all, a display plugin can still
     // set 'contextual links locations' to, e.g., an empty array).
     $plugin += array('contextual links locations' => array('view'));
@@ -1113,7 +1172,10 @@ function views_check_roles($rids, $account = NULL) {
   $account = isset($account) ? $account : $user;
   $roles = array_keys($account->roles);
   $roles[] = $account->uid ? DRUPAL_AUTHENTICATED_RID : DRUPAL_ANONYMOUS_RID;
-  return user_access('access all views', $account) || array_intersect(array_filter($rids), $roles);
+  $has_access = user_access('access all views', $account);
+  $rids = array_filter($rids);
+  $intersect = array_intersect($rids, $roles);
+  return $has_access || $intersect;
 }
 
 /**
@@ -1231,7 +1293,7 @@ function views_add_css($file) {
  * Include views .js files.
  */
 function views_add_js($file) {
-  // If javascript has been disabled by the user, never add js files.
+  // If JavaScript has been disabled by the user, never add js files.
   if (variable_get('views_no_javascript', FALSE)) {
     return;
   }
@@ -1429,7 +1491,7 @@ function views_get_plugin($type, $plugin, $reset = FALSE) {
  */
 function views_get_localization_plugin() {
   $plugin = variable_get('views_localization_plugin', '');
-  // Provide sane default values for the localization plugin.
+  // Provide default values for the localization plugin.
   if (empty($plugin)) {
     if (module_exists('locale')) {
       $plugin = 'core';
@@ -2046,7 +2108,7 @@ function views_form_views_form_submit($form, &$form_state) {
  */
 function views_exposed_form($form, &$form_state) {
   // Don't show the form when batch operations are in progress.
-  if ($batch = batch_get() && isset($batch['current_set'])) {
+  if (($batch = batch_get()) && isset($batch['current_set'])) {
     return array(
       // Set the theme callback to be nothing to avoid errors in
       // template_preprocess_views_exposed_form().
@@ -2138,6 +2200,97 @@ function views_form_views_exposed_form_alter(&$form, &$form_state) {
   $form['form_build_id']['#access'] = FALSE;
   $form['form_token']['#access'] = FALSE;
   $form['form_id']['#access'] = FALSE;
+
+  // AJAX behaviors need these data, so we add it back in #after_build.
+  $form['#after_build'][] = 'views_exposed_form_ajax_enable';
+}
+
+/**
+ * Checks whether the exposed form will use AJAX.
+ *
+ * Passes required form information removed in
+ * views_form_views_exposed_form_alter().
+ *
+ * @param array $form
+ *   The form being processed.
+ * @param array $form_state
+ *   The form state.
+ *
+ * @return array
+ *   The form being processed.
+ */
+function views_exposed_form_ajax_enable(array &$form, array &$form_state) {
+  // In order for AJAX to work the form build info is needed. Here check if
+  // #ajax has been added to any form elements, and if so, pass this info as
+  // settings via JavaScript, which get attached to the submitted form on AJAX
+  // form submissions. #ajax property can be set not only for the first level of
+  // the form, so look for it in the whole form.
+  $ajax_info = array();
+  $ajax_elements = views_exposed_form_ajax_lookup_recursive($form);
+  // Determine if form is being processed.
+  $triggering_element_name = '';
+  if (!empty($form_state['input']['_triggering_element_name'])) {
+    $triggering_element_name = $form_state['input']['_triggering_element_name'];
+  }
+
+  // When there are multiple elements with #ajax set on exposed form, pass only
+  // triggering element name to JavaScript, otherwise #ajax will work only for
+  // the first element.
+  if (!empty($triggering_element_name) && !empty($ajax_elements)) {
+    // Check if element has #ajax property set.
+    if (in_array($triggering_element_name, $ajax_elements)) {
+      $ajax_elements = array(
+        $triggering_element_name => $triggering_element_name,
+      );
+    }
+    else {
+      $ajax_elements = array();
+    }
+  }
+
+  if (!empty($ajax_elements)) {
+    $form_info = array(
+      'form_id' => $form['#form_id'],
+      'form_build_id' => $form['#build_id'],
+    );
+    // Anonymous users don't get a token.
+    if (!empty($form['#token'])) {
+      $form_info['form_token'] = drupal_get_token($form['#token']);
+    }
+    foreach ($ajax_elements as $element_name) {
+      $ajax_info[$element_name] = $form_info;
+    }
+    drupal_add_js(array('ViewsExposedFormInfo' => $ajax_info), 'setting');
+
+    // Add the javascript behavior that will handle this data.
+    $form['#attached']['js'][] = array(
+      'weight' => 100,
+      'data' => drupal_get_path('module', 'views') . '/js/exposed-form-ajax.js',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Recursively looks for the #ajax property for every form elemet.
+ *
+ * @param array $elements
+ *   The element array to look for #ajax property.
+ *
+ * @return array
+ *   Array of the elements names where #ajax was found.
+ */
+function views_exposed_form_ajax_lookup_recursive(array $elements) {
+  $ajax_elements = array();
+  foreach (element_children($elements) as $key) {
+    if (!empty($elements[$key]['#name']) && !empty($elements[$key]['#ajax'])) {
+      $ajax_elements[$elements[$key]['#name']] = $elements[$key]['#name'];
+    }
+    // Recursive call to look for #ajax in element's childrens.
+    $ajax_elements += views_exposed_form_ajax_lookup_recursive($elements[$key]);
+  }
+  return $ajax_elements;
 }
 
 /**
@@ -2280,10 +2433,37 @@ function _views_query_tag_alter_condition(QueryAlterableInterface $query, &$cond
         views_query_views_alter($condition['value']);
       }
       elseif (isset($condition['value'])) {
-        $condition['value'] = str_replace(array_keys($substitutions), array_values($substitutions), $condition['value']);
+        // Arrays need to be handled differently to strings as they could be
+        // nested.
+        if (is_array($condition['value'])) {
+          // Use the callback to walk through the value, performing the search-
+          // replace operation recursively.
+          array_walk_recursive($condition['value'], '_views_str_replace_recursive', array(array_keys($substitutions), array_values($substitutions)));
+        }
+        // Simple strings can simply use str_replace().
+        else {
+          $condition['value'] = str_replace(array_keys($substitutions), array_values($substitutions), $condition['value']);
+        }
       }
     }
   }
+}
+
+/**
+ * Callback for performing a string replacement via array_walk_recursive().
+ *
+ * @param string $item
+ *   A leaf from the original array.
+ * @param int $key
+ *   The key for the current array item.
+ * @param array $args
+ *   Element 0 is the items to search for, element 1 is the replacements.
+ *
+ * @see _views_query_tag_alter_condition()
+ */
+function _views_str_replace_recursive(&$item, $key, $args) {
+  list($search, $replace) = $args;
+  $item = str_replace($search, $replace, $item);
 }
 
 /**
@@ -2414,7 +2594,8 @@ function views_var_export($var, $prefix = '', $init = TRUE) {
 /**
  * Prepare a string for use as a valid CSS identifier.
  *
- * This function is similar to a core version but with more sane filter values.
+ * This function is similar to a core version but with more intuitive filter
+ * values.
  * http://www.w3.org/TR/CSS21/syndata.html#characters shows the syntax for valid
  * CSS identifiers (including element names, classes, and IDs in selectors).
  *
@@ -2584,6 +2765,17 @@ function views_views_api() {
     'api' => views_api_version(),
     'path' => drupal_get_path('module', 'views') . '/modules',
   );
+}
+
+/**
+ * Implements hook_admin_menu_cache_info().
+ */
+function views_admin_menu_cache_info() {
+  $caches['views'] = array(
+    'title' => t('Views'),
+    'callback' => 'views_invalidate_cache',
+  );
+  return $caches;
 }
 
 if (!function_exists('aggregator_views_api')) {

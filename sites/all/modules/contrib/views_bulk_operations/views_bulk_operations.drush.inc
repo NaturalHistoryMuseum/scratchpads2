@@ -75,6 +75,7 @@ function views_bulk_operations_drush_list() {
  * Implementation of 'vbo execute' command.
  */
 function views_bulk_operations_drush_execute($vid = NULL, $operation_id = NULL) {
+  $args = func_get_args();
   // Parse arguments.
   if (is_null($vid)) {
     drush_set_error('VIEWS_BULK_OPERATIONS_MISSING_VID', dt('Please specify a view ID to execute.'));
@@ -84,7 +85,6 @@ function views_bulk_operations_drush_execute($vid = NULL, $operation_id = NULL) 
     drush_set_error('VIEWS_BULK_OPERATIONS_MISSING_OPERATION', dt('Please specify an operation to execute.'));
     return;
   }
-  $args = func_get_args();
   $view_exposed_input = array();
   $operation_arguments = array();
   $view_arguments = array();
@@ -154,7 +154,7 @@ function views_bulk_operations_drush_execute($vid = NULL, $operation_id = NULL) 
   $current = 1;
   foreach ($view->result as $row_index => $result) {
     $rows[$row_index] = array(
-      'entity_id' => $vbo->get_value($result),
+      'entity_id' => $result->{$vbo->real_field},
       'views_row' => array(),
       'position' => array(
         'current' => $current++,

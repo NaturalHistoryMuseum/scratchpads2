@@ -14,7 +14,7 @@ function image_captcha_settings_form() {
 
   // Add CSS for theming of admin form.
   $form['#attached']['css'] = array(drupal_get_path('module', 'image_captcha') . '/image_captcha.css');
-  // Use javascript for some added usability on admin form.
+  // Use JavaScript for some added usability on admin form.
   $form['#attached']['js'] = array(drupal_get_path('module', 'image_captcha') . '/image_captcha.js');
 
   // First some error checking.

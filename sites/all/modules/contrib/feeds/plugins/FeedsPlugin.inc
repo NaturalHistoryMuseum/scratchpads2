@@ -20,13 +20,52 @@ class FeedsResult {}
 abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInterface {
 
   /**
-   * Constructor.
+   * The plugin definition.
    *
-   * Initialize class variables.
+   * @var array
+   */
+  protected $pluginDefinition;
+
+  /**
+   * Constructs a FeedsPlugin object.
+   *
+   * A copy of FeedsConfigurable::__construct() that doesn't call
+   * configDefaults() so that we avoid circular dependencies.
+   *
+   * @param string $id
+   *   The importer id.
    */
   protected function __construct($id) {
-    parent::__construct($id);
-    $this->source_config = $this->sourceDefaults();
+    $this->id = $id;
+    $this->export_type = FEEDS_EXPORT_NONE;
+    $this->disabled = FALSE;
+  }
+
+  /**
+   * Instantiates a FeedsPlugin object.
+   *
+   * Don't use directly, use feeds_plugin() instead.
+   *
+   * @see feeds_plugin()
+   */
+  public static function instance($class, $id, array $plugin_definition = array()) {
+    if (!strlen($id)) {
+      throw new InvalidArgumentException(t('Empty configuration identifier.'));
+    }
+
+    $instances = &drupal_static(__METHOD__, array());
+
+    if (!isset($instances[$class][$id])) {
+      $instance = new $class($id);
+
+      // The ordering here is important. The plugin definition should be usable
+      // in getConfig().
+      $instance->setPluginDefinition($plugin_definition);
+      $instance->setConfig($instance->configDefaults());
+      $instances[$class][$id] = $instance;
+    }
+
+    return $instances[$class][$id];
   }
 
   /**
@@ -38,12 +77,46 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   abstract public function pluginType();
 
   /**
+   * Returns the plugin definition.
+   *
+   * @return array
+   *   The plugin definition array.
+   *
+   * @see ctools_get_plugins()
+   */
+  public function pluginDefinition() {
+    return $this->pluginDefinition;
+  }
+
+  /**
+   * Sets the plugin definition.
+   *
+   * This is protected since we're only using it in FeedsPlugin::instance().
+   *
+   * @param array $plugin_definition
+   *   The plugin definition.
+   */
+  protected function setPluginDefinition(array $plugin_definition) {
+    $this->pluginDefinition = $plugin_definition;
+  }
+
+  /**
    * Save changes to the configuration of this object.
    * Delegate saving to parent (= Feed) which will collect
    * information from this object by way of getConfig() and store it.
    */
   public function save() {
     feeds_importer($this->id)->save();
+  }
+
+  /**
+   * Overrides FeedsConfigurable::configDefaults().
+   *
+   * Invokes a hook to add in additional default configuration.
+   */
+  public function configDefaults() {
+    $hook = 'feeds_' . $this->pluginType() . '_config_defaults';
+    return module_invoke_all($hook, $this) + parent::configDefaults();
   }
 
   /**
@@ -105,7 +178,7 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
       $files = drupal_system_listing('/.*\.inc$/', $path, 'name', 0);
       foreach ($files as $file) {
         if (strstr($file->uri, '/mappers/')) {
-          require_once(DRUPAL_ROOT . '/' . $file->uri);
+          require_once DRUPAL_ROOT . '/' . $file->uri;
         }
       }
     }
@@ -147,6 +220,12 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
   public static function child($plugin_key, $parent_plugin) {
     ctools_include('plugins');
     $plugins = ctools_get_plugins('feeds', 'plugins');
+
+    if (!isset($plugins[$plugin_key])) {
+      // Plugin is not available.
+      return FALSE;
+    }
+
     $info = $plugins[$plugin_key];
 
     if (empty($info['handler']['parent'])) {
@@ -205,18 +284,158 @@ abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInter
     }
     return $result;
   }
+
+  /**
+   * Implements FeedsConfigurable::dependencies().
+   */
+  public function dependencies() {
+    $dependencies = parent::dependencies();
+
+    // Find out which module provides this plugin.
+    $plugin_info = $this->pluginDefinition();
+    if (isset($plugin_info['module'])) {
+      $dependencies[$plugin_info['module']] = $plugin_info['module'];
+    }
+
+    return $dependencies;
+  }
+
 }
 
 /**
  * Used when a plugin is missing.
  */
 class FeedsMissingPlugin extends FeedsPlugin {
+
+  /**
+   * {@inheritdoc}
+   */
   public function pluginType() {
     return 'missing';
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function save() {}
+
+  /**
+   * Fetcher methods.
+   */
+  public function fetch(FeedsSource $source) {
+    return new FeedsFetcherResult('');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function clear(FeedsSource $source) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function request($feed_nid = 0) {
+    drupal_access_denied();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function menuItem() {
     return array();
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function subscribe(FeedsSource $source) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function unsubscribe(FeedsSource $source) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function importPeriod(FeedsSource $source) {}
+
+  /**
+   * Parser methods.
+   */
+  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
+    return new FeedsParserResult();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMappingSources() {
+    return array();
+  }
+
+  /**
+   * Processor methods.
+   */
+  public function process(FeedsSource $source, FeedsParserResult $parser_result) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function entityType() {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function bundle() {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function bundleOptions() {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLimit() {
+    return 0;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMappings() {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMappingTargets() {
+    return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function expire(FeedsSource $source, $time = NULL) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function itemCount(FeedsSource $source) {
+    return 0;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function expiryTime() {
+    return FEEDS_EXPIRE_NEVER;
+  }
+
 }
 
 /**

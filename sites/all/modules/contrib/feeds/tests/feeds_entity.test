@@ -1,0 +1,188 @@
+<?php
+
+/**
+ * @file
+ * Test cases for entity API integration.
+ */
+
+/**
+ * Tests for Entity API integration.
+ */
+class FeedsEntityCase extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Feeds entity tests',
+      'description' => 'Test integration with the entity property API.',
+      'group' => 'Feeds',
+      'dependencies' => array('entity'),
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp(array('entity'));
+
+    // Create an importer configuration.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->addMappings('syndication',
+      array(
+        0 => array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        1 => array(
+          'source' => 'description',
+          'target' => 'body',
+        ),
+        2 => array(
+          'source' => 'timestamp',
+          'target' => 'created',
+        ),
+        3 => array(
+          'source' => 'url',
+          'target' => 'url',
+          'unique' => TRUE,
+        ),
+        4 => array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+      )
+    );
+  }
+
+  /**
+   * Tests getting feeds item properties on an entity.
+   *
+   * @covers feeds_get_feeds_item_property()
+   */
+  public function testGetFeedsItemProperty() {
+    // Create a feed node and import 10 items.
+    $feed_nid = $this->createFeedNode();
+    $this->assertText('Created 10 nodes');
+
+    // Create entity metadata wrapper for node.
+    $node_wrapper = entity_metadata_wrapper('node', 2);
+
+    // Property 'feed_nid'.
+    $this->assertEqual($feed_nid, $node_wrapper->feed_nid->value());
+
+    // Property 'feed_node'.
+    $feed_node = $node_wrapper->feed_node->value();
+    $this->assertEqual($feed_nid, $feed_node->nid);
+
+    // Property 'feeds_item_guid'.
+    $this->assertEqual('974 at http://developmentseed.org', $node_wrapper->feeds_item_guid->value());
+
+    // Property 'feeds_item_url'.
+    $this->assertEqual('http://developmentseed.org/blog/2009/oct/06/open-atrium-translation-workflow-two-way-updating', $node_wrapper->feeds_item_url->value());
+  }
+
+  /**
+   * Tests getting feeds item properties on an existing entity without a
+   * feeds_item.
+   *
+   * @covers feeds_get_feeds_item_property()
+   */
+  public function testGetFeedsItemPropertyNoFeedsItem() {
+    // Create a new node.
+    $node = $this->drupalCreateNode();
+
+    // Create entity metadata wrapper for node.
+    $node_wrapper = entity_metadata_wrapper('node', $node);
+
+    // Assert NULL for each property.
+    $this->assertNull($node_wrapper->feed_nid->value());
+    $this->assertNull($node_wrapper->feed_node->value());
+    $this->assertNull($node_wrapper->feeds_item_guid->value());
+    $this->assertNull($node_wrapper->feeds_item_url->value());
+  }
+
+  /**
+   * Tests getting feeds item properties on a new entity.
+   *
+   * @covers feeds_get_feeds_item_property()
+   */
+  public function testGetFeedsItemPropertyNewEntity() {
+    // Create a feed node and import 10 items.
+    $feed_nid = $this->createFeedNode();
+    $this->assertText('Created 10 nodes');
+
+    // Create a new node.
+    $node = new stdClass();
+    $node->type = 'page';
+    $node->title = $this->randomName(8);
+    $node->changed = REQUEST_TIME;
+    $node->created = REQUEST_TIME;
+    $node->is_new = TRUE;
+    node_object_prepare($node);
+    // Populate properties that are set by node_object_prepare().
+    $node->log = 'Created by FeedsNodeProcessor';
+    $node->uid = 0;
+
+    // Add a feeds_item property on the node.
+    $node->feeds_item = new stdClass();
+    $node->feeds_item->is_new = TRUE;
+    $node->feeds_item->entity_id = 0;
+    $node->feeds_item->entity_type = 'node';
+    $node->feeds_item->id = 'syndication';
+    $node->feeds_item->feed_nid = $feed_nid;
+    $node->feeds_item->imported = REQUEST_TIME;
+    $node->feeds_item->hash = '';
+    $node->feeds_item->url = 'http://www.example.com';
+    $node->feeds_item->guid = '1234';
+
+    // Create entity metadata wrapper for node.
+    $node_wrapper = entity_metadata_wrapper('node', $node);
+
+    // Property 'feed_nid'.
+    $this->assertEqual($feed_nid, $node_wrapper->feed_nid->value());
+
+    // Property 'feed_node'.
+    $feed_node = $node_wrapper->feed_node->value();
+    $this->assertEqual($feed_nid, $feed_node->nid);
+
+    // Property 'feeds_item_guid'.
+    $this->assertEqual('1234', $node_wrapper->feeds_item_guid->value());
+
+    // Property 'feeds_item_url'.
+    $this->assertEqual('http://www.example.com', $node_wrapper->feeds_item_url->value());
+  }
+
+  /**
+   * Tests getting feeds item properties on a new entity without a feeds_item.
+   *
+   * @covers feeds_get_feeds_item_property()
+   */
+  public function testGetFeedsItemPropertyNewEntityNoFeedsItem() {
+    // Create a new node.
+    $node = new stdClass();
+    $node->type = 'page';
+    $node->title = $this->randomName(8);
+    $node->changed = REQUEST_TIME;
+    $node->created = REQUEST_TIME;
+    $node->is_new = TRUE;
+    node_object_prepare($node);
+    // Populate properties that are set by node_object_prepare().
+    $node->log = 'Created by FeedsNodeProcessor';
+    $node->uid = 0;
+
+    // Create entity metadata wrapper for node.
+    $node_wrapper = entity_metadata_wrapper('node', $node);
+
+    // Assert NULL for each property.
+    $this->assertNull($node_wrapper->feed_nid->value());
+    $this->assertNull($node_wrapper->feed_node->value());
+    $this->assertNull($node_wrapper->feeds_item_guid->value());
+    $this->assertNull($node_wrapper->feeds_item_url->value());
+  }
+
+}

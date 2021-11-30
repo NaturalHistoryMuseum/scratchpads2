@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * @file
+ * Contains FeedsHooksTestCase.
+ */
+
+/**
+ * Tests for hooks invoked by Feeds not related to mapping.
+ */
+class FeedsHooksTestCase extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Hooks',
+      'description' => 'Tests for hooks invoked by Feeds not related to mapping.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * Ensure that the prevalidate hook is invoked.
+   *
+   * @see feeds_tests_feeds_prevalidate()
+   */
+  public function testPrevalidateHook() {
+    // Include FeedsProcessor.inc to make its constants available.
+    module_load_include('inc', 'feeds', 'plugins/FeedsProcessor');
+
+    // Set flag to test prevalidate hook.
+    variable_set('feeds_tests_hook_feeds_prevalidate', TRUE);
+
+    // Create CSV importer.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setSettings('csv', NULL, array('content_type' => '', 'import_period' => FEEDS_SCHEDULE_NEVER));
+    $this->setPlugin('csv', 'FeedsFileFetcher');
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array(
+      'bundle' => 'article',
+      'update_existing' => FEEDS_UPDATE_EXISTING,
+    ));
+    $this->addMappings('csv', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+        'unique' => TRUE,
+      ),
+    ));
+
+    // Create an article node that gets updated.
+    $node = $this->drupalCreateNode(array(
+      'type' => 'article',
+      'title' => 'Lorem ipsum',
+    ));
+
+    // Import CSV file.
+    $this->importFile('csv', $this->absolutePath() . '/tests/feeds/content.csv');
+    $this->assertText('Created 1 node');
+    $this->assertText('Updated 1 node');
+
+    $expected_result = array(
+      array(
+        'importer_id' => 'csv',
+        'title' => 'Lorem ipsum',
+        'item_guid' => 1,
+        'entity_id' => $node->nid,
+      ),
+      array(
+        'importer_id' => 'csv',
+        'title' => 'Ut wisi enim ad minim veniam',
+        'item_guid' => 2,
+        'entity_id' => NULL,
+      ),
+    );
+
+    // Assert that the hook was invoked. The variable should have been set in
+    // feeds_tests_feeds_prevalidate().
+    $this->assertEqual($expected_result, variable_get('feeds_tests_hook_feeds_prevalidate_results'));
+  }
+
+  /**
+   * Tests the hook hook_config_defaults().
+   */
+  public function testHookConfigDefaults() {
+    // Switch on hook implementations in the feeds_tests module.
+    variable_set('feeds_tests_hook_config_defaults', TRUE);
+
+    $this->createImporterConfiguration('Config defaults test', 'config_defaults_test');
+
+    // Load the importer and check the default value for
+    // 'feeds_tests_extra_setting'.
+    $importer = feeds_importer_load('config_defaults_test');
+    $importer_config = $importer->getConfig();
+    $this->assertFalse($importer_config['feeds_tests_extra_setting'], "Option 'Extra setting' is disabled.");
+
+    // Assert that other configurables do not have this setting.
+    $fetcher_config = $importer->fetcher->getConfig();
+    $parser_config = $importer->fetcher->getConfig();
+    $processor_config = $importer->fetcher->getConfig();
+    $this->assertFalse(isset($fetcher_config['feeds_tests_extra_setting']));
+    $this->assertFalse(isset($parser_config['feeds_tests_extra_setting']));
+    $this->assertFalse(isset($processor_config['feeds_tests_extra_setting']));
+
+    // Now change this setting.
+    $this->setSettings('config_defaults_test', NULL, array(
+      'feeds_tests_extra_setting' => TRUE,
+    ));
+
+    // Reload the importer and assert that the configuration option changed.
+    drupal_static_reset();
+    $importer = feeds_importer_load('config_defaults_test');
+    $importer_config = $importer->getConfig();
+    $this->assertTrue($importer_config['feeds_tests_extra_setting'], "Option 'Extra setting' is enabled.");
+  }
+
+  /**
+   * Tests the hook hook_PLUGIN_TYPE_config_defaults().
+   */
+  public function testHookPluginTypeConfigDefaults() {
+    // Switch on hook implementations in the feeds_tests module.
+    variable_set('feeds_tests_hook_config_defaults', TRUE);
+
+    $this->createImporterConfiguration('Config defaults test', 'config_defaults_test');
+    // Change parser plugin to CSV as the common syndication parser does not
+    // have a config form.
+    $this->setPlugin('config_defaults_test', 'FeedsCSVParser');
+
+    // Load the importer and check default values for each plugin.
+    $importer = feeds_importer_load('config_defaults_test');
+    $fetcher_config = $importer->fetcher->getConfig();
+    $parser_config = $importer->parser->getConfig();
+    $processor_config = $importer->processor->getConfig();
+    $this->assertFalse($fetcher_config['feeds_tests_fetcher_extra_setting'], "Option 'Extra setting' is disabled for the fetcher.");
+    $this->assertTrue($parser_config['feeds_tests_parser_extra_setting'], "Option 'Extra setting' is enabled for the parser.");
+    $this->assertEqual('', $processor_config['feeds_tests_processor_extra_setting'], "Setting 'Extra setting' is empty.");
+
+    // Assert that the setting for a particular plugin does not exists for other
+    // configurables.
+    $importer_config = $importer->getConfig();
+    $this->assertFalse(isset($importer_config['feeds_tests_fetcher_extra_setting']));
+    $this->assertFalse(isset($importer_config['feeds_tests_parser_extra_setting']));
+    $this->assertFalse(isset($importer_config['feeds_tests_processor_extra_setting']));
+    $this->assertFalse(isset($fetcher_config['feeds_tests_parser_extra_setting']));
+    $this->assertFalse(isset($fetcher_config['feeds_tests_processor_extra_setting']));
+    $this->assertFalse(isset($parser_config['feeds_tests_fetcher_extra_setting']));
+    $this->assertFalse(isset($parser_config['feeds_tests_processor_extra_setting']));
+    $this->assertFalse(isset($processor_config['feeds_tests_fetcher_extra_setting']));
+    $this->assertFalse(isset($processor_config['feeds_tests_parser_extra_setting']));
+
+    // Now change the settings for each plugin.
+    $this->setSettings('config_defaults_test', 'FeedsHTTPFetcher', array(
+      'feeds_tests_fetcher_extra_setting' => TRUE,
+    ));
+    $this->setSettings('config_defaults_test', 'FeedsCSVParser', array(
+      'feeds_tests_parser_extra_setting' => FALSE,
+    ));
+    $this->setSettings('config_defaults_test', 'FeedsNodeProcessor', array(
+      'feeds_tests_processor_extra_setting' => 'my setting',
+    ));
+
+    // Reload the importer and assert that the configuration changed.
+    drupal_static_reset();
+    $importer = feeds_importer_load('config_defaults_test');
+    $fetcher_config = $importer->fetcher->getConfig();
+    $parser_config = $importer->parser->getConfig();
+    $processor_config = $importer->processor->getConfig();
+    $this->assertTrue($fetcher_config['feeds_tests_fetcher_extra_setting'], "Option 'Extra setting' is enabled for the fetcher.");
+    $this->assertFalse($parser_config['feeds_tests_parser_extra_setting'], "Option 'Extra setting' is disabled for the parser.");
+    $this->assertEqual('my setting', $processor_config['feeds_tests_processor_extra_setting'], "Setting 'Extra setting' is 'my setting'.");
+  }
+
+}

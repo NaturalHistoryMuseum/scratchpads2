@@ -11,51 +11,88 @@
 function feeds_requirements($phase) {
   $t = get_t();
 
-  $requirements = array(
-    'simplexml' => array(
-      'title' => $t('SimpleXML'),
-      'value' => extension_loaded('SimpleXML') ? $t('Enabled') : $t('Disabled'),
-      'description' => $t('SimpleXML PHP module is required for Feeds Syndication Parser.'),
-      'severity' => REQUIREMENT_INFO,
-    ),
-    'simplepie' => array(
-      'title' => $t('SimplePie'),
-      'value' => $t('Unknown at install time.'),
-      'description' => $t('SimplePie library is required for Feeds SimplePie Parser.'),
-      'severity' => REQUIREMENT_INFO,
-    )
-  );
-  if ($phase == 'runtime') {
-    // Check for SimpleXML, required by FeedsSyndicationParser.
-    if (extension_loaded('SimpleXML')) {
-      $requirements['simplexml']['severity'] = REQUIREMENT_OK;
-    }
-    else {
-      $requirements['simplexml']['severity'] = REQUIREMENT_WARNING;
-      $requirements['simplexml']['description'] .= ' ' . t('It has been disabled at compile time, seek instructions from the server mantainers to enable it.');
-    }
-    // Check for SimplePie, required by FeedsSimplePieParser.
-    if (feeds_simplepie_exists()) {
-      $requirements['simplepie']['value'] = t('Enabled');
-      $requirements['simplepie']['severity'] = REQUIREMENT_OK;
-    }
-    else {
-      $requirements['simplepie']['value'] = t('Not installed');
-      $requirements['simplepie']['severity'] = REQUIREMENT_WARNING;
-      $requirements['simplepie']['description'] .= ' ' . t(
-        'Download the compiled version of the library from <a href="@simplepie-download-url">SimplePie download page</a>.',
-        array('@simplepie-download-url' => 'http://simplepie.org/downloads/')
-      );
+  $requirements = array();
+
+  module_load_include('module', 'feeds');
+  // Check if we have any SimplePie importers.
+  $needs_simplepie = FALSE;
+  foreach (feeds_importer_load_all() as $importer) {
+    if ($importer->config['parser']['plugin_key'] === 'FeedsSimplePieParser') {
+      $needs_simplepie = TRUE;
+      break;
     }
   }
+
+  if (!$needs_simplepie) {
+    return $requirements;
+  }
+
+  $requirements['simplepie'] = array(
+    'title' => $t('SimplePie'),
+    'value' => $t('Installed'),
+    'description' => $t('The SimplePie library is required for Feeds SimplePie Parser.'),
+    'severity' => REQUIREMENT_OK,
+  );
+
+  if (!feeds_simplepie_exists()) {
+    $requirements['simplepie']['value'] = $t('Not installed');
+
+    $folder = drupal_get_path('module', 'feeds') . '/libraries';
+    if (module_exists('libraries')) {
+      $folder = 'sites/all/libraries/simplepie';
+    }
+
+    $args = array(
+      '!url' => 'http://simplepie.org/downloads/',
+      '%folder' => $folder,
+      '%file' => 'simplepie.compiled.php',
+    );
+    $requirements['simplepie']['description'] .= $t('<br />Download the compiled, single-file version of the library from the <a href="!url">SimplePie download page</a>, place it into %folder and rename it to %file.', $args);
+    $requirements['simplepie']['severity'] = REQUIREMENT_ERROR;
+  }
+
   return $requirements;
 }
 
 /**
-  * Implement hook_uninstall()
-  */
+ * Implements hook_install().
+ */
+function feeds_install() {
+  // Activate our custom cache handler for the HTTP cache.
+  variable_set('cache_class_cache_feeds_http', 'FeedsHTTPCache');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
 function feeds_uninstall() {
+  variable_del('cache_class_cache_feeds_http');
+  variable_del('cache_flush_cache_feeds_http');
+  variable_del('default_feeds_importer');
+  variable_del('feeds_debug');
+  variable_del('feeds_http_file_cache_dir');
+  variable_del('feeds_importer_class');
+  variable_del('feeds_in_progress_dir');
+  variable_del('feeds_library_dir');
+  variable_del('feeds_never_use_curl');
+  variable_del('feeds_process_limit');
+  variable_del('feeds_reschedule');
+  variable_del('feeds_source_class');
+  variable_del('feeds_sync_cache_feeds_http_interval');
+  variable_del('feeds_sync_cache_feeds_http_last_check');
+  variable_del('feeds_use_mbstring');
   variable_del('http_request_timeout');
+
+  // Remove Feeds related jobs from job scheduler.
+  $names = db_or()
+    ->condition('name', 'feeds_source_import')
+    ->condition('name', 'feeds_source_clear')
+    ->condition('name', 'feeds_source_expire')
+    ->condition('name', 'feeds_push_unsubscribe');
+
+  db_delete('job_schedule')
+    ->condition($names)
+    ->execute();
 }
 
 /**
@@ -69,10 +106,12 @@ function feeds_schema() {
     'export' => array(
       'key' => 'id',
       'identifier' => 'feeds_importer',
-      'default hook' => 'feeds_importer_default',  // Function hook name.
+      // Function hook name.
+      'default hook' => 'feeds_importer_default',
       'api' => array(
         'owner' => 'feeds',
-        'api' => 'feeds_importer_default',  // Base name for api include files.
+        // Base name for api include files.
+        'api' => 'feeds_importer_default',
         'minimum_version' => 1,
         'current_version' => 1,
       ),
@@ -196,11 +235,12 @@ function feeds_schema() {
       'guid' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'Unique identifier for the feed item.'
+        'description' => 'Unique identifier for the feed item.',
       ),
       'hash' => array(
         'type' => 'varchar',
-        'length' => 32, // The length of an MD5 hash.
+        // 32 is the length of an MD5 hash.
+        'length' => 32,
         'not null' => TRUE,
         'default' => '',
         'description' => 'The hash of the source item.',
@@ -347,6 +387,10 @@ function feeds_schema() {
       'type' => array('type'),
     ),
   );
+
+  $schema['cache_feeds_http'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_feeds_http']['description'] = 'Cache table for Feeds downloads.';
+
   return $schema;
 }
 
@@ -435,11 +479,12 @@ function feeds_update_7202() {
       'guid' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'description' => 'Unique identifier for the feed item.'
+        'description' => 'Unique identifier for the feed item.',
       ),
       'hash' => array(
         'type' => 'varchar',
-        'length' => 32, // The length of an MD5 hash.
+        // 32 is the length of an MD5 hash.
+        'length' => 32,
         'not null' => TRUE,
         'default' => '',
         'description' => 'The hash of the source item.',
@@ -544,8 +589,14 @@ function feeds_update_7203() {
  * Add index for looking up by entity_type + url/ guid to feeds_item table.
  */
 function feeds_update_7204() {
-  db_add_index('feeds_item', 'global_lookup_url', array('entity_type', array('url', 128)));
-  db_add_index('feeds_item', 'global_lookup_guid', array('entity_type', array('guid', 128)));
+  db_add_index('feeds_item', 'global_lookup_url', array(
+    'entity_type',
+    array('url', 128),
+  ));
+  db_add_index('feeds_item', 'global_lookup_guid', array(
+    'entity_type',
+    array('guid', 128),
+  ));
 }
 
 /**
@@ -567,10 +618,26 @@ function feeds_update_7205() {
   ));
 
   db_add_primary_key('feeds_item', array('entity_type', 'entity_id'));
-  db_add_index('feeds_item', 'lookup_url', array('entity_type', 'id', 'feed_nid', array('url', 128)));
-  db_add_index('feeds_item', 'lookup_guid', array('entity_type', 'id', 'feed_nid', array('guid', 128)));
-  db_add_index('feeds_item', 'global_lookup_url', array('entity_type', array('url', 128)));
-  db_add_index('feeds_item', 'global_lookup_guid', array('entity_type', array('guid', 128)));
+  db_add_index('feeds_item', 'lookup_url', array(
+    'entity_type',
+    'id',
+    'feed_nid',
+    array('url', 128),
+  ));
+  db_add_index('feeds_item', 'lookup_guid', array(
+    'entity_type',
+    'id',
+    'feed_nid',
+    array('guid', 128),
+  ));
+  db_add_index('feeds_item', 'global_lookup_url', array(
+    'entity_type',
+    array('url', 128),
+  ));
+  db_add_index('feeds_item', 'global_lookup_guid', array(
+    'entity_type',
+    array('guid', 128),
+  ));
 }
 
 /**
@@ -664,4 +731,61 @@ function feeds_update_7208(&$sandbox) {
   else {
     $sandbox['#finished'] = 1;
   }
+}
+
+/**
+ * Reschedules feeds jobs.
+ */
+function feeds_update_7209() {
+  // Reschedule all importers.
+  variable_set('feeds_reschedule', TRUE);
+
+  // Our expire callback has changed names, remove all existing callbacks.
+  db_delete('job_schedule')
+    ->condition('name', 'feeds_importer_expire')
+    ->execute();
+
+  DrupalQueue::get('feeds_importer_expire')->deleteQueue();
+}
+
+/**
+ * Does nothing. Update removed.
+ */
+function feeds_update_7211(&$sandbox) {
+}
+
+/**
+ * Create {cache_feeds_http} table.
+ */
+function feeds_update_7212() {
+  if (!db_table_exists('cache_feeds_http')) {
+    $schema = drupal_get_schema_unprocessed('system', 'cache');
+    $schema['description'] = 'Cache table for Feeds downloads.';
+    db_create_table('cache_feeds_http', $schema);
+  }
+}
+
+/**
+ * Set cache class for Feeds HTTP cache.
+ */
+function feeds_update_7213() {
+  // Check if Feeds is enabled first.
+  if (!class_exists('FeedsHTTPCache') && !module_exists('feeds')) {
+    throw new DrupalUpdateException('Please enable the Feeds module to perform this update.');
+  }
+
+  // Perform a registry rebuild so the system hopefully discovers the
+  // FeedsHTTPCache class.
+  if (!class_exists('FeedsHTTPCache') && function_exists('registry_rebuild')) {
+    registry_rebuild();
+  }
+
+  // Abort when the FeedsHTTPCache class is not yet found to avoid fatal errors
+  // in _cache_get_object().
+  if (!class_exists('FeedsHTTPCache')) {
+    throw new DrupalUpdateException('Setting the cache class for the cache_feeds_http bin failed because the FeedsHTTPCache class could not be found. Please rebuild the Drupal class registry and perform database updates again.');
+  }
+
+  // Activate our custom cache handler for the HTTP cache.
+  variable_set('cache_class_cache_feeds_http', 'FeedsHTTPCache');
 }

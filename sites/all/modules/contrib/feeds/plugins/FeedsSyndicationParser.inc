@@ -19,6 +19,12 @@ class FeedsSyndicationParser extends FeedsParser {
     feeds_include_library('common_syndication_parser.inc', 'common_syndication_parser');
     $feed = common_syndication_parser_parse($fetcher_result->getRaw());
     $result = new FeedsParserResult();
+
+    // Return an empty result object when feed is false.
+    if (!$feed) {
+      return $result;
+    }
+
     $result->title = $feed['title'];
     $result->description = $feed['description'];
     $result->link = $feed['link'];
@@ -76,6 +82,24 @@ class FeedsSyndicationParser extends FeedsParser {
         'name' => t('Geo Locations'),
         'description' => t('An array of geographic locations with a name and a position.'),
       ),
+      'source:url' => array(
+        'name' => t('Source: URL'),
+        'description' => t('The URL of the RSS channel that the item came from.'),
+      ),
+      'source:title' => array(
+        'name' => t('Source: Title'),
+        'description' => t('The title of the RSS channel that the item came from.'),
+      ),
     ) + parent::getMappingSources();
   }
+
+  /**
+   * Overrides FeedsParser::providesSourceTitle().
+   *
+   * This parser supports retrieving a title from the source.
+   */
+  public function providesSourceTitle() {
+    return TRUE;
+  }
+
 }

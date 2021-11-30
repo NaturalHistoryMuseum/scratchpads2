@@ -212,13 +212,13 @@ abstract class ViewsDataExportBaseTest extends ViewsTestCase {
       array(
         'name' => 'John',
         'age' => 25,
-        'job' => 'Singer',
+        'job' => "Singer\r\nSongwriter\r\nPianist",
         'created' => gmmktime(0, 0, 0, 1, 1, 2000),
       ),
       array(
         'name' => 'George',
         'age' => 27,
-        'job' => 'Singer',
+        'job' => "Singer\nGuitar player\nSitar player",
         'created' => gmmktime(0, 0, 0, 1, 2, 2000),
       ),
       array(
@@ -230,7 +230,7 @@ abstract class ViewsDataExportBaseTest extends ViewsTestCase {
       array(
         'name' => 'Paul',
         'age' => 26,
-        'job' => 'Songwriter',
+        'job' => "Songwriter\rBass guitarist",
         'created' => gmmktime(6, 0, 0, 1, 1, 2000),
       ),
       array(

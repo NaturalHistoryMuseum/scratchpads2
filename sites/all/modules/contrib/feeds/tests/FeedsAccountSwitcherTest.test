@@ -1,0 +1,286 @@
+<?php
+
+/**
+ * @file
+ * Contains FeedsAccountSwitcherTest.
+ */
+
+/**
+ * Test case for account switching.
+ */
+class FeedsAccountSwitcherTest extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Feeds account switcher test',
+      'description' => 'Tests if switching accounts during import happens properly.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+
+    // Do not use curl as that will result into HTTP requests returning a 404.
+    variable_set('feeds_never_use_curl', TRUE);
+
+    // Create an importer. Do not import on create.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->setSettings('syndication', NULL, array(
+      'import_period' => FEEDS_SCHEDULE_NEVER,
+      'import_on_create' => FALSE,
+    ));
+    $this->addMappings('syndication',
+      array(
+        0 => array(
+          'source' => 'title',
+          'target' => 'title',
+        ),
+      )
+    );
+
+    // Clear cache to make permission 'create article content' available.
+    drupal_static_reset();
+    drupal_flush_all_caches();
+  }
+
+  /**
+   * Tests if the import is ran as the feed node author when using the UI.
+   */
+  public function testRunImportAsFeedNodeAuthorInUI() {
+    // Assert that the admin user is logged in.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+
+    // Use the CSV parser.
+    $this->setPlugin('syndication', 'FeedsCSVParser');
+
+    // Make the feeds_tests module set the uid source to the current user.
+    variable_set('feeds_tests_set_uid_current_user', TRUE);
+    // And map to 'uid'.
+    $this->addMappings('syndication',
+      array(
+        1 => array(
+          'source' => 'uid',
+          'target' => 'uid',
+        ),
+      )
+    );
+
+    // Create a feed node and change author of node.
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content.csv', 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    // And perform import.
+    $this->drupalPost('node/' . $nid . '/import', NULL, 'Import');
+    $this->assertText('Created 2 nodes');
+
+    // Assert that the author of the created nodes is from the created account.
+    $node = node_load(2);
+    $this->assertEqual($account->uid, $node->uid, format_string('The author of the imported node is set to @expected (actual: @actual).', array(
+      '@expected' => $account->uid,
+      '@actual' => $node->uid,
+    )));
+
+    // Assert that the admin user is still logged in.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+  }
+
+  /**
+   * Tests if the import is ran as the feed node author when using cron.
+   */
+  public function testRunImportAsFeedNodeAuthorOnCron() {
+    // Use the CSV parser.
+    $this->setPlugin('syndication', 'FeedsCSVParser');
+    // Run import in background.
+    $this->setSettings('syndication', NULL, array(
+      'process_in_background' => TRUE,
+    ));
+
+    // Make the feeds_tests module set the uid source to the current user.
+    variable_set('feeds_tests_set_uid_current_user', TRUE);
+    // And map to 'uid'.
+    $this->addMappings('syndication',
+      array(
+        1 => array(
+          'source' => 'uid',
+          'target' => 'uid',
+        ),
+      )
+    );
+
+    // Create a feed node and change author of node.
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content.csv', 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    // Schedule import and run cron.
+    $this->drupalPost('node/' . $nid . '/import', NULL, 'Schedule import');
+    $this->cronRun();
+
+    // Assert that the author of the created nodes is from the created account.
+    $node = node_load(2);
+    $this->assertEqual($account->uid, $node->uid, format_string('The author of the imported node is set to @expected (actual: @actual).', array(
+      '@expected' => $account->uid,
+      '@actual' => $node->uid,
+    )));
+  }
+
+  /**
+   * Tests if an extra account switch happens on authorized imports.
+   */
+  public function testAuthorizedImport() {
+    // Enable feeds_test_field module.
+    module_enable(array('feeds_test_field'));
+
+    // Create content type.
+    $typename = $this->createContentType(array(), array(
+      'alpha' => array(
+        'type' => 'feeds_test_field',
+        'widget' => 'feeds_test_field_textfield',
+      ),
+    ));
+
+    // Create a role with permission to create content and permission to edit
+    // fields of type 'feeds_test_field'.
+    $rid1 = $this->drupalCreateRole(array(
+      'access content',
+      'create ' . $typename . ' content',
+      'feeds_test_field.edit',
+    ));
+    // Create also a role that only may create content, but may NOT edit fields
+    // of type 'feeds_test_field'.
+    $rid2 = $this->drupalCreateRole(array(
+      'access content',
+      'create ' . $typename . ' content',
+    ));
+
+    // Create one account that may create content and an other
+    // who may not.
+    $morticia = user_save(drupal_anonymous_user(), array(
+      'name' => 'Morticia',
+      'mail' => 'morticia@example.com',
+      'pass' => 'mort',
+      'status' => 1,
+      'roles' => array(
+        $rid1 => $rid1,
+      ),
+    ));
+    // Fester may not edit feeds_test_field fields.
+    $fester = user_save(drupal_anonymous_user(), array(
+      'name' => 'Fester',
+      'mail' => 'fester@example.com',
+      'pass' => 'fester',
+      'status' => 1,
+      'roles' => array(
+        $rid2 => $rid2,
+      ),
+    ));
+
+    // Assert that the admin user is logged in. After import, we check again
+    // which user is logged in. It is important to ensure that it's the same
+    // user who's logged in after import, so we can ensure that account switches
+    // get reverted properly.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+
+    // Use the CSV parser.
+    $this->setPlugin('syndication', 'FeedsCSVParser');
+    // Turn on authorize option and set bundle.
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array(
+      'authorize' => TRUE,
+      'bundle' => $typename,
+    ));
+    // The column 'author' from the CSV contains the username.
+    $this->addMappings('syndication',
+      array(
+        1 => array(
+          'source' => 'author',
+          'target' => 'user_name',
+        ),
+        2 => array(
+          'source' => 'alpha',
+          'target' => 'field_alpha',
+        ),
+      )
+    );
+
+    // Create a feed node and change the author of the node. During the import,
+    // Feeds will initially switch to the author's account. This author is
+    // allowed to create content, but not edit fields of type
+    // 'feeds_test_field'. Since the import requires that permission, we can
+    // ensure another account switch happened if the content gets imported
+    // successfully.
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content_author.csv', 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create ' . $typename . ' content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    // And perform import.
+    $this->drupalPost('node/' . $nid . '/import', NULL, 'Import');
+
+    // Assert that only one node was imported. Only the author of the first item
+    // is expected to be allowed to edit field_alpha, but the author of the
+    // second item isn't.
+    $this->assertText('Created 1 node');
+    $this->assertText('Failed importing 1 node');
+    $this->assertText("Field validation errors in item 'Ut wisi enim ad minim veniam'");
+    $this->assertText('You are not authorized to edit this field');
+
+    // Assert that the admin user is still logged in. This ensures that after
+    // the import the account switch has been reverted.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+  }
+
+  /**
+   * Tests if the user is switched back properly when an import fails.
+   */
+  public function testFailingImport() {
+    // Set flag that causes feeds_tests_after_parse() to disrupt the import process.
+    variable_set('feeds_tests_trigger_import_disruption', TRUE);
+
+    // Assert that the admin user is logged in.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+
+    // Create a feed node and change author of node.
+    $nid = $this->createFeedNode('syndication', NULL, 'Node 1');
+    $account = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+    ));
+    $this->changeNodeAuthor($nid, $account);
+
+    // And perform import.
+    $this->drupalPost('node/' . $nid . '/import', NULL, 'Import');
+    $this->assertText('An error has occurred.');
+
+    // Assert that the admin user is still logged in.
+    $this->drupalGet('user');
+    $this->clickLink('Edit');
+    $this->assertUrl('user/' . $this->admin_user->uid . '/edit');
+  }
+
+}

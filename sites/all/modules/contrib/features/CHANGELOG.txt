@@ -1,3 +1,49 @@
+features DRUPAL-7--1-0
+----------------------
+
+#1647894 by tim.plunkett: Fixed Features with page manager components are perpetually overridden.
+#1635662 by donquixote: Fixed Undefined index: feature in features_get_info().
+Add missing taxonomy test file
+
+features DRUPAL-7--1-0-RC3
+--------------------------
+
+#1429262 by joelcollinsdc, neochief: Added Allow component level reverting (without needing to go to interactive mode) in drush fr.
+#1272586 by alexweber | stevector: Added Increment or directly set version number directly with drush features-update.
+#1532422 by nadavoid: Fixed If the custom sort order of 'format_handlers()' is not maintained, some things can break.
+#1564864 by jeffschuler: Fixed Mixup in hook_features_export_render() example.
+#1567506 by Dave Reid: Fixed Unable to properly export or provide a locked field in a feature.
+#1597792 by jessehs: Make sure all comments in created features end period.
+#1599188 by jessehs: Move inline comment for empty feature .module file to @file doc block.
+#1587200 by ericduran: Fixed Test module should be hidden.
+#1574716 by bojanz: Fixed Avoid unnecessary cache rebuilds when creating and updating fields.
+#1530386 by exratione, bojanz, kotnik: Avoid unnecessary cache rebuilds and improve installation performance.
+#1489480 by Xen | dema502: Fixed drush:features-export Ambiguous component.
+#1159390 by hefox | brad.bulger: Fixed incorrect revert hook name in features.api.php?.
+#1493274 by hefox, neochief: Fixed Feature installed before Strongarm blocks all other variable imports.
+#1537838 by hefox, JvE | Gisle: Fixed Upgrading to 7.x-1.0-rc2 (from rc1) breaks taxonomy creation.
+#1447656 by bcmiller0, smk-ka: Added drush features-revert-all performance improvement.
+
+features DRUPAL-7--1-0-RC2
+--------------------------
+
+#1529202 by mpotter, mstrelan: Fixed Unable to revert overrides because clear-block is now clearfix.
+#1505044 by neochief: Fixed features_var_export() adds additional prefix to multiline strings contained in objects.
+#1510710 by neochief: Fixed Incorrect key in features_include_defaults() with reset parameters.
+#1402262 by hefox: Fixed features.api.php mentions 'features_source()' key, but the actual key in use is 'feature_source()'.
+#939254 by hefox, fago: Added Return the () to hook_features_pipe_component_alter().
+#894572 by pearcec, eporama, Grayside, andrewlevine: Added Features with only module dependencies not recognized as features.
+#1231118 by tim.plunkett, jhedstrom, nielsonm, arnested: Fixed Generate code according to coding standards.
+#1493274 by neochief, hefox: Fixed Feature installed before Strongarm blocks all other variable imports.
+#1287594 by tim.plunkett: Don't wrap .info file values in double quotes.
+#1437388 by hefox: Fixed check if file exists before including it in features_include().
+#1496322 by hefox, dajjen: Added Make package autocomplete search string case insensitive .
+#1279938 by derhasi, helmo: Added Features support for languages.
+#1305048 by mongolito404: Fixed Undefined index error in user_permission_features_export_render().
+#1063204 by careernerd, davidwhthomas, hefox | mrfree: Fixed Adding a new permission causes integrity constraint violation.
+#1432264 by ezra-g, tim.plunkett | samhassell: Fixed Changes to hook_views_api() cause Views plugins to be undefined.
+Revert "Issue #1432264 by ezra-g, tim.plunkett | samhassell: Fixed Changes to hook_views_api() cause Views plugins to be undefined."
+
 features DRUPAL-7--1-0-RC1
 --------------------------
 
@@ -64,7 +110,7 @@ Fixing naming conflict b/w hook_enable and hook_disable
 #1175684 by sagannotcarl, rocket.nova: Add legend/help to features-diff
 #1210604 by catch: drush features-revert-all does not respect --force argument
 #954062 by irakli, hefox: Incorrect Component Labels in the Components Dropdown
-#1186694 by tunic, fearlsgroove: Features orders exportes recursivally; fields allowed_values array alphabetized, 
+#1186694 by tunic, fearlsgroove: Features orders exportes recursivally; fields allowed_values array alphabetized,
 #935152 by adamdicarlo, hadsie, hefox: Menu Items missing from Menu Links due to access callback user_is_anonymous
 #1258072 by hefox: Add suggestion for vocabulary when exporting a taxonomy field
 #1279212: add Features Breadcrumb

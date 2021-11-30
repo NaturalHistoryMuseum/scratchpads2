@@ -14,7 +14,7 @@ function twitter_post_admin_settings($form, &$form_state) {
     '#type' => 'checkboxes',
     '#description' => t('Choose which node types should support posting to Twitter.'),
     '#options' => node_type_get_names(),
-    '#default_value' => variable_get('twitter_post_types', NULL),
+    '#default_value' => variable_get('twitter_post_types', array()),
   );
 
   $form['twitter_post_default_format'] = array(
@@ -28,9 +28,21 @@ function twitter_post_admin_settings($form, &$form_state) {
 
   $form['twitter_post_default_value'] = array(
     '#type' => 'checkbox',
-    '#description' => t('When active, tweets will be automatically published.'),
-    '#title' => t('Post to twitter by default'),
+    '#title' => t('Post to Twitter by default'),
     '#default_value' => variable_get('twitter_post_default_value', 0),
+    '#description' => t('When active, tweets will be automatically posted when the node is first published.'),
+  );
+
+  $form['twitter_post_on_node_update'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Post to Twitter on node update'),
+    '#description' => t('When active, tweets will be posted to Twitter on node update; this can lead to apparently duplicate tweets, so may not be wanted.'),
+    '#default_value' => variable_get('twitter_post_on_update', 0),
+    '#states' => array(
+      'visible' => array(
+        'input[name="twitter_post_default_value"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   return system_settings_form($form);

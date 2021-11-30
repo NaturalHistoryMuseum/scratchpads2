@@ -12,6 +12,7 @@ function twitter_post_uninstall() {
   variable_del('twitter_post_types');
   variable_del('twitter_post_default_format');
   variable_del('twitter_post_default_value');
+  variable_del('twitter_post_on_update');
 }
 
 /**
@@ -37,4 +38,24 @@ function twitter_post_update_7301() {
     ->condition('name', 'twitter_post', '=')
     ->execute();
   return t('Updated system weight to 10 for Twitter Post.');
+}
+
+/**
+ * Add the new "post to twitter with global account" permission to all roles
+ * that have the "post to twitter" permission.
+ */
+function twitter_post_update_7500() {
+  $roles = db_query("SELECT rid
+    FROM {role_permission}
+    WHERE permission = 'post to twitter'")
+    ->fetchCol();
+  foreach ($roles as $rid) {
+    $record = new StdClass();
+    $record->rid = $rid;
+    $record->permission = 'post to twitter with global account';
+    $record->module = 'twitter';
+    drupal_write_record('role_permission', $record);
+  }
+
+  drupal_set_message(t('A new permission "Post a message to Twitter using a global account" as been added to all roles that already had the "Post a message to Twitter" permission. It is recommended to <a href="@url">review the permissions</a> to ensure they are appropriate for this site\'s needs.', array('@url' => url('admin/people/permissions'))));
 }

@@ -3,10 +3,15 @@ description = "Provides feature management for Drupal."
 core = 7.x
 package = "Features"
 files[] = tests/features.test
+test_dependencies[] = image
+test_dependencies[] = strongarm
+test_dependencies[] = taxonomy
+test_dependencies[] = views
 
-; Information added by drupal.org packaging script on 2012-07-25
-version = "7.x-1.0"
+configure = admin/structure/features/settings
+
+; Information added by Drupal.org packaging script on 2020-11-20
+version = "7.x-2.13"
 core = "7.x"
 project = "features"
-datestamp = "1343240292"
-
+datestamp = "1605854056"

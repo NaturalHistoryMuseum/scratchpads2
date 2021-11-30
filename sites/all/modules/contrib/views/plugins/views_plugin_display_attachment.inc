@@ -22,6 +22,8 @@ class views_plugin_display_attachment extends views_plugin_display {
   public function option_definition () {
     $options = parent::option_definition();
 
+    $options['show_title'] = array('default' => FALSE, 'bool' => TRUE);
+    $options['show_title_empty'] = array('default' => FALSE, 'bool' => TRUE);
     $options['displays'] = array('default' => array());
     $options['attachment_position'] = array('default' => 'before');
     $options['inherit_arguments'] = array('default' => TRUE, 'bool' => TRUE);
@@ -88,6 +90,18 @@ class views_plugin_display_attachment extends views_plugin_display {
       $attach_to = t('Not defined');
     }
 
+    $options['show_title'] = array(
+      'category' => 'title',
+      'title' => t('Show title'),
+      'value' => $this->get_option('show_title') ? t('Yes') : t('No'),
+    );
+
+    $options['show_title_empty'] = array(
+      'category' => 'title',
+      'title' => t('Show title even if view has no results'),
+      'value' => $this->get_option('show_title_empty') ? t('Yes') : t('No'),
+    );
+
     $options['displays'] = array(
       'category' => 'attachment',
       'title' => t('Attach to'),
@@ -134,6 +148,24 @@ class views_plugin_display_attachment extends views_plugin_display {
     parent::options_form($form, $form_state);
 
     switch ($form_state['section']) {
+      case 'show_title':
+        $form['#title'] .= t('Title');
+        $form['show_title'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Show title'),
+          '#description' => t('Do you want to show the title of the attachment?'),
+          '#default_value' => $this->get_option('show_title'),
+        );
+        break;
+      case 'show_title_empty':
+        $form['#title'] .= t('Title');
+        $form['show_title_empty'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Show title for empty view'),
+          '#description' => t('Do you want to show the title of the attachment even if the view has no results?'),
+          '#default_value' => $this->get_option('show_title_empty'),
+        );
+        break;
       case 'inherit_arguments':
         $form['#title'] .= t('Inherit contextual filters');
         $form['inherit_arguments'] = array(
@@ -210,6 +242,8 @@ class views_plugin_display_attachment extends views_plugin_display {
     // It is very important to call the parent function here.
     parent::options_submit($form, $form_state);
     switch ($form_state['section']) {
+      case 'show_title':
+      case 'show_title_empty':
       case 'inherit_arguments':
       case 'inherit_pager':
       case 'render_pager':
@@ -242,7 +276,7 @@ class views_plugin_display_attachment extends views_plugin_display {
 
     $args = $this->get_option('inherit_arguments') ? $this->view->args : array();
     $view->set_arguments($args);
-    $exposed_input = $this->get_option('inherit_exposed_filters') ? $this->view->exposed_input : array();
+    $exposed_input = $this->get_option('inherit_exposed_filters') && isset($this->view->exposed_input) ? $this->view->exposed_input : array();
     $view->set_exposed_input($exposed_input);
     $view->set_display($this->display->id);
     if ($this->get_option('inherit_pager')) {
@@ -250,7 +284,20 @@ class views_plugin_display_attachment extends views_plugin_display {
       $view->display_handler->set_option('pager', $this->view->display[$display_id]->handler->get_option('pager'));
     }
 
-    $attachment = $view->execute_display($this->display->id, $args);
+    $attachment_output = $view->execute_display($this->display->id, $args);
+
+    $attachment = '';
+    if ($view->display_handler->get_option('show_title') && $view->display_handler->get_option('title')) {
+      if ($view->display_handler->get_option('show_title_empty') || !empty($view->result)) {
+        $attachment .= theme('html_tag', array(
+          'element' => array(
+            '#tag' => 'h2',
+            '#value' => $view->display_handler->get_option('title'),
+          ),
+        ));
+      }
+    }
+    $attachment .= $attachment_output;
 
     switch ($this->get_option('attachment_position')) {
       case 'before':

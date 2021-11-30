@@ -4,10 +4,6 @@ package = Search Toolkit
 core = 7.x
 configure = admin/config/search/apachesolr/settings
 
-files[] = apachesolr.install
-files[] = apachesolr.module
-files[] = apachesolr.admin.inc
-files[] = apachesolr.index.inc
 files[] = apachesolr.interface.inc
 files[] = Drupal_Apache_Solr_Service.php
 files[] = Apache_Solr_Document.php
@@ -24,9 +20,8 @@ files[] = tests/solr_base_query.test
 files[] = tests/solr_base_subquery.test
 files[] = tests/solr_document.test
 
-; Information added by drupal.org packaging script on 2013-07-26
-version = "7.x-1.4"
+; Information added by Drupal.org packaging script on 2020-12-11
+version = "7.x-1.12"
 core = "7.x"
 project = "apachesolr"
-datestamp = "1374808867"
-
+datestamp = "1607712024"

@@ -1,0 +1,33 @@
+<?php
+/**
+ * @file
+ *  This provides UUID support for node and user references
+ */
+
+/**
+ * Implements hook_field_uuid_load().
+ */
+function node_reference_field_uuid_load($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  entity_property_id_to_uuid($items, 'node', 'nid');
+}
+
+/**
+ * Implements hook_field_uuid_presave().
+ */
+function node_reference_field_uuid_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  entity_property_uuid_to_id($items, 'node', 'nid');
+}
+
+/**
+ * Implements hook_field_uuid_load().
+ */
+function user_reference_field_uuid_load($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  entity_property_id_to_uuid($items, 'user', 'uid');
+}
+
+/**
+ * Implements hook_field_uuid_presave().
+ */
+function user_reference_field_uuid_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  entity_property_uuid_to_id($items, 'user', 'uid');
+}

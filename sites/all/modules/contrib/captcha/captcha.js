@@ -4,7 +4,7 @@
     attach: function (context) {
 
       // Turn off autocompletion for the CAPTCHA response field.
-      // We do it here with Javascript (instead of directly in the markup)
+      // We do it here with JavaScript (instead of directly in the markup)
       // because this autocomplete attribute is not standard and
       // it would break (X)HTML compliance.
       $("#edit-captcha-response").attr("autocomplete", "off");

@@ -68,10 +68,17 @@ class views_handler_field extends views_handler {
 
   /**
    * @var array
-   * Stores additional fields which get's added to the query.
+   * Stores additional fields which get added to the query.
    * The generated aliases are stored in $aliases.
    */
   public $additional_fields = array();
+
+  /**
+   * Keeps track of the last render index.
+   *
+   * @var int|NULL
+   */
+  protected $last_render_index = NULL;
 
   /**
    * Construct a new field handler.
@@ -159,7 +166,7 @@ class views_handler_field extends views_handler {
               '@identifier' => $identifier,
               '@table' => $info['table'],
             );
-            debug(t('Handler @handler tried to add additional_field @identifier but @table could not be added!', $t_args));
+            debug(t('Handler @handler tried to add additional field @identifier but @table could not be added.', $t_args));
             $this->aliases[$identifier] = 'broken';
             continue;
           }
@@ -424,6 +431,7 @@ class views_handler_field extends views_handler {
         'absolute' => array('default' => FALSE, 'bool' => TRUE),
         'external' => array('default' => FALSE, 'bool' => TRUE),
         'replace_spaces' => array('default' => FALSE, 'bool' => TRUE),
+        'unwanted_characters' => array('default' => ''),
         'path_case' => array('default' => 'none', 'translatable' => FALSE),
         'trim_whitespace' => array('default' => FALSE, 'bool' => TRUE),
         'alt' => array('default' => '', 'translatable' => TRUE),
@@ -744,6 +752,16 @@ class views_handler_field extends views_handler {
           'edit-options-alter-make-link' => array(1),
         ),
       );
+      $form['alter']['unwanted_characters'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Remove unwanted characters'),
+        '#description' => t('Space-separated list of characters to remove from the URL path'),
+        '#default_value' => $this->options['alter']['unwanted_characters'],
+        '#dependency' => array(
+          'edit-options-alter-make-link' => array(1)
+        ),
+        '#maxlength' => 255,
+      );
       $form['alter']['path_case'] = array(
         '#type' => 'select',
         '#title' => t('Transform the case'),
@@ -782,7 +800,7 @@ class views_handler_field extends views_handler {
         '#title' => t('Rel Text'),
         '#type' => 'textfield',
         '#default_value' => $this->options['alter']['rel'],
-        '#description' => t('Include Rel attribute for use in lightbox2 or other javascript utility.'),
+        '#description' => t('Include Rel attribute for use in lightbox2 or other JavaScript utility.'),
         '#dependency' => array(
           'edit-options-alter-make-link' => array(1),
         ),
@@ -1061,6 +1079,11 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
    * text-replacement rendering is necessary.
    */
   public function advanced_render($values) {
+    // Clean up values from previous render calls.
+    if ($this->last_render_index != $this->view->row_index) {
+      $this->last_render_text = '';
+    }
+
     if ($this->allow_advanced_render() && method_exists($this, 'render_item')) {
       $raw_items = $this->get_items($values);
       // If there are no items, set the original value to NULL.
@@ -1117,6 +1140,11 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
         $alter['phase'] = VIEWS_HANDLER_RENDER_TEXT_PHASE_EMPTY;
         $this->last_render = $this->render_text($alter);
       }
+    }
+
+    // If we rendered something, update the last render index.
+    if ((string) $this->last_render !== '') {
+      $this->last_render_index = $this->view->row_index;
     }
 
     return $this->last_render;
@@ -1234,9 +1262,16 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
    * Render this field as altered text, from a fieldset set by the user.
    */
   public function render_altered($alter, $tokens) {
-    // Filter this right away as our substitutions are already sanitized.
-    $value = filter_xss_admin($alter['text']);
+    // We trust admins so we allow any tag content. This is important for
+    // displays such as XML where we should not mess with tags.
+    $value = $alter['text'];
     $value = strtr($value, $tokens);
+    // User might already used '%5B' and '%5D' instead of literal [ and ].
+    // After token replacements, we need to convert those codes to literal
+    // square bracket characters. Otherwise problems like comment #5 and #6 of
+    // https://www.drupal.org/node/578772 will happen.
+    // We could have used rawurldecode() also, but not sure about the consequences.
+    $value = strtr($value, array('%5B' => '[', '%5D' => ']'));
 
     return $value;
   }
@@ -1286,6 +1321,12 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
 
       if (!empty($alter['replace_spaces'])) {
         $path = str_replace(' ', '-', $path);
+      }
+
+      if (!empty($alter['unwanted_characters'])) {
+        foreach (explode(' ', $alter['unwanted_characters']) as $unwanted) {
+          $path = str_replace($unwanted, '', $path);
+        }
       }
     }
 

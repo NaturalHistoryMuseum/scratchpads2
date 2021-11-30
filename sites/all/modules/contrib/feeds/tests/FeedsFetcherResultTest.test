@@ -1,0 +1,247 @@
+<?php
+
+/**
+ * @coversDefaultClass FeedsFetcherResult
+ * @group feeds
+ */
+class FeedsFetcherResultTest extends FeedsWebTestCase {
+  /**
+   * Default Feeds in progress dir.
+   *
+   * @var string
+   */
+  const FEEDS_IN_PROGRESS_DIR = 'private://feeds/in_progress';
+
+  /**
+   * BOM header for UTF-8 files.
+   *
+   * @var string
+   */
+  const BOM = "\xEF\xBB\xBF";
+
+  /**
+   * The raw fetched data.
+   *
+   * @var string
+   */
+  protected $raw;
+
+  /**
+   * The fetcher result object.
+   *
+   * @var FeedsFetcherResult
+   */
+  protected $fetcherResult;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'FeedsFetcherResult class test',
+      'description' => 'Covers class FeedsFetcherResult.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+
+    $this->raw = $this->randomString();
+
+    // Create an instance of FeedsFetcherResult to test with.
+    $this->fetcherResult = new FeedsFetcherResult($this->raw);
+  }
+
+  /**
+   * Serializes and unserializes a FeedsFetcherResult instance.
+   *
+   * @param FeedsFetcherResult $result
+   *   (optional) A FeedsFetcherResult instance.
+   *
+   * @return FeedsFetcherResult
+   *   A FeedsFetcherResult instance, after being serialized and unserialized.
+   */
+  protected function getRestoredFetcherResult(FeedsFetcherResult $result = NULL) {
+    if (is_null($result)) {
+      $result = $this->fetcherResult;
+    }
+    $serialized = serialize($this->fetcherResult);
+    return unserialize($serialized);
+  }
+
+  /**
+   * @covers FeedsFetcherResult::getRaw().
+   */
+  public function testGetRaw() {
+    // Assert that getRaw() returns the exact raw data that we had put in.
+    $this->assertEqual($this->raw, $this->fetcherResult->getRaw());
+
+    // Assert that getRaw() also returns the exact raw data after serializing.
+    $restored_fetcher_result = $this->getRestoredFetcherResult();
+    $this->assertEqual($this->raw, $restored_fetcher_result->getRaw());
+  }
+
+  /**
+   * @covers FeedsFetcherResult::getFilePath().
+   */
+  public function testGetFilePath() {
+    $file_path = $this->fetcherResult->getFilePath();
+
+    // Assert that the file path starts with the in progress dir.
+    $this->assertTrue(strpos($file_path, static::FEEDS_IN_PROGRESS_DIR) === 0, format_string('The file path starts with @path.', array(
+      '@path' => static::FEEDS_IN_PROGRESS_DIR,
+    )));
+
+    // Assert that the given file path exists.
+    $this->assertTrue(file_exists($file_path), format_string('The file @file exists.', array(
+      '@file' => $file_path,
+    )));
+
+    // Assert that the file contains the raw result.
+    $this->assertEqual($this->raw, file_get_contents($file_path));
+  }
+
+  /**
+   * @covers FeedsFetcherResult::getFeedsInProgressDir().
+   */
+  public function testGetFeedsInProgressDir() {
+    $this->assertEqual(static::FEEDS_IN_PROGRESS_DIR, $this->fetcherResult->getFeedsInProgressDir());
+  }
+
+  /**
+   * @covers FeedsFetcherResult::constructFilePath().
+   */
+  public function testConstructFilePath() {
+    $file_path = $this->fetcherResult->getFeedsInProgressDir();
+
+    // Assert that the file path starts with the in progress dir.
+    $this->assertTrue(strpos($file_path, static::FEEDS_IN_PROGRESS_DIR) === 0, format_string('The file path starts with @path.', array(
+      '@path' => static::FEEDS_IN_PROGRESS_DIR,
+    )));
+  }
+
+  /**
+   * @covers FeedsFetcherResult::rawExists().
+   */
+  public function testRawExists() {
+    // Raw data should exist by default.
+    $this->assertTrue($this->fetcherResult->rawExists());
+
+    // Assert that the raw result does not exist when a FeedsFetcherResult was
+    // created with just NULL being passed.
+    $fetcher_empty_result = new FeedsFetcherResult(NULL);
+    $this->assertFalse($fetcher_empty_result->rawExists());
+
+    // Assert that a 'restored' FeedsFetcherResult object also has raw data.
+    $restored_fetcher_result = $this->getRestoredFetcherResult();
+    $this->assertTrue($restored_fetcher_result->rawExists());
+  }
+
+  /**
+   * @covers FeedsFetcherResult::fileExists().
+   */
+  public function testFileExists() {
+    // Save raw data to a file.
+    $this->fetcherResult->saveRawToFile();
+    $this->assertTrue($this->fetcherResult->fileExists());
+
+    // Now remove file.
+    $file_path = $this->fetcherResult->getFilePath();
+    drupal_unlink($file_path);
+
+    // Ensure that the file no longer exists.
+    $this->assertFalse(file_exists($file_path), format_string('The file @file is removed.', array(
+      '@file' => $file_path,
+    )));
+
+    // Assert that the result object now indeed says that the file doesn't
+    // exist.
+    $this->assertFalse($this->fetcherResult->fileExists());
+  }
+
+  /**
+   * @covers FeedsFetcherResult::getFileContents().
+   */
+  public function testGetFileContents() {
+    // Save raw data to a file.
+    $this->fetcherResult->saveRawToFile();
+
+    // Overwrite data of file.
+    $new_raw = $this->randomString();
+    $file_path = $this->fetcherResult->getFilePath();
+    file_put_contents($file_path, $new_raw);
+
+    // Assert that the expected raw data is returned.
+    $this->assertEqual($new_raw, $this->fetcherResult->getFileContents());
+  }
+
+  /**
+   * @covers FeedsFetcherResult::saveRawToFile().
+   */
+  public function testSaveRawToFile() {
+    // Save raw data to a file.
+    $this->fetcherResult->saveRawToFile();
+
+    $file_path = $this->fetcherResult->getFilePath();
+    $this->assertEqual($this->raw, file_get_contents($file_path));
+  }
+
+  /**
+   * @covers FeedsFetcherResult::sanitizeRaw().
+   */
+  public function testSanitizeRaw() {
+    $raw_result = $this->randomString();
+    $raw = static::BOM . $raw_result;
+
+    $fetcher_result = new FeedsFetcherResult($raw);
+    $this->assertEqual($raw_result, $fetcher_result->sanitizeRaw($raw));
+  }
+
+  /**
+   * @covers FeedsFetcherResult::sanitizeRawOptimized().
+   */
+  public function testSanitizeRawOptimized() {
+    $raw_result = $this->randomString();
+    $raw = static::BOM . $raw_result;
+
+    $fetcher_result = new FeedsFetcherResult($raw);
+    $this->assertEqual($raw_result, $fetcher_result->sanitizeRawOptimized($raw));
+    $this->assertEqual($raw_result, $raw);
+  }
+
+  /**
+   * @covers FeedsFetcherResult::sanitizeFile().
+   */
+  public function testSanitizeFile() {
+    // Save raw data to a file.
+    $this->fetcherResult->saveRawToFile();
+
+    // Generate new raw string with BOM header.
+    $raw_result = $this->randomString();
+    $raw = static::BOM . $raw_result;
+
+    // Overwrite file.
+    $file_path = $this->fetcherResult->getFilePath();
+    file_put_contents($file_path, $raw);
+
+    // Sanitize file.
+    $this->fetcherResult->sanitizeFile($file_path);
+    $this->assertEqual($raw_result, file_get_contents($file_path));
+  }
+
+  /**
+   * Tests if the raw data is not saved when the object gets serialized.
+   */
+  public function testSerializing() {
+    $serialized = serialize($this->fetcherResult);
+    $this->assertFalse(strpos($serialized, $this->raw), 'The raw result does not appear in the serialized data.');
+
+    // But ensure that the fetcher result *does* still return the raw data.
+    $this->assertEqual($this->raw, $this->fetcherResult->getRaw());
+  }
+
+}

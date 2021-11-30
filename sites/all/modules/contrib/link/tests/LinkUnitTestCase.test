@@ -1,0 +1,89 @@
+<?php
+
+/**
+ * @file
+ * Unit tests for Link module's internal APIs.
+ */
+
+/**
+ * Unit tests for Link module's internal APIs.
+ */
+class LinkUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   *
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Link Unit Tets',
+      'description' => 'Unit tests for the Link module.',
+      'group' => 'Link',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    drupal_load('module', 'link');
+    parent::setUp();
+  }
+
+  /**
+   * Test _link_parse_url().
+   */
+  public function testLinkParseUrl() {
+    // Each of the keys is the URL to check, it will then be converted into a
+    // matching array with three possible elements - 'url', 'query' and
+    // 'fragment'.
+    $urls = array(
+      'https://www.drupal.org' => array(
+        'url' => 'https://www.drupal.org',
+      ),
+      'https://www.drupal.org/?page=42' => array(
+        'url' => 'https://www.drupal.org/',
+        'query' => array(
+          'page' => 42,
+        ),
+      ),
+      'https://www.drupal.org/#footer' => array(
+        'url' => 'https://www.drupal.org/',
+        'fragment' => 'footer',
+      ),
+      'https://www.drupal.org/?page=42#footer' => array(
+        'url' => 'https://www.drupal.org/',
+        'query' => array(
+          'page' => 42,
+        ),
+        'fragment' => 'footer',
+      ),
+    );
+    foreach ($urls as $url => $expected_parts) {
+      $actual_parts = _link_parse_url($url);
+
+      // First off, compare the URL segment.
+      $this->assertEqual($expected_parts['url'], $actual_parts['url']);
+
+      // Secondly, compare the query string, if it was expected.
+      if (isset($expected_parts['query'])) {
+        $this->assertTrue(isset($actual_parts['query']));
+        $this->assertTrue(is_array($actual_parts['query']));
+        $this->assertEqual(count($expected_parts['query']), count($actual_parts['query']));
+      }
+      // If it was not expected, make sure it wasn't added anyway.
+      else {
+        $this->assertFalse(isset($actual_parts['query']));
+      }
+
+      // Lastly, compare the query fragment, if it was expected.
+      if (isset($expected_parts['fragment'])) {
+        $this->assertEqual($expected_parts['fragment'], $actual_parts['fragment']);
+      }
+      // If it was not expected, make sure it wasn't added anyway.
+      else {
+        $this->assertFalse(isset($actual_parts['fragment']));
+      }
+    }
+  }
+
+}

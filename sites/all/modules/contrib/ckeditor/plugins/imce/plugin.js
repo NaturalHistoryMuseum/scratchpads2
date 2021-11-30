@@ -1,10 +1,10 @@
 /*
-Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
 /**
- * @file Plugin for inserting files from imce without image dialog
+ * @file Plugin for inserting files from IMCE without image dialog
  */
 ( function() {
   CKEDITOR.plugins.add( 'imce',
@@ -25,12 +25,12 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
           var width = editor.config.filebrowserWindowWidth || '80%',
           height = editor.config.filebrowserWindowHeight || '70%';
 
-          editor.popup(Drupal.settings.basePath + 'index.php?q=imce\x26app=ckeditor|sendto@ckeditor_setFile|&CKEditorFuncNum=' + editor._.filebrowserFnIMCE, width, height);
+          editor.popup(Drupal.settings.basePath + 'index.php?q=' + Drupal.settings.pathPrefix  + 'imce\x26app=ckeditor|sendto@ckeditor_setFile|&CKEditorFuncNum=' + editor._.filebrowserFnIMCE, width, height);
         }
       });
 
       //add editor function
-      editor._.filebrowserFnIMCE = CKEDITOR.tools.addFunction( setFile, editor )
+      editor._.filebrowserFnIMCE = CKEDITOR.tools.addFunction( setFile, editor );
 
       //function which receive imce response
       window.ckeditor_setFile = function (file, win) {

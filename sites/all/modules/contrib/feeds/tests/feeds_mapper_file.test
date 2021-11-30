@@ -2,17 +2,17 @@
 
 /**
  * @file
- * Test case for Filefield mapper mappers/filefield.inc.
+ * Contains FeedsMapperFileTestCase.
  */
 
 /**
- * Class for testing Feeds file mapper.
- *
- * @todo Add a test for enclosures using a local file that is
- *   a) in place and that
- *   b) needs to be copied from one location to another.
+ * Test case for Filefield mapper mappers/filefield.inc.
  */
 class FeedsMapperFileTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Mapper: File field',
@@ -22,28 +22,40 @@ class FeedsMapperFileTestCase extends FeedsMapperTestCase {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp(array('dblog'));
+
+    // If this is unset (or FALSE) http_request.inc will use curl, and will
+    // generate a 404 for the feed url provided by feeds_tests. However, if
+    // feeds_tests was enabled in your site before running the test, it will
+    // work fine. Since it is truly screwy, lets just force it to use
+    // drupal_http_request() for this test case.
+    variable_set('feeds_never_use_curl', TRUE);
+
+    // Get our defined constants and any helper functions.
+    module_load_include('inc', 'feeds', 'mappers/file');
+  }
+
+  /**
    * Basic test loading a single entry CSV file.
    */
   public function test() {
-    // If this is unset (or FALSE) http_request.inc will use curl, and will generate a 404
-    // for this feel url provided by feeds_tests. However, if feeds_tests was enabled in your
-    // site before running the test, it will work fine. Since it is truly screwy, lets just
-    // force it to use drupal_http_request for this test case.
-    variable_set('feeds_never_use_curl', TRUE);
-    variable_set('clean_url', TRUE);
-
     // Only download simplepie if the plugin doesn't already exist somewhere.
     // People running tests locally might have it.
-    if (!feeds_simplepie_exists()) {
-      $this->downloadExtractSimplePie('1.3');
-      $this->assertTrue(feeds_simplepie_exists());
-      // Reset all the caches!
-      $this->resetAll();
-    }
-    $typename = $this->createContentType(array(), array('files' => 'file'));
+    $this->requireSimplePie();
+
+    $typename = $this->createContentType(array(), array(
+      'files' => array(
+        'type' => 'file',
+        'instance_settings' => array(
+          'instance[settings][file_extensions]' => 'png, gif, jpg, jpeg',
+        ),
+      ),
+    ));
 
     // 1) Test mapping remote resources to file field.
-
     // Create importer configuration.
     $this->createImporterConfiguration();
     $this->setPlugin('syndication', 'FeedsSimplePieParser');
@@ -51,33 +63,31 @@ class FeedsMapperFileTestCase extends FeedsMapperTestCase {
     $this->addMappings('syndication', array(
       0 => array(
         'source' => 'title',
-        'target' => 'title'
+        'target' => 'title',
       ),
       1 => array(
         'source' => 'timestamp',
-        'target' => 'created'
+        'target' => 'created',
       ),
       2 => array(
         'source' => 'enclosures',
-        'target' => 'field_files'
+        'target' => 'field_files:uri',
       ),
     ));
-    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/testing/feeds/flickr.xml');
+    $nid = $this->createFeedNode('syndication', $GLOBALS['base_url'] . '/testing/feeds/flickr.xml', 'Test Title');
     $this->assertText('Created 5 nodes');
 
-    $files = $this->_testFiles();
+    $files = $this->listTestFiles();
     $entities = db_select('feeds_item')
       ->fields('feeds_item', array('entity_id'))
       ->condition('id', 'syndication')
       ->execute();
     foreach ($entities as $entity) {
       $this->drupalGet('node/' . $entity->entity_id . '/edit');
-      $f = new FeedsEnclosure(array_shift($files), NULL);
-      $this->assertText($f->getLocalValue());
+      $this->assertText(str_replace(' ', '_', array_shift($files)));
     }
 
     // 2) Test mapping local resources to file field.
-
     // Copy directory of files, CSV file expects them in public://images, point
     // file field to a 'resources' directory. Feeds should copy files from
     // images/ to resources/ on import.
@@ -95,31 +105,31 @@ class FeedsMapperFileTestCase extends FeedsMapperTestCase {
     $this->addMappings('node', array(
       0 => array(
         'source' => 'title',
-        'target' => 'title'
+        'target' => 'title',
       ),
       1 => array(
         'source' => 'file',
-        'target' => 'field_files'
+        'target' => 'field_files:uri',
       ),
     ));
 
     // Import.
     $edit = array(
-      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files.csv', array('absolute' => TRUE)),
     );
     $this->drupalPost('import/node', $edit, 'Import');
     $this->assertText('Created 5 nodes');
 
     // Assert: files should be in resources/.
-    $files = $this->_testFiles();
+    $files = $this->listTestFiles();
     $entities = db_select('feeds_item')
       ->fields('feeds_item', array('entity_id'))
       ->condition('id', 'node')
       ->execute();
+
     foreach ($entities as $entity) {
       $this->drupalGet('node/' . $entity->entity_id . '/edit');
-      $f = new FeedsEnclosure(array_shift($files), NULL);
-      $this->assertRaw('resources/' . $f->getUrlEncodedValue());
+      $this->assertRaw('resources/' . rawurlencode(array_shift($files)));
     }
 
     // 3) Test mapping of local resources, this time leave files in place.
@@ -137,41 +147,807 @@ class FeedsMapperFileTestCase extends FeedsMapperTestCase {
     $this->assertText('Created 5 nodes');
 
     // Assert: files should be in images/ now.
-    $files = $this->_testFiles();
+    $files = $this->listTestFiles();
     $entities = db_select('feeds_item')
       ->fields('feeds_item', array('entity_id'))
       ->condition('id', 'node')
       ->execute();
+
     foreach ($entities as $entity) {
       $this->drupalGet('node/' . $entity->entity_id . '/edit');
-      $f = new FeedsEnclosure(array_pop($files), NULL);
-      $this->assertRaw('images/' . $f->getUrlEncodedValue());
+      $this->assertRaw('images/' . rawurlencode(array_shift($files)));
     }
 
     // Deleting all imported items will delete the files from the images/ dir.
-    // @todo: for some reason the first file does not get deleted.
-//    $this->drupalPost('import/node/delete-items', array(), 'Delete');
-//    foreach ($this->_testFiles() as $file) {
-//      $this->assertFalse(is_file("public://images/$file"));
-//    }
+    $this->drupalPost('import/node/delete-items', array(), 'Delete');
+    foreach ($this->listTestFiles() as $file) {
+      $this->assertFalse(is_file("public://images/$file"));
+    }
+  }
+
+  /**
+   * Test mapping of local resources with the file exists "Rename" setting.
+   *
+   * In this test, files to import should be renamed if files with the same name
+   * already exist in the destination folder.
+   * Example: on the destination folder there exist a file named 'foo.jpg'. When
+   * importing a file with the same name, that file should be renamed to
+   * 'foo_0.jpg'.
+   */
+  public function testFileExistsRename() {
+    // Copy the files to import to the folder 'images'.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', 'public://images');
+
+    // Create a content type. Save imported files into the directory
+    // 'destination_rename'.
+    $typename = $this->createContentTypeWithFileField('destination_rename');
+
+    // Copy files with the same names to the destination folder. These files
+    // should remain intact, while the files to import should get renamed.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', 'public://destination_rename');
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV -- File Exists Rename', 'node_rename');
+    $this->setSettings('node_rename', NULL, array('content_type' => ''));
+    $this->setPlugin('node_rename', 'FeedsCSVParser');
+    $this->setSettings('node_rename', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('node_rename', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+        'file_exists' => FILE_EXISTS_RENAME,
+      ),
+    ));
+
+    // Perform the import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+    );
+    $this->drupalPost('import/node_rename', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert: all imported files should be renamed.
+    $files = $this->listTestFiles();
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'node_rename')
+      ->execute();
+    foreach ($entities as $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $f = new FeedsEnclosure(array_shift($files), NULL);
+      $renamed_file = str_replace('.jpeg', '_0.jpeg', $f->getUrlEncodedValue());
+      $this->assertRaw('destination_rename/' . $renamed_file);
+    }
+
+    // Clean up the last import.
+    $this->drupalPost('import/node_rename/delete-items', array(), 'Delete');
+  }
+
+  /**
+   * Test mapping of local resources with the file exists "Replace" setting.
+   *
+   * In this test, files to import should be replaced if files with the same
+   * name already exist in the destination folder.
+   * Example: on the destination folder there exist a file named 'foo.jpg'.
+   * When importing a file with the same name, that file should replace the
+   * existing 'foo.jpg'.
+   */
+  public function testFileExistsReplace() {
+    $source = 'public://images';
+    $dest = 'public://destination_replace';
+
+    // Copy the files to import to the folder 'images'.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $source);
+
+    // Create a content type. Save imported files into the directory
+    // 'destination_replace'.
+    $typename = $this->createContentTypeWithFileField('destination_replace');
+
+    // Copy files with the same name to the destination folder, but make sure
+    // that the files are different by shuffling the file names. These files
+    // should get overwritten upon import.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $dest, $this->listTestFilesNameMap());
+
+    // Confirm the files from the source folder are all different from the
+    // destination folder.
+    foreach (@scandir($source) as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is not the same as $dest/$file";
+        $this->assertFalse(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV -- File Exists Replace', 'node_replace');
+    $this->setSettings('node_replace', NULL, array('content_type' => ''));
+    $this->setPlugin('node_replace', 'FeedsCSVParser');
+    $this->setSettings('node_replace', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('node_replace', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+        'file_exists' => FILE_EXISTS_REPLACE,
+      ),
+    ));
+
+    // Perform the import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+    );
+    $this->drupalPost('import/node_replace', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert: all files in the destination folder should be exactly the same as
+    // the files in the source folder.
+    foreach (@scandir($source) as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Clean up the last import.
+    $this->drupalPost('import/node_replace/delete-items', array(), 'Delete');
+  }
+
+  /**
+   * Test mapping of local resources with the file exists "Rename if different"
+   * setting.
+   *
+   * In this test, files to import should only be renamed under the following
+   * circumstances:
+   * - A file the same name already exist in the destination folder;
+   * - AND this file is different.
+   *
+   * Example: on the destination folder there exist two files: one called
+   * 'foo.jpg' and an other called 'bar.jpg'. On an import two files with the
+   * same name are imported. The 'foo.jpg' is exactly the same as the one that
+   * already exist on the destination, but 'bar.jpg' is different. In this case,
+   * only 'bar.jpg' should get imported and it should be renamed to 'bar_0.jpg'.
+   * Importing 'foo.jpg' should be skipped as it is already there. The file's
+   * timestamp will remain the same.
+   */
+  public function testFileExistsRenameIfDifferent() {
+    $source = 'public://images';
+    $dest = 'public://destination_rename_diff';
+
+    // Copy the files to import to the folder 'images'.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $source);
+
+    // Create a content type. Save imported files into the directory
+    // 'destination_rename_diff'.
+    $typename = $this->createContentTypeWithFileField('destination_rename_diff');
+
+    // Shuffle a couple of the file names so the files appear to be different.
+    // Leave a few others the same.
+    $same = array(
+      'foosball.jpeg' => 'foosball.jpeg',
+      'attersee.jpeg' => 'attersee.jpeg',
+      'hstreet.jpeg' => 'hstreet.jpeg',
+    );
+    $different = array(
+      'la fayette.jpeg' => 'tubing.jpeg',
+      'tubing.jpeg' => 'la fayette.jpeg',
+    );
+
+    // Copy files with the same name to the destination folder. A few of them
+    // however, will be different. Only these files should get renamed upon
+    // import.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $dest, $same + $different);
+
+    // Note the timestamps that the files got in the destination folder.
+    $file_timestamps = array();
+    foreach (@scandir($dest) as $file) {
+      $file_timestamps[$file] = filemtime("$dest/$file");
+    }
+
+    // Confirm that some of the files are the same.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file IS the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Confirm that some of the files are different.
+    foreach ($different as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is NOT the same as $dest/$file";
+        $this->assertFalse(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV -- File Exists Rename if Different', 'node_rename_diff');
+    $this->setSettings('node_rename_diff', NULL, array('content_type' => ''));
+    $this->setPlugin('node_rename_diff', 'FeedsCSVParser');
+    $this->setSettings('node_rename_diff', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('node_rename_diff', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+        'file_exists' => FEEDS_FILE_EXISTS_RENAME_DIFFERENT,
+      ),
+    ));
+
+    // Perform the import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+    );
+    $this->drupalPost('import/node_rename_diff', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert that only files that were different should have been renamed.
+    $files = $this->listTestFiles();
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'node_rename_diff')
+      ->execute();
+    foreach ($entities as $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $f = new FeedsEnclosure(array_shift($files), NULL);
+      $original_file = $f->getUrlEncodedValue();
+      $renamed_file = str_replace('.jpeg', '_0.jpeg', $f->getUrlEncodedValue());
+
+      if (isset($same[$original_file])) {
+        // Assert that the file still has the same name.
+        $this->assertRaw('destination_rename_diff/' . $original_file);
+      }
+      else {
+        // Assert that the file still has been renamed.
+        $this->assertRaw('destination_rename_diff/' . $renamed_file);
+      }
+    }
+
+    // Assert that some files have been kept the same.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is STILL the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+        $message = "$dest/$file was not replaced (modification time is the same as before import)";
+        $this->assertEqual(filemtime("$dest/$file"), $file_timestamps[$file], $message);
+      }
+    }
+
+    // Clean up the last import.
+    $this->drupalPost('import/node_rename_diff/delete-items', array(), 'Delete');
+  }
+
+  /**
+   * Test mapping of local resources with the file exists "Replace if different"
+   * setting.
+   *
+   * In this test, files to import should only be replaced under the following
+   * circumstances:
+   * - A file the same name already exist in the destination folder;
+   * - AND this file is different.
+   *
+   * Example: on the destination folder there exist two files: one called
+   * 'foo.jpg' and an other called 'bar.jpg'. On an import two files with the
+   * same name are imported. The 'foo.jpg' is exactly the same as the one that
+   * already exist on the destination, but 'bar.jpg' is different. In this case,
+   * only 'bar.jpg' should get imported and it should overwrite the existing
+   * 'bar.jpg'. Importing 'foo.jpg' should be skipped as it is already there.
+   * The file's timestamp will remain the same.
+   */
+  public function testFileExistsReplaceIfDifferent() {
+    $source = 'public://images';
+    $dest = 'public://destination_replace_diff';
+
+    // Copy the files to import to the folder 'images'.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $source);
+
+    // Create a content type. Save imported files into the directory
+    // 'destination_replace_diff'.
+    $typename = $this->createContentTypeWithFileField('destination_replace_diff');
+
+    // Shuffle a couple of the file names so the files appear to be different.
+    // Leave a few others the same.
+    $same = array(
+      'foosball.jpeg' => 'foosball.jpeg',
+      'attersee.jpeg' => 'attersee.jpeg',
+      'hstreet.jpeg' => 'hstreet.jpeg',
+    );
+    $different = array(
+      'la fayette.jpeg' => 'tubing.jpeg',
+      'tubing.jpeg' => 'la fayette.jpeg',
+    );
+
+    // Copy files with the same name to the destination folder. A few of them
+    // however, will be different. Only these files should get replaced upon
+    // import.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $dest, $same + $different);
+
+    // Note the timestamps that the files got in the destination folder.
+    $file_timestamps = array();
+    foreach (@scandir($dest) as $file) {
+      $file_timestamps[$file] = filemtime("$dest/$file");
+    }
+
+    // Confirm that some of the files are the same.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file IS the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Confirm that some of the files are different.
+    foreach ($different as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is NOT the same as $dest/$file";
+        $this->assertFalse(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV -- File Exists Replace if Different', 'node_replace_diff');
+    $this->setSettings('node_replace_diff', NULL, array('content_type' => ''));
+    $this->setPlugin('node_replace_diff', 'FeedsCSVParser');
+    $this->setSettings('node_replace_diff', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('node_replace_diff', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+        'file_exists' => FEEDS_FILE_EXISTS_REPLACE_DIFFERENT,
+      ),
+    ));
+
+    // Perform the import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+    );
+    $this->drupalPost('import/node_replace_diff', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert that some files have been kept the same.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file is STILL the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+        $message = "$dest/$file was not replaced (modification time is the same as before import)";
+        $this->assertEqual(filemtime("$dest/$file"), $file_timestamps[$file], $message);
+      }
+    }
+
+    // Assert that some files were replaced.
+    foreach ($different as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file successfully replaced $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+        $this->assertNotEqual(filemtime("$dest/$file"), $file_timestamps[$file], $message);
+      }
+    }
+
+    // Clean up the last import.
+    $this->drupalPost('import/node_replace_diff/delete-items', array(), 'Delete');
+  }
+
+  /**
+   * Test mapping of local resources with the file exists "Skip existig"
+   * setting.
+   *
+   * In this test, files should only be imported if no file exist yet with the
+   * given name.
+   * Example: on the destination folder there exist a file named 'foo.jpg'. When
+   * importing a file with the same name, that file should not be imported
+   * as there already is a file with that name.
+   */
+  public function testFileExistsSkip() {
+    $source = 'public://images';
+    $dest = 'public://destination_skip';
+
+    // Copy the files to import to the folder 'images'.
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $source);
+
+    // Create a content type. Save imported files into the directory
+    // 'destination_skip'.
+    $typename = $this->createContentTypeWithFileField('destination_skip');
+
+    // Copy a few images also to the destination directory.
+    $same = array(
+      'foosball.jpeg' => 'foosball.jpeg',
+      'attersee.jpeg' => 'attersee.jpeg',
+      'hstreet.jpeg' => 'hstreet.jpeg',
+    );
+    $different = array(
+      'la fayette.jpeg' => FALSE,
+      'tubing.jpeg' => FALSE,
+    );
+    $this->copyDir($this->absolutePath() . '/tests/feeds/assets', $dest, $same + $different);
+
+    // Note the timestamps that the files got in the destination folder.
+    $file_timestamps = array();
+    foreach (@scandir($dest) as $file) {
+      $file_timestamps[$file] = filemtime("$dest/$file");
+    }
+
+    // Confirm that some of the files are the same.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$source/$file IS the same as $dest/$file";
+        $this->assertTrue(file_feeds_file_compare("$source/$file", "$dest/$file"), $message);
+      }
+    }
+
+    // Confirm that some of the files do not exist.
+    foreach ($different as $file => $value) {
+      $message = "$dest/$file does not exist.";
+      $this->assertFalse(file_exists("$dest/$file"), $message);
+    }
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV -- File Exists Replace if Different', 'node_skip');
+    $this->setSettings('node_skip', NULL, array('content_type' => ''));
+    $this->setPlugin('node_skip', 'FeedsCSVParser');
+    $this->setSettings('node_skip', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('node_skip', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+        'file_exists' => FEEDS_FILE_EXISTS_SKIP,
+      ),
+    ));
+
+    // Perform the import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/testing/feeds/files.csv',
+    );
+    $this->drupalPost('import/node_skip', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert that files that were already in the destination folder were not
+    // overwritten.
+    foreach ($same as $file) {
+      if (is_file("$source/$file")) {
+        $message = "$dest/$file was skipped (modification time is the same as before import)";
+        $this->assertEqual(filemtime("$dest/$file"), $file_timestamps[$file], $message);
+      }
+    }
+
+    // Assert that the other files were added with the expected names.
+    $files = $this->listTestFiles();
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'node_skip')
+      ->execute();
+    foreach ($entities as $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $f = new FeedsEnclosure(array_shift($files), NULL);
+      $this->assertRaw('destination_skip/' . $f->getUrlEncodedValue());
+    }
+  }
+
+  /**
+   * Tests mapping to an image field.
+   */
+  public function testImages() {
+    variable_set('feeds_never_use_curl', TRUE);
+
+    $typename = $this->createContentType(array(), array('images' => 'image'));
+
+    // Enable title and alt mapping.
+    $edit = array(
+      'instance[settings][alt_field]' => 1,
+      'instance[settings][title_field]' => 1,
+    );
+    $this->drupalPost("admin/structure/types/manage/$typename/fields/field_images", $edit, t('Save settings'));
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'image_test');
+    $this->setPlugin('image_test', 'FeedsCSVParser');
+    $this->setSettings('image_test', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->setSettings('image_test', NULL, array('content_type' => ''));
+    $this->addMappings('image_test', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_images:uri',
+      ),
+      2 => array(
+        'source' => 'title2',
+        'target' => 'field_images:title',
+      ),
+      3 => array(
+        'source' => 'alt',
+        'target' => 'field_images:alt',
+      ),
+    ));
+
+    // Import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files-remote.csv', array('absolute' => TRUE)),
+    );
+    $this->drupalPost('import/image_test', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert files exist.
+    $files = $this->listTestFiles();
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'image_test')
+      ->execute();
+
+    foreach ($entities as $i => $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $this->assertRaw(str_replace(' ', '_', array_shift($files)));
+      $this->assertRaw("Alt text $i");
+      $this->assertRaw("Title text $i");
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function testInvalidFileExtension() {
+    variable_set('feeds_never_use_curl', TRUE);
+
+    $typename = $this->createContentType(array(), array(
+      'files' => array(
+        'type' => 'file',
+        'instance_settings' => array(
+          'instance[settings][file_extensions]' => 'txt',
+        ),
+      ),
+    ));
+
+    // Create a CSV importer configuration.
+    $this->createImporterConfiguration('Node import from CSV', 'invalid_extension');
+    $this->setPlugin('invalid_extension', 'FeedsCSVParser');
+    $this->setSettings('invalid_extension', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->setSettings('invalid_extension', NULL, array('content_type' => ''));
+    $this->addMappings('invalid_extension', array(
+      0 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      1 => array(
+        'source' => 'file',
+        'target' => 'field_files:uri',
+      ),
+    ));
+
+    // Import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files-remote.csv', array('absolute' => TRUE)),
+    );
+    $this->drupalPost('import/invalid_extension', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    foreach (range(1, 5) as $nid) {
+      $node = node_load($nid);
+      $this->assertTrue(empty($node->field_files));
+    }
+
+    foreach ($this->listTestFiles() as $filename) {
+      $message = t('The file @file has an invalid extension.', array('@file' => $filename));
+      $this->assertTrue(db_query("SELECT 1 FROM {watchdog} WHERE message = :message", array(':message' => $message))->fetchField());
+    }
+
+    // Test that query string and fragments are removed.
+    $enclosure = new FeedsEnclosure('http://example.com/image.jpg?thing=stuff', 'text/plain');
+    $this->assertEqual($enclosure->getLocalValue(), 'image.jpg');
+    $enclosure = new FeedsEnclosure('http://example.com/image.jpg#stuff', 'text/plain');
+    $this->assertEqual($enclosure->getLocalValue(), 'image.jpg');
+    $enclosure = new FeedsEnclosure('http://example.com/image.JPG?thing=stuff#stuff', 'text/plain');
+    $this->assertEqual($enclosure->getLocalValue(), 'image.JPG');
+  }
+
+  /**
+   * Tests if values are cleared out when an empty value or no value
+   * is provided.
+   */
+  public function testClearOutValues() {
+    variable_set('feeds_never_use_curl', TRUE);
+
+    $this->createContentType(array(), array('files' => 'file'));
+    $typename = $this->createContentType(array(), array(
+      'images' => 'image',
+    ));
+
+    // Enable title and alt mapping.
+    $edit = array(
+      'instance[settings][alt_field]' => 1,
+      'instance[settings][title_field]' => 1,
+    );
+    $this->drupalPost("admin/structure/types/manage/$typename/fields/field_images", $edit, t('Save settings'));
+
+    // Create and configure importer.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setSettings('csv', NULL, array(
+      'content_type' => '',
+      'import_period' => FEEDS_SCHEDULE_NEVER,
+    ));
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->setSettings('csv', 'FeedsNodeProcessor', array(
+      'bundle' => $typename,
+      'update_existing' => 1,
+    ));
+    $this->addMappings('csv', array(
+      0 => array(
+        'source' => 'guid',
+        'target' => 'guid',
+        'unique' => TRUE,
+      ),
+      1 => array(
+        'source' => 'title',
+        'target' => 'title',
+      ),
+      2 => array(
+        'source' => 'file',
+        'target' => 'field_images:uri',
+      ),
+      3 => array(
+        'source' => 'title2',
+        'target' => 'field_images:title',
+      ),
+      4 => array(
+        'source' => 'alt',
+        'target' => 'field_images:alt',
+      ),
+    ));
+
+    // Import.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files-remote.csv', array('absolute' => TRUE)),
+    );
+    $this->drupalPost('import/csv', $edit, 'Import');
+    $this->assertText('Created 5 nodes');
+
+    // Assert files exist.
+    $files = $this->listTestFiles();
+    foreach ($files as $file) {
+      $file_path = drupal_realpath('public://') . '/' . str_replace(' ', '_', $file);
+      $this->assertTrue(file_exists($file_path), format_string('The file %file exists.', array(
+        '%file' => $file_path,
+      )));
+    }
+
+    // Assert files exists with the expected alt/title on node edit form.
+    $entities = db_select('feeds_item')
+      ->fields('feeds_item', array('entity_id'))
+      ->condition('id', 'csv')
+      ->execute()
+      ->fetchAll();
+
+    foreach ($entities as $i => $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $this->assertRaw(str_replace(' ', '_', array_shift($files)));
+      $this->assertRaw("Alt text $i");
+      $this->assertRaw("Title text $i");
+    }
+
+    // Import CSV with empty alt/title fields and check if these are removed.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files-empty-alt-title.csv', array('absolute' => TRUE)),
+    );
+    $this->drupalPost('import/csv', $edit, 'Import');
+    $this->assertText('Updated 5 nodes');
+
+    $files = $this->listTestFiles();
+    foreach ($entities as $i => $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $this->assertRaw(str_replace(' ', '_', array_shift($files)));
+      $this->assertNoRaw("Alt text $i");
+      $this->assertNoRaw("Title text $i");
+    }
+
+    // Import CSV with empty file fields and check if all files are removed.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => url('testing/feeds/files-empty.csv', array('absolute' => TRUE)),
+    );
+    $this->drupalPost('import/csv', $edit, 'Import');
+    $this->assertText('Updated 5 nodes');
+
+    // Assert files are removed.
+    $files = $this->listTestFiles();
+    foreach ($files as $file) {
+      $file_path = drupal_realpath('public://') . '/' . str_replace(' ', '_', $file);
+      $this->assertFalse(file_exists($file_path), format_string('The file %file no longer exists.', array(
+        '%file' => $file_path,
+      )));
+    }
+    // Check if the files are removed from the node edit form as well.
+    foreach ($entities as $i => $entity) {
+      $this->drupalGet('node/' . $entity->entity_id . '/edit');
+      $this->assertNoRaw(str_replace(' ', '_', array_shift($files)));
+    }
+  }
+
+  /**
+   * Creates a content type with a file field.
+   *
+   * @param string $dest
+   *   The folder to save files to. Leave empty to not set that.
+   *
+   * @return string
+   *   The name of the content type that was created.
+   */
+  protected function createContentTypeWithFileField($dest = '') {
+    $typename = $this->createContentType(array(), array(
+      'files' => array(
+        'type' => 'file',
+        'instance_settings' => array(
+          'instance[settings][file_extensions]' => 'png, gif, jpg, jpeg',
+        ),
+      ),
+    ));
+
+    // Set a destination folder, if given.
+    if ($dest) {
+      $edit = array(
+        'instance[settings][file_directory]' => $dest,
+      );
+      $this->drupalPost('admin/structure/types/manage/' . $typename . '/fields/field_files', $edit, t('Save settings'));
+    }
+
+    return $typename;
+  }
+
+  /**
+   * Checks if SimplePie is available and eventually downloads it.
+   */
+  protected function requireSimplePie() {
+    if (!feeds_simplepie_exists()) {
+      $this->downloadExtractSimplePie('1.3');
+      $this->assertTrue(feeds_simplepie_exists());
+      // Reset all the caches!
+      $this->resetAll();
+    }
   }
 
   /**
    * Lists test files.
    */
-  public function _testFiles() {
-    return array('tubing.jpeg', 'foosball.jpeg', 'attersee.jpeg', 'hstreet.jpeg', 'la fayette.jpeg');
+  protected function listTestFiles() {
+    return array(
+      'tubing.jpeg',
+      'foosball.jpeg',
+      'attersee.jpeg',
+      'hstreet.jpeg',
+      'la fayette.jpeg',
+    );
   }
 
   /**
-   * Handle file field widgets.
+   * Lists test files mapping.
+   *
+   * Used to rename images so the ::testFileExistsReplace() test can check if
+   * they are replaced on import.
+   *
+   * @see testFileExistsReplace()
    */
-  public function selectFieldWidget($fied_name, $field_type) {
-    if ($field_type == 'file') {
-      return 'file_generic';
-    }
-    else {
-      return parent::selectFieldWidget($fied_name, $field_type);
-    }
+  protected function listTestFilesNameMap() {
+    return array(
+      'la fayette.jpeg' => 'tubing.jpeg',
+      'tubing.jpeg' => 'foosball.jpeg',
+      'foosball.jpeg' => 'attersee.jpeg',
+      'attersee.jpeg' => 'hstreet.jpeg',
+      'hstreet.jpeg' => 'la fayette.jpeg',
+    );
   }
+
 }

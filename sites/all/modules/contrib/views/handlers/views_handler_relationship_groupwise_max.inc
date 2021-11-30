@@ -90,7 +90,7 @@ class views_handler_relationship_groupwise_max extends views_handler_relationshi
     $form['subquery_sort'] = array(
       '#type' => 'select',
       '#title' => t('Representative sort criteria'),
-      // Provide the base field as sane default sort option.
+      // Provide the base field as the default sort option.
       '#default_value' => !empty($this->options['subquery_sort']) ? $this->options['subquery_sort'] : $this->definition['base'] . '.' . $base_table_data['table']['base']['field'],
       '#options' => $sort_options,
       '#description' => theme('advanced_help_topic', array('module' => 'views', 'topic' => 'relationship-representative')) .

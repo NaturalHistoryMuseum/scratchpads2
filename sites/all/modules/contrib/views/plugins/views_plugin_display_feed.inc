@@ -51,6 +51,9 @@ class views_plugin_display_feed extends views_plugin_display_page {
    */
   public function execute() {
     $output = $this->view->render();
+    if (!empty($this->view->build_info['denied'])) {
+      return MENU_ACCESS_DENIED;
+    }
     if (empty($output)) {
       return MENU_NOT_FOUND;
     }

@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @coversDefaultClass FeedsSource
+ * @group feeds
+ */
+class FeedsSourceTest extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'FeedsSource class test',
+      'description' => 'Covers class FeedsSource.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * Tests if two sources can be imported in the same request.
+   */
+  public function testProgrammaticImport() {
+    // Create an importer configuration.
+    $this->createImporterConfiguration('Content CSV', 'csv');
+    $this->setSettings('csv', NULL, array(
+      'content_type' => '',
+      'import_period' => FEEDS_SCHEDULE_NEVER,
+    ));
+    $this->setPlugin('csv', 'FeedsCSVParser');
+    $this->addMappings('csv',
+      array(
+        0 => array(
+          'source' => 'guid',
+          'target' => 'guid',
+          'unique' => TRUE,
+        ),
+        1 => array(
+          'source' => 'title',
+          'target' => 'title',
+        ),
+      )
+    );
+
+    // Create a source.
+    $source = feeds_source('csv');
+    $source->save();
+
+    // First source import.
+    $source->addConfig(array(
+      'FeedsHTTPFetcher' => array(
+        'source' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/content.csv',
+      ),
+    ));
+
+    // Perform import.
+    while (FEEDS_BATCH_COMPLETE != $source->import());
+
+    // Assert two created nodes.
+    $this->assertNodeCount(2);
+
+    // Set second source file.
+    $source->addConfig(array(
+      'FeedsHTTPFetcher' => array(
+        'source' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/many_nodes_ordered.csv',
+      ),
+    ));
+
+    // And perform import again.
+    while (FEEDS_BATCH_COMPLETE != $source->import());
+
+    // Assert that there are 86 nodes now.
+    $this->assertNodeCount(86);
+  }
+
+}

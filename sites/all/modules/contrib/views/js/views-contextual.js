@@ -1,6 +1,6 @@
 /**
  * @file
- * Javascript related to contextual links.
+ * JavaScript related to contextual links.
  */
 (function ($) {
 

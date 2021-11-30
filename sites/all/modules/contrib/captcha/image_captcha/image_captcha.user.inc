@@ -31,7 +31,7 @@ function image_captcha_image() {
   if ($code !== FALSE) {
     // Seed the random generators used for image CAPTCHA distortion based on session and code
     // to counter attacks that re-request the same challenge and pick the simplest image one or combine info.
-    $seed = hexdec(substr(md5($captcha_sid . $code), 0, 8));
+    $seed = (int) hexdec(substr(md5($captcha_sid . $code), 0, 8));
     srand($seed);
     mt_srand($seed);
     // Generate the image.

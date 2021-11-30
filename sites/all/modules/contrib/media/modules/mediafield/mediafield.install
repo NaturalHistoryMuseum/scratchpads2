@@ -26,7 +26,8 @@ function mediafield_field_schema($field) {
         'not null' => FALSE,
         'size' => 'big',
         'serialize' => TRUE,
-        //'description' => 'Used for storing additional information.  Can be harnessed by widgets',
+        // 'description' => 'Used for storing additional information.
+        // Can be harnessed by widgets',
       ),
     ),
     'indexes' => array(

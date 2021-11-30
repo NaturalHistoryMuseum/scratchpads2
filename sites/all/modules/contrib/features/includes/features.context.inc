@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * @file
+ * Features integration for 'context' module.
+ *
+ * The context module uses ctools to make contexts exportable. This is why no
+ * function context_features_api() is found in this file.
+ *
+ * @todo Clarify if or why the other hooks in this file are still needed. See #3077097.
+ */
+
+/**
  * Implements hook_features_export().
  */
 function context_features_export($data, &$export, $module_name = '') {
@@ -14,9 +24,9 @@ function context_features_export($data, &$export, $module_name = '') {
       // Currently only node and views conditions are supported.
       // @TODO: Should this be delegated to a method on the plugin?
       foreach (array('node', 'views') as $key) {
-        if (!empty($context->conditions{$key}['values'])) {
-          foreach ($context->conditions{$key}['values'] as $item) {
-            // Special pipe for views
+        if (!empty($context->conditions[$key]['values'])) {
+          foreach ($context->conditions[$key]['values'] as $item) {
+            // Special pipe for views.
             if ($key === 'views') {
               $split = explode(':', $item);
               $view_name = array_shift($split);

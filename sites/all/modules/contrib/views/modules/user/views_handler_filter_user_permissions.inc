@@ -31,7 +31,7 @@ class views_handler_filter_user_permissions extends views_handler_filter_many_to
       if ($permissions = module_invoke($module, 'permission')) {
         foreach ($permissions as $perm => $perm_item) {
           // @todo group by module but views_handler_filter_many_to_one does not support this.
-          $this->value_options[$perm] = check_plain(strip_tags($perm_item['title']));
+          $this->value_options[$perm] = strip_tags($perm_item['title']);
         }
       }
     }

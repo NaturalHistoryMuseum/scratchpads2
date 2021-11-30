@@ -18,15 +18,17 @@ function views_ajax() {
   if (isset($_REQUEST['view_name']) && isset($_REQUEST['view_display_id'])) {
     $name = $_REQUEST['view_name'];
     $display_id = $_REQUEST['view_display_id'];
-    $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', $_REQUEST['view_args']) : array();
-    $path = isset($_REQUEST['view_path']) ? rawurldecode($_REQUEST['view_path']) : NULL;
+    $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', htmlspecialchars_decode($_REQUEST['view_args'], ENT_QUOTES)) : array();
+    $path = isset($_REQUEST['view_path']) ? htmlspecialchars_decode($_REQUEST['view_path'], ENT_QUOTES) : NULL;
     $dom_id = isset($_REQUEST['view_dom_id']) ? preg_replace('/[^a-zA-Z0-9_-]+/', '-', $_REQUEST['view_dom_id']) : NULL;
     $pager_element = isset($_REQUEST['pager_element']) ? intval($_REQUEST['pager_element']) : NULL;
 
     $commands = array();
 
     // Remove all of this stuff from $_GET so it doesn't end up in pagers and
-    // tablesort URLs.
+    // tablesort URLs; do not modify $_POST itself but make a new "clean"
+    // copy to merge it with $_GET later.
+    $cleaned_post = $_POST;
     foreach (array('view_name', 'view_display_id', 'view_args', 'view_path', 'view_dom_id', 'pager_element', 'view_base_path', 'ajax_html_ids', 'ajax_page_state') as $key) {
       if (isset($_GET[$key])) {
         unset($_GET[$key]);
@@ -34,10 +36,12 @@ function views_ajax() {
       if (isset($_REQUEST[$key])) {
         unset($_REQUEST[$key]);
       }
-      if (isset($_POST[$key])) {
-        unset($_POST[$key]);
+      if (isset($cleaned_post[$key])) {
+        unset($cleaned_post[$key]);
       }
     }
+    // Remove the HTML IDs passed in via AJAX.
+    unset($_POST['ajax_html_ids']);
 
     // Load the view.
     $view = views_get_view($name);
@@ -52,7 +56,7 @@ function views_ajax() {
       $exclude = isset($_POST['page']) ? array('page') : array();
       // Add all $_POST data to $_GET as many things, such as tablesorts,
       // exposed filters and paging assume $_GET.
-      $_GET = $_POST + drupal_get_query_parameters($_GET, $exclude);
+      $_GET = $cleaned_post + drupal_get_query_parameters($_GET, $exclude);
 
       // Overwrite the destination.
       // @see drupal_get_destination()
@@ -67,12 +71,15 @@ function views_ajax() {
       // Override the display's pager_element with the one actually used.
       if (isset($pager_element)) {
         $commands[] = views_ajax_command_scroll_top('.view-dom-id-' . $dom_id);
-        $view->display[$display_id]->handler->set_option('pager_element', $pager_element);
+        $pager = $view->display[$display_id]->handler->get_option('pager');
+        $pager['options']['id'] = $pager_element;
+        $view->display[$display_id]->handler->set_option('pager', $pager);
       }
       // Reuse the same DOM id so it matches that in Drupal.settings.
       $view->dom_id = $dom_id;
 
-      $commands[] = ajax_command_replace('.view-dom-id-' . $dom_id, $view->preview($display_id, $args));
+      // Always return HTML with the same DOM ID that was sent by the browser.
+      $commands[] = ajax_command_replace('.view-dom-id-' . $dom_id, preg_replace('/view-dom-id-[a-zA-Z0-9_-]+/', 'view-dom-id-' . $view->dom_id, $view->preview($display_id, $args), 1));
     }
     drupal_alter('views_ajax_data', $commands, $view);
     return array('#type' => 'ajax', '#commands' => $commands);

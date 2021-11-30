@@ -1,3 +1,13 @@
+OAuth 7.x-3.4, 2017-06-02
+------------------------------
+Issue #2846887 by DamienMcKenna, jeroen.b, incrn8, tobiasb, attiks: Update hook 7100 fails
+
+OAuth 7.x-3.3, 2017-25-01
+------------------------------
+Add missing oauth_callback_confirmed parameter
+Issue #2420327 by edutrul, eugene.ilyin and juampy: Cannot redeclare class
+Issue #2350645 by timbrandin, dxx, joelpittet: Correct OAuth 1.0a standard: Add missing callback url tracking
+
 OAuth 7.x-3.2, 2013-24-01
 ------------------------------
 Issue #1987350 by juampy: Fixed Warnings when authorizing a consumer via the user interface.

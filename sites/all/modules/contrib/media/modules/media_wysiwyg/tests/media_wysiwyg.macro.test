@@ -1,0 +1,185 @@
+<?php
+
+/**
+ * @file
+ * Tests for ensuring media macros render properly.
+ */
+
+/**
+ * Base class for testing rendered wysiwyg macros.
+ */
+abstract class MediaWYSIWYGMacroTestHelper extends MediaWYSIWYGTestHelper {
+
+  /**
+   * Common setup routines for rendered media macros.
+   */
+  public function setUp() {
+    parent::setUp(array('field_ui', 'token'));
+
+    // Create and log in a user.
+    $this->admin_user = $this->drupalCreateUser(array(
+      'administer file types',
+      'administer fields',
+      'administer filters',
+      'create article content',
+      'use text format filtered_html',
+    ));
+    $this->drupalLogin($this->admin_user);
+
+    // Enable the media filter for full html.
+    $edit = array(
+      'filters[media_filter][status]' => TRUE,
+      'filters[filter_html][status]' => FALSE,
+    );
+    $this->drupalPost('admin/config/content/formats/filtered_html', $edit, t('Save configuration'));
+  }
+
+}
+
+/**
+ * Defines rendered media macros test cases.
+ */
+class MediaWYSIWYGRenderMacrosTest extends MediaWYSIWYGMacroTestHelper {
+
+  /**
+   * Test information.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Media WYSIWYG Rendered Macros test'),
+      'description' => t('Test that rendered macros are displayed correctly.'),
+      'group' => t('Media WYSIWYG'),
+      'dependencies' => array('token'),
+    );
+  }
+
+  /**
+   * Test that displayed fields on file entity are rendered correctly.
+   */
+  public function testEmptyField() {
+    // Add a field as part of the rendered macro.
+    $edit = array(
+      'fields[field_file_image_title_text][type]' => 'text_default',
+    );
+    $this->drupalPost('admin/structure/file-types/manage/image/display/preview', $edit, t('Save'));
+
+    // Assert that fields that are enabled in display settings for macro are NOT
+    // rendered if empty.
+    $files = $this->drupalGetTestFiles('image');
+    $attributes = array(
+      'alt' => $this->randomName(),
+      'title' => '',
+    );
+    $fields = array(
+      'field_file_image_alt_text[und][0][value]' => $attributes['alt'],
+      'field_file_image_title_text[und][0][value]' => $attributes['title'],
+    );
+    $files[0]->field_file_image_alt_text[LANGUAGE_NONE][0]['value'] = $attributes['alt'];
+    $files[0]->field_file_image_title_text[LANGUAGE_NONE][0]['value'] = $attributes['title'];
+    $file = file_save($files[0]);
+    $nid = $this->createNode($file->fid, $attributes, $fields);
+    $this->drupalGet('node/' . $nid);
+    // Assert that the empty field isn't rendered.
+    $this->assertNoPattern('|<div class="[^">]*field-name-field-file-image-title-text|', t('Displayed text field with empty value not rendered.'));
+  }
+
+}
+
+/**
+ * Defines media macro override test cases.
+ */
+class MediaWYSIWYGWYSIWYGOverridesTest extends MediaWYSIWYGMacroTestHelper {
+
+  /**
+   * Provide test information.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Media WYSIWYG WYSIWYG overrides'),
+      'description' => t('Tests that overridden attributes display correct.'),
+      'group' => t('Media WYSIWYG'),
+      'dependencies' => array('token'),
+    );
+  }
+
+  /**
+   * Test image media overrides.
+   */
+  public function testAttributeOverrides() {
+    $files = $this->drupalGetTestFiles('image');
+    $file = file_save($files[0]);
+
+    // Create a node to test with.
+    $nid = $this->createNode($file->fid);
+
+    $this->drupalGet('node/' . $nid);
+    $this->assertRaw('width="100"', t('Image displays with default width attribute.'));
+    $this->assertRaw('height="100"', t('Image displays with default height attribute.'));
+
+    // Create a node with a style attribute.
+    $attributes = array(
+      'style' => 'float: left; width: 50px;',
+    );
+    $nid = $this->createNode($file->fid, $attributes);
+    $this->drupalGet('node/' . $nid);
+    $this->assertRaw(drupal_attributes($attributes), t('Image displays with overriden attributes.'));
+
+    // Create a node with overriden alt/title attributes.
+    $attributes = array(
+      'alt' => $this->randomName(),
+      'title' => $this->randomName(),
+    );
+    $nid = $this->createNode($file->fid, $attributes);
+    $this->drupalGet('node/' . $nid);
+    $this->assertRaw(drupal_attributes($attributes), t('Image displays with alt/title set as attributes.'));
+
+    // Create a node with overriden alt/title fields.
+    $fields = $attributes = array();
+    $attributes['alt'] = $fields['field_file_image_alt_text[und][0][value]'] = $this->randomName();
+    $attributes['title'] = $fields['field_file_image_title_text[und][0][value]'] = $this->randomName();
+
+    $nid = $this->createNode($file->fid, array(), $fields);
+    $this->drupalGet('node/' . $nid);
+    // Ensure that the alt/title from attributes display.
+    $this->assertRaw(drupal_attributes($attributes), t('Image displays with alt/title set as fields.'));
+
+    // Create a node with overriden alt/title fields as well as attributes.
+    $attributes = array(
+      'alt' => $this->randomName(),
+      'title' => $this->randomName(),
+    );
+    $fields = array(
+      'field_file_image_alt_text[und][0][value]' => $this->randomName(),
+      'field_file_image_title_text[und][0][value]' => $this->randomName(),
+    );
+    $nid = $this->createNode($file->fid, $attributes, $fields);
+    $this->drupalGet('node/' . $nid);
+    // Ensure that the alt/title from attributes display rather the field ones.
+    $this->assertRaw(drupal_attributes($attributes), t('Image displays with alt/title set as attributes overriding field values.'));
+  }
+
+  /**
+   * Test image media overrides on images with fields attached.
+   */
+  public function testAttributeOverridesWithFields() {
+    // First make images display the title field on the preview mode we use.
+    $instance = field_read_instance('file', 'field_file_image_title_text', 'image');
+    $instance['display']['preview']['type'] = 'text_default';
+    $instance['display']['preview']['module'] = 'text';
+    field_update_instance($instance);
+
+    $files = $this->drupalGetTestFiles('image');
+    $file = file_save($files[0]);
+
+    $attributes = array(
+      'style' => 'float: left;',
+    );
+    $fields = array(
+      'field_file_image_title_text[und][0][value]' => $this->randomName(),
+    );
+    $nid = $this->createNode($file->fid, $attributes, $fields);
+    $this->drupalGet('node/' . $nid);
+    $this->assertRaw('float: left;', 'Image displays with overriden attributes when displays with fields.');
+    $this->assertRaw('media-float-left', 'Media float class added.');
+  }
+}

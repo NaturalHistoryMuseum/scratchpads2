@@ -13,16 +13,6 @@
 class views_handler_field_user_name extends views_handler_field_user {
 
   /**
-   * Add uid in the query so we can test for anonymous if needed.
-   */
-  public function init(&$view, &$data) {
-    parent::init($view, $data);
-    if (!empty($this->options['overwrite_anonymous']) || !empty($this->options['format_username'])) {
-      $this->additional_fields['uid'] = 'uid';
-    }
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function option_definition() {
@@ -73,6 +63,10 @@ class views_handler_field_user_name extends views_handler_field_user {
     $account = new stdClass();
     $account->uid = $this->get_value($values, 'uid');
     $account->name = $this->get_value($values);
+    // If we don't have a UID, we can't format anything.
+    if (!isset($account->uid)) {
+      return $data;
+    }
     if (!empty($this->options['link_to_user']) || !empty($this->options['overwrite_anonymous'])) {
       if (!empty($this->options['overwrite_anonymous']) && !$account->uid) {
         // This is an anonymous user, and we're overriting the text.

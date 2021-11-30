@@ -1,0 +1,5 @@
+name,mail,since,password,roles,rids
+Morticia,morticia@example.com,1244347500,mort,editor,6
+Fester,fester@example.com,1241865600,fest,manager,4
+Gomez,gomez@example.com,1228572000,gome,tester| |manager,5| |4
+Pugsley,pugsley@example.com,1228260225,pugs,,
