@@ -1,5 +1,15 @@
 # Change log
 
+## 2.10.1 (2021-11-30)
+
+- working implementation for hide menu options for non species taxonomy. Solve access denied when accessing tabs in taxonomy
+[#6400](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6420)
+
+- Add Services module to provide scratchpad API for machine access to scratchpad public data already on the public site. Preparation for a 'Scratchpads Explorer' [#6426](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6429)
+
+
+
+
 ## 2.9.17.1 (2021-05-21)
 
 This is a patch release to fix a bug in the biblio module that was reintroduced by 2.9.17. Original fix: [#5853](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/5853).
