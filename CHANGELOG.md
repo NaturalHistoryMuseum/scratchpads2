@@ -4,10 +4,10 @@
 
 - working implementation for hide menu options for non species taxonomy. Solve access denied when accessing tabs in taxonomy
 [#6400](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6420)
-
 - Add Services module to provide scratchpad API for machine access to scratchpad public data already on the public site. Preparation for a 'Scratchpads Explorer' [#6426](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6429)
-
-
+- Update openids to fix logins for HTTPS [#6430](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6430)
+- Add optional taxonomic scope for gbif dwc-a file [#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6373)
+- Update Drupal to 7.82
 
 
 ## 2.9.17.1 (2021-05-21)
