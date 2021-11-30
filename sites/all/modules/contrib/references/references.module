@@ -13,8 +13,8 @@
  */
 function reference_autocomplete_access($entity_type, $bundle, $field_name, $entity = NULL, $account = NULL) {
   return user_access('access content', $account)
-      && ($field = field_info_field($field_name))
       && field_info_instance($entity_type, $field_name, $bundle)
+      && ($field = field_info_field($field_name))
       && field_access('view', $field, $entity_type, $entity, $account)
       && field_access('edit', $field, $entity_type, $entity, $account);
 }
@@ -199,7 +199,7 @@ function references_potential_references_view($entity_type, $view_name, $display
   $view->display_handler->set_option('pager', array('type' => 'some', 'options' => array('items_per_page' => $limit)));
 
   // Make sure the query is not cached
-  $view->display_handler->set_option('cache', array('type' => 'none'));
+  $view->is_cacheable = FALSE;
 
   // Get the results.
   $results = $view->execute_display($display_name, $args);

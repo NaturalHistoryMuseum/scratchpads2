@@ -31,6 +31,7 @@ class views_plugin_style_table extends views_plugin_style {
     $options = parent::option_definition();
 
     $options['columns'] = array('default' => array());
+    $options['class'] = array('default' => array());
     $options['default'] = array('default' => '');
     $options['info'] = array('default' => array());
     $options['override'] = array('default' => TRUE, 'bool' => TRUE);
@@ -178,7 +179,7 @@ class views_plugin_style_table extends views_plugin_style {
 
     $form['sticky'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Enable Drupal style "sticky" table headers (Javascript)'),
+      '#title' => t('Enable Drupal style "sticky" table headers (JavaScript)'),
       '#default_value' => !empty($this->options['sticky']),
       '#description' => t('(Sticky header effects will not be active for preview below, only on live output.)'),
     );
@@ -196,6 +197,14 @@ class views_plugin_style_table extends views_plugin_style {
       '#title' => t('Table summary'),
       '#description' => t('This value will be displayed as table-summary attribute in the html. Use this to give a summary of complex tables.'),
       '#default_value' => $this->options['summary'],
+      '#maxlength' => 255,
+    );
+    
+    $form['class'] = array(
+      '#type' => 'textfield',
+      '#title' => t('CSS classes'),
+      '#description' => t('Add CSS classes to the table; multiple classes may be separated by spaces.'),
+      '#default_value' => $this->options['class'],
       '#maxlength' => 255,
     );
 
@@ -296,7 +305,7 @@ class views_plugin_style_table extends views_plugin_style {
       '#type' => 'checkbox',
       '#title' => t('Show the empty text in the table'),
       '#default_value' => $this->options['empty_table'],
-      '#description' => t('Per default the table is hidden for an empty view. With this option it is posible to show an empty table with the text in it.'),
+      '#description' => t('Per default the table is hidden for an empty view. With this option it is possible to show an empty table with the text in it.'),
     );
 
     $form['description_markup'] = array(

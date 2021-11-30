@@ -912,8 +912,8 @@ function _user_reference_potential_references_standard($field, $options) {
  * Menu callback; Retrieve a pipe delimited string of autocomplete suggestions for existing users
  */
 function user_reference_autocomplete($entity_type, $bundle, $field_name, $string = '') {
-  $field = field_info_field($field_name);
   $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $field = field_info_field($field_name);
 
   $options = array(
     'string' => $string,

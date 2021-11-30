@@ -32,7 +32,7 @@ Features
 Requirements
 ============
 
-- CTools 1.x
+- CTools 7.x-1.x
   http://drupal.org/project/ctools
 - Job Scheduler
   http://drupal.org/project/job_scheduler
@@ -49,10 +49,20 @@ Installation
   Feeds News, Feeds Import, Feeds Fast News (more info below).
 - Make sure cron is correctly configured http://drupal.org/cron
 - Go to import/ to import data.
-- To use SimplePie parser, download either the compiled or minified SimplePie 
-  and place simplepie_[version].compiled.php into feeds/libraries as 
-  simplepie.compiled.php. Recommended version: 1.3.
-  http://simplepie.org/
+
+SimplePie Installation
+======================
+
+- To install the SimplePie parser plugin, complete the following steps:
+  1. Download SimplePie from http://simplepie.org/downloads. The recommended
+     version is: 1.3.
+  2. Decompress the downloaded zip file.
+  3. Rename the uncompressed folder to 'simplepie'.
+     For example rename 'simplepie-simplepie-e9472a1' to 'simplepie'.
+  4. Move the folder to sites/all/libraries. The final directory structure
+     should be sites/all/libraries/simplepie.
+  5. Flush the Drupal cache.
+  6. The SimplePie parser should be available now in the list of parsers.
 
 Feature modules
 ===============
@@ -82,14 +92,6 @@ What's neat about Feeds News is that it comes with a configured View that shows
 a list of news items with every feed on the feed node's "View items" tab. It
 also comes with an OPML importer filter that can be accessed under /import.
 
-- Feeds Fast News -
-
-This feature is very similar to Feeds News. The big difference is that instead
-of aggregating a node for every item on a feed, it creates a database record
-in a single table, thus significantly improving performance. This approach
-especially starts to save resources when many items are being aggregated and
-expired (= deleted) on a site.
-
 - Feeds Import -
 
 This feature is an example illustrating Feeds' import capabilities. It contains
@@ -101,7 +103,7 @@ PubSubHubbub support
 
 Feeds supports the PubSubHubbub publish/subscribe protocol. Follow these steps
 to set it up for your site.
-http://code.google.com/p/pubsubhubbub/
+https://github.com/pubsubhubbub/
 
 - Go to admin/build/feeds and edit (override) the importer configuration you
   would like to use for PubSubHubbub.
@@ -136,11 +138,42 @@ API Overview
 See "The developer's guide to Feeds":
 http://drupal.org/node/622700
 
-Testing
-=======
+Running the Drush integration tests
+===================================
 
-See "The developer's guide to Feeds":
-http://drupal.org/node/622700
+In order the run Drush integration tests, Drush itself needs to be installed
+with its *dev dependencies*. Furthermore, the phpunit version that comes with
+Drush should be used for running the tests (instead of a globally installed
+phpunit), as that one has proven to be compatible with the Drush tests.
+
+  1. Git clone of Drush 8.
+
+       git clone --branch 8.x https://github.com/drush-ops/drush.git
+       cd drush
+
+  2. Install Drush with dev dependencies using Composer.
+
+       composer install
+
+     And ensure that the following text is displayed:
+
+       "Loading composer repositories with package information
+       Installing dependencies (including require-dev) from lock file"
+
+     Especially note that Composer says 'including require-dev'. This means that
+     the Drush dev dependencies are installed (including phpunit).
+
+  3. Execute a command like the following:
+
+       UNISH_NO_TIMEOUTS=1 UNISH_DRUPAL_MAJOR_VERSION=7 /path/to/drush/vendor/bin/phpunit --configuration /path/to/drush/tests /path/to/feeds/tests/drush
+
+     Replace '/path/to' with the appropriate path to the directory in question.
+     Also be sure to point to the phpunit version that comes with Drush.
+
+     So if Drush is installed in /users/megachriz/drush and the Feeds module is
+     located at /users/megachriz/Sites/drupal7/sites/all/modules/feeds:
+
+       UNISH_NO_TIMEOUTS=1 UNISH_DRUPAL_MAJOR_VERSION=7 /users/megachriz/drush/vendor/bin/phpunit --configuration /users/megachriz/drush/tests /users/megachriz/Sites/drupal7/sites/all/modules/feeds/tests/drush
 
 Debugging
 =========
@@ -168,6 +201,12 @@ Default:     FALSE
 Description: Set to TRUE for enabling debug output to
              /DRUPALTMPDIR/feeds_[sitename].log
 
+Name:        feeds_library_dir
+Default:     FALSE
+Description: The location where Feeds should look for libraries that it uses.
+             You can use this variable to override the libraries that are in
+             the Feeds libraries folder, for example "http_request.inc".
+
 Name:        feeds_importer_class
 Default:     'FeedsImporter'
 Description: The class to use for importing feeds.
@@ -175,13 +214,6 @@ Description: The class to use for importing feeds.
 Name:        feeds_source_class
 Default:     'FeedsSource'
 Description: The class to use for handling feed sources.
-
-Name:        feeds_data_$importer_id
-Default:     feeds_data_$importer_id
-Description: The table used by FeedsDataProcessor to store feed items. Usually a
-             FeedsDataProcessor builds a table name from a prefix (feeds_data_)
-             and the importer's id ($importer_id). This default table name can
-             be overridden by defining a variable with the same name.
 
 Name:        feeds_process_limit
 Default:     50
@@ -198,6 +230,27 @@ Name:        feeds_never_use_curl
 Default:     FALSE
 Description: Flag to stop feeds from using its cURL for http requests. See
              http_request_use_curl().
+
+Name:        feeds_http_file_cache_dir
+Default:     private://feeds/cache
+Description: The location on the file system where results of HTTP requests are
+             cached.
+
+Name:        feeds_in_progress_dir
+Default:     private://feeds/in_progress
+Description: The location on the file system where temporary files are stored
+             that are in progress of being imported.
+
+Name:        feeds_sync_cache_feeds_http_interval
+Default:     21600
+Description: How often the feeds cache directory should be checked for orphaned
+             cache files.
+
+Name:        feeds_use_mbstring
+Default:     TRUE
+Description: The extension mbstring is used to convert encodings during parsing.
+             The reason that this can be turned off is to be able to test Feeds
+             behavior when the extension is not available.
 
 Glossary
 ========

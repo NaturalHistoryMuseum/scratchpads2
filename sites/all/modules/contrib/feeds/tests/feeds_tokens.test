@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * Test cases for token replacement.
+ */
+class FeedsTokenTest extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Feeds token tests',
+      'description' => 'Test the Feeds tokens.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+
+    // Create an importer configuration.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->addMappings('syndication',
+      array(
+        0 => array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+      )
+    );
+  }
+
+  /**
+   * Test if tokens defined by Feeds work.
+   */
+  public function testFeedsTokens() {
+    // Import a RSS feed.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/developmentseed.rss2',
+      'title' => 'RSS Feed title',
+    );
+    $this->drupalPost('node/add/page', $edit, 'Save');
+
+    // Load an imported node.
+    $data = array(
+      'node' => node_load(2),
+    );
+
+    // Setup tokens to test for replacement.
+    $texts = array(
+      'Source: [node:feed-source]' => 'Source: RSS Feed title',
+      'Nid: [node:feed-source:nid]' => 'Nid: 1',
+      'Title: [node:feed-source:title]' => 'Title: RSS Feed title',
+    );
+
+    // Replace tokens and assert result.
+    foreach ($texts as $text => $expected) {
+      $replaced = token_replace($text, $data);
+      $this->assertEqual($expected, $replaced, format_string('The tokens for "@text" got replaced correctly with "@expected". Actual: "@replaced".', array(
+        '@text' => $text,
+        '@expected' => $expected,
+        '@replaced' => $replaced,
+      )));
+    }
+  }
+
+  /**
+   * Tests if a feed node does not get loaded if *not* replacing tokens like
+   * [node:feeds-source:x].
+   */
+  public function testPerformance() {
+    // Import a RSS feed.
+    $edit = array(
+      'feeds[FeedsHTTPFetcher][source]' => $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/developmentseed.rss2',
+    );
+    $this->drupalPost('node/add/page', $edit, 'Save');
+
+    // Keep track of loaded nodes from now on.
+    variable_set('feeds_track_node_loads', TRUE);
+
+    // Load an imported node.
+    $data = array(
+      'node' => node_load(2),
+    );
+
+    // Replace a single token.
+    token_replace('[node:title]', $data);
+
+    // Ensure only node 2 was loaded.
+    $loaded_nodes = variable_get('feeds_loaded_nodes');
+    $this->assertEqual(array(2), $loaded_nodes, format_string('The feed node (1) did not get loaded during token replacement, only node 2. Actual: @actual', array(
+      '@actual' => var_export($loaded_nodes, TRUE),
+    )));
+  }
+
+}

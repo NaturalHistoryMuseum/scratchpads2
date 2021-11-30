@@ -67,7 +67,25 @@
  */
 ?>
 
-<div id="media-browser-page-wrapper"><div id="media-browser-page">
-  <?php if (isset($messages)) { print $messages; } ?>
-  <?php print render($page['content']); ?>
-</div></div> <!-- /#page, /#page-wrapper -->
+<?php if (isset($messages)) { print $messages; } ?>
+<div id="media-browser-page-wrapper">
+  <div id="media-browser-page">
+    <div id="media-browser-tabset">
+      <div id="branding" class="clearfix">
+        <div>
+          <h1><?php print render($page['content']['system_main']['title']); ?></h1>
+        </div>
+        <div id="media-tabs-wrapper">
+          <?php print render($page['content']['system_main']['tabset']['tabs']); ?>
+        </div>
+      </div>
+      <?php print render($page['content']['system_main']['tabset']['panes']); ?>
+    </div> <!-- /#media-tabs-set -->
+  </div> <!--  /#media-browser-page -->
+</div> <!-- /#media-browser-page-wrapper -->
+
+<?php
+  hide($page['content']['system_main']['tabset']);
+  hide($page['content']['system_main']['title']);
+  print render($page['content']);
+?>

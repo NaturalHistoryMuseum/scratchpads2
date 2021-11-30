@@ -17,7 +17,7 @@
  * Definitions terms:
  * - many to one: If true, the "many to one" helper will be used.
  * - invalid input: A string to give to the user for obviously invalid input.
- *                  This is deprecated in favor of argument validators.
+ *   This is deprecated in favor of argument validators.
  *
  * @see views_many_to_one_helper()
  *
@@ -26,12 +26,12 @@
 class views_handler_argument_date extends views_handler_argument_formula {
 
   /**
-   *
+   * @var string
    */
   public $option_name = 'default_argument_date';
 
   /**
-   *
+   * @var string
    */
   public $arg_format = 'Y-m-d';
 
@@ -46,9 +46,9 @@ class views_handler_argument_date extends views_handler_argument_formula {
   }
 
   /**
-   * Set the empty argument value to the current date,
+   * Set the empty argument value to the current date.
    *
-   * formatted appropriately for this argument.
+   * Formatted appropriately for this argument.
    *
    * @return string
    *   The default argument.

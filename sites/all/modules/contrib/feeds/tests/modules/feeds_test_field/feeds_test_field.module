@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @file
+ * Provides a field with special validation.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function feeds_test_field_permission() {
+  return array(
+    'feeds_test_field.edit' => array(
+      'title' => 'Edit Feeds test fields',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_info().
+ */
+function feeds_test_field_field_info() {
+  return array(
+    'feeds_test_field' => array(
+      // Since this module is only used in tests, label and description
+      // don't have to be translatable.
+      'label' => 'Feeds test field',
+      'description' => 'This field stores text and requires special validation.',
+      'default_widget' => 'feeds_test_field_textfield',
+      'default_formatter' => 'feeds_test_field_default',
+      'property_type' => 'text',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function feeds_test_field_field_validate($obj_type, $object, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    // Verify that the current user has access to this field.
+    if (!user_access('feeds_test_field.edit') && !user_access('administer feeds')) {
+      $errors[$field['field_name']][$langcode][$delta][] = array(
+        'error' => 'access_denied',
+        // Since this module is only used in tests, the message doesn't have to
+        // be translatable.
+        'message' => 'You are not authorized to edit this field.',
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function feeds_test_field_field_is_empty($item, $field) {
+  if (empty($item['value'])) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function feeds_test_field_field_formatter_info() {
+  return array(
+    'feeds_test_field_default' => array(
+      'label' => t('Default'),
+      'description' => t('Display the text.'),
+      'field types' => array('feeds_test_field'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function feeds_test_field_field_formatter_view($object_type, $object, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  foreach ($items as $delta => $item) {
+    $element[$delta] = array('#markup' => check_plain($item['value']));
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function feeds_test_field_field_widget_info() {
+  return array(
+    'feeds_test_field_textfield' => array(
+      'label' => t('Text field'),
+      'field types' => array('feeds_test_field'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function feeds_test_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $base) {
+  $element = $base;
+  $element['value'] = $base + array(
+    '#type' => 'textfield',
+    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
+    '#prefix' => '<div class="text-full-wrapper">',
+    '#suffix' => '</div>',
+  );
+  return $element;
+}

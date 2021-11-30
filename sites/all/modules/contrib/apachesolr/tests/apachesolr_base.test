@@ -3,31 +3,31 @@
 abstract class DrupalSolrOfflineWebTestCase extends DrupalWebTestCase {
   function _nestedCompare($a1, $a2) {
     if (count($a1) != count($a2)) {
-      $extra1 = array_diff_key($a1, $a2);
-      $extra2 = array_diff_key($a2, $a1);
-      $extra = '';
-      if ($extra1) {
-        $extra .= ' Extra keys in $a1: ' . implode(', ', array_keys($extra1));
-      }
-      if ($extra2) {
-        $extra .= ' Extra keys in $a2: ' . implode(', ', array_keys($extra2));
-      }
-      debug('count($a1) != count($a2) :' . $extra);
+      //$extra1 = array_diff_key($a1, $a2);
+      //$extra2 = array_diff_key($a2, $a1);
+      //$extra = '';
+      //if ($extra1) {
+      //  $extra .= ' Extra keys in $a1: ' . implode(', ', array_keys($extra1));
+      //}
+      //if ($extra2) {
+      //  $extra .= ' Extra keys in $a2: ' . implode(', ', array_keys($extra2));
+      //}
+      //debug('count($a1) != count($a2) :' . $extra);
       return FALSE;
     }
     foreach ($a1 as $k => $v) {
       if (!isset($a2[$k])) {
-        debug("\$a2[$k] is not set");
+        //debug("\$a2[$k] is not set");
         return FALSE;
       }
       if (is_array($a1[$k]) && is_array($a2[$k])) {
         if (!$this->_nestedCompare($a1[$k], $a2[$k])) {
-          debug("_nestedCompare(\$a1[$k], \$a2[$k]) is false");
+          //debug("_nestedCompare(\$a1[$k], \$a2[$k]) is false");
           return FALSE;
         }
       }
       elseif ($a1[$k] !== $a2[$k]) {
-        debug("\$a1[$k] !== \$a2[$k] : " . var_export($a1[$k], TRUE) . " " . var_export($a2[$k], TRUE));
+        //debug("\$a1[$k] !== \$a2[$k] : " . var_export($a1[$k], TRUE) . " " . var_export($a2[$k], TRUE));
         return FALSE;
       }
     }
@@ -139,13 +139,13 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalLogin($this->admin_user);
     $this->drupalGet('admin/config/search/apachesolr/settings');
     $this->clickLink(t('Edit'));
-    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was successfully loaded'));
     $edit = array('name' => 'new description foo bar', 'url' => 'http://localhost:8983/solr/core_does_not_exists');
     $this->drupalPost($this->getUrl(), $edit, t('Save'));
     $this->assertResponse(200);
     $this->drupalGet('admin/config/search/apachesolr/settings');
-    $this->assertText(t('new description foo bar'), t('Search environment description was succesfully edited'));
-    $this->assertText('http://localhost:8983/solr/core_does_not_exists', t('Search environment url was succesfully edited'));
+    $this->assertText(t('new description foo bar'), t('Search environment description was successfully edited'));
+    $this->assertText('http://localhost:8983/solr/core_does_not_exists', t('Search environment url was successfully edited'));
   }
 
   /**
@@ -163,12 +163,12 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalSolrOfflineWebTestCa
     foreach ($urls as $url) {
       $this->drupalGet('admin/config/search/apachesolr/settings');
       $this->clickLink(t('Edit'));
-      $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+      $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was successfully loaded'));
       $edit = array('url' => $url);
       $this->drupalPost($this->getUrl(), $edit, t('Save'));
       $this->assertResponse(200);
       $this->drupalGet('admin/config/search/apachesolr/settings');
-      $this->assertText($url, t('Search environment url was succesfully set to !url', array('!url' => $url)));
+      $this->assertText($url, t('Search environment url was successfully set to !url', array('!url' => $url)));
     }
   }
 
@@ -180,11 +180,11 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalGet('admin/config/search/apachesolr/settings');
     $this->assertText(t('Clone'), t('Clone button is available'));
     $this->drupalGet('admin/config/search/apachesolr/settings/solr/clone');
-    $this->assertText(t('Are you sure you want to clone search environment localhost server'), t('Clone confirmation page was succesfully loaded'));
+    $this->assertText(t('Are you sure you want to clone search environment localhost server'), t('Clone confirmation page was successfully loaded'));
     $this->drupalPost($this->getUrl(), array(), t('Clone'));
     $this->assertResponse(200);
     $this->drupalGet('admin/config/search/apachesolr/settings');
-    $this->assertText(t('localhost server [cloned]'), t('Search Environment was succesfully cloned'));
+    $this->assertText(t('localhost server [cloned]'), t('Search Environment was successfully cloned'));
     // Check if the bundles and configurations are exactly the same
     // after we clear the caches.
     apachesolr_environments_clear_cache();
@@ -206,27 +206,27 @@ class DrupalSolrOfflineEnvironmentWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalGet('admin/config/search/apachesolr/settings');
     $this->assertText(t('Add search environment'), t('Create new environment link is available'));
     $this->clickLink(t('Add search environment'));
-    $this->assertText(t('Make this Solr search environment the default'), t('Environment creation page succesfully added'));
+    $this->assertText(t('Make this Solr search environment the default'), t('Environment creation page successfully added'));
     $edit = array('url' => 'http://localhost:8983/solr', 'name' => 'my test description', 'env_id' => 'solr_test');
     $this->drupalPost($this->getUrl(), $edit, t('Save'));
     $this->assertResponse(200);
     $this->drupalGet('admin/config/search/apachesolr/settings');
-    $this->assertText(t('my test description'), t('Search Environment was succesfully created'));
+    $this->assertText(t('my test description'), t('Search Environment was successfully created'));
 
     // Make this new search environment the default
     $this->drupalGet('admin/config/search/apachesolr/settings');
     // Click on the second environment edit link
     $this->clickLink(t('Edit'), 1);
-    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was succesfully loaded'));
+    $this->assertText(t('Example: http://localhost:8983/solr'), t('Edit page was successfully loaded'));
     $edit = array('make_default' => 1, 'conf[apachesolr_read_only]' => APACHESOLR_READ_ONLY);
     $this->drupalPost($this->getUrl(), $edit, t('Save'));
     $this->assertResponse(200);
     $this->drupalGet('admin/config/search/apachesolr/settings');
-    $this->assertText(t('my test description (Default)'), t('New Search environment was succesfully changed to default environment'));
+    $this->assertText(t('my test description (Default)'), t('New Search environment was successfully changed to default environment'));
     // Clear our cache.
     apachesolr_environments_clear_cache();
     $mode = apachesolr_environment_variable_get('solr_test', 'apachesolr_read_only', APACHESOLR_READ_WRITE);
-    $this->assertEqual($mode, APACHESOLR_READ_ONLY, 'Environment succesfully changed to read only');
+    $this->assertEqual($mode, APACHESOLR_READ_ONLY, 'Environment successfully changed to read only');
   }
 }
 
@@ -304,7 +304,7 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalLogin($this->admin_user);
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
     $this->clickLink(t('Edit'));
-    $this->assertText(t('The human-readable name of the search page configuration'), t('Edit page was succesfully loaded'));
+    $this->assertText(t('The human-readable name of the search page configuration'), t('Edit page was successfully loaded'));
     $edit = array(
       'label' => 'Test Search Page',
       'description' => 'Test Description',
@@ -319,7 +319,7 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     menu_rebuild();
 
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
-    $this->assertText(t('Test Search Page'), t('Search page was succesfully edited'));
+    $this->assertText(t('Test Search Page'), t('Search page was successfully edited'));
     $this->assertText('search/searchdifferentpath', t('Search path was updated'));
     $this->drupalGet('search/searchdifferentpath');
     $this->assertText(t('Search is temporarily unavailable. If the problem persists, please contact the site administrator.'), t('Search path was successfully created and is accessible'));
@@ -333,12 +333,12 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
     $this->assertText(t('Clone'), t('Clone button is available'));
     $this->drupalGet('admin/config/search/apachesolr/search-pages/core_search/clone');
-    $this->assertText(t('Are you sure you want to clone search page Core Search?'), t('Clone confirmation page was succesfully loaded'));
+    $this->assertText(t('Are you sure you want to clone search page Core Search?'), t('Clone confirmation page was successfully loaded'));
     $this->drupalPost($this->getUrl(), array(), t('Clone'));
     $this->assertResponse(200);
     drupal_static_reset('apachesolr_search_load_all_search_pages');
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
-    $this->assertText(t('Core Search [cloned]'), 'Search page was succesfully cloned');
+    $this->assertText(t('Core Search [cloned]'), 'Search page was successfully cloned');
   }
 
   /**
@@ -350,7 +350,7 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
     $this->assertText(t('Add search page'), t('Create new search page link is available'));
     $this->clickLink(t('Add search page'));
-    $this->assertText(t('The human-readable name of the search page configuration.'), t('Search page creation page succesfully added'));
+    $this->assertText(t('The human-readable name of the search page configuration.'), t('Search page creation page successfully added'));
     $edit = array(
       'page_id' => 'solr_testingsuite',
       'env_id' => 'solr',
@@ -366,16 +366,16 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     menu_cache_clear_all();
     menu_rebuild();
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
-    $this->assertText(t('Test Search Page'), t('Search Page was succesfully created'));
+    $this->assertText(t('Test Search Page'), t('Search Page was successfully created'));
 
     // Remove the same environment
-    $this->clickLink(t('Delete'), 1);
-    $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was succesfully loaded'));
+    $this->clickLink(t('Delete'));
+    $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was successfully loaded'));
     $this->drupalPost($this->getUrl(), array(), t('Delete'));
     $this->assertResponse(200);
     drupal_static_reset('apachesolr_search_load_all_search_pages');
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
-    $this->assertNoText(t('Test Search Page'), t('Search Environment was succesfully deleted'));
+    $this->assertNoText(t('Test Search Page'), t('Search Environment was successfully deleted'));
     apachesolr_environment_save(array('env_id' => 'DummySolr', 'service_class' => 'DummySolr', 'name' => 'dummy server', 'url' => 'http://localhost:8983/solr'));
     $solr = new DummySolr($url = NULL, $env_id = 'DummySolr');
     $params = array(
@@ -391,8 +391,8 @@ class DrupalSolrNodeTestCase extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Solr Node add, deletion, and document building tests',
-      'description' => 'Tests if we can succesfully add and delete nodes',
+      'name' => 'Solr Node add, deletion, indexing and document building tests',
+      'description' => 'Tests if we can successfully add and delete nodes',
       'group' => 'ApacheSolr',
     );
   }
@@ -453,14 +453,26 @@ class DrupalSolrNodeTestCase extends DrupalWebTestCase {
       // check if the entity delete does its work. It should have set the
       // status to 0 so it will be deleted when solr comes online
       $indexer_table = apachesolr_get_indexer_table('node');
-      $query = db_select($indexer_table, 'aien')
+      $nodes_in_tracking_table = db_select($indexer_table, 'aien')
         ->condition('entity_id', $node->nid)
-        ->fields('aien', array('entity_id', 'status'));
-      $db_node = $query->execute()->fetchObject();
+        ->countQuery()
+        ->execute()
+        ->fetchField();
 
-      // Check that all of the nodes (should only have 1) have status 0, it
-      // is set as 0 because it is pending to be deleted
-      $this->assertEqual($db_node->status, 0, t('Node @entity_id has status 0', array('@entity_id' => $db_node->entity_id)));
+      if ($nodes_in_tracking_table > 0) {
+        $db_node = db_select($indexer_table, 'aien')
+          ->condition('entity_id', $node->nid)
+          ->fields('aien', array('entity_id', 'status'))
+          ->execute()
+          ->fetchObject();
+        $this->assertEqual($db_node->status, 0, t('Node @entity_id has status 0', array('@entity_id' => $db_node->entity_id)));
+      }
+      else {
+        // Check that all of the nodes (should only have 1) have status 0, it
+        // is set as 0 because it is pending to be deleted
+        $this->assertEqual($nodes_in_tracking_table, 0, t('No more nodes in the tracking table'));
+      }
+
 
       // Check that all the nodes have been deleted.
       $count = db_select('node', 'n')
@@ -470,6 +482,88 @@ class DrupalSolrNodeTestCase extends DrupalWebTestCase {
         ->fetchField();
       $this->assertEqual($count, 0, t('No more nodes left in the node table.'));
     }
+  }
+
+  function testApacheSolrNodeReindex() {
+    // Login as basic user to perform initial content creation.
+    // Create an admin user that can bypass revision moderation.
+    $permissions = array(
+      'access content',
+      'search content',
+      'administer nodes',
+      'administer search',
+      'access content overview',
+      'bypass node access',
+    );
+    $admin_user = $this->drupalCreateUser($permissions);
+
+    $this->drupalLogin($admin_user);
+
+    // enable our bundles to be indexed, and clear caches
+    apachesolr_index_set_bundles('solr', 'node', array('page', 'article'));
+    entity_info_cache_clear();
+    apachesolr_environments_clear_cache();
+
+    // Define types of node bundles that we want to index
+    $types = array('page', 'article');
+
+    // Create 20 nodes (10 times 2)
+    foreach ($types as $type) {
+      for ($i = 0; $i < 5; $i++) {
+        $edit = array();
+        // Create a node of the type $type.
+        $edit['uid'] = $admin_user->uid;
+        $edit['type'] = $type;
+        $edit['title'] = $this->randomName(16);
+        $node = $this->drupalCreateNode($edit);
+      }
+    }
+
+    // Set a static timestamp
+    $timestamp = 1382019301;
+
+    $env_id = apachesolr_default_environment();
+
+    // Clear the last timestamp so we know that our nodes have to be indexed.
+    apachesolr_environment_variable_set($env_id, 'apachesolr_index_last', array());
+
+    // Set apachesolr_index_entities_node.changed to the same value
+    // (REQUEST_TIME).
+    $table = apachesolr_get_indexer_table('node');
+    db_update($table)
+        ->fields(array('changed' => $timestamp, 'status' => 1))
+        ->execute();
+    // Fake that we actually indexed before
+    apachesolr_set_last_index_position($env_id, 'node', $timestamp + 1, 10);
+    
+    // Set the changed date to after our previous index cycle
+    db_update($table)
+        ->fields(array('changed' => $timestamp + 10, 'status' => 1))
+        ->condition('entity_id', 9, '<=')
+        ->execute();
+
+    // Get the next 5 entities to index.
+    $set = apachesolr_index_get_entities_to_index($env_id, 'node', 5);
+    $count = count($set);
+    $this->assertEqual($count, 5, t('We found 5 entities to index.'));
+
+    // Mark the last item from that 5 as last indexed.
+    $last_row = end($set);
+    apachesolr_set_last_index_position($env_id, 'node', $last_row->changed, $last_row->entity_id);
+
+    // Get the next batch of 5 and this should be 4 items.
+    $set = apachesolr_index_get_entities_to_index($env_id, 'node', 4);
+    $count = count($set);
+    $this->assertEqual($count, 4, t('We found 4 entities to index.'));
+
+    // Mark the last item from that 4 as last indexed.
+    $last_row = end($set);
+    apachesolr_set_last_index_position($env_id, 'node', $last_row->changed, $last_row->entity_id);
+
+    // Get the next batch of 5 and this should be 0 items
+    $set = apachesolr_index_get_entities_to_index($env_id, 'node', 5);
+    $count = count($set);
+    $this->assertEqual($count, 0, t('We found 0 entities to index.'));
   }
 
   function testNodeToDocument() {

@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Defines schema for Feeds test field.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function feeds_test_field_field_schema($field) {
+  return array(
+    'columns' => array(
+      'value' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+  );
+}

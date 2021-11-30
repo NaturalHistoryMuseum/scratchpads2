@@ -17,7 +17,7 @@ function legal_page() {
     case 1: // CSS Scroll Box with HTML.
     case 2: // HTML.
     case 3: // Page Link.
-      $output = filter_xss_admin($conditions['conditions']);
+      $output = check_markup($conditions['conditions'], $conditions['format']);
       break;
   }
 

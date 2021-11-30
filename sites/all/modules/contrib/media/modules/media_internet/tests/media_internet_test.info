@@ -1,0 +1,14 @@
+name = Media Internet Test
+description = Provides hooks for testing Media Internet module functionality.
+package = Media
+core = 7.x
+hidden = TRUE
+
+files[] = includes/MediaInternetTestStreamWrapper.inc
+files[] = includes/MediaInternetTestHandler.inc
+
+; Information added by Drupal.org packaging script on 2021-04-09
+version = "7.x-2.27"
+core = "7.x"
+project = "media"
+datestamp = "1617993403"

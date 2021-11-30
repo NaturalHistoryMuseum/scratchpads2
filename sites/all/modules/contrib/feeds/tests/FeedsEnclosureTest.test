@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @coversDefaultClass FeedsEnclosure
+ * @group feeds
+ */
+class FeedsEnclosureTest extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'FeedsEnclosure class test',
+      'description' => 'Covers class FeedsEnclosure.',
+      'group' => 'Feeds',
+    );
+  }
+
+  /**
+   * Tests getting content from an URL that failed to parse.
+   *
+   * @see ::getUrlParseErrorDataProvider()
+   */
+  public function testUrlParseError() {
+    foreach ($this->getUrlParseErrorDataProvider() as $testdata) {
+      $e = NULL;
+      $vars = $testdata['vars'] + array(
+        '@url' => $testdata['url'],
+      );
+
+      // Create a new enclosure.
+      $enclosure = new FeedsEnclosure($testdata['url'], 'text/plain');
+      try {
+        // The enclosure will try to download the content via HTTP.
+        $enclosure->getContent();
+      }
+      catch (Exception $e) {
+        $this->pass(format_string("Exception thrown on url '@url'.", $vars));
+        $this->assertEqual(format_string($testdata['error'], $vars), $e->getMessage());
+      }
+      if (!isset($e)) {
+        $this->fail(format_string("Exception thrown on url '@url'.", $vars));
+      }
+    }
+  }
+
+  /**
+   * Data provider for ::testUrlParseError().
+   */
+  protected function getUrlParseErrorDataProvider() {
+    return array(
+      array(
+        'url' => 'http://',
+        'error' => 'Download of @url failed because it could not be parsed.',
+        'vars' => array(),
+      ),
+      array(
+        'url' => '//www.example.com/path?foo=bar',
+        'error' => "Download of @url failed because its scheme could not be determined. The URL is expected to start with something like '@example'.",
+        'vars' => array(
+          '@example' => 'http://',
+        ),
+      ),
+      array(
+        'url' => 'nonsupportedscheme://www.example.com',
+        'error' => 'Download of @url failed because its scheme is not supported: @error. Examples of supported schemes are: @supported.',
+        'vars' => array(
+          '@error' => 'invalid schema nonsupportedscheme',
+          '@supported' => implode(', ', array('http', 'https')),
+        ),
+      ),
+    );
+  }
+
+}

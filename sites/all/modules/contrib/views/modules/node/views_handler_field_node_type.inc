@@ -23,7 +23,7 @@ class views_handler_field_node_type extends views_handler_field_node {
   }
 
   /**
-   * Provide machine_name option for to node type display.
+   * Provide machine_name option for the node type display.
    */
   public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);

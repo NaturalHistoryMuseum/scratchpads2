@@ -20,7 +20,7 @@
      For more details about configurations options that may appear in
      this file, see http://wiki.apache.org/solr/SolrConfigXml.
 -->
-<config name="drupal-4.1-solr-4.x" >
+<config name="drupal-4.3-solr-4.x" >
   <!-- In all configuration below, a prefix of "solr." for class names
        is an alias that causes solr to search appropriate packages,
        including org.apache.solr.(search|update|request|core|analysis)
@@ -68,8 +68,9 @@
        the classpath, this is useful for including all jars in a
        directory.
     -->
-  <lib dir="../../contrib/extraction/lib" />
-  <lib dir="../../contrib/clustering/lib/" />
+  <lib dir="${solr.contrib.dir:../../../contrib}/extraction/lib" />
+  <lib dir="${solr.contrib.dir:../../../contrib}/clustering/lib/" />
+
   <!-- The velocity library has been known to crash Solr in some
        instances when deployed as a war file to Tomcat. Therefore all
        references have been removed from the default configuration.
@@ -204,10 +205,6 @@
       -->
     <!-- <termIndexInterval>256</termIndexInterval> -->
 
-    <useCompoundFile>false</useCompoundFile>
-    <ramBufferSizeMB>32</ramBufferSizeMB>
-    <mergeFactor>10</mergeFactor>
-
     <!-- Unlock On Startup
 
          If true, unlock any held write or commit locks on startup.
@@ -306,6 +303,16 @@
       <maxTime>${solr.autoCommit.MaxTime:120000}</maxTime>
     </autoCommit>
 
+    <!-- softAutoCommit is like autoCommit except it causes a
+         'soft' commit which only ensures that changes are visible
+         but does not ensure that data is synced to disk.  This is
+         faster and more near-realtime friendly than a hard commit.
+    -->
+    <autoSoftCommit>
+      <maxDocs>${solr.autoSoftCommit.MaxDocs:2000}</maxDocs>
+      <maxTime>${solr.autoSoftCommit.MaxTime:10000}</maxTime>
+    </autoSoftCommit>
+
     <!-- Update Related Event Listeners
 
          Various IndexWriter related events can trigger Listeners to
@@ -337,6 +344,17 @@
          <arr name="env"> <str>MYVAR=val1</str> </arr>
        </listener>
       -->
+    <!-- Enables a transaction log, currently used for real-time get.
+         "dir" - the target directory for transaction logs, defaults to the
+         solr data directory.  -->
+    <updateLog>
+      <str name="dir">${solr.data.dir:}</str>
+      <!-- if you want to take control of the synchronization you may specify
+           the syncLevel as one of the following where ''flush'' is the default.
+           Fsync will reduce throughput.
+           <str name="syncLevel">flush|fsync|none</str>
+      -->
+    </updateLog>
   </updateHandler>
   
   <!-- IndexReaderFactory
@@ -862,6 +880,7 @@
     </lst>
     <arr name="last-components">
       <str>spellcheck</str>
+      <str>elevator</str>
     </arr>
   </requestHandler>
 
@@ -1022,8 +1041,7 @@
        Admin Handlers - This will register all the standard admin
        RequestHandlers.  
     -->
-  <requestHandler name="/admin/" 
-                  class="solr.admin.AdminHandlers" />
+  <requestHandler name="/admin/" class="solr.admin.AdminHandlers" />
   <!-- This single handler is equivalent to the following... -->
   <!--
      <requestHandler name="/admin/luke"       class="solr.admin.LukeRequestHandler" />
@@ -1051,10 +1069,17 @@
     <lst name="invariants">
       <str name="qt">pinkPony</str>
       <str name="q">solrpingquery</str>
+      <str name="omitHeader">false</str>
     </lst>
     <lst name="defaults">
       <str name="echoParams">all</str>
     </lst>
+    <!-- An optional feature of the PingRequestHandler is to configure the 
+         handler with a "healthcheckFile" which can be used to enable/disable 
+         the PingRequestHandler.
+         relative paths are resolved against the data dir 
+    -->
+    <!-- <str name="healthcheckFile">server-enabled.txt</str> -->
   </requestHandler>
 
   <!-- Echo the request contents back to the client -->
@@ -1068,27 +1093,39 @@
   <!-- Solr Replication
 
        The SolrReplicationHandler supports replicating indexes from a
-       "master" used for indexing and "salves" used for queries.
+       "master" used for indexing and "slaves" used for queries.
 
-       http://wiki.apache.org/solr/SolrReplication 
+       http://wiki.apache.org/solr/SolrReplication
 
        In the example below, remove the <lst name="master"> section if
        this is just a slave and remove  the <lst name="slave"> section
        if this is just a master.
-    -->
-     <requestHandler name="/replication" class="solr.ReplicationHandler" >
-       <lst name="master">
-         <str name="enable">${solr.replication.master:false}</str>
-         <str name="replicateAfter">commit</str>
-         <str name="replicateAfter">startup</str>
-         <str name="confFiles">${solr.replication.confFiles:schema.xml,mapping-ISOLatin1Accent.txt,protwords.txt,stopwords.txt,synonyms.txt,elevate.xml}</str>
-       </lst>
-       <lst name="slave">
-         <str name="enable">${solr.replication.slave:false}</str>
-         <str name="masterUrl">${solr.replication.masterUrl:http://localhost:8983/solr}/replication</str>
-         <str name="pollInterval">${solr.replication.pollInterval:00:00:60}</str>
-       </lst>
-     </requestHandler>
+  -->
+  <requestHandler name="/replication" class="solr.ReplicationHandler" >
+    <lst name="master">
+      <str name="enable">${solr.replication.master:false}</str>
+      <str name="replicateAfter">commit</str>
+      <str name="replicateAfter">startup</str>
+      <str name="confFiles">${solr.replication.confFiles:schema.xml,mapping-ISOLatin1Accent.txt,protwords.txt,stopwords.txt,synonyms.txt,elevate.xml}</str>
+    </lst>
+    <lst name="slave">
+      <str name="enable">${solr.replication.slave:false}</str>
+      <str name="masterUrl">${solr.replication.masterUrl:http://localhost:8983/solr}/replication</str>
+      <str name="pollInterval">${solr.replication.pollInterval:00:00:60}</str>
+    </lst>
+  </requestHandler>
+
+  <!-- Realtime get handler, guaranteed to return the latest stored fields of
+       any document, without the need to commit or open a new searcher.  The
+       current implementation relies on the updateLog feature being enabled.
+  -->
+  <requestHandler name="/get" class="solr.RealTimeGetHandler">
+    <lst name="defaults">
+      <str name="omitHeader">true</str>
+      <str name="wt">json</str>
+      <str name="indent">true</str>
+    </lst>
+  </requestHandler>
 
   <!-- Search Components
 

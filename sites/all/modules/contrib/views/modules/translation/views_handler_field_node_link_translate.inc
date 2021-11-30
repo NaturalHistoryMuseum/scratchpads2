@@ -20,7 +20,7 @@ class views_handler_field_node_link_translate extends views_handler_field_node_l
     $node = $this->get_value($values);
     $node->status = 1;
     // unpublished nodes ignore access control.
-    if (empty($node->language) || !translation_supported_type($node->type) || !node_access('view', $node) || !user_access('translate content')) {
+    if ($node->language == LANGUAGE_NONE || !translation_supported_type($node->type) || !node_access('view', $node) || !user_access('translate content')) {
       return;
     }
 

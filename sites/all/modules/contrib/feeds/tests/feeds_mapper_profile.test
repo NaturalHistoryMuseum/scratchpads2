@@ -2,13 +2,17 @@
 
 /**
  * @file
- * Test suite for profile mapper mappers/profile.inc.
+ * Contains FeedsMapperProfileTestCase.
  */
 
 /**
- * Class for testing Feeds profile mapper.
+ * Test suite for profile mapper mappers/profile.inc.
  */
 class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Mapper: Profile',
@@ -17,16 +21,18 @@ class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
     );
   }
 
-  function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
     // Call parent setup with required modules.
     parent::setUp(array('profile'));
   }
 
   /**
-   * Basic test loading a doulbe entry CSV file.
+   * Basic test loading a double entry CSV file.
    */
-  function test() {
-
+  public function test() {
     // Create profile fields.
     $edit = array(
       'category' => 'test',
@@ -83,7 +89,7 @@ class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
     $this->drupalPost('admin/structure/feeds/profile_import/settings', $edit, 'Save');
 
     // Import CSV file.
-    $this->importFile('profile_import', $this->absolutePath() .'/tests/feeds/profile.csv');
+    $this->importFile('profile_import', $this->absolutePath() . '/tests/feeds/profile.csv');
     $this->assertText('Created 2 users.');
 
     // Check the two imported users.
@@ -99,4 +105,5 @@ class FeedsMapperProfileTestCase extends FeedsMapperTestCase {
     $this->assertEqual($account->profile_textfield_test, 'blue', 'User profile_textfield_test is correct');
     $this->assertEqual($account->profile_select_test, 'beta', 'User profile_select_test is correct');
   }
+
 }

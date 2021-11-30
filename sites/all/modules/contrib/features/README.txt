@@ -34,6 +34,13 @@ new equivalents (e.g. CCK to fields, imagecache to core image styles).
 - imagecache > image
 - content > field
 
+Note on the "Generate Feature" capability
+-----------------------------------------
+Features 7.x-2.x includes the ability to "Generate a feature" which saves it
+to the server disk. This can be a time-saving task in development. It requires
+the webserver to be able to write to the very code running the site and is
+not recommended for any environment other than a firewalled-off, local
+development environment (e.g. a person working alone on their laptop).
 
 Features 1.x for Drupal 7.x
 ---------------------------
@@ -61,6 +68,16 @@ Features can be installed like any other Drupal module -- place it in the
 modules directory for your site and enable it on the `admin/build/modules` page.
 To take full advantage of some of the workflow benefits provided by Features,
 you should install [Drush][1].
+
+If you plan on creating or working with very large features (greater than 1000
+items), you may need to increase PHP's max_input_vars configuration directive.
+For example, adding the following line to your .htaccess file will increase the
+max_input_vars directive to 3000:
+
+php_value max_input_vars 3000
+
+If you are using Suhosin, increasing suhosin.get.max_vars,
+suhosin.post.max_vars, and suhosin.request.max_vars may also be necessary.
 
 
 Basic usage
@@ -131,6 +148,8 @@ highly recommended.
 
 Drush usage
 -----------
+(requires Drush v4.5 or higher)
+
 Features provides several useful drush commands:
 
 - `drush features`
@@ -141,12 +160,13 @@ Features provides several useful drush commands:
 
   Write a new feature in code containing the components listed.
   If called with no arguments, display a list of available components.
-  If called with one argument, take the argument as a component name and 
+  If called with one argument, take the argument as a component name and
   attempt to create a feature with the same name.
-  
+
   The option '--destination=foo' may be used to specify the path (from Drupal
   root) where the feature should be created. The default destination is
-  'sites/all/modules'.
+  'sites/all/modules', though this can be overridden via the Features
+  settings page.
 
 - `drush features-update [feature name]`
 

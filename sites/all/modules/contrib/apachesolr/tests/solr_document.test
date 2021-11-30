@@ -69,9 +69,9 @@ class DrupalSolrDocumentTest extends DrupalUnitTestCase {
     $document_boost = $document->getBoost();
     $document_fields = $document->getFieldNames();
     $document_field_boosts = $document->getFieldBoosts();
-    $this->assertFalse($document_boost, t('Document boost was succesfully emptied'));
-    $this->assertFalse($document_fields, t('Document fields were succesfully emptied'));
-    $this->assertFalse($document_field_boosts, t('Document field boosts were succesfully emptied'));
+    $this->assertFalse($document_boost, t('Document boost was successfully emptied'));
+    $this->assertFalse($document_fields, t('Document fields were successfully emptied'));
+    $this->assertFalse($document_field_boosts, t('Document field boosts were successfully emptied'));
   }
 
   function tearDown() {

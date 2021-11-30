@@ -5,4 +5,4 @@
  * Empty module file.
  */
 
-include_once('feeds_import.features.inc');
+include_once 'feeds_import.features.inc';

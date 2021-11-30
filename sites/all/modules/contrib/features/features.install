@@ -6,12 +6,61 @@
  */
 
 /**
+ * Implements hook_schema().
+ */
+function features_schema() {
+  $schema['cache_features'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_features']['description'] = 'Cache table for features to store module info.';
+  $schema['features_signature'] = array(
+    'description' => 'Stores hashes that reflect the last known state of a features component.',
+    'fields' => array(
+      'module' => array(
+        'description' => 'Name of the feature module.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'component' => array(
+        'description' => 'Name of the features component.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'signature' => array(
+        'description' => 'Hash reflecting the last approved state of the component in code.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'updated' => array(
+        'description' => 'Timestamp when the signature was last updated.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'message' => array(
+        'description' => 'Message to document why the component was updated.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('module', 'component'),
+    'indexes' => array(
+      'module' => array('module'),
+      'component' => array('component'),
+    ),
+  );
+  return $schema;
+}
+
+/**
  * Implements hook_install().
  */
 function features_install() {
   _features_install_menu();
   db_update('system')
-    ->fields(array('weight' =>  20))
+    ->fields(array('weight' => 20))
     ->condition('name', 'features')
     ->condition('type', 'module')
     ->execute();
@@ -22,11 +71,26 @@ function features_install() {
  */
 function features_uninstall() {
   variable_del('features_codecache');
+  variable_del('features_default_export_path');
   variable_del('features_semaphore');
   variable_del('features_ignored_orphans');
-  db_delete('menu_custom')
-    ->condition('menu_name', 'features')
+  variable_del('features_feature_locked');
+  variable_del('features_lock_mode');
+  variable_del('features_update_7202_fixed_tmp');
+  variable_del('features_update_7202_possibly_broken');
+
+  db_delete('variable')
+    ->condition('name', 'features_admin_show_component_%', 'LIKE')
     ->execute();
+  db_delete('variable')
+    ->condition('name', 'features_component_locked_%', 'LIKE')
+    ->execute();
+
+  if (db_table_exists('menu_custom')) {
+    db_delete('menu_custom')
+      ->condition('menu_name', 'features')
+      ->execute();
+  }
   db_delete('menu_links')
     ->condition('module', 'features')
     ->execute();
@@ -50,7 +114,7 @@ function _features_install_menu() {
 
 /**
  * Update 6100: Set module on all feature node types to 'features'.
-
+ *
  * This update can be re-run as needed to repair any node types that are not
  * removed after disabling the associated feature.
  *
@@ -65,8 +129,8 @@ function features_update_6100() {
     if (module_exists($feature->name) && $types = module_invoke($feature->name, 'node_info')) {
       foreach ($types as $type => $type_data) {
         $sql = "SELECT COUNT(*) FROM {node_type} WHERE module = 'node' AND type = '%s'";
-        // Only update if the hook_node_info type's module is 'features' and the db type's
-        // module is 'node'.
+        // Only update if the hook_node_info() type's module is 'features' and
+        // the db type's module is 'node'.
         if (($type_data['module'] == 'features') && db_query($sql, $type)->fetchField()) {
           $ret[] = update_sql("UPDATE {node_type} SET module = 'features' WHERE type = '$type'");
         }
@@ -85,7 +149,7 @@ function features_update_6100() {
  * that have been overridden.
  */
 function features_update_6101() {
-  // Ensure all of our own API functions still exist in in this version
+  // Ensure all of our own API functions still exist in this version
   // of Features. It's possible that the "future me" will not have these
   // functions, so I should check.
   module_load_include('inc', 'features', "features.export");
@@ -116,4 +180,177 @@ function features_update_6101() {
     }
   }
   return array();
+}
+
+/**
+ * Add {cache_features} table.
+ */
+function features_update_7200() {
+  if (!db_table_exists('cache_features')) {
+    $schema = drupal_get_schema_unprocessed('system', 'cache');
+    db_create_table('cache_features', $schema);
+  }
+}
+
+/**
+ * Add {cache_featurestate} table.
+ */
+function features_update_7201() {
+  // This update hook is no longer active.
+}
+
+/**
+ * Create a new table 'features_signature' to store signatures.
+ */
+function features_update_7202() {
+  if (!db_table_exists('features_signature')) {
+    // Create the new table for signatures.
+    $schema = array(
+      'description' => 'Stores hashes that reflect the last known state of a features component.',
+      'fields' => array(
+        'module' => array(
+          'description' => 'Name of the feature module.',
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+        ),
+        'component' => array(
+          'description' => 'Name of the features component.',
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'signature' => array(
+          'description' => 'Hash reflecting the last approved state of the component in code.',
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'updated' => array(
+          'description' => 'Timestamp when the signature was last updated.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'message' => array(
+          'description' => 'Message to document why the component was updated.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+        ),
+      ),
+      'primary key' => array('module', 'component'),
+      'indexes' => array(
+        'module' => array('module'),
+        'component' => array('component'),
+      ),
+    );
+    db_create_table('features_signature', $schema);
+  }
+
+  // Load existing signatures.
+  if (db_table_exists('cache_featurestate')) {
+    // The old version of features_update_7201() has run in the past, and a
+    // cache table was created to replace the 'features_codecache' variable.
+    $cache = cache_get('features_codecache', 'cache_featurestate');
+    $signaturess = !empty($cache->data)
+      ? $cache->data
+      : array();
+    $message = __FUNCTION__ . '() - from cache storage';
+  }
+  else {
+    // The current (inactive) version of features_update_7201() has run, and the
+    // 'features_codecache' variable still exists.
+    $signaturess = variable_get('features_codecache', array());
+    $message = __FUNCTION__ . '() - from variable storage';
+  }
+
+  // Prevent existing records from being inserted again.
+  // This way we don't need a REPLACE query.
+  // This only applies if the table was already created e.g. in a previous
+  // failed attempt to run this update.
+  $q = db_select('features_signature', 'fs')->fields('fs');
+  if ($qr = $q->execute()) {
+    foreach ($qr as $obj) {
+      unset($signaturess[$obj->module][$obj->component]);
+    }
+  }
+
+  // Get a timestamp to be stored in each record.
+  $timestamp = time();
+
+  // Build the insert query.
+  $insert = db_insert('features_signature')
+    ->fields(array('module', 'component', 'signature', 'updated', 'message'));
+
+  foreach ($signaturess as $module => $signatures) {
+    foreach ($signatures as $component => $signature) {
+      $record = array(
+        'module' => $module,
+        'component' => $component,
+        'signature' => $signature,
+        'updated' => $timestamp,
+        'message' => $message,
+      );
+      $insert->values($record);
+    }
+  }
+
+  // Execute the insert query.
+  // On failure, allow the exception to trickle up.
+  $insert->execute();
+
+  // Set a temporary marker variable for subsequent updates.
+  // This variable was not set in an older version of this update.
+  variable_set('features_update_7202_fixed_tmp', TRUE);
+
+  // Delete the old table and variable if the data migration was successful.
+  variable_del('features_codecache');
+
+  if (db_table_exists('cache_featurestate')) {
+    db_drop_table('cache_featurestate');
+  }
+
+  // Reset the static cache that determines the storage type.
+  drupal_static_reset('_features_get_signature_storage_type');
+}
+
+/**
+ * Reduce varchar lengths in 'features_signature' table. See #3181858.
+ */
+function features_update_7203() {
+  // The following operations are only needed for sites that previously ran an
+  // older version of features_update_7202(). Trying to check this would
+  // probably be more copmlex, so we run it anyway.
+  db_change_field('features_signature', 'module', 'module', array(
+    'description' => 'Name of the feature module.',
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE,
+  ));
+  db_change_field('features_signature', 'component', 'component', array(
+    'description' => 'Name of the features component.',
+    'type' => 'varchar',
+    'length' => 128,
+    'not null' => TRUE,
+  ));
+}
+
+/**
+ * Set a marker variable, if the site could be affected by undesired reverts.
+ */
+function features_update_7204() {
+  if (variable_get('features_update_7202_fixed_tmp')) {
+    // The fixed version of features_update_7202() did run.
+    // Delete the temporary marker variable.
+    variable_del('features_update_7202_fixed_tmp');
+  }
+  else {
+    // Either the old broken version of features_update_7202() ran, or features
+    // was newly installed in a version where 7202 or 7203 was the latest
+    // update.
+    // Set a marker variable, indicating that some overridden features
+    // components might have been accidentally reverted. See #3183346.
+    variable_set('features_update_7202_possibly_broken', TRUE);
+  }
 }

@@ -1,6 +1,6 @@
-name,mail,since,password
-Morticia,morticia@example.com,1244347500,mort
-Fester,fester@example.com,1241865600,fest
-Gomez,gomez@example.com,1228572000,gome
-Wednesday,wednesdayexample.com,1228347137,wedn
-Pugsley,pugsley@example,1228260225,pugs
+uid,name,mail,since,password,password_md5,password_sha512,timezone
+201,Morticia,morticia@example.com,1244347500,mort,e0108a7eb91670308fff8179a4785453,$S$DfuNE4ur7Jq8xVoJURGm8oMIYunKd366KQUE6akc3EXW/ym9ghpq,UTC
+202,Fester,fester@example.com,1241865600,fest,c8cce3815094f01f0ab774fd4f7a77d4,$S$DjJPqmjlWTIen0nQrG3a.vA71Vc0DqCpKuB.g9zmBMnGzIV6JxqH,
+203,Gomez,gomez@example.com,1228572000,gome,8a5346b9a510f1f698ab0062b71201ac,$S$Dv.EtHlTfnrxuWGLbe3cf31mD9MF6.4u2Z46M2o2dMGgQGzi7m/5,utc
+204,Wednesday,wednesdayexample.com,1228347137,wedn,fefb673afaf531dbd78771976a150dc8,$S$DdPzksGh/c8UukipWagAhTzaqUp/eNHVPiC.x6URBQyA503Z41PI,America/New_York
+205,Pugsley,pugsley@example,1228260225,pugs,09189568a8ee4d0addf53d2f6e4847cd,$S$D1oUihjrYXr.4iesN8Sfw1rVRLdo188v0NRGgcNR/V09oIyYPYmZ,Europe/Lisbon

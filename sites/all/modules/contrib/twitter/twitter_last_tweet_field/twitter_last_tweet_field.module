@@ -1,0 +1,171 @@
+<?php
+/**
+ * @file
+ * Hook implementations for the twitter_last_tweet module.
+ */
+
+/**
+ * Field definition.
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function twitter_last_tweet_field_field_info() {
+  return array(
+    // We name our field as the associative name of the array.
+    'twitter_last_tweet' => array(
+      'label' => t('Twitter: Last tweet'),
+      'description' => t('Display the last tweet for a specific Twitter user.'),
+      'default_widget' => 'twitter_last_tweet_',
+      'default_formatter' => 'twitter_last_tweet_formatter',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function twitter_last_tweet_field_field_is_empty($item, $field) {
+  return empty($item['twitter_uid']);
+}
+
+/**
+ * Field widget.
+ */
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * @see twitter_last_tweet_field_field_widget_form()
+ */
+function twitter_last_tweet_field_field_widget_info() {
+  return array(
+    'twitter_last_tweet_widget' => array(
+      'label' => t('Twitter account selector'),
+      'field types' => array('twitter_last_tweet'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function twitter_last_tweet_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $main_widget = $element;
+  $main_widget['#delta'] = $delta;
+  $empty_widget = array();
+
+  if ($instance['widget']['type'] == 'twitter_last_tweet_widget') {
+    module_load_include('inc', 'twitter');
+
+    $main_widget += array(
+      '#type' => 'select',
+      '#options' => twitter_load_account_names(),
+      '#default_value' => isset($items[$delta]['twitter_uid']) ? $items[$delta]['twitter_uid'] : '',
+      '#required' => TRUE,
+    );
+    $empty_widget = array(
+      '#type' => 'textfield',
+      '#default_value' => isset($items[$delta]['empty_message']) ? $items[$delta]['empty_message'] : '',
+      '#title' => t('Message to use if no tweets found'),
+      // '#description' => t(''),
+    );
+    $extras_widget = array(
+      '#type' => 'checkbox',
+      '#default_value' => !empty($items[$delta]['hide_extras']),
+      '#title' => t("Don't load the default Twitter CSS & JS"),
+      // '#description' => t(''),
+    );
+  }
+
+  $element['twitter_uid'] = $main_widget;
+  $element['empty_message'] = $empty_widget;
+  $element['hide_extras'] = $extras_widget;
+  return $element;
+}
+
+/**
+ * Field formatter.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function twitter_last_tweet_field_field_formatter_info() {
+  return array(
+    // Display the tweet.
+    'twitter_last_tweet_formatter' => array(
+      'label' => t('Standard formatter'),
+      'field types' => array('twitter_last_tweet'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function twitter_last_tweet_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  if ($display['type'] == 'twitter_last_tweet_formatter') {
+    module_load_include('inc', 'twitter');
+
+    foreach ($items as $delta => $item) {
+      // Load the author.
+      $author = twitter_account_load($item['twitter_uid']);
+
+      if (!empty($author)) {
+        // Load the tweet.
+        $tweet = db_query("SELECT t.*
+          FROM {twitter} AS t
+          WHERE screen_name=:screen_name
+          ORDER BY created_time DESC
+          LIMIT 1",
+          array(':screen_name' => $author->screen_name))
+          ->fetchObject();
+
+        // Found a tweet!
+        if (!empty($tweet)) {
+          // Need a time_ago.
+          $time_diff = REQUEST_TIME - $tweet->created_time;
+          $tweet->time_ago = t('%time ago', array('%time' => format_interval($time_diff, 2)));
+
+          // Build the field.
+          $element[$delta] = array(
+            '#theme' => 'twitter_status',
+            '#status' => $tweet,
+            '#author' => $author,
+          );
+
+          // Load the standard JS and CSS by default.
+          if (empty($item['hide_extras'])) {
+            $element[$delta]['#attached'] = array(
+              'js' => array(
+                '//platform.twitter.com/widgets.js' => array(
+                  'type' => 'external',
+                ),
+              ),
+              'css' => array(
+                drupal_get_path('module', 'twitter') . '/twitter.css',
+              ),
+            );
+          }
+        }
+
+        // No tweet found, show the 'empty' message.
+        elseif (!empty($item['empty_message'])) {
+          $element = array(
+            '#markup' => $item['empty_message'],
+          );
+        }
+      }
+    }
+  }
+
+  return $element;
+}

@@ -135,6 +135,12 @@ class views_handler_filter_string extends views_handler_filter {
           'method' => 'op_regex',
           'values' => 1,
         ),
+        'not_regular_expression' => array(
+          'title' => t('Not regular expression'),
+          'short' => t('not regex'),
+          'method' => 'op_not_regex',
+          'values' => 1,
+        ),
       );
     }
 
@@ -274,7 +280,9 @@ class views_handler_filter_string extends views_handler_filter {
    * {@inheritdoc}
    */
   public function op_contains($field) {
-    $this->query->add_where($this->options['group'], $field, '%' . db_like($this->value) . '%', 'LIKE');
+    if (!empty($this->value)) {
+      $this->query->add_where($this->options['group'], $field, '%' . db_like($this->value) . '%', 'LIKE');
+    }
   }
 
   /**
@@ -292,7 +300,7 @@ class views_handler_filter_string extends views_handler_filter {
     foreach ($matches as $match) {
       $phrase = FALSE;
       // Strip off phrase quotes
-      if ($match[2]{0} == '"') {
+      if ($match[2][0] == '"') {
         $match[2] = substr($match[2], 1, -1);
         $phrase = TRUE;
       }
@@ -369,6 +377,13 @@ class views_handler_filter_string extends views_handler_filter {
    */
   public function op_regex($field) {
     $this->query->add_where($this->options['group'], $field, $this->value, 'RLIKE');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function op_not_regex($field) {
+    $this->query->add_where($this->options['group'], $field, $this->value, 'NOT RLIKE');
   }
 
   /**

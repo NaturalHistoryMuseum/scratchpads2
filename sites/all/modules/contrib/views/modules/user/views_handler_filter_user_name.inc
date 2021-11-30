@@ -107,6 +107,7 @@ class views_handler_filter_user_name extends views_handler_filter_in_operator {
       $uids = FALSE;
     }
 
+    $this->validated_exposed_input = array();
     if ($uids) {
       $this->validated_exposed_input = $uids;
     }

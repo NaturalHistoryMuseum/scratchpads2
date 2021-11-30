@@ -5,12 +5,15 @@
  * Render an importer name.
  */
 
+/**
+ *
+ */
 class feeds_views_handler_field_importer_name extends views_handler_field {
 
   /**
    * Overrides parent::option_definition().
    */
-  function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
     $options['link'] = array('default' => 0);
     return $options;
@@ -19,7 +22,7 @@ class feeds_views_handler_field_importer_name extends views_handler_field {
   /**
    * Overrides parent::options_form().
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $options = array(
       0 => t('Do not link'),
@@ -38,7 +41,7 @@ class feeds_views_handler_field_importer_name extends views_handler_field {
   /**
    * Overrides parent::render().
    */
-  function render($values) {
+  public function render($values) {
     try {
       $importer = feeds_importer($values->{$this->field_alias})->existing();
       if ($this->options['link'] == 1) {
@@ -57,7 +60,8 @@ class feeds_views_handler_field_importer_name extends views_handler_field {
   /**
    * Disallows advanced rendering.
    */
-  function allow_advanced_render() {
+  public function allow_advanced_render() {
     return FALSE;
   }
+
 }

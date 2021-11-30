@@ -6,80 +6,32 @@
  */
 
 /**
- *  Menu callback; display a thumbnail for an AJAX preview.
- */
-function media_preview_ajax() {
-  $url = $_GET['url'];
-  $uri = media_parse_to_uri($url);
-  if ($uri) {
-    $file = file_uri_to_object($uri);
-    drupal_json_output(array(
-      'preview' => theme('media_admin_thumbnail', array('file' => $file)),
-    ));
-  }
-  else {
-    drupal_json_output(array(
-      'error' => t('Invalid URL.'),
-    ));
-  }
-  die();
-}
-
-/**
- * Menu callback; Edit multiple files on the same page using multiform module.
- *
- * @see media_file_operation_edit_multiple()
- */
-function media_file_page_edit_multiple($files) {
-  // @todo When http://drupal.org/node/1227706 is fixed, filter the $files
-  // array using file_access($file, 'edit').
-
-  if (empty($files)) {
-    return MENU_ACCESS_DENIED;
-  }
-
-  $forms = array();
-  foreach ($files as $file) {
-    // To maintain unique form_ids, append the file id.
-    $forms[] = array('media_edit_' . $file->fid, $file);
-  }
-
-  $form = call_user_func_array('multiform_get_form', $forms);
-  $form['#attributes']['class'][] = 'media-multiedit-form';
-
-  // Add the title to each 'subform'.
-  foreach (element_children($form['multiform']) as $key) {
-    $fid = $form['multiform'][$key]['fid']['#value'];
-    $file = $files[$fid];
-    $title = t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename));
-    $form['multiform'][$key]['#prefix'] = '<h2>' . $title . '</h2>';
-    $form['multiform'][$key]['actions']['#access'] = FALSE;
-  }
-
-  if (isset($form['buttons']['Delete'])) {
-    $form['buttons']['Delete']['#access'] = FALSE;
-  }
-
-  // Add a cancel button at the bottom of the form.
-  $form['buttons']['cancel'] = array(
-    '#type' => 'link',
-    '#title' => t('Cancel'),
-    '#href' => isset($_GET['destination']) ? $_GET['destination'] : 'admin/content/file',
-    '#weight' => 50,
-  );
-
-  // Override the page title since each file form sets a title.
-  drupal_set_title(t('Edit multiple files'));
-
-  return $form;
-}
-
-/**
  * CTools modal callback for editing a file.
  */
 function media_file_edit_modal($form, &$form_state, $file, $js) {
   ctools_include('modal');
   ctools_include('ajax');
+
+  // If entity translation is enabled for the file entities and we have parent
+  // entity form/source langcodes, use them for the currently edited file.
+  if (!empty($_GET['media_parent_entity_form_langcode']) && is_string($_GET['media_parent_entity_form_langcode']) && module_invoke('entity_translation', 'enabled', 'file', $file)) {
+    $languages = language_list();
+    if (isset($languages[$_GET['media_parent_entity_form_langcode']])) {
+      $langcode = $_GET['media_parent_entity_form_langcode'];
+      $translation_handler = entity_translation_get_handler('file', $file);
+      $translation_handler->setActiveLanguage($langcode);
+      $translations = $translation_handler->getTranslations();
+      if (!isset($translations->data[$langcode])) {
+        if (!empty($_GET['media_parent_entity_source_langcode']) && is_string($_GET['media_parent_entity_source_langcode']) && isset($translations->data[$_GET['media_parent_entity_source_langcode']])) {
+          $source_langcode = $_GET['media_parent_entity_source_langcode'];
+        }
+        else {
+          $source_langcode = $translation_handler->getLanguage();
+        }
+        $translation_handler->setSourceLanguage($source_langcode);
+      }
+    }
+  }
 
   $form_state['ajax'] = $js;
   form_load_include($form_state, 'inc', 'file_entity', 'file_entity.pages');
@@ -90,7 +42,9 @@ function media_file_edit_modal($form, &$form_state, $file, $js) {
     $commands = $output;
 
     if ($form_state['executed']) {
-      $commands[] = ctools_modal_command_dismiss(t('File saved'));
+      $commands = array(ctools_modal_command_dismiss(t('File saved')));
+      $preview = media_get_thumbnail_preview($file);
+      $commands[] = ajax_command_replace('.media-item[data-fid=' . $file->fid . ']', render($preview));
     }
 
     print ajax_render($commands);

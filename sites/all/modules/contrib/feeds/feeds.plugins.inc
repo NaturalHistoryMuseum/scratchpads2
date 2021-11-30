@@ -21,7 +21,8 @@ function _feeds_feeds_plugins() {
     ),
   );
   $info['FeedsMissingPlugin'] = array(
-    'hidden' => TRUE,
+    'name' => 'Missing plugin',
+    'description' => 'There is a problem with your configuration.',
     'handler' => array(
       'class' => 'FeedsMissingPlugin',
       'file' => 'FeedsPlugin.inc',
@@ -59,7 +60,8 @@ function _feeds_feeds_plugins() {
     'name' => 'HTTP Fetcher',
     'description' => 'Download content from a URL.',
     'handler' => array(
-      'parent' => 'FeedsFetcher', // This is the key name, not the class name.
+      // This is the key name, not the class name.
+      'parent' => 'FeedsFetcher',
       'class' => 'FeedsHTTPFetcher',
       'file' => 'FeedsHTTPFetcher.inc',
       'path' => $path,
@@ -166,5 +168,6 @@ function _feeds_feeds_plugins() {
       ),
     );
   }
+
   return $info;
 }

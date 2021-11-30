@@ -9,6 +9,10 @@
  * File fetcher test class.
  */
 class FeedsFileFetcherTestCase extends FeedsWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'File fetcher',
@@ -18,24 +22,31 @@ class FeedsFileFetcherTestCase extends FeedsWebTestCase {
   }
 
   /**
-   * Test scheduling on cron.
+   * {@inheritdoc}
    */
-  public function testPublicFiles() {
+  public function setUp() {
+    parent::setUp();
+
     // Set up an importer.
     $this->createImporterConfiguration('Node import', 'node');
     // Set and configure plugins and mappings.
     $this->setSettings('node', NULL, array('content_type' => ''));
     $this->setPlugin('node', 'FeedsFileFetcher');
     $this->setPlugin('node', 'FeedsCSVParser');
-    $mappings = array(
+    $this->addMappings('node', array(
       '0' => array(
         'source' => 'title',
         'target' => 'title',
       ),
-    );
-    $this->addMappings('node', $mappings);
-    // Straight up upload is covered in other tests, focus on direct mode
-    // and file batching here.
+    ));
+  }
+
+  /**
+   * Test scheduling on cron.
+   */
+  public function testPublicFiles() {
+    // Straight up upload is covered in other tests, focus on direct mode and
+    // file batching here.
     $settings = array(
       'direct' => TRUE,
       'directory' => 'public://feeds',
@@ -72,24 +83,8 @@ class FeedsFileFetcherTestCase extends FeedsWebTestCase {
    * Test uploading private files.
    */
   public function testPrivateFiles() {
-    // Set up an importer.
-    $this->createImporterConfiguration('Node import', 'node');
-    // Set and configure plugins and mappings.
-    $edit = array(
-      'content_type' => '',
-    );
-    $this->drupalPost('admin/structure/feeds/node/settings', $edit, 'Save');
-    $this->setPlugin('node', 'FeedsFileFetcher');
-    $this->setPlugin('node', 'FeedsCSVParser');
-    $mappings = array(
-      '0' => array(
-        'source' => 'title',
-        'target' => 'title',
-      ),
-    );
-    $this->addMappings('node', $mappings);
-    // Straight up upload is covered in other tests, focus on direct mode
-    // and file batching here.
+    // Straight up upload is covered in other tests, focus on direct mode and
+    // file batching here.
     $settings = array(
       'direct' => TRUE,
       'directory' => 'private://feeds',
@@ -109,6 +104,98 @@ class FeedsFileFetcherTestCase extends FeedsWebTestCase {
     );
     $this->drupalPost('import/node', $edit, t('Import'));
     $this->assertText('Created 18 nodes');
+  }
+
+  /**
+   * Tests if files can be removed after the import has finished.
+   */
+  public function testRemoveFileAfterImport() {
+    $this->setSettings('node', 'FeedsFileFetcher', array(
+      'delete_uploaded_file' => TRUE,
+      'directory' => 'private://feeds',
+    ));
+
+    // Import the file.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/content.csv');
+    $this->assertText('Created 2 nodes');
+
+    // Assert that the file no longer exists.
+    $this->assertFalse(file_exists('private://feeds/content.csv'), 'The imported file no longer exists.');
+
+    // Assert that the file is no longer shown on the import form.
+    $this->drupalGet('import/node');
+    $this->assertNoText('nodes.csv');
+  }
+
+  /**
+   * Tests if files can be removed after import when running the import in
+   * background.
+   */
+  public function testRemoveFileAfterImportInBackground() {
+    // Configure to import in background and import as often as possible.
+    $this->setSettings('node', NULL, array(
+      'import_period' => 0,
+      'import_on_create' => FALSE,
+      'process_in_background' => TRUE,
+    ));
+    $this->setSettings('node', 'FeedsFileFetcher', array(
+      'delete_uploaded_file' => TRUE,
+      'directory' => 'private://feeds',
+    ));
+
+    // Make sure that the import cannot be completed in one run.
+    variable_set('feeds_process_limit', 5);
+
+    // Set variable to enforce that only five items get imported per cron run.
+    // @see feeds_tests_cron_queue_alter()
+    // @see feeds_tests_feeds_after_save()
+    variable_set('feeds_tests_feeds_source_import_queue_time', 5);
+    variable_set('feeds_tests_feeds_after_save_sleep', 1);
+
+    // Import a file with 9 nodes.
+    $this->importFile('node', $this->absolutePath() . '/tests/feeds/nodes.csv', 'Schedule import');
+
+    // Assert that the file has been created.
+    $this->assertTrue(file_exists('private://feeds/nodes.csv'), 'The imported file is created.');
+
+    // Run cron and assert that five nodes have been created.
+    $this->cronRun();
+    $node_count = db_select('node')
+      ->fields('node', array())
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(5, $node_count, format_string('Five nodes have been created (actual: @count).', array(
+      '@count' => $node_count,
+    )));
+
+    // Assert that the file to import still exists as the import hasn't finished
+    // yet.
+    drupal_flush_all_caches();
+    $this->assertTrue(file_exists('private://feeds/nodes.csv'), 'The imported file still exists.');
+
+    // Run cron again to import the remaining 4 nodes and assert that 9 nodes
+    // exist in total.
+    $this->cronRun();
+    $node_count = db_select('node')
+      ->fields('node', array())
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $this->assertEqual(9, $node_count, format_string('Nine nodes have been created (actual: @count).', array(
+      '@count' => $node_count,
+    )));
+
+    // Assert that the file to import finally has been removed now.
+    drupal_flush_all_caches();
+    $this->assertFalse(file_exists('private://feeds/nodes.csv'), 'The imported file no longer exists.');
+
+    // Assert that running a second import does not result into errors.
+    $this->cronRun();
+
+    // Assert that the file is no longer shown on the import form.
+    $this->drupalGet('import/node');
+    $this->assertNoText('nodes.csv');
   }
 
 }

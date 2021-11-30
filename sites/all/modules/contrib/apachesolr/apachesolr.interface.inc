@@ -11,6 +11,11 @@ interface DrupalSolrQueryInterface {
   function getName();
 
   /**
+   * Get solr version of the query.
+   */
+  function getSolrVersion();
+
+  /**
    * Get query searcher name (for facetapi, views, pages, etc).
    */
   function getSearcher();

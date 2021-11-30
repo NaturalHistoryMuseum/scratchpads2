@@ -33,9 +33,6 @@
 
       function count( ev )
       {
-        if (!ev.editor.document) {
-          return;
-        }
         var space = getSpaceElement();
         var text = ev.editor.getData();
         // decode HTML entities; it also removes HTML tags, but works only if jQuery is available

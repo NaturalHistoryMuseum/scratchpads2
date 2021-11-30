@@ -12,9 +12,12 @@
  * Not inheriting from Feeds base class as ParserCSV should be moved out of
  * Feeds at some time.
  */
-class ParserCSVTest extends DrupalWebTestCase  {
+class ParserCSVTest extends DrupalWebTestCase {
   protected $profile = 'testing';
 
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'CSV Parser unit tests',
@@ -32,6 +35,8 @@ class ParserCSVTest extends DrupalWebTestCase  {
 
     $this->_testSimple();
     $this->_testBatching();
+    $this->_testEncodingConversion();
+    $this->_testEncodingConversionFailure();
   }
 
   /**
@@ -42,8 +47,8 @@ class ParserCSVTest extends DrupalWebTestCase  {
     include $this->absolutePath() . '/tests/feeds/nodes.csv.php';
 
     $delimiters = $this->getDelimiters();
-    foreach($delimiters as $delimiterType => $delimiter) {
-      $file =  $this->absolutePath() . '/tests/feeds/nodes_' . $delimiterType . '.csv';
+    foreach ($delimiters as $delimiterType => $delimiter) {
+      $file = $this->absolutePath() . '/tests/feeds/nodes_' . $delimiterType . '.csv';
       $iterator = new ParserCSVIterator($file);
       $parser = new ParserCSV();
       $parser->setDelimiter($delimiter);
@@ -54,15 +59,60 @@ class ParserCSVTest extends DrupalWebTestCase  {
   }
 
   /**
+   * Simple test of encoding conversion prior to parsing.
+   */
+  protected function _testEncodingConversion() {
+    // Pull in the $control_result array.
+    include $this->absolutePath() . '/tests/feeds/encoding.csv.php';
+
+    $encodings = $this->getEncodings();
+    foreach ($encodings as $encoding) {
+      $file = $this->absolutePath() . "/tests/feeds/encoding_{$encoding}.csv";
+      $iterator = new ParserCSVIterator($file);
+      $parser = new ParserCSV();
+      $parser->setDelimiter(',');
+      $parser->setEncoding($encoding);
+      $rows = $parser->parse($iterator);
+      $this->assertFalse($parser->lastLinePos(), format_string('CSV reports all lines parsed, with encoding: %encoding', array('%encoding' => $encoding)));
+      $this->assertEqual(md5(serialize($rows)), md5(serialize($control_result)), 'Converted and parsed result matches control result.');
+    }
+  }
+
+  /**
+   * Simple test of failed encoding conversion prior to parsing.
+   */
+  protected function _testEncodingConversionFailure() {
+    // Pull in the $control_result array.
+    include $this->absolutePath() . '/tests/feeds/encoding.csv.php';
+
+    $encodings = $this->getEncodings();
+    foreach ($encodings as $encoding) {
+      $file = $this->absolutePath() . "/tests/feeds/encoding_{$encoding}.csv";
+      $iterator = new ParserCSVIterator($file);
+      $parser = new ParserCSV();
+      $parser->setDelimiter(',');
+      // Attempt to read file as UTF-8.
+      $parser->setEncoding('UTF-8');
+      try {
+        $rows = $parser->parse($iterator);
+        $this->fail('Incorrect conversion attempt throws exception.');
+      }
+      catch (ParserCSVEncodingException $e) {
+        $this->assertNotNull($e->getMessage(), 'Incorrect conversion attempt throws exception.');
+      }
+    }
+  }
+
+  /**
    * Test batching.
    */
   protected function _testBatching() {
-    // Pull in the $control_result array
+    // Pull in the $control_result array.
     include $this->absolutePath() . '/tests/feeds/nodes.csv.php';
 
     $delimiters = $this->getDelimiters();
-    foreach($delimiters as $delimiterType => $delimiter) {
-      $file =  $this->absolutePath() . '/tests/feeds/nodes_' . $delimiterType . '.csv';
+    foreach ($delimiters as $delimiterType => $delimiter) {
+      $file = $this->absolutePath() . '/tests/feeds/nodes_' . $delimiterType . '.csv';
       // Set up parser with 2 lines to parse per call.
       $iterator = new ParserCSVIterator($file);
       $parser = new ParserCSV();
@@ -77,8 +127,7 @@ class ParserCSVTest extends DrupalWebTestCase  {
         $rows = array_merge($rows, $parser->parse($iterator));
         $pos = $parser->lastLinePos();
         $this->assertTrue($parser->lastLinePos() || count($rows) == 10, t('Parser reports line limit correctly'));
-      }
-      while ($pos = $parser->lastLinePos());
+      } while ($pos = $parser->lastLinePos());
 
       $this->assertEqual(md5(serialize($rows)), md5(serialize($control_result)), t('Batch parsed result matches control result for delimiter: ') . $delimiterType);
     }
@@ -91,7 +140,10 @@ class ParserCSVTest extends DrupalWebTestCase  {
     return DRUPAL_ROOT . '/' . drupal_get_path('module', 'feeds');
   }
 
-  static function getDelimiters() {
+  /**
+   * {@inheritdoc}
+   */
+  public static function getDelimiters() {
     return array(
       'comma' => ',',
       'pipe' => '|',
@@ -100,4 +152,15 @@ class ParserCSVTest extends DrupalWebTestCase  {
       'tab' => "\t",
     );
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getEncodings() {
+    return array(
+      'SJIS-win',
+      'SJIS',
+    );
+  }
+
 }

@@ -8,27 +8,32 @@
 /**
  * Test single feeds.
  */
-class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
+class FeedsSyndicationParserTestCase extends FeedsMapperTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
   public static function getInfo() {
     return array(
       'name' => 'Syndication parsers',
       'description' => 'Regression tests for syndication parsers Common syndication and SimplePie. Tests parsers against a set of feeds in the context of Feeds module. <strong>Requires SimplePie parser to be configured correctly.</strong>',
       'group' => 'Feeds',
-      'dependencies' => array('libraries'),
     );
-  }
-
-  /**
-   * Set up test.
-   */
-  public function setUp() {
-    parent::setUp(array('libraries'));
   }
 
   /**
    * Run tests.
    */
   public function test() {
+    // Only download simplepie if the plugin doesn't already exist somewhere.
+    // People running tests locally might have it.
+    if (!feeds_simplepie_exists()) {
+      $this->downloadExtractSimplePie('1.3');
+      $this->assertTrue(feeds_simplepie_exists());
+      // Reset all the caches!
+      $this->resetAll();
+    }
+
     $this->createImporterConfiguration('Syndication', 'syndication');
 
     foreach (array('FeedsSyndicationParser', 'FeedsSimplePieParser') as $parser) {
@@ -38,6 +43,15 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
         $this->assertText('Created ' . $assertions['item_count'] . ' nodes');
       }
     }
+
+    feeds_include_simplepie();
+    variable_set('feeds_never_use_curl', TRUE);
+
+    $link = $GLOBALS['base_url'] . '/testing/feeds/flickr.xml';
+    $enclosure = new FeedsSimplePieEnclosure(new SimplePie_Enclosure($link));
+
+    $enclosure->setAllowedExtensions('xml');
+    $this->assertEqual(1, $enclosure->getFile('public://')->fid);
   }
 
   /**
@@ -54,4 +68,70 @@ class FeedsSyndicationParserTestCase extends FeedsWebTestCase {
       ),
     );
   }
+
+  /**
+   * Tests if the "<source>" element of a RSS feed is parsed correctly.
+   *
+   * This element is optional according to the RSS 2.0 specification.
+   */
+  public function testRSSSourceElement() {
+    // Do not use curl as that will result into HTTP requests returning a 404.
+    variable_set('feeds_never_use_curl', TRUE);
+
+    // Create content type with two text fields.
+    $typename = $this->createContentType(array(), array(
+      'source_title' => 'text',
+      'source_url' => 'text',
+    ));
+
+    // Create importer and map sources from source element to text fields.
+    $this->createImporterConfiguration('Syndication', 'syndication');
+    $this->setSettings('syndication', 'FeedsNodeProcessor', array('bundle' => $typename));
+    $this->addMappings('syndication',
+      array(
+        0 => array(
+          'source' => 'title',
+          'target' => 'title',
+          'unique' => FALSE,
+        ),
+        1 => array(
+          'source' => 'source:title',
+          'target' => 'field_source_title',
+        ),
+        2 => array(
+          'source' => 'source:url',
+          'target' => 'field_source_url',
+        ),
+      )
+    );
+
+    // Import url.
+    $url = $GLOBALS['base_url'] . '/' . drupal_get_path('module', 'feeds') . '/tests/feeds/developmentseed.rss2';
+    $this->createFeedNode('syndication', $url);
+
+    // Assert that the contents for the source element were imported for the
+    // first imported node.
+    $node = node_load(2);
+    $fields = array(
+      'field_source_title' => array(
+        'expected' => 'Technological Solutions for Progressive Organizations',
+        'actual' => $node->field_source_title[LANGUAGE_NONE][0]['value'],
+      ),
+      'field_source_url' => array(
+        'expected' => 'http://developmentseed.org/node/974',
+        'actual' => $node->field_source_url[LANGUAGE_NONE][0]['value'],
+      ),
+    );
+    foreach ($fields as $field_name => $value) {
+      $this->assertEqual($value['expected'], $value['actual'], format_string('The field %field has the expected value (actual: @actual).', array('%field' => $field_name, '@actual' => $value['actual'])));
+    }
+
+    // Assert that for the second imported node, no values were imported,
+    // because the second item does not contain a source element.
+    $node = node_load(3);
+    foreach ($fields as $field_name => $value) {
+      $this->assertTrue(!isset($node->{$field_name}[LANGUAGE_NONE][0]['value']), format_string('The field %field does not contain a value (actual: @actual).', array('%field' => $field_name, '@actual' => $value['actual'])));
+    }
+  }
+
 }

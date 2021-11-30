@@ -227,7 +227,7 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
 
       $query = db_select('taxonomy_term_data', 'td');
       $query->addTag('taxonomy_term_access');
-      $query->condition('tid', $args);
+      $query->condition('td.tid', $args);
       $query->addField('td', 'tid', 'tid');
       if (!empty($vocabularies)) {
         $query->leftJoin('taxonomy_vocabulary', 'tv', 'td.vid = tv.vid');

@@ -1,0 +1,12 @@
+name = References UUID
+core = 7.x
+package = Fields
+dependencies[] = references
+dependencies[] = uuid
+
+; Information added by Drupal.org packaging script on 2017-04-18
+version = "7.x-2.2"
+core = "7.x"
+project = "references"
+datestamp = "1492534745"
+

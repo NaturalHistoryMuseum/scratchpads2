@@ -236,8 +236,11 @@ function node_reference_field_prepare_view($entity_type, $entities, $field, $ins
           ->condition('n.status', NODE_PUBLISHED);
 
         // Take the 'view own unpublished content' permission into account to
-        // decide whether some unpublished nodes should still be visible.
-        if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+        // decide whether some unpublished nodes should still be visible. We
+        // only need the items in $ids_to_check because those are the only
+        // entries that we are interested in. Any other nodes created by the
+        // user are simply ignored so lets only retrieve that subset.
+        if (user_access('view own unpublished content') && ($own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status AND nid IN (:nodes)', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED, ':nodes' => $ids_to_check))->fetchCol())) {
           // ... AND (n.status = 1 OR n.nid IN (own unpublished))
           $status_condition
             ->condition('n.nid', $own_unpublished, 'IN');
@@ -586,6 +589,7 @@ function node_reference_field_widget_settings_form($field, $instance) {
       '#options'          => array(
         'starts_with'     => t('Starts with'),
         'contains'        => t('Contains'),
+        'fuzzy'           => t('Fuzzy search'),
       ),
       '#description'      => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
     );
@@ -663,14 +667,14 @@ function node_reference_autocomplete_validate($element, &$form_state, $form) {
       // Explicit nid. Check that the 'title' part matches the actual title for
       // the nid.
       list(, $title, $nid) = $matches;
-      if (!empty($title)) {
+      if (!empty($nid)) {
         $real_title = db_select('node', 'n')
           ->fields('n', array('title'))
           ->condition('n.nid', $nid)
           ->execute()
           ->fetchField();
-        if (trim($title) != trim($real_title)) {
-          form_error($element, t('%name: title mismatch. Please check your selection.', array('%name' => $instance['label'])));
+        if (empty($real_title)) {
+          form_error($element, t('%name: No node found. Please check your selection.', array('%name' => $instance['label'])));
         }
       }
     }
@@ -834,11 +838,29 @@ function _node_reference_potential_references_standard($field, $options) {
   }
 
   $query = db_select('node', 'n');
+
+  if (!user_access('bypass node access')) {
+    // If the user is able to view their own unpublished nodes, allow them to
+    // see these in addition to published nodes. Check that they actually have
+    // some unpublished nodes to view before adding the condition.
+    if (user_access('view own unpublished content') && $own_unpublished = db_query('SELECT nid FROM {node} WHERE uid = :uid AND status = :status', array(':uid' => $GLOBALS['user']->uid, ':status' => NODE_NOT_PUBLISHED))->fetchCol()) {
+      $query->condition(db_or()
+            ->condition('n.status', NODE_PUBLISHED)
+            ->condition('n.nid', $own_unpublished, 'IN')
+      );
+    }
+    else {
+      // If not, restrict the query to published nodes.
+      $query->condition('n.status', NODE_PUBLISHED);
+    }
+
+    $query->addTag('node_access');
+  }
+
   $node_nid_alias   = $query->addField('n', 'nid');
   $node_title_alias = $query->addField('n', 'title', 'node_title');
   $node_type_alias  = $query->addField('n', 'type',  'node_type');
-  $query->addTag('node_access')
-    ->addMetaData('id', ' _node_reference_potential_references_standard')
+  $query->addMetaData('id', ' _node_reference_potential_references_standard')
     ->addMetaData('field', $field)
     ->addMetaData('options', $options);
 
@@ -854,6 +876,13 @@ function _node_reference_potential_references_standard($field, $options) {
 
       case 'starts_with':
         $query->condition('n.title', $options['string'] . '%', 'LIKE');
+        break;
+
+      case 'fuzzy':
+        $words = explode(' ', $options['string']);
+        foreach ($words as $word) {
+          $query->condition('n.title', '%' . $word . '%', 'LIKE');
+        }
         break;
 
       case 'equals':
@@ -890,8 +919,8 @@ function _node_reference_potential_references_standard($field, $options) {
  * Menu callback for the autocomplete results.
  */
 function node_reference_autocomplete($entity_type, $bundle, $field_name, $string = '') {
-  $field = field_info_field($field_name);
   $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $field = field_info_field($field_name);
 
   $options = array(
     'string' => $string,

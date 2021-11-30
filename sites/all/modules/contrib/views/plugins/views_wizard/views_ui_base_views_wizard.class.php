@@ -394,7 +394,7 @@ class ViewsUiBaseViewsWizard implements ViewsWizardInterface {
         // with that bundle. Otherwise, we use all bundles.
         $bundles = array_keys($entity_info['bundles']);
         // Double check that this is a real bundle before using it (since above
-        // we added a dummy option 'all' to the bundle list on the form).
+        // we added a placeholder option 'all' to the bundle list on the form).
         if (isset($selected_bundle) && in_array($selected_bundle, $bundles)) {
           $bundles = array($selected_bundle);
         }

@@ -120,7 +120,7 @@ class views_plugin_query_default extends views_plugin_query {
   /**
    * {@inheritdoc}
    */
-  public function init($base_table = 'node', $base_field = 'nid', $options) {
+  public function init($base_table = 'node', $base_field = 'nid', $options = array()) {
     parent::init($base_table, $base_field, $options);
     $this->base_table = $base_table;
     // Predefine these above, for clarity.
@@ -248,15 +248,26 @@ class views_plugin_query_default extends views_plugin_query {
   public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
-    $form['disable_sql_rewrite'] = array(
-      '#title' => t('Disable SQL rewriting'),
-      '#description' => t('Disabling SQL rewriting will disable node_access checks as well as other modules that implement hook_query_alter().'),
-      '#type' => 'checkbox',
-      '#default_value' => !empty($this->options['disable_sql_rewrite']),
-      '#suffix' => '<div class="messages warning sql-rewrite-warning js-hide">'
-        . t('WARNING: Disabling SQL rewriting means that node access security is disabled. This may allow users to see data they should not be able to see if your view is misconfigured. Please use this option only if you understand and accept this security risk.')
-        . '</div>',
-    );
+    // Establish which query tag will be affected by disable_sql_rewrite.
+    // This 'access query tag' is defined by hook_views_data() for the base table.
+    // e.g. node_views_data()
+    if (!empty($form_state['view']->base_table)) {
+      $base_table = $form_state['view']->base_table;
+      $base_table_data = views_fetch_data($base_table);
+      if (!empty($base_table_data['table']['base']['access query tag'])) {
+        $access_tag = $base_table_data['table']['base']['access query tag'];
+        $disable_rewrite = !empty($this->options['disable_sql_rewrite']);
+        $form['disable_sql_rewrite'] = array(
+          '#title' => t('Disable access checks'),
+          '#description' => t('Do not apply %access_tag checks to this query. Selecting this option omits that tag from the alterable query.', array('%access_tag' => $access_tag)),
+          '#type' => 'checkbox',
+          '#default_value' => $disable_rewrite,
+          '#suffix' => '<div class="messages warning sql-rewrite-warning' . ($disable_rewrite ? '' : ' js-hide') . '">'
+            . t('WARNING: Disabling access checks means that %access_tag security is disabled. This may allow users to see data they should not be able to see if your view is misconfigured. Please use this option only if you understand and accept this security risk.', array('%access_tag' => $access_tag))
+            . '</div>',
+        );
+      }
+    }
     $form['distinct'] = array(
       '#type' => 'checkbox',
       '#title' => t('Distinct'),
@@ -272,9 +283,9 @@ class views_plugin_query_default extends views_plugin_query {
     );
     $form['slave'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Use Slave Server'),
-      '#description' => t('This will make the query attempt to connect to a slave server if available.  If no slave server is defined or available, it will fall back to the default server.'),
       '#default_value' => !empty($this->options['slave']),
+      '#title' => t('Use Replica Server'),
+      '#description' => t('This will make the query attempt to connect to a replica server if available.  If no replica server is defined or available, it will fall back to the default server.'),
     );
     $form['query_comment'] = array(
       '#type' => 'textfield',
@@ -1214,7 +1225,10 @@ class views_plugin_query_default extends views_plugin_query {
       }
       // This is a formula, using no tables.
       elseif (empty($field['table'])) {
-        if (!in_array($fieldname, $non_aggregates)) {
+        if (Database::getConnection()->databaseType() != 'pgsql') {
+          $non_aggregates[] = $fieldname;
+        }
+        elseif (!in_array($fieldname, $non_aggregates)) {
           $non_aggregates[] = $fieldname;
         }
         $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : array();
@@ -1224,13 +1238,16 @@ class views_plugin_query_default extends views_plugin_query {
       elseif ($this->distinct && !in_array($fieldname, $this->groupby)) {
         // d7cx: This code was there, apparently needed for PostgreSQL
         // $string = db_driver() == 'pgsql' ? "FIRST($string)" : $string;
-        if (!in_array($string, $non_aggregates)) {
+        if (Database::getConnection()->databaseType() == 'pgsql' && !in_array($string, $non_aggregates)) {
           $non_aggregates[] = $string;
         }
         $query->addField(!empty($field['table']) ? $field['table'] : $this->base_table, $field['field'], $fieldname);
       }
       elseif (empty($field['aggregate'])) {
-        if (!in_array($string, $non_aggregates)) {
+        if (Database::getConnection()->databaseType() != 'pgsql') {
+          $non_aggregates[] = $fieldname;
+        }
+        elseif (!in_array($string, $non_aggregates)) {
           $non_aggregates[] = $string;
         }
         $query->addField(!empty($field['table']) ? $field['table'] : $this->base_table, $field['field'], $fieldname);
@@ -1301,9 +1318,9 @@ class views_plugin_query_default extends views_plugin_query {
       $key = $this->view->base_database;
     }
 
-    // Set the slave target if the slave option is set.
     if (!empty($this->options['slave'])) {
       $target = 'slave';
+    // Set the replica target if the replica option is set.
     }
 
     // Go ahead and build the query. db_select doesn't support to specify the
@@ -1340,8 +1357,9 @@ class views_plugin_query_default extends views_plugin_query {
     if (count($this->having)) {
       $this->has_aggregate = TRUE;
     }
-    elseif (!$this->has_aggregate) {
-      // Allow 'GROUP BY' even no aggregation function has been set.
+    // Allow 'GROUP BY' even if no aggregation function has been set, but only
+    // when there is a legitimate display_handler.
+    elseif (!$this->has_aggregate && !empty($this->view->display_handler)) {
       $this->has_aggregate = $this->view->display_handler->get_option('group_by');
     }
     if ($this->has_aggregate && (!empty($this->groupby) || !empty($non_aggregates))) {
@@ -1628,7 +1646,7 @@ class views_plugin_query_default extends views_plugin_query {
 
     if (!empty($relationship)) {
       foreach ($this->view->relationship as $current) {
-        if ($current->alias == $relationship) {
+        if (isset($current->alias) && $current->alias == $relationship) {
           $base_table = $current->definition['base'];
           $base_table_alias = $relationship;
           break;

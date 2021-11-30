@@ -40,6 +40,10 @@ class views_data_export_plugin_style_export_csv extends views_data_export_plugin
       'default' => ', ',
       'translatable' => FALSE,
     );
+    $options['newline_token'] = array(
+      'default' => 1,
+      'translatable' => FALSE,
+    );
     $options['header'] = array(
       'default' => TRUE,
       'translatable' => FALSE,
@@ -99,6 +103,18 @@ class views_data_export_plugin_style_export_csv extends views_data_export_plugin
       '#process' => array('ctools_dependent_process'),
       '#dependency' => array('edit-style-options-replace-newlines' => array(TRUE)),
     );
+    $form['newline_token'] = array(
+      '#prefix' => '<div><div id="edit-options-newline-token">',
+      '#suffix' => '</div></div>',
+      '#type' => 'radios',
+      '#default_value' => !empty($this->options['newline_token']) ? $this->options['newline_token'] : '0',
+      '#title' => t('What to replace?'),
+      '#options' => array(
+          t('Replace only Linefeed ("\n")'),
+          t('Replace Carriage Return plus Linefeed ("\r\n") and single Linefeed ("\n") as well')
+       ),
+       '#dependency' => array('edit-style-options-replace-newlines' => array(TRUE)),
+     );
     $form['header'] = array(
       '#type' => 'checkbox',
       '#title' => t('Make first row a list of column headers.'),

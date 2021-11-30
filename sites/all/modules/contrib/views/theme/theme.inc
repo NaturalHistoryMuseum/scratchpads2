@@ -93,7 +93,7 @@ function template_preprocess_views_view(&$vars) {
   $vars['attachment_before'] = !empty($view->attachment_before) ? $view->attachment_before : '';
   $vars['attachment_after'] = !empty($view->attachment_after) ? $view->attachment_after : '';
 
-  // Add contextual links to the view. We need to attach them to the dummy
+  // Add contextual links to the view. We need to attach them to the sample
   // $view_array variable, since contextual_preprocess() requires that they be
   // attached to an array (not an object) in order to process them. For our
   // purposes, it doesn't matter what we attach them to, since once they are
@@ -199,7 +199,11 @@ function template_preprocess_views_view_fields(&$vars) {
       $object->handler = &$view->field[$id];
       $object->inline = !empty($vars['options']['inline'][$id]);
 
-      $object->element_type = $object->handler->element_type(TRUE, !$vars['options']['default_field_elements'], $object->inline);
+      $default_field_elements_value = TRUE;
+      if (isset($vars['options']['default_field_elements'])) {
+        $default_field_elements_value = $vars['options']['default_field_elements'];
+      }
+      $object->element_type = $object->handler->element_type(TRUE, !$default_field_elements_value, $object->inline);
       if ($object->element_type) {
         $class = '';
         if ($object->handler->options['element_default_classes']) {
@@ -244,7 +248,7 @@ function template_preprocess_views_view_fields(&$vars) {
 
       $previous_inline = $object->inline;
       $object->inline_html = $object->handler->element_wrapper_type(TRUE, TRUE);
-      if ($object->inline_html === '' && $vars['options']['default_field_elements']) {
+      if ($object->inline_html === '' && $default_field_elements_value) {
         $object->inline_html = $object->inline ? 'span' : 'div';
       }
 
@@ -283,7 +287,7 @@ function template_preprocess_views_view_fields(&$vars) {
           $object->label_html .= ': ';
         }
 
-        $object->element_label_type = $object->handler->element_label_type(TRUE, !$vars['options']['default_field_elements']);
+        $object->element_label_type = $object->handler->element_label_type(TRUE, !$default_field_elements_value);
         if ($object->element_label_type) {
           $class = '';
           if ($object->handler->options['element_default_classes']) {
@@ -379,8 +383,10 @@ function template_preprocess_views_view_summary(&$vars) {
   $active_urls = drupal_map_assoc(array(
     // Force system path.
     url($_GET['q'], array('alias' => TRUE)),
+    url($_GET['q'], $url_options + array('alias' => TRUE)),
     // Could be an alias.
     url($_GET['q']),
+    url($_GET['q'], $url_options),
   ));
 
   // Collect all arguments foreach row, to be able to alter them for example by
@@ -430,8 +436,10 @@ function template_preprocess_views_view_summary_unformatted(&$vars) {
   $active_urls = drupal_map_assoc(array(
     // Force system path.
     url($_GET['q'], array('alias' => TRUE)),
+    url($_GET['q'], $url_options + array('alias' => TRUE)),
     // Could be an alias.
     url($_GET['q']),
+    url($_GET['q'], $url_options),
   ));
 
   // Collect all arguments foreach row, to be able to alter them for example by
@@ -479,9 +487,24 @@ function template_preprocess_views_view_table(&$vars) {
   $vars['rows'] = array();
   $vars['field_classes'] = array();
   $vars['header'] = array();
+  $vars['classes_array'] = array();
 
   $options  = $view->style_plugin->options;
   $handler  = $view->style_plugin;
+  
+  if (!empty($handler->options['class'])) {
+    $classes = explode(' ', $handler->options['class']);
+    $classes = array_map('views_clean_css_identifier', $classes);
+
+    if (!empty($classes)) {
+      // Trim empty class entries.
+      foreach ($classes as $key => $class) {
+        if (!empty($class)) {
+          $vars['classes_array'][] = $class;
+        }
+      }
+    }
+  }
 
   $default_row_class = isset($options['default_row_class']) ? $options['default_row_class'] : TRUE;
   $row_class_special = isset($options['row_class_special']) ? $options['row_class_special'] : TRUE;
@@ -647,7 +670,7 @@ function template_preprocess_views_view_table(&$vars) {
     $vars['row_classes'][count($vars['row_classes']) - 1][] = 'views-row-last';
   }
 
-  $vars['classes_array'] = array('views-table');
+  $vars['classes_array'][] = 'views-table';
   if (empty($vars['rows']) && !empty($options['empty_table'])) {
     $vars['rows'][0][0] = $view->display_handler->render_area('empty');
     // Calculate the amounts of rows with output.
@@ -710,7 +733,7 @@ function template_preprocess_views_view_grid(&$vars) {
     }
     if ($row) {
       // Fill up the last line only if it's configured, but this is default.
-      if (!empty($handler->options['fill_single_line']) && count($rows)) {
+      if (!empty($handler->options['fill_single_line'])) {
         for ($i = 0; $i < ($columns - $col_count); $i++) {
           $row[] = '';
         }
@@ -739,8 +762,15 @@ function template_preprocess_views_view_grid(&$vars) {
         $remainders--;
       }
     }
-    for ($i = 0; $i < count($rows[0]); $i++) {
-      // This should be string so that's okay :)
+
+    // Fill out the row with empty values, if needed.
+    if (!empty($handler->options['fill_single_line'])) {
+      $column_fill = $columns;
+    }
+    else {
+      $column_fill = count($rows[0]);
+    }
+    for ($i = 0; $i < $column_fill; $i++) {
       if (!isset($rows[count($rows) - 1][$i])) {
         $rows[count($rows) - 1][$i] = '';
       }

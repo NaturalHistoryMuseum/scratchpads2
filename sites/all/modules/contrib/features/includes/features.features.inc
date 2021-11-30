@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Features integration for 'features' module itself.
+ */
+
+/**
  * Implements hook_features_api().
  */
 function features_features_api() {
@@ -59,7 +64,7 @@ function dependencies_features_rebuild($module) {
   if (!empty($feature->info['dependencies'])) {
     $install = array();
     foreach ($feature->info['dependencies'] as $dependency) {
-      // Parse the dependency string into the module name and version information.
+      // Parse the dependency string for module name and version requirement.
       $parsed_dependency = drupal_parse_dependency($dependency);
       $dependency = $parsed_dependency['name'];
       if (!module_exists($dependency)) {

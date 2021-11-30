@@ -1,34 +1,49 @@
 <?php
 
 /**
- * Display feature component info
+ * @file
+ * Theme functions and (pre)processors for 'features' module.
+ *
+ * Most of these are for admin pages.
+ *
+ * @see \features_theme()
+ */
+
+/**
+ * Display feature component info.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @throws \Exception
+ *   Exceptions can be thrown in theme().
  */
 function template_preprocess_features_admin_components(&$vars) {
   drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
   $form = $vars['form'];
 
-  // Basic info
+  // Basic info.
   $vars['name'] = $form['#info']['name'];
   $vars['description'] = isset($form['#info']['description']) ? $form['#info']['description'] : '';
 
-  // Legend/key
+  // Legend/key.
   $vars['key'] = array();
 
-  // Dependencies
+  // Dependencies.
   $rows = array();
   $modules = features_get_info();
   foreach ($form['#dependencies'] as $dependency => $status) {
     $rows[] = array(
       array(
         'data' => isset($modules[$dependency]->info['name']) ? $modules[$dependency]->info['name'] : $dependency,
-        'class' => 'component'
+        'class' => 'component',
       ),
       theme('features_module_status', array('status' => $status)),
     );
   }
   $vars['dependencies'] = theme('table', array('header' => array(t('Dependency'), t('Status')), 'rows' => $rows));
 
-  // Components
+  // Components.
   $rows = array();
   $components = features_get_components();
 
@@ -51,16 +66,16 @@ function template_preprocess_features_admin_components(&$vars) {
         if (element_children($form['revert'])) {
           $header[] = array(
             'data' => isset($form['revert'][$component]) ? drupal_render($form['revert'][$component]) : '',
-            'header' => TRUE
+            'header' => TRUE,
           );
         }
         $header[] = array(
           'data' => isset($components[$component]['name']) ? $components[$component]['name'] : $component,
-          'header' => TRUE
+          'header' => TRUE,
         );
         $header[] = array(
           'data' => drupal_render($form['components'][$component]),
-          'header' => TRUE
+          'header' => TRUE,
         );
         $rows[] = $header;
 
@@ -70,7 +85,7 @@ function template_preprocess_features_admin_components(&$vars) {
         $data[] = array(
           'data' => theme('features_component_list', array('components' => $items, 'source' => $items, 'conflicts' => $conflicts)),
           'colspan' => 2,
-          'class' => 'component'
+          'class' => 'component',
         );
         $rows[] = $data;
       }
@@ -78,13 +93,20 @@ function template_preprocess_features_admin_components(&$vars) {
   }
   $vars['components'] = theme('table', array('header' => array(), 'rows' => $rows));
 
-  // Other elements
+  // Other elements.
   $vars['buttons'] = drupal_render($form['buttons']);
   $vars['form'] = $form;
+  $vars['lock_feature'] = theme('features_lock_link', array('feature' => $form['#feature']->name));
 }
 
 /**
  * Themes a module status display.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_module_status($vars) {
   switch ($vars['status']) {
@@ -92,14 +114,17 @@ function theme_features_module_status($vars) {
       $text_status = t('Enabled');
       $class = 'admin-enabled';
       break;
+
     case FEATURES_MODULE_DISABLED:
       $text_status = t('Disabled');
       $class = 'admin-disabled';
       break;
+
     case FEATURES_MODULE_MISSING:
       $text_status = t('Missing');
       $class = 'admin-missing';
       break;
+
     case FEATURES_MODULE_CONFLICT:
       $text_status = t('Enabled');
       $class = 'admin-conflict';
@@ -110,7 +135,49 @@ function theme_features_module_status($vars) {
 }
 
 /**
+ * Themes a lock link.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function theme_features_lock_link($vars) {
+  drupal_add_library('system', 'ui');
+  drupal_add_library('system', 'drupal.ajax');
+  $component = $vars['component'] ? $vars['component'] : '';
+  if ($component && features_component_is_locked($component)) {
+    return l(t('Component locked'), 'admin/structure/features/settings', array(
+      'attributes' => array(
+        'class' => 'features-lock-icon ui-icon ui-icon-locked',
+        'title' => t('This component is locked on a global level.'),
+      ),
+      'fragment' => 'edit-lock-components',
+    ));
+  }
+  $feature = $vars['feature'];
+  $is_locked = features_feature_is_locked($feature, $component);
+  $options = array(
+    'attributes' => array(
+      'class' => array('use-ajax features-lock-icon ui-icon ' . ($is_locked ? ' ui-icon-locked' : ' ui-icon-unlocked')),
+      'id' => 'features-lock-link-' . $feature . ($component ? '-' . $component : ''),
+      'title' => $is_locked ? t('This item is locked and features will not be rebuilt or reverted.') : t('This item is unlocked and will be rebuilt/reverted as normal.'),
+    ),
+    'query' => array('token' => drupal_get_token('features/' . $feature . '/' . $component)),
+  );
+  $path = "admin/structure/features/" . $feature . "/lock/nojs" . ($component ? '/' . $component : '');
+  return l($is_locked ? t('UnLock') : t('Lock'), $path, $options);
+}
+
+/**
  * Themes a module status display.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_storage_link($vars) {
   $classes = array(
@@ -145,7 +212,13 @@ function theme_features_storage_link($vars) {
 }
 
 /**
- * Theme function for displaying form buttons
+ * Theme function for displaying form buttons.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_form_buttons(&$vars) {
   drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
@@ -156,6 +229,15 @@ function theme_features_form_buttons(&$vars) {
 
 /**
  * Theme for features management form.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
+ *
+ * @throws \Exception
+ *   Exceptions can be thrown in theme(), if called pre-boot.
  */
 function theme_features_form_package(&$vars) {
   drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
@@ -182,8 +264,7 @@ function theme_features_form_package(&$vars) {
     unset($vars['form']['status'][$element]['#title']);
     unset($vars['form']['status'][$element]['#description']);
 
-
-    // Determine row & cell classes
+    // Determine row & cell classes.
     $class = $vars['form']['status'][$element]['#default_value'] ? 'enabled' : 'disabled';
 
     $row = array();
@@ -208,18 +289,19 @@ function theme_features_form_package(&$vars) {
   $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'features-form-table', 'class' => array($class))));
 
   // Prevent section from being rendered by drupal_render().
-
   $output .= drupal_render($vars['form']['buttons']);
   $output .= drupal_render_children($vars['form']);
   return $output;
 }
 
 /**
- * Theme functions ====================================================
- */
-
-/**
  * Export selection / display for features export form.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_form_export(&$vars) {
   drupal_add_css(drupal_get_path('module', 'features') . '/features.css');
@@ -228,7 +310,7 @@ function theme_features_form_export(&$vars) {
   $output = '';
   $output .= "<div class='clearfix features-components'>";
   $output .= "<div class='column'>" . drupal_render($vars['form']['components']) . drupal_render($vars['form']['sources']) . "</div>";
-  $output .= "<div class='column'>" . drupal_render($vars['form']['features']) . "</div>";
+  $output .= "<div class='column'>" . drupal_render($vars['form']['preview']) . drupal_render($vars['form']['features']) . "</div>";
   $output .= "</div>";
   $output .= drupal_render_children($vars['form']);
   return $output;
@@ -236,6 +318,12 @@ function theme_features_form_export(&$vars) {
 
 /**
  * Theme a set of features export components.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_form_components(&$vars) {
   $output = '';
@@ -249,6 +337,15 @@ function theme_features_form_components(&$vars) {
 
 /**
  * Theme a set of features export components.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
+ *
+ * @throws \Exception
+ *   Exceptions can be thrown in theme(), if called pre-boot.
  */
 function theme_features_components($vars) {
   $info = $vars['info'];
@@ -274,11 +371,11 @@ function theme_features_components($vars) {
       if (!empty($feature_items) || !empty($source_items)) {
         $rows[] = array(array(
           'data' => isset($components[$component]['name']) ? $components[$component]['name'] : $component,
-          'header' => TRUE
+          'header' => TRUE,
         ));
         $rows[] = array(array(
           'data' => theme('features_component_list', array('components' => $feature_items, 'source' => $source_items)),
-          'class' => 'component'
+          'class' => 'component',
         ));
       }
     }
@@ -290,6 +387,12 @@ function theme_features_components($vars) {
 
 /**
  * Theme individual components in a component list.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_component_list($vars) {
   $components = $vars['components'];
@@ -298,29 +401,35 @@ function theme_features_component_list($vars) {
 
   $list = array();
   foreach ($components as $component) {
-    // If component is not in source list, it was autodetected
+    // If component is not in source list, it was autodetected.
     if (!in_array($component, $source)) {
-      $list[] = "<span class='features-detected'>". check_plain($component) ."</span>";
+      $list[] = "<span class='features-detected'>" . check_plain($component) . "</span>";
     }
     elseif (is_array($conflicts) && in_array($component, $conflicts)) {
-      $list[] = "<span class='features-conflict'>". check_plain($component) ."</span>";
+      $list[] = "<span class='features-conflict'>" . check_plain($component) . "</span>";
     }
     else {
-      $list[] = "<span class='features-source'>". check_plain($component) ."</span>";
+      $list[] = "<span class='features-source'>" . check_plain($component) . "</span>";
     }
   }
   foreach ($source as $component) {
     // If a source component is no longer in the items, it was removed because
     // it is provided by a dependency.
     if (!in_array($component, $components)) {
-      $list[] = "<span class='features-dependency'>". check_plain($component) ."</span>";
+      $list[] = "<span class='features-dependency'>" . check_plain($component) . "</span>";
     }
   }
-  return "<span class='features-component-list'>". implode(' ', $list) ."</span>";
+  return "<span class='features-component-list'>" . implode(' ', $list) . "</span>";
 }
 
 /**
  * Provide a themed key for a component list.
+ *
+ * @param array $vars
+ *   Variables for this theme hook.
+ *
+ * @return string
+ *   Rendered HTML.
  */
 function theme_features_component_key($vars) {
   $list = array();

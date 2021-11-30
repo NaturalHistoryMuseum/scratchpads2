@@ -2,15 +2,17 @@
 
 /**
  * @file
- * Helper class with auxiliary functions for feeds mapper module tests.
+ * Contains FeedsMapperTestCase.
  */
 
 /**
- * Base class for implementing Feeds Mapper test cases.
+ * Helper class with auxiliary functions for feeds mapper module tests.
  */
 class FeedsMapperTestCase extends FeedsWebTestCase {
 
-  // A lookup map to select the widget for each field type.
+  /**
+   * A lookup map to select the widget for each field type.
+   */
   private static $field_widgets = array(
     'date' => 'date_text',
     'datestamp' => 'date_text',
@@ -19,15 +21,21 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
     'email' => 'email_textfield',
     'emimage' => 'emimage_textfields',
     'emaudio' => 'emaudio_textfields',
-    'filefield' => 'filefield_widget',
-    'image' => 'imagefield_widget',
+    'file' => 'file_generic',
+    'image' => 'image_image',
     'link_field' => 'link_field',
+    'list_boolean' => 'options_onoff',
+    'list_float' => 'options_select',
+    'list_integer' => 'options_select',
+    'list_text' => 'options_select',
     'number_float' => 'number',
     'number_integer' => 'number',
     'nodereference' => 'nodereference_select',
     'text' => 'text_textfield',
+    'text_long' => 'text_textarea',
+    'text_with_summary' => 'text_textarea_with_summary',
     'userreference' => 'userreference_select',
-   );
+  );
 
   /**
    * Assert that a form field for the given field with the given value
@@ -49,6 +57,29 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
     foreach ($names as $k => $name) {
       $value = $values[$k];
       $this->assertFieldByName($name, $value, t('Found form field %name for %field_name with the expected value.', array('%name' => $name, '%field_name' => $field_name)));
+    }
+  }
+
+  /**
+   * Assert that a form field for the given field with the given value
+   * does not exist in the current form.
+   *
+   * @param $field_name
+   *   The name of the field.
+   * @param $value
+   *   The (raw) value of the field.
+   * @param $index
+   *   The index of the field (for q multi-valued field).
+   *
+   * @see FeedsMapperTestCase::getFormFieldsNames()
+   * @see FeedsMapperTestCase::getFormFieldsValues()
+   */
+  protected function assertNoNodeFieldValue($field_name, $value, $index = 0) {
+    $names = $this->getFormFieldsNames($field_name, $index);
+    $values = $this->getFormFieldsValues($field_name, $value);
+    foreach ($names as $k => $name) {
+      $value = $values[$k];
+      $this->assertNoFieldByName($name, $value, t('Did not find form field %name for %field_name with the value %value.', array('%name' => $name, '%field_name' => $field_name, '%value' => $value)));
     }
   }
 
@@ -77,10 +108,11 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
    *   The name of the CCK field.
    * @param $value
    *   The (raw) value expected for the CCK field.
+   *
    * @return An array of form field values.
    */
   protected function getFormFieldsValues($field_name, $value) {
-    return array((string)$value);
+    return array((string) $value);
   }
 
   /**
@@ -105,7 +137,7 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
 
     $admin_type_url = 'admin/structure/types/manage/' . str_replace('_', '-', $typename);
 
-    // Create the fields
+    // Create the fields.
     foreach ($fields as $field_name => $options) {
       if (is_string($options)) {
         $options = array('type' => $options);
@@ -157,4 +189,5 @@ class FeedsMapperTestCase extends FeedsWebTestCase {
     $field_widgets = FeedsMapperTestCase::$field_widgets;
     return isset($field_widgets[$field_type]) ? $field_widgets[$field_type] : NULL;
   }
+
 }

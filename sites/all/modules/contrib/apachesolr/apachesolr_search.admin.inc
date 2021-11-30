@@ -84,8 +84,10 @@ function apachesolr_search_page_list_pages() {
     );
 
     // Add the search environment
-    $environment = apachesolr_environment_load($search_page['env_id']);
-    $row[] = $environment ? check_plain($environment['name']) : check_plain(t('<Disabled>'));
+    $env_id = $search_page['env_id'] == -1 ? variable_get('apachesolr_default_environment', '') : $search_page['env_id'];
+    $environment = apachesolr_environment_load($env_id);
+
+    $row[] = $environment ? check_plain($environment['name']).($search_page['env_id'] == -1 ? ' - '.t('Default') : '') : check_plain(t('<Disabled>'));
     // Operations
     $row[] = array('data' => l(t('Edit'), 'admin/config/search/apachesolr/search-pages/' . $search_page['page_id'] . '/edit'));
     $row[] = array('data' => l(t('Clone'), 'admin/config/search/apachesolr/search-pages/' . $search_page['page_id'] . '/clone'));
@@ -182,11 +184,14 @@ function apachesolr_search_page_list_blocks() {
 function apachesolr_search_page_settings_form($form, &$form_state, $search_page = NULL) {
   $environments = apachesolr_load_all_environments();
   $options = array('' => t('<Disabled>'));
+  if(variable_get('apachesolr_default_environment', false)){
+    $options[-1] = t('<Default>');
+  }
   foreach ($environments as $id => $environment) {
     $options[$id] = $environment['name'];
   }
   // Validate the env_id.
-  if (!empty($search_page['env_id']) && !apachesolr_environment_load($search_page['env_id'])) {
+  if (!empty($search_page['env_id']) && $search_page['env_id'] != -1 && !apachesolr_environment_load($search_page['env_id'])) {
     $search_page['env_id'] = '';
   }
 
@@ -199,7 +204,6 @@ function apachesolr_search_page_settings_form($form, &$form_state, $search_page 
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Label'),
-    '#description' => '',
     '#required' => TRUE,
     '#size' => 30,
     '#maxlength' => 32,
@@ -215,7 +219,6 @@ function apachesolr_search_page_settings_form($form, &$form_state, $search_page 
       'exists' => 'apachesolr_search_page_exists',
       'source' => array('label'),
     ),
-    '#description' => '',
     '#default_value' => !empty($search_page['page_id']) ? $search_page['page_id'] : '',
     '#disabled' => !empty($search_page),
     '#description' => t('A unique machine-readable identifier for the search page configuration. It must only contain lowercase letters, numbers, and underscores.'),
@@ -283,7 +286,7 @@ function apachesolr_search_page_settings_form($form, &$form_state, $search_page 
     '#type' => 'textfield',
     '#required' => TRUE,
     '#maxlength' => 255,
-    '#description' => 'You can use %value to place the search term in the title',
+    '#description' => t('You can use %value to put the value of % in the path into the title and %terms to put the search terms into the title. Please note if you have several active search modules, this refers to the title of the tab instead of that of the page.'),
     '#default_value' => !empty($search_page['page_title']) ? $search_page['page_title'] : '',
   );
 
@@ -475,6 +478,12 @@ function apachesolr_search_page_settings_form_validate($form, &$form_state) {
   elseif (count(explode('%', $form_state['values']['search_path'])) > 2) {
     form_set_error('search_path', t('Only one % placeholder is allowed.'));
   }
+  // Make sure we cannot get duplicate search page paths
+  foreach (apachesolr_search_load_all_search_pages() as $search_page) {
+    if ($form_state['values']['search_path'] == $search_page['search_path'] && $form_state['values']['page_id'] != $search_page['page_id']) {
+      form_set_error('search_path', t('The search path must be unique. This path is already in use by another search page.'));
+    }
+  }
 }
 
 /**
@@ -513,7 +522,9 @@ function apachesolr_search_page_settings_form_submit($form, &$form_state) {
   apachesolr_search_page_save($search_page);
 
   // Menu rebuild needed to pick up search path.
-  variable_set('menu_rebuild_needed', TRUE);
+  if ($form_state['values']['search_page']['search_path'] != $search_page['search_path']) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
 
   // Saves our values in the database, sets redirect path on success.
   drupal_set_message(t('The configuration options have been saved for %page.', array('%page' => $form_state['values']['label'])));
@@ -588,7 +599,7 @@ function apachesolr_search_delete_search_page_confirm_submit($form, &$form_state
     'The %label search page configuration has been deleted.',
     array('%label' => $form_state['values']['label'])
   ));
-  watchdog('apachesolr_search', 'Deleted search page configuration "@page_id".', array('@page_id' => $form_state['values']['page_id']), WATCHDOG_NOTICE);
+  watchdog('Apache Solr', 'Deleted search page configuration "@page_id".', array('@page_id' => $form_state['values']['page_id']), WATCHDOG_NOTICE);
 
   // Rebuilds the menu cache.
   menu_rebuild();
@@ -644,7 +655,7 @@ function apachesolr_search_get_fields($environment = NULL) {
     return $fields;
   }
   catch (Exception $e) {
-    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+    apachesolr_log_exception($env_id, $e);
     drupal_set_message(nl2br(check_plain($e->getMessage())), 'warning');
     drupal_set_message(t('Cannot get information about the fields in the index.'), 'warning');
   }
@@ -963,14 +974,16 @@ function apachesolr_search_mlt_block_defaults($block = array()) {
 
 /**
  * Constructs a list of field names used on the settings form.
+ * TODO: This always assumes the default environment!
  *
  * @return array An array containing a the fields in the solr instance.
  */
 function apachesolr_search_mlt_get_fields() {
   $rows = array();
 
+  $env_id = apachesolr_default_environment();
   try {
-    $solr = apachesolr_get_solr();
+    $solr = apachesolr_get_solr($env_id);
     $fields = $solr->getFields();
     foreach ($fields as $field_name => $field) {
       // 'V' appears in different positions in different Solr versions.
@@ -981,7 +994,7 @@ function apachesolr_search_mlt_get_fields() {
     ksort($rows);
   }
   catch (Exception $e) {
-    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+    apachesolr_log_exception($env_id, $e);
   }
 
   return $rows;

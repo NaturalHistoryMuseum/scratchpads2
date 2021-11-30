@@ -15,14 +15,14 @@ class FeedsSimplePieEnclosure extends FeedsEnclosure {
   /**
    * Constructor requires SimplePie enclosure object.
    */
-  function __construct(SimplePie_Enclosure $enclosure) {
+  public function __construct(SimplePie_Enclosure $enclosure) {
     $this->simplepie_enclosure = $enclosure;
   }
 
   /**
    * Serialization helper.
    *
-   * Handle the simplepie enclosure class seperately ourselves.
+   * Handle the simplepie enclosure class separately ourselves.
    */
   public function __sleep() {
     $this->_serialized_simplepie_enclosure = serialize($this->simplepie_enclosure);
@@ -34,9 +34,9 @@ class FeedsSimplePieEnclosure extends FeedsEnclosure {
    *
    * Ensure that the simplepie class definitions are loaded for the enclosure when unserializing.
    */
-   public function __wakeup() {
-     feeds_include_simplepie();
-     $this->simplepie_enclosure = unserialize($this->_serialized_simplepie_enclosure);
+  public function __wakeup() {
+    feeds_include_simplepie();
+    $this->simplepie_enclosure = unserialize($this->_serialized_simplepie_enclosure);
   }
 
   /**
@@ -52,6 +52,7 @@ class FeedsSimplePieEnclosure extends FeedsEnclosure {
   public function getMIMEType() {
     return $this->simplepie_enclosure->get_real_type();
   }
+
 }
 
 /**
@@ -67,10 +68,6 @@ class FeedsSimplePieParser extends FeedsParser {
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
     feeds_include_simplepie();
 
-    // Please be quiet SimplePie.
-    $level = error_reporting();
-    error_reporting($level ^ E_DEPRECATED ^ E_STRICT);
-
     // Initialize SimplePie.
     $parser = new SimplePie();
     $parser->set_raw_data($fetcher_result->getRaw());
@@ -81,7 +78,7 @@ class FeedsSimplePieParser extends FeedsParser {
     $parser->set_cache_location($this->cacheDirectory());
     $parser->init();
 
-    // Construct the standard form of the parsed feed
+    // Construct the standard form of the parsed feed.
     $result = new FeedsParserResult();
     $result->title = html_entity_decode(($title = $parser->get_title()) ? $title : $this->createTitle($parser->get_description()));
     $result->description = $parser->get_description();
@@ -108,21 +105,21 @@ class FeedsSimplePieParser extends FeedsParser {
       $item['author_name'] = isset($author->name) ? html_entity_decode($author->name) : '';
       $item['author_link'] = isset($author->link) ? $author->link : '';
       $item['author_email'] = isset($author->email) ? $author->email : '';
-      // Enclosures
+      // Enclosures.
       $enclosures = $simplepie_item->get_enclosures();
       if (is_array($enclosures)) {
         foreach ($enclosures as $enclosure) {
           $item['enclosures'][] = new FeedsSimplePieEnclosure($enclosure);
         }
       }
-      // Location
+      // Location.
       $latitude = $simplepie_item->get_latitude();
       $longitude = $simplepie_item->get_longitude();
       if (!is_null($latitude) && !is_null($longitude)) {
         $item['location_latitude'][] = $latitude;
         $item['location_longitude'][] = $longitude;
       }
-      // Extract tags related to the item
+      // Extract tags related to the item.
       $simplepie_tags = $simplepie_item->get_categories();
       $tags = array();
       $domains = array();
@@ -149,8 +146,7 @@ class FeedsSimplePieParser extends FeedsParser {
     }
     // Release parser.
     unset($parser);
-    // Set error reporting back to its previous value.
-    error_reporting($level);
+
     return $result;
   }
 
@@ -220,6 +216,15 @@ class FeedsSimplePieParser extends FeedsParser {
   }
 
   /**
+   * Overrides FeedsParser::providesSourceTitle().
+   *
+   * This parser supports retrieving a title from the source.
+   */
+  public function providesSourceTitle() {
+    return TRUE;
+  }
+
+  /**
    * Returns cache directory. Creates it if it doesn't exist.
    */
   protected function cacheDirectory() {
@@ -237,4 +242,5 @@ class FeedsSimplePieParser extends FeedsParser {
     $words = array_slice($words, 0, 3);
     return implode(' ', $words);
   }
+
 }
