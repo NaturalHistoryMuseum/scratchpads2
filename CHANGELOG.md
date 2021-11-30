@@ -14,9 +14,6 @@
 
 - Update Drupal to 7.82 [#6473](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6473)
 
-- Taxonomic scope field for gbif dwc-a file
-[#6373](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6410)
-
 - Remove warning undef notice warning in scratchpads species
 [#6421](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6422)
 
