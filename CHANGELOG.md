@@ -1,5 +1,9 @@
 # Change log
 
+## 2.10.1 (2021-11-31)
+
+- Fixed update to Drupal to 7.82 [#6475](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6475)
+
 ## 2.10 (2021-11-30)
 
 - working implementation for hide menu options for non species taxonomy. Solve access denied when accessing tabs in taxonomy
