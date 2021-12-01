@@ -8,14 +8,24 @@
       $("#twitter-textfield", context).keyup(function() {
         var charsLeft = (140 - $(this).val().length);
         var descDiv = $(this).next();
-        var character = "<strong>1</strong> character remaining";
-        var characters = "<strong>@count</strong> characters remaining";
-        $(descDiv).html(Drupal.formatPlural(charsLeft, character, characters));
+        $(descDiv).html("<strong>" + charsLeft + "</strong> characters remaining");
         if (charsLeft < 0) {
           $(descDiv).addClass("negative");
+        } else {
+          $(descDiv).removeClass("negative");
+        }
+      });
+
+      if (!$("#twitter-toggle").attr("checked")) {
+        $(".form-item-twitter-status").hide();
+      }
+
+      $("#twitter-toggle").bind("click", function() {
+        if ($("#twitter-toggle").attr("checked")) {
+          $(".form-item-twitter-status").show();
         }
         else {
-          $(descDiv).removeClass("negative");
+          $(".form-item-twitter-status").hide();
         }
       });
     }

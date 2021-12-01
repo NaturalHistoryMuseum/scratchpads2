@@ -17,12 +17,8 @@ class ViewsHandlerFilterDateTest extends ViewsSqlTest {
     );
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp(array $modules = array()) {
-    parent::setUp($modules);
-
+  function setUp() {
+    parent::setUp();
     // Add some basic test nodes.
     $this->nodes = array();
     $this->nodes[] = $this->drupalCreateNode(array('created' => 100000));

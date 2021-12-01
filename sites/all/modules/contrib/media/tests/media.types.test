@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Tests for media types.
+ */
+
+/**
+ * Test media type creation and management.
+ */
+class MediaTypeTest extends MediaTestHelper {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Media types',
+      'description' => 'Tests media types',
+      'group' => 'Media',
+      'dependencies' => array('file_entity'),
+    );
+  }
+
+  /**
+   * Test creating a new type. Basic CRUD.
+   */
+  function testCreate() {
+    $type_machine_name = 'foo';
+    $type = $this->createType(array('name' => $type_machine_name, 'label' => 'foobar'));
+    $loaded_type = media_type_load($type_machine_name);
+    $this->assertEqual($loaded_type->label, 'foobar', "Was able to create a type and retreive it");
+  }
+
+  /**
+   * Ensures that the weight is respected when types are created.
+   * @return unknown_type
+   */
+  function testOrder() {
+    $type = $this->createType(array('name' => 'last', 'label' => 'Last', 'weight' => 100));
+    $type = $this->createType(array('name' => 'first', 'label' => 'First'));
+    $types = media_type_get_types();
+    $keys = array_keys($types);
+    $this->assertTrue(isset($types['last']) && isset($types['first']), "Both types saved");
+    $this->assertTrue(array_search('last', $keys) > array_search('first', $keys), 'Type which was supposed to be first came first');
+  }
+
+  /**
+   * Test view mode assignment.  Currently fails, don't know why.
+   * @return unknown_type
+   */
+  function testViewModesAssigned() {
+  }
+
+}

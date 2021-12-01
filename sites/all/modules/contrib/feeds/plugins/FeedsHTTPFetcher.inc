@@ -11,108 +11,37 @@ feeds_include_library('PuSHSubscriber.inc', 'PuSHSubscriber');
  * Result of FeedsHTTPFetcher::fetch().
  */
 class FeedsHTTPFetcherResult extends FeedsFetcherResult {
-
-  /**
-   * The URL of the feed being fetched.
-   *
-   * @var string
-   */
   protected $url;
-
-  /**
-   * The timeout in seconds to wait for a download.
-   *
-   * @var int
-   */
+  protected $file_path;
   protected $timeout;
-
-  /**
-   * Whether to ignore SSL validation errors.
-   *
-   * @var bool
-   */
-  protected $acceptInvalidCert;
-
-  /**
-   * Whether to cache the HTTP result.
-   *
-   * @var bool
-   */
-  protected $cacheHttpResult;
 
   /**
    * Constructor.
    */
   public function __construct($url = NULL) {
     $this->url = $url;
+    parent::__construct('');
   }
 
   /**
-   * Overrides FeedsFetcherResult::getRaw().
-   *
-   * @throws FeedsHTTPRequestException
-   *   In case the result code of the HTTP request is not in the 2xx series.
+   * Overrides FeedsFetcherResult::getRaw();
    */
   public function getRaw() {
-    if ($this->rawExists()) {
-      return parent::getRaw();
-    }
-
-    // Include HTTP functions.
     feeds_include_library('http_request.inc', 'http_request');
-
-    // Try to fetch the data from a URL.
-    $result = feeds_http_request($this->url, array(
-      'accept_invalid_cert' => $this->acceptInvalidCert,
-      'timeout' => $this->timeout,
-      'cache_http_result' => $this->cacheHttpResult,
-    ));
-    http_request_check_result($this->url, $result);
-    $this->raw = $result->data;
-
-    return $this->sanitizeRawOptimized($this->raw);
+    $result = http_request_get($this->url, NULL, NULL, NULL, $this->timeout);
+    if (!in_array($result->code, array(200, 201, 202, 203, 204, 205, 206))) {
+      throw new Exception(t('Download of @url failed with code !code.', array('@url' => $this->url, '!code' => $result->code)));
+    }
+    return $this->sanitizeRaw($result->data);
   }
 
-  /**
-   * Returns the configured value for the request timeout option.
-   *
-   * @return int
-   *   Timeout in seconds to wait for an HTTP get request to finish.
-   */
   public function getTimeout() {
     return $this->timeout;
   }
 
-  /**
-   * Sets the request timeout option.
-   *
-   * @param int $timeout
-   *   Timeout in seconds to wait for an HTTP get request to finish.
-   */
   public function setTimeout($timeout) {
     $this->timeout = $timeout;
   }
-
-  /**
-   * Sets the accept invalid certificates option.
-   *
-   * @param bool $accept_invalid_cert
-   *   Whether to accept invalid certificates.
-   */
-  public function setAcceptInvalidCert($accept_invalid_cert) {
-    $this->acceptInvalidCert = (bool) $accept_invalid_cert;
-  }
-
-  /**
-   * Sets the cache HTTP results of request option.
-   *
-   * @param bool $cache_http_result
-   *   Whether to cache the HTTP result.
-   */
-  public function setCacheHttpResult($cache_http_result) {
-    $this->cacheHttpResult = (bool) $cache_http_result;
-  }
-
 }
 
 /**
@@ -131,8 +60,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     $fetcher_result = new FeedsHTTPFetcherResult($source_config['source']);
     // When request_timeout is empty, the global value is used.
     $fetcher_result->setTimeout($this->config['request_timeout']);
-    $fetcher_result->setAcceptInvalidCert($this->config['accept_invalid_cert']);
-    $fetcher_result->setCacheHttpResult($this->config['cache_http_result']);
     return $fetcher_result;
   }
 
@@ -158,14 +85,11 @@ class FeedsHTTPFetcher extends FeedsFetcher {
     }
     // No subscription notification has ben sent, we are being notified.
     else {
-      $source = feeds_source($this->id, $feed_nid);
       try {
-        $source->existing()->import();
+        feeds_source($this->id, $feed_nid)->existing()->import();
       }
       catch (Exception $e) {
-        // In case of an error, respond with a 503 Service (temporary)
-        // unavailable.
-        $source->log('import', 'An exception occurred: %exception', array('%exception' => $e->getMessage()), WATCHDOG_ERROR);
+        // In case of an error, respond with a 503 Service (temporary) unavailable.
         header('HTTP/1.1 503 "Not Found"', NULL, 503);
         drupal_exit();
       }
@@ -184,10 +108,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       'use_pubsubhubbub' => FALSE,
       'designated_hub' => '',
       'request_timeout' => NULL,
-      'auto_scheme' => 'http',
-      'accept_invalid_cert' => FALSE,
-      'cache_http_result' => TRUE,
-    ) + parent::configDefaults();
+    );
   }
 
   /**
@@ -207,53 +128,27 @@ class FeedsHTTPFetcher extends FeedsFetcher {
       '#description' => t('Attempt to use a <a href="http://en.wikipedia.org/wiki/PubSubHubbub">PubSubHubbub</a> subscription if available.'),
       '#default_value' => $this->config['use_pubsubhubbub'],
     );
-    $form['advanced'] = array(
-      '#title' => t('Advanced settings'),
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-    $form['advanced']['auto_scheme'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Automatically add scheme'),
-      '#description' => t('If the supplied URL does not contain the scheme, use this one automatically. Keep empty to force the user to input the scheme.'),
-      '#default_value' => $this->config['auto_scheme'],
-    );
-    $form['advanced']['designated_hub'] = array(
+    $form['designated_hub'] = array(
       '#type' => 'textfield',
       '#title' => t('Designated hub'),
       '#description' => t('Enter the URL of a designated PubSubHubbub hub (e. g. superfeedr.com). If given, this hub will be used instead of the hub specified in the actual feed.'),
       '#default_value' => $this->config['designated_hub'],
-      '#states' => array(
-        'visible' => array(':input[name="use_pubsubhubbub"]' => array('checked' => TRUE)),
+      '#dependency' => array(
+        'edit-use-pubsubhubbub' => array(1),
       ),
     );
-    // Per importer override of global http request timeout setting.
-    $form['advanced']['request_timeout'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Request timeout'),
-      '#description' => t('Timeout in seconds to wait for an HTTP get request to finish.') . '<br />' . t('<strong>Note:</strong> if left empty, the global timeout setting will be used, which is @timeout seconds. You can set the global timeout setting by setting the variable "@variable".', array(
-        '@timeout' => variable_get('http_request_timeout', 30),
-        '@variable' => 'http_request_timeout',
-      )),
-      '#default_value' => $this->config['request_timeout'],
-      '#element_validate' => array('element_validate_integer_positive'),
-      '#maxlength' => 3,
-      '#size' => 30,
-    );
-    $form['advanced']['accept_invalid_cert'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Accept invalid SSL certificates'),
-      '#description' => t('<strong>IMPORTANT:</strong> This setting will force cURL to completely ignore all SSL errors. This is a <strong>major security risk</strong> and should only be used during development.'),
-      '#default_value' => $this->config['accept_invalid_cert'],
-    );
-    $form['advanced']['cache_http_result'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Cache HTTP result of request'),
-      '#description' => '<p>' . t('Disabling this cache means that the downloaded source will not be cached (for example: on the file system or on memcache), but will be redownloaded on every feeds import attempt. This can be helpful if the source to download is dynamically generated and will always be different, or if it is very large (50 MB+) which would cost additional webspace.') . '</p><p>' . t("If you're having issues with Feeds not processing changes from the source file, or if you are experiencing caching issues, you can disable the caching of this feeds content.") . '</p>',
-      '#default_value' => $this->config['cache_http_result'],
-    );
-
+   // Per importer override of global http request timeout setting.
+   $form['request_timeout'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Request timeout'),
+     '#description' => t('Timeout in seconds to wait for an HTTP get request to finish.</br>' .
+                         '<b>Note:</b> this setting will override the global setting.</br>' .
+                         'When left empty, the global value is used.'),
+     '#default_value' => $this->config['request_timeout'],
+     '#element_validate' => array('element_validate_integer_positive'),
+     '#maxlength' => 3,
+     '#size'=> 30,
+   );
     return $form;
   }
 
@@ -279,24 +174,13 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   public function sourceFormValidate(&$values) {
     $values['source'] = trim($values['source']);
 
-    // Keep a copy for error messages.
-    $original_url = $values['source'];
-
-    $parts = parse_url($values['source']);
-    if (empty($parts['scheme']) && $this->config['auto_scheme']) {
-      $values['source'] = $this->config['auto_scheme'] . '://' . $values['source'];
-    }
-
     if (!feeds_valid_url($values['source'], TRUE)) {
       $form_key = 'feeds][' . get_class($this) . '][source';
-      form_set_error($form_key, t('The URL %source is invalid.', array('%source' => $original_url)));
+      form_set_error($form_key, t('The URL %source is invalid.', array('%source' => $values['source'])));
     }
     elseif ($this->config['auto_detect_feeds']) {
       feeds_include_library('http_request.inc', 'http_request');
-      $url = http_request_get_common_syndication($values['source'], array(
-        'accept_invalid_cert' => $this->config['accept_invalid_cert'],
-      ));
-      if ($url) {
+      if ($url = http_request_get_common_syndication($values['source'])) {
         $values['source'] = $url;
       }
     }
@@ -362,8 +246,7 @@ class FeedsHTTPFetcher extends FeedsFetcher {
    */
   public function importPeriod(FeedsSource $source) {
     if ($this->subscriber($source->feed_nid)->subscribed()) {
-      // Delay for three days if there is a successful subscription.
-      return 259200;
+      return 259200; // Delay for three days if there is a successful subscription.
     }
   }
 
@@ -373,7 +256,6 @@ class FeedsHTTPFetcher extends FeedsFetcher {
   protected function subscriber($subscriber_id) {
     return PushSubscriber::instance($this->id, $subscriber_id, 'PuSHSubscription', PuSHEnvironment::instance());
   }
-
 }
 
 /**
@@ -430,14 +312,12 @@ class PuSHSubscription implements PuSHSubscriptionInterface {
       ->condition('subscriber_id', $this->subscriber_id)
       ->execute();
   }
-
 }
 
 /**
  * Provide environmental functions to the PuSHSubscriber library.
  */
 class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
-
   /**
    * Singleton.
    */
@@ -464,11 +344,9 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
       case 'error':
         $severity = WATCHDOG_ERROR;
         break;
-
       case 'warning':
         $severity = WATCHDOG_WARNING;
         break;
-
       default:
         $severity = WATCHDOG_NOTICE;
         break;
@@ -476,5 +354,4 @@ class PuSHEnvironment implements PuSHSubscriberEnvironmentInterface {
     feeds_dbg($msg);
     watchdog('FeedsHTTPFetcher', $msg, array(), $severity);
   }
-
 }

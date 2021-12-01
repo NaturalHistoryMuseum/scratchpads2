@@ -20,7 +20,7 @@ class ViewsBulkOperationsAction extends ViewsBulkOperationsBaseOperation {
    */
   public function getAccessMask() {
     // Assume edit by default.
-    if (empty($this->operationInfo['behavior'])) {
+    if (!isset($this->operationInfo['behavior'])) {
       $this->operationInfo['behavior'] = array('changes_property');
     }
 
@@ -128,12 +128,7 @@ class ViewsBulkOperationsAction extends ViewsBulkOperationsBaseOperation {
     actions_list();
 
     $submit_callback = $this->operationInfo['callback'] . '_submit';
-    // If the return value from the callback is an options array, store it for
-    // later union onto the context.
-    $options = $submit_callback($form, $form_state);
-    if ($options && is_array($options)) {
-      $this->formOptions = $options;
-    }
+    $this->formOptions = $submit_callback($form, $form_state);
   }
 
   /**

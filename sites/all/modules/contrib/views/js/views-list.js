@@ -1,6 +1,6 @@
 /**
  * @file
- * JavaScript related to the main view list.
+ * Javascript related to the main view list.
  */
 (function ($) {
 

@@ -37,11 +37,8 @@ class ViewsTranslatableTest extends ViewsSqlTest {
     );
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp(array $modules = array()) {
-    parent::setUp($modules);
+  public function setUp() {
+    parent::setUp();
 
     variable_set('views_localization_plugin', 'test');
     // Reset the plugin data.

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Features integration for 'locale' module.
+ *  Features hooks for language.
  */
 
 /**
@@ -12,10 +12,8 @@ function locale_features_api() {
   return array(
     'language' => array(
       'name' => t('Languages'),
-      /* @see \hook_locale_default_languages() */
-      /* @see \hook_locale_default_languages_alter() */
       'default_hook' => 'locale_default_languages',
-      'feature_source' => TRUE,
+      'features_source' => TRUE,
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
     ),
   );
@@ -64,7 +62,7 @@ function language_features_export_render($module, $data, $export = NULL) {
     if (!empty($language_list[$name])) {
 
       $var = (array) $language_list[$name];
-      // Unset javascript hash.
+      // Unset javascript hash
       unset($var['javascript']);
 
       $lang_export = features_var_export($var, '  ');
@@ -108,10 +106,7 @@ function language_features_rebuild($module) {
 /**
  * Helper function to save the language to database.
  *
- * @param \stdClass $language
- *   Language object to save.
- *
- * @see \locale_languages_edit_form_submit()
+ * @see locale_languages_edit_form_submit()
  */
 function _features_language_save($language) {
 
@@ -126,33 +121,27 @@ function _features_language_save($language) {
 
   // Insert new language via api function.
   if (empty($current_language)) {
-    locale_add_language(
-      $language->language,
-      $language->name,
-      $language->native,
-      $language->direction,
-      $language->domain,
-      $language->prefix,
-      $language->enabled,
-      $language->language == $default->language);
+    locale_add_language($language->language,
+                        $language->name,
+                        $language->native,
+                        $language->direction,
+                        $language->domain,
+                        $language->prefix,
+                        $language->enabled,
+                        ($language->language == $default->language));
     // Additional params, locale_add_language does not implement.
     db_update('languages')
       ->fields(array(
         'plurals' => empty($language->plurals) ? 0 : $language->plurals,
         'formula' => empty($language->formula) ? '' : $language->formula,
-        'weight' => empty($language->weight) ? 0 : $language->weight,
       ))
       ->condition('language', $language->language)
       ->execute();
   }
   // Update Existing language.
   else {
-    // Get field list from table schema.
-    $properties = drupal_schema_fields_sql('languages');
-    // The javascript hash is not in the imported data but should be empty.
-    if (!isset($language->javascript)) {
-      $language->javascript = '';
-    }
+    // @TODO: get properties from schema.
+    $properties = array('language', 'name', 'native', 'direction', 'enabled', 'plurals', 'formula', 'domain', 'prefix', 'weight');
 
     $fields = array_intersect_key((array) $language, array_flip($properties));
     db_update('languages')

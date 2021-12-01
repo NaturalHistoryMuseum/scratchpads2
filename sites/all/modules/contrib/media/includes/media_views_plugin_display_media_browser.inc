@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Contains the media browser tab display plugin.

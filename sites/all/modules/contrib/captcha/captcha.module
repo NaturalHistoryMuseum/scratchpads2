@@ -157,8 +157,6 @@ function captcha_element_info() {
     '#process' => array('captcha_element_process'),
     // The type of challenge: e.g. 'default', 'none', 'captcha/Math', 'image_captcha/Image'.
     '#captcha_type' => 'default',
-    // Forces captcha validation for all cases if TRUE.
-    '#captcha_always' => FALSE,
     '#default_value' => '',
     // CAPTCHA in admin mode: presolve the CAPTCHA and always show it (despite previous successful responses).
     '#captcha_admin_mode' => FALSE,
@@ -181,8 +179,15 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 
   module_load_include('inc', 'captcha');
 
-  // Add JavaScript for general CAPTCHA functionality.
+  // Add Javascript for general CAPTCHA functionality.
   drupal_add_js(drupal_get_path('module', 'captcha') . '/captcha.js');
+
+  // Prevent caching of the page with CAPTCHA elements.
+  // This needs to be done even if the CAPTCHA will be ommitted later:
+  // other untrusted users should not get a cached page when
+  // the current untrusted user can skip the current CAPTCHA.
+  global $conf;
+  $conf['cache'] = FALSE;
 
   // Get the form ID of the form we are currently processing (which is not
   // necessary the same form that is submitted (if any).
@@ -249,7 +254,7 @@ function captcha_element_process($element, &$form_state, $complete_form) {
     'captcha_sid' => $captcha_sid,
   );
 
-  if (_captcha_required_for_user($captcha_sid, $this_form_id) || $element['#captcha_admin_mode'] || $element['#captcha_always']) {
+  if (_captcha_required_for_user($captcha_sid, $this_form_id) || $element['#captcha_admin_mode']) {
     // Generate a CAPTCHA and its solution
     // (note that the CAPTCHA session ID is given as third argument).
     $captcha = module_invoke($captcha_type_module, 'captcha', 'generate', $captcha_type_challenge, $captcha_sid);
@@ -289,19 +294,6 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 
     // Store the solution in the #captcha_info array.
     $element['#captcha_info']['solution'] = $captcha['solution'];
-
-    // Store if this captcha type is cacheable:
-    // A cacheable captcha must not depend on the sid or solution, but be
-    // independent - like for example recaptcha.
-    $element['#captcha_info']['cacheable'] = !empty($captcha['cacheable']);
-
-    if (!empty($element['#captcha_info']['cacheable']) && drupal_page_is_cacheable()) {
-      // This is only used to avoid the re-use message.
-      $element['captcha_cacheable'] = array(
-        '#type' => 'hidden',
-        '#value' => TRUE,
-      );
-    }
 
     // Make sure we can use a top level form value $form_state['values']['captcha_response'], even if the form has #tree=true.
     $element['#tree'] = FALSE;
@@ -367,12 +359,6 @@ function captcha_captcha_default_points_alter(&$items) {
  */
 function theme_captcha($variables) {
   $element = $variables['element'];
-
-  if (empty($element['#description']) && !empty($element['#attributes']['title'])) {
-    // Fix for Bootstrap-based themes.
-    $element['#description'] = $element['#attributes']['title'];
-  }
-
   if (!empty($element['#description']) && isset($element['captcha_widgets'])) {
     $fieldset = array(
       '#type' => 'fieldset',
@@ -396,21 +382,12 @@ function theme_captcha($variables) {
  */
 function captcha_form_alter(&$form, &$form_state, $form_id) {
 
-  // If user has skip CAPTCHA permission, doesn't do anything.
   if (!user_access('skip CAPTCHA')) {
     // Visitor does not have permission to skip CAPTCHAs.
     module_load_include('inc', 'captcha');
 
     // Get CAPTCHA type and module for given form_id.
     $captcha_point = captcha_get_form_id_setting($form_id);
-
-    // If no captcha point found, check to see if there is a setting for the base form id
-    if (!$captcha_point) {
-      if (isset($form_state['build_info']['base_form_id'])) {
-        $captcha_point = captcha_get_form_id_setting($form_state['build_info']['base_form_id']);
-      }
-    }
-
     if ($captcha_point && !empty($captcha_point->captcha_type)) {
       module_load_include('inc', 'captcha');
       // Build CAPTCHA form element.
@@ -428,11 +405,7 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
       _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
     }
   }
-
-  // If user has access to administer CAPTCHA settings and
-  // 'Add CAPTCHA administration links to forms' is enabled, display the
-  // helper widget.
-  if (
+  elseif (
     variable_get('captcha_administration_mode', FALSE)
     && user_access('administer CAPTCHA settings')
     && (arg(0) != 'admin' || variable_get('captcha_allow_on_admin_pages', FALSE))
@@ -449,7 +422,6 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
       '#collapsed' => TRUE,
       '#attributes' => array('class' => array('captcha-admin-links')),
     );
-
     if ($captcha_point !== NULL && $captcha_point->captcha_type) {
       $captcha_element['#title'] = t('CAPTCHA: challenge "@type" enabled', array('@type' => $captcha_point->captcha_type));
       $captcha_element['#description'] = t('Untrusted users will see a CAPTCHA here (<a href="@settings">general CAPTCHA settings</a>).',
@@ -465,7 +437,6 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
           '@disable' => url("admin/config/people/captcha/captcha/captcha_point/$form_id/disable", array('query' => drupal_get_destination())),
         )),
       );
-
       // Add an example challenge with solution.
       // This does not work with the reCAPTCHA and Egglue challenges as
       // discussed in http://drupal.org/node/487032 and
@@ -492,11 +463,12 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
       $captcha_element['add_captcha'] = array(
         '#markup' => l(t('Place a CAPTCHA here for untrusted users.'), "admin/config/people/captcha/captcha/captcha_point/$form_id", array('query' => drupal_get_destination()))
       );
-    }
 
+    }
     // Get placement in form and insert in form.
     $captcha_placement = _captcha_get_captcha_placement($form_id, $form);
     _captcha_insert_captcha_element($form, $captcha_placement, $captcha_element);
+
   }
 
   // Add a warning about caching on the Perfomance settings page.
@@ -622,18 +594,7 @@ function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
  *     if the values could not be found, e.g. for a fresh form).
  */
 function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) {
-  //Handle Ajax scenarios
-  if (!empty($form_state['rebuild_info'])) {
-    if (!empty($form_state['captcha_info']['posted_form_id'])) {
-      $posted_form_id = $form_state['captcha_info']['posted_form_id'];
-    }
-    else {
-      $posted_form_id = $form_state['input']['form_id'];
-    }
-
-    $posted_captcha_sid = $form_state['captcha_info']['captcha_sid'];
-  }
-  else if ($form_state['submitted'] && isset($form_state['captcha_info'])) {
+  if ($form_state['submitted'] && isset($form_state['captcha_info'])) {
     // We are handling (or rebuilding) an already submitted form,
     // so we already determined the posted form ID and CAPTCHA session ID
     // for this form (from before submitting). Reuse this info.
@@ -664,9 +625,7 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) 
         )->fetchField();
 
         if ($expected_captcha_token !== $posted_captcha_token) {
-          if (empty($form_state['input']['captcha_cacheable'])) {
-            drupal_set_message(t('CAPTCHA session reuse attack detected.'), 'error');
-          }
+          drupal_set_message(t('CAPTCHA session reuse attack detected.'), 'error');
           // Invalidate the CAPTCHA session.
           $posted_captcha_sid = NULL;
         }
@@ -760,7 +719,7 @@ function captcha_validate($element, &$form_state) {
         ->expression('attempts', 'attempts + 1')
         ->execute();
       // Set form error.
-      form_set_error('captcha_response', _captcha_get_error_message());
+      form_set_error('captcha_response', t('The answer you entered for the CAPTCHA was not correct.'));
       // Update wrong response counter.
       if (variable_get('captcha_enable_stats', FALSE)) {
         variable_set('captcha_wrong_response_counter', variable_get('captcha_wrong_response_counter', 0) + 1);
@@ -805,21 +764,7 @@ function captcha_pre_render_process($element) {
   // of multi-page forms. Take previewing a node submission for example:
   // when the challenge is solved correctely on preview, the form is still
   // not completely submitted, but the CAPTCHA can be skipped.
-  if (_captcha_required_for_user($captcha_sid, $form_id) || $element['#captcha_admin_mode'] || $element['#captcha_always']) {
-    // Prevent caching of the page with CAPTCHA elements.
-    // This needs to be done only if the captcha is actually displayed.
-    // The captcha display will be skipped only in 2 cases:
-    //   - The captcha sid has a solution already.
-    //   - The user has a SESSION.
-    // For a page to be cacheable, the user MUST not have a SESSION.
-    // For a SID to be solved already, it must be a POST request as else
-    // a new unsolved SID is generated.
-    // Therefore it is fine to disable the cache at this late stage here.
-    if (empty($captcha_info['cacheable'])) {
-      // The cache is only disabled if the captcha itself is not cacheable.
-      drupal_page_is_cacheable(FALSE);
-    }
-
+  if (_captcha_required_for_user($captcha_sid, $form_id) || $element['#captcha_admin_mode']) {
     // Update captcha_sessions table: store the solution of the generated CAPTCHA.
     _captcha_update_captcha_session($captcha_sid, $captcha_info['solution']);
 

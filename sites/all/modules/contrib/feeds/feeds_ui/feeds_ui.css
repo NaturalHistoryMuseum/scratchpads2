@@ -24,7 +24,7 @@ div.left-bar {
   float: left;
   position: relative;
   width: 240px;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #DDD;
   padding: 10px 10px 0 0;
 }
 
@@ -39,6 +39,7 @@ div.configuration-squeeze {
 
 /* Container theming. */
 div.feeds-container {
+
 }
 
 div.feeds-container h4 {
@@ -47,9 +48,9 @@ div.feeds-container h4 {
 }
 
 div.feeds-container.plain {
-  background-color: #eee;
-  border-bottom: 1px solid #ddd;
-  border-top: 2px solid #ddd;
+  background-color: #EEE;
+  border-bottom: 1px solid #DDD;
+  border-top: 2px solid #DDD;
   padding: 5px;
   margin: 10px 0;
 }
@@ -88,7 +89,7 @@ ul.container-actions li {
   background-image: none;
   margin: 0;
   padding: 0;
-  position: relative; /* Fix for IE 7 compatibility mode. */
+  position: relative; /* Fix for IE 7 compatability mode. */
 }
 
 ul.container-actions .form-item,
@@ -102,12 +103,4 @@ ul.container-actions li form input {
 /* Mapping form. */
 #center table form {
   margin: 0;
-}
-
-div.feeds-container-body .feeds-target-config div.item-list ul li {
-  list-style: outside none disc;
-  margin: 0 0 0.25em 1.5em;
-}
-.feeds-target-config .description {
-  white-space: normal;
 }

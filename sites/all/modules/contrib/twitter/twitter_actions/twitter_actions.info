@@ -3,9 +3,9 @@ description = Exposes Drupal actions to send Twitter messages.
 core = 7.x
 dependencies[] = twitter
 
-; Information added by Drupal.org packaging script on 2015-10-05
-version = "7.x-5.11"
+; Information added by drupal.org packaging script on 2013-06-03
+version = "7.x-5.8"
 core = "7.x"
 project = "twitter"
-datestamp = "1444046332"
+datestamp = "1370303463"
 

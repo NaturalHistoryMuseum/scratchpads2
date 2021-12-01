@@ -64,7 +64,6 @@ class views_handler_field_links extends views_handler_field {
   public function options_submit(&$form, &$form_state) {
     // Remove unselected options.
     $form_state['values']['options']['fields'] = array_filter($form_state['values']['options']['fields']);
-    parent::options_submit($form, $form_state);
   }
 
   /**

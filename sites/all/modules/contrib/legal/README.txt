@@ -1,10 +1,10 @@
 ********************************************************************
 D R U P A L    M O D U L E
 ********************************************************************
-Name: Legal Module
+Name: Legal Module 
 Author: Robert Castelo
 Sponsor: Code Positive [www.codepositive.com]
-Drupal: 7.0.x
+Drupal: 6.0.x
 ********************************************************************
 DESCRIPTION:
 
@@ -14,21 +14,18 @@ DESCRIPTION:
 
     Note: No T&C will be displayed until the T&C text has been input by
               the administrator.
-
-    Each time a new version of the T&C is created all users will be required to
+    
+    Each time a new version of the T&C is created all users will be required to 
     accept the new version.
 
     Note: T&C text should only be entered by administrators or other highly trusted users.
-              filter_xss_admin() is used to filter content for display, this is a very permissive
+              filter_xss_admin() is used to filter content for display, this is a very permissive 
               XSS/HTML filter intended for admin-only use.
 
-   Integrates with Views, and ships with 2 default views that display T&C history, and user
+   Integrates with Views, and ships with 2 default views that display T&C history, and user 
    acceptance of T&Cs.
 
-   Tokens can be used in T&C text.
-
-
- ********************************************************************
+********************************************************************
 INSTALLATION:
 
     Note: It is assumed that you have Drupal up and running.  Be sure to
@@ -36,84 +33,51 @@ INSTALLATION:
     problems, you should always read the INSTALL.txt that comes with the
     Drupal package and read the online documentation.
 
-      Dependencies: none
+      Dependencies: checkbox_validate Module  
 
-    Place the entire legal directory into your Drupal modules/directory.
-    Enable the Legal module by navigating to: Administer > Modules > Other > Legal
+	1. Place the entire legal directory into your Drupal
+        modules/directory.
 
-    Click the 'Save configuration' button at the bottom to commit your changes.
+	2. Enable the legal module by navigating to:
 
-********************************************************************
-CONFIGURATION:
+	   Administer > Site building > Modules
 
-    There are two ways to set permissions:
-
-        1. Go to Administer > Modules > Other > Legal, under the "Operations" column click the "Permissions" link
-            Set which roles can "View Terms and Conditions".
-            Set which roles can "Administer Terms and Conditions".
-        2. Go to Administer > People > Permissions
-            Set which roles can "View Terms and Conditions".
-            Set which roles can "Administer Terms and Conditions".
-
-        Click the 'Save permissions' button at the bottom to commit your changes.
-
-    There are two ways to configure the Legal module:
-
-        1. Go to Administer > Modules > Other > Legal, under the "Operations" column click the "Configure" link
-            Input your terms & conditions text.
-        2. Go to Administer > People > Legal
-            Input your terms & conditions text.
-
-
-    Set how you would like it displayed:
-
-    - Scroll Box - Standard form text box (read only). Text is entered and displayed as text only.
-    - Scroll Box (CSS) - Scrollable text box created in CSS.
-        Text should be entered with HTML formatting. (less accessible than a standard scroll box)
-    - HTML Text - Terms & conditions displayed as HTML formatted text.
-        Text should be entered with HTML formatting.
-    - Page Link
-
-    Note: When displayed on the page at /legal, your T&Cs will be automatically reformatted to HTML Text
-        if entered as a Scroll Box or Scroll Box (CSS).
-
-    Click the 'Save' button at the bottom to commit your changes.
+	Click the 'Save configuration' button at the bottom to commit your
+    changes.
+    
 
 
 ********************************************************************
-ADDITIONAL CONFIGURATION
+CONFIGURATION
 
-ADDITIONAL CHECKBOXES
-Each field that contains text will be shown as a checkbox which the user must tick to register.
-For example, if you enter "I am at least 18 years of age" in the text area, this will display as an additional checkbox,
-which must be ticked in order to proceed.
+	1. Go to Administer > User management > Access control
+	    
+	    Set which roles can "view Terms and Conditions"
+	    Set which roles can "administer Terms and Conditions"
+	
+	2. Go to Administer > Site configuration > Legal
 
-EXPLAIN CHANGES
-Explain what changes were made to the T&C since the last version.
-This will only be shown to users who accepted a previous version (authenticated users).
-Each line will automatically be shown as a bullet point.
+	   Input your terms & conditions text, set how you would like it
+     displayed:
+
+	- Scroll Box - Standard form text box (read only) Text is entered
+    and displayed as text only
+
+	- Scroll Box (CSS) - Scrollable text box created in CSS Text should
+    be entered with HTML formatting. 
+       (less accessible than a standard scroll box)
+
+	- HTML Text - Terms & conditions displayed as HTML formatted text
+       Text should be entered with HTML formatting
+
+	Note: When displayed on the page /legal your T&Cs will be automatically 
+                reformatted to HTML Text if entered as a Scroll Box or Scroll Box (CSS)
 
 FACEBOOK CONNECT
 
-In facebook applications, click edit, click on Facebook User Settings.
-Click on "Do not create accounts Automatically". Then, when user DOES
-create account, it runs them through the Legal agreement.
-
-VARNISH CACHE
-
-Some users have reported that when a user who hasn't accepted the
-latest version of the legal terms attempts to login, they are logged
-out with the message 'Operation timed out. Please try to log in again.'
-
-To fix this please add the following to your default.vcl file:
-
-sub vcl_recv {
-  if (req.url ~ "^/legal_accept") {
-    return (pipe);
-  }
-}
-
-
+In facebook applications, click edit, click on Facebook User Settings. Click on "Do not create accounts Automatically". Then, when user DOES create account, it runs them through the Legal agreement.      
+       
+       
 ********************************************************************
 ACKNOWLEDGEMENTS
 
@@ -124,7 +88,7 @@ Lullabot (http://www.lullabot.com)
 Steven Wittens (Steven)
 
 * T&C Page formatting
-Bryant Mairs (Susurrus)
+Bryant Mairs (Susurrus) 
 
 
 

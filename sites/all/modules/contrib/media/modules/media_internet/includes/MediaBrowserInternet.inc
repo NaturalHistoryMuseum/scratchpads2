@@ -20,13 +20,7 @@ class MediaBrowserInternet extends MediaBrowserPlugin {
    * Implements MediaBrowserPlugin::view().
    */
   public function view() {
-    module_load_include('inc', 'file_entity', 'file_entity.pages');
-
-    $build = array();
-    $params = $this->params;
-    $params['internet_media'] = TRUE;
-    $build['form'] = drupal_get_form('media_internet_add_upload', $params);
-
+    $build['form'] = drupal_get_form('media_internet_add', $this->params['types'], $this->params['multiselect']);
     return $build;
   }
 }

@@ -6,8 +6,6 @@
  */
 
 /**
- * Class for a Feeds importer.
- *
  * A FeedsImporter object describes how an external source should be fetched,
  * parsed and processed. Feeds can manage an arbitrary amount of importers.
  *
@@ -26,46 +24,17 @@
  */
 class FeedsImporter extends FeedsConfigurable {
 
-  /**
-   * Every feed has a fetcher, a parser and a processor.
-   *
-   * These variable names match the possible return values of
-   * FeedsPlugin::typeOf().
-   */
+  // Every feed has a fetcher, a parser and a processor.
+  // These variable names match the possible return values of
+  // FeedsPlugin::typeOf().
+  protected $fetcher, $parser, $processor;
 
-  /**
-   * The selected fetcher for this importer.
-   *
-   * @var FeedsFetcher|null
-   */
-  protected $fetcher;
-
-  /**
-   * The selected parser for this importer.
-   *
-   * @var FeedsParser|null
-   */
-  protected $parser;
-
-  /**
-   * The selected processor for this importer.
-   *
-   * @var FeedsProcessor|null
-   */
-  protected $processor;
-
-  /**
-   * This array defines the variable names of the plugins above.
-   *
-   * @var string[]
-   */
+  // This array defines the variable names of the plugins above.
   protected $plugin_types = array('fetcher', 'parser', 'processor');
 
   /**
-   * Instantiate class variables, initialize and configure plugins.
-   *
-   * @param string $id
-   *   The importer ID.
+   * Instantiate class variables, initialize and configure
+   * plugins.
    */
   protected function __construct($id) {
     parent::__construct($id);
@@ -86,7 +55,51 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Reports how many items *should* be created on one request by this importer.
+   * Remove items older than $time.
+   *
+   * @param $time
+   *   All items older than REQUEST_TIME - $time will be deleted. If not
+   *   given, internal processor settings will be used.
+   *
+   * @return
+   *   FEEDS_BATCH_COMPLETE if the expiry process finished. A decimal between
+   *   0.0 and 0.9 periodic if expiry is still in progress.
+   *
+   * @throws
+   *   Throws Exception if an error occurs when expiring items.
+   */
+  public function expire($time = NULL) {
+    return $this->processor->expire($time);
+  }
+
+  /**
+   * Schedule all periodic tasks for this importer.
+   */
+  public function schedule() {
+    $this->scheduleExpire();
+  }
+
+  /**
+   * Schedule expiry of items.
+   */
+  public function scheduleExpire() {
+    $job = array(
+      'type' => $this->id,
+      'period' => 0,
+      'periodic' => TRUE,
+    );
+    if (FEEDS_EXPIRE_NEVER != $this->processor->expiryTime()) {
+      $job['period'] = 3600;
+      JobScheduler::get('feeds_importer_expire')->set($job);
+    }
+    else {
+      JobScheduler::get('feeds_importer_expire')->remove($job);
+    }
+  }
+
+  /**
+   * Report how many items *should* be created on one page load by this
+   * importer.
    *
    * Note:
    *
@@ -95,7 +108,7 @@ class FeedsImporter extends FeedsConfigurable {
    * number of items that can be created on one page load is actually without
    * limit.
    *
-   * @return int
+   * @return
    *   A positive number defining the number of items that can be created on
    *   one page load. 0 if this number is unlimited.
    */
@@ -142,29 +155,35 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Deletes configuration.
-   *
-   * Removes configuration information from database, does not delete
-   * configuration itself.
+   * Delete configuration. Removes configuration information
+   * from database, does not delete configuration itself.
    */
   public function delete() {
     db_delete('feeds_importer')
       ->condition('id', $this->id)
       ->execute();
-
-    feeds_reschedule($this->id);
+    $job = array(
+      'type' => $this->id,
+      'id' => 0,
+    );
+    if ($this->export_type & EXPORT_IN_CODE) {
+      feeds_reschedule($this->id);
+    }
+    else {
+      JobScheduler::get('feeds_importer_expire')->remove($job);
+    }
   }
 
   /**
    * Set plugin.
    *
-   * @param string $plugin_key
-   *   The name of a fetcher, parser or processor plugin.
+   * @param $plugin_key
+   *   A fetcher, parser or processor plugin.
    *
    * @todo Error handling, handle setting to the same plugin.
    */
   public function setPlugin($plugin_key) {
-    // $plugin_type can be either 'fetcher', 'parser' or 'processor'.
+    // $plugin_type can be either 'fetcher', 'parser' or 'processor'
     if ($plugin_type = FeedsPlugin::typeOf($plugin_key)) {
       if ($plugin = feeds_plugin($plugin_key, $this->id)) {
         // Unset existing plugin, switch to new plugin.
@@ -180,21 +199,21 @@ class FeedsImporter extends FeedsConfigurable {
   /**
    * Copy a FeedsImporter configuration into this importer.
    *
-   * @param FeedsConfigurable $configurable
+   * @param FeedsImporter $importer
    *   The feeds importer object to copy from.
    */
-  public function copy(FeedsConfigurable $configurable) {
-    parent::copy($configurable);
+   public function copy(FeedsConfigurable $configurable) {
+     parent::copy($configurable);
 
-    if ($configurable instanceof FeedsImporter) {
-      // Instantiate new fetcher, parser and processor and initialize their
-      // configurations.
-      foreach ($this->plugin_types as $plugin_type) {
-        $this->setPlugin($configurable->config[$plugin_type]['plugin_key']);
-        $this->$plugin_type->setConfig($configurable->config[$plugin_type]['config']);
-      }
-    }
-  }
+     if ($configurable instanceof FeedsImporter) {
+       // Instantiate new fetcher, parser and processor and initialize their
+       // configurations.
+       foreach ($this->plugin_types as $plugin_type) {
+         $this->setPlugin($configurable->config[$plugin_type]['plugin_key']);
+         $this->$plugin_type->setConfig($configurable->config[$plugin_type]['config']);
+       }
+     }
+   }
 
   /**
    * Get configuration of this feed.
@@ -204,77 +223,6 @@ class FeedsImporter extends FeedsConfigurable {
       $this->config[$type]['config'] = $this->$type->getConfig();
     }
     return parent::getConfig();
-  }
-
-  /**
-   * Validates the configuration.
-   */
-  public function validateConfig() {
-    $errors = parent::validateConfig();
-    $config = $this->getConfig();
-
-    // Check if "Attach to content type" setting is the same as content type on
-    // node processor.
-    if ($this->processor instanceof FeedsNodeProcessor) {
-      $processor_config = $this->processor->getConfig();
-      if (!empty($config['content_type']) && $processor_config['bundle'] == $config['content_type']) {
-        $message = t('The importer is attached to the same content type as the content type selected on the node processor. Unless you have a very advanced use case, these two should never be the same.');
-        if (!module_exists('feeds_news')) {
-          $message .= ' ' . t('Enable the Feeds News module for an example of how the "@content_type" setting can be used.', array(
-            '@content_type' => t('Attach to content type'),
-          ));
-        }
-        elseif ($this->id != 'feed') {
-          $message .= ' ' . t('See the importer !importer_name (provided by the Feeds News module) for an example of how the "@content_type" setting can be used.', array(
-            '!importer_name' => l(check_plain(feeds_importer('feed')->config['name']), 'admin/structure/feeds/feed'),
-            '@content_type' => t('Attach to content type'),
-          ));
-        }
-
-        $errors[] = $message;
-      }
-    }
-
-    // Check for a combination of incompatible settings.
-    if (!$config['import_on_create'] && empty($config['content_type'])) {
-      if ($config['import_period'] == FEEDS_SCHEDULE_NEVER) {
-        $errors[] = t('"@import_period" and "@import_on_create" are both turned off and the importer is not attached to a content type. Unless you have alternative methods of running imports for this importer, Feeds will not import anything for this importer.', array(
-          '@import_period' => t('Periodic import'),
-          '@import_on_create' => t('Import on submission'),
-        ));
-      }
-      elseif ($config['process_in_background']) {
-        $errors[] = t('Since "@import_on_create" is turned off and the importer is not attached to a content type, the "@process_in_background" setting may have no effect. When submitting the standalone form with the "@import_on_create" setting turned off, the feed is only scheduled for periodic import.', array(
-          '@import_on_create' => t('Import on submission'),
-          '@process_in_background' => t('Process in background'),
-        ));
-      }
-    }
-
-    // Validate errors of each plugin as well.
-    $plugin_types = array(
-      'fetcher' => t('Fetcher'),
-      'parser' => t('Parser'),
-      'processor' => t('Processor'),
-    );
-    foreach ($plugin_types as $type => $plugin_label) {
-      // Check if plugin exists.
-      $plugin = feeds_plugin($this->config[$type]['plugin_key'], $this->id);
-      if ($plugin instanceof FeedsMissingPlugin) {
-        $errors[] = t('The plugin %plugin is unavailable.', array('%plugin' => $this->config[$type]['plugin_key']));
-        continue;
-      }
-
-      $plugin_errors = $this->$type->validateConfig();
-      foreach ($plugin_errors as $key => $error) {
-        $errors[] = t('@plugin: !error', array(
-          '@plugin' => $plugin_label,
-          '!error' => $error,
-        ));
-      }
-    }
-
-    return $errors;
   }
 
   /**
@@ -295,24 +243,15 @@ class FeedsImporter extends FeedsConfigurable {
       ),
       'content_type' => '',
       'update' => 0,
-      // Refresh every 30 minutes by default.
-      'import_period' => 1800,
-      // Expire every hour by default, this is a hidden setting.
-      'expire_period' => 3600,
-      // Import on submission.
-      'import_on_create' => TRUE,
+      'import_period' => 1800, // Refresh every 30 minutes by default.
+      'expire_period' => 3600, // Expire every hour by default, this is a hidden setting.
+      'import_on_create' => TRUE, // Import on submission.
       'process_in_background' => FALSE,
-    ) + parent::configDefaults();
+    );
   }
 
   /**
-   * Overrides parent::configForm().
-   *
-   * @param array $form_state
-   *   The current state of the form.
-   *
-   * @return array
-   *   The form definition.
+   * Override parent::configForm().
    */
   public function configForm(&$form_state) {
     $config = $this->getConfig();
@@ -335,25 +274,14 @@ class FeedsImporter extends FeedsConfigurable {
     $form['content_type'] = array(
       '#type' => 'select',
       '#title' => t('Attach to content type'),
-      '#description' => '<p>' . t('If "Use standalone form" is selected, a source is imported by using a form under !import_form. If a content type is selected, a source is imported by creating a node of that content type.', array(
-        '!import_form' => l(url('import', array('absolute' => TRUE)), 'import', array('attributes' => array('target' => '_new'))),
-      )) . '</p>',
+      '#description' => t('If "Use standalone form" is selected a source is imported by using a form under !import_form.
+                           If a content type is selected a source is imported by creating a node of that content type.',
+                           array('!import_form' => l(url('import', array('absolute' => TRUE)), 'import', array('attributes' => array('target' => '_new'))))),
       '#options' => array('' => t('Use standalone form')) + $node_types,
       '#default_value' => $config['content_type'],
     );
-    $cron_required = ' ' . l(t('Requires cron to be configured.'), 'http://drupal.org/cron', array('attributes' => array('target' => '_new')));
-    $period = drupal_map_assoc(array(
-      900,
-      1800,
-      3600,
-      10800,
-      21600,
-      43200,
-      86400,
-      259200,
-      604800,
-      2419200,
-    ), 'format_interval');
+    $cron_required =  ' ' . l(t('Requires cron to be configured.'), 'http://drupal.org/cron', array('attributes' => array('target' => '_new')));
+    $period = drupal_map_assoc(array(900, 1800, 3600, 10800, 21600, 43200, 86400, 259200, 604800, 2419200), 'format_interval');
     foreach ($period as &$p) {
       $p = t('Every !p', array('!p' => $p));
     }
@@ -371,7 +299,7 @@ class FeedsImporter extends FeedsConfigurable {
     $form['import_on_create'] = array(
       '#type' => 'checkbox',
       '#title' => t('Import on submission'),
-      '#description' => t('Check if import should be started at the moment a standalone form or node form is submitted. If not checked and when using the standalone form, be sure to configure periodic import.'),
+      '#description' => t('Check if import should be started at the moment a standalone form or node form is submitted.'),
       '#default_value' => $config['import_on_create'],
     );
     $form['process_in_background'] = array(
@@ -384,12 +312,7 @@ class FeedsImporter extends FeedsConfigurable {
   }
 
   /**
-   * Overrides parent::configFormSubmit().
-   *
    * Reschedule if import period changes.
-   *
-   * @param array $values
-   *   An array that contains the values entered by the user through configForm.
    */
   public function configFormSubmit(&$values) {
     if ($this->config['import_period'] != $values['import_period']) {
@@ -397,28 +320,10 @@ class FeedsImporter extends FeedsConfigurable {
     }
     parent::configFormSubmit($values);
   }
-
-  /**
-   * Implements FeedsConfigurable::dependencies().
-   */
-  public function dependencies() {
-    $dependencies = parent::dependencies();
-    foreach ($this->plugin_types as $plugin_type) {
-      $dependencies = array_merge($dependencies, $this->$plugin_type->dependencies());
-    }
-    return $dependencies;
-  }
-
 }
 
 /**
- * Formats a time interval.
- *
- * @param int $timestamp
- *   The length of the interval in seconds.
- *
- * @return string
- *   A translated string representation of the interval.
+ * Helper, see FeedsDataProcessor class.
  */
 function feeds_format_expire($timestamp) {
   if ($timestamp == FEEDS_EXPIRE_NEVER) {

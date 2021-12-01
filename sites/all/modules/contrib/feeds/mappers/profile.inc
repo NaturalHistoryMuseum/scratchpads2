@@ -2,17 +2,16 @@
 
 /**
  * @file
- * On behalf implementation of Feeds mapping API for profile.module.
+ * On behalf implementation of Feeds mapping API for user profiles.
  */
 
 /**
- * Implements hook_feeds_processor_targets().
+ * Implements hook_feeds_processor_target_alter().
  */
-function profile_feeds_processor_targets($entity_type, $bundle_name) {
-  $targets = array();
+function profile_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
 
   if ($entity_type != 'user') {
-    return $targets;
+    return;
   }
 
   $categories = profile_user_categories();
@@ -26,13 +25,11 @@ function profile_feeds_processor_targets($entity_type, $bundle_name) {
       );
     }
   }
-
-  return $targets;
 }
 
 /**
  * Set the user profile target after import.
  */
-function profile_feeds_set_target(FeedsSource $source, $entity, $target, array $values) {
-  $entity->$target = reset($values);
+function profile_feeds_set_target($source, $entity, $target, $value, $mapping) {
+  $entity->$target = $value;
 }

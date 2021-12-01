@@ -11,15 +11,7 @@ entity CRUD controller, which helps simplifying the creation of new entity types
 This is an API module. You only need to enable it if a module depends on it or
 you are interested in using it for development.
 
-Advanced usage:
----------------
-You can optimize cache clearing performance by setting the variable
-'entity_rebuild_on_flush' to FALSE. This skips rebuilding of feature
-components and exported entities during cache flushing. Instead, it is triggered
-by the features module only; e.g., when features are reverted.
-
-
-The README below is for interested developers. If you are not interested in
+This README is for interested developers. If you are not interested in
 developing, you may stop reading now.
 
 --------------------------------------------------------------------------------

@@ -71,7 +71,7 @@ class views_plugin_style extends views_plugin {
   public function destroy() {
     parent::destroy();
 
-    if ($this->row_plugin) {
+    if (isset($this->row_plugin)) {
       $this->row_plugin->destroy();
     }
   }
@@ -372,7 +372,6 @@ class views_plugin_style extends views_plugin {
     $output = '';
     foreach ($sets as $set) {
       $row = reset($set['rows']);
-      $level = isset($set['level']) ? $set['level'] : 0;
       // Render as a grouping set.
       if (is_array($row) && isset($row['group'])) {
         $output .= theme(views_theme_functions('views_view_grouping', $this->view, $this->display),
@@ -464,7 +463,7 @@ class views_plugin_style extends views_plugin {
         // hierarchically positioned set where the current row belongs to.
         // While iterating, parent groups, that do not exist yet, are added.
         $set = &$sets;
-        foreach ($groupings as $level => $info) {
+        foreach ($groupings as $info) {
           $field = $info['field'];
           $rendered = isset($info['rendered']) ? $info['rendered'] : $group_rendered;
           $rendered_strip = isset($info['rendered_strip']) ? $info['rendered_strip'] : FALSE;
@@ -497,7 +496,6 @@ class views_plugin_style extends views_plugin {
           // Create the group if it does not exist yet.
           if (empty($set[$grouping])) {
             $set[$grouping]['group'] = $group_content;
-            $set[$grouping]['level'] = $level;
             $set[$grouping]['rows'] = array();
           }
 
@@ -625,7 +623,7 @@ class views_plugin_style extends views_plugin {
    */
   public function query() {
     parent::query();
-    if ($this->row_plugin) {
+    if (isset($this->row_plugin)) {
       $this->row_plugin->query();
     }
   }

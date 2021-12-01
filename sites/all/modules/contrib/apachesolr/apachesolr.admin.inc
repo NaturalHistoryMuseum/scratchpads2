@@ -185,18 +185,6 @@ function apachesolr_environment_edit_form(array $form, array &$form_state, array
     '#options' => array(APACHESOLR_READ_WRITE => t('Read and write (normal)'), APACHESOLR_READ_ONLY => t('Read only')),
     '#description' => t('<em>Read only</em> stops this site from sending updates to this search environment. Useful for development sites.'),
   );
-  $form['conf']['apachesolr_direct_commit'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Commit changes after the index process has submitted them'),
-    '#description' => t('Commits the updates to solr. Uses soft commits where possible'),
-    '#default_value' => isset($environment['conf']['apachesolr_direct_commit']) ? $environment['conf']['apachesolr_direct_commit'] : false,
-  );
-  $form['conf']['apachesolr_soft_commit'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Commit changes to memory.'),
-    '#description' => t(' Reduces the load on your disk. Also known as Soft Commits, recommended for Solr 4.'),
-    '#default_value' => isset($environment['conf']['apachesolr_soft_commit']) ? $environment['conf']['apachesolr_soft_commit'] : false,
-  );
   $form['actions'] = array(
     '#type' => 'actions',
   );
@@ -461,8 +449,6 @@ function apachesolr_settings(array $form, array &$form_state) {
     $rows[$environment_id]['data'] = array_merge($rows[$environment_id]['data'], $confs);
     $rows[$environment_id]['data'] = array_merge($rows[$environment_id]['data'], $ops);
   }
-  // Custom CSS for Admin ApacheSolr table.
-  $form['#attached']['css'][] = drupal_get_path('module', 'apachesolr') . '/apachesolr.css';
 
   $form['apachesolr_host_settings']['actions'] = array(
     '#markup' => '<ul class="action-links">' . drupal_render($actions) . '</ul>',
@@ -525,13 +511,6 @@ function apachesolr_settings(array $form, array &$form_state) {
     '#default_value' => variable_get('apachesolr_failure', 'apachesolr:show_error'),
   );
 
-  $form['advanced']['apachesolr_watchdog_successes'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Log successful Apache Solr Search actions'),
-    '#description' => t('Watchdog will log successful adds and indexes.'),
-    '#default_value' => variable_get('apachesolr_watchdog_successes', TRUE),
-  );
-
   return system_settings_form($form);
 }
 
@@ -564,7 +543,7 @@ function apachesolr_status_page($environment = array()) {
     $data = $solr->getLuke();
   }
   catch (Exception $e) {
-    apachesolr_log_exception($environment['env_id'], $e);
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
     $data = new stdClass;
     $data->fields = array();
@@ -609,7 +588,7 @@ function apachesolr_status_page($environment = array()) {
       $messages[] = array(t('Pending Deletions'), t('@deletes_total', $stats_summary));
     }
     catch (Exception $e) {
-      apachesolr_log_exception($environment['env_id'], $e);
+      watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     }
   }
   if (empty($messages)) {
@@ -641,15 +620,11 @@ function apachesolr_status_page($environment = array()) {
 }
 
 /**
- * Get the report.
- *
- * Return some statistics and useful data from the Apache Solr index.
+ * Get the report, eg.: some statistics and useful data from the Apache Solr index
  *
  * @param array $environment
- *   A single environment to report on.
  *
- * @return array
- *   Page render array.
+ * @return array page render array
  */
 function apachesolr_index_report(array $environment = array()) {
   if (empty($environment)) {
@@ -659,7 +634,7 @@ function apachesolr_index_report(array $environment = array()) {
   $environments = apachesolr_load_all_environments();
   $environments_list = array();
   foreach ($environments as $env) {
-    $var_status = array('!name' => $env['name']);
+    $var_status = array('!name' =>$env['name']);
     $environments_list[] = l(t('Statistics for !name', $var_status), 'admin/reports/apachesolr/' . $env['env_id']);
   }
   $output['environments_list'] = array(
@@ -673,7 +648,7 @@ function apachesolr_index_report(array $environment = array()) {
     $data = $solr->getLuke();
   }
   catch (Exception $e) {
-    apachesolr_log_exception($environment['env_id'], $e);
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
     return $output;
   }
@@ -683,10 +658,7 @@ function apachesolr_index_report(array $environment = array()) {
 
   $limit = variable_get('apachesolr_luke_limit', 20000);
   if (isset($data->index->numDocs) && $data->index->numDocs > $limit) {
-    $messages[] = array(
-      t('Limit'),
-      t('You have more than @limit documents, so term frequencies are being omitted for performance reasons.', array('@limit' => $limit)),
-    );
+    $messages[] = array(t('Limit'), t('You have more than @limit documents, so term frequencies are being omitted for performance reasons.', array('@limit' => $limit)));
     $not_found = t('<em>Omitted</em>');
   }
   elseif (isset($data->index->numDocs)) {
@@ -700,18 +672,18 @@ function apachesolr_index_report(array $environment = array()) {
       }
     }
     catch (Exception $e) {
-      apachesolr_log_exception($environment['env_id'], $e);
+      watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
       $data->fields = array();
     }
   }
   // Initializes output with information about which server's setting we are
   // editing, as it is otherwise not transparent to the end user.
-  $fields = (array) $data->fields;
+  $fields = (array)$data->fields;
   if ($fields) {
     $messages[] = array(t('# of fields in index'), count($fields));
   }
 
-  // Output the messages we have for this page.
+  // Output the messages we have for this page
   $output['apachesolr_index_report'] = array(
     '#theme' => 'table',
     '#header' => array('type', 'value'),
@@ -723,9 +695,7 @@ function apachesolr_index_report(array $environment = array()) {
     $header = array(
       'name' => t('Field name'),
       'type' => t('Index type'),
-      'docs' => t('Documents'),
-      'terms' => t('Distinct Terms'),
-
+      'terms' => t('Distinct terms'),
     );
 
     // Builds table rows.
@@ -735,12 +705,11 @@ function apachesolr_index_report(array $environment = array()) {
       $rows[$name] = array(
         'name' => $name,
         'type' => $field->type,
-        'docs' => isset($field->docs) ? $field->docs : $not_found,
         'terms' => isset($field->distinct) ? $field->distinct : $not_found
       );
     }
     ksort($rows);
-    // Output the fields we found for this environment.
+    // Output the fields we found for this environment
     $output['field_table'] = array(
       '#theme' => 'table',
       '#header' => $header,
@@ -776,7 +745,7 @@ function apachesolr_config_files_overview(array $environment = array()) {
     $xml = simplexml_load_string($response->data);
   }
   catch (Exception $e) {
-    apachesolr_log_exception($env_id, $e);
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
   }
 
@@ -789,11 +758,12 @@ function apachesolr_config_files_overview(array $environment = array()) {
     foreach ($items as $item_id => $item) {
       // Do not list directories. Always a bool
       if (isset($item->bool)) {
-        continue;
+        break;
       }
       // Get data from the files.
+      $name =  $item->attributes();
       $name = ((string)$item->attributes()) ? (string)$item->attributes() : t('No name found');
-      $files[$item_id]['name'] = l($name, 'admin/reports/apachesolr/' . $env_id . '/conf/' . $name, array('query' => array('no_fast_404' => 1)));
+      $files[$item_id]['name'] = l($name, 'admin/reports/apachesolr/' . $env_id . '/conf/' . $name);
 
       // Retrieve the date attribute
       if (isset($item->date)) {
@@ -856,7 +826,7 @@ function apachesolr_config_file($name, array $environment = array()) {
     drupal_set_title(check_plain($name));
   }
   catch (Exception $e) {
-    apachesolr_log_exception($env_id, $e);
+    watchdog('Apache Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
     drupal_set_message(nl2br(check_plain($e->getMessage())), "warning");
   }
   return $output;
@@ -996,7 +966,7 @@ function apachesolr_index_action_form_cron_submit(array $form, array &$form_stat
     $form_state['redirect'] = 'admin/config/search/apachesolr';
   }
   apachesolr_cron($env_id);
-  drupal_set_message(t('Apachesolr cron successfully executed'));
+  drupal_set_message(t('Apachesolr cron succesfully executed'));
 }
 
 /**
@@ -1114,12 +1084,8 @@ function apachesolr_index_action_form_delete_confirm_submit(array $form, array &
   }
   // Rebuild our tracking table.
   module_load_include('inc', 'apachesolr', 'apachesolr.index');
-  if (apachesolr_index_delete_index($env_id)) {
-    drupal_set_message(t('The index has been deleted.'));
-  }
-  else {
-    drupal_set_message(t('An error occured while trying to delete the index.'), 'error');
-  }
+  apachesolr_index_delete_index($env_id);
+  drupal_set_message(t('The index has been deleted.'));
 }
 
 /**
@@ -1177,7 +1143,7 @@ function apachesolr_index_batch_index_entities($env_id, $total_limit = NULL, &$c
       }
     }
     catch (Exception $e) {
-      apachesolr_log_exception($env_id, $e);
+      watchdog('Apache Solr', $e->getMessage(), NULL, WATCHDOG_ERROR);
       return FALSE;
     }
 
@@ -1227,7 +1193,6 @@ function apachesolr_index_batch_index_entities($env_id, $total_limit = NULL, &$c
   if ($context['finished']) {
     $context['results']['count'] = $context['sandbox']['progress'];
     $context['results']['submitted'] = $context['sandbox']['submitted'];
-    $context['results']['env_id'] = $env_id;
   }
 }
 
@@ -1249,13 +1214,6 @@ function apachesolr_index_batch_index_finished($success, array $results, array $
     $message .= format_plural($results['submitted'], '1 document successfully sent to Solr.', '@count documents successfully sent to Solr.');
   }
   if ($success) {
-    // Directly process those documents if direct commit was enabled.
-    $direct_commit = apachesolr_environment_variable_get($results['env_id'], 'apachesolr_direct_commit', FALSE);
-    if ($direct_commit) {
-      // Get the $solr object
-      $solr = apachesolr_get_solr($results['env_id']);
-      $solr->commit();
-    }
     $type = 'status';
   }
   else {

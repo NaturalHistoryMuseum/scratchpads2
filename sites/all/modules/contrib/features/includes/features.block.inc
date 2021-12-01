@@ -1,13 +1,6 @@
 <?php
 
 /**
- * @file
- * Features integration for 'block' module.
- *
- * @todo This seems to be obsolete and not doing anything. See #3076925.
- */
-
-/**
  * Implements hook_features_api().
  */
 function block_features_api() {

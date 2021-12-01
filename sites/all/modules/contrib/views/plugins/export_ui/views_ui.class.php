@@ -364,8 +364,6 @@ class views_ui extends ctools_export_ui {
    *
    */
   function clone_page($js, $input, $item, $step = NULL) {
-    $args = func_get_args();
-
     drupal_set_title($this->get_page_title('clone', $item));
 
     $name = $item->{$this->plugin['export']['key']};
@@ -382,7 +380,7 @@ class views_ui extends ctools_export_ui {
       'no_redirect' => TRUE,
       'step' => $step,
       // Store these in case additional args are needed.
-      'function args' => $args,
+      'function args' => func_get_args(),
     );
 
     $output = drupal_build_form('views_ui_clone_form', $form_state);

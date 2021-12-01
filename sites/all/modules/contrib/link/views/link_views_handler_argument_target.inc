@@ -7,26 +7,20 @@
 
 /**
  * Argument handler to filter results by target.
- *
- * @codingStandardsIgnoreStart
  */
 class link_views_handler_argument_target extends views_handler_argument {
 
   /**
    * Provide defaults for the argument when a new one is created.
    */
-  function option_definition() {
-    $options = parent::option_definition();
-
-    return $options;
+  function options(&$options) {
+    parent::options($options);
   }
+
   /**
    * Provide a default options form for the argument.
-   *
-   * @codingStandardsIgnoreStart
    */
-  public function options_form(&$form, &$form_state) {
-    // @codingStandardsIgnoreEnd
+  function options_form(&$form, &$form_state) {
     $defaults = $this->default_actions();
 
     $form['title'] = array(
@@ -58,7 +52,7 @@ class link_views_handler_argument_target extends views_handler_argument {
 
     $form['wildcard'] = array(
       '#prefix' => '<div class="views-right-50">',
-      // Prefix and no suffix means these two items will be grouped together.
+      // prefix and no suffix means these two items will be grouped together.
       '#type' => 'textfield',
       '#title' => t('Wildcard'),
       '#size' => 20,
@@ -131,8 +125,8 @@ class link_views_handler_argument_target extends views_handler_argument {
 
     asort($validate_types);
     $form['validate_type']['#options'] = $validate_types;
+    // Show this gadget if *anything* but 'none' is selected
 
-    // Show this gadget if *anything* but 'none' is selected.
     $form['validate_fail'] = array(
       '#type' => 'select',
       '#title' => t('Action to take if argument does not validate'),
@@ -146,11 +140,10 @@ class link_views_handler_argument_target extends views_handler_argument {
    *
    * The argument sent may be found at $this->argument.
    */
-  public function query($group_by = FALSE) {
+  function query($group_by = FALSE) {
     $this->ensure_my_table();
     // Because attributes are stored serialized, our only option is to also
     // serialize the data we're searching for and use LIKE to find similar data.
     $this->query->add_where(0, $this->table_alias . ' . ' . $this->real_field . " LIKE '%%%s%'", serialize(array('target' => $this->argument)));
   }
-
 }

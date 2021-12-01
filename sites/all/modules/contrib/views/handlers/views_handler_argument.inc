@@ -14,7 +14,7 @@
 /**
  * Base class for arguments.
  *
- * The basic argument works for very simple arguments such as nid and uid.
+ * The basic argument works for very simple arguments such as nid and uid
  *
  * Definition terms for this handler:
  * - name field: The field to use for the name to use in the summary, which is
@@ -158,10 +158,9 @@ class views_handler_argument extends views_handler {
   }
 
   /**
-   * Determine if the argument can generate a breadcrumb.
+   * Determine if the argument can generate a breadcrumb
    *
    * @return bool
-   *   Indicates whether the argument can generate a breadcrumb.
    */
   public function uses_breadcrumb() {
     $info = $this->default_actions($this->options['default_action']);
@@ -196,7 +195,6 @@ class views_handler_argument extends views_handler {
    * Determine if the argument needs a style plugin.
    *
    * @return bool
-   *   the argument needs a plugin style.
    */
   public function needs_style_plugin() {
     $info = $this->default_actions($this->options['default_action']);
@@ -529,7 +527,8 @@ class views_handler_argument extends views_handler {
   }
 
   /**
-   * List of default behaviors for this argument if the argument is not present.
+   * Provide a list of default behaviors for this argument if the argument
+   * is not present.
    *
    * Override this method to provide additional (or fewer) default behaviors.
    */
@@ -658,9 +657,8 @@ class views_handler_argument extends views_handler {
   }
 
   /**
-   * Form for selecting further summary options.
-   *
-   * Only used when the default action is set to display one.
+   * Provide a form for selecting further summary options when the default
+   * action is set to display one.
    */
   public function default_summary_form(&$form, &$form_state) {
     $style_plugins = views_fetch_plugin_data('style');
@@ -797,10 +795,10 @@ class views_handler_argument extends views_handler {
   }
 
   /**
-   * Default action: empty.
+   * Default action: empty
    *
    * If an argument was expected and was not given, in this case, display the
-   * view's empty text.
+   * view's empty text
    */
   public function default_empty() {
     // We return with no query; this will force the empty text.
@@ -969,8 +967,6 @@ class views_handler_argument extends views_handler {
    *
    * @param string $order
    *   The order selected in the UI.
-   * @param string $by
-   *   Optional alias for this field.
    */
   public function summary_sort($order, $by = NULL) {
     $this->query->add_orderby(NULL, NULL, $order, (!empty($by) ? $by : $this->name_alias));
@@ -1120,7 +1116,7 @@ class views_handler_argument extends views_handler {
   }
 
   /**
-   * Set the input for this argument.
+   * Set the input for this argument
    *
    * @return bool
    *   TRUE if it successfully validates; FALSE if it does not.

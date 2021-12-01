@@ -128,7 +128,7 @@ class views_plugin_exposed_form extends views_plugin {
     $form['autosubmit_hide'] = array(
       '#type' => 'checkbox',
       '#title' => t('Hide submit button'),
-      '#description' => t('Hide submit button if JavaScript is enabled.'),
+      '#description' => t('Hide submit button if javascript is enabled.'),
       '#default_value' => $this->options['autosubmit_hide'],
       '#dependency' => array(
         'edit-exposed-form-options-autosubmit' => array(1),
@@ -167,12 +167,13 @@ class views_plugin_exposed_form extends views_plugin {
 
     $form_state['exposed_form_plugin'] = $this;
     $form = drupal_build_form('views_exposed_form', $form_state);
+    $output = drupal_render($form);
 
     if (!$this->view->display_handler->displays_exposed() || (!$block && $this->view->display_handler->get_option('exposed_block'))) {
       return "";
     }
     else {
-      return drupal_render($form);
+      return $output;
     }
   }
 
@@ -275,7 +276,7 @@ class views_plugin_exposed_form extends views_plugin {
         $form['sort_order'] = array(
           '#type' => 'select',
           '#options' => $sort_order,
-          '#title' => t('Order', array(), array('context' => 'Sort order')),
+          '#title' => t('Order'),
           '#default_value' => $default_sort_order,
         );
       }

@@ -87,7 +87,7 @@ class views_plugin_display_page extends views_plugin_display {
     $path = implode('/', $bits);
 
     $access_plugin = $this->get_plugin('access');
-    if (!$access_plugin) {
+    if (!isset($access_plugin)) {
       $access_plugin = views_get_plugin('access', 'none');
     }
 
@@ -166,9 +166,6 @@ class views_plugin_display_page extends views_plugin_display {
 
         case 'default tab':
           $items[$path]['type'] = MENU_DEFAULT_LOCAL_TASK;
-          break;
-        case 'local action':
-          $items[$path]['type'] = MENU_LOCAL_ACTION;
           break;
       }
 
@@ -314,8 +311,6 @@ class views_plugin_display_page extends views_plugin_display {
       case 'default tab':
         $menu_str = t('Tab: @title', array('@title' => $menu['title']));
         break;
-      case 'local action':
-        $menu_str = t('Local action: @title', array('@title' => $menu['title']));
     }
 
     $options['menu'] = array(
@@ -350,7 +345,6 @@ class views_plugin_display_page extends views_plugin_display {
           '#field_prefix' => '<span dir="ltr">' . url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q='),
           '#field_suffix' => '</span>&lrm;',
           '#attributes' => array('dir'=>'ltr'),
-          '#maxlength' => 255,
         );
         break;
 
@@ -366,7 +360,6 @@ class views_plugin_display_page extends views_plugin_display {
         if (empty($menu)) {
           $menu = array('type' => 'none', 'title' => '', 'weight' => 0);
         }
-        $menu_type_dependencies = array('normal', 'tab', 'default tab', 'local action');
         $form['menu']['type'] = array(
           '#prefix' => '<div class="views-left-30">',
           '#suffix' => '</div>',
@@ -376,8 +369,7 @@ class views_plugin_display_page extends views_plugin_display {
             'none' => t('No menu entry'),
             'normal' => t('Normal menu entry'),
             'tab' => t('Menu tab'),
-            'default tab' => t('Default menu tab'),
-            'local action' => t('Local action'),
+            'default tab' => t('Default menu tab')
           ),
           '#default_value' => $menu['type'],
         );
@@ -387,14 +379,14 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $menu['title'],
           '#description' => t('If set to normal or tab, enter the text to use for the menu item.'),
-          '#dependency' => array('radio:menu[type]' => $menu_type_dependencies),
+          '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
         $form['menu']['description'] = array(
           '#title' => t('Description'),
           '#type' => 'textfield',
           '#default_value' => $menu['description'],
           '#description' => t("If set to normal or tab, enter the text to use for the menu item's description."),
-          '#dependency' => array('radio:menu[type]' => $menu_type_dependencies),
+          '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
 
         // Only display the menu selector if menu module is enabled.
@@ -422,7 +414,7 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => isset($menu['weight']) ? $menu['weight'] : 0,
           '#description' => t('The lower the weight the higher/further left it will appear.'),
-          '#dependency' => array('radio:menu[type]' => $menu_type_dependencies),
+          '#dependency' => array('radio:menu[type]' => array('normal', 'tab', 'default tab')),
         );
         $form['menu']['context'] = array(
           '#title' => t('Context'),
@@ -510,8 +502,8 @@ class views_plugin_display_page extends views_plugin_display {
           '#type' => 'textfield',
           '#default_value' => $tab_options['weight'],
           '#size' => 5,
-          '#description' => t('Enter the weight of the item. The lower the number, the more to the left it will be.'),
-          '#dependency' => array('radio:tab_options[type]' => array('normal', 'tab')),
+          '#description' => t('If the parent menu item is a tab, enter the weight of the tab. The lower the number, the more to the left it will be.'),
+          '#dependency' => array('radio:tab_options[type]' => array('tab')),
         );
         break;
     }

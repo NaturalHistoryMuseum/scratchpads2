@@ -23,7 +23,7 @@ define('FEEDS_TAXONOMY_SEARCH_TERM_GUID', 2);
 /**
  * Implements hook_feeds_parser_sources_alter().
  */
-function taxonomy_feeds_parser_sources_alter(array &$sources, $content_type) {
+function taxonomy_feeds_parser_sources_alter(&$sources, $content_type) {
   if (!empty($content_type)) {
     foreach (taxonomy_get_vocabularies($content_type) as $vocabulary) {
       $sources['parent:taxonomy:' . $vocabulary->machine_name] = array(
@@ -55,11 +55,9 @@ function taxonomy_feeds_get_source(FeedsSource $source, FeedsParserResult $resul
 }
 
 /**
- * Implements hook_feeds_processor_targets().
+ * Implements hook_feeds_processor_targets_alter().
  */
-function taxonomy_feeds_processor_targets($entity_type, $bundle_name) {
-  $targets = array();
-
+function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
     $info = field_info_field($name);
     if ($info['type'] == 'taxonomy_term_reference') {
@@ -67,25 +65,29 @@ function taxonomy_feeds_processor_targets($entity_type, $bundle_name) {
         'name' => check_plain($instance['label']),
         'callback' => 'taxonomy_feeds_set_target',
         'description' => t('The @label field of the entity.', array('@label' => $instance['label'])),
-        'summary_callbacks' => array('taxonomy_feeds_summary_callback'),
-        'form_callbacks' => array('taxonomy_feeds_form_callback'),
+        'summary_callback' => 'taxonomy_feeds_summary_callback',
+        'form_callback' => 'taxonomy_feeds_form_callback',
       );
     }
   }
-  if ($entity_type == 'taxonomy_term') {
-    $targets['tid']['name'] = t('Term id');
-    $targets['tid']['description'] = t('The tid of the taxonomy term. NOTE: use this feature with care, node ids are usually assigned by Drupal.');
-    unset($targets['vocabulary']);
-  }
-
-  return $targets;
 }
 
 /**
- * Callback for mapping taxonomy terms.
+ * Callback for mapping. Here is where the actual mapping happens.
+ *
+ * @todo Do not create new terms for non-autotag fields.
  */
-function taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array $terms, array $mapping) {
-  $language = $mapping['language'];
+function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping = array()) {
+
+  // Allow mapping the string '0' to a term name.
+  if (empty($terms) && $terms != 0) {
+    return;
+  }
+
+  // Handle non-multiple values.
+  if (!is_array($terms)) {
+    $terms = array($terms);
+  }
 
   // Add in default values.
   $mapping += array(
@@ -103,18 +105,9 @@ function taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array 
   if (!isset($cache['allowed_vocabularies'][$target])) {
     foreach ($info['settings']['allowed_values'] as $tree) {
       if ($vocabulary = taxonomy_vocabulary_machine_name_load($tree['vocabulary'])) {
-        $vid = $vocabulary->vid;
-
-        $cache['allowed_vocabularies'][$target][$vid] = $vocabulary->machine_name;
-        $cache['vocabulary_targets'][$vid][] = $target;
+        $cache['allowed_vocabularies'][$target][$vocabulary->vid] = $vocabulary->machine_name;
       }
     }
-  }
-
-  // Some kind of configuration issue. Perhaps the vocabulary was deleted.
-  // Nothing we can do about it.
-  if (empty($cache['allowed_vocabularies'][$target])) {
-    return;
   }
 
   $query = new EntityFieldQuery();
@@ -122,14 +115,11 @@ function taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array 
     ->entityCondition('bundle', $cache['allowed_vocabularies'][$target])
     ->range(0, 1);
 
-  $field = isset($entity->$target) ? $entity->$target : array($language => array());
 
-  if (!isset($field[$language])) {
-    $field[$language] = array();
-  }
+  $field = isset($entity->$target) ? $entity->$target : array('und' => array());
 
   // Allow for multiple mappings to the same target.
-  $delta = count($field[$language]);
+  $delta = count($field['und']);
 
   // Iterate over all values.
   foreach ($terms as $term) {
@@ -149,51 +139,27 @@ function taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array 
 
         // Lookup by name.
         case FEEDS_TAXONOMY_SEARCH_TERM_NAME:
-          $term = trim($term);
           $name_query = clone $query;
-          if (strlen($term) && $tids = $name_query->propertyCondition('name', $term)->execute()) {
-
-            // Find the first allowed term.
-            foreach ($tids['taxonomy_term'] as $possible_term) {
-              if (isset($cache['allowed_values'][$target][$possible_term->tid])) {
-                $tid = $possible_term->tid;
-                break;
-              }
-            }
+          if ($tids = $name_query->propertyCondition('name', $term)->execute()) {
+            $tid = key($tids['taxonomy_term']);
           }
-          elseif ($mapping['autocreate'] && strlen($term)) {
-            $term_vid = key($cache['allowed_vocabularies'][$target]);
+          elseif ($mapping['autocreate']) {
             $term = (object) array(
-              'name' => drupal_substr($term, 0, 255),
-              'vid' => $term_vid,
+              'name' => $term,
+              'vid' => key($cache['allowed_vocabularies'][$target]),
               'vocabulary_machine_name' => reset($cache['allowed_vocabularies'][$target]),
             );
-            // Set language if the taxonomy is multilingual.
-            if ($language !== LANGUAGE_NONE) {
-              $info = entity_get_info('taxonomy_term');
-              if (!empty($info['entity keys']['language'])) {
-                $term->{$info['entity keys']['language']} = $language;
-              }
-            }
             taxonomy_term_save($term);
             $tid = $term->tid;
-
             // Add to the list of allowed values.
             $cache['allowed_values'][$target][$tid] = $term->name;
-
-            // Invalidate caches for other fields targeting the same vocabulary.
-            foreach ($cache['vocabulary_targets'][$term_vid] as $clear_target) {
-              if ($clear_target !== $target) {
-                unset($cache['allowed_values'][$clear_target]);
-              }
-            }
           }
           break;
 
         // Lookup by tid.
         case FEEDS_TAXONOMY_SEARCH_TERM_ID:
           if (is_numeric($term)) {
-            $tid = (int) $term;
+            $tid = $term;
           }
           break;
 
@@ -205,7 +171,7 @@ function taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array 
     }
 
     if ($tid && isset($cache['allowed_values'][$target][$tid])) {
-      $field[$language][] = array('tid' => $tid);
+      $field['und'][$delta]['tid'] = $tid;
       $delta++;
     }
   }
@@ -264,7 +230,7 @@ function _taxonomy_feeds_extract_tid($item) {
  * @param string $guid
  *   The Feeds GUID to compare against.
  *
- * @return int|false
+ * @return int|FALSE
  *   The term id, or FALSE if one was not found.
  */
 function taxonomy_feeds_term_lookup_term_by_guid($guid) {
@@ -278,8 +244,24 @@ function taxonomy_feeds_term_lookup_term_by_guid($guid) {
 
 /**
  * Mapping configuration summary for taxonomy.module.
+ *
+ * @param array $mapping
+ *   Associative array of the mapping settings.
+ * @param array $target
+ *   Array of target settings, as defined by the processor or
+ *   hook_feeds_processor_targets_alter().
+ * @param array $form
+ *   The whole mapping form.
+ * @param array $form_state
+ *   The form state of the mapping form.
+ *
+ * @return string
+ *   Returns, as a string that may contain HTML, the summary to display while
+ *   the full form isn't visible.
+ *   If the return value is empty, no summary and no option to view the form
+ *   will be displayed.
  */
-function taxonomy_feeds_summary_callback(array $mapping, $target, array $form, array $form_state) {
+function taxonomy_feeds_summary_callback($mapping, $target, $form, $form_state) {
   $options = _taxonomy_feeds_form_callback_options();
   if (empty($mapping['term_search'])) {
     return t('Search taxonomy terms by: <strong>@search</strong>', array('@search' => $options[FEEDS_TAXONOMY_SEARCH_TERM_NAME]));
@@ -289,8 +271,12 @@ function taxonomy_feeds_summary_callback(array $mapping, $target, array $form, a
 
 /**
  * Settings form callback.
+ *
+ * @return array
+ *   The per mapping configuration form. Once the form is saved, $mapping will
+ *   be populated with the form values.
  */
-function taxonomy_feeds_form_callback(array $mapping, $target, array $form, array $form_state) {
+function taxonomy_feeds_form_callback($mapping, $target, $form, $form_state) {
   return array(
     'term_search' => array(
       '#type' => 'select',
