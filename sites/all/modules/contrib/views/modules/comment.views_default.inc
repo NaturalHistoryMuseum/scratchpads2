@@ -25,7 +25,6 @@ function comment_views_default_views() {
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Recent comments';
   $handler->display->display_options['use_more'] = TRUE;
-  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'access comments';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -45,6 +44,7 @@ function comment_views_default_views() {
   $handler->display->display_options['fields']['subject']['table'] = 'comment';
   $handler->display->display_options['fields']['subject']['field'] = 'subject';
   $handler->display->display_options['fields']['subject']['label'] = '';
+  $handler->display->display_options['fields']['subject']['link_to_comment'] = 1;
   /* Field: Comment: Updated date */
   $handler->display->display_options['fields']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['fields']['timestamp']['table'] = 'comment';
@@ -56,7 +56,7 @@ function comment_views_default_views() {
   $handler->display->display_options['sorts']['timestamp']['table'] = 'comment';
   $handler->display->display_options['sorts']['timestamp']['field'] = 'changed';
   $handler->display->display_options['sorts']['timestamp']['order'] = 'DESC';
-  /* Filter criterion: Content: Published status or admin user */
+  /* Filter criterion: Content: Published or admin */
   $handler->display->display_options['filters']['status_extra']['id'] = 'status_extra';
   $handler->display->display_options['filters']['status_extra']['table'] = 'node';
   $handler->display->display_options['filters']['status_extra']['field'] = 'status_extra';
@@ -83,6 +83,7 @@ function comment_views_default_views() {
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['relationship'] = 'nid';
   $handler->display->display_options['fields']['title']['label'] = 'Reply to';
+  $handler->display->display_options['fields']['title']['link_to_node'] = 1;
   /* Field: Comment: Updated date */
   $handler->display->display_options['fields']['timestamp']['id'] = 'timestamp';
   $handler->display->display_options['fields']['timestamp']['table'] = 'comment';
@@ -94,6 +95,7 @@ function comment_views_default_views() {
   $handler->display->display_options['fields']['subject']['table'] = 'comment';
   $handler->display->display_options['fields']['subject']['field'] = 'subject';
   $handler->display->display_options['fields']['subject']['label'] = '';
+  $handler->display->display_options['fields']['subject']['link_to_comment'] = 1;
   /* Field: Comment: Comment */
   $handler->display->display_options['fields']['comment']['id'] = 'comment';
   $handler->display->display_options['fields']['comment']['table'] = 'field_data_comment_body';
@@ -133,8 +135,8 @@ function comment_views_default_views() {
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Recent posts';
-  $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'access content';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -180,8 +182,9 @@ function comment_views_default_views() {
       'separator' => '',
     ),
   );
+  $handler->display->display_options['style_options']['override'] = 1;
   $handler->display->display_options['style_options']['order'] = 'desc';
-  /* Relationship: Content: Content author */
+  /* Relationship: Content: Author */
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
   $handler->display->display_options['relationships']['uid']['table'] = 'node';
   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
@@ -214,7 +217,8 @@ function comment_views_default_views() {
   $handler->display->display_options['fields']['timestamp']['table'] = 'history';
   $handler->display->display_options['fields']['timestamp']['field'] = 'timestamp';
   $handler->display->display_options['fields']['timestamp']['label'] = '';
-  $handler->display->display_options['fields']['timestamp']['comments'] = TRUE;
+  $handler->display->display_options['fields']['timestamp']['link_to_node'] = 0;
+  $handler->display->display_options['fields']['timestamp']['comments'] = 1;
   /* Field: Content: New comments */
   $handler->display->display_options['fields']['new_comments']['id'] = 'new_comments';
   $handler->display->display_options['fields']['new_comments']['table'] = 'node';
@@ -222,6 +226,7 @@ function comment_views_default_views() {
   $handler->display->display_options['fields']['new_comments']['label'] = '';
   $handler->display->display_options['fields']['new_comments']['hide_empty'] = TRUE;
   $handler->display->display_options['fields']['new_comments']['suffix'] = ' new';
+  $handler->display->display_options['fields']['new_comments']['link_to_comment'] = 1;
   /* Sort criterion: Content: Last comment time */
   $handler->display->display_options['sorts']['last_comment_timestamp']['id'] = 'last_comment_timestamp';
   $handler->display->display_options['sorts']['last_comment_timestamp']['table'] = 'node_comment_statistics';
@@ -230,13 +235,13 @@ function comment_views_default_views() {
   $handler->display->display_options['arguments']['uid_touch']['id'] = 'uid_touch';
   $handler->display->display_options['arguments']['uid_touch']['table'] = 'node';
   $handler->display->display_options['arguments']['uid_touch']['field'] = 'uid_touch';
-  $handler->display->display_options['arguments']['uid_touch']['exception']['title_enable'] = TRUE;
-  $handler->display->display_options['arguments']['uid_touch']['title_enable'] = TRUE;
+  $handler->display->display_options['arguments']['uid_touch']['exception']['title_enable'] = 1;
+  $handler->display->display_options['arguments']['uid_touch']['title_enable'] = 1;
   $handler->display->display_options['arguments']['uid_touch']['title'] = 'Recent posts for %1';
   $handler->display->display_options['arguments']['uid_touch']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['uid_touch']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['uid_touch']['specify_validation'] = TRUE;
-  /* Filter criterion: Content: Published status */
+  $handler->display->display_options['arguments']['uid_touch']['specify_validation'] = 1;
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';

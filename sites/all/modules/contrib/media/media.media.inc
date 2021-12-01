@@ -26,8 +26,7 @@ function media_media_browser_plugin_info() {
         }
         $info["{$view->name}--{$display->id}"] = array(
           'title' => $title,
-          // @TODO make this configurable.
-          'weight' => $view_weight++,
+          'weight' => $view_weight++, // @TODO make this configurable.
           'class' => 'MediaBrowserView',
           'view_name' => $view->name,
           'view_display_id' => $display->id,
@@ -40,92 +39,79 @@ function media_media_browser_plugin_info() {
 }
 
 /**
- * Implements hook_query_TAG_alter().
- *
- * @todo: Potentially move this into media.module in a future version of Media.
+ * Implements hook_query_media_browser_alter().
  */
 function media_query_media_browser_alter($query) {
   // Ensure that the query is against the file_managed table.
   $tables = $query->getTables();
-
   if (empty($tables['file_managed'])) {
     throw new Exception(t('Media browser being queried without the file_managed table.'));
   }
-
   $alias = $tables['file_managed']['alias'];
 
+  $params = drupal_get_query_parameters();
   // How do we validate these?  I don't know.
   // I think PDO should protect them, but I'm not 100% certain.
-  $params = media_get_browser_params();
+  array_walk_recursive($params, '_media_recursive_check_plain');
 
-  // Gather any file restrictions.
-  $types = !empty($params['types']) ? $params['types'] : array();
-  $schemes = !empty($params['schemes']) ? $params['schemes'] : array();
-  $extensions = !empty($params['file_extensions']) ? explode(' ', $params['file_extensions']) : array();
+  $remote_types = !empty($params['types']) ? $params['types'] : NULL;
+  $url_include_patterns = !empty($params['url_include_patterns']) ? $params['url_include_patterns'] : NULL;
+  $url_exclude_patterns = !empty($params['url_exclude_patterns']) ? $params['url_exclude_patterns'] : NULL;
+  $allowed_schemes = !empty($params['schemes']) ? array_filter($params['schemes']) : array();
 
-  $or = db_or();
+  // Add conditions based on remote file type *or* local allowed extensions.
+  $or_condition = db_or();
 
-  // Filter out files with restricted types.
-  if (!empty($types)) {
-    $query->condition($alias . '.type', $types, 'IN');
-  }
-
-  // Filter out files with restricted schemes.
-  if (!empty($schemes)) {
-    $local_or = db_or();
-    $local_and = db_and();
-
-    // Gather all of the local stream wrappers.
-    $local_stream_wrappers = media_get_local_stream_wrappers();
-
-    foreach ($schemes as $scheme) {
-      // Only local files have extensions.
-      // Filter out files with restricted extensions.
-      if (!empty($extensions) && isset($local_stream_wrappers[$scheme])) {
-        $mimetypes = array();
+  // Include local files with the allowed extensions.
+  if (!empty($params['file_extensions'])) {
+    $extensions = array_filter(explode(' ', $params['file_extensions']));
+    $local_wrappers = array_intersect_key(media_get_local_stream_wrappers(), $allowed_schemes);
+    if (!empty($local_wrappers) && !empty($extensions)) {
+      $local_condition = db_or();
+      foreach (array_keys($local_wrappers) as $scheme) {
         foreach ($extensions as $extension) {
-          $mimetype = media_get_extension_mimetype($extension);
-          if ($mimetype) {
-            $mimetypes[] = $mimetype;
-          }
+          $local_condition->condition($alias . '.uri', db_like($scheme . '://') . '%' . db_like('.' . $extension), 'LIKE');
         }
-        $local_and->condition($alias . '.uri', db_like($scheme . '://') . '%', 'LIKE');
-        if (count($mimetypes)) {
-          $local_and->condition($alias . '.filemime', $mimetypes, 'IN');
-        }
-        $local_or->condition($local_and);
-        $local_and = db_and();
       }
-      else {
-        $local_or->condition($alias . '.uri', db_like($scheme . '://') . '%', 'LIKE');
-      }
+      $or_condition->condition($local_condition);
     }
-
-    $or->condition($local_or);
   }
 
-  if ($or->count()) {
-    $query->condition($or);
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function media_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
-  $view = $form_state['view'];
-  $display = $form_state['display'];
-
-  if ($view->name == 'media_default' && $display->id == 'media_browser_1') {
-    $params = media_get_browser_params();
-
-    // Remove any unsupported types from the 'Type' filter.
-    if (!empty($form['type']) && !empty($params['types'])) {
-      foreach (array_keys($form['type']['#options']) as $type) {
-        if ($type != 'All' && !in_array($type, $params['types'])) {
-          unset($form['type']['#options'][$type]);
-        }
+  // Include remote files with the allowed file types.
+  if (!empty($remote_types)) {
+    $remote_wrappers = array_intersect_key(media_get_remote_stream_wrappers(), $allowed_schemes);
+    if (!empty($remote_wrappers)) {
+      $remote_condition = db_and();
+      $wrapper_condition = db_or();
+      foreach (array_keys($remote_wrappers) as $scheme) {
+        $wrapper_condition->condition($alias . '.uri', db_like($scheme . '://') . '%', 'LIKE');
       }
+      $remote_condition->condition($wrapper_condition);
+      $remote_condition->condition($alias . '.type', $remote_types, 'IN');
+      $or_condition->condition($remote_condition);
     }
+  }
+
+  if ($or_condition->count()) {
+    $query->condition($or_condition);
+  }
+
+  if ($url_include_patterns) {
+    $query->condition($alias . '.uri', '%' . db_like($url_include_patterns) . '%', 'LIKE');
+    // Insert stream related restrictions here.
+  }
+  if ($url_exclude_patterns) {
+    $query->condition($alias . '.uri', '%' . db_like($url_exclude_patterns) . '%', 'NOT LIKE');
+  }
+
+  if (!user_access('administer files')) {
+    $query->condition($alias . '.uri', db_like('private://') . '%', 'NOT LIKE');
+  }
+
+  // @todo This is possibly redundant since it's already filtered in the view.
+  $query->condition($alias. '.status', FILE_STATUS_PERMANENT);
+
+  foreach (array_keys(media_get_hidden_stream_wrappers()) as $name) {
+    $query->condition($alias . '.uri', db_like($name . '://') . '%', 'NOT LIKE');
   }
 }

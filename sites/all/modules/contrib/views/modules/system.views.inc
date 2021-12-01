@@ -112,7 +112,7 @@ function system_views_data() {
   $data['file_managed']['extension'] = array(
     'title' => t('Extension'),
     'help' => t('The extension of the file.'),
-    'real field' => 'uri',
+    'real field' => 'filename',
     'field' => array(
       'handler' => 'views_handler_field_file_extension',
       'click sortable' => FALSE,

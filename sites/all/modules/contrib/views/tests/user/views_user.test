@@ -34,8 +34,8 @@ class ViewsUserTestCase extends ViewsSqlTest {
   /**
    *
    */
-  public function setUp(array $modules = array()) {
-    parent::setUp($modules);
+  protected function setUp() {
+    parent::setUp();
 
     $this->users[] = $this->drupalCreateUser();
     $this->users[] = user_load(1);

@@ -40,13 +40,9 @@ function error_test_generate_warnings($collect_errors = FALSE) {
   // Tell Drupal error reporter to send errors to Simpletest or not.
   define('SIMPLETEST_COLLECT_ERRORS', $collect_errors);
   // This will generate a notice.
-  $notice = new \stdClass();
-  $notice == 1 ? 1 : 0;
+  $monkey_love = $bananas;
   // This will generate a warning.
-  $a = '';
-  foreach ($a as $b) {
-
-  }
+  $awesomely_big = 1/0;
   // This will generate a user error.
   trigger_error("Drupal is awesome", E_USER_WARNING);
   return "";

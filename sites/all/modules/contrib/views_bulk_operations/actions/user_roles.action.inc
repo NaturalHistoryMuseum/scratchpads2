@@ -45,19 +45,24 @@ function views_bulk_operations_user_roles_action_submit($form, $form_state) {
   );
 }
 
-function views_bulk_operations_user_roles_action($user, $context) {
-  $wrapper = entity_metadata_wrapper('user', $user);
-  if (!$wrapper->roles->access("update")) {
-    // No access.
-    return;
+function views_bulk_operations_user_roles_action(&$user, $context) {
+  $roles = $user->roles;
+  $selected = (is_array($context['add_roles']) ? $context['add_roles'] : array()) +
+              (is_array($context['remove_roles']) ? $context['remove_roles'] : array());
+  $result = db_query("SELECT rid, name FROM {role} WHERE rid IN (:selected)", array(':selected' => array_keys($selected)));
+  foreach ($result as $role) {
+    if (isset($context['add_roles'][$role->rid])) {
+      $add_roles[$role->rid] = $role->name;
+    }
+    if (isset($context['remove_roles'][$role->rid])) {
+      $remove_roles[$role->rid] = $role->name;
+    }
   }
-  $roles = $wrapper->roles->value();
-  if (is_array($context['add_roles'])) {
-    $roles = array_merge($roles, $context['add_roles']);
+  if (!empty($add_roles)) {
+    $roles += $add_roles;
   }
-  if (is_array($context['remove_roles'])) {
-    $roles = array_diff($roles, $context['remove_roles']);
+  if (!empty($remove_roles)) {
+    $roles = array_diff($roles, $remove_roles);
   }
-  $wrapper->roles->set($roles);
-  $wrapper->save();
+  user_save($user, array('roles' => $roles));
 }

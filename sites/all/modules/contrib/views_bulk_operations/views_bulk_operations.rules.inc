@@ -116,23 +116,13 @@ function views_bulk_operations_views_list() {
   foreach (views_get_enabled_views() as $name => $base_view) {
     foreach ($base_view->display as $display_name => $display) {
       $view = $base_view->clone_view();
-      if (!$view->set_display($display_name)) {
-        continue;
-      }
-
-      // Initialize the style plugin and only continue to initialize handlers
-      // if the style uses fields.
-      if (!$view->init_style() || !$view->style_plugin->uses_fields()) {
-        continue;
-      }
-
-      $view->init_handlers($display_name);
-      if (_views_bulk_operations_get_field($view)) {
-        $selectable_displays[$view->name . '|' . $display_name] = check_plain($view->human_name . ' | ' . $display->display_title);
+      $view->build($display_name);
+      $vbo = _views_bulk_operations_get_field($view);
+      if ($vbo) {
+        $selectable_displays[$view->name . '|' . $display_name] = check_plain($view->human_name) . ' | ' . check_plain($display->display_title);
       }
     }
   }
-
   return $selectable_displays;
 }
 
@@ -173,11 +163,7 @@ function views_bulk_operations_action_load_list($view, $args) {
   $entity_type = $vbo->get_entity_type();
   $entities = entity_metadata_wrapper("list<$entity_type>", array());
   foreach ($vbo->view->result as $row_index => $result) {
-    // Grab the entire entity if it's already loaded or fall back to the
-    // entity identifier.
-    $entity = $vbo->get_value($result);
-    $data = $entity ? $entity : $result->{$vbo->real_field};
-    $entities[] = entity_metadata_wrapper($entity_type, $data);
+    $entities[] = entity_metadata_wrapper($entity_type, $vbo->get_value($result));
   }
 
   return array('entity_list' => $entities);

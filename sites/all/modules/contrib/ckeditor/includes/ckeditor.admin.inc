@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -44,7 +44,7 @@ function ckeditor_admin_main() {
   $ckconfig_file = $editor_path . '/config.js';
 
   //check if CKEditor plugin is installed
-  if ($editor_path != '<URL>' && !_ckeditor_requirements_isinstalled()) {
+  if (!_ckeditor_requirements_isinstalled()) {
     drupal_set_message(t(
             'Checking for !filename or !file.', array(
           '!filename' => '<code>' . $ckconfig_file . '</code>',
@@ -99,12 +99,36 @@ function ckeditor_profile_overview() {
   }
   $profiles = ckeditor_profile_load();
   if ($profiles) {
-    // @todo The following variable is never used. Remove it?
     $access_ckeditor_roles = user_roles(FALSE, 'access ckeditor');
     $header = array(t('Profile'), t('Input format'), t('Operations'));
+    $plugins = ckeditor_load_plugins();
     $disabled_plugins = array();
     foreach ($profiles as $p) {
       if ($p->name !== "CKEditor Global Profile") {
+        if (isset($p->settings['loadPlugins']) && is_array($p->settings['loadPlugins']) && count($p->settings['loadPlugins']) > 0) {
+          $changed = FALSE;
+          foreach ($p->settings['loadPlugins'] as $plugin_name => $plugin_settings) {
+            if (!array_key_exists($plugin_name, $plugins)) {
+              if (isset($plugin_settings['active']) && $plugin_settings['active'] == 0) {
+                continue;
+              }
+              if (!isset($disabled_plugins[$p->name])) {
+                $disabled_plugins[$p->name] = array();
+              }
+              $p->settings['loadPlugins'][$plugin_name]['active'] = 0;
+              $disabled_plugins[$p->name][] = $plugin_name;
+              $changed = TRUE;
+            }
+          }
+          if ($changed === TRUE) {
+            db_update('ckeditor_settings')
+                ->fields(array(
+                  'settings' => serialize($p->settings)
+                ))
+                ->condition('name', $p->name, '=')
+                ->execute();
+          }
+        }
         $rows[] = array(
           array('data' => $p->name, 'valign' => 'top'),
           array('data' => implode("<br />\n", $p->input_formats)),
@@ -229,33 +253,19 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     '#collapsed' => FALSE,
   );
 
-  $current_path = ckeditor_path('relative');
-  if ($current_path == '<URL>') {
-    $current_path = ckeditor_path('url');
-  }
-
-  $form['ckeditor_advanced_settings']['cke_path'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('CKEditor path'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#tree' => FALSE,
-  );
-
-  $form['ckeditor_advanced_settings']['cke_path']['ckeditor_path'] = array(
+  $form['ckeditor_advanced_settings']['ckeditor_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to CKEditor'),
     '#default_value' => !empty($profile->settings['ckeditor_path']) ? $profile->settings['ckeditor_path'] : '%m/ckeditor',
     '#size' => 40,
     '#maxlength' => 128,
     '#description' => t(
-        'The path to CKEditor (the WYSIWYG rich text editor downloaded from !ckeditorcom). Provide a path relative to the document root, unless CKEditor is located on an external URL. In such case enter the full URL to a folder with CKEditor.<br />The simplest way to have the editor running is to use CDN, to use it set: !cdn', array(
-      '!ckeditorcom' => l(t('ckeditor.com'), 'http://ckeditor.com/download'),
-      '!cdn' => '<strong>//cdn.ckeditor.com/' . CKEDITOR_LATEST . '/full-all</strong>'
+        'The path to CKEditor (the WYSIWYG rich text editor downloaded from !ckeditorcom) relative to the document root.', array(
+      '!ckeditorcom' => l(t('ckeditor.com'), 'http://ckeditor.com/download')
         )
     ) .
-    '<br /><br /> ' .
-    t('Available placeholders:!b &ndash; path of the Drupal installation (!base) !m &ndash; path where the CKEditor module is stored (!module).!l &ndash; path to the libraries directory (!library).', array(
+    '<br /> ' .
+    t('Available placeholders:!b &ndash; path of the Drupal installation (!base) !m &ndash; path where the CKEditor module is stored (!module).!l &ndash; path to the libraries directory (!library)', array(
       '!b' => '<br /><code>%b</code>',
       '!m' => '<br /><code>%m</code>',
       '!l' => '<br /><code>%l</code>',
@@ -266,17 +276,13 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     ) .
     '<br /> ' .
     t('Current path: !path', array(
-      '!path' => '<code>' . $current_path . '</code>'
+      '!path' => '<code>' . ckeditor_path('relative') . '</code>'
         )
     ),
     '#required' => TRUE
   );
 
-  $local_path = ckeditor_path('local');
-  if ($local_path == '<URL>') {
-    $local_path = t('CKEditor is loaded from URL. Local path is not available.');
-  }
-  $form['ckeditor_advanced_settings']['cke_path']['ckeditor_local_path'] = array(
+  $form['ckeditor_advanced_settings']['ckeditor_local_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Local path to CKEditor'),
     '#default_value' => isset($profile->settings['ckeditor_local_path']) ? $profile->settings['ckeditor_local_path'] : '',
@@ -289,20 +295,12 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     ) .
     '<br /> ' .
     t('Current path: !path', array(
-      '!path' => '<code>' . $local_path . '</code>'
+      '!path' => '<code>' . ckeditor_path('local') . '</code>'
         )
     )
   );
 
-  $form['ckeditor_advanced_settings']['plugins_path'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('CKEditor plugins'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#tree' => FALSE,
-  );
-
-  $form['ckeditor_advanced_settings']['plugins_path']['ckeditor_plugins_path'] = array(
+  $form['ckeditor_advanced_settings']['ckeditor_plugins_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to the CKEditor plugins directory'),
     '#default_value' => !empty($profile->settings['ckeditor_plugins_path']) ? $profile->settings['ckeditor_plugins_path'] : '%m/plugins',
@@ -326,7 +324,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     )
   );
 
-  $form['ckeditor_advanced_settings']['plugins_path']['ckeditor_plugins_local_path'] = array(
+  $form['ckeditor_advanced_settings']['ckeditor_plugins_local_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Local path to the CKEditor plugins directory'),
     '#default_value' => isset($profile->settings['ckeditor_plugins_local_path']) ? $profile->settings['ckeditor_plugins_local_path'] : '',
@@ -344,58 +342,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     )
   );
 
-  $form['ckeditor_advanced_settings']['skins_path'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('CKEditor skins'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#tree' => FALSE,
-  );
-
-  $form['ckeditor_advanced_settings']['skins_path']['ckeditor_skins_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path to the CKEditor skins directory'),
-    '#default_value' => !empty($profile->settings['ckeditor_skins_path']) ? $profile->settings['ckeditor_skins_path'] : '',
-    '#size' => 40,
-    '#maxlength' => 128,
-    '#description' => t('Path to the CKEditor skins directory relative to the document root.') .
-      '<br />' .
-      t('Available placeholders:<br /><code>%b</code> &ndash; path of the Drupal installation (<code>@base</code>) <br /><code>%m</code> &ndash; the base URL path where the CKEditor module is stored (<code>@module</code>).<br /><code>%l</code> &ndash; the base URL path to the libraries directory (<code>@library</code>)', array(
-          '@base' => $drupal_base_path,
-          '@module' => $module_drupal_path,
-          '@library' => $drupal_library_path,
-        )
-      ) .
-      '<br /> ' .
-      t('Current path: <code>@path</code>', array(
-          '@path' => ckeditor_skins_path('relative')
-        )
-      )
-  );
-
-  $form['ckeditor_advanced_settings']['skins_path']['ckeditor_skins_local_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Local path to the CKEditor skins directory'),
-    '#default_value' => isset($profile->settings['ckeditor_skins_local_path']) ? $profile->settings['ckeditor_skins_local_path'] : '',
-    '#size' => 40,
-    '#maxlength' => 128,
-    '#description' => t('The path to the local directory (on the server) that points to the path defined above. Enter either an absolute server path or a path relative to the <code>index.php</code> file. If left empty, the CKEditor module will try to find the right path.') .
-      '<br /> ' .
-      t('Current path: <code>@path</code>', array(
-          '@path' => ckeditor_skins_path('local')
-        )
-      )
-  );
-
-  $form['ckeditor_advanced_settings']['ckf_path'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('CKFinder path'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-    '#tree' => FALSE,
-  );
-
-  $form['ckeditor_advanced_settings']['ckf_path']['ckfinder_path'] = array(
+  $form['ckeditor_advanced_settings']['ckfinder_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path to CKFinder'),
     '#default_value' => !empty($profile->settings['ckfinder_path']) ? $profile->settings['ckfinder_path'] : '%m/ckfinder',
@@ -403,7 +350,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     '#maxlength' => 128,
     '#description' => t(
         'The path to CKFinder (AJAX based file manager downloaded from !ckfindercom) relative to the document root.', array(
-      '!ckfindercom' => l(t('ckfinder.com'), 'http://cksource.com/ckfinder')
+      '!ckfindercom' => l(t('ckfinder.com'), 'http://ckfinder.com/download')
         )
     ) .
     '<br />' .
@@ -423,7 +370,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
     )
   );
 
-  $form['ckeditor_advanced_settings']['ckf_path']['ckfinder_local_path'] = array(
+  $form['ckeditor_advanced_settings']['ckfinder_local_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Local path to CKFinder'),
     '#default_value' => isset($profile->settings['ckfinder_local_path']) ? $profile->settings['ckfinder_local_path'] : '',
@@ -455,7 +402,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
       ),
       '#required' => FALSE
     );
-
+    $current_private_dir = !empty($profile->settings['private_dir']) ? $profile->settings['private_dir'] : '';
     $form['ckeditor_advanced_settings']['private_dir'] = array(
       '#type' => 'textfield',
       '#title' => t('Location of files uploaded with CKEditor to the private folder'),
@@ -526,43 +473,7 @@ function ckeditor_admin_global_profile_form($form, $form_state, $mode = 'add') {
  * Form validation for a global profile
  */
 function ckeditor_admin_global_profile_form_validate($form, &$form_state) {
-  $edit = & $form_state['values'];
 
-  if (!empty($edit['skin'])) {
-    if (preg_match('/^\/\/cdn\.ckeditor\.com\/(.*)\/(.*)$/', $edit['ckeditor_path'], $matches)) {
-      // Assume a default skin is being used, then check if this is true.
-      $default_skin = TRUE;
-      $default_skin_string = '';
-      // CKEditor v4.6 and above use "moono-lisa" as the default skin.
-      if (version_compare($matches[1], '4.6', '>=')) {
-        // Presets standard-all and full-all contains all default skins
-        $defaults = (!empty($matches[2]) && substr($matches[2], -4) == '-all')
-          ? ['moono-lisa', 'moono', 'kama']
-          : ['moono-lisa'];
-
-        if (!in_array($edit['skin'], $defaults)) {
-          $default_skin = FALSE;
-          $default_skin_string = 'Moono-lisa';
-        }
-      }
-      // Below version 4.6, "moono" and "kama" are the default CKEditor skins.
-      elseif (!in_array($edit['skin'], ['moono', 'kama'])) {
-        $default_skin = FALSE;
-        $default_skin_string = 'Moono or Kama';
-      }
-
-      $skin_js_local = ckeditor_skins_path('local') . '/' . $edit['skin'] . '/skin.js';
-      if (!$default_skin && !file_exists($skin_js_local)) {
-        $skin_js_relative = ckeditor_skins_path('relative') . '/' . $edit['skin'] . '/skin.js';
-        $err_msg = t('When using the CKEditor CDN and a skin other than @skin_string, the <strong>skin.js</strong> file must be accessible locally. To fix this issue, download the skin from <a href="@url">CKEditor Addons</a>, extract skin.js, and place the file in the sub-directory named for the selected skin (for example: <em>@skin_js</em>).', array(
-          '@skin_string' => $default_skin_string,
-          '@url' => 'http://ckeditor.com/addons/skins/all',
-          '@skin_js' => $skin_js_relative,
-        ));
-        form_set_error('ckeditor_skins_path', $err_msg);
-      }
-    }
-  }
 }
 
 /**
@@ -590,7 +501,7 @@ function ckeditor_admin_global_profile_form_submit($form, &$form_state) {
     $edit['ckeditor_path'] = '';
   }
   $edit['ckeditor_path'] = trim(rtrim($edit['ckeditor_path'], "/"));
-  if ($edit['ckeditor_path'] && 0 !== strpos($edit['ckeditor_path'], "/") && 0 !== strpos($edit['ckeditor_path'], "%") && !preg_match("|^http(s)?://|i", $edit['ckeditor_path'])) {
+  if ($edit['ckeditor_path'] && 0 !== strpos($edit['ckeditor_path'], "/") && 0 !== strpos($edit['ckeditor_path'], "%")) {
     //ensure that slash is at the beginning
     $edit['ckeditor_path'] = "/" . $edit['ckeditor_path'];
   }
@@ -616,16 +527,6 @@ function ckeditor_admin_global_profile_form_submit($form, &$form_state) {
   }
   //no slash at the end
   $edit['ckeditor_plugins_path'] = trim(rtrim($edit['ckeditor_plugins_path'], "/"));
-
-  //strip slash from the end
-  $edit['ckeditor_skins_path'] = trim(rtrim(trim($edit['ckeditor_skins_path']), "/"));
-  if ($edit['ckeditor_skins_path'] && 0 !== strpos($edit['ckeditor_skins_path'], "/") && 0 !== strpos($edit['ckeditor_skins_path'], "%")) {
-    //ensure that slash is at the beginning
-    $edit['ckeditor_skins_path'] = "/" . $edit['ckeditor_skins_path'];
-  }
-
-  //no slash at the end
-  $edit['ckeditor_skins_local_path'] = trim(rtrim(trim($edit['ckeditor_skins_local_path']), "/"));
 
   //strip slash from the end
   if (empty($edit['ckfinder_path'])) {
@@ -655,7 +556,7 @@ function ckeditor_admin_global_profile_form_submit($form, &$form_state) {
 /**
  * Form builder for a profile
  */
-function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL) {
+function ckeditor_admin_profile_form($form, $form_state, $profile = NULL) {
   global $theme;
 
   if ($profile != NULL) {
@@ -680,13 +581,6 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
 
   $lang_options = ckeditor_load_lang_options();
 
-  // Attach the administration CSS.
-  $form['#attached'] = array(
-    'css' => array(
-      drupal_get_path('module', 'ckeditor') . '/css/ckeditor.admin.css',
-    ),
-  );
-
   $form['basic'] = array(
     '#type' => 'fieldset',
     '#title' => t('Basic setup'),
@@ -694,7 +588,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     '#collapsed' => TRUE
   );
 
-  switch ($task) {
+  switch (arg(4)) {
     case 'clone':
       //load all profiles to check their names
       $profiles = ckeditor_profile_load();
@@ -739,7 +633,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
 
   $orig_formats = filter_formats();
 
-  if ($task == 'edit' && !empty($profile->name)) {
+  if (arg(4) == 'edit' && !empty($profile->name)) {
     $used_formats = db_select('ckeditor_input_format', 'f')->fields('f', array("format"))->distinct()->condition("f.name", array($profile->name), 'NOT IN')->execute()->fetchAllAssoc('format');
   }
   else {
@@ -750,7 +644,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
   $formats = array();
   $input_format_config_links = array();
   foreach ($orig_formats AS $format) {
-    if (($task == 'edit' && !empty($profile->input_formats) && array_key_exists($format->format, $profile->input_formats)) || !array_key_exists($format->format, $used_formats)) {
+    if ((arg(4) == 'edit' && !empty($profile->input_formats) && array_key_exists($format->format, $profile->input_formats)) || !array_key_exists($format->format, $used_formats)) {
       $formats[$format->format] = $format->name;
       $input_format_config_links[$format->format] = array("name" => $format->name, "config_url" => url("admin/config/content/formats/" . $format->format));
     }
@@ -782,7 +676,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     '#type' => 'item',
     '#title' => t('Security filters'),
     '#description' => t(
-      'Below is a list of security filters along with their status for each text format.<br /><br />The following statuses are available: !img_enabled - the filter is configured for a given text format and will be run on the content during the filtering process. !img_disabled - the filter is disabled for a given text format and will not be run on the content during the filtering process.<br /><br />In order to modify the security filters settings for each of the text formats, you need to visit the text format configuration sections as listed below: !elem_format_config', array(
+        'Below is a list of security filters along with their status for each text format.<br/><br/>The following statuses are available:!img_enabled - the filter is configured for a given text format and will be run on the content during the filtering proces.!img_disabled - the filter is disabled for a given text format and will not be run on the content during the filtering process.<br/><br/>In order to modify the security filters settings for each of the text formats, you need to visit the text format configuration sections as listed below: !elem_format_config', array(
       '!img_enabled' => '</br><img src="' . $module_drupal_path . '/images/tick.png"/>',
       '!img_disabled' => '</br><img src="' . $module_drupal_path . '/images/delete.png"/>',
       '!elem_format_config' => '<ul class="text-formats-config"></ul>'
@@ -825,6 +719,28 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     '#collapsed' => TRUE,
   );
 
+  $form['appearance']['default'] = array(
+    '#type' => 'radios',
+    '#title' => t('Default state'),
+    '#default_value' => !empty($profile->settings['default']) ? $profile->settings['default'] : 't',
+    '#options' => array(
+      't' => t('Enabled'),
+      'f' => t('Disabled')
+    ),
+    '#description' => t('Default editor state. If disabled, the rich text editor may still be enabled by using toggle.'),
+  );
+
+  $form['appearance']['show_toggle'] = array(
+    '#type' => 'radios',
+    '#title' => t('Show the disable/enable rich text editor toggle'),
+    '#default_value' => !empty($profile->settings['show_toggle']) ? $profile->settings['show_toggle'] : 't',
+    '#options' => array(
+      't' => t('Show'),
+      'f' => t('Hide')
+    ),
+    '#description' => t('Whether or not to show the disable/enable rich text editor toggle below the textarea.'),
+  );
+
   $ui_colors = array(
     "default" => t('CKEditor default'),
     "custom" => t('Select manually')
@@ -853,96 +769,22 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     drupal_add_js(array('ckeditor_uicolor' => $color_palette), 'setting');
   }
 
-  if ($editor_path == '<URL>') {
-    drupal_add_js($editor_url_path . '/ckeditor.js', 'external');
-  }
-  else {
-    drupal_add_js('window.CKEDITOR_BASEPATH = "' . $editor_path . '/"', array('type' => 'inline', 'weight' => -100));
-    drupal_add_js($editor_url_path . '/ckeditor.js', array('type' => 'file', 'preprocess' => FALSE));
-  }
-
-  if (!empty($profile->settings['config_js']) && $profile->settings['config_js'] == 'self') {
-    $themepath = drupal_get_path('theme', variable_get('theme_default', $theme)) . '/';
-    $config_js_path = trim(str_replace("%h%t", "%t", $profile->settings['config_js_path']));
-    $config_js_path = str_replace(array('%h', '%t'), array(base_path(), base_path() . $themepath), $config_js_path);
-    if (!empty($config_js_path)) {
-      drupal_add_js($config_js_path, 'external');
-    }
-    else {
-      drupal_add_js($module_drupal_url_path . '/ckeditor.config.js', 'file');
-    }
-  }
-  elseif (!empty($profile->settings['config_js']) && $profile->settings['config_js'] == 'theme') {
-    $themepath = drupal_get_path('theme', variable_get('theme_default', $theme)) . '/';
-    drupal_add_js(base_path() . $themepath . 'ckeditor.config.js', 'external');
-  }
-  else {
-    drupal_add_js($module_drupal_url_path . '/ckeditor.config.js', 'file');
-  }
-
+  drupal_add_js('window.CKEDITOR_BASEPATH = "' . $editor_path . '/"', array('type' => 'inline', 'weight' => -100));
+  drupal_add_js($editor_url_path . '/ckeditor.js', array('type' => 'file', 'preprocess' => FALSE));
+  drupal_add_js($module_drupal_url_path . '/ckeditor.config.js', 'file');
   drupal_add_js($module_drupal_url_path . '/includes/ckeditor.admin.js', 'file');
 
   if ($toolbar_wizard == 't') {
-    drupal_add_library('system', 'ui.widget');
-    drupal_add_library('system', 'ui.sortable');
+    if (module_exists('jquery_ui')) {
+      jquery_ui_add(array('jquery.ui.widget.min.js', 'jquery.ui.sortable.min.js'));
+    }
+    else {
+      drupal_add_js($module_drupal_url_path . '/includes/jqueryUI/jquery-ui.min.js', 'file');
+      drupal_add_js($module_drupal_url_path . '/includes/jqueryUI/jquery.ui.widget.min.js', 'file');
+      drupal_add_js($module_drupal_url_path . '/includes/jqueryUI/jquery.ui.sortable.min.js', 'file');
+    }
     drupal_add_js($module_drupal_url_path . '/includes/jqueryUI/sort.js', 'file');
   }
-
-  $form['appearance']['toolbar'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Toolbar'),
-    '#default_value' => !empty($profile->settings['toolbar']) ? $profile->settings['toolbar'] : '',
-    '#description' => t('Load sample toolbar: !toolbars', array("!toolbars" => '<a href="#" id="cke_toolbar_DrupalBasic" class="cke_load_toolbar">' . t('Basic') . '</a> | <a href="#" id="cke_toolbar_DrupalAdvanced" class="cke_load_toolbar">' . t('Advanced') . '</a> | <a href="#" id="cke_toolbar_DrupalFull" class="cke_load_toolbar">' . t('Full') . '</a>')),
-    '#wysiwyg' => FALSE,
-    '#rows' => 15
-  );
-
-  if ($toolbar_wizard == 't') {
-    $form['appearance']['toolbar_wizzard_used'] = array(
-      '#markup' => '<div>' . t('Current toolbar') . '</div><div class="sortableList" id="groupLayout"></div><br/>',
-      '#description' => t('Currently used buttons'),
-    );
-
-    drupal_add_js(array('cke_toolbar_buttons_all' => ckeditor_toolbar_buttons_all()), 'setting');
-
-    $form['appearance']['toolbar_wizzard_all'] = array(
-      '#markup' => '<div>' . t('Available buttons') . '</div><div id="allButtons" class="sortableList"></div><br/>',
-      '#description' => t('All available buttons'),
-    );
-  }
-
-  $form['appearance']['expand'] = array(
-    '#type' => 'radios',
-    '#title' => t('Toolbar state on startup'),
-    '#default_value' => !empty($profile->settings['expand']) ? $profile->settings['expand'] : 't',
-    '#options' => array(
-      't' => t('Expanded'),
-      'f' => t('Collapsed')
-    ),
-    '#description' => t('The toolbar will start in an expanded or collapsed state.'),
-  );
-
-  $form['appearance']['default'] = array(
-    '#type' => 'radios',
-    '#title' => t('Default editor state'),
-    '#default_value' => !empty($profile->settings['default']) ? $profile->settings['default'] : 't',
-    '#options' => array(
-      't' => t('Enabled'),
-      'f' => t('Disabled')
-    ),
-    '#description' => t('Default editor state. If disabled, the rich text editor may still be enabled by using toggle.'),
-  );
-
-  $form['appearance']['show_toggle'] = array(
-    '#type' => 'radios',
-    '#title' => t('Show the disable/enable rich text editor toggle'),
-    '#default_value' => !empty($profile->settings['show_toggle']) ? $profile->settings['show_toggle'] : 't',
-    '#options' => array(
-      't' => t('Show'),
-      'f' => t('Hide')
-    ),
-    '#description' => t('Whether or not to show the disable/enable rich text editor toggle below the textarea.'),
-  );
 
   $form['appearance']['uicolor'] = array(
     '#type' => 'select',
@@ -962,13 +804,36 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     )
   ));
   $form['appearance']['skinframe'] = array(
-    '#markup' => '<iframe frameborder="0" id="skinframe" marginheight="0" marginwidth="0" src="' . $skinframe_url . '" style="height:430px;width:700px;"></iframe><br/>',
+    '#markup' => '<iframe frameborder="0" id="skinframe" marginheight="0" marginwidth="0" src="' . $skinframe_url . '" style="height:500px;width:700px;"></iframe><br/>',
     '#description' => '',
   );
   $form['appearance']['uicolor_user'] = array(
     '#type' => 'hidden',
     '#default_value' => !empty($profile->settings['uicolor_user']) ? $profile->settings['uicolor_user'] : 'default',
   );
+
+  $form['appearance']['toolbar'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Toolbar'),
+    '#default_value' => !empty($profile->settings['toolbar']) ? $profile->settings['toolbar'] : '',
+    '#description' => t('Load sample toolbar: !toolbars', array("!toolbars" => '<a href="#" id="cke_toolbar_DrupalBasic" class="cke_load_toolbar">' . t('Basic') . '</a> | <a href="#" id="cke_toolbar_DrupalAdvanced" class="cke_load_toolbar">' . t('Advanced') . '</a> | <a href="#" id="cke_toolbar_DrupalFull" class="cke_load_toolbar">' . t('Full') . '</a>')),
+    '#wysiwyg' => FALSE,
+    '#rows' => 15
+  );
+
+  if ($toolbar_wizard == 't') {
+    $form['appearance']['toolbar_wizzard_used'] = array(
+      '#markup' => '<div>' . t('Used buttons') . '</div><div class="sortableList" id="groupLayout"></div><br/>',
+      '#description' => t('Currently used buttons'),
+    );
+
+    drupal_add_js(array('cke_toolbar_buttons_all' => ckeditor_toolbar_buttons_all()), 'setting');
+
+    $form['appearance']['toolbar_wizzard_all'] = array(
+      '#markup' => '<div>' . t('All buttons') . '</div><div id="allButtons" class="sortableList"></div><br/>',
+      '#description' => t('All available buttons'),
+    );
+  }
 
   $plugin_list = ckeditor_load_plugins();
   $plugins = array();
@@ -995,11 +860,22 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     '#description' => t('Choose the plugins that you want to enable in CKEditor.')
   );
 
-  if ($editor_local_path != '<URL>' && file_exists($editor_local_path . '/plugins/divarea/plugin.js')) {
+  $form['appearance']['expand'] = array(
+    '#type' => 'radios',
+    '#title' => t('Toolbar state on startup'),
+    '#default_value' => !empty($profile->settings['expand']) ? $profile->settings['expand'] : 't',
+    '#options' => array(
+      't' => t('Expanded'),
+      'f' => t('Collapsed')
+    ),
+    '#description' => t('The toolbar will start in an expanded or collapsed state.'),
+  );
+
+  if (file_exists(ckeditor_path('local') . '/plugins/divarea/plugin.js')) {
     $form['appearance']['use_divarea'] = array(
       '#type' => 'radios',
       '#title' => t('"Div-based" editor'),
-      '#default_value' => !empty($profile->settings['use_divarea']) ? $profile->settings['use_divarea'] : 'f',
+      '#default_value' => !empty($profile->settings['use_divarea']) ? $profile->settings['use_divarea'] : 't',
       '#options' => array(
         't' => t('Enabled'),
         'f' => t('Disabled')
@@ -1051,52 +927,6 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
       '!bidirtl' => 'BidiRtl'
         )
     )
-  );
-
-  $form['acf'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Advanced content filter'),
-    '#description' => t('Configure input data filtering in CKEditor. See !link for more information about ACF.', array(
-        '!link' => l(t('this blog post'), 'http://ckeditor.com/blog/Upgrading-to-CKEditor-4.1')
-      )),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE
-  );
-
-  $form['acf']['allowed_content'] = array(
-    '#type' => 'radios',
-    '#title' => t('Advanced content filter'),
-    '#description' => t('<strong>Example:</strong> if only Bold and Link buttons are enabled, only !strong and !a tags will be allowed. Any !b tags will automatically be converted into !strong. The !img tag will not be allowed, unless the Image button is added to the toolbar.', array(
-    '!strong' => '<code>&lt;strong&gt;</code>',
-    '!a' => '<code>&lt;a&gt;</code>',
-    '!img' => '<code>&lt;img&gt;</code>',
-    '!b' => '<code>&lt;b&gt;</code>'
-  )).'<br /><br />'.
-    t('<strong>Warning:</strong> CKEditor will not use the set of tags associated with text format. Only the buttons enabled in the toolbar and optional plugins will determine which tags/attributes/styles are handled by CKEditor. Enabling ACF in CKEditor does not affect server-side filtering done by Drupal in any way.'),
-
-    '#default_value' => !empty($profile->settings['allowed_content']) ? $profile->settings['allowed_content'] : 't',
-    '#options' => array(
-      't' => t('Enabled'),
-      'f' => t('Disabled'),
-    ),
-  );
-  $form['acf']['allowed_content']['t']['#description'] = t('CKEditor will only allow tags/attributes/styles provided by CKEditor features. Disallowed content will be removed directly by CKEditor. When configured properly, it helps to ensure a true WYSIWYG experience.');
-  $form['acf']['allowed_content']['f']['#description'] = t('CKEditor will not filter any tags and as a result, the user will be able to insert any content into the editor. The content will only be filtered by server-side filters associated with input formats.');
-
-  $form['acf']['extraAllowedContent'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Extra allowed content'),
-    '#default_value' => !empty($profile->settings['extraAllowedContent']) ? $profile->settings['extraAllowedContent'] : "",
-    '#cols' => 60,
-    '#rows' => 5,
-    '#description' => t(
-      'Set additional allowed content rules for CKEditor. Separate rules with a semicolon. See !docs for more information.', array(
-        '!docs' => l(t('CKEditor documentation'), 'http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent')
-       )).'<p>'.
-       t('<strong>Example:</strong> !rules', array(
-         '!rules' => "<code>object[width,height];param[name,value];embed[*];</code>"
-       )).'</p>',
-    '#wysiwyg' => FALSE,
   );
 
   $form['output'] = array(
@@ -1187,9 +1017,6 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
     '#collapsed' => TRUE
   );
 
-  $current_theme = variable_get('theme_default', $theme);
-  $theme_path = drupal_get_path('theme', $current_theme);
-
   $form['css']['css_mode'] = array(
     '#type' => 'select',
     '#title' => t('Editor CSS'),
@@ -1227,7 +1054,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
       '!h' => '<br /><code>%h</code>',
       '!t' => '<br /><code>%t</code>',
       '!host' => '<code>' . base_path() . '</code>',
-      '!theme' => '<code>' . base_path() . $theme_path . '/</code>'
+      '!theme' => '<code>' . base_path() . path_to_theme() . '/</code>'
         )
     )
   );
@@ -1245,7 +1072,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
         'Define the location of the !ckeditor_styles_js_file file. It is used by the <strong>Style</strong> drop-down list available in the default toolbar. Copy the !ckeditor_styles_js_path file into your theme directory (!theme) and adjust it to your needs.', array(
       '!ckeditor_styles_js_file' => '<code>ckeditor.styles.js</code>',
       '!ckeditor_styles_js_path' => '<code>' . drupal_get_path('module', 'ckeditor') . '/ckeditor.styles.js</code>',
-      '!theme' => '<code>' . $theme_path . '/ckeditor.styles.js' . '</code>'
+      '!theme' => '<code>' . path_to_theme() . '/ckeditor.styles.js' . '</code>'
         )
     )
   );
@@ -1269,7 +1096,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
       '!t' => '<br /><code>%t</code>',
       '!m' => '<br /><code>%m</code>',
       '!host' => '<code>' . base_path() . '</code>',
-      '!theme' => '<code>' . base_path() . $theme_path . '/</code>',
+      '!theme' => '<code>' . base_path() . path_to_theme() . '/</code>',
       '!module' => '<code>' . drupal_get_path('module', 'ckeditor') . '</code>'
         )
     )
@@ -1284,7 +1111,7 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
         'Set the file browser settings. A file browser will allow you to browse the files stored on the server and embed them as links, images, or Flash movies. CKEditor is compatible with such Drupal modules as !imce or !elfinder. CKEditor can be also integrated with !ckfinder, an advanced Ajax file manager.', array(
       '!imce' => l(t('IMCE'), 'http://drupal.org/project/imce'),
       '!elfinder' => l(t('elFinder'), 'http://drupal.org/project/elfinder'),
-      '!ckfinder' => l(t('CKFinder'), 'http://cksource.com/ckfinder')
+      '!ckfinder' => l(t('CKFinder'), 'http://ckfinder.com')
         )
     )
   );
@@ -1479,64 +1306,22 @@ function ckeditor_admin_profile_form($form, $form_state, $task, $profile = NULL)
       't' => t('Yes')
     ),
   );
-
-  $form['advanced']['disableNativeSpellChecker'] = array(
+  $form['advanced']['theme_config_js'] = array(
     '#type' => 'radios',
-    '#title' => t('Disable native browser spell checker'),
-    '#default_value' => !empty($profile->settings['disableNativeSpellChecker']) ? $profile->settings['disableNativeSpellChecker'] : 'f',
-    '#description' => t('If set to yes the native browser spell check functionality is disabled.'),
-    '#options' => array(
-      'f' => t('No'),
-      't' => t('Yes')
-    ),
-  );
-
-  $form['advanced']['config_js'] = array(
-    '#type' => 'select',
-    '#title' => t('!ckeditor_config_js', array('!ckeditor_config_js' => 'Config JS')),
-    '#default_value' => !empty($profile->settings['config_js']) ? $profile->settings['config_js'] : 'none',
-    '#options' => array(
-      'none' => t('CKEditor default'),
-      'theme' => t('Use theme ckeditor.config.js'),
-      'self' => t('Define path to ckeditor.config.js'),
-    ),
-    '#description' => t('Define where to load the !ckeditor_config_js file from.!title_theme_config_js &ndash; load the !ckeditor_config_js file from the current site theme.!title_define_ckeditor_js &ndash; enter the !ckeditor_config_js file path below.!title_ckeditor_default_js &ndash; use the default editor !ckeditor_config_js.', array(
-      '!ckeditor_config_js' => '<code>ckeditor.config.js</code>',
-      '!title_theme_config_js' => '<br /><strong>' . t('Use theme ckeditor.config.js') . '</strong>',
-      '!title_define_ckeditor_js' => '<br /><strong>' . t('Define path to ckeditor.config.js') . '</strong>',
-      '!title_ckeditor_default_js' => '<br /><strong>' . t('CKEditor default') . '</strong>',
-      )
-    ),
-  );
-
-  $form['advanced']['config_js_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('ckeditor.config.js file path'),
-    '#default_value' => !empty($profile->settings['config_js_path']) ? $profile->settings['config_js_path'] : "",
-    '#size' => 40,
-    '#maxlength' => 255,
-    '#hidden' => empty($profile->settings['config_js_path']),
-    '#states' => array(
-      'visible' => array(
-        ':input[name="config_js"]' => array('value' => 'self'),
-      ),
-    ),
-    '#description' => t(
-        'Enter the path to the ckeditor.config.js file (Example: !example1). Make sure you select the !title_define_js option above.', array(
-      '!example1' => '<code>"js/config.js"</code>',
-      '!title_define_js' => '<strong>' . t('Define path to ckeditor.config.js') . '</strong>'
+    '#title' => t('Load !ckeditor_config_js from the theme path', array(
+      '!ckeditor_config_js' => '<code>ckeditor.config.js</code>'
         )
-    ) .
-    '<br />' .
-    t('Available placeholders:!h &ndash; host name (!host).!t &ndash; path to theme (!theme).', array(
-      '!h' => '<br /><code>%h</code>',
-      '!t' => '<br /><code>%t</code>',
-      '!host' => '<code>' . base_path() . '</code>',
-      '!theme' => '<code>' . base_path() . $theme_path . '/</code>'
+    ),
+    '#default_value' => !empty($profile->settings['theme_config_js']) ? $profile->settings['theme_config_js'] : 'f',
+    '#options' => array(
+      't' => t('Yes'),
+      'f' => t('No')
+    ),
+    '#description' => t('When enabled, the editor will try to load the !ckeditor_config_js file from the theme directory.', array(
+      '!ckeditor_config_js' => '<code>ckeditor.config.js</code>'
         )
     )
   );
-
   $form['advanced']['js_conf'] = array(
     '#type' => 'textarea',
     '#title' => t('Custom JavaScript configuration'),
@@ -1619,18 +1404,6 @@ function ckeditor_admin_profile_form_validate($form, &$form_state) {
     }
   }
 
-  if (!empty($edit['config_js_path'])) {
-    if ($edit['config_js'] != 'self') {
-      form_set_error('config_js_path', t('The Config JS path is not empty. Please set the <strong>Config JS</strong> option to the <strong>Define path to ckeditor.config.js</strong> mode.'));
-    }
-    elseif (FALSE !== strpos($edit['config_js_path'], '"')) {
-      form_set_error('config_js_path', t('Double quotes are not allowed in the Config JS path.'));
-    }
-    elseif (substr($edit['config_js_path'], 0, 1) == "'" && substr($edit['config_js_path'], -1) == "'") {
-      form_set_error('config_js_path', t('Enter a valid Config JS path, do not surround it with quotes.'));
-    }
-  }
-
   if (!empty($edit['font_format'])) {
     if (!preg_match("/^((p|div|pre|address|h1|h2|h3|h4|h5|h6);)*(p|div|pre|address|h1|h2|h3|h4|h5|h6)$/", $edit['font_format'])) {
       form_set_error('font_format', t('Enter a valid, semicolon-separated list of HTML font formats (no semicolon at the end of the list is expected).'));
@@ -1656,13 +1429,6 @@ function ckeditor_admin_profile_form_validate($form, &$form_state) {
   $toolbar = $edit['toolbar'];
   $toolbar = str_replace("'", '"', $toolbar);
   $toolbar = preg_replace('/(\w*)\s*\:/', '"${1}":', $toolbar);
-
-  if (strpos($toolbar, 'CodeSnippet') !== false && empty($edit['loadPlugins']['codesnippet'])) {
-    form_set_error('loadPlugins][codesnippet', t('The Code Snippet plugin must be enabled if the CodeSnippet button is enabled in the toolbar.'));
-  }
-  if (strpos($toolbar, 'Mathjax') !== false && empty($edit['loadPlugins']['mathjax'])) {
-    form_set_error('loadPlugins][mathjax', t('The Mathjax plugin must be enabled if the Mathjax button is enabled in the toolbar.'));
-  }
   if (!json_decode($toolbar)) {
     form_set_error('toolbar', t('Enter a valid toolbar configuration.'));
   }
@@ -1704,8 +1470,8 @@ function ckeditor_admin_profile_form_submit($form, &$form_state) {
 /**
  * Form builder for a clone profile
  */
-function ckeditor_admin_profile_clone_form($form, $form_state, $task, $oldprofile) {
-  return ckeditor_admin_profile_form($form, $form_state, $task, $oldprofile);
+function ckeditor_admin_profile_clone_form($form, $form_state, $oldprofile) {
+  return ckeditor_admin_profile_form($form, $form_state, $oldprofile);
 }
 
 /**
@@ -1800,11 +1566,6 @@ function ckeditor_admin_values_to_settings($values) {
   }
   unset($values['name'], $values['input_formats'], $values['_profile'], $values['op'], $values['submit'], $values['form_build_id'], $values['form_token'], $values['form_id'], $values['loadPlugins']);
 
-  // Replace CRLF with LF in toolbar settings
-  if(isset($values['toolbar'])){
-    $values['toolbar'] = str_replace("\r\n", "\n", $values['toolbar']);
-  }
-
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
   $plugin_list = ckeditor_load_plugins();
   $values['loadPlugins'] = array();
@@ -1837,14 +1598,10 @@ function ckeditor_profile_delete($name) {
 
 function _ckeditor_load_methods() {
   $result = array('ckeditor.js' => 'ckeditor.js');
-  $ckeditor_local_path = ckeditor_path('local');
-  if ($ckeditor_local_path == '<URL>') {
-    return $result;
-  }
-  if (file_exists($ckeditor_local_path . '/ckeditor_basic.js')) {
+  if (file_exists(ckeditor_path('local') . '/ckeditor_basic.js')) {
     $result['ckeditor_basic.js'] = 'ckeditor_basic.js';
   }
-  if (file_exists($ckeditor_local_path . '/ckeditor_source.js')) {
+  if (file_exists(ckeditor_path('local') . '/ckeditor_source.js')) {
     $result['ckeditor_source.js'] = 'ckeditor_source.js (' . t('for developers only') . ')';
   }
   return $result;
@@ -1875,69 +1632,68 @@ function ckeditor_toolbar_buttons_all() {
   $buttons = array(
     'Source' => array('name' => 'Source', 'icon' => $path . '/images/buttons/source.png', 'title' => 'Source', 'row' => 1),
     'Save' => array('name' => 'Save', 'icon' => $path . '/images/buttons/save.png', 'title' => 'Save', 'row' => 1),
-    'NewPage' => array('name' => 'NewPage', 'icon' => $path . '/images/buttons/newpage.png', 'title' => 'New Page', 'row' => 1),
+    'NewPage' => array('name' => 'NewPage', 'icon' => $path . '/images/buttons/newPage.png', 'title' => 'New Page', 'row' => 1),
     'Preview' => array('name' => 'Preview', 'icon' => $path . '/images/buttons/preview.png', 'title' => 'Preview', 'row' => 1),
     'Templates' => array('name' => 'Templates', 'icon' => $path . '/images/buttons/templates.png', 'title' => 'Templates', 'row' => 1),
     'Cut' => array('name' => 'Cut', 'icon' => $path . '/images/buttons/cut.png', 'title' => 'Cut', 'row' => 1),
     'Copy' => array('name' => 'Copy', 'icon' => $path . '/images/buttons/copy.png', 'title' => 'Copy', 'row' => 1),
     'Paste' => array('name' => 'Paste', 'icon' => $path . '/images/buttons/paste.png', 'title' => 'Paste', 'row' => 1),
-    'PasteText' => array('name' => 'PasteText', 'icon' => $path . '/images/buttons/pastetext.png', 'title' => 'Paste as plain text', 'row' => 1),
-    'PasteFromWord' => array('name' => 'PasteFromWord', 'icon' => $path . '/images/buttons/pastefromword.png', 'title' => 'Paste from Word', 'row' => 1),
+    'PasteText' => array('name' => 'PasteText', 'icon' => $path . '/images/buttons/pastePlainText.png', 'title' => 'Paste as plain text', 'row' => 1),
+    'PasteFromWord' => array('name' => 'PasteFromWord', 'icon' => $path . '/images/buttons/pasteWord.png', 'title' => 'Paste from Word', 'row' => 1),
     'Print' => array('name' => 'Print', 'icon' => $path . '/images/buttons/print.png', 'title' => 'Print', 'row' => 1),
-    'SpellChecker' => array('name' => 'SpellChecker', 'icon' => $path . '/images/buttons/spellchecker.png', 'title' => 'Check Spelling', 'row' => 1),
-    'Scayt' => array('name' => 'Scayt', 'icon' => $path . '/images/buttons/scayt.png', 'title' => 'Spell Check As you Type', 'row' => 1), //TODO sprawdzic ta opcje
+    'SpellChecker' => array('name' => 'SpellChecker', 'icon' => $path . '/images/buttons/checkSpelling.png', 'title' => 'Check Spelling', 'row' => 1),
+    'Scayt' => array('name' => 'Scayt', 'icon' => $path . '/images/buttons/checkSpelling.png', 'title' => 'Spell Check As you Type', 'row' => 1), //TODO sprawdzic ta opcje
     'Undo' => array('name' => 'Undo', 'icon' => $path . '/images/buttons/undo.png', 'title' => 'Undo', 'row' => 1),
     'Redo' => array('name' => 'Redo', 'icon' => $path . '/images/buttons/redo.png', 'title' => 'Redo', 'row' => 1),
     'Find' => array('name' => 'Find', 'icon' => $path . '/images/buttons/find.png', 'title' => 'Find', 'row' => 1),
     'Replace' => array('name' => 'Replace', 'icon' => $path . '/images/buttons/replace.png', 'title' => 'Replace', 'row' => 1),
-    'SelectAll' => array('name' => 'SelectAll', 'icon' => $path . '/images/buttons/selectall.png', 'title' => 'Select All', 'row' => 1),
-    'RemoveFormat' => array('name' => 'RemoveFormat', 'icon' => $path . '/images/buttons/removeformat.png', 'title' => 'Remove Format', 'row' => 1),
+    'SelectAll' => array('name' => 'SelectAll', 'icon' => $path . '/images/buttons/selectAll.png', 'title' => 'Select All', 'row' => 1),
+    'RemoveFormat' => array('name' => 'RemoveFormat', 'icon' => $path . '/images/buttons/removeFormat.png', 'title' => 'Remove Format', 'row' => 1),
     'Form' => array('name' => 'Form', 'icon' => $path . '/images/buttons/form.png', 'title' => 'Form', 'row' => 1),
     'Checkbox' => array('name' => 'Checkbox', 'icon' => $path . '/images/buttons/checkbox.png', 'title' => 'Checkbox', 'row' => 1),
-    'Radio' => array('name' => 'Radio', 'icon' => $path . '/images/buttons/radio.png', 'title' => 'Radio Button', 'row' => 1),
-    'TextField' => array('name' => 'TextField', 'icon' => $path . '/images/buttons/textfield.png', 'title' => 'Text Field', 'row' => 1),
+    'Radio' => array('name' => 'Radio', 'icon' => $path . '/images/buttons/radioButton.png', 'title' => 'Radio Button', 'row' => 1),
+    'TextField' => array('name' => 'TextField', 'icon' => $path . '/images/buttons/textField.png', 'title' => 'Text Field', 'row' => 1),
     'Textarea' => array('name' => 'Textarea', 'icon' => $path . '/images/buttons/textarea.png', 'title' => 'Textarea', 'row' => 1),
-    'Select' => array('name' => 'Select', 'icon' => $path . '/images/buttons/select.png', 'title' => 'Selection Field', 'row' => 1),
+    'Select' => array('name' => 'Select', 'icon' => $path . '/images/buttons/selectionField.png', 'title' => 'Selection Field', 'row' => 1),
     'Button' => array('name' => 'Button', 'icon' => $path . '/images/buttons/button.png', 'title' => 'Button', 'row' => 1),
-    'ImageButton' => array('name' => 'ImageButton', 'icon' => $path . '/images/buttons/imagebutton.png', 'title' => 'Image Button', 'row' => 1),
-    'HiddenField' => array('name' => 'HiddenField', 'icon' => $path . '/images/buttons/hiddenfield.png', 'title' => 'Hidden Field', 'row' => 1),
+    'ImageButton' => array('name' => 'ImageButton', 'icon' => $path . '/images/buttons/imageButton.png', 'title' => 'Image Button', 'row' => 1),
+    'HiddenField' => array('name' => 'HiddenField', 'icon' => $path . '/images/buttons/hiddenField.png', 'title' => 'Hidden Field', 'row' => 1),
     'Bold' => array('name' => 'Bold', 'icon' => $path . '/images/buttons/bold.png', 'title' => 'Bold', 'row' => 2),
     'Italic' => array('name' => 'Italic', 'icon' => $path . '/images/buttons/italic.png', 'type' => 'command', 'title' => 'Italic', 'row' => 2),
     'Underline' => array('name' => 'Underline', 'icon' => $path . '/images/buttons/underline.png', 'title' => 'Underline', 'row' => 2),
     'Strike' => array('name' => 'Strike', 'icon' => $path . '/images/buttons/strike.png', 'title' => 'Strike Through', 'row' => 2),
     'Subscript' => array('name' => 'Subscript', 'icon' => $path . '/images/buttons/subscript.png', 'title' => 'Subscript', 'row' => 2),
     'Superscript' => array('name' => 'Superscript', 'icon' => $path . '/images/buttons/superscript.png', 'title' => 'Superscript', 'row' => 2),
-    'NumberedList' => array('name' => 'NumberedList', 'icon' => $path . '/images/buttons/numberedlist.png', 'title' => 'Insert/Remove Numbered List', 'row' => 2),
-    'BulletedList' => array('name' => 'BulletedList', 'icon' => $path . '/images/buttons/bulletedlist.png', 'title' => 'Insert/Remove Bulleted List', 'row' => 2),
-    'Outdent' => array('name' => 'Outdent', 'icon' => $path . '/images/buttons/outdent.png', 'title' => 'Decrease Indent', 'row' => 2),
-    'Indent' => array('name' => 'Indent', 'icon' => $path . '/images/buttons/indent.png', 'title' => 'Increase Indent', 'row' => 2),
-    'Blockquote' => array('name' => 'Blockquote', 'icon' => $path . '/images/buttons/blockquote.png', 'title' => 'Block Quote', 'row' => 2),
-    'CreateDiv' => array('name' => 'CreateDiv', 'icon' => $path . '/images/buttons/creatediv.png', 'title' => 'Create Div Container', 'row' => 2),
-    'JustifyLeft' => array('name' => 'JustifyLeft', 'icon' => $path . '/images/buttons/justifyleft.png', 'title' => 'Left Justify', 'row' => 2),
-    'JustifyCenter' => array('name' => 'JustifyCenter', 'icon' => $path . '/images/buttons/justifycenter.png', 'title' => 'Center Justify', 'row' => 2),
-    'JustifyRight' => array('name' => 'JustifyRight', 'icon' => $path . '/images/buttons/justifyright.png', 'title' => 'Right Justify', 'row' => 2),
-    'JustifyBlock' => array('name' => 'JustifyBlock', 'icon' => $path . '/images/buttons/justifyblock.png', 'title' => 'Block Justify', 'row' => 2),
-    'BidiLtr' => array('name' => 'BidiLtr', 'icon' => $path . '/images/buttons/bidiltr.png', 'title' => 'Text direction from left to right', 'row' => 2),
-    'BidiRtl' => array('name' => 'BidiRtl', 'icon' => $path . '/images/buttons/bidirtl.png', 'title' => 'Text direction from right to left', 'row' => 2),
-    'Language' => array('name' => 'Language', 'icon' => $path . '/images/buttons/language.png', 'title' => 'Set Language', 'row' => 2),
+    'NumberedList' => array('name' => 'NumberedList', 'icon' => $path . '/images/buttons/numberedList.png', 'title' => 'Insert/Remove Numbered List', 'row' => 2),
+    'BulletedList' => array('name' => 'BulletedList', 'icon' => $path . '/images/buttons/bulletedList.png', 'title' => 'Insert/Remove Bulleted List', 'row' => 2),
+    'Outdent' => array('name' => 'Outdent', 'icon' => $path . '/images/buttons/decreaseIndent.png', 'title' => 'Decrease Indent', 'row' => 2),
+    'Indent' => array('name' => 'Indent', 'icon' => $path . '/images/buttons/increaseIndent.png', 'title' => 'Increase Indent', 'row' => 2),
+    'Blockquote' => array('name' => 'Blockquote', 'icon' => $path . '/images/buttons/blockQuote.png', 'title' => 'Block Quote', 'row' => 2),
+    'CreateDiv' => array('name' => 'CreateDiv', 'icon' => $path . '/images/buttons/createDivContainer.png', 'title' => 'Create Div Container', 'row' => 2),
+    'JustifyLeft' => array('name' => 'JustifyLeft', 'icon' => $path . '/images/buttons/leftJustify.png', 'title' => 'Left Justify', 'row' => 2),
+    'JustifyCenter' => array('name' => 'JustifyCenter', 'icon' => $path . '/images/buttons/centerJustify.png', 'title' => 'Center Justify', 'row' => 2),
+    'JustifyRight' => array('name' => 'JustifyRight', 'icon' => $path . '/images/buttons/rightJustify.png', 'title' => 'Right Justify', 'row' => 2),
+    'JustifyBlock' => array('name' => 'JustifyBlock', 'icon' => $path . '/images/buttons/blockJustify.png', 'title' => 'Block Justify', 'row' => 2),
+    'BidiLtr' => array('name' => 'BidiLtr', 'icon' => $path . '/images/buttons/bidiLeft.png', 'title' => 'Text direction from left to right', 'row' => 2),
+    'BidiRtl' => array('name' => 'BidiRtl', 'icon' => $path . '/images/buttons/bidiRight.png', 'title' => 'Text direction from right to left', 'row' => 2),
     'Link' => array('name' => 'Link', 'icon' => $path . '/images/buttons/link.png', 'title' => 'Link', 'row' => 2),
     'Unlink' => array('name' => 'Unlink', 'icon' => $path . '/images/buttons/unlink.png', 'title' => 'Unlink', 'row' => 2),
     'Anchor' => array('name' => 'Anchor', 'icon' => $path . '/images/buttons/anchor.png', 'title' => 'Anchor', 'row' => 2),
     'Image' => array('name' => 'Image', 'icon' => $path . '/images/buttons/image.png', 'title' => 'Image', 'row' => 2),
     'Flash' => array('name' => 'Flash', 'icon' => $path . '/images/buttons/flash.png', 'title' => 'Flash', 'row' => 2),
     'Table' => array('name' => 'Table', 'icon' => $path . '/images/buttons/table.png', 'title' => 'Table', 'row' => 2),
-    'HorizontalRule' => array('name' => 'HorizontalRule', 'icon' => $path . '/images/buttons/horizontalrule.png', 'title' => 'Insert Horizontal Line', 'row' => 2),
+    'HorizontalRule' => array('name' => 'HorizontalRule', 'icon' => $path . '/images/buttons/horizontalLine.png', 'title' => 'Insert Horizontal Line', 'row' => 2),
     'Smiley' => array('name' => 'Smiley', 'icon' => $path . '/images/buttons/smiley.png', 'title' => 'Smiley', 'row' => 2),
-    'SpecialChar' => array('name' => 'SpecialChar', 'icon' => $path . '/images/buttons/specialchar.png', 'title' => 'Insert Special Character', 'row' => 2),
-    'PageBreak' => array('name' => 'PageBreak', 'icon' => $path . '/images/buttons/pagebreak.png', 'title' => 'Insert Page Break for Printing', 'row' => 2),
+    'SpecialChar' => array('name' => 'SpecialChar', 'icon' => $path . '/images/buttons/specialCharacter.png', 'title' => 'Inseert Special Character', 'row' => 2),
+    'PageBreak' => array('name' => 'PageBreak', 'icon' => $path . '/images/buttons/pageBreakPrinting.png', 'title' => 'Insert Page Break for Printing', 'row' => 2),
     'Styles' => array('name' => 'Styles', 'icon' => $path . '/images/buttons/styles.png', 'title' => 'Formatting Styles', 'row' => 3),
     'Format' => array('name' => 'Format', 'icon' => $path . '/images/buttons/format.png', 'title' => 'Paragraph Format', 'row' => 3),
     'Font' => array('name' => 'Font', 'icon' => $path . '/images/buttons/font.png', 'title' => 'Font Name', 'row' => 3),
-    'FontSize' => array('name' => 'FontSize', 'icon' => $path . '/images/buttons/size.png', 'title' => 'Font Size', 'row' => 3),
-    'TextColor' => array('name' => 'TextColor', 'icon' => $path . '/images/buttons/textcolor.png', 'title' => 'Text Color', 'row' => 3),
-    'BGColor' => array('name' => 'BGColor', 'icon' => $path . '/images/buttons/bgcolor.png', 'title' => 'Background Color', 'row' => 3),
+    'FontSize' => array('name' => 'FontSize', 'icon' => $path . '/images/buttons/fontSize.png', 'title' => 'Font Size', 'row' => 3),
+    'TextColor' => array('name' => 'TextColor', 'icon' => $path . '/images/buttons/textColor.png', 'title' => 'Text Color', 'row' => 3),
+    'BGColor' => array('name' => 'BGColor', 'icon' => $path . '/images/buttons/backgroundColor.png', 'title' => 'Background Color', 'row' => 3),
     'Maximize' => array('name' => 'Maximize', 'icon' => $path . '/images/buttons/maximize.png', 'title' => 'Maximize', 'row' => 3),
-    'ShowBlocks' => array('name' => 'ShowBlocks', 'icon' => $path . '/images/buttons/showblocks.png', 'title' => 'Show Blocks', 'row' => 3),
+    'ShowBlocks' => array('name' => 'ShowBlocks', 'icon' => $path . '/images/buttons/showBlocks.png', 'title' => 'Show Blocks', 'row' => 3),
     'Iframe' => array('name' => 'Iframe', 'icon' => $path . '/images/buttons/iframe.png', 'title' => 'IFrame', 'row' => 3),
     'About' => array('name' => 'About', 'icon' => $path . '/images/buttons/about.png', 'title' => 'About', 'row' => 3),
     '__spacer' => array('name' => FALSE, 'icon' => $path . '/images/buttons/spacer.png', 'title' => 'Spacer', 'row' => 4),
@@ -1945,18 +1701,11 @@ function ckeditor_toolbar_buttons_all() {
   );
 
   $plugins = ckeditor_load_plugins(TRUE);
-
   foreach ($plugins as $plugin_name => $plugin) {
-    if (empty($plugin['buttons'])) {
+    if (!isset($plugin['buttons']) || $plugin['buttons'] == FALSE)
       continue;
-    }
     foreach ((array) $plugin['buttons'] as $button_name => $button) {
-      $buttons[$button_name] = array(
-        'name' => $button_name,
-        'icon' => !empty($button['icon_path']) ? $button['icon_path'] . $button['icon'] : $plugin['path'] . $button['icon'],
-        'title' => t($button['label']),
-        'row' => 4,
-      );
+      $buttons[$button_name] = array('name' => $button_name, 'icon' => $plugin['path'] . $button['icon'], 'title' => t($button['label']), 'row' => 4);
     }
   }
 
@@ -1995,7 +1744,7 @@ function _ckeditor_admin_profile_form_security_filters(&$form, $profile, $securi
           '#type' => 'item',
           '#title' => t("@data", array('@data' => $filter_conf['title'])),
           '#description' => t("!data", array('!data' => $filter_conf['description'])),
-          '#prefix' => "<div class=\"filter-wrapper\"></div>" . $filter_text_formats,
+          '#prefix' => t("<div class=\"filter-wrapper\"></div>!formats", array("!formats" => $filter_text_formats)),
           '#suffix' => "</div>"
         );
       }
@@ -2016,20 +1765,17 @@ function ckeditor_skinframe() {
   }
 
   $editor_path = ckeditor_path('relative');
-  if ($editor_path == '<URL>')
-    $editor_path = ckeditor_path('url');
   $module_drupal_path = ckeditor_module_path('relative');
 
   $html = "<!DOCTYPE html>";
-  $html .= "<html>";
   $html .= "<head>";
-  $html .= '<title>CKEditor UI Color Picker</title>';
-  $html .= "<script type=\"text/javascript\" src=\"{$editor_path}/ckeditor.js\"></script>";
+  $html .= "<script src=\"{$editor_path}/ckeditor.js\"></script>";
   $html .= "</head>";
   $html .= "<body>";
   $html .= "<input type=\"hidden\" name=\"uicolor_user\"/>";
   $html .= "<div id=\"editor\" style=\"height: 200px;\">Click the <strong>UI Color Picker</strong> button to set your color preferences.</div>";
-  $html .= "<script type=\"text/javascript\">
+  $html .= "
+<script>
 var skin = window.location.search.match(/skin=([^&]*)/)[1];
 var uicolor = window.location.search.match(/uicolor=([^&]*)/)[1];
 var ckeditorUiColorOnChange = function() {
@@ -2056,7 +1802,7 @@ CKEDITOR.on('dialogDefinition', function( ev ) {
 });
 CKEDITOR.replace('editor', {
   extraPlugins : 'uicolor',
-  height: 330,
+  height: 400,
   uiColor: '#' + uicolor,
   toolbar : [[ 'Bold', 'Italic', '-', 'NumberedList', 'BulletedList'],[ 'UIColor' ]],
   skin: skin,

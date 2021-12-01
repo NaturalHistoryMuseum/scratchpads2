@@ -9,7 +9,6 @@
  * Tests the argument_comment_user_uid handler.
  */
 class viewsHandlerArgumentCommentUserUidTest extends ViewsSqlTest {
-
   public static function getInfo() {
     return array(
       'name' => 'Tests handler argument_comment_user_uid',
@@ -30,19 +29,14 @@ class viewsHandlerArgumentCommentUserUidTest extends ViewsSqlTest {
     $comment += array(
       'uid' => $this->loggedInUser->uid,
       'nid' => $node->nid,
-      'cid' => NULL,
-      // To indicate that a comment does not have a parent comment use the value
-      // zero instead of an empty string.
-      'pid' => 0,
+      'cid' => '',
+      'pid' => '',
     );
     return comment_save((object) $comment);
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp(array $modules = array()) {
-    parent::setUp($modules);
+  function setUp() {
+    parent::setUp();
 
     // Add two users, create a node with the user1 as author and another node
     // with user2 as author. For the second node add a comment from user1.

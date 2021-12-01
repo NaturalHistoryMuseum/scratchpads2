@@ -39,7 +39,7 @@ function captcha_set_form_id_setting($form_id, $captcha_type) {
     db_delete('captcha_points')->condition('form_id', $form_id)->execute();
   }
   // Handle a captcha_type object.
-  elseif (is_object($captcha_type) && !empty($captcha_type->module) && !empty($captcha_type->captcha_type)) {
+  elseif (is_object($captcha_type) && isset($captcha_type->module) && isset($captcha_type->captcha_type)) {
     db_merge('captcha_points')
       ->key(array('form_id' => $form_id))
       ->fields(array('module' => $captcha_type->module, 'captcha_type' => $captcha_type->captcha_type))
@@ -104,7 +104,7 @@ function captcha_get_form_id_setting($form_id, $symbolic = FALSE) {
   if (!$captcha_point) {
     $captcha_point = NULL;
   }
-  elseif (!empty($captcha_point->captcha_type) && $captcha_point->captcha_type == 'default') {
+  elseif ($captcha_point->captcha_type == 'default') {
     if (!$symbolic) {
       list($module, $type) = explode('/', variable_get('captcha_default_challenge', 'captcha/Math'));
       $captcha_point->module = $module;
@@ -114,13 +114,12 @@ function captcha_get_form_id_setting($form_id, $symbolic = FALSE) {
       $captcha_point = 'default';
     }
   }
-  elseif (empty($captcha_point->module) && empty($captcha_point->captcha_type) && $symbolic) {
+  elseif ($captcha_point->module == NULL && $captcha_point->captcha_type == NULL && $symbolic) {
     $captcha_point = 'none';
   }
   elseif ($symbolic) {
     $captcha_point = $captcha_point->module . '/' . $captcha_point->captcha_type;
   }
-
   return $captcha_point;
 }
 
@@ -267,35 +266,6 @@ function _captcha_get_description($lang_code = NULL) {
 }
 
 /**
- * Get the error message as configured on the general CAPTCHA settings page.
- *
- * If the locale module is enabled, the error message will be returned
- * for the current language the page is rendered for. This language
- * can optionally been overridden with the $lang_code argument.
- *
- * @param string|null $lang_code
- *   an optional language code to get the description for.
- *
- * @return string
- *   String with (localized) error message.
- */
-function _captcha_get_error_message($lang_code = NULL) {
-  // If no language code is given: use the language of the current page.
-  global $language;
-  $lang_code = isset($lang_code) ? $lang_code : $language->language;
-  // The hardcoded but localizable default.
-  $default = t('The answer you entered for the CAPTCHA was not correct.', array(), array('langcode' => $lang_code));
-  // Look up the configured error message or fall back on the (localized) default.
-  if (module_exists('locale')) {
-    $message = variable_get('captcha_error_message_' . $lang_code, $default);
-  }
-  else {
-    $message = variable_get('captcha_error_message', $default);
-  }
-  return filter_xss_admin($message);
-}
-
-/**
  * Parse or interpret the given captcha_type.
  *
  * @param string $captcha_type
@@ -369,7 +339,7 @@ function _captcha_get_captcha_placement($form_id, $form) {
       if (count($buttons)) {
         // Pick first button.
         // TODO: make this more sofisticated? Use cases needed.
-        $placement = (isset($buttons[count($buttons) - 1])) ? $buttons[count($buttons) - 1] : $buttons[0];
+        $placement = $buttons[0];
       }
       else {
         // Use NULL when no buttons were found.

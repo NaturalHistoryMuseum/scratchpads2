@@ -60,8 +60,18 @@ function twitter_actions_set_status($message, $sender) {
     // No Twitter authenticated account found.
     return;
   }
+
   // Send tweet.
-  twitter_actions_post($twitter_uid, $message);
+  module_load_include('inc', 'twitter');
+  $twitter_account = twitter_account_load($twitter_uid);
+  try {
+    twitter_set_status($twitter_account, $message);
+    drupal_set_message(t('Successfully posted to Twitter'));
+  }
+  catch (TwitterException $e) {
+    drupal_set_message(t('An error occurred when posting to Twitter: @message',
+                         array('@message' => $e->getMessage())), 'warning');
+  }
 }
 
 /**

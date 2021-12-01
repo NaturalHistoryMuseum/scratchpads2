@@ -29,11 +29,10 @@ class viewsPluginStyleJumpMenuTest extends ViewsSqlTest {
   }
 
   /**
-   * {@inheritdoc}
+   *
    */
-  public function setUp(array $modules = array()) {
-    parent::setUp($modules);
-
+  public function setUp() {
+    parent::setUp();
     $this->nodes = array();
     $this->nodes['page'][] = $this->drupalCreateNode(array('type' => 'page'));
     $this->nodes['page'][] = $this->drupalCreateNode(array('type' => 'page'));

@@ -29,7 +29,7 @@ function entity_metadata_book_get_properties($node, array $options, $name, $enti
 
     case 'book_ancestors':
       $ancestors = array();
-      while (!empty($node->book['plid']) && $node->book['plid'] != -1) {
+      while (!empty($node->book['plid'])) {
         $link = book_link_load($node->book['plid']);
         array_unshift($ancestors, $link['nid']);
         $node = node_load($link['nid']);
@@ -670,11 +670,9 @@ function entity_metadata_field_file_validate_item($items, $context) {
 function entity_metadata_no_hook_node_access($op, $node = NULL, $account = NULL) {
   // First deal with the case where a $node is provided.
   if (isset($node)) {
-    if (empty($node->vid) && in_array($op, array('create', 'update'))) {
-      // This is a new node or the original node.
+    if ($op == 'create') {
       if (isset($node->type)) {
-        $op = empty($node->nid) || !empty($node->is_new) ? 'create' : 'update';
-        return node_access($op, $op == 'create' ? $node->type : $node, $account);
+        return node_access($op, $node->type, $account);
       }
       else {
         throw new EntityMalformedException('Permission to create a node was requested but no node type was given.');
@@ -798,35 +796,14 @@ function entity_metadata_comment_properties_access($op, $property, $entity = NUL
  * Access callback for the taxonomy entities.
  */
 function entity_metadata_taxonomy_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
-  // If user has administer taxonomy permission then no further checks.
-  if (user_access('administer taxonomy', $account)) {
+  if ($entity_type == 'taxonomy_vocabulary') {
+    return user_access('administer taxonomy', $account);
+  }
+  if (isset($entity) && $op == 'update' && !isset($account) && taxonomy_term_edit_access($entity)) {
     return TRUE;
   }
-  switch ($op) {
-    case "view":
-      if (user_access('access content', $account)) {
-        return TRUE;
-      }
-      break;
-    case "update":
-      if ($entity_type == 'taxonomy_term') {
-        return user_access("edit terms in $entity->vid", $account);
-      }
-      break;
-    case "create":
-      if ($entity_type == 'taxonomy_term') {
-        // Check for taxonomy_access_fix contrib module which adds additional
-        // permissions to create new terms in a given vocabulary.
-        if (function_exists('taxonomy_access_fix_access')) {
-          return taxonomy_access_fix_access('add terms', $entity->vocabulary_machine_name);
-        }
-      }
-      break;
-    case "delete":
-      if ($entity_type == 'taxonomy_term') {
-        return user_access("delete terms in $entity->vid", $account);
-      }
-      break;
+  if (user_access('administer taxonomy', $account) || user_access('access content', $account) && $op == 'view') {
+    return TRUE;
   }
   return FALSE;
 }
@@ -932,7 +909,10 @@ function entity_metadata_user_save($account) {
  * Watch out to not accidentilly implement hook_file_delete().
  */
 function entity_metadata_delete_file($fid) {
-  file_delete(file_load($fid), TRUE);
+  if (!$file = file_load($fid)) {
+    return;
+  }
+  file_delete($file, TRUE);
 }
 
 /**

@@ -45,28 +45,24 @@ class context_condition_node_taxonomy extends context_condition_node {
     $check_fields = array();
     foreach ($instance_fields as $key => $field_info) {
       if ($fields[$key]['type'] == 'taxonomy_term_reference') {
-        $check_fields[$key] = 'tid';
-      }
-      else if ($fields[$key]['type'] == 'entityreference' &&
-               $fields[$key]['settings']['target_type'] == 'taxonomy_term') {
-        $check_fields[$key] = 'target_id';
+        $check_fields[] = $key;
       }
     }
 
     if ($this->condition_used() && !empty($check_fields)) {
-      foreach ($check_fields as $field => $term_id_key) {
+      foreach ($check_fields as $field) {
         if ($terms = field_get_items('node', $node, $field)) {
           foreach ($terms as $term) {
-            foreach ($this->get_contexts($term[$term_id_key]) as $context) {
+            foreach ($this->get_contexts($term['tid']) as $context) {
               // Check the node form option.
               if ($op === 'form') {
                 $options = $this->fetch_from_context($context, 'options');
                 if (!empty($options['node_form'])) {
-                  $this->condition_met($context, $term[$term_id_key]);
+                  $this->condition_met($context, $term['tid']);
                 }
               }
               else {
-                $this->condition_met($context, $term[$term_id_key]);
+                $this->condition_met($context, $term['tid']);
               }
             }
           }

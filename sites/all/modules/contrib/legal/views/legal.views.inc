@@ -149,9 +149,8 @@ function legal_views_data() {
       'title'    => t('Version'),
       'help'     => t('Version of T&Cs.'),
       'field'    => array(
-        'handler'        => 'views_handler_field_markup',
+        'handler'        => 'views_handler_field',
         'click sortable' => TRUE,
-        'format'         => array('field' => 'format'),
       ),
       'filter'   => array(
         'handler'     => 'views_handler_filter_numeric',

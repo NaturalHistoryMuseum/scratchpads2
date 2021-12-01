@@ -38,7 +38,6 @@ class views_handler_argument_string extends views_handler_argument {
     $options['path_case'] = array('default' => 'none');
     $options['transform_dash'] = array('default' => FALSE, 'bool' => TRUE);
     $options['break_phrase'] = array('default' => FALSE, 'bool' => TRUE);
-    $options['not'] = array('default' => FALSE, 'bool' => TRUE);
 
     if (!empty($this->definition['many to one'])) {
       $options['add_table'] = array('default' => FALSE, 'bool' => TRUE);
@@ -133,13 +132,6 @@ class views_handler_argument_string extends views_handler_argument {
       '#default_value' => !empty($this->options['break_phrase']),
       '#fieldset' => 'more',
     );
-    $form['not'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Exclude'),
-      '#description' => t('If selected, the numbers entered for the filter will be excluded rather than limiting the view.'),
-      '#default_value' => !empty($this->options['not']),
-      '#fieldset' => 'more',
-    );
   }
 
   /**
@@ -215,20 +207,20 @@ class views_handler_argument_string extends views_handler_argument {
     }
 
     if (count($this->value) > 1) {
-      $operator = empty($this->options['not']) ? 'IN' : 'NOT IN';
+      $operator = 'IN';
       $argument = $this->value;
     }
     else {
-      $operator = empty($this->options['not']) ? '=' : '!=';
+      $operator = '=';
     }
 
     if ($formula) {
       $placeholder = $this->placeholder();
-      if (count($this->value) > 1) {
-        $field .= " $operator ($placeholder)";
+      if ($operator == 'IN') {
+        $field .= " IN($placeholder)";
       }
       else {
-        $field .= " $operator $placeholder";
+        $field .= ' = ' . $placeholder;
       }
       $placeholders = array(
         $placeholder => $argument,

@@ -9,7 +9,6 @@
  * Feeds processor plugin. Create taxonomy terms from feed items.
  */
 class FeedsTermProcessor extends FeedsProcessor {
-
   /**
    * Define entity type.
    */
@@ -32,34 +31,17 @@ class FeedsTermProcessor extends FeedsProcessor {
    */
   protected function newEntity(FeedsSource $source) {
     $vocabulary = $this->vocabulary();
-    $term = parent::newEntity($source);
+    $term = new stdClass();
     $term->vid = $vocabulary->vid;
     $term->vocabulary_machine_name = $vocabulary->machine_name;
-
+    $term->format = isset($this->config['input_format']) ? $this->config['input_format'] : filter_fallback_format();
     return $term;
-  }
-
-  /**
-   * Load an existing entity.
-   */
-  protected function entityLoad(FeedsSource $source, $entity_id) {
-    $entity = parent::entityLoad($source, $entity_id);
-
-    // Avoid missing bundle errors when term has been loaded directly from db.
-    if (empty($entity->vocabulary_machine_name) && !empty($entity->vid)) {
-      $vocabulary = taxonomy_vocabulary_load($entity->vid);
-      $entity->vocabulary_machine_name = ($vocabulary) ? $vocabulary->machine_name : NULL;
-    }
-
-    return $entity;
   }
 
   /**
    * Validates a term.
    */
-  protected function entityValidate($term, FeedsSource $source = NULL) {
-    parent::entityValidate($term);
-
+  protected function entityValidate($term) {
     if (drupal_strlen($term->name) == 0) {
       throw new FeedsValidationException(t('Term name missing.'));
     }
@@ -102,11 +84,9 @@ class FeedsTermProcessor extends FeedsProcessor {
   }
 
   /**
-   * Overrides parent::setTargetElement().
-   *
-   * Operate on a target item that is a taxonomy term.
+   * Override setTargetElement to operate on a target item that is a taxonomy term.
    */
-  public function setTargetElement(FeedsSource $source, $target_term, $target_element, $value, array $mapping = array()) {
+  public function setTargetElement(FeedsSource $source, $target_term, $target_element, $value) {
     switch ($target_element) {
       case 'parent':
         if (!empty($value)) {
@@ -117,37 +97,25 @@ class FeedsTermProcessor extends FeedsProcessor {
               $parent_tid = $term->tid;
             }
           }
-          if (!empty($parent_tid)) {
-            $target_term->parent[] = $parent_tid;
-          }
-          else {
-            $target_term->parent[] = 0;
-          }
-        }
-        else {
-          $target_term->parent[] = 0;
-        }
-        break;
-
-      case 'parentguid':
-        // Value is parent_guid field value.
-        $parent_tid = 0;
-        $query = db_select('feeds_item')
-          ->fields('feeds_item', array('entity_id'))
-          ->condition('entity_type', $this->entityType());
-        $term_ids = array_keys($query->condition('guid', $value)->execute()->fetchAllAssoc('entity_id'));
-        if (!empty($term_ids)) {
-          $terms = entity_load($this->entityType(), $term_ids);
-          foreach ($terms as $term) {
-            if ($term->vid == $target_term->vid) {
-              $parent_tid = $term->tid;
-              break;
+          if ($parent_tid) {
+            if(!isset($target_term->parent) || array_search($parent_tid, $target_term->parent) === FALSE){
+              $target_term->parent[] = $parent_tid;
             }
           }
         }
-        $target_term->parent[] = $parent_tid;
         break;
-
+      case 'parentguid':
+        // value is parent_guid field value
+        $query = db_select('feeds_item')
+          ->fields('feeds_item', array('entity_id'))
+          ->condition('entity_type', $this->entityType());
+        $parent_tid = $query->condition('guid', $value)->execute()->fetchField();
+        if($parent_tid){
+          if(!isset($target_term->parent) || array_search($parent_tid, $target_term->parent) === FALSE){
+            $target_term->parent[] = $parent_tid;
+          }
+        }
+        break;
       case 'weight':
         if (!empty($value)) {
           $weight = intval($value);
@@ -157,20 +125,6 @@ class FeedsTermProcessor extends FeedsProcessor {
         }
         $target_term->weight = $weight;
         break;
-
-      case 'description':
-        if (!empty($mapping['format'])) {
-          $target_term->format = $mapping['format'];
-        }
-        elseif (!empty($this->config['input_format'])) {
-          $target_term->format = $this->config['input_format'];
-        }
-        else {
-          $target_term->format = filter_fallback_format();
-        }
-        $target_term->description = $value;
-        break;
-
       default:
         parent::setTargetElement($source, $target_term, $target_element, $value);
         break;
@@ -206,13 +160,19 @@ class FeedsTermProcessor extends FeedsProcessor {
       'description' => array(
         'name' => t('Term description'),
         'description' => t('Description of the taxonomy term.'),
-        'summary_callbacks' => array('text_feeds_summary_callback'),
-        'form_callbacks' => array('text_feeds_form_callback'),
       ),
     );
 
-    $this->getHookTargets($targets);
-
+    // Let implementers of hook_feeds_term_processor_targets() add their targets.
+    try {
+      self::loadMappers();
+      $entity_type = $this->entityType();
+      $bundle = $this->bundle();
+      drupal_alter('feeds_processor_targets', $targets, $entity_type, $bundle);
+    }
+    catch (Exception $e) {
+      // Do nothing.
+    }
     return $targets;
   }
 
@@ -245,14 +205,4 @@ class FeedsTermProcessor extends FeedsProcessor {
     }
     throw new Exception(t('No vocabulary defined for Taxonomy Term processor.'));
   }
-
-  /**
-   * Overrides FeedsProcessor::dependencies().
-   */
-  public function dependencies() {
-    $dependencies = parent::dependencies();
-    $dependencies['taxonomy'] = 'taxonomy';
-    return $dependencies;
-  }
-
 }

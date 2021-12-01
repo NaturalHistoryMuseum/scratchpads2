@@ -29,22 +29,19 @@ function feeds_tokens($type, $tokens, array $data, array $options) {
 
     $sanitize = !empty($options['sanitize']);
 
-    $feed_source_tokens = token_find_with_prefix($tokens, 'feed-source');
-    $feed_source_token_exists = array_key_exists('feed-source', $tokens);
-
-    if (empty($feed_source_tokens) && !$feed_source_token_exists) {
-      return $replacements;
-    }
-
     $feed_nid = feeds_get_feed_nid($data['node']->nid, 'node');
 
     if ($feed_nid && $feed_source = node_load($feed_nid)) {
-      if (isset($tokens['feed-source'])) {
-        $replacements[$tokens['feed-source']] = $sanitize ? check_plain($feed_source->title) : $feed_source->title;
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'feed-source':
+            $replacements[$original] = $sanitize ? check_plain($feed_source->title) : $feed_source->title;
+            break;
+        }
       }
 
       // Chained node token relationships.
-      if (!empty($feed_source_tokens)) {
+      if ($feed_source_tokens = token_find_with_prefix($tokens, 'feed-source')) {
         $replacements += token_generate('node', $feed_source_tokens, array('node' => $feed_source), $options);
       }
     }

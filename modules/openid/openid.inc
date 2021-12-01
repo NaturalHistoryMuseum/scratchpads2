@@ -142,8 +142,7 @@ function _openid_xrds_parse($raw_xml) {
   // For PHP version >= 5.2.11, we can use this function to protect against
   // malicious doctype declarations and other unexpected entity loading.
   // However, we will not rely on it, and reject any XML with a DOCTYPE.
-  // libxml_disable_entity_loader() is deprecated in PHP >= 8.0.
-  $disable_entity_loader = function_exists('libxml_disable_entity_loader') && PHP_VERSION_ID < 80000;
+  $disable_entity_loader = function_exists('libxml_disable_entity_loader');
   if ($disable_entity_loader) {
     $load_entities = libxml_disable_entity_loader(TRUE);
   }

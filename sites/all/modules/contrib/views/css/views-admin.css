@@ -312,7 +312,9 @@ div.form-item-options-value-all {
 
 /* @end */
 
-/* @group JavaScript dependent styling */
+
+
+/* @group Javascript dependent styling */
 
 .js-only {
   display: none;

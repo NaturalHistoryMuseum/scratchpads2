@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 jQuery(document).ready(function() {
@@ -36,7 +36,7 @@ jQuery(document).ready(function() {
         tools = tools + "]";
         tools = tools.replace(/\[,/g, '[');
         tools = tools.replace(/\[],/g, '');
-        jQuery("#edit-toolbar").val(tools);
+        jQuery("#edit-toolbar").attr('value', tools);
     }
 
     Drupal.ckeditorToolbaInit = function() {
@@ -76,18 +76,18 @@ jQuery(document).ready(function() {
         jQuery("li.sortableItem").mouseout(function(){
             jQuery(".sortableList").sortable("enable");
         });
-    };
+    }
 
     Drupal.ckeditorToolbarReload = function() {
         jQuery(".sortableList").sortable('destroy');
         jQuery(".sortableRow").sortable('destroy');
         jQuery("li.sortableItem").unbind();
         Drupal.ckeditorToolbaInit();
-    };
+    }
 
     Drupal.ckeditorToolbarUsedRender = function() {
         var toolbar = jQuery('#edit-toolbar').val();
-        toolbar = Drupal.ckeditorToolbarToArray(toolbar);
+        toolbar = eval(toolbar);
         var html = '<div class="sortableListDiv"><span class="sortableListSpan"><ul class="sortableRow">';
         var group = false;
 
@@ -115,13 +115,13 @@ jQuery(document).ready(function() {
         }
         html += '</ul></span></div>';
         jQuery('#groupLayout').empty().append(html);
-    };
+    }
 
     Drupal.ckeditorToolbarAllRender = function() {
         var toolbarUsed = jQuery('#edit-toolbar').val();
         var toolbarAll = Drupal.settings.cke_toolbar_buttons_all;
 
-        var htmlArray = [];
+        var htmlArray = new Array();
         var html = '';
 
         for (var i in toolbarAll) {
@@ -144,27 +144,7 @@ jQuery(document).ready(function() {
             html += '<div class="sortableListDiv"><span class="sortableListSpan"><ul class="sortableRow">' + htmlArray[j] + '</ul></span></div>';
         }
         jQuery('#allButtons').empty().append(html);
-    };
-
-    if (typeof(Drupal.ckeditorToolbarToArray) == 'undefined') {
-        Drupal.ckeditorToolbarToArray = function (toolbar) {
-            toolbar = toolbar.replace(/\r?\n|\r/gmi, '')
-                .replace(/\s/gmi, '')
-                .replace(/'/g, '"');
-
-            try {
-                return JSON.parse(toolbar);
-            } catch (e) {
-                toolbar = toolbar.replace(/([a-zA-Z0-9]+?):/g, '"$1":')
-                try {
-                    return JSON.parse(toolbar);
-                } catch (e) {
-                    return toolbar;
-                }
-            }
-        };
     }
 
     Drupal.ckeditorToolbaInit();
 });
-

@@ -10,14 +10,13 @@
  *
  * @param $raw
  *   File contents.
- *
- * @return array
+ * @return
  *   An array of the parsed OPML file.
  */
 function opml_parser_parse($raw) {
   $feeds = $items = array();
   $xml = @ new SimpleXMLElement($raw);
-  $feeds['title'] = (string) current($xml->xpath('//head/title'));
+  $feeds['title'] = (string)current($xml->xpath('//head/title'));
 
   // @todo Make xpath case insensitive.
   $outlines = $xml->xpath('//outline[@xmlUrl]');

@@ -9,17 +9,9 @@
  * Legal module base test class.
  */
 class LegalTestCase extends DrupalWebTestCase {
-  protected $edit;
-
   function setUp() {
     // Enable any modules required for the test.
     parent::setUp('legal');
-
-    // Set basic module settings.
-    $this->edit = array(
-      'conditions[value]'  => $this->randomName(),
-      'conditions[format]' => 'plain_text',
-    );
   }
 
   /**
@@ -59,7 +51,12 @@ class LegalRegisterTestCase extends LegalTestCase {
   function setUp() {
     parent::setUp();
 
-    $this->setSettings($this->edit);
+    // Set basic module settings.
+    $conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $conditions,
+    );
+    $this->setSettings($edit);
   }
 
   /**
@@ -106,7 +103,7 @@ class LegalRegisterTestCase extends LegalTestCase {
  */
 class LegalPasswordResetTestCase extends LegalTestCase {
 
-  public static function getInfo() {
+  function getInfo() {
     return array(
       'name' => 'Password reset',
       'description' => 'Password reset workflow when T&Cs need to be accepted.',
@@ -116,7 +113,13 @@ class LegalPasswordResetTestCase extends LegalTestCase {
 
   function setUp() {
     parent::setUp();
-    $this->setSettings($this->edit);
+
+    // Set basic module settings.
+    $conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $conditions,
+    );
+    $this->setSettings($edit);
 
     // Create an ordinary user.
     $this->user = $this->drupalCreateUser();
@@ -129,7 +132,7 @@ class LegalPasswordResetTestCase extends LegalTestCase {
     // Create a log in link for the user, and go to that URL.
     // Borrowed from testUserPasswordResetExpired().
     $timestamp = REQUEST_TIME;
-    $this->drupalGet("user/reset/{$this->user->uid}/$timestamp/" . user_pass_rehash($this->user->pass, $timestamp, $this->user->login, $this->user->uid));
+    $this->drupalGet("user/reset/{$this->user->uid}/$timestamp/" . user_pass_rehash($this->user->pass, $timestamp, $this->user->login));
 
     $this->assertText(t('Reset password'), "The reset password form is shown.");
 
@@ -148,6 +151,13 @@ class LegalPasswordResetTestCase extends LegalTestCase {
     // Accept the T&Cs.
     $this->drupalPost(NULL, $edit, t('Confirm'));
 
+    // Don't use assertUrl() as that requires us to match up the tokens in the
+    // query too.
+    $url = $this->getUrl();
+    $path = parse_url($url, PHP_URL_PATH);
+    $expected_path = url("user/{$this->user->uid}/edit");
+    $this->assertEqual($path, $expected_path, "The user is redirected to the user edit page.");
+
     $this->assertText(t("You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password."), "The user is shown the message to reset their password.");
   }
 
@@ -157,6 +167,7 @@ class LegalPasswordResetTestCase extends LegalTestCase {
  * Test Scroll Box Display.
  */
 class LegalScrollBoxDisplayTestCase extends LegalTestCase {
+  var $conditions;
 
   public static function getInfo() {
     return array(
@@ -170,8 +181,12 @@ class LegalScrollBoxDisplayTestCase extends LegalTestCase {
     parent::setUp();
 
     // Set basic module settings.
-    $this->edit['display'] = 0;
-    $this->setSettings($this->edit);
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 0,
+    );
+    $this->setSettings($edit);
   }
 
   /**
@@ -181,7 +196,7 @@ class LegalScrollBoxDisplayTestCase extends LegalTestCase {
     $this->drupalGet('user/register');
 
      // Check presence of T&C text.
-    $this->assertText($this->edit['conditions[value]'], 'T&C text displayed');
+    $this->assertText($this->conditions, 'T&C text displayed');
   }
 }
 
@@ -189,6 +204,7 @@ class LegalScrollBoxDisplayTestCase extends LegalTestCase {
  * Test Scroll Box CSS Display.
  */
 class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
+  var $conditions;
 
   public static function getInfo() {
     return array(
@@ -202,8 +218,12 @@ class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
     parent::setUp();
 
     // Set basic module settings.
-    $this->edit['display'] = 1;
-    $this->setSettings($this->edit);
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 1,
+    );
+    $this->setSettings($edit);
   }
 
   /**
@@ -213,7 +233,7 @@ class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
     $this->drupalGet('user/register');
 
      // Check presence of T&C text.
-    $this->assertText($this->edit['conditions[value]'], 'T&C text displayed');
+    $this->assertText($this->conditions, 'T&C text displayed');
   }
 }
 
@@ -221,6 +241,7 @@ class LegalScrollBoxCSSDisplayTestCase extends LegalTestCase {
  * Test HTML Text display.
  */
 class LegalHTMLTextDisplayTestCase extends LegalTestCase {
+  var $conditions;
 
   public static function getInfo() {
     return array(
@@ -234,8 +255,12 @@ class LegalHTMLTextDisplayTestCase extends LegalTestCase {
     parent::setUp();
 
     // Set basic module settings.
-    $this->edit['display'] = 2;
-    $this->setSettings($this->edit);
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 2,
+    );
+    $this->setSettings($edit);
   }
 
   /**
@@ -245,7 +270,7 @@ class LegalHTMLTextDisplayTestCase extends LegalTestCase {
     $this->drupalGet('user/register');
 
      // Check presence of T&C text.
-    $this->assertText($this->edit['conditions[value]'], 'T&C text displayed');
+    $this->assertText($this->conditions, 'T&C text displayed');
   }
 }
 
@@ -253,6 +278,7 @@ class LegalHTMLTextDisplayTestCase extends LegalTestCase {
  * Test "Page Link" display.
  */
 class LegalLinkDisplayTestCase extends LegalTestCase {
+  var $conditions;
 
   public static function getInfo() {
     return array(
@@ -266,8 +292,12 @@ class LegalLinkDisplayTestCase extends LegalTestCase {
     parent::setUp();
 
     // Set basic module settings.
-    $this->edit['display'] = 3;
-    $this->setSettings($this->edit);
+    $this->conditions = $this->randomName();
+    $edit = array(
+      'conditions' => $this->conditions,
+      'display' => 3,
+    );
+    $this->setSettings($edit);
   }
 
   /**

@@ -1,30 +1,24 @@
 <?php
 
 /**
- * @file
- * VBO action to modify entity values (properties and fields).
+ * @file VBO action to modify entity values (properties and fields).
  */
 
 // Specifies that all available values should be shown to the user for editing.
 define('VBO_MODIFY_ACTION_ALL', '_all_');
 
-/**
- * Implements hook_action_info().
- */
 function views_bulk_operations_modify_action_info() {
-  return array(
-    'views_bulk_operations_modify_action' => array(
-      'type' => 'entity',
-      'label' => t('Modify entity values'),
-      'behavior' => array('changes_property'),
-      // This action only works when invoked through VBO. That's why it's
-      // declared as non-configurable to prevent it from being shown in the
-      // "Create an advanced action" dropdown on admin/config/system/actions.
-      'configurable' => FALSE,
-      'vbo_configurable' => TRUE,
-      'triggers' => array('any'),
-    ),
-  );
+  return array('views_bulk_operations_modify_action' => array(
+    'type' => 'entity',
+    'label' => t('Modify entity values'),
+    'behavior' => array('changes_property'),
+    // This action only works when invoked through VBO. That's why it's
+    // declared as non-configurable to prevent it from being shown in the
+    // "Create an advanced action" dropdown on admin/config/system/actions.
+    'configurable' => FALSE,
+    'vbo_configurable' => TRUE,
+    'triggers' => array('any'),
+  ));
 }
 
 /**
@@ -34,7 +28,7 @@ function views_bulk_operations_modify_action_info() {
  * replacing the existing values, or appending to them (based on user input).
  */
 function views_bulk_operations_modify_action($entity, $context) {
-  list(,, $bundle_name) = entity_extract_ids($context['entity_type'], $entity);
+  list(,,$bundle_name) = entity_extract_ids($context['entity_type'], $entity);
   // Handle Field API fields.
   if (!empty($context['selected']['bundle_' . $bundle_name])) {
     // The pseudo entity is cloned so that changes to it don't get carried
@@ -44,7 +38,7 @@ function views_bulk_operations_modify_action($entity, $context) {
       // Get this field's language. We can just pull it from the pseudo entity
       // as it was created using field_attach_form and entity_language so it's
       // already been figured out if this field is translatable or not and
-      // applied the appropriate language code to the field.
+      // applied the appropriate language code to the field
       $language = key($pseudo_entity->{$key});
       // Replace any tokens that might exist in the field columns.
       foreach ($pseudo_entity->{$key}[$language] as $delta => &$item) {
@@ -55,7 +49,7 @@ function views_bulk_operations_modify_action($entity, $context) {
         }
       }
 
-      if (in_array($key, $context['append']['bundle_' . $bundle_name]) && !empty($entity->{$key})) {
+      if (in_array($key, $context['append']['bundle_' . $bundle_name]) && !empty($entity->$key)) {
         $entity->{$key}[$language] = array_merge($entity->{$key}[$language], $pseudo_entity->{$key}[$language]);
 
         // Check if we breached cardinality, and notify the user.
@@ -64,11 +58,9 @@ function views_bulk_operations_modify_action($entity, $context) {
         if ($field_info['cardinality'] != FIELD_CARDINALITY_UNLIMITED && $field_count > $field_info['cardinality']) {
           $entity_label = entity_label($context['entity_type'], $entity);
           $warning = t('Tried to set !field_count values for field !field_name that supports a maximum of !cardinality.',
-            array(
-              '!field_count' => $field_count,
-              '!field_name' => $field_info['field_name'],
-              '!cardinality' => $field_info['cardinality'],
-            ));
+                       array('!field_count' => $field_count,
+                             '!field_name' => $field_info['field_name'],
+                             '!cardinality' => $field_info['cardinality']));
           drupal_set_message($warning, 'warning', FALSE);
         }
 
@@ -84,36 +76,25 @@ function views_bulk_operations_modify_action($entity, $context) {
   }
 
   // Handle properties.
-  // Use the wrapper to set property values, since some properties need
-  // additional massaging by their setter callbacks.
-  // The wrapper will automatically modify $entity itself.
-  $wrapper = entity_metadata_wrapper($context['entity_type'], $entity);
-  // The default setting for 'revision' property (create new revisions) should
-  // be respected for nodes. This requires some special treatment.
-  if ($context['entity_type'] == 'node' && in_array('revision', variable_get('node_options_' . $bundle_name)) && !in_array('revision', $context['selected']['properties'])) {
-    $wrapper->revision->set(1);
-  }
-
   if (!empty($context['selected']['properties'])) {
+    // Use the wrapper to set property values, since some properties need
+    // additional massaging by their setter callbacks.
+    // The wrapper will automatically modify $entity itself.
+    $wrapper = entity_metadata_wrapper($context['entity_type'], $entity);
     foreach ($context['selected']['properties'] as $key) {
-      if (!$wrapper->{$key}->access('update')) {
-        // No access.
-        continue;
-      }
-
       if (in_array($key, $context['append']['properties'])) {
-        $old_values = $wrapper->{$key}->value();
-        $wrapper->{$key}->set($context['properties'][$key]);
+        $old_values = $wrapper->$key->value();
+        $wrapper->$key->set($context['properties'][$key]);
         $new_values = $wrapper->{$key}->value();
         $all_values = array_merge($old_values, $new_values);
-        $wrapper->{$key}->set($all_values);
+        $wrapper->$key->set($all_values);
       }
       else {
         $value = $context['properties'][$key];
         if (is_string($value)) {
           $value = token_replace($value, array($context['entity_type'] => $entity), array('sanitize' => FALSE));
         }
-        $wrapper->{$key}->set($value);
+        $wrapper->$key->set($value);
       }
     }
   }
@@ -127,8 +108,7 @@ function views_bulk_operations_modify_action($entity, $context) {
  * entity bundle, as provided by field_attach_form().
  */
 function views_bulk_operations_modify_action_form($context, &$form_state) {
-  // This action form uses admin-provided settings. If they were not set, pull
-  // the defaults now.
+  // This action form uses admin-provided settings. If they were not set, pull the defaults now.
   if (!isset($context['settings'])) {
     $context['settings'] = views_bulk_operations_modify_action_views_bulk_operations_form_options();
   }
@@ -141,8 +121,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
   // and filled with form data.
   // After submit, the pseudo-entities get passed to the actual action
   // (views_bulk_operations_modify_action()) which copies the data from the
-  // relevant pseudo-entity constructed here to the actual entity being
-  // modified.
+  // relevant pseudo-entity constructed here to the actual entity being modified.
   $form_state['entities'] = array();
 
   $info = entity_get_info($entity_type);
@@ -155,7 +134,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
   if (!empty($properties)) {
     $form['properties'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Properties'),
+      '#title' => 'Properties',
     );
     $form['properties']['show_value'] = array(
       '#suffix' => '<div class="clearfix"></div>',
@@ -167,16 +146,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
         '#title' => $property['label'],
       );
 
-      // According to _views_bulk_operations_modify_action_get_properties
-      // we have fixed list of supported types. Most of these types are string
-      // and only some of them has options list.
-      if (isset($property['options list'])) {
-        $determined_type = ($property['type'] == 'list') ? 'checkboxes' : 'select';
-      }
-      else {
-        $determined_type = ($property['type'] == 'boolean') ? 'checkbox' : 'textfield';
-      }
-
+      $determined_type = ($property['type'] == 'boolean') ? 'checkbox' : 'textfield';
       $form['properties'][$key] = array(
         '#type' => $determined_type,
         '#title' => $property['label'],
@@ -193,9 +163,9 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
         $form['properties'][$key]['#maxlength'] = 255;
       }
 
-      if (!empty($property['options list']) && is_callable($property['options list'])) {
+      if (!empty($property['options list'])) {
         $form['properties'][$key]['#type'] = 'select';
-        $form['properties'][$key]['#options'] = call_user_func_array($property['options list'], array($key, array()));
+        $form['properties'][$key]['#options'] = $property['options list']($key, array());
 
         if ($property['type'] == 'list') {
           $form['properties'][$key]['#type'] = 'checkboxes';
@@ -214,7 +184,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
     }
   }
 
-  // Going to need this for multilingual nodes.
+  // Going to need this for multilingual nodes
   global $language;
   foreach ($bundles as $bundle_name => $bundle) {
     $bundle_key = $info['entity keys']['bundle'];
@@ -227,8 +197,8 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
     $entity = entity_create($context['entity_type'], $default_values);
     $form_state['entities'][$bundle_name] = $entity;
 
-    // Show the more detailed label only if the entity type has multiple
-    // bundles. Otherwise, it would just be confusing.
+    // Show the more detailed label only if the entity type has multiple bundles.
+    // Otherwise, it would just be confusing.
     if (count($info['bundles']) > 1) {
       $label = t('Fields for @bundle_key @label', array('@bundle_key' => $bundle_key, '@label' => $bundle['label']));
     }
@@ -328,7 +298,7 @@ function views_bulk_operations_modify_action_form($context, &$form_state) {
     $token_type = str_replace('_', '-', $entity_type);
     $form['tokens'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Available tokens'),
+      '#title' => 'Available tokens',
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#weight' => 998,
@@ -405,7 +375,7 @@ function views_bulk_operations_modify_action_validate($form, &$form_state) {
     $properties = _views_bulk_operations_modify_action_get_properties($form_state['entity_type']);
     foreach ($form_state['selected']['properties'] as $key) {
       $value = $form_state['values']['properties'][$key];
-      if (!$wrapper->{$key}->validate($value)) {
+      if (!$wrapper->$key->validate($value)) {
         $label = $properties[$key]['label'];
         form_set_error('properties][' . $key, t('%label contains an invalid value.', array('%label' => $label)));
       }
@@ -442,9 +412,9 @@ function views_bulk_operations_modify_action_submit($form, $form_state) {
  * Properties that can't be changed are entity keys, timestamps, and the ones
  * without a setter callback.
  *
- * @param string $entity_type
+ * @param $entity_type
  *   The entity type whose properties will be fetched.
- * @param array $display_values
+ * @param $display_values
  *   An optional, admin-provided list of properties and fields that should be
  *   displayed for editing, used to filter the returned list of properties.
  */
@@ -460,17 +430,8 @@ function _views_bulk_operations_modify_action_get_properties($entity_type, $disp
     }
   }
   // List of supported types.
-  $supported_types = array(
-    'text',
-    'token',
-    'integer',
-    'decimal',
-    'date',
-    'duration',
-    'boolean',
-    'uri',
-    'list',
-  );
+  $supported_types = array('text', 'token', 'integer', 'decimal', 'date', 'duration',
+                           'boolean', 'uri', 'list');
   $property_info = entity_get_property_info($entity_type);
   if (empty($property_info['properties'])) {
     // Stop here if no properties were found.
@@ -518,9 +479,9 @@ function _views_bulk_operations_modify_action_get_properties($entity_type, $disp
  * (through the action settings) then only bundles that have at least one field
  * selected are returned.
  *
- * @param string $entity_type
+ * @param $entity_type
  *   The entity type whose bundles will be fetched.
- * @param array $context
+ * @param $context
  *   The VBO context variable.
  */
 function _views_bulk_operations_modify_action_get_bundles($entity_type, $context) {
@@ -570,7 +531,7 @@ function _views_bulk_operations_modify_action_get_bundles($entity_type, $context
 
     $has_enabled_fields = FALSE;
     foreach ($display_values as $key) {
-      if (strpos($key, $bundle_name . '::') === 0) {
+      if (strpos($key, $bundle_name . '::') !== FALSE) {
         $has_enabled_fields = TRUE;
       }
     }
@@ -588,7 +549,7 @@ function _views_bulk_operations_modify_action_get_bundles($entity_type, $context
  * Helper function that recursively strips #required from field widgets.
  */
 function _views_bulk_operations_modify_action_unset_required(&$element) {
-  $element['#required'] = FALSE;
+  unset($element['#required']);
   foreach (element_children($element) as $key) {
     _views_bulk_operations_modify_action_unset_required($element[$key]);
   }
@@ -628,8 +589,8 @@ function views_bulk_operations_modify_action_views_bulk_operations_form($options
   }
   foreach ($info['bundles'] as $bundle_name => $bundle) {
     $bundle_key = $info['entity keys']['bundle'];
-    // Show the more detailed label only if the entity type has multiple
-    // bundles. Otherwise, it would just be confusing.
+    // Show the more detailed label only if the entity type has multiple bundles.
+    // Otherwise, it would just be confusing.
     if (count($info['bundles']) > 1) {
       $label = t('Fields for @bundle_key @label', array('@bundle_key' => $bundle_key, '@label' => $bundle['label']));
     }

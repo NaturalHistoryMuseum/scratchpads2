@@ -1,28 +1,31 @@
 <?php
-
 /**
  * @file
  * feeds_news.features.inc
  */
 
 /**
- * Implements hook_ctools_plugin_api().
+ * Implementation of hook_ctools_plugin_api().
  */
-function feeds_news_ctools_plugin_api($module = NULL, $api = NULL) {
+function feeds_news_ctools_plugin_api() {
+  list($module, $api) = func_get_args();
   if ($module == "feeds" && $api == "feeds_importer_default") {
-    return array("version" => "1");
+    return array("version" => 1);
   }
 }
 
 /**
- * Implements hook_views_api().
+ * Implementation of hook_views_api().
  */
-function feeds_news_views_api($module = NULL, $api = NULL) {
-  return array("api" => "3.0");
+function feeds_news_views_api() {
+  list($module, $api) = func_get_args();
+  if ($module == "views" && $api == "views_default") {
+    return array("version" => 3.0);
+  }
 }
 
 /**
- * Implements hook_node_info().
+ * Implementation of hook_node_info().
  */
 function feeds_news_node_info() {
   $items = array(
@@ -43,6 +46,5 @@ function feeds_news_node_info() {
       'help' => '',
     ),
   );
-  drupal_alter('node_info', $items);
   return $items;
 }

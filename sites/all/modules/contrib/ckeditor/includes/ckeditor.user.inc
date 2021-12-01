@@ -2,7 +2,7 @@
 
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -121,9 +121,6 @@ function ckeditor_user_customize_form_validate(&$form, &$form_state) {
   }
 }
 
-/**
- * Implements hook_user_presave().
- */
 function ckeditor_user_presave(&$edit, $account, $category) {
   if (user_access('customize ckeditor')) {
     module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
