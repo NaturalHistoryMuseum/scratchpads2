@@ -5,7 +5,7 @@ version = VERSION
 core = 7.x
 files[] = color.test
 
-; Information added by Drupal.org packaging script on 2021-01-20
-version = "7.78"
+; Information added by Drupal.org packaging script on 2021-07-21
+version = "7.82"
 project = "drupal"
-datestamp = "1611162699"
+datestamp = "1626883669"
