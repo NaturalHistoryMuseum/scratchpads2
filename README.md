@@ -21,9 +21,9 @@ Key features of Scratchpads (see also Scratchpads feature list) include:
 Scratchpads support various ways of communicating with site members and
 visitors such as blogs, forums, newsletters and a commenting system.
 
-For more information about what scratchpads are, see [http://scratchpads.org](http://scratchpads.org)
+For more information about what scratchpads are, see the online brochure site [scratchpads.org](https://scratchpads.org)
 
-For the official site builders' user guide to Scratchpads: https://scratchpads.readthedocs.io/
+For the [Official ReadTheDocs site builders' user guide to Scratchpads](https://scratchpads.readthedocs.io/)
 
 # User Support
 
