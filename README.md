@@ -23,7 +23,7 @@ visitors such as blogs, forums, newsletters and a commenting system.
 
 For more information about what scratchpads are, see the online brochure site [scratchpads.org](https://scratchpads.org)
 
-For the [Official ReadTheDocs site builders' user guide to Scratchpads](https://scratchpads.readthedocs.io/)
+Want to make your own Scratchpads site? See [Official ReadTheDocs site builders' user guide to Scratchpads](https://scratchpads.readthedocs.io/)
 
 # User Support
 
