@@ -38,7 +38,9 @@
                     $term_obj = taxonomy_term_load($term_id);
                     if ($term_obj) {
                       if (!(scratchpads_species_term_is_biological_classification($term_obj))) {
-                        unset($tabs_items[$tab_id]);
+                        if (!($elements['system_main']['#pre_render']['#entity_type'] == 'user')) {
+                          unset($tabs_items[$tab_id]);
+                        }
                       }
                     }
                   }
