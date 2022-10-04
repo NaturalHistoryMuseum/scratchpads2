@@ -2,7 +2,12 @@ name = Tag on save
 description = Simple module that implements the Tag API and saves tags when a node or other entity is saved.
 core = 7.x
 files[] = tag_on_save.module
+dependencies[] = tag
 package = Tags
-l10n server = localize.scratchpads.eu
-l10n url = http://localize.scratchpads.eu/files/l10n_packager/l10n_server.xml
-project = tag_on_save
+
+; Information added by Drupal.org packaging script on 2014-05-09
+version = "7.x-1.0"
+core = "7.x"
+project = "tag"
+datestamp = "1399653903"
+

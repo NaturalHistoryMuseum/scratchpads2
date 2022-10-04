@@ -21,8 +21,9 @@ function tag_on_save_tag_ui_info(){
  * Callback as defined above.
  */
 function tag_on_save_tag_update($form, &$form_state){
+
   // Simplest of all the UI submit functions.  This simply calls the 
-  // tagtag supplied function tagtag_add_tags.  Other modules should probably
+  // tag supplied function tag_add_tags.  Other modules should probably
   // alter the tags array, depending on UI elements (or previously saved data).
-  tagtag_add_tags($form_state);
+  tag_add_tags($form_state);
 }
