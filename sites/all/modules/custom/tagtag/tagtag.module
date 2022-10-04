@@ -182,9 +182,22 @@ function tagtag_form_alter(&$form, &$form_state, $form_id){
     // First get what search services we're using.
     $settings = variable_get('tagtag_node_' . $form['type']['#value'], array());
     $implementation = isset($settings['tagtag_ui']) ? $settings['tagtag_ui'] : '';
-    $search_services = module_invoke_all('tag_ui_info');
-    if(isset($search_services[$implementation]['form_alter_callback']) && function_exists($search_services[$implementation]['form_alter_callback'])){
-      $search_services[$implementation]['form_alter_callback']($form, $form_state);
+
+    // if we didn't get an implementation, then use all of the services
+    // empty var check credit: https://stackoverflow.com/a/381275/227926
+    if (($implementation === null || trim($implementation) === '')) {
+      $search_services = module_invoke_all('tag_ui_info');
+      foreach( $search_services as $implementation => $value ) {
+        if(isset($search_services[$implementation]['form_alter_callback']) && function_exists($search_services[$implementation]['form_alter_callback'])){
+          $search_services[$implementation]['form_alter_callback']($form, $form_state);
+        }
+      }
+    }
+    else {
+      $search_services = module_invoke_all('tag_ui_info');
+      if(isset($search_services[$implementation]['form_alter_callback']) && function_exists($search_services[$implementation]['form_alter_callback'])){
+        $search_services[$implementation]['form_alter_callback']($form, $form_state);
+      }
     }
     // Finally, we add a submit function to ensure that we can update the data
     // when we're finished.
