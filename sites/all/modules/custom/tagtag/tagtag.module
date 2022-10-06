@@ -189,10 +189,12 @@ function tagtag_form_alter(&$form, &$form_state, $form_id){
       $search_services = module_invoke_all('tag_ui_info');
       foreach( $search_services as $implementation => $value ) {
         if(isset($search_services[$implementation]['form_alter_callback'])) {
-          $callback_function = $search_services[$implementation]['form_alter_callback'];
-          if (function_exists($callback_function)) {
-            $callback_function($form, $form_state);
+          $form_alter_callback_function = $search_services[$implementation]['form_alter_callback'];
+          if (function_exists($form_alter_callback_function)) {
+            $form_alter_callback_function($form, $form_state);
           }
+
+        //  $form_submit_callback_function = $
         }
       }
     }
@@ -305,9 +307,26 @@ function tagtag_submit_form($form, &$form_state){
   // The UI module should save data here, rather than saving it on a
   // hook_node_update/insert
   $implementation = isset($settings['tagtag_ui']) ? $settings['tagtag_ui'] : '';
-  $ui_service = module_invoke_all('tag_ui_info');
-  if(isset($ui_service[$implementation]['submit_callback']) && function_exists($ui_service[$implementation]['submit_callback'])){
-    $ui_service[$implementation]['submit_callback']($form, $form_state);
+
+  if (($implementation === null || trim($implementation) === '')) {
+    $search_services = module_invoke_all('tag_ui_info');
+    foreach( $search_services as $implementation => $value ) {
+      if(isset($search_services[$implementation]['submit_callback'])) {
+        $submit_callback_function = $search_services[$implementation]['submit_callback'];
+        if (function_exists($submit_callback_function)){
+          $submit_callback_function($form, $form_state);
+        }
+      }
+    }
+  }
+  else {
+    $ui_service = module_invoke_all('tag_ui_info');
+    if(isset($ui_service[$implementation]['submit_callback'])) {
+      $submit_callback_function = $ui_service[$implementation]['submit_callback'];
+      if (function_exists($submit_callback_function)){
+        $submit_callback_function($form, $form_state);
+      }
+    }
   }
 }
 
