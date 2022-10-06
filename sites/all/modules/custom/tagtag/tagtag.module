@@ -54,6 +54,10 @@ function tagtag_form_node_type_form_alter(&$form, &$form_state, $form_id){
   // Get a list of fields that this data can be saved to
   $search_fields = _tagtag_fields_list($form['#node_type']->type);
   $populate_fields = _tagtag_fields_list($form['#node_type']->type, 'populate');
+
+  # https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6550#issuecomment-1246836931
+  $populate_fields['field_morphology'] = "Morphology";
+  $populate_fields['field_general_description'] = "General Description";
   // Set the default value to the search fields to be ALL text fields.
   $search_fields_default = array();
   if(!count($search_fields_default)){
