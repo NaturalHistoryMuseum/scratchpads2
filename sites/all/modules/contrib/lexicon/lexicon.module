@@ -1086,10 +1086,7 @@ function _lexicon_get_terms(&$vids, $langcode = LANGUAGE_NONE) {
       }
 
       // Add extra information to each term in the tree.
-      foreach ($tree as $term) {
-        if (!$term->processing){
-          continue;
-        }
+      foreach ($tree as $term) {      
         _lexicon_term_add_info($term, TRUE);
         $terms[$langcode][] = $term;
       }
