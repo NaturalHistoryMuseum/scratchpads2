@@ -314,3 +314,21 @@ function scratchpads_backend_ckeditor_plugin(){
     )
   );
 }
+
+
+
+/**
+ * Implements hook_advagg_get_css_aggregate_contents_alter()
+ * 
+ * This function to solve problem caused by www prefix in
+ * requests to the site - the cause of unstyled site content
+ * due to cached CSS/JS files containing the www prefix as a result.
+ * 
+ * credit: https://www.drupal.org/project/advagg/issues/2353811#comment-9268783
+ */
+function scratchpads_backend_advagg_get_css_aggregate_contents_alter(&$data, $files, $aggregate_settings) {
+  global $base_url, $base_path;
+
+  // Remove protocol and hostname so aggregation can be used cross-protocol and cross-domain
+  $data = str_replace($base_url, rtrim($base_path, '/'), $data);
+}
