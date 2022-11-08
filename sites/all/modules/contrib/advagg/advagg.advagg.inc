@@ -7,65 +7,122 @@
  * File used to store hook_advagg_* hooks.
  */
 
-// @ignore sniffer_commenting_functioncomment_hookparamdoc:11
+/**
+ * @addtogroup advagg_hooks
+ * @{
+ */
+
 /**
  * Implements hook_advagg_save_aggregate_alter().
  *
  * Used to add in a .gz file if none exits.
- *
- * @param array $files_to_save
- *   Array($uri => $contents).
- * @param array $aggregate_settings
- *   Array of settings.
- * @param array $other_parameters
- *   Array of containing $files & $type.
  */
 function advagg_advagg_save_aggregate_alter(array &$files_to_save, array $aggregate_settings, array $other_parameters) {
-  // Return if gzip is disabled.
-  if (empty($aggregate_settings['variables']['advagg_gzip'])) {
+  // * @param array $files_to_save
+  // *   Array($uri => $contents).
+  // * @param array $aggregate_settings
+  // *   Array of settings.
+  // * @param array $other_parameters
+  // *   Array of containing $files and $type.
+  $file_types = array();
+  // Handle gzip.
+  if (!empty($aggregate_settings['variables']['advagg_gzip'])) {
+    // Use zopfli_encode if it exists.
+    // See https://github.com/kjdev/php-ext-zopfli
+    if (function_exists('zopfli_encode')
+      && defined('ZOPFLI_GZIP')
+      && empty($aggregate_settings['variables']['advagg_no_zopfli'])
+    ) {
+      $file_types['.gz'] = array('zopfli_encode', 15, constant('ZOPFLI_GZIP'));
+    }
+    else {
+      $file_types['.gz'] = array('gzencode', 9, FORCE_GZIP);
+    }
+  }
+  // Handle brotli.
+  // See https://github.com/kjdev/php-ext-brotli
+  if (!empty($aggregate_settings['variables']['advagg_brotli'])
+    && defined('BROTLI_TEXT')
+    && function_exists('brotli_compress')
+  ) {
+    $file_types['.br'] = array('brotli_compress', 11, constant('BROTLI_TEXT'));
+  }
+
+  if (empty($file_types)) {
     return;
   }
 
-  // See if a .gz file already exists.
-  $gzip_exists = FALSE;
-  foreach ($files_to_save as $uri => $contents) {
-    // See if this uri contains .gz near the end of it.
-    $pos = strripos($uri, '.gz', 91 + strlen(ADVAGG_SPACE) * 3);
-    if (!empty($pos)) {
-      $len = strlen($uri);
-      // .gz file exists, exit loop.
-      if ($pos == $len - 3) {
-        $gzip_exists = TRUE;
-        break;
-      }
+  // Special S3 handling.
+  $s3fs = FALSE;
+  $files_to_save_keys = array_keys($files_to_save);
+  foreach ($files_to_save_keys as $uri) {
+    $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
+    if ($wrapper && get_class($wrapper) === 'S3fsStreamWrapper') {
+      $s3fs = TRUE;
+      break;
     }
   }
 
-  // If a .gz file does not exist, create one.
-  if (!$gzip_exists) {
-    // Use the first file in the array.
-    $data = reset($files_to_save);
-    $uri = key($files_to_save);
-    // Compress it and add it to the $files_to_save array.
-    $compressed = gzencode($data, 9, FORCE_GZIP);
-    $files_to_save[$uri . '.gz'] = $compressed;
+  foreach ($file_types as $ext => $settings) {
+    // See if a file already exists with this extension.
+    $ext_exists = FALSE;
+    foreach ($files_to_save as $uri => $contents) {
+      // See if this uri contains $ext near the end of it.
+      if (strlen($uri) > 91 + strlen(ADVAGG_SPACE) * 3) {
+        $pos = strripos($uri, $ext, 91 + strlen(ADVAGG_SPACE) * 3);
+      }
+      else {
+        $pos = strripos($uri, $ext);
+      }
+      if (!empty($pos)) {
+        $len = strlen($uri);
+        // $ext file exists, exit loop.
+        if ($pos == $len - 3) {
+          $ext_exists = TRUE;
+          break;
+        }
+      }
+    }
+
+    // If a $ext file does not exist, create one.
+    if (!$ext_exists) {
+      // Use the first file in the array.
+      $data = reset($files_to_save);
+      $uri = key($files_to_save);
+      // Compress it and add it to the $files_to_save array.
+      $callback = $settings[0];
+      $settings[0] = $data;
+      $compressed = call_user_func_array($callback, $settings);
+      if (!empty($compressed)) {
+        if ($s3fs && $ext === '.gz') {
+          // Only serve gzip files from S3.
+          $files_to_save[$uri] = $compressed;
+        }
+        elseif ($s3fs && $ext === '.br' && !isset($file_types['.gz'])) {
+          // Only serve br files from S3.
+          $files_to_save[$uri] = $compressed;
+        }
+        else {
+          $files_to_save[$uri . $ext] = $compressed;
+        }
+      }
+    }
   }
 }
 
-// @ignore sniffer_commenting_functioncomment_hookparamdoc:10
 /**
  * Implements hook_advagg_build_aggregate_plans_alter().
  *
  * Used to alter the plan so it has the same grouping as cores.
- *
- * @param array $files
- *   List of files in the aggregate as well as the aggregate name.
- * @param bool $modified
- *   Change this to TRUE if $files has been changed.
- * @param string $type
- *   String containing css or js.
  */
 function advagg_advagg_build_aggregate_plans_alter(array &$files, &$modified, $type) {
+  // * @param array $files
+  // *   List of files in the aggregate as well as the aggregate name.
+  // * @param bool $modified
+  // *   Change this to TRUE if $files has been changed.
+  // * @param string $type
+  // *   String containing css or js.
+  //
   // Do nothing if core grouping is disabled.
   if (!variable_get('advagg_core_groups', ADVAGG_CORE_GROUPS)) {
     return;
@@ -77,7 +134,7 @@ function advagg_advagg_build_aggregate_plans_alter(array &$files, &$modified, $t
     $group = NULL;
     $every_page = NULL;
     foreach ($data['files'] as $fileinfo) {
-      // Grouped by group & every_page variables.
+      // Grouped by group and every_page variables.
       if (is_null($group)) {
         $group = $fileinfo['group'];
       }
@@ -101,7 +158,6 @@ function advagg_advagg_build_aggregate_plans_alter(array &$files, &$modified, $t
   $files = advagg_generate_filenames(array($temp_new_files), $type);
 }
 
-
 /**
  * Implements hook_advagg_context_alter().
  */
@@ -117,13 +173,12 @@ function advagg_advagg_context_alter(&$original, $aggregate_settings, $mode) {
     $GLOBALS['is_https'] = $aggregate_settings['variables']['is_https'];
     if ($aggregate_settings['variables']['is_https']) {
       $GLOBALS['base_root'] = str_replace('http://', 'https://', $GLOBALS['base_root']);
-      $GLOBALS['base_url'] = str_replace('http://', 'https://', $GLOBALS['base_url']);
     }
     else {
       $GLOBALS['base_root'] = str_replace('https://', 'http://', $GLOBALS['base_root']);
-      $GLOBALS['base_url'] = str_replace('https://', 'http://', $GLOBALS['base_url']);
     }
     $GLOBALS['base_path'] = $aggregate_settings['variables']['base_path'];
+    $GLOBALS['base_url'] = rtrim($GLOBALS['base_root'] . $GLOBALS['base_path'], '/');
 
     if (isset($aggregate_settings['variables']['language'])) {
       $languages = language_list();
@@ -214,32 +269,103 @@ function advagg_advagg_context_alter(&$original, $aggregate_settings, $mode) {
  * Used to make sure the info is up to date in the cache.
  */
 function advagg_advagg_get_info_on_files_alter(&$return, $cached_data, $bypass_cache) {
-  // Do nothing if the ie_css_selector_limiter is disabled.
-  if (!variable_get('advagg_ie_css_selector_limiter', ADVAGG_IE_CSS_SELECTOR_LIMITER)) {
-    return;
+  // Check for the ie_css_selector_limiter.
+  if (variable_get('advagg_ie_css_selector_limiter', ADVAGG_IE_CSS_SELECTOR_LIMITER)) {
+    $limit_value = variable_get('advagg_ie_css_selector_limiter_value', ADVAGG_IE_CSS_SELECTOR_LIMITER_VALUE);
+
+    // Get the css path.
+    list($css_path) = advagg_get_root_files_dir();
+    $css_parts_path = (advagg_s3fs_evaluate_no_rewrite_cssjs(FALSE)) ? $css_path[0] : $css_path[1];
+    $parts_path = $css_parts_path . '/parts/';
+
+    foreach ($return as &$info) {
+      // Skip if not a css file.
+      if (empty($info['fileext']) || $info['fileext'] !== 'css') {
+        continue;
+      }
+
+      // Check if this is a split css file.
+      if (strpos($info['data'], $parts_path) !== FALSE) {
+        $info['split'] = TRUE;
+      }
+      // Break large file into multiple small files if needed.
+      elseif ($info['linecount'] > $limit_value) {
+        advagg_split_css_file($info);
+      }
+    }
+    unset($info);
   }
-  $limit_value = variable_get('advagg_ie_css_selector_limiter_value', ADVAGG_IE_CSS_SELECTOR_LIMITER_VALUE);
 
-  // Get the css path.
-  list($css_path) = advagg_get_root_files_dir();
-  $parts_path = $css_path[1] . '/parts';
+  // Capture resource_hints.
+  if (variable_get('advagg_resource_hints_dns_prefetch', ADVAGG_RESOURCE_HINTS_DNS_PREFETCH)
+    || variable_get('advagg_resource_hints_preconnect', ADVAGG_RESOURCE_HINTS_PRECONNECT)
+    || variable_get('advagg_resource_hints_preload', ADVAGG_RESOURCE_HINTS_PRELOAD)
+  ) {
+    $aggregate_settings = advagg_current_hooks_hash_array();
+    foreach ($return as &$info) {
+      // Skip if not a css file.
+      if (empty($info['fileext']) || $info['fileext'] !== 'css') {
+        continue;
+      }
+      // Get the file contents.
+      $file_contents = (string) @advagg_file_get_contents($info['data']);
+      $file_contents = advagg_load_css_stylesheet($info['data'], FALSE, $aggregate_settings, $file_contents);
 
-  foreach ($return as &$info) {
-    // Skip if not a css file.
-    if (empty($info['fileext']) || $info['fileext'] !== 'css') {
-      continue;
-    }
+      // Get domain names and external assets in this css file.
+      $hosts = array();
+      $urls = array();
+      $matches = array();
+      $pattern = '%url\(\s*+[\'"]?+(http:\/\/|https:\/\/|\/\/)([^\'"()\s]++)[\'"]?+\s*+\)%i';
+      preg_match_all($pattern, $file_contents, $matches);
+      if (!empty($matches[1])) {
+        foreach ($matches[1] as $key => $match) {
+          $url = $match . $matches[2][$key];
+          $parse = @parse_url($url);
+          if (!empty($parse['host'])) {
+            $extra = '';
+            $ext = strtolower(pathinfo($url, PATHINFO_EXTENSION));
+            $supported = array(
+              'eot',
+              'woff2',
+              'woff',
+              'ttf',
+              'otf',
+            );
+            if (in_array($ext, $supported)) {
+              $extra .= '#crossorigin';
+            }
+            $hosts[$parse['host'] . $extra] = $match . $parse['host'] . '/' . $extra;
+            $urls[$url] = $url;
+          }
+        }
+      }
+      if (!empty($hosts) && (variable_get('advagg_resource_hints_dns_prefetch', ADVAGG_RESOURCE_HINTS_DNS_PREFETCH)
+        || variable_get('advagg_resource_hints_preconnect', ADVAGG_RESOURCE_HINTS_PRECONNECT)
+      )) {
+        $info['dns_prefetch'] = array_values($hosts);
+      }
 
-    // Check if this is a split css file.
-    if (strpos($info['data'], $parts_path) === 0) {
-      $info['split'] = TRUE;
+      // Get local files to preload in this css file.
+      if (variable_get('advagg_resource_hints_preload', ADVAGG_RESOURCE_HINTS_PRELOAD)) {
+        $matches = array();
+        $pattern = '/url\(\s*+[\'"]?(.*?)[\'"\s]?+\)/i';
+        preg_match_all($pattern, $file_contents, $matches);
+        if (!empty($matches[1])) {
+          foreach ($matches[1] as $key => $match) {
+            $url = advagg_convert_abs_to_rel($match);
+            $parse = @parse_url($url);
+            if (empty($parse['host'])) {
+              $urls[$url] = $url;
+            }
+          }
+        }
+        if (!empty($urls)) {
+          $info['preload'] = array_values($urls);
+        }
+      }
     }
-    // Break large file into multiple small files if needed.
-    elseif ($info['linecount'] > $limit_value) {
-      advagg_split_css_file($info);
-    }
+    unset($info);
   }
-  unset($info);
 }
 
 /**
@@ -247,13 +373,16 @@ function advagg_advagg_get_info_on_files_alter(&$return, $cached_data, $bypass_c
  *
  * If the color module is enabled regenerate color module css when it changes.
  * If a responsive file inside an adaptive theme has changed, regenerate it.
- *
- * @param array $files
- *   List of files that have changed.
- * @param array $types
- *   Array with the css and or the js key.
  */
 function advagg_advagg_changed_files(array $files, array $types) {
+  // * @param array $files
+  // *   List of files that have changed.
+  // * @param array $types
+  // *   Array with the css and or the js key.
+  if (module_exists('locale')) {
+    _advagg_locale_changed_files($files, $types);
+  }
+
   // Keep track of what themes have been done.
   static $themes_done;
   if (!isset($themes_done)) {
@@ -265,17 +394,16 @@ function advagg_advagg_changed_files(array $files, array $types) {
     return;
   }
 
-  $return = array();
   foreach ($files as $filename => $meta_data) {
     // Only care about css files.
-    $ext = pathinfo($filename, PATHINFO_EXTENSION);
-    if ($ext != 'css') {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if ($ext !== 'css') {
       continue;
     }
-    $return[$filename] = advagg_advagg_scan_for_changes($filename, TRUE);
+    advagg_advagg_scan_for_changes($filename, TRUE);
   }
 
-  // Save error states & clear them.
+  // Save error states and clear them.
   $errors_before = drupal_static('form_set_error', array());
   form_clear_error();
 
@@ -294,7 +422,7 @@ function advagg_advagg_changed_files(array $files, array $types) {
 
       // Skip if the file that was changed is not in this themes directory.
       $theme_path = drupal_get_path('theme', $theme_name);
-      if (strpos($css_file, $theme_path) !== 0) {
+      if ((!empty($theme_path)) && strpos($css_file, $theme_path) !== 0) {
         continue;
       }
       $files_in_theme[] = $css_file;
@@ -396,7 +524,7 @@ function advagg_advagg_changed_files(array $files, array $types) {
  */
 function advagg_advagg_scan_for_changes($filename, $save_changes = FALSE) {
   // Skip if this file is not a css file.
-  $ext = pathinfo($filename, PATHINFO_EXTENSION);
+  $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
   if ($ext !== 'css') {
     return FALSE;
   }
@@ -414,7 +542,7 @@ function advagg_advagg_scan_for_changes($filename, $save_changes = FALSE) {
     return;
   }
 
-  $this_file_changed = FALSE;
+  $file_changed = array();
   foreach ($adaptivethemes as $theme_name => $path) {
     // Set up some paths we use to get and save files.
     $path_to_responsive_css = drupal_get_path('theme', $theme_name) . '/css/';
@@ -441,12 +569,58 @@ function advagg_advagg_scan_for_changes($filename, $save_changes = FALSE) {
     }
 
     // See if anything has changed.
-    if (advagg_detect_subfile_changes($filename, $file_map[$filename], 'adaptivetheme', $save_changes)) {
-      $this_file_changed = TRUE;
+    $changes = advagg_detect_subfile_changes($filename, $file_map[$filename], 'adaptivetheme', $save_changes);
+    if (!empty($changes)) {
+      $file_changed[$path] = $changes;
     }
   }
 
-  return $this_file_changed;
+  return $file_changed;
+}
+
+/**
+ * @} End of "addtogroup advagg_hooks".
+ */
+
+/**
+ * If the locale module is enabled regenerate locale translations.
+ *
+ * @param array $files
+ *   List of files that have changed.
+ * @param array $types
+ *   Array with the css and or the js key.
+ */
+function _advagg_locale_changed_files(array $files, array $types) {
+  // Skip if no js changed.
+  if (empty($types['js'])) {
+    return;
+  }
+
+  $javascript = array();
+  foreach ($files as $filename => $meta_data) {
+    // Only care about js files.
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if ($ext !== 'js') {
+      continue;
+    }
+    $javascript[] = array(
+      'type' => 'file',
+      'data' => $filename,
+    );
+  }
+  if (!empty($javascript)) {
+    $javascript_before = $javascript;
+    $language_before = $GLOBALS['language'];
+    $language_list = language_list();
+    foreach ($language_list as $lang) {
+      if ($lang->enabled) {
+        $GLOBALS['language'] = $lang;
+        $javascript = $javascript_before;
+        _advagg_locale_js_alter($javascript);
+      }
+    }
+    $GLOBALS['language'] = $language_before;
+  }
 }
 
 /**

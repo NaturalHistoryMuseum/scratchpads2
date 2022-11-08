@@ -1,3 +1,4 @@
+/* @codingStandardsIgnoreFile */
 /* https://www.drupal.org/node/1514182#comment-9532431 */
 home {
   background: url('geo-md-webfont.eot?#iefix');
@@ -13,6 +14,22 @@ home {
 }
 home {
   background: url( geo-md-webfont.eot?#iefix );
+}
+/* https://www.drupal.org/node/2685177 */
+home {
+  background: url('fostbook-webfont.svg#Foundry Sterling Book');
+}
+home {
+  background: url( 'fostbook-webfont.svg#Foundry Sterling Book' );
+}
+home {
+  background: url("fostbook-webfont.svg#Foundry Sterling Book");
+}
+home {
+  background: url(fostbook-webfont.svg#Foundry Sterling Book);
+}
+home {
+  background: url( fostbook-webfont.svg#Foundry Sterling Book );
 }
 /* https://www.drupal.org/node/2362643 */
 home {
@@ -38,4 +55,35 @@ html {
 5%200h2000v21h-2000V0z%22%2F%3E%3C%2Fsvg%3E');
 }
 
+/* Example from https://www.w3.org/TR/CSS2/syndata.html#rule-sets */
+q[example="public class foo\
+{\
+    private int x;\
+\
+    foo(int x) {\
+        this.x = x;\
+    }\
+\
+}"] { color: red }
+
+/* A pseudo selector with essential whitespace wrapped in quotes. */
+q[style*="quotes: none"] {
+    quotes: none;
+}
+
+q[style*='quotes: none'] {
+    quotes: none;
+}
+
+q:after {
+    content: ": colon & escaped double \" quotes \".";
+}
+
+q:after {
+    content: ' (brackets & escaped single \' quotes \') ';
+}
+
+q:after {
+    content: "I'm Quote";
+}
 
