@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file
+ * Handles Advanced Aggregation installation and upgrade tasks.
+ */
+
+/**
+ * @addtogroup hooks
+ * @{
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function advagg_font_requirements($phase) {
+  $requirements = array();
+  // If not at runtime, return here.
+  if ($phase !== 'runtime') {
+    return $requirements;
+  }
+
+  // Ensure translations don't break at install time.
+  $t = get_t();
+  // Get config path.
+  $config_path = advagg_admin_config_root_path();
+
+  // See if module is on.
+  if (variable_get('advagg_font_fontfaceobserver', ADVAGG_FONT_FONTFACEOBSERVER) == 0) {
+    $requirements['advagg_font_not_on'] = array(
+      'title' => $t('AdvAgg Font'),
+      'severity' => REQUIREMENT_WARNING,
+      'value' => $t('AdvAgg async font loading is disabled.'),
+      'description' => $t('Go to the <a href="@settings">AdvAgg Async Font Loader settings page</a> and select an option other than disabled, or go to the <a href="@modules">modules page</a> and disable the "AdvAgg Async Font Loader" module.', array(
+        '@settings' => url($config_path . '/advagg/font'),
+        '@modules' => url('admin/modules', array(
+          'fragment' => 'edit-modules-advanced-cssjs-aggregation',
+        )),
+      )),
+    );
+  }
+
+  // Check version.
+  $lib_name = 'fontfaceobserver';
+  $module_name = 'advagg_css_compress';
+  list($description, $info) = advagg_get_version_description($lib_name, $module_name);
+  if (!empty($description)) {
+    $requirements["{$module_name}_{$lib_name}_updates"] = array(
+      'title' => $t('@module_name', array('@module_name' => $info['name'])),
+      'severity' => REQUIREMENT_WARNING,
+      'value' => $t('The @name library needs to be updated.', array('@name' => $lib_name)),
+      'description' => $description,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * @} End of "addtogroup hooks".
+ */

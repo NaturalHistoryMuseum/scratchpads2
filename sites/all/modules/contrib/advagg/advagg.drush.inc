@@ -6,6 +6,11 @@
  */
 
 /**
+ * @addtogroup 3rd_party_hooks
+ * @{
+ */
+
+/**
  * Implements hook_drush_cache_clear().
  */
 function advagg_drush_cache_clear(&$types) {
@@ -28,7 +33,7 @@ function advagg_drush_help($command) {
       return dt('Remove all generated files. Useful if you think some of the generated files got corrupted and thus need to be deleted.');
 
     case 'drush:advagg-force-new-aggregates':
-      return dt('Force the creation of all new aggregates by incrementing a global counter. Current value of counter: %value. This is useful if a CDN has cached an aggregate incorrectly as it will force new ones to be used even if nothing else has changed.', array('%value' => advagg_get_global_counter()));
+      return dt('Force the creation of all new aggregates by incrementing a global counter. Current value of counter: @value. This is useful if a CDN has cached an aggregate incorrectly as it will force new ones to be used even if nothing else has changed.', array('@value' => advagg_get_global_counter()));
   }
 }
 
@@ -67,6 +72,10 @@ function advagg_drush_command() {
   );
   return $items;
 }
+
+/**
+ * @} End of "addtogroup 3rd_party_hooks".
+ */
 
 /**
  * Callback function for drush advagg-force-new-aggregates.
@@ -137,29 +146,65 @@ function drush_advagg_cron() {
   // Output results from running advagg_delete_stale_aggregates().
   list($css_files, $js_files) = $output[0];
   if (count($css_files) > 0 || count($js_files) > 0) {
-    drush_log(dt('All stale aggregates have been deleted. %css_count CSS files and %js_count JS files have been removed.', array(
-      '%css_count' => count($css_files),
-      '%js_count' => count($js_files),
+    drush_log(dt('All stale aggregates have been deleted. @css_count CSS files and @js_count JS files have been removed.', array(
+      '@css_count' => count($css_files),
+      '@js_count' => count($js_files),
     )), 'ok');
   }
   else {
     drush_log(dt('No stale aggregates found. Nothing was deleted.'), 'ok');
   }
 
-  // Output results from running advagg_remove_missing_files_from_db().
-  if (empty($output[1])) {
-    drush_log(dt('No missing files found and/or could be safely cleared out of the database.'), 'ok');
+  // Output results from running advagg_delete_orphaned_aggregates().
+  if (empty($output[1][0]) && empty($output[1][1])) {
+    drush_log(dt('All files have an associated db record; nothing was deleted.'), 'ok');
   }
   else {
-    drush_log(dt('Some missing files were found and could be safely cleared out of the database. @raw', array('@raw' => print_r($output[1], TRUE))), 'ok');
+    drush_log(dt('Some files had no associated db record and could be safely deleted from the file system. @raw', array('@raw' => print_r($output[1], TRUE))), 'ok');
+  }
+
+  // Output results from running advagg_remove_missing_files_from_db().
+  if (empty($output[2])) {
+    drupal_set_message(dt('All source files where found, no database entries where pruned.'), 'ok');
+  }
+  else {
+    // format_plural() not always available.
+    drupal_set_message(dt('Some source files are missing and as a result some unused aggregates were found. A total of @count database entries were removed.', array('@count' => count($output[2]))), 'ok');
   }
 
   // Output results from running advagg_remove_old_unused_aggregates().
-  if (empty($output[2])) {
-    drupal_set_message(t('No old and unused aggregates found. Nothing was deleted.'), 'ok');
+  if (empty($output[3])) {
+    drupal_set_message(dt('No old and unused aggregates found. Nothing was deleted.'), 'ok');
   }
   else {
-    drupal_set_message(t('Some old and unused aggregates were found. A total of %count database entries were removed.', array('%count' => $output[2])), 'ok');
+    // format_plural() not always available.
+    drupal_set_message(dt('Some old and unused aggregates were found. A total of @count database entries were removed.', array('@count' => $output[3])), 'ok');
+  }
+
+  // Output results from running advagg_cleanup_semaphore_table().
+  if (empty($output[4])) {
+    drupal_set_message(dt('No old semaphore locks found.'), 'ok');
+  }
+  else {
+    // format_plural() not always available.
+    drupal_set_message(dt('A total of @count old semaphore entries were removed.', array('@count' => count($output[4]))), 'ok');
+  }
+
+  // Output results from running advagg_remove_temp_files().
+  if (empty($output[5])) {
+    drupal_set_message(dt('No leftover temporary files found. Nothing was deleted.'), 'ok');
+  }
+  else {
+    // format_plural() not always available.
+    drupal_set_message(dt('Some oleftover temporary files were found. A total of @count temporary files were removed.', array('@count' => $output[5])), 'ok');
+  }
+
+  // Output results from running advagg_refresh_all_locale_files().
+  if (empty($output[6])) {
+    drupal_set_message(dt('Locale did not translate anything in any JavaScript files.'), 'ok');
+  }
+  else {
+    drupal_set_message(dt('Locale did translate some JavaScript files. Resulting locale js files: @files', array('@files' => print_r($output[6], TRUE))), 'ok');
   }
 }
 
@@ -167,6 +212,14 @@ function drush_advagg_cron() {
  * Flush the correct caches so CSS/JS changes go live.
  */
 function drush_advagg_smart_cache_flush() {
+  // Clear the libraries cache.
+  if (function_exists('libraries_flush_caches')) {
+    $cache_tables = libraries_flush_caches();
+    foreach ($cache_tables as $table) {
+      cache_clear_all('*', $table, TRUE);
+    }
+  }
+
   // Run the command.
   module_load_include('inc', 'advagg', 'advagg.cache');
   $flushed = advagg_push_new_changes();
@@ -187,11 +240,12 @@ function drush_advagg_smart_cache_flush() {
         continue;
       }
       $ext = pathinfo($filename, PATHINFO_EXTENSION);
-      drush_log(dt('The file %filename has changed. %db_usage aggregates are using this file. %db_count db cache entries and all %type full cache entries have been flushed from the cache bins.', array(
-        '%filename' => $filename,
-        '%db_usage' => $data[0],
-        '%db_count' => $data[1],
-        '%type' => $ext,
+      drush_log(dt('The file @filename has changed. @db_usage aggregates are using this file. @db_count db cache entries and all @type full cache entries have been flushed from the cache bins. Trigger: @changes', array(
+        '@filename' => $filename,
+        '@db_usage' => $data[0],
+        '@db_count' => $data[1],
+        '@changes' => print_r($data[2], TRUE),
+        '@type' => $ext,
       )), 'ok');
     }
 

@@ -6,8 +6,14 @@
  */
 
 /**
- * @addtogroup hooks
+ * @defgroup advagg_hooks Advanced Aggregates Hooks
+ *
  * @{
+ * Hooks for modules to implement to extend or modify Advanced Aggregates.
+ *
+ * For more examples of use see most of the Advanced Agregrates sub modules.
+ *
+ * @see https://api.drupal.org/api/drupal/includes%21module.inc/group/hooks/7.x
  */
 
 /**
@@ -33,10 +39,13 @@ function hook_advagg_build_aggregate_plans_alter(array &$files, &$modified, $typ
   $temp_new_files = array();
   $counter = 0;
   foreach ($files as $filename => $data) {
+    if ($filename) {
+      // This is the filename.
+    }
     $group = NULL;
     $every_page = NULL;
     foreach ($data['files'] as $fileinfo) {
-      // Grouped by group & every_page variables.
+      // Grouped by group and every_page variables.
       if (is_null($group)) {
         $group = $fileinfo['group'];
       }
@@ -83,7 +92,7 @@ function hook_advagg_changed_files(array $files, array $types) {
   $return = array();
   foreach ($files as $filename => $meta_data) {
     // Only care about js files.
-    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
     if ($ext !== 'js') {
       continue;
     }
@@ -116,7 +125,7 @@ function hook_advagg_current_hooks_hash_array_alter(array &$aggregate_settings) 
  * @param array $aggregate_settings
  *   Array of settings.
  * @param array $other_parameters
- *   Array of containing $files & $type.
+ *   Array of containing $files and $type.
  *
  * @see advagg_save_aggregate()
  * @see advagg_advagg_save_aggregate_alter()
@@ -340,8 +349,7 @@ function hook_advagg_css_groups_alter(array &$css_groups, $preprocess_css) {
     }
     else {
       $diff = array_merge(array_diff_assoc($group['browsers'], $target['browsers']), array_diff_assoc($target['browsers'], $group['browsers']));
-      // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
-      if ( $group['type'] != $target['type']
+      if ($group['type'] != $target['type']
         || $group['group'] != $target['group']
         || $group['every_page'] != $target['every_page']
         || $group['media'] != $target['media']
@@ -351,8 +359,7 @@ function hook_advagg_css_groups_alter(array &$css_groups, $preprocess_css) {
       ) {
         if (!empty($last_group)) {
           $diff = array_merge(array_diff_assoc($last_group['browsers'], $target['browsers']), array_diff_assoc($target['browsers'], $last_group['browsers']));
-          // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
-          if ( $last_group['type'] != $target['type']
+          if ($last_group['type'] != $target['type']
             || $last_group['group'] != $target['group']
             || $last_group['every_page'] != $target['every_page']
             || $last_group['media'] != $target['media']
@@ -427,7 +434,7 @@ function hook_advagg_js_groups_alter(array &$js_groups, $preprocess_js) {
 }
 
 /**
- * Allow other modules to modify $children & $elements before they are rendered.
+ * Allow other modules to modify $children and $elements before rendering.
  *
  * @param array $children
  *   An array of children elements.
@@ -462,7 +469,7 @@ function hook_advagg_modify_css_pre_render_alter(array &$children, array &$eleme
   module_load_include('inc', 'advagg_css_compress', 'advagg_css_compress.advagg');
   if ($compressor == 2) {
     // Compress any inline CSS with YUI.
-    foreach ($children as $key => &$values) {
+    foreach ($children as &$values) {
       if (!empty($values['#value'])) {
         advagg_css_compress_yui_cssmin($values['#value']);
       }
@@ -472,7 +479,7 @@ function hook_advagg_modify_css_pre_render_alter(array &$children, array &$eleme
 }
 
 /**
- * Allow other modules to modify $children & $elements before they are rendered.
+ * Allow other modules to modify $children and $elements before rendering.
  *
  * @param array $children
  *   An array of children elements.
@@ -507,7 +514,7 @@ function hook_advagg_modify_js_pre_render_alter(array &$children, array &$elemen
 
   // Compress any inline JS.
   module_load_include('inc', 'advagg_js_compress', 'advagg_js_compress.advagg');
-  foreach ($children as $key => &$values) {
+  foreach ($children as &$values) {
     if (!empty($values['#value'])) {
       $contents = $values['#value'];
       $filename = drupal_hash_base64($contents);
@@ -577,6 +584,9 @@ function hook_advagg_context_alter(array &$original, array $aggregate_settings, 
  */
 function hook_advagg_removed_aggregates(array $kill_list) {
   foreach ($kill_list as $uri) {
+    if ($uri) {
+      // This is the uri.
+    }
     // Do something else.
   }
 }
@@ -621,9 +631,15 @@ function hook_advagg_get_info_on_files_alter(array &$return, array $cached_data,
   }
   $limit_value = variable_get('advagg_ie_css_selector_limiter_value', ADVAGG_IE_CSS_SELECTOR_LIMITER_VALUE);
   list($css_path, $js_path) = advagg_get_root_files_dir();
+  if ($js_path) {
+    // This is the js_path array.
+  }
   $parts_path = $css_path[1] . '/parts';
 
   foreach ($return as $filename => &$info) {
+    if ($filename) {
+      // This is the filename.
+    }
     if (empty($info['fileext']) || $info['fileext'] !== 'css') {
       continue;
     }
@@ -666,6 +682,10 @@ function hook_advagg_hooks_implemented_alter(array &$hooks, $all) {
  */
 function hook_advagg_bundler_analysis_alter(array &$analysis) {
   foreach ($analysis as $filename => &$data) {
+    if ($filename) {
+      // This is the filename.
+    }
+
     // This changes often; 604800 is 1 week.
     if ($data['changes'] > 10 && $data['mtime'] >= REQUEST_TIME - 604800) {
       // Modify the group hash so this doesn't end up in a big aggregate.
@@ -676,5 +696,5 @@ function hook_advagg_bundler_analysis_alter(array &$analysis) {
 }
 
 /**
- * @} End of "addtogroup hooks".
+ * @} End of "defgroup advagg_hooks".
  */
