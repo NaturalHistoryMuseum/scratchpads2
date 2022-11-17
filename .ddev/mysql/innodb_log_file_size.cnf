@@ -1,0 +1,2 @@
+[mysqld]
+innodb_log_file_size=256M
