@@ -1,0 +1,4 @@
+{
+    "git.path": "/usr/bin/git",
+    "php.validate.executablePath": "/usr/bin/php"
+}
