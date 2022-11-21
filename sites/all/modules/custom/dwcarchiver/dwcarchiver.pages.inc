@@ -75,7 +75,12 @@ function dwcarchiver_overview_page() {
     }
     $row[] = l('Preview', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/preview');
     $row[] = l('Rebuild', 'admin/config/content/dwcarchiver/' . $archive->machine_name . '/rebuild');
-    $row[] = l('Download', $archive->machine_name . '.zip');
+
+    // defeat the cache by adding a unique pattern to end, so that the latest archived file is always downloaded
+    // credit: https://www.drupal.org/forum/support/post-installation/2009-05-09/prevent-question-marks-in-autopath-links-from-being#comment-4305604
+    // and: https://stackoverflow.com/a/3055584/227926
+    $timeNow = time();
+    $row[] = l('Download', $archive->machine_name . '.zip', array('query' => array('timestamp' => $timeNow)));
     $rows[] = $row;
   }
   return [
