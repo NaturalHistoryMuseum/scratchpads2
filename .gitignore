@@ -36,3 +36,6 @@ docker-compose.dev.yml
 sites/default/files/advagg_css/
 sites/default/files/advagg_js/
 sites/default/files/css/
+
+# files and assets
+sites/default/files
