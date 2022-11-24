@@ -36,7 +36,7 @@
 
               if (array_key_exists('tab_root_href',$tab_item)) { 
                 // ensure that doing the hiding only applies to taxonomy pages
-                if (strpos($tab_item['tab_root_href'], 'term') !== false) {
+                if (strpos($tab_item['tab_root_href'], 'taxonomy/term') !== false) {
 
                   // and for a term, allow Drupal system tabs to be displayed
                   // i.e. don't do the checking further inside the if
