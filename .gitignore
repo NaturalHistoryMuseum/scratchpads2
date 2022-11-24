@@ -19,9 +19,6 @@ sites/all/drush
 .settings
 .idea
 
-# VS Code files
-.vscode
-
 # Development files
 index2.php
 
