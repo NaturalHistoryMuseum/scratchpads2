@@ -17,8 +17,10 @@
         <?php 
 
           /*
-            hide all but the View tab for terms that are non biological
-
+            specifically for taxonomy term pages
+            
+            hide non-biological tabs
+            
             doing it here in this theme template/at rendering stage in theme
             seems to be the only place where this is possible in that the
             required variables are available make the decision on to display tab, are 
@@ -26,42 +28,28 @@
           */
           $tabs_items = &$tabs['#primary'];
 
-           // if we are on user pages 
-           //   (credit: https://drupal.stackexchange.com/a/83872)
-           // then don't do below where check what tabs to display
-          if (arg(0) == 'user') {
-            foreach($tabs_items as $tab_id => $tab_value ) {
-              if (array_key_exists('#link', $tabs_items[$tab_id])) {
-                $tab_item = $tabs_items[$tab_id]['#link'];
+          $systemTabsAsArray = array('View', 'Edit', 'Clone', 'Clone content');
 
-                if (array_key_exists('title',$tab_item)) {
-                  $tab_title = $tab_item['title'];
+          foreach($tabs_items as $tab_id => $tab_value ) {
+            if (array_key_exists('#link', $tabs_items[$tab_id])) {
+              $tab_item = $tabs_items[$tab_id]['#link'];
 
-                  // if the tab being looked at is NOT a standard general Drupal tab 
-                  // then we make a decision on whether to omit the tab, 
-                  //   because we assume it is a Scratchpads domain-specific tab 
-                  //    which is conditionally displayed if bio/non-bio
-                  $standardTabsAsArray = array("View", "Edit", "Clone", "Clone content", "Clone", "Devel");
-                  if (!in_array($tab_title, $standardTabsAsArray)){
-                    if (array_key_exists('tab_root_href',$tab_item)) { 
+              if (array_key_exists('tab_root_href',$tab_item)) { 
+                // ensure that doing the hiding only applies to taxonomy pages
+                if (strpos($tab_item['tab_root_href'], 'term') !== false) {
+
+                  // and for a term, allow Drupal system tabs to be displayed
+                  // i.e. don't do the checking further inside the if
+                  if (array_key_exists('title', $tab_item)) {
+                    $tab_title = $tab_item['title'];
+                    if (!in_array($tab_title, $systemTabsAsArray)) {
                       $term_id = basename($tab_item['tab_root_href']);
+          
                       $term_obj = taxonomy_term_load($term_id);
+                      // don't display term tabs that are not biological classifications
                       if ($term_obj) {
-                        // is this a user page? if yes then we don't want to hide the tabs
-                        // if not then we do
-                        //
-                        // check existence first before attempting to check value, avoiding undefined warnings
-                        // we have enough of those in the code base
-                        if (array_key_exists('system_main', $elements)) {
-                          if (array_key_exists('#pre_render',$elements['system_main'])) {
-                            if( array_key_exists('#entity_type',$elements['system_main']['#pre_render'])) {
-                              if (!($elements['system_main']['#pre_render']['#entity_type'] == 'user')) {
-                                if (!(scratchpads_species_term_is_biological_classification($term_obj))) {
-                                  unset($tabs_items[$tab_id]);
-                                }
-                              }
-                            }
-                          }
+                        if (!(scratchpads_species_term_is_biological_classification($term_obj))) {
+                          unset($tabs_items[$tab_id]);
                         }
                       }
                     }
@@ -69,7 +57,7 @@
                 }
               }
             }
-          }     
+          }
 
           print render($tabs); 
         ?>
