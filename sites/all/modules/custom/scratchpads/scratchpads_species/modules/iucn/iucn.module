@@ -1,5 +1,7 @@
 <?php
 
+use IucnApi\Client;
+
 /**
  * Implements hook_block_info().
  */
@@ -47,6 +49,12 @@ function iucn_block_view($delta = ''){
   // We load the term from the menu
   $term = menu_get_object('taxonomy_term', 2);
   if($term){
+
+    $iucnV3APIKeyToken = variable_get('iucn_api_v3_api_key_token', FALSE);
+    $iucnV3Url = variable_get('iucn_api_v3_url', FALSE);
+
+    $iucnClient = new IucnApi\Client('<your-api-key>');
+
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
       $cache = cache_get($term->tid, 'cache_iucn');
       if($cache->data){
