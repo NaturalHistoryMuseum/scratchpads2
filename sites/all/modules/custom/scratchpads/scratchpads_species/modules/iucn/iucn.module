@@ -1,7 +1,5 @@
 <?php
 
-use IucnApi\Client;
-
 /**
  * Implements hook_block_info().
  */
@@ -53,7 +51,9 @@ function iucn_block_view($delta = ''){
     $iucnV3APIKeyToken = variable_get('iucn_api_v3_api_key_token', FALSE);
     $iucnV3Url = variable_get('iucn_api_v3_url', FALSE);
 
-    $iucnClient = new IucnApi\Client('<your-api-key>');
+    $iucnClient = new \IucnApi\Client($iucnV3APIKeyToken);
+    
+    //$githubclient = new \Github\Client();
 
     if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
       $cache = cache_get($term->tid, 'cache_iucn');
