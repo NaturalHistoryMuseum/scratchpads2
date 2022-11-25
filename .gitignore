@@ -39,3 +39,19 @@ sites/default/files/css/
 
 # files and assets
 sites/default/files
+
+# this library had to have code modified to be compatible with php 7.2
+# and therefore attempting to manage its git repp
+# within the main scratchpads repo raised the question about where
+# to store that modification. give that the modification is
+# related to scratchpads' production server environment,
+# the answer to that question is to store the change in
+# scratchpads' repo. Moreover the original developer may not
+# necessarily want to access a push up to their repo of this
+# backwards compatible change to obsolete php version. 
+# Therefore with that decision to store in Scratchpads, that means
+# disabling the project's own git (i.e. as a submodule), so the files
+# will be removed and not tracked
+sites/all/libraries/vendor/jbroutier/iucn-api-client/.git
+sites/all/libraries/vendor/jbroutier/iucn-api-client/.github
+sites/all/libraries/vendor/jbroutier/iucn-api-client/.gitignore
