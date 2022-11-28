@@ -62,6 +62,36 @@ function iucn_block_view($delta = ''){
       if($cache->data){
         $content['content']['#markup'] = $cache->data;
       }else{
+
+        try {
+          $aterm = $term->name;
+          $species = $iucnClient->getSpeciesByName($term->name);
+
+          $contentMarkupToDisplay ="";
+
+          // credit: https://github.com/jbroutier/iucn-api-client#getting-started
+          $contentMarkupToDisplay .= '<h3>'.$species->getKingdom().'</h3>'; // ANIMALIA
+          $contentMarkupToDisplay .= '<h3>'.$species->getPhylum().'</h3>'; // CHORDATA
+          $contentMarkupToDisplay .= '<h3>'.$species->getClass().'</h3>'; // MAMMALIA
+          $contentMarkupToDisplay .= '<h3>'.$species->getOrder().'</h3>'; // CARNIVORA
+          $contentMarkupToDisplay .= '<h3>'.$species->getFamily().'</h3>'; // AILURIDAE
+          $contentMarkupToDisplay .= '<h3>'.$species->getGenus().'</h3>'; // Ailurus
+          $contentMarkupToDisplay .= '<h3>'.$species->getMainCommonName().'</h3>'; // Red Panda
+
+          $content['content']['#markup'] = $contentMarkupToDisplay;
+
+          cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
+
+        } catch (\IucnApi\Exception\IucnApiException $exception) {
+          // Something doesn't look good…
+          $content['content']['#markup'] = t('There was an error downloading the information for %term_name', array(
+            '$term_name' => $term->name
+          ));
+        }
+
+        
+
+        /*
         $request = drupal_http_request('http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js', array(
           'timeout' => '3.0'
         ));
@@ -88,6 +118,8 @@ function iucn_block_view($delta = ''){
             cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
           }
         }
+
+        */
       }
     }
   }
