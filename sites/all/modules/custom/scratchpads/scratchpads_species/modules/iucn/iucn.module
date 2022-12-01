@@ -55,9 +55,20 @@ function iucn_block_view($delta = ''){
 
     $iucnClient = new \IucnApi\Client($iucnV3APIKeyToken);
     
-    //$githubclient = new \Github\Client();
+    $flagAjaxBlocks = false; //initial default
+    // was:
+    //if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+    // no comment about what this is exactly supposed to do, so breaking it down into several IFs 
 
-    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+    if (!function_exists('ajaxblocks_in_ajax_handler')) {
+      $flagAjaxBlocks = true;
+    }
+  
+    if (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler()) {
+      $flagAjaxBlocks = true;
+    }
+
+    if($flagAjaxBlocks){
       $cache = cache_get($term->tid, 'cache_iucn');
       if($cache->data){
         $content['content']['#markup'] = $cache->data;
@@ -83,8 +94,10 @@ function iucn_block_view($delta = ''){
           $contentMarkupToDisplay 
           = "<style>.iucn-item > .name {background-color:#eeeeee;}; .iucn-item > .value {(background-color:white;}; .iucn-item { padding: 5px; }; </style>";
 
+          // credit: https://stackoverflow.com/questions/15700325/foreach-on-all-object-properties
+          
 
-          foreach($iucnClient as $key => $value) {
+          foreach($species as $key => $value) {
             $item = "<div class='iucn-item .name'>".$key."</div>\n";
             if (isset($value)) {
               $item .= "<div class='iucn-item .value'>".$value."</div>\n";
