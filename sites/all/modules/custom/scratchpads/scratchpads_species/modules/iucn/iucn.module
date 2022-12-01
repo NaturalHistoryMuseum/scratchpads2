@@ -69,6 +69,7 @@ function iucn_block_view($delta = ''){
 
           $contentMarkupToDisplay ="";
 
+          /*
           // credit: https://github.com/jbroutier/iucn-api-client#getting-started
           $contentMarkupToDisplay .= '<h3>'.$species->getKingdom().'</h3>'; // ANIMALIA
           $contentMarkupToDisplay .= '<h3>'.$species->getPhylum().'</h3>'; // CHORDATA
@@ -77,6 +78,24 @@ function iucn_block_view($delta = ''){
           $contentMarkupToDisplay .= '<h3>'.$species->getFamily().'</h3>'; // AILURIDAE
           $contentMarkupToDisplay .= '<h3>'.$species->getGenus().'</h3>'; // Ailurus
           $contentMarkupToDisplay .= '<h3>'.$species->getMainCommonName().'</h3>'; // Red Panda
+          */
+
+          $contentMarkupToDisplay 
+          = "<style>.iucn-item > .name {background-color:#eeeeee;}; .iucn-item > .value {(background-color:white;}; .iucn-item { padding: 5px; }; </style>";
+
+
+          foreach($iucnClient as $key => $value) {
+            $item = "<div class='iucn-item .name'>".$key."</div>\n";
+            if (isset($value)) {
+              $item .= "<div class='iucn-item .value'>".$value."</div>\n";
+            }
+            else {
+              $item .= "<div>-</div>\n";
+            }
+
+            $contentMarkupToDisplay .= $item;
+          }
+
 
           $content['content']['#markup'] = $contentMarkupToDisplay;
 
