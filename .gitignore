@@ -32,7 +32,7 @@ scratchpads_twitter.ini
 nohup.out
 docker-compose.dev.yml
 
-# machine generated css and js
+# machine generated css and jssites/all/libraries/vendor
 sites/default/files/advagg_css/
 sites/default/files/advagg_js/
 sites/default/files/css/
@@ -55,3 +55,5 @@ sites/default/files
 sites/all/libraries/vendor/jbroutier/iucn-api-client/.git
 sites/all/libraries/vendor/jbroutier/iucn-api-client/.github
 sites/all/libraries/vendor/jbroutier/iucn-api-client/.gitignore
+
+sites/all/libraries/vendor/**/.git
