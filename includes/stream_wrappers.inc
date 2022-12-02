@@ -405,6 +405,12 @@ abstract class DrupalLocalStreamWrapper implements DrupalStreamWrapperInterface 
   public function stream_open($uri, $mode, $options, &$opened_path) {
     $this->uri = $uri;
     $path = $this->getLocalPath();
+    if ($path === FALSE) {
+      if ($options & STREAM_REPORT_ERRORS) {
+        trigger_error('stream_open() filename cannot be empty', E_USER_WARNING);
+      }
+      return FALSE;
+    }
     $this->handle = ($options & STREAM_REPORT_ERRORS) ? fopen($path, $mode) : @fopen($path, $mode);
 
     if ((bool) $this->handle && $options & STREAM_USE_PATH) {
@@ -784,10 +790,10 @@ abstract class DrupalLocalStreamWrapper implements DrupalStreamWrapperInterface 
       $localpath = $this->getLocalPath($uri);
     }
     if ($options & STREAM_REPORT_ERRORS) {
-      return mkdir($localpath, $mode, $recursive);
+      return drupal_mkdir($localpath, $mode, $recursive);
     }
     else {
-      return @mkdir($localpath, $mode, $recursive);
+      return @drupal_mkdir($localpath, $mode, $recursive);
     }
   }
 
@@ -927,6 +933,27 @@ class DrupalPublicStreamWrapper extends DrupalLocalStreamWrapper {
   function getExternalUrl() {
     $path = str_replace('\\', '/', $this->getTarget());
     return $GLOBALS['base_url'] . '/' . self::getDirectoryPath() . '/' . drupal_encode_path($path);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getLocalPath($uri = NULL) {
+    $path = parent::getLocalPath($uri);
+
+    if (variable_get('sa_core_2022_012_override', FALSE)) {
+      return $path;
+    }
+
+    $private_path = variable_get('file_private_path', FALSE);
+    if ($private_path) {
+      $private_path = realpath($private_path);
+      if ($private_path && strpos($path, $private_path) === 0) {
+        return FALSE;
+      }
+    }
+
+    return $path;
   }
 }
 

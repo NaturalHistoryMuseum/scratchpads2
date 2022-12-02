@@ -615,7 +615,7 @@ function locale_add_language($langcode, $name = NULL, $native = NULL, $direction
       'direction' => $direction,
       'domain' => $domain,
       'prefix' => $prefix,
-      'enabled' => $enabled,
+      'enabled' => $enabled ? 1 : 0,
     ))
     ->execute();
 
@@ -1603,7 +1603,7 @@ function _locale_parse_js_file($filepath) {
     if ($source) {
       // We already have this source string and now have to add the location
       // to the location column, if this file is not yet present in there.
-      $locations = preg_split('~\s*;\s*~', $source->location);
+      $locations = preg_split('~\s*;\s*~', (string) $source->location);
 
       if (!in_array($filepath, $locations)) {
         $locations[] = $filepath;
