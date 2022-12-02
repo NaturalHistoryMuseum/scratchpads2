@@ -91,16 +91,34 @@ function iucn_block_view($delta = ''){
           $contentMarkupToDisplay .= '<h3>'.$species->getMainCommonName().'</h3>'; // Red Panda
           */
 
-          $contentMarkupToDisplay 
-          = "<style>.iucn-item > .name {background-color:#eeeeee;}; .iucn-item > .value {(background-color:white;}; .iucn-item { padding: 5px; }; </style>";
+          // https://stackoverflow.com/questions/9744192/multi-line-strings-in-php
+          $contentMarkupToDisplay = <<<EOD
+<style>
+  .iucn-item.name {
+    background-color: #eeeeee;
+    font-weight: bold;
+  }
 
-          // credit: https://stackoverflow.com/questions/15700325/foreach-on-all-object-properties
+  .iucn-item.value {
+    background-color: white;
+  }
+
+  .iucn-item {
+    padding: 5px;
+  }
+</style>
+EOD;
           
 
-          foreach($species as $key => $value) {
-            $item = "<div class='iucn-item .name'>".$key."</div>\n";
+          // bad advice here: https://stackoverflow.com/questions/15700325/
+          // so I used this: https://stackoverflow.com/a/5970283/227926
+          foreach((array)$species as $key => $value) {
+            // https://stackoverflow.com/q/10643167/227926
+            // https://stackoverflow.com/a/41243650/227926
+            $keyWithoutAsteriskPrefix = preg_replace('/[\*]+/', '', $key);
+            $item = "<div class='iucn-item name'>".$keyWithoutAsteriskPrefix."</div>\n";
             if (isset($value)) {
-              $item .= "<div class='iucn-item .value'>".$value."</div>\n";
+              $item .= "<div class='iucn-item value'>".$value."</div>\n";
             }
             else {
               $item .= "<div>-</div>\n";
