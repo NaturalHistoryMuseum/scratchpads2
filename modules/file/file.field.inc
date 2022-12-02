@@ -20,7 +20,7 @@ function file_field_info() {
       ),
       'instance_settings' => array(
         'file_extensions' => 'txt',
-        'file_directory' => '',
+        'file_directory' => '[date:custom:Y]-[date:custom:m]',
         'max_filesize' => '',
         'description_field' => 0,
       ),
@@ -184,7 +184,7 @@ function file_field_load($entity_type, $entities, $field, $instances, $langcode,
     foreach ($items[$id] as $delta => $item) {
       // If the file does not exist, mark the entire item as empty.
       if (empty($item['fid']) || !isset($files[$item['fid']])) {
-        $items[$id][$delta] = NULL;
+        unset($items[$id][$delta]);
       }
       else {
         $items[$id][$delta] = array_merge((array) $files[$item['fid']], $item);
@@ -943,7 +943,7 @@ function theme_file_upload_help($variables) {
 
   $descriptions = array();
 
-  if (strlen($description)) {
+  if (!empty($description)) {
     $descriptions[] = $description;
   }
   if (isset($upload_validators['file_validate_size'])) {

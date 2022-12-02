@@ -666,8 +666,17 @@ class NodeCreationTestCase extends DrupalWebTestCase {
     }
 
     // Check that the rollback error was logged.
-    $records = db_query("SELECT wid FROM {watchdog} WHERE variables LIKE '%Test exception for rollback.%'")->fetchAll();
-    $this->assertTrue(count($records) > 0, 'Rollback explanatory error logged to watchdog.');
+    // PostgreSQL doesn't support bytea LIKE queries, so we need to unserialize
+    // first to check for the rollback exception message.
+    $matches = array();
+    $records = db_query("SELECT wid, variables FROM {watchdog}")->fetchAll();
+    foreach ($records as $record) {
+      $variables = (array) unserialize($record->variables);
+      if (isset($variables['!message']) && $variables['!message'] === 'Test exception for rollback.') {
+        $matches[] = $record->wid;
+      }
+    }
+    $this->assertTrue(count($matches) > 0, 'Rollback explanatory error logged to watchdog.');
   }
 
   /**
@@ -2544,6 +2553,26 @@ class NodeTokenReplaceTestCase extends DrupalWebTestCase {
       $output = token_replace($input, array('node' => $node), array('language' => $language));
       $this->assertEqual($output, $expected, format_string('Sanitized node token %token replaced.', array('%token' => $input)));
     }
+
+    // Test if the node without nid gets correct tokens (e.g. unsaved node).
+    $new_node_without_nid = clone $node;
+    unset($new_node_without_nid->nid);
+
+    // Update tokens values which should be empty
+    $tests['[node:nid]'] = '';
+    $tests['[node:url]'] = '';
+    $tests['[node:edit-url]'] = '';
+
+    // Generate and test sanitized tokens.
+    foreach ($tests as $input => $expected) {
+      $output = token_replace($input, array('node' => $new_node_without_nid), array('language' => $language));
+      $this->assertEqual($output, $expected, format_string('Sanitized node token %token replaced.', array('%token' => $input)));
+    }
+
+    // Revert tokens values
+    $tests['[node:nid]'] = $node->nid;
+    $tests['[node:url]'] = url('node/' . $node->nid, $url_options);
+    $tests['[node:edit-url]'] = url('node/' . $node->nid . '/edit', $url_options);
 
     // Generate and test unsanitized tokens.
     $tests['[node:title]'] = $node->title;
