@@ -314,6 +314,3 @@ function scratchpads_backend_ckeditor_plugin(){
     )
   );
 }
-
-
-
