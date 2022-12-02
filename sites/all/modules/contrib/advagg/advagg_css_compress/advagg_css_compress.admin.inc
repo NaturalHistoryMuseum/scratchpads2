@@ -8,13 +8,12 @@
 /**
  * Form builder; Configure advagg settings.
  *
- * @ingroup advagg_forms
+ * @ingroup forms
  *
  * @see system_settings_form()
  */
 function advagg_css_compress_admin_settings_form($form, $form_state) {
   drupal_set_title(t('AdvAgg: CSS Compression Settings'));
-  advagg_display_message_if_requirements_not_met();
   $config_path = advagg_admin_config_root_path();
 
   $form = array();
@@ -24,18 +23,11 @@ function advagg_css_compress_admin_settings_form($form, $form_state) {
     );
   }
 
-  // Tell user to update library if a new version is available.
-  $library_name = 'YUI-CSS-compressor-PHP-port';
-  $module_name = 'advagg_css_compress';
-  list($description) = advagg_get_version_description($library_name, $module_name);
-  if (!empty($description)) {
-    $form['advagg_version_msg'] = array(
-      '#markup' => "<p>{$description}</p>",
-    );
-  }
-
-  list($options, $description) = advagg_css_compress_configuration();
-
+  $description = '';
+  $options = array(
+    0 => t('Disabled'),
+    2 => t('YUI'),
+  );
   $form['advagg_css_compressor'] = array(
     '#type' => 'radios',
     '#title' => t('File Compression: Select a Compressor'),
@@ -43,14 +35,11 @@ function advagg_css_compress_admin_settings_form($form, $form_state) {
     '#options' => $options,
     '#description' => filter_xss($description),
   );
-  $inline_options = $options;
-  unset($inline_options[-1]);
-  $inline_options[0] = t('Disabled');
   $form['advagg_css_compress_inline'] = array(
     '#type' => 'radios',
     '#title' => t('Inline Compression: Select a Compressor'),
     '#default_value' => variable_get('advagg_css_compress_inline', ADVAGG_CSS_COMPRESS_INLINE),
-    '#options' => $inline_options,
+    '#options' => $options,
     '#description' => filter_xss($description),
   );
   $form['advagg_css_compress_inline_if_not_cacheable'] = array(
@@ -65,7 +54,7 @@ function advagg_css_compress_admin_settings_form($form, $form_state) {
     ),
   );
 
-  $options[ADVAGG_CSS_COMPRESSOR_FILE_SETTINGS] = t('Default');
+  $options[-1] = t('Default');
   ksort($options);
 
   $form['per_file_settings'] = array(
@@ -74,11 +63,11 @@ function advagg_css_compress_admin_settings_form($form, $form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  // Get filename and filename_hash.
+  // Get filename & filename_hash.
   $results = db_select('advagg_files', 'af')
     ->fields('af', array('filename'))
     ->condition('filetype', 'css')
-    ->orderBy('filename', 'ASC')
+    ->orderBy('af.filename', 'ASC')
     ->execute();
   $file_settings = variable_get('advagg_css_compressor_file_settings', array());
   foreach ($results as $row) {
@@ -104,27 +93,23 @@ function advagg_css_compress_admin_settings_form($form, $form_state) {
     }
   }
 
-  // No css files are found.
-  if (empty($results)) {
-    $form['per_file_settings']['#description'] = t('No CSS files have been aggregated. You need to enable aggregation. No css files where found in the advagg_files table.');
-  }
-
   // Clear the cache bins on submit.
   $form['#submit'][] = 'advagg_css_compress_admin_settings_form_submit';
 
   return system_settings_form($form);
 }
 
+// Submit callback.
 /**
- * Submit callback that clears out the advagg cache bin.
+ * Clear out the advagg cache bin when the save configuration button is pressed.
  *
  * Also remove default settings inside of the per_file_settings fieldgroup.
- *
- * @ingroup advagg_forms_callback
  */
 function advagg_css_compress_admin_settings_form_submit($form, &$form_state) {
-  // Clear caches.
-  advagg_cache_clear_admin_submit();
+  $cache_bins = advagg_flush_caches();
+  foreach ($cache_bins as $bin) {
+    cache_clear_all('*', $bin, TRUE);
+  }
 
   // Get current defaults.
   $file_settings = variable_get('advagg_css_compressor_file_settings', array());
@@ -132,7 +117,7 @@ function advagg_css_compress_admin_settings_form_submit($form, &$form_state) {
   // Save per file settings.
   $new_settings = array();
   foreach ($form_state['values'] as $key => $value) {
-    // Skip if not advagg_css_compressor_file_settings.
+    // Skip if not advagg_css_compressor_file_settings
     if (strpos($key, 'advagg_css_compressor_file_settings_') === FALSE) {
       continue;
     }
@@ -142,9 +127,6 @@ function advagg_css_compress_admin_settings_form_submit($form, &$form_state) {
       continue;
     }
     $new_settings[substr($key, 36)] = $value;
-
-    // Do not save this field into its own variable.
-    unset($form_state['values'][$key]);
   }
   if (!empty($new_settings) || !empty($file_settings)) {
     if (empty($new_settings)) {

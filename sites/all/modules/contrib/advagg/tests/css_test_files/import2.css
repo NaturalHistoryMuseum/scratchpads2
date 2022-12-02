@@ -1,7 +1,5 @@
-/* @codingStandardsIgnoreFile */
 
-@import url('https://fonts.googleapis.com/css?family=Ubuntu');
-p, select, import2 {
+p, select {
   font: 1em/160% Verdana, sans-serif;
   color: #494949;
 }

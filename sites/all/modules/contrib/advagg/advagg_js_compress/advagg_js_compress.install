@@ -6,11 +6,6 @@
  */
 
 /**
- * @addtogroup hooks
- * @{
- */
-
-/**
  * Implements hook_requirements().
  */
 function advagg_js_compress_requirements($phase) {
@@ -24,9 +19,10 @@ function advagg_js_compress_requirements($phase) {
   }
 
   // Make sure a compressor is being used.
-  if (variable_get('advagg_js_compressor', ADVAGG_JS_COMPRESSOR) == 0
-    && variable_get('advagg_js_compress_inline', ADVAGG_JS_COMPRESS_INLINE) == 0
-  ) {
+  // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
+  if (   variable_get('advagg_js_compressor', ADVAGG_JS_COMPRESSOR) == 0
+      && variable_get('advagg_js_compress_inline', ADVAGG_JS_COMPRESS_INLINE) == 0
+      ) {
     // Check all files.
     $file_settings = variable_get('advagg_js_compressor_file_settings', array());
     $compression_used = FALSE;
@@ -53,13 +49,13 @@ function advagg_js_compress_requirements($phase) {
     }
   }
 
-  $requirements += advagg_js_compress_check_cache_bin();
-
   return $requirements;
 }
 
 /**
- * Upgrade AdvAgg JS Compress versions (6.x-1.x and 7.x-1.x) to 7.x-2.x.
+ * Upgrade AdvAgg JS Compress previous versions (6.x-1.x & 7.x-1.x) to 7.x-2.x.
+ *
+ * Implements hook_update_N().
  */
 function advagg_js_compress_update_7200(&$sandbox) {
   // Bail if old DB Table does not exist.
@@ -85,6 +81,8 @@ function advagg_js_compress_update_7200(&$sandbox) {
 
 /**
  * Clear the cache_advagg_info cache.
+ *
+ * Implements hook_update_N().
  */
 function advagg_js_compress_update_7201(&$sandbox) {
   cache_clear_all('advagg:js_compress:', 'cache_advagg_info', TRUE);
@@ -93,6 +91,8 @@ function advagg_js_compress_update_7201(&$sandbox) {
 
 /**
  * Change variable names so they are prefixed with the modules name.
+ *
+ * Implements hook_update_N().
  */
 function advagg_js_compress_update_7202(&$sandbox) {
   // Rename advagg_js_inline_compressor to advagg_js_compress_inline.
@@ -133,19 +133,3 @@ function advagg_js_compress_update_7202(&$sandbox) {
     variable_set('advagg_js_compress_max_ratio', $old);
   }
 }
-
-/**
- * Remove unused variables from the variable table.
- *
- * Implements hook_update_N().
- */
-function advagg_js_compress_update_7203(&$sandbox) {
-  // Remove all old advagg css compress variables.
-  db_delete('variable')
-    ->condition('name', 'advagg_js_compressor_file_settings_%', 'LIKE')
-    ->execute();
-}
-
-/**
- * @} End of "addtogroup hooks".
- */

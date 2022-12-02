@@ -1,4 +1,4 @@
-/* @codingStandardsIgnoreFile */
+
 
 @import "import1.css";
 @import "import2.css";
@@ -29,3 +29,4 @@ textarea, select {
   font: 1em/160% Verdana, sans-serif;
   color: #494949;
 }
+

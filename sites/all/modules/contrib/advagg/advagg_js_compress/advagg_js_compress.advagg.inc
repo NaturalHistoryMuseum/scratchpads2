@@ -5,102 +5,77 @@
  * Advanced CSS/JS aggregation js compression module.
  */
 
-if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
-  // Include functions that use namespaces.
-  module_load_include('inc', 'advagg_js_compress', 'advagg_js_compress.php53');
-}
-
-/**
- * @addtogroup advagg_hooks
- * @{
- */
-
 /**
  * Implements hook_advagg_get_info_on_files_alter().
  *
  * Used to make sure the info is up to date in the cache.
  */
 function advagg_js_compress_advagg_get_info_on_files_alter(&$return, $cached_data, $bypass_cache) {
-  $compressor_list = advagg_js_compress_get_enabled_compressors(array(), -1);
+  // Do nothing if compressors are disabled.
+  $compressors = advagg_js_compress_get_enabled_compressors();
+  if (empty($compressors)) {
+    return;
+  }
 
-  // Get cache ids.
   $cache_ids = array();
   foreach ($return as $filename => &$info) {
     if (empty($info['fileext']) || $info['fileext'] !== 'js') {
       continue;
     }
-    // Check the cache.
-    $cache_id = 'advagg:js_compress:info:' . $info['filename_hash'];
-    $cache_id .= !empty($info['content_hash']) ? ':' . $info['content_hash'] : '';
-    $cache_ids[$filename] = $cache_id;
-
-    // Verify current data.
-    $advagg_js_compress = array();
-    if (!empty($info['advagg_js_compress'])) {
-      foreach ($info['advagg_js_compress'] as $values) {
-        $array_key = array_search($values['name'], $compressor_list);
-        if ($array_key !== FALSE) {
-          $cache_hits_data[$array_key] = $values;
+    // New or updated data or no advagg_js_compress data.
+    // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
+    if ( empty($cached_data[$info['cache_id']])
+      || empty($info['advagg_js_compress'])
+      || $info['content_hash'] != $cached_data[$info['cache_id']]['content_hash']
+    ) {
+      // Check the cache.
+      $cache_id = 'advagg:js_compress:info:' . $info['filename_hash'];
+      $cache_id .= !empty($info['content_hash']) ? ':' . $info['content_hash'] : '';
+      $cache_ids[$filename] = $cache_id;
+    }
+    else {
+      foreach ($compressors as $id => $name) {
+        if (empty($info['advagg_js_compress'][$id])) {
+          $cache_id = 'advagg:js_compress:info:' . $info['filename_hash'];
+          $cache_id .= !empty($info['content_hash']) ? ':' . $info['content_hash'] : '';
+          $cache_ids[$filename] = $cache_id;
+          break;
         }
       }
     }
-    ksort($advagg_js_compress);
-    $info['advagg_js_compress'] = $advagg_js_compress;
   }
-
   unset($info);
+
   // If no cache ids are found bail out.
   if (empty($cache_ids)) {
     return;
   }
 
   // Get cached values.
-  $values = array_values($cache_ids);
-  $cache_hits = cache_get_multiple($values, 'cache_advagg_info');
-  $compressors = advagg_js_compress_get_enabled_compressors();
-  $advagg_get_info_on_file_cached_data = drupal_static('advagg_get_info_on_file');
+  $cache_hits = array();
+  if (!$bypass_cache) {
+    $values = array_values($cache_ids);
+    $cache_hits = cache_get_multiple($values, 'cache_advagg_info');
+  }
 
-  // Add cached values into $return.
   $filenames_info = array();
   foreach ($cache_ids as $filename => $cache_id) {
     $info = &$return[$filename];
-
     // Add in cached values.
     if (!empty($cache_hits[$cache_id])) {
-      // Verify cache data.
-      $cache_hits_data = array();
-      foreach ($cache_hits[$cache_id]->data as $values) {
-        $array_key = array_search($values['name'], $compressor_list);
-        if ($array_key !== FALSE) {
-          $cache_hits_data[$array_key] = $values;
+      $info['advagg_js_compress'] = $cache_hits[$cache_id]->data;
+      foreach ($compressors as $id => $name) {
+        if (empty($info['advagg_js_compress'][$id])) {
+          // Generate values.
+          $filenames_info[$filename] = $info;
+          break;
         }
       }
-      ksort($cache_hits_data);
-
-      $info['advagg_js_compress'] = array_replace($info['advagg_js_compress'], $cache_hits_data);
     }
-
-    // Generate missing values if needed.
-    foreach ($compressors as $id => $name) {
-      if (empty($info['advagg_js_compress'][$id])) {
-        $filenames_info[$filename] = $info;
-        break;
-      }
-      // Generate values if bypass cache is set and hashes do not match.
-      if ($bypass_cache
-        && (empty($advagg_get_info_on_file_cached_data[$info['cache_id']]['content_hash'])
-          || $info['content_hash'] !== $advagg_get_info_on_file_cached_data[$info['cache_id']]['content_hash']
-        )
-      ) {
-        $filenames_info[$filename] = $info;
-        break;
-      }
+    // Generate values.
+    else {
+      $filenames_info[$filename] = $info;
     }
-  }
-
-  // Do nothing if compressors are disabled or cache level does not equal 0.
-  if (empty($compressors) || variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) != 0) {
-    return;
   }
 
   if (!empty($filenames_info)) {
@@ -108,9 +83,11 @@ function advagg_js_compress_advagg_get_info_on_files_alter(&$return, $cached_dat
     foreach ($results as $filename => $data) {
       $info = &$return[$filename];
       if (!empty($info['advagg_js_compress'])) {
-        $data += $info['advagg_js_compress'];
+        $info['advagg_js_compress'] += $data;
       }
-      $info['advagg_js_compress'] = $data;
+      else {
+        $info['advagg_js_compress'] = $data;
+      }
     }
   }
 }
@@ -140,18 +117,12 @@ function advagg_js_compress_advagg_get_js_file_contents_alter(&$contents, $filen
   $info = advagg_get_info_on_file($filename);
   if (!isset($info['advagg_js_compress'][$compressor]['code'])) {
     // Test file here on the spot.
-    if (variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) == 0
-      || variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) == 1
-    ) {
-      $compressors_to_test = advagg_js_compress_get_enabled_compressors($aggregate_settings);
-      $info['advagg_js_compress'] = advagg_js_compress_run_test($filename, $info, $compressors_to_test);
-    }
+    $compressors_to_test = advagg_js_compress_get_enabled_compressors($aggregate_settings);
+    $info['advagg_js_compress'] = advagg_js_compress_run_test($filename, $info, $compressors_to_test);
   }
 
   // Compress it if it passes the test.
-  if (!empty($info['advagg_js_compress'][$compressor]['code'])
-    && $info['advagg_js_compress'][$compressor]['code'] == 1
-  ) {
+  if (!empty($info['advagg_js_compress'][$compressor]['code']) && $info['advagg_js_compress'][$compressor]['code'] == 1) {
     advagg_js_compress_prep($contents, $filename, $aggregate_settings);
   }
 }
@@ -159,25 +130,23 @@ function advagg_js_compress_advagg_get_js_file_contents_alter(&$contents, $filen
 /**
  * Implements hook_advagg_save_aggregate_alter().
  *
- * Used to add in a .gz file if none exits and use packer on non gzip file.
+ * Used to add in a .gz file if none exits & use packer on non gzip file.
  */
 function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggregate_settings, $other_parameters) {
   list($files, $type) = $other_parameters;
 
-  // Return if gzip and brotli are disabled.
+  // Return if gzip is disabled.
   // Return if packer is disabled.
   // Return if type is not js.
-  if ((empty($aggregate_settings['variables']['advagg_gzip']) && empty($aggregate_settings['variables']['advagg_brotli']))
+  // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
+  if ( empty($aggregate_settings['variables']['advagg_gzip'])
     || empty($aggregate_settings['variables']['advagg_js_compress_packer'])
     || $type !== 'js'
   ) {
     return;
   }
 
-  // Use the first file in the array.
-  $data = reset($files_to_save);
-  $uri = key($files_to_save);
-  // Use packer on non gzip/brotli js files.
+  // Use packer on non gzip js files.
   $compressor = 2;
 
   module_load_include('inc', 'advagg', 'advagg');
@@ -192,7 +161,8 @@ function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggreg
     }
     // If this file causes php to bomb or the ratio is way too good then do not
     // use packer on this aggregate.
-    if (!isset($info['advagg_js_compress'][$compressor]['code'])
+    // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
+    if ( !isset($info['advagg_js_compress'][$compressor]['code'])
       || $info['advagg_js_compress'][$compressor]['code'] == -1
       || $info['advagg_js_compress'][$compressor]['code'] == -3
     ) {
@@ -200,15 +170,37 @@ function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggreg
     }
   }
 
-  // Use packer on non gzip/brotli JS data.
+  // See if a .gz file of this aggregate already exists.
+  $gzip_exists = FALSE;
+  foreach ($files_to_save as $uri => $contents) {
+    // See if this uri contains .gz near the end of it.
+    $pos = strripos($uri, '.gz', 91 + strlen(ADVAGG_SPACE) * 3);
+    if (!empty($pos)) {
+      $len = strlen($uri);
+      // .gz file exists, exit loop.
+      if ($pos == $len - 3) {
+        $gzip_exists = TRUE;
+        break;
+      }
+    }
+  }
+
+  // Use the first file in the array.
+  $data = reset($files_to_save);
+  $uri = key($files_to_save);
+
+  // If a .gz file does not exist, create one.
+  if (!$gzip_exists) {
+    // Compress it and add it to the $files_to_save array.
+    $compressed = gzencode($data, 9, FORCE_GZIP);
+    $files_to_save[$uri . '.gz'] = $compressed;
+  }
+
+  // Use packer on non gzip JS data.
   $aggregate_settings['variables']['advagg_js_compressor'] = $compressor;
   advagg_js_compress_prep($data, $uri, $aggregate_settings, FALSE);
   $files_to_save[$uri] = $data;
 }
-
-/**
- * @} End of "addtogroup advagg_hooks".
- */
 
 /**
  * Get a list of enabled compressors.
@@ -220,9 +212,21 @@ function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggreg
  */
 function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = array(), $compressor = 0) {
   // Create array.
-  list(, , $compressors) = advagg_js_compress_configuration();
+  $compressors = array(
+    1 => 'jsminplus',
+    2 => 'packer',
+  );
+  if (function_exists('jsmin')) {
+    $compressors[3] = 'jsmin';
+  }
   if ($compressor == -1) {
     return $compressors;
+  }
+  if (defined('PHP_VERSION_ID') & PHP_VERSION_ID >= 50300) {
+    $compressors += array(
+      4 => 'jshrink',
+      5 => 'jsqueeze',
+    );
   }
 
   $return_compressors = array();
@@ -244,8 +248,8 @@ function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = 
       $packer = variable_get('advagg_js_compress_packer', ADVAGG_JS_COMPRESS_PACKER);
     }
 
-    if (isset($compressors[$file])) {
-      $return_compressors[$file] = $compressors[$file];
+    if ($file == 1) {
+      $return_compressors[1] = $compressors[1];
     }
     if ($packer) {
       $return_compressors[2] = $compressors[2];
@@ -264,115 +268,15 @@ function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = 
         $return_compressors[1] = $compressors[1];
       }
     }
+    if ($file == 4) {
+      $return_compressors[4] = $compressors[4];
+    }
+    if ($file == 5) {
+      $return_compressors[5] = $compressors[5];
+    }
   }
 
   return $return_compressors;
-}
-
-/**
- * Compress a JS string.
- *
- * @param string $contents
- *   Javascript string.
- * @param array $info
- *   Info about the js file.
- * @param int $compressor
- *   Use a particular compressor.
- * @param bool $force_run
- *   TRUE to skip cache and force the compression test.
- * @param array $aggregate_settings
- *   The aggregate_settings array.
- * @param bool $add_licensing
- *   FALSE to remove Source and licensing information comment.
- * @param bool $log_errors
- *   FALSE to disable logging to watchdog on failure.
- *
- * @return bool
- *   FALSE if there was an error.
- */
-function advagg_js_compress_do_it(&$contents, array $info, $compressor, $force_run, array $aggregate_settings, $log_errors) {
-  $no_errors = TRUE;
-
-  // Try cache.
-  $content_hash = !empty($info['content_hash']) ? ":{$info['content_hash']}" : '';
-  $cache_id = "advagg:js_compress:{$compressor}:{$info['filename_hash']}:{$content_hash}";
-
-  $cache = cache_get($cache_id, 'cache_advagg_aggregates');
-  $force_run = variable_get('advagg_js_compress_force_run', $force_run);
-  if (!$force_run && !empty($cache->data)) {
-    $contents = $cache->data;
-  }
-  else {
-    // Strip Byte Order Marks (BOM's), preg_* cannot parse these well.
-    $contents = str_replace(pack("CCC", 0xef, 0xbb, 0xbf), "", $contents);
-    // Jsmin may have errors (incorrectly determining EOLs) with mixed tabs
-    // and spaces. An example: jQuery.Cycle 3.0.3 - http://jquery.malsup.com/
-    if ($compressor == 3) {
-      $contents = str_replace("\t", " ", $contents);
-    }
-
-    // Add end string to get true end of file.
-    // Generate random variable contents and add to end of js string.
-    $random = dechex(mt_rand());
-    $end_string = "var advagg_end=\"$random\";";
-    $contents .= "\n$end_string";
-
-    // Use the compressor.
-    list(, , , $functions) = advagg_js_compress_configuration();
-    if (isset($functions[$compressor])) {
-      $run = $functions[$compressor];
-      if (function_exists($run)) {
-        $no_errors = $run($contents, $log_errors, $aggregate_settings);
-      }
-    }
-    else {
-      return;
-    }
-
-    // Get location of random variable.
-    $end_string = substr($end_string, 0, -1);
-    $pos = strrpos($contents, $end_string);
-    if ($pos === FALSE) {
-      $end_string = str_replace('"', "'", $end_string);
-      $pos = strrpos($contents, $end_string);
-    }
-    if ($pos !== FALSE) {
-      // Cut everything after random variable out of string.
-      $contents = substr($contents, 0, $pos);
-    }
-
-    // Under some unknown/rare circumstances, JSMin and JSqueeze can add 2-3
-    // extraneous/wrong chars at the end of the string. This work-around will
-    // remove these chars if necessary. See https://www.drupal.org/node/2627468.
-    // Also see https://github.com/sqmk/pecl-jsmin/issues/46.
-    if ($compressor == 3 || $compressor == 5) {
-      $a = strrpos($contents, ';');
-      $b = strrpos($contents, '}');
-      $c = strrpos($contents, ')');
-
-      // Simple scripts can just end, check to make sure there's a
-      // match before cutting.
-      if ($a !== FALSE || $b !== FALSE || $c !== FALSE) {
-        $contents = substr($contents, 0, 1 + max($a, $b, $c));
-      }
-    }
-
-    // Ensure that $contents ends with ; or }.
-    if (strpbrk(substr(trim($contents), -1), ';}') === FALSE) {
-      // ; or } not found, add in ; to the end of $contents.
-      $contents = trim($contents) . ';';
-    }
-
-    if (empty($info['#no_cache'])) {
-      // Cache minified data for 1 week.
-      cache_set($cache_id, $contents, 'cache_advagg_aggregates', REQUEST_TIME + (86400 * 7));
-    }
-    else {
-      // Cache minified inline data for 1 hour.
-      cache_set($cache_id, $contents, 'cache_advagg_aggregates', REQUEST_TIME + 3600);
-    }
-  }
-  return $no_errors;
 }
 
 /**
@@ -390,14 +294,8 @@ function advagg_js_compress_do_it(&$contents, array $info, $compressor, $force_r
  *   FALSE to disable logging to watchdog on failure.
  * @param bool $test_ratios
  *   FALSE to disable compression ratio testing.
- * @param bool $force_run
- *   TRUE to skip cache and force the compression test.
- *
- * @return bool
- *   FALSE if there was an error.
  */
-function advagg_js_compress_prep(&$contents, $filename, array $aggregate_settings, $add_licensing = TRUE, $log_errors = TRUE, $test_ratios = TRUE, $force_run = FALSE) {
-  $no_errors = TRUE;
+function advagg_js_compress_prep(&$contents, $filename, array $aggregate_settings, $add_licensing = TRUE, $log_errors = TRUE, $test_ratios = TRUE) {
   // Get the info on this file.
   module_load_include('inc', 'advagg', 'advagg');
   $compressor = $aggregate_settings['variables']['advagg_js_compressor'];
@@ -405,22 +303,9 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
   if ($compressor == 0) {
     return;
   }
-  // Do nothing if the file is already minified.
-  $url = file_create_url($filename);
-  $semicolon_count = substr_count($contents, ';');
-  if ($compressor != 2
-    && $semicolon_count > 10
-    && $semicolon_count > (substr_count($contents, "\n", strpos($contents, ';')) * 5)
-    && !$force_run
-  ) {
-    $add_license_setting
-      = isset($aggregate_settings['variables']['advagg_js_compress_add_license']) ?
-      $aggregate_settings['variables']['advagg_js_compress_add_license'] :
-      variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE);
-    if ($add_licensing && ($add_license_setting == 1 || $add_license_setting == 3)) {
-      $contents = "/* Source and licensing information for the line(s) below can be found at $url. */\n" . $contents . ";\n/* Source and licensing information for the above line(s) can be found at $url. */\n";
-      return;
-    }
+  // Do nothing if the cache settings are set to Development.
+  if (variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) < 0) {
+    return;
   }
 
   // Get the JS string length before the compression operation.
@@ -429,7 +314,7 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
 
   // Do not use jsmin() if the function can not be called.
   if ($compressor == 3 && !function_exists('jsmin')) {
-    if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
+    if (defined('PHP_VERSION_ID') & PHP_VERSION_ID >= 50300) {
       $compressor = 5;
       watchdog('advagg_js_compress', 'The jsmin function does not exist. Using JSqueeze.');
     }
@@ -439,24 +324,44 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
     }
   }
 
-  // Jsmin doesn't handle multi-byte characters before version 2, fall back to
-  // different compressor if jsmin version < 2 and $contents contains multi-
-  // byte characters.
-  if ($compressor == 3 && (version_compare(phpversion('jsmin'), '2.0.0', '<') && advagg_js_compress_string_contains_multibyte_characters($contents))) {
-    if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
-      $compressor = 5;
-      watchdog('advagg_js_compress', 'The currently installed jsmin version does not handle multibyte characters, you may consider to upgrade the jsmin extension. Using JSqueeze fallback.');
-    }
-    else {
-      $compressor = 1;
-      watchdog('advagg_js_compress', 'The currently installed jsmin version does not handle multibyte characters, you may consider to upgrade the jsmin extension. Using JSmin+ fallback.');
-    }
-  }
-
+  // Try cache.
   $info = advagg_get_info_on_files(array($filename), FALSE, FALSE);
   $info = $info[$filename];
+  $cache_id = 'advagg:js_compress:' . $compressor . ':' . $info['filename_hash'];
+  $cache_id .= !empty($info['content_hash']) ? ':' . $info['content_hash'] : '';
+  $cache = cache_get($cache_id, 'cache_advagg_aggregates');
+  if (!empty($cache->data)) {
+    $contents = $cache->data;
+  }
+  else {
+    // Strip Byte Order Marks (BOM's), preg_* cannot parse these well.
+    $contents = str_replace(pack("CCC", 0xef, 0xbb, 0xbf), "", $contents);
+    // Use the compressor.
+    if ($compressor == 1) {
+      advagg_js_compress_jsminplus($contents, $log_errors);
+    }
+    elseif ($compressor == 2) {
+      advagg_js_compress_jspacker($contents);
+    }
+    elseif ($compressor == 3) {
+      $contents = jsmin($contents);
+    }
+    elseif ($compressor == 4) {
+      advagg_js_compress_jshrink($contents);
+    }
+    elseif ($compressor == 5) {
+      advagg_js_compress_jsqueeze($contents);
+    }
 
-  $no_errors = advagg_js_compress_do_it($contents, $info, $compressor, $force_run, $aggregate_settings, $log_errors, $url);
+    // Ensure that $contents ends with ; or }.
+    if (strpbrk(substr(trim($contents), -1), ';}') === FALSE) {
+      // ; or } not found, add in ; to the end of $contents.
+      $contents = trim($contents) . ';';
+    }
+
+    // Cache minified data for at least 1 week.
+    cache_set($cache_id, $contents, 'cache_advagg_aggregates', REQUEST_TIME + (86400 * 7));
+  }
 
   // Make sure compression ratios are good.
   $after = strlen($contents);
@@ -465,79 +370,22 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
     $ratio = ($before - $after) / $before;
   }
 
-  // Get ratios settings.
-  $aggregate_settings['variables']['advagg_js_compress_max_ratio']
-    = isset($aggregate_settings['variables']['advagg_js_compress_max_ratio']) ?
-    $aggregate_settings['variables']['advagg_js_compress_max_ratio'] :
-    variable_get('advagg_js_compress_max_ratio', ADVAGG_JS_COMPRESS_MAX_RATIO);
-  $aggregate_settings['variables']['advagg_js_compress_ratio']
-    = isset($aggregate_settings['variables']['advagg_js_compress_ratio']) ?
-    $aggregate_settings['variables']['advagg_js_compress_ratio'] :
-    variable_get('advagg_js_compress_ratio', ADVAGG_JS_COMPRESS_RATIO);
-
-  // Get license settings.
-  $add_license_setting
-    = isset($aggregate_settings['variables']['advagg_js_compress_add_license']) ?
-    $aggregate_settings['variables']['advagg_js_compress_add_license'] :
-    variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE);
-
-  // Make sure the returned string is not empty or has a VERY high
-  // compression ratio.
-  if (empty($contents)
-    || empty($ratio)
-    || $ratio < $aggregate_settings['variables']['advagg_js_compress_ratio']
-    || $ratio > $aggregate_settings['variables']['advagg_js_compress_max_ratio']
-  ) {
-    $contents = $contents_before;
-    if ($compressor !== 1) {
-      // Try again using jsmin+.
-      $no_errors = advagg_js_compress_do_it($contents, $info, 1, $force_run, $aggregate_settings, $log_errors, $url);
-      // Make sure compression ratios are good.
-      $after = strlen($contents);
-      $ratio = 0;
-      if ($before != 0) {
-        $ratio = ($before - $after) / $before;
-      }
-      if (empty($contents)
-        || empty($ratio)
-        || $ratio < $aggregate_settings['variables']['advagg_js_compress_ratio']
-        || $ratio > $aggregate_settings['variables']['advagg_js_compress_max_ratio']
-      ) {
-        $contents = $contents_before;
-        $add_licensing = FALSE;
-      }
+  if ($test_ratios) {
+    $aggregate_settings['variables']['advagg_js_compress_max_ratio'] = isset($aggregate_settings['variables']['advagg_js_compress_max_ratio']) ? $aggregate_settings['variables']['advagg_js_compress_max_ratio'] : variable_get('advagg_js_compress_max_ratio', ADVAGG_JS_COMPRESS_MAX_RATIO);
+    // Make sure the returned string is not empty or has a VERY high
+    // compression ratio.
+    if ( empty($contents)
+      || empty($ratio)
+      || $ratio < 0
+      || $ratio > $aggregate_settings['variables']['advagg_js_compress_max_ratio']
+    ) {
+      $contents = $contents_before;
+    }
+    elseif ($add_licensing && variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE)) {
+      $url = url($filename, array('absolute' => TRUE));
+      $contents = "/* Source and licensing information for the line(s) below can be found at $url. */\n" . $contents . ";\n/* Source and licensing information for the above line(s) can be found at $url. */\n";
     }
   }
-
-  if ($add_licensing && ($add_license_setting == 1 || $add_license_setting == 3)) {
-    $contents = "/* Source and licensing information for the line(s) below can be found at $url. */\n" . $contents . ";\n/* Source and licensing information for the above line(s) can be found at $url. */\n";
-  }
-
-  // Reset if cache settings are set to Development.
-  if (variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) < 0 && !$force_run) {
-    $contents = $contents_before;
-  }
-  return $no_errors;
-}
-
-/**
- * Checks if string contains multibyte characters.
- *
- * @param string $string
- *   String to check.
- *
- * @return bool
- *   TRUE if string contains multibyte character.
- */
-function advagg_js_compress_string_contains_multibyte_characters($string) {
-  // Check if there are multy-byte characters: If the UTF-8 encoded string has
-  // multybytes strlen() will return a byte-count greater than the actual
-  // character count, returned by drupal_strlen().
-  if (strlen($string) == drupal_strlen($string)) {
-    return FALSE;
-  }
-
-  return TRUE;
 }
 
 /**
@@ -549,58 +397,121 @@ function advagg_js_compress_string_contains_multibyte_characters($string) {
  *   FALSE to disable logging to watchdog on failure.
  */
 function advagg_js_compress_jsminplus(&$contents, $log_errors = TRUE) {
-  $no_errors = TRUE;
   $contents_before = $contents;
-  $old_error = error_get_last();
 
-  // Set max nesting level.
+  // Only include jsminplus.inc if the JSMinPlus class doesn't exist.
   if (!class_exists('JSMinPlus')) {
+    include drupal_get_path('module', 'advagg_js_compress') . '/jsminplus.inc';
     $nesting_level = ini_get('xdebug.max_nesting_level');
     if (!empty($nesting_level) && $nesting_level < 200) {
       ini_set('xdebug.max_nesting_level', 200);
     }
   }
-
-  // Try libraries for jsminplus.
-  if (is_callable('libraries_load')) {
-    libraries_load('jsminplus');
-  }
-  // Only include jsminplus.inc if the JSMinPlus class doesn't exist.
-  if (!class_exists('JSMinPlus')) {
-    include drupal_get_path('module', 'advagg_js_compress') . '/jsminplus.inc';
-  }
-
   ob_start();
   try {
     // JSMin+ the contents of the aggregated file.
-    $contents = @JSMinPlus::minify($contents);
+    $contents = JSMinPlus::minify($contents);
 
     // Capture any output from JSMinPlus.
     $error = trim(ob_get_contents());
     if (!empty($error)) {
-      $no_errors = FALSE;
-      throw new Exception($error);
-    }
-    $recent_error = error_get_last();
-    if (!empty($recent_error) && serialize($recent_error) !== serialize($old_error)) {
-      $no_errors = FALSE;
-      $error = print_r($recent_error, TRUE);
       throw new Exception($error);
     }
   }
   catch (Exception $e) {
-    $no_errors = FALSE;
     // Log the exception thrown by JSMin+ and roll back to uncompressed content.
     if ($log_errors) {
-      watchdog('advagg_js_compress', '@message <pre> @contents </pre>', array(
-        '@message' => $e->getMessage(),
-        '@contents' => $contents_before,
-      ), WATCHDOG_WARNING);
+      watchdog('advagg_js_compress', $e->getMessage() . '<pre>' . $contents_before . '</pre>', NULL, WATCHDOG_WARNING);
     }
     $contents = $contents_before;
   }
   ob_end_clean();
-  return $no_errors;
+}
+
+/**
+ * Compress a JS string using jshrink.
+ *
+ * @param string $contents
+ *   Javascript string.
+ * @param bool $log_errors
+ *   FALSE to disable logging to watchdog on failure.
+ */
+function advagg_js_compress_jshrink(&$contents, $log_errors = TRUE) {
+  $contents_before = $contents;
+
+  // Only include jshrink.inc if the JShrink\Minifier class doesn't exist.
+  if (!class_exists('JShrink\Minifier')) {
+    include drupal_get_path('module', 'advagg_js_compress') . '/jshrink.inc';
+    $nesting_level = ini_get('xdebug.max_nesting_level');
+    if (!empty($nesting_level) && $nesting_level < 200) {
+      ini_set('xdebug.max_nesting_level', 200);
+    }
+  }
+  ob_start();
+  try {
+    // JShrink the contents of the aggregated file.
+    $contents = JShrink\Minifier::minify($contents, array('flaggedComments' => FALSE));
+
+    // Capture any output from JShrink.
+    $error = trim(ob_get_contents());
+    if (!empty($error)) {
+      throw new Exception($error);
+    }
+  }
+  catch (Exception $e) {
+    // Log the exception thrown by JShrink & roll back to uncompressed content.
+    if ($log_errors) {
+      watchdog('advagg_js_compress', $e->getMessage() . '<pre>' . $contents_before . '</pre>', NULL, WATCHDOG_WARNING);
+    }
+    $contents = $contents_before;
+  }
+  ob_end_clean();
+}
+
+/**
+ * Compress a JS string using jsqueeze.
+ *
+ * @param string $contents
+ *   Javascript string.
+ * @param bool $log_errors
+ *   FALSE to disable logging to watchdog on failure.
+ */
+function advagg_js_compress_jsqueeze(&$contents, $log_errors = TRUE) {
+  $contents_before = $contents;
+
+  // Only include jshrink.inc if the Patchwork\JSqueeze class doesn't exist.
+  if (!class_exists('Patchwork\JSqueeze')) {
+    include drupal_get_path('module', 'advagg_js_compress') . '/jsqueeze.inc';
+    $nesting_level = ini_get('xdebug.max_nesting_level');
+    if (!empty($nesting_level) && $nesting_level < 200) {
+      ini_set('xdebug.max_nesting_level', 200);
+    }
+  }
+  ob_start();
+  try {
+    // Minify the contents of the aggregated file.
+    $jz = new Patchwork\JSqueeze();
+    $contents = $jz->squeeze(
+      $contents,
+      TRUE,
+      !variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE),
+      FALSE
+    );
+
+    // Capture any output from JSqueeze.
+    $error = trim(ob_get_contents());
+    if (!empty($error)) {
+      throw new Exception($error);
+    }
+  }
+  catch (Exception $e) {
+    // Log the exception thrown by JSqueeze & roll back to uncompressed content.
+    if ($log_errors) {
+      watchdog('advagg_js_compress', $e->getMessage() . '<pre>' . $contents_before . '</pre>', NULL, WATCHDOG_WARNING);
+    }
+    $contents = $contents_before;
+  }
+  ob_end_clean();
 }
 
 /**
@@ -608,17 +519,9 @@ function advagg_js_compress_jsminplus(&$contents, $log_errors = TRUE) {
  *
  * @param string $contents
  *   Javascript string.
- * @param bool $log_errors
- *   FALSE to disable logging to watchdog on failure.
  */
-function advagg_js_compress_jspacker(&$contents, $log_errors = TRUE) {
-  $no_errors = TRUE;
-  $contents_before = $contents;
-
-  // Try libraries for jspacker.
-  if (is_callable('libraries_load')) {
-    libraries_load('jspacker');
-  }
+function advagg_js_compress_jspacker(&$contents) {
+  // Use Packer on the contents of the aggregated file.
   if (!class_exists('JavaScriptPacker')) {
     include drupal_get_path('module', 'advagg_js_compress') . '/jspacker.inc';
   }
@@ -627,52 +530,8 @@ function advagg_js_compress_jspacker(&$contents, $log_errors = TRUE) {
   $contents = str_replace("}\n", "};\n", $contents);
   $contents = str_replace("\nfunction", ";\nfunction", $contents);
 
-  // Use Packer on the contents of the aggregated file.
-  try {
-    $packer = new JavaScriptPacker($contents, 62, TRUE, FALSE);
-    $contents = $packer->pack();
-  }
-  catch (Exception $e) {
-    $no_errors = FALSE;
-    // Log the exception thrown by JSMin+ and roll back to uncompressed content.
-    if ($log_errors) {
-      watchdog('advagg_js_compress', '@message <pre> @contents </pre>', array(
-        '@message' => $e->getMessage(),
-        '@contents' => $contents_before,
-      ), WATCHDOG_WARNING);
-    }
-    $contents = $contents_before;
-  }
-  return $no_errors;
-}
-
-/**
- * Compress a JS string using jsmin.
- *
- * @param string $contents
- *   Javascript string.
- * @param bool $log_errors
- *   FALSE to disable logging to watchdog on failure.
- */
-function advagg_js_compress_jsmin(&$contents, $log_errors = TRUE) {
-  $no_errors = TRUE;
-  $contents_before = $contents;
-
-  try {
-    $contents = jsmin($contents);
-  }
-  catch (Exception $e) {
-    $no_errors = FALSE;
-    // Log the exception thrown by JSMin+ and roll back to uncompressed content.
-    if ($log_errors) {
-      watchdog('advagg_js_compress', '@message <pre> @contents </pre>', array(
-        '@message' => $e->getMessage(),
-        '@contents' => $contents_before,
-      ), WATCHDOG_WARNING);
-    }
-    $contents = $contents_before;
-  }
-  return $no_errors;
+  $packer = new JavaScriptPacker($contents, 62, TRUE, FALSE);
+  $contents = $packer->pack();
 }
 
 /**
@@ -714,10 +573,8 @@ function advagg_js_compress_run_test($filename, array $info = array(), array $co
     foreach ($compressor_list as $key => $name) {
       $results[$key] = array('code' => -1, 'ratio' => 0, 'name' => $name);
     }
-    $run_locally = TRUE;
     // Run this via httprl if possible.
     if (module_exists('httprl') && httprl_is_background_callback_capable()) {
-      $run_locally = FALSE;
       // Setup callback options array.
       $callback_options = array(
         array(
@@ -752,16 +609,8 @@ function advagg_js_compress_run_test($filename, array $info = array(), array $co
           $results[$key] = $sub_result[$key];
         }
       }
-
-      // Try locally if all return back -1 (something wrong with httprl).
-      foreach ($results as $key => $value) {
-        if ($value['code'] != -1) {
-          $run_locally = TRUE;
-          break;
-        }
-      }
     }
-    if ($run_locally) {
+    else {
       // Save results, so if PHP bombs, this file is marked as bad.
       // CACHE_PERMANENT isn't good here. Use 2 weeks from now + 0-45 days.
       // The random 0 to 45 day addition is to prevent a cache stampeed.
@@ -772,7 +621,7 @@ function advagg_js_compress_run_test($filename, array $info = array(), array $co
     }
   }
 
-  // Save and return results.
+  // Save & return results.
   // Save results, so if PHP bombs, this file is marked as bad.
   // CACHE_PERMANENT isn't good here. Use 2 weeks from now + 0-45 days.
   // The random 0 to 45 day addition is to prevent a cache stampeed.
@@ -808,18 +657,15 @@ function advagg_js_compress_run_mutiple_tests(array $filenames_info, array $comp
       drupal_set_time_limit(0);
     }
     else {
-      $max_execution_time = ini_get('max_execution_time');
-      if ($max_execution_time != 0) {
-        $current_time = 5;
-        if (is_callable('getrusage')) {
-          $dat = getrusage();
-          $current_time = $dat["ru_utime.tv_sec"];
-        }
-        $max_time = max(30, ini_get('max_execution_time'));
-        $time_left = $max_time - $current_time;
-        // Give every file 3 seconds.
-        drupal_set_time_limit(count($filenames_info) * 3 + $time_left);
+      $current_time = 5;
+      if (is_callable('getrusage')) {
+        $dat = getrusage();
+        $current_time = $dat["ru_utime.tv_sec"];
       }
+      $max_time = max(30, ini_get('max_execution_time'));
+      $time_left = $max_time - $current_time;
+      // Give every file 3 seconds.
+      drupal_set_time_limit(count($filenames_info) * 3 + $time_left);
     }
   }
 

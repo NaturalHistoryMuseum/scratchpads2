@@ -1,8 +1,7 @@
-/* @codingStandardsIgnoreFile */
 
-/* @codingStandardsIgnoreFile */
 
-ul, select, import1 {
+
+ul, select {
   font: 1em/160% Verdana, sans-serif;
   color: #494949;
 }
@@ -22,10 +21,8 @@ ul, select, import1 {
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAEAQAAAAAo/mtHAAAAIElEQVQIHWMRnWHwcRNLN8NZ7QYWwT8PlBlYsgqVBRsAankIMw5MtnoAAAAASUVORK5CYII=);
 }
 
-/* @codingStandardsIgnoreFile */
 
-@import url('https://fonts.googleapis.com/css?family=Ubuntu');
-p, select, import2 {
+p, select {
   font: 1em/160% Verdana, sans-serif;
   color: #494949;
 }
@@ -57,3 +54,4 @@ textarea, select {
   font: 1em/160% Verdana, sans-serif;
   color: #494949;
 }
+

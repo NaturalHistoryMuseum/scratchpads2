@@ -6,11 +6,6 @@
  */
 
 /**
- * @addtogroup hooks
- * @{
- */
-
-/**
  * Implements hook_requirements().
  */
 function advagg_js_cdn_requirements($phase) {
@@ -57,13 +52,9 @@ function advagg_js_cdn_requirements($phase) {
       'title' => $t('Adv JS CDN'),
       'severity' => REQUIREMENT_OK,
       'value' => $t('OK'),
-      'description' => $t('jQuery and jQuery UI JS should be coming from a CDN.') . ' ' . $description,
+      'description' => $t('jQuery & jQuery UI JS should be coming from a CDN.') . ' ' . $description,
     );
   }
 
   return $requirements;
 }
-
-/**
- * @} End of "addtogroup hooks".
- */

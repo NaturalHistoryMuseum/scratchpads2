@@ -6,11 +6,6 @@
  */
 
 /**
- * @addtogroup hooks
- * @{
- */
-
-/**
  * Implements hook_requirements().
  */
 function advagg_css_compress_requirements($phase) {
@@ -24,7 +19,8 @@ function advagg_css_compress_requirements($phase) {
   }
 
   // Make sure a compressor is being used.
-  if (variable_get('advagg_css_compressor', ADVAGG_CSS_COMPRESSOR) == 0
+  // @ignore sniffer_whitespace_openbracketspacing_openingwhitespace
+  if ( variable_get('advagg_css_compressor', ADVAGG_CSS_COMPRESSOR) == 0
     && variable_get('advagg_css_compress_inline', ADVAGG_CSS_COMPRESS_INLINE) == 0
   ) {
     // Check all files.
@@ -52,25 +48,13 @@ function advagg_css_compress_requirements($phase) {
       );
     }
   }
-
-  // Check version.
-  $lib_name = 'YUI-CSS-compressor-PHP-port';
-  $module_name = 'advagg_css_compress';
-  list($description, $info) = advagg_get_version_description($lib_name, $module_name);
-  if (!empty($description)) {
-    $requirements["{$module_name}_{$lib_name}_updates"] = array(
-      'title' => $t('@module_name', array('@module_name' => $info['name'])),
-      'severity' => REQUIREMENT_WARNING,
-      'value' => $t('The @name library needs to be updated.', array('@name' => $lib_name)),
-      'description' => $description,
-    );
-  }
-
   return $requirements;
 }
 
 /**
- * Upgrade AdvAgg CSS Compress versions (6.x-1.x and 7.x-1.x) to 7.x-2.x.
+ * Upgrade AdvAgg CSS Compress previous versions (6.x-1.x & 7.x-1.x) to 7.x-2.x.
+ *
+ * Implements hook_update_N().
  */
 function advagg_css_compress_update_7200(&$sandbox) {
   // Bail if old DB Table does not exist.
@@ -91,6 +75,8 @@ function advagg_css_compress_update_7200(&$sandbox) {
 
 /**
  * Change variable names so they are prefixed with the modules name.
+ *
+ * Implements hook_update_N().
  */
 function advagg_css_compress_update_7201(&$sandbox) {
   // Rename advagg_css_inline_compressor to advagg_css_compress_inline.
@@ -112,17 +98,3 @@ function advagg_css_compress_update_7201(&$sandbox) {
     variable_set('advagg_css_compress_inline_if_not_cacheable', $old);
   }
 }
-
-/**
- * Remove unused variables from the variable table.
- */
-function advagg_css_compress_update_7202(&$sandbox) {
-  // Remove all old advagg css compress variables.
-  db_delete('variable')
-    ->condition('name', 'advagg_css_compressor_file_settings_%', 'LIKE')
-    ->execute();
-}
-
-/**
- * @} End of "addtogroup hooks".
- */

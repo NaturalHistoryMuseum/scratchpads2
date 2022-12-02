@@ -6,69 +6,6 @@
  */
 
 /**
- * @addtogroup hooks
- * @{
- */
-
-/**
- * Implements hook_install().
- */
-function advagg_validator_install() {
-  module_load_include('install', 'advagg', 'advagg');
-  $tables = array(
-    'advagg_validator' => array(
-      'filename_hash',
-      'content_hash',
-    ),
-  );
-
-  $schema = advagg_validator_schema();
-  foreach ($tables as $table => $fields) {
-    // Change utf8_bin to ascii_bin.
-    advagg_install_change_table_collation($table, $fields, 'ascii_bin', $schema[$table]['fields']);
-  }
-}
-
-/**
- * Implements hook_requirements().
- */
-function advagg_validator_requirements($phase) {
-  $requirements = array();
-  // Ensure translations don't break at install time.
-  $t = get_t();
-
-  // If not at runtime, return here.
-  if ($phase !== 'runtime') {
-    return $requirements;
-  }
-
-  // Check version.
-  $module_name = 'advagg_validator';
-  $lib_name = 'csslint';
-  list($description, $info) = advagg_get_version_description($lib_name, $module_name, TRUE);
-  if (!empty($description)) {
-    $requirements["{$module_name}_{$lib_name}_updates"] = array(
-      'title' => $t('@module_name', array('@module_name' => $info['name'])),
-      'severity' => REQUIREMENT_WARNING,
-      'value' => $t('The @name library needs to be updated.', array('@name' => $lib_name)),
-      'description' => $description,
-    );
-  }
-  $lib_name = 'jshint';
-  list($description, $info) = advagg_get_version_description($lib_name, $module_name, TRUE);
-  if (!empty($description)) {
-    $requirements["{$module_name}_{$lib_name}_updates"] = array(
-      'title' => $t('@module_name', array('@module_name' => $info['name'])),
-      'severity' => REQUIREMENT_WARNING,
-      'value' => $t('The @name library needs to be updated.', array('@name' => $lib_name)),
-      'description' => $description,
-    );
-  }
-
-  return $requirements;
-}
-
-/**
  * Implements hook_schema().
  */
 function advagg_validator_schema() {
@@ -83,24 +20,20 @@ function advagg_validator_schema() {
         'not null' => TRUE,
       ),
       'filename_hash' => array(
-        'description' => 'Hash of path and filename. Used to join tables and for lookup.',
-        'type' => 'char',
+        'description' => 'Hash of path and filename. Used to join tables & for lookup.',
+        'type' => 'varchar',
         'length' => 43,
         'not null' => TRUE,
         'default' => '',
         'binary' => TRUE,
-        'collation' => 'ascii_bin',
-        'charset' => 'ascii',
       ),
       'content_hash' => array(
         'description' => 'Hash of the file content. Used to see if the file has changed.',
-        'type' => 'char',
+        'type' => 'varchar',
         'length' => 43,
         'not null' => TRUE,
         'default' => '',
         'binary' => TRUE,
-        'collation' => 'ascii_bin',
-        'charset' => 'ascii',
       ),
       'filetype' => array(
         'description' => 'Filetype.',
@@ -130,6 +63,8 @@ function advagg_validator_schema() {
 }
 
 /**
+ * Implements hook_update_N().
+ *
  * Update the schema making the varchar columns utf8_bin in MySQL.
  */
 function advagg_validator_update_7201(&$sandbox) {
@@ -151,30 +86,3 @@ function advagg_validator_update_7201(&$sandbox) {
 
   return t('The following columns inside of these database tables where converted to utf8_bin: <br />@data', array('@data' => print_r($tables_altered, TRUE)));
 }
-
-/**
- * Update schema making the varchar columns char. Change utf8_bin to ascii_bin.
- */
-function advagg_validator_update_7202(&$sandbox) {
-  module_load_include('install', 'advagg', 'advagg');
-  $tables = array(
-    'advagg_validator' => array(
-      'filename_hash',
-      'content_hash',
-    ),
-  );
-
-  $schema = advagg_validator_schema();
-  foreach ($tables as $table => $fields) {
-    foreach ($fields as $field) {
-      // Change varchar to char.
-      db_change_field($table, $field, $field, $schema[$table]['fields'][$field]);
-    }
-    // Change utf8_bin to ascii_bin.
-    advagg_install_change_table_collation($table, $fields, 'ascii_bin', $schema[$table]['fields']);
-  }
-}
-
-/**
- * @} End of "addtogroup hooks".
- */

@@ -16,7 +16,7 @@ function advagg_validator_test_advagg_css($options = array()) {
   $query_files = db_select('advagg_files', 'af')
     ->fields('af', array('filename_hash', 'filename'))
     ->condition('af.filetype', 'css')
-    ->orderBy('filename', 'ASC')
+    ->orderBy('filename', 'DESC')
     ->execute()
     ->fetchAllKeyed();
   $files = array_values($query_files);
@@ -74,7 +74,7 @@ function advagg_validator_test_css_files($files, $options = array()) {
       continue;
     }
 
-    $file_contents = (string) @advagg_file_get_contents($filename);
+    $file_contents = file_get_contents($filename);
     $lines = file($filename);
     $filename_hash = drupal_hash_base64($filename);
     $content_hash = drupal_hash_base64($file_contents);
@@ -134,7 +134,7 @@ function advagg_validator_test_css_files($files, $options = array()) {
       db_merge('advagg_validator')
         ->key(array(
           'filename_hash' => $record['filename_hash'],
-        ))
+          ))
         ->fields($record)
         ->execute();
     }
@@ -153,9 +153,9 @@ function advagg_validator_test_css_files($files, $options = array()) {
  * @return array
  *   Info from the w3c server.
  */
-function advagg_validator_test_css_file_w3c($filename, array &$validator_options = array()) {
+function advagg_validator_test_css_file_w3c($filename, &$validator_options = array()) {
   // Get CSS files contents.
-  $validator_options['text'] = (string) @advagg_file_get_contents($filename);
+  $validator_options['text'] = file_get_contents($filename);
 
   // Add in defaults.
   $validator_options += array(
@@ -175,7 +175,7 @@ function advagg_validator_test_css_file_w3c($filename, array &$validator_options
   // Send request.
   $result = drupal_http_request($url);
   if (!empty($result->data) && $result->code == 200) {
-    // Parse XML and return info.
+    // Parse XML & return info.
     $return = advagg_validator_parse_soap_response_w3c($result->data);
     $return['filename'] = $filename;
     if (isset($validator_options['text'])) {
@@ -298,7 +298,7 @@ function advagg_validator_dom_extractor($dom) {
  *   An associative array (keyed on the chosen key) of objects with 'uri',
  *   'filename', and 'name' members corresponding to the matching files.
  */
-function advagg_validator_file_scan_directory($dir, $mask, array $options = array(), $depth = 0) {
+function advagg_validator_file_scan_directory($dir, $mask, $options = array(), $depth = 0) {
   // Merge in defaults.
   $options += array(
     'nomask' => '/(\.\.?|CVS)$/',
