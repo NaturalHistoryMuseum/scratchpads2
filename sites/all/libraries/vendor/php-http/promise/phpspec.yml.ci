@@ -1,0 +1,10 @@
+suites:
+    tools_suite:
+        namespace: Http\Promise
+        psr4_prefix: Http\Promise
+formatter.name: pretty
+extensions:
+    FriendsOfPhpSpec\PhpSpec\CodeCoverage\CodeCoverageExtension: ~
+code_coverage:
+    format: clover
+    output: build/coverage.xml
