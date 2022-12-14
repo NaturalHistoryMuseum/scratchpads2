@@ -1,5 +1,7 @@
 <?php
 
+require 'sites/all/libraries/vendor/autoload.php';
+
 /**
  * Implements hook_block_info().
  */
@@ -47,36 +49,82 @@ function iucn_block_view($delta = ''){
   // We load the term from the menu
   $term = menu_get_object('taxonomy_term', 2);
   if($term){
-    if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+
+    $iucnV3APIKeyToken = variable_get('iucn_api_v3_api_key_token', FALSE);
+    $iucnV3Url = variable_get('iucn_api_v3_url', FALSE);
+
+    $iucnClient = new \IucnApi\Client($iucnV3APIKeyToken);
+    
+    // simplifid logic:
+    $flagAjaxBlocks = false; //initial default
+    // was:
+    //if(!function_exists('ajaxblocks_in_ajax_handler') || (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler())){
+    // no comment about what this is exactly supposed to do, so breaking it down into several IFs 
+    if (!function_exists('ajaxblocks_in_ajax_handler')) {
+      $flagAjaxBlocks = true;
+    } else { 
+      if (function_exists('ajaxblocks_in_ajax_handler') && ajaxblocks_in_ajax_handler()) {
+        $flagAjaxBlocks = true;
+      }
+    }
+
+    if($flagAjaxBlocks){
       $cache = cache_get($term->tid, 'cache_iucn');
       if($cache->data){
         $content['content']['#markup'] = $cache->data;
       }else{
-        $request = drupal_http_request('http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js', array(
-          'timeout' => '3.0'
-        ));
-        if($request->code == 200 && ($json = json_decode($request->data)) !== FALSE){
-          if(count($json) && strtolower($json[0]->scientific_name) == strtolower($term->name)){
-            $request = drupal_http_request('http://api.iucnredlist.org/details/' . $json[0]->species_id . '/0.js', array(
-              'timeout' => '3.0'
-            ));
-            if($request->code == 200){
-              $content['content']['#markup'] = str_replace('<h1', '<h3', $request->data);
-              $content['content']['#markup'] = str_replace('</h1', '</h3', $content['content']['#markup']);
-              $content['content']['#markup'] = str_replace('<h2', '<h4', $content['content']['#markup']);
-              $content['content']['#markup'] = str_replace('</h2', '</h4', $content['content']['#markup']);
-              cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
-            }else{
-              $content['content']['#markup'] = t('There was an error downloading the information for %term_name', array(
-                '$term_name' => $term->name
-              ));
+
+        try {
+          $aterm = $term->name;
+          $species = $iucnClient->getSpeciesByName($term->name);
+
+          $contentMarkupToDisplay ="";
+
+          // https://stackoverflow.com/questions/9744192/multi-line-strings-in-php
+          $contentMarkupToDisplay = <<<EOD
+<style>
+  .iucn-item.name {
+    background-color: #eeeeee;
+    font-weight: bold;
+  }
+
+  .iucn-item.value {
+    background-color: white;
+  }
+
+  .iucn-item {
+    padding: 5px;
+  }
+</style>
+EOD;
+          
+          // bad advice here: https://stackoverflow.com/questions/15700325/
+          // so I used this: https://stackoverflow.com/a/5970283/227926
+          foreach((array)$species as $key => $value) {
+            // https://stackoverflow.com/questions/41243543/what-does-an-array-with-a-mean/41243650#41243650
+            // https://stackoverflow.com/a/41243650/227926
+            $keyWithoutAsteriskPrefix = preg_replace('/[\*]+/', '', $key);
+            $item = "<div class='iucn-item name'>".$keyWithoutAsteriskPrefix."</div>\n";
+            if (isset($value)) {
+              $item .= "<div class='iucn-item value'>".$value."</div>\n";
             }
-          }else{
-            $content['content']['#markup'] = t('The IUCN does not hold any information for %term_name', array(
-              '%term_name' => $term->name
-            ));
-            cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
+            else {
+              $item .= "<div>-</div>\n";
+            }
+
+            $contentMarkupToDisplay .= $item;
           }
+
+
+          $content['content']['#markup'] = $contentMarkupToDisplay;
+
+          cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
+
+        } catch (\IucnApi\Exception\IucnApiException $exception) {
+          // Something doesn't look good…
+          $content['content']['#markup'] = t('There was an error downloading the information for %term_name', array(
+            '$term_name' => $term->name
+          ));
         }
       }
     }
