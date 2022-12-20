@@ -1,6 +1,24 @@
 <?php
 
-require 'sites/all/libraries/vendor/autoload.php';
+//require 'sites/all/libraries/vendor/autoload.php';
+require 'sites/all/libraries/jbroutier/iucn-api-client/src/Client.php';
+
+
+/**
+ * Implements hook_init().
+ */
+function iucn_init() {
+  // Support Libraries API - http://drupal.org/project/libraries
+  $iucnapiclient_path = libraries_get_path('iucn-api-client');
+  $iucnapiclient_path = ($iucnapiclient_path ? $iucnapiclient_path . '/src/' : '');
+
+  // Include FirePHP if it exists.
+  if (!empty($iucnapiclient_path) && file_exists($iucnapiclient_path . 'Client.php')) {
+    include_once $iucnapiclient_path . 'ClientInterface.php';
+    include_once $iucnapiclient_path . 'Client.php';
+  }
+}
+
 
 /**
  * Implements hook_block_info().

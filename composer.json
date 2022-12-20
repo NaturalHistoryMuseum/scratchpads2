@@ -7,8 +7,7 @@
   "require": {
     "knplabs/github-api": "^1.7",
     "michelf/php-markdown": "^1.8",
-    "php-http/guzzle6-adapter": "^1.1",
-    "jbroutier/iucn-api-client": "^1.0"
+    "php-http/guzzle6-adapter": "^1.1"
   },
   "license": "GPL-2.0"
 }
