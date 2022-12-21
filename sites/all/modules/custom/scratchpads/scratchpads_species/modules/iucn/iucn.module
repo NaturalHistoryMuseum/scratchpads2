@@ -91,6 +91,8 @@ function iucn_block_view($delta = ''){
           /*
           "{"name":"Scolopendra abnormis","result":[{"taxonid":20042,"scientific_name":"Scolopendra abnormis","kingdom":"ANIMALIA","phylum":"ARTHROPODA","class":"CHILOPODA","order":"SCOLOPENDROMORPHA","family":"SCOLOPENDRIDAE","genus":"Scolopendra","main_common_name":"Serpent Island Centipede","authority":"J.G.E. Lewis &amp; P. Daszak, 1996","published_year":1996,"assessment_date":"1996-08-01","category":"VU","criteria":"D2","population_trend":null,"marine_system":false,"freshwater_system":false,"terrestrial_system":true,"assessor":"Pearce-Kelly, P.","reviewer":"","aoo_km2":null,"eoo_km2":null,"elevation_upper":null,"elevation_lower":null,"depth_upper":null,"depth_lower":null,"errata_flag":null,"errata_reason":null,"amended_flag":null,"amended_reason":null}]}"
           */
+
+          $species = &$request->data;
           
           $contentMarkupToDisplay = <<<EOD
 <style>
@@ -108,10 +110,12 @@ function iucn_block_view($delta = ''){
   }
 </style>
 EOD;
-          
+          $speciesAsJSONObj = json_decode($species);
+
+          $speciesData = $speciesAsJSONObj->result[0];
           // bad advice here: https://stackoverflow.com/questions/15700325/
           // so I used this: https://stackoverflow.com/a/5970283/227926
-          foreach((array)$species as $key => $value) {
+          foreach((array)$speciesData as $key => $value) {
             // https://stackoverflow.com/questions/41243543/what-does-an-array-with-a-mean/41243650#41243650
             // https://stackoverflow.com/a/41243650/227926
             $keyWithoutAsteriskPrefix = preg_replace('/[\*]+/', '', $key);
