@@ -49,11 +49,18 @@ function iucn_block_view($delta = ''){
   // We load the term from the menu
   $term = menu_get_object('taxonomy_term', 2);
   if($term){
-
     $iucnV3APIKeyToken = variable_get('iucn_api_v3_api_key_token', FALSE);
     $iucnV3Url = variable_get('iucn_api_v3_url', FALSE);
 
-    $iucnClient = new \IucnApi\Client($iucnV3APIKeyToken);
+    /* e.g. https://apiv3.iucnredlist.org/api/v3/species/Scolopendra%20abnormis?token=<kept secret>
+
+    (where <kept secret> is the api key token provided to Scratchpads from iucn red list, we keep it private and don't disclose it here)
+
+    which returns:
+
+    {"name":"Scolopendra abnormis","result":[{"taxonid":20042,"scientific_name":"Scolopendra abnormis","kingdom":"ANIMALIA","phylum":"ARTHROPODA","class":"CHILOPODA","order":"SCOLOPENDROMORPHA","family":"SCOLOPENDRIDAE","genus":"Scolopendra","main_common_name":"Serpent Island Centipede","authority":"J.G.E. Lewis &amp; P. Daszak, 1996","published_year":1996,"assessment_date":"1996-08-01","category":"VU","criteria":"D2","population_trend":null,"marine_system":false,"freshwater_system":false,"terrestrial_system":true,"assessor":"Pearce-Kelly, P.","reviewer":"","aoo_km2":null,"eoo_km2":null,"elevation_upper":null,"elevation_lower":null,"depth_upper":null,"depth_lower":null,"errata_flag":null,"errata_reason":null,"amended_flag":null,"amended_reason":null}]} 
+
+    */
     
     // simplifid logic:
     $flagAjaxBlocks = false; //initial default
@@ -67,21 +74,48 @@ function iucn_block_view($delta = ''){
         $flagAjaxBlocks = true;
       }
     }
-
+    
     if($flagAjaxBlocks){
       $cache = cache_get($term->tid, 'cache_iucn');
       if($cache->data){
         $content['content']['#markup'] = $cache->data;
       }else{
-
-        try {
-          $aterm = $term->name;
-          $species = $iucnClient->getSpeciesByName($term->name);
-
-          $contentMarkupToDisplay ="";
-
+        // was (v2)
+        // $requestToSend = 'http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js';
+        // now v3
+        $requestToSend = 'https://apiv3.iucnredlist.org/api/v3/species/' . $term->name . '?token='.  $iucnV3APIKeyToken;
+        $request = drupal_http_request($requestToSend, array(
+          'timeout' => '3.0'));
           // https://stackoverflow.com/questions/9744192/multi-line-strings-in-php
-          $contentMarkupToDisplay = <<<EOD
+          
+          // here's what $request->data returns for example
+          /*
+          "{"name":"Scolopendra abnormis","result":[{"taxonid":20042,"scientific_name":"Scolopendra abnormis","kingdom":"ANIMALIA","phylum":"ARTHROPODA","class":"CHILOPODA","order":"SCOLOPENDROMORPHA","family":"SCOLOPENDRIDAE","genus":"Scolopendra","main_common_name":"Serpent Island Centipede","authority":"J.G.E. Lewis &amp; P. Daszak, 1996","published_year":1996,"assessment_date":"1996-08-01","category":"VU","criteria":"D2","population_trend":null,"marine_system":false,"freshwater_system":false,"terrestrial_system":true,"assessor":"Pearce-Kelly, P.","reviewer":"","aoo_km2":null,"eoo_km2":null,"elevation_upper":null,"elevation_lower":null,"depth_upper":null,"depth_lower":null,"errata_flag":null,"errata_reason":null,"amended_flag":null,"amended_reason":null}]}"
+          */
+
+          if ($request->code == 200) {
+            $contentMarkupToDisplay = "";
+            $species = &$request->data;
+            $speciesAsJSONObj = json_decode($species);
+            $speciesData = $speciesAsJSONObj->result[0];
+            // bad advice here: https://stackoverflow.com/questions/15700325/
+            // so I used this: https://stackoverflow.com/a/5970283/227926
+            foreach((array)$speciesData as $key => $value) {
+              // https://stackoverflow.com/questions/41243543/what-does-an-array-with-a-mean/41243650#41243650
+              // https://stackoverflow.com/a/41243650/227926
+              $keyWithoutAsteriskPrefix = preg_replace('/[\*]+/', '', $key);
+              $item = "<div class='iucn-item name'>".$keyWithoutAsteriskPrefix."</div>\n";
+              if (isset($value)) {
+                $item .= "<div class='iucn-item value'>".$value."</div>\n";
+              }
+              else {
+                $item .= "<div>-</div>\n";
+              }
+
+              $contentMarkupToDisplay .= $item;
+            }
+
+            $cssStyle = <<<EOD
 <style>
   .iucn-item.name {
     background-color: #eeeeee;
@@ -97,31 +131,12 @@ function iucn_block_view($delta = ''){
   }
 </style>
 EOD;
-          
-          // bad advice here: https://stackoverflow.com/questions/15700325/
-          // so I used this: https://stackoverflow.com/a/5970283/227926
-          foreach((array)$species as $key => $value) {
-            // https://stackoverflow.com/questions/41243543/what-does-an-array-with-a-mean/41243650#41243650
-            // https://stackoverflow.com/a/41243650/227926
-            $keyWithoutAsteriskPrefix = preg_replace('/[\*]+/', '', $key);
-            $item = "<div class='iucn-item name'>".$keyWithoutAsteriskPrefix."</div>\n";
-            if (isset($value)) {
-              $item .= "<div class='iucn-item value'>".$value."</div>\n";
-            }
-            else {
-              $item .= "<div>-</div>\n";
-            }
 
-            $contentMarkupToDisplay .= $item;
-          }
-
-
-          $content['content']['#markup'] = $contentMarkupToDisplay;
-
+          $content['content']['#markup'] =  $cssStyle . $contentMarkupToDisplay;
           cache_set($term->tid, $content['content']['#markup'], 'cache_iucn');
-
-        } catch (\IucnApi\Exception\IucnApiException $exception) {
-          // Something doesn't look good…
+        }
+        else {
+          // Something doesn't look good
           $content['content']['#markup'] = t('There was an error downloading the information for %term_name', array(
             '$term_name' => $term->name
           ));
