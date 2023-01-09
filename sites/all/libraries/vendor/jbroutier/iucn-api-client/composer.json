@@ -1,0 +1,55 @@
+{
+    "name": "jbroutier/iucn-api-client",
+    "description": "A PHP client to retrieve data from The IUCN Red List of Threatened Species™.",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jérémie BROUTIER",
+            "email": "jeremie.broutier@posteo.net",
+            "homepage": "https://github.com/jbroutier",
+            "role": "developer"
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jbroutier/iucn-api-client.git"
+    },
+    "require": {
+        "php": "^7.4|^8.0",
+        "doctrine/collections": "^1.7.2",
+        "symfony/http-client": "^5.4|^6.0"
+    },
+    "require-dev": {
+        "ext-json": "*",
+        "ekino/phpstan-banned-code": "^1.0.0",
+        "phpstan/extension-installer": "^1.1.0",
+        "phpstan/phpstan": "^1.8.4",
+        "phpstan/phpstan-deprecation-rules": "^1.0.0",
+        "phpstan/phpstan-phpunit": "^1.1.1",
+        "phpstan/phpstan-strict-rules": "^1.4.3",
+        "phpunit/phpunit": "^9.5.24"
+    },
+    "autoload": {
+        "psr-4": {
+            "IucnApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "IucnApi\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "scripts": {
+        "phpstan": "vendor/bin/phpstan analyse --memory-limit 1G",
+        "tests:all": "vendor/bin/phpunit --testdox --coverage-html coverage",
+        "tests:functional": "vendor/bin/phpunit --testsuite=functional --testdox --coverage-clover coverage-functional.xml",
+        "tests:unit": "vendor/bin/phpunit --testsuite=unit --testdox --coverage-clover coverage-unit.xml"
+    }
+}

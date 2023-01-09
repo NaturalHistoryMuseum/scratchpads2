@@ -1,5 +1,7 @@
 <?php
 
+require 'sites/all/libraries/vendor/autoload.php';
+
 /**
  * Implements hook_block_info().
  */

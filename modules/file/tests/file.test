@@ -381,6 +381,20 @@ class FileManagedFileElementTestCase extends FileFieldTestCase {
     );
   }
 
+  public function setUp() {
+    parent::setUp();
+
+    // Disable the displaying of errors, so that the AJAX responses are not
+    // contaminated with error messages about exceeding the maximum POST size.
+    $this->originalDisplayErrorsValue = ini_set('display_errors', '0');
+  }
+
+  public function tearDown() {
+    ini_set('display_errors', $this->originalDisplayErrorsValue);
+
+    parent::tearDown();
+  }
+
   /**
    * Tests the managed_file element type.
    */
@@ -388,6 +402,9 @@ class FileManagedFileElementTestCase extends FileFieldTestCase {
     // Check that $element['#size'] is passed to the child upload element.
     $this->drupalGet('file/test');
     $this->assertFieldByXpath('//input[@name="files[nested_file]" and @size="13"]', NULL, 'The custom #size attribute is passed to the child upload element.');
+
+    // Check that the file fields don't contain duplicate HTML IDs.
+    $this->assertNoDuplicateIds('There are no duplicate IDs');
 
     // Perform the tests with all permutations of $form['#tree'] and
     // $element['#extended'].
@@ -469,6 +486,43 @@ class FileManagedFileElementTestCase extends FileFieldTestCase {
         }
       }
     }
+  }
+
+  /**
+   * Tests uploading a file that exceeds the maximum file size.
+   */
+  function testManagedFileExceedMaximumFileSize() {
+    $path = 'file/test/0/0';
+    $this->drupalGet($path);
+
+    // Create a test file that exceeds the maximum POST size with 1 kilobyte.
+    $post_max_size = $this->_postMaxSizeToInteger(ini_get('post_max_size'));
+    $filename = 'text-exceeded';
+    simpletest_generate_file($filename, ceil(($post_max_size + 1024) / 1024), 1024, 'text');
+    $uri = 'public://' . $filename . '.txt';
+    $input_base_name = 'file';
+    $edit = array('files[' . $input_base_name . ']' => drupal_realpath($uri));
+    $this->drupalPostAJAX(NULL, $edit, $input_base_name . '_upload_button');
+    $this->assertFieldByXpath('//input[@type="submit"]', t('Upload'), 'After uploading a file that exceeds the maximum file size, the "Upload" button is displayed.');
+    $this->drupalPost($path, array(), t('Save'));
+    $this->assertRaw(t('The file id is %fid.', array('%fid' => 0)), 'Submitted without a file.');
+  }
+
+  /**
+   * Converts php.ini post_max_size value to integer.
+   *
+   * @param $string
+   *   The value from php.ini.
+   *
+   * @return int
+   *   Converted value.
+   */
+  protected function _postMaxSizeToInteger($string) {
+    sscanf($string, '%u%c', $number, $suffix);
+    if (isset($suffix)) {
+      $number = $number * pow(1024, strpos(' KMG', strtoupper($suffix)));
+    }
+    return $number;
   }
 }
 
@@ -749,6 +803,23 @@ class FileFieldWidgetTestCase extends FileFieldTestCase {
       foreach (array($field_name2, $field_name) as $each_field_name) {
         for ($delta = 0; $delta < 3; $delta++) {
           $edit = array('files[' . $each_field_name . '_' . LANGUAGE_NONE . '_' . $delta . ']' => drupal_realpath($test_file->uri));
+          // drupalPost() takes a $submit parameter that is the value of the
+          // button whose click we want to emulate. Since we have multiple
+          // buttons with the value "Upload", and want to control which one we
+          // use, we change the value of the other ones to something else.
+          // Since non-clicked buttons aren't included in the submitted POST
+          // data, and since drupalPost() will result in $this being updated
+          // with a newly rebuilt form, this doesn't cause problems. Note that
+          // $buttons is an array of SimpleXMLElement objects passed by
+          // reference so modifications to each button will affect
+          // \DrupalWebTestCase::handleForm().
+          $buttons = $this->xpath('//input[@type="submit" and @value="Upload"]');
+          $button_name = $each_field_name . '_' . LANGUAGE_NONE . '_' . $delta . '_upload_button';
+          foreach ($buttons as $button) {
+            if ($button['name'] != $button_name) {
+              $button['value'] = 'DUMMY';
+            }
+          }
           // If the Upload button doesn't exist, drupalPost() will automatically
           // fail with an assertion message.
           $this->drupalPost(NULL, $edit, t('Upload'));
@@ -786,13 +857,8 @@ class FileFieldWidgetTestCase extends FileFieldTestCase {
           $button_name = $current_field_name . '_' . LANGUAGE_NONE . '_' . $delta . '_remove_button';
           switch ($type) {
             case 'nojs':
-              // drupalPost() takes a $submit parameter that is the value of the
-              // button whose click we want to emulate. Since we have multiple
-              // buttons with the value "Remove", and want to control which one we
-              // use, we change the value of the other ones to something else.
-              // Since non-clicked buttons aren't included in the submitted POST
-              // data, and since drupalPost() will result in $this being updated
-              // with a newly rebuilt form, this doesn't cause problems.
+              // Same workaround for multiple buttons with the value "Remove" as
+              // we did for the "Upload" buttons above.
               foreach ($buttons as $button) {
                 if ($button['name'] != $button_name) {
                   $button['value'] = 'DUMMY';
@@ -1354,10 +1420,11 @@ class FileFieldPathTestCase extends FileFieldTestCase {
     // Create a new node.
     $nid = $this->uploadNodeFile($test_file, $field_name, $type_name);
 
-    // Check that the file was uploaded to the file root.
+    // Check that the file was uploaded to the correct location.
     $node = node_load($nid, NULL, TRUE);
     $node_file = (object) $node->{$field_name}[LANGUAGE_NONE][0];
-    $this->assertPathMatch('public://' . $test_file->filename, $node_file->uri, format_string('The file %file was uploaded to the correct path.', array('%file' => $node_file->uri)));
+    $expected_path = 'public://' . date('Y', REQUEST_TIME) . '-' . date('m', REQUEST_TIME) . '/' . $test_file->filename;
+    $this->assertPathMatch($expected_path, $node_file->uri, format_string('The file %file was uploaded to the correct path.', array('%file' => $node_file->uri)));
 
     // Change the path to contain multiple subdirectories.
     $field = $this->updateFileField($field_name, $type_name, array('file_directory' => 'foo/bar/baz'));
@@ -1929,6 +1996,29 @@ class FileScanDirectory extends FileFieldTestCase {
     $conf['file_scan_ignore_directories'] = array('frontend.*');
     $files = file_scan_directory($this->path, '/\.txt$/');
     $this->assertEqual(3, count($files), '2 text files found when ignoring a directory that is not there.');
+  }
+
+}
+
+/**
+ * Test theme implementations declared in file_theme().
+ */
+class FileThemeImplementationsTestCase extends DrupalUnitTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Theme implementations declared in file_theme()',
+      'description' => 'Unit tests theme functions in the file module.',
+      'group' => 'File',
+    );
+  }
+
+  function testThemeFileUploadHelp() {
+    $variables = array(
+      'description' => NULL,
+      'upload_validators' => NULL,
+    );
+    $this->assertEqual('', theme_file_upload_help($variables), 'Empty string returned by theme_file_upload_help() with NULL inputs.');
   }
 
 }
