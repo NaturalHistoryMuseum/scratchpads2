@@ -81,7 +81,7 @@ function iucn_block_view($delta = ''){
         // was (v2)
         // $requestToSend = 'http://api.iucnredlist.org/index/species/' . preg_replace('/[^A-Za-z\-]/','',str_replace(' ', '-', $term->name)) . '.js';
         // now v3
-        $requestToSend = 'https://apiv3.iucnredlist.org/api/v3/species/' . $term->name . '?token='.  $iucnV3APIKeyToken;
+        $requestToSend = $iucnV3Url . 'species/' . $term->name . '?token='.  $iucnV3APIKeyToken;
         $request = drupal_http_request($requestToSend, array(
           'timeout' => '3.0'));
           // https://stackoverflow.com/questions/9744192/multi-line-strings-in-php
