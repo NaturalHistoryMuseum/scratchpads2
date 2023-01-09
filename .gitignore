@@ -39,3 +39,5 @@ sites/default/files/css/
 
 # files and assets
 sites/default/files
+sites/*/private
+sites/*/files
