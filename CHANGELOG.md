@@ -1,5 +1,14 @@
 # Change log
 
+## 2.11.1 (2023-01-13)
+
+Following code changes, as per done in https://github.com/orgs/NaturalHistoryMuseum/projects/34
+
+- https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6501 - restore missing tabs 
+- https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6564 - get iucn facility working again by using their new v3 api 
+- https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6583 - ensure non cached previous copy not used for darwin core export 
+- https://github.com/NaturalHistoryMuseum/scratchpads2/issues/6612 - update Drupal to 7.94 (from 7.82)
+
 ## 2.10.1 (2021-11-31)
 
 - Fixed update to Drupal to 7.82 [#6475](https://github.com/NaturalHistoryMuseum/scratchpads2/pull/6475)
