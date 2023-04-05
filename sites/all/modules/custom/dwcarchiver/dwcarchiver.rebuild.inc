@@ -37,6 +37,9 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE) {
       if ($deliver && !user_access('scratchpads team')) {
         drupal_set_message(t('The DwC-A has been rebuilt'));
       }
+      // Clear varnish cache
+      $dwc_uri = dwcarchiver_get_archive_uri($dwcarchiver);
+      varnish_expire_cache(array($dwc_uri));
     }
 
     if ($deliver) {
