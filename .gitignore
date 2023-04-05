@@ -19,6 +19,9 @@ sites/all/drush
 .settings
 .idea
 
+# VS Code files
+.vscode
+
 # Development files
 index2.php
 
@@ -36,8 +39,3 @@ docker-compose.dev.yml
 sites/default/files/advagg_css/
 sites/default/files/advagg_js/
 sites/default/files/css/
-
-# files and assets
-sites/default/files
-sites/*/private
-sites/*/files

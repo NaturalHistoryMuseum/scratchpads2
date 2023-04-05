@@ -19,7 +19,7 @@ function image_field_info() {
       ),
       'instance_settings' => array(
         'file_extensions' => 'png gif jpg jpeg',
-        'file_directory' => '[date:custom:Y]-[date:custom:m]',
+        'file_directory' => '',
         'max_filesize' => '',
         'alt_field' => 0,
         'title_field' => 0,
@@ -174,10 +174,6 @@ function _image_field_resolution_validate($element, &$form_state) {
       $value = $element[$dimension]['#value'];
       if (!is_numeric($value)) {
         form_error($element[$dimension], t('Height and width values must be numeric.'));
-        return;
-      }
-      if (intval($value) < 0) {
-        form_error($element[$dimension], t('Height and width values must be positive numbers.'));
         return;
       }
       if (intval($value) == 0) {

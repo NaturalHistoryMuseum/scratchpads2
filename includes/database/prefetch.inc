@@ -268,7 +268,6 @@ class DatabaseStatementPrefetch implements Iterator, DatabaseStatementInterface 
    * @return
    *  The current row formatted as requested.
    */
-  #[\ReturnTypeWillChange]
   public function current() {
     if (isset($this->currentRow)) {
       switch ($this->fetchStyle) {
@@ -286,7 +285,7 @@ class DatabaseStatementPrefetch implements Iterator, DatabaseStatementInterface 
         case PDO::FETCH_OBJ:
           return (object) $this->currentRow;
         case PDO::FETCH_CLASS | PDO::FETCH_CLASSTYPE:
-          $class_name = array_shift($this->currentRow);
+          $class_name = array_unshift($this->currentRow);
           // Deliberate no break.
         case PDO::FETCH_CLASS:
           if (!isset($class_name)) {
@@ -321,17 +320,14 @@ class DatabaseStatementPrefetch implements Iterator, DatabaseStatementInterface 
 
   /* Implementations of Iterator. */
 
-  #[\ReturnTypeWillChange]
   public function key() {
     return $this->currentKey;
   }
 
-  #[\ReturnTypeWillChange]
   public function rewind() {
     // Nothing to do: our DatabaseStatement can't be rewound.
   }
 
-  #[\ReturnTypeWillChange]
   public function next() {
     if (!empty($this->data)) {
       $this->currentRow = reset($this->data);
@@ -343,7 +339,6 @@ class DatabaseStatementPrefetch implements Iterator, DatabaseStatementInterface 
     }
   }
 
-  #[\ReturnTypeWillChange]
   public function valid() {
     return isset($this->currentRow);
   }

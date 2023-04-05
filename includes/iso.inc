@@ -327,7 +327,7 @@ function _locale_get_predefined_list() {
     'da' => array('Danish', 'Dansk'),
     'de' => array('German', 'Deutsch'),
     'dv' => array('Maldivian'),
-    'dz' => array('Dzongkha', 'རྫོང་ཁ'),
+    'dz' => array('Bhutani'),
     'ee' => array('Ewe', 'Ɛʋɛ'),
     'el' => array('Greek', 'Ελληνικά'),
     'en' => array('English'),

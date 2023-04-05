@@ -417,8 +417,6 @@ function path_load($conditions) {
   }
   return $select
     ->fields('url_alias')
-    ->orderBy('pid', 'DESC')
-    ->range(0, 1)
     ->execute()
     ->fetchAssoc();
 }

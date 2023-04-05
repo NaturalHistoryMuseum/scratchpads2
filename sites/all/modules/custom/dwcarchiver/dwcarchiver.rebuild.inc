@@ -26,12 +26,6 @@ function dwcarchiver_rebuild($dwcarchiver, $deliver = TRUE) {
       drupal_set_message(t('Unable to rebuild the archive, please contact an administrator.'), 'error');
     }
     else {
-      // clear file cached for following path
-      // e.g. https://myriatrix.myspecies.info/gbif-dwca.zip
-      $host = _varnish_get_host();
-      $base = base_path();
-      varnish_purge($host, '^' . $base . '/gbif-dwca.zip*' );
-
       _dwcarchiver_create_xml_and_data_files($dwcarchiver, $zip);
       $zip->close();
       // Move the zip file to the dwcarchiver folder.

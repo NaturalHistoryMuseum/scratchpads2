@@ -826,8 +826,8 @@ function taxonomy_form_term_submit($form, &$form_state) {
       break;
   }
 
-  $current_parent_count = empty($form_state['values']['parent']) ? 0 : count((array) $form_state['values']['parent']);
-  $previous_parent_count = empty($form['#term']['parent']) ? 0 : count((array) $form['#term']['parent']);
+  $current_parent_count = count($form_state['values']['parent']);
+  $previous_parent_count = count($form['#term']['parent']);
   // Root doesn't count if it's the only parent.
   if ($current_parent_count == 1 && isset($form_state['values']['parent'][0])) {
     $current_parent_count = 0;
@@ -902,6 +902,7 @@ function taxonomy_term_confirm_delete_submit($form, &$form_state) {
   watchdog('taxonomy', 'Deleted term %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE);
   $form_state['redirect'] = 'admin/structure/taxonomy';
   cache_clear_all();
+  return;
 }
 
 /**
@@ -941,6 +942,7 @@ function taxonomy_vocabulary_confirm_delete_submit($form, &$form_state) {
   watchdog('taxonomy', 'Deleted vocabulary %name.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE);
   $form_state['redirect'] = 'admin/structure/taxonomy';
   cache_clear_all();
+  return;
 }
 
 /**

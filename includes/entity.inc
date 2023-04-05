@@ -254,10 +254,7 @@ class DrupalDefaultEntityController implements DrupalEntityControllerInterface {
    * Callback for array_filter that removes non-integer IDs.
    */
   protected function filterId($id) {
-    // ctype_digit() is used here instead of a strict comparison as sometimes
-    // the id is passed as a string containing '0' which may represent a bug
-    // elsewhere but would fail with a strict comparison.
-    return is_numeric($id) && $id == (int) $id && ctype_digit((string) $id);
+    return is_numeric($id) && $id == (int) $id;
   }
 
   /**
@@ -621,7 +618,7 @@ class EntityFieldQuery {
    *
    * @see EntityFieldQuery::execute().
    */
-  public $ordered_results = array();
+  public $orderedResults = array();
 
   /**
    * The method executing the query, if it is overriding the default.
@@ -1179,7 +1176,7 @@ class EntityFieldQuery {
   /**
    * Executes the query.
    *
-   * After executing the query, $this->ordered_results will contain a list of
+   * After executing the query, $this->orderedResults will contain a list of
    * the same stub entities in the order returned by the query. This is only
    * relevant if there are multiple entity types in the returned value and
    * a field ordering was requested. In every other case, the returned value

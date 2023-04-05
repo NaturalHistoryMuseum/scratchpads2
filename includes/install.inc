@@ -830,14 +830,11 @@ function drupal_uninstall_modules($module_list = array(), $uninstall_dependents 
  *   An optional bitmask created from various FILE_* constants.
  * @param $type
  *   The type of file. Can be file (default), dir, or link.
- * @param bool $autofix
- *   (optional) Determines whether to attempt fixing the permissions according
- *   to the provided $mask. Defaults to TRUE.
  *
  * @return
  *   TRUE on success or FALSE on failure. A message is set for the latter.
  */
-function drupal_verify_install_file($file, $mask = NULL, $type = 'file', $autofix = TRUE) {
+function drupal_verify_install_file($file, $mask = NULL, $type = 'file') {
   $return = TRUE;
   // Check for files that shouldn't be there.
   if (isset($mask) && ($mask & FILE_NOT_EXIST) && file_exists($file)) {
@@ -859,7 +856,7 @@ function drupal_verify_install_file($file, $mask = NULL, $type = 'file', $autofi
         switch ($current_mask) {
           case FILE_EXIST:
             if (!file_exists($file)) {
-              if ($type == 'dir' && $autofix) {
+              if ($type == 'dir') {
                 drupal_install_mkdir($file, $mask);
               }
               if (!file_exists($file)) {
@@ -868,41 +865,38 @@ function drupal_verify_install_file($file, $mask = NULL, $type = 'file', $autofi
             }
             break;
           case FILE_READABLE:
-            if (!is_readable($file)) {
+            if (!is_readable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
           case FILE_WRITABLE:
-            if (!is_writable($file)) {
+            if (!is_writable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
           case FILE_EXECUTABLE:
-            if (!is_executable($file)) {
+            if (!is_executable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
           case FILE_NOT_READABLE:
-            if (is_readable($file)) {
+            if (is_readable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
           case FILE_NOT_WRITABLE:
-            if (is_writable($file)) {
+            if (is_writable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
           case FILE_NOT_EXECUTABLE:
-            if (is_executable($file)) {
+            if (is_executable($file) && !drupal_install_fix_file($file, $mask)) {
               $return = FALSE;
             }
             break;
         }
       }
     }
-  }
-  if (!$return && $autofix) {
-    return drupal_install_fix_file($file, $mask);
   }
   return $return;
 }

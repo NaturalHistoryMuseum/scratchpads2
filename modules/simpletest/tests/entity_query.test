@@ -10,9 +10,6 @@
  * Tests EntityFieldQuery.
  */
 class EntityFieldQueryTestCase extends DrupalWebTestCase {
-  protected $fields;
-  protected $field_names;
-  protected $instances;
 
   public static function getInfo() {
     return array(
@@ -1335,11 +1332,10 @@ class EntityFieldQueryTestCase extends DrupalWebTestCase {
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'test_entity_bundle_key');
     // Add a flag that will be caught by field_test_entity_query_alter().
-    variable_set('field_test_entity_query_alter_execute_callback', TRUE);
+    $query->alterMyExecuteCallbackPlease = TRUE;
     $this->assertEntityFieldQuery($query, array(
       array('user', 1),
     ), 'executeCallback can override the query handler when set in a hook_entity_query_alter().');
-    variable_set('field_test_entity_query_alter_execute_callback', FALSE);
 
     // Mixed-storage queries.
     $query = new EntityFieldQuery();

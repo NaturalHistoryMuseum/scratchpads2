@@ -676,7 +676,6 @@ class BlockCacheTestCase extends DrupalWebTestCase {
  * Test block HTML id validity.
  */
 class BlockHTMLIdTestCase extends DrupalWebTestCase {
-  protected $admin_user;
 
   public static function getInfo() {
     return array(

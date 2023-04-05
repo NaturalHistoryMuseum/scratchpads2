@@ -747,74 +747,16 @@ $conf['mail_display_name_site_name'] = TRUE;
 # $conf['samesite_cookie_value'] = 'None';
 
 /**
- * Retain legacy has_js cookie.
+ * Add Permissions-Policy header to disable Google FLoC.
  *
- * Older releases of Drupal set a has_js cookie with a boolean value which
- * server-side code can use to determine whether JavaScript is available.
+ * By default, Drupal sends the 'Permissions-Policy: interest-cohort=()' header
+ * to disable Google's Federated Learning of Cohorts feature, introduced in
+ * Chrome 89.
  *
- * This functionality can be re-enabled by setting this variable to TRUE.
+ * See https://en.wikipedia.org/wiki/Federated_Learning_of_Cohorts for more
+ * information about FLoC.
+ *
+ * If you don't wish to disable FLoC in Chrome, you can set this value
+ * to FALSE.
  */
-# $conf['set_has_js_cookie'] = FALSE;
-
-/**
- * Skip file system permissions hardening.
- *
- * The system module will periodically check the permissions of your site's
- * site directory to ensure that it is not writable by the website user. For
- * sites that are managed with a version control system, this can cause problems
- * when files in that directory such as settings.php are updated, because the
- * user pulling in the changes won't have permissions to modify files in the
- * directory.
- */
-# $conf['skip_permissions_hardening'] = TRUE;
-
-/**
- * Additional public file schemes:
- *
- * Public schemes are URI schemes that allow download access to all users for
- * all files within that scheme.
- *
- * The "public" scheme is always public, and the "private" scheme is always
- * private, but other schemes, such as "https", "s3", "example", or others,
- * can be either public or private depending on the site. By default, they're
- * private, and access to individual files is controlled via
- * hook_file_download().
- *
- * Typically, if a scheme should be public, a module makes it public by
- * implementing hook_file_download(), and granting access to all users for all
- * files. This could be either the same module that provides the stream wrapper
- * for the scheme, or a different module that decides to make the scheme
- * public. However, in cases where a site needs to make a scheme public, but
- * is unable to add code in a module to do so, the scheme may be added to this
- * variable, the result of which is that system_file_download() grants public
- * access to all files within that scheme.
- */
-# $conf['file_additional_public_schemes'] = array('example');
-
-/**
- * Sensitive request headers in drupal_http_request() when following a redirect.
- *
- * By default drupal_http_request() will strip sensitive request headers when
- * following a redirect if the redirect location has a different http host to
- * the original request, or if the scheme downgrades from https to http.
- *
- * These variables allow opting out of this behaviour. Careful consideration of
- * the security implications of opting out is recommended.
- *
- * @see _drupal_should_strip_sensitive_headers_on_http_redirect()
- * @see drupal_http_request()
- */
-# $conf['drupal_http_request_strip_sensitive_headers_on_host_change'] = TRUE;
-# $conf['drupal_http_request_strip_sensitive_headers_on_https_downgrade'] = TRUE;
-
-/**
- * Cron lock expiration timeout:
- *
- * Each time Drupal's cron is executed, it acquires a cron lock. Older releases
- * of Drupal set the default cron lock expiration timeout to 240 seconds. This
- * duration was considered short, because it often caused concurrent cron runs
- * especially on busy sites heavily utilizing cron.
- *
- * Use this variable to set a custom cron lock expiration timeout (float).
- */
-# $conf['cron_lock_expiration_timeout'] = 900.0;
+# $conf['block_interest_cohort'] = TRUE;

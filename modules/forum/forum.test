@@ -50,11 +50,6 @@ class ForumTestCase extends DrupalWebTestCase {
    */
   protected $nids;
 
-  /**
-   * A forum to delete.
-   */
-  protected $delete_forum;
-
   public static function getInfo() {
     return array(
       'name' => 'Forum functionality',

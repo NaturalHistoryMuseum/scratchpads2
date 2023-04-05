@@ -107,6 +107,9 @@ function user_pass_validate($form, &$form_state) {
     flood_register_event('pass_reset_user', $user_pass_reset_user_window, $identifier);
     form_set_value(array('#parents' => array('account')), $account, $form_state);
   }
+  else {
+    form_set_error('name', t('Sorry, %name is not recognized as a user name or an e-mail address.', array('%name' => $name)));
+  }
 }
 
 /**
@@ -117,21 +120,14 @@ function user_pass_validate($form, &$form_state) {
 function user_pass_submit($form, &$form_state) {
   global $language;
 
-  $name = $form_state['values']['name'];
-  if (isset($form_state['values']['account'])) {
-    $account = $form_state['values']['account'];
-    // Mail one time login URL and instructions using current language.
-    $mail = _user_mail_notify('password_reset', $account, $language);
-    if (!empty($mail)) {
-      watchdog('user', 'Password reset instructions mailed to %name at %email.', array('%name' => $account->name, '%email' => $account->mail));
-    }
-  }
-  else {
-    watchdog('user', 'Password reset form was submitted with an unknown or inactive account: %name.', array('%name' => $name));
+  $account = $form_state['values']['account'];
+  // Mail one time login URL and instructions using current language.
+  $mail = _user_mail_notify('password_reset', $account, $language);
+  if (!empty($mail)) {
+    watchdog('user', 'Password reset instructions mailed to %name at %email.', array('%name' => $account->name, '%email' => $account->mail));
+    drupal_set_message(t('Further instructions have been sent to your e-mail address.'));
   }
 
-  $password_reset_text = variable_get('user_password_reset_text', t('If %identifier is a valid account, an email will be sent with instructions to reset your password.'));
-  drupal_set_message(format_string($password_reset_text, array('%identifier' => $name)));
   $form_state['redirect'] = 'user';
   return;
 }
@@ -208,7 +204,7 @@ function user_pass_reset($form, &$form_state, $uid, $timestamp, $hashed_pass, $a
         // redirect to the same URL but with the hash replaced by an invalid
         // one ("confirm"). This prevents disclosing the hash via referrer
         // headers or web browser history.
-        if ($hashed_pass == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid, $account->mail)) {
+        if ($hashed_pass == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid)) {
           if ($action === 'login') {
             // The 'login' action redirects directly to the user edit form.
             $is_valid = TRUE;
@@ -226,7 +222,7 @@ function user_pass_reset($form, &$form_state, $uid, $timestamp, $hashed_pass, $a
           }
         }
         // If the reset hash from the session is valid, use that.
-        elseif ($session_reset_hash && $session_reset_hash == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid, $account->mail)) {
+        elseif ($session_reset_hash && $session_reset_hash == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid)) {
           $is_valid = TRUE;
         }
       }
@@ -642,7 +638,7 @@ function user_cancel_confirm($account, $timestamp = 0, $hashed_pass = '') {
   // Basic validation of arguments.
   if (isset($account->data['user_cancel_method']) && !empty($timestamp) && !empty($hashed_pass)) {
     // Validate expiration and hashed password/login.
-    if ($timestamp <= $current && $current - $timestamp < $timeout && $account->uid && $timestamp >= $account->login && $hashed_pass == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid, $account->mail)) {
+    if ($timestamp <= $current && $current - $timestamp < $timeout && $account->uid && $timestamp >= $account->login && $hashed_pass == user_pass_rehash($account->pass, $timestamp, $account->login, $account->uid)) {
       $edit = array(
         'user_cancel_notify' => isset($account->data['user_cancel_notify']) ? $account->data['user_cancel_notify'] : variable_get('user_mail_status_canceled_notify', FALSE),
       );

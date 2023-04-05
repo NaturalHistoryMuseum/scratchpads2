@@ -431,8 +431,6 @@ class ThemeHookInitTestCase extends DrupalWebTestCase {
  * Tests autocompletion not loading registry.
  */
 class ThemeFastTestCase extends DrupalWebTestCase {
-  protected $account;
-
   public static function getInfo() {
     return array(
       'name' => 'Theme fast initialization',

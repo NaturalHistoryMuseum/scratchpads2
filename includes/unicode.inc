@@ -589,7 +589,6 @@ function drupal_ucfirst($text) {
  */
 function drupal_substr($text, $start, $length = NULL) {
   global $multibyte;
-  $text = (string) $text;
   if ($multibyte == UNICODE_MULTIBYTE) {
     return $length === NULL ? mb_substr($text, $start) : mb_substr($text, $start, $length);
   }

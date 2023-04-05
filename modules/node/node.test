@@ -448,12 +448,6 @@ class PageEditTestCase extends DrupalWebTestCase {
  * Tests the node entity preview functionality.
  */
 class PagePreviewTestCase extends DrupalWebTestCase {
-  protected $field;
-  protected $field_name;
-  protected $instance;
-  protected $vocabulary;
-  protected $term;
-
   public static function getInfo() {
     return array(
       'name' => 'Node preview',
@@ -672,17 +666,8 @@ class NodeCreationTestCase extends DrupalWebTestCase {
     }
 
     // Check that the rollback error was logged.
-    // PostgreSQL doesn't support bytea LIKE queries, so we need to unserialize
-    // first to check for the rollback exception message.
-    $matches = array();
-    $records = db_query("SELECT wid, variables FROM {watchdog}")->fetchAll();
-    foreach ($records as $record) {
-      $variables = (array) unserialize($record->variables);
-      if (isset($variables['!message']) && $variables['!message'] === 'Test exception for rollback.') {
-        $matches[] = $record->wid;
-      }
-    }
-    $this->assertTrue(count($matches) > 0, 'Rollback explanatory error logged to watchdog.');
+    $records = db_query("SELECT wid FROM {watchdog} WHERE variables LIKE '%Test exception for rollback.%'")->fetchAll();
+    $this->assertTrue(count($records) > 0, 'Rollback explanatory error logged to watchdog.');
   }
 
   /**
@@ -1157,11 +1142,6 @@ class NodeAccessRecordsTestCase extends DrupalWebTestCase {
  * Tests for Node Access with a non-node base table.
  */
 class NodeAccessBaseTableTestCase extends DrupalWebTestCase {
-  protected $nodesByUser;
-  protected $webUser;
-  protected $publicTid;
-  protected $privateTid;
-  protected $nids_visible;
 
   public static function getInfo() {
     return array(
@@ -1318,7 +1298,6 @@ class NodeAccessBaseTableTestCase extends DrupalWebTestCase {
  * Tests node save related functionality, including import-save.
  */
 class NodeSaveTestCase extends DrupalWebTestCase {
-  protected $web_user;
 
   public static function getInfo() {
     return array(
@@ -1759,8 +1738,6 @@ class NodeTypePersistenceTestCase extends DrupalWebTestCase {
  * Verifies the rebuild functionality for the node_access table.
  */
 class NodeAccessRebuildTestCase extends DrupalWebTestCase {
-  protected $web_user;
-
   public static function getInfo() {
     return array(
       'name' => 'Node access rebuild',
@@ -1792,11 +1769,6 @@ class NodeAccessRebuildTestCase extends DrupalWebTestCase {
  * Tests node administration page functionality.
  */
 class NodeAdminTestCase extends DrupalWebTestCase {
-  protected $admin_user;
-  protected $base_user_1;
-  protected $base_user_2;
-  protected $base_user_3;
-
   public static function getInfo() {
     return array(
       'name' => 'Node administration',
@@ -2044,9 +2016,6 @@ class NodeFeedTestCase extends DrupalWebTestCase {
  * Functional tests for the node module blocks.
  */
 class NodeBlockFunctionalTest extends DrupalWebTestCase {
-  protected $admin_user;
-  protected $web_user;
-
   public static function getInfo() {
     return array(
       'name' => 'Node blocks',
@@ -2267,13 +2236,6 @@ class NodeQueryAlter extends DrupalWebTestCase {
    * @var object
    */
   protected $noAccessUser;
-
-  /**
-   * User without permission to view content.
-   *
-   * @var object
-   */
-  protected $noAccessUser2;
 
   function setUp() {
     parent::setUp('node_access_test');
@@ -2583,26 +2545,6 @@ class NodeTokenReplaceTestCase extends DrupalWebTestCase {
       $this->assertEqual($output, $expected, format_string('Sanitized node token %token replaced.', array('%token' => $input)));
     }
 
-    // Test if the node without nid gets correct tokens (e.g. unsaved node).
-    $new_node_without_nid = clone $node;
-    unset($new_node_without_nid->nid);
-
-    // Update tokens values which should be empty
-    $tests['[node:nid]'] = '';
-    $tests['[node:url]'] = '';
-    $tests['[node:edit-url]'] = '';
-
-    // Generate and test sanitized tokens.
-    foreach ($tests as $input => $expected) {
-      $output = token_replace($input, array('node' => $new_node_without_nid), array('language' => $language));
-      $this->assertEqual($output, $expected, format_string('Sanitized node token %token replaced.', array('%token' => $input)));
-    }
-
-    // Revert tokens values
-    $tests['[node:nid]'] = $node->nid;
-    $tests['[node:url]'] = url('node/' . $node->nid, $url_options);
-    $tests['[node:edit-url]'] = url('node/' . $node->nid . '/edit', $url_options);
-
     // Generate and test unsanitized tokens.
     $tests['[node:title]'] = $node->title;
     $tests['[node:body]'] = $node->body[$langcode][0]['value'];
@@ -2765,7 +2707,6 @@ class NodeRevisionPermissionsTestCase extends DrupalWebTestCase {
  * Tests pagination with a node access module enabled.
  */
 class NodeAccessPagerTestCase extends DrupalWebTestCase {
-  protected $web_user;
 
   public static function getInfo() {
     return array(
@@ -2855,11 +2796,6 @@ class NodeAccessPagerTestCase extends DrupalWebTestCase {
  * Tests the interaction of the node access system with fields.
  */
 class NodeAccessFieldTestCase extends NodeWebTestCase {
-  protected $field;
-  protected $field_name;
-  protected $instance;
-  protected $admin_user;
-  protected $content_admin_user;
 
   public static function getInfo() {
     return array(

@@ -1042,9 +1042,6 @@ class MenuTreeOutputTestCase extends DrupalWebTestCase {
  * Menu breadcrumbs related tests.
  */
 class MenuBreadcrumbTestCase extends MenuWebTestCase {
-  protected $admin_user;
-  protected $web_user;
-
   public static function getInfo() {
     return array(
       'name' => 'Breadcrumbs',
@@ -1540,8 +1537,6 @@ class MenuBreadcrumbTestCase extends MenuWebTestCase {
  * Tests active menu trails.
  */
 class MenuTrailTestCase extends MenuWebTestCase {
-  protected $admin_user;
-
   public static function getInfo() {
     return array(
       'name' => 'Active trail',
@@ -1742,42 +1737,4 @@ class MenuTrailTestCase extends MenuWebTestCase {
       $this->assertBreadcrumb(NULL, $expected_trail[$status_code]['final']);
     }
   }
-}
-
-/**
- * Tests value integrity.
- */
-class MenuDataIntegrityTestCase extends MenuWebTestCase {
-
-  public static function getInfo() {
-    return array(
-      'name' => 'Menu item array integrity',
-      'description' => 'Tests the values passed on to menu items array.',
-      'group' => 'Menu',
-    );
-  }
-
-  /**
-   * Tests for null/casting weight parameter.
-   */
-  public function testNullMenuWeight() {
-    $base_options = array(
-      'link_title' => 'Menu link test',
-      'module' => 'menu_test',
-      'menu_name' => 'menu_test',
-      'weight' => NULL,
-      'link_path' => 'menu-test/parent',
-    );
-
-    try {
-      menu_link_save($base_options);
-    }
-    catch (PDOException $exception) {
-      $this->fail('Menu weight is not being cast properly.');
-      return;
-    }
-
-    $this->pass('Menu weight is being cast properly.');
-  }
-
 }

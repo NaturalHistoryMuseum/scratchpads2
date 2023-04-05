@@ -6,7 +6,7 @@
 # php_flag opcache.enable Off
 
 # Protect files and directories from prying eyes.
-<FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\.(?!well-known).*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock)|web\.config)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig|\.save)$">
+<FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\.(?!well-known).*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock)|web\.config)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -24,6 +24,12 @@ Options +FollowSymLinks
 # Make Drupal handle any 404 errors.
 ErrorDocument 404 /index.php
 
+# Force simple error message for requests for non-existent favicon.ico.
+<Files favicon.ico>
+  # There is no end quote below, for compatibility with Apache 1.3.
+  ErrorDocument 404 "The requested file favicon.ico was not found.
+</Files>
+
 # Set the default handler.
 DirectoryIndex index.php index.html index.htm
 
@@ -40,6 +46,7 @@ DirectoryIndex index.php index.html index.htm
   php_value mbstring.http_input             pass
   php_value mbstring.http_output            pass
   php_flag mbstring.encoding_translation    off
+  php_value memory_limit                    512M
 </IfModule>
 
 # Requires mod_expires to be enabled.
@@ -47,8 +54,8 @@ DirectoryIndex index.php index.html index.htm
   # Enable expirations.
   ExpiresActive On
 
-  # Cache all files for 2 weeks after access (A).
-  ExpiresDefault A1209600
+  # Cache all files for one month after access (A).
+  ExpiresDefault A2628000
 
   <FilesMatch \.php$>
     # Do not allow PHP scripts to be cached unless they explicitly send cache

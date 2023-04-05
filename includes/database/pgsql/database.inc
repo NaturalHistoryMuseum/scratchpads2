@@ -117,8 +117,7 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
         case Database::RETURN_AFFECTED:
           return $stmt->rowCount();
         case Database::RETURN_INSERT_ID:
-          $sequence_name = isset($options['sequence_name']) ? $options['sequence_name'] : NULL;
-          return $this->connection->lastInsertId($sequence_name);
+          return $this->connection->lastInsertId($options['sequence_name']);
         case Database::RETURN_NULL:
           return;
         default:
@@ -129,12 +128,12 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
       if ($options['throw_exception']) {
         // Add additional debug information.
         if ($query instanceof DatabaseStatementInterface) {
-          $e->errorInfo['query_string'] = $stmt->getQueryString();
+          $e->query_string = $stmt->getQueryString();
         }
         else {
-          $e->errorInfo['query_string'] = $query;
+          $e->query_string = $query;
         }
-        $e->errorInfo['args'] = $args;
+        $e->args = $args;
         throw $e;
       }
       return NULL;

@@ -108,7 +108,6 @@ class FileTestCase extends DrupalWebTestCase {
 
     // Mask out all but the last three octets.
     $actual_mode = fileperms($filepath) & 0777;
-    $expected_mode = $expected_mode & 0777;
 
     // PHP on Windows has limited support for file permissions. Usually each of
     // "user", "group" and "other" use one octal digit (3 bits) to represent the
@@ -144,7 +143,6 @@ class FileTestCase extends DrupalWebTestCase {
 
     // Mask out all but the last three octets.
     $actual_mode = fileperms($directory) & 0777;
-    $expected_mode = $expected_mode & 0777;
 
     // PHP on Windows has limited support for file permissions. Usually each of
     // "user", "group" and "other" use one octal digit (3 bits) to represent the
@@ -363,9 +361,6 @@ class FileSpaceUsedTest extends FileTestCase {
  *  This will run tests against the file validation functions (file_validate_*).
  */
 class FileValidatorTest extends DrupalWebTestCase {
-  protected $image;
-  protected $non_image;
-
   public static function getInfo() {
     return array(
       'name' => 'File validator tests',
@@ -568,11 +563,6 @@ class FileSaveUploadTest extends FileHookTestCase {
    * The largest file id when the test starts.
    */
   protected $maxFidBefore;
-
-  /**
-   * An image extension.
-   */
-  protected $image_extension;
 
   public static function getInfo() {
     return array(
@@ -1066,39 +1056,6 @@ class FileDirectoryTest extends FileTestCase {
   }
 
   /**
-   * Test local directory handling functions.
-   */
-  function testFileCheckLocalDirectoryHandling() {
-    $directory = file_default_scheme() . '://';
-
-    // Check a new recursively created local directory for correct file system
-    // permissions.
-    $parent = $this->randomName();
-    $child = $this->randomName();
-
-    // Files directory already exists.
-    $this->assertTrue(is_dir($directory), 'Files directory already exists.', 'File');
-    // Make files directory writable only.
-    $old_mode = fileperms($directory);
-
-    // Create the directories.
-    $parent_path = $directory . DIRECTORY_SEPARATOR . $parent;
-    $child_path = $parent_path . DIRECTORY_SEPARATOR . $child;
-    $this->assertTrue(drupal_mkdir($child_path, 0775, TRUE), 'No error reported when creating new local directories.', 'File');
-
-    // Ensure new directories also exist.
-    $this->assertTrue(is_dir($parent_path), 'New parent directory actually exists.', 'File');
-    $this->assertTrue(is_dir($child_path), 'New child directory actually exists.', 'File');
-
-    // Check that new directory permissions were set properly.
-    $this->assertDirectoryPermissions($parent_path, 0775);
-    $this->assertDirectoryPermissions($child_path, 0775);
-
-    // Check that existing directory permissions were not modified.
-    $this->assertDirectoryPermissions($directory, $old_mode);
-  }
-
-  /**
    * Test directory handling functions.
    */
   function testFileCheckDirectoryHandling() {
@@ -1246,8 +1203,6 @@ class RemoteFileDirectoryTest extends FileDirectoryTest {
  * Tests the file_scan_directory() function.
  */
 class FileScanDirectoryTest extends FileTestCase {
-  protected $path;
-
   public static function getInfo() {
     return array(
       'name' => 'File scan directory',
@@ -2777,10 +2732,6 @@ class FileURLRewritingTest extends FileTestCase {
  * Tests for file_munge_filename() and file_unmunge_filename().
  */
 class FileNameMungingTest extends FileTestCase {
-  protected $bad_extension;
-  protected $name;
-  protected $name_with_uc_ext;
-
   public static function getInfo() {
     return array(
       'name' => 'File naming',

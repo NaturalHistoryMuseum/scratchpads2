@@ -46,8 +46,6 @@ class TaxonomyWebTestCase extends DrupalWebTestCase {
  * Tests the taxonomy vocabulary interface.
  */
 class TaxonomyVocabularyFunctionalTest extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -197,10 +195,6 @@ class TaxonomyVocabularyFunctionalTest extends TaxonomyWebTestCase {
  * Tests for taxonomy vocabulary functions.
  */
 class TaxonomyVocabularyTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $field;
-  protected $field_name;
-  protected $instance;
 
   public static function getInfo() {
     return array(
@@ -490,7 +484,6 @@ class TaxonomyTermFunctionTestCase extends TaxonomyWebTestCase {
  * Test for legacy node bug.
  */
 class TaxonomyLegacyTestCase extends TaxonomyWebTestCase {
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -529,9 +522,6 @@ class TaxonomyLegacyTestCase extends TaxonomyWebTestCase {
  * Tests for taxonomy term functions.
  */
 class TaxonomyTermTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $instance;
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -661,13 +651,10 @@ class TaxonomyTermTestCase extends TaxonomyWebTestCase {
     $instance['widget'] = array('type' => 'taxonomy_autocomplete');
     $instance['bundle'] = 'page';
     field_create_instance($instance);
-    // Prefix the terms with a letter to ensure there is no clash in the first
-    // three letters.
-    // @see https://www.drupal.org/node/2397691
     $terms = array(
-      'term1' => 'a' . $this->randomName(),
-      'term2' => 'b' . $this->randomName() . ', ' . $this->randomName(),
-      'term3' => 'c' . $this->randomName(),
+      'term1' => $this->randomName(),
+      'term2' => $this->randomName() . ', ' . $this->randomName(),
+      'term3' => $this->randomName(),
     );
 
     $edit = array();
@@ -1021,38 +1008,12 @@ class TaxonomyTermTestCase extends TaxonomyWebTestCase {
     $this->assertEqual(count($terms), 0, 'No terms loaded when restricted by a non-existing vocabulary.');
   }
 
-  /**
-   * Tests that taxonomy term detail page is working even after the default
-   * taxonomy_select_nodes() query is altered.
-   */
-  public function testTaxonomySelectNodesAlter() {
-    // Create a new term.
-    $term = $this->createTerm($this->vocabulary);
-
-    // Create an article.
-    $settings = array(
-      'type' => 'article',
-      $this->instance['field_name'] => array(LANGUAGE_NONE => array(array('tid' => $term->tid))),
-    );
-    $this->drupalCreateNode($settings);
-
-    // Check if the taxonomy term detail page is working.
-    module_enable(array('taxonomy_nodes_test'));
-    variable_set('taxonomy_nodes_test_query_node_access_alter', TRUE);
-    $this->drupalGet('taxonomy/term/' . $term->tid);
-    $this->assertResponse(200, 'The taxonomy term page is working.');
-    variable_set('taxonomy_nodes_test_query_node_access_alter', FALSE);
-  }
-
 }
 
 /**
  * Tests the rendering of term reference fields in RSS feeds.
  */
 class TaxonomyRSSTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $instance;
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -1147,14 +1108,6 @@ class TaxonomyRSSTestCase extends TaxonomyWebTestCase {
  * Tests the hook implementations that maintain the taxonomy index.
  */
 class TaxonomyTermIndexTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $instance_1;
-  protected $field_name_1;
-  protected $field_1;
-  protected $instance_2;
-  protected $field_name_2;
-  protected $field_2;
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -1373,7 +1326,6 @@ class TaxonomyTermIndexTestCase extends TaxonomyWebTestCase {
  * Test the taxonomy_term_load_multiple() function.
  */
 class TaxonomyLoadMultipleTestCase extends TaxonomyWebTestCase {
-  protected $taxonomy_admin;
 
   public static function getInfo() {
     return array(
@@ -1507,8 +1459,6 @@ class TaxonomyTermFieldTestCase extends TaxonomyWebTestCase {
 
   protected $instance;
   protected $vocabulary;
-  protected $field_name;
-  protected $field;
 
   public static function getInfo() {
     return array(
@@ -1660,21 +1610,6 @@ class TaxonomyTermFieldTestCase extends TaxonomyWebTestCase {
     $this->assertEqual($allowed_values[2]['vocabulary'], 'foo', 'Index 2: Machine name was left untouched.');
   }
 
-  /**
-   * Test empty taxonomy term reference field.
-   */
-  function testEmptyTaxonomyTermReferenceField() {
-    // Test if an empty value in the taxonomy reference field would trigger
-    // autocreate or if the value would be saved correctly.
-    $langcode = LANGUAGE_NONE;
-    $entity = field_test_create_stub_entity(NULL, NULL);
-    $entity->{$this->field_name}[$langcode][0]['tid'] = 0;
-    field_test_entity_save($entity);
-    $entity = field_test_entity_test_load($entity->ftid);
-    field_test_entity_save($entity);
-    $this->pass('Empty term ID does not trigger autocreate.');
-  }
-
 }
 
 /**
@@ -1685,8 +1620,6 @@ class TaxonomyTermFieldMultipleVocabularyTestCase extends TaxonomyWebTestCase {
   protected $instance;
   protected $vocabulary1;
   protected $vocabulary2;
-  protected $field_name;
-  protected $field;
 
   public static function getInfo() {
     return array(
@@ -1805,10 +1738,6 @@ class TaxonomyTermFieldMultipleVocabularyTestCase extends TaxonomyWebTestCase {
  * Test taxonomy token replacement in strings.
  */
 class TaxonomyTokenReplaceTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-  protected $instance;
-  protected $langcode;
-  protected $admin_user;
 
   public static function getInfo() {
     return array(
@@ -1948,24 +1877,6 @@ class TaxonomyTokenReplaceTestCase extends TaxonomyWebTestCase {
       $output = token_replace($input, array('vocabulary' => $this->vocabulary), array('language' => $language, 'sanitize' => FALSE));
       $this->assertEqual($output, $expected, format_string('Unsanitized taxonomy vocabulary token %token replaced.', array('%token' => $input)));
     }
-
-    // Verify that tokens are generated for terms with empty description.
-    $term1->description = '';
-    taxonomy_term_save($term1);
-    $term2->description = NULL;
-    taxonomy_term_save($term2);
-
-    // Generate and test sanitized tokens.
-    $tests = array();
-    $tests['[term:description]'] = '';
-
-    foreach ($tests as $input => $expected) {
-      $output = token_replace($input, array('term' => $term1), array('language' => $language));
-      $this->assertEqual($output, $expected, format_string('Sanitized taxonomy term token %token replaced.', array('%token' => $input)));
-
-      $output = token_replace($input, array('term' => $term2), array('language' => $language));
-      $this->assertEqual($output, $expected, format_string('Sanitized taxonomy term token %token replaced.', array('%token' => $input)));
-    }
   }
 
 }
@@ -2023,9 +1934,6 @@ class TaxonomyThemeTestCase extends TaxonomyWebTestCase {
  * Tests the functionality of EntityFieldQuery for taxonomy entities.
  */
 class TaxonomyEFQTestCase extends TaxonomyWebTestCase {
-  protected $admin_user;
-  protected $vocabulary;
-
   public static function getInfo() {
     return array(
       'name' => 'Taxonomy EntityFieldQuery',
@@ -2184,117 +2092,4 @@ class TaxonomyQueryAlterTestCase extends TaxonomyWebTestCase {
     $this->assertIdentical($expected_invocations, variable_get('taxonomy_test_query_taxonomy_term_access_alter'), 'Preferred hook_query_taxonomy_term_access_alter() invoked when executing ' . $method);
   }
 
-}
-
-/**
- * Tests for taxonomy terms cache usage.
- */
-class TaxonomyTermCacheUsageTestCase extends TaxonomyWebTestCase {
-  public static function getInfo() {
-    return array(
-      'name' => 'Taxonomy term cache usage',
-      'description' => 'Tests for taxonomy term cache usage.',
-      'group' => 'Taxonomy',
-    );
-  }
-
-  function setUp() {
-    parent::setUp('taxonomy', 'taxonomy_test');
-  }
-
-  /**
-   * Test taxonomy_get_term_by_name() cache usage.
-   */
-  function testTaxonomyGetTermByNameCacheUsage() {
-    // Create vocabulary and term.
-    $new_vocabulary = $this->createVocabulary();
-    $new_term = new stdClass();
-    $new_term->name = 'MixedCaseTerm';
-    $new_term->vid = $new_vocabulary->vid;
-    taxonomy_term_save($new_term);
-
-    // Try to load term with mixed case letters from the cache.
-    $taxonomy_controller = new TestTaxonomyTermController('taxonomy_term');
-    // First load to warm the cache.
-    $terms = $taxonomy_controller->load(array(), array('name' => $new_term->name));
-    $this->assertTrue(isset($terms[$new_term->tid]), 'Term loaded using exact name and vocabulary machine name.');
-    // Second load should load the $new_term from the cache.
-    $terms = $taxonomy_controller->loadFromCache(array(), array('name' => $new_term->name));
-    $this->assertTrue(isset($terms[$new_term->tid]), 'Term loaded using the cache.');
-  }
-
-}
-
-/**
- * Tests appropriate access control to private file fields on a term.
- */
-class TaxonomyPrivateFileTestCase extends TaxonomyWebTestCase {
-  protected $vocabulary;
-
-  public static function getInfo() {
-    return array(
-      'name' => 'Taxonomy term private file access',
-      'description' => 'Verifies private files on terms have appropriate access control.',
-      'group' => 'Taxonomy',
-    );
-  }
-
-  public function setUp() {
-    parent::setUp('taxonomy_test');
-
-    // Remove access content permission from registered users.
-    user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array('access content'));
-
-    $this->vocabulary = $this->createVocabulary();
-    // Add a field instance to the vocabulary.
-    $field = array(
-      'field_name' => 'field_test',
-      'type' => 'image',
-      'settings' => array(
-        'uri_scheme' => 'private'
-      ),
-    );
-    field_create_field($field);
-    $instance = array(
-      'field_name' => 'field_test',
-      'entity_type' => 'taxonomy_term',
-      'label' => 'test',
-      'bundle' => $this->vocabulary->machine_name,
-      'widget' => array(
-        'type' => 'image_image',
-        'settings' => array(),
-      ),
-    );
-    field_create_instance($instance);
-  }
-
-  /**
-   * Tests access to a private file on a taxonomy term entity.
-   */
-  public function testTaxonomyImageAccess() {
-    $user = $this->drupalCreateUser(array('administer site configuration', 'administer taxonomy', 'access user profiles'));
-    $this->drupalLogin($user);
-
-    // Create a term and upload the image.
-    $term = $this->createTerm($this->vocabulary);
-    $files = $this->drupalGetTestFiles('image');
-    $image = array_pop($files);
-    $edit['files[field_test_' . LANGUAGE_NONE . '_0]'] = drupal_realpath($image->uri);
-    $this->drupalPost('taxonomy/term/' . $term->tid . '/edit', $edit, t('Save'));
-    $term = taxonomy_term_load($term->tid);
-    $this->assertText(t('Updated term @name.', array('@name' => $term->name)));
-
-    // Create a user that should have access to the file and one that doesn't.
-    $access_user = $this->drupalCreateUser(array('access content'));
-    $no_access_user = $this->drupalCreateUser();
-    $image = file_load($term->field_test[LANGUAGE_NONE][0]['fid']);
-    $image_url = file_create_url($image->uri);
-    $this->drupalLogin($access_user);
-    $this->drupalGet($image_url);
-    $this->assertResponse(200, 'Private image on term is accessible with right permission');
-
-    $this->drupalLogin($no_access_user);
-    $this->drupalGet($image_url);
-    $this->assertResponse(403, 'Private image on term not accessible without right permission');
-  }
 }

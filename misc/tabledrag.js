@@ -165,8 +165,7 @@ Drupal.tableDrag.prototype.initColumns = function () {
   // Set a cookie if it is not already present.
   if ($.cookie('Drupal.tableDrag.showWeight') === null) {
     $.cookie('Drupal.tableDrag.showWeight', 0, {
-      // Workaround lack of support for the SameSite attribute in jQuery Cookie.
-      path: Drupal.settings.basePath + '; SameSite=Lax',
+      path: Drupal.settings.basePath,
       // The cookie expires in one year.
       expires: 365
     });
@@ -198,9 +197,9 @@ Drupal.tableDrag.prototype.hideColumns = function () {
   });
   // Change link text.
   $('.tabledrag-toggle-weight').text(Drupal.t('Show row weights'));
-  // Change cookie (including workaround for SameSite attribute).
+  // Change cookie.
   $.cookie('Drupal.tableDrag.showWeight', 0, {
-    path: Drupal.settings.basePath + '; SameSite=Lax',
+    path: Drupal.settings.basePath,
     // The cookie expires in one year.
     expires: 365
   });
@@ -223,9 +222,9 @@ Drupal.tableDrag.prototype.showColumns = function () {
   });
   // Change link text.
   $('.tabledrag-toggle-weight').text(Drupal.t('Hide row weights'));
-  // Change cookie (including workaround for SameSite attribute).
+  // Change cookie.
   $.cookie('Drupal.tableDrag.showWeight', 1, {
-    path: Drupal.settings.basePath + '; SameSite=Lax',
+    path: Drupal.settings.basePath,
     // The cookie expires in one year.
     expires: 365
   });
