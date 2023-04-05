@@ -45,19 +45,23 @@ Enabling the DwC-A module
 
 4. Click *Save*.
 
-NOTE: Creating the DarwinCore Archive is resource intensive, and the task is processed in the background by :term:`Cron`. The DarwinCore Archive will not be immediately available, so you might need to give it a few minutes before proceeding to `Downloading the file`_.
 
+Configuring & building DwC-A
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Configuring DwC-A module
-^^^^^^^^^^^^^^^^^^^^^^^^
+From the :term:`Admin menu` select *Configuration > DwC-Archiver*
 
-From the :term:`Admin menu` got to *Configuration > DwC-Archive settings*
+Here you can *Rebuild* and *Download* the DwC-A.
 
-Here you can change the primary author used in the DwC-Archive file (if you have multiple maintainers on a site)
+Two default DwC Archive files are provided by Scratchpads, with content formatted for EOL and GBIF. 
+
+You can *Override* these implementations to create a custom archive, or *Add DwCArchive* to define your own.
 
 
 Downloading the file
 ^^^^^^^^^^^^^^^^^^^^
+
+Note: before downloading the file, you must first go to *:term:`Admin menu` > Configuration > DwC-Archiver* and select *Rebuild* to crate the archive file.
 
 1. Open a new browser tab and enter the address of your scratchpad site adding gbif-dwca.zip
 
