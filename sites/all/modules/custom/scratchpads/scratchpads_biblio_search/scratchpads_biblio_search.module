@@ -806,6 +806,10 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
     $nids[] = $row['fields']['entity_id'];
   }
   $nodes = node_load_multiple($nids);
+  $context['results'] = array(
+    'output_file' => $context['sandbox']['output_file'],
+    'output' => ''
+  );  
   $output = '';
   foreach($nodes as $node){
     switch($format){
@@ -833,7 +837,7 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
     }
     $context['message'] = '<p class="ok">' . t('You may close the overlay once the file download starts.') . '</p>';
   }
-  file_put_contents(drupal_realpath($context['sandbox']['output_file']), $output, FILE_APPEND);
+  $context['results']['output'] .= $output;
   $context['finished'] = $context['sandbox']['page'] / $context['sandbox']['total_pages'];
 }
 
@@ -842,6 +846,7 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
  */
 function _scratchpads_biblio_search_batch_send_file($success, $results, $operations){
   if($success){
+    file_put_contents(drupal_realpath($results['output_file']), $results['output']);
     drupal_goto('scratchpads-biblio-search-send-file');
   }else{
     drupal_set_message(t('Unable to export bibliography'), 'error');
