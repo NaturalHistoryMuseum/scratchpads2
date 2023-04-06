@@ -65,7 +65,7 @@ Note: before downloading the file, you must first go to *:term:`Admin menu` > Co
 
 1. Open a new browser tab and enter the address of your scratchpad site adding gbif-dwca.zip
 
-   For example, http://phthiraptera.info/gbif-dwca.zip
+   For example, phthiraptera.myspecies.info/gbif-dwca.zip
 
 2. You will be prompted to download a .zip file. Accept and save to your computer.
 
