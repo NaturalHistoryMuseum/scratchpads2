@@ -480,12 +480,26 @@ function _biblio_ris_export($node) {
     $ris .= "Y1  - " . trim($node->biblio_year) . "\r\n";
   }
 
+  if (isset($node->biblio_doi) &! empty($node->biblio_doi)) {
+    $ris .= "DO  - " . trim($node->biblio_doi) . "\r\n";
+  }  
+
   foreach (biblio_get_contributor_category($node->biblio_contributors, 1) as $auth) {
     $ris .= "A1  - " . trim($auth['name']) . "\r\n";
   }
   foreach (biblio_get_contributor_category($node->biblio_contributors, 2) as $auth) {
     $ris .= "ED  - " . trim($auth['name']) . "\r\n";
   }
+
+  if (isset($node->biblio_pages) &! empty($node->biblio_pages)){
+    if (strpos($node->biblio_pages, '-') !== false) {
+      $pages = explode('-', $node->biblio_pages);
+      $ris .= "SP  - " . trim($pages[0]) . "\r\n";
+      $ris .= "EP  - " . trim($pages[1]) . "\r\n";
+    }else{
+      $ris .= "SP  - " . trim($node->biblio_pages) . "\r\n";
+    }
+  }  
 
   $kw_array = array();
   if (!empty($node->terms)) {
