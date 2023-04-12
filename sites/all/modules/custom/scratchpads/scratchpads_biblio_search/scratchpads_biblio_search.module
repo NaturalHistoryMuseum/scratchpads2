@@ -803,6 +803,8 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
   module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   module_load_include('inc', 'biblio_xml', 'endnote8_export');
   $nids = array();
+  watchdog('ben_debug', 'RUN SEARCH');
+  watchdog('ben_debug', $results);
   foreach($results as $row){
     $nids[] = $row['fields']['entity_id'];
   }
