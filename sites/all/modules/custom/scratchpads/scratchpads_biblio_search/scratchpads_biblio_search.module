@@ -801,43 +801,42 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
   $results = apachesolr_search_search_results('', $conditions, $search_page);
   // Is this include line definitely required?
   module_load_include('inc', 'biblio', 'includes/biblio.contributors');
+  module_load_include('inc', 'biblio_xml', 'endnote8_export');
   $nids = array();
   foreach($results as $row){
     $nids[] = $row['fields']['entity_id'];
   }
   $nodes = node_load_multiple($nids);
-  $context['results'] = array(
-    'output_file' => $context['sandbox']['output_file'],
-    'output' => ''
-  );  
-  $output = '';
+  // First batch
+  if($_GET['page'] == 0){
+    if($format == 'xml'){
+      $context['results'] = _endnote8_XML_export('', 'begin');
+    }else{
+      $context['results'] = '';
+    }    
+  }
   foreach($nodes as $node){
     switch($format){
       case 'ris':
-        $output .= _biblio_ris_export($node);
+        $context['results'] .= _biblio_ris_export($node);
         break;
       case 'xml':
-        module_load_include('inc', 'biblio_xml', 'endnote8_export');
-        if($_GET['page'] == 0){
-          $output = _endnote8_XML_export('', 'begin');
-        }
-        $output .= _endnote8_XML_export($node);
+        $context['results'] .= _endnote8_XML_export($node);
         break;
       case 'tagged':
-        $output .= _biblio_tagged_export($node);
+        $context['results'] .= _biblio_tagged_export($node);
         break;
       case 'bibtex':
-        $output .= _biblio_bibtex_export($node);
+        $context['results'] .= _biblio_bibtex_export($node);
         break;
     }
   }
   if($context['sandbox']['page'] == $context['sandbox']['total_pages']){
     if($format == 'xml'){
-      $output .= _endnote8_XML_export('', 'end');
+      $context['results'] .= _endnote8_XML_export('', 'end');
     }
     $context['message'] = '<p class="ok">' . t('You may close the overlay once the file download starts.') . '</p>';
   }
-  $context['results']['output'] .= $output;
   $context['finished'] = $context['sandbox']['page'] / $context['sandbox']['total_pages'];
 }
 
@@ -846,7 +845,8 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
  */
 function _scratchpads_biblio_search_batch_send_file($success, $results, $operations){
   if($success){
-    file_put_contents(drupal_realpath($results['output_file']), $results['output']);
+    $output_file = $_SESSION['scratchpads_biblio_search_file_path'];
+    file_put_contents(drupal_realpath($output_file), $results);
     drupal_goto('scratchpads-biblio-search-send-file');
   }else{
     drupal_set_message(t('Unable to export bibliography'), 'error');
