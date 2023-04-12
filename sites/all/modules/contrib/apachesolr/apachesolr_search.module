@@ -906,10 +906,7 @@ function apachesolr_search_search_results($keys = NULL, $conditions = NULL, $sea
         $context['page_id'] = $search_page['page_id'];
         $context['search_type'] = 'apachesolr_search_results';
 
-        watchdog('ben_debug', 'FULL SEARCH');
-
-        watchdog('ben_debug', pager_find_page());
-
+        watchdog('ben_debug', 'FULL SEARCH');        
         $results = apachesolr_search_run('apachesolr', $params, $solrsort, $search_page['search_path'], pager_find_page(), $solr, $context);
       }
     }
