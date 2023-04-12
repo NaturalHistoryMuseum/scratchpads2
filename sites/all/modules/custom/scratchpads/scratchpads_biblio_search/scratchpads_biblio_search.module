@@ -803,12 +803,11 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
   module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   module_load_include('inc', 'biblio_xml', 'endnote8_export');
   $nids = array();
-  watchdog('ben_debug', 'RUN SEARCH');
-  watchdog('ben_debug', $results);
+  watchdog('ben_debug', 'RUN SEARCH 2');
   foreach($results as $row){
     $nids[] = $row['fields']['entity_id'];
   }
-  watchdog('ben_debug', $nids);
+  watchdog('ben_debug', implode('-', $nids));
   $nodes = node_load_multiple($nids);
   // First batch
   if($_GET['page'] == 0){
