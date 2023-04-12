@@ -812,7 +812,7 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
     if($format == 'xml'){
       $context['results'] = _endnote8_XML_export('', 'begin');
     }else{
-      $context['results'] = '';
+      $context['results'] = 'START';
     }    
   }else{
     $context['results'] = '<<XXX>>' . $_GET['page'];
