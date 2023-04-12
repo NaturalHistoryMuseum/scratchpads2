@@ -880,9 +880,6 @@ function apachesolr_search_search_results($keys = NULL, $conditions = NULL, $sea
 
       // Empty text Behavior
       if (!$keys && !isset($conditions['f']) && ($empty_search_behavior == 'browse' || $empty_search_behavior == 'blocks')) {
-
-        watchdog('ben_debug', 'EMPTY SEARCH');
-
         // Pass empty search behavior as string on to apachesolr_search_search_page()
         // Hardcoded apachesolr name since we rely on this for the facets
         $context['page_id'] = $search_page['page_id'];
@@ -904,9 +901,7 @@ function apachesolr_search_search_results($keys = NULL, $conditions = NULL, $sea
         $params['q'] = $keys;
         // Hardcoded apachesolr name since we rely on this for the facets
         $context['page_id'] = $search_page['page_id'];
-        $context['search_type'] = 'apachesolr_search_results';
-
-        watchdog('ben_debug', 'FULL SEARCH');        
+        $context['search_type'] = 'apachesolr_search_results';    
         $results = apachesolr_search_run('apachesolr', $params, $solrsort, $search_page['search_path'], pager_find_page(), $solr, $context);
       }
     }
@@ -1070,9 +1065,6 @@ function apachesolr_search_run($name, array $params = array(), $solrsort = '', $
   // Add the paging parameters
   $query->page = $page;
 
-  watchdog('ben_debug', 'SOLR SEARCH');
-  watchdog('ben_debug', $page);
-
   apachesolr_search_add_boost_params($query);
   if ($query->getParam('q')) {
     apachesolr_search_highlighting_params($query);
@@ -1094,10 +1086,6 @@ function apachesolr_search_run($name, array $params = array(), $solrsort = '', $
     // No highlighting, use the teaser as a snippet.
     $query->addParam('fl', 'teaser');
   }
-
-  watchdog('ben_debug', 'DO QUERY');
-  watchdog('ben_debug', $query->page);  
-
   list($final_query, $response) = apachesolr_do_query($query);
   $env_id = $query->solr('getId');
   apachesolr_has_searched($env_id, TRUE);
