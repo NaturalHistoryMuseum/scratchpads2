@@ -1514,8 +1514,12 @@ function apachesolr_do_query(DrupalSolrQueryInterface $current_query) {
   // Verify if this query was already executed in the same page load
   if ($response = apachesolr_static_response_cache($searcher)) {
     // Return cached query object
+    if (batch_get()){
+      watchdog('ben_debug', 'IS_BATCH');
+    }else{
+      watchdog('ben_debug', 'NOT_BATCH');
+    }
     // return array($query, $response);
-    
   }
   $query->addParam('start', $query->page * $query->getParam('rows'));
 
