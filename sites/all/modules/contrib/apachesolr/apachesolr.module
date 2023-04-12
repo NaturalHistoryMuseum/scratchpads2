@@ -1515,6 +1515,7 @@ function apachesolr_do_query(DrupalSolrQueryInterface $current_query) {
   if ($response = apachesolr_static_response_cache($searcher)) {
     // Return cached query object
     // return array($query, $response);
+    
   }
   $query->addParam('start', $query->page * $query->getParam('rows'));
 
