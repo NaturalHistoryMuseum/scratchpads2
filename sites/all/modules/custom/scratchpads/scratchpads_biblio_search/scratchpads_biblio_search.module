@@ -814,6 +814,8 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
     }else{
       $context['results'] = '';
     }    
+  }else{
+    $context['results'] = '<<XXX>>' . $_GET['page'];
   }
   foreach($nodes as $node){
     switch($format){
