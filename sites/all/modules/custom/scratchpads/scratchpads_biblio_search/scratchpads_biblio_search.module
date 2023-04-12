@@ -796,9 +796,9 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
         break;
     }
   }
-  $_GET['page'] = $context['sandbox']['page'];
+  $_GET['page'] = $context['sandbox']['page'];  
+  $results = apachesolr_search_search_results('', $conditions, $context['sandbox']['page']);
   $context['sandbox']['page']++;
-  $results = apachesolr_search_search_results('', $conditions, $search_page);
   // Is this include line definitely required?
   module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   $nids = array();
