@@ -1070,6 +1070,9 @@ function apachesolr_search_run($name, array $params = array(), $solrsort = '', $
   // Add the paging parameters
   $query->page = $page;
 
+  watchdog('ben_debug', 'SOLR SEARCH');
+  watchdog('ben_debug', $page);
+
   apachesolr_search_add_boost_params($query);
   if ($query->getParam('q')) {
     apachesolr_search_highlighting_params($query);
@@ -1091,6 +1094,9 @@ function apachesolr_search_run($name, array $params = array(), $solrsort = '', $
     // No highlighting, use the teaser as a snippet.
     $query->addParam('fl', 'teaser');
   }
+
+  watchdog('ben_debug', 'DO QUERY');
+  watchdog('ben_debug', $query->page);  
 
   list($final_query, $response) = apachesolr_do_query($query);
   $env_id = $query->solr('getId');
