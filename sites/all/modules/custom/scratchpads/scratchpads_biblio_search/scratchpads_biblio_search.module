@@ -798,7 +798,7 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
   }
   $_GET['page'] = $context['sandbox']['page'];
   $context['sandbox']['page']++;
-  $results = apachesolr_search_search_results('*', $conditions, $search_page);
+  $results = apachesolr_search_search_results('', $conditions, $search_page);
   // Is this include line definitely required?
   module_load_include('inc', 'biblio', 'includes/biblio.contributors');
   module_load_include('inc', 'biblio_xml', 'endnote8_export');
@@ -806,6 +806,7 @@ function _scratchpads_biblio_search_batch_export($format, $conditions, $search_p
   foreach($results as $row){
     $nids[] = $row['fields']['entity_id'];
   }
+  watchdog('ben_debug', $nids);
   $nodes = node_load_multiple($nids);
   // First batch
   if($_GET['page'] == 0){
