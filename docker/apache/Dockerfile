@@ -28,8 +28,8 @@ RUN ./configure
 RUN make
 RUN make install
 
-RUN pecl install xdebug
-RUN docker-php-ext-enable xdebug
+# RUN pecl install xdebug
+# RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-install opcache
 RUN docker-php-ext-install sockets
