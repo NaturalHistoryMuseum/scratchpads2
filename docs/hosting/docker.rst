@@ -98,13 +98,13 @@ You must update the SQL default settings in the .env file (if you are recreating
 4. Recreate from backup
 #######################
 
-If you want to recreate a local copy of your Scratchpad, first download the backup file following these instructions :doc:`/export/create-backup`.
+If you want to recreate your hosted Scratchpad, first download the backup file following these instructions :doc:`/export/create-backup`.
 
     .. code-block:: console    
 
         make site-from-archive archive=/path/to/backup/backup.myspecies.info-20230404.194808.tar.gz
 
-4. Daemonize
+5. Daemonize
 ############
 
 To keep serving the site once you log-off from the server, you must daemonize the process.
@@ -114,7 +114,7 @@ To keep serving the site once you log-off from the server, you must daemonize th
         make down
         docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
 
-4. Set up cron
+6. Set up cron
 ##############
 
 Scratchpads has tasks that run at intervals in the background (indexing for the site search, for example). To enable this, you must add a cron task.
