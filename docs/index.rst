@@ -71,8 +71,12 @@ Contents
 
    export/exporting-data
    export/create-backup
-   export/word-dictionary
-   export/geocat
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Hosting
+
+   hosting/docker
 
 .. toctree::
    :maxdepth: 1
