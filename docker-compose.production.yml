@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  apache:
+    volumes:
+      - ./:/var/www/html
+
+volumes:
+  apache-files:
+    driver: local
+    driver_opts:
+      o: 'bind,uid=1000,rw'
+      type: none
+      device: /data/apache-files
+  mysql-data:
+  solr-data:
