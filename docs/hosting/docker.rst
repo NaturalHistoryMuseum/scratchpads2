@@ -128,3 +128,6 @@ And enter the text before saving the file.
     .. code-block:: console  
 
         0 3 * * * docker exec scratchpads.apache drush core-cron > /var/log/docker.cron.log 2>&1
+
+
+If you would prefer to run Scratchpads on your server without Docker, these instructions will help - https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04        
