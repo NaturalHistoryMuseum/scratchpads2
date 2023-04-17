@@ -1,7 +1,12 @@
 Hosting your own Scratchpad
 ===========================
 
-*You can very easily host a Scratchpad on your own server using our in-built Docker configuration.*
+*You can very easily host a Scratchpad on your own server using our in-built Docker configuration.*  
+
+*This system architecture has been used to successfully run https://bio.acousti.ca, our most resource-intensive site, for many years.*
+
+*If you need any help or support hosting your own Scratchpad, please raise a ticket on our issue queue https://github.com/NaturalHistoryMuseum/scratchpads2/issues* 
+
 
 Finding a server
 ~~~~~~~~~~~~~~~~
@@ -130,4 +135,6 @@ And enter the text before saving the file.
         0 3 * * * docker exec scratchpads.apache drush core-cron > /var/log/docker.cron.log 2>&1
 
 
-If you would prefer to run Scratchpads on your server without Docker, these instructions will help - https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04        
+You can also run Scratchpads without Docker, installing your own versions of PHP, MySQL, Apache and SOLR.  It's much more complex, but these instructions will help - https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04
+
+     
