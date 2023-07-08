@@ -14,6 +14,6 @@
     "mysql": "^2.16.0",
     "proxymise": "^1.0.2",
     "source-map-support": "^0.5.9",
-    "webdriver": "^5.0.0-beta.0"
+    "webdriver": "^8.11.3"
   }
 }
