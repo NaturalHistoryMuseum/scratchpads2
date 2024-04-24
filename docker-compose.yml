@@ -113,6 +113,7 @@ services:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}
       VARNISH_MEMORY: ${VARNISH_MEMORY}
+      APACHE_SERVICE: ${APACHE_SERVICE}
     logging:
       driver: json-file
       options:
