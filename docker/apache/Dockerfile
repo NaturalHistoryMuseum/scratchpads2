@@ -1,5 +1,10 @@
 FROM php:7.2-apache-stretch
 
+# Debian has been archived - update repo locations
+RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
+RUN sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
+RUN sed -i s/stretch-updates/stretch/g /etc/apt/sources.list
+
 RUN apt-get update
 RUN apt-get -y install wget \
     libxml2-dev \
@@ -78,8 +83,10 @@ COPY files/settings.php /var/www/html/sites/default/settings.php
 # Enable error logging & msmtp
 COPY files/php.ini /usr/local/etc/php/
 
-RUN usermod -u 1000 www-data
-RUN groupmod -g 1000 www-data
+
+
+RUN usermod -u 33 www-data
+RUN groupmod -g 33 www-data
 RUN chown -R www-data:www-data /var/www/html
 
 # Install extra modules
