@@ -6,10 +6,13 @@ $databases['default']['default'] = array(
   'database' => getenv('MYSQL_DATABASE'),
   'username' => getenv('MYSQL_USER'),
   'password' => getenv('MYSQL_PASSWORD'),
-  'host' => 'scratchpads.mysql'
+  'host' => getenv('MYSQL_HOST')
 );
 
-$conf['scratchpads_solr_urls'] = array("http://scratchpads.solr:8983/solr/scratchpads2");
+
+$conf['scratchpads_solr_urls'] = array("getenv('SOLR_URL')");
+
+
 
 # Override "standard scratchpad" install option - denotes
 # locally run scratchpad, with logins etc disabled

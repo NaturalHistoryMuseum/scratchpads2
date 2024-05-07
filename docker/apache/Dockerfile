@@ -85,8 +85,8 @@ COPY files/php.ini /usr/local/etc/php/
 
 
 
-RUN usermod -u 33 www-data
-RUN groupmod -g 33 www-data
+RUN usermod -u 1000 www-data
+RUN groupmod -g 1000 www-data
 RUN chown -R www-data:www-data /var/www/html
 
 # Install extra modules
