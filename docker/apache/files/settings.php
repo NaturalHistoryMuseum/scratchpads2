@@ -52,9 +52,6 @@ $conf["error_level"] = 0;
 $conf["syslog_identity"] = $_SERVER["HTTP_HOST"];
 $conf['drupal_http_request_fails'] = FALSE;
 
-// Scratchpad settings
-$conf['taverna_auth_token'] = getenv('TAVERNA_AUTH_TOKEN');
-
 // Cache
 $conf["block_cache"] = TRUE;
 $conf["cache"] = TRUE;

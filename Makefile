@@ -38,6 +38,8 @@ build:
 	@docker build -t naturalhistorymuseum/scratchpad-mysql -t naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE) docker/mysql
 	@docker build -t naturalhistorymuseum/scratchpad-varnish -t naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE) docker/varnish
 
+build:
+
 site-from-archive:
 	@test -f $(archive) && echo Creating site from archive $(archive) || echo Archive not found
 	@tar -xf $(archive) database.sql

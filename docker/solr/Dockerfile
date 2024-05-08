@@ -1,4 +1,6 @@
-FROM java:7-jre
+FROM openjdk:7-jre-alpine
+
+RUN apk add --no-cache --upgrade bash
 
 ARG SOLR_UNDERTOW_DIRECTORY='/usr/local/share/solr-undertow'
 ARG SOLR_DATA_DIRECTORY='/var/lib/solr-undertow'

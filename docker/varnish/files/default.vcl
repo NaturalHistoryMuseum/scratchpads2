@@ -4,7 +4,7 @@ import directors;
 import std;
 
 backend default {
-  .host = "<APACHE_SERVICE>";
+  .host = "scratchpads.apache";
   .port = "80";
   .max_connections = 100;
   .connect_timeout = 60s;
