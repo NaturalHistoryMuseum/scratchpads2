@@ -38,6 +38,16 @@ build:
 	@docker build -t naturalhistorymuseum/scratchpad-mysql -t naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE) docker/mysql
 	@docker build -t naturalhistorymuseum/scratchpad-varnish -t naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE) docker/varnish
 
+push:
+	@docker push naturalhistorymuseum/scratchpad-apache
+	@docker push naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE)
+	@docker push naturalhistorymuseum/scratchpad-solr
+	@docker push naturalhistorymuseum/scratchpad-solr:$(CURRENT_DATE)
+	@docker push naturalhistorymuseum/scratchpad-mysql
+	@docker push naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE)		
+	@docker push naturalhistorymuseum/scratchpad-varnish
+	@docker push naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE)
+
 site-from-archive:
 	@test -f $(archive) && echo Creating site from archive $(archive) || echo Archive not found
 	@tar -xf $(archive) database.sql

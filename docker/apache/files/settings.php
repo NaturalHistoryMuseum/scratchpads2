@@ -6,10 +6,13 @@ $databases['default']['default'] = array(
   'database' => getenv('MYSQL_DATABASE'),
   'username' => getenv('MYSQL_USER'),
   'password' => getenv('MYSQL_PASSWORD'),
-  'host' => 'scratchpads.mysql'
+  'host' => getenv('MYSQL_HOST')
 );
 
-$conf['scratchpads_solr_urls'] = array("http://scratchpads.solr:8983/solr/scratchpads2");
+
+$conf['scratchpads_solr_urls'] = array("getenv('SOLR_URL')");
+
+
 
 # Override "standard scratchpad" install option - denotes
 # locally run scratchpad, with logins etc disabled
@@ -48,9 +51,6 @@ $conf["jquery_update_jquery_cdn"] = "none";
 $conf["error_level"] = 0;
 $conf["syslog_identity"] = $_SERVER["HTTP_HOST"];
 $conf['drupal_http_request_fails'] = FALSE;
-
-// Scratchpad settings
-$conf['taverna_auth_token'] = getenv('TAVERNA_AUTH_TOKEN');
 
 // Cache
 $conf["block_cache"] = TRUE;

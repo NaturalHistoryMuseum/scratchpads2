@@ -298,21 +298,6 @@ class TavernaService{
     $content = file_get_contents($url, FALSE, $context);
     return str_replace('/assets/taverna_player/application.js', self::$service . 'assets/taverna_player/application.js', $content);
   }
-
-  /**
-   * Static function to return a basic authentication string (or better if the
-   * portal is upgraded).
-   */
-  static function get_authentication_string(){
-    // We try and read the authtoken from a configuration file.
-    if(function_exists('variable_get')){
-      $user_and_password = variable_get('taverna_auth_token', $user_and_password);
-    }else{
-      $user_and_password = getenv('TAVERNA_AUTH_TOKEN');
-    }
-    if(!$user_and_password){throw new TavernaServiceException('Auth token is not set');}
-    return 'Basic ' . base64_encode(trim($user_and_password));
-  }
 }
 // Error class for the above.  This allows us to behave a little!
 class TavernaServiceException extends Exception{}

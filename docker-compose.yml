@@ -22,8 +22,8 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_HOST=scratchpads.mysql
-      - SOLR_HOSTNAME=scratchpads.solr
+      - MYSQL_HOST=${MYSQL_HOST}
+      - SOLR_URL=${SOLR_URL}
       - SOLR_CORE=scratchpads2
       - SMTP_FROM=${APACHE_SMTP_FROM}
       - SMTP_HOST=${APACHE_SMTP_HOST}
@@ -34,7 +34,6 @@ services:
       - SMTP_AUTH=${APACHE_SMTP_AUTH}
       - SMTP_START_TLS=${APACHE_SMTP_START_TLS}
       - VARNISH_SECRET=${VARNISH_SECRET}
-      - TAVERNA_AUTH_TOKEN=${APACHE_SCRATCHPADS_TAVERNA_AUTH_TOKEN}
       - APACHE_RUN_DIR=/var/run/apache2
       - APACHE_PID_FILE=/var/run/apache2/apache2.pid
       - APACHE_RUN_USER=www-data
@@ -57,7 +56,7 @@ services:
   mysql:
     container_name: scratchpads.mysql
     restart: always
-    image: naturalhistorymuseum/scratchpads-mysql
+    # image: naturalhistorymuseum/scratchpads-mysql
     ports:
       - "3306:3306"
     expose:
@@ -100,9 +99,11 @@ services:
   varnish:
     restart: always
     container_name: scratchpads.varnish
-    image: naturalhistorymuseum/scratchpads-varnish
+    # image: naturalhistorymuseum/scratchpads-varnish
     build:
       context: ./docker/varnish
+      args:
+        APACHE_SERVICE: weblogic1
     depends_on:
       - apache
     expose:
@@ -113,7 +114,6 @@ services:
       VARNISH_PORT: ${VARNISH_PORT}
       VARNISH_SECRET: ${VARNISH_SECRET}
       VARNISH_MEMORY: ${VARNISH_MEMORY}
-      APACHE_SERVICE: ${APACHE_SERVICE}
     logging:
       driver: json-file
       options:
