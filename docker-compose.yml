@@ -86,15 +86,15 @@ services:
       - "8983:8983"
     expose:
       - 8983
-    # volumes:
-    #   - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
-    # environment:
-    #   - SOLR_UNDERTOW_OPTS=-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m
-    # logging:
-    #   driver: json-file
-    #   options:
-    #       max-file: "5"
-    #       max-size: "100m"
+    volumes:
+      - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
+    environment:
+      - SOLR_UNDERTOW_OPTS=-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m
+    logging:
+      driver: json-file
+      options:
+          max-file: "5"
+          max-size: "100m"
 
   varnish:
     restart: always
@@ -103,7 +103,7 @@ services:
     build:
       context: ./docker/varnish
       args:
-        APACHE_HOST: weblogic1
+        APACHE_SERVICE: weblogic1
     depends_on:
       - apache
     expose:
