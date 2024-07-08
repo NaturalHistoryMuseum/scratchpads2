@@ -1,0 +1,4 @@
+core = "7.x"
+name = "Static sitemap"
+description = "URL of every publicly accessible item of cotent"
+project = scratchpads_static_sitemap
