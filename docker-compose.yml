@@ -3,9 +3,14 @@ version: '2'
 services:
   apache:
     container_name: scratchpads.apache
-    # image: naturalhistorymuseum/scratchpads.apache
+    platform: linux/amd64
+    image: naturalhistorymuseum/scratchpads.apache:latest
     build:
       context: ./docker/apache
+      # args:
+      #   uid: 10001
+      #   user: scratchpads-apache
+      #   group: scratchpads-apache
     restart: always
     links:
       - mysql
@@ -13,7 +18,7 @@ services:
       - mysql
       - solr
     ports:
-      - "${APACHE_PORT}:80"
+      - "8080:8080"
     volumes:
       - apache-files:/var/www/html/sites/default
     environment:
@@ -55,8 +60,9 @@ services:
 
   mysql:
     container_name: scratchpads.mysql
+    platform: linux/amd64
     restart: always
-    # image: naturalhistorymuseum/scratchpads-mysql
+    image: naturalhistorymuseum/scratchpads.mysql:${TAG}
     ports:
       - "3306:3306"
     expose:
@@ -78,8 +84,9 @@ services:
 
   solr:
     container_name: scratchpads.solr
+    platform: linux/amd64
     restart: always
-    # image: naturalhistorymuseum/scratchpads-solr
+    image: naturalhistorymuseum/scratchpads.solr:${TAG}
     build:
       context: ./docker/solr
     ports:
@@ -99,7 +106,8 @@ services:
   varnish:
     restart: always
     container_name: scratchpads.varnish
-    # image: naturalhistorymuseum/scratchpads-varnish
+    platform: linux/amd64
+    image: naturalhistorymuseum/scratchpads.varnish:${TAG}
     build:
       context: ./docker/varnish
       args:

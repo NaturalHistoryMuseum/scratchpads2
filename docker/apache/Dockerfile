@@ -1,5 +1,9 @@
 FROM php:7.2-apache-stretch
 
+# ARG uid
+# ARG user
+# ARG group
+
 # Debian has been archived - update repo locations
 RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list
 RUN sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
@@ -83,11 +87,21 @@ COPY files/settings.php /var/www/html/sites/default/settings.php
 # Enable error logging & msmtp
 COPY files/php.ini /usr/local/etc/php/
 
+COPY files/apache2.conf /etc/apache2/apache2.conf
+COPY files/ports.conf /etc/apache2/ports.conf
+COPY files/000-default.conf /etc/apache2/sites-available/000-default.conf
 
+RUN usermod -u 10001 www-data
+RUN groupmod -g 10001 www-data
+# RUN chown -R www-data:www-data /var/www/html
 
-RUN usermod -u 1000 www-data
-RUN groupmod -g 1000 www-data
-RUN chown -R www-data:www-data /var/www/html
+# RUN groupadd ${group}
+# RUN useradd -r -g ${group} -G sudo -u ${uid} ${user}
+
+# RUN chown -R ${user}:${group} /var/www/html
+
+# RUN usermod -u ${uid} ${group}
+# RUN groupmod -g ${uid} ${group}
 
 # Install extra modules
 RUN docker-php-ext-install exif
@@ -95,5 +109,7 @@ RUN docker-php-ext-install exif
 # Clean up
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# USER www-data
 
 WORKDIR /var/www/html

@@ -1,0 +1,364 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function scratchpads_static_sitemap_menu() {
+  $items = array();
+
+  // Define a menu item and the callback function.
+  $items['static-sitemap'] = array(
+    'title' => 'Content URLs',
+    'page callback' => 'scratchpads_static_sitemap_content_urls',
+    'access callback' => TRUE, // Adjust this according to your access requirements.
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback to list all publicly accessible content URLs.
+ */
+function scratchpads_static_sitemap_content_urls() {
+  $output = '<div id="static-sitemap">';
+
+  // Retrieve all node URLs.
+  $node_urls = scratchpads_static_sitemap_get_node_urls();
+  if (!empty($node_urls)) {
+    $output .= '<h2>Node URLs</h2><ul>';
+    foreach ($node_urls as $url) {
+      $output .= '<li>' . l($url, $url) . '</li>';
+    }
+    $output .= '</ul>';
+  }
+
+  // Retrieve all file URLs.
+  $file_urls = scratchpads_static_sitemap_get_file_urls();
+  if (!empty($file_urls)) {
+    $output .= '<h2>File URLs</h2><ul>';
+    foreach ($file_urls as $url) {
+      $output .= '<li>' . l($url, $url) . '</li>';
+    }
+    $output .= '</ul>';
+  }
+
+  $custom_urls = array(
+    "biblio",
+    "biblio.bib",
+    "gallery",
+    "legal",
+    "rss.xml",
+    "search",
+    "contact",
+    "contact/1",
+    "contact/2",
+    "user",
+    "user/register",
+    "user/password",
+  );
+
+  $output .= '<h2>Custom</h2><ul>';
+
+  foreach ($custom_urls as $url) {
+    // echo l($url, $url);
+    $output .= '<li>' . l($url, $url, array('absolute' => TRUE)) . '</li>';
+  }  
+
+  $output .= '</ul>';
+
+  $biological_vids = variable_get('biological_vids', array());
+
+  if ($biological_vids){
+    $output .= '<h2>Classifications</h2><ul>';
+    // foreach ($biological_vids as $vid) {
+      foreach($biological_vids as $vid => $type){
+      // echo l($url, $url);
+      $url = 'classification/' . $vid;
+      $output .= '<li>' . l($url, $url, array('absolute' => TRUE)) . '</li>';
+    }  
+  
+    $output .= '</ul>';  
+  }
+
+  $image_urls = scratchpads_static_sitemap_get_image_urls();
+
+  if ($image_urls){
+    $output .= '<h2>Images</h2><ul>';
+    foreach($image_urls as $image_url){
+      $output .= '<li>' . l($image_url, $image_url) . '</li>';
+    }  
+  
+    $output .= '</ul>';  
+  }  
+
+  // Retrieve all comment URLs.
+  $comment_urls = scratchpads_static_sitemap_get_comment_urls();
+  if (!empty($comment_urls)) {
+    $output .= '<h2>Comment URLs</h2><ul>';
+    foreach ($comment_urls as $url) {
+      $output .= '<li>' . l($url, $url) . '</li>';
+    }
+    $output .= '</ul>';
+  }
+
+    // Retrieve all comment URLs.
+    $term_urls = scratchpads_static_sitemap_get_term_urls();
+    if (!empty($term_urls)) {
+      $output .= '<h2>Term URLs</h2><ul>';
+      foreach ($term_urls as $url) {
+        $output .= '<li>' . l($url, $url) . '</li>';
+      }
+      $output .= '</ul>';
+    }
+
+  // Retrieve all public user URLs.
+  $user_urls = scratchpads_static_sitemap_get_public_user_urls();
+  if (!empty($user_urls)) {
+    $output .= '<h2>Public User URLs</h2><ul>';
+    foreach ($user_urls as $url) {
+      $output .= '<li><a href="' . $url . '" target="_blank">' . $url . '</a></li>';
+    }
+    $output .= '</ul>';
+  } else {
+    $output .= '<p>No public user profiles found.</p>';
+  }
+
+  // Retrieve all publicly available URL aliases.
+  $public_urls = scratchpads_static_sitemap_get_public_url_aliases();
+  if (!empty($public_urls)) {
+    $output .= '<h2>Public URL Aliases</h2><ul>';
+    foreach ($public_urls as $url) {
+      $output .= '<li><a href="' . $url . '">' . $url . '</a></li>';
+    }
+    $output .= '</ul>';
+  } else {
+    $output .= '<p>No publicly accessible URL aliases found.</p>';
+  }
+
+
+  // // Retrieve all menu callback URLs.
+  // $menu_urls = scratchpads_static_sitemap_get_menu_urls();
+  // if (!empty($menu_urls)) {
+  //   $output .= '<h2>Menu Callback URLs</h2><ul>';
+  //   foreach ($menu_urls as $url) {
+  //     $output .= '<li>' . l($url, $url) . '</li>';
+  //   }
+  //   $output .= '</ul>';
+  // }
+
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Helper function to get all term URLs.
+ *
+ * @return array
+ *   An array of term URLs.
+ */
+function scratchpads_static_sitemap_get_term_urls() {
+  $term_urls = array();
+
+  // Query to get all taxonomy terms.
+  $result = db_query("SELECT tid, vid FROM {taxonomy_term_data}");
+
+  $biological_vids = array_keys(array_filter(variable_get('biological_vids', array())));
+  // Fetch the results and generate the URLs.
+  foreach ($result as $record) {
+    $term_urls[] = url('taxonomy/term/' . $record->tid, array('absolute' => TRUE));
+    if (in_array($record->vid, $biological_vids)){
+      
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/overview', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/descriptions', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/literature', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/maps', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/media', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/specimens', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/revisions', array('absolute' => TRUE));
+      $term_urls[] = url('taxonomy/term/' . $record->tid . '/view', array('absolute' => TRUE));
+
+    }else{
+      $term_urls[] = url('simpletaxonomy/term/' . $record->tid, array('absolute' => TRUE));
+      $term_urls[] = url('nontaxonomy/term/' . $record->tid, array('absolute' => TRUE));
+    }    
+  }
+
+  return $term_urls;
+}
+
+/**
+ * Helper function to get all node URLs.
+ */
+function scratchpads_static_sitemap_get_node_urls() {
+  $urls = array();
+
+  // Query to get all published node IDs and a flag indicating if they have revisions.
+  $query = "
+    SELECT n.nid, 
+          (CASE WHEN rev_count.revision_count > 1 THEN 1 ELSE 0 END) AS has_revisions
+    FROM {node} n
+    LEFT JOIN (
+      SELECT nid, COUNT(vid) AS revision_count
+      FROM {node_revision}
+      GROUP BY nid
+    ) rev_count ON n.nid = rev_count.nid
+    WHERE n.status = 1
+  ";
+
+  $result = db_query($query);
+
+  foreach ($result as $record) {
+    $urls[] = url('node/' . $record->nid, array('absolute' => TRUE));
+    $urls[] = url('node/' . $record->nid . '/view', array('absolute' => TRUE));
+    if ($record->has_revisions) {
+      $urls[] = url('node/' . $record->nid . '/revisions', array('absolute' => TRUE));
+      $urls[] = url('node/' . $record->nid . '/revisions/view', array('absolute' => TRUE));
+
+
+      // Query to get all node revisions.
+      $revision_result = db_query("SELECT nid, vid FROM {node_revision} WHERE nid='$record->nid'");
+      foreach ($revision_result as $record) {
+        $urls[] = url('node/' . $record->nid . '/revisions/' . $record->vid, array('absolute' => TRUE));
+        $urls[] = url('node/' . $record->nid . '/revisions/' . $record->vid . '/view', array('absolute' => TRUE));
+      }  
+
+    }
+  }
+
+
+  $urls = array_filter($urls, scratchpads_static_sitemap_url_access);
+
+  return $urls;
+}
+
+function scratchpads_static_sitemap_url_access($url){
+  return drupal_valid_path($url);
+}
+
+/**
+ * Helper function to get all file URLs.
+ */
+function scratchpads_static_sitemap_get_file_urls() {
+  $urls = array();
+
+  $result = db_query("SELECT fid FROM {file_managed}");
+  foreach ($result as $record) {
+    $urls[] =  url('file/' . $record->fid, array('absolute' => TRUE));
+  }
+
+  $urls = array_filter($urls, scratchpads_static_sitemap_url_access);
+
+  return $urls;
+}
+
+/**
+ * Helper function to get all image URLs.
+ *
+ * @return array
+ *   An array of image URLs.
+ */
+function scratchpads_static_sitemap_get_image_urls() {
+  $image_urls = array();
+
+  // Query to get all image files.
+  $result = db_query("SELECT fid, uri FROM {file_managed} WHERE filemime LIKE 'image/%'");
+
+  // Fetch the results and generate the URLs.
+  foreach ($result as $record) {
+    $image_urls[] =  url('file-colorboxed/' . $record->fid, array('absolute' => TRUE));
+  }
+
+  $image_urls = array_filter($image_urls, scratchpads_static_sitemap_url_access);
+
+  return $image_urls;
+}
+
+
+
+/**
+ * Helper function to get all comment URLs.
+ *
+ * @return array
+ *   An array of comment URLs.
+ */
+function scratchpads_static_sitemap_get_comment_urls() {
+  $comment_urls = array();
+
+  // Query to get all published comments.
+  $result = db_query("SELECT c.cid, c.nid FROM {comment} c INNER JOIN {node} n ON c.nid = n.nid WHERE c.status = 1 AND n.status = 1");
+
+  // Fetch the results and generate the URLs.
+  foreach ($result as $record) {
+    $comment_urls[] = url('comment/' . $record->cid, array('absolute' => TRUE));
+    $comment_urls[] = url('comment/' . $record->cid . '/view', array('absolute' => TRUE));
+  }
+
+  $comment_urls = array_filter($comment_urls, scratchpads_static_sitemap_url_access);
+
+  return $comment_urls;
+}
+
+/**
+ * Helper function to get all public user URLs.
+ *
+ * @return array
+ *   An array of public user URLs.
+ */
+function scratchpads_static_sitemap_get_public_uids() {
+  $user_uids = array();
+
+  // Query to get all active users with public profiles.
+  $result = db_query("SELECT uid FROM {users} WHERE status = 1");
+
+  // Fetch the results and generate the URLs.
+  foreach ($result as $record) {
+    $user_uids[] = $record->uid;
+  }
+
+  return $user_uids;
+
+}
+
+/**
+ * Helper function to get all public user URLs.
+ *
+ * @return array
+ *   An array of public user URLs.
+ */
+function scratchpads_static_sitemap_get_public_user_urls() {
+  $user_ids = scratchpads_static_sitemap_get_public_uids();
+
+  // Fetch the results and generate the URLs.
+  foreach ($user_ids as $user_id) {
+    $user_urls[] = url('user/' . $user_id, array('absolute' => TRUE));
+  }
+
+  $user_urls = array_filter($user_urls, scratchpads_static_sitemap_url_access);
+
+  return $user_urls;
+}
+
+/**
+ * Helper function to get all publicly available URL aliases.
+ *
+ * @return array
+ *   An array of publicly available URL aliases.
+ */
+function scratchpads_static_sitemap_get_public_url_aliases() {
+  $public_urls = array();
+
+  // Query to get all URL aliases.
+  $result = db_query("SELECT alias, source FROM {url_alias}");
+
+  // Fetch the results and check if they are publicly accessible.
+  foreach ($result as $record) {
+    // Check if the path is accessible by anonymous users.
+    if (drupal_valid_path($record->source)) {
+      $public_urls[] = url($record->alias, array('absolute' => TRUE));
+    }
+  }
+
+  return $public_urls;
+}
