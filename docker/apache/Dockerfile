@@ -72,6 +72,7 @@ RUN apt-get install -y mysql-client
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
+RUN a2enmod ssl
 
 # Install drush
 RUN wget https://github.com/drush-ops/drush/releases/download/8.1.17/drush.phar

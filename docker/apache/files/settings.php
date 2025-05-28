@@ -6,7 +6,8 @@ $databases['default']['default'] = array(
   'database' => getenv('MYSQL_DATABASE'),
   'username' => getenv('MYSQL_USER'),
   'password' => getenv('MYSQL_PASSWORD'),
-  'host' => getenv('MYSQL_HOST')
+  'host' => getenv('MYSQL_HOST'),
+  'port' => getenv('MYSQL_PORT')
 );
 
 

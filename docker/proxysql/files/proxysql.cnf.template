@@ -1,0 +1,55 @@
+datadir="/var/lib/proxysql"
+
+admin_variables =
+{
+  admin_credentials="${PROXYSQL_USER}:${PROXYSQL_PASSWORD}"
+  mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables =
+{
+  interfaces="0.0.0.0:6033"
+}
+
+mysql_servers =
+(
+  { address="${MYSQL_MASTER_HOST}", port=3306, hostgroup=1, max_connections=100 },
+  { address="${MYSQL_SLAVE_HOST}", port=3306, hostgroup=1, max_connections=100 }
+)
+
+mysql_replication_hostgroups = (
+  {
+    writer_hostgroup=1,
+    reader_hostgroup=2,
+    check_type="read_only",
+    comment="auto-failover based on read_only",
+    active=1
+  }
+)
+
+mysql_users =
+(
+  { username = "${MYSQL_USER}", password = "${MYSQL_PASSWORD}", default_hostgroup = 1, active = 1 }
+)
+
+mysql_query_rules = (
+  {
+    rule_id = 1,
+    active = 1,
+    match_pattern = ".*",
+    destination_hostgroup = 1,
+    apply = 0,
+    comment = "Default: all queries to writer"
+  },
+  {
+    rule_id = 2,
+    active = 1,
+    match_pattern = "^SELECT",
+    destination_hostgroup = 2,
+    apply = 1,
+    comment = "Fallback: SELECTs to reader if writer unavailable"
+  }
+)
+
+mysql-monitor_username = "${MYSQL_USER}"
+mysql-monitor_password = "${MYSQL_PASSWORD}"

@@ -1,0 +1,11 @@
+[mysqld]
+innodb_large_prefix = ON
+innodb_file_format=barracuda
+innodb_file_per_table=true
+max_allowed_packet=16M
+
+server-id=1
+log-bin=mysql-bin
+binlog-format=ROW
+enforce-gtid-consistency=true
+gtid-mode=ON

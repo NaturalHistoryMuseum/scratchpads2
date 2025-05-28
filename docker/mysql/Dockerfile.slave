@@ -1,0 +1,16 @@
+FROM mysql:5.7
+
+RUN yum install -y gettext && yum clean all
+
+RUN chown root:65534 /docker-entrypoint-initdb.d && \
+    chmod 2775 /docker-entrypoint-initdb.d
+
+COPY files/slave.cnf /etc/mysql/conf.d/slave.cnf
+
+COPY files/templates/init-slave.sql /tmp/init-slave.sql
+
+COPY files/entrypoint-slave.sh /entrypoint-slave.sh
+RUN chmod +x /entrypoint-slave.sh
+
+ENTRYPOINT ["/entrypoint-slave.sh"]
+CMD ["mysqld"]
