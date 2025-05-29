@@ -13,10 +13,10 @@ services:
       #   group: scratchpads-apache
     restart: always
     links:
-      - mysql
+      - mysql-master
     depends_on:
-      - mysql
-      - solr
+      - mysql-master
+      # - solr
     ports:
       - "8080:8080"
     volumes:
@@ -28,6 +28,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=3306
       - SOLR_URL=${SOLR_URL}
       - SOLR_CORE=scratchpads2
       - SMTP_FROM=${APACHE_SMTP_FROM}
@@ -58,19 +59,18 @@ services:
           max-file: "5"
           max-size: "100m"
 
-  mysql:
-    container_name: scratchpads.mysql
+  mysql-master:
+    container_name: scratchpads.mysql-master
     platform: linux/amd64
+    image: naturalhistorymuseum/scratchpads.mysql-master:${TAG}
     restart: always
-    image: naturalhistorymuseum/scratchpads.mysql:${TAG}
-    ports:
-      - "3306:3306"
-    expose:
-      - 3306
     build:
       context: ./docker/mysql
+      dockerfile: Dockerfile.master
+    ports:
+      - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql-slave-data:/backups/
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -79,56 +79,117 @@ services:
     logging:
       driver: json-file
       options:
-          max-file: "5"
-          max-size: "100m"
+        max-file: "5"
+        max-size: "100m"
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+        timeout: 5s
+        retries: 3        
 
-  solr:
-    container_name: scratchpads.solr
+  mysql-slave:
+    container_name: scratchpads.mysql-slave
     platform: linux/amd64
+    image: naturalhistorymuseum/scratchpads.mysql-slave:${TAG}
     restart: always
-    image: naturalhistorymuseum/scratchpads.solr:${TAG}
     build:
-      context: ./docker/solr
-    ports:
-      - "8983:8983"
-    expose:
-      - 8983
-    volumes:
-      - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
-    environment:
-      - SOLR_UNDERTOW_OPTS=-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m
-    logging:
-      driver: json-file
-      options:
-          max-file: "5"
-          max-size: "100m"
-
-  varnish:
-    restart: always
-    container_name: scratchpads.varnish
-    platform: linux/amd64
-    image: naturalhistorymuseum/scratchpads.varnish:${TAG}
-    build:
-      context: ./docker/varnish
-      args:
-        APACHE_SERVICE: weblogic1
+      context: ./docker/mysql
+      dockerfile: Dockerfile.slave
     depends_on:
-      - apache
-    expose:
-      - 6082
+      - mysql-master
     ports:
-      - "${VARNISH_PORT_EXPOSE}:${VARNISH_PORT}"
+      - "3307:3306"
+    volumes:
+      - mysql-slave-data:/var/lib/mysql
     environment:
-      VARNISH_PORT: ${VARNISH_PORT}
-      VARNISH_SECRET: ${VARNISH_SECRET}
-      VARNISH_MEMORY: ${VARNISH_MEMORY}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     logging:
       driver: json-file
       options:
-          max-file: "5"
-          max-size: "100m"
+        max-file: "5"
+        max-size: "100m"   
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+        timeout: 5s
+        retries: 3    
+
+  proxysql:
+    container_name: scratchpads.proxysql
+    platform: linux/amd64
+    image: naturalhistorymuseum/scratchpads.proxysql:${TAG}  
+    restart: always
+    build:
+      context: ./docker/proxysql
+      dockerfile: Dockerfile
+    ports:
+      - "6032:6032"  # Admin interface
+      - "6033:6033"  # MySQL client
+    environment:
+      - MYSQL_MASTER_HOST=${MYSQL_MASTER_HOST}
+      - MYSQL_SLAVE_HOST=${MYSQL_SLAVE_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}   
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - PROXYSQL_USER=admin
+      - PROXYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql-master
+      - mysql-slave   
+    volumes:
+      - ./proxysql-data:/var/lib/proxysql         
+
+
+  # solr:
+  #   container_name: scratchpads.solr
+  #   platform: linux/amd64
+  #   restart: always
+  #   image: naturalhistorymuseum/scratchpads.solr:${TAG}
+  #   build:
+  #     context: ./docker/solr
+  #   ports:
+  #     - "8983:8983"
+  #   expose:
+  #     - 8983
+  #   volumes:
+  #     - solr-data:/var/lib/solr-undertow/solr-home/scratchpads2/data:rw
+  #   environment:
+  #     - SOLR_UNDERTOW_OPTS=-Xms${SOLR_JVM_MEMORY} -Xmx${SOLR_JVM_MEMORY} -XX:MaxPermSize=512m -XX:PermSize=256m
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #         max-file: "5"
+  #         max-size: "100m"
+
+  # varnish:
+  #   restart: always
+  #   container_name: scratchpads.varnish
+  #   platform: linux/amd64
+  #   image: naturalhistorymuseum/scratchpads.varnish:${TAG}
+  #   build:
+  #     context: ./docker/varnish
+  #     args:
+  #       APACHE_SERVICE: weblogic1
+  #   depends_on:
+  #     - apache
+  #   expose:
+  #     - 6082
+  #   ports:
+  #     - "${VARNISH_PORT_EXPOSE}:${VARNISH_PORT}"
+  #   environment:
+  #     VARNISH_PORT: ${VARNISH_PORT}
+  #     VARNISH_SECRET: ${VARNISH_SECRET}
+  #     VARNISH_MEMORY: ${VARNISH_MEMORY}
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #         max-file: "5"
+  #         max-size: "100m"
 
 volumes:
   apache-files:
-  mysql-data:
+  mysql-master-data:
+  mysql-slave-data:
   solr-data:
+  proxysql-data:
