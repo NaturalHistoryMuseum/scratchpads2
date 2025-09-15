@@ -33,20 +33,22 @@ bash:
 	@docker exec -i -t scratchpads.apache bash
 
 build:
-	@docker build -t naturalhistorymuseum/scratchpad-apache -t naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE) docker/apache
-	@docker build -t naturalhistorymuseum/scratchpad-solr -t naturalhistorymuseum/scratchpad-solr:$(CURRENT_DATE) docker/solr
-	@docker build -t naturalhistorymuseum/scratchpad-mysql -t naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE) docker/mysql
-	@docker build -t naturalhistorymuseum/scratchpad-varnish -t naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE) docker/varnish
+	@docker-compose build
+	# @docker build -t naturalhistorymuseum/scratchpad-apache-amd64 -t naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE) docker/apache
+	# @docker build -t naturalhistorymuseum/scratchpad-solr-amd64 -t naturalhistorymuseum/scratchpad-solr:$(CURRENT_DATE) docker/solr
+	# @docker build -t naturalhistorymuseum/scratchpad-mysql-amd64 -t naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE) docker/mysql
+	# @docker build -t naturalhistorymuseum/scratchpad-varnish-amd64 -t naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE) docker/varnish
 
 push:
-	@docker push naturalhistorymuseum/scratchpad-apache
-	@docker push naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE)
-	@docker push naturalhistorymuseum/scratchpad-solr
-	@docker push naturalhistorymuseum/scratchpad-solr:$(CURRENT_DATE)
-	@docker push naturalhistorymuseum/scratchpad-mysql
-	@docker push naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE)		
-	@docker push naturalhistorymuseum/scratchpad-varnish
-	@docker push naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE)
+	docker-compose push
+	# @docker push naturalhistorymuseum/scratchpad.apache:amd64
+	# @docker push naturalhistorymuseum/scratchpad-apache:$(CURRENT_DATE)
+	# @docker push naturalhistorymuseum/scratchpad-solr-amd64
+	# @docker push naturalhistorymuseum/scratchpad-solr:$(CURRENT_DATE)
+	# @docker push naturalhistorymuseum/scratchpad-mysql-amd64
+	# @docker push naturalhistorymuseum/scratchpad-mysql:$(CURRENT_DATE)		
+	# @docker push naturalhistorymuseum/scratchpad-varnish-amd64
+	# @docker push naturalhistorymuseum/scratchpad-varnish:$(CURRENT_DATE)
 
 site-from-archive:
 	@test -f $(archive) && echo Creating site from archive $(archive) || echo Archive not found

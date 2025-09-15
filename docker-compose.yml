@@ -98,13 +98,14 @@ services:
       - mysql-master
     ports:
       - "3307:3306"
-    volumes:
-      - mysql-slave-data:/var/lib/mysql
+    # volumes:
+    #   - mysql-slave-data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_MASTER_HOST=${MYSQL_MASTER_HOST}
     logging:
       driver: json-file
       options:

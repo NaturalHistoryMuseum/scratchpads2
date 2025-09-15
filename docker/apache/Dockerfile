@@ -1,3 +1,4 @@
+# FROM php:7.4-apache
 FROM php:7.2-apache-stretch
 
 # ARG uid
@@ -11,21 +12,31 @@ RUN sed -i s/stretch-updates/stretch/g /etc/apt/sources.list
 
 RUN apt-get update
 RUN apt-get -y install wget \
-    libxml2-dev \
+    build-essential \
+    gcc \
+    make \
     git \
     nano \
-    libpng-dev \
+    libonig-dev \
     libmagickwand-dev \
     imagemagick \
     libgmp-dev \
     zlib1g-dev \
     ssmtp \
-    libfreetype6-dev \
     libjpeg62-turbo-dev \
     libgd-dev cron \
     msmtp \
     unzip \
     libxml2-dev \
+    libzip-dev \
+    libwebp-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libxpm-dev \    
+    netcat \
+    net-tools \    
+    screen \
     --no-install-recommends
 
 WORKDIR /tmp/
@@ -40,7 +51,8 @@ RUN make install
 # RUN pecl install xdebug
 # RUN docker-php-ext-enable xdebug
 
-RUN docker-php-ext-install opcache
+RUN docker-php-ext-enable opcache
+
 RUN docker-php-ext-install sockets
 RUN docker-php-ext-install soap
 
@@ -49,11 +61,22 @@ RUN docker-php-ext-enable imagick
 # Fixing "configure: error: Unable to locate gmp.h"
 RUN ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 
+# RUN docker-php-ext-configure gd \
+#     --with-freetype \
+#     --with-jpeg
 RUN docker-php-ext-configure gd \
     --with-freetype-dir=/usr/include/ \
-    --with-jpeg-dir=/usr/include/
+    --with-jpeg-dir=/usr/include/ \   
+    --with-png-dir=/usr/include/ \
+    --with-webp-dir=/usr/include/ \
+    --with-xpm-dir=/usr/include/   
+RUN docker-php-ext-install gd 
 
-RUN docker-php-ext-install pdo_mysql gd mbstring gmp zip
+
+RUN docker-php-ext-install pdo_mysql 
+RUN docker-php-ext-install mbstring 
+RUN docker-php-ext-install gmp 
+RUN docker-php-ext-install zip
 
 RUN apt-get install -y libmcrypt-dev
 

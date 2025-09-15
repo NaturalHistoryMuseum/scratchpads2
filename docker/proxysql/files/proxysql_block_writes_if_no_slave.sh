@@ -46,6 +46,6 @@ if [ "$slave_is_healthy" -eq 1 ]; then
   echo "   ^|^e Slave healthy. Enabling writes on master."
   mysql -u root -p$MYSQL_ROOT_PASSWORD -h $MYSQL_MASTER_HOST -e "SET GLOBAL read_only = OFF;"
 else
-  echo "   ^=^z Slave unavailable or unhealthy. Enabling read_only on master."
+  echo "   ^=^z Slave unavailable or unhealthy. Switching master to read_only."
   mysql -u root -p$MYSQL_ROOT_PASSWORD -h $MYSQL_MASTER_HOST -e "SET GLOBAL read_only = ON;"
 fi

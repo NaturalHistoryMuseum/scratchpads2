@@ -30,6 +30,7 @@ echo "ProxySQL admin interface is up. Loading runtime configuration..."
 # Bug fix - explicitly set username and password
 mysql -h 127.0.0.1 -P 6032 -u admin -p${MYSQL_ROOT_PASSWORD} -e "SET mysql-monitor_username = '${MYSQL_USER}';"
 mysql -h 127.0.0.1 -P 6032 -u admin -p${MYSQL_ROOT_PASSWORD} -e "SET mysql-monitor_password = '${MYSQL_PASSWORD}';"
+mysql -h 127.0.0.1 -P 6032 -u admin -p${MYSQL_ROOT_PASSWORD} -e "SET mysql-bind_address = '0.0.0.0';"
 mysql -h 127.0.0.1 -P 6032 -u admin -p${MYSQL_ROOT_PASSWORD} -e "LOAD MYSQL VARIABLES TO RUNTIME;"
 mysql -h 127.0.0.1 -P 6032 -u admin -p${MYSQL_ROOT_PASSWORD} -e "SAVE MYSQL VARIABLES TO DISK;"
 

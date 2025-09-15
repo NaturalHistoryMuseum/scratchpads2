@@ -3,7 +3,7 @@ FROM proxysql/proxysql:2.5.5
 # Install bash, envsubst, mail
 RUN apt-get update
 RUN apt-get install -y bash gettext-base mailutils
-RUN apt-get install -y netcat
+RUN apt-get install -y netcat net-tools
 RUN apt-get install -y nano
 
 # Copy entrypoint script
