@@ -33,23 +33,19 @@ services:
       # sitename.ddev.site.
       - HTTP_EXPOSE=8983
     volumes:
-      # solr core *data* is stored on the 'solr' docker volume
-      # This mount is optional; without it your search index disappears
-      # each time the ddev project is stopped and started.
+      # Store the complete Solr home, including the collection1 index, in a
+      # named volume so the index survives container recreation.
       - solr:/var/solr
 
-      # This mounts the conf in .ddev/solr into the container where
-      # the solr-precreate command in the entrypoint uses it as a one-time
-      # configuration to copy config into the newly-created core. It is not
-      # used if the core has previously been created.
-      - ./solr/default:/opt/solr/example/solr/default
+      # Load the Scratchpads Solr 4 configuration for the collection1 core.
+      - ./solr/conf:/var/solr/collection1/conf:ro
 
       # This mounts the .ddev directory into the container so we can use it
       # if necessary.
       - ".:/mnt/ddev_config"
 
-    # This command is executed after the services has been started.
-    command: ["/opt/solr/bin/solr", "start", "-p", "8983", "-f"]
+    # Start Solr with the persistent Solr home mounted above.
+    command: ["/opt/solr/bin/solr", "start", "-p", "8983", "-f", "-s", "/var/solr"]
 
     external_links:
       - "ddev-router:${DDEV_SITENAME}.${DDEV_TLD}"
