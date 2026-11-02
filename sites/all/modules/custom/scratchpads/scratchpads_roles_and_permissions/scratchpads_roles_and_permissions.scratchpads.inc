@@ -105,7 +105,7 @@ function weight_scratchpads_default_permissions() {
       'assign node weight',
     ),
     'maintainer' => array(
-      'administer weight',
+      'assign node weight',
     ),
   );
 }
@@ -828,6 +828,9 @@ function gravatar_scratchpads_default_permissions() {
  * Implements hook_scratchpads_default_permissions().
  */
 function context_scratchpads_default_permissions(){
+  if(!module_exists('context_ui')){
+    return array();
+  }
   return array(
     'maintainer' => array(
       'administer contexts'

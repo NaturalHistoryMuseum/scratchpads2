@@ -5,6 +5,7 @@
  * Container class for theme configuration.
  */
 
+#[\AllowDynamicProperties]
 class alpha_theme_container {
   var $theme;
   var $settings;

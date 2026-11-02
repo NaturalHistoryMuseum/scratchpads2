@@ -1261,7 +1261,11 @@ function biblio_user_presave(&$edit, $account, $catagory) {
       }
       $edit['data'][$key] = $edit[$key];
       if ($key == 'biblio_contributor_id') {
-        if ($edit[$key] != 0 && $edit[$key] != $account->data[$key]) {
+        $current_contributor_id = isset($account->data[$key]) ? $account->data[$key] : 0;
+        if ($edit[$key] != 0 && $edit[$key] != $current_contributor_id) {
+          if (!isset($edit['biblio_id_change_count'])) {
+            $edit['biblio_id_change_count'] = isset($account->data['biblio_id_change_count']) ? $account->data['biblio_id_change_count'] : 0;
+          }
           $edit['biblio_id_change_count']++;
         }
         db_update('biblio_contributor_data')->condition('drupal_uid', $account->uid)->fields(array('drupal_uid' => 0))->execute();

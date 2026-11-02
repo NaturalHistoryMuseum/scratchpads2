@@ -13,6 +13,7 @@ class RelationRulesTestCase extends RelationTestCase {
       'name' => 'Relation Rules integration test',
       'description' => 'Test the Rules integration.',
       'group' => 'Relation',
+      'enabled dependencies' => array('rules'),
     );
   }
 

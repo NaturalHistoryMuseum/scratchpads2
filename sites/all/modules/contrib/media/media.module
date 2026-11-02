@@ -1019,7 +1019,10 @@ function media_element_validate(&$element, &$form_state) {
 
     $has_value = FALSE;
     foreach ($form_state['values'][$field_name][$lang] as $value) {
-      if ($value['fid']) {
+      // Multi-value widgets may include scalar bookkeeping values (for
+      // example, the number of additional items). PHP 8 no longer permits
+      // treating those strings as arrays while checking the selected file.
+      if (is_array($value) && !empty($value['fid'])) {
         $has_value = TRUE;
       }
     }

@@ -3,6 +3,7 @@ dependencies[] = "entity"
 dependencies[] = "features"
 dependencies[] = "uuid"
 description = "Example feature mainly used for testing."
+features[features_api][] = api:1
 features[uuid_entities][] = "deploy_example_plan"
 name = "UUID default entities example"
 package = "Features"

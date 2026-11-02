@@ -283,7 +283,7 @@ function omega_links($vars) {
   
   $output = '';
 
-  if (count($links) > 0) {
+  if (!empty($links)) {
     // Treat the heading first if it is present to prepend it to the list of links.
     if (!empty($heading)) {
       if (is_string($heading)) {

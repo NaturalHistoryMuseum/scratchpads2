@@ -137,7 +137,7 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     // user has 'edit own file' permissions
     $this->drupalLogin($this->admin_user2);
     $this->drupalGet($edit_path);
-    $this->assertText(t('access denied'), "Access denied to " . $edit_path);
+    $this->assertText(t('Access denied'), "Access denied to " . $edit_path);
     $this->assertResponse(403);
     // user with full file permissions
     $this->drupalLogin($this->admin_user3);
@@ -199,7 +199,7 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     // user has 'edit own file' permissions
     $this->drupalLogin($this->admin_user2);
     $this->drupalGet($delete_path);
-    $this->assertText(t('access denied'), "Access denied to " . $delete_path);
+    $this->assertText(t('Access denied'), "Access denied to " . $delete_path);
     $this->assertResponse(403);
     // user with full file permissions
     $this->drupalLogin($this->admin_user3);
@@ -217,7 +217,3 @@ class ScratchpadsFileLockTestCase extends FileFieldTestCase{
     return TRUE;
   }
 }
-
-
-
-  

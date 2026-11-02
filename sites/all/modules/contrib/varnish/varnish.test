@@ -20,11 +20,21 @@ class VarnishTestCase extends DrupalWebTestCase {
    * Set up variables so that drupal sends out appropriate headers to Varnish.
    */
   public function setUpVariables() {
+    module_load_include('inc', 'varnish', 'varnish.cache');
     $variables = array(
       'cache' => 1,
       'cache_lifetime' => 0,
       'page_cache_maximum_age' => 1800,
+      'varnish_flush_cron' => 1,
     );
+    if ($terminal = getenv('VARNISH_TEST_CONTROL_TERMINAL')) {
+      $variables['varnish_control_terminal'] = $terminal;
+      $variables['varnish_version'] = getenv('VARNISH_TEST_VERSION') ?: 4;
+      $variables['varnish_control_key'] = getenv('VARNISH_TEST_CONTROL_KEY');
+    }
+    if ($varnish_url = getenv('VARNISH_TEST_URL')) {
+      $variables['varnish_front_domains'] = parse_url($varnish_url, PHP_URL_HOST);
+    }
     foreach ($variables as $key => $variable) {
       variable_set($key, $variable);
     }
@@ -39,7 +49,15 @@ class VarnishTestCase extends DrupalWebTestCase {
    */
   public function assertVarnishCommand($cmds) {
     $statuses = _varnish_terminal_run($cmds);
+    if (!is_array($statuses)) {
+      $this->fail(t('No response was received from a Varnish control terminal.'));
+      return;
+    }
     foreach ($statuses as $terminal => $commands) {
+      if (!is_array($commands)) {
+        $this->fail(t('Unable to connect to Varnish control terminal %terminal.', array('%terminal' => $terminal)));
+        continue;
+      }
       foreach ($commands as $command => $status) {
         $this->assertEqual($status['code'], '200', t('Command: %command
           was executed properly.', array('%command' => $command)));
@@ -72,7 +90,11 @@ class VarnishConnectionTestCase extends VarnishTestCase {
   }
 
   public function testMultipleCommands() {
-    $this->assertVarnishCommand(array('stats', 'status'));
+    $commands = array('status');
+    if (variable_get('varnish_version', 2.1) < 3) {
+      array_unshift($commands, 'stats');
+    }
+    $this->assertVarnishCommand($commands);
   }
 
 }
@@ -101,36 +123,45 @@ class VarnishCacheInvalidationCase extends VarnishTestCase {
   }
 
   /**
+   * Request a Drupal path through the configured Varnish test proxy.
+   */
+  protected function drupalGetThroughVarnish($path, array $options = array()) {
+    $varnish_url = rtrim(getenv('VARNISH_TEST_URL'), '/');
+    return $this->drupalGet($varnish_url . '/' . ltrim($path, '/'), $options);
+  }
+
+  /**
    * Test that makes sure that the varnish cache get's invalidated at the appropriate times.
    */
   public function testVarnishCacheExpiration() {
-    $not_cached_pattern = '/[0-9]{8,9}$/';
-    $cached_pattern = '/[0-9]{8,9} [0-9]{8,9}$/';
+    $not_cached_pattern = '/^[0-9]+$/';
+    $cached_pattern = '/^[0-9]+ [0-9]+$/';
+    $varnish_cache = new VarnishCache('cache_page');
     // Tell the Varnish module that it is OK to cache.
     variable_set('varnish_cache_clear', 1);
     // Fill the cache.
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     $this->assertRegexpPattern($this->drupalGetHeader('X-Varnish'), $not_cached_pattern, t('Varnish header is indicating that it did not have this page in the cache.'));
     // Request the page again. It should be in the cache.
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     $this->assertRegexpPattern($this->drupalGetHeader('X-Varnish'), $cached_pattern, t('Varnish header is indicating that it had the page in the cache.'));
     $headers = $this->drupalGetHeaders(TRUE);
-    // Clear the cache_page bin. This should trigger an invalidation of the page in Varnish.
-    cache_clear_all(NULL, 'cache_page');
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    // Clear the Varnish page-cache backend. This should invalidate the page.
+    $varnish_cache->clear();
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     $this->assertRegexpPattern($this->drupalGetHeader('X-Varnish'), $not_cached_pattern, t('Varnish header is indicating that it did not have the page in the cache after a cache purge.'));
     // Tell the Varnish module to not invalidate any pages in Varnish.
     variable_set('varnish_cache_clear', 0);
-    cache_clear_all(NULL, 'cache_page');
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    $varnish_cache->clear();
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     $this->assertRegexpPattern($this->drupalGetHeader('X-Varnish'), $cached_pattern, t('Varnish header is indicating that it had the page in the cache, even after a cache clear'));
     // Set a minimum cache lifetime for the cache to avoid having varnish purging the cache.
     variable_set('cache_lifetime', 3600);
     // Cache the page.
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     // Try to invalidate the cache, it should fail.
-    cache_clear_all(NULL, 'cache_page');
-    $this->drupalGet('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
+    $varnish_cache->clear();
+    $this->drupalGetThroughVarnish('system-test/set-header', array('query' => array('name' => 'Foo', 'value' => 'bar')));
     $this->assertRegexpPattern($this->drupalGetHeader('X-Varnish'), $cached_pattern, t('Varnish cache did not invalidate itself when minimum cache lifetime was set.'));
   }
 

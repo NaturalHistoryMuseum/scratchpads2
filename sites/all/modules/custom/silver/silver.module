@@ -5,8 +5,64 @@ include_once ('silver.features.inc');
  * Implements hook_feeds_presave()
  */
 function silver_feeds_presave(FeedsSource $source, $entity){
-  // We do nothing if this is a user entity.
+  // Preserve the legacy Silver behaviour for user updates by GUID, including
+  // loginless (stub) users. Core Feeds validates name and email even when an
+  // existing user is identified only by its feeds_item GUID.
   if(get_class($source->importer->processor) == 'FeedsUserProcessor'){
+    $guid = !empty($entity->feeds_item->guid) ? $entity->feeds_item->guid : '';
+    if(empty($entity->uid) && $guid !== ''){
+      $uid = db_select('feeds_item', 'fi')
+        ->fields('fi', array('entity_id'))
+        ->condition('entity_type', 'user')
+        ->condition('guid', $guid)
+        ->execute()
+        ->fetchField();
+      if($uid && ($existing = user_load($uid))){
+        // The processor created a minimal new account before the GUID fallback
+        // found the real one. Retain unmapped core properties from that user.
+        foreach((array)$existing as $property => $value){
+          if(!isset($entity->{$property})){
+            $entity->{$property} = $value;
+          }
+        }
+        $entity->uid = $existing->uid;
+        if(empty($entity->name)){
+          $entity->name = $existing->name;
+        }
+        if(empty($entity->mail)){
+          $entity->mail = $existing->mail;
+        }
+        $entity->pass = $existing->pass;
+        $entity->feeds_original_pass = $existing->pass;
+        $entity->feeds_item = feeds_item_info_load('user', $uid);
+      }
+    }
+    if(!empty($entity->uid) && !isset($entity->pass)){
+      $existing = user_load($entity->uid);
+      $entity->pass = $existing->pass;
+      $entity->feeds_original_pass = $existing->pass;
+    }
+    if(!isset($entity->roles) || !is_array($entity->roles)){
+      $entity->roles = array();
+    }
+    if(isset($entity->data) && !is_array($entity->data)){
+      $data = is_string($entity->data) ? @unserialize($entity->data) : FALSE;
+      $entity->data = is_array($data) ? $data : array();
+    }
+    if(empty($entity->name)){
+      $name_parts = array();
+      foreach(array('field_user_title', 'field_user_given_names', 'field_user_family_name') as $field_name){
+        if(!empty($entity->{$field_name}[LANGUAGE_NONE][0]['value'])){
+          $name_parts[] = $entity->{$field_name}[LANGUAGE_NONE][0]['value'];
+        }
+      }
+      $entity->name = trim(implode(' ', $name_parts));
+    }
+    if(empty($entity->mail)){
+      $entity->mail = 'stub-' . md5($guid . $entity->name) . '@invalid.example';
+      $entity->pass = '';
+      $entity->status = 0;
+    }
     return;
   }
   // Set the UID.
@@ -29,7 +85,7 @@ function silver_feeds_presave(FeedsSource $source, $entity){
     $entity_type = 'node';
   }
   // If this is the SPM node type, we set the title.
-  if($entity->type == 'spm'){
+  if(isset($entity->type) && $entity->type == 'spm'){
     try{
       $lang = field_language($entity_type, $entity, 'field_taxonomic_name');
       $entity->title = $entity->field_taxonomic_name[$lang][0]['value'];
@@ -602,7 +658,7 @@ function silver_file_csv_form(){
  */
 function silver_user_excel_form(){
   // Get the feeds import form.
-  return drupal_get_form('feeds_import_form', 'user_importer_user');
+  return drupal_get_form('feeds_import_form', 'user_importer_user_xls');
 }
 
 /**

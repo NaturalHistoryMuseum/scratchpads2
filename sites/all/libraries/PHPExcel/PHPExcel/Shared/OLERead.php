@@ -65,6 +65,16 @@ class PHPExcel_Shared_OLERead {
 	public $wrkbook						= null;
 	public $summaryInformation			= null;
 	public $documentSummaryInformation	= null;
+	private $numBigBlockDepotBlocks = 0;
+	private $rootStartBlock = 0;
+	private $sbdStartBlock = 0;
+	private $extensionBlock = 0;
+	private $numExtensionBlocks = 0;
+	private $bigBlockChain = '';
+	private $smallBlockChain = '';
+	private $entry = '';
+	private $props = array();
+	private $rootentry = null;
 
 
 	/**

@@ -2202,6 +2202,7 @@ class view extends views_db_object {
 /**
  * Base class for views' database objects.
  */
+#[\AllowDynamicProperties]
 class views_db_object {
 
   public $db_table;

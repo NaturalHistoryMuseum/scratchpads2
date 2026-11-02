@@ -218,6 +218,7 @@ function remote_issue_tab_library()
 
     $libraries['remote_issue_tab'] = array(
         'title' => 'Remote issue tab',
+        'version' => '1.0',
         'js' => array(
             $path . '/js/remote_issue_tab.js' => array('group' => JS_THEME),
         ),

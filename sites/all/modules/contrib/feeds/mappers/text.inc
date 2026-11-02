@@ -48,6 +48,14 @@ function text_feeds_set_target($source, $entity, $target, $value) {
 
   $info = field_info_field($target);
 
+  // List fields store machine values, while legacy imports commonly contain
+  // either their labels or differently-cased values (for example Holotype
+  // rather than holotype). Resolve those inputs before field validation.
+  $allowed_values = array();
+  if ($info['type'] == 'list_text') {
+    $allowed_values = list_allowed_values($info);
+  }
+
   // Iterate over all values.
   $field = isset($entity->$target) ? $entity->$target : array('und' => array());
 
@@ -65,6 +73,15 @@ function text_feeds_set_target($source, $entity, $target, $value) {
     }
 
     if (is_scalar($v)) {
+      $v = is_string($v) ? trim($v) : $v;
+      if ($allowed_values && !isset($allowed_values[$v])) {
+        foreach ($allowed_values as $allowed_value => $allowed_label) {
+          if (strcasecmp($v, $allowed_value) === 0 || strcasecmp($v, $allowed_label) === 0) {
+            $v = $allowed_value;
+            break;
+          }
+        }
+      }
       $field['und'][$delta]['value'] = $v;
 
       if (isset($format)) {

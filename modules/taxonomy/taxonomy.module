@@ -957,9 +957,15 @@ function taxonomy_term_is_page($term) {
  */
 function taxonomy_terms_static_reset() {
   drupal_static_reset('taxonomy_term_count_nodes');
-  drupal_static_reset('taxonomy_get_tree');
-  drupal_static_reset('taxonomy_get_tree:parents');
-  drupal_static_reset('taxonomy_get_tree:terms');
+  // Explicitly empty the referenced tree arrays. On long-running test
+  // processes, resetting them to their recorded defaults can restore objects
+  // captured before a child HTTP request changed the taxonomy tables.
+  $children = &drupal_static('taxonomy_get_tree', array());
+  $parents = &drupal_static('taxonomy_get_tree:parents', array());
+  $terms = &drupal_static('taxonomy_get_tree:terms', array());
+  $children = array();
+  $parents = array();
+  $terms = array();
   drupal_static_reset('taxonomy_get_parents');
   drupal_static_reset('taxonomy_get_parents_all');
   drupal_static_reset('taxonomy_get_children');

@@ -871,9 +871,7 @@ class TaxonomyTermTestCase extends TaxonomyWebTestCase {
 
     // Fetch the created terms in the default alphabetical order, i.e. term1
     // precedes term2 alphabetically, and term2 precedes term3.
-    drupal_static_reset('taxonomy_get_tree');
-    drupal_static_reset('taxonomy_get_treeparent');
-    drupal_static_reset('taxonomy_get_treeterms');
+    taxonomy_terms_static_reset();
     list($term1, $term2, $term3) = taxonomy_get_tree($this->vocabulary->vid);
 
     $this->drupalGet('admin/structure/taxonomy/' . $this->vocabulary->machine_name);
@@ -898,9 +896,7 @@ class TaxonomyTermTestCase extends TaxonomyWebTestCase {
     );
     $this->drupalPost(NULL, $edit, t('Save'));
 
-    drupal_static_reset('taxonomy_get_tree');
-    drupal_static_reset('taxonomy_get_treeparent');
-    drupal_static_reset('taxonomy_get_treeterms');
+    taxonomy_terms_static_reset();
     $terms = taxonomy_get_tree($this->vocabulary->vid);
     $this->assertEqual($terms[0]->tid, $term2->tid, 'Term 2 was moved above term 1.');
     $this->assertEqual($terms[1]->parents, array($term2->tid), 'Term 3 was made a child of term 2.');
@@ -910,9 +906,7 @@ class TaxonomyTermTestCase extends TaxonomyWebTestCase {
     // Submit confirmation form.
     $this->drupalPost(NULL, array(), t('Reset to alphabetical'));
 
-    drupal_static_reset('taxonomy_get_tree');
-    drupal_static_reset('taxonomy_get_treeparent');
-    drupal_static_reset('taxonomy_get_treeterms');
+    taxonomy_terms_static_reset();
     $terms = taxonomy_get_tree($this->vocabulary->vid);
     $this->assertEqual($terms[0]->tid, $term1->tid, 'Term 1 was moved to back above term 2.');
     $this->assertEqual($terms[1]->tid, $term2->tid, 'Term 2 was moved to back below term 1.');

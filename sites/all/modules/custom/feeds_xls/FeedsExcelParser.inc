@@ -55,6 +55,19 @@ class FeedsExcelParser extends FeedsParser{
     $this->state->total = $source_config['max_rows'];
     // Get the filepath of the submitted file.
     $import_file_path = drupal_realpath($fetcher_result->getFilePath());
+    // A Feeds parser state can be reused by consecutive imports. If the
+    // uploaded workbook changed, its reader and header row must not be reused.
+    // Feeds may overwrite a new upload at the same destination path, so the
+    // pathname alone cannot identify a workbook reliably.
+    $import_file_fingerprint = md5_file($import_file_path);
+    if(!isset($this->state->import_file_fingerprint) || $this->state->import_file_fingerprint !== $import_file_fingerprint){
+      if(!empty($this->state->reader_object_cache_path) && file_exists($this->state->reader_object_cache_path)){
+        @drupal_unlink($this->state->reader_object_cache_path);
+      }
+      unset($this->state->reader_object_cache_path, $this->state->column_names);
+      $this->state->import_file_path = $import_file_path;
+      $this->state->import_file_fingerprint = $import_file_fingerprint;
+    }
     // Load the PHPExcel shenanigans
     // Note, we're caching this in a file as PDO/MySQL complain when it is 
     // included in the $this->state object (dodgy characters).
@@ -80,6 +93,9 @@ class FeedsExcelParser extends FeedsParser{
       $this->state->reader_object_cache_path = $tempnam;
       // Set pointer to 0
       $this->state->pointer = 0;
+      // A newly uploaded workbook has its own header row. Do not reuse column
+      // names left in the persistent Feeds parser state by a previous import.
+      unset($this->state->column_names);
     }else{
       $previous_this = unserialize(file_get_contents($this->state->reader_object_cache_path));
       $this->reader = $previous_this->reader;
@@ -119,7 +135,7 @@ class FeedsExcelParser extends FeedsParser{
         }
         // A special case.  We need to ensure that the GUID column has a value
         // defined, even if that value is the empty string.
-        if(count($row_values) && $column < count($this->state->column_names) && !isset($row_values['GUID']) && array_search('GUID', $this->state->column_names)){
+        if(count($row_values) && isset($this->state->column_names) && $column < count($this->state->column_names) && !isset($row_values['GUID']) && array_search('GUID', $this->state->column_names)){
           $row_values['GUID'] = '';
         }
         if(!isset($this->state->column_names)){

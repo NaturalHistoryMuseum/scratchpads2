@@ -605,10 +605,11 @@ function ckeditor_modules_enabled($modules) {
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
   $profiles_list = ckeditor_profile_input_formats();
   $plugins_list = ckeditor_load_plugins();
+  $profiles = ckeditor_profile_load('', TRUE);
   foreach ($profiles_list AS $_profile => $_inputs) {
     $changed = FALSE;
-    $profile = ckeditor_profile_load($_profile);
-    if (!isset($profile->settings['loadPlugins'])) continue;
+    $profile = isset($profiles[$_profile]) ? $profiles[$_profile] : FALSE;
+    if (!$profile || !isset($profile->settings['loadPlugins'])) continue;
     foreach (array_keys((array) $profile->settings['loadPlugins']) as $plugin_name) {
       if (isset($profile->settings['loadPlugins'][$plugin_name]['active']) && $profile->settings['loadPlugins'][$plugin_name]['active'] == 0 && array_key_exists($plugin_name, $plugins_list)) {
         $profile->settings['loadPlugins'][$plugin_name]['active'] = 1;
@@ -635,9 +636,11 @@ function ckeditor_modules_disabled($modules) {
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
   $profiles_list = ckeditor_profile_input_formats();
   $plugins_list = ckeditor_load_plugins();
+  $profiles = ckeditor_profile_load('', TRUE);
   foreach ($profiles_list AS $_profile => $_inputs) {
     $changed = FALSE;
-    $profile = ckeditor_profile_load($_profile);
+    $profile = isset($profiles[$_profile]) ? $profiles[$_profile] : FALSE;
+    if (!$profile || !isset($profile->settings['loadPlugins'])) continue;
     foreach (array_keys((array) $profile->settings['loadPlugins']) as $plugin_name) {
       if (!array_key_exists($plugin_name, $plugins_list)) {
         $profile->settings['loadPlugins'][$plugin_name]['active'] = 0;
@@ -664,9 +667,11 @@ function ckeditor_modules_uninstalled($modules) {
   module_load_include('inc', 'ckeditor', 'includes/ckeditor.lib');
   $profiles_list = ckeditor_profile_input_formats();
   $plugins_list = ckeditor_load_plugins();
+  $profiles = ckeditor_profile_load('', TRUE);
   foreach ($profiles_list AS $_profile => $_inputs) {
     $changed = FALSE;
-    $profile = ckeditor_profile_load($_profile);
+    $profile = isset($profiles[$_profile]) ? $profiles[$_profile] : FALSE;
+    if (!$profile || !isset($profile->settings['loadPlugins'])) continue;
     foreach (array_keys((array) $profile->settings['loadPlugins']) as $plugin_name) {
       if (!array_key_exists($plugin_name, $plugins_list)) {
         unset($profile->settings['loadPlugins'][$plugin_name]);

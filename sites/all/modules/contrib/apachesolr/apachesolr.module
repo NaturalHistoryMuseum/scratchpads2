@@ -1245,6 +1245,21 @@ function apachesolr_load_all_environments() {
     $environments = drupal_array_merge_deep($environments, $conf_environments);
   }
 
+  // Allow local and CI environments to override an imported database URL
+  // without mutating that database. This prevents development cron or search
+  // requests from reaching the production Solr service. SimpleTest databases
+  // must retain their own URLs because the ApacheSolr tests edit and delete
+  // environments as part of their assertions.
+  $solr_default_url = getenv('SOLR_DEFAULT_URL');
+  $database_prefix = Database::getConnection()->tablePrefix();
+  $is_simpletest = (bool) preg_match('/simpletest[0-9]+/', $database_prefix);
+  if (!$is_simpletest && $solr_default_url !== FALSE && $solr_default_url !== '') {
+    $default_env_id = variable_get('apachesolr_default_environment', 'solr');
+    if (isset($environments[$default_env_id])) {
+      $environments[$default_env_id]['url'] = rtrim($solr_default_url, '/');
+    }
+  }
+
   return $environments;
 }
 

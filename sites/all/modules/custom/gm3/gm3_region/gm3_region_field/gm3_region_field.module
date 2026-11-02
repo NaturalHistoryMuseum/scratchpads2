@@ -382,27 +382,17 @@ function _gm3_region_field_get_options(){
 function _gm3_region_field_array_sort($a, $b){
   $a = explode(":", $a);
   $b = explode(":", $b);
-  if($a[0] != $b[0]){return $a[0] > $b[0];}
-  if(isset($a[1]) && isset($b[1])){
-    if($a[1] != $b[1]){return $a[1] > $b[1];}
-  }else{
-    return count($a) > count($b);
+  $length = max(count($a), count($b));
+  for($index = 0; $index < $length; $index++){
+    if(!isset($a[$index]) || !isset($b[$index])){
+      return count($a) <=> count($b);
+    }
+    $comparison = strnatcmp($a[$index], $b[$index]);
+    if($comparison !== 0){
+      return $comparison;
+    }
   }
-  if(isset($a[2]) && isset($b[2])){
-    if($a[2] != $b[2]){return $a[2] > $b[2];}
-  }else{
-    return count($a) > count($b);
-  }
-  if(isset($a[3]) && isset($b[3])){
-    if($a[3] != $b[3]){return $a[3] > $b[3];}
-  }else{
-    return count($a) > count($b);
-  }
-  if(isset($a[4]) && isset($b[4])){
-    if($a[4] != $b[4]){return $a[4] > $b[4];}
-  }else{
-    return count($a) > count($b);
-  }
+  return 0;
 }
 
 /**

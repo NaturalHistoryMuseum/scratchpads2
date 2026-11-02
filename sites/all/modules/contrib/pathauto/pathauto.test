@@ -105,7 +105,7 @@ class PathautoTestHelper extends DrupalWebTestCase {
     return $term;
   }
 
-  function assertEntityPattern($entity_type, $bundle, $language = LANGUAGE_NONE, $expected) {
+  function assertEntityPattern($entity_type, $bundle, $language, $expected) {
     drupal_static_reset('pathauto_pattern_load_by_entity');
     $this->refreshVariables();
     $pattern = pathauto_pattern_load_by_entity($entity_type, $bundle, $language);

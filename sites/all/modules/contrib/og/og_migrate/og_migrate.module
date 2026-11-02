@@ -91,7 +91,9 @@ function og_migrate_get_plugins_dependencies($plugins_name) {
 
   $plugins_accessible = og_migrate_get_accessible_plugins();
 
-  while (list($plugin_name) = each($plugins_name)) {
+  $plugins_pending = array_keys($plugins_name);
+  while ($plugins_pending) {
+    $plugin_name = array_shift($plugins_pending);
     if (!isset($plugins_data[$plugin_name])) {
       // This plugin is not found, abort.
       return FALSE;
@@ -110,6 +112,7 @@ function og_migrate_get_plugins_dependencies($plugins_name) {
     foreach (array_keys($plugins_data[$plugin_name]['requires']) as $dependency) {
       if (!isset($plugins_name[$dependency])) {
         $plugins_name[$dependency] = 0;
+        $plugins_pending[] = $dependency;
       }
     }
   }
@@ -491,4 +494,3 @@ function og_migrate_status() {
     OG_MIGRATE_FAILED => t('Executed but failed'),
   );
 }
-

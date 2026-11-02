@@ -95,7 +95,7 @@ function beautytips_add_beautytips($options = NULL) {
   $settings = array('beautytips' => array());
   $js_added = drupal_add_js($data = NULL, 'setting');
 
-  if (count($options)) {
+  if (!empty($options) && (is_array($options) || $options instanceof Countable)) {
     foreach ($options as $beautytip => $content) {
 
       // Ensure the js settings are not added more than once
@@ -285,4 +285,3 @@ function beautytips_define_beautytips_styles() {
   );
   return $styles;
 }
-

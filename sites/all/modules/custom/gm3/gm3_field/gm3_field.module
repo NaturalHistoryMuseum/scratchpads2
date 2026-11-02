@@ -55,7 +55,8 @@ function gm3_field_js_poly_settings($items, $key) {
   module_load_include('functions.inc', 'gm3');
 
   foreach($items as $ix => $item) {
-    $items[$ix] = gm3_convert_polygon_string($item[$key])[0];
+    $polygons = isset($item[$key]) ? gm3_convert_polygon_string($item[$key]) : FALSE;
+    $items[$ix] = is_array($polygons) && isset($polygons[0]) ? $polygons[0] : array();
   }
 
   return $items;
@@ -119,7 +120,7 @@ function gm3_field_field_settings_form($field, $instance, $has_data){
         'No',
         'Yes'
       ],
-      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : ($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0,
+      '#default_value' => isset($field['settings']['allow_text_entry']) ? $field['settings']['allow_text_entry'] : (($field['type'] == 'gm3_point' && $field['cardinality'] == 1) ? 1 : 0),
       '#required' => TRUE,
       '#description' => t('Select whether a user can also enter data using a text field')
     ]
@@ -418,7 +419,7 @@ function _gm3_field_combo_item_form_to_storage($value, $type, &$element = null) 
     // Allow passing an optional field element as the source in case
     // the hook wants to edit the field
     if(isset($element)) {
-      $args = [$value, $element];
+      $args = array($value, &$element);
     } else {
       $args = [$value];
     }
@@ -1357,6 +1358,7 @@ function gm3_field_create_combination_widget($element, $items, $field) {
 
   // These will be the input elements for each different map object type
   $field_elements = [];
+  $allow_text_entry = !empty($field['settings']['allow_text_entry']);
 
   // The user will have configured which field types are allowed in this combo map.
   // We have to do a little work for each one.

@@ -150,7 +150,10 @@ class BootstrapPageCacheTestCase extends DrupalWebTestCase {
     $this->assertResponse(304, 'Conditional request with obsolete If-Modified-Since date returned 304 Not Modified.');
 
     $this->drupalGet('', array(), array('If-Modified-Since: ' . $last_modified));
-    $this->assertResponse(200, 'Conditional request without If-None-Match returned 200 OK.');
+    // Drupal itself only returns 304 when both validators match. A compliant
+    // front-end web server may independently turn the otherwise successful
+    // response into 304 based on If-Modified-Since alone.
+    $this->assertResponse(array(200, 304), 'Conditional request without If-None-Match returned a valid response.');
     $this->assertEqual($this->drupalGetHeader('X-Drupal-Cache'), 'HIT', 'Page was cached.');
 
     $this->drupalGet('', array(), array('If-Modified-Since: ' . gmdate(DATE_RFC7231, strtotime($last_modified) + 1), 'If-None-Match: ' . $etag));

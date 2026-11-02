@@ -20,6 +20,13 @@ class FeedsResult {}
 abstract class FeedsPlugin extends FeedsConfigurable implements FeedsSourceInterface {
 
   /**
+   * Source-specific plugin configuration.
+   *
+   * @var array
+   */
+  public $source_config = array();
+
+  /**
    * Constructor.
    *
    * Initialize class variables.

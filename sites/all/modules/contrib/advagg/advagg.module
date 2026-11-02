@@ -937,7 +937,7 @@ function advagg_modify_js_pre_render(array $elements) {
   // Put children elements into a reference array.
   $children = array();
   foreach ($elements as $key => &$value) {
-    if ($key !== '' && $key[0] === '#') {
+    if (is_string($key) && $key !== '' && $key[0] === '#') {
       continue;
     }
     $children[$key] = &$value;
@@ -971,7 +971,7 @@ function advagg_modify_css_pre_render(array $elements) {
   // Put children elements into a reference array.
   $children = array();
   foreach ($elements as $key => &$value) {
-    if ($key !== '' && $key[0] === '#') {
+    if (is_string($key) && $key !== '' && $key[0] === '#') {
       continue;
     }
     $children[$key] = &$value;

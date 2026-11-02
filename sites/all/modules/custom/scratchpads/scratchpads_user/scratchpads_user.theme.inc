@@ -1,7 +1,7 @@
 <?php
 
 function _scratchpads_user_register_field_sort($a, $b){
-  return $a['widget']['weight'] >= $b['widget']['weight'];
+  return ($a['widget']['weight'] ?? 0) <=> ($b['widget']['weight'] ?? 0);
 }
 
 function theme_scratchpads_user_register_form($variables){

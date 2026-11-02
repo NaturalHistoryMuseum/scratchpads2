@@ -123,7 +123,7 @@ function switch_element_info(){
 /**
  * Element value callback.
  */
-function switch_value_callback($element, $input = FALSE, &$form_state){
+function switch_value_callback($element, $input, &$form_state){
   if($input !== FALSE){
     if(empty($input)){return 0;}
   }elseif(!empty($element['#default_value'])){return $element['#default_value'];}

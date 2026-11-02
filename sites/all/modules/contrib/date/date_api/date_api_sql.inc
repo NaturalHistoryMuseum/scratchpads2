@@ -85,6 +85,10 @@ class date_sql_handler {
   var $local_timezone_field = NULL;
   // Use if the offset is stored in a field.
   var $offset_field = NULL;
+  // The active Views date granularity.
+  var $granularity = NULL;
+  // Query placeholders populated by Views date handlers.
+  var $placeholders = array();
 
   /**
    * The object constuctor.

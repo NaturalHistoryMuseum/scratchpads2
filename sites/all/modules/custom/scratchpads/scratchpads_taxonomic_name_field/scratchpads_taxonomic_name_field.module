@@ -24,7 +24,7 @@ function scratchpads_taxonomic_name_field_field_formatter_view($entity_type, $en
     case 'taxon_name':
       foreach ($items as $delta => $item) {
         $term = taxonomy_term_load($item['tid']);
-        $displaylang = isset($term->field_rank[$langcode]) ? $langcode : isset($term->field_rank) ? array_keys($term->field_rank)[0] : 'und';
+        $displaylang = isset($term->field_rank[$langcode]) ? $langcode : (isset($term->field_rank) ? array_keys($term->field_rank)[0] : 'und');
         $italics = FALSE;
         if (isset($term->field_rank[$displaylang][0]['value'])) {
           if ($term->field_rank[$displaylang][0]['value'] == "Genus") {
@@ -827,7 +827,7 @@ function scratchpads_taxonomic_name_field_term_check_term($name, $vid, $create_t
  * Callback for processing a feeds item.
  */
 function scratchpads_taxonomic_name_field_feeds_set_target($source, $entity, $target, $terms){
-  if(empty($terms)){return;}
+  if(empty($terms) || (is_string($terms) && trim($terms) === '')){return;}
   // Handle non-multiple values.
   if(!is_array($terms)){
     $terms = array(

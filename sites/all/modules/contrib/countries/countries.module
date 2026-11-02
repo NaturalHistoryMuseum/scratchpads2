@@ -772,8 +772,10 @@ function country_property($country, $property, $default = NULL, $sanitize = TRUE
         $output = $country->official_name;
       }
       elseif (!isset($default)) {
-        // Entity->label() returns an empty string if not set.
-        $output = $country->label();
+        // Validation and alter hooks may supply a plain country object rather
+        // than an Entity instance. Fall back to the label property in that
+        // case.
+        $output = is_callable(array($country, 'label')) ? $country->label() : $country->name;
         if (!$output) {
           $output = NULL;
         }
@@ -788,8 +790,10 @@ function country_property($country, $property, $default = NULL, $sanitize = TRUE
       break;
 
     case 'name':
-      // Entity->label() returns an empty string if not set.
-      $output = $country->label();
+      // Validation and alter hooks may supply a plain country object rather
+      // than an Entity instance. Fall back to the label property in that
+      // case.
+      $output = is_callable(array($country, 'label')) ? $country->label() : $country->name;
       if (!$output) {
         $output = NULL;
       }
@@ -1043,7 +1047,8 @@ function countries_apachesolr_indexing_callback($entity, $field_name, $index_key
   $fields = array();
   if (!empty($entity->{$field_name})) {
     $field = $entity->$field_name;
-    list($lang, $values) = each($field);
+    $lang = key($field);
+    $values = reset($field);
     foreach ($values as $fval) {
       $fields[] = array(
         'key' => $index_key,
@@ -1099,6 +1104,6 @@ function countries_apachesolr_display_callback($facet, $options) {
  *
  * @see countries_entity_property_info_alter()
  */
-function countries_get_properties($data = FALSE, array $options, $name) {
+function countries_get_properties($data, array $options, $name) {
   return country_property($data, $name);
 }

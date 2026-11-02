@@ -310,9 +310,12 @@ function features_modules_enabled($modules) {
 
   if (!empty($items)) {
     _features_restore('enable', $items);
-    // Rebuild the list of features includes.
-    features_include(TRUE);
   }
+
+  // Enabling any module can add a Features API implementation, including a
+  // CTools exportable component. Rebuild the include list even when the newly
+  // enabled module is not itself a feature.
+  features_include(TRUE);
 }
 
 /**
@@ -343,6 +346,13 @@ function features_include($reset = FALSE) {
       if (is_file(DRUPAL_ROOT . '/' . $file)) {
         require_once DRUPAL_ROOT . '/' . $file;
       }
+    }
+
+    // A newly enabled feature can provide component defaults in separate
+    // include files. Reset that include list together with the API component
+    // list so those defaults are visible during the following rebuild.
+    if ($reset) {
+      features_include_defaults(NULL, TRUE);
     }
   }
 }
@@ -890,6 +900,10 @@ function features_revert($revert = array()) {
  * Wrapper around _features_restore().
  */
 function features_rebuild($rebuild = array()) {
+  // A feature may have been enabled earlier in the same request. Refresh API
+  // and defaults-file discovery before deciding which components need their
+  // initial rebuild.
+  features_include(TRUE);
   return _features_restore('rebuild', $rebuild);
 }
 

@@ -204,10 +204,6 @@
       -->
     <!-- <termIndexInterval>256</termIndexInterval> -->
 
-    <useCompoundFile>false</useCompoundFile>
-    <ramBufferSizeMB>32</ramBufferSizeMB>
-    <mergeFactor>10</mergeFactor>
-
     <!-- Unlock On Startup
 
          If true, unlock any held write or commit locks on startup.

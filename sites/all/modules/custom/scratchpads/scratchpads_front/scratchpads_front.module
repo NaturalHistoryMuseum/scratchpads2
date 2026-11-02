@@ -85,7 +85,7 @@ function scratchpads_front_block_view_alter(&$data, $block){
       }
     }
     // Check to see whether or not the block has content.
-    $content = $data['content'];
+    $content = isset($data['content']) ? $data['content'] : array();
     $content = trim(str_replace("\n", '', strip_tags(drupal_render($content))));
     if(!$content){
       unset($data['content']);
@@ -193,7 +193,9 @@ function scratchpads_front_views_pre_view(&$view, &$display_id, &$args){
     case 'front_page_slideshow':
       $view->args[] = scratchpads_front_variable_get($var);
       if(!user_access('administer front page')){
-        $view->display_handler->default_display->options['empty'] = array();
+        if (!empty($view->display_handler->default_display)) {
+          $view->display_handler->default_display->options['empty'] = array();
+        }
         $view->display_handler->options['empty'] = array();
       }
       break;

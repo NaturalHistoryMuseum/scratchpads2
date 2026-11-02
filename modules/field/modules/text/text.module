@@ -440,6 +440,12 @@ function text_summary($text, $format = NULL, $size = NULL) {
 
   // If the htmlcorrector filter is present, apply it to the generated summary.
   if (isset($filters['filter_htmlcorrector'])) {
+    // A one-character slice can leave only the opening angle bracket of an
+    // HTML tag. Modern libxml versions escape that fragment to "&lt;", while
+    // a formatted summary should contain no partial tag at all.
+    if (substr($summary, -1) === '<') {
+      $summary = substr($summary, 0, -1);
+    }
     $summary = _filter_htmlcorrector($summary);
   }
 

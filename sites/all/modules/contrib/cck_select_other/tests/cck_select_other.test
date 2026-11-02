@@ -30,7 +30,7 @@ class CCKSelectOtherTest extends DrupalWebTestCase {
     $content_type = strtolower($this->randomName(5));
 
     /* Setup an admin user */
-    $this->admin_user = $this->drupalCreateUser( array('administer content types', 'administer site configuration', 'use PHP for settings'));
+    $this->admin_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'administer site configuration', 'use PHP for settings'));
     $this->drupalLogin($this->admin_user);
 
     /* Create a new content type */
@@ -91,6 +91,17 @@ class CCKSelectOtherTest extends DrupalWebTestCase {
   }
 
   /**
+   * Returns a configured option that is not one of the widget sentinels.
+   */
+  protected function randomConfiguredOption() {
+    $options = cck_select_other_options($this->test_instance);
+    unset($options['other'], $options['_none'], $options['']);
+
+    $this->assertFalse(empty($options), t('Configured select options are available.'));
+    return empty($options) ? NULL : array_rand($options);
+  }
+
+  /**
    * Implementation of tearDown() method
    */
   public function tearDown() {
@@ -134,9 +145,7 @@ class CCKSelectOtherBasicTest extends CCKSelectOtherTest {
     $options_arr = cck_select_other_options($this->test_instance);
     $this->assertEqual(6, count($options_arr), t('There are 6 = %count options set on the field.', array('%count' => count($options_arr))));
 
-    do {
-      $my_option = array_rand(cck_select_other_options($this->test_instance));
-    } while (in_array($my_option, array('other', '_none', '')));
+    $my_option = $this->randomConfiguredOption();
 
     $this->drupalLogin($this->web_user);
 
@@ -293,15 +302,16 @@ class CCKSelectOtherAllowedValuesTest extends CCKSelectOtherTest {
 class CCKSelectOtherPHPOptionsTest extends CCKSelectOtherTest {
   public static function getInfo() {
     return array(
-      'name' => t('CCK Select Other PHP Options Test'),
-      'description' => t('Confirm that php options are generated in the select list.'),
+      'name' => t('CCK Select Other PHP Options Disabled Test'),
+      'description' => t('Confirm that legacy PHP options are not evaluated.'),
       'group' => t('Field UI'),
     );
   }
 
   function testPHPOptions() {
 
-    // Login as admin user and change options to use php
+    // PHP option evaluation was deliberately disabled for security. Confirm
+    // that stored legacy code is ignored while normal configured options work.
     $this->drupalLogin($this->admin_user);
 
     $php_options = '$arr = array();
@@ -313,27 +323,31 @@ class CCKSelectOtherPHPOptionsTest extends CCKSelectOtherTest {
     return $arr;';
 
     $edit = array(
-      'instance[widget][settings][select_list_options]' => '',
+      'instance[widget][settings][select_list_options]' => $this->options,
       'instance[widget][settings][select_list_options_fieldset][advanced_options][select_list_options_php]' => $php_options,
     );
     $bundle_path = 'admin/structure/types/manage/' . $this->contentType->type;
 
     $this->drupalPost($bundle_path . '/fields/' . $this->test_field['field_name'], $edit, t('Save settings'));
     $this->test_field = field_info_field($this->test_field['field_name']);
+    $this->test_instance = field_info_instance('node', $this->test_field['field_name'], $this->contentType->type);
+
+    $options = cck_select_other_options($this->test_instance);
+    $this->assertFalse(isset($options['blah_blah_']), t('Legacy PHP option code was not evaluated.'));
+    $my_option = $this->randomConfiguredOption();
 
     $this->drupalLogout();
 
-    // Login as web user and make sure that we are selecting a value from
-    // the php generated list.
+    // Login as web user and make sure a normal configured option still works.
     $this->drupalLogin($this->web_user);
 
     $select_field = $this->test_field['field_name'] . '[und][0][select_other_list]';
     $edit = array(
-      $select_field => 'blah_blah_',
+      $select_field => $my_option,
     );
 
     $this->drupalPost('node/' . $this->test_node->nid . '/edit', $edit, t('Save'));
-    $this->assertText('blah_blah_', t('Select value %value found on node.', array('%value' => 'blah_blah_')));
+    $this->assertText($my_option, t('Configured select value %value found on node.', array('%value' => $my_option)));
 
     $this->drupalLogout();
   }
@@ -364,9 +378,7 @@ class CCKSelectOtherMultipleFieldsTest extends CCKSelectOtherTest {
       }
     }
 
-    do {
-      $firstoption = array_rand(cck_select_other_options($this->test_instance));
-    } while (in_array($firstoption, array('other', '_none', '')));
+    $firstoption = $this->randomConfiguredOption();
 
     // Create a new field and instance
     $this->second_field = $this->test_field;
@@ -463,9 +475,7 @@ class CCKSelectOtherMultipleValueListTest extends CCKSelectOtherTest {
     // In unlimited situation, there are two elements by default.
     // We'll try add more later.
     $options_arr = cck_select_other_options($this->test_instance);
-    do {
-      $firstoption = array_rand(cck_select_other_options($this->test_instance));
-    } while (in_array($firstoption, array('other', '_none', '')));
+    $firstoption = $this->randomConfiguredOption();
     $otheroption = $this->randomName(16);
 
     $edit = array(

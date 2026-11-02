@@ -151,7 +151,7 @@ function tcsdc_variable($name, $value = NULL){
  * Batch downloader.  This does the recursive downloading of the XML.  The XML
  * is converted and saved in the database, eventually to be output as CSV.
  */
-function tcsdc_batch_downloader($urls, $total = 1000000, $vid, &$context){
+function tcsdc_batch_downloader($urls, $total, $vid, &$context){
   if(!isset($context['sandbox']['progress'])){
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = $total;

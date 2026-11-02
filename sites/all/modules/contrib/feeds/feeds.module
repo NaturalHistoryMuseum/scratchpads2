@@ -185,7 +185,7 @@ function feeds_push_unsubscribe($job) {
  * @param $context
  *   Batch context.
  */
-function feeds_batch($method, $importer_id, $feed_nid = 0, &$context) {
+function feeds_batch($method, $importer_id, $feed_nid, &$context) {
   $context['finished'] = FEEDS_BATCH_COMPLETE;
   try {
     $context['finished'] = feeds_source($importer_id, $feed_nid)->$method();

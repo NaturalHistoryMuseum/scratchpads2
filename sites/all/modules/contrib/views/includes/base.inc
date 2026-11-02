@@ -8,6 +8,7 @@
 /**
  * Provides the basic object definitions used by plugins and handlers.
  */
+#[\AllowDynamicProperties]
 class views_object {
 
   /**

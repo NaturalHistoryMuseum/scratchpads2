@@ -1,4 +1,4 @@
- <?php
+<?php
 
 require_once dirname(__FILE__) . '/includes/alpha.inc';
 require_once dirname(__FILE__) . '/includes/base.inc';

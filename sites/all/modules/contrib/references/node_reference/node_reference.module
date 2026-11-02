@@ -626,7 +626,7 @@ function node_reference_field_widget_form(&$form, &$form_state, $field, $instanc
  *
  * Replace the node nid with a node title.
  */
-function node_reference_autocomplete_value($element, $input = FALSE, $form_state) {
+function node_reference_autocomplete_value($element, $input, $form_state) {
   if ($input === FALSE) {
     // We're building the displayed 'default value': expand the raw nid into
     // "node title [nid:n]".

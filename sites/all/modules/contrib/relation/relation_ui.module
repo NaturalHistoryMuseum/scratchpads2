@@ -663,28 +663,7 @@ function relation_ui_type_import($form) {
 }
 
 function relation_ui_type_import_validate($form, &$form_state) {
-  if (drupal_substr($form_state['values']['relation_type'], 0, 5) == '<?php') {
-    $form_state['values']['relation_type'] = drupal_substr($form_state['values']['relation_type'], 5);
-  }
-  ob_start();
-  //eval($form_state['values']['relation_type']);
-  ob_end_clean();
-  if (!is_object($relation_type)) {
-    return form_error($form['relation_type'], t('Unable to interpret relation type code.'));
-  }
-  // relation_type name must be alphanumeric or underscores, no other punctuation.
-  if (!empty($form_state['values']['name']) && preg_match('/[^a-zA-Z0-9_]/', $form_state['values']['name'])) {
-    form_error($form['name'], t('Relation type name must be alphanumeric or underscores only.'));
-  }
-
-  if ($form_state['values']['name']) {
-    $relation_type->relation_type = $form_state['values']['name'];
-  }
-
-  if (relation_type_load($relation_type->relation_type)) {
-    form_set_error('name', t('A relation type by that name already exists; please choose a different name'));
-  }
-  $form_state['relation_type'] = $relation_type;
+  form_error($form['relation_type'], t('Importing relation types from PHP code is disabled for security.'));
 }
 
 function relation_ui_type_import_submit($form, &$form_state) {

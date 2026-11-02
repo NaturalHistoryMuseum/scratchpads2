@@ -129,6 +129,10 @@ function tui_module_implements_alter(&$imps, $hook){
 function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
   //Change the widget of the parent relation to deal with large taxonomies
   $form['relations']['parent']['#type'] = 'textfield';
+  // The core taxonomy submit handler expects parent to remain an array. Form
+  // API returns a scalar after changing the element from a select to a text
+  // field, which triggers count() warnings on supported PHP versions.
+  array_unshift($form['#validate'], 'tui_taxonomy_form_term_validate');
   // Ensure the taxonomy.admin.inc file is included.
   form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
   unset($form['relations']['parent']['#options']);
@@ -180,6 +184,16 @@ function tui_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id){
       drupal_goto('admin/structure/taxonomy/' . $form['#vocabulary']->machine_name . '//' . $form['#term']['tid'], $options);
       exit();
     }
+  }
+}
+
+/**
+ * Normalize the TUI parent text field for the core taxonomy submit handler.
+ */
+function tui_taxonomy_form_term_validate($form, &$form_state){
+  if(isset($form_state['values']['parent']) && !is_array($form_state['values']['parent'])){
+    $parent = trim($form_state['values']['parent']);
+    $form_state['values']['parent'] = array($parent === '' ? 0 : $parent);
   }
 }
 
@@ -273,7 +287,7 @@ function tui_menu_local_tasks_alter(&$data, $router_item, $root_path){
  */
 function tui_access_callback($vocabulary){
   // Only grant access to the page if they can add AND edit AND delete.
-  return user_access('edit terms in ' . $vocabulary->vid) && user_access('delete terms in ' . $vocabulary->vid) && user_access('add terms in ' . $vocabulary->vid);
+  return user_access('administer taxonomy') || (user_access('edit terms in ' . $vocabulary->vid) && user_access('delete terms in ' . $vocabulary->vid) && user_access('add terms in ' . $vocabulary->vid));
 }
 
 /**

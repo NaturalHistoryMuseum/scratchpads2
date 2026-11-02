@@ -267,7 +267,7 @@ function scratchpads_biblio_search_block_view_alter(&$data, $block){
     return;
   }
   if($block->module == 'facetapi'){
-    if($data['subject'] == 'Filter by author:'){
+    if(isset($data['subject']) && $data['subject'] == 'Filter by author:'){
       if($block->context == 'media_gallery_page_facets'){
         $data['subject'] = 'Contributor';
       }else{

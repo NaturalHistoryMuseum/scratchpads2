@@ -14,8 +14,8 @@ function context_features_export($data, &$export, $module_name = '') {
       // Currently only node and views conditions are supported.
       // @TODO: Should this be delegated to a method on the plugin?
       foreach (array('node', 'views') as $key) {
-        if (!empty($context->conditions{$key}['values'])) {
-          foreach ($context->conditions{$key}['values'] as $item) {
+        if (!empty($context->conditions[$key]['values'])) {
+          foreach ($context->conditions[$key]['values'] as $item) {
             // Special pipe for views
             if ($key === 'views') {
               $split = explode(':', $item);

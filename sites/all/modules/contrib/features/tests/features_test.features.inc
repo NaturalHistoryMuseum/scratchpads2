@@ -29,6 +29,7 @@ function features_test_image_default_styles() {
 
   // Exported image style: features_test
   $styles['features_test'] = array(
+    'label' => 'features_test',
     'name' => 'features_test',
     'effects' => array(
       2 => array(

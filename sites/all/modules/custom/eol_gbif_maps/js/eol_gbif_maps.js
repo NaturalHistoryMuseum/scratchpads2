@@ -6,15 +6,18 @@
         squareSize: 64,
         style: 'purpleYellow-noborder.poly'
       });
-      const gbifTileLayer = L.tileLayer(
-        `${Drupal.settings.gm3.settings.eol_gbif_maps.tile_host}/v2/map/occurrence/density/{z}/{x}/{y}{r}.png?taxonKey={taxonId}&${gbifOptions}`,
-        {
-          taxonId: settings.taxon_id,
-          // Overrides the default tileLayer's value for {r} (retina string)
-          r: L.Browser.retina ? '@2x' : '@1x',
-          className: 'gm3-gbif-tile'
-        }
-      );
+      const taxonId = Number(settings.taxon_id);
+      const gbifTileLayer = Number.isInteger(taxonId) && taxonId > 0
+        ? L.tileLayer(
+          `${Drupal.settings.gm3.settings.eol_gbif_maps.tile_host}/v2/map/occurrence/density/{z}/{x}/{y}{r}.png?taxonKey={taxonId}&${gbifOptions}`,
+          {
+            taxonId,
+            // Overrides the default tileLayer's value for {r} (retina string)
+            r: L.Browser.retina ? '@2x' : '@1x',
+            className: 'gm3-gbif-tile'
+          }
+        )
+        : L.layerGroup();
       const checkboxText = Drupal.t("GBIF data");
 
       super(

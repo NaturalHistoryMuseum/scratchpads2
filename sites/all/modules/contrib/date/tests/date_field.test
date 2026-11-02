@@ -16,7 +16,7 @@ abstract class DateFieldBasic extends DrupalWebTestCase {
 
     // Create and log in our privileged user.
     $this->privileged_user = $this->drupalCreateUser(
-      array('administer content types', 'administer nodes', 'bypass node access', 'administer date tools')
+      array('administer content types', 'administer fields', 'administer nodes', 'bypass node access', 'administer date tools')
     );
     $this->drupalLogin($this->privileged_user);
 
@@ -271,9 +271,8 @@ abstract class DateFieldBasic extends DrupalWebTestCase {
   /**
    * @todo.
    */
-  protected function deleteDateField($label, $bundle = 'story', $bundle_name = 'Story') {
-    $this->drupalGet("admin/structure/types/manage/$bundle/fields");
-    $this->clickLink('delete');
+  protected function deleteDateField($label, $field_name = 'field_test', $bundle = 'story', $bundle_name = 'Story') {
+    $this->drupalGet("admin/structure/types/manage/$bundle/fields/$field_name/delete");
     $this->drupalPost(NULL, NULL, t('Delete'));
     $this->assertText("The field $label has been deleted from the $bundle_name content type.", 'Removed date field.');
   }
@@ -311,7 +310,7 @@ class DateFieldTestCase extends DateFieldBasic {
         );
         $this->createDateField($options);
         $this->dateForm($field_name, $field_type, $widget_type);
-        $this->deleteDateField($label);
+        $this->deleteDateField($label, $field_name);
       }
     }
   }

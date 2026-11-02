@@ -81,6 +81,15 @@ function uuid_get_core_entity_info() {
  * @see uuid_core_entity_info().
  */
 function uuid_entity_info_alter(&$info) {
+  // A core-only SimpleTest run shares its PHP process with the parent
+  // Scratchpads site. UUID may therefore remain loaded while an isolated core
+  // or historical upgrade database is active. Do not add UUID schema metadata
+  // to those core test entities.
+  if (getenv('DRUPAL_CORE_TESTS') == 'true' ||
+      (!empty($GLOBALS['drupal_test_info']['test_run_id']) && variable_get('scratchpads_core_test', FALSE))) {
+    return;
+  }
+
   foreach (uuid_get_core_entity_info() as $entity_type => $core_info) {
     $info[$entity_type]['uuid'] = TRUE;
     $info[$entity_type]['entity keys']['uuid'] = $core_info['entity keys']['uuid'];

@@ -143,10 +143,10 @@ function template_preprocess_views_slideshow_cycle_main_frame(&$vars) {
 
   $widgets = $vars['options']['widgets'];
   if (isset($widgets['top']['views_slideshow_pager']['enable']) && $widgets['top']['views_slideshow_pager']['enable']) {
-    $aria = "aria-labelledby='views_slideshow_pager_field_item_top_${vss_id}_";
+    $aria = "aria-labelledby='views_slideshow_pager_field_item_top_{$vss_id}_";
   }
   elseif (isset($widgets['bottom']['views_slideshow_pager']['enable']) && $widgets['bottom']['views_slideshow_pager']['enable']) {
-    $aria = "aria-labelledby='views_slideshow_pager_field_item_bottom_${vss_id}_";
+    $aria = "aria-labelledby='views_slideshow_pager_field_item_bottom_{$vss_id}_";
   }
   else {
     $aria = "";

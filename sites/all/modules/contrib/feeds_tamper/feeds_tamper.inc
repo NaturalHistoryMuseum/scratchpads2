@@ -344,8 +344,10 @@ function feeds_tamper_form_feeds_ui_mapping_form_alter(array &$form, array &$for
       $form['source']['#options']['Blank source ' . ++$max_source] = 'Blank source';
 
       // Declare extra mapping sources.
-      for ($i = 2; $i <= $max_source; $i++) {
-        $form['#feeds_sources']['Blank source ' . $i] = $form['#feeds_sources']['Blank source 1'];
+      if (isset($form['#feeds_sources']['Blank source 1'])) {
+        for ($i = 2; $i <= $max_source; $i++) {
+          $form['#feeds_sources']['Blank source ' . $i] = $form['#feeds_sources']['Blank source 1'];
+        }
       }
     }
     else {
@@ -354,12 +356,19 @@ function feeds_tamper_form_feeds_ui_mapping_form_alter(array &$form, array &$for
   }
 
   if ($max_target) {
-    unset($form['target']['#options']['Temporary target 1']);
+    // Keep existing temporary targets visible on older Feeds versions, which
+    // use the select options to render the mapping table.
+    for ($i = 1; $i <= $max_target; $i++) {
+      $target = 'Temporary target ' . $i;
+      $form['target']['#options'][$target] = $target;
+    }
     $form['target']['#options']['Temporary target ' . ++$max_target] = 'Temporary target';
 
     // Declare extra mapping targets.
-    for ($i = 2; $i <= $max_target; $i++) {
-      $form['#feeds_targets']['Temporary target ' . $i] = $form['#feeds_targets']['Temporary target 1'];
+    if (isset($form['#feeds_targets']['Temporary target 1'])) {
+      for ($i = 2; $i <= $max_target; $i++) {
+        $form['#feeds_targets']['Temporary target ' . $i] = $form['#feeds_targets']['Temporary target 1'];
+      }
     }
   }
   else {

@@ -360,7 +360,7 @@ function advagg_htaccess_check_generate(array $files_to_save, $type, $force = FA
 
   // @ignore style_lowercase_html:45
   $data  = "\n";
-  $data .= "<FilesMatch \"^${type}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}.${type}(\.gz)?\">\n";
+  $data .= "<FilesMatch \"^{$type}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}" . ADVAGG_SPACE . "[A-Za-z0-9-_]{43}.{$type}(\.gz)?\">\n";
   $data .= "  # No mod_headers\n";
   $data .= "  <IfModule !mod_headers.c>\n";
   $data .= "    # No mod_expires\n";
@@ -376,7 +376,7 @@ function advagg_htaccess_check_generate(array $files_to_save, $type, $force = FA
   $data .= "    FileETag None\n";
   $data .= "    # Enable expirations.\n";
   $data .= "    ExpiresActive On\n";
-  $data .= "    # Cache all aggregated ${type} files for 52 weeks after access (A).\n";
+  $data .= "    # Cache all aggregated {$type} files for 52 weeks after access (A).\n";
   $data .= "    ExpiresDefault A31449600\n";
   $data .= "  </IfModule>\n";
   $data .= "\n";
@@ -385,10 +385,10 @@ function advagg_htaccess_check_generate(array $files_to_save, $type, $force = FA
   $data .= "    Header unset ETag\n";
   $data .= "    # Serve correct content type.\n";
   if ($type === 'css') {
-    $data .= "    Header set Content-Type text/${content_type}\n";
+    $data .= "    Header set Content-Type text/{$content_type}\n";
   }
   else {
-    $data .= "    Header set Content-Type application/${content_type}\n";
+    $data .= "    Header set Content-Type application/{$content_type}\n";
   }
   $data .= "    <IfModule !mod_expires.c>\n";
   $data .= "      # Set a far future Cache-Control header to 52 weeks.\n";
@@ -399,10 +399,10 @@ function advagg_htaccess_check_generate(array $files_to_save, $type, $force = FA
   $data .= "    </IfModule>\n";
   $data .= "  </IfModule>\n";
   if ($type === 'css') {
-    $data .= "  ForceType text/${content_type}\n";
+    $data .= "  ForceType text/{$content_type}\n";
   }
   else {
-    $data .= "  ForceType application/${content_type}\n";
+    $data .= "  ForceType application/{$content_type}\n";
   }
   $data .= "</FilesMatch>\n";
 

@@ -54,9 +54,9 @@ class ScratchpadsHelpTestCase extends ScratchpadsTweaksTestCase{
     // ensure that we are using the scratchpads_admin theme  
     variable_set('admin_theme', 'scratchpads_admin');
     $this->drupalGet('admin/content/page');
-    $this->assertRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block found on admin/content/page');
+    $this->assertRaw('Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a>', 'Help block found on admin/content/page');
     $this->drupalGet('');
-    $this->assertNoRaw('Additional help can be found on the following <a href="http://help.scratchpads.eu/">Help</a>', 'Help block not displayed on home page');
+    $this->assertNoRaw('Additional help can be found on the following <a href="' . SCRATCHPADS_WIKI_URL . '">Help</a>', 'Help block not displayed on home page');
   }
 
   /**

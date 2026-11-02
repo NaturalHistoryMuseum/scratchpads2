@@ -109,7 +109,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler {
 
       // Legacy support for JSON containing a set of properties - deprecated
       // now that we have subfields.
-      if (!empty($from) && $from{0} == '{') {
+      if (!empty($from) && $from[0] == '{') {
         $properties = drupal_json_decode($from);
         $from = $properties['from'];
         // Properties passed in with the date override any set via arguments.

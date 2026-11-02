@@ -37,11 +37,13 @@ function twitter_mock_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items['1.1/users/show.json'] = $items['1/users/show.json'];
   $items['1/statuses/user_timeline.json'] = array(
     'page callback' => 'twitter_mock_user_timeline',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items['1.1/statuses/user_timeline.json'] = $items['1/statuses/user_timeline.json'];
 
   return $items;
 }

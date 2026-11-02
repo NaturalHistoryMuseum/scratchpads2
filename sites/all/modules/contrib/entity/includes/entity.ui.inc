@@ -16,6 +16,7 @@ class EntityDefaultUIController {
   protected $entityType;
   protected $entityInfo, $path;
   protected $id_count;
+  protected $statusKey;
 
   /**
    * Defines the number of entries to show per page in overview table.

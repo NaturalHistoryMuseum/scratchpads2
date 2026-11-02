@@ -39,14 +39,13 @@ function scratchpads_biblio_module_implements_alter(&$implementations, $hook)
   if ($hook == 'form_alter' && isset($implementations['scratchpads_biblio'])) {
     // We want our form_alter functions to be called after biblio_crossref,
     // but before other modules (which specifically?)
-    $new_implementations = [
-      'biblio_crossref' => $implementations['biblio_crossref'],
-      'scratchpads_biblio' => $implementations['scratchpads_biblio']
-    ];
-    unset(
-      $implementations['biblio_crossref'],
-      $implementations['scratchpads_biblio']
-    );
+    $new_implementations = array();
+    if (isset($implementations['biblio_crossref'])) {
+      $new_implementations['biblio_crossref'] = $implementations['biblio_crossref'];
+      unset($implementations['biblio_crossref']);
+    }
+    $new_implementations['scratchpads_biblio'] = $implementations['scratchpads_biblio'];
+    unset($implementations['scratchpads_biblio']);
     foreach ($implementations as $key => $value) {
       $new_implementations[$key] = $value;
     }

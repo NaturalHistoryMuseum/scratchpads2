@@ -41,6 +41,10 @@ variable_set('simpletest_parent_profile', $this->originalProfile);
 // Include the testing profile.
 variable_set('install_profile', $this->profile);
 $profile_details = install_profile_info($this->profile, 'en');
+// Several legacy contrib installers assume that the foundational node and
+// filter modules are already installed. SimpleTest starts with a minimal
+// Drupal installation, so install them before the profile dependency graph.
+module_enable(array('node', 'filter'), TRUE);
 // Install the modules specified by the testing profile.
 module_enable($profile_details['dependencies'], TRUE);
 // Install modules needed for this test. This could have been passed in as

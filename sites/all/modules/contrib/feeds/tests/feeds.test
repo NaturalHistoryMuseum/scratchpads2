@@ -38,6 +38,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $modules[] = 'feeds_tests';
     $modules[] = 'ctools';
     $modules[] = 'job_scheduler';
+    $modules[] = 'libraries';
     $modules = array_unique($modules);
     parent::setUp($modules);
 
@@ -84,6 +85,7 @@ class FeedsWebTestCase extends DrupalWebTestCase {
     $permissions[] = 'access content';
     $permissions[] = 'administer site configuration';
     $permissions[] = 'administer content types';
+    $permissions[] = 'administer fields';
     $permissions[] = 'administer nodes';
     $permissions[] = 'bypass node access';
     $permissions[] = 'administer taxonomy';

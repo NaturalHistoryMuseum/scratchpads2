@@ -587,7 +587,9 @@ function weight_apachesolr_index_document_build_node(ApacheSolrDocument $documen
   }
   else {
     $settings = _weight_get_settings($node->type);
-    $document->is_weight = (int) $settings['default'];
+    // Content types created after Weight was installed may not have a settings
+    // row yet. Treat an unconfigured type as having the neutral default weight.
+    $document->is_weight = isset($settings['default']) ? (int) $settings['default'] : 0;
   }
 }
 

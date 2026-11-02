@@ -142,7 +142,7 @@ function date_field_widget_form(&$form, &$form_state, $field, $instance, $langco
  */
 function date_local_date($item, $timezone, $field, $instance, $part = 'value') {
 
-  $value = $item[$part];
+  $value = is_array($item) && isset($item[$part]) ? $item[$part] : '';
 
   // If the value is empty, don't try to create a date object because it will
   // end up being the current day.
@@ -289,6 +289,9 @@ function date_combo_element_process($element, &$form_state, $form) {
   // to the timezone of an individual user, so we cache the UTC values
   // instead and do our conversion to local dates in the form and
   // in the formatters.
+  if (!is_array($element['#default_value'])) {
+    $element['#default_value'] = array();
+  }
   $process = date_process_values($field, $instance);
   foreach ($process as $processed) {
     if (!isset($element['#default_value'][$processed])) {

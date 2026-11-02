@@ -189,13 +189,16 @@ function user_reference_feeds_processor_targets_alter(&$targets, $entity_type, $
  *   The value to map. Can be an array or a string.
  */
 function references_feeds_set_target($source, $entity, $target, $value) {
-  if (empty($value) || empty($value[key($value)])) {
+  if (empty($value)) {
     return;
   }
 
   // Handle comma delimited or non-multiple values.
   if (!is_array($value)) {
     $value = array($value);
+  }
+  if (empty($value[key($value)])) {
+    return;
   }
 
   // Determine the field we are matching against, and whether duplicates are allowed.

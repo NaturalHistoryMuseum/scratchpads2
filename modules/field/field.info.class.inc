@@ -588,7 +588,10 @@ class FieldInfo {
       $widget['type'] = $field_type_info['default_widget'];
       $widget_type_info = field_info_widget_types($widget['type']);
     }
-    $widget['module'] = $widget_type_info['module'];
+    // Custom modules may deliberately remove a widget type after an instance
+    // has already been configured to use it. Preserve Drupal 7's effective
+    // NULL fallback without triggering a PHP 8 array-offset warning.
+    $widget['module'] = $widget_type_info ? $widget_type_info['module'] : NULL;
     // Fill in default settings for the widget.
     $widget['settings'] += field_info_widget_settings($widget['type']);
 

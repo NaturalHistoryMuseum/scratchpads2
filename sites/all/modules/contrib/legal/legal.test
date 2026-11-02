@@ -103,7 +103,7 @@ class LegalRegisterTestCase extends LegalTestCase {
  */
 class LegalPasswordResetTestCase extends LegalTestCase {
 
-  function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => 'Password reset',
       'description' => 'Password reset workflow when T&Cs need to be accepted.',
@@ -132,7 +132,7 @@ class LegalPasswordResetTestCase extends LegalTestCase {
     // Create a log in link for the user, and go to that URL.
     // Borrowed from testUserPasswordResetExpired().
     $timestamp = REQUEST_TIME;
-    $this->drupalGet("user/reset/{$this->user->uid}/$timestamp/" . user_pass_rehash($this->user->pass, $timestamp, $this->user->login));
+    $this->drupalGet("user/reset/{$this->user->uid}/$timestamp/" . user_pass_rehash($this->user->pass, $timestamp, $this->user->login, $this->user->uid));
 
     $this->assertText(t('Reset password'), "The reset password form is shown.");
 

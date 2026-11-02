@@ -300,7 +300,9 @@ function slickgrid_get_plugins($plugin_type){
 }
 
 function slickgrid_get_plugin_types(){
-  return array_map(create_function('$type', 'return $type["title"];'), slickgrid_ctools_plugin_type());
+  return array_map(function($type){
+    return $type['title'];
+  }, slickgrid_ctools_plugin_type());
 }
 
 function slickgrid_get_plugin_options_for_field($plugin_type, $field_type){

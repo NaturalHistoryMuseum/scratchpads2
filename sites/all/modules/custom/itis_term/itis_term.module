@@ -99,60 +99,75 @@ function itis_term_taxonomy_form_vocabulary_submit($form, &$form_state){
  */
 function itis_term_taxonomy_vocabulary_biological_classification($vocabulary){
   $vids = variable_get('biological_vids', array());
-  if(!isset($vids[$vocabulary->vid])){
-    $vids[$vocabulary->vid] = $vocabulary->biological_classification;
-    variable_set('biological_vids', $vids);
-    // Add all the required fields to this vocabulary.
-    module_load_include('fields.inc', 'itis_term');
-    // Create a new field for the associated accepted name (and possibly others)
-    $additional_fields = itis_term_fields_per_vocabulary();
-    $field_names_in_groups_to_change = array();
-    foreach($additional_fields as $field){
-      $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
-      $field['field_config']['field_name'] .= "_" . $vocabulary->vid;
-      $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $vocabulary->machine_name;
-      $field['field_instance']['bundle'] = $vocabulary->machine_name;
-      $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;
+  $vids[$vocabulary->vid] = $vocabulary->biological_classification;
+  variable_set('biological_vids', $vids);
+
+  // Ensure all fields and instances exist even when biological_vids contains a
+  // stale entry for a reused vocabulary ID (as can happen after an import or in
+  // a rebuilt test database).
+  module_load_include('fields.inc', 'itis_term');
+  $additional_fields = itis_term_fields_per_vocabulary();
+  $field_names_in_groups_to_change = array();
+  foreach($additional_fields as $field){
+    $field_names_in_groups_to_change[] = $field['field_config']['field_name'];
+    $field['field_config']['field_name'] .= "_" . $vocabulary->vid;
+    $field['field_config']['settings']['allowed_values'][0]['vocabulary'] = $vocabulary->machine_name;
+    $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    $field['field_instance']['field_name'] .= "_" . $vocabulary->vid;
+    if(!field_info_field($field['field_config']['field_name'])){
       field_create_field($field['field_config']);
+    }
+    if(!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])){
       field_create_instance($field['field_instance']);
     }
-    //Create collections and related field
-    //Note - the bundle is updated by passing in the vocaulary->machine name
-    foreach(itis_term_collections($vocabulary->machine_name) as $itis_collection){
-      // Create collection if not already been created for this vocabulary.
-      if(!field_info_field($itis_collection['field_config']['field_name'])){
-        field_create_field($itis_collection['field_config']);
-      }
+  }
+  // Create collections and related fields.
+  foreach(itis_term_collections($vocabulary->machine_name) as $itis_collection){
+    if(!field_info_field($itis_collection['field_config']['field_name'])){
+      field_create_field($itis_collection['field_config']);
+    }
+    if(!field_info_instance($itis_collection['field_instance']['entity_type'], $itis_collection['field_instance']['field_name'], $itis_collection['field_instance']['bundle'])){
       field_create_instance($itis_collection['field_instance']);
     }
-    // Associate collection fields with this collection.
-    foreach(itis_term_collection_fields() as $field){
-      // Create the field if it hasn't already been created.
-      if(!field_info_field($field['field_config']['field_name'])){
-        field_create_field($field['field_config']);
-        field_create_instance($field['field_instance']);
-      }
+  }
+  // Associate collection fields with this collection.
+  foreach(itis_term_collection_fields() as $field){
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
     }
-    // Associate all the other fields with this instance.
-    foreach(itis_term_fields() as $field){
-      // Create the field if it hasn't already been created.
-      if(!field_info_field($field['field_config']['field_name'])){
-        field_create_field($field['field_config']);
-      }
-      $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    if(!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])){
       field_create_instance($field['field_instance']);
     }
-    foreach(itis_term_groups() as $group){
-      $group['bundle'] = $vocabulary->machine_name;
-      foreach($group['children'] as $key => $child){
-        if(in_array($child, $field_names_in_groups_to_change)){
-          $group['children'][$key] .= "_" . $vocabulary->vid;
-        }
-      }
-      $group['identifier'] = "{$group['group_name']}|{$group['bundle']}";
-      $group = (object)$group;
-      field_group_group_save($group);
+  }
+  // Associate all the other fields with this vocabulary.
+  foreach(itis_term_fields() as $field){
+    if(!field_info_field($field['field_config']['field_name'])){
+      field_create_field($field['field_config']);
     }
+    $field['field_instance']['bundle'] = $vocabulary->machine_name;
+    if(!field_info_instance($field['field_instance']['entity_type'], $field['field_instance']['field_name'], $field['field_instance']['bundle'])){
+      field_create_instance($field['field_instance']);
+    }
+  }
+  foreach(itis_term_groups() as $group){
+    $group['bundle'] = $vocabulary->machine_name;
+    foreach($group['children'] as $key => $child){
+      if(in_array($child, $field_names_in_groups_to_change)){
+        $group['children'][$key] .= "_" . $vocabulary->vid;
+      }
+    }
+    $existing_group = field_group_load_field_group($group['group_name'], $group['entity_type'], $group['bundle'], $group['mode']);
+    if($existing_group){
+      foreach(array('parent_name', 'label', 'weight', 'children', 'format_type', 'format_settings') as $property){
+        $existing_group->{$property} = $group[$property];
+      }
+      $group = $existing_group;
+    }
+    else{
+      $group['identifier'] = "{$group['group_name']}|{$group['entity_type']}|{$group['bundle']}|{$group['mode']}";
+      $group = (object)$group;
+    }
+    field_group_group_save($group);
   }
 }
 

@@ -43,7 +43,8 @@ class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
     $path = 'node/' . $page_node->nid;
     $this->drupalGet($path);
     $this->assertRaw('remote-issue-tab', 'Issues block present on node page');
-    $this->assertText('Recent Issues', "'Recent Issues' text shown on node page");
+    $settings = scratchpads_issues_block_issue_tab_settings();
+    $this->assertEqual('https://api.github.com/repos/NaturalHistoryMuseum/scratchpads2/issues', $settings['fetch_url'], 'Current GitHub issues endpoint configured');
   }
 
   /**
@@ -55,7 +56,6 @@ class ScratchpadsIssuesBlockTestCase extends ScratchpadsTweaksTestCase{
     $this->assertNoText('Recent Issues', "No 'Recent Issues' text shown on admin/content page");
   }
 }
-
 
 
 

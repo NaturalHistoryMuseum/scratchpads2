@@ -67,7 +67,8 @@ class FeedsUserProcessor extends FeedsProcessor {
     $edit = (array) $account;
 
     // Remove pass from $edit if the password is unchanged.
-    if (isset($account->feeds_original_pass) && $account->pass == $account->feeds_original_pass) {
+    if (isset($account->feeds_original_pass) && (!isset($account->pass) || $account->pass == $account->feeds_original_pass)) {
+      $account->pass = $account->feeds_original_pass;
       unset($edit['pass']);
     }
 

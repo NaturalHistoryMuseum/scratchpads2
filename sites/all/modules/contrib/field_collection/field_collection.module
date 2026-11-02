@@ -1107,6 +1107,23 @@ function field_collection_field_widget_form(&$form, &$form_state, $field, $insta
       // Set the language to to parent entity language, because
       // field_content_languages() will always set $language to LANGUAGE_NONE.
       if (field_collection_item_is_translatable()) {
+        // Older Entity Translation releases do not initialize child entity
+        // translations from the host translation source. Populate the cloned
+        // form entity so the target-language widgets start with source values.
+        $host_handler = entity_translation_get_handler($element['#host_entity_type'], $element['#host_entity']);
+        if (!method_exists($host_handler, 'addChild')) {
+          $target_language = $host_handler->getFormLanguage();
+          $source_language = $host_handler->getSourceLanguage();
+          if ($source_language && $target_language && $source_language != $target_language) {
+            foreach (field_info_instances('field_collection_item', $field_collection_item->field_name) as $child_instance) {
+              $child_field_name = $child_instance['field_name'];
+              $child_field = field_info_field($child_field_name);
+              if ($child_field['translatable'] && empty($field_collection_item->{$child_field_name}[$target_language]) && isset($field_collection_item->{$child_field_name}[$source_language])) {
+                $field_collection_item->{$child_field_name}[$target_language] = $field_collection_item->{$child_field_name}[$source_language];
+              }
+            }
+          }
+        }
         field_attach_form('field_collection_item', $field_collection_item, $element, $form_state, entity_language($element['#host_entity_type'], $element['#host_entity']));
       }
       else {
@@ -1166,7 +1183,12 @@ function field_collection_entity_translation_source_field_state_alter(&$field_st
  */
 function field_collection_add_child_translation_handler($element) {
   $handler = entity_translation_get_handler($element['#host_entity_type'], $element['#host_entity']);
-  $handler->addChild('field_collection_item', $element['#field_collection_item']);
+  // Child handlers were added in later Entity Translation releases. Field
+  // collection still works with older releases, which translate their fields
+  // through the host form without registering a separate child handler.
+  if (method_exists($handler, 'addChild')) {
+    $handler->addChild('field_collection_item', $element['#field_collection_item']);
+  }
   return $element;
 }
 
@@ -1443,6 +1465,18 @@ function field_collection_field_widget_embed_validate($element, &$form_state, $c
   // Handle a possible language change.
   if (field_collection_item_is_translatable()) {
     $handler = entity_translation_get_handler('field_collection_item', $field_collection_item);
+    // Older Entity Translation releases have no child-handler API, so they do
+    // not propagate the host form language to embedded entities. Do that here
+    // before the handler moves submitted values to their language key.
+    if (!method_exists(entity_translation_get_handler($element['#host_entity_type'], $element['#host_entity']), 'addChild')) {
+      $host_handler = entity_translation_get_handler($element['#host_entity_type'], $element['#host_entity']);
+      $form_language = $host_handler->getFormLanguage();
+      $language_key = $host_handler->getLanguageKey();
+      if (empty($form_state['entity_translation']['is_translation']) && isset($form_state['values'][$language_key])) {
+        $form_language = $form_state['values'][$language_key];
+      }
+      $handler->setFormLanguage($form_language);
+    }
     $element_values = &drupal_array_get_nested_value($form_state['values'], $field_state['array_parents']);
     $element_form_state = array('values' => &$element_values[$element['#delta']]);
     $handler->entityFormLanguageWidgetSubmit($element, $element_form_state);
@@ -1947,11 +1981,13 @@ function field_collection_feeds_set_target($source, $entity, $target, $value, $m
   // I'm aware this seems clunky and I'm sorry if you have to fix this.
   $fielddelete = isset($entity->$target) ? $entity->$target : array();
   $field_collection_item_values = array();
-  foreach ($fielddelete['und'] as $k => $v) {
-    if (isset($v['value'])) {
-      $field_collection_item_values[] = $v['value'];
+  if (!empty($fielddelete[LANGUAGE_NONE]) && is_array($fielddelete[LANGUAGE_NONE])) {
+    foreach ($fielddelete[LANGUAGE_NONE] as $k => $v) {
+      if (isset($v['value'])) {
+        $field_collection_item_values[] = $v['value'];
+      }
+      unset($fielddelete[LANGUAGE_NONE][$k]);
     }
-    unset($fielddelete['und'][$k]);
   }
 
   if (count($field_collection_item_values) > 0 ) {

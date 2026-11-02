@@ -200,7 +200,7 @@ function dwcarchiver_preview($dwcarchiver) {
   catch (Exception $e) {
     drupal_set_message(t('<strong>Unable to preview the archive. Please send the following error message to the Scratchpads team:</strong><p>@errormessage</p><pre>@errortrace</pre>', [
       '@errormessage' => $e->getMessage(),
-      '@errortrace' => (!empty($e->query_string) ? $e->query_string . "\n" : '') . $e->getTraceAsString(),
+      '@errortrace' => (!empty($e->errorInfo['query_string']) ? $e->errorInfo['query_string'] . "\n" : '') . $e->getTraceAsString(),
     ]), 'error');
     drupal_goto('admin/config/content/dwcarchiver');
   }

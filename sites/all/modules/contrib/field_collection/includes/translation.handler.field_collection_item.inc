@@ -41,7 +41,7 @@ class EntityTranslationFieldCollectionItemHandler extends EntityTranslationDefau
     // If the current field is untranslatable, try inherit the host entity
     // language.
     if (($host_entity_type = $this->entity->hostEntityType()) && entity_translation_enabled($host_entity_type) && ($host_entity = $this->entity->hostEntity())) {
-      $handler = $this->factory->getHandler($host_entity_type, $host_entity);
+      $handler = entity_translation_get_handler($host_entity_type, $host_entity);
       $langcode = $handler->getFormLanguage();
     }
     // If the host entity is not translatable, use the default language

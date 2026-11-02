@@ -44,7 +44,7 @@ class DateTimezoneTestCase extends DateFieldBasic {
           );
           $this->createDateField($options);
           $this->dateForm($field_name, $field_type, $max_granularity, $tz_handling);
-          $this->deleteDateField($label);
+          $this->deleteDateField($label, $field_name);
         }
       }
     }
@@ -79,7 +79,7 @@ class DateTimezoneTestCase extends DateFieldBasic {
     $this->dateMultiValueForm($field_name, $field_type, $max_granularity, $tz_handling);
 
 
-    $this->deleteDateField($label);
+    $this->deleteDateField($label, $field_name);
   }
 
   /**

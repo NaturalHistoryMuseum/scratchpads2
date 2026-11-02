@@ -342,7 +342,10 @@ class DatabaseSchema_mysql extends DatabaseSchema {
     }
 
     $fixnull = FALSE;
-    if (!empty($spec['not null']) && !isset($spec['default'])) {
+    // MySQL populates existing rows when an AUTO_INCREMENT column is added,
+    // and modern versions reject a nullable AUTO_INCREMENT primary key. Keep
+    // serial fields NOT NULL when the new key is created in the same ALTER.
+    if (!empty($spec['not null']) && !isset($spec['default']) && $spec['type'] != 'serial') {
       $fixnull = TRUE;
       $spec['not null'] = FALSE;
     }

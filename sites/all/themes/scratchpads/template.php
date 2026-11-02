@@ -10,7 +10,10 @@
 function scratchpads_block_view_alter(&$data, $block){
   if(isset($data['content']) && ($block->module == 'views' || $block->region == 'content')){
     // Move the view classes to the block classes
-    if(preg_match('/(grid-[0-9])/', $data['content']['#markup'], $matches)){
+    // Block content may be a structured render array rather than pre-rendered
+    // markup. Only inspect and rewrite content when a string is available.
+    $markup = isset($data['content']['#markup']) && is_string($data['content']['#markup']) ? $data['content']['#markup'] : NULL;
+    if($markup !== NULL && preg_match('/(grid-[0-9])/', $markup, $matches)){
       if(count($matches)){
         $data['content']['#markup'] = str_replace($matches[1], '', $data['content']['#markup']);
         $classes = array(
@@ -323,7 +326,11 @@ function scratchpads_biblio_tabular($variables){
           break;
         default:
           if($row['type'] == 'text_format'){
-            $data = check_markup($node->{$row['name']}, $node->biblio_formats[$row['name']]);
+            $format = filter_default_format();
+            if (!empty($node->biblio_formats) && isset($node->biblio_formats[$row['name']])) {
+              $format = $node->biblio_formats[$row['name']];
+            }
+            $data = check_markup($node->{$row['name']}, $format);
           }else{
             $data = check_plain($node->{$row['name']});
           }

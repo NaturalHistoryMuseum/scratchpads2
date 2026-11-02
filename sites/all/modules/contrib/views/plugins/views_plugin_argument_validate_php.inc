@@ -38,11 +38,13 @@ class views_plugin_argument_validate_php extends views_plugin_argument_validate 
   }
 
   /**
-   * Only let users with PHP block visibility permissions set/modify this
-   * validate plugin.
+   * PHP argument validation is disabled.
+   *
+   * Arbitrary PHP execution is not supported by this project. Hide the plugin
+   * from the Views UI, including for users who retain the legacy permission.
    */
   public function access() {
-    return user_access('use PHP for settings');
+    return FALSE;
   }
 
   /**
@@ -58,14 +60,7 @@ class views_plugin_argument_validate_php extends views_plugin_argument_validate 
    * {@inheritdoc}
    */
   public function validate_argument($argument) {
-    // set up variables to make it easier to reference during the argument.
-    $view = &$this->view;
-    $handler = &$this->argument;
-
-    ob_start();
-    //$result = eval($this->options['code']);
-    ob_end_clean();
-    return $result;
+    return FALSE;
   }
 
 }

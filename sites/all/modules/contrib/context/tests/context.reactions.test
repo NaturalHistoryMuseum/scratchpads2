@@ -189,6 +189,7 @@ class ContextReactionBreadcrumbTest extends DrupalWebTestCase {
   function setUp() {
     parent::setUp('context', 'ctools');
     $admin_user = $this->drupalCreateUser(array(
+      'access content',
       'access administration pages',
       'administer nodes',
       'administer site configuration'

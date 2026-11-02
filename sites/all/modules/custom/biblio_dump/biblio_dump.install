@@ -44,8 +44,8 @@ function biblio_dump_schema(){
           'description' => 'Link to {node}.nid',
           'type' => 'int',
           'unsigned' => TRUE,
-          'not null' => FALSE,
-          'default' => NULL
+          'not null' => TRUE,
+          'default' => 0
         ),
         'bibtex' => array(
           'description' => '_biblio_bibtex_export() output',

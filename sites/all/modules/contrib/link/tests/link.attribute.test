@@ -11,6 +11,7 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
   protected $permissions = array(
     'access content',
     'administer content types',
+    'administer fields',
     'administer nodes',
     'administer filters',
     'access comments',
@@ -31,7 +32,7 @@ class LinkAttributeCrudTest extends DrupalWebTestCase {
     parent::setup('field_ui', 'link');
     $this->zebra = 0;
     // Create and login user.
-    $this->web_user = $this->drupalCreateUser(array('administer content types'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields'));
     $this->drupalLogin($this->web_user);
   }
 

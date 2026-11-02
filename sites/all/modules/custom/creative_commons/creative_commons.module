@@ -16,8 +16,8 @@ define('CC_0', 8); // CC0 Licene type
 define('CC_PD', 9); // Public domain
 define('CC_SMALL_IMAGE', '80x15.png');
 define('CC_LARGE_IMAGE', '88x31.png');
-define('CC_IMAGE_URI', '//i.creativecommons.org/l');
-define('CC_LICENCE_URI', '//creativecommons.org/licences');
+define('CC_IMAGE_URI', 'https://i.creativecommons.org/l');
+define('CC_LICENCE_URI', 'https://creativecommons.org/licenses');
 define('CC_DEFAULT_VERSION', '4.0');
 define('CC_URL', 'cc_url');
 
@@ -149,11 +149,11 @@ function creative_commons_display($licence_type, $jurisdiction, $display_type)
       break;
     case CC_0:
       $image = $path . '/images/zero.png';
-      $url = '//creativecommons.org/about/cc0';
+      $url = 'https://creativecommons.org/about/cc0';
       break;
     case CC_PD:
       $image = $path . '/images/public_domain.png';
-      $url = '//creativecommons.org/about/pdm';
+      $url = 'https://creativecommons.org/about/pdm';
       break;
     case CC_BY:
       $licence = 'by';

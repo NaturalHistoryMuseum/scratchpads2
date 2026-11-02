@@ -282,7 +282,12 @@ class ImageStylesPathAndUrlTestCase extends DrupalWebTestCase {
     $this->assertRaw(file_get_contents($generated_uri), 'URL returns expected file.');
     $generated_image_info = image_get_info($generated_uri);
     $this->assertEqual($this->drupalGetHeader('Content-Type'), $generated_image_info['mime_type'], 'Expected Content-Type was reported.');
-    $this->assertEqual($this->drupalGetHeader('Content-Length'), $generated_image_info['file_size'], 'Expected Content-Length was reported.');
+    $content_length = $this->drupalGetHeader('Content-Length');
+    $transfer_encoding = $this->drupalGetHeader('Transfer-Encoding');
+    $this->assertTrue(
+      $content_length == $generated_image_info['file_size'] || stripos($transfer_encoding, 'chunked') !== FALSE,
+      'The response reported the expected Content-Length or used valid chunked transfer encoding.'
+    );
     if ($scheme == 'private') {
       $this->assertEqual($this->drupalGetHeader('Expires'), 'Sun, 19 Nov 1978 05:00:00 GMT', 'Expires header was sent.');
       $this->assertEqual($this->drupalGetHeader('Cache-Control'), 'no-cache, must-revalidate', 'Cache-Control header was set to prevent caching.');

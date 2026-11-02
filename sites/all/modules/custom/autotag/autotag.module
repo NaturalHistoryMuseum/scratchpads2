@@ -66,22 +66,15 @@ function autotag_search_text($text, $vid, $tag_only_leaves){
   // We create a temporary table with all the words in it, and then compare this
   // temporary table against the taxonomy_term_data table.
   // First, we create the temporary table
-  $temporary_table_name = db_query_temporary('SELECT ? AS words', array(
+  // Derive the temporary column from taxonomy_term_data so it has the same
+  // character set, collation and length as the column it will be compared to.
+  // Creating it from a string parameter uses the database default collation,
+  // which may differ from an imported site's taxonomy table.
+  $temporary_table_name = db_query_temporary('SELECT name AS words FROM {taxonomy_term_data} WHERE 1 = 0 UNION ALL SELECT ?', array(
     array_pop($words)
   ));
   // Now we insert the rest of the data into the table.  We also add an index
-  // to ensure that searching the data is quick, and update the column to be
-  // a varchar(255).  Note, this can actually fail, but it does not actually
-  // matter.
-  try{
-    db_change_field($temporary_table_name, 'words', 'words', array(
-      'type' => 'varchar',
-      'length' => 255
-    ));
-  }
-  catch(Exception $e){
-    ;
-  }
+  // to ensure that searching the data is quick.
   try{
     db_add_primary_key($temporary_table_name, array(
       'words'
@@ -96,7 +89,7 @@ function autotag_search_text($text, $vid, $tag_only_leaves){
     'words'
   ));
   foreach($words as $word){
-    if(strlen($word < 256)){
+    if(strlen($word) < 256){
       $insert->values(array(
         'words' => $word
       ));

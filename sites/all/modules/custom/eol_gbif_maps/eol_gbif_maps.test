@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Tests for the GBIF taxon distribution map integration.
+ */
+
+class EolGbifMapsUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * Loads the code under test in the isolated unit-test environment.
+   */
+  protected function setUp(){
+    parent::setUp();
+    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'eol_gbif_maps') . '/eol_gbif_maps.module';
+  }
+
+  public static function getInfo(){
+    return array(
+      'name' => 'GBIF map taxon keys',
+      'description' => 'Tests GBIF taxon key selection and secure tile configuration.',
+      'group' => 'Scratchpads'
+    );
+  }
+
+  public function testTaxonIdFromResponse(){
+    $this->assertIdentical(
+      _eol_gbif_maps_taxon_id_from_response(array(
+        'results' => array(array('nubKey' => 9496, 'key' => 12345))
+      )),
+      9496,
+      'The GBIF backbone key is preferred.'
+    );
+
+    $this->assertIdentical(
+      _eol_gbif_maps_taxon_id_from_response(array(
+        'results' => array(array('key' => 244872766))
+      )),
+      244872766,
+      'The dataset taxon key is used when no backbone key exists.'
+    );
+
+    foreach(array(NULL, array(), array('results' => array()), array(
+      'results' => array(array('key' => NULL))
+    ), array(
+      'results' => array(array('key' => 'not-a-number'))
+    )) as $response){
+      $this->assertNull(
+        _eol_gbif_maps_taxon_id_from_response($response),
+        'An invalid or unmatched response has no taxon key.'
+      );
+    }
+  }
+
+  public function testLibraryUsesHttps(){
+    $library = eol_gbif_maps_library();
+    $settings = $library['eol_gbif_maps_overlay']['js'][1]['data'];
+    $this->assertIdentical(
+      $settings['gm3']['settings']['eol_gbif_maps']['tile_host'],
+      'https://api.gbif.org',
+      'GBIF map tiles use HTTPS.'
+    );
+  }
+}

@@ -281,12 +281,17 @@ function relation_type_save($relation_type, $write_record_keys = array(), $rebui
     }
   }
   $query->execute();
-  relation_type_ensure_instance($type);
-  if ($rebuild_menu) {
-    menu_rebuild();
+  if (module_exists('ctools')) {
+    ctools_include('export');
+    ctools_export_load_object_reset('relation_type');
   }
+  relation_type_ensure_instance($type);
   if (empty($existing_relation_type)) {
     field_attach_create_bundle('relation', $relation_type->relation_type);
+  }
+  if ($rebuild_menu) {
+    entity_info_cache_clear();
+    menu_rebuild();
   }
 }
 

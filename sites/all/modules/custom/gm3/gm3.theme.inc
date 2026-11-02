@@ -53,7 +53,7 @@ function _gm3_generate_tools($id, $libraries) {
   $tools = array_map(
     function($tool) use ($id) {
       return theme(
-        "gm3_${tool}_button",
+        "gm3_{$tool}_button",
         [ 'id' => $id ]
       );
     },

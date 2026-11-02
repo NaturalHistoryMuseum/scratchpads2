@@ -12,7 +12,8 @@ function scratchpads_tweaks_init(){
   // C.UTF-8 is not available on Centos yet so include a fallback option
   setlocale(LC_ALL, 'C.UTF-8', 'en_GB.UTF-8');
 
-  if($_GET['q'] == 'admin/appearance/settings/scratchpads' || $_GET['q'] == 'admin/appearance/settings/scratchpads_em'){
+  $current_path = isset($_GET['q']) ? $_GET['q'] : '';
+  if($current_path == 'admin/appearance/settings/scratchpads' || $current_path == 'admin/appearance/settings/scratchpads_em'){
     // Check to see if we're trying to view the
     // admin/appearance/settings/scratchpads
     // page, and if so we redirect to the general settings page.
@@ -21,7 +22,7 @@ function scratchpads_tweaks_init(){
     }
   }
   $menu_item = menu_get_item();
-  if($menu_item['path'] == 'node/%/edit'){
+  if(is_array($menu_item) && isset($menu_item['path']) && $menu_item['path'] == 'node/%/edit'){
     // We clear the cache for this node, to ensure we're editing an uncached
     // version. FIXME - This is a temporary fix, and should be removed once we
     // know what is causing incorrect copies of a node to be cached.
@@ -520,7 +521,11 @@ function scratchpads_tweaks_menu(){
 function scratchpads_tweaks_update_status_alter(&$projects){
   $version = 'Scratchpads (' . SCRATCHPADS_VERSION . ')';
   foreach($projects as $name => $project){
-    $project_path = dirname(drupal_get_filename('module', $name, NULL, FALSE));
+    $filename = drupal_get_filename('module', $name, NULL, FALSE);
+    if (!$filename) {
+      continue;
+    }
+    $project_path = dirname($filename);
     if(strpos($project_path, 'sites/all/modules/custom') !== FALSE){
       $projects[$name]['info']['version'] = $version;
       $projects[$name]['existing_version'] = $version;

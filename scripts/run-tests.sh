@@ -30,6 +30,19 @@ else {
   simpletest_script_init(NULL);
 }
 
+// Some core tests render directly in the parent runner process. Allow core
+// batches to opt into core themes so an imported site's custom theme cannot
+// change the markup being asserted. Child runners inherit this environment
+// flag, while ordinary test runs and web requests are unaffected.
+if (getenv('DRUPAL_CORE_TESTS') == 'true') {
+  // Bootstrap through the database first. The configuration bootstrap resets
+  // $conf, while the later variables bootstrap merges these overrides over
+  // the imported site's variable table.
+  drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
+  $GLOBALS['conf']['theme_default'] = 'bartik';
+  $GLOBALS['conf']['admin_theme'] = 'seven';
+}
+
 // Bootstrap to perform initial validation or other operations.
 drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 if (!module_exists('simpletest')) {
@@ -62,10 +75,16 @@ if ($args['list']) {
   // Display all available tests.
   echo "\nAvailable test groups & classes\n";
   echo   "-------------------------------\n\n";
+  $listed_tests = $args['enabled-contrib'] ? array_flip(simpletest_script_get_enabled_contrib_test_list($all_tests)) : NULL;
   foreach ($groups as $group => $tests) {
-    echo $group . "\n";
+    $group_output = '';
     foreach ($tests as $class => $info) {
-      echo " - " . $info['name'] . ' (' . $class . ')' . "\n";
+      if (!isset($listed_tests) || isset($listed_tests[$class])) {
+        $group_output .= " - " . $info['name'] . ' (' . $class . ')' . "\n";
+      }
+    }
+    if ($group_output !== '') {
+      echo $group . "\n" . $group_output;
     }
   }
   exit(SIMPLETEST_SCRIPT_EXIT_SUCCESS);
@@ -141,6 +160,12 @@ All arguments are long options.
 
   --all       Run all available tests.
 
+  --enabled-contrib
+              Run tests declared by enabled modules beneath
+              sites/all/modules/contrib. This uses the enabled-module state in
+              the current database and excludes core, custom, and disabled
+              contrib modules.
+
   --class     Run tests identified by specific class names, instead of group names.
 
   --file      Run tests identified by specific file names, instead of group names.
@@ -211,6 +236,7 @@ function simpletest_script_parse_args() {
     'php' => '',
     'concurrency' => 1,
     'all' => FALSE,
+    'enabled-contrib' => FALSE,
     'class' => FALSE,
     'file' => FALSE,
     'directory' => '',
@@ -472,6 +498,9 @@ function simpletest_script_get_test_list() {
   if ($args['all']) {
     $test_list = $all_tests;
   }
+  elseif ($args['enabled-contrib']) {
+    $test_list = simpletest_script_get_enabled_contrib_test_list($all_tests);
+  }
   else {
     if ($args['class']) {
       // Check for valid class names.
@@ -572,6 +601,85 @@ function simpletest_script_get_test_list() {
     exit(SIMPLETEST_SCRIPT_EXIT_FAILURE);
   }
   return $test_list;
+}
+
+/**
+ * Select tests declared by contrib modules enabled in the current database.
+ *
+ * Test files are matched against each enabled module's files[] declarations.
+ * Namespaced tests beneath an enabled module's PSR-0/4 Tests directory are
+ * also included.
+ *
+ * @param array $all_tests
+ *   All test class names discovered by SimpleTest.
+ *
+ * @return array
+ *   The enabled contrib test class names.
+ */
+function simpletest_script_get_enabled_contrib_test_list(array $all_tests) {
+  $test_files = array();
+  $test_directories = array();
+  $enabled_modules = system_list('module_enabled');
+
+  foreach ($enabled_modules as $module_name => $module) {
+    $module_filename = str_replace('\\', '/', $module->filename);
+    if (strpos($module_filename, 'sites/all/modules/contrib/') !== 0) {
+      continue;
+    }
+
+    $module_directory = dirname($module_filename);
+    if (!empty($module->info['files'])) {
+      foreach ($module->info['files'] as $file) {
+        $path = realpath(DRUPAL_ROOT . '/' . $module_directory . '/' . $file);
+        if ($path !== FALSE) {
+          $test_files[$path] = TRUE;
+        }
+      }
+    }
+
+    foreach (array(
+      $module_directory . '/src/Tests',
+      $module_directory . '/lib/Drupal/' . $module_name . '/Tests',
+    ) as $directory) {
+      $path = realpath(DRUPAL_ROOT . '/' . $directory);
+      if ($path !== FALSE) {
+        $test_directories[] = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+      }
+    }
+  }
+
+  $enabled_tests = array();
+  foreach ($all_tests as $class_name) {
+    $reflection = new ReflectionClass($class_name);
+    $file = realpath($reflection->getFileName());
+    if ($file === FALSE) {
+      continue;
+    }
+
+    $enabled = isset($test_files[$file]);
+    if (!$enabled) {
+      foreach ($test_directories as $directory) {
+        if (strpos($file, $directory) === 0) {
+          $enabled = TRUE;
+          break;
+        }
+      }
+    }
+
+    if ($enabled) {
+      $info = call_user_func(array($class_name, 'getInfo'));
+      if (!empty($info['enabled dependencies'])) {
+        foreach ($info['enabled dependencies'] as $module_name) {
+          if (!isset($enabled_modules[$module_name])) {
+            continue 2;
+          }
+        }
+      }
+      $enabled_tests[] = $class_name;
+    }
+  }
+
+  return $enabled_tests;
 }
 
 /**

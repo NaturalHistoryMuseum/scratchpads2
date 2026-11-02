@@ -24,6 +24,7 @@ class RelationTestCase extends DrupalWebTestCase {
     $permissions = array(
       'create article content',
       'create page content',
+      'administer fields',
       'administer relation types',
       'administer relations',
       'access relations',

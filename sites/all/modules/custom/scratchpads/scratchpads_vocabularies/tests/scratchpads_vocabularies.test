@@ -348,6 +348,10 @@ class ScratchpadsVocabulariesPersistentTestCase extends DrupalWebTestCase{
  */
 class ScratchpadsVocabulariesSelectFieldTestCase extends DrupalWebTestCase{
 
+  protected $content_type;
+
+  protected $test_nodes = array();
+
   /**
    * getInfo()
    * 
@@ -926,7 +930,8 @@ class ScratchpadsVocabulariesGbifXmlTestCase extends DrupalWebTestCase{
       "uri" => "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen",
       "relation" => "http://rs.tdwg.org/dwc/terms/type-vocabulary/#PreservedSpecimen",
       "description" => "",
-      "label" => "Preserved Specimen"
+      "label" => "Preserved Specimen",
+      "wiki" => ""
     );
     // Test it when it works
     $file = drupal_realpath(drupal_get_path('module', 'scratchpads_vocabularies') . '/tests/basis_of_record.xml');

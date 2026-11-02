@@ -342,7 +342,7 @@ function template_preprocess_views_slideshow_pager_field_field(&$vars) {
   $vars['field_rendered'] = $view->style_plugin->rendered_fields[$vars['count']][$vars['field']];
   $vars['css_id'] = drupal_clean_css_identifier($vars['field_item']->field);
   if (!strstr($vars['field_rendered'], '<a')) {
-    $vars['field_rendered'] = "<a href='#slideshow-${vars['count']}'>${vars['field_rendered']}</a>";
+    $vars['field_rendered'] = "<a href='#slideshow-{$vars['count']}'>{$vars['field_rendered']}</a>";
   }
 }
 

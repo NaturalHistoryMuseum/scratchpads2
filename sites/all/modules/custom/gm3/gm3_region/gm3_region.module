@@ -69,7 +69,7 @@ function gm3_region_switch_to_gm3_database(){
  * select the subregions (TDWG 4).
  */
 function gm3_region_library(){
-  return array(
+  $libraries = array(
     // Enable the clicking of countries.
     'region' => array(
       'title' => t('Javascript Maps: Region selection'),
@@ -100,6 +100,9 @@ function gm3_region_library(){
       )
     )
   );
+  $module_info = system_get_info('module', 'gm3_region');
+  $libraries['region']['version'] = !empty($module_info['version']) ? $module_info['version'] : '1.x';
+  return $libraries;
 }
 
 /**

@@ -1,0 +1,25 @@
+version: '3.6'
+
+services:
+  varnish:
+    container_name: ddev-${DDEV_SITENAME}-varnish
+    image: naturalhistorymuseum/scratchpad-varnish:latest
+    restart: "always"
+    depends_on:
+      - web
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: $DDEV_APPROOT
+    environment:
+      VARNISH_PORT: 80
+      VARNISH_SECRET: scratchpads-ddev-varnish
+      VARNISH_MEMORY: 64M
+    volumes:
+      - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
+
+  web:
+    environment:
+      - VARNISH_TEST_URL=http://varnish
+      - VARNISH_TEST_CONTROL_TERMINAL=varnish:6082
+      - VARNISH_TEST_CONTROL_KEY=scratchpads-ddev-varnish
+      - VARNISH_TEST_VERSION=4

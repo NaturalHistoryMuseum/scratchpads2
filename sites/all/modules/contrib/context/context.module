@@ -472,7 +472,7 @@ function context_empty($element) {
 /**
  * Get a plugin handler.
  */
-function context_get_plugin($type = 'condition', $key, $reset = FALSE) {
+function context_get_plugin($type, $key, $reset = FALSE) {
   static $cache = array();
   if (!isset($cache[$type][$key]) || $reset) {
     switch ($type) {

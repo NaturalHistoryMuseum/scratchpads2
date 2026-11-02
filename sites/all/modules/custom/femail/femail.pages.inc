@@ -140,7 +140,7 @@ function femail_user_subscribe($form, $form_state){
       $form['femail_subscribe'][$branch->tid] = array(
         '#type' => 'checkbox',
         '#title' => check_plain($branch->name),
-        '#default_value' => isset($subscriptions[$branch->tid]) ? 1 : isset($subscriptions[0]) ? 1 : 0,
+        '#default_value' => isset($subscriptions[$branch->tid]) ? 1 : (isset($subscriptions[0]) ? 1 : 0),
         // Note, if the "Subscribe to all" option has previously been saved,
         // all forums will appear checked.  This will hopefully remove any
         // confusion from the "subscribe to all" option.

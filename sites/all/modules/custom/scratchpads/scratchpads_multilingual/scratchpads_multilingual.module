@@ -341,7 +341,7 @@ function scratchpads_multilingual_field_attach_load($entity_type, $queried_entit
       'deleted' => FALSE
     ));
     foreach($instances as $instance){
-      if(count($queried_entities[$id]->{$instance['field_name']})){
+      if(!empty($queried_entities[$id]->{$instance['field_name']})){
         $field = field_info_field_by_id($instance['field_id']);
         if($field['translatable']){
           $language = field_language($entity_type, $entity, $field['field_name']);
@@ -372,7 +372,7 @@ function scratchpads_multilingual_field_storage_pre_insert($entity_type, $entity
     'deleted' => FALSE
   ));
   foreach($instances as $instance){
-    if(count($entity->{$instance['field_name']})){
+    if(!empty($entity->{$instance['field_name']})){
       $field = field_info_field_by_id($instance['field_id']);
       if($field['translatable']){
         try{

@@ -133,10 +133,19 @@ abstract class UpgradePathTestCase extends DrupalWebTestCase {
       require $file;
     }
 
+    // The module list may already have been populated from the parent site
+    // before the database prefix changed. Rebuild it from the upgrade fixture
+    // so contrib modules enabled only on the parent site cannot alter the
+    // fixture's entities or schema during a core upgrade test.
+    module_list(TRUE);
+
     // Set path variables.
     $this->variable_set('file_public_path', $this->public_files_directory);
     $this->variable_set('file_private_path', $this->private_files_directory);
     $this->variable_set('file_temporary_path', $this->temp_files_directory);
+    if (getenv('DRUPAL_CORE_TESTS') == 'true') {
+      $this->variable_set('scratchpads_core_test', TRUE);
+    }
 
     $this->pass('Finished loading the dump.');
 
@@ -277,6 +286,19 @@ abstract class UpgradePathTestCase extends DrupalWebTestCase {
     // Rebuild caches.
     drupal_static_reset();
     drupal_flush_all_caches();
+
+    if (getenv('DRUPAL_CORE_TESTS') == 'true') {
+      // drupal_get_schema() uses a separate static cache which can still
+      // describe the parent site's UUID-enabled tables after the prefix
+      // switch. Rebuild schema and entity SQL metadata from the upgraded core
+      // fixture before direct API assertions run in this process.
+      drupal_get_schema(NULL, TRUE);
+      entity_info_cache_clear();
+      $node_info = entity_get_info('node');
+      $node_schema = drupal_get_schema('node');
+      $this->assertFalse(isset($node_info['entity keys']['uuid']), 'Core upgrade entity metadata excludes UUID fields.');
+      $this->assertFalse(isset($node_schema['fields']['uuid']), 'Core upgrade schema metadata excludes UUID fields.');
+    }
 
     // Reload global $conf array and permissions.
     $this->refreshVariables();

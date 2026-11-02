@@ -16,6 +16,13 @@ module_load_include('inc', 'uuid', 'uuid.entity');
  * Implements of hook_schema_alter().
  */
 function uuid_schema_alter(&$schema = array()) {
+  // Core-only tests may share a PHP process with a parent site where UUID is
+  // enabled, while their disposable database has no UUID schema columns.
+  if (getenv('DRUPAL_CORE_TESTS') == 'true' ||
+      (!empty($GLOBALS['drupal_test_info']['test_run_id']) && variable_get('scratchpads_core_test', FALSE))) {
+    return;
+  }
+
   $field = uuid_schema_field_definition();
   foreach (uuid_get_core_entity_info() as $entity_type => $info) {
     $schema[$info['base table']]['fields'][$info['entity keys']['uuid']] = $field;

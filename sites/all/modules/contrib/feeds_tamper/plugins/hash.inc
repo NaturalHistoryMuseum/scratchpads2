@@ -28,7 +28,7 @@ function feeds_tamper_hash_form($importer, $element_key, $settings) {
 }
 
 function feeds_tamper_hash_callback($result, $item_key, $element_key, &$field, $settings, $source) {
-  if ($settings['override'] || !trim($field)) {
+  if (!empty($settings['override']) || !trim($field)) {
     $field = md5(serialize($result->items[$item_key]));
   }
 }

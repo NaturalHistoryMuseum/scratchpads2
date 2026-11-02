@@ -7,6 +7,10 @@
 */
 class SilverTestCase extends ScratchpadsTweaksTestCase{
 
+  protected $test_user1;
+
+  protected $test_user2;
+
   public static function getInfo(){
     return array(
       'name' => 'Silver',
@@ -22,6 +26,16 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $modules[] = 'darwincore';
     $modules[] = 'feeds_xls';
     parent::setUp($modules);
+    $this->assertEqual(
+      auto_entitylabel_get_setting('node_specimen_observation'),
+      AUTO_ENTITYLABEL_ENABLED,
+      'Automatic specimen titles are enabled'
+    );
+    $this->assertEqual(
+      variable_get('auto_entitylabel_pattern_node_specimen_observation'),
+      '[node:field_institution_code] - [node:field_collection_code] - [node:field_catalogue_number]',
+      'Automatic specimen title pattern is configured'
+    );
   }
   // Specific page node data as specified in the page.xls file
   protected $page_data = array(
@@ -56,11 +70,11 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
   );
 
   protected $specimen_observation_data = array(
-    'field_basis_of_record' => 'Fossil Specimen',
+    'field_basis_of_record' => 'FossilSpecimen',
     'field_institution_code' => 'NHM23',
     'field_collection_code' => '333',
     'field_catalogue_number' => '222',
-    'field_type_status' => 'Holotype',
+    'field_type_status' => 'holotype',
     'field_identification_qualifier' => '32',
     'field_date_identified' => '2001/03/04',
     'field_date_identified2' => '2001/05/06',
@@ -78,12 +92,12 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
   );
 
   protected $specimen_observation_data_terms_and_users = array(
-    'field_basis_of_record' => 'Fossil Specimen',
+    'field_basis_of_record' => 'FossilSpecimen',
     'field_institution_code' => 'NHM23',
     'field_collection_code' => '333',
     'field_catalogue_number' => '222',
     'field_taxonomic_name' => 'myterm',
-    'field_type_status' => 'Holotype',
+    'field_type_status' => 'holotype',
     'field_identification_qualifier' => '32',
     'field_identified_by' => 'testuser2',
     'field_date_identified' => '2001/03/04',
@@ -191,11 +205,13 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     // create a biological vocabulary
     $term_name = 'test_term';
     $tid = $this->createTerm($term_name);
+    $term = taxonomy_term_load($tid);
+    $vocabulary = taxonomy_vocabulary_load($term->vid);
     // navigate to the importer
-    $path_to_importer = "import/taxonomy_importer_" . $term_name . '_xls';
+    $path_to_importer = 'import/taxonomy_importer_' . $vocabulary->machine_name . '_xls';
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/taxonomy.xls');
     $this->drupalPost($path_to_importer, array(
-      'feeds[FeedsHTTPFetcher][source]' => $rpath
+      'files[feeds]' => $rpath
     ), t('Import'));
     // navigate to the edit page
     $path_to_edit_page = 'admin/structure/taxonomy/' . $term_name;
@@ -212,7 +228,7 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     */
   function validateXlsUserImport(){
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/users.xls');
-    $this->drupalPost('import/user_importer_user', array(
+    $this->drupalPost('import/user_importer_user_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     // Test that the users have been imported
@@ -271,7 +287,7 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    */
   function validateXlsUserUpdate(){
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_update.xls');
-    $this->drupalPost('import/user_importer_user', array(
+    $this->drupalPost('import/user_importer_user_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     // Test that the user has been updated
@@ -319,7 +335,7 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    */
   function validateXlsUserImportNoLogin(){
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/user_no_login.xls');
-    $this->drupalPost('import/user_importer_user', array(
+    $this->drupalPost('import/user_importer_user_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     // The created username should be of the form: ['title'] ['given_name'] ['family_name']
@@ -359,9 +375,9 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of page nodes from xls file.
    */
   function validateXlsPageImport(){
-    $this->drupalGet('import/node_importer_page');
+    $this->drupalGet('import/node_importer_page_xls');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page.xls');
-    $this->drupalPost('import/node_importer_page', array(
+    $this->drupalPost('import/node_importer_page_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     // Test that the pages have appeared
@@ -377,19 +393,29 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of page nodes with taxonomy term from xls file.
    */
   function validateXlsPageImportWithTerm($tid){
-    $this->drupalGet('import/node_importer_page');
+    $this->drupalGet('import/node_importer_page_xls');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/page_with_term.xls');
-    $this->drupalPost('import/node_importer_page', array(
+    $this->drupalPost('import/node_importer_page_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     // Test that the pages have appeared
     $this->drupalGet('admin/content/page');
     $this->assertText('Test page title one', 'First imported page node present on admin/content/page');
     $this->assertText('Test page title two', 'Second imported page node present on admin/content/page');
-    // may want to add more detailed test of fields here
-    $this->clickLink('Test page title one');
+    // The preceding page import uses the same titles and neither fixture has a
+    // GUID, so following the first matching title link is ambiguous. Locate the
+    // page created by this fixture through the taxonomy value being tested.
+    $result = (new EntityFieldQuery())
+      ->entityCondition('entity_type', 'node')
+      ->entityCondition('bundle', 'page')
+      ->propertyCondition('title', 'Test page title one')
+      ->fieldCondition('field_taxonomic_name', 'tid', $tid)
+      ->execute();
+    $this->assertTrue(!empty($result['node']), 'Imported page has the expected taxonomic name');
+    $nid = key($result['node']);
+    $this->drupalGet('node/' . $nid);
     $this->assertText('Test page body text one', 'Imported body field present of node page');
-    $this->clickLink('Edit');
+    $this->drupalGet('node/' . $nid . '/edit');
     foreach($this->page_data_with_term as $key => $page_field_data){
       // check each field
       if($key == 'title'){
@@ -409,9 +435,9 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Test the import of location nodes from xls file.
    */
   function validateXlsLocationImport(){
-    $this->drupalGet('import/node_importer_location');
+    $this->drupalGet('import/node_importer_location_xls');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/location.xls');
-    $this->drupalPost('import/node_importer_location', array(
+    $this->drupalPost('import/node_importer_location_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     $this->drupalGet('admin/content/location');
@@ -421,8 +447,24 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     $this->clickLink('Edit');
     foreach($this->location_data as $key => $location_field_data){
       if($key == 'field_map'){
-        // Map field
-        $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][map][map]', $location_field_data, $key . ' field found and correctly set');
+        // The map widget normalises floating-point precision when rendering.
+        // Compare the coordinates numerically instead of comparing that
+        // formatted string byte-for-byte.
+        $field_name = $key . '[' . LANGUAGE_NONE . '][field]';
+        $fields = $this->xpath('//input[@name=:name]', array(
+          ':name' => $field_name
+        ));
+        $actual_matches = array();
+        $expected_matches = array();
+        $actual_coordinates = isset($fields[0]['value']) && preg_match('/^\(([-0-9.]+),\s*([-0-9.]+)\)$/', (string) $fields[0]['value'], $actual_matches);
+        $expected_coordinates = preg_match('/^\(([-0-9.]+),\s*([-0-9.]+)\)$/', $location_field_data, $expected_matches);
+        $this->assertTrue(
+          $actual_coordinates &&
+          $expected_coordinates &&
+          abs((float) $actual_matches[1] - (float) $expected_matches[1]) < 0.000000000001 &&
+          abs((float) $actual_matches[2] - (float) $expected_matches[2]) < 0.000000000001,
+          $key . ' field found and correctly set'
+        );
       }elseif(($key == 'field_continent_or_ocean') || ($key == 'field_country')){
         // Select list
         $this->assertFieldByName($key . '[' . LANGUAGE_NONE . ']', $location_field_data, $key . ' field found and correctly set');
@@ -437,16 +479,22 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
    * Tests the import of basic specimen-observation fields, without user or term ids.
    */
   function validateXlsSpecimenObservationImportBasic(){
-    $this->drupalGet('import/node_importer_specimen_observation');
+    $this->drupalGet('import/node_importer_specimen_observation_xls');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation.xls');
-    $this->drupalPost('import/node_importer_specimen_observation', array(
+    $this->drupalPost('import/node_importer_specimen_observation_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     $title = $this->specimen_observation_data['field_institution_code'] . ' - ' . $this->specimen_observation_data['field_collection_code'] . ' - ' . $this->specimen_observation_data['field_catalogue_number'];
     $this->drupalGet('admin/content/specimen_observation');
     $this->assertText($title, 'First imported specimen_observation node present on admin/content/specimen_observation');
-    $this->clickLink($title);
-    $this->clickLink('Edit');
+    $node = db_query("SELECT nid, title FROM {node} WHERE type = :type ORDER BY nid DESC", array(
+      ':type' => 'specimen_observation'
+    ))->fetchObject();
+    $this->assertTrue($node, 'The basic specimen import created a node');
+    if($node){
+      $this->assertEqual($node->title, $title, 'The basic specimen import generated the expected title');
+      $this->drupalGet('node/' . $node->nid . '/edit');
+    }
     foreach($this->specimen_observation_data as $key => $field_data){
       if(($key == 'field_date_collected') || ($key == 'field_date_identified')){
         $this->assertFieldByName($key . '[' . LANGUAGE_NONE . '][0][value][date]', $field_data, $key . ' date field found and correctly set');
@@ -477,16 +525,22 @@ class SilverTestCase extends ScratchpadsTweaksTestCase{
     ));
     $uid1 = $this->test_user1->uid;
     $uid2 = $this->test_user2->uid;
-    $this->drupalGet('import/node_importer_specimen_observation');
+    $this->drupalGet('import/node_importer_specimen_observation_xls');
     $rpath = realpath(drupal_get_path('module', 'silver') . '/tests/files/specimenobservation_terms_and_users.xls');
-    $this->drupalPost('import/node_importer_specimen_observation', array(
+    $this->drupalPost('import/node_importer_specimen_observation_xls', array(
       'files[feeds]' => $rpath
     ), t('Import'));
     $title = $this->specimen_observation_data_terms_and_users['field_institution_code'] . ' - ' . $this->specimen_observation_data_terms_and_users['field_collection_code'] . ' - ' . $this->specimen_observation_data_terms_and_users['field_catalogue_number'];
     $this->drupalGet('admin/content/specimen_observation');
     $this->assertText($title, 'First imported specimen_observation node present on admin/content/specimen_observation');
-    $this->clickLink($title);
-    $this->clickLink('Edit');
+    $node = db_query("SELECT nid, title FROM {node} WHERE type = :type ORDER BY nid DESC", array(
+      ':type' => 'specimen_observation'
+    ))->fetchObject();
+    $this->assertTrue($node, 'The specimen import with users and terms created a node');
+    if($node){
+      $this->assertEqual($node->title, $title, 'The specimen import with users and terms generated the expected title');
+      $this->drupalGet('node/' . $node->nid . '/edit');
+    }
     foreach($this->specimen_observation_data_terms_and_users as $key => $field_data){
       switch($key){
         case 'field_date_collected':

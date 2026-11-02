@@ -461,7 +461,14 @@ function scratchpads_user_user_register_validate($form, &$form_state){
     }
     global $base_url;
     $url = parse_url($base_url);
-    $form_state['values']['mail'] = uniqid('', TRUE) . '@' . $url['host'];
+    $host = $url['host'];
+    // PHP's email validation requires a fully qualified host name. DDEV's
+    // internal test URL is simply "web", so give local stub addresses a
+    // reserved, syntactically valid suffix.
+    if(strpos($host, '.') === FALSE){
+      $host .= '.invalid';
+    }
+    $form_state['values']['mail'] = uniqid('', TRUE) . '@' . $host;
   }
 }
 
@@ -473,6 +480,9 @@ function scratchpads_user_user_register_validate($form, &$form_state){
  */
 function scratchpads_user_register_form_pre_submit($form, &$form_state){
   $form_state['values']['administer_users'] = 1;
+  if(!isset($form_state['values']['pass'])){
+    $form_state['values']['pass'] = '';
+  }
   scratchpads_user_register_form_pre_submit_set_name($form, $form_state);
 }
 
@@ -823,7 +833,7 @@ function scratchpads_user_feeds_after_parse($source, $result){
         continue;
       }
       // check to see if the email is already in the database
-      if(!isset($item[$our_mappings['name']])){
+      if(empty($item[$our_mappings['name']])){
         // We set the name here as we have the mapping, but we need to check it
         // is OK later, so we add a placeholder.
         $name = '';
@@ -840,14 +850,18 @@ function scratchpads_user_feeds_after_parse($source, $result){
         $result->items[$key][$our_mappings['name']] = 'SCRATCHPADS_USER_PLACEHOLDER' . $name;
       }
       // if an email is given but not in the database, but no password is given, set a password
-      if((!isset($item[$our_mappings['pass']])) && (isset($item[$our_mappings['mail']])) && !in_array($item[$our_mappings['mail']], $mail_array)){
+      if(empty($item[$our_mappings['pass']]) && !empty($item[$our_mappings['mail']]) && !in_array($item[$our_mappings['mail']], $mail_array)){
         // no passsword, so set one
         $result->items[$key][$our_mappings['pass']] = uniqid('', TRUE);
       }
-      if(!isset($item[$our_mappings['mail']])){
+      if(empty($item[$our_mappings['mail']])){
         global $base_url;
         $url = parse_url($base_url);
-        $result->items[$key][$our_mappings['mail']] = uniqid('email_placeholder', TRUE) . '@' . $url['host'];
+        $host = $url['host'];
+        if(strpos($host, '.') === FALSE){
+          $host .= '.invalid';
+        }
+        $result->items[$key][$our_mappings['mail']] = uniqid('email_placeholder', TRUE) . '@' . $host;
         // Unset the password, if it has been set
         if(isset($item[$our_mappings['pass']])){
           unset($result->items[$key][$our_mappings['pass']]);
@@ -876,5 +890,3 @@ function scratchpads_user_user_insert(&$edit, $account, $category){
 function scratchpads_user_feeds_xls_not_required_alter(&$fields_array){
   $fields_array[] = 'field_user_given_names';
 }
-
-

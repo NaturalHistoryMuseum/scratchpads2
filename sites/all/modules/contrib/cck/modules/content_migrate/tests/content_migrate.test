@@ -33,7 +33,7 @@ class ContentMigrateTestCase extends DrupalWebTestCase {
     }
 
     // Create an admin user.
-    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer content types', 'administer nodes'));
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer content types', 'administer fields', 'administer nodes'));
   }
 
   protected function contentDrupal6Schema() {
@@ -339,7 +339,7 @@ class ContentMigrateTextTestCase extends ContentMigrateTestCase {
     $this->assertText($test_field['label'], t('Found label, %label, for field, %field, on content type field administration page.', array('%field' => $test_field['field_name'], '%label' => $test_field['label'])));
 
     // @todo Do we want to confirm every setting?
-    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name']);
+    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name'] . '/field-settings');
 
 
     $this->drupalLogout();
@@ -404,7 +404,7 @@ class ContentMigrateTextTestCase extends ContentMigrateTestCase {
     $this->assertText($test_field['label'], t('Found label, %label, for field, %field, on content type field administration page.', array('%field' => $test_field['field_name'], '%label' => $test_field['label'])));
 
     // @todo Do we want to confirm every setting?
-    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name']);
+    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name'] . '/field-settings');
 
 
     $this->drupalLogout();
@@ -529,7 +529,7 @@ class ContentMigrateListTestCase extends ContentMigrateTestCase {
   /**
    * Slightly different from setupField in text case.
    */
-  function setupField($type, $widget, $multiple = 0, $required = 0, $default = '') {
+  function setupField($type, $widget, $multiple = 0, $required = 0, $default = '', $values = array()) {
     $field = parent::setupField($type, $widget, $multiple, $required, $default);
 
     $field['widget_module'] = 'optionwidgets';
@@ -618,7 +618,7 @@ class ContentMigrateListTestCase extends ContentMigrateTestCase {
       $allowed_values .= $val . '|' . $label;
       $n++;
     }
-    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name']);
+    $this->drupalGet('admin/structure/types/manage/' . $this->content_type->type . '/fields/' . $test_field['field_name'] . '/field-settings');
     $this->assertFieldById('edit-field-settings-allowed-values', $allowed_values, t('Found allowed values, %values, on the field edit form.', array('%values' => $allowed_values)));
 
     $this->drupalLogout();

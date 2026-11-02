@@ -505,6 +505,9 @@ function twitter_non_auth_account_form_submit($form, &$form_state) {
   else {
     global $user;
     $twitter_account->uid = $user->uid;
+    // This form exists specifically to pull tweets for an additional account,
+    // so make newly added accounts eligible for the cron importer by default.
+    $twitter_account->import = 1;
     twitter_account_save($twitter_account, FALSE);
     drupal_set_message(t('Twitter account added successfully'));
   }

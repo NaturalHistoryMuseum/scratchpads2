@@ -9,6 +9,7 @@ class LinkBaseTestClass extends DrupalWebTestCase {
   protected $permissions = array(
     'access content',
     'administer content types',
+    'administer fields',
     'administer nodes',
     'administer filters',
     'access comments',

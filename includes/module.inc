@@ -851,8 +851,11 @@ function module_hook_info() {
   // This function is indirectly invoked from bootstrap_invoke_all(), in which
   // case common.inc, subsystems, and modules are not loaded yet, so it does not
   // make sense to support hook groups resp. lazy-loaded include files prior to
-  // full bootstrap.
-  if (drupal_bootstrap(NULL, FALSE) != DRUPAL_BOOTSTRAP_FULL) {
+  // full bootstrap. The bootstrap phase is marked as full before
+  // module_load_all() has finished. A module loaded during that window can
+  // invoke module_implements(), which would otherwise persist hook information
+  // for only the modules loaded so far.
+  if (drupal_bootstrap(NULL, FALSE) != DRUPAL_BOOTSTRAP_FULL || !module_load_all(NULL)) {
     return array();
   }
   $hook_info = &drupal_static(__FUNCTION__);

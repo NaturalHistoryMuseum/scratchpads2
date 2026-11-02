@@ -8,42 +8,83 @@
 function eol_gbif_maps_gm3_libraries_alter(&$libraries){
   // We add special data to map on taxonomy term pages only.
   if(($term = menu_get_object('taxonomy_term', 2)) != FALSE){
+    $gbifId = NULL;
+
     // Now we need to calculate the GBIF taxon id for this term name, and then
     // add the gbif library to the map.
     // First we check to see if we've loaded this term before, and if so, we
     // use that data.
-    $col = db_select('eol_gbif_maps_tid_map', 'e')->fields('e')->condition('tid', arg(2))->execute()->fetchCol(1);
-    if(count($col)){
-      $gbifId = array_pop($col);
-    }else{
+    $gbifId = db_select('eol_gbif_maps_tid_map', 'e')
+      ->fields('e', array('taxon_id'))
+      ->condition('tid', $term->tid)
+      ->execute()
+      ->fetchField();
+    if($gbifId === FALSE){
+      $gbifId = NULL;
+    }
+    else{
+      $gbifId = (int) $gbifId;
+    }
+
+    if(!$gbifId){
       $url = url(
-        'http://api.gbif.org/v1/species',
-        [ 'query' =>
-          ['name' => $term->name]
-        ]
+        'https://api.gbif.org/v1/species',
+        array('query' => array('name' => $term->name))
       );
       $request = drupal_http_request($url, array(
         'timeout' => 3
       ));
-      if($request->code == 200){
+      if(isset($request->code) && $request->code == 200){
         $json = json_decode($request->data, TRUE);
-        if($json && !empty($json['results'][0]['nubKey'])){
-          $gbifId = $json['results'][0]['nubKey'];
+        $gbifId = _eol_gbif_maps_taxon_id_from_response($json);
+        if($gbifId){
           db_insert('eol_gbif_maps_tid_map')->fields(array(
             'tid' => $term->tid,
-            'taxon_id' => "$gbifId"
+            'taxon_id' => $gbifId
           ))->execute();
         }
-      }else {
-        trigger_error(E_USER_WARNING, 'Request to GBIF species API failed in eol_gbif_maps');
+      }
+      else{
+        trigger_error('Request to GBIF species API failed in eol_gbif_maps', E_USER_WARNING);
       }
     }
 
-    $libraries['eol_gbif_maps_overlay'] = array(
-      'module' => 'eol_gbif_maps',
-      'taxon_id' => $gbifId
-    );
+    // Do not attach an overlay that would generate taxonKey=null requests.
+    if($gbifId){
+      $libraries['eol_gbif_maps_overlay'] = array(
+        'module' => 'eol_gbif_maps',
+        'taxon_id' => $gbifId
+      );
+    }
   }
+}
+
+/**
+ * Extracts a usable GBIF taxon key from a species search response.
+ *
+ * GBIF's backbone key (nubKey) is preferred because it aggregates occurrence
+ * data across datasets. New or unmatched taxa may only provide a dataset taxon
+ * key, which is still accepted by the occurrence map API.
+ *
+ * @param array|null $response
+ *   The decoded response from the GBIF species API.
+ *
+ * @return int|null
+ *   A positive GBIF taxon key, or NULL when no usable match was returned.
+ */
+function _eol_gbif_maps_taxon_id_from_response($response){
+  if(!is_array($response) || empty($response['results'][0]) || !is_array($response['results'][0])){
+    return NULL;
+  }
+
+  $result = $response['results'][0];
+  foreach(array('nubKey', 'key') as $property){
+    if(isset($result[$property]) && is_numeric($result[$property]) && (int) $result[$property] > 0){
+      return (int) $result[$property];
+    }
+  }
+
+  return NULL;
 }
 
 /**
@@ -78,7 +119,7 @@ function eol_gbif_maps_library(){
             'gm3' => array(
               'settings' => array(
                 'eol_gbif_maps' => array(
-                  'tile_host' => 'http://api.gbif.org'
+                  'tile_host' => 'https://api.gbif.org'
                 )
               )
             )

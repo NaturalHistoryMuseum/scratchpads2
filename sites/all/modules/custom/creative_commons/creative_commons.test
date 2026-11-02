@@ -121,7 +121,7 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText('has been updated.', 'Page successfully updated');
     $node_path = 'node/' . $nid;
     $this->drupalGet($node_path);
-    $this->assertRaw('http://creativecommons.org/about/pdm', 'Link to license shown');
+    $this->assertRaw('https://creativecommons.org/about/pdm', 'Link to license shown');
   }
 
   /**
@@ -130,11 +130,10 @@ class ScratchpadsCreativeCommonsTestCase extends ScratchpadsTweaksTestCase{
   function validateLink(){
     $this->drupalGet('');
     // This may be a partial link
-    $this->assertLinkByHref('http://creativecommons.org/licences');
+    $this->assertLinkByHref('https://creativecommons.org/licenses');
   }
 }
   
-
 
 
 

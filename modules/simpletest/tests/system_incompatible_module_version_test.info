@@ -9,3 +9,7 @@ hidden = TRUE
 version = "7.82"
 project = "drupal"
 datestamp = "1626883669"
+
+; This test fixture must remain below the >2.0 dependency used by the test.
+; Drupal.org's packaging metadata above otherwise overrides the original 1.0.
+version = 1.0

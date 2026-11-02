@@ -819,7 +819,10 @@ function ckeditor_profile_settings_compile($global_profile, $profile) {
       foreach ($javascript as $key => $definitions) {
         foreach ($definitions as $definition) {
           $function = 'drupal_add_' . $key;
-          call_user_func_array($function, $definition);
+          // PHP 8 treats associative keys as named arguments. Media returns
+          // definitions keyed by argument name, while the Drupal callbacks
+          // expect the values to be passed positionally.
+          call_user_func_array($function, array_values($definition));
         }
       }
       drupal_add_js(drupal_get_path('module', 'ckeditor') . '/plugins/media/library.js', array('scope' => 'footer', 'weight' => -20));

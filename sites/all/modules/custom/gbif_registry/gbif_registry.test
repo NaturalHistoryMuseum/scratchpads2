@@ -8,6 +8,7 @@
 class ScratchpadsGbifRegistryTestCase extends ScratchpadsTweaksTestCase{
 
   protected $admin_user;
+  protected $authorised_user;
   protected $test_user;
 
   public static function getInfo(){
@@ -79,4 +80,3 @@ class ScratchpadsGbifRegistryTestCase extends ScratchpadsTweaksTestCase{
     
   }
 }
-  

@@ -670,7 +670,7 @@ function __og_field_validate($entity_type, $entity, $field, $instance, $langcode
  *
  * Replace the node nid with a node title.
  */
-function og_field_audience_autocomplete_value($element, $input = FALSE, $form_state) {
+function og_field_audience_autocomplete_value($element, $input, $form_state) {
   if ($input === FALSE) {
     // We're building the displayed 'default value': expand the raw nid into
     // "Group title [gid:n]".

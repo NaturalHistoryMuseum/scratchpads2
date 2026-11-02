@@ -729,7 +729,7 @@ function httprl_handle_data(&$options) {
   // or PUT request. Some non-standard servers get confused by Content-Length in
   // at least HEAD/GET requests, and Squid always requires Content-Length in
   // POST/PUT requests.
-  if (strlen($options['data']) > 0 || $options['method'] == 'POST' || $options['method'] == 'PUT') {
+  if (strlen((string) $options['data']) > 0 || $options['method'] == 'POST' || $options['method'] == 'PUT') {
     $options['headers']['Content-Length'] = httprl_strlen($options['data']);
   }
 }
@@ -1672,7 +1672,7 @@ function httprl_parse_data(&$result) {
 
   // Parse the response headers.
   $cookie_primary_counter = 0;
-  while ($line = trim(array_shift($response))) {
+  while ($line = trim((string) array_shift($response))) {
     list($name, $value) = explode(':', $line, 2);
     $name = strtolower($name);
 
@@ -1780,8 +1780,8 @@ function httprl_parse_data(&$result) {
         $original_location = @parse_url($result->url);
         // Assume request is to self if none of this was setup correctly.
         $location['scheme'] = !empty($location['scheme']) ? $location['scheme'] : $original_location['scheme'];
-        $location['host'] = !empty($location['host']) ? $location['host'] : !empty($original_location['host']) ? $original_location['host'] : $_SERVER['HTTP_HOST'];
-        $location['port'] = !empty($location['port']) ? $location['port'] : !empty($original_location['port']) ? $original_location['port'] : '';
+        $location['host'] = !empty($location['host']) ? $location['host'] : (!empty($original_location['host']) ? $original_location['host'] : $_SERVER['HTTP_HOST']);
+        $location['port'] = !empty($location['port']) ? $location['port'] : (!empty($original_location['port']) ? $original_location['port'] : '');
         $location = httprl_glue_url($location);
       }
       else {

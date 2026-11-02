@@ -1,0 +1,113 @@
+#ddev-generated
+# If you remove the ddev-generated line above you
+# are responsible for maintaining this file. DDEV will not then
+# update it, for example if you add `additional_hostnames`, etc.
+
+http:
+  routers:
+    scratchpads-millichidae-web-80-http:
+      entrypoints:
+        - http-8080
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-web-80"
+      tls: false
+      # middlewares:
+      #   - "scratchpads-millichidae-redirectHttps"
+    scratchpads-millichidae-web-8025-http:
+      entrypoints:
+        - http-8025
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-web-8025"
+      tls: false
+      # middlewares:
+      #   - "scratchpads-millichidae-redirectHttps"
+    scratchpads-millichidae-xhgui-80-http:
+      entrypoints:
+        - http-8143
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-xhgui-80"
+      tls: false
+      # middlewares:
+      #   - "scratchpads-millichidae-redirectHttps"
+    scratchpads-millichidae-solr-8983-http:
+      entrypoints:
+        - http-8983
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-solr-8983"
+      tls: false
+      # middlewares:
+      #   - "scratchpads-millichidae-redirectHttps"
+    
+    
+    
+    scratchpads-millichidae-web-80-https:
+      entrypoints:
+        - http-8443
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-web-80"
+      
+      tls: true
+      
+    scratchpads-millichidae-web-8025-https:
+      entrypoints:
+        - http-8026
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-web-8025"
+      
+      tls: true
+      
+    
+    scratchpads-millichidae-xhgui-80-https:
+      entrypoints:
+        - http-8142
+      rule: HostRegexp(`^scratchpads-millichidae\.ddev\.site$`)
+      
+      service: "scratchpads-millichidae-xhgui-80"
+      
+      tls: true
+      
+    
+    
+
+  middlewares:
+    scratchpads-millichidae-redirectHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    scratchpads-millichidae-web-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-millichidae-web:80
+        
+    scratchpads-millichidae-web-8025:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-millichidae-web:8025
+        
+    
+    
+    scratchpads-millichidae-xhgui-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-millichidae-xhgui:80
+        
+    
+    scratchpads-millichidae-solr-8983:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-millichidae-solr:8983
+        
+    
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/scratchpads-millichidae.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/scratchpads-millichidae.key

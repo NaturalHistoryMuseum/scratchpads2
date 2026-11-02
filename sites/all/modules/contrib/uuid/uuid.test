@@ -435,15 +435,7 @@ class UUIDSyncTestCase extends UUIDTestCase {
    *   There are something weird around this assertion.
    */
   function assertTableColumn($table, $column, $message) {
-    $result = db_query("SHOW COLUMNS FROM {$table}");
-    $exists = FALSE;
-    foreach ($result as $record) {
-      if ($record->field == $column) {
-        $exists = TRUE;
-        break;
-      }
-    }
-    $this->assertTrue($exists, $message);
+    $this->assertTrue(db_field_exists($table, $column), $message);
   }
 
   function testSync() {
@@ -489,6 +481,7 @@ class UUIDExportEntitiesWithDeploy extends DrupalWebTestCase {
       'name' => 'Export UUID entities',
       'description' => 'Test exporting UUID entities with Deploy and Features.',
       'group' => 'UUID',
+      'enabled dependencies' => array('deploy', 'deploy_example'),
     );
   }
 
@@ -672,6 +665,7 @@ class UUIDImportEntitiesWithDeploy extends UUIDImportEntitiesTestCase {
       'name' => 'Import UUID entities, with Deploy',
       'description' => 'Test importing UUID entities with Features and Deploy.',
       'group' => 'UUID',
+      'enabled dependencies' => array('deploy', 'deploy_example'),
     );
   }
 

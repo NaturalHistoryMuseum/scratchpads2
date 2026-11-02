@@ -1473,7 +1473,7 @@ class EntityTranslationDefaultHandler implements EntityTranslationHandlerInterfa
       if ($segment == $this->pathWildcard) {
         $path_segments[$index] = $this->getEntityId();
       }
-      elseif ($segment{0} == '%' && isset($this->routerMap[$index])) {
+      elseif ($segment[0] == '%' && isset($this->routerMap[$index])) {
         $path_segments[$index] = $this->routerMap[$index];
       }
     }

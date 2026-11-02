@@ -44,6 +44,7 @@ class LinkUITest extends DrupalWebTestcase {
     //libxml_use_internal_errors(true);
     $this->web_user = $this->drupalCreateUser(array(
       'administer content types',
+      'administer fields',
       'administer nodes',
       'administer filters',
       'access content',
@@ -179,7 +180,7 @@ class LinkUITest extends DrupalWebTestcase {
    * title actually displays <strong>.
    */
   function testStaticLinkCreate() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field
@@ -227,7 +228,7 @@ class LinkUITest extends DrupalWebTestcase {
    * Testing that if you have the title but no url, the title is not sanitized twice.
    */
   function testCRUDTitleOnlyTitleNoLink() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field
@@ -278,7 +279,7 @@ class LinkUITest extends DrupalWebTestcase {
    * sure they are set to the expected results.
    */
   function testCRUDCreateFieldDefaults() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field

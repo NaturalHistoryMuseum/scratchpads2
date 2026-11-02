@@ -198,9 +198,9 @@ class views_plugin_cache extends views_plugin {
    * Gather out of band data, compare it to the start data and store the diff.
    */
   public function gather_headers() {
-    // Simple replacement for head.
+    // Store only head elements added while the view rendered.
     if (isset($this->storage['head'])) {
-      $this->storage['head'] = str_replace($this->storage['head'], '', drupal_add_html_head());
+      $this->storage['head'] = drupal_array_diff_assoc_recursive(drupal_add_html_head(), $this->storage['head']);
     }
     else {
       $this->storage['head'] = '';
@@ -267,7 +267,9 @@ class views_plugin_cache extends views_plugin {
    */
   public function restore_headers() {
     if (!empty($this->storage['head'])) {
-      drupal_add_html_head($this->storage['head']);
+      foreach ($this->storage['head'] as $key => $element) {
+        drupal_add_html_head($element, $key);
+      }
     }
     if (!empty($this->storage['css'])) {
       foreach ($this->storage['css'] as $args) {

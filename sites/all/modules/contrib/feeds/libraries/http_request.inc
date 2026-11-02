@@ -369,7 +369,7 @@ function http_request_create_absolute_url($url, $base_url) {
     $path = dirname($parsed_url['path']);
 
     // Adding to the existing path.
-    if ($url{0} == '/') {
+    if ($url[0] == '/') {
       $cparts = array_filter(explode("/", $url));
     }
     else {

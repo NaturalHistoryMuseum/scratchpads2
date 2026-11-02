@@ -187,7 +187,10 @@ function features_export_prepare($export, $module_name, $reset = FALSE) {
     }
   }
 
-  $export = array_diff_assoc($export, $standard_info);
+  // Remove the standard entries by key. Comparing the values with
+  // array_diff_assoc() attempts to cast nested info arrays (for example,
+  // dependencies) to strings on newer PHP versions.
+  $export = array_diff_key($export, $standard_info);
   ksort($export);
   return array_merge($standard_info, $export);
 }
@@ -542,7 +545,7 @@ function features_get_storage($module_name) {
  * defaults/normal object array. Can be used to compare normal/default states
  * of a module's component.
  */
-function features_get_signature($state = 'default', $module_name, $component, $reset = FALSE) {
+function features_get_signature($state, $module_name, $component, $reset = FALSE) {
   switch ($state) {
     case 'cache':
       $codecache = variable_get('features_codecache', array());

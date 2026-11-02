@@ -74,8 +74,15 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
   $target_info = explode(':', $target);
   list($target, $match_key) = $target_info; // matchkey=guid or tid
   $info = field_info_field($target);
-  $i = 0;
   $entity->$target = isset($entity->$target) ? $entity->$target : array();
+  $lang = field_language($entity_type, $entity, $target);
+  // Silver deliberately generates mappings in Name, TID, GUID order. Once a
+  // single-value reference has been resolved, a later identifier mapping must
+  // not replace it.
+  if($info['cardinality'] == 1 && !empty($entity->{$target}[$lang][0]['tid'])){
+    return;
+  }
+  $i = !empty($entity->{$target}[$lang]) ? count($entity->{$target}[$lang]) : 0;
   foreach($value as $v){
     if(trim($v)){
       $id = 0;
@@ -92,7 +99,7 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
             $id = $v->tid;
           }elseif(is_numeric($v)){
             $is_valid_tid = taxonomy_term_load($v);
-            if($is_valid_tid){
+            if($is_valid_tid && trim($is_valid_tid->name) !== ''){
               $id = $v;
             }
           }elseif(is_string($v)){
@@ -103,7 +110,6 @@ function feeds_term_reference_feeds_set_target(FeedsSource $source, $entity, $ta
           break;
       }
       if($id){
-        $lang = field_language($entity_type, $entity, $target);
         $entity->{$target}[$lang][$i]['tid'] = $id;
       }else{
         drupal_set_message(t('%missing_value does not match any existing %match_key.', array(

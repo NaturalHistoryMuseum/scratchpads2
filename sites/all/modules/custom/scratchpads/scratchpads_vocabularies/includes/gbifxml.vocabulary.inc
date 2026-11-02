@@ -20,6 +20,8 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
 
   protected $information;
 
+  protected $dom;
+
   /**
    * __construct
    * 
@@ -95,7 +97,17 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
    */
   public function refresh(){
     // See if there is a new version
-    $this->dom = simplexml_load_file($this->url);
+    if(is_file($this->url)){
+      $data = file_get_contents($this->url);
+    }else{
+      $response = \drupal_http_request($this->url, array(
+        'headers' => array(
+          'User-Agent' => 'Scratchpads Drupal vocabulary client',
+        ),
+      ));
+      $data = !empty($response->data) ? $response->data : '';
+    }
+    $this->dom = $data !== '' ? simplexml_load_string($data) : FALSE;
     if($this->dom === false){throw new Exception("Could not load/parse GbifXmlVocabulary at " . $this->url);}
     $this->version = NULL;
     if(isset($http_response_header)){
@@ -203,7 +215,7 @@ class GbifXmlVocabulary extends Persistent implements VocabularyInterface{
       if(isset($info['uri']) && preg_match('%([^/]+)/([^/]+)$%', $info['uri'], $matches)){
         $wiki = 'http://terms.gbif.org/wiki/' . $matches[1] . ':' . $matches[2];
         $headers = @get_headers($wiki);
-        if(strpos($headers[0], '200') !== FALSE){
+        if(is_array($headers) && isset($headers[0]) && strpos($headers[0], '200') !== FALSE){
           $info['wiki'] = $wiki;
         }
       }

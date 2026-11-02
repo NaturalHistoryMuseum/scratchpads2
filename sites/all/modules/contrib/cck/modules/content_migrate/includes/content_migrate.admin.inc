@@ -355,7 +355,6 @@ function _content_migrate_batch_process_migrate_data($field_name, &$context) {
   if ($field['translatable']) {
     //$language = $node['language'];
   }
-  $query->addExpression("'". $node['type'] ."'", 'bundle');
   $query->addExpression("'node'", 'entity_type');
   $query->addExpression("'". $language ."'", 'language');
     
@@ -434,5 +433,4 @@ function _content_migrate_batch_process_migrate_data($field_name, &$context) {
   }
 
 }
-
 

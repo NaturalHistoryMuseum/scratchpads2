@@ -23,7 +23,7 @@ class ViewsArgumentValidatorTest extends ViewsSqlTest {
     $view->set_display('default');
     $view->pre_execute();
     $view->init_handlers();
-    $this->assertTrue($view->argument['null']->validate_arg($string));
+    $this->assertFalse($view->argument['null']->validate_arg($string), 'PHP argument validation is disabled.');
     // Reset safed argument validation.
     $view->argument['null']->argument_validated = NULL;
     $this->assertFalse($view->argument['null']->validate_arg($this->randomName()));

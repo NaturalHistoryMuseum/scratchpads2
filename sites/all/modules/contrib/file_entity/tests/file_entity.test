@@ -90,7 +90,8 @@ class FileEntityUnitTestCase extends FileEntityTestHelper {
 
     // Test hook_file_update().
     // Load the first image file and resize it.
-    $file = file_load(reset(array_keys($images_dimensions)));
+    $image_fids = array_keys($images_dimensions);
+    $file = file_load(reset($image_fids));
     $image = image_load($file->uri);
     image_resize($image, $file->image_dimensions['width'] / 2, $file->image_dimensions['height'] / 2);
     image_save($image);

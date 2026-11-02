@@ -123,6 +123,12 @@ class views_handler_field_numeric extends views_handler_field {
       return '';
     }
 
+    // Missing numeric field values should render as empty rather than being
+    // passed to PHP numeric functions as NULL.
+    if ($value === NULL || $value === '') {
+      return '';
+    }
+
     if (!empty($this->options['set_precision'])) {
       $value = number_format($value, $this->options['precision'], $this->options['decimal'], $this->options['separator']);
     }

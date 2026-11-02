@@ -130,7 +130,8 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
   // we are adding to.
 
   $show_syns = variable_get('scratchpads_species_display_synonyms', array());
-  $vid = $form['#vocabulary']->vid;
+  // New vocabulary forms contain an unsaved vocabulary object without a vid.
+  $vid = isset($form['#vocabulary']->vid) ? $form['#vocabulary']->vid : 0;
 
   if(!isset($form_state['confirm_delete'])){
     $form['simple_taxonomy_display']['show_synonym_data'] = array(
@@ -222,7 +223,7 @@ function scratchpads_species_form_taxonomy_form_vocabulary_alter(&$form, &$form_
     $form['gbif_map_display']['always_display_gbif_map_tiles'] = array(
       '#title' => t("Always display GBIF map tiles"),
       '#type' => 'checkbox',
-      '#default_value' => $gbif_map_display[$vid],
+      '#default_value' => isset($gbif_map_display[$vid]) ? $gbif_map_display[$vid] : 0,
       '#enabled' => module_exists('eol_gbif_maps') ? 1 : 0
     );
 
@@ -624,12 +625,22 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
         break;
       case 'species_media':
       case 'species_slideshow':
-      case 'species_biblio':
       case 'species_specimen_observation':
       case 'species_map':
-        // Add children to media, literature, map and specimen views
+        // Add children to media, map and specimen views.
         if(!count($args)){
           $args[0] = _scratchpads_species_get_descendant_tids(arg(2));
+        }
+        break;
+      case 'species_biblio':
+        // The taxonomy contextual filter implements OR values as one join per
+        // term. Large taxa therefore produce a prohibitively expensive pager
+        // count query. Bypass that filter and add one indexed EXISTS condition
+        // in scratchpads_species_views_query_alter() instead.
+        if(!count($args)){
+          $tids = explode('+', _scratchpads_species_get_descendant_tids(arg(2)));
+          _scratchpads_species_biblio_tids($view, $tids);
+          $args[0] = 'all';
         }
         break;
       default:
@@ -657,6 +668,39 @@ function scratchpads_species_views_pre_view(&$view, &$display_id, &$args){
         }
     }
   }
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function scratchpads_species_views_query_alter(&$view, &$query){
+  if($view->name != 'species_biblio'){
+    return;
+  }
+
+  $tids = array_map('intval', _scratchpads_species_biblio_tids($view));
+  if(!$tids){
+    return;
+  }
+
+  $query->add_where_expression(0,
+    'EXISTS (SELECT 1 FROM {taxonomy_index} scratchpads_species_taxonomy_index WHERE scratchpads_species_taxonomy_index.nid = node.nid AND scratchpads_species_taxonomy_index.tid IN (:scratchpads_species_tids))',
+    array(':scratchpads_species_tids' => $tids)
+  );
+}
+
+/**
+ * Stores descendant term IDs for a single species literature view execution.
+ */
+function _scratchpads_species_biblio_tids($view, $tids = NULL){
+  $stored_tids = &drupal_static(__FUNCTION__, array());
+  $key = spl_object_hash($view);
+
+  if(isset($tids)){
+    $stored_tids[$key] = $tids;
+  }
+
+  return isset($stored_tids[$key]) ? $stored_tids[$key] : array();
 }
 
 /**
@@ -784,12 +828,12 @@ function scratchpads_species_preprocess_views_view(&$vars){
 
       // If we have no records to display, we still want to display the map if:
       // a) GBIF module is enabled, and b) user has selected to do so
-      if(!$view->result && module_exists('eol_gbif_maps')){
+      if(empty($vars['view']->result) && module_exists('eol_gbif_maps')){
         // Get active term for menu item
         $term = menu_get_object('taxonomy_term', 2);
         $gbif_map_display = variable_get('scratchpads_species_gbif_map_display', array());
         // Does the user want to always display GBIF taxon maps
-        if($gbif_map_display[$term->vid]){
+        if($term && !empty($gbif_map_display[$term->vid])){
           // Then display the map, which will come with the GBIF tiles
           $view = $vars['view'];
           $view->result = array(array());

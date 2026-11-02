@@ -185,7 +185,11 @@ function alpha_alter($type, &$data, &$context1 = NULL, &$context2 = NULL) {
 function alpha_theme_trail($theme) {
   $static = &drupal_static(__FUNCTION__);
   
-  if (!isset($static)) {
+  // Theme registry rebuilds can inspect multiple themes in one request. Cache
+  // each theme trail independently instead of only populating the first one.
+  // PHP 8 throws a TypeError when a later missing trail is passed to
+  // array_keys(), whereas older versions only emitted a warning.
+  if (!isset($static[$theme])) {
     $themes = list_themes();
     
     if (isset($themes[$theme]->info['base theme'])) {

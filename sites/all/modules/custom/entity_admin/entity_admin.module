@@ -436,7 +436,7 @@ function entity_admin_metadata_form_entity($entity){
 /**
  * Callback to get the form of an entity.
  */
-function entity_admin_metadata_create_entity($values = array(), $entity_type){
+function entity_admin_metadata_create_entity($values, $entity_type){
   return entity_admin_create($entity_type, $values);
 }
 
@@ -469,6 +469,5 @@ function entity_admin_preprocess_views_view(&$variables){
 	
 	
 }
-
 
 

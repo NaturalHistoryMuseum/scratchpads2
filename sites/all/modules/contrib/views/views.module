@@ -2280,10 +2280,26 @@ function _views_query_tag_alter_condition(QueryAlterableInterface $query, &$cond
         views_query_views_alter($condition['value']);
       }
       elseif (isset($condition['value'])) {
-        $condition['value'] = str_replace(array_keys($substitutions), array_values($substitutions), $condition['value']);
+        $condition['value'] = _views_query_tag_replace_substitutions($condition['value'], $substitutions);
       }
     }
   }
+}
+
+/**
+ * Replaces query substitutions in scalar values and nested value arrays.
+ */
+function _views_query_tag_replace_substitutions($value, array $substitutions) {
+  if (is_array($value)) {
+    foreach ($value as $key => $item) {
+      $value[$key] = _views_query_tag_replace_substitutions($item, $substitutions);
+    }
+    return $value;
+  }
+  if (is_string($value)) {
+    return str_replace(array_keys($substitutions), array_values($substitutions), $value);
+  }
+  return $value;
 }
 
 /**

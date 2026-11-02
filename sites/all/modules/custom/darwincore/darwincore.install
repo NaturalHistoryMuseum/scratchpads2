@@ -20,6 +20,16 @@ function darwincore_enable(){
   features_revert(array(
     'darwincore' => $components
   ));
+
+  // During a fresh install, the CTools-backed Strongarm component is not yet
+  // registered when this enable hook runs. Load this feature's exported
+  // defaults directly so its variables are configured in the same request.
+  module_load_include('inc', 'darwincore', 'darwincore.strongarm');
+  if(function_exists('darwincore_strongarm')){
+    foreach(darwincore_strongarm() as $name => $default){
+      variable_set($name, $default->value);
+    }
+  }
 }
 
 /**

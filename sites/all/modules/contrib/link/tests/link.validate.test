@@ -63,6 +63,7 @@ class LinkValidateTest extends LinkValidateTestCase {
    */
   function test_link_validate_bad_url_validate_default() {
     $this->web_user = $this->drupalCreateUser(array('administer content types',
+                                             'administer fields',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
@@ -108,6 +109,7 @@ class LinkValidateTest extends LinkValidateTestCase {
    */
   function test_link_validate_bad_url_validate_on() {
     $this->web_user = $this->drupalCreateUser(array('administer content types',
+                                             'administer fields',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
@@ -154,6 +156,7 @@ class LinkValidateTest extends LinkValidateTestCase {
    */
   function test_link_validate_bad_url_validate_off() {
     $this->web_user = $this->drupalCreateUser(array('administer content types',
+                                             'administer fields',
                                              'administer nodes',
                                              'administer filters',
                                              'access content',
@@ -204,6 +207,7 @@ class LinkValidateTest extends LinkValidateTestCase {
   function x_test_link_validate_switching_between_validation_status() {
     $this->acquireContentTypes(1);
     $this->web_user = $this->drupalCreateUser(array('administer content types',
+                                             'administer fields',
                                              'administer nodes',
                                              'access administration pages',
                                              'access content',

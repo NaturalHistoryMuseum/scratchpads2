@@ -28,6 +28,7 @@ class MediaFeedsMappingTestCase extends FeedsMapperTestCase {
     // Create an admin user with all permissions.
     $this->admin_user = $this->drupalCreateUser(array(
       'administer content types',
+      'administer fields',
       'administer feeds',
       'access content',
       'add media from remote sources',
@@ -76,7 +77,7 @@ CSV;
     // Create a CSV importer configuration.
     $this->createImporterConfiguration('Node import from CSV', 'node');
     $this->setPlugin('node', 'FeedsCSVParser');
-    $this->setSettings('node', 'FeedsNodeProcessor', array('content_type' => $content_type));
+    $this->setSettings('node', 'FeedsNodeProcessor', array('bundle' => $content_type));
     $this->addMappings('node', array(
       array(
         'source' => 'title',

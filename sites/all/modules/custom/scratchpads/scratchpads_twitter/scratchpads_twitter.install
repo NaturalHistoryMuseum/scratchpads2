@@ -5,7 +5,7 @@
  */
 function scratchpads_twitter_install(){
   $ini = @parse_ini_file(drupal_get_path('module', 'scratchpads_twitter') . '/scratchpads_twitter.ini');
-  if(!variable_get('twitter_consumer_key', FALSE) || variable_get('twitter_consumer_secret', FALSE)){
+  if ((!variable_get('twitter_consumer_key', FALSE) || !variable_get('twitter_consumer_secret', FALSE)) && isset($ini['key'], $ini['secret'])) {
     variable_set('twitter_consumer_key', $ini['key']);
     variable_set('twitter_consumer_secret', $ini['secret']);
   }

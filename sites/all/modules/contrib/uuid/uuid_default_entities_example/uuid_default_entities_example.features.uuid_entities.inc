@@ -21,6 +21,7 @@ function uuid_default_entities_example_uuid_default_entities() {
     'name' => 'Foo',
     'path' => array(
       'alias' => 'term/foo',
+      'pathauto' => FALSE,
     ),
     'rdf_mapping' => array(
       'rdftype' => array(
@@ -130,6 +131,7 @@ function uuid_default_entities_example_uuid_default_entities() {
     'log' => '',
     'path' => array(
       'alias' => 'lorem-ipsum',
+      'pathauto' => FALSE,
     ),
     'promote' => '1',
     'rdf_mapping' => array(

@@ -1,0 +1,118 @@
+#ddev-generated
+
+http:
+  routers:
+    
+    
+    scratchpads-mil-web-80-http:
+      
+      rule: HostRegexp(`scratchpads-mil.ddev.site`)
+      
+      middlewares:
+        - autodetect
+      service: "scratchpads-mil-web-80-http"
+      tls: false
+      entrypoints:
+        - http-8080
+    
+    
+    scratchpads-mil-web-8025-http:
+      
+      rule: HostRegexp(`scratchpads-mil.ddev.site`)
+      
+      middlewares:
+        - autodetect
+      service: "scratchpads-mil-web-8025-http"
+      tls: false
+      entrypoints:
+        - http-8025
+    
+    
+    
+    
+    scratchpads-mil-solr-8983-http:
+      
+      rule: HostRegexp(`scratchpads-mil.ddev.site`)
+      
+      middlewares:
+        - autodetect
+      service: "scratchpads-mil-solr-8983-http"
+      tls: false
+      entrypoints:
+        - http-8983
+    
+    
+    
+    
+    scratchpads-mil-web-80-https:
+      
+      rule: HostRegexp(`scratchpads-mil.ddev.site`)
+      
+      middlewares:
+        - autodetect
+      service: "scratchpads-mil-web-80-https"
+      
+      tls: true
+      
+      entrypoints:
+        - http-8443
+    
+    
+    scratchpads-mil-web-8025-https:
+      
+      rule: HostRegexp(`scratchpads-mil.ddev.site`)
+      
+      middlewares:
+        - autodetect
+      service: "scratchpads-mil-web-8025-https"
+      
+      tls: true
+      
+      entrypoints:
+        - http-8026
+    
+    
+    
+
+  # autodetect won't be needed in Traefik 3 https://github.com/traefik/traefik/pull/9546
+  middlewares:
+    autodetect:
+      contentType:
+        autoDetect: false
+
+  services:
+    
+    scratchpads-mil-web-80-http:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-mil-web:80
+    
+    scratchpads-mil-web-8025-http:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-mil-web:8025
+    
+    scratchpads-mil-web-80-https:
+    
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-mil-web:80
+    
+    scratchpads-mil-web-8025-https:
+    
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-mil-web:8025
+    
+    scratchpads-mil-solr-8983-http:
+      loadbalancer:
+        servers:
+          - url: http://ddev-scratchpads-mil-solr:8983
+    
+
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/scratchpads-mil.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/scratchpads-mil.key
+

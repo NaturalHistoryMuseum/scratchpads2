@@ -369,13 +369,13 @@ class DrupalSolrOfflineSearchPagesWebTestCase extends DrupalSolrOfflineWebTestCa
     $this->assertText(t('Test Search Page'), t('Search Page was succesfully created'));
 
     // Remove the same environment
-    $this->clickLink(t('Delete'), 1);
-    $this->assertText(t('search page configuration will be deleted.This action cannot be undone.'), t('Delete confirmation page was succesfully loaded'));
+    $this->drupalGet('admin/config/search/apachesolr/search-pages/solr_testingsuite/delete');
+    $this->assertText(t('Are you sure you want to delete the Test Search Page search page configuration?'), t('Delete confirmation page was successfully loaded'));
     $this->drupalPost($this->getUrl(), array(), t('Delete'));
     $this->assertResponse(200);
     drupal_static_reset('apachesolr_search_load_all_search_pages');
     $this->drupalGet('admin/config/search/apachesolr/search-pages');
-    $this->assertNoText(t('Test Search Page'), t('Search Environment was succesfully deleted'));
+    $this->assertFalse(apachesolr_search_page_load('solr_testingsuite'), t('Search page was successfully deleted'));
     apachesolr_environment_save(array('env_id' => 'DummySolr', 'service_class' => 'DummySolr', 'name' => 'dummy server', 'url' => 'http://localhost:8983/solr'));
     $solr = new DummySolr($url = NULL, $env_id = 'DummySolr');
     $params = array(

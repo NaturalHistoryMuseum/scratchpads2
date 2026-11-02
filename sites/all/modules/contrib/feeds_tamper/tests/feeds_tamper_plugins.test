@@ -264,6 +264,7 @@ class FeedsTamperCopyTestCase extends FeedsTamperUnitTestCase {
 class FeedsTamperCountryToCodeTestCase extends FeedsTamperUnitTestCase {
 
   protected $plugin_id = 'country_to_code';
+  protected $countryModuleList = array();
 
   public static function getInfo() {
     return array(
@@ -271,6 +272,27 @@ class FeedsTamperCountryToCodeTestCase extends FeedsTamperUnitTestCase {
       'description' => 'Unit tests for "Country to Code" plugin.',
       'group' => 'Feeds Tamper',
     );
+  }
+
+  public function setUp() {
+    parent::setUp();
+
+    // country_get_list() invokes hook_countries_alter(). This is a unit test
+    // with an intentionally empty database, so prevent modules enabled on the
+    // parent site (notably Countries) from querying their missing tables.
+    foreach (module_list() as $module) {
+      $this->countryModuleList[$module] = array(
+        'filename' => drupal_get_filename('module', $module),
+      );
+    }
+    module_list(TRUE, FALSE, FALSE, array(
+      'system' => $this->countryModuleList['system'],
+    ));
+  }
+
+  protected function tearDown() {
+    module_list(TRUE, FALSE, FALSE, $this->countryModuleList);
+    parent::tearDown();
   }
 
   public function test() {

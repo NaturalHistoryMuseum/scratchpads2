@@ -436,7 +436,9 @@ class calendar_plugin_row extends views_plugin_row_fields {
         $cck_field = field_info_field($field_name);
         $instance = field_info_instance($this->entity_type, $field_name, $this->type);
         $granularity = date_granularity_precision($cck_field['settings']['granularity']);
-        $increment = $instance['widget']['settings']['increment'];
+        if (isset($instance['widget']['settings']['increment'])) {
+          $increment = $instance['widget']['settings']['increment'];
+        }
 
       }
       elseif (!empty($entity->$field_name)) {

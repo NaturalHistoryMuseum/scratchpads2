@@ -471,6 +471,8 @@ class EntityFieldQueryException extends Exception {}
  */
 class EntityFieldQuery {
 
+  public $ordered_results = array();
+
   /**
    * Indicates that both deleted and non-deleted fields should be returned.
    *

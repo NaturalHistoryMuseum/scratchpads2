@@ -3,7 +3,7 @@
 function theme_scratchpads_species_tab_display_element($variables)
 {
   $element = &$variables['element'];
-  $table_id = $element['#id'] + '_table';
+  $table_id = $element['#id'] . '_table';
   $columns = array('Tab name', 'Enabled/disabled', 'weight');
   $rows = array();
 

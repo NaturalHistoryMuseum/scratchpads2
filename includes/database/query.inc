@@ -1275,6 +1275,15 @@ class MergeQuery extends Query implements QueryConditionInterface {
   protected $conditionTable;
 
   /**
+   * The condition object for this query.
+   *
+   * Condition handling is handled via composition.
+   *
+   * @var DatabaseCondition
+   */
+  protected $condition;
+
+  /**
    * An array of fields on which to insert.
    *
    * @var array
@@ -1681,6 +1690,13 @@ class DatabaseCondition implements QueryConditionInterface, Countable {
   protected $queryPlaceholderIdentifier;
 
   /**
+   * Contains the string version of the condition.
+   *
+   * @var string
+   */
+  protected $stringVersion;
+
+  /**
    * Constructs a DataBaseCondition object.
    *
    * @param string $conjunction
@@ -1697,6 +1713,7 @@ class DatabaseCondition implements QueryConditionInterface, Countable {
    * size of its conditional array minus one, because one element is the
    * conjunction.
    */
+  #[\ReturnTypeWillChange]
   public function count() {
     return count($this->conditions) - 1;
   }

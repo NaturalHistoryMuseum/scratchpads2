@@ -80,7 +80,7 @@ function taxonomy_feeds_processor_targets_alter(&$targets, $entity_type, $bundle
 function taxonomy_feeds_set_target($source, $entity, $target, $terms, $mapping = array()) {
 
   // Allow mapping the string '0' to a term name.
-  if (empty($terms) && $terms != 0) {
+  if ($terms === NULL || $terms === '' || $terms === array()) {
     return;
   }
 

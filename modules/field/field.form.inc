@@ -74,7 +74,7 @@ function field_default_form($entity_type, $entity, $field, $instance, $langcode,
     $field_state = array(
       'field' => $field,
       'instance' => $instance,
-      'items_count' => count($items),
+      'items_count' => count((array) $items),
       'array_parents' => array(),
       'errors' => array(),
     );

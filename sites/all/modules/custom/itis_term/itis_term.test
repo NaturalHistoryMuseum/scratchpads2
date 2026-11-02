@@ -19,7 +19,8 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
     parent::setUp('itis_term');
     // Create users.
     $this->itis_term_user = $this->drupalCreateUser(array(
-      'administer taxonomy'
+      'administer taxonomy',
+      'administer fields',
     ));
     // We set the legal_accepted on the user so that login passes.
     parent::scratchpads_tweaks_legal_save($this->itis_term_user->uid);
@@ -167,6 +168,6 @@ class ItisTermTestCase extends ScratchpadsTweaksTestCase{
     $this->assertText(t('Deleted vocabulary'), 'Delete Confirmed');
     // Confirm the delete by attempting to navigate to the vocabulary
     $this->drupalGet('admin/structure/taxonomy/' . $machine_readable);
-    $this->assertText('requested page not found', 'Deleted vocabulary page not found');
+    $this->assertText('The requested page could not be found.', 'Deleted vocabulary page not found');
   }
 }

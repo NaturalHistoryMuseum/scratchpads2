@@ -1021,7 +1021,7 @@ class PHPExcel_Writer_Excel5_Parser
 		$col    = 0;
 		$col_ref_length = strlen($col_ref);
 		for ($i = 0; $i < $col_ref_length; ++$i) {
-			$col += (ord($col_ref{$i}) - 64) * pow(26, $expn);
+			$col += (ord($col_ref[$i]) - 64) * pow(26, $expn);
 			--$expn;
 		}
 
@@ -1043,28 +1043,28 @@ class PHPExcel_Writer_Excel5_Parser
 		$formula_length = strlen($this->_formula);
 		// eat up white spaces
 		if ($i < $formula_length) {
-			while ($this->_formula{$i} == " ") {
+			while ($this->_formula[$i] == " ") {
 				++$i;
 			}
 
 			if ($i < ($formula_length - 1)) {
-				$this->_lookahead = $this->_formula{$i+1};
+				$this->_lookahead = $this->_formula[$i+1];
 			}
 			$token = '';
 		}
 
 		while ($i < $formula_length) {
-			$token .= $this->_formula{$i};
+			$token .= $this->_formula[$i];
 
 			if ($i < ($formula_length - 1)) {
-				$this->_lookahead = $this->_formula{$i+1};
+				$this->_lookahead = $this->_formula[$i+1];
 			} else {
 				$this->_lookahead = '';
 			}
 
 			if ($this->_match($token) != '') {
 				//if ($i < strlen($this->_formula) - 1) {
-				//    $this->_lookahead = $this->_formula{$i+1};
+				//    $this->_lookahead = $this->_formula[$i+1];
 				//}
 				$this->_current_char = $i + 1;
 				$this->_current_token = $token;
@@ -1072,7 +1072,7 @@ class PHPExcel_Writer_Excel5_Parser
 			}
 
 			if ($i < ($formula_length - 2)) {
-				$this->_lookahead = $this->_formula{$i+2};
+				$this->_lookahead = $this->_formula[$i+2];
 			} else { // if we run out of characters _lookahead becomes empty
 				$this->_lookahead = '';
 			}
@@ -1205,7 +1205,7 @@ class PHPExcel_Writer_Excel5_Parser
 	{
 		$this->_current_char = 0;
 		$this->_formula      = $formula;
-		$this->_lookahead    = isset($formula{1}) ? $formula{1} : '';
+		$this->_lookahead    = isset($formula[1]) ? $formula[1] : '';
 		$this->_advance();
 		$this->_parse_tree   = $this->_condition();
 		return true;

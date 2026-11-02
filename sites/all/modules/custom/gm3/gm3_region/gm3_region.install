@@ -256,7 +256,23 @@ function gm3_region_update_7009(&$sandbox){
       $file = array_pop($sandbox['files_to_load']);
       if(is_file($path . $file)){
         $gz = gzopen($path . $file, 'r');
-        db_query(gzread($gz, 7000000));
+        $sql = gzread($gz, 7000000);
+        // MySQL 5.7+ rejects an empty string as a geometry value. The column
+        // is populated from the WKT polygons after all seed files are loaded,
+        // so omit it from the seed insert and allow its NULL default.
+        if(strpos($sql, 'INSERT INTO {gm3_region_data}') === 0){
+          $geometry_column = ', mysql_polygons) VALUES';
+          if(strpos($sql, $geometry_column) === FALSE){
+            throw new Exception('Unable to locate the GM3 geometry column.');
+          }
+          $sql = str_replace($geometry_column, ') VALUES', $sql);
+          $empty_geometry_count = 0;
+          $sql = str_replace(",'')", ')', $sql, $empty_geometry_count);
+          if(!$empty_geometry_count){
+            throw new Exception('Unable to locate the temporary GM3 geometry value.');
+          }
+        }
+        db_query($sql);
         gzclose($gz);
       }
       $i++;

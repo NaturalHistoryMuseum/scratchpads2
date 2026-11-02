@@ -442,7 +442,7 @@ function _efq_views_get_property_data($entity_type = NULL, $info = NULL){
     $data[$property] = array(
       'group' => $group_name,
       'title' => $property_info['label'],
-      'help' => $property_info['description'],
+      'help' => isset($property_info['description']) ? $property_info['description'] : '',
       'field' => array(
         'click sortable' => FALSE,
         'handler' => $field

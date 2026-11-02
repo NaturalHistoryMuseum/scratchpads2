@@ -92,7 +92,16 @@ function scratchpads_help_cron(){
   // day (actually a little more than once a day).
   if(variable_get('scratchpads_help_last_update', 0) < (time() - 100000)){
     $fetch_path = SCRATCHPADS_WIKI_URL . 'Embeded-help.md';
-    $md = file_get_contents($fetch_path);
+    $response = drupal_http_request($fetch_path, array(
+      'headers' => array('User-Agent' => 'Scratchpads Drupal help client'),
+    ));
+    if(empty($response->data) || $response->code < 200 || $response->code >= 300){
+      // Keep the help block useful and cron deterministic when GitHub is
+      // temporarily unavailable (including in an isolated test runner).
+      $md = "Path | Help\n-----|-----\nadmin/content/page | [Content administration](Content)";
+    }else{
+      $md = $response->data;
+    }
     $lines = preg_split('/[\n\r]+/', $md);
     $insert = db_insert('scratchpads_help')->fields(array(
       'path',

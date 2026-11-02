@@ -24,6 +24,7 @@ function entity_features_get_controller($type) {
 class EntityDefaultFeaturesController {
 
   protected $type, $info;
+  protected $statusKey, $moduleKey, $bundleKey;
 
   public function __construct($type) {
     $this->type = $type;
@@ -159,20 +160,20 @@ function entity_features_export_options($a1, $a2 = NULL) {
 /**
  * Features component callback.
  */
-function entity_features_export($data, &$export, $module_name = '', $entity_type) {
+function entity_features_export($data, &$export, $module_name, $entity_type) {
   return entity_features_get_controller($entity_type)->export($data, $export, $module_name);
 }
 
 /**
  * Features component callback.
  */
-function entity_features_export_render($module, $data, $export = NULL, $entity_type) {
+function entity_features_export_render($module, $data, $export, $entity_type) {
   return entity_features_get_controller($entity_type)->export_render($module, $data, $export);
 }
 
 /**
  * Features component callback.
  */
-function entity_features_revert($module = NULL, $entity_type) {
+function entity_features_revert($module, $entity_type) {
   return entity_features_get_controller($entity_type)->revert($module);
 }

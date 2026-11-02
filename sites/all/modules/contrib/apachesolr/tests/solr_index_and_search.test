@@ -27,7 +27,8 @@ abstract class AbstractDrupalSolrOnlineWebTestCase extends DrupalWebTestCase {
     // Load the default server.
     $env_id = apachesolr_default_environment();
     $environment = apachesolr_environment_load($env_id);
-    $this->base_solr_url = $environment['url'];
+    $test_base_url = getenv('SOLR_TEST_BASE_URL');
+    $this->base_solr_url = $test_base_url ? rtrim($test_base_url, '/') : rtrim($environment['url'], '/');
 
     // Because we are in a clean environment, this will always be the default
     // http://localhost:8983/solr
@@ -38,13 +39,20 @@ abstract class AbstractDrupalSolrOnlineWebTestCase extends DrupalWebTestCase {
     if ($this->coreAdminAvailable()) {
 
       // We will use a core named after the simpletest prefix.
-      $environment['url'] .= '/' . $this->databasePrefix;
+      $environment['url'] = $this->base_solr_url . '/' . $this->databasePrefix;
 
-      $filesdir = file_directory_temp();
-      // Create our Solr core directory.
-      drupal_mkdir("{$filesdir}/solr", 0777, TRUE);
-      // Our temporary core is located here.
-      $instancedir = realpath($filesdir . "/solr");
+      // CoreAdmin runs in the Solr container, while this directory is created
+      // by PHP in the web container. DDEV mounts SOLR_TEST_CORE_ROOT at the
+      // same absolute path in both containers.
+      $test_core_root = getenv('SOLR_TEST_CORE_ROOT');
+      if ($test_core_root) {
+        $core_path = rtrim($test_core_root, '/') . '/' . $this->databasePrefix;
+      }
+      else {
+        $core_path = file_directory_temp() . '/solr-' . $this->databasePrefix;
+      }
+      drupal_mkdir($core_path, 0777, TRUE);
+      $instancedir = realpath($core_path);
 
       // use the Solr version confs where appropriate.
       $version = $this->getSolrVersion();
@@ -94,10 +102,17 @@ abstract class AbstractDrupalSolrOnlineWebTestCase extends DrupalWebTestCase {
         $this->checkCoreStatus($this->databasePrefix);
       }
     }
-    // Workaround for drupal.org test bot.
-    // The tests succeed but further tests will not run because $this->solr_available is FALSE.
+    // Preserve the upstream test-bot skip unless this environment explicitly
+    // requires live Solr. DDEV sets SOLR_TEST_REQUIRED so a missing server or
+    // failed disposable core is a real failure rather than a false pass.
     if (!$this->solr_available) {
-      $this->pass(t('Warning : The solr instance could not be found. Please enable a multicore one on http://localhost:8983/solr'));
+      $message = t('The live Solr test core could not be created at @url.', array('@url' => $this->base_solr_url));
+      if (filter_var(getenv('SOLR_TEST_REQUIRED'), FILTER_VALIDATE_BOOLEAN)) {
+        $this->fail($message);
+      }
+      else {
+        $this->pass($message);
+      }
     }
   }
 
@@ -161,7 +176,9 @@ abstract class AbstractDrupalSolrOnlineWebTestCase extends DrupalWebTestCase {
       // This is currently broken due to
       // https://issues.apache.org/jira/browse/SOLR-3586
       $this->coreAdmin('UNLOAD', $query);
-
+    }
+    if (!empty($this->instancedir) && is_dir($this->instancedir)) {
+      file_unmanaged_delete_recursive($this->instancedir);
     }
     parent::tearDown();
   }
@@ -203,6 +220,49 @@ class DrupalSolrMatchTestCase extends DrupalSolrOnlineWebTestCase {
       $this->assertEqual($response->numFound, 7, "There should be 7 documents in the index");
       $this->_testQueries();
     }
+  }
+
+  /**
+   * Test Drupal's node queue, document builder, live index, and deletion path.
+   */
+  function testDrupalNodeIndexAndSearch() {
+    if (!$this->solr_available) {
+      return;
+    }
+
+    module_load_include('inc', 'apachesolr', 'apachesolr.index');
+    apachesolr_index_set_bundles('solr', 'node', array('page'));
+    entity_info_cache_clear();
+    apachesolr_environments_clear_cache();
+
+    $token = drupal_strtolower($this->randomName(20));
+    $node = $this->drupalCreateNode(array(
+      'type' => 'page',
+      'title' => 'Live Solr ' . $token,
+      'body' => array(
+        LANGUAGE_NONE => array(
+          array(
+            'value' => 'A uniquely searchable live Solr token: ' . $token,
+            'format' => 'plain_text',
+          ),
+        ),
+      ),
+    ));
+
+    $submitted = apachesolr_index_entities('solr', 50);
+    $this->assertTrue($submitted >= 1, 'Drupal submitted the queued node to Solr.');
+    $this->solr->commit();
+
+    $response = $this->solr->search($token, array())->response;
+    $this->assertEqual($response->numFound, 1, 'The indexed Drupal node is returned by a live Solr query.');
+    $this->assertEqual($response->docs[0]->entity_id, $node->nid, 'The live Solr result identifies the indexed Drupal node.');
+
+    node_delete($node->nid);
+    apachesolr_index_entities('solr', 50);
+    $this->solr->commit();
+
+    $response = $this->solr->search($token, array())->response;
+    $this->assertEqual($response->numFound, 0, 'Deleting the Drupal node removes it from the live Solr index.');
   }
 
   /**

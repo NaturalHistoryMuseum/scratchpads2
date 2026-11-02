@@ -120,7 +120,7 @@ class views_plugin_query_default extends views_plugin_query {
   /**
    * {@inheritdoc}
    */
-  public function init($base_table = 'node', $base_field = 'nid', $options) {
+  public function init($base_table, $base_field, $options) {
     parent::init($base_table, $base_field, $options);
     $this->base_table = $base_table;
     // Predefine these above, for clarity.

@@ -14,7 +14,7 @@ function gm3_views_api(){
  * Implementation of hook_library().
  */
 function gm3_library(){
-  return array(
+  $libraries = array(
     'gm3' => array(
       'title' => t('Javascript maps'),
       'js' => array(
@@ -125,7 +125,9 @@ function gm3_library(){
       'title' => t('Javascript Maps: Base shape library'),
       'js' => [
         // Base class that polyline, polygon, rectangle inherit from
-        'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
+        [
+          'data' => drupal_get_path('module', 'gm3') . "/js/gm3.shape.js"
+        ]
       ],
       'dependencies' => [
         ['gm3', 'gm3']
@@ -177,6 +179,12 @@ function gm3_library(){
       )
     )
   );
+  $module_info = system_get_info('module', 'gm3');
+  $version = !empty($module_info['version']) ? $module_info['version'] : '1.x';
+  foreach($libraries as &$library){
+    $library['version'] = $version;
+  }
+  return $libraries;
 }
 
 /**
@@ -361,7 +369,7 @@ function gm3_invoke_map_alter(&$map, $item, $gm3_type = null) {
   $gm3_type = $gm3_type ?? $item['gm3_type'];
   $type = array_pop(explode("_", $gm3_type));
   // Call hook_TYPE_map_alter functions
-  $alter_hook = "${type}_map";
+  $alter_hook = "{$type}_map";
   drupal_alter($alter_hook, $map, $item);
   return isset($map['libraries'][$type]);
 }

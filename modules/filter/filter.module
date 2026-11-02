@@ -1656,6 +1656,7 @@ function _filter_url_escape_comments($match, $escape = NULL) {
  */
 function _filter_url_trim($text, $length = NULL) {
   static $_length;
+  $text = (string) $text;
   if ($length !== NULL) {
     $_length = $length;
   }

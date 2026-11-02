@@ -1007,7 +1007,8 @@ function apachesolr_term_reference_indexing_callback($node, $field_name, $index_
   $vocab_names = array();
   if (!empty($node->{$field_name}) && function_exists('taxonomy_get_parents_all')) {
     $field = $node->$field_name;
-    list($lang, $items) = each($field);
+    $lang = key($field);
+    $items = reset($field);
     foreach ($items as $item) {
       // Triple indexing of tids lets us do efficient searches (on tid)
       // and do accurate per field or per-vocabulary faceting.
@@ -1098,7 +1099,8 @@ function apachesolr_fields_default_indexing_callback($entity, $field_name, $inde
   $numeric = TRUE;
   if (!empty($entity->{$field_name})) {
     $field = $entity->$field_name;
-    list($lang, $values) = each($field);
+    $lang = key($field);
+    $values = reset($field);
     switch ($field_info['index_type']) {
       case 'integer':
       case 'half-int':
@@ -1154,7 +1156,8 @@ function apachesolr_date_default_indexing_callback($entity, $field_name, $index_
   $fields = array();
   if (!empty($entity->{$field_name})) {
     $field = $entity->$field_name;
-    list($lang, $values) = each($field);
+    $lang = key($field);
+    $values = reset($field);
     // Construct a Solr-ready date string in UTC time zone based on the field's date string and time zone.
     $tz = new DateTimeZone(isset($field['timezone']) ? $field['timezone'] : 'UTC');
 
@@ -1201,7 +1204,8 @@ function apachesolr_datestamp_default_indexing_callback($entity, $field_name, $i
     // $fields may end up having two values; one for the start date
     // and one for the end date.
     $field = $entity->$field_name;
-    list($lang, $values) = each($field);
+    $lang = key($field);
+    $values = reset($field);
 
     foreach ($values as $value) {
       if (isset($value['value']) && $value['value'] != 0) {

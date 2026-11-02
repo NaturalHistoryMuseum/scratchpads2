@@ -802,6 +802,7 @@ class views_handler extends views_object {
  * - numeric: If true, treat this field as numeric, using %d instead of %s in
  *            queries.
  */
+#[\AllowDynamicProperties]
 class views_many_to_one_helper {
 
   /**
@@ -1588,7 +1589,10 @@ class views_join {
   public $field = NULL;
   public $extra = NULL;
   public $type = NULL;
+  public $extra_type = NULL;
+  public $adjusted = FALSE;
   public $definition = array();
+  public $options = array();
 
   /**
    * Construct the views_join object.

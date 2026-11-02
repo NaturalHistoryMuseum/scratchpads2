@@ -393,7 +393,7 @@ function languagefield_field_widget_form_alter(&$element, &$form_state, $context
 /**
  * Callback function for widget.
  */
-function _languagefield_widget_value($element, $input = FALSE, $form_state) {
+function _languagefield_widget_value($element, $input, $form_state) {
   if (!$input) {
     // First call the default value_callback function.
     $value_callback = 'form_type_' . $element['#type'] . '_value';

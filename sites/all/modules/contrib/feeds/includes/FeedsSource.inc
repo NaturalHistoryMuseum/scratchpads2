@@ -67,6 +67,7 @@ interface FeedsSourceInterface {
 /**
  * Status of an import or clearing operation on a source.
  */
+#[\AllowDynamicProperties]
 class FeedsState {
   /**
    * Floating point number denoting the progress made. 0.0 meaning no progress

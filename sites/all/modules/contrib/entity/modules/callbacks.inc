@@ -226,7 +226,7 @@ function entity_metadata_statistics_properties_access($op, $property, $entity = 
  * Callback for getting site-wide properties.
  * @see entity_metadata_system_entity_info_alter()
  */
-function entity_metadata_system_get_properties($data = FALSE, array $options, $name) {
+function entity_metadata_system_get_properties($data, array $options, $name) {
   switch ($name) {
     case 'name':
       return variable_get('site_name', 'Drupal');
@@ -256,7 +256,7 @@ function entity_metadata_system_get_properties($data = FALSE, array $options, $n
  * Callback for getting properties for the current page request.
  * @see entity_metadata_system_entity_info_alter()
  */
-function entity_metadata_system_get_page_properties($data = array(), array $options, $name) {
+function entity_metadata_system_get_page_properties($data, array $options, $name) {
   switch ($name) {
     case 'url':
       return $GLOBALS['base_root'] . request_uri();
@@ -811,7 +811,7 @@ function entity_metadata_taxonomy_access($op, $entity = NULL, $account = NULL, $
 /**
  * Access callback for file entities.
  */
-function entity_metadata_file_access($op, $file = NULL, $account = NULL, $entity_type) {
+function entity_metadata_file_access($op, $file, $account, $entity_type) {
   // We can only check access for the current user, so return FALSE on other accounts.
   global $user;
   if ($op == 'view' && isset($file) && (!isset($account) || $user->uid == $account->uid)) {
@@ -831,7 +831,7 @@ function entity_metadata_file_access($op, $file = NULL, $account = NULL, $entity
 /**
  * Callback to determine access for properties which are fields.
  */
-function entity_metadata_field_access_callback($op, $name, $entity = NULL, $account = NULL, $entity_type) {
+function entity_metadata_field_access_callback($op, $name, $entity, $account, $entity_type) {
   $field = field_info_field($name);
   return field_access($op, $field, $entity_type, $entity, $account);
 }
@@ -839,7 +839,7 @@ function entity_metadata_field_access_callback($op, $name, $entity = NULL, $acco
 /**
  * Callback to create entity objects.
  */
-function entity_metadata_create_object($values = array(), $entity_type) {
+function entity_metadata_create_object($values, $entity_type) {
   $info = entity_get_info($entity_type);
   // Make sure at least the bundle and label properties are set.
   if (isset($info['entity keys']['bundle']) && $key = $info['entity keys']['bundle']) {
@@ -948,7 +948,7 @@ function entity_metadata_view_comment($entities, $view_mode = 'full', $langcode 
 /**
  * Callback to view an entity, for which just ENTITYTYPE_view() is available.
  */
-function entity_metadata_view_single($entities, $view_mode = 'full', $langcode = NULL, $entity_type) {
+function entity_metadata_view_single($entities, $view_mode, $langcode, $entity_type) {
   $function = $entity_type . '_view';
   $build = array();
   foreach ($entities as $key => $entity) {

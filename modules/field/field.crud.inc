@@ -411,6 +411,9 @@ function field_read_fields($params = array(), $include_additional = array()) {
 function field_delete_field($field_name) {
   // Delete all non-deleted instances.
   $field = field_info_field($field_name);
+  if (!$field) {
+    return;
+  }
   if (isset($field['bundles'])) {
     foreach ($field['bundles'] as $entity_type => $bundles) {
       foreach ($bundles as $bundle) {

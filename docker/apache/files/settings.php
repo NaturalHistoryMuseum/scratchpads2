@@ -1,91 +1,5 @@
 <?php
 
-# Connect to database
-$databases['default']['default'] = array(
-  'driver' => 'mysql',
-  'database' => getenv('MYSQL_DATABASE'),
-  'username' => getenv('MYSQL_USER'),
-  'password' => getenv('MYSQL_PASSWORD'),
-  'host' => getenv('MYSQL_HOST')
-);
-
-
-$conf['scratchpads_solr_urls'] = array("getenv('SOLR_URL')");
-
-
-
-# Override "standard scratchpad" install option - denotes
-# locally run scratchpad, with logins etc disabled
-$conf['standard_scratchpad'] = FALSE;
-
-# Mark as dockerised so install profile options can be tweaked
-$conf['dockerised_scratchpad'] = TRUE;
-
-# Use test endpoints if we're in dev mode
-if(getenv('DEVELOPMENT_ENV')) {
-  $conf['gbif_registry_web_service_url'] = 'http://api.gbif-uat.org/v1/';
-
-  # Disable posting stats
-  $conf['scratchpad_central_servers'] = array();
-}
-
-$conf['scratchpads_gbif_registry_ini'] = [
-  'username' => 'scratchpads',
-  'password' => getenv('GBIF_REGISTRY_PASSWORD'),
-];
-
-# Remote issue block (disabled by default)
-$conf['remote_issue_tab_github_auth_key'] = getenv('GITHUB_AUTH_KEY');
-$conf['remote_issue_tab_github_repository'] = getenv('GITHUB_REPOSITORY');
-
-$base_url = getenv('BASE_URL');
-
-# Enable clean urs by default
-$conf['clean_url'] = 1;
-
-$conf["cron_safe_threshold"] = 0;
-#$conf["preprocess_css"] = 1;
-#$conf["preprocess_js"] = 1;
-$conf["jquery_update_compression_type"] = "min";
-$conf["jquery_update_jquery_cdn"] = "none";
-$conf["error_level"] = 0;
-$conf["syslog_identity"] = $_SERVER["HTTP_HOST"];
-$conf['drupal_http_request_fails'] = FALSE;
-
-// Cache
-$conf["block_cache"] = TRUE;
-$conf["cache"] = TRUE;
-$conf["cache_lifetime"] = 3600;
-$conf["page_cache_maximum_age"] = 10800;
-
-// Varnish settings
-$conf["varnish_flush_cron"] = 0;
-$conf["varnish_version"] = 4;
-$conf["varnish_control_terminal"] = "scratchpads.varnish:6082";
-$conf["varnish_control_key"] = getenv('VARNISH_SECRET');
-$conf["varnish_socket_timeout"] = 200;
-$conf["varnish_cache_clear"] = 0;
-$conf["varnish_bantype"] = 0;
-$conf["cache_backends"][] = "sites/all/modules/contrib/varnish/varnish.cache.inc";
-$conf["cache_class_cache_page"] = "VarnishCache";
-$conf["page_cache_invoke_hooks"] = FALSE;
-$conf["varnish_control_key_appendnewline"] = TRUE;
-
-
-
-
-// Not everybody can run updates.
-$update_free_access = 0;
-
-// Set some PHP settings
-ini_set("pcre.backtrack_limit", 10000000);
-ini_set("pcre.recursion_limit", 10000000);
-ini_set("session.cookie_lifetime", 604800);
-ini_set("session.gc_maxlifetime", 604800);
-ini_set("session.use_cookies", 1);
-
-
-
 /**
  * @file
  * Drupal site-specific configuration file.
@@ -669,3 +583,77 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  * Remove the leading hash sign to enable.
  */
 # $conf['theme_debug'] = TRUE;
+
+/**
+ * Scratchpads container configuration.
+ *
+ * This must remain after Drupal's template defaults above. In particular, the
+ * template initializes $databases to an empty array, so defining the container
+ * database connection before it would silently discard the environment values.
+ */
+$databases['default']['default'] = array(
+  'driver' => 'mysql',
+  'database' => getenv('MYSQL_DATABASE'),
+  'username' => getenv('MYSQL_USER'),
+  'password' => getenv('MYSQL_PASSWORD'),
+  'host' => getenv('MYSQL_HOST'),
+);
+
+$conf['scratchpads_solr_urls'] = array(getenv('SOLR_URL'));
+
+// This is a locally run, containerised Scratchpad.
+$conf['standard_scratchpad'] = FALSE;
+$conf['dockerised_scratchpad'] = TRUE;
+
+// Use test endpoints and disable statistics posting in development mode.
+if (getenv('DEVELOPMENT_ENV')) {
+  $conf['gbif_registry_web_service_url'] = 'http://api.gbif-uat.org/v1/';
+  $conf['scratchpad_central_servers'] = array();
+}
+
+$conf['scratchpads_gbif_registry_ini'] = array(
+  'username' => 'scratchpads',
+  'password' => getenv('GBIF_REGISTRY_PASSWORD'),
+);
+
+// Remote issue block (disabled by default).
+$conf['remote_issue_tab_github_auth_key'] = getenv('GITHUB_AUTH_KEY');
+$conf['remote_issue_tab_github_repository'] = getenv('GITHUB_REPOSITORY');
+
+$base_url = getenv('BASE_URL');
+
+$conf['clean_url'] = 1;
+$conf['cron_safe_threshold'] = 0;
+$conf['jquery_update_compression_type'] = 'min';
+$conf['jquery_update_jquery_cdn'] = 'none';
+$conf['error_level'] = 0;
+$conf['syslog_identity'] = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'scratchpads';
+$conf['drupal_http_request_fails'] = FALSE;
+
+// Cache.
+$conf['block_cache'] = TRUE;
+$conf['cache'] = TRUE;
+$conf['cache_lifetime'] = 3600;
+$conf['page_cache_maximum_age'] = 10800;
+
+// Varnish.
+$conf['varnish_flush_cron'] = 0;
+$conf['varnish_version'] = 4;
+$conf['varnish_control_terminal'] = 'scratchpads.varnish:6082';
+$conf['varnish_control_key'] = getenv('VARNISH_SECRET');
+$conf['varnish_socket_timeout'] = 200;
+$conf['varnish_cache_clear'] = 0;
+$conf['varnish_bantype'] = 0;
+$conf['cache_backends'][] = 'sites/all/modules/contrib/varnish/varnish.cache.inc';
+$conf['cache_class_cache_page'] = 'VarnishCache';
+$conf['page_cache_invoke_hooks'] = FALSE;
+$conf['varnish_control_key_appendnewline'] = TRUE;
+
+// Not everybody can run updates.
+$update_free_access = 0;
+
+ini_set('pcre.backtrack_limit', 10000000);
+ini_set('pcre.recursion_limit', 10000000);
+ini_set('session.cookie_lifetime', 604800);
+ini_set('session.gc_maxlifetime', 604800);
+ini_set('session.use_cookies', 1);

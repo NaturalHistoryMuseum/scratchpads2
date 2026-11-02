@@ -25,6 +25,7 @@
  *   public $count = 0;
  * @endcode
  */
+#[\AllowDynamicProperties]
 class Entity {
 
   protected $entityType;

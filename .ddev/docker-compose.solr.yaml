@@ -16,7 +16,10 @@ services:
     container_name: ddev-${DDEV_SITENAME}-solr
     # Grab an image from https://hub.docker.com/r/geerlingguy/solr since older
     # versions are not available on https://hub.docker.com/_/solr.
-    image: geerlingguy/solr:4.10.4
+    build:
+      context: ./solr
+      dockerfile: Dockerfile
+    image: scratchpads-solr:4.10.4-java8
     restart: "always"
     # Solr is served from this port inside the container.
     ports:
@@ -40,12 +43,34 @@ services:
       # Load the Scratchpads Solr 4 configuration for the collection1 core.
       - ./solr/conf:/var/solr/collection1/conf:ro
 
+      # Disposable cores created by the live Drupal tests. This path is also
+      # mounted into the web container because Solr CoreAdmin must be able to
+      # read the configuration written by the PHP test process.
+      - ./solr/test-cores:/var/solr-test-cores
+
       # This mounts the .ddev directory into the container so we can use it
       # if necessary.
       - ".:/mnt/ddev_config"
 
-    # Start Solr with the persistent Solr home mounted above.
-    command: ["/opt/solr/bin/solr", "start", "-p", "8983", "-f", "-s", "/var/solr"]
+    # Initialize a newly-created named volume before starting Solr. Docker
+    # mounts the volume over /var/solr, so files placed there by the image are
+    # otherwise hidden on the first start of each DDEV project.
+    command:
+      - /bin/sh
+      - -c
+      - |
+          set -eu
+          if [ ! -f /var/solr/solr.xml ]; then
+            cp /opt/solr/example/solr/solr.xml /var/solr/solr.xml
+          fi
+          if [ ! -f /var/solr/zoo.cfg ]; then
+            cp /opt/solr/example/solr/zoo.cfg /var/solr/zoo.cfg
+          fi
+          mkdir -p /var/solr/collection1
+          if [ ! -f /var/solr/collection1/core.properties ]; then
+            printf 'name=collection1\n' > /var/solr/collection1/core.properties
+          fi
+          exec /opt/solr/bin/solr start -p 8983 -f -s /var/solr
 
     external_links:
       - "ddev-router:${DDEV_SITENAME}.${DDEV_TLD}"
@@ -56,6 +81,8 @@ services:
   web:
     links:
       - solr:solr
+    volumes:
+      - ./solr/test-cores:/var/solr-test-cores
 volumes:
   # solr is a persistent Docker volume for solr data
   # The persistent volume should have the same name as the service so it can be deleted

@@ -274,7 +274,7 @@ class LinkTokenTest extends LinkBaseTestClass {
    *  Trying to set the url to contain a token.
    */
   function _testUserTokenLinkCreateInURL() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field
@@ -327,7 +327,7 @@ class LinkTokenTest extends LinkBaseTestClass {
    *  Trying to set the url to contain a token.
    */
   function _testUserTokenLinkCreateInURL2() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field
@@ -380,7 +380,7 @@ class LinkTokenTest extends LinkBaseTestClass {
    *  that the title is sanitized once.
    */
   function testCRUDTitleOnlyTitleNoLink2() {
-    $this->web_user = $this->drupalCreateUser(array('administer content types', 'access content', 'create page content'));
+    $this->web_user = $this->drupalCreateUser(array('administer content types', 'administer fields', 'access content', 'create page content'));
     $this->drupalLogin($this->web_user);
 
     // create field

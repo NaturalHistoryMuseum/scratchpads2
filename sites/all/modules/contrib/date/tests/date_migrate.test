@@ -18,6 +18,7 @@ class DateMigrateExampleUnitTest extends DrupalWebTestCase {
       'name' => 'Date Migration',
       'description' => 'Test migration into date fields',
       'group' => 'Date',
+      'enabled dependencies' => array('migrate', 'date_repeat', 'date_repeat_field', 'date_migrate_example'),
     );
   }
 
