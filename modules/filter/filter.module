@@ -764,6 +764,8 @@ function filter_list_format($format_id) {
  * @ingroup sanitization
  */
 function check_markup($text, $format_id = NULL, $langcode = '', $cache = FALSE) {
+  // The filtering API historically treats a NULL text value as empty text.
+  $text = (string) $text;
   if (!isset($format_id)) {
     $format_id = filter_fallback_format();
   }

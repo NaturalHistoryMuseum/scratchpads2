@@ -12,6 +12,13 @@
  */
 class views_ui extends ctools_export_ui {
 
+  var $order;
+  var $active;
+  var $bases;
+  var $sorts;
+  var $rows;
+  var $items;
+
   /**
    *
    */

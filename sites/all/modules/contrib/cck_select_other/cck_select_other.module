@@ -259,7 +259,7 @@ function cck_select_other_options($field) {
   //$options = eval($field['widget']['settings']['select_list_options_fieldset']['advanced_options']['select_list_options_php']);
 
   if (empty($options)) {
-    $options_str = $field['widget']['settings']['select_list_options'];
+    $options_str = isset($field['widget']['settings']['select_list_options']) ? $field['widget']['settings']['select_list_options'] : '';
     if (!empty($options_str)) {
       $options_arr = preg_split("/[\r]?[\n]/", $options_str);
       if (count($options_arr) > 0) {

@@ -63,6 +63,7 @@
  */
 
 class DrupalApacheSolrService implements DrupalApacheSolrServiceInterface {
+  protected $system_info_cid;
   /**
    * How NamedLists should be formatted in the output.  This specifically effects facet counts. Valid values
    * are 'map' (default) or 'flat'.

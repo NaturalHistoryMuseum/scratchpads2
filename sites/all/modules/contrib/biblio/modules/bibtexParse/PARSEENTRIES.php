@@ -129,6 +129,7 @@ require_once drupal_get_path('module', 'biblio') . '/includes/biblio.contributor
  * print_r($entries);
  * print "\n\n";
  */
+#[\AllowDynamicProperties]
 class PARSEENTRIES {
 
   /**
@@ -158,7 +159,9 @@ class PARSEENTRIES {
     if (!is_file($file)) {
       die;
     }
-    ini_set('auto_detect_line_endings', TRUE);
+    if (PHP_VERSION_ID < 80100) {
+      ini_set('auto_detect_line_endings', TRUE);
+    }
     $this->fid = fopen($file, 'r');
     $this->parseFile = TRUE;
   }

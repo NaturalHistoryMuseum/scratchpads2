@@ -204,6 +204,10 @@ function image_gd_rotate(stdClass $image, $degrees, $background = NULL) {
  * @see image_crop()
  */
 function image_gd_crop(stdClass $image, $x, $y, $width, $height) {
+  $x = (int) $x;
+  $y = (int) $y;
+  $width = (int) $width;
+  $height = (int) $height;
   $res = image_gd_create_tmp($image, $width, $height);
 
   if (!imagecopyresampled($res, $image->resource, 0, 0, $x, $y, $width, $height, $width, $height)) {

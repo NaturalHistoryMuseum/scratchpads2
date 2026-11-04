@@ -70,9 +70,9 @@ class SolrFilterSubQuery {
     // @todo - escape the value if it has spaces in it and is not a range query or parenthesized.
     $filter = array(
       '#exclude' => (bool) $exclude,
-      '#name' => trim($name),
-      '#value' => trim($value),
-      '#local' => trim($local),
+      '#name' => trim((string) $name),
+      '#value' => trim((string) $value),
+      '#local' => trim((string) $local),
     );
     $this->fields[] = $filter;
     return $this;
@@ -250,6 +250,8 @@ class SolrFilterSubQuery {
 }
 
 class SolrBaseQuery extends SolrFilterSubQuery implements DrupalSolrQueryInterface {
+
+  protected $sortstring;
 
   /**
    * The parameters that get sent to Solr.

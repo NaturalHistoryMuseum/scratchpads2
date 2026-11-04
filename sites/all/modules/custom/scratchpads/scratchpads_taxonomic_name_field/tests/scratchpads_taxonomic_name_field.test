@@ -1,0 +1,90 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Scratchpads taxonomic name field.
+ */
+
+/**
+ * Tests the taxonomic name autocomplete callback.
+ */
+class ScratchpadsTaxonomicNameFieldAutocompleteTestCase extends DrupalWebTestCase {
+
+  protected $fieldName;
+
+  protected $vocabulary;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Taxonomic name autocomplete',
+      'description' => 'Tests exact, prefix, and substring taxonomic name autocomplete results.',
+      'group' => 'Scratchpads',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('scratchpads_taxonomic_name_field');
+
+    $this->vocabulary = (object) array(
+      'name' => 'Autocomplete test vocabulary',
+      'machine_name' => 'autocomplete_test_vocabulary',
+    );
+    taxonomy_vocabulary_save($this->vocabulary);
+
+    $this->fieldName = 'field_test_taxon_autocomplete';
+    field_create_field(array(
+      'field_name' => $this->fieldName,
+      'type' => 'taxonomy_term_reference',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => $this->vocabulary->machine_name,
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ));
+
+    $account = $this->drupalCreateUser(array('access content'));
+    $this->drupalLogin($account);
+  }
+
+  /**
+   * Ensures autocomplete is valid JSON ordered by match quality.
+   */
+  public function testAutocompleteMatchOrder() {
+    $exact = $this->createTerm('Boopia');
+    $prefix = $this->createTerm('Boopia alpha');
+    $substring = $this->createTerm('Alpha Boopia');
+    $this->createTerm('Unrelated taxon');
+
+    $this->drupalGet('taxonomy/autocomplete/' . $this->fieldName . '/Boopia');
+    $this->assertResponse(200, 'The autocomplete endpoint returns HTTP 200.');
+
+    $matches = drupal_json_decode($this->drupalGetContent());
+    $this->assertTrue(is_array($matches), 'The autocomplete endpoint returns valid JSON.');
+    $this->assertIdentical(
+      array_keys($matches),
+      array(
+        'Boopia [' . $exact->tid . ']',
+        'Boopia alpha [' . $prefix->tid . ']',
+        'Alpha Boopia [' . $substring->tid . ']',
+      ),
+      'Results are unique and ranked as exact, prefix, then substring matches.'
+    );
+  }
+
+  /**
+   * Creates a term in the test vocabulary.
+   */
+  protected function createTerm($name) {
+    $term = (object) array(
+      'name' => $name,
+      'vid' => $this->vocabulary->vid,
+    );
+    taxonomy_term_save($term);
+    return $term;
+  }
+
+}

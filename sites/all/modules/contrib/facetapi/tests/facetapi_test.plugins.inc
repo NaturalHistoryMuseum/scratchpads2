@@ -14,6 +14,8 @@
  */
 class FacetapiTestAdapter extends FacetapiAdapter {
 
+  public $semaphore;
+
   /**
    * The total number of results in the query.
    */

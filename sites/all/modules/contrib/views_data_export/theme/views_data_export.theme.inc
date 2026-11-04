@@ -113,7 +113,7 @@ function template_preprocess_views_data_export_csv_header(&$vars) {
     if (!empty($vars['options']['encoding']) && function_exists('iconv')) {
       switch($vars['options']['encoding']) {
         case 'utf8_decode':
-          $converted = utf8_decode($output);
+          $converted = mb_convert_encoding($output, 'ISO-8859-1', 'UTF-8');
           break;
         default:
           $converted = iconv("UTF-8", $vars['options']['encoding'], $output);
@@ -160,7 +160,7 @@ function template_preprocess_views_data_export_csv_body(&$vars) {
       if (!empty($vars['options']['encoding']) && function_exists('iconv')) {
         switch($vars['options']['encoding']) {
           case 'utf8_decode':
-            $converted = utf8_decode($output);
+            $converted = mb_convert_encoding($output, 'ISO-8859-1', 'UTF-8');
             break;
           default:
             $converted = iconv("UTF-8", $vars['options']['encoding'], $output);

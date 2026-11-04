@@ -1335,7 +1335,7 @@ function biblio_form($node, &$form_state) {
       '#type' => 'textfield',
       '#title' => t('Title'),
       '#required' => TRUE,
-      '#default_value' => trim((isset($form_state['values']['title']) ? $form_state['values']['title'] : $node->title)),
+      '#default_value' => trim((string) (isset($form_state['values']['title']) ? $form_state['values']['title'] : $node->title)),
       '#maxlength' => 255,
       '#size' => 120,
       '#weight' => 1,

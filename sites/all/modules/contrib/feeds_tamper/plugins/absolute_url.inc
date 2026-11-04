@@ -39,13 +39,17 @@ function feeds_tamper_absolute_url_callback($result, $item_key, $element_key, &$
 
   // Supress warnings for invalid HTML.
   $errors = libxml_use_internal_errors(TRUE);
-  $entity_loader = libxml_disable_entity_loader(TRUE);
+  if (PHP_VERSION_ID < 80000) {
+    $entity_loader = libxml_disable_entity_loader(TRUE);
+  }
 
   $dom->loadHTML($field);
 
   libxml_clear_errors();
   libxml_use_internal_errors($errors);
-  libxml_disable_entity_loader($entity_loader);
+  if (PHP_VERSION_ID < 80000) {
+    libxml_disable_entity_loader($entity_loader);
+  }
 
   $urls = array();
   $tags = array('a' => 'href', 'img' => 'src', 'iframe' => 'src',

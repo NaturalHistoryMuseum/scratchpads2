@@ -223,6 +223,15 @@ function taxonomy_revision_entity_diff($old_term, $new_term, $context) {
  * Implements hook_entity_info_alter().
  */
 function taxonomy_revision_entity_info_alter(&$entity_info) {
+  // During an upgrade, the module code can be loaded before its schema has
+  // been installed. Do not advertise revision columns that do not yet exist.
+  $core_test = variable_get('scratchpads_core_test', FALSE);
+  $revision_schema_exists = db_table_exists('taxonomy_term_data_revision');
+  $revision_schema_exists = $revision_schema_exists && db_field_exists('taxonomy_term_data', 'revision_id');
+  if ($core_test || !$revision_schema_exists) {
+    return;
+  }
+
   $entity_info['taxonomy_term']['revision table'] = 'taxonomy_term_data_revision';
   $entity_info['taxonomy_term']['entity keys']['revision'] = 'revision_id';
 

@@ -831,6 +831,9 @@ class views_handler_field_field extends views_handler_field {
 
       // Determine if only the first and last values should be shown.
       $delta_first_last = $this->options['delta_first_last'];
+      if ($delta_first_last && !$delta_limit) {
+        $delta_limit = count($all_values) - $offset;
+      }
 
       $new_values = array();
       for ($i = 0; $i < $delta_limit; $i++) {

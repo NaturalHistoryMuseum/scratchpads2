@@ -52,6 +52,9 @@ class StatisticsTestCase extends DrupalWebTestCase {
  * want to test requests from an anonymous user.
  */
 class StatisticsLoggingTestCase extends DrupalWebTestCase {
+  protected $auth_user;
+  protected $node;
+
   public static function getInfo() {
     return array(
       'name' => 'Statistics logging tests',

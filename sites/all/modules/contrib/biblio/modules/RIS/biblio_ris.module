@@ -284,7 +284,9 @@ function _biblio_ris_import_string($string) {
  *
  */
 function _biblio_ris_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
-  ini_set('auto_detect_line_endings', TRUE);
+  if (PHP_VERSION_ID < 80100) {
+    ini_set('auto_detect_line_endings', TRUE);
+  }
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open RIS input file for reading."), 'error');
     return;

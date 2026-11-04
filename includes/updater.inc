@@ -74,6 +74,12 @@ class Updater {
    */
   public $source;
 
+  /**
+   * Machine name and human-readable title of the project being updated.
+   */
+  public $name;
+  public $title;
+
   public function __construct($source) {
     $this->source = $source;
     $this->name = self::getProjectName($source);

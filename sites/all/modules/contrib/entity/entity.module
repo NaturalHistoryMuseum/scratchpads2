@@ -721,7 +721,16 @@ function entity_key_array_by_property(array $entities, $property) {
 function entity_crud_get_info() {
   $types = array();
   foreach (entity_get_info() as $type => $info) {
-    if (isset($info['controller class']) && in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    // Upgrade test fixtures and partially-upgraded sites can retain entity
+    // controller names for modules whose code is no longer available. Avoid
+    // asking class_implements() to load a missing class; on PHP 8 this returns
+    // FALSE and passing that value to in_array() is a TypeError.
+    $controller_class = isset($info['controller class']) ? $info['controller class'] : NULL;
+    $controller_interfaces = array();
+    if ($controller_class && class_exists($controller_class)) {
+      $controller_interfaces = class_implements($controller_class);
+    }
+    if (in_array('EntityAPIControllerInterface', $controller_interfaces, TRUE)) {
       $types[$type] = $info;
     }
   }
@@ -1471,7 +1480,16 @@ function entity_entity_info_alter(&$entity_info) {
       $entity_info[$type]['configuration'] = !empty($info['exportable']);
     }
 
-    if (isset($info['controller class']) && in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    // Upgrade test fixtures and partially-upgraded sites can retain entity
+    // controller names for modules whose code is no longer available. Avoid
+    // asking class_implements() to load a missing class; on PHP 8 this returns
+    // FALSE and passing that value to in_array() is a TypeError.
+    $controller_class = isset($info['controller class']) ? $info['controller class'] : NULL;
+    $controller_interfaces = array();
+    if ($controller_class && class_exists($controller_class)) {
+      $controller_interfaces = class_implements($controller_class);
+    }
+    if (in_array('EntityAPIControllerInterface', $controller_interfaces, TRUE)) {
       // Automatically disable field cache when entity cache is used.
       if (!empty($info['entity cache']) && module_exists('entitycache')) {
         $entity_info[$type]['field cache'] = FALSE;

@@ -858,6 +858,8 @@ class UserPasswordResetTestCase extends DrupalWebTestCase {
  * Test cancelling a user.
  */
 class UserCancelTestCase extends DrupalWebTestCase {
+  protected $admin_user;
+
   public static function getInfo() {
     return array(
       'name' => 'Cancel account',
@@ -1358,7 +1360,7 @@ class UserPictureTestCase extends DrupalWebTestCase {
       $this->assertRaw($text, 'File size cited as reason for failure.');
 
       // Check if file is not uploaded.
-      $this->assertFalse(is_file($pic_path), 'File was not uploaded.');
+      $this->assertFalse(is_file((string) $pic_path), 'File was not uploaded.');
     }
   }
 
@@ -1817,6 +1819,9 @@ class UserTimeZoneFunctionalTest extends DrupalWebTestCase {
  * Test user autocompletion.
  */
 class UserAutocompleteTestCase extends DrupalWebTestCase {
+  protected $unprivileged_user;
+  protected $privileged_user;
+
   public static function getInfo() {
     return array(
       'name' => 'User autocompletion',
@@ -2284,6 +2289,11 @@ class UserEditRebuildTestCase extends DrupalWebTestCase {
  * Test case for user signatures.
  */
 class UserSignatureTestCase extends DrupalWebTestCase {
+  protected $full_html_format;
+  protected $plain_text_format;
+  protected $web_user;
+  protected $admin_user;
+
   public static function getInfo() {
     return array(
       'name' => 'User signatures',
@@ -2404,6 +2414,8 @@ class UserEditedOwnAccountTestCase extends DrupalWebTestCase {
  * Test case to test adding, editing and deleting roles.
  */
 class UserRoleAdminTestCase extends DrupalWebTestCase {
+
+  protected $admin_user;
 
   public static function getInfo() {
     return array(

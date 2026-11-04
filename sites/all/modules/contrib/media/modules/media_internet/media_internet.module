@@ -327,6 +327,8 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
 
 abstract class MediaInternetBaseHandler {
 
+  protected $embedCode;
+
   public function __construct($embedCode) {
     $this->embedCode = $embedCode;
   }

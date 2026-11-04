@@ -332,6 +332,10 @@ class DatabaseConnection_mysql extends DatabaseConnection {
       PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => TRUE,
       // Because MySQL's prepared statements skip the query cache, because it's dumb.
       PDO::ATTR_EMULATE_PREPARES => TRUE,
+      // Drupal's database API historically returns database scalar values as
+      // strings. mysqlnd on current PHP versions otherwise returns native
+      // integer and float values, unlike the other supported PDO drivers.
+      PDO::ATTR_STRINGIFY_FETCHES => TRUE,
     );
     if (defined('PDO::MYSQL_ATTR_MULTI_STATEMENTS')) {
       // An added connection option in PHP 5.5.21+ to optionally limit SQL to a

@@ -287,23 +287,34 @@ function scratchpads_taxonomic_name_field_autocomplete($field_name, $tags_typed 
       'name',
       'vid'
     ))->condition('t.vid', $vids);
-    // Clone the query to give three different queries, and union them together.
-    // This gives us the sort order we want.
+    // Run three queries to give us the sort order we want.
     // 1. TERM
     // 2. TERM%
     // 3. %TERM%
-    $query_no_prefix_or_suffix = clone $query;
-    $query_no_prefix = clone $query;
-    $query_no_prefix_or_suffix->condition('t.name', db_like($tag_last), 'LIKE')->range(0, 10);
-    $query_no_prefix->condition('t.name', db_like($tag_last) . '%', 'LIKE')->range(0, 10);
-    $query->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')->range(0, 10);
-    // Union the three queries.
-    $query_no_prefix_or_suffix->union($query_no_prefix);
-    $query_no_prefix_or_suffix->union($query);
-    // Execute, and fetch!
-    // Note, the range is included four times to keep the size of the results
-    // to a minimum.
-    $tags_return = $query_no_prefix_or_suffix->range(0, 10)->execute()->fetchAll();
+    // These used to be combined with UNION. Drupal's database abstraction
+    // renders the per-query ranges as unparenthesized LIMIT clauses, which is
+    // invalid in MySQL 5.7. Execute the small queries independently and merge
+    // them in rank order instead.
+    $patterns = array(
+      db_like($tag_last),
+      db_like($tag_last) . '%',
+      '%' . db_like($tag_last) . '%'
+    );
+    $tags_return = array();
+    $seen_tids = array();
+    foreach($patterns as $pattern){
+      $match_query = clone $query;
+      $match_query->condition('t.name', $pattern, 'LIKE')->range(0, 10);
+      foreach($match_query->execute()->fetchAll() as $tag){
+        if(!isset($seen_tids[$tag->tid])){
+          $tags_return[] = $tag;
+          $seen_tids[$tag->tid] = TRUE;
+          if(count($tags_return) == 10){
+            break 2;
+          }
+        }
+      }
+    }
     $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
     $term_matches = array();
     foreach($tags_return as $tag){

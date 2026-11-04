@@ -633,7 +633,7 @@ function drupal_parse_url($url) {
  *   The Drupal path to encode.
  */
 function drupal_encode_path($path) {
-  return str_replace('%2F', '/', rawurlencode($path));
+  return str_replace('%2F', '/', rawurlencode((string) $path));
 }
 
 /**
@@ -938,6 +938,9 @@ function drupal_http_request($url, array $options = array()) {
   if (is_array($options['data'])) {
     $options['data'] = drupal_http_build_query($options['data']);
   }
+  elseif ($options['data'] === NULL) {
+    $options['data'] = '';
+  }
 
   // Only add Content-Length if we actually have any content or if it is a POST
   // or PUT request. Some non-standard servers get confused by Content-Length in
@@ -1019,7 +1022,7 @@ function drupal_http_request($url, array $options = array()) {
   $result->headers = array();
 
   // Parse the response headers.
-  while ($line = trim(array_shift($response))) {
+  while ($response && ($line = trim((string) array_shift($response)))) {
     list($name, $value) = explode(':', $line, 2);
     $name = strtolower($name);
     if (isset($result->headers[$name]) && $name == 'set-cookie') {
@@ -1492,6 +1495,7 @@ function filter_xss_admin($string) {
  * @see drupal_validate_utf8()
  */
 function filter_xss($string, $allowed_tags = array('a', 'em', 'strong', 'cite', 'blockquote', 'code', 'ul', 'ol', 'li', 'dl', 'dt', 'dd')) {
+  $string = (string) $string;
   // Only operate on valid UTF-8 strings. This is necessary to prevent cross
   // site scripting issues on Internet Explorer 6.
   if (!drupal_validate_utf8($string)) {
@@ -1981,6 +1985,9 @@ function format_size($size, $langcode = NULL) {
  *   A translated string representation of the interval.
  */
 function format_interval($interval, $granularity = 2, $langcode = NULL) {
+  // Intervals are expressed as whole seconds. Normalizing once avoids PHP 8.1+
+  // precision-loss deprecations from the integer modulo operation below.
+  $interval = (int) $interval;
   $units = array(
     '1 year|@count years' => 31536000,
     '1 month|@count months' => 2592000,
@@ -6642,7 +6649,7 @@ function drupal_sort_title($a, $b) {
  * Checks if the key is a property.
  */
 function element_property($key) {
-  return $key[0] == '#';
+  return is_string($key) && isset($key[0]) && $key[0] == '#';
 }
 
 /**
@@ -7336,6 +7343,9 @@ function _drupal_schema_initialize(&$schema, $module, $remove_descriptions = TRU
 function drupal_schema_field_types($table) {
   $table_schema = drupal_get_schema($table);
   $field_types = array();
+  if (empty($table_schema['fields'])) {
+    return $field_types;
+  }
   foreach ($table_schema['fields'] as $field_name => $field_info) {
     $field_types[$field_name] = isset($field_info['type']) ? $field_info['type'] : NULL;
   }
@@ -7356,6 +7366,9 @@ function drupal_schema_field_types($table) {
  */
 function drupal_schema_fields_sql($table, $prefix = NULL) {
   $schema = drupal_get_schema($table);
+  if (empty($schema['fields'])) {
+    return array();
+  }
   $fields = array_keys($schema['fields']);
   if ($prefix) {
     $columns = array();

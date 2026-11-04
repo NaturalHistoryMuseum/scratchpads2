@@ -493,7 +493,7 @@ function biblio_export_form_submit($form, &$form_state) {
  * @return
  *   An array of node id's of the items imported
  */
-function biblio_import($import_file, $type, $userid = 1, $terms = NULL, $batch = FALSE, $session_id = NULL, &$context) {
+function biblio_import($import_file, $type, $userid = 1, $terms = NULL, $batch = FALSE, $session_id = NULL, &$context = NULL) {
   global $user;
   $parsed = 0;
   $nids = array();

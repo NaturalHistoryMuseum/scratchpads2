@@ -13,6 +13,8 @@
  */
 class FacetapiWidgetLinks extends FacetapiWidget {
 
+  protected $sorts;
+
   /**
    * Overrides FacetapiWidget::__construct().
    *

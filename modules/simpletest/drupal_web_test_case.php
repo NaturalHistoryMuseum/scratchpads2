@@ -17,6 +17,7 @@ global $drupal_test_info;
  *
  * Do not extend this class, use one of the subclasses in this file.
  */
+#[\AllowDynamicProperties]
 abstract class DrupalTestCase {
   /**
    * The test run ID.
@@ -1838,22 +1839,24 @@ class DrupalWebTestCase extends DrupalTestCase {
       variable_set('scratchpads_core_test', TRUE);
     }
 
-    // Core tests can be launched from an imported site whose custom default
-    // theme has already initialized in this runner process. Reinitialize the
-    // theme against the disposable core database so direct theme() calls do
-    // not use the parent site's preprocess and alter functions.
+    // Core tests use the standard core theme rather than a default theme from
+    // an imported parent site.
     if (getenv('DRUPAL_CORE_TESTS') == 'true') {
       variable_set('theme_default', 'bartik');
-      unset(
-        $GLOBALS['theme'],
-        $GLOBALS['theme_key'],
-        $GLOBALS['theme_info'],
-        $GLOBALS['base_theme_info'],
-        $GLOBALS['theme_engine'],
-        $GLOBALS['theme_path']
-      );
-      drupal_theme_initialize();
     }
+
+    // The parent site's theme can already be initialized in this runner
+    // process. Reinitialize it against every disposable test database so
+    // direct theme() calls use the same theme as child HTTP requests.
+    unset(
+      $GLOBALS['theme'],
+      $GLOBALS['theme_key'],
+      $GLOBALS['theme_info'],
+      $GLOBALS['base_theme_info'],
+      $GLOBALS['theme_engine'],
+      $GLOBALS['theme_path']
+    );
+    drupal_theme_initialize();
 
     // Ensure that the session is not written to the new environment and replace
     // the global $user session with uid 1 from the new test site.

@@ -617,7 +617,7 @@ function _field_write_instance($instance, $update = FALSE) {
   }
   // Check widget module.
   $widget_type = field_info_widget_types($instance['widget']['type']);
-  $instance['widget']['module'] = $widget_type['module'];
+  $instance['widget']['module'] = isset($widget_type['module']) ? $widget_type['module'] : NULL;
   $instance['widget']['settings'] += field_info_widget_settings($instance['widget']['type']);
 
   // Make sure there are at least display settings for the 'default' view mode,

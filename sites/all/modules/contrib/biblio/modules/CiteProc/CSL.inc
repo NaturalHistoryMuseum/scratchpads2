@@ -1370,7 +1370,10 @@ class csl_number extends csl_format {
    *
    */
   public function ordinal($num) {
-    if (($num / 10) % 10 == 1) {
+    // CSL ordinals are numeric. PHP versions before 8 silently coerced
+    // numeric strings during arithmetic; normalize explicitly for PHP 8.
+    $num = (int) $num;
+    if (intdiv(abs($num), 10) % 10 == 1) {
       $num .= $this->citeproc->get_locale('term', 'ordinal-04');
     }
     elseif ($num % 10 == 1) {

@@ -979,6 +979,10 @@ function image_style_transform_dimensions($style_name, array &$dimensions) {
  *   An image style array.
  */
 function image_style_flush($style) {
+  if (empty($style) || empty($style['name'])) {
+    return;
+  }
+
   // Delete the style directory in each registered wrapper.
   $wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_WRITE_VISIBLE);
   foreach ($wrappers as $wrapper => $wrapper_data) {

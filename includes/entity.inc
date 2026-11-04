@@ -469,6 +469,7 @@ class EntityFieldQueryException extends Exception {}
  * restrictions. Node access control is performed by the SQL storage engine but
  * other storage engines might not do this.
  */
+#[\AllowDynamicProperties]
 class EntityFieldQuery {
 
   public $ordered_results = array();

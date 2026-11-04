@@ -183,7 +183,9 @@ function biblio_tagged_biblio_export($nids) {
  *   none
  */
 function _biblio_tagged_import($file, $terms = array(), $batch = FALSE, $session_id = NULL) {
-  ini_set('auto_detect_line_endings', TRUE);
+  if (PHP_VERSION_ID < 80100) {
+    ini_set('auto_detect_line_endings', TRUE);
+  }
   if (!($fp = fopen($file->uri, "r"))) {
     drupal_set_message(t("Could not open EndNote Tagged input"), 'error');
     return;

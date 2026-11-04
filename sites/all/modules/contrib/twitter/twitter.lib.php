@@ -1283,6 +1283,7 @@ class TwitterStatus {
   }
 }
 
+#[\AllowDynamicProperties]
 class TwitterUser {
 
   public $id;

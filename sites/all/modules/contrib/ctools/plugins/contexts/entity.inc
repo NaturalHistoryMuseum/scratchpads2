@@ -55,7 +55,7 @@ function ctools_context_entity_get_children($plugin, $parent) {
  * It's important to remember that $conf is optional here, because contexts
  * are not always created from the UI.
  */
-function ctools_context_create_entity($empty, $data = NULL, $conf = FALSE, $plugin) {
+function ctools_context_create_entity($empty, $data = NULL, $conf = FALSE, $plugin = array()) {
   $entity_type = $plugin['keyword'];
   $entity = entity_get_info($entity_type);
   $context = new ctools_context(array('entity:' . $entity_type, 'entity', $entity_type));

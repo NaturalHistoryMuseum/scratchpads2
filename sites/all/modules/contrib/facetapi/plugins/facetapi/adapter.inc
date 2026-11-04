@@ -1167,6 +1167,7 @@ class FacetapiFacet implements ArrayAccess {
   /**
    * Implements ArrayAccess::offsetExists().
    */
+  #[\ReturnTypeWillChange]
   public function offsetExists($offset) {
     return isset($this->facet[$offset]);
   }
@@ -1174,6 +1175,7 @@ class FacetapiFacet implements ArrayAccess {
   /**
    * Implements ArrayAccess::offsetGet().
    */
+  #[\ReturnTypeWillChange]
   public function offsetGet($offset) {
     return isset($this->facet[$offset]) ? $this->facet[$offset] : NULL;
   }
@@ -1181,6 +1183,7 @@ class FacetapiFacet implements ArrayAccess {
   /**
    * Implements ArrayAccess::offsetSet().
    */
+  #[\ReturnTypeWillChange]
   public function offsetSet($offset, $value) {
     if (NULL === $offset) {
       $this->facet[] = $value;
@@ -1193,6 +1196,7 @@ class FacetapiFacet implements ArrayAccess {
   /**
    * Implements ArrayAccess::offsetUnset().
    */
+  #[\ReturnTypeWillChange]
   public function offsetUnset($offset) {
     unset($this->facet[$offset]);
   }

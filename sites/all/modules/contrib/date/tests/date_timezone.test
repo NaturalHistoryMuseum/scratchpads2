@@ -5,6 +5,16 @@
  */
 class DateTimezoneTestCase extends DateFieldBasic {
 
+  protected function setUp() {
+    parent::setUp();
+
+    // These assertions use fixed UTC values. Keep the test deterministic when
+    // it is launched from a site running in a daylight-saving timezone.
+    variable_set('date_default_timezone', 'UTC');
+    date_default_timezone_set('UTC');
+    $this->privileged_user = user_save($this->privileged_user, array('timezone' => 'UTC'));
+  }
+
   /**
    * @todo.
    */

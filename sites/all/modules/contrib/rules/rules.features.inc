@@ -51,7 +51,7 @@ class RulesFeaturesController extends EntityDefaultFeaturesController {
  *
  * @see RulesPluginFeaturesIntegrationInterace
  */
-function rules_features_abstract_default_features_export(&$export, &$pipe, $module_name = '', $element) {
+function rules_features_abstract_default_features_export(&$export, &$pipe, $module_name = '', $element = NULL) {
 
 }
 

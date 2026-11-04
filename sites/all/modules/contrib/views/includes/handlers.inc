@@ -1251,7 +1251,7 @@ function views_break_phrase($str, &$handler = NULL) {
  */
 function views_get_timezone() {
   global $user;
-  if (variable_get('configurable_timezones', 1) && $user->uid && strlen($user->timezone)) {
+  if (variable_get('configurable_timezones', 1) && $user->uid && !empty($user->timezone)) {
     $timezone = $user->timezone;
   }
   else {

@@ -217,7 +217,7 @@ class ctools_math_expr {
                     if (is_null($o2)) return $this->trigger("unexpected ')'");
                     else $output[] = $o2;
                 }
-                if (preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches)) { // did we just close a function?
+                if (preg_match("/^([a-z]\w*)\($/", (string) $stack->last(2), $matches)) { // did we just close a function?
                     $fnn = $matches[1]; // get the function name
                     $arg_count = $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
                     $output[] = $stack->pop(); // pop the function and push onto the output
@@ -330,7 +330,9 @@ class ctools_math_expr {
                     if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
                     $fnn = preg_replace("/^arc/", "a", $fnn); // for the 'arc' trig synonyms
                     if ($fnn == 'ln') $fnn = 'log';
-                    eval('$stack->push(' . $fnn . '($op1));'); // perfectly safe eval()
+                    // time() used to ignore the dummy operand accepted by this
+                    // single-argument expression parser. PHP 8 rejects it.
+                    $stack->push($fnn == 'time' ? time() : call_user_func($fnn, $op1));
                 } elseif (array_key_exists($fnn, $this->f)) { // user function
                     // get args
                     $args = array();

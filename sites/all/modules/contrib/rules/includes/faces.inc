@@ -110,6 +110,10 @@ if (!class_exists('FacesExtendable', FALSE)) {
      */
     function __call($name, $arguments = array()) {
       if (isset($this->facesMethods[$name])) {
+        // PHP 8 treats string keys passed to call_user_func_array() as named
+        // arguments. Rules predates named arguments and relies on positional
+        // callback invocation.
+        $arguments = array_values($arguments);
         $method = $this->facesMethods[$name];
         // Include code, if necessary.
         if (isset($this->facesIncludes[$name])) {

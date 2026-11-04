@@ -9,6 +9,7 @@
  * the password should always be asked from the user and never stored. For
  * safety, all methods operate only inside a "jail", by default the Drupal root.
  */
+#[\AllowDynamicProperties]
 abstract class FileTransfer {
   protected $username;
   protected $password;
@@ -364,7 +365,7 @@ class FileTransferException extends Exception {
   public $arguments;
 
   function __construct($message, $code = 0, $arguments = array()) {
-    parent::__construct($message, $code);
+    parent::__construct($message, (int) $code);
     $this->arguments = $arguments;
   }
 }
@@ -409,11 +410,13 @@ class SkipDotsRecursiveDirectoryIterator extends RecursiveDirectoryIterator {
     $this->skipdots();
   }
 
+  #[\ReturnTypeWillChange]
   function rewind() {
     parent::rewind();
     $this->skipdots();
   }
 
+  #[\ReturnTypeWillChange]
   function next() {
     parent::next();
     $this->skipdots();

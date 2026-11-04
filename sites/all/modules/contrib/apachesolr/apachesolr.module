@@ -1085,7 +1085,7 @@ function apachesolr_form_facetapi_facet_dependencies_form_alter(&$form, $form_st
  *   FALSE otherwise.
  */
 function apachesolr_has_searched($env_id, $searched = NULL) {
-  $_searched  = &drupal_static(__FUNCTION__, FALSE);
+  $_searched  = &drupal_static(__FUNCTION__, array());
   if (is_bool($searched)) {
     $_searched[$env_id] = $searched;
   }
@@ -1544,7 +1544,7 @@ function apachesolr_do_query(DrupalSolrQueryInterface $current_query) {
 
   $keys = $query->getParam('q');
 
-  if (strlen($keys) == 0 && ($filters = $query->getFilters())) {
+  if (strlen((string) $keys) == 0 && ($filters = $query->getFilters())) {
     // Move the fq params to q.alt for better performance. Only suitable
     // when using dismax or edismax, so we keep this out of the query class itself
     // for now.
@@ -1564,7 +1564,7 @@ function apachesolr_do_query(DrupalSolrQueryInterface $current_query) {
   // and thus bare entities &, > or < won't match. Single quotes are converted
   // too, but not double quotes since the dismax parser looks at them for
   // phrase queries.
-  $keys = htmlspecialchars($keys, ENT_NOQUOTES, 'UTF-8');
+  $keys = htmlspecialchars((string) $keys, ENT_NOQUOTES, 'UTF-8');
   $keys = str_replace("'", '&#039;', $keys);
   $response = $query->search($keys);
   // The response is cached so that it is accessible to the blocks and anything

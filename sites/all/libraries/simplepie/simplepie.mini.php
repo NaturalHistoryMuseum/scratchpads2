@@ -8644,7 +8644,7 @@ class SimplePie_Locator
 	{
 		$this->registry = $registry;
 	}
-	public function find($type = SIMPLEPIE_LOCATOR_ALL, &$working)
+	public function find($type, &$working)
 	{
 		if ($this->is_feed($this->file))
 		{
@@ -11295,8 +11295,8 @@ class SimplePie_Parse_Date
 	
 	public function __construct()
 	{
-		$this->day_pcre = '(' . implode(array_keys($this->day), '|') . ')';
-		$this->month_pcre = '(' . implode(array_keys($this->month), '|') . ')';
+		$this->day_pcre = '(' . implode('|', array_keys($this->day)) . ')';
+		$this->month_pcre = '(' . implode('|', array_keys($this->month)) . ')';
 		static $cache;
 		if (!isset($cache[get_class($this)]))
 		{

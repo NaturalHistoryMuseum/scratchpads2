@@ -121,7 +121,7 @@ function rules_action_entity_create_info_alter(&$element_info, RulesAbstractPlug
 /**
  * Action: Save entities.
  */
-function rules_action_entity_save($wrapper, $immediate = FALSE, $settings, $state, $element) {
+function rules_action_entity_save($wrapper, $immediate = FALSE, $settings = array(), $state = NULL, $element = NULL) {
   $state->saveChanges($settings['data:select'], $wrapper, $immediate);
 }
 

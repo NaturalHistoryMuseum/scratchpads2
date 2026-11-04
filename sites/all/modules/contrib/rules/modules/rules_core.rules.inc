@@ -276,7 +276,7 @@ function rules_element_invoke_component_validate(RulesPlugin $element) {
 /**
  * Implements the features export callback of the RulesPluginFeaturesIntegrationInterace.
  */
-function rules_element_invoke_component_features_export(&$export, &$pipe, $module_name = '', $element) {
+function rules_element_invoke_component_features_export(&$export, &$pipe, $module_name = '', $element = NULL) {
   // Add the used component to the pipe.
   $info = $element->info();
   $pipe['rules_config'][] = $info['#config_name'];

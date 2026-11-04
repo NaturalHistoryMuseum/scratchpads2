@@ -106,12 +106,13 @@ function theme_biblio_long($variables) {
     }
     return $output;
   }
+  $authors = array();
   foreach ((array) $node->biblio_contributors as $auth) {
     if ($auth['auth_category'] == 1) {
       $authors[] = theme('biblio_author_link', array('author' => $auth));
     }
   }
-  $authors = implode('; ', (array) $authors);
+  $authors = implode('; ', $authors);
   $openurl_base = variable_get('biblio_baseopenurl', '');
   if ($openurl_base) {
     $output .= theme('biblio_openurl', array('openURL' => biblio_openurl($node)));

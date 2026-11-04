@@ -103,7 +103,12 @@ class TestFileTransfer extends FileTransfer {
   public $shouldIsDirectoryReturnTrue = FALSE;
 
   function __construct($jail, $username, $password, $hostname = 'localhost', $port = 9999) {
-    parent::__construct($jail, $username, $password, $hostname, $port);
+    parent::__construct($jail);
+    $this->username = $username;
+    $this->password = $password;
+    $this->hostname = $hostname;
+    $this->host = $hostname;
+    $this->port = $port;
   }
 
   static function factory($jail, $settings) {

@@ -7,7 +7,9 @@
  * rather than just a stdClass or array. This class is for testing that
  * functionality. (See testQueryFetchClass() below)
  */
-class FakeRecord { }
+class FakeRecord {
+  public $name;
+}
 
 /**
  * Base test class for databases.

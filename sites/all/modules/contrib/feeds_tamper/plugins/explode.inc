@@ -35,7 +35,7 @@ function feeds_tamper_explode_form($importer, $element_key, $settings) {
 
 function feeds_tamper_explode_validate(&$settings) {
   $settings['real_separator'] = str_replace(array('%s', '%t', '%n'), array(' ', "\t", "\n"), $settings['separator']);
-  $settings['limit'] = trim($settings['limit']);
+  $settings['limit'] = trim((string) $settings['limit']);
 
   if (strlen($settings['limit']) && !is_numeric($settings['limit'])) {
     form_set_error('settings][limit', t('Limit must be an integer or blank.'));

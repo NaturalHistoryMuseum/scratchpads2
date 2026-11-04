@@ -648,9 +648,15 @@ function _grabSurname($input) {
   foreach ($surname_array as $value) {
     $first_char = substr($value, 0, 1);
     if (!$no_prefix && (ord($first_char) >= 97) && (ord($first_char) <= 122)) {
+      if ($prefix === FALSE) {
+        $prefix = array();
+      }
       $prefix[] = $value;
     }
     else {
+      if ($surname === FALSE) {
+        $surname = array();
+      }
       $surname[] = $value;
       $no_prefix = TRUE;
     }

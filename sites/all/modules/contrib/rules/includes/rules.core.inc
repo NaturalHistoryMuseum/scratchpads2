@@ -352,6 +352,7 @@ abstract class RulesExtendable extends FacesExtendable {
  * plugins are applied and the root element representing the configuration is
  * saved.
  */
+#[\AllowDynamicProperties]
 abstract class RulesPlugin extends RulesExtendable {
 
   /**
@@ -1877,10 +1878,12 @@ class RulesAbstractPluginDefaults extends FacesExtender implements RulesPluginIm
  */
 class RulesRecursiveElementIterator extends ArrayIterator implements RecursiveIterator {
 
+   #[\ReturnTypeWillChange]
    public function getChildren() {
      return $this->current()->getIterator();
    }
 
+   #[\ReturnTypeWillChange]
    public function hasChildren() {
       return $this->current() instanceof IteratorAggregate;
    }
@@ -1918,6 +1921,7 @@ abstract class RulesContainerPlugin extends RulesPlugin implements IteratorAggre
    *
    * @return RulesRecursiveElementIterator
    */
+  #[\ReturnTypeWillChange]
   public function getIterator() {
     return new RulesRecursiveElementIterator($this->children);
   }

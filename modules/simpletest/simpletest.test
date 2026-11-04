@@ -6,6 +6,11 @@
  */
 
 class SimpleTestFunctionalTest extends DrupalWebTestCase {
+  protected $pass;
+  protected $fail;
+  protected $valid_permission;
+  protected $invalid_permission;
+
   /**
    * The results array that has been parsed by getTestResults().
    */

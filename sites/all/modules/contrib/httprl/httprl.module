@@ -1891,7 +1891,7 @@ function httprl_post_processing($id, &$responses, &$output, $time_left = NULL) {
   $result = &$responses[$id];
 
   // Close file.
-  if (isset($result->fp)) {
+  if (isset($result->fp) && is_resource($result->fp)) {
     @fclose($result->fp);
   }
 

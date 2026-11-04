@@ -1515,7 +1515,7 @@ function comment_save($comment) {
         // by retrieving the maximum thread level.
         $max = db_query('SELECT MAX(thread) FROM {comment} WHERE nid = :nid', array(':nid' => $comment->nid))->fetchField();
         // Strip the "/" from the end of the thread.
-        $max = rtrim($max, '/');
+        $max = rtrim((string) $max, '/');
         // We need to get the value at the correct depth.
         $parts = explode('.', $max);
         $firstsegment = $parts[0];
@@ -1528,27 +1528,37 @@ function comment_save($comment) {
 
         // Get the parent comment:
         $parent = comment_load($comment->pid);
-        // Strip the "/" from the end of the parent thread.
-        $parent->thread = (string) rtrim((string) $parent->thread, '/');
-        // Get the max value in *this* thread.
-        $max = db_query("SELECT MAX(thread) FROM {comment} WHERE thread LIKE :thread AND nid = :nid", array(
-          ':thread' => $parent->thread . '.%',
-          ':nid' => $comment->nid,
-        ))->fetchField();
-
-        if ($max == '') {
-          // First child of this parent.
-          $thread = $parent->thread . '.' . int2vancode(0) . '/';
+        if (!$parent) {
+          // A stale parent ID must not make saving an otherwise valid comment
+          // fatal. Treat the comment as a new root comment.
+          $comment->pid = 0;
+          $max = db_query('SELECT MAX(thread) FROM {comment} WHERE nid = :nid', array(':nid' => $comment->nid))->fetchField();
+          $parts = explode('.', rtrim((string) $max, '/'));
+          $thread = int2vancode(vancode2int($parts[0]) + 1) . '/';
         }
         else {
-          // Strip the "/" at the end of the thread.
-          $max = rtrim($max, '/');
-          // Get the value at the correct depth.
-          $parts = explode('.', $max);
-          $parent_depth = count(explode('.', $parent->thread));
-          $last = $parts[$parent_depth];
-          // Finally, build the thread field for this new comment.
-          $thread = $parent->thread . '.' . int2vancode(vancode2int($last) + 1) . '/';
+          // Strip the "/" from the end of the parent thread.
+          $parent->thread = (string) rtrim((string) $parent->thread, '/');
+          // Get the max value in *this* thread.
+          $max = db_query("SELECT MAX(thread) FROM {comment} WHERE thread LIKE :thread AND nid = :nid", array(
+            ':thread' => $parent->thread . '.%',
+            ':nid' => $comment->nid,
+          ))->fetchField();
+
+          if ($max == '') {
+            // First child of this parent.
+            $thread = $parent->thread . '.' . int2vancode(0) . '/';
+          }
+          else {
+            // Strip the "/" at the end of the thread.
+            $max = rtrim($max, '/');
+            // Get the value at the correct depth.
+            $parts = explode('.', $max);
+            $parent_depth = count(explode('.', $parent->thread));
+            $last = $parts[$parent_depth];
+            // Finally, build the thread field for this new comment.
+            $thread = $parent->thread . '.' . int2vancode(vancode2int($last) + 1) . '/';
+          }
         }
       }
 

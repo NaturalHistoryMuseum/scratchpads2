@@ -20,7 +20,7 @@ class FacetapiTestCase extends DrupalWebTestCase {
     $modules = func_get_args();
     $modules[] = 'block';
     $modules[] = 'facetapi_test';
-    forward_static_call_array('parent::setUp', $modules);
+    parent::setUp(...$modules);
     $this->authenticatedUser = $this->drupalCreateUser();
     $this->adminUser = $this->drupalCreateUser(array(
       'administer blocks',

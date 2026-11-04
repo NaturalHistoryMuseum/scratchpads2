@@ -38,7 +38,7 @@ function globalredirect_init() {
     // Check the access on the current path, return FALSE if access not
     // allowed. This stops redirection for paths without access permission.
     $item = menu_get_item();
-    if (!$item['access']) {
+    if (!$item || empty($item['access'])) {
       return FALSE;
     }
   }

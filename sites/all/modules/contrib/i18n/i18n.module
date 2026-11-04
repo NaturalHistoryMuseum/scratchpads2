@@ -233,7 +233,7 @@ function i18n_langcode($langcode = NULL) {
 /**
  * Implements hook_help().
  */
-function i18n_help($path = 'admin/help#i18n', $arg) {
+function i18n_help($path = 'admin/help#i18n', $arg = NULL) {
   switch ($path) {
     case 'admin/help#i18n' :
       $output = '<p>' . t('This module improves support for multilingual content in Drupal sites:') . '</p>';

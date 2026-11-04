@@ -20,6 +20,7 @@ if (!class_exists('OAuthException')) {
 class OAuthConsumer {
   public $key;
   public $secret;
+  public $callback_url;
 
   function __construct($key, $secret, $callback_url=NULL) {
     $this->key = $key;

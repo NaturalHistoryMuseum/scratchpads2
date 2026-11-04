@@ -1605,6 +1605,13 @@ class FieldInfoTestCase extends FieldTestCase {
 }
 
 class FieldFormTestCase extends FieldTestCase {
+  protected $field_single;
+  protected $field_multiple;
+  protected $field_unlimited;
+  protected $field;
+  protected $field_name;
+  protected $instance;
+
   public static function getInfo() {
     return array(
       'name' => 'Field form tests',

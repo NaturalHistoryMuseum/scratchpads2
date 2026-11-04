@@ -381,7 +381,7 @@ function rules_import($export, &$error_msg = '') {
  *
  * @see hook_rules_data_info()
  */
-function &rules_wrap_data($data = NULL, $info, $force = FALSE) {
+function &rules_wrap_data($data = NULL, $info = array(), $force = FALSE) {
   // If the data is already wrapped, use the existing wrapper.
   if ($data instanceof EntityMetadataWrapper) {
     return $data;

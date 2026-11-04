@@ -5,7 +5,7 @@ import std;
 
 backend default {
   .host = "scratchpads.apache";
-  .port = "80";
+  .port = "8080";
   .max_connections = 100;
   .connect_timeout = 60s;
   .first_byte_timeout = 60s;

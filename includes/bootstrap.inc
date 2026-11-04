@@ -1887,6 +1887,7 @@ function check_plain($text) {
  *   TRUE if the text is valid UTF-8, FALSE if not.
  */
 function drupal_validate_utf8($text) {
+  $text = (string) $text;
   if (strlen($text) == 0) {
     return TRUE;
   }

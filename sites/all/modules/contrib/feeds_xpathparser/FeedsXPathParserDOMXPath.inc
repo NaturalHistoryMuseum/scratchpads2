@@ -11,6 +11,9 @@
 class FeedsXPathParserDOMXPath extends DOMXPath {
   protected $config = array();
   protected $modifiedQueries = array();
+  protected $namespaces = array();
+  protected $doc;
+  protected $error;
 
   /**
    * Constructs a FeedsXPathParserDOMXPath.
