@@ -72,6 +72,12 @@ class BiblioContributorWebTestCase extends BiblioWebTestCase {
     // Edit links appear for 'administer biblio'.
     $account = $this->getUser('administer biblio');
     $this->drupalLogin($account);
+
+    // The unfiltered author administration page must not bind a filter value
+    // when its query has no :filter placeholder.
+    $this->drupalGet('admin/config/content/biblio/author');
+    $this->assertResponse(200, 'The unfiltered author administration page loads.');
+
     $this->drupalGet('biblio', array('query' => array('f[author]' => 1)));
     $this->assertText('[edit]');
   }

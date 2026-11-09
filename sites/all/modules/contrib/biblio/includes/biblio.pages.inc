@@ -1282,6 +1282,11 @@ function _biblio_get_authors($filter = NULL) {
     $suspects[] = $author->lastname;
   }
 
+  $query_args = array();
+  if ($filter) {
+    $query_args[':filter'] = $filter;
+  }
+
   $db_result = db_query('SELECT bd.cid, bd.drupal_uid, bd.name, bd.lastname,
                                 bd.firstname, bd.prefix, bd.suffix,
                                 bd.initials, bd.affiliation, bd.md5, bd.literal,
@@ -1294,7 +1299,7 @@ function _biblio_get_authors($filter = NULL) {
                                      bd.firstname, bd.prefix, bd.suffix,
                                      bd.initials, bd.affiliation, bd.md5, bd.literal
                             ORDER BY  lastname ASC, SUBSTRING(firstname,1,1) ASC,
-                            initials ASC', array(':filter' => $filter));
+                            initials ASC', $query_args);
 
   foreach ($db_result as $author) {
     if (array_search($author->lastname, $suspects) !== FALSE) {
