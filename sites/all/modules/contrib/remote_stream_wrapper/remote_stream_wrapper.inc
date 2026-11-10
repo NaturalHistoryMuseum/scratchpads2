@@ -538,7 +538,10 @@ class DrupalRemoteStreamWrapper implements DrupalStreamWrapperInterface {
   protected function getStreamContent() {
     if (!isset($this->stream_content)) {
       $this->stream_content = NULL;
-      $options = stream_context_get_options($this->context);
+      $options = array();
+      if (isset($this->context) && is_resource($this->context)) {
+        $options = stream_context_get_options($this->context);
+      }
       if (!empty($options['http'])){
         $options = $options['http'];
         // Convert the 'header' option to a keyed array as drupal_http_request
