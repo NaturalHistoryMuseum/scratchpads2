@@ -83,7 +83,7 @@ function _date_views_fields($base = 'node') {
 
         default:
           // If this is not a date field, nothing more to do.
-          continue;
+          continue 2;
       }
 
       $revision = in_array($base, array('node_revision')) ? FIELD_LOAD_REVISION : FIELD_LOAD_CURRENT;
