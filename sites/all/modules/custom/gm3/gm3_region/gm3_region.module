@@ -124,3 +124,18 @@ function gm3_region_theme(){
     )
   );
 }
+
+/**
+ * Implements hook_gm3_field_theme().
+ *
+ * This hook must live in the module file so Drupal can discover it while
+ * building the module_implements() cache. The theme include is loaded only
+ * when one of this module's registered theme hooks is invoked.
+ */
+function gm3_region_gm3_field_theme($name, $vars){
+  switch ($name) {
+    case 'region_text':
+    case 'gm3_region_region_text':
+      return theme('gm3_region_text', $vars);
+  }
+}
