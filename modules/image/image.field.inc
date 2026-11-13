@@ -598,6 +598,14 @@ function image_field_formatter_view($entity_type, $entity, $field, $instance, $l
  */
 function theme_image_formatter($variables) {
   $item = $variables['item'];
+  // Stale field data can reference an image item that no longer exists. PHP
+  // 8 throws a TypeError when array_key_exists() receives NULL, whereas older
+  // versions only emitted a warning. Do not render a broken image in either
+  // case.
+  if (!is_array($item) || empty($item['uri'])) {
+    return '';
+  }
+
   $image = array(
     'path' => $item['uri'],
   );

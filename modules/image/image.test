@@ -1829,6 +1829,16 @@ class ImageThemeFunctionWebTestCase extends DrupalWebTestCase {
    * Tests usage of the image field formatters.
    */
   function testImageFormatterTheme() {
+    // Stale field data may result in a missing image item. The formatter must
+    // skip it rather than raising a TypeError on PHP 8.
+    $element = array(
+      '#theme' => 'image_formatter',
+      '#image_style' => '',
+      '#item' => NULL,
+      '#path' => array(),
+    );
+    $this->assertIdentical('', render($element), 'Missing image items are not rendered.');
+
     // Create an image.
     $files = $this->drupalGetTestFiles('image');
     $file = reset($files);
