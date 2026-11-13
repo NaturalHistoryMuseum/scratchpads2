@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * Tests GM3 geometry conversion compatibility.
+ */
+class Gm3GeometryTestCase extends DrupalUnitTestCase{
+
+  public static function getInfo(){
+    return array(
+      'name' => 'GM3 geometry conversion',
+      'description' => 'Ensures malformed map geometry is handled safely.',
+      'group' => 'GM3',
+    );
+  }
+
+  public function setUp(){
+    parent::setUp();
+    require_once DRUPAL_ROOT . '/sites/all/modules/custom/gm3/gm3.functions.inc';
+  }
+
+  public function testGeometryConversion(){
+    $polygon = 'POLYGON ((1 2, 3 4, 1 2))';
+    $this->assertEqual(
+      gm3_convert_polygon_string_last($polygon),
+      array(
+        array('1', '2'),
+        array('3', '4'),
+        array('1', '2'),
+      ),
+      'Valid polygon coordinates are returned.'
+    );
+
+    $multipolygon = 'MULTIPOLYGON (((1 2, 3 4, 1 2)),((5 6, 7 8, 5 6)))';
+    $this->assertEqual(
+      gm3_convert_polygon_string_last($multipolygon),
+      array(
+        array('5', '6'),
+        array('7', '8'),
+        array('5', '6'),
+      ),
+      'Valid multipolygon coordinates are returned without by-reference notices.'
+    );
+
+    $this->assertFalse(
+      gm3_convert_polygon_string_last(''),
+      'Empty geometry is rejected.'
+    );
+    $this->assertFalse(
+      gm3_convert_polygon_string_last('LINESTRING (1 2, 3 4)'),
+      'Unsupported geometry is rejected.'
+    );
+    $this->assertFalse(
+      gm3_convert_polygon_string_last(NULL),
+      'Missing geometry is rejected.'
+    );
+  }
+}

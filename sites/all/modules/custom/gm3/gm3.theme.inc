@@ -337,13 +337,18 @@ function theme_gm3_view_gm3($variables){
         case 'gm3_polyline':
           foreach($row->{"field_$key"} as $item){
             module_load_include('functions.inc', 'gm3');
-            if(!isset($map['libraries'][substr($type, 4)])){
-              $map['libraries'][substr($type, 4)] = array(
-                substr($type, 4) . 's' => array()
+            $geometry_type = substr($type, 4);
+            $geometry = gm3_convert_polygon_string_last($item['raw'][$geometry_type] ?? NULL);
+            if($geometry === FALSE){
+              continue;
+            }
+            if(!isset($map['libraries'][$geometry_type])){
+              $map['libraries'][$geometry_type] = array(
+                $geometry_type . 's' => array()
               );
             }
-            $map['libraries'][substr($type, 4)][substr($type, 4) . 's'][] = array(
-              substr($type, 4) => array_pop(gm3_convert_polygon_string($item['raw'][substr($type, 4)])),
+            $map['libraries'][$geometry_type][$geometry_type . 's'][] = array(
+              $geometry_type => $geometry,
               'editable' => FALSE,
               'content' => $content
             );
@@ -405,13 +410,17 @@ function theme_gm3_view_gm3($variables){
                 case 'polyline':
                 case 'polygon':
                   module_load_include('functions.inc', 'gm3');
+                  $geometry = gm3_convert_polygon_string_last($item[$item['gm3_type']] ?? NULL);
+                  if($geometry === FALSE){
+                    continue 2;
+                  }
                   if(!isset($map['libraries'][$item['gm3_type']])){
                     $map['libraries'][$item['gm3_type']] = array(
                       $item['gm3_type'] . 's' => array()
                     );
                   }
                   $map['libraries'][$item['gm3_type']][$item['gm3_type'] . 's'][] = array(
-                    $item['gm3_type'] => array_pop(gm3_convert_polygon_string($item[$item['gm3_type']])),
+                    $item['gm3_type'] => $geometry,
                     'editable' => FALSE,
                     'content' => $content
                   );
